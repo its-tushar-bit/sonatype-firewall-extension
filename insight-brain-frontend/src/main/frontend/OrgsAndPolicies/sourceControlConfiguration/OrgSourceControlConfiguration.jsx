@@ -25,10 +25,12 @@ import {
   PROVIDERS_WITH_USERNAME,
   SCM_FEATURE_UNSUPPORTED_MESSAGE,
   DEFAULT_BRANCH_SUBLABEL,
+  shouldShowGitHubAppAuth,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 import {
   selectIsAutomationSupported,
   selectTenantScmOptionsTypes,
+  selectIsGithubAppAuthenticationEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectSourceControlConfigurationSlice,
@@ -37,6 +39,7 @@ import {
 import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
 import { faQuestionCircle } from '@fortawesome/pro-solid-svg-icons';
 import ScmProviderOptions from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/ScmProviderOptions';
+import GitHubAppAuthenticationMethod from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/GitHubAppAuthenticationMethod';
 
 const OrgSourceControlConfiguration = () => {
   const dispatch = useDispatch();
@@ -52,6 +55,7 @@ const OrgSourceControlConfiguration = () => {
   const isAutomationSupported = useSelector(selectIsAutomationSupported);
   const validationError = useSelector(selectValidationError);
   const sourceControlOptions = useSelector(selectTenantScmOptionsTypes);
+  const isGithubAppAuthenticationEnabled = useSelector(selectIsGithubAppAuthenticationEnabled);
 
   const doLoad = () => dispatch(actions.load());
   const save = () => dispatch(actions.save());
@@ -108,6 +112,12 @@ const OrgSourceControlConfiguration = () => {
     ? 'Credentials'
     : 'Access Token';
 
+  const showGitHubAppAuth = shouldShowGitHubAppAuth(
+    sourceControl,
+    serverSourceControl,
+    isGithubAppAuthenticationEnabled
+  );
+
   return (
     <NxStatefulForm
       onSubmit={save}
@@ -157,77 +167,90 @@ const OrgSourceControlConfiguration = () => {
           <ScmProviderOptions />
         </NxFormSelect>
       </NxFieldset>
-      <NxFieldset
-        id="editor-source-control-token"
-        label={credentialsLabel}
-        disabled={areFieldsDisabled}
-        isRequired={!sourceControl?.token.isInherited && sourceControl?.provider.isInherited}
-      >
-        {sourceControl?.provider.isInherited && (
-          <>
-            <NxRadio
-              name="Credentials"
-              value="Inherit"
-              onChange={() => onChangeCredentialsInherited(true)}
-              isChecked={sourceControl?.token.isInherited}
-              disabled={areFieldsDisabled}
+      {/* GitHub App authentication (when enabled and overriding) */}
+      {showGitHubAppAuth && (
+        <GitHubAppAuthenticationMethod
+          sourceControl={sourceControl}
+          setValue={setValue}
+          areFieldsDisabled={areFieldsDisabled}
+          onChangeToken={onChangeToken}
+          isGithubAppAuthenticationEnabled={isGithubAppAuthenticationEnabled}
+        />
+      )}
+      {/* Standard token authentication (fallback) */}
+      {!showGitHubAppAuth && (
+        <NxFieldset
+          id="editor-source-control-token"
+          label={credentialsLabel}
+          disabled={areFieldsDisabled}
+          isRequired={!sourceControl?.token.isInherited && sourceControl?.provider.isInherited}
+        >
+          {sourceControl?.provider.isInherited && (
+            <>
+              <NxRadio
+                name="Credentials"
+                value="Inherit"
+                onChange={() => onChangeCredentialsInherited(true)}
+                isChecked={sourceControl?.token.isInherited}
+                disabled={areFieldsDisabled}
+              >
+                {sourceControl?.token.parentName
+                  ? `Inherit from ${sourceControl?.token.parentName}`
+                  : 'Inherit (Not Configured)'}
+              </NxRadio>
+              <NxRadio
+                name="Credentials"
+                value="Override"
+                onChange={() => onChangeCredentialsInherited(false)}
+                isChecked={!sourceControl?.token.isInherited}
+                disabled={areFieldsDisabled}
+              >
+                Override
+              </NxRadio>
+            </>
+          )}
+          <NxFormRow>
+            {providerNeedsUsername(sourceControl, serverSourceControl) && (
+              <NxFormGroup label="Username" isRequired>
+                <NxTextInput
+                  id="source-control-username"
+                  onChange={onChangeUsername}
+                  {...(sourceControl?.username.isInherited && sourceControl?.provider.isInherited
+                    ? sourceControl?.username.parentValue
+                    : sourceControl?.username.rscValue)}
+                  disabled={isUserNameDisabled}
+                  validatable
+                  data-testid="username-input"
+                  autocomplete="off"
+                />
+              </NxFormGroup>
+            )}
+            <NxFormGroup
+              label={
+                !sourceControl?.provider.isInherited || providerNeedsUsername(sourceControl, serverSourceControl)
+                  ? 'Access Token'
+                  : ''
+              }
+              type="password"
+              className={`${sourceControl?.provider.isInherited ? 'iq-source-control-token' : ''}`}
+              isRequired
             >
-              {sourceControl?.token.parentName
-                ? `Inherit from ${sourceControl?.token.parentName}`
-                : 'Inherit (Not Configured)'}
-            </NxRadio>
-            <NxRadio
-              name="Credentials"
-              value="Override"
-              onChange={() => onChangeCredentialsInherited(false)}
-              isChecked={!sourceControl?.token.isInherited}
-              disabled={areFieldsDisabled}
-            >
-              Override
-            </NxRadio>
-          </>
-        )}
-        <NxFormRow>
-          {providerNeedsUsername(sourceControl, serverSourceControl) && (
-            <NxFormGroup label="Username" isRequired>
               <NxTextInput
-                id="source-control-username"
-                onChange={onChangeUsername}
-                {...(sourceControl?.username.isInherited && sourceControl?.provider.isInherited
-                  ? sourceControl?.username.parentValue
-                  : sourceControl?.username.rscValue)}
-                disabled={isUserNameDisabled}
+                id="source-control-token"
+                onChange={onChangeToken}
+                {...(sourceControl?.token.isInherited && sourceControl?.provider.isInherited
+                  ? sourceControl?.token.parentValue
+                  : sourceControl?.token.rscValue)}
+                disabled={isTokenDisabled}
+                type="password"
                 validatable
-                data-testid="username-input"
-                autocomplete="off"
+                data-testid="token-input"
+                autocomplete="new-password"
               />
             </NxFormGroup>
-          )}
-          <NxFormGroup
-            label={
-              !sourceControl?.provider.isInherited || providerNeedsUsername(sourceControl, serverSourceControl)
-                ? 'Access Token'
-                : ''
-            }
-            type="password"
-            className={`${sourceControl?.provider.isInherited ? 'iq-source-control-token' : ''}`}
-            isRequired
-          >
-            <NxTextInput
-              id="source-control-token"
-              onChange={onChangeToken}
-              {...(sourceControl?.token.isInherited && sourceControl?.provider.isInherited
-                ? sourceControl?.token.parentValue
-                : sourceControl?.token.rscValue)}
-              disabled={isTokenDisabled}
-              type="password"
-              validatable
-              data-testid="token-input"
-              autocomplete="new-password"
-            />
-          </NxFormGroup>
-        </NxFormRow>
-      </NxFieldset>
+          </NxFormRow>
+        </NxFieldset>
+      )}
       {/* Unsupported for some licenses */}
       <NxTooltip title={!isAutomationSupported ? SCM_FEATURE_UNSUPPORTED_MESSAGE : ''}>
         <NxFieldset

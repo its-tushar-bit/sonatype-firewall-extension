@@ -327,7 +327,7 @@ public enum AuditEvent
   ROI_CONFIG_CREATE(Domain.ROI_CONFIGURATION, Type.CONFIGURE),
 
   CONFIGURE_OIDC(Domain.SECURITY_OIDC, Type.CONFIGURE),
-  DELETE_OIDC(Domain.SECURITY_OIDC, Type.DELETE),;
+  DELETE_OIDC(Domain.SECURITY_OIDC, Type.DELETE);
 
   private final String domain;
 

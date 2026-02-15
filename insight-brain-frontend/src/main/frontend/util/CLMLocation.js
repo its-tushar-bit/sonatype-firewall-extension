@@ -1850,3 +1850,8 @@ export const getReact2ShellReportDataUrl = (
 };
 export const getApplicationReportDeepLinkUrl = (applicationId, scanId) =>
   uriTemplate`/ui/links/application/${applicationId}/report/${scanId}`;
+
+export function getGitHubAppManifestUrl(ownerId, organizationName) {
+  const baseUrl = uriTemplate`/api/v2/githubApp/manifest?ownerId=${ownerId}`;
+  return organizationName ? `${baseUrl}&organizationName=${encodeURIComponent(organizationName)}` : baseUrl;
+}

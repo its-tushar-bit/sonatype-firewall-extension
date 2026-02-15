@@ -151,6 +151,8 @@
     <class>com.sonatype.insight.brain.model.security.OAuth2Group</class>
     <class>com.sonatype.insight.brain.model.security.OAuth2UserGroup</class>
     <class>com.sonatype.insight.brain.model.githubapp.GitHubApp</class>
+    <class>com.sonatype.insight.brain.model.githubapp.GitHubAppInstallationState</class>
+    <class>com.sonatype.insight.brain.model.githubapp.GitHubAppRegistrationState</class>
     <class>com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts</class>
     <class>com.sonatype.insight.brain.model.MalwareDefenseMetrics</class>
     <class>com.sonatype.insight.brain.model.telemetry.HistoricalTelemetryState</class>

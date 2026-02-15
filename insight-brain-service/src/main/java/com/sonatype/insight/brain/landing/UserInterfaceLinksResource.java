@@ -173,6 +173,27 @@ public class UserInterfaceLinksResource
   }
 
   @GET
+  @Path(SOURCE_CONTROL_MANAGEMENT_PATH)
+  public Response linkToSourceControlManagement(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @QueryParam("githubAppSuccess") String githubAppSuccess)
+  {
+    UriBuilder uriBuilder = baseUrl.redirect();
+
+    uriBuilder.replaceQuery("");
+
+    String fragment = "/management/edit/{ownerType: application|organization}/{ownerId}/source-control";
+
+    if ("true".equals(githubAppSuccess)) {
+      fragment += "?githubAppSuccess=true";
+    }
+
+    uriBuilder.path(ASSET_INDEX_PATH).fragment(fragment);
+    return redirect(uriBuilder, ownerType, ownerId);
+  }
+
+  @GET
   @Path(ITEM_MANAGEMENT_EDIT_PATH)
   public Response linkToItemManagementEdit(
       @PathParam("ownerType") OwnerType ownerType,

@@ -66,6 +66,8 @@ public class ApiSourceControlAdapter
     apiSourceControlDTO.commitStatusEnabled = sourceControl.getCommitStatusEnabled();
     apiSourceControlDTO.manualPullRequestsEnabled = sourceControl.getManualPullRequestsEnabled();
     apiSourceControlDTO.innerSourceAutomatedUpdatesEnabled = sourceControl.getInnerSourceAutomatedUpdatesEnabled();
+    apiSourceControlDTO.authenticationType = sourceControl.getAuthenticationType() == null ? null
+        : sourceControl.getAuthenticationType().name();
 
     return apiSourceControlDTO;
   }
@@ -83,6 +85,19 @@ public class ApiSourceControlAdapter
       throw new BadRequestException(String
           .format("SourceControl provider value '%s' is invalid, valid options are: %s", provider,
               allowedValues));
+    }
+  }
+
+  private SourceControl.AuthenticationType getAuthenticationType(final String authenticationType) {
+    if (authenticationType == null) {
+      return null;
+    }
+    try {
+      return SourceControl.AuthenticationType.valueOf(authenticationType);
+    }
+    catch (IllegalArgumentException ex) {
+      throw new BadRequestException(String
+          .format("AuthenticationType value '%s' is invalid, valid options are: PAT, GITHUB_APP", authenticationType));
     }
   }
 
@@ -151,6 +166,7 @@ public class ApiSourceControlAdapter
         .setManualPullRequestsEnabled(convertManualPullRequestsEnabled(dto.manualPullRequestsEnabled))
         .setInnerSourceAutomatedUpdatesEnabled(
             convertInnerSourceAutomatedUpdatesEnabled(dto.innerSourceAutomatedUpdatesEnabled))
+        .setAuthenticationType(getAuthenticationType(dto.authenticationType))
         .build();
 
     return sourceControl;

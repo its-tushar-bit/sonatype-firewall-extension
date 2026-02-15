@@ -5,14 +5,21 @@
  */
 package com.sonatype.insight.brain.dataaccess.githubapp;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.security.RotatableSecrets;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.201
@@ -26,5 +33,49 @@ public class GitHubAppDAO
   @Inject
   public GitHubAppDAO(OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
+  }
+
+  public GitHubApp getByOwnerId(TransactionContext tx, String ownerId) {
+    String query = "SELECT entity FROM GitHubApp entity WHERE entity.ownerId=?1";
+    return get(tx, query, ownerId);
+  }
+
+  public GitHubApp getByOwnerId(String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      return getByOwnerId(tx, ownerId);
+    }
+  }
+
+  public Map<String, GitHubApp> getByOwnerIds(TransactionContext tx, List<String> ownerIds) {
+    if (ownerIds == null || ownerIds.isEmpty()) {
+      return Map.of();
+    }
+    String query = "SELECT entity FROM GitHubApp entity WHERE entity.ownerId IN (?1)";
+    List<GitHubApp> gitHubApps = createQuery(tx, query, ownerIds).getResultList();
+    return gitHubApps.stream().collect(Collectors.toMap(GitHubApp::getOwnerId, Function.identity()));
+  }
+
+  public Map<String, GitHubApp> getByOwnerIds(List<String> ownerIds) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      return getByOwnerIds(tx, ownerIds);
+    }
+  }
+
+  public GitHubApp getByAppId(TransactionContext tx, Integer appId) {
+    if (appId == null) {
+      throw new DataAccessException("The GitHub App ID cannot be null.");
+    }
+    String query = "SELECT entity FROM GitHubApp entity WHERE entity.appId = ?1";
+    return get(tx, query, appId);
+  }
+
+  public void updateGitHubApp(GitHubApp gitHubApp) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      update(tx, gitHubApp);
+      tx.commit();
+    }
   }
 }

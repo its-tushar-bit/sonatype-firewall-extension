@@ -20,11 +20,13 @@ import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeValueDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -50,6 +52,8 @@ public class ApiCompositeSourceControlService
 
   private final SourceControlDAO sourceControlDAO;
 
+  private final GitHubAppDAO gitHubAppDAO;
+
   private final ApplicationDAO applicationDAO;
 
   private final IqForScmLicenseChecker licenseChecker;
@@ -65,6 +69,7 @@ public class ApiCompositeSourceControlService
   @Inject
   public ApiCompositeSourceControlService(
       final SourceControlDAO sourceControlDAO,
+      final GitHubAppDAO gitHubAppDAO,
       final ApplicationDAO applicationDAO,
       final IqForScmLicenseChecker licenseChecker,
       final OrganizationDAO organizationDAO,
@@ -72,6 +77,7 @@ public class ApiCompositeSourceControlService
       final EncryptionKeyStore encryptionKeyStore)
   {
     this.sourceControlDAO = sourceControlDAO;
+    this.gitHubAppDAO = gitHubAppDAO;
     this.applicationDAO = applicationDAO;
     this.licenseChecker = licenseChecker;
     this.organizationDAO = organizationDAO;
@@ -151,6 +157,12 @@ public class ApiCompositeSourceControlService
     Map<String, SourceControl> ancestorsSourceControlMap = new HashMap<>();
     SourceControl defaultSourceControl = new SourceControl.Builder().build();
 
+    Map<String, GitHubApp> ancestorsGitHubAppsByOwnerId = ancestorsId.isEmpty()
+        ? Map.of()
+        : gitHubAppDAO.getByOwnerIds(ancestorsId);
+
+    Map<String, GitHubApp> ancestorsGitHubAppMap = new HashMap<>();
+
     if (!ancestorsId.isEmpty()) {
       for (int i = 0; i < ancestorsId.size(); i++) {
         Optional<SourceControl> ancestorSourceControl;
@@ -160,13 +172,18 @@ public class ApiCompositeSourceControlService
         ancestorSourceControl.ifPresent(sc -> setTokenValueForReturn(sc, obscureToken));
         ancestorName = organizationDAO.getByIdNotNull(ancestorId).getName();
 
+        GitHubApp ancestorGitHubApp = ancestorsGitHubAppsByOwnerId.get(ancestorId);
+        if (ancestorGitHubApp != null) {
+          ancestorsGitHubAppMap.put(ancestorName, ancestorGitHubApp);
+        }
+
         ancestorsNameHierarchy.add(i, ancestorName);
         ancestorsSourceControlMap.put(ancestorName, ancestorSourceControl.orElse(defaultSourceControl));
       }
     }
 
     collateCompositeSourceControl(dto, sourceControl.orElse(defaultSourceControl), ancestorsNameHierarchy,
-        ancestorsSourceControlMap, ownerType);
+        ancestorsSourceControlMap, ancestorsGitHubAppMap, ownerType);
     return dto;
   }
 
@@ -175,6 +192,7 @@ public class ApiCompositeSourceControlService
       final SourceControl sourceControl,
       final List<String> ancestorsNameHierarchy,
       final Map<String, SourceControl> ancestorsSourceControl,
+      final Map<String, GitHubApp> ancestorsGitHubApp,
       final OwnerType ownerType)
   {
 
@@ -294,6 +312,59 @@ public class ApiCompositeSourceControlService
         ancestorsSourceControl,
         SourceControl::getClosePrAfterDays
     );
+
+    dto.authenticationType = collateCompositeDTO(
+        sourceControl,
+        ancestorsNameHierarchy,
+        ancestorsSourceControl,
+        sc -> sc.getAuthenticationType() == null ? null : sc.getAuthenticationType().name()
+    );
+
+    dto.githubApp = collateGitHubAppCompositeDTO(
+      dto.ownerId,
+      ancestorsNameHierarchy,
+      ancestorsGitHubApp);
+  }
+
+  private ApiCompositeValueDTO<ApiCompositeSourceControlDTO.GitHubAppInfo> collateGitHubAppCompositeDTO(
+      final String ownerId,
+      final List<String> ancestorsNameHierarchy,
+      final Map<String, GitHubApp> ancestorsGitHubApp)
+  {
+    ApiCompositeValueDTO<ApiCompositeSourceControlDTO.GitHubAppInfo> dto = new ApiCompositeValueDTO<>();
+
+    GitHubApp ownerGitHubApp = gitHubAppDAO.getByOwnerId(ownerId);
+    if (ownerGitHubApp != null) {
+      dto.value = buildGitHubAppInfo(ownerGitHubApp);
+    }
+
+    for (String ancestorName : ancestorsNameHierarchy) {
+      GitHubApp ancestorGitHubApp = ancestorsGitHubApp.get(ancestorName);
+      if (ancestorGitHubApp != null) {
+        dto.parentName = ancestorName;
+        dto.parentValue = buildGitHubAppInfo(ancestorGitHubApp);
+        break;
+      }
+    }
+
+    return dto;
+  }
+
+  /**
+   * Builds GitHubAppInfo DTO from GitHubApp entity
+   */
+  private ApiCompositeSourceControlDTO.GitHubAppInfo buildGitHubAppInfo(final GitHubApp gitHubApp) {
+    ApiCompositeSourceControlDTO.GitHubAppInfo appInfo = new ApiCompositeSourceControlDTO.GitHubAppInfo();
+    appInfo.id = gitHubApp.getId();
+    appInfo.name = gitHubApp.getSlug();
+    appInfo.installationId = gitHubApp.getInstallationId();
+    appInfo.accountName = gitHubApp.getGithubOrganizationName();
+
+    if (gitHubApp.getLastUpdatedAt() != null) {
+      appInfo.configurationDate = gitHubApp.getLastUpdatedAt().toInstant().toString();
+    }
+
+    return appInfo;
   }
 
   private <T> ApiCompositeValueDTO<T> collateCompositeDTO(

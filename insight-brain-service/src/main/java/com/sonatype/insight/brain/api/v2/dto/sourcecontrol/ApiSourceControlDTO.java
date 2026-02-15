@@ -19,6 +19,8 @@ public class ApiSourceControlDTO
 
   public String provider;
 
+  public String authenticationType;
+
   public String baseBranch;
 
   public Boolean closePrOnFailedChecksEnabled;

@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthentic
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppRegistrationStateDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;
 import com.sonatype.insight.brain.dataaccess.zscaler.ZScalerMetricsDAO;
@@ -111,6 +112,7 @@ import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.ScmUserMappingsDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -349,6 +351,10 @@ public interface DAOFactory
   UserTokenDAO createUserTokenDAO();
 
   GitHubAppDAO createGitHubAppDAO();
+
+  GitHubAppInstallationStateDAO createGitHubAppInstallationStateDAO();
+
+  GitHubAppRegistrationStateDAO createGitHubAppRegistrationStateDAO();
 
   SourceControlConfigurationDAO createSourceControlConfigurationDAO();
 

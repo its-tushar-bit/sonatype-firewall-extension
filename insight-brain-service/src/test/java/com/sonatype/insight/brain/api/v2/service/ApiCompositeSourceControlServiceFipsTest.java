@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeSourceControlDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -43,6 +44,9 @@ public class ApiCompositeSourceControlServiceFipsTest extends ApiCompositeSource
   @Inject
   private OwnerDAO ownerDAO;
 
+  @Inject
+  private GitHubAppDAO gitHubAppDAO;
+
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
@@ -67,7 +71,7 @@ public class ApiCompositeSourceControlServiceFipsTest extends ApiCompositeSource
   public void getCompositeSourceControlByOwnerDecrypted() throws Exception {
     EncryptionKeyStore keyStore = new TestFipsEncryptionKeyStore();
     ApiCompositeSourceControlService apiCompositeSourceControlServiceLocal =
-        new ApiCompositeSourceControlService(sourceControlDAO, applicationDAO,
+        new ApiCompositeSourceControlService(sourceControlDAO, gitHubAppDAO, applicationDAO,
             iqForScmLicenseChecker, organizationDAO, ownerDAO, keyStore);
     PlexusCipher plexusCipherLocal = CipherFactory.createCipher();
     setUpRootOrg(plexusCipherLocal, keyStore.getKey());

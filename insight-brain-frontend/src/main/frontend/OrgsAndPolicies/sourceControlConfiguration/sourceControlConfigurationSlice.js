@@ -44,7 +44,7 @@ import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 
-import { always, prop } from 'ramda';
+import { prop } from 'ramda';
 const REDUCER_NAME = 'sourceControl';
 
 export const initialState = {
@@ -66,6 +66,7 @@ export const initialState = {
   isConfirmationModalOpen: false,
   isDirty: false,
   isRepoUrlDirty: false,
+  showGitHubAppSuccessModal: false,
 };
 
 const setProvider = (state, { payload }) => {
@@ -148,11 +149,30 @@ const toggleValue = (state, { payload: property }) => {
 
 const setValue = (state, { payload: { property, val } }) => {
   state.sourceControl[property].value = val;
+
+  // When authentication type changes, mark it as not inherited and re-validate token if PAT
+  if (property === 'authenticationType') {
+    state.sourceControl[property].isInherited = false;
+
+    if (val === 'PAT') {
+      const tokenValue = state.sourceControl.token.rscValue.value;
+      state.sourceControl.token.rscValue = userInput(
+        () => textFieldValidator(tokenValue, TOKEN_INPUT_MAX_CHARACTERS),
+        tokenValue
+      );
+    }
+  }
+
   state.isDirty = setIsDirty(state);
 };
 
 const setIsInherited = (state, { payload: { property, val } }) => {
   state.sourceControl[property].isInherited = val;
+
+  if (property === 'provider') {
+    state.sourceControl.authenticationType.isInherited = val;
+  }
+
   state.isDirty = setIsDirty(state);
 };
 
@@ -258,6 +278,28 @@ const loadSCMRootConfigFulfilled = (
   state.sourceControl = sourceControl;
   state.serverSourceControl = serverSourceControl;
   state.sourceControlMetrics = sourceControlMetrics;
+
+  let hasChanges = false;
+
+  // If GitHub App is installed, set provider and authenticationType
+  if (sourceControl?.githubApp?.value?.installationId) {
+    if (!sourceControl.provider?.rscValue?.value) {
+      const newProviderValue = selectUserInput('github', () => validateNonEmpty('github'));
+      state.sourceControl.provider.rscValue = newProviderValue;
+      state.sourceControl.provider.isInherited = false;
+      hasChanges = true;
+    }
+    if (sourceControl.authenticationType?.value !== 'GITHUB_APP') {
+      state.sourceControl.authenticationType.value = 'GITHUB_APP';
+      state.sourceControl.authenticationType.isInherited = false;
+      hasChanges = true;
+    }
+
+    // Mark form as dirty so user can save the GitHub App configuration
+    if (hasChanges) {
+      state.isDirty = setIsDirty(state);
+    }
+  }
 };
 
 const loadSCMRootConfigFailed = (state, { payload }) => {
@@ -397,6 +439,21 @@ const sourceControl = createSlice({
     closeConfirmUpdateModal,
     setLoading,
     saveMaskTimerDone: propSet('submitMaskState', null),
+    showGitHubAppSuccessModal: (state) => {
+      state.showGitHubAppSuccessModal = true;
+    },
+    closeGitHubAppSuccessModal: propSet('showGitHubAppSuccessModal', false),
+    enableGitHubAppFeatures: (state) => {
+      // Update only sourceControl so form is marked as dirty
+      if (!state.sourceControl.remediationPullRequestsEnabled.value) {
+        state.sourceControl.remediationPullRequestsEnabled.value = true;
+      }
+      if (!state.sourceControl.manualPullRequestsEnabled.value) {
+        state.sourceControl.manualPullRequestsEnabled.value = true;
+      }
+      // Recalculate isDirty flag so form validation recognizes there are changes
+      state.isDirty = setIsDirty(state);
+    },
   },
   extraReducers: {
     [loadSCMRootConfig.pending]: loadSCMRootConfigPending,
@@ -413,7 +470,21 @@ const sourceControl = createSlice({
     [validate.pending]: validatePending,
     [validate.fulfilled]: validateFulfilled,
     [validate.rejected]: validateFailed,
-    [UI_ROUTER_ON_FINISH]: always(initialState),
+    [UI_ROUTER_ON_FINISH]: (state) => {
+      // Only reset form-specific state, preserve data and modal state
+      // This avoids unnecessary object creation and preserves references
+      state.formLoading = initialState.formLoading;
+      state.loadError = initialState.loadError;
+      state.submitError = initialState.submitError;
+      state.submitMaskState = initialState.submitMaskState;
+      state.resetSubmitError = initialState.resetSubmitError;
+      state.scmConfigValidation = { ...initialState.scmConfigValidation };
+      state.isResetModalOpen = initialState.isResetModalOpen;
+      state.isConfirmationModalOpen = initialState.isConfirmationModalOpen;
+      state.isDirty = initialState.isDirty;
+      state.isRepoUrlDirty = initialState.isRepoUrlDirty;
+      // Preserved: showGitHubAppSuccessModal, sourceControl, serverSourceControl, sourceControlMetrics
+    },
   },
 });
 

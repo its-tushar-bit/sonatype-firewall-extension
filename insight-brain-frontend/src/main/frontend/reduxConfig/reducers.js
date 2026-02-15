@@ -131,6 +131,7 @@ import changePasswordModalSlice from '../mainHeader/MenuBar/UserMenu/changePassw
 import mainHeaderSlice from '../mainHeader/mainHeaderSlice';
 import appErrorSlice from '../session/appErrorSlice';
 import originalBomViewerSlice from '../sbomManager/features/billOfMaterials/originalBom/originalBomViewerSlice';
+import gitHubAppConfigurationSlice from '../configuration/githubApp/gitHubAppConfigurationSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -260,4 +261,5 @@ export default combineReducers({
   mainHeader: mainHeaderSlice,
   appError: appErrorSlice,
   originalBomViewer: originalBomViewerSlice,
+  gitHubAppConfiguration: gitHubAppConfigurationSlice,
 });

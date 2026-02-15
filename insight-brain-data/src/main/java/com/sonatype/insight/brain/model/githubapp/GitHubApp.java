@@ -5,10 +5,14 @@
  */
 package com.sonatype.insight.brain.model.githubapp;
 
+import java.util.Date;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 import com.sonatype.insight.brain.security.RotatableSecret;
 import com.sonatype.insight.model.HasStringId;
@@ -27,6 +31,9 @@ public class GitHubApp
 
   @Column(name = "owner_id")
   private String ownerId;
+
+  @Column(name = "github_organization_name")
+  private String githubOrganizationName;
 
   @Column(name = "app_id")
   private Integer appId;
@@ -48,6 +55,10 @@ public class GitHubApp
   @Column(name = "installation_id")
   private Long installationId;
 
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "last_updated_at")
+  private Date lastUpdatedAt;
+
   public GitHubApp() {
     // Default constructor for JPA
   }
@@ -68,6 +79,14 @@ public class GitHubApp
 
   public void setOwnerId(String ownerId) {
     this.ownerId = ownerId;
+  }
+
+  public String getGithubOrganizationName() {
+    return githubOrganizationName;
+  }
+
+  public void setGithubOrganizationName(String githubOrganizationName) {
+    this.githubOrganizationName = githubOrganizationName;
   }
 
   public Integer getAppId() {
@@ -116,5 +135,13 @@ public class GitHubApp
 
   public void setInstallationId(Long installationId) {
     this.installationId = installationId;
+  }
+
+  public Date getLastUpdatedAt() {
+    return lastUpdatedAt;
+  }
+
+  public void setLastUpdatedAt(Date lastUpdatedAt) {
+    this.lastUpdatedAt = lastUpdatedAt;
   }
 }

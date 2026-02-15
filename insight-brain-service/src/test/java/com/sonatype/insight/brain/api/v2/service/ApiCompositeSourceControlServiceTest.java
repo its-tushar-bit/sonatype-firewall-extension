@@ -1217,6 +1217,7 @@ public class ApiCompositeSourceControlServiceTest
     assertField(result.closePrOnFailedChecksEnabled, expected.closePrOnFailedChecksEnabled);
     assertField(result.closePrAfterDaysOpenEnabled, expected.closePrAfterDaysOpenEnabled);
     assertField(result.closePrAfterDays, expected.closePrAfterDays);
+    assertField(result.authenticationType, expected.authenticationType);
   }
 
   private <T> void assertField(ApiCompositeValueDTO<T> actualField, ApiCompositeValueDTO<T> expectedField) {

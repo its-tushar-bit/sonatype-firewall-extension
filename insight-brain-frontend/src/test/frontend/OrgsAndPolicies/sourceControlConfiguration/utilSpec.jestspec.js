@@ -19,6 +19,7 @@ import {
   setDefaultIfNull,
   setIsDirty,
   setIsRepoUrlDirty,
+  shouldShowGitHubAppAuth,
   textFieldValidator,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 
@@ -74,6 +75,10 @@ describe('sourceControlConfiguration util', () => {
               trimmedValue: 'main',
             },
           },
+          authenticationType: {
+            value: 'PAT',
+            isInherited: false,
+          },
           sshEnabled: { value: false },
           remediationPullRequestsEnabled: { value: false },
           pullRequestCommentingEnabled: { value: true },
@@ -103,6 +108,10 @@ describe('sourceControlConfiguration util', () => {
               trimmedValue: 'main',
             },
           },
+          authenticationType: {
+            value: 'PAT',
+            isInherited: false,
+          },
           sshEnabled: { value: false },
           remediationPullRequestsEnabled: { value: false },
           pullRequestCommentingEnabled: { value: true },
@@ -126,6 +135,16 @@ describe('sourceControlConfiguration util', () => {
 
     it('returns true if at least one toggle value was changed', () => {
       state.sourceControl.sshEnabled.value = true;
+      expect(setIsDirty(state)).toBe(true);
+    });
+
+    it('returns true if authenticationType value was changed', () => {
+      state.sourceControl.authenticationType.value = 'GITHUB_APP';
+      expect(setIsDirty(state)).toBe(true);
+    });
+
+    it('returns true if authenticationType isInherited was changed', () => {
+      state.sourceControl.authenticationType.isInherited = true;
       expect(setIsDirty(state)).toBe(true);
     });
   });
@@ -681,6 +700,7 @@ describe('sourceControlConfiguration util', () => {
           username: { value: null, parentValue: null, parentName: null },
           token: { value: null, parentValue: null, parentName: null },
           baseBranch: { value: null, parentValue: null, parentName: null },
+          authenticationType: { value: null, parentValue: null, parentName: null },
           remediationPullRequestsEnabled: { value: null, parentValue: null, parentName: null },
           statusChecksEnabled: { value: null, parentValue: null, parentName: null },
           commitStatusEnabled: { value: null, parentValue: null, parentName: null },
@@ -717,6 +737,13 @@ describe('sourceControlConfiguration util', () => {
             isInherited: false,
             parentValue: { isPristine: true, value: '', trimmedValue: '', validationErrors: ['Must be non-empty'] },
             parentName: null,
+          },
+          authenticationType: {
+            value: null,
+            isInherited: false,
+            parentValue: null,
+            parentName: null,
+            rscValue: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
           },
           pullRequestCommentingEnabled: { value: true, parentValue: null, parentName: null, isInherited: false },
           remediationPullRequestsEnabled: { value: false, parentValue: null, parentName: null, isInherited: false },
@@ -755,6 +782,12 @@ describe('sourceControlConfiguration util', () => {
               validationErrors: null,
               value: '',
             },
+          },
+          githubApp: {
+            value: null,
+            parentValue: null,
+            parentName: undefined,
+            isInherited: false,
           },
         };
         expect(compositeSourceControlToModel(configResponse, isRootOrg)).toEqual(resultDataForForm);
@@ -797,6 +830,7 @@ describe('sourceControlConfiguration util', () => {
           username: { value: 'admin', parentValue: null, parentName: null },
           token: { value: '#~FAKE~SECRET~KEY~#', parentValue: null, parentName: null },
           baseBranch: { value: 'develop', parentValue: null, parentName: null },
+          authenticationType: { value: null, parentValue: null, parentName: null },
           remediationPullRequestsEnabled: { value: false, parentValue: null, parentName: null },
           commitStatusEnabled: { value: null, parentValue: null, parentName: null },
           statusChecksEnabled: { value: true, parentValue: null, parentName: null },
@@ -833,6 +867,13 @@ describe('sourceControlConfiguration util', () => {
             isInherited: false,
             parentValue: { isPristine: true, value: '', trimmedValue: '', validationErrors: ['Must be non-empty'] },
             parentName: null,
+          },
+          authenticationType: {
+            value: null,
+            isInherited: false,
+            parentValue: null,
+            parentName: null,
+            rscValue: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
           },
           pullRequestCommentingEnabled: { value: true, parentValue: null, parentName: null, isInherited: false },
           remediationPullRequestsEnabled: { value: false, parentValue: null, parentName: null, isInherited: false },
@@ -892,6 +933,12 @@ describe('sourceControlConfiguration util', () => {
               value: '',
             },
           },
+          githubApp: {
+            value: null,
+            parentValue: null,
+            parentName: undefined,
+            isInherited: false,
+          },
         };
         expect(compositeSourceControlToModel(existConfigResponse, isRootOrg)).toEqual(resultDataForRorm);
       });
@@ -919,6 +966,190 @@ describe('sourceControlConfiguration util', () => {
         expect(sourceControl.remediationPullRequestsEnabled.value).toBe(false);
         expect(sourceControl.sourceControlEvaluationsEnabled.value).toBe(true);
         expect(sourceControl.sshEnabled.value).toBe(null);
+      });
+    });
+  });
+
+  describe('shouldShowGitHubAppAuth', () => {
+    let sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled;
+
+    beforeEach(() => {
+      // Default setup: GitHub provider, feature enabled, not inherited
+      sourceControl = {
+        provider: {
+          isInherited: false,
+          rscValue: { value: 'github' },
+        },
+        token: {
+          isInherited: false,
+        },
+      };
+      serverSourceControl = {
+        provider: {
+          parentValue: { value: 'github' },
+        },
+      };
+      isGithubAppAuthenticationEnabled = true;
+    });
+
+    describe('when all conditions are met', () => {
+      it('returns true when provider is GitHub, feature is enabled, and provider is not inherited', () => {
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          true
+        );
+      });
+
+      it('returns false when provider is inherited (even if token is overridden)', () => {
+        sourceControl.provider.isInherited = true;
+        sourceControl.token.isInherited = false;
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          false
+        );
+      });
+
+      it('returns true when provider is GitHub, feature is enabled, and both provider and token are not inherited', () => {
+        sourceControl.provider.isInherited = false;
+        sourceControl.token.isInherited = false;
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          true
+        );
+      });
+    });
+
+    describe('when provider is not GitHub', () => {
+      it('returns false when provider is GitLab', () => {
+        sourceControl.provider.rscValue.value = 'gitlab';
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          false
+        );
+      });
+
+      it('returns false when provider is Azure DevOps', () => {
+        sourceControl.provider.rscValue.value = 'azure';
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          false
+        );
+      });
+
+      it('returns false when provider is Bitbucket', () => {
+        sourceControl.provider.rscValue.value = 'bitbucket';
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          false
+        );
+      });
+
+      it('returns false when provider is empty string', () => {
+        sourceControl.provider.rscValue.value = '';
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          false
+        );
+      });
+    });
+
+    describe('when feature flag is disabled', () => {
+      it('returns false when feature flag is false but all other conditions are met', () => {
+        isGithubAppAuthenticationEnabled = false;
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          false
+        );
+      });
+    });
+
+    describe('when both provider and token are inherited', () => {
+      it('returns false when both provider and token are inherited', () => {
+        sourceControl.provider.isInherited = true;
+        sourceControl.token.isInherited = true;
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          false
+        );
+      });
+    });
+
+    describe('when provider is inherited from parent', () => {
+      beforeEach(() => {
+        sourceControl.provider.isInherited = true;
+      });
+
+      it('returns false when inherited provider is GitHub (even with token overridden)', () => {
+        serverSourceControl.provider.parentValue.value = 'github';
+        sourceControl.token.isInherited = false;
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          false
+        );
+      });
+
+      it('returns false when inherited provider is not GitHub', () => {
+        serverSourceControl.provider.parentValue.value = 'gitlab';
+        sourceControl.token.isInherited = false;
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          false
+        );
+      });
+    });
+
+    describe('edge cases', () => {
+      it('returns false when sourceControl is null', () => {
+        expect(shouldShowGitHubAppAuth(null, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(false);
+      });
+
+      it('returns false when sourceControl is undefined', () => {
+        expect(shouldShowGitHubAppAuth(undefined, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(false);
+      });
+
+      it('returns false when sourceControl.provider is undefined (effectiveProvider returns undefined)', () => {
+        sourceControl.provider = undefined;
+        // When provider is undefined, effectiveProvider throws an error trying to access .isInherited
+        // This test documents that the function relies on effectiveProvider handling this case
+        expect(() =>
+          shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)
+        ).toThrow();
+      });
+
+      it('returns true when sourceControl.token is undefined (only checks provider)', () => {
+        sourceControl.token = undefined;
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          true
+        );
+      });
+
+      it('handles optional chaining correctly when provider.isInherited is undefined', () => {
+        delete sourceControl.provider.isInherited;
+        sourceControl.token.isInherited = false;
+        // When isInherited is undefined, !sourceControl?.provider.isInherited evaluates to true
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          true
+        );
+      });
+    });
+
+    describe('complex scenarios', () => {
+      it('returns false when provider is GitHub, feature enabled, but both are fully inherited', () => {
+        sourceControl.provider.isInherited = true;
+        sourceControl.token.isInherited = true;
+        serverSourceControl.provider.parentValue.value = 'github';
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          false
+        );
+      });
+
+      it('returns true when switching from non-GitHub to GitHub with overrides', () => {
+        // Simulating a user changing provider from GitLab to GitHub
+        sourceControl.provider.rscValue.value = 'github';
+        sourceControl.provider.isInherited = false;
+        sourceControl.token.isInherited = false;
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          true
+        );
+      });
+
+      it('returns false when all booleans are false (provider not GitHub, feature disabled, fully inherited)', () => {
+        sourceControl.provider.rscValue.value = 'gitlab';
+        sourceControl.provider.isInherited = true;
+        sourceControl.token.isInherited = true;
+        isGithubAppAuthenticationEnabled = false;
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          false
+        );
       });
     });
   });

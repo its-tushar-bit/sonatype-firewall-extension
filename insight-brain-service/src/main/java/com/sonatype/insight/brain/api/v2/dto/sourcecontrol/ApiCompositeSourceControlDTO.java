@@ -44,4 +44,25 @@ public class ApiCompositeSourceControlDTO
   public ApiCompositeValueDTO<Boolean> closePrAfterDaysOpenEnabled = new ApiCompositeValueDTO<>();
 
   public ApiCompositeValueDTO<Integer> closePrAfterDays = new ApiCompositeValueDTO<>();
+
+  public ApiCompositeValueDTO<String> authenticationType = new ApiCompositeValueDTO<>();
+
+  // GitHub App information
+  public ApiCompositeValueDTO<GitHubAppInfo> githubApp = new ApiCompositeValueDTO<>();
+
+  /**
+   * Nested DTO containing GitHub App configuration details
+   */
+  public static class GitHubAppInfo
+  {
+    public String id;
+
+    public String name;
+
+    public String accountName;
+
+    public Long installationId;
+
+    public String configurationDate;
+  }
 }

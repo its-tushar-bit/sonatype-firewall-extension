@@ -152,6 +152,8 @@ import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppRegistrationStateDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.ScmUserMappingsDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -214,6 +216,7 @@ import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
+import com.sonatype.insight.brain.model.githubapp.GitHubAppInstallationState;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns;
@@ -243,6 +246,7 @@ import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingFilter;
 import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingDefaultFilter;
+import com.sonatype.insight.brain.model.githubapp.GitHubAppRegistrationState;
 import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.innersource.InnerSourceVersion;
 import com.sonatype.insight.brain.model.jira.JiraConfiguration;
@@ -712,6 +716,10 @@ public class TemporaryEntity
 
   private GitHubAppDAO gitHubAppDAO;
 
+  private GitHubAppInstallationStateDAO gitHubAppInstallationStateDAO;
+
+  private GitHubAppRegistrationStateDAO gitHubAppRegistrationStateDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -980,6 +988,8 @@ public class TemporaryEntity
       delete(sourceControlUserActivityDAO.getAll(), sourceControlUserActivityDAO);
       delete(sourceControlUserDAO.getAll(), sourceControlUserDAO);
       delete(sourceControlDAO.getAll(), sourceControlDAO);
+      delete(gitHubAppInstallationStateDAO.getAll(), gitHubAppInstallationStateDAO);
+      delete(gitHubAppRegistrationStateDAO.getAll(), gitHubAppRegistrationStateDAO);
       delete(gitHubAppDAO.getAll(), gitHubAppDAO);
       deleteSamlConfiguration();
       delete(thirdPartySbomMetadataDAO.getAll(), thirdPartySbomMetadataDAO);
@@ -4597,6 +4607,8 @@ public class TemporaryEntity
     gitHubApp.setClientId("Iv1.1234567890abcdef");
     gitHubApp.setClientSecret("client-secret-test");
     gitHubApp.setPrivateKey("test-private-key");
+    gitHubApp.setGithubOrganizationName("test-org");
+    gitHubApp.setLastUpdatedAt(new Date());
     // Generate unique installation ID to avoid collisions
     gitHubApp.setInstallationId(System.currentTimeMillis() + (long)(Math.random() * 10000));
     return newGitHubApp(gitHubApp);
@@ -4605,6 +4617,45 @@ public class TemporaryEntity
   public GitHubApp newGitHubApp(GitHubApp gitHubApp) {
     gitHubAppDAO.insert(gitHubApp);
     return gitHubApp;
+  }
+
+  public GitHubAppInstallationState newGitHubAppInstallationState(
+      String stateToken,
+      String githubAppId,
+      String codeVerifier,
+      Date expiresAt)
+  {
+    GitHubAppInstallationState state = new GitHubAppInstallationState();
+    state.setStateToken(stateToken);
+    state.setGithubAppId(githubAppId);
+    state.setExpiresAt(expiresAt);
+    state.setCreatedAt(new Date());
+    gitHubAppInstallationStateDAO.insert(state);
+    return state;
+  }
+
+  public GitHubAppRegistrationState newGitHubAppRegistrationState(
+      String stateToken,
+      String ownerId,
+      Date expiresAt)
+  {
+    return newGitHubAppRegistrationState(stateToken, ownerId, "test-org", expiresAt);
+  }
+
+  public GitHubAppRegistrationState newGitHubAppRegistrationState(
+      String stateToken,
+      String ownerId,
+      String organizationName,
+      Date expiresAt)
+  {
+    GitHubAppRegistrationState state = new GitHubAppRegistrationState();
+    state.setStateToken(stateToken);
+    state.setOwnerId(ownerId);
+    state.setGithubOrganizationName(organizationName);
+    state.setExpiresAt(expiresAt);
+    state.setCreatedAt(new Date());
+    gitHubAppRegistrationStateDAO.insert(state);
+    return state;
   }
 
   public SystemConfigurationProperty newSystemConfigurationProperty(String name, String value) {
@@ -6623,6 +6674,8 @@ public class TemporaryEntity
     zscalerFormatDAO = daoFactory.createZscalerFormatDAO();
     repositoryContainerDAO = daoFactory.createRepositoryContainerDAO();
     gitHubAppDAO = daoFactory.createGitHubAppDAO();
+    gitHubAppInstallationStateDAO = daoFactory.createGitHubAppInstallationStateDAO();
+    gitHubAppRegistrationStateDAO = daoFactory.createGitHubAppRegistrationStateDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {

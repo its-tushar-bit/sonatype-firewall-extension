@@ -432,5 +432,193 @@ describe('selectSourceControlConfigurationSelectors', () => {
       const actual = selectValidationError(state);
       expect(actual).toEqual(GLOBAL_FORM_VALIDATION_ERROR);
     });
+
+    describe('GitHub App authentication', () => {
+      it('does not validate token when provider is GitHub and authenticationType is GITHUB_APP', () => {
+        const state = {
+          orgsAndPolicies: {
+            sourceControlConfiguration: {
+              sourceControl: {
+                provider: {
+                  rscValue: {
+                    value: 'github',
+                    validationErrors: null,
+                    isPristine: false,
+                  },
+                },
+                authenticationType: {
+                  value: 'GITHUB_APP',
+                },
+                githubApp: {
+                  value: {
+                    installationId: 12345,
+                    name: 'test-app',
+                    accountName: 'test-org',
+                  },
+                },
+                username: {
+                  rscValue: {
+                    value: '',
+                    trimmedValue: '',
+                    validationErrors: null,
+                    isPristine: false,
+                  },
+                },
+                token: {
+                  rscValue: {
+                    value: '',
+                    trimmedValue: '',
+                    validationErrors: null,
+                    isPristine: false,
+                  },
+                },
+                baseBranch: {
+                  rscValue: {
+                    value: 'main',
+                    trimmedValue: 'main',
+                    validationErrors: null,
+                    isPristine: false,
+                  },
+                },
+                closePrOnFailedChecksEnabled: {
+                  value: null,
+                },
+                closePrAfterDaysOpenEnabled: {
+                  value: null,
+                },
+                closePrAfterDays: {
+                  rscValue: {
+                    value: null,
+                  },
+                },
+              },
+            },
+          },
+        };
+        const actual = selectValidationError(state);
+        expect(actual).toEqual(null);
+      });
+
+      it('returns error when GitHub App authentication is selected but not configured', () => {
+        const state = {
+          orgsAndPolicies: {
+            sourceControlConfiguration: {
+              sourceControl: {
+                provider: {
+                  rscValue: {
+                    value: 'github',
+                    validationErrors: null,
+                    isPristine: false,
+                  },
+                },
+                authenticationType: {
+                  value: 'GITHUB_APP',
+                },
+                githubApp: {
+                  value: null,
+                },
+                username: {
+                  rscValue: {
+                    value: '',
+                    trimmedValue: '',
+                    validationErrors: null,
+                    isPristine: false,
+                  },
+                },
+                token: {
+                  rscValue: {
+                    value: '',
+                    trimmedValue: '',
+                    validationErrors: null,
+                    isPristine: false,
+                  },
+                },
+                baseBranch: {
+                  rscValue: {
+                    value: 'main',
+                    trimmedValue: 'main',
+                    validationErrors: null,
+                    isPristine: false,
+                  },
+                },
+                closePrOnFailedChecksEnabled: {
+                  value: null,
+                },
+                closePrAfterDaysOpenEnabled: {
+                  value: null,
+                },
+                closePrAfterDays: {
+                  rscValue: {
+                    value: null,
+                  },
+                },
+              },
+            },
+          },
+        };
+        const actual = selectValidationError(state);
+        expect(actual).toEqual(
+          'Please install and configure a GitHub App or switch to Personal Access Token authentication.'
+        );
+      });
+
+      it('validates token when authenticationType is null for backwards compatibility', () => {
+        const state = {
+          orgsAndPolicies: {
+            sourceControlConfiguration: {
+              sourceControl: {
+                provider: {
+                  rscValue: {
+                    value: 'github',
+                    validationErrors: null,
+                    isPristine: false,
+                  },
+                },
+                authenticationType: {
+                  value: null,
+                },
+                username: {
+                  rscValue: {
+                    value: '',
+                    trimmedValue: '',
+                    validationErrors: null,
+                    isPristine: false,
+                  },
+                },
+                token: {
+                  rscValue: {
+                    value: '',
+                    trimmedValue: '',
+                    validationErrors: ['Must be non-empty'],
+                    isPristine: false,
+                  },
+                },
+                baseBranch: {
+                  rscValue: {
+                    value: 'main',
+                    trimmedValue: 'main',
+                    validationErrors: null,
+                    isPristine: false,
+                  },
+                },
+                closePrOnFailedChecksEnabled: {
+                  value: null,
+                },
+                closePrAfterDaysOpenEnabled: {
+                  value: null,
+                },
+                closePrAfterDays: {
+                  rscValue: {
+                    value: null,
+                  },
+                },
+              },
+            },
+          },
+        };
+        const actual = selectValidationError(state);
+        expect(actual).toEqual(GLOBAL_FORM_VALIDATION_ERROR);
+      });
+    });
   });
 });

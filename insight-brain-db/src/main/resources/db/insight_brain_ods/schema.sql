@@ -762,7 +762,7 @@ INSERT INTO data_retention_policy (data_retention_policy_id, owner_id, context_i
 
 -- Since 1.201
 -- GitHub App registration and installation data
-CREATE TABLE github_app (
+CREATE TABLE IF NOT EXISTS github_app (
   github_app_id VARCHAR(50) NOT NULL,
   owner_id VARCHAR(50) NOT NULL,
   app_id INTEGER NOT NULL,
@@ -770,11 +770,41 @@ CREATE TABLE github_app (
   client_id VARCHAR(256) NOT NULL,
   client_secret VARCHAR(512) NOT NULL,
   private_key TEXT NOT NULL,
-  installation_id BIGINT NOT NULL,
+  installation_id BIGINT,
+  github_organization_name VARCHAR(255) NOT NULL,
+  last_updated_at TIMESTAMP NOT NULL,
   CONSTRAINT github_app_pk PRIMARY KEY (github_app_id),
   CONSTRAINT github_app_owner_id_uk UNIQUE (owner_id),
-  CONSTRAINT github_app_installation_id_uk UNIQUE (installation_id),
-  CONSTRAINT github_app_app_id_uk UNIQUE (app_id)
+  CONSTRAINT github_app_app_id_uk UNIQUE (app_id),
+  CONSTRAINT github_app_installation_id_uk UNIQUE (installation_id)
+);
+
+-- Since 1.202
+-- GitHub App installation state for OAuth + PKCE flow
+CREATE TABLE IF NOT EXISTS github_app_installation_state
+(
+    github_app_installation_state_id VARCHAR(50) NOT NULL,
+    state_token                      VARCHAR(255) NOT NULL,
+    github_app_id                    VARCHAR(50) NOT NULL,
+    expires_at                       TIMESTAMP NOT NULL,
+    created_at                       TIMESTAMP NOT NULL,
+    CONSTRAINT github_app_installation_state_pk PRIMARY KEY (github_app_installation_state_id),
+    CONSTRAINT github_app_installation_state_state_token_uk UNIQUE (state_token),
+    CONSTRAINT fk_installation_state_github_app FOREIGN KEY (github_app_id) REFERENCES github_app(github_app_id)
+);
+
+-- Since 1.202
+-- GitHub App registration state for manifest flow
+CREATE TABLE IF NOT EXISTS github_app_registration_state
+(
+    github_app_registration_state_id VARCHAR(50) NOT NULL,
+    state_token                      VARCHAR(255) NOT NULL,
+    owner_id                         VARCHAR(50) NOT NULL,
+    github_organization_name         VARCHAR(255) NULL,
+    expires_at                       TIMESTAMP NOT NULL,
+    created_at                       TIMESTAMP NOT NULL,
+    CONSTRAINT github_app_registration_state_pk PRIMARY KEY (github_app_registration_state_id),
+    CONSTRAINT github_app_registration_state_state_token_uk UNIQUE (state_token)
 );
 
 -- source control repository data associated with an organization or application (owner)
@@ -802,11 +832,9 @@ CREATE TABLE source_control (
   close_pr_on_failed_checks_enabled boolean,
   close_pr_after_days_open_enabled boolean,
   close_pr_after_days INTEGER NULL,
-  github_app_id VARCHAR(50),
   authentication_type VARCHAR(20) DEFAULT 'PAT',
   CONSTRAINT source_control_pk PRIMARY KEY (source_control_id),
-  CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id),
-  CONSTRAINT source_control_github_app_fk FOREIGN KEY (github_app_id) REFERENCES github_app(github_app_id)
+  CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id)
 );
 CREATE INDEX source_control_normalized_repository_url_idx ON source_control(normalized_repository_url);
 

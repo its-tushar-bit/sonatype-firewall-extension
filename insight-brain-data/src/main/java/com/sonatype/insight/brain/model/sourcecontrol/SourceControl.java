@@ -108,9 +108,6 @@ public class SourceControl
   @Column(name = "inner_source_automated_updates_enabled")
   private Boolean innerSourceAutomatedUpdatesEnabled;
 
-  @Column(name = "github_app_id")
-  private String githubAppId;
-
   @Column(name = "authentication_type")
   @Enumerated(EnumType.STRING)
   private AuthenticationType authenticationType;
@@ -353,14 +350,6 @@ public class SourceControl
     this.innerSourceAutomatedUpdatesEnabled = innerSourceAutomatedUpdatesEnabled;
   }
 
-  public String getGithubAppId() {
-    return githubAppId;
-  }
-
-  public void setGithubAppId(final String githubAppId) {
-    this.githubAppId = githubAppId;
-  }
-
   public AuthenticationType getAuthenticationType() {
     return authenticationType;
   }
@@ -561,7 +550,6 @@ public class SourceControl
             coalesce(accumulator.getManualPullRequestsEnabled(), other.getManualPullRequestsEnabled()));
     accumulator.setInnerSourceAutomatedUpdatesEnabled(
         coalesce(accumulator.getInnerSourceAutomatedUpdatesEnabled(), other.getInnerSourceAutomatedUpdatesEnabled()));
-    accumulator.setGithubAppId(coalesce(accumulator.getGithubAppId(), other.getGithubAppId()));
     accumulator.setAuthenticationType(coalesce(accumulator.getAuthenticationType(), other.getAuthenticationType()));
   }
 
@@ -604,7 +592,6 @@ public class SourceControl
         ", manualPullRequestsEnabled=" + manualPullRequestsEnabled +
         ", innerSourceAutomatedUpdatesEnabled=" + innerSourceAutomatedUpdatesEnabled +
         ", authenticationType=" + authenticationType +
-        ", githubAppId='" + githubAppId + '\'' +
         '}';
   }
 }

@@ -31,6 +31,9 @@ public class UserInterfaceLinksHelper
   public static final String SBOM_MANAGEMENT_PATH =
       "sbomManager/{ownerType: application|organization}/{ownerId}/management";
 
+  public static final String SOURCE_CONTROL_MANAGEMENT_PATH =
+      "{ownerType: application|organization}/{ownerId}/source-control/management";
+
   public static final String ITEM_MANAGEMENT_EDIT_PATH =
       "{ownerType: application|organization}/{ownerId}/{itemType: category|label|policy}/{itemId}/management/edit";
 

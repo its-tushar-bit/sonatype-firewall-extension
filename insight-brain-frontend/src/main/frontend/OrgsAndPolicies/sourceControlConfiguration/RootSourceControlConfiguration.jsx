@@ -20,6 +20,7 @@ import {
   getValidationMessage,
   providerNeedsUsername,
   DEFAULT_BRANCH_SUBLABEL,
+  effectiveProvider,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -29,10 +30,12 @@ import {
 import {
   selectIsAutomationSupported,
   selectTenantScmOptionsTypes,
+  selectIsGithubAppAuthenticationEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
 import ScmProviderOptions from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/ScmProviderOptions';
 import RenderMarkdown from 'MainRoot/react/RenderMarkdown';
+import GitHubAppAuthenticationMethod from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/GitHubAppAuthenticationMethod';
 
 const RootSourceControlConfiguration = () => {
   const dispatch = useDispatch();
@@ -48,6 +51,7 @@ const RootSourceControlConfiguration = () => {
   const isAutomationSupported = useSelector(selectIsAutomationSupported);
   const validationError = useSelector(selectValidationError);
   const sourceControlOptions = useSelector(selectTenantScmOptionsTypes);
+  const isGithubAppAuthenticationEnabled = useSelector(selectIsGithubAppAuthenticationEnabled);
 
   const doLoad = () => dispatch(actions.load());
   const save = () => dispatch(actions.save());
@@ -56,6 +60,7 @@ const RootSourceControlConfiguration = () => {
   const onChangeUsername = (val) => dispatch(actions.setUsername(val));
   const onChangeToken = (val) => dispatch(actions.setToken(val));
   const onChangeBranch = (val) => dispatch(actions.setBaseBranch(val));
+  const setValue = (property, val) => dispatch(actions.setValue({ property, val }));
   const toggleValue = (property) => dispatch(actions.toggleValue(property));
   const onChangeClosePrAfterDaysOpen = (val) => dispatch(actions.setClosePrAfterDaysOpen(val));
 
@@ -166,6 +171,10 @@ const RootSourceControlConfiguration = () => {
       Reset
     </NxButton>
   );
+
+  const provider = effectiveProvider(sourceControl, serverSourceControl);
+  const showGithubAppAuth = provider === 'github' && isGithubAppAuthenticationEnabled;
+
   return (
     <NxStatefulForm
       onSubmit={save}
@@ -190,31 +199,56 @@ const RootSourceControlConfiguration = () => {
           <ScmProviderOptions />
         </NxFormSelect>
       </NxFormGroup>
-      <NxFormRow>
-        {providerNeedsUsername(sourceControl, serverSourceControl) && (
-          <NxFormGroup label="Username" isRequired>
+      {showGithubAppAuth && (
+        <GitHubAppAuthenticationMethod
+          sourceControl={sourceControl}
+          setValue={setValue}
+          areFieldsDisabled={!sourceControl?.provider.rscValue.value}
+          onChangeToken={onChangeToken}
+          isGithubAppAuthenticationEnabled={isGithubAppAuthenticationEnabled}
+        />
+      )}
+      {/* Only show credentials section for non-GitHub providers or when GitHub App auth is disabled */}
+      {!showGithubAppAuth && (
+        <NxFormRow>
+          {providerNeedsUsername(sourceControl, serverSourceControl) && (
+            <NxFormGroup label="Username" isRequired>
+              <NxTextInput
+                id="source-control-username"
+                onChange={onChangeUsername}
+                {...sourceControl?.username.rscValue}
+                disabled={!sourceControl?.provider.rscValue.value}
+                validatable
+                autoComplete="off"
+              />
+            </NxFormGroup>
+          )}
+          <NxFormGroup label="Access Token" type="password" isRequired>
             <NxTextInput
-              id="source-control-username"
-              onChange={onChangeUsername}
-              {...sourceControl?.username.rscValue}
+              id="source-control-token"
+              onChange={onChangeToken}
+              {...sourceControl?.token.rscValue}
               disabled={!sourceControl?.provider.rscValue.value}
+              type="password"
+              autoComplete="new-password"
               validatable
-              autoComplete="off"
             />
           </NxFormGroup>
-        )}
-        <NxFormGroup label="Access Token" type="password" isRequired>
+        </NxFormRow>
+      )}
+      {/* Show username separately for GitHub when using GitHub App auth */}
+      {showGithubAppAuth && providerNeedsUsername(sourceControl, serverSourceControl) && (
+        <NxFormGroup label="Username" isRequired>
           <NxTextInput
-            id="source-control-token"
-            onChange={onChangeToken}
-            {...sourceControl?.token.rscValue}
+            id="source-control-username"
+            onChange={onChangeUsername}
+            {...sourceControl?.username.rscValue}
             disabled={!sourceControl?.provider.rscValue.value}
-            type="password"
-            autoComplete="new-password"
             validatable
+            autoComplete="off"
           />
         </NxFormGroup>
-      </NxFormRow>
+      )}
       {/* Unsupported for some licenses */}
       <NxTooltip title={!isAutomationSupported ? 'This feature is not supported by your license' : ''}>
         <NxFormGroup

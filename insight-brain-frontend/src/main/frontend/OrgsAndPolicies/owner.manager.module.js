@@ -219,7 +219,7 @@ export default angular
             component: 'proprietaryComponentConfiguration',
           })
           .state('management.edit.' + ownerType.type + '.edit-source-control', {
-            url: '/source-control',
+            url: '/source-control?githubAppSuccess',
             data: {
               title: 'Source Control',
               isDirty: ['orgsAndPolicies', 'sourceControlConfiguration', 'isDirty'],

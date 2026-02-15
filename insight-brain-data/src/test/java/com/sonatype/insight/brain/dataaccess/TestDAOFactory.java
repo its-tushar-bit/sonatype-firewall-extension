@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppRegistrationStateDAO;
 import jakarta.inject.Provider;
 
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
@@ -114,6 +115,7 @@ import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.ScmUserMappingsDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -858,6 +860,16 @@ public class TestDAOFactory
   @Override
   public GitHubAppDAO createGitHubAppDAO() {
     return new GitHubAppDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public GitHubAppInstallationStateDAO createGitHubAppInstallationStateDAO() {
+    return new GitHubAppInstallationStateDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public GitHubAppRegistrationStateDAO createGitHubAppRegistrationStateDAO() {
+    return new GitHubAppRegistrationStateDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

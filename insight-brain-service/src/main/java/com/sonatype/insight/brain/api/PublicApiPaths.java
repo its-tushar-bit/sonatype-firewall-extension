@@ -124,6 +124,10 @@ public class PublicApiPaths
 
   public static final String SOURCE_CONTROL_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/sourceControl";
 
+  public static final String GITHUB_APP_RESOURCE_PATH = API_VERSION_PATH_V2 + "githubApp";
+
+  public static final String GITHUB_APP_SETUP_INSTALLATION_PATH = "setupInstallation";
+
   public static final String USER_TOKEN_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "userTokens";
 
   public static final String USER_TOKEN_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/userTokens";

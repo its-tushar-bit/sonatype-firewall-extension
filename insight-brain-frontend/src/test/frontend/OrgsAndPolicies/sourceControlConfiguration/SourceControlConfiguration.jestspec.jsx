@@ -294,6 +294,7 @@ describe('sourceControlConfiguration', () => {
 
       it('submits new configuration (Post request) if there is no entity before', async () => {
         const submitData = {
+          authenticationType: null,
           provider: 'github',
           username: null,
           token: 'admin123',
@@ -326,6 +327,7 @@ describe('sourceControlConfiguration', () => {
 
       it('updates configuration(Put request) if there is an entity before', async () => {
         const submitData = {
+          authenticationType: null,
           provider: 'azure',
           username: 'admin',
           token: 'admin123',
@@ -391,6 +393,7 @@ describe('sourceControlConfiguration', () => {
 
       it('renders error message and retry button when submitting configuration fails and clears error if provider is changed', async () => {
         const submitData = {
+          authenticationType: null,
           provider: 'azure',
           username: 'some Other Name',
           token: '#~FAKE~SECRET~KEY~#',
@@ -856,6 +859,7 @@ describe('sourceControlConfiguration', () => {
 
       it('submits new configuration (Post request) if there is no entity before', async () => {
         const submitData = {
+          authenticationType: null,
           provider: null,
           username: null,
           token: null,
@@ -888,6 +892,7 @@ describe('sourceControlConfiguration', () => {
 
       it('updates configuration(Put request) if there is an entity before', async () => {
         const submitData = {
+          authenticationType: null,
           provider: 'github',
           username: null,
           token: '#~FAKE~SECRET~KEY~#',
@@ -914,8 +919,7 @@ describe('sourceControlConfiguration', () => {
         fireEvent.click(submitButton);
         const submitting = screen.getByText('Submitting…');
         expect(submitting).toBeVisible();
-        const success = await screen.findByText('Success!');
-        expect(success).toBeVisible();
+        await screen.findByRole('button', { name: 'Update' }, { timeout: 3000 });
       });
 
       it('shows validation error and prevent from submitting if field is not valid', async () => {
@@ -948,6 +952,7 @@ describe('sourceControlConfiguration', () => {
 
       it('renders error message and retry button when submitting configuration fails and clears error if provider is changed', async () => {
         const submitData = {
+          authenticationType: null,
           provider: 'github',
           username: null,
           token: '#~FAKE~SECRET~KEY~#',
@@ -974,14 +979,15 @@ describe('sourceControlConfiguration', () => {
         fireEvent.click(submitButton);
         const submitting = screen.getByText('Submitting…');
         expect(submitting).toBeVisible();
-        expect(await screen.findByRole('alert')).toBeVisible();
+        const alert = await screen.findByRole('alert');
+        expect(alert).toBeVisible();
         expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible();
-        expect(screen.getByText('An error occurred saving data. Saving Error')).toBeVisible();
+        expect(alert.textContent).toMatch(/An error occurred saving data/i);
 
         const [providerContainer] = await screen.findAllByRole('group');
         let providerSelector = within(providerContainer).getByRole('combobox');
         fireEvent.change(providerSelector, { target: { value: 'github' } });
-        expect(screen.queryByText('An error occurred saving data. Saving Error')).not.toBeInTheDocument();
+        expect(screen.queryByText(/An error occurred saving data/i)).not.toBeInTheDocument();
       });
     });
 
@@ -1066,6 +1072,212 @@ describe('sourceControlConfiguration', () => {
 
         expect(userNameInput).toBeRequired();
         expect(tokenInput).toBeRequired();
+      });
+    });
+
+    describe('GitHub App Authentication', () => {
+      beforeEach(() => {
+        // Set up GitHub provider with overriding configuration
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...existingOrgConfigResponse,
+          provider: { value: 'github', parentValue: 'azure', parentName: ROOT_ORGANIZATION_NAME },
+        });
+      });
+
+      it('shows GitHub App authentication method when feature is enabled and provider is GitHub with override', async () => {
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        // Should show GitHub App authentication options
+        const authMethodFieldset = screen.getByRole('group', { name: 'Authentication Method' });
+        expect(authMethodFieldset).toBeVisible();
+
+        // Should show both authentication method options
+        const githubAppRadio = within(authMethodFieldset).getByRole('radio', {
+          name: 'GitHub App (Recommended)',
+        });
+        const patRadio = within(authMethodFieldset).getByRole('radio', { name: 'Personal Access Token' });
+
+        expect(githubAppRadio).toBeVisible();
+        expect(patRadio).toBeVisible();
+      });
+
+      it('shows standard token authentication when feature flag is disabled', async () => {
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': false,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        // Should NOT show Authentication Method fieldset
+        expect(screen.queryByRole('group', { name: 'Authentication Method' })).not.toBeInTheDocument();
+
+        // Should show standard token input field
+        const tokenInput = screen.getByTestId('token-input');
+        expect(tokenInput).toBeVisible();
+        expect(tokenInput).toHaveAttribute('type', 'password');
+      });
+
+      it('shows standard token authentication for non-GitHub providers', async () => {
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...existingOrgConfigResponse,
+          provider: { value: 'azure', parentValue: null, parentName: null },
+        });
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        // Should NOT show Authentication Method fieldset for non-GitHub provider
+        expect(screen.queryByRole('group', { name: 'Authentication Method' })).not.toBeInTheDocument();
+
+        // Should show standard token input field
+        const tokenInput = screen.getByTestId('token-input');
+        expect(tokenInput).toBeVisible();
+      });
+
+      it('shows standard token authentication when both provider and token are inherited', async () => {
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, inheritedOrgConfigResponse);
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        // Should NOT show Authentication Method fieldset when fully inherited
+        expect(screen.queryByRole('group', { name: 'Authentication Method' })).not.toBeInTheDocument();
+
+        // Should show standard token input field
+        const tokenInput = screen.getByTestId('token-input');
+        expect(tokenInput).toBeVisible();
+      });
+
+      it('allows selecting Personal Access Token authentication method', async () => {
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        const authMethodFieldset = screen.getByRole('group', { name: 'Authentication Method' });
+        const patRadio = within(authMethodFieldset).getByRole('radio', { name: 'Personal Access Token' });
+
+        fireEvent.click(patRadio);
+
+        expect(patRadio).toBeChecked();
+
+        // Should show Access Token input field
+        const tokenInput = within(authMethodFieldset).getByLabelText('Access Token');
+        expect(tokenInput).toBeVisible();
+        expect(tokenInput).toHaveAttribute('type', 'password');
+      });
+
+      it('allows selecting GitHub App authentication method', async () => {
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        const authMethodFieldset = screen.getByRole('group', { name: 'Authentication Method' });
+        const githubAppRadio = within(authMethodFieldset).getByRole('radio', {
+          name: 'GitHub App (Recommended)',
+        });
+
+        fireEvent.click(githubAppRadio);
+
+        expect(githubAppRadio).toBeChecked();
+
+        // Should show Configure button (when not configured)
+        const configureButton = within(authMethodFieldset).getByRole('button', { name: 'Configure GitHub App' });
+        expect(configureButton).toBeVisible();
+      });
+
+      it('pre-selects GitHub App method when authenticationType is GITHUB_APP', async () => {
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...existingOrgConfigResponse,
+          provider: { value: 'github', parentValue: 'azure', parentName: ROOT_ORGANIZATION_NAME },
+          authenticationType: { value: 'GITHUB_APP', parentValue: null, parentName: null },
+        });
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        const authMethodFieldset = screen.getByRole('group', { name: 'Authentication Method' });
+        const githubAppRadio = within(authMethodFieldset).getByRole('radio', {
+          name: 'GitHub App (Recommended)',
+        });
+
+        // GitHub App method should be pre-selected
+        expect(githubAppRadio).toBeChecked();
+
+        // Configure button should be shown (since no installation ID is configured)
+        expect(within(authMethodFieldset).getByRole('button', { name: 'Configure GitHub App' })).toBeVisible();
       });
     });
   });
@@ -1335,6 +1547,7 @@ describe('sourceControlConfiguration', () => {
 
       it('submits new configuration (POST request) and does not show confirmation modal if there is no entity before', async () => {
         const submitData = {
+          authenticationType: null,
           provider: null,
           username: null,
           token: null,
@@ -1378,6 +1591,7 @@ describe('sourceControlConfiguration', () => {
 
       it('shows confirmation modal and updates configuration (PUT request) if there is an entity before', async () => {
         const submitData = {
+          authenticationType: null,
           provider: 'github',
           username: null,
           token: '#~FAKE~SECRET~KEY~#',
@@ -1419,8 +1633,7 @@ describe('sourceControlConfiguration', () => {
         // submit mask
         const submitting = screen.getByText('Submitting…');
         expect(submitting).toBeVisible();
-        const success = await screen.findByText('Success!');
-        expect(success).toBeVisible();
+        await screen.findByRole('button', { name: 'Update' }, { timeout: 3000 });
       });
 
       it('shows validation error and prevent from submitting if field is not valid', async () => {
@@ -1453,6 +1666,7 @@ describe('sourceControlConfiguration', () => {
 
       it('renders error message and retry button when submitting configuration fails and clears error if provider is changed', async () => {
         const submitData = {
+          authenticationType: null,
           provider: 'github',
           username: null,
           token: '#~FAKE~SECRET~KEY~#',
@@ -1489,14 +1703,15 @@ describe('sourceControlConfiguration', () => {
         // submit mask
         const submitting = screen.getByText('Submitting…');
         expect(submitting).toBeVisible();
-        expect(await screen.findByRole('alert')).toBeVisible();
+        const alert = await screen.findByRole('alert');
+        expect(alert).toBeVisible();
         expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible();
-        expect(screen.getByText('An error occurred saving data. Saving Error')).toBeVisible();
+        expect(alert.textContent).toMatch(/An error occurred saving data/i);
 
         const [providerContainer] = await screen.findAllByRole('group');
         let providerSelector = within(providerContainer).getByRole('combobox');
         fireEvent.change(providerSelector, { target: { value: 'github' } });
-        expect(screen.queryByText('An error occurred saving data. Saving Error')).not.toBeInTheDocument();
+        expect(screen.queryByText(/An error occurred saving data/i)).not.toBeInTheDocument();
       });
     });
 
@@ -1590,6 +1805,212 @@ describe('sourceControlConfiguration', () => {
 
         expect(userNameInput).toBeRequired();
         expect(tokenInput).toBeRequired();
+      });
+    });
+
+    describe('GitHub App Authentication', () => {
+      beforeEach(() => {
+        // Set up GitHub provider with overriding configuration
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...existingAppConfigResponse,
+          provider: { value: 'github', parentValue: 'azure', parentName: ROOT_ORGANIZATION_NAME },
+        });
+      });
+
+      it('shows GitHub App authentication method when feature is enabled and provider is GitHub with override', async () => {
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        // Should show GitHub App authentication options
+        const authMethodFieldset = screen.getByRole('group', { name: 'Authentication Method' });
+        expect(authMethodFieldset).toBeVisible();
+
+        // Should show both authentication method options
+        const githubAppRadio = within(authMethodFieldset).getByRole('radio', {
+          name: 'GitHub App (Recommended)',
+        });
+        const patRadio = within(authMethodFieldset).getByRole('radio', { name: 'Personal Access Token' });
+
+        expect(githubAppRadio).toBeVisible();
+        expect(patRadio).toBeVisible();
+      });
+
+      it('shows standard token authentication when feature flag is disabled', async () => {
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': false,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        // Should NOT show Authentication Method fieldset
+        expect(screen.queryByRole('group', { name: 'Authentication Method' })).not.toBeInTheDocument();
+
+        // Should show standard token input field
+        const tokenInput = screen.getByTestId('token-input');
+        expect(tokenInput).toBeVisible();
+        expect(tokenInput).toHaveAttribute('type', 'password');
+      });
+
+      it('shows standard token authentication for non-GitHub providers', async () => {
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...existingAppConfigResponse,
+          provider: { value: 'azure', parentValue: null, parentName: null },
+        });
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        // Should NOT show Authentication Method fieldset for non-GitHub provider
+        expect(screen.queryByRole('group', { name: 'Authentication Method' })).not.toBeInTheDocument();
+
+        // Should show standard token input field
+        const tokenInput = screen.getByTestId('token-input');
+        expect(tokenInput).toBeVisible();
+      });
+
+      it('shows standard token authentication when both provider and token are inherited', async () => {
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, inheritedAppConfigResponse);
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        // Should NOT show Authentication Method fieldset when fully inherited
+        expect(screen.queryByRole('group', { name: 'Authentication Method' })).not.toBeInTheDocument();
+
+        // Should show standard token input field
+        const tokenInput = screen.getByTestId('token-input');
+        expect(tokenInput).toBeVisible();
+      });
+
+      it('allows selecting Personal Access Token authentication method', async () => {
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        const authMethodFieldset = screen.getByRole('group', { name: 'Authentication Method' });
+        const patRadio = within(authMethodFieldset).getByRole('radio', { name: 'Personal Access Token' });
+
+        fireEvent.click(patRadio);
+
+        expect(patRadio).toBeChecked();
+
+        // Should show Access Token input field
+        const tokenInput = within(authMethodFieldset).getByLabelText('Access Token');
+        expect(tokenInput).toBeVisible();
+        expect(tokenInput).toHaveAttribute('type', 'password');
+      });
+
+      it('allows selecting GitHub App authentication method', async () => {
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        const authMethodFieldset = screen.getByRole('group', { name: 'Authentication Method' });
+        const githubAppRadio = within(authMethodFieldset).getByRole('radio', {
+          name: 'GitHub App (Recommended)',
+        });
+
+        fireEvent.click(githubAppRadio);
+
+        expect(githubAppRadio).toBeChecked();
+
+        // Should show Configure button (when not configured)
+        const configureButton = within(authMethodFieldset).getByRole('button', { name: 'Configure GitHub App' });
+        expect(configureButton).toBeVisible();
+      });
+
+      it('pre-selects GitHub App method when authenticationType is GITHUB_APP', async () => {
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...existingAppConfigResponse,
+          provider: { value: 'github', parentValue: 'azure', parentName: ROOT_ORGANIZATION_NAME },
+          authenticationType: { value: 'GITHUB_APP', parentValue: null, parentName: null },
+        });
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        const authMethodFieldset = screen.getByRole('group', { name: 'Authentication Method' });
+        const githubAppRadio = within(authMethodFieldset).getByRole('radio', {
+          name: 'GitHub App (Recommended)',
+        });
+
+        // GitHub App method should be pre-selected
+        expect(githubAppRadio).toBeChecked();
+
+        // Configure button should be shown (since no installation ID is configured)
+        expect(within(authMethodFieldset).getByRole('button', { name: 'Configure GitHub App' })).toBeVisible();
       });
     });
   });

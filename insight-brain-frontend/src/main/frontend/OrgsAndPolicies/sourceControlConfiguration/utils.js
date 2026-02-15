@@ -25,6 +25,8 @@ const validateUrlPatternMatch = validatePatternMatch(
 
 export const SOURCE_CONTROL_UNSUPPORTED_MESSAGE = 'Source Control is not supported by your license';
 export const SCM_FEATURE_UNSUPPORTED_MESSAGE = 'This feature is not supported by your license';
+export const GITHUB_APP_NOT_CONFIGURED_MESSAGE =
+  'Please install and configure a GitHub App or switch to Personal Access Token authentication.';
 export const DEFAULT_BRANCH_SUBLABEL =
   'The branch used for automated remediation pull requests and as the basis for finding introduced violations in feature branches';
 export const ROOT_ORG_NAME = 'Root Organization';
@@ -37,6 +39,10 @@ export const PROVIDER_TYPES = [
 export const PROVIDERS_WITH_USERNAME = ['azure', 'bitbucket'];
 export const PROVIDERS_SUPPORTING_PULL_REQUESTS = ['azure', 'bitbucket', 'github', 'gitlab'];
 export const PROVIDERS_SUPPORTING_FAILED_CHECKS_CLOSE = ['github', 'gitlab'];
+export const AUTHENTICATION_TYPES = {
+  GITHUB_APP: 'GITHUB_APP',
+  PAT: 'PAT',
+};
 export const BRANCH_INPUT_MAX_CHARACTERS = 243,
   USERNAME_INPUT_MAX_CHARACTERS = 255,
   TOKEN_INPUT_MAX_CHARACTERS = 512;
@@ -100,6 +106,7 @@ export const compositeSourceControlToModel = (
     token,
     username,
     baseBranch,
+    authenticationType,
     pullRequestCommentingEnabled,
     remediationPullRequestsEnabled,
     sourceControlEvaluationsEnabled,
@@ -111,6 +118,7 @@ export const compositeSourceControlToModel = (
     closePrOnFailedChecksEnabled,
     closePrAfterDaysOpenEnabled,
     closePrAfterDays,
+    githubApp,
   },
   isRootOrg
 ) => {
@@ -136,6 +144,13 @@ export const compositeSourceControlToModel = (
         textFieldValidator(baseBranch?.parentValue, BRANCH_INPUT_MAX_CHARACTERS)
       ),
       parentName: baseBranch.parentName,
+    },
+    authenticationType: {
+      value: authenticationType?.value ?? null,
+      isInherited: authenticationType?.value === null && !isRootOrg,
+      parentValue: authenticationType?.parentValue ?? null,
+      parentName: authenticationType?.parentName,
+      rscValue: rscInitialState(authenticationType?.value ?? ''),
     },
     pullRequestCommentingEnabled: {
       ...pullRequestCommentingEnabled,
@@ -202,6 +217,12 @@ export const compositeSourceControlToModel = (
         const numVal = parseInt(val, 10);
         return !val || (numVal > 0 && numVal <= 365) ? null : 'Must be a number between 1 and 365';
       }),
+    },
+    githubApp: {
+      value: githubApp?.value ?? null,
+      isInherited: githubApp?.value === null && !isRootOrg,
+      parentValue: githubApp?.parentValue ?? null,
+      parentName: githubApp?.parentName,
     },
   };
   //set username and token
@@ -307,6 +328,7 @@ export const prepareSubmitData = (sourceControl, serverSourceControl, isApp, isR
     username: null,
     token: null,
     provider: null,
+    authenticationType: null,
   };
   if (
     PROVIDERS_WITH_USERNAME.includes(sourceControl.provider.rscValue.value) ||
@@ -344,6 +366,11 @@ export const prepareSubmitData = (sourceControl, serverSourceControl, isApp, isR
   } else {
     submitData.baseBranch = null;
   }
+
+  if ((!sourceControl.authenticationType.isInherited && !sourceControl.provider.isInherited) || isRootOrg) {
+    submitData.authenticationType = sourceControl.authenticationType.value;
+  }
+
   return submitData;
 };
 
@@ -352,6 +379,25 @@ export const effectiveProvider = (sourceControl, serverSourceControl) => {
   return sourceControl.provider.isInherited
     ? serverSourceControl.provider.parentValue.value
     : sourceControl.provider.rscValue.value;
+};
+
+/**
+ * Determines if GitHub App authentication should be shown instead of standard credentials.
+ *
+ * Returns true when ALL of the following are true:
+ * 1. The provider is GitHub
+ * 2. The GitHub App authentication feature is enabled
+ * 3. The provider is NOT inherited (when inheriting provider, auth method is also inherited)
+ *
+ * @param {Object} sourceControl - Current source control configuration
+ * @param {Object} serverSourceControl - Server-level source control configuration
+ * @param {boolean} isGithubAppAuthenticationEnabled - Feature flag state
+ * @returns {boolean} True if GitHub App auth should be displayed
+ */
+export const shouldShowGitHubAppAuth = (sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled) => {
+  const isGitHub = effectiveProvider(sourceControl, serverSourceControl) === 'github';
+  const isProviderOverridden = !sourceControl?.provider.isInherited;
+  return isGitHub && isGithubAppAuthenticationEnabled && isProviderOverridden;
 };
 
 export const effectiveFieldInheritFrom = (sourceControl, serverSourceControl, field) => {
@@ -494,6 +540,7 @@ export const getDataFromSourceControl = (
     username,
     token,
     baseBranch,
+    authenticationType,
     pullRequestCommentingEnabled,
     commitStatusEnabled,
     remediationPullRequestsEnabled,
@@ -513,6 +560,7 @@ export const getDataFromSourceControl = (
     username,
     token,
     baseBranch,
+    authenticationType,
     remediationPullRequestsEnabled,
     statusChecksEnabled,
     pullRequestCommentingEnabled,
@@ -548,6 +596,7 @@ export const setIsDirty = (state) => {
     'token',
     'username',
     'baseBranch',
+    'authenticationType',
     'pullRequestCommentingEnabled',
     'commitStatusEnabled',
     'remediationPullRequestsEnabled',
@@ -567,6 +616,11 @@ export const setIsDirty = (state) => {
         sourceControl[property]?.isInherited !== serverSourceControl[property]?.isInherited
       );
     if (property === 'repositoryUrl') return sourceControl[property]?.value !== serverSourceControl[property]?.value;
+    if (property === 'authenticationType')
+      return (
+        sourceControl[property]?.value !== serverSourceControl[property]?.value ||
+        sourceControl[property]?.isInherited !== serverSourceControl[property]?.isInherited
+      );
     return (
       sourceControl[property]?.rscValue?.trimmedValue !== serverSourceControl[property]?.rscValue?.trimmedValue ||
       sourceControl[property]?.value !== serverSourceControl[property]?.value ||

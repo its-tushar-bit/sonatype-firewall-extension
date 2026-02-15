@@ -45,6 +45,7 @@ public class ApiSourceControlAdapterTest
     sourceControl.setClosePrOnFailedChecksEnabled(true);
     sourceControl.setClosePrAfterDaysOpenEnabled(true);
     sourceControl.setClosePrAfterDays(7);
+    sourceControl.setAuthenticationType(SourceControl.AuthenticationType.PAT);
 
     ApiSourceControlDTO dto = apiSourceControlAdapter.convertToDTO(sourceControl);
 
@@ -69,6 +70,7 @@ public class ApiSourceControlAdapterTest
     assertThat(dto.closePrOnFailedChecksEnabled).isTrue();
     assertThat(dto.closePrAfterDaysOpenEnabled).isTrue();
     assertThat(dto.closePrAfterDays).isEqualTo(7);
+    assertThat(dto.authenticationType).isEqualTo("PAT");
   }
 
   @Test
@@ -93,6 +95,7 @@ public class ApiSourceControlAdapterTest
     apiSourceControlDTO.closePrOnFailedChecksEnabled = true;
     apiSourceControlDTO.closePrAfterDaysOpenEnabled = true;
     apiSourceControlDTO.closePrAfterDays = 7;
+    apiSourceControlDTO.authenticationType = "GITHUB_APP";
 
     SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
 
@@ -115,6 +118,7 @@ public class ApiSourceControlAdapterTest
     assertThat(sourceControl.getClosePrOnFailedChecksEnabled()).isTrue();
     assertThat(sourceControl.getClosePrAfterDaysOpenEnabled()).isTrue();
     assertThat(sourceControl.getClosePrAfterDays()).isEqualTo(7);
+    assertThat(sourceControl.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
   }
 
   @SuppressWarnings("deprecation")

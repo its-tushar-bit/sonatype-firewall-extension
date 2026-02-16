@@ -63,6 +63,12 @@ public class CoordinatesConditionType
   }
 
   @Override
+  public String generateDroolsTriggerCode(Condition condition, int conditionIndex) {
+    return "$conditionTriggers.add(new ConditionTrigger(" + conditionIndex + ", new TriggerCoordinate("
+        + asDroolsString(condition.getValue()) + ")));";
+  }
+
+  @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
     String conditionComponent =
         ComponentDisplayNameUtil.fromIdentifier(getComponentIdentifier(condition.getValue())).toString();

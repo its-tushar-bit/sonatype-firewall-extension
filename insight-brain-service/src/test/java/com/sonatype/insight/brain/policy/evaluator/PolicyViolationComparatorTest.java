@@ -422,11 +422,141 @@ public class PolicyViolationComparatorTest
     compareAndAssert(v2, v3, -1);
   }
 
-  private PolicyViolation buildPolicyViolation(String policyId,
-                                               String policyName,
-                                               int threatLevel,
-                                               String hash,
-                                               ComponentIdentifier componentIdentifier)
+  /**
+   * Test for CLM-38434: Verify that policy violations with the same coordinate pattern but different condition indexes
+   * are considered equal after triggerJson comparison was added.
+   * <p>
+   * This simulates the scenario where: 1. A policy has multiple coordinate conditions (e.g., a:a:1.*,
+   * com.thoughtworks.xstream:xstream:1.*, z:z:1.*) 2. A component matches one of them
+   * (com.thoughtworks.xstream:xstream:1.2) at index 1 3. The policy is modified and a condition before it is deleted
+   * (e.g., a:a:1.* is removed) 4. The same component is re-evaluated and now matches at index 0 (because a:a:1.* was
+   * removed) 5. The violations should still be considered equal because the coordinate pattern is the same
+   */
+  @Test
+  public void testCompare_CoordinateConditions_SamePatternDifferentIndex_AreEqual() {
+    // Violation 1: Coordinates condition at index 1 with trigger data
+    String coordinatePattern = "maven:com.thoughtworks.xstream:xstream:1.*:*:*";
+    String triggerJson1 = "{\"conditionIndex\":1,\"trigger\":{\"pattern\":\"" + coordinatePattern + "\"}}";
+    ConditionFact conditionFact1 = new ConditionFact(
+        "Coordinates",
+        1, /* conditionIndex */
+        "Coordinates match " + coordinatePattern,
+        "Coordinates were com.thoughtworks.xstream : xstream : 1.2 (match " + coordinatePattern + ")"
+    );
+    conditionFact1.setTriggerJson(triggerJson1);
+    ConstraintFact constraintFact1 = buildConstraintFact("constraintId", "Constraint Name", conditionFact1);
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact1));
+
+    // Violation 2: Same coordinates condition at index 0 (after earlier conditions were deleted) with trigger data
+    String triggerJson2 = "{\"conditionIndex\":0,\"trigger\":{\"pattern\":\"" + coordinatePattern + "\"}}";
+    ConditionFact conditionFact2 = new ConditionFact(
+        "Coordinates",
+        0, /* conditionIndex - different! */
+        "Coordinates match " + coordinatePattern,
+        "Coordinates were com.thoughtworks.xstream : xstream : 1.2 (match " + coordinatePattern + ")"
+    );
+    conditionFact2.setTriggerJson(triggerJson2);
+    ConstraintFact constraintFact2 = buildConstraintFact("constraintId", "Constraint Name", conditionFact2);
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact2));
+
+    // These should be equal because the coordinate pattern is the same, even though the index differs
+    compareAndAssert(v1, v2, 0);
+  }
+
+  /**
+   * Test that when coordinate patterns are different, violations are correctly identified as different, regardless of
+   * index.
+   */
+  @Test
+  public void testCompare_CoordinateConditions_DifferentPattern_AreDifferent() {
+    // Violation 1: First coordinate pattern
+    String coordinatePattern1 = "maven:com.thoughtworks.xstream:xstream:1.*:*:*";
+    String triggerJson1 = "{\"conditionIndex\":0,\"trigger\":{\"pattern\":\"" + coordinatePattern1 + "\"}}";
+    ConditionFact conditionFact1 = new ConditionFact(
+        "Coordinates",
+        0,
+        "Coordinates match " + coordinatePattern1,
+        "Coordinates were com.thoughtworks.xstream : xstream : 1.2 (match " + coordinatePattern1 + ")"
+    );
+    conditionFact1.setTriggerJson(triggerJson1);
+    ConstraintFact constraintFact1 = buildConstraintFact("constraintId", "Constraint Name", conditionFact1);
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact1));
+
+    // Violation 2: Different coordinate pattern
+    String coordinatePattern2 = "maven:com.thoughtworks.xstream:xstream:2.*:*:*";
+    String triggerJson2 = "{\"conditionIndex\":0,\"trigger\":{\"pattern\":\"" + coordinatePattern2 + "\"}}";
+    ConditionFact conditionFact2 = new ConditionFact(
+        "Coordinates",
+        0,
+        "Coordinates match " + coordinatePattern2,
+        "Coordinates were com.thoughtworks.xstream : xstream : 2.0 (match " + coordinatePattern2 + ")"
+    );
+    conditionFact2.setTriggerJson(triggerJson2);
+    ConstraintFact constraintFact2 = buildConstraintFact("constraintId", "Constraint Name", conditionFact2);
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact2));
+
+    // These should be different because the coordinate patterns are different
+    int result = comparator.compare(v1, v2);
+    assertThat(result).isNotEqualTo(0);
+  }
+
+  /**
+   * Test backward compatibility: violations without triggerJson (legacy) should still fall back to index comparison.
+   */
+  @Test
+  public void testCompare_CoordinateConditions_LegacyWithoutTriggerJson_UseIndexComparison() {
+    // Violation 1: Coordinates condition at index 0, no trigger data (legacy)
+    ConditionFact conditionFact1 = new ConditionFact(
+        "Coordinates",
+        0,
+        "Coordinates match maven:com.thoughtworks.xstream:xstream:1.*:*:*",
+        "Coordinates were com.thoughtworks.xstream : xstream : 1.2"
+    );
+    // Note: no setTriggerJson() call - simulates legacy violation
+    ConstraintFact constraintFact1 = buildConstraintFact("constraintId", "Constraint Name", conditionFact1);
+    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact1));
+
+    // Violation 2: Coordinates condition at index 1, no trigger data (legacy)
+    ConditionFact conditionFact2 = new ConditionFact(
+        "Coordinates",
+        1, /* different index */
+        "Coordinates match maven:com.thoughtworks.xstream:xstream:1.*:*:*",
+        "Coordinates were com.thoughtworks.xstream : xstream : 1.2"
+    );
+    // Note: no setTriggerJson() call - simulates legacy violation
+    ConstraintFact constraintFact2 = buildConstraintFact("constraintId", "Constraint Name", conditionFact2);
+    PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact2));
+
+    // Violation 3: Coordinates condition at index 0 again, no trigger data (legacy)
+    ConditionFact conditionFact3 = new ConditionFact(
+        "Coordinates",
+        0, /* same index */
+        "Coordinates match maven:com.thoughtworks.xstream:xstream:1.*:*:*",
+        "Coordinates were com.thoughtworks.xstream : xstream : 1.2"
+    );
+    // Note: no setTriggerJson() call - simulates legacy violation
+    ConstraintFact constraintFact3 = buildConstraintFact("constraintId", "Constraint Name", conditionFact3);
+    PolicyViolation v3 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
+        Collections.singletonList(constraintFact3));
+
+    // Legacy violations without triggerJson should be compared by index, so these are different
+    assertThat(comparator.compare(v1, v2)).isNotEqualTo(0);
+    // and these are the same
+    assertThat(comparator.compare(v1, v3)).isEqualTo(0);
+  }
+
+  private PolicyViolation buildPolicyViolation(
+      String policyId,
+      String policyName,
+      int threatLevel,
+      String hash,
+      ComponentIdentifier componentIdentifier)
   {
     ConstraintFact constraintFact = buildConstraintFact("testConstraintId", "Test Constraint Name",
         new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
@@ -435,12 +565,13 @@ public class PolicyViolationComparatorTest
     return buildPolicyViolation(policyId, policyName, threatLevel, hash, componentIdentifier, constraintFacts);
   }
 
-  private PolicyViolation buildPolicyViolation(String policyId,
-                                               String policyName,
-                                               int threatLevel,
-                                               String hash,
-                                               ComponentIdentifier componentIdentifier,
-                                               List<ConstraintFact> constraintFacts)
+  private PolicyViolation buildPolicyViolation(
+      String policyId,
+      String policyName,
+      int threatLevel,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      List<ConstraintFact> constraintFacts)
   {
     PolicyViolation violation = new PolicyViolation();
     violation.setPolicyName(policyName);
@@ -452,9 +583,10 @@ public class PolicyViolationComparatorTest
     return violation;
   }
 
-  private ConstraintFact buildConstraintFact(String constraintId,
-                                             String constraintName,
-                                             ConditionFact... conditionFacts)
+  private ConstraintFact buildConstraintFact(
+      String constraintId,
+      String constraintName,
+      ConditionFact... conditionFacts)
   {
     ConstraintFact constraintFact = new ConstraintFact(constraintId, constraintName, LogicalOperator.AND.toString());
     for (ConditionFact conditionFact : conditionFacts) {

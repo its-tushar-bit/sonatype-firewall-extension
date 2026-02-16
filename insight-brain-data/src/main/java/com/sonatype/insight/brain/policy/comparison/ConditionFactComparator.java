@@ -38,33 +38,42 @@ class ConditionFactComparator implements Comparator<ConditionFact>
     // to policy violations.
     // In this case we ignore the condition index and trigger data in the newer policy violation.
 
+    // Condition trigger - prioritize comparison by actual trigger content over index
+    // Not all condition types store trigger data.
+    if (conditionFact1.getConditionIndex() != null && conditionFact2.getConditionIndex() != null &&
+        conditionFact1.getTriggerJson() != null && conditionFact2.getTriggerJson() != null) {
+      try {
+        // De-serialize and then re-serialize the triggers in order to ensure consistent formatting and key ordering
+        // for the string-based comparison below
+        ConditionTrigger conditionTrigger1 = JsonUtils.parse(conditionFact1.getTriggerJson(), ConditionTrigger.class);
+        ConditionTrigger conditionTrigger2 = JsonUtils.parse(conditionFact2.getTriggerJson(), ConditionTrigger.class);
+
+        // Compare only the trigger content, not the conditionIndex within ConditionTrigger
+        // This allows violations with the same trigger (e.g., same coordinate pattern) but different indexes
+        // to be considered equal, fixing CLM-38434
+        String triggerString1 = objectMapper.writeValueAsString(conditionTrigger1.getTrigger());
+        String triggerString2 = objectMapper.writeValueAsString(conditionTrigger2.getTrigger());
+
+        result = triggerString1.compareTo(triggerString2);
+        // When both conditions have trigger data, the trigger content is the definitive comparison
+        // Return immediately regardless of whether triggers are equal or different
+        // This prevents index from affecting comparison when trigger data is available
+        return result;
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+
     // Condition index
+    // Only compare by index if:
+    // 1. Both have non-null indexes, AND
+    // 2. One or both lack trigger data
     if (conditionFact1.getConditionIndex() != null && conditionFact2.getConditionIndex() != null) {
       result = conditionFact1.getConditionIndex() - conditionFact2.getConditionIndex();
       if (result != 0) {
         return result;
       }
-
-      // Condition trigger
-      // Not all condition types store trigger data.
-      if (conditionFact1.getTriggerJson() != null && conditionFact2.getTriggerJson() != null) {
-        try {
-          // De-serialize and then re-serialize the triggers in order to ensure consistent formatting and key ordering
-          // for the string-based comparison below
-          ConditionTrigger conditionTrigger1 = JsonUtils.parse(conditionFact1.getTriggerJson(), ConditionTrigger.class);
-          ConditionTrigger conditionTrigger2 = JsonUtils.parse(conditionFact2.getTriggerJson(), ConditionTrigger.class);
-
-          String triggerString1 = objectMapper.writeValueAsString(conditionTrigger1);
-          String triggerString2 = objectMapper.writeValueAsString(conditionTrigger2);
-
-          return triggerString1.compareTo(triggerString2);
-        }
-        catch (IOException e) {
-          throw new UncheckedIOException(e);
-        }
-      }
-
-      return result;
     }
 
     return 0;

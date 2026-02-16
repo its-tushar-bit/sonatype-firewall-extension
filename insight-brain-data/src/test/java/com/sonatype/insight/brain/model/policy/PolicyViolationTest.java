@@ -345,4 +345,50 @@ public class PolicyViolationTest
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> policyViolation.getConstraintFactsJson())
         .withMessageContaining("Constraint facts are not loaded yet for policyViolationId=");
   }
+
+  @Test
+  public void testIsRemediatedByVersionChange_GetterSetter() {
+    // given
+    PolicyViolation violation = new PolicyViolation();
+
+    // when - set to true
+    violation.setIsRemediatedByVersionChange(true);
+
+    // then
+    assertThat(violation.getIsRemediatedByVersionChange()).isTrue();
+  }
+
+  @Test
+  public void testIsRemediatedByVersionChange_NullDefault() {
+    // given
+    PolicyViolation violation = new PolicyViolation();
+
+    // then - should default to null
+    assertThat(violation.getIsRemediatedByVersionChange()).isNull();
+  }
+
+  @Test
+  public void testIsRemediatedByVersionChange_SetToFalse() {
+    // given
+    PolicyViolation violation = new PolicyViolation();
+
+    // when
+    violation.setIsRemediatedByVersionChange(false);
+
+    // then
+    assertThat(violation.getIsRemediatedByVersionChange()).isFalse();
+  }
+
+  @Test
+  public void testIsRemediatedByVersionChange_SetToNull() {
+    // given
+    PolicyViolation violation = new PolicyViolation();
+    violation.setIsRemediatedByVersionChange(true);
+
+    // when - set back to null
+    violation.setIsRemediatedByVersionChange(null);
+
+    // then
+    assertThat(violation.getIsRemediatedByVersionChange()).isNull();
+  }
 }

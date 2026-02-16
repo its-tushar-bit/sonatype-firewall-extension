@@ -486,6 +486,8 @@ CREATE TABLE policy_violation (
 
   auto_policy_waiver_id varchar(50) NULL,
 
+  is_remediated_by_version_change boolean NULL,
+
   constraint_facts_id varchar(20),
 
   CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),

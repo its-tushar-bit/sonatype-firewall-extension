@@ -500,9 +500,6 @@ CREATE INDEX policy_violation_policy_app_idx ON policy_violation(policy_id, appl
 CREATE INDEX policy_violation_hash_idx ON policy_violation(hash);
 CREATE INDEX policy_violation_open_time_idx ON policy_violation (open_time);
 
-COMMENT ON COLUMN policy_violation.is_remediated_by_version_change
-IS 'Indicates if remediation was due to version change (upgrade/downgrade) vs. component removal. NULL means unknown/not tracked.';
-
 CREATE TABLE dashboard_filter (
   dashboard_filter_id varchar(50) NOT NULL,
   username varchar(60) NOT NULL, -- The internal name of the User

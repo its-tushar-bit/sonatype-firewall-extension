@@ -486,9 +486,9 @@ CREATE TABLE policy_violation (
 
   auto_policy_waiver_id varchar(50) NULL,
 
-  is_remediated_by_version_change boolean NULL,
-
   constraint_facts_id varchar(20),
+
+  is_remediated_by_version_change boolean NULL,
 
   CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),
   CONSTRAINT policy_violation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id) ON DELETE CASCADE,
@@ -499,6 +499,9 @@ CREATE INDEX policy_violation_app_fix_time_stage_idx ON policy_violation(applica
 CREATE INDEX policy_violation_policy_app_idx ON policy_violation(policy_id, application_id);
 CREATE INDEX policy_violation_hash_idx ON policy_violation(hash);
 CREATE INDEX policy_violation_open_time_idx ON policy_violation (open_time);
+
+COMMENT ON COLUMN policy_violation.is_remediated_by_version_change
+IS 'Indicates if remediation was due to version change (upgrade/downgrade) vs. component removal. NULL means unknown/not tracked.';
 
 CREATE TABLE dashboard_filter (
   dashboard_filter_id varchar(50) NOT NULL,

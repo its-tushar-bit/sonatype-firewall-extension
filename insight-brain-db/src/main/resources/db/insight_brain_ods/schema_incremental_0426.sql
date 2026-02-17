@@ -58,7 +58,3 @@ CREATE TABLE IF NOT EXISTS github_app_registration_state
 -- Add the column
 ALTER TABLE policy_violation
 ADD COLUMN is_remediated_by_version_change BOOLEAN DEFAULT NULL;
-
--- Add descriptive comment
-COMMENT ON COLUMN policy_violation.is_remediated_by_version_change
-IS 'Indicates if remediation was due to version change (upgrade/downgrade) vs. component removal. NULL means unknown/not tracked.';

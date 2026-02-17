@@ -24,6 +24,8 @@ export const initialState = Object.freeze({
   nodeChildren: {},
   visibleCounts: {},
   componentNotFound: false,
+  searchValue: '',
+  debouncedSearchValue: '',
 });
 
 const fetchOriginalBomRequested = (state) => {
@@ -50,22 +52,18 @@ const fetchOriginalBom = createAsyncThunk(
     try {
       const response = await axios.get(getDownloadSbomFileUrl(internalAppId, sbomVersion));
 
-      // If componentPurl is provided, filter to show only that component
       if (componentPurl) {
         let componentNode = null;
 
-        // Check if it's XML
         if (typeof response.data === 'string' && isXmlContent(response.data)) {
           const parser = new DOMParser();
           const xmlDoc = parser.parseFromString(response.data, 'text/xml');
           componentNode = findComponentInXml(xmlDoc, componentPurl);
         } else {
-          // It's JSON
           componentNode = findComponentInJson(response.data, componentPurl);
         }
 
         if (componentNode) {
-          // Return only the filtered component
           const componentId = componentNode.id;
           let componentChildren = null;
 
@@ -81,12 +79,9 @@ const fetchOriginalBom = createAsyncThunk(
             nodeChildren: componentChildren ? { [componentId]: componentChildren } : {},
             componentNotFound: false,
           };
-        } else {
-          // Component not found in SBOM - fall back to full tree
         }
       }
 
-      // No filter or component not found - show full tree
       const processed = processRawDataToTree(response.data);
 
       const rootNode = processed.treeData[0];
@@ -104,7 +99,6 @@ const fetchOriginalBom = createAsyncThunk(
       const rootId = rootNode.id;
       let rootChildren = null;
 
-      // Load initial children for root node
       if (rootNode.xmlNode) {
         rootChildren = expandXmlChildren(rootNode.xmlNode, rootId);
       } else if (rootNode.rawData) {
@@ -140,16 +134,13 @@ const originalBomViewerSlice = createSlice({
       const { nodeId, node } = payload;
       const isOpen = state.openNodes[nodeId];
 
-      // If closing, remove from openNodes
       if (isOpen) {
-        delete state.openNodes[nodeId];
+        state.openNodes[nodeId] = false;
         return;
       }
 
-      // If opening, set to true
       state.openNodes[nodeId] = true;
 
-      // If children not already loaded, expand them
       if (!state.nodeChildren[nodeId]) {
         const hasChildren = node.rawData || node.xmlNode;
         if (hasChildren) {
@@ -169,6 +160,12 @@ const originalBomViewerSlice = createSlice({
       const { nodeId, batchSize } = payload;
       const currentCount = state.visibleCounts[nodeId] || batchSize;
       state.visibleCounts[nodeId] = currentCount + batchSize;
+    },
+    setSearchValue: (state, { payload }) => {
+      state.searchValue = payload;
+    },
+    setDebouncedSearchValue: (state, { payload }) => {
+      state.debouncedSearchValue = payload;
     },
     resetState: always(initialState),
   },

@@ -63,6 +63,8 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -725,5 +727,140 @@ public class SbomManagerBillOfMaterialsPageTest
         .pollingEvery(Duration.ofSeconds(2))
         .ignoring(NoSuchElementException.class)
         .until(ExpectedConditions.invisibilityOf(SbomManagerBillOfMaterialsPage.componentsTile().getLoadingSpinner()));
+  }
+
+  @Test
+  public void testOriginalBomViewer_SearchInputDisplaysAndFiltersNodes() {
+    refreshOrOpen(IndexPage.url());
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+
+    // Click on "Original BOM" tab
+    $$(".nx-tab").findBy(text("Original BOM")).shouldBe(visible).click();
+
+    // Wait for Original BOM viewer to load - wait for info alert which appears after loading
+    $(".iq-original-bom-viewer__info").shouldBe(visible, Duration.ofSeconds(30));
+
+    // Verify search input exists
+    SelenideElement searchInput = $("#original-bom-search");
+    searchInput.shouldBe(visible);
+
+    // Count initial nodes before search
+    ElementsCollection initialNodes = $$(".nx-tree__item");
+    int initialCount = initialNodes.size();
+
+    // Enter search term
+    searchInput.setValue("component");
+
+    // Wait for results count to appear (indicates search is complete)
+    SelenideElement resultsCount = $(".iq-original-bom-viewer__results-count");
+    resultsCount.shouldBe(visible);
+
+    // Verify results are filtered - node count should decrease
+    ElementsCollection filteredNodes = $$(".nx-tree__item");
+    assertThat(filteredNodes.size()).isGreaterThan(0);
+    assertThat(filteredNodes.size()).isLessThan(initialCount);
+  }
+
+  @Test
+  public void testOriginalBomViewer_SearchHighlightsMatchingText() {
+    refreshOrOpen(IndexPage.url());
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+
+    // Click on "Original BOM" tab
+    $$(".nx-tab").findBy(text("Original BOM")).shouldBe(visible).click();
+
+    // Wait for Original BOM viewer to load - wait for info alert which appears after loading
+    $(".iq-original-bom-viewer__info").shouldBe(visible, Duration.ofSeconds(30));
+
+    // Enter search term
+    SelenideElement searchInput = $("#original-bom-search");
+    searchInput.setValue("bom");
+
+    // Wait for highlights to appear (indicates search is complete)
+    ElementsCollection highlights = $$(".iq-original-bom-viewer__highlight");
+    highlights.first().shouldBe(visible);
+
+    // Verify highlight elements exist
+    assertThat(highlights.size()).isGreaterThan(0);
+  }
+
+  @Test
+  public void testOriginalBomViewer_SearchResultCountDisplays() {
+    refreshOrOpen(IndexPage.url());
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+
+    // Click on "Original BOM" tab
+    $$(".nx-tab").findBy(text("Original BOM")).shouldBe(visible).click();
+
+    // Wait for Original BOM viewer to load - wait for info alert which appears after loading
+    $(".iq-original-bom-viewer__info").shouldBe(visible, Duration.ofSeconds(30));
+
+    // Enter search term
+    SelenideElement searchInput = $("#original-bom-search");
+    searchInput.setValue("metadata");
+
+    // Verify result count displays with correct format
+    SelenideElement resultsCount = $(".iq-original-bom-viewer__results-count");
+    resultsCount.shouldBe(visible);
+    String countText = resultsCount.getText();
+
+    // Verify format: "N result(s) found"
+    assertThat(countText).matches("\\d+ results? found");
+
+    // Verify count is greater than 0
+    int displayedCount = Integer.parseInt(countText.split(" ")[0]);
+    assertThat(displayedCount).isGreaterThan(0);
+  }
+
+  @Test
+  public void testOriginalBomViewer_SearchExpandsNodesWithMatchingChildren() {
+    refreshOrOpen(IndexPage.url());
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+
+    // Click on "Original BOM" tab
+    $$(".nx-tab").findBy(text("Original BOM")).shouldBe(visible).click();
+
+    // Wait for Original BOM viewer to load - wait for info alert which appears after loading
+    $(".iq-original-bom-viewer__info").shouldBe(visible, Duration.ofSeconds(30));
+
+    // Enter search term that would match deeply nested children
+    SelenideElement searchInput = $("#original-bom-search");
+    searchInput.setValue("version");
+
+    // Wait for search to complete (results count appears)
+    SelenideElement resultsCount = $(".iq-original-bom-viewer__results-count");
+    resultsCount.shouldBe(visible);
+
+    // Verify that matching nodes are shown
+    ElementsCollection matchedNodes = $$(".nx-tree__item");
+    assertThat(matchedNodes.size()).isGreaterThan(0);
+
+    // Verify results count is displayed
+    String countText = resultsCount.getText();
+    assertThat(countText).matches("\\d+ results? found");
+  }
+
+  @Test
+  public void testOriginalBomViewer_SearchWithMultipleCharacters() {
+    refreshOrOpen(IndexPage.url());
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+
+    // Click on "Original BOM" tab
+    $$(".nx-tab").findBy(text("Original BOM")).shouldBe(visible).click();
+
+    // Wait for Original BOM viewer to load - wait for info alert which appears after loading
+    $(".iq-original-bom-viewer__info").shouldBe(visible, Duration.ofSeconds(30));
+
+    // Enter search term
+    SelenideElement searchInput = $("#original-bom-search");
+    searchInput.setValue("bo");
+
+    // Verify search results appear
+    SelenideElement resultsCount = $(".iq-original-bom-viewer__results-count");
+    resultsCount.shouldBe(visible);
+
+    // Verify results count format
+    String countText = resultsCount.getText();
+    assertThat(countText).matches("\\d+ results? found");
   }
 }

@@ -18,7 +18,6 @@ const createXmlElementNode = (node, path, elementIndex = null) => {
       ? `${path}.${node.nodeName}`
       : node.nodeName;
 
-  // Check if this is a simple text node (no attributes, single text child)
   const hasAttributes = node.attributes && node.attributes.length > 0;
   const isSingleTextNode =
     !hasAttributes && node.childNodes.length === 1 && node.childNodes[0].nodeType === Node.TEXT_NODE;
@@ -56,18 +55,14 @@ export const parseXmlToTree = (xmlString) => {
     const root = createXmlElementNode(xmlDoc.documentElement, '');
     return root ? [root] : [];
   } catch (e) {
-    console.error('Error parsing XML:', e);
     return [];
   }
 };
 
-// Find and extract a specific component by PURL from SBOM XML
-// Supports both CycloneDX (component tags) and SPDX (packages tags)
 export const findComponentInXml = (xmlDoc, componentPurl) => {
   if (!componentPurl || !xmlDoc) return null;
 
   try {
-    // Search for component elements (CycloneDX format) - check purl child element
     const purlElements = xmlDoc.getElementsByTagName('purl');
     for (let i = 0; i < purlElements.length; i++) {
       const purl = purlElements[i].textContent?.trim();
@@ -76,17 +71,14 @@ export const findComponentInXml = (xmlDoc, componentPurl) => {
       }
     }
 
-    // Search for packages elements (SPDX format) - check externalRefs/referenceLocator
     const refLocators = xmlDoc.getElementsByTagName('referenceLocator');
     for (let i = 0; i < refLocators.length; i++) {
       const locator = refLocators[i].textContent?.trim();
       if (locator === componentPurl) {
-        // Verify this is a purl type reference
         const externalRef = refLocators[i].parentNode;
         if (externalRef) {
           const refTypeEl = externalRef.querySelector('referenceType');
           if (refTypeEl?.textContent?.trim() === 'purl') {
-            // Navigate up to find the package element
             let node = externalRef.parentNode;
             while (node && node.nodeName !== 'packages') {
               node = node.parentNode;
@@ -101,7 +93,6 @@ export const findComponentInXml = (xmlDoc, componentPurl) => {
 
     return null;
   } catch (e) {
-    console.error('Error finding component in XML:', e);
     return null;
   }
 };

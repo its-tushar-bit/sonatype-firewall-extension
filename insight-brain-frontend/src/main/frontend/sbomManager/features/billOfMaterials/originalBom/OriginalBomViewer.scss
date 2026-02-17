@@ -6,8 +6,23 @@
 @use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 .iq-original-bom-viewer {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
   &__info {
     margin-bottom: 16px;
+  }
+
+  &__warning {
+    margin-bottom: 16px;
+  }
+
+  &__search-input {
+    width: 300px;
   }
 
   &__tree {
@@ -60,5 +75,29 @@
     height: 1px;
     display: block;
     cursor: pointer;
+  }
+
+  &__results-count {
+    margin-bottom: 16px;
+    color: var(--nx-color-text-stark);
+    font-size: var(--nx-font-size-sm);
+    font-style: italic;
+
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-color-text-dark-stark);
+    }
+  }
+
+  &__highlight {
+    background-color: var(--nx-swatch-yellow-95);
+    color: var(--nx-color-text-stark);
+    font-weight: 500;
+    padding: 0 2px;
+    border-radius: 2px;
+
+    @include nx-dark-mode-helpers.dark-mode {
+      background-color: var(--nx-swatch-yellow-30);
+      color: var(--nx-color-text-dark-stark);
+    }
   }
 }

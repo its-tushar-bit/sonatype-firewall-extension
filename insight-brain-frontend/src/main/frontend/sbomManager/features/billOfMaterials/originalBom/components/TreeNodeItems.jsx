@@ -11,8 +11,31 @@ import { faFolder, faFolderOpen, faFile } from '@fortawesome/pro-regular-svg-ico
 import LoadMoreSentinel from './LoadMoreSentinel';
 import { BATCH_SIZE } from '../utils/constants';
 import { getChildCount } from '../utils/jsonTreeUtils';
+import { getHighlightParts } from '../utils/searchUtils';
 
-// Helper to count XML node children
+const HighlightedText = ({ text, searchTerm }) => {
+  if (!text && text !== 0) return null;
+
+  const parts = getHighlightParts(text, searchTerm);
+
+  if (typeof parts === 'string') {
+    return <span>{parts}</span>;
+  }
+
+  return (
+    <span>
+      {parts.before}
+      <mark className="iq-original-bom-viewer__highlight">{parts.match}</mark>
+      {parts.after}
+    </span>
+  );
+};
+
+HighlightedText.propTypes = {
+  text: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  searchTerm: PropTypes.string,
+};
+
 const getXmlChildCount = (xmlNode) => {
   let count = 0;
 
@@ -40,6 +63,7 @@ export default function TreeNodeItems({
   visibleCounts,
   onLoadMore,
   parentId,
+  searchTerm,
 }) {
   if (!nodes || nodes.length === 0) return null;
 
@@ -50,8 +74,9 @@ export default function TreeNodeItems({
   return (
     <>
       {visibleNodes.map((node, index) => {
-        const isOpen = openNodes[node.id] || false;
-        const children = nodeChildren[node.id];
+        const userHasSetState = node.id in openNodes;
+        const isOpen = userHasSetState ? openNodes[node.id] : node.hasMatchingDescendants || false;
+        const children = node.children || nodeChildren[node.id];
         const isLastVisible = index === visibleNodes.length - 1;
 
         const hasChildren = !!((children && children.length > 0) || node.rawData || node.xmlNode);
@@ -79,12 +104,16 @@ export default function TreeNodeItems({
           >
             <NxTree.ItemLabel>
               <NxFontAwesomeIcon icon={icon} />
-              <span className="iq-original-bom-viewer__key">{node.name}</span>
+              <span className="iq-original-bom-viewer__key">
+                <HighlightedText text={node.name} searchTerm={searchTerm} />
+              </span>
               {hasChildren && <span className="iq-original-bom-viewer__count">{` {${childCount}}`}</span>}
               {node.value !== null && (
                 <>
                   <span className="iq-original-bom-viewer__separator">: </span>
-                  <span className="iq-original-bom-viewer__value">{node.value}</span>
+                  <span className="iq-original-bom-viewer__value">
+                    <HighlightedText text={node.value} searchTerm={searchTerm} />
+                  </span>
                 </>
               )}
               {preview && <span className="iq-original-bom-viewer__preview">{` {${preview}}`}</span>}
@@ -99,6 +128,7 @@ export default function TreeNodeItems({
                   visibleCounts={visibleCounts}
                   onLoadMore={onLoadMore}
                   parentId={node.id}
+                  searchTerm={searchTerm}
                 />
               </NxTree>
             )}
@@ -128,4 +158,5 @@ TreeNodeItems.propTypes = {
   visibleCounts: PropTypes.objectOf(PropTypes.number),
   onLoadMore: PropTypes.func,
   parentId: PropTypes.string,
+  searchTerm: PropTypes.string,
 };

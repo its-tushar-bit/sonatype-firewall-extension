@@ -659,6 +659,182 @@ describe('OriginalBomViewer', () => {
         );
       });
     });
+
+    describe('Search functionality', () => {
+      beforeEach(() => {
+        axiosMock.onGet(getDownloadSbomFileUrl(internalAppId, sbomVersion)).reply(200, mockJsonSbom);
+      });
+
+      it('renders search input', async () => {
+        render(<OriginalBomViewer internalAppId={internalAppId} sbomVersion={sbomVersion} />);
+        await waitFor(() => expect(screen.getByLabelText('Search SBOM components and attributes')).toBeInTheDocument());
+        const searchInput = screen.getByLabelText('Search SBOM components and attributes');
+        expect(searchInput).toHaveAttribute('placeholder', 'Search');
+        expect(searchInput).toHaveAttribute('id', 'original-bom-search');
+      });
+
+      it('filters tree nodes based on search term', async () => {
+        render(<OriginalBomViewer internalAppId={internalAppId} sbomVersion={sbomVersion} />);
+        await waitFor(() => expect(screen.getByText('bomFormat')).toBeInTheDocument());
+
+        const searchInput = screen.getByLabelText('Search SBOM components and attributes');
+        await userEvent.type(searchInput, 'react');
+
+        await waitFor(() => {
+          expect(screen.getByText('2 results found')).toBeInTheDocument();
+        });
+
+        expect(screen.getAllByText('react').length).toBeGreaterThan(0);
+        expect(screen.queryByText('lodash')).not.toBeInTheDocument();
+      });
+
+      it('highlights matching text in search results', async () => {
+        render(<OriginalBomViewer internalAppId={internalAppId} sbomVersion={sbomVersion} />);
+        await waitFor(() => expect(screen.getByText('bomFormat')).toBeInTheDocument());
+
+        const searchInput = screen.getByLabelText('Search SBOM components and attributes');
+        await userEvent.type(searchInput, 'react');
+
+        await waitFor(() => {
+          const highlights = document.querySelectorAll('.iq-original-bom-viewer__highlight');
+          expect(highlights.length).toBeGreaterThan(0);
+        });
+      });
+
+      it('debounces search input', async () => {
+        render(<OriginalBomViewer internalAppId={internalAppId} sbomVersion={sbomVersion} />);
+        await waitFor(() => expect(screen.getByText('bomFormat')).toBeInTheDocument());
+
+        const searchInput = screen.getByLabelText('Search SBOM components and attributes');
+
+        // Type search term
+        await userEvent.type(searchInput, 're');
+
+        // Results should appear after debounce timeout
+        await waitFor(
+          () => {
+            expect(screen.getByText(/result.*found/)).toBeInTheDocument();
+          },
+          { timeout: 1000 }
+        );
+      });
+
+      it('displays results count with correct format', async () => {
+        render(<OriginalBomViewer internalAppId={internalAppId} sbomVersion={sbomVersion} />);
+        await waitFor(() => expect(screen.getByText('bomFormat')).toBeInTheDocument());
+
+        const searchInput = screen.getByLabelText('Search SBOM components and attributes');
+
+        // Test singular
+        await userEvent.type(searchInput, 'bomFormat');
+        await waitFor(() => {
+          expect(screen.getByText('1 result found')).toBeInTheDocument();
+        });
+
+        // Test plural
+        await userEvent.clear(searchInput);
+        await userEvent.type(searchInput, 'component');
+        await waitFor(() => {
+          expect(screen.getByText(/\d+ results found/)).toBeInTheDocument();
+        });
+      });
+
+      it('clears search and restores all nodes', async () => {
+        render(<OriginalBomViewer internalAppId={internalAppId} sbomVersion={sbomVersion} />);
+        await waitFor(() => expect(screen.getByText('bomFormat')).toBeInTheDocument());
+
+        const searchInput = screen.getByLabelText('Search SBOM components and attributes');
+
+        // Enter search
+        await userEvent.type(searchInput, 'react');
+        await waitFor(() => {
+          expect(screen.getByText('2 results found')).toBeInTheDocument();
+        });
+
+        // Clear search
+        await userEvent.clear(searchInput);
+        await waitFor(() => {
+          expect(screen.queryByText(/result.*found/)).not.toBeInTheDocument();
+        });
+
+        // All nodes should be visible again
+        expect(screen.getByText('bomFormat')).toBeInTheDocument();
+        expect(screen.getByText('components')).toBeInTheDocument();
+      });
+
+      it('handles empty search gracefully', async () => {
+        render(<OriginalBomViewer internalAppId={internalAppId} sbomVersion={sbomVersion} />);
+        await waitFor(() => expect(screen.getByText('bomFormat')).toBeInTheDocument());
+
+        const searchInput = screen.getByLabelText('Search SBOM components and attributes');
+
+        // Type and clear immediately
+        await userEvent.type(searchInput, 'test');
+        await userEvent.clear(searchInput);
+
+        await waitFor(() => {
+          expect(screen.queryByText(/result.*found/)).not.toBeInTheDocument();
+        });
+
+        // All content should still be visible
+        expect(screen.getByText('bomFormat')).toBeInTheDocument();
+      });
+
+      it('handles special characters in search', async () => {
+        render(<OriginalBomViewer internalAppId={internalAppId} sbomVersion={sbomVersion} />);
+        await waitFor(() => expect(screen.getByText('bomFormat')).toBeInTheDocument());
+
+        const searchInput = screen.getByLabelText('Search SBOM components and attributes');
+
+        // Search with special characters
+        await userEvent.type(searchInput, 'pkg:npm');
+        await waitFor(() => {
+          expect(screen.getByText(/result.*found/)).toBeInTheDocument();
+        });
+
+        // Should find purl values
+        expect(screen.queryAllByText(/pkg:npm/).length).toBeGreaterThan(0);
+      });
+
+      it('supports single character search', async () => {
+        render(<OriginalBomViewer internalAppId={internalAppId} sbomVersion={sbomVersion} />);
+        await waitFor(() => expect(screen.getByText('bomFormat')).toBeInTheDocument());
+
+        const searchInput = screen.getByLabelText('Search SBOM components and attributes');
+
+        // Single character should trigger search
+        await userEvent.type(searchInput, 'r');
+        await waitFor(
+          () => {
+            expect(screen.getByText(/result.*found/)).toBeInTheDocument();
+          },
+          { timeout: 1000 }
+        );
+
+        // Clear and try another character
+        await userEvent.clear(searchInput);
+        await waitFor(() => {
+          expect(screen.queryByText(/result.*found/)).not.toBeInTheDocument();
+        });
+      });
+
+      it('auto-expands nodes with matching descendants', async () => {
+        render(<OriginalBomViewer internalAppId={internalAppId} sbomVersion={sbomVersion} />);
+        await waitFor(() => expect(screen.getByText('bomFormat')).toBeInTheDocument());
+
+        const searchInput = screen.getByLabelText('Search SBOM components and attributes');
+
+        // Search for deeply nested value
+        await userEvent.type(searchInput, 'react');
+        await waitFor(() => {
+          expect(screen.getByText('2 results found')).toBeInTheDocument();
+        });
+
+        // Parent nodes should be expanded to show matching descendants
+        expect(screen.getByText('components')).toBeInTheDocument();
+        expect(screen.getAllByText('react').length).toBeGreaterThan(0);
+      });
+    });
   });
 
   describe('Preview functionality', () => {

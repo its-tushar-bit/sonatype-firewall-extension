@@ -3,9 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
+import debounce from 'debounce';
 import {
   NxLoadWrapper,
   NxInfoAlert,
@@ -14,6 +15,7 @@ import {
   NxTextLink,
   NxTree,
   NxTile,
+  NxFilterInput,
 } from '@sonatype/react-shared-components';
 
 import { actions } from './originalBomViewerSlice';
@@ -25,9 +27,12 @@ import {
   selectNodeChildren,
   selectVisibleCounts,
   selectComponentNotFound,
+  selectSearchValue,
+  selectDebouncedSearchValue,
 } from './originalBomViewerSelectors';
 import TreeNodeItems from './components/TreeNodeItems';
-import { HELP_URL, BATCH_SIZE } from './utils/constants';
+import { HELP_URL, BATCH_SIZE, SEARCH_DEBOUNCE_TIMEOUT_MS, MAX_SEARCH_LENGTH } from './utils/constants';
+import { filterTreeNodes, countMatchingNodes } from './utils/searchUtils';
 
 import './OriginalBomViewer.scss';
 
@@ -41,6 +46,44 @@ export default function OriginalBomViewer({ internalAppId, sbomVersion, componen
   const nodeChildren = useSelector(selectNodeChildren);
   const visibleCounts = useSelector(selectVisibleCounts);
   const componentNotFound = useSelector(selectComponentNotFound);
+  const searchValue = useSelector(selectSearchValue);
+  const debouncedSearchValue = useSelector(selectDebouncedSearchValue);
+
+  const debouncedUpdateSearchRef = useRef(
+    debounce((value) => {
+      dispatch(actions.setDebouncedSearchValue(value));
+    }, SEARCH_DEBOUNCE_TIMEOUT_MS)
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedUpdateSearchRef.current?.clear?.();
+    };
+  }, []);
+
+  const handleSearchChange = useCallback(
+    (value) => {
+      const truncatedValue = value.length > MAX_SEARCH_LENGTH ? value.substring(0, MAX_SEARCH_LENGTH) : value;
+
+      dispatch(actions.setSearchValue(truncatedValue));
+
+      debouncedUpdateSearchRef.current?.clear?.();
+
+      if (truncatedValue === '') {
+        dispatch(actions.setDebouncedSearchValue(''));
+      } else {
+        debouncedUpdateSearchRef.current(truncatedValue);
+      }
+    },
+    [dispatch]
+  );
+
+  const filteredTreeData = useMemo(() => filterTreeNodes(treeData, debouncedSearchValue), [
+    treeData,
+    debouncedSearchValue,
+  ]);
+
+  const matchingNodeCount = useMemo(() => countMatchingNodes(filteredTreeData), [filteredTreeData]);
 
   const loadOriginalBom = useCallback(() => {
     if (internalAppId && sbomVersion) {
@@ -63,7 +106,25 @@ export default function OriginalBomViewer({ internalAppId, sbomVersion, componen
   return (
     <div className="iq-original-bom-viewer">
       <NxLoadWrapper loading={loading} error={error} retryHandler={loadOriginalBom}>
-        <NxH2>Original Bill of Material Data</NxH2>
+        <div className="iq-original-bom-viewer__header" role="search" aria-label="Search SBOM components">
+          <NxH2>Original Bill of Material Data</NxH2>
+          <NxFilterInput
+            searchIcon
+            id="original-bom-search"
+            value={searchValue}
+            onChange={handleSearchChange}
+            placeholder="Search"
+            aria-label="Search SBOM components and attributes"
+            aria-describedby={debouncedSearchValue ? 'search-results-count' : undefined}
+            className="iq-original-bom-viewer__search-input"
+          />
+        </div>
+
+        {debouncedSearchValue && (
+          <div id="search-results-count" className="iq-original-bom-viewer__results-count" role="status">
+            {matchingNodeCount} result{matchingNodeCount !== 1 ? 's' : ''} found
+          </div>
+        )}
 
         {componentNotFound && (
           <NxWarningAlert className="iq-original-bom-viewer__warning">
@@ -88,13 +149,14 @@ export default function OriginalBomViewer({ internalAppId, sbomVersion, componen
         <NxTile>
           <NxTree className="iq-original-bom-viewer__tree">
             <TreeNodeItems
-              nodes={treeData}
+              nodes={filteredTreeData}
               onToggle={toggleNode}
               openNodes={openNodes}
               nodeChildren={nodeChildren}
               visibleCounts={visibleCounts}
               onLoadMore={handleLoadMore}
               parentId="root"
+              searchTerm={debouncedSearchValue}
             />
           </NxTree>
         </NxTile>

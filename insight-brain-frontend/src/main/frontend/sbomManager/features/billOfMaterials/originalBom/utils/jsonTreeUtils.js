@@ -88,7 +88,6 @@ export const findComponentInJson = (jsonData, componentPurl) => {
   try {
     const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
 
-    // Search in components array (CycloneDX format) - direct purl match
     if (data.components?.length) {
       const component = data.components.find((comp) => comp.purl === componentPurl);
       if (component) {
@@ -96,7 +95,6 @@ export const findComponentInJson = (jsonData, componentPurl) => {
       }
     }
 
-    // Search in packages array (SPDX format) - check externalRefs for purl
     if (data.packages?.length) {
       const pkg = data.packages.find((p) =>
         p.externalRefs?.some((ref) => ref.referenceType === 'purl' && ref.referenceLocator === componentPurl)
@@ -108,7 +106,6 @@ export const findComponentInJson = (jsonData, componentPurl) => {
 
     return null;
   } catch (e) {
-    console.error('Error finding component in JSON:', e);
     return null;
   }
 };

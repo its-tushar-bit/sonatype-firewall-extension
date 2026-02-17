@@ -50,8 +50,6 @@ export default function EnterpriseReportCard(props) {
   });
 
   const icon = fas[dashboard.previewImageIcon] ? fas[dashboard.previewImageIcon] : fasPro[dashboard.previewImageIcon];
-  const hasCustomImage = dashboard.previewImage && dashboard.previewImage.endsWith('.svg');
-  const customImagePath = hasCustomImage ? `/assets/img/${dashboard.previewImage}` : null;
 
   const cleanedIqVersion = parseInt(iqVersion.split('.')[1]);
   const isDashboardDisabled = (dashboard) => cleanedIqVersion < parseInt(dashboard.sinceIQVersion);
@@ -100,11 +98,7 @@ export default function EnterpriseReportCard(props) {
 
         <NxCard.Content>
           <NxCard.CallOut className={classNames('iq-enterprise-reporting-card__icon', { enterprise: isEnterprise })}>
-            {hasCustomImage ? (
-              <img src={customImagePath} alt={dashboard.title} className="iq-enterprise-reporting-card__custom-icon" />
-            ) : (
-              <NxFontAwesomeIcon icon={icon} />
-            )}
+            <NxFontAwesomeIcon icon={icon} />
           </NxCard.CallOut>
           <NxCard.Text>{dashboard.description}</NxCard.Text>
           <NxList bulleted className="iq-enterprise-reporting-card__features">

@@ -582,6 +582,9 @@ public class PolicyEvaluateServiceTest
     String mailA = "managerWithPolling@example.com";
     String mailB = "john.doeWithPolling@example.com";
 
+    // Clear mailboxes before test to prevent cross-contamination from previous tests
+    MailboxTestUtil.clearAll();
+
     final Policy policy1 = tempEntity.newPolicy(app, 8, LogicalOperator.AND,
         new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     addNotificationsToPolicy(policy1, Stage.ID_BUILD, //

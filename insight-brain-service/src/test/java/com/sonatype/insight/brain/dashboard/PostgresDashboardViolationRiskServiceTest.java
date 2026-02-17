@@ -47,7 +47,7 @@ public class PostgresDashboardViolationRiskServiceTest
                       constraint_facts_json,action_type_id,open_time,waive_time,legacy_violation_time,
                       fix_time,policy_waiver_id,policy_waiver_comment,seen_by_primary_evaluation,
                       seen_by_monitoring_evaluation,legacy_violation_applied,reachability_status,auto_policy_waiver_id,
-                      constraint_facts_id,is_remediated_by_version_change
+                      constraint_facts_id
               FROM    insight_brain_ods.policy_violation pv
               JOIN    insight_brain_ods.application a ON (1=1)
               WHERE   pv.application_id = '%s'

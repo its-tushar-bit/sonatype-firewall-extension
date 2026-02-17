@@ -65,9 +65,6 @@ public class PolicyViolation
   @Column(name = "auto_policy_waiver_id")
   private String autoPolicyWaiverId;
 
-  @Column(name = "is_remediated_by_version_change")
-  private Boolean isRemediatedByVersionChange;
-
   public PolicyViolation() {
   }
 
@@ -252,14 +249,6 @@ public class PolicyViolation
 
   public void setAutoPolicyWaiverId(String id) {
     this.autoPolicyWaiverId = id;
-  }
-
-  public Boolean getIsRemediatedByVersionChange() {
-    return isRemediatedByVersionChange;
-  }
-
-  public void setIsRemediatedByVersionChange(Boolean isRemediatedByVersionChange) {
-    this.isRemediatedByVersionChange = isRemediatedByVersionChange;
   }
 
   @Transient

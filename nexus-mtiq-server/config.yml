@@ -123,7 +123,7 @@ createSampleData: ${CREATE_SAMPLE_DATA:-true}
 
 auth0:
   domain: ${AUTH0_DOMAIN:-"local/"}
-  customDomain: {AUTH0_CUSTOM_DOMAIN:-"local/"}
+  customDomain: ${AUTH0_CUSTOM_DOMAIN:-"local/"}
 
 # If true, the built-in admin user will be deleted when creating a new tenant
 deleteBuiltInAdmin: ${DELETE_BUILT_IN_ADMIN:-true}

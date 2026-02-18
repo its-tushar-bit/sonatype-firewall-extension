@@ -558,7 +558,7 @@ describe('selectSourceControlConfigurationSelectors', () => {
         };
         const actual = selectValidationError(state);
         expect(actual).toEqual(
-          'Please install and configure a GitHub App or switch to Personal Access Token authentication.'
+          'Please configure and install a GitHub App or switch to Personal Access Token authentication.'
         );
       });
 

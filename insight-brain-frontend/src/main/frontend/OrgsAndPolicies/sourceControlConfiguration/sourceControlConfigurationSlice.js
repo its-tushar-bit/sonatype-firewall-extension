@@ -289,7 +289,9 @@ const loadSCMRootConfigFulfilled = (
       state.sourceControl.provider.isInherited = false;
       hasChanges = true;
     }
-    if (sourceControl.authenticationType?.value !== 'GITHUB_APP') {
+    // Only default to GITHUB_APP if authenticationType is not already set
+    // This respects user's manual selection or server-provided value
+    if (!state.sourceControl.authenticationType?.value) {
       state.sourceControl.authenticationType.value = 'GITHUB_APP';
       state.sourceControl.authenticationType.isInherited = false;
       hasChanges = true;

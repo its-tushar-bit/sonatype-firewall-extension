@@ -136,6 +136,77 @@ describe('GitHubAppAuthenticationMethod', () => {
         const patRadio = screen.getByRole('radio', { name: /personal access token/i });
         expect(patRadio).toBeChecked();
       });
+
+      it('renders GitHub App selected when installationId exists but authenticationType is null', () => {
+        const sourceControl = {
+          ...defaultSourceControl,
+          authenticationType: { value: null },
+          githubApp: {
+            value: {
+              installationId: 12345,
+              accountName: 'test-org',
+              name: 'Test App',
+            },
+          },
+        };
+        const setValue = jest.fn();
+        renderComponent({ sourceControl, setValue });
+
+        const githubAppRadio = screen.getByRole('radio', { name: /github app \(recommended\)/i });
+        expect(githubAppRadio).toBeChecked();
+        expect(setValue).toHaveBeenCalledWith('authenticationType', AUTHENTICATION_TYPES.GITHUB_APP);
+      });
+
+      it('renders PAT selected when installationId exists but authenticationType is explicitly PAT', () => {
+        const sourceControl = {
+          ...defaultSourceControl,
+          authenticationType: { value: AUTHENTICATION_TYPES.PAT },
+          token: {
+            rscValue: {
+              value: 'ghp_token',
+              isPristine: false,
+              trimmedValue: 'ghp_token',
+              validationErrors: null,
+            },
+          },
+          githubApp: {
+            value: {
+              installationId: 12345,
+              accountName: 'test-org',
+              name: 'Test App',
+            },
+          },
+        };
+        renderComponent({ sourceControl });
+
+        const patRadio = screen.getByRole('radio', { name: /personal access token/i });
+        expect(patRadio).toBeChecked();
+
+        // GitHub App data should not be visible when PAT is selected
+        expect(screen.queryByText('Organization:')).not.toBeInTheDocument();
+      });
+
+      it('renders GitHub App selected when installationId exists and authenticationType is GITHUB_APP', () => {
+        const sourceControl = {
+          ...defaultSourceControl,
+          authenticationType: { value: AUTHENTICATION_TYPES.GITHUB_APP },
+          githubApp: {
+            value: {
+              installationId: 12345,
+              accountName: 'test-org',
+              name: 'Test App',
+            },
+          },
+        };
+        renderComponent({ sourceControl });
+
+        const githubAppRadio = screen.getByRole('radio', { name: /github app \(recommended\)/i });
+        expect(githubAppRadio).toBeChecked();
+
+        // GitHub App data should be visible
+        expect(screen.getByText('Organization:')).toBeInTheDocument();
+        expect(screen.getByText('test-org')).toBeInTheDocument();
+      });
     });
 
     describe('when GitHub App authentication is disabled', () => {

@@ -26,7 +26,7 @@ const validateUrlPatternMatch = validatePatternMatch(
 export const SOURCE_CONTROL_UNSUPPORTED_MESSAGE = 'Source Control is not supported by your license';
 export const SCM_FEATURE_UNSUPPORTED_MESSAGE = 'This feature is not supported by your license';
 export const GITHUB_APP_NOT_CONFIGURED_MESSAGE =
-  'Please install and configure a GitHub App or switch to Personal Access Token authentication.';
+  'Please configure and install a GitHub App or switch to Personal Access Token authentication.';
 export const DEFAULT_BRANCH_SUBLABEL =
   'The branch used for automated remediation pull requests and as the basis for finding introduced violations in feature branches';
 export const ROOT_ORG_NAME = 'Root Organization';

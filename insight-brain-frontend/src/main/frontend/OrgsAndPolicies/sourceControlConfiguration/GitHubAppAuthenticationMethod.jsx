@@ -19,15 +19,26 @@ const GitHubAppAuthenticationMethod = ({
   isGithubAppAuthenticationEnabled,
 }) => {
   const dispatch = useDispatch();
-  const [authMethod, setAuthMethod] = useState(
-    sourceControl?.authenticationType?.value ||
-      (sourceControl?.token?.rscValue?.value ? AUTHENTICATION_TYPES.PAT : null)
-  );
+  const [authMethod, setAuthMethod] = useState(() => {
+    if (sourceControl?.authenticationType?.value) {
+      return sourceControl.authenticationType.value;
+    }
+    if (sourceControl?.githubApp?.value?.installationId) {
+      return AUTHENTICATION_TYPES.GITHUB_APP;
+    }
+    if (sourceControl?.token?.rscValue?.value) {
+      return AUTHENTICATION_TYPES.PAT;
+    }
+    return null;
+  });
   const handleOpenModal = () => dispatch(actions.openModal());
   useEffect(() => {
     if (authMethod && setValue && !sourceControl?.authenticationType?.value) {
       setValue('authenticationType', authMethod);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Intentionally run only on mount to set initial authentication type value
+    // Re-running on authMethod changes would override user's manual selection
   }, []);
 
   const handleAuthMethodChange = (method) => {

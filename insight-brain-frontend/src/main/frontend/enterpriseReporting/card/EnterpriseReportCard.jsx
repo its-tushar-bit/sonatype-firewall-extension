@@ -139,12 +139,7 @@ export default function EnterpriseReportCard(props) {
                   className={`iq-enterprise-reporting-card__button dashboard-id-btn-${dashboard.dashboardId}`}
                   disabled={buttonDisabled}
                   onClick={() => {
-                    // Special route for HeroDevs EOL
-                    if (dashboard.dashboardId === 'herodevs_eol') {
-                      dispatch(stateGo('heroDevsEol'));
-                    } else {
-                      dispatch(stateGo('enterpriseReportingDashboard', { id: dashboard.dashboardId }));
-                    }
+                    dispatch(stateGo('enterpriseReportingDashboard', { id: dashboard.dashboardId }));
                   }}
                   data-analytics-id={
                     dashboard.dashboardId === 'herodevs_eol' ? 'lc-reporting-herodevs-view-cta' : undefined

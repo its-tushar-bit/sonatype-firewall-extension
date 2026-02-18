@@ -46,6 +46,8 @@ public class MtiqSystemConfigurationMenuTest
 
   @Test
   public void testPermissionAwareness_AdminOwnIdp() {
+    tempEntity.newMailConfigurationWithNoAuthentication();
+
     refreshOrOpen(GettingStartedPage.url());
     loginAsAdmin();
 
@@ -65,6 +67,7 @@ public class MtiqSystemConfigurationMenuTest
 
   @Test
   public void testPermissionAwareness_Admin() {
+    tempEntity.newMailConfigurationWithNoAuthentication();
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE,
         String.valueOf(true));
 
@@ -88,6 +91,7 @@ public class MtiqSystemConfigurationMenuTest
   public void testPermissionAwareness_CONFIGURE_SYSTEM() {
     User user = newUser(Permission.CONFIGURE_SYSTEM);
 
+    tempEntity.newMailConfigurationWithNoAuthentication();
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SAML_ENABLED, "true");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE,
         String.valueOf(true));

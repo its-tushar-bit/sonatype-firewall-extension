@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
+import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -70,6 +71,7 @@ import com.sonatype.insight.brain.model.Nameable;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.configuration.CiIntegrationsConfig;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
@@ -1333,6 +1335,23 @@ public class ApplicationDAOTest
 
     // verify deletion
     assertThat(cpeMatchingConfigurationDao.getByOwnerId(cpeMatchingConfiguration.getOwnerId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToCiIntegrationsConfig() {
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getPublicId());
+    CiIntegrationsConfig ciIntegrationsConfig = new CiIntegrationsConfig(application.getId(), "APPLICATION", "");
+    CiIntegrationsConfigDao ciIntegrationsConfigDao = daoFactory.createCiIntegrationsConfigDao();
+
+    // create
+    ciIntegrationsConfigDao.save(ciIntegrationsConfig);
+
+    // delete application
+    applicationDAO.delete(application);
+
+    // verify deletion
+    assertThat(ciIntegrationsConfigDao.findByOwner("APPLICATION", application.getId())).isEmpty();
   }
 
   @Test

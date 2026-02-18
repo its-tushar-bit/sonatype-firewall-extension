@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationListDTO;
@@ -23,7 +24,9 @@ class ApiOrganizationAdapter
   static ApiOrganizationListDTO convert(List<Organization> organizations, Map<String, List<Tag>> orgTagMap) {
     final List<ApiOrganizationDTO> dtoList = new ArrayList<>(organizations.size());
     for (final Organization organization : organizations) {
-      dtoList.add(convert(organization, orgTagMap.get(organization.getId())));
+      List<Tag> tags = Optional.ofNullable(orgTagMap.get(organization.getId()))
+          .orElse(List.of());
+      dtoList.add(convert(organization, tags));
     }
     ApiOrganizationListDTO organizationListDTO = new ApiOrganizationListDTO();
     organizationListDTO.organizations = dtoList;

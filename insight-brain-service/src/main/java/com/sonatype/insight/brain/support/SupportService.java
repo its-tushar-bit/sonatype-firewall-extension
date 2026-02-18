@@ -497,6 +497,7 @@ public class SupportService
     addDbData(filesToZip, workDir, dbData.getReverseProxyAuthenticationConfiguration());
     addDbData(filesToZip, workDir, dbData.getInnerSourceRepositoriesConfiguration());
     addDbData(filesToZip, workDir, dbData.getCpeMatchingConfiguration());
+    addDbData(filesToZip, workDir, dbData.getCiIntegrationsConfig());
   }
 
   private void addDbData(final List<SupportFile> filesToZip,

@@ -6,11 +6,14 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -26,6 +29,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.error.exception.BadRequestException;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * @since 1.11.0
@@ -60,6 +64,38 @@ public class ApiOrganizationService
     }
 
     return ApiOrganizationAdapter.convert(organizations, orgTagMap);
+  }
+
+  /**
+   * Retrieves organizations by their internal IDs.
+   *
+   * @param ids the set of internal organization IDs
+   * @return list of organizations without tags
+   * @since 1.201
+   */
+  public ApiOrganizationListDTO getOrganizationsByIds(Set<String> ids) {
+    if (CollectionUtils.isEmpty(ids)) {
+      return new ApiOrganizationListDTO();
+    }
+
+    List<Organization> organizations = getOrganizationsByIdsFiltered(ids);
+    return ApiOrganizationAdapter.convert(organizations, Collections.emptyMap());
+  }
+
+  /**
+   * Helper method to retrieve and filter organizations by internal IDs based on user permissions.
+   *
+   * @param ids the set of internal organization IDs
+   * @return filtered list of organizations the user has READ permission for
+   */
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
+  List<Organization> getOrganizationsByIdsFiltered(Set<String> ids) {
+    List<Organization> organizations = new ArrayList<>();
+    for (String id : ids) {
+      Optional.ofNullable(organizationDAO.getById(id))
+          .ifPresent(organizations::add);
+    }
+    return organizations;
   }
 
   @Authorize(permission = Permission.READ)

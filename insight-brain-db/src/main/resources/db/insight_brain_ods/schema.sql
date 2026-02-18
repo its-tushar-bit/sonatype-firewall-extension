@@ -2215,3 +2215,15 @@ CREATE TABLE enterprise_reporting_default_filter (
   CONSTRAINT enterprise_reporting_default_filter_id_fk FOREIGN KEY (enterprise_reporting_filter_id)
       REFERENCES enterprise_reporting_filter(enterprise_reporting_filter_id) ON DELETE CASCADE
 );
+
+-- since 1.201
+CREATE TABLE ci_integrations_config (
+  ci_integrations_config_id VARCHAR(50) NOT NULL,
+  configuration_json TEXT,
+  owner_id VARCHAR(50) NOT NULL,
+  owner_type VARCHAR(20) NOT NULL,
+  create_time TIMESTAMP NOT NULL,
+  update_time TIMESTAMP NOT NULL,
+  CONSTRAINT ci_integrations_config_pk PRIMARY KEY (ci_integrations_config_id),
+  CONSTRAINT ci_integrations_config_owner_uk UNIQUE (owner_id, owner_type)
+);

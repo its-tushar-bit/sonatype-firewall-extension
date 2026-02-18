@@ -16,6 +16,7 @@ import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -88,6 +89,8 @@ public class OrganizationDAO
 
   private final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO;
 
+  private final CiIntegrationsConfigDao ciIntegrationsConfigDao;
+
   @Inject
   public OrganizationDAO(
       final OperationalDataStore operationalDataStore,
@@ -106,7 +109,8 @@ public class OrganizationDAO
       final OrganizationAncestorDAO organizationAncestorDAO,
       final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       final ScmUserMappingsDAO scmUserMappingsDAO,
-      final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO)
+      final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO,
+      final CiIntegrationsConfigDao ciIntegrationsConfigDao)
   {
     super(operationalDataStore, searchIndexManager);
     this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;
@@ -124,6 +128,7 @@ public class OrganizationDAO
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
     this.scmUserMappingsDAO = scmUserMappingsDAO;
     this.cpeMatchingConfigurationDAO = cpeMatchingConfigurationDAO;
+    this.ciIntegrationsConfigDao = ciIntegrationsConfigDao;
   }
 
   public Organization getByName(TransactionContext tx, String name) {
@@ -343,6 +348,9 @@ public class OrganizationDAO
     }
 
     cpeMatchingConfigurationDAO.delete(tx, cpeMatchingConfigurationDAO.getByOwnerId(tx, organization.getId()));
+
+    // Cascade to CI integrations config
+    ciIntegrationsConfigDao.delete(tx, "ORGANIZATION", organization.getId());
 
     super.delete(tx, organization);
 

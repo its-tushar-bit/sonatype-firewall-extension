@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedCompo
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
@@ -409,6 +410,8 @@ public interface DAOFactory
   VulnerabilityGroupDAO createVulnerabilityGroupDAO();
 
   CallFlowAnalysisConfigDAO createCallFlowAnalysisConfigDAO();
+
+  CiIntegrationsConfigDao createCiIntegrationsConfigDao();
 
   VulnerabilityGroupVulnerabilityDAO createVulnerabilityGroupVulnerabilityDAO();
 

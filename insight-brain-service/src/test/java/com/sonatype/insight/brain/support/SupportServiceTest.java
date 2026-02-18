@@ -263,7 +263,8 @@ public class SupportServiceTest
         "sourceControl",
         "reverseProxyAuthenticationConfiguration",
         "innerSourceRepositoryConnection",
-        "cpeMatchingConfiguration"
+        "cpeMatchingConfiguration",
+        "ciIntegrationsConfig"
     };
     final File[] expectedFiles = createExpectedFiles(workDir, basenames);
     assertThat(workDir.listFiles()).containsExactlyInAnyOrder(expectedFiles);

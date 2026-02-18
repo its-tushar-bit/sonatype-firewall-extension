@@ -128,6 +128,9 @@ public class PublicApiPaths
 
   public static final String GITHUB_APP_SETUP_INSTALLATION_PATH = "setupInstallation";
 
+  public static final String CI_CONFIG_RESOURCE_PATH_V2 =
+      API_VERSION_PATH_V2 + "config/ci/{ownerType:application|organization}/{ownerId}";
+
   public static final String USER_TOKEN_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "userTokens";
 
   public static final String USER_TOKEN_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/userTokens";

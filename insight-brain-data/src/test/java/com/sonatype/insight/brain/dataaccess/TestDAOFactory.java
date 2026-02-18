@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedCompo
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
@@ -223,12 +224,13 @@ public class TestDAOFactory
     CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO = createCpeMatchingConfigurationDAO();
     OrganizationDAO organizationDAO = createOrganizationDAO();
     TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
+    CiIntegrationsConfigDao ciIntegrationsConfigDao = createCiIntegrationsConfigDao();
     return new ApplicationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, sourceControlDAOProvider,
         licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider, ownerDAOProvider,
         proprietaryConfigDAO, membershipMappingDAO,
         policyViolationAggregationDAO, repositoryConnectionDAO,
         sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, autoPolicyWaiverDAO, cpeMatchingConfigurationDAO,
-        organizationDAO, temporaryTableHelper);
+        ciIntegrationsConfigDao, organizationDAO, temporaryTableHelper);
   }
 
   @Override
@@ -561,11 +563,12 @@ public class TestDAOFactory
     AutoPolicyWaiverDAO autoPolicyWaiverDAO = createAutoPolicyWaiverDAO();
     ScmUserMappingsDAO scmUserMappingsDAO = createScmUserMappingsDAO();
     CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO = createCpeMatchingConfigurationDAO();
+    CiIntegrationsConfigDao ciIntegrationsConfigDao = createCiIntegrationsConfigDao();
     return new OrganizationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager,
         automaticApplicationsConfigurationDAO, licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider,
         membershipMappingDAO, ownerDAOProvider, tagDAOProvider, sourceControlDAOProvider, repositoryConnectionDAO,
         scmEventDAO, proprietaryConfigDAO, organizationAncestorDAO, autoPolicyWaiverDAO, scmUserMappingsDAO,
-        cpeMatchingConfigurationDAO);
+        cpeMatchingConfigurationDAO, ciIntegrationsConfigDao);
   }
 
   @Override
@@ -1048,6 +1051,11 @@ public class TestDAOFactory
   @Override
   public CallFlowAnalysisConfigDAO createCallFlowAnalysisConfigDAO() {
     return new CallFlowAnalysisConfigDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public CiIntegrationsConfigDao createCiIntegrationsConfigDao() {
+    return new CiIntegrationsConfigDao(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

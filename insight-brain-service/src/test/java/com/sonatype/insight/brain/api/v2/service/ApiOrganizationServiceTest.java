@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationDTO;
@@ -207,6 +209,60 @@ public class ApiOrganizationServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> apiOrganizationService.deleteOrganization(Organization.ROOT_ORGANIZATION_ID))
         .withMessage("The root organization cannot be deleted.");
+  }
+
+  @Test
+  public void testGetOrganizationsByIds_SingleId() {
+    Organization organization = tempEntity.newOrganization();
+
+    ApiOrganizationListDTO apiOrganizationListDTO =
+        apiOrganizationService.getOrganizationsByIds(Set.of(organization.getId()));
+
+    assertThat(apiOrganizationListDTO).isNotNull();
+    assertThat(apiOrganizationListDTO.organizations).hasSize(1);
+    assertOrganizationData(apiOrganizationListDTO.organizations.get(0), organization, Collections.emptyList());
+  }
+
+  @Test
+  public void testGetOrganizationsByIds_MultipleIds() {
+    Organization org1 = tempEntity.newOrganization("org1");
+    Organization org2 = tempEntity.newOrganization("org2");
+
+    ApiOrganizationListDTO result =
+        apiOrganizationService.getOrganizationsByIds(Set.of(org1.getId(), org2.getId()));
+
+    assertThat(result).isNotNull();
+    assertThat(result.organizations).hasSize(2);
+
+    // Extract IDs from result
+    List<String> resultIds = result.organizations.stream()
+        .map(org -> org.id)
+        .toList();
+
+    // Assert both are present (order doesn't matter)
+    assertThat(resultIds).containsExactlyInAnyOrder(org1.getId(), org2.getId());
+
+    // Verify each organization individually by finding it
+    ApiOrganizationDTO org1Result = result.organizations.stream()
+        .filter(org -> org.id.equals(org1.getId()))
+        .findFirst()
+        .orElseThrow();
+    assertOrganizationData(org1Result, org1, Collections.emptyList());
+
+    ApiOrganizationDTO org2Result = result.organizations.stream()
+        .filter(org -> org.id.equals(org2.getId()))
+        .findFirst()
+        .orElseThrow();
+    assertOrganizationData(org2Result, org2, Collections.emptyList());
+  }
+
+  @Test
+  public void testGetOrganizationsByIds_NotFound() {
+    ApiOrganizationListDTO apiOrganizationListDTO =
+        apiOrganizationService.getOrganizationsByIds(Set.of("non-existent-id-1", "non-existent-id-2"));
+
+    assertThat(apiOrganizationListDTO).isNotNull();
+    assertThat(apiOrganizationListDTO.organizations).isEmpty();
   }
 
   private void assertOrganizationData(

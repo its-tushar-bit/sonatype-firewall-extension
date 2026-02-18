@@ -93,6 +93,32 @@ public class ApiOrganizationResourceV2
   }
 
   /**
+   * @since 1.201
+   */
+  @GET
+  @Path("/byid")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(description = """
+      Use this method to retrieve organizations by their internal IDs.
+
+      Permissions required: View IQ Elements""",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "The response contains a list of organizations. For each " +
+                  "organization the response contains organization id, organization name, " +
+                  "and parent organization id.",
+              useReturnTypeSchema = true
+          )
+      })
+    public ApiOrganizationListDTO getOrganizationsByIds(
+      @Parameter(description = "Enter the internal organization IDs.")
+      @QueryParam("id") Set<String> ids)
+  {
+    return apiOrganizationService.getOrganizationsByIds(ids);
+  }
+
+  /**
    * @since 1.81
    */
   @GET

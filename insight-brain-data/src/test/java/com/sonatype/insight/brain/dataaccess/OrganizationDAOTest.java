@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
@@ -49,6 +50,7 @@ import com.sonatype.insight.brain.model.OrganizationAncestor;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.configuration.CiIntegrationsConfig;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -1086,6 +1088,22 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
     // verify deletion
     assertThat(cpeMatchingConfigurationDao.getByOwnerId(organization.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToCiIntegrationsConfig() {
+    Organization organization = tempEntity.newOrganization();
+    CiIntegrationsConfig ciIntegrationsConfig = new CiIntegrationsConfig(organization.getId(), "ORGANIZATION", "");
+    CiIntegrationsConfigDao ciIntegrationsConfigDao = daoFactory.createCiIntegrationsConfigDao();
+
+    // create
+    ciIntegrationsConfigDao.save(ciIntegrationsConfig);
+
+    // delete organization
+    dao.delete(organization);
+
+    // verify deletion
+    assertThat(ciIntegrationsConfigDao.findByOwner("ORGANIZATION", organization.getId())).isEmpty();
   }
 
   @Test

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.support;
 
+import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -18,6 +19,7 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
@@ -47,15 +49,20 @@ import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.clm.dto.model.ci.config.ApiCiConfigurationDto;
+import com.sonatype.insight.brain.model.configuration.CiIntegrationsConfig;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.PasswordService;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.hds.TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME;
 import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.maskCredentialsFromUrl;
@@ -67,6 +74,8 @@ import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.m
 @Singleton
 public class DbData
 {
+  private static final Logger log = LoggerFactory.getLogger(DbData.class);
+
   private final RepositoryManagerDAO repositoryManagerDAO;
 
   private final RepositoryDAO repositoryDAO;
@@ -133,6 +142,8 @@ public class DbData
 
   private final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO;
 
+  private final CiIntegrationsConfigDao ciIntegrationsConfigDao;
+
   @Inject
   DbData(final RepositoryManagerDAO repositoryManagerDAO,
          final RepositoryDAO repositoryDAO,
@@ -166,7 +177,8 @@ public class DbData
          final PolicyWaiverDAO policyWaiverDAO,
          final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
          final RepositoryConnectionDAO repositoryConnectionDAO,
-         final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO)
+         final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO,
+         final CiIntegrationsConfigDao ciIntegrationsConfigDao)
   {
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
@@ -201,6 +213,7 @@ public class DbData
     this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
     this.repositoryConnectionDAO = repositoryConnectionDAO;
     this.cpeMatchingConfigurationDAO = cpeMatchingConfigurationDAO;
+    this.ciIntegrationsConfigDao = ciIntegrationsConfigDao;
   }
 
   Entry<String, Object> getRepositoryManager() {
@@ -372,6 +385,29 @@ public class DbData
 
   Entry<String, Object> getCpeMatchingConfiguration() {
     return wrapEntry("cpeMatchingConfiguration", cpeMatchingConfigurationDAO.getAll());
+  }
+
+  Entry<String, Object> getCiIntegrationsConfig() throws IOException {
+    List<CiIntegrationsConfig> configs = ciIntegrationsConfigDao.getAll();
+    for (CiIntegrationsConfig config : configs) {
+      maskCiConfigSensitiveData(config);
+    }
+    return wrapEntry("ciIntegrationsConfig", configs);
+  }
+
+  private void maskCiConfigSensitiveData(CiIntegrationsConfig config) throws IOException {
+    String json = config.getConfigurationJson();
+    if (StringUtils.isBlank(json)) {
+      return;
+    }
+
+    ApiCiConfigurationDto dto = JsonUtils.parse(json, ApiCiConfigurationDto.class);
+
+    if (dto.getDownload() != null && !StringUtils.isBlank(dto.getDownload().getIqCliUrl())) {
+      dto.getDownload().setIqCliUrl(maskCredentialsFromUrl(dto.getDownload().getIqCliUrl()));
+    }
+
+    config.setConfigurationJson(JsonUtils.format(dto));
   }
 
   private static Entry<String, Object> wrapEntry(final String entryName, final Object objectToPut) {

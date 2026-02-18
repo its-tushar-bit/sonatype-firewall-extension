@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Collections;
+import java.util.Set;
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationDTO;
@@ -62,6 +63,56 @@ public class ApiOrganizationServiceAuthzTest
     ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService.getOrganizations(Collections.emptySet());
     assertThat(apiOrganizationListDTO).isNotNull();
     assertThat(apiOrganizationListDTO.organizations).isEmpty();
+  }
+
+  @Test
+  public void testGetOrganizationsByIds_Authorized() {
+    // Given: Multiple organizations with and without granted READ permission
+    Organization org2 = tempEntity.newOrganization();
+    Organization org3 = tempEntity.newOrganization();
+    Organization org4 = tempEntity.newOrganization();
+    grantReadPermission(org3.getId());
+    grantReadPermission(org4.getId());
+
+    // When: Requesting organizations by IDs
+    Set<String> ids = Set.of(org.getId(), org2.getId(), org3.getId(), org4.getId());
+    ApiOrganizationListDTO result = apiOrganizationService.getOrganizationsByIds(ids);
+
+    // Then: Should return all organizations the user has access to
+    assertThat(result).isNotNull();
+    assertThat(result.organizations).hasSize(2);
+    assertThat(result.organizations)
+        .extracting(dto -> dto.id)
+        .containsExactlyInAnyOrder(org3.getId(), org4.getId());
+  }
+
+  @Test
+  public void testGetOrganizationsByIds_Unauthenticated() {
+    // Given: Organizations exist
+    Organization org2 = tempEntity.newOrganization();
+    Set<String> ids = Set.of(org.getId(), org2.getId());
+
+    // When: Unauthenticated user requests organizations
+    ApiOrganizationListDTO result = apiOrganizationService.getOrganizationsByIds(ids);
+
+    // Then: Should return an empty list (filter behavior)
+    assertThat(result).isNotNull();
+    assertThat(result.organizations).isEmpty();
+  }
+
+  @Test
+  public void testGetOrganizationsByIds_Unauthorized() {
+    // Given: Organizations exist, but user has no permissions
+    Organization org2 = tempEntity.newOrganization();
+    login();
+    Set<String> ids = Set.of(org.getId(), org2.getId());
+
+    // When: Unauthorized user requests organizations
+    ApiOrganizationListDTO result = apiOrganizationService.getOrganizationsByIds(ids);
+
+    // Then: Should return an empty list (filter behavior)
+    assertThat(result).isNotNull();
+    assertThat(result.organizations).isEmpty();
   }
 
   @Test

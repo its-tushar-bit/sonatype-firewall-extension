@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.support;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -12,9 +13,11 @@ import java.util.Map;
 import java.util.Objects;
 import jakarta.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.CiIntegrationsConfig;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -41,6 +44,9 @@ public class DbDataTest
 {
   @Inject
   private WebhookDAO webhookDAO;
+
+  @Inject
+  private CiIntegrationsConfigDao ciIntegrationsConfigDao;
 
   @Inject
   private DbData dbData;
@@ -243,6 +249,83 @@ public class DbDataTest
       if (config.getOwnerId().equals(org.getId())) {
         assertThat(config.isCpeEnabled()).isNull();
         assertThat(config.isAllowOverride()).isTrue();
+      }
+    });
+  }
+
+  @Test
+  public void testGetCiIntegrationsConfig_maskUrlCredentials() throws IOException {
+    Organization org = tempEntity.newOrganization();
+    String configJson = """
+        {
+          "download": {
+            "iqCliUrl": "https://user:pass@example.com/iq-cli/download"
+          },
+          "scanPatterns": ["**/*.jar"]
+        }
+        """;
+
+    CiIntegrationsConfig ciConfig = new CiIntegrationsConfig(org.getId(), "ORGANIZATION", configJson);
+    ciIntegrationsConfigDao.save(ciConfig);
+
+    @SuppressWarnings({"unchecked"})
+    List<CiIntegrationsConfig> configs = (List<CiIntegrationsConfig>) dbData.getCiIntegrationsConfig().getValue();
+
+    assertThat(configs).anySatisfy(config -> {
+      if (config.getOwnerId().equals(org.getId())) {
+        assertThat(config.getConfigurationJson()).contains("https://****:****@example.com/iq-cli/download");
+        assertThat(config.getConfigurationJson()).doesNotContain("user:pass");
+        assertThat(config.getConfigurationJson()).contains("scanPatterns");
+      }
+    });
+  }
+
+  @Test
+  public void testGetCiIntegrationsConfig_urlWithoutCredentials() throws IOException {
+    Organization org = tempEntity.newOrganization();
+    String configJson = """
+        {
+          "download": {
+            "iqCliUrl": "https://example.com/iq-cli/download"
+          },
+          "scanPatterns": ["**/*.jar"]
+        }
+        """;
+
+    CiIntegrationsConfig ciConfig = new CiIntegrationsConfig(org.getId(), "ORGANIZATION", configJson);
+    ciIntegrationsConfigDao.save(ciConfig);
+
+    @SuppressWarnings({"unchecked"})
+    List<CiIntegrationsConfig> configs = (List<CiIntegrationsConfig>) dbData.getCiIntegrationsConfig().getValue();
+
+    assertThat(configs).anySatisfy(config -> {
+      if (config.getOwnerId().equals(org.getId())) {
+        assertThat(config.getConfigurationJson()).contains("https://example.com/iq-cli/download");
+        assertThat(config.getConfigurationJson()).contains("scanPatterns");
+      }
+    });
+  }
+
+  @Test
+  public void testGetCiIntegrationsConfig_nullDownloadConfig() throws IOException {
+    Organization org = tempEntity.newOrganization();
+    String configJson = """
+        {
+          "scanPatterns": ["**/*.jar"],
+          "moduleExcludes": ["**/test/**"]
+        }
+        """;
+
+    CiIntegrationsConfig ciConfig = new CiIntegrationsConfig(org.getId(), "ORGANIZATION", configJson);
+    ciIntegrationsConfigDao.save(ciConfig);
+
+    @SuppressWarnings({"unchecked"})
+    List<CiIntegrationsConfig> configs = (List<CiIntegrationsConfig>) dbData.getCiIntegrationsConfig().getValue();
+
+    assertThat(configs).anySatisfy(config -> {
+      if (config.getOwnerId().equals(org.getId())) {
+        assertThat(config.getConfigurationJson()).contains("scanPatterns");
+        assertThat(config.getConfigurationJson()).contains("moduleExcludes");
       }
     });
   }

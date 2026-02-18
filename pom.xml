@@ -1658,7 +1658,7 @@
     <profile>
       <id>jenkins</id>
       <properties>
-        <jdks-maven-plugin.base-url>https://rsc-proxy.ci.sonatype.dev/repository/temurin17-binaries</jdks-maven-plugin.base-url>
+        <jdks-maven-plugin.base-url>https://sonatype.repo.sonatype.app/repository/temurin17-binaries</jdks-maven-plugin.base-url>
       </properties>
     </profile>
     <profile>

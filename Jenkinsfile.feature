@@ -696,6 +696,7 @@ Map getMtiqAssembleConfig() {
  */
 void mvnDirectForTests(String mavenOptions, String goals) {
   String localRepo = "${env.WORKSPACE}/.zion/repository"
+  // This file has config for sonatype.repo.sonatype.app now
   String npmConfigFileId = 'rsc-ro-npmrc'
 
   configFileProvider([configFile(fileId: npmConfigFileId, variable: 'NPM_CONFIG_USERCONFIG')]) {
@@ -703,10 +704,10 @@ void mvnDirectForTests(String mavenOptions, String goals) {
         publisherStrategy: 'EXPLICIT') {
       String mvnCmdLine = "mvn ${goals} -Dmaven.repo.local='${localRepo}'"
       mvnCmdLine += " -DnpmRegistryURL="
-      mvnCmdLine += " -DyarnDownloadRoot=https://rsc-proxy.ci.sonatype.dev/repository/yarn-binaries/"
+      mvnCmdLine += " -DyarnDownloadRoot=https://sonatype.repo.sonatype.app/repository/yarn-binaries/"
       mvnCmdLine += " -DnodeDownloadRoot=https://sonatype.repo.sonatype.app/repository/nodejs-dist/"
       mvnCmdLine += " -DnpmDownloadRoot=https://sonatype.repo.sonatype.app/repository/npm-all/npm/-/"
-      mvnCmdLine += " -DserverId=rsc-npm-all-ro"
+      mvnCmdLine += " -DserverId=sonatype.repo.sonatype.app"
       mvnCmdLine += " ${mavenOptions}"
 
       sh mvnCmdLine
@@ -1550,6 +1551,7 @@ String buildDistributedTestMavenOptions(List<String> additionalExcludedGroups, S
  * Execute Maven for distributed tests with explicit local repo.
  */
 void mvnDirectForDistributedTests(String mavenOptions, String goals, String localRepo) {
+  // This file has config for sonatype.repo.sonatype.app now
   String npmConfigFileId = 'rsc-ro-npmrc'
 
   configFileProvider([configFile(fileId: npmConfigFileId, variable: 'NPM_CONFIG_USERCONFIG')]) {
@@ -1557,10 +1559,10 @@ void mvnDirectForDistributedTests(String mavenOptions, String goals, String loca
         publisherStrategy: 'EXPLICIT') {
       String mvnCmdLine = "mvn ${goals} -Dmaven.repo.local='${localRepo}'"
       mvnCmdLine += " -DnpmRegistryURL="
-      mvnCmdLine += " -DyarnDownloadRoot=https://rsc-proxy.ci.sonatype.dev/repository/yarn-binaries/"
+      mvnCmdLine += " -DyarnDownloadRoot=https://sonatype.repo.sonatype.app/repository/yarn-binaries/"
       mvnCmdLine += " -DnodeDownloadRoot=https://sonatype.repo.sonatype.app/repository/nodejs-dist/"
       mvnCmdLine += " -DnpmDownloadRoot=https://sonatype.repo.sonatype.app/repository/npm-all/npm/-/"
-      mvnCmdLine += " -DserverId=rsc-npm-all-ro"
+      mvnCmdLine += " -DserverId=sonatype.repo.sonatype.app"
       mvnCmdLine += " ${mavenOptions}"
 
       sh mvnCmdLine

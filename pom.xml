@@ -1657,9 +1657,8 @@
     </profile>
     <profile>
       <id>jenkins</id>
-      <properties>
-        <jdks-maven-plugin.base-url>https://sonatype.repo.sonatype.app/repository/temurin17-binaries</jdks-maven-plugin.base-url>
-      </properties>
+      <!-- Removed jdks-maven-plugin.base-url override - now uses default GitHub URLs
+           because jdks-maven-plugin cannot handle authentication credentials (NEXUS-50423) -->
     </profile>
     <profile>
       <id>quick</id>

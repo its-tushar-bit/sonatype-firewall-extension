@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -33,6 +34,8 @@ import com.sonatype.insight.brain.test.MailboxTestUtil;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ApiMailConfigurationServiceTest
     extends AbstractComponentTest
@@ -599,6 +602,177 @@ public class ApiMailConfigurationServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> mailConfigurationService.testConfiguration("test@example.com", null))
         .withMessage("No mail server configuration was provided.");
+  }
+
+  // CLM-38607: Guard tests for multi-tenant access control
+
+  private ApiMailConfigurationService createMultiTenantService() {
+    TenantUtil mockTenantUtil = mock(TenantUtil.class);
+    when(mockTenantUtil.isSingleTenant()).thenReturn(false);
+    when(mockTenantUtil.isGlobalTenant()).thenReturn(false);
+    return new ApiMailConfigurationService(mailConfigurationDAO, insightMail, baseUrl, mockTenantUtil);
+  }
+
+  private ApiMailConfigurationService createGlobalTenantService() {
+    TenantUtil mockTenantUtil = mock(TenantUtil.class);
+    when(mockTenantUtil.isSingleTenant()).thenReturn(false);
+    when(mockTenantUtil.isGlobalTenant()).thenReturn(true);
+    return new ApiMailConfigurationService(mailConfigurationDAO, insightMail, baseUrl, mockTenantUtil);
+  }
+
+  @Test
+  public void testGetConfiguration_blockedForMtiqTenantWithoutConfig() {
+    ApiMailConfigurationService mtiqService = createMultiTenantService();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(mtiqService::getConfiguration)
+        .withMessageContaining("not available for this tenant");
+  }
+
+  @Test
+  public void testSetConfiguration_blockedForMtiqTenantWithoutConfig() {
+    ApiMailConfigurationService mtiqService = createMultiTenantService();
+
+    ApiMailConfigurationDTO dto = new ApiMailConfigurationDTO();
+    dto.hostname = "smtp.evil.com";
+    dto.port = 587;
+    dto.passwordIsIncluded = true;
+    dto.password = "pass".toCharArray();
+    dto.systemEmail = "test@evil.com";
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> mtiqService.setConfiguration(dto))
+        .withMessageContaining("not available for this tenant");
+  }
+
+  @Test
+  public void testDeleteConfiguration_blockedForMtiqTenantWithoutConfig() {
+    ApiMailConfigurationService mtiqService = createMultiTenantService();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(mtiqService::deleteConfiguration)
+        .withMessageContaining("not available for this tenant");
+  }
+
+  @Test
+  public void testTestConfiguration_blockedForMtiqTenantWithoutConfig() {
+    ApiMailConfigurationService mtiqService = createMultiTenantService();
+
+    ApiMailConfigurationDTO dto = new ApiMailConfigurationDTO();
+    dto.hostname = "smtp.evil.com";
+    dto.port = 587;
+    dto.passwordIsIncluded = true;
+    dto.password = "pass".toCharArray();
+    dto.systemEmail = "test@evil.com";
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> mtiqService.testConfiguration("test@example.com", dto))
+        .withMessageContaining("not available for this tenant");
+  }
+
+  @Test
+  public void testSetConfiguration_allowedForMtiqTenantWithExistingConfig() {
+    MailConfiguration existingConfig = new MailConfiguration();
+    existingConfig.setHostname("smtp.existing.com");
+    existingConfig.setPort(587);
+    existingConfig.setSystemEmail("existing@test.com");
+    mailConfigurationDAO.set(existingConfig);
+
+    ApiMailConfigurationService mtiqService = createMultiTenantService();
+
+    ApiMailConfigurationDTO dto = new ApiMailConfigurationDTO();
+    dto.hostname = "smtp.existing.com";
+    dto.port = 587;
+    dto.username = "user";
+    dto.password = "pass".toCharArray();
+    dto.passwordIsIncluded = true;
+    dto.systemEmail = "updated@test.com";
+
+    mtiqService.setConfiguration(dto);
+
+    MailConfiguration updated = mailConfigurationDAO.get();
+    assertThat(updated.getSystemEmail()).isEqualTo("updated@test.com");
+  }
+
+  @Test
+  public void testGetConfiguration_allowedForMtiqTenantWithExistingConfig() {
+    MailConfiguration existingConfig = new MailConfiguration();
+    existingConfig.setHostname("smtp.existing.com");
+    existingConfig.setPort(587);
+    existingConfig.setSystemEmail("existing@test.com");
+    mailConfigurationDAO.set(existingConfig);
+
+    ApiMailConfigurationService mtiqService = createMultiTenantService();
+
+    ApiMailConfigurationDTO result = mtiqService.getConfiguration();
+
+    assertThat(result.hostname).isEqualTo("smtp.existing.com");
+  }
+
+  @Test
+  public void testDeleteConfiguration_allowedForMtiqTenantWithExistingConfig() {
+    MailConfiguration existingConfig = new MailConfiguration();
+    existingConfig.setHostname("smtp.existing.com");
+    existingConfig.setPort(587);
+    existingConfig.setSystemEmail("existing@test.com");
+    mailConfigurationDAO.set(existingConfig);
+
+    ApiMailConfigurationService mtiqService = createMultiTenantService();
+
+    mtiqService.deleteConfiguration();
+
+    assertThat(mailConfigurationDAO.getWithoutFallback()).isNull();
+  }
+
+  @Test
+  public void testTestConfiguration_allowedForMtiqTenantWithExistingConfig() throws Exception {
+    MailConfiguration existingConfig = new MailConfiguration();
+    existingConfig.setHostname("smtp.existing.com");
+    existingConfig.setPort(587);
+    existingConfig.setSystemEmail("existing@test.com");
+    mailConfigurationDAO.set(existingConfig);
+
+    MailboxTestUtil.clearAll();
+    setBaseUrl("http://localhost");
+
+    ApiMailConfigurationService mtiqService = createMultiTenantService();
+
+    ApiMailConfigurationDTO dto = new ApiMailConfigurationDTO();
+    dto.hostname = "smtp.existing.com";
+    dto.port = 587;
+    dto.passwordIsIncluded = true;
+    dto.password = "pass".toCharArray();
+    dto.systemEmail = "existing@test.com";
+
+    mtiqService.testConfiguration("test@example.com", dto);
+  }
+
+  @Test
+  public void testSetConfiguration_allowedForGlobalTenantWithoutConfig() {
+    mailConfigurationDAO.delete();
+    ApiMailConfigurationService globalService = createGlobalTenantService();
+
+    ApiMailConfigurationDTO dto = new ApiMailConfigurationDTO();
+    dto.hostname = "smtp.sendgrid.com";
+    dto.port = 587;
+    dto.username = "user";
+    dto.password = "pass".toCharArray();
+    dto.passwordIsIncluded = true;
+    dto.systemEmail = "noreply@sonatype.com";
+
+    globalService.setConfiguration(dto);
+
+    MailConfiguration saved = mailConfigurationDAO.get();
+    assertThat(saved.getHostname()).isEqualTo("smtp.sendgrid.com");
+  }
+
+  @Test
+  public void testDeleteConfiguration_usesGetWithoutFallback() {
+    mailConfigurationDAO.delete();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> mailConfigurationService.deleteConfiguration())
+        .withMessageContaining("Mail server not configured");
   }
 
   private void assertTestConfigurationEmail(

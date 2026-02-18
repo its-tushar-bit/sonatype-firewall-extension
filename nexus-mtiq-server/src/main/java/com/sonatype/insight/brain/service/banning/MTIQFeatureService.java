@@ -15,6 +15,7 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.FeatureAlreadyDisabledException;
 import com.sonatype.insight.brain.api.v2.FeatureAlreadyEnabledException;
+import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.features.FeaturesService;
@@ -22,6 +23,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -78,6 +80,10 @@ public class MTIQFeatureService
 
   private final ApiConfigFeaturesService service;
 
+  private final MailConfigurationDAO mailConfigurationDAO;
+
+  private final TenantUtil tenantUtil;
+
   public static final List<SystemConfigurationPropertyFeature> BANNED_SYSTEM_CONFIGURATION_PROPERTY_FEATURES =
       MTIQ_BANNED_FEATURES.stream()
           .filter(SystemConfigurationPropertyFeature.class::isInstance)
@@ -86,15 +92,19 @@ public class MTIQFeatureService
 
   @Inject
   public MTIQFeatureService(
-      ProductLicense productLicense,
-      Configuration configuration,
-      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
-      ApiConfigFeaturesService service,
-      DeveloperEnablementService developerEnablementService)
+      final ProductLicense productLicense,
+      final Configuration configuration,
+      final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+      final ApiConfigFeaturesService service,
+      final DeveloperEnablementService developerEnablementService,
+      final MailConfigurationDAO mailConfigurationDAO,
+      final TenantUtil tenantUtil)
   {
     super(productLicense, configuration, systemConfigurationPropertyDAO, developerEnablementService);
 
     this.service = service;
+    this.mailConfigurationDAO = mailConfigurationDAO;
+    this.tenantUtil = tenantUtil;
   }
 
   @Override
@@ -105,6 +115,12 @@ public class MTIQFeatureService
     features.add(MULTI_TENANT);
 
     MTIQ_BANNED_FEATURES.forEach(features::remove);
+
+    // CLM-38607: Hide email configuration for tenants that do not have a custom mail config.
+    // Tenants with existing custom configs retain access; global tenant always has access.
+    if (!tenantUtil.isGlobalTenant() && mailConfigurationDAO.getWithoutFallback() == null) {
+      features.remove(SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION);
+    }
 
     return features;
   }

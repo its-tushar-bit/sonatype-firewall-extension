@@ -3,12 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { connect } from 'react-redux';
+import React, { useEffect } from 'react';
+import { connect, useSelector, useDispatch } from 'react-redux';
 import { pick } from 'ramda';
 
 import { actions } from './mailConfigSlice';
 import MailConfig from './MailConfig';
-import { selectIsShowEmailStoppedEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsShowEmailStoppedEnabled,
+  selectIsEmailConfigurationEnabled,
+  selectLoadingFeatures,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { setError } from 'MainRoot/session/appErrorSlice';
 
 function mapStateToProps(state) {
   const mailConfig = state.mailConfig;
@@ -47,4 +53,26 @@ function mapStateToProps(state) {
   };
 }
 
-export default connect(mapStateToProps, actions)(MailConfig);
+const ConnectedMailConfig = connect(mapStateToProps, actions)(MailConfig);
+
+// CLM-38607: Gate mail config page behind email-configuration feature flag.
+// When the feature is disabled, dispatches the same 'Unknown Address' error used by non-existent routes,
+// which hides the ui-view and shows the standard error page via ng-if="error" in index.html.
+export default function MailConfigContainer(props) {
+  const isEmailConfigEnabled = useSelector(selectIsEmailConfigurationEnabled);
+  const isFeaturesLoading = useSelector(selectLoadingFeatures);
+  const dispatch = useDispatch();
+  const shouldBlock = !isFeaturesLoading && !isEmailConfigEnabled;
+
+  useEffect(() => {
+    if (shouldBlock) {
+      dispatch(setError('Unknown Address'));
+    }
+  }, [shouldBlock]);
+
+  if (shouldBlock || isFeaturesLoading) {
+    return null;
+  }
+
+  return <ConnectedMailConfig {...props} />;
+}

@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -39,27 +40,38 @@ public class ApiMailConfigurationService
 
   private final BaseUrl baseUrl;
 
+  private final TenantUtil tenantUtil;
+
   @Inject
   public ApiMailConfigurationService(
-      MailConfigurationDAO mailConfigurationDAO,
-      InsightMail insightMail,
-      BaseUrl baseUrl)
+      final MailConfigurationDAO mailConfigurationDAO,
+      final InsightMail insightMail,
+      final BaseUrl baseUrl,
+      final TenantUtil tenantUtil)
   {
     this.mailConfigurationDAO = mailConfigurationDAO;
     this.insightMail = insightMail;
     this.baseUrl = baseUrl;
+    this.tenantUtil = tenantUtil;
   }
 
   private RuntimeException newNotFoundException() {
     return new NotFoundException("Mail server not configured.");
   }
 
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public ApiMailConfigurationDTO getConfiguration() {
+  private MailConfiguration getRequiredConfiguration() {
+    guardMtiqTenantAccess();
+
     MailConfiguration mailConfiguration = mailConfigurationDAO.getWithoutFallback();
     if (mailConfiguration == null) {
       throw newNotFoundException();
     }
+    return mailConfiguration;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public ApiMailConfigurationDTO getConfiguration() {
+    MailConfiguration mailConfiguration = getRequiredConfiguration();
 
     ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
     configurationDTO.hostname = mailConfiguration.getHostname();
@@ -73,7 +85,9 @@ public class ApiMailConfigurationService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public void setConfiguration(ApiMailConfigurationDTO configurationDTO) {
+  public void setConfiguration(final ApiMailConfigurationDTO configurationDTO) {
+    guardMtiqTenantAccess();
+
     if (configurationDTO == null) {
       throw new BadRequestException("No mail server configuration was provided.");
     }
@@ -134,16 +148,15 @@ public class ApiMailConfigurationService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteConfiguration() {
-    MailConfiguration mailConfiguration = mailConfigurationDAO.get();
-    if (mailConfiguration == null) {
-      throw newNotFoundException();
-    }
+    MailConfiguration mailConfiguration = getRequiredConfiguration();
     auditConfiguration(mailConfiguration);
     mailConfigurationDAO.delete();
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public void testConfiguration(String recipientEmail, ApiMailConfigurationDTO mailConfigurationDTO) {
+  public void testConfiguration(final String recipientEmail, final ApiMailConfigurationDTO mailConfigurationDTO) {
+    guardMtiqTenantAccess();
+
     if (mailConfigurationDTO == null) {
       throw new BadRequestException("No mail server configuration was provided.");
     }
@@ -172,5 +185,17 @@ public class ApiMailConfigurationService
         .setData("smtpSsl", mailConfiguration.isSslEnabled() ? "enabled" : "disabled") //
         .setData("smtpStartTls", mailConfiguration.isStartTlsEnabled() ? "enabled" : "disabled") //
         .setData("smtpSystemEmail", mailConfiguration.getSystemEmail());
+  }
+
+  private void guardMtiqTenantAccess() {
+    // CLM-38607: Prevents MTIQ tenants without existing custom mail config from accessing mail configuration. On-prem
+    // and global tenant always have access. MTIQ tenants with existing custom config retain access.
+    if (tenantUtil.isSingleTenant() || tenantUtil.isGlobalTenant()) {
+      return;
+    }
+
+    if (mailConfigurationDAO.getWithoutFallback() == null) {
+      throw new NotFoundException("Mail server configuration is not available for this tenant.");
+    }
   }
 }

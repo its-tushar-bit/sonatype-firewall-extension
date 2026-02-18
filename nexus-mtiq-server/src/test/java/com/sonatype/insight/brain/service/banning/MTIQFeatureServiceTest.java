@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.features.NonLicensedFeature;
@@ -18,17 +20,15 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.junit.experimental.categories.Category;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -61,17 +61,17 @@ public class MTIQFeatureServiceTest
 
   SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  MTIQFeatureService underTest;
+  MailConfigurationDAO mailConfigurationDAO;
 
-  @Captor
-  ArgumentCaptor<String> propertyKeyCaptor;
+  MTIQFeatureService underTest;
 
   @Before
   public void setup() {
     systemConfigurationPropertyDAO = lookup(SystemConfigurationPropertyDAO.class);
+    mailConfigurationDAO = lookup(MailConfigurationDAO.class);
     productLicense = lookup(ProductLicense.class);
     underTest = new MTIQFeatureService(productLicense, configuration, systemConfigurationPropertyDAO, service,
-        developerEnablementService);
+        developerEnablementService, mailConfigurationDAO, tenantUtil);
   }
 
   @Test
@@ -86,6 +86,7 @@ public class MTIQFeatureServiceTest
 
   @Test
   public void testGetFeatures_onlyIncludesAllowedFeatures() {
+    tenantTemporaryEntity.newMailConfigurationWithNoAuthentication();
     Set<Feature> features = underTest.getFeatures();
     Set<Feature> expectedFeatures = getExpectedFeatures();
     // These features are enabled via HDS only, so we cannot expect it to be enabled here.
@@ -171,7 +172,8 @@ public class MTIQFeatureServiceTest
   @Test
   public void testGetFeatures_containsMultiTenant() {
     Set<Feature> features = new MTIQFeatureService(
-        productLicense, configuration, systemConfigurationPropertyDAO, service, developerEnablementService
+        productLicense, configuration, systemConfigurationPropertyDAO, service, developerEnablementService,
+        mailConfigurationDAO, tenantUtil
     ).getFeatures();
 
     assertThat(features).contains(MULTI_TENANT);
@@ -190,6 +192,31 @@ public class MTIQFeatureServiceTest
     underTest.register();
 
     verify(service).enableFeatureNoAuthz(SystemConfigurationPropertyFeature.CODE_INSIGHTS.getPropertyName());
+  }
+
+  @Test
+  public void testGetFeatures_emailConfigurationRemovedWhenNoTenantMailConfig() {
+    Set<Feature> features = underTest.getFeatures();
+
+    assertThat(features).doesNotContain(SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION);
+  }
+
+  @Test
+  public void testGetFeatures_emailConfigurationPresentWhenTenantHasMailConfig() {
+    tenantTemporaryEntity.newMailConfigurationWithNoAuthentication();
+
+    Set<Feature> features = underTest.getFeatures();
+
+    assertThat(features).contains(SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION);
+  }
+
+  @Test
+  public void testGetFeatures_emailConfigurationPresentForGlobalTenant() {
+    TenantTestHelper.setGlobalTenant();
+
+    Set<Feature> features = underTest.getFeatures();
+
+    assertThat(features).contains(SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION);
   }
 
   private String[] getDisabledSystemConfigurationPropertyFeatures() {

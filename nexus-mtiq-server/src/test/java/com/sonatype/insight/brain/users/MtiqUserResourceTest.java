@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
+import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
@@ -36,6 +37,7 @@ import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationReso
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.jaxrs.JsonUtils;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -320,9 +322,12 @@ public class MtiqUserResourceTest
         final Configuration configuration,
         final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
         final ApiConfigFeaturesService service,
-        final DeveloperEnablementService developerEnablementService)
+        final DeveloperEnablementService developerEnablementService,
+        final MailConfigurationDAO mailConfigurationDAO,
+        final TenantUtil tenantUtil)
     {
-      super(productLicense, configuration, systemConfigurationPropertyDAO, service, developerEnablementService);
+      super(productLicense, configuration, systemConfigurationPropertyDAO, service, developerEnablementService,
+          mailConfigurationDAO, tenantUtil);
     }
 
     @Override

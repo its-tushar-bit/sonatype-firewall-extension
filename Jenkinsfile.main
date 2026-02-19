@@ -163,7 +163,29 @@ void configureBranchJob() {
       ),
       booleanParam(defaultValue: mtiqImagePushEnabledByDefault,
           description: 'If checked will push the MTIQ Docker image to RSC for this branch',
-          name: 'mtiqImagePushEnabled')
+          name: 'mtiqImagePushEnabled'),
+
+      // Functional Test Skip Parameters
+      booleanParam(name: 'skipFuncAB', defaultValue: false, description: 'Skip: Java Functional Tests A-B'),
+      booleanParam(name: 'skipFuncCE', defaultValue: false, description: 'Skip: Java Functional Tests C-E'),
+      booleanParam(name: 'skipFuncFM', defaultValue: false, description: 'Skip: Java Functional Tests F-M'),
+      booleanParam(name: 'skipFuncNO', defaultValue: false, description: 'Skip: Java Functional Tests N-O'),
+      booleanParam(name: 'skipFuncPR', defaultValue: false, description: 'Skip: Java Functional Tests P-R'),
+      booleanParam(name: 'skipFuncSZ', defaultValue: false, description: 'Skip: Java Functional Tests S-Z'),
+      booleanParam(name: 'skipFuncMtiq', defaultValue: false, description: 'Skip: MTIQ Functional Tests'),
+
+      // Unit/Integration Test Skip Parameters
+      booleanParam(name: 'skipUnitA', defaultValue: false, description: 'Skip: Unit and Integration Tests A'),
+      booleanParam(name: 'skipUnitB', defaultValue: false, description: 'Skip: Unit and Integration Tests B'),
+      booleanParam(name: 'skipUnitDG', defaultValue: false, description: 'Skip: Unit and Integration Tests D-G'),
+      booleanParam(name: 'skipUnitHJ', defaultValue: false, description: 'Skip: Unit and Integration Tests H-J'),
+      booleanParam(name: 'skipUnitLN', defaultValue: false, description: 'Skip: Unit and Integration Tests L-N'),
+      booleanParam(name: 'skipUnitOP', defaultValue: false, description: 'Skip: Unit and Integration Tests O-P'),
+      booleanParam(name: 'skipUnitRT', defaultValue: false, description: 'Skip: Unit and Integration Tests R+T'),
+      booleanParam(name: 'skipUnitS', defaultValue: false, description: 'Skip: Unit and Integration Tests S'),
+      booleanParam(name: 'skipUnitCUZ', defaultValue: false, description: 'Skip: Unit and Integration Tests C+U-Z'),
+      booleanParam(name: 'skipUnitMtiq', defaultValue: false, description: 'Skip: MTIQ Unit and Integration Tests'),
+      booleanParam(name: 'skipFrontend', defaultValue: false, description: 'Skip: Frontend Tests (Jasmine/Jest)')
       ]
 
   // Jenkins unfortunately will overwrite any parameters defined at the folder level using this dynamic approach for
@@ -322,28 +344,64 @@ Map<String, Closure> getParallelTests(List <String> zips) {
   Map<String, Closure> testStages = [:]
 
   if (isFunctionalTestsEnabled()) {
-    testStages << createFunctionalTests('Java Functional Tests A', '.*/[A-B].*Test.class', zips)
-    testStages << createFunctionalTests('Java Functional Tests B', '.*/[C-E].*Test.class', zips)
-    testStages << createFunctionalTests('Java Functional Tests C', '.*/[F-M].*Test.class', zips)
-    testStages << createFunctionalTests('Java Functional Tests D', '.*/[N-O].*Test.class', zips)
-    testStages << createFunctionalTests('Java Functional Tests E', '.*/[P-R].*Test.class', zips)
-    testStages << createFunctionalTests('Java Functional Tests F', '.*/[S-Z].*Test.class', zips)
-    testStages << createMtiqFunctionalTests('MTIQ Functional Tests', '.*/.*Test.class', zips)
+    if (!params.skipFuncAB) {
+      testStages << createFunctionalTests('Java Functional Tests A-B', '.*/[A-B].*Test.class', zips)
+    }
+    if (!params.skipFuncCE) {
+      testStages << createFunctionalTests('Java Functional Tests C-E', '.*/[C-E].*Test.class', zips)
+    }
+    if (!params.skipFuncFM) {
+      testStages << createFunctionalTests('Java Functional Tests F-M', '.*/[F-M].*Test.class', zips)
+    }
+    if (!params.skipFuncNO) {
+      testStages << createFunctionalTests('Java Functional Tests N-O', '.*/[N-O].*Test.class', zips)
+    }
+    if (!params.skipFuncPR) {
+      testStages << createFunctionalTests('Java Functional Tests P-R', '.*/[P-R].*Test.class', zips)
+    }
+    if (!params.skipFuncSZ) {
+      testStages << createFunctionalTests('Java Functional Tests S-Z', '.*/[S-Z].*Test.class', zips)
+    }
+    if (!params.skipFuncMtiq) {
+      testStages << createMtiqFunctionalTests('MTIQ Functional Tests', '.*/.*Test.class', zips)
+    }
   }
 
   // These tests make use of iq-tests.zip which does not include insight-brain-frontend (1.2GB)
   if (isUnitTestsEnabled()) {
-    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 A', 'OpenJDK 17', '.*/[A].*Test.class', zips)
-    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 B', 'OpenJDK 17', '.*/[B].*Test.class', zips)
-    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 D-G', 'OpenJDK 17', '.*/[D-G].*Test.class', zips)
-    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 H-J', 'OpenJDK 17', '.*/[H-K].*Test.class', zips)
-    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 L-N', 'OpenJDK 17', '.*/[L-N].*Test.class', zips)
-    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 O-P', 'OpenJDK 17', '.*/[O-P].*Test.class', zips)
-    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 R + T', 'OpenJDK 17', '.*/[RT].*Test.class', zips)
-    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 S', 'OpenJDK 17', '.*/[S].*Test.class', zips)
-    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 C + U-Z', 'OpenJDK 17', '.*/[CU-Z].*Test.class', zips)
-    testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 17', 'OpenJDK 17', zips)
-    testStages << createFrontendTests('Frontend Tests - Jasmine/Jest', zips)
+    if (!params.skipUnitA) {
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 A', 'OpenJDK 17', '.*/[A].*Test.class', zips)
+    }
+    if (!params.skipUnitB) {
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 B', 'OpenJDK 17', '.*/[B].*Test.class', zips)
+    }
+    if (!params.skipUnitDG) {
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 D-G', 'OpenJDK 17', '.*/[D-G].*Test.class', zips)
+    }
+    if (!params.skipUnitHJ) {
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 H-J', 'OpenJDK 17', '.*/[H-K].*Test.class', zips)
+    }
+    if (!params.skipUnitLN) {
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 L-N', 'OpenJDK 17', '.*/[L-N].*Test.class', zips)
+    }
+    if (!params.skipUnitOP) {
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 O-P', 'OpenJDK 17', '.*/[O-P].*Test.class', zips)
+    }
+    if (!params.skipUnitRT) {
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 R + T', 'OpenJDK 17', '.*/[RT].*Test.class', zips)
+    }
+    if (!params.skipUnitS) {
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 S', 'OpenJDK 17', '.*/[S].*Test.class', zips)
+    }
+    if (!params.skipUnitCUZ) {
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 C + U-Z', 'OpenJDK 17', '.*/[CU-Z].*Test.class', zips)
+    }
+    if (!params.skipUnitMtiq) {
+      testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 17', 'OpenJDK 17', zips)
+    }
+    if (!params.skipFrontend) {
+      testStages << createFrontendTests('Frontend Tests - Jasmine/Jest', zips)
+    }
   }
   return testStages
 }

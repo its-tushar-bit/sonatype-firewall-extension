@@ -144,13 +144,61 @@ pipeline {
     stage('Trigger validation build') {
       steps {
         script {
-          echo "Triggering validation build for release branch: ${RELEASE_BRANCH_NAME}"
-          // Trigger the specific branch job in the multibranch pipeline
-          // Multibranch jobs are accessed as: job-name/branch-name
-          build(
-            job: "insight/insight-brain/feature-snapshots/${RELEASE_BRANCH_NAME}",
-            wait: true
-          )
+          echo "Attempting to trigger validation build for release branch: ${RELEASE_BRANCH_NAME}"
+          echo "Note: Jenkins multibranch pipeline needs time to discover the new branch"
+
+          def buildTriggered = false
+          def maxRetries = 5
+          def retryDelaySeconds = 30
+
+          for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+              echo "Attempt ${attempt}/${maxRetries} to trigger build..."
+
+              // Try to trigger the build on the branch
+              build(
+                job: "insight/insight-brain/feature-snapshots/${RELEASE_BRANCH_NAME}",
+                wait: true  // Wait for completion to ensure validation succeeds
+              )
+
+              buildTriggered = true
+              echo "✓ Successfully triggered and completed validation build for ${RELEASE_BRANCH_NAME}"
+              echo "  View build at: https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/feature-snapshots/job/${RELEASE_BRANCH_NAME}/"
+              break
+
+            } catch (Exception e) {
+              // Check if this is a "job not found" error (branch not discovered yet)
+              def isJobNotFound = e.message?.contains('No item named') ||
+                                  e.message?.contains('does not exist')
+
+              if (isJobNotFound && attempt < maxRetries) {
+                echo "  Build trigger failed: ${e.message}"
+                echo "  Waiting ${retryDelaySeconds} seconds before retry ${attempt + 1}..."
+                echo "  (Jenkins may still be scanning the repository to discover the new branch)"
+                sleep(time: retryDelaySeconds, unit: 'SECONDS')
+              } else {
+                // Real failure (build failed, permissions, user cancellation, etc.) - don't retry
+                echo "  Build failed with non-retryable error: ${e.message}"
+                throw e
+              }
+            }
+          }
+
+          if (!buildTriggered) {
+            echo ""
+            echo "⚠ WARNING: Could not automatically trigger validation build"
+            echo ""
+            echo "The new release branch '${RELEASE_BRANCH_NAME}' has been created successfully,"
+            echo "but Jenkins has not yet discovered it in the multibranch pipeline."
+            echo ""
+            echo "Please manually trigger the build:"
+            echo "  1. Go to: https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/feature-snapshots/"
+            echo "  2. Wait for automatic scan so the branch is there"
+            echo "  3. Once discovered, trigger: insight/insight-brain/feature-snapshots/${RELEASE_BRANCH_NAME}"
+            echo ""
+            // Mark as unstable but don't fail
+            currentBuild.result = 'UNSTABLE'
+          }
         }
       }
     }

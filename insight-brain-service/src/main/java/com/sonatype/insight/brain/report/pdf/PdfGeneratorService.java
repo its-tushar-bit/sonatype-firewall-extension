@@ -171,7 +171,6 @@ public class PdfGeneratorService
     ResponseBuilder responseBuilder = Response.ok()
         .lastModified(lastModified).expires(new Date())
         .type("application/pdf; charset=UTF-8")
-        .encoding("UTF-8")
         .header(HttpHeaders.CONTENT_LENGTH, reportPdf.length())
         .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(filename))
         .entity(reportPdf.getInputStream());

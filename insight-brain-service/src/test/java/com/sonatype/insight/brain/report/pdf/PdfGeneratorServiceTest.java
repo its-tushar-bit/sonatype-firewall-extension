@@ -110,6 +110,7 @@ public class PdfGeneratorServiceTest
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
         HttpHeaderUtils.buildContentDispositionHeaderValue(expectedFilename));
     assertThat(response.getMediaType()).hasToString("application/pdf;charset=UTF-8");
+    assertThat(response.getHeaderString("Content-Encoding")).isNull();
     assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(reportPdf.length()));
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))

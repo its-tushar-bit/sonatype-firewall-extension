@@ -119,7 +119,7 @@ public class FeaturePropertiesInfoTest
   @Test
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
-    assertThat(featureConfigNode.size()).isEqualTo(65);
+    assertThat(featureConfigNode.size()).isEqualTo(66);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -149,6 +149,7 @@ public class FeaturePropertiesInfoTest
               "enableUnauthenticatedPages": true,
               "exitOnFatalError": true,
               "expireWaiverWhenRemediationAvailable": false,
+              "firewallEnterpriseReporting": false,
               "githubAppAuthentication": false,
               "innerSourceRepositoryIntegration": true,
               "innerSourceTransitiveWaiver": true,
@@ -202,7 +203,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(65);
+    assertThat(featureConfigNode.size()).isEqualTo(66);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -232,6 +233,7 @@ public class FeaturePropertiesInfoTest
               "enableUnauthenticatedPages": true,
               "exitOnFatalError": true,
               "expireWaiverWhenRemediationAvailable": false,
+              "firewallEnterpriseReporting": false,
               "githubAppAuthentication": false,
               "innerSourceRepositoryIntegration": true,
               "innerSourceTransitiveWaiver": true,
@@ -291,7 +293,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(55)
+        .hasSize(56)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

@@ -312,6 +312,8 @@ public class SystemConfigurationProperty
 
   public static final String GITHUB_APP_AUTHENTICATION = "githubAppAuthentication";
 
+  public static final String FIREWALL_ENTERPRISE_REPORTING = "firewallEnterpriseReporting";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

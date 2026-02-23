@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppRegistrationStateDAO;
 import jakarta.inject.Provider;
 
@@ -225,12 +226,13 @@ public class TestDAOFactory
     OrganizationDAO organizationDAO = createOrganizationDAO();
     TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
     CiIntegrationsConfigDao ciIntegrationsConfigDao = createCiIntegrationsConfigDao();
+    VersionEvaluationWindowDAO versionEvaluationWindowDAO = createVersionEvaluationWindowDAO();
     return new ApplicationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, sourceControlDAOProvider,
         licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider, ownerDAOProvider,
         proprietaryConfigDAO, membershipMappingDAO,
         policyViolationAggregationDAO, repositoryConnectionDAO,
         sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, autoPolicyWaiverDAO, cpeMatchingConfigurationDAO,
-        ciIntegrationsConfigDao, organizationDAO, temporaryTableHelper);
+        ciIntegrationsConfigDao, organizationDAO, versionEvaluationWindowDAO, temporaryTableHelper);
   }
 
   @Override
@@ -564,11 +566,12 @@ public class TestDAOFactory
     ScmUserMappingsDAO scmUserMappingsDAO = createScmUserMappingsDAO();
     CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO = createCpeMatchingConfigurationDAO();
     CiIntegrationsConfigDao ciIntegrationsConfigDao = createCiIntegrationsConfigDao();
+    VersionEvaluationWindowDAO versionEvaluationWindowDAO = createVersionEvaluationWindowDAO();
     return new OrganizationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager,
         automaticApplicationsConfigurationDAO, licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider,
         membershipMappingDAO, ownerDAOProvider, tagDAOProvider, sourceControlDAOProvider, repositoryConnectionDAO,
         scmEventDAO, proprietaryConfigDAO, organizationAncestorDAO, autoPolicyWaiverDAO, scmUserMappingsDAO,
-        cpeMatchingConfigurationDAO, ciIntegrationsConfigDao);
+        cpeMatchingConfigurationDAO, ciIntegrationsConfigDao, versionEvaluationWindowDAO);
   }
 
   @Override
@@ -1283,6 +1286,11 @@ public class TestDAOFactory
   @Override
   public ReevaluateCascadeProgressDAO createReevaluateCascadeProgressDAO() {
     return new ReevaluateCascadeProgressDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public VersionEvaluationWindowDAO createVersionEvaluationWindowDAO() {
+    return new VersionEvaluationWindowDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   private TemporaryTableHelper createTemporaryTableHelper() {

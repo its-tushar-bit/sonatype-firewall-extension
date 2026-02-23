@@ -2227,3 +2227,13 @@ CREATE TABLE ci_integrations_config (
   CONSTRAINT ci_integrations_config_pk PRIMARY KEY (ci_integrations_config_id),
   CONSTRAINT ci_integrations_config_owner_uk UNIQUE (owner_id, owner_type)
 );
+
+CREATE TABLE version_evaluation_window (
+  version_evaluation_window_id varchar(50) NOT NULL,
+  owner_id varchar(50) NOT NULL,
+  context_id varchar(30) NOT NULL,
+  max_versions smallint,
+  max_age_in_days smallint,
+  CONSTRAINT version_evaluation_window_pk PRIMARY KEY (version_evaluation_window_id),
+  CONSTRAINT version_evaluation_window_uk UNIQUE (owner_id, context_id)
+);

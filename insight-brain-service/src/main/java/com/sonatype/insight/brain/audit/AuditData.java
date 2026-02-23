@@ -510,4 +510,14 @@ public abstract class AuditData
     }
     setData("vulnerabilityReference", refId);
   }
+
+  public void setVersionEvaluationWindow(
+      final String contextId,
+      final Integer maxVersions,
+      final Integer maxAgeInDays)
+  {
+    setData("contextId", contextId);
+    setData("maxVersions", maxVersions);
+    setData("maxAgeInDays", maxAgeInDays);
+  }
 }

@@ -30,6 +30,7 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
@@ -109,6 +110,8 @@ public class ApplicationDAO
 
   private final OrganizationDAO organizationDAO;
 
+  private final VersionEvaluationWindowDAO versionEvaluationWindowDAO;
+
   private final TemporaryTableHelper temporaryTableHelper;
 
   @Inject
@@ -131,6 +134,7 @@ public class ApplicationDAO
       final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO,
       final CiIntegrationsConfigDao ciIntegrationsConfigDao,
       final OrganizationDAO organizationDAO,
+      final VersionEvaluationWindowDAO versionEvaluationWindowDAO,
       final TemporaryTableHelper temporaryTableHelper)
   {
     super(operationalDataStore, searchIndexManager);
@@ -150,6 +154,7 @@ public class ApplicationDAO
     this.cpeMatchingConfigurationDAO = cpeMatchingConfigurationDAO;
     this.ciIntegrationsConfigDao = ciIntegrationsConfigDao;
     this.organizationDAO = organizationDAO;
+    this.versionEvaluationWindowDAO = versionEvaluationWindowDAO;
     this.temporaryTableHelper = temporaryTableHelper;
   }
 
@@ -657,6 +662,7 @@ public class ApplicationDAO
     // - SourceControlPullRequestComment
     // - SourceControlPullRequestResult
     // - SourceControlUser
+    // - VersionEvaluationWindow
 
     // Cascade to source control config
     sourceControlDAOProvider.get().deleteByOwnerId(tx, application.getId());
@@ -733,6 +739,8 @@ public class ApplicationDAO
     }
 
     cpeMatchingConfigurationDAO.delete(tx, cpeMatchingConfigurationDAO.getByOwnerId(tx, application.getId()));
+
+    versionEvaluationWindowDAO.deleteByOwnerId(tx, application.getId());
 
     long duration = System.currentTimeMillis() - start;
     if (duration > 500) {

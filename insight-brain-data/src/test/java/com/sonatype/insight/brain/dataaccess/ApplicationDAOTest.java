@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigD
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -120,6 +121,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.nexus.scm.SourceControlProvider;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
@@ -1398,6 +1400,22 @@ public class ApplicationDAOTest
     List<SourceControlPullRequestComment> commentsAfterDelete = 
         pullRequestCommentDAO.getByApplicationId(application.getId());
     assertThat(commentsAfterDelete).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadesToVersionEvaluationWindows() {
+    Application application = tempEntity.newApplicationWithParent();
+    Application other = tempEntity.newApplicationWithParent();
+    tempEntity.newVersionEvaluationWindow(application.getId(), "contextId1", 1, 1);
+    tempEntity.newVersionEvaluationWindow(application.getId(), "contextId2", 1, 1);
+    tempEntity.newVersionEvaluationWindow(other.getId(), "contextId1", 1, 1);
+    tempEntity.newVersionEvaluationWindow(other.getId(), "contextId2", 1, 1);
+
+    applicationDAO.delete(application);
+
+    VersionEvaluationWindowDAO versionEvaluationWindowDAO = daoFactory.createVersionEvaluationWindowDAO();
+    assertThat(versionEvaluationWindowDAO.getByOwnerId(application.getId())).isEmpty();
+    assertThat(versionEvaluationWindowDAO.getByOwnerId(other.getId())).isNotEmpty();
   }
 
   @Test

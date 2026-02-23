@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurat
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
@@ -1117,6 +1118,22 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     dao.delete(child);
 
     assertThat(orgAncestorDAO.getByOrganizationId(childId)).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadesToVersionEvaluationWindows() {
+    Organization organization = tempEntity.newOrganization();
+    Organization other = tempEntity.newOrganization();
+    tempEntity.newVersionEvaluationWindow(organization.getId(), "contextId1", 1, 1);
+    tempEntity.newVersionEvaluationWindow(organization.getId(), "contextId2", 1, 1);
+    tempEntity.newVersionEvaluationWindow(other.getId(), "contextId1", 1, 1);
+    tempEntity.newVersionEvaluationWindow(other.getId(), "contextId2", 1, 1);
+
+    dao.delete(organization);
+
+    VersionEvaluationWindowDAO versionEvaluationWindowDAO = daoFactory.createVersionEvaluationWindowDAO();
+    assertThat(versionEvaluationWindowDAO.getByOwnerId(organization.getId())).isEmpty();
+    assertThat(versionEvaluationWindowDAO.getByOwnerId(other.getId())).isNotEmpty();
   }
 
   @Test

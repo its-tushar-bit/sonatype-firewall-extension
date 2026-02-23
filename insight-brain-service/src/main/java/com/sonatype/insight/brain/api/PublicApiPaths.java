@@ -77,6 +77,8 @@ public class PublicApiPaths
 
   public static final String DATA_RETENTION_POLICY_RESOURCE_PATH = API_VERSION_PATH_V2 + "dataRetentionPolicies";
 
+  public static final String VERSION_EVALUATION_WINDOW_RESOURCE_PATH = API_VERSION_PATH_V2 + "versionEvaluationWindow";
+
   public static final String COMPONENT_REMEDIATION_PATH_V2 =
       API_VERSION_PATH_V2 + "components/remediation/{ownerType: application|organization|repository}/{ownerId}";
 

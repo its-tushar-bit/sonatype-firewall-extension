@@ -72,6 +72,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurat
 import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
@@ -85,10 +86,13 @@ import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfiguratio
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationDAO;
+import com.sonatype.insight.brain.dataaccess.enterprisereporting.EnterpriseReportingDefaultFilterDAO;
+import com.sonatype.insight.brain.dataaccess.enterprisereporting.EnterpriseReportingFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
-import com.sonatype.insight.brain.dataaccess.enterprisereporting.EnterpriseReportingFilterDAO;
-import com.sonatype.insight.brain.dataaccess.enterprisereporting.EnterpriseReportingDefaultFilterDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppRegistrationStateDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
@@ -151,9 +155,6 @@ import com.sonatype.insight.brain.dataaccess.security.SamlUserGroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
-import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
-import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
-import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppRegistrationStateDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.ScmUserMappingsDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -215,8 +216,6 @@ import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
-import com.sonatype.insight.brain.model.githubapp.GitHubApp;
-import com.sonatype.insight.brain.model.githubapp.GitHubAppInstallationState;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns;
@@ -227,6 +226,7 @@ import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.VersionEvaluationWindow;
 import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
 import com.sonatype.insight.brain.model.configuration.ZscalerFormat;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
@@ -241,11 +241,13 @@ import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
+import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingDefaultFilter;
+import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingFilter;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
-import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingFilter;
-import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingDefaultFilter;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
+import com.sonatype.insight.brain.model.githubapp.GitHubAppInstallationState;
 import com.sonatype.insight.brain.model.githubapp.GitHubAppRegistrationState;
 import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.innersource.InnerSourceVersion;
@@ -720,6 +722,8 @@ public class TemporaryEntity
 
   private GitHubAppRegistrationStateDAO gitHubAppRegistrationStateDAO;
 
+  private VersionEvaluationWindowDAO versionEvaluationWindowDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -1015,6 +1019,7 @@ public class TemporaryEntity
       delete(zscalerFormatDAO.getAll(), zscalerFormatDAO);
       delete(enterpriseReportingFilterDAO.getAll(), enterpriseReportingFilterDAO);
       delete(enterpriseReportingDefaultFilterDAO.getAll(), enterpriseReportingDefaultFilterDAO);
+      delete(versionEvaluationWindowDAO.getAll(), versionEvaluationWindowDAO);
 
       restoreInitialWaiverReasons();
       productLicenseDAO.delete();
@@ -6676,6 +6681,7 @@ public class TemporaryEntity
     gitHubAppDAO = daoFactory.createGitHubAppDAO();
     gitHubAppInstallationStateDAO = daoFactory.createGitHubAppInstallationStateDAO();
     gitHubAppRegistrationStateDAO = daoFactory.createGitHubAppRegistrationStateDAO();
+    versionEvaluationWindowDAO = daoFactory.createVersionEvaluationWindowDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {
@@ -6801,5 +6807,20 @@ public class TemporaryEntity
     testPolicy.setConstraints(Collections.singletonList(constraint));
     testPolicy.setActions(Map.of(Stage.ID_PROXY, "fail"));
     policyDAO.insert(testPolicy);
+  }
+
+  public VersionEvaluationWindow newVersionEvaluationWindow(
+      final String ownerId,
+      final String contextId,
+      final Integer maxVersions,
+      final Integer maxAgeInDays)
+  {
+    VersionEvaluationWindow window = new VersionEvaluationWindow();
+    window.setOwnerId(ownerId);
+    window.setContextId(contextId);
+    window.setMaxVersions(maxVersions);
+    window.setMaxAgeInDays(maxAgeInDays);
+    versionEvaluationWindowDAO.insert(window);
+    return window;
   }
 }

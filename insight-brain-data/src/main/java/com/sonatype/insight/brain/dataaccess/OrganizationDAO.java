@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplications
 import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
@@ -91,6 +92,8 @@ public class OrganizationDAO
 
   private final CiIntegrationsConfigDao ciIntegrationsConfigDao;
 
+  private final VersionEvaluationWindowDAO versionEvaluationWindowDAO;
+
   @Inject
   public OrganizationDAO(
       final OperationalDataStore operationalDataStore,
@@ -110,7 +113,8 @@ public class OrganizationDAO
       final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       final ScmUserMappingsDAO scmUserMappingsDAO,
       final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO,
-      final CiIntegrationsConfigDao ciIntegrationsConfigDao)
+      final CiIntegrationsConfigDao ciIntegrationsConfigDao,
+      final VersionEvaluationWindowDAO versionEvaluationWindowDAO)
   {
     super(operationalDataStore, searchIndexManager);
     this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;
@@ -129,6 +133,7 @@ public class OrganizationDAO
     this.scmUserMappingsDAO = scmUserMappingsDAO;
     this.cpeMatchingConfigurationDAO = cpeMatchingConfigurationDAO;
     this.ciIntegrationsConfigDao = ciIntegrationsConfigDao;
+    this.versionEvaluationWindowDAO = versionEvaluationWindowDAO;
   }
 
   public Organization getByName(TransactionContext tx, String name) {
@@ -351,6 +356,8 @@ public class OrganizationDAO
 
     // Cascade to CI integrations config
     ciIntegrationsConfigDao.delete(tx, "ORGANIZATION", organization.getId());
+
+    versionEvaluationWindowDAO.deleteByOwnerId(tx, organization.getId());
 
     super.delete(tx, organization);
 

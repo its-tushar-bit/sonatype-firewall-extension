@@ -35,6 +35,10 @@ public class OwnerSummaryPage
     return BaseUrl.resolvePageUrl("/management/view/organization/ROOT_ORGANIZATION_ID");
   }
 
+  public static String firewallUrl() {
+    return BaseUrl.resolvePageUrl("/firewall/management/view/organization/ROOT_ORGANIZATION_ID");
+  }
+
   public static String urlToRootOrg() {
     return url(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
   }
@@ -49,7 +53,7 @@ public class OwnerSummaryPage
   }
 
   public static String sbomManagerUrl(OwnerType ownerType, String id) {
-    return BaseUrl.resolvePageUrl("sbomManager/management/view/{ownerType}/{ownerId}", ownerType, id);
+    return BaseUrl.resolvePageUrl("/sbomManager/management/view/{ownerType}/{ownerId}", ownerType, id);
   }
 
   public static OrgsAndPoliciesSidebar sidebar() {

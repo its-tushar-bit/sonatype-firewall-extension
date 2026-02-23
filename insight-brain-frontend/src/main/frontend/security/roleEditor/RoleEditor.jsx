@@ -209,10 +209,6 @@ RoleEditor.propTypes = {
   updateError: PropTypes.string,
   roles: PropTypes.array.isRequired,
   loadRoles: PropTypes.func.isRequired,
-  $state: PropTypes.shape({
-    get: PropTypes.func.isRequired,
-    href: PropTypes.func.isRequired,
-  }),
   router: PropTypes.shape({
     currentParams: PropTypes.object.isRequired,
     currentState: PropTypes.object.isRequired,

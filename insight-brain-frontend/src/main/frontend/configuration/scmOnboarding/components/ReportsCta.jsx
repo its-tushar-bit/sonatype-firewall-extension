@@ -6,11 +6,14 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 /*
  The "Go to Reports" Call To Action
  */
-export default function ReportsCta({ $state, id }) {
+export default function ReportsCta({ id }) {
+  const $state = useRouterState();
+
   const goToReports = () => {
     $state.go('violations');
   };
@@ -23,6 +26,5 @@ export default function ReportsCta({ $state, id }) {
 }
 
 ReportsCta.propTypes = {
-  $state: PropTypes.object.isRequired,
   id: PropTypes.string.isRequired,
 };

@@ -7,13 +7,13 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { NxTextLink } from '@sonatype/react-shared-components';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function FirewallAutoReleaseQuarantine(props) {
   // viewState
   const { autoReleaseQuarantineCountMTD } = props;
 
-  // state
-  const { $state } = props;
+  const $state = useRouterState();
 
   return (
     <section id="firewall-auto-release-quarantine" className="nx-card iq-firewall-auto-release-quarantine-card">
@@ -36,7 +36,4 @@ export default function FirewallAutoReleaseQuarantine(props) {
 
 FirewallAutoReleaseQuarantine.propTypes = {
   autoReleaseQuarantineCountMTD: PropTypes.string,
-  $state: PropTypes.shape({
-    href: PropTypes.func.isRequired,
-  }),
 };

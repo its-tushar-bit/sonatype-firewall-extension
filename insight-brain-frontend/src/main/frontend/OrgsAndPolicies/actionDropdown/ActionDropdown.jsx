@@ -158,7 +158,7 @@ const ActionDropdown = () => {
 
   const dropdownOptions = () => {
     if (isRepository) {
-      const repositoryResultUrl = `${uiRouterState.href('repository-report', {
+      const repositoryResultUrl = `${uiRouterState.href('firewall.repository-report', {
         repositoryId: owner.id,
       })}?hideBackButton=true`;
       return (

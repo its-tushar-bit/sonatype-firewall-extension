@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { selectOwnerProperties, selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectSelectedOwnerTypeAndId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { getCpeConfigurationUrl } from 'MainRoot/util/CLMLocation';
 import axios from 'axios';
 import { equals, prop } from 'ramda';
@@ -62,8 +62,7 @@ const loadCpeConfiguration = createAsyncThunk(
   `${REDUCER_NAME}/loadCpeConfiguration`,
   async (_, { getState, rejectWithValue }) => {
     const state = getState();
-    const { ownerType } = selectOwnerProperties(state);
-    const ownerId = selectSelectedOwnerId(state);
+    const { ownerType, ownerId } = selectSelectedOwnerTypeAndId(state);
 
     if (!ownerType || !ownerId) {
       return;
@@ -82,8 +81,7 @@ const saveCpeConfiguration = createAsyncThunk(
   `${REDUCER_NAME}/saveCpeConfiguration`,
   async (_, { getState, rejectWithValue, dispatch }) => {
     const state = getState();
-    const { ownerType } = selectOwnerProperties(state);
-    const ownerId = selectSelectedOwnerId(state);
+    const { ownerType, ownerId } = selectSelectedOwnerTypeAndId(state);
     const url = getCpeConfigurationUrl(ownerType, ownerId);
 
     const { allowOverride } = state.orgsAndPolicies.publicDataSources.data;

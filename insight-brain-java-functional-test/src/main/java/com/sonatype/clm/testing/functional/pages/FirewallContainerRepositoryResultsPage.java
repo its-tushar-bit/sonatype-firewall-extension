@@ -15,7 +15,7 @@ import com.codeborne.selenide.SelenideElement;
 public class FirewallContainerRepositoryResultsPage
     extends BasicElement<FirewallContainerRepositoryResultsPage>
 {
-  public static final String ROOT = "container-repository-results";
+  public static final String ROOT = "#container-repository-results-page";
 
   public FirewallContainerRepositoryResultsPage() {
     super(ROOT);

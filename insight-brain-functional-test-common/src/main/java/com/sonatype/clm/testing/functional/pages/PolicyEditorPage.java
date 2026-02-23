@@ -47,6 +47,14 @@ public class PolicyEditorPage
     return BaseUrl.resolvePageUrl("/management/edit/{ownerType}/{ownerId}/policy", ownerType, ownerId);
   }
 
+  public static String firewallUrlToEdit(OwnerType ownerType, String ownerId, String policyId) {
+    return firewallUrlToCreate(ownerType, ownerId) + "/" + policyId;
+  }
+
+  public static String firewallUrlToCreate(OwnerType ownerType, String ownerId) {
+    return BaseUrl.resolvePageUrl("/firewall/management/edit/{ownerType}/{ownerId}/policy", ownerType, ownerId);
+  }
+
   public static SelenideElement title() {
     return $("#policy-editor-summary h1");
   }

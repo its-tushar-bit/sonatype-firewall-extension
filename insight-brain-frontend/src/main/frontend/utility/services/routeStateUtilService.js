@@ -13,18 +13,16 @@ export const QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED =
   'quarantined-component-view-anonymous-access-configurable';
 
 // Private module state - will be initialized from outside
-let routeState = null;
 let reduxStore = null;
 let loadServerConfigPromise = null;
 let loadQuarantinedComponentViewAnonymousAccessConfigPromise = null;
 
 /**
- * Initialize the module with dependencies
- * @param {Object} _routeState - UI-Router state service
- * @param {Object} _reduxStore - Redux store service
+ * Initialize the module with the Redux store dependency.
+ * This must be called before using stateRequiresAuthentication or stateRequiresAuthenticationSync.
+ * @param {Object} _reduxStore - Redux store
  */
-export function initialize(_routeState, _reduxStore) {
-  routeState = _routeState;
+export function initialize(_reduxStore) {
   reduxStore = _reduxStore;
 
   // Initialize the server config promises only if we have valid dependencies
@@ -61,14 +59,14 @@ export function initialize(_routeState, _reduxStore) {
  * so that calling code can use it to decide whether to perform actions which must be synchronous, such as
  * calling preventDefault on navigation events.
  *
- * @param {Object} [state] - UI-Router state object, defaults to current state
+ * @param {Object} state - UI-Router state object (required - do not use router.stateService.current as it may be stale)
  * @return true if the route always requires auth, or if it's up to the server and the server config has already
  * been fetched and is false (unauthenticated access disabled)
  * @return false if the route never requires auth, or if it's up to the server and the server config has already
  * been fetched and is true
  * @return undefined if it's up to the server and the server config fetch has not yet completed
  */
-export function stateRequiresAuthenticationSync(state = routeState?.current) {
+export function stateRequiresAuthenticationSync(state) {
   if (!reduxStore || !state) {
     return true; // Safe default - require authentication if dependencies not available
   }
@@ -94,10 +92,10 @@ export function stateRequiresAuthenticationSync(state = routeState?.current) {
  * Async query for whether this route requires authentication. This is based on both the route's
  * authenticationRequired flag and the server's enable-unauthenticated-pages config.
  *
- * @param {Object} [state] - UI-Router state object, defaults to current state
+ * @param {Object} state - UI-Router state object (required - do not use router.stateService.current as it may be stale)
  * @return {Promise<boolean>} Promise that resolves to true if authentication is required
  */
-export function stateRequiresAuthentication(state = routeState?.current) {
+export function stateRequiresAuthentication(state) {
   if (!reduxStore || !state) {
     return Promise.resolve(true); // Safe default - require authentication if dependencies not available
   }

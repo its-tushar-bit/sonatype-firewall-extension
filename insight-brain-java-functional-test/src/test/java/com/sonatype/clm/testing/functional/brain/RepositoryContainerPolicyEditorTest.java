@@ -442,7 +442,7 @@ public class RepositoryContainerPolicyEditorTest
     PolicyTileList policyTileList = RepositoriesSummaryPage.policyTile().policyList(1);
     policyTileList.rows().shouldHave(size(inheritedPolicies.size() + 1));
     policyTileList.row(1).click();
-    waitUntilUrl(PolicyEditorPage.urlToEdit(OwnerType.REPOSITORY_CONTAINER,
+    waitUntilUrl(PolicyEditorPage.firewallUrlToEdit(OwnerType.REPOSITORY_CONTAINER,
         RepositoryContainer.REPOSITORY_CONTAINER_ID, inheritedPolicies.get(0).getId()));
 
     //Summary Section

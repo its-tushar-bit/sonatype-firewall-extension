@@ -54,7 +54,7 @@ export const SystemPreferencesMenu = ({
   const productLicense = useSelector(selectProductLicense);
   const isUserManagementEnabled = useSelector(selectIsUserManagementPagesEnabled);
   const isUserActivityTrackingEnabled = useSelector(selectIsUserActivityTrackingEnabled);
-  const firewallPrefix = isFirewallOnlyLicense ? 'firewall' : '';
+  const firewallPrefix = isFirewallOnlyLicense || isStandaloneFirewall ? 'firewall' : '';
   const sbomManagerPrefix = isSbomManager ? 'sbomManager' : '';
 
   return (

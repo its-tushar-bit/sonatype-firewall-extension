@@ -34,4 +34,3 @@ function mapStateToProps({ advancedLegal, componentLicenseFileDetails, router })
 
 const LicenseFilesDetailsListContainer = connect(mapStateToProps)(LicenseFilesDetailsList);
 export default LicenseFilesDetailsListContainer;
-LicenseFilesDetailsListContainer.propTypes = pick(['$state'], LicenseFilesDetailsList.propTypes);

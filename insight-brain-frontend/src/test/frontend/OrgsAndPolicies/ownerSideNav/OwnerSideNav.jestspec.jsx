@@ -10,7 +10,7 @@ import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import { getOwnerListUrl, getPermissionContextTestUrl, getRepositoriesUrl } from 'MainRoot/util/CLMLocation';
 import { getOwnersMap } from './nLevelMockData';
 import OwnerSideNav from 'MainRoot/OrgsAndPolicies/ownerSideNav/OwnerSideNav';
-import RouterStateContext from 'MainRoot/react/RouterStateContext';
+import router from 'MainRoot/router/routerInstance';
 import { PERMISSION } from 'MainRoot/util/authorizationUtil';
 import { fakeRouterState, verifyOwnersMenuSection } from './ownerSideNavTestingUtils';
 import { mergeDeepRight } from 'ramda';
@@ -21,7 +21,6 @@ const { initialState: rscInitialState } = nxTextInputStateHelpers;
 describe('OwnerSideNav', () => {
   let mockAxiosCalls;
   let state;
-  let routerContext;
   const organizationsDepth = 4;
   const ownersMap = getOwnersMap(organizationsDepth);
   const topParentOrganizationId = 'ROOT_ORGANIZATION_ID';
@@ -115,20 +114,21 @@ describe('OwnerSideNav', () => {
       },
     };
 
-    routerContext = { href: () => {}, includes: jest.fn(() => false) };
-    jest.spyOn(routerContext, 'href').mockImplementation(fakeRouterState);
+    jest.spyOn(router.stateService, 'href').mockImplementation(fakeRouterState);
+    jest.spyOn(router.stateService, 'includes').mockReturnValue(false);
+    jest.spyOn(router.stateService, 'get').mockReturnValue(null);
 
     mockAxiosCalls.onGet(ownerListUrl).reply(200, ownerListPayload);
     mockAxiosCalls.onPut(permissionContextTestUrl).reply(200, []);
     mockAxiosCalls.onGet(getRepositoriesUrl()).reply(200, repositoriesList);
   });
 
-  const renderComponent = (preloadedState = state, router = routerContext) => {
+  const renderComponent = (preloadedState = state) => {
     return render(
-      <RouterStateContext.Provider value={router}>
+      <>
         <MenuBarStatefulBreadcrumb />
         <OwnerSideNav />
-      </RouterStateContext.Provider>,
+      </>,
       { preloadedState }
     );
   };

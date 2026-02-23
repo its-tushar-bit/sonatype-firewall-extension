@@ -20,7 +20,14 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
 
 export default function SbomManagerSidebar(props) {
-  const { isLoggedIn, isSbomManagerEnabled, isApiPageEnabled, isAlpForSbomManagerEnabled, isLegalEnabled } = props;
+  const {
+    currentState,
+    isLoggedIn,
+    isSbomManagerEnabled,
+    isApiPageEnabled,
+    isAlpForSbomManagerEnabled,
+    isLegalEnabled,
+  } = props;
   const uiRouterState = useRouterState();
   const dashboardState = 'sbomManager.dashboard';
   const applicationsState = 'sbomManager.applications';
@@ -38,7 +45,12 @@ export default function SbomManagerSidebar(props) {
   const legalHref = uiRouterState.href(sbomManagerLegalState);
   const apiHref = uiRouterState.href(apiState);
 
-  const isSelected = (entryName) => uiRouterState.includes(entryName);
+  // Use currentState from Redux props (triggers re-render) instead of uiRouterState.includes()
+  // which may return stale data when the re-render is driven by Redux state changes
+  const currentStateName = currentState?.name || '';
+  const isSelected = (entryName) => {
+    return currentStateName === entryName || currentStateName.startsWith(entryName + '.');
+  };
 
   return (
     <NxGlobalSidebar2
@@ -114,6 +126,7 @@ export default function SbomManagerSidebar(props) {
 }
 
 SbomManagerSidebar.propTypes = {
+  currentState: PropTypes.object,
   isLoggedIn: PropTypes.bool,
   isSbomManagerEnabled: PropTypes.bool,
   isApiPageEnabled: PropTypes.bool,

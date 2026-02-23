@@ -58,7 +58,7 @@ export default function QuarantineComponentOverviewTile(props) {
         <dd className="nx-read-only__data">
           <NxTextLink
             newTab
-            href={uiRouterState.href('repository-report', { repositoryId: componentOverview.repositoryId })}
+            href={uiRouterState.href('firewall.repository-report', { repositoryId: componentOverview.repositoryId })}
           >
             {componentOverview.repositoryName}
           </NxTextLink>

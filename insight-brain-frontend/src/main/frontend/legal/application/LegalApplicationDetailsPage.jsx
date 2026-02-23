@@ -22,6 +22,7 @@ import { faFilter } from '@fortawesome/pro-solid-svg-icons';
 import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 import { expandedProgressOptions } from 'MainRoot/legal/dashboard/legalDashboardConstants';
 import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function LegalApplicationDetailsPage(props) {
   const {
@@ -38,7 +39,6 @@ export default function LegalApplicationDetailsPage(props) {
     selected,
     toggleFilterSidebar,
     sort,
-    $state,
     fetchLegalApplicationDetailsData,
     changeComponentNameFilter,
     changeLicenseNameFilter,
@@ -46,6 +46,8 @@ export default function LegalApplicationDetailsPage(props) {
     stateGo,
     isSbomManager,
   } = props;
+
+  const $state = useRouterState();
 
   useEffect(() => {
     if (applicationPublicId && stageTypeId) {
@@ -232,7 +234,6 @@ LegalApplicationDetailsPage.propTypes = {
     column: PropTypes.string,
     sortOrder: PropTypes.string,
   }),
-  $state: PropTypes.object.isRequired,
   fetchLegalApplicationDetailsData: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
   changeComponentNameFilter: PropTypes.func.isRequired,

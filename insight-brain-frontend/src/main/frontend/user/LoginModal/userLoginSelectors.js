@@ -13,3 +13,4 @@ export const selectLoginModalState = createSelector(selectLoginModal, prop('logi
 export const selectLoginModalSubmitState = createSelector(selectLoginModal, prop('loginModalSubmitState'));
 export const selectSystemNoticeServerData = createSelector(selectSystemNotice, prop('serverData'));
 export const selectSsoLoginUrl = createSelector(selectLoginModalState, prop('ssoLoginUrl'));
+export const selectShowLoginModal = createSelector(selectLoginModalState, prop('showLoginModal'));

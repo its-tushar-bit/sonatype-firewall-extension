@@ -17,7 +17,7 @@ import { sortOwnerByName, fuzzyFilter, flatEntries } from './utils';
 import {
   selectRouterCurrentParams,
   selectIsManagementViewRouterState,
-  selectIsSbomManager,
+  selectRoutePrefix,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { toggleBooleanProp } from 'MainRoot/util/reduxUtil';
 import { validateMinLength } from 'MainRoot/util/validationUtil';
@@ -51,6 +51,31 @@ export const initialState = {
   filterLoading: false,
 };
 
+/**
+ * Check if the target entity (based on route params) exists in the ownersMap.
+ * If not, we need to reload the sidebar data to include the new entity.
+ */
+const isTargetEntityInOwnersMap = (ownersMap, routerParams) => {
+  if (!ownersMap) return false;
+
+  const {
+    organizationId = '',
+    applicationPublicId = '',
+    repositoryId = '',
+    repositoryManagerId = '',
+    repositoryContainerId = '',
+  } = routerParams;
+
+  // Check if the target entity exists in the ownersMap
+  if (organizationId && !ownersMap[organizationId]) return false;
+  if (applicationPublicId && !ownersMap[applicationPublicId]) return false;
+  if (repositoryId && !ownersMap[repositoryId]) return false;
+  if (repositoryManagerId && !ownersMap[repositoryManagerId]) return false;
+  if (repositoryContainerId && !ownersMap[repositoryContainerId]) return false;
+
+  return true;
+};
+
 const loadOwnerList = createAsyncThunk(
   `${REDUCER_NAME}/loadOwnerList`,
   (forceReload = false, { rejectWithValue, dispatch, getState }) => {
@@ -59,7 +84,12 @@ const loadOwnerList = createAsyncThunk(
     const ownersMap = selectOwnersMap(state);
     const ownersMapExistInMemory = !isNilOrEmpty(ownersMap);
 
-    if (forceReload || !ownersMapExistInMemory) {
+    // Force reload if the target entity is not in the cached ownersMap
+    // This handles the case where a new entity was created and we navigate to it
+    // but the sidebar cache doesn't include the new entity yet
+    const targetEntityNotInOwnersMap = ownersMapExistInMemory && !isTargetEntityInOwnersMap(ownersMap, routerParams);
+
+    if (forceReload || !ownersMapExistInMemory || targetEntityNotInOwnersMap) {
       return axios
         .get(getOwnerListUrl())
         .then(({ data }) => {
@@ -94,7 +124,6 @@ const load = createAsyncThunk(
       .then((results) => {
         const { ownersMap, topParentOrganizationId } = unwrapResult(results[0]) || {};
         const routerParams = selectRouterCurrentParams(state);
-        const isSbomManager = selectIsSbomManager(state);
 
         const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
 
@@ -103,9 +132,10 @@ const load = createAsyncThunk(
         // when the user has no permission to view any organization then redirect to ROOT_ORGANIZATION_ID
         const isManagementViewRoute = selectIsManagementViewRouterState(state);
         if (isManagementViewRoute) {
+          const routePrefix = selectRoutePrefix(state);
           dispatch(
             stateGo(
-              `${isSbomManager ? 'sbomManager.' : ''}management.view.organization`,
+              `${routePrefix}management.view.organization`,
               { organizationId: displayedOrganization.id ?? 'ROOT_ORGANIZATION_ID' },
               { location: 'replace' }
             )

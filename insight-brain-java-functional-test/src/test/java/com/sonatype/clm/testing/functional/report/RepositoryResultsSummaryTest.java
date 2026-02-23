@@ -1252,7 +1252,7 @@ public class RepositoryResultsSummaryTest
     getWebDriverAwait().until(ExpectedConditions.invisibilityOf(page.getAllLoadingSpinners().get(0)));
     page.firewallQuarantineTable().tableBodyRows().get(0).find("#iq-firewall-quarantine-table--repo-view-link").click();
 
-    waitUntilUrl(RepositoryResultDetailPage.url(repo.getId()).replace("#/", "#/firewall/"));
+    waitUntilUrl(RepositoryResultDetailPage.url(repo.getId()));
     RepositoryResultDetailPage.backButton()
         .shouldBe(visible)
         .shouldHave(text("Back to Firewall Dashboard"));

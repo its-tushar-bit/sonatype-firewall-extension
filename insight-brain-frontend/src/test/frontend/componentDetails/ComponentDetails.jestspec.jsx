@@ -28,7 +28,7 @@ import {
   dependenciesDataTransitive,
 } from './data';
 import { compose, lensPath, set } from 'ramda';
-import RouterStateContext from 'MainRoot/react/RouterStateContext';
+import router from 'MainRoot/router/routerInstance';
 
 describe('ComponentDetails', () => {
   let axiosMock;
@@ -69,19 +69,11 @@ describe('ComponentDetails', () => {
     axiosMock.onGet(getComponentLabels(publicId, hash, 'application')).reply(200, { labelsByOwner: [] });
     axiosMock.onGet(getApplicableLabelsUrl('application', publicId)).reply(200, { labelsByOwner: [] });
 
-    const routerContext = {
-      href: jest.fn(() => '#'),
-      get: jest.fn(() => '#'),
-      includes: jest.fn(() => false),
-    };
+    jest.spyOn(router.stateService, 'href').mockReturnValue('#');
+    jest.spyOn(router.stateService, 'get').mockReturnValue('#');
+    jest.spyOn(router.stateService, 'includes').mockReturnValue(false);
 
-    renderComponent = (preloadedState = defaultPreloadedState) =>
-      render(
-        <RouterStateContext.Provider value={routerContext}>
-          <ComponentDetails />
-        </RouterStateContext.Provider>,
-        { preloadedState }
-      );
+    renderComponent = (preloadedState = defaultPreloadedState) => render(<ComponentDetails />, { preloadedState });
   });
 
   it('renders a loading indicator and title', async () => {

@@ -8,23 +8,27 @@ import { NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components
 import { faAngleRight } from '@fortawesome/pro-solid-svg-icons';
 import React from 'react';
 import { assoc, keys, reduce } from 'ramda';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
-export const createLegalFileTileItem = (legalFileType, object, index, $state, targetStateName, routeParams) => (
-  <section id={`${legalFileType}-section-${index}`} key={index} className="legal-file">
-    <div className="legal-file-section-header">
-      <span className="legal-file-path">{object.relPath}</span>
-    </div>
-    <blockquote id={`${legalFileType}-text-${index}`} className="nx-blockquote">
-      <div className="legal-file-content">{object.originalContent}</div>
-    </blockquote>
-    <div id="legal-file-section-view-more-details">
-      <NxTextLink href={$state.href(targetStateName, routeParams)}>
-        <span>View More Details</span>
-        <NxFontAwesomeIcon icon={faAngleRight} />
-      </NxTextLink>
-    </div>
-  </section>
-);
+export function LegalFileTileItem({ legalFileType, object, index, targetStateName, routeParams }) {
+  const $state = useRouterState();
+  return (
+    <section id={`${legalFileType}-section-${index}`} className="legal-file">
+      <div className="legal-file-section-header">
+        <span className="legal-file-path">{object.relPath}</span>
+      </div>
+      <blockquote id={`${legalFileType}-text-${index}`} className="nx-blockquote">
+        <div className="legal-file-content">{object.originalContent}</div>
+      </blockquote>
+      <div id="legal-file-section-view-more-details">
+        <NxTextLink href={$state.href(targetStateName, routeParams)}>
+          <span>View More Details</span>
+          <NxFontAwesomeIcon icon={faAngleRight} />
+        </NxTextLink>
+      </div>
+    </section>
+  );
+}
 
 const ifExistsElseEmpty = (element, func) => (element ? func() : '');
 

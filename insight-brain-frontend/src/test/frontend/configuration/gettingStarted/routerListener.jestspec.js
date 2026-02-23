@@ -17,11 +17,6 @@ describe('gettingStartedRouterListener', function () {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Import the actual routerListener function from the module
-    // We need to import it after mocking the dependencies
-    jest.resetModules();
-    require('../../../../main/frontend/configuration/module');
-
     // Mock UI-Router transition object
     mockTransition = {
       from: jest.fn(),
@@ -36,9 +31,6 @@ describe('gettingStartedRouterListener', function () {
   });
 
   it('registers a transition listener on onFinish', function () {
-    // Access the routerListener function from the module
-    require('../../../../main/frontend/configuration/module');
-
     // We need to extract the routerListener function from the module
     // Since it's not exported, we'll test through the module setup
     // Let's simulate what happens when the module runs

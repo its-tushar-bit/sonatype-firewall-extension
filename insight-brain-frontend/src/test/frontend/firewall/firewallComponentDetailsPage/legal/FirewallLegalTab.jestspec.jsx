@@ -587,7 +587,7 @@ describe('FirewallLegalTab', () => {
     expect(screen.queryByText(/Select Row/)).toBeVisible();
     expect(
       screen.getByRole('button', {
-        name: /5; luis policyproxy failing; apache 1 not allowed; found 'apache-1\.1' license; unapplied waiver/i,
+        name: /5; luis policy.*fail.*apache 1 not allowed; found 'apache-1\.1' license; unapplied waiver/i,
       })
     ).toBeVisible();
   });

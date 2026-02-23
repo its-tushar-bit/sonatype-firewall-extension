@@ -20,6 +20,10 @@ public class ProductLicensePage
     return BaseUrl.resolvePageUrl("/productlicense");
   }
 
+  public static String firewallUrl() {
+    return BaseUrl.resolvePageUrl("/firewall/productlicense");
+  }
+
   public static SelenideElement expiryDate() {
     return $("#license-expiry-date");
   }

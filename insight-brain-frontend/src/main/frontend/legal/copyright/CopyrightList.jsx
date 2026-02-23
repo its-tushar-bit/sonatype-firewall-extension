@@ -8,6 +8,7 @@ import { componentCopyrightDetailsPropType, componentPropType } from '../advance
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function CopyrightList(props) {
   const {
@@ -21,9 +22,10 @@ export default function CopyrightList(props) {
     componentIdentifier,
     stageTypeId,
     componentCopyrightDetails,
-    $state,
     isSbomManager,
   } = props;
+
+  const $state = useRouterState();
 
   const copyrightRef = React.useRef(new Map());
 
@@ -99,7 +101,7 @@ export default function CopyrightList(props) {
   // If we're loading data or in error state than the rendering will be handled by CopyrightDetailsHeader
   // component and this component should not be rendered
   return loading || error ? null : (
-    <aside className="nx-scrollable nx-viewport-sized__scrollable">
+    <aside id="copyright-list" className="nx-scrollable nx-viewport-sized__scrollable">
       <ul className="nx-list nx-list--clickable">{listItems}</ul>
     </aside>
   );
@@ -115,7 +117,6 @@ CopyrightList.propTypes = {
   hash: PropTypes.string,
   componentIdentifier: PropTypes.string,
   stageTypeId: PropTypes.string,
-  $state: PropTypes.object.isRequired,
   copyrightIndex: PropTypes.string.isRequired,
   isSbomManager: PropTypes.bool,
 };

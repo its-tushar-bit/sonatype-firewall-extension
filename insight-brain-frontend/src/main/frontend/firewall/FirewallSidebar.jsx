@@ -19,7 +19,7 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
 
 export default function FirewallSidebar(props) {
-  const { isLoggedIn, isApiPageEnabled, isFirewallEnterpriseReportingEnabled } = props;
+  const { currentState, isLoggedIn, isApiPageEnabled, isFirewallEnterpriseReportingEnabled } = props;
   const uiRouterState = useRouterState();
   const firewallState = 'firewall.firewallPage';
   const firewallRepositoriesState = 'firewall.management.view';
@@ -36,7 +36,12 @@ export default function FirewallSidebar(props) {
   const vulnSearchHref = uiRouterState.href(vulnSearchState);
   const enterpriseReportingHref = uiRouterState.href(enterpriseReportingState);
 
-  const isSelected = (entryName) => uiRouterState.includes(entryName);
+  // Use currentState from Redux props (triggers re-render) instead of uiRouterState.includes()
+  // which may return stale data when the re-render is driven by Redux state changes
+  const currentStateName = currentState?.name || '';
+  const isSelected = (entryName) => {
+    return currentStateName === entryName || currentStateName.startsWith(entryName + '.');
+  };
 
   return (
     <NxGlobalSidebar2
@@ -106,6 +111,7 @@ export default function FirewallSidebar(props) {
 }
 
 FirewallSidebar.propTypes = {
+  currentState: PropTypes.object,
   isLoggedIn: PropTypes.bool,
   isApiPageEnabled: PropTypes.bool,
   isFirewallEnterpriseReportingEnabled: PropTypes.bool,

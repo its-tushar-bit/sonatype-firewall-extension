@@ -333,7 +333,7 @@ public class RepositoriesSummaryViewTest
   public void testRepositoryTile_default() {
     AccessTile accessTile = RepositoriesSummaryPage.accessTile();
     accessTile.nxSubHeader().shouldBe(visible).shouldHave(AccessTile.subHeaderText("Repository Managers"));
-    accessTile.addRoleButton().shouldBe(enabled, visible);
+    accessTile.addRoleButton().scrollIntoView(true).shouldBe(enabled, visible);
     accessTile.accessLists().shouldHave(size(1));
 
     AccessTileList localList = accessTile.accessList(0);
@@ -1227,7 +1227,7 @@ public class RepositoriesSummaryViewTest
 
     policyTileList.row(1).chevron().shouldBe(visible);
     policyTileList.row(1).click();
-    waitUntilUrl(PolicyEditorPage.urlToEdit(OwnerType.REPOSITORY_CONTAINER,
+    waitUntilUrl(PolicyEditorPage.firewallUrlToEdit(OwnerType.REPOSITORY_CONTAINER,
         RepositoryContainer.REPOSITORY_CONTAINER_ID, inheritedPolicies.get(0).getId()));
     PolicyEditorPage.title().shouldHave(Condition.text("View Policy"));
 
@@ -1315,7 +1315,7 @@ public class RepositoriesSummaryViewTest
     eyesWatcher.eyesCheck("repository manager policies tile");
 
     policyTileInheritedList.row(1).click();
-    waitUntilUrl(PolicyEditorPage.urlToEdit(repositoryManager.getType(), repositoryManager.getId(),
+    waitUntilUrl(PolicyEditorPage.firewallUrlToEdit(repositoryManager.getType(), repositoryManager.getId(),
         inheritedFromRootOrgPolicies.get(0).getId()));
 
     SummarySection summarySection = PolicyEditorPage.summarySection();

@@ -33,6 +33,7 @@ function IqSidebarNav(props) {
   const [isOpen, toggleOpen, setToggleOpen] = useToggle(isLeftNavigationOpen());
 
   const {
+    currentState,
     isLoggedIn,
     isLicensed,
     isDashboardAvailable,
@@ -66,8 +67,11 @@ function IqSidebarNav(props) {
   const advSearchHref = uiRouterState.href('advancedSearch');
   const legalHref = uiRouterState.href('legal.dashboard');
 
+  // Use currentState from Redux props (triggers re-render) instead of uiRouterState.includes()
+  // which may return stale data when the re-render is driven by Redux state changes
+  const currentStateName = currentState?.name || '';
   const isSelected = (entryName) => {
-    return uiRouterState.includes(entryName);
+    return currentStateName === entryName || currentStateName.startsWith(entryName + '.');
   };
 
   const isVulnerabilitySearchSelected = isSelected('vulnerabilitySearch') || isSelected('vulnerabilitySearchDetail');
@@ -85,6 +89,7 @@ function IqSidebarNav(props) {
 
   const sbomManagerSidebar = (
     <SbomManagerSidebar
+      currentState={currentState}
       isLoggedIn={isLoggedIn}
       isSbomManagerEnabled={isSbomManagerEnabled}
       isApiPageEnabled={isApiPageEnabled}
@@ -94,6 +99,7 @@ function IqSidebarNav(props) {
   );
   const sonatypeDeveloperSidebar = (
     <SonatypeDeveloperSidebar
+      currentState={currentState}
       isLoggedIn={isLoggedIn}
       isAdvancedSearchEnabled={isAdvancedSearchEnabled}
       isApiPageEnabled={isApiPageEnabled}
@@ -101,11 +107,13 @@ function IqSidebarNav(props) {
   );
   const sonatypeFirewallSidebar = (
     <FirewallSidebar
+      currentState={currentState}
       isLoggedIn={isLoggedIn}
       isApiPageEnabled={isApiPageEnabled}
       isFirewallEnterpriseReportingEnabled={isFirewallEnterpriseReportingEnabled}
     />
   );
+
   const iqSidebar = (
     <>
       <NxGlobalSidebar2

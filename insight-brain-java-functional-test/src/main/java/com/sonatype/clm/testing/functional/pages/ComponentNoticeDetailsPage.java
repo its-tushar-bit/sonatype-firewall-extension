@@ -95,7 +95,7 @@ public final class ComponentNoticeDetailsPage
   public static class NoticeList
       extends BasicElement<NoticeList>
   {
-    private static final String NOTICE_LIST_SELECTOR = "notice-details-list";
+    private static final String NOTICE_LIST_SELECTOR = "#notice-details-list";
 
     public NoticeList() {
       super(NOTICE_LIST_SELECTOR);
@@ -113,14 +113,14 @@ public final class ComponentNoticeDetailsPage
   public static class NoticeHeader
       extends BasicElement<NoticeHeader>
   {
-    private static final String NOTICE_HEADER_SELECTOR = "notice-details-header";
+    private static final String NOTICE_HEADER_SELECTOR = "#notice-details-header";
 
     public NoticeHeader() {
       super(NOTICE_HEADER_SELECTOR);
     }
 
     public static SelenideElement noticeEditButton() {
-      return $("notice-details-header button.nx-btn--tertiary");
+      return $("#notice-details-header button.nx-btn--tertiary");
     }
   }
 

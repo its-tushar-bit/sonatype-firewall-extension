@@ -11,7 +11,7 @@ import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import NoticesModalContainer from './NoticesModalContainer';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { createLegalFileTileItem } from '../common/utils';
+import { LegalFileTileItem } from '../common/utils';
 import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
 export default function NoticeTextsTile(props) {
@@ -23,7 +23,6 @@ export default function NoticeTextsTile(props) {
     ownerId,
     stageTypeId,
     hash,
-    $state,
     componentIdentifier,
     isSbomManager,
   } = props;
@@ -47,18 +46,23 @@ export default function NoticeTextsTile(props) {
     }
   };
 
-  const createItem = (license, index) => {
-    const routeParams = {
-      ownerType,
-      ownerId,
-      hash,
-      stageTypeId,
-      noticeIndex: index,
-      componentIdentifier,
-    };
-
-    return createLegalFileTileItem('notice', license, index, $state, noticeDetailsTargetState(), routeParams);
-  };
+  const createItem = (notice, index) => (
+    <LegalFileTileItem
+      key={index}
+      legalFileType="notice"
+      object={notice}
+      index={index}
+      targetStateName={noticeDetailsTargetState()}
+      routeParams={{
+        ownerType,
+        ownerId,
+        hash,
+        stageTypeId,
+        noticeIndex: index,
+        componentIdentifier,
+      }}
+    />
+  );
 
   const [open, toggleOpen] = useToggle(true);
 
@@ -90,7 +94,6 @@ NoticeTextsTile.propTypes = {
   stageTypeId: PropTypes.string,
   availableScopes: availableScopesPropType,
   hash: PropTypes.string,
-  $state: PropTypes.object.isRequired,
   componentIdentifier: PropTypes.string,
   isSbomManager: PropTypes.bool,
 };

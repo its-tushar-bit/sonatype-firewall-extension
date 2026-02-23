@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.functional.pages.ComponentLicenseFileDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ComponentLicenseFileDetailsPage.LicenseFileEditor;
 import com.sonatype.clm.testing.functional.pages.ComponentLicenseFileDetailsPage.LicenseFileList;
@@ -31,7 +32,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 
 public class LicenseFileDetailsTest
     extends AbstractFunctionalTest
@@ -200,5 +203,28 @@ public class LicenseFileDetailsTest
 
     LicenseFileOverview licenseFileOverview = ComponentLicenseFileDetailsPage.licenseFileOverview();
     licenseFileOverview.getLicenseText().shouldHave(text(content));
+  }
+
+  @Test
+  public void testViewMoreDetailsNavigation_ByHash() {
+    refreshOrOpen(ComponentLegalOverviewPage.url(app, "033e7a20b23ea284d474"));
+    ComponentLegalOverviewPage.LicenseFiles licenseFiles = ComponentLegalOverviewPage.licenseFiles();
+    licenseFiles.all().shouldHave(sizeGreaterThan(0));
+    licenseFiles.at(0).viewMoreDetailsLink().click();
+    ComponentLicenseFileDetailsPage.licenseFileOverview().shouldBe(visible);
+    ComponentLicenseFileDetailsPage.licenseFileOverview().getLicenseText()
+        .shouldHave(text("Apache ServiceComb"));
+  }
+
+  @Test
+  public void testViewMoreDetailsNavigation_ByComponentIdentifier() throws UnsupportedEncodingException {
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId,
+        tempEntity.newRepository().getId()));
+    ComponentLegalOverviewPage.LicenseFiles licenseFiles = ComponentLegalOverviewPage.licenseFiles();
+    licenseFiles.all().shouldHave(sizeGreaterThan(0));
+    licenseFiles.at(0).viewMoreDetailsLink().click();
+    ComponentLicenseFileDetailsPage.licenseFileOverview().shouldBe(visible);
+    ComponentLicenseFileDetailsPage.licenseFileOverview().getLicenseText()
+        .shouldHave(text("Apache ServiceComb"));
   }
 }

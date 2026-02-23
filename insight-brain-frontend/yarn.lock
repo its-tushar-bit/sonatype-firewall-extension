@@ -3230,17 +3230,24 @@
   dependencies:
     "@types/node" "*"
 
-"@uirouter/angularjs@^1.0.5":
-  version "1.0.28"
-  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/@uirouter/angularjs/-/angularjs-1.0.28.tgz"
-  integrity sha512-PI9kgUjQu5ItRVUMvdp9j613IT6nCmFRlahTP2MiD4k1RJjY/RwIGzHI9pjuz7PAfdHvxAqGOZEOl6EjVmchyw==
-  dependencies:
-    "@uirouter/core" "6.0.6"
+"@uirouter/core@6.1.2":
+  version "6.1.2"
+  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/@uirouter/core/-/core-6.1.2.tgz#2ccfe68488dede2e2afad8d7cf49e5652e512d96"
+  integrity sha512-pYcg+cxVd9E9poC7AJf7ZrlQQrwAV6KVkiPvlbLJX5km+pBWrUOGQhdd87oIGc7/5iVQ7qSiAdl9QD+l55yegg==
 
-"@uirouter/core@6.0.6", "@uirouter/core@^6.0.6":
+"@uirouter/core@^6.0.6":
   version "6.0.6"
   resolved "https://sonatype.repo.sonatype.app/repository/npm-all/@uirouter/core/-/core-6.0.6.tgz"
   integrity sha512-+i1iNaPQRp1JoEnxi4EsTX30bSvkWtPEenENWdvdIzX615Q3WCWwnbW9DtrwX9gSD5qmWEaQEtGMU0uF3qJ+1g==
+
+"@uirouter/react@^1.0.8":
+  version "1.0.8"
+  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/@uirouter/react/-/react-1.0.8.tgz#84341a94b1975ec06b548f976f703543175356b8"
+  integrity sha512-TZDB2A1lh4s7MirZpNrprCO3F/qbNYdz3T5OdS5bTF2RK0c2YtO/aLtJWgJDDPs1KVCcFry7cKMBlXKGVVazXA==
+  dependencies:
+    "@uirouter/core" "6.1.2"
+    classnames "^2.3.1"
+    prop-types "^15.6.1"
 
 "@webassemblyjs/ast@1.12.1", "@webassemblyjs/ast@^1.12.1":
   version "1.12.1"
@@ -9830,7 +9837,7 @@ prompts@^2.0.1:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
-prop-types@^15.5.10, prop-types@^15.6.2, prop-types@^15.7.2, prop-types@^15.8.1:
+prop-types@^15.5.10, prop-types@^15.6.1, prop-types@^15.6.2, prop-types@^15.7.2, prop-types@^15.8.1:
   version "15.8.1"
   resolved "https://sonatype.repo.sonatype.app/repository/npm-all/prop-types/-/prop-types-15.8.1.tgz#67d87bf1a694f48435cf332c24af10214a3140b5"
   integrity sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==

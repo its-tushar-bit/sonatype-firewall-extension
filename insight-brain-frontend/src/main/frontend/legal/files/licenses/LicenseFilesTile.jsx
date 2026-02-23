@@ -11,7 +11,7 @@ import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import LicensesModalContainer from './LicenseFilesModalContainer';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { createLegalFileTileItem } from '../common/utils';
+import { LegalFileTileItem } from '../common/utils';
 import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 
 export default function LicenseFilesTile(props) {
@@ -24,7 +24,6 @@ export default function LicenseFilesTile(props) {
     stageTypeId,
     hash,
     componentIdentifier,
-    $state,
     isSbomManager,
   } = props;
 
@@ -46,15 +45,23 @@ export default function LicenseFilesTile(props) {
       : `${prefix}.componentLicenseFilesDetailsByComponentIdentifier.licenseFilesDetails`;
   };
 
-  const createItem = (license, index) =>
-    createLegalFileTileItem('license', license, index, $state, licenseFileDetailsTargetState(), {
-      ownerType,
-      ownerId,
-      hash,
-      componentIdentifier,
-      stageTypeId,
-      licenseIndex: index,
-    });
+  const createItem = (license, index) => (
+    <LegalFileTileItem
+      key={index}
+      legalFileType="license"
+      object={license}
+      index={index}
+      targetStateName={licenseFileDetailsTargetState()}
+      routeParams={{
+        ownerType,
+        ownerId,
+        hash,
+        componentIdentifier,
+        stageTypeId,
+        licenseIndex: index,
+      }}
+    />
+  );
 
   const [open, toggleOpen] = useToggle(true);
 
@@ -87,6 +94,5 @@ LicenseFilesTile.propTypes = {
   stageTypeId: PropTypes.string,
   hash: PropTypes.string,
   componentIdentifier: PropTypes.string,
-  $state: PropTypes.object.isRequired,
   isSbomManager: PropTypes.bool,
 };

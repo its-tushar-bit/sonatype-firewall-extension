@@ -10,6 +10,7 @@ import { faAngleRight, faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import CopyrightOverrideFormContainer from './CopyrightOverrideFormContainer';
 import * as PropTypes from 'prop-types';
 import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function CopyrightStatementsTile(props) {
   const {
@@ -20,12 +21,13 @@ export default function CopyrightStatementsTile(props) {
     hash,
     componentIdentifier,
     stageTypeId,
-    $state,
     isSbomManager,
 
     //actions
     setDisplayCopyrightOverrideModal,
   } = props;
+
+  const $state = useRouterState();
 
   const createAttributionModal = <CopyrightOverrideFormContainer />;
 
@@ -106,6 +108,5 @@ CopyrightStatementsTile.propTypes = {
   hash: PropTypes.string,
   componentIdentifier: PropTypes.string,
   stageTypeId: PropTypes.string,
-  $state: PropTypes.object.isRequired,
   isSbomManager: PropTypes.bool,
 };

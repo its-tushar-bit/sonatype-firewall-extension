@@ -7,6 +7,7 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import { faExclamationCircle, faExclamationTriangle, faSquare } from '@fortawesome/free-solid-svg-icons';
 import { NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 import { terseAgo } from '../util/CommonServices';
 
@@ -15,7 +16,8 @@ const iconByActionTypeId = {
   warn: faExclamationTriangle,
 };
 
-export default function StageDisplay({ $state, stageType, stageData, applicationPublicId }) {
+export default function StageDisplay({ stageType, stageData, applicationPublicId }) {
+  const $state = useRouterState();
   const displayName = stageType.shortName;
 
   if (stageData) {
@@ -49,10 +51,6 @@ export default function StageDisplay({ $state, stageType, stageData, application
 }
 
 StageDisplay.propTypes = {
-  $state: PropTypes.shape({
-    get: PropTypes.func.isRequired,
-    href: PropTypes.func.isRequired,
-  }).isRequired,
   stageType: PropTypes.shape({
     shortName: PropTypes.string.isRequired,
   }).isRequired,

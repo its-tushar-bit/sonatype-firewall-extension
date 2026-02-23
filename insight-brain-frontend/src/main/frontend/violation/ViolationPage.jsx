@@ -30,6 +30,7 @@ import ListWaiversTable from 'MainRoot/waivers/ListWaiversTable';
 import ListSimilarWaiversTable from 'MainRoot/waivers/ListSimilarWaiversTable';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import { selectIsWaiverRequestWorkflowEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 // TABS
 const VULNERABILITY_DETAILS = 'VULNERABILITY_DETAILS';
@@ -38,7 +39,6 @@ const SIMILAR_WAIVERS = 'SIMILAR_WAIVERS';
 
 export default function ViolationPage(props) {
   let {
-    $state,
     loadViolation,
     loadVulnerabilityDetails,
     stateGo,
@@ -76,6 +76,8 @@ export default function ViolationPage(props) {
     setFilterIdsSimilarWaivers,
     isAutoWaiversEnabled,
   } = props;
+
+  const $state = useRouterState();
 
   const isWaiverRequestWorkflowEnabled = useSelector(selectIsWaiverRequestWorkflowEnabled);
 
@@ -274,10 +276,6 @@ export const MISSING_VIOLATION_ID_MESSAGE_TEXT =
   'Try evaluating your application again to produce a new report.';
 
 export const violationPageTypes = {
-  $state: PropTypes.shape({
-    get: PropTypes.func.isRequired,
-    href: PropTypes.func.isRequired,
-  }).isRequired,
   selectedViolationId: PropTypes.string,
   loadViolation: PropTypes.func.isRequired,
   loadVulnerabilityDetails: PropTypes.func.isRequired,

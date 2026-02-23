@@ -14,7 +14,7 @@ import {
 } from 'MainRoot/util/CLMLocation';
 
 import { applicableLabelsData, componentDetailsData, labelsData, policyViolationsData } from './data';
-import RouterStateContext from 'MainRoot/react/RouterStateContext';
+import router from 'MainRoot/router/routerInstance';
 import FirewallComponentDetailsPage from 'MainRoot/firewall/firewallComponentDetailsPage/FirewallComponentDetailsPage';
 import { lensPath, set } from 'ramda';
 
@@ -66,19 +66,12 @@ describe('ComponentDetails', () => {
     axiosMock.onGet(getComponentWaivers('repository', repositoryId, componentHash)).reply(200, { waiversByOwner: [] });
     axiosMock.onGet(getApplicableLabelsUrl('repository', repositoryId)).reply(200, applicableLabelsData);
 
-    const routerContext = {
-      href: jest.fn(() => '#'),
-      get: jest.fn(() => '#'),
-      includes: jest.fn(() => false),
-    };
+    jest.spyOn(router.stateService, 'href').mockReturnValue('#');
+    jest.spyOn(router.stateService, 'get').mockReturnValue('#');
+    jest.spyOn(router.stateService, 'includes').mockReturnValue(false);
 
     renderComponent = (preloadedState = defaultPreloadedState) =>
-      render(
-        <RouterStateContext.Provider value={routerContext}>
-          <FirewallComponentDetailsPage />
-        </RouterStateContext.Provider>,
-        { preloadedState }
-      );
+      render(<FirewallComponentDetailsPage />, { preloadedState });
   });
 
   it('renders a loading indicator and title', async () => {
@@ -307,18 +300,8 @@ describe('ComponentDetails', () => {
       expect(backButton).toBeVisible();
 
       // Simulate navigation to violations tab (prevState changes in router)
-      // Rerender with updated state (simulating tab change)
-      rerender(
-        <RouterStateContext.Provider
-          value={{
-            href: jest.fn(() => '#'),
-            get: jest.fn(() => '#'),
-            includes: jest.fn(() => false),
-          }}
-        >
-          <FirewallComponentDetailsPage />
-        </RouterStateContext.Provider>
-      );
+      // Rerender the component (router.stateService is already mocked in beforeEach)
+      rerender(<FirewallComponentDetailsPage />);
 
       // Back button text should still say "Back to Repository Results"
       // because we captured the initial prevState on mount

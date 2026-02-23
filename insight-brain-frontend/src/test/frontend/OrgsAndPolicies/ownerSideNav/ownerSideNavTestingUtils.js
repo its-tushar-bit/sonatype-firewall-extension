@@ -8,6 +8,9 @@ import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { isNil } from 'ramda';
 
 export const fakeRouterState = (url, params) => {
+  if (!url) {
+    return '#';
+  }
   if (url.includes('management')) {
     if (url.includes('tree')) {
       return '#/management/view/tree';

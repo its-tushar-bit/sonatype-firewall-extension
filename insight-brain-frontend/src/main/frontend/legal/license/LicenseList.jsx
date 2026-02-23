@@ -10,18 +10,12 @@ import * as PropTypes from 'prop-types';
 import { NxThreatIndicator } from '@sonatype/react-shared-components';
 import { isMultiLicense } from './componentLicenseDetailsActions';
 import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function LicenseList(props) {
-  const {
-    ownerType,
-    ownerId,
-    hash,
-    stageTypeId,
-    componentLicenseDetails,
-    licenseLegalMetadata,
-    $state,
-    isSbomManager,
-  } = props;
+  const { ownerType, ownerId, hash, stageTypeId, componentLicenseDetails, licenseLegalMetadata, isSbomManager } = props;
+
+  const $state = useRouterState();
 
   const selectedLicense = parseInt(componentLicenseDetails.licenseIndex);
 
@@ -86,7 +80,7 @@ export default function LicenseList(props) {
   }, [selectedLicense]);
 
   return (
-    <aside className="nx-scrollable nx-viewport-sized__scrollable">
+    <aside id="license-list" className="nx-scrollable nx-viewport-sized__scrollable">
       <ul className="nx-list nx-list--clickable">{listItems}</ul>
     </aside>
   );
@@ -99,6 +93,5 @@ LicenseList.propTypes = {
   hash: PropTypes.string,
   stageTypeId: PropTypes.string,
   licenseLegalMetadata: licenseLegalMetadataPropType,
-  $state: PropTypes.object.isRequired,
   isSbomManager: PropTypes.bool,
 };

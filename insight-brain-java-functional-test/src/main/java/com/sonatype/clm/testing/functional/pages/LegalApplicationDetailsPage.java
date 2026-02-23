@@ -55,9 +55,11 @@ public class LegalApplicationDetailsPage
       String tabId
   )
   {
-    return BaseUrl.resolvePageUrl(
+    // note can't use resolvePageUrl since it unescapes characters in a way that's not consistent wit the frontend,
+    // making it unsuitable for test comparisons.
+    return BaseUrl.pageUriBuilder().fragment(
         String.format("/legal/component/componentIdentifier/%s/application/%s/component/%s/scan/%s/%s",
-            componentIdentifier, publicAppId, hash, scanId, tabId));
+            componentIdentifier, publicAppId, hash, scanId, tabId)).toString();
   }
 
   public static String sbomManagerUrlToApplicationScope(String publicAppId) {

@@ -23,7 +23,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class RepositoryResultDetailPage extends BasicElement<RepositoryResultDetailPage>
 {
   public static String url(String repositoryId) {
-    return BaseUrl.resolvePageUrl("/repository/{repositoryId}/result", repositoryId);
+    return BaseUrl.resolvePageUrl("/firewall/repository/{repositoryId}/result", repositoryId);
   }
 
   public static String firewallUrl(String repositoryId) {
@@ -31,11 +31,11 @@ public class RepositoryResultDetailPage extends BasicElement<RepositoryResultDet
   }
 
   public static SelenideElement page() {
-    return $("repository-results-summary-page");
+    return $("#repository-results-summary-page");
   }
 
   public static SelenideElement header() {
-    return $("repository-results-summary-page .nx-h1");
+    return $("#repository-results-summary-page .nx-h1");
   }
 
   public static NxBackButton backButton() {

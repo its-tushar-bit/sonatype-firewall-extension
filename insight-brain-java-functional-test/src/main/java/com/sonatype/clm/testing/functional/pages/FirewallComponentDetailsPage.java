@@ -27,7 +27,7 @@ import static com.sonatype.nexus.scm.api.common.JsonUtils.toJson;
 public class FirewallComponentDetailsPage
     extends BasicElement<FirewallComponentDetailsPage>
 {
-  public static final String ROOT = "firewall-component-details-page";
+  public static final String ROOT = "#firewall-component-details-page";
 
   public static final String FIREWALL_COMPONENT_DETAILS_PAGE_TITLE = "#component-details-title";
 

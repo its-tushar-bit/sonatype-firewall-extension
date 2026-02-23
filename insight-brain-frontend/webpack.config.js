@@ -40,7 +40,7 @@ module.exports = function (env) {
   const bundleConfigs = [
     {
       name: 'bundle',
-      entryPath: './index.js',
+      entryPath: './index.jsx',
       outputPath: 'bundle.js',
       cssOutputPath: 'style.css',
     },

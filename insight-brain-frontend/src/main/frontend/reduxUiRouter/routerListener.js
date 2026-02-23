@@ -7,18 +7,21 @@
 import { UI_ROUTER_ON_FINISH } from './routerActions';
 import store from 'MainRoot/reduxConfig/store';
 
-export default function routerListener($transitions) {
-  $transitions.onFinish({}, (transition) =>
+export function initializeRouterListener(transitionService) {
+  transitionService.onFinish({}, (transition) => {
+    const fromParams = transition.params('from');
+    const toParams = transition.params('to');
+    const fromState = transition.from();
+    const toState = transition.to();
+
     store.dispatch({
       type: UI_ROUTER_ON_FINISH,
       payload: {
-        toState: transition.to(),
-        toParams: transition.params('to'),
-        fromState: transition.from(),
-        fromParams: transition.params('from'),
+        toState,
+        toParams,
+        fromState,
+        fromParams,
       },
-    })
-  );
+    });
+  });
 }
-
-routerListener.$inject = ['$transitions'];

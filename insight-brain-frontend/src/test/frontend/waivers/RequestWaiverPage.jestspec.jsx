@@ -6,7 +6,7 @@
 import React from 'react';
 import RequestWaiverPage from 'MainRoot/waivers/RequestWaiverPage';
 import { axiosMockAdapter, fireEvent, render, screen, waitFor } from 'TestRoot/SpecUtil';
-import RouterStateContext from 'MainRoot/react/RouterStateContext';
+import router from 'MainRoot/router/routerInstance';
 import {
   getApplicableWaiversUrl,
   getSimilarWaiversUrl,
@@ -141,20 +141,18 @@ describe('RequestWaiverPage', function () {
   beforeEach(() => {
     mock = axiosMockAdapter({ delayResponse: 200 }); // delay necessary for loading test
 
-    const routerContext = {
-      href: jest.fn((url, params) => {
-        if (url.includes('sidebarView.violation')) {
-          const violationId = params.id;
-          return `#/violation/${violationId}`;
-        }
-        if (url.includes('addWaiver')) {
-          const violationId = params.violationId;
-          return `#/addWaiver/${violationId}`;
-        }
-        return '#';
-      }),
-      includes: jest.fn(() => false),
-    };
+    jest.spyOn(router.stateService, 'href').mockImplementation((url, params) => {
+      if (url.includes('sidebarView.violation')) {
+        const violationId = params.id;
+        return `#/violation/${violationId}`;
+      }
+      if (url.includes('addWaiver')) {
+        const violationId = params.violationId;
+        return `#/addWaiver/${violationId}`;
+      }
+      return '#';
+    });
+    jest.spyOn(router.stateService, 'includes').mockReturnValue(false);
 
     mock.onGet(getApplicableWaiversUrl(violationId)).reply(200, { activeWaivers: [], expiredWaivers: [] });
     mock.onGet(getSimilarWaiversUrl(violationId)).reply(200, []);
@@ -187,13 +185,8 @@ describe('RequestWaiverPage', function () {
       ],
     });
 
-    renderComponent = (preloadedState, router = routerContext) =>
-      render(
-        <RouterStateContext.Provider value={router}>
-          <RequestWaiverPage />
-        </RouterStateContext.Provider>,
-        { preloadedState: preloadedState || defaultPreloadedState }
-      );
+    renderComponent = (preloadedState) =>
+      render(<RequestWaiverPage />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
   describe('when neither policyWaiverRequestId or violationId is provided', () => {

@@ -58,10 +58,10 @@ const ContainerRepositoryResultsPage = () => {
   }, [repositoryId]);
 
   const backButtonHref = prevStateIsRepositoryManagerView
-    ? uiRouterState.href('management.view.repository_manager', {
+    ? uiRouterState.href('firewall.management.view.repository_manager', {
         repositoryManagerId: prevParams.repositoryManagerId,
       })
-    : uiRouterState.href('management.view.repository_container', {
+    : uiRouterState.href('firewall.management.view.repository_container', {
         repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
       });
 
@@ -71,7 +71,7 @@ const ContainerRepositoryResultsPage = () => {
     <>
       <ContainerRepositoryResultsFilterDrawer repositoryId={repositoryId} />
 
-      <NxPageMain className="container-repository-results-page">
+      <NxPageMain id="container-repository-results-page" className="container-repository-results-page">
         <MenuBarBackButton href={backButtonHref} text={`Back to ${backButtonText}`} />
         <NxLoadWrapper
           className="nx-viewport-sized__container"

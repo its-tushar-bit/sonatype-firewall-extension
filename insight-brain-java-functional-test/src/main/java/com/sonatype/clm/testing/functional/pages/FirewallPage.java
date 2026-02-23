@@ -41,7 +41,7 @@ public class FirewallPage
   }
 
   public static String urlToFirewallContainerQuarantine() {
-    return BaseUrl.resolvePageUrl("firewall/dashboard/containers/quarantine");
+    return BaseUrl.resolvePageUrl("/firewall/dashboard/containers/quarantine");
   }
 
   public SelenideElement title() {
@@ -77,11 +77,11 @@ public class FirewallPage
   }
 
   public static String urlToFirewallWaivers() {
-    return BaseUrl.resolvePageUrl("firewall/dashboard/components/waivers");
+    return BaseUrl.resolvePageUrl("/firewall/dashboard/components/waivers");
   }
 
   public static String urlToFirewallContainerWaivers() {
-    return BaseUrl.resolvePageUrl("firewall/dashboard/containers/waivers");
+    return BaseUrl.resolvePageUrl("/firewall/dashboard/containers/waivers");
   }
 
   public FirewallWaiversTable firewallWaiversTable() {

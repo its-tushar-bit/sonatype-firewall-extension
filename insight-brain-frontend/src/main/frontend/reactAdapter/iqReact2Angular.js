@@ -5,17 +5,13 @@
  */
 import { react2angular } from 'react2angular';
 import withStoreProvider from './StoreProvider';
-import withRouterStateProvider from './RouterStateProvider';
 
 export default function iqReact2Angular(Component, bindings, injections) {
-  const hasState = injections?.includes('$state');
+  // Always wrap with StoreProvider
+  const WrappedComponent = withStoreProvider(Component);
 
-  // Always wrap with StoreProvider (no longer conditional on $ngRedux)
-  const _withRouterStateProvider = hasState ? withRouterStateProvider : (c) => c;
-  const WrappedComponent = withStoreProvider(_withRouterStateProvider(Component));
-
-  // No need to filter injections anymore since we removed all $ngRedux references
-  const filteredInjections = injections;
+  // Filter out $state from injections since we now use React ui-router directly via useRouterState hook
+  const filteredInjections = injections?.filter((i) => i !== '$state');
 
   return react2angular(WrappedComponent, bindings, filteredInjections);
 }

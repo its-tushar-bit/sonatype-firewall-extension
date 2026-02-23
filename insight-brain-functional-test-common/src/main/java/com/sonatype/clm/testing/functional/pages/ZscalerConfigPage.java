@@ -24,7 +24,7 @@ public class ZscalerConfigPage
   }
 
   public static String url() {
-    return BaseUrl.resolvePageUrl("firewall/zscalerConfig");
+    return BaseUrl.resolvePageUrl("/firewall/zscalerConfig");
   }
 
   public SelenideElement zscalerConfigHeader() {

@@ -11,11 +11,15 @@ import { NxOverflowTooltip } from '@sonatype/react-shared-components';
 
 import { selectOwnerById } from './ownerSideNavSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { selectPrefixRoute } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const RepositoryManager = memo(({ repositoryManagerId, ...otherProps }) => {
   const uiRouterState = useRouterState();
   const repositoryManager = useSelector((state) => selectOwnerById(state, repositoryManagerId));
-  const repositoryManagerUrl = uiRouterState.href('management.view.repository_manager', { repositoryManagerId });
+  const prefixRoute = useSelector(selectPrefixRoute);
+  const repositoryManagerUrl = uiRouterState.href(prefixRoute('management.view.repository_manager'), {
+    repositoryManagerId,
+  });
 
   return (
     <NxOverflowTooltip>

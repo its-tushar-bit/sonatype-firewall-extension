@@ -9,9 +9,11 @@ import * as PropTypes from 'prop-types';
 import { NxTextLink } from '@sonatype/react-shared-components';
 import ownerConstant from '../../../utility/services/owner.constant';
 import { displayName } from '../utils/providers';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 function CredentialsError(props) {
-  const { inLoadWrapper, errorCode, hostUrlClicked, selectedOrganization, scmProvider, $state } = props;
+  const { inLoadWrapper, errorCode, hostUrlClicked, selectedOrganization, scmProvider } = props;
+  const $state = useRouterState();
 
   if (!errorCode) {
     return null;
@@ -77,7 +79,6 @@ CredentialsError.propTypes = {
   selectedOrganization: PropTypes.object,
   scmProvider: PropTypes.string,
   hostUrlClicked: PropTypes.func,
-  $state: PropTypes.object.isRequired,
 };
 
 export default CredentialsError;

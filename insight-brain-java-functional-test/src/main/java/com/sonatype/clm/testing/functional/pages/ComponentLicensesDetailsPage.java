@@ -62,7 +62,7 @@ public final class ComponentLicensesDetailsPage
   public static class ComponentLicenseOverview
       extends BasicElement<ComponentLicenseOverview>
   {
-    private static final String COMPONENT_OVERVIEW_TILE = "component-license-overview-tile";
+    private static final String COMPONENT_OVERVIEW_TILE = "#component-license-overview-tile";
 
     public ComponentLicenseOverview() {
       super(COMPONENT_OVERVIEW_TILE);
@@ -100,7 +100,7 @@ public final class ComponentLicensesDetailsPage
   public static class LicenseList
       extends BasicElement<LicenseList>
   {
-    private static final String LICENSE_LIST_SELECTOR = "license-list";
+    private static final String LICENSE_LIST_SELECTOR = "#license-list";
 
     public LicenseList() {
       super(LICENSE_LIST_SELECTOR);
@@ -118,7 +118,7 @@ public final class ComponentLicensesDetailsPage
   public static class LicenseObligations
       extends BasicElement<LicenseObligations>
   {
-    private static final String OBLIGATIONS_SELECTOR = "license-full-details-tile";
+    private static final String OBLIGATIONS_SELECTOR = "#license-full-details-tile";
 
     public LicenseObligations() {
       super(OBLIGATIONS_SELECTOR);

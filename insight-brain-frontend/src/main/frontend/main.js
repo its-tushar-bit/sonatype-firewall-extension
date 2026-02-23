@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { Messages } from './util/CommonServices';
-import { GETTING_STARTED_STATE } from './configuration/module';
+import { GETTING_STARTED_STATE } from './configuration/route';
 import './reduxConfig/store';
 import store from './reduxConfig/store';
 import {
@@ -13,7 +13,11 @@ import {
   submitData,
 } from './configuration/gettingStarted/gettingStartedTelemetryServiceHelper';
 import pendoService from './pendo/mainBundlePendoService';
-import { stateRequiresAuthenticationSync, stateRequiresAuthentication } from './utility/services/routeStateUtilService';
+import {
+  initialize as initializeRouteStateUtilService,
+  stateRequiresAuthenticationSync,
+  stateRequiresAuthentication,
+} from './utility/services/routeStateUtilService';
 import * as ProductLicense from './utility/services/ProductLicense';
 import { contains, isEmpty, not, tryCatch } from 'ramda';
 import { attachAxiosInterceptors } from './utility/axiosConfig';
@@ -37,6 +41,7 @@ import { checkSessionExpiredLater } from 'MainRoot/session/sessionExpirationMana
 import { fetchUser, waitForLogin } from 'MainRoot/user/userSessionUtils';
 import { actions as loginModalActions } from 'MainRoot/user/LoginModal/userLoginSlice';
 import { selectIsCurrentRouteDirty } from 'MainRoot/reduxUiRouter/routerSelectors';
+import initDisplayTheme from './configuration/displayTheme/initDisplayTheme';
 
 // Module-scoped mutable state, reinitialized on each call to main()
 let savedState = null;
@@ -338,6 +343,13 @@ export default async function main(stateService, transitionService) {
   cancelPreLoginStateHandler = null;
   cancelUnlicensedStateChangeHandler = null;
   isProcessingStateChange = false;
+
+  // Initialize display theme (connects Redux to localStorage and DOM)
+  initDisplayTheme();
+
+  // Initialize routeStateUtilService with the Redux store.
+  // This also eagerly loads unauthenticated pages config so the login modal can show the vulnerability link.
+  initializeRouteStateUtilService(store);
 
   transitionService.onStart({ from: 'productlicense', to: 'gettingStarted' }, () =>
     handleGettingStartedTransition(stateService)

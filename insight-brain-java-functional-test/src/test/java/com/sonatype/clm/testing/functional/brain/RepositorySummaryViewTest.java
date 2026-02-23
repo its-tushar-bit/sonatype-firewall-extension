@@ -180,7 +180,7 @@ public class RepositorySummaryViewTest
     eyesWatcher.eyesCheck("Repository policies tile");
 
     policyTileInheritedList.row(1).click();
-    waitUntilUrl(PolicyEditorPage.urlToEdit(repository.getType(), repository.getId(),
+    waitUntilUrl(PolicyEditorPage.firewallUrlToEdit(repository.getType(), repository.getId(),
         inheritedFromRootOrgPolicies.get(0).getId()));
 
     SummarySection summarySection = PolicyEditorPage.summarySection();
@@ -234,7 +234,7 @@ public class RepositorySummaryViewTest
     policyElement.proxy().shouldBe(visible).shouldHave(text("fail"));
     policyElement.click();
 
-    waitUntilUrl(PolicyEditorPage.urlToEdit(repository.getType(), repository.getId(), policy.getId()));
+    waitUntilUrl(PolicyEditorPage.firewallUrlToEdit(repository.getType(), repository.getId(), policy.getId()));
     breadcrumb.listItems().shouldHave(size(4));
     breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
     assertThat(breadcrumb.listItems().get(1).lastChild().attr("class"))
@@ -266,7 +266,7 @@ public class RepositorySummaryViewTest
     deleteModal.shouldBe(hidden);
 
     // Validates return to create policy page
-    waitUntilUrl(PolicyEditorPage.urlToCreate(repository.getType(), repository.getId()));
+    waitUntilUrl(PolicyEditorPage.firewallUrlToCreate(repository.getType(), repository.getId()));
 
     breadcrumb.listItems().shouldHave(size(4));
     breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));

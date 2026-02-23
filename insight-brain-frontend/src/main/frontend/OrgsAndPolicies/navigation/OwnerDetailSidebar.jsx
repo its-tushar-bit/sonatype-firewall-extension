@@ -45,6 +45,7 @@ import {
   selectIsWaivers,
   selectIsPublicDataSources,
   selectIsFirewall,
+  selectPrefixRoute,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectIsLegacyViolationSupported,
@@ -122,37 +123,31 @@ export default function OwnerDetailSidebar() {
   const isCpeMatchingSupported = useSelector(selectIsCpeMatchingSupported);
   const isPublicDataSources = useSelector(selectIsPublicDataSources);
   const isFirewall = useSelector(selectIsFirewall);
+  const prefixRoute = useSelector(selectPrefixRoute);
 
   const uiRouterState = useRouterState();
 
   const getLinkMainHref = (isApp, isRepositoriesRelated, owner) => {
     if (isRepositoriesRelated) {
       if (isRepositoryManager) {
-        return uiRouterState.href('management.edit.repository_manager', { repositoryManagerId: owner.id });
+        return uiRouterState.href(prefixRoute('management.edit.repository_manager'), {
+          repositoryManagerId: owner.id,
+        });
       }
       if (isRepository) {
-        return uiRouterState.href('management.edit.repository', { repositoryId: owner.id });
+        return uiRouterState.href(prefixRoute('management.edit.repository'), { repositoryId: owner.id });
       }
-      return uiRouterState.href('management.edit.repository_container', {
+      return uiRouterState.href(prefixRoute('management.edit.repository_container'), {
         repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
       });
     } else if (isApp) {
-      return uiRouterState.href('management.edit.application', { applicationPublicId: owner.publicId });
+      return uiRouterState.href(prefixRoute('management.edit.application'), { applicationPublicId: owner.publicId });
     } else {
-      return uiRouterState.href('management.edit.organization', { organizationId: owner.id });
+      return uiRouterState.href(prefixRoute('management.edit.organization'), { organizationId: owner.id });
     }
   };
 
-  const getSBOMLinkMainHref = (isApp, owner) => {
-    if (isApp) {
-      return uiRouterState.href('sbomManager.management.edit.application', { applicationPublicId: owner.publicId });
-    }
-    return uiRouterState.href('sbomManager.management.edit.organization', { organizationId: owner.id });
-  };
-
-  const linkMainHref = isSbomManager
-    ? getSBOMLinkMainHref(isApp, owner)
-    : getLinkMainHref(isApp, isRepositoriesRelated, owner);
+  const linkMainHref = getLinkMainHref(isApp, isRepositoriesRelated, owner);
 
   const doLoad = () => dispatch(actions.loadSidebar());
 

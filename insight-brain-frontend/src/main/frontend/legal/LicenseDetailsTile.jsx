@@ -24,6 +24,7 @@ import {
 } from '@sonatype/react-shared-components';
 import { statusTagPropsMap } from './advancedLegalConstants';
 import EditLicensesPopoverContainer from 'MainRoot/legal/license/EditLicensesPopover/EditLicensesPopoverContainer';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function LicenseDetailsTile(props) {
   const {
@@ -37,9 +38,9 @@ export default function LicenseDetailsTile(props) {
     scanId,
     componentIdentifier,
     stageTypeId,
-    $state,
     isSbomManager,
   } = props;
+  const $state = useRouterState();
   const effectiveLicenses = formatLicenseMeta('effectiveLicenses', component, licenseLegalMetadata);
   const declaredLicenses = formatLicenseMeta('declaredLicenses', component, licenseLegalMetadata);
   const observedLicenses = formatLicenseMeta('observedLicenses', component, licenseLegalMetadata);
@@ -166,6 +167,5 @@ LicenseDetailsTile.propTypes = {
   scanId: PropTypes.string,
   componentIdentifier: PropTypes.string,
   stageTypeId: PropTypes.string,
-  $state: PropTypes.object.isRequired,
   isSbomManager: PropTypes.bool,
 };

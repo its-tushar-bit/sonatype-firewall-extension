@@ -40,6 +40,7 @@ function deriveRouteFromStateParams(ownerState, routerState, to, params = {}) {
   const isRepository =
     includes('management.view.repository', currentState.name) || includes('repository', currentState.name);
   const isSbomManager = includes('sbomManager', currentState.name);
+  const isFirewall = currentState.name.startsWith('firewall');
 
   const type = isRepositoryContainer
     ? 'repository_container'
@@ -68,8 +69,9 @@ function deriveRouteFromStateParams(ownerState, routerState, to, params = {}) {
     }
   }
 
+  const prefix = isSbomManager ? 'sbomManager.' : isFirewall ? 'firewall.' : '';
   return {
-    to: `${isSbomManager ? 'sbomManager.' : ''}management.${ownerState}.${type}${to ? '.' + to : ''}`,
+    to: `${prefix}management.${ownerState}.${type}${to ? '.' + to : ''}`,
     params,
   };
 }

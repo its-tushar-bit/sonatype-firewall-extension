@@ -12,6 +12,7 @@ import { faEdit } from '@fortawesome/free-solid-svg-icons';
 import { backToComponentOverviewUrl, createSubtitle } from '../legalUtility';
 import CopyrightOverrideFormContainer from './CopyrightOverrideFormContainer';
 import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function CopyrightDetailsHeader(props) {
   const {
@@ -25,13 +26,14 @@ export default function CopyrightDetailsHeader(props) {
     componentIdentifier,
     stageTypeId,
     copyrightIndex,
-    $state,
     showEditCopyrightOverrideModal,
     isSbomManager,
 
     loadComponentAndCopyrightDetails,
     setDisplayCopyrightOverrideModal,
   } = props;
+
+  const $state = useRouterState();
 
   function load() {
     loadComponentAndCopyrightDetails(ownerType, ownerId, hash, copyrightIndex, componentIdentifier);
@@ -54,7 +56,7 @@ export default function CopyrightDetailsHeader(props) {
         )}
         text="Back to Component Obligations"
       />
-      <div className="nx-page-title">
+      <div id="copyright-details-header" className="nx-page-title">
         <h1 className="nx-h1">Copyright Notices</h1>
         {createSubtitle(availableScopes, component)}
         <div className="nx-btn-bar">
@@ -80,7 +82,6 @@ CopyrightDetailsHeader.propTypes = {
   stageTypeId: PropTypes.string,
   copyrightIndex: PropTypes.string,
   availableScopes: availableScopesPropType,
-  $state: PropTypes.object.isRequired,
   showEditCopyrightOverrideModal: PropTypes.bool,
   isSbomManager: PropTypes.bool,
 

@@ -57,13 +57,13 @@ public final class ComponentCopyrightDetailsPage
   }
 
   public static SelenideElement copyrightEditButton() {
-    return $("copyright-details-header button.nx-btn--tertiary");
+    return $("#copyright-details-header button.nx-btn--tertiary");
   }
 
   public static class CopyrightOverview
       extends BasicElement<CopyrightOverview>
   {
-    private static final String COPYRIGHT_DETAILS_TILE = "copyright-details-header";
+    private static final String COPYRIGHT_DETAILS_TILE = "#copyright-details-header";
 
     public CopyrightOverview() {
       super(COPYRIGHT_DETAILS_TILE);
@@ -94,7 +94,7 @@ public final class ComponentCopyrightDetailsPage
       extends BasicElement<CopyrightFilePaths>
   {
     private static final String COPYRIGHT_FILE_PATHS =
-        "copyright-details-contents section#copyright-file-paths";
+        "#copyright-details-contents section#copyright-file-paths";
 
     public CopyrightFilePaths() {
       super(COPYRIGHT_FILE_PATHS);
@@ -122,7 +122,7 @@ public final class ComponentCopyrightDetailsPage
   public static class CopyrightList
       extends BasicElement<CopyrightList>
   {
-    private static final String COPYRIGHT_LIST_SELECTOR = "copyright-list";
+    private static final String COPYRIGHT_LIST_SELECTOR = "#copyright-list";
 
     public CopyrightList() {
       super(COPYRIGHT_LIST_SELECTOR);
@@ -152,7 +152,7 @@ public final class ComponentCopyrightDetailsPage
   public static class CopyrightEditor
       extends BasicElement<CopyrightEditor>
   {
-    private static final String COPYRIGHT_EDITOR_MODAL_SELECTOR = "copyright-details-header div.nx-modal-backdrop";
+    private static final String COPYRIGHT_EDITOR_MODAL_SELECTOR = "#copyright-details-header div.nx-modal-backdrop";
 
     public CopyrightEditor() {
       super(COPYRIGHT_EDITOR_MODAL_SELECTOR);

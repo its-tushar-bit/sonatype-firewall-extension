@@ -8,6 +8,7 @@ import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { organizationPropType } from '../scmPropTypes';
 import DropdownFilterInput from './DropdownFilterInput';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function TargetOrganizationDropdown(props) {
   const {
@@ -17,10 +18,9 @@ export default function TargetOrganizationDropdown(props) {
 
     // output: selected organization
     selectedOrganization,
-
-    // angular state
-    $state,
   } = props;
+
+  const $state = useRouterState();
 
   const [isOpen, setOpen] = useState(false),
     onToggleCollapse = () => {
@@ -79,5 +79,4 @@ TargetOrganizationDropdown.propTypes = {
   organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)),
   loadingOrganizations: PropTypes.bool,
   selectedOrganization: PropTypes.shape(organizationPropType),
-  $state: PropTypes.object.isRequired,
 };

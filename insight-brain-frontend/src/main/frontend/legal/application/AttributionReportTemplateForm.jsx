@@ -22,6 +22,7 @@ import {
 } from '@sonatype/react-shared-components';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function AttributionReportTemplateForm(props) {
   const {
@@ -32,10 +33,10 @@ export default function AttributionReportTemplateForm(props) {
     saveAttributionReportTemplate,
     deleteAttributionReportTemplateById,
     selectAttributionReportTemplate,
-    $state,
     setDirtyFlagToAttributionReportTemplate,
     isSbomManager,
   } = props;
+  const $state = useRouterState();
   const { initialState, userInput } = nxTextInputStateHelpers;
   const defaultFormState = {
     id: null,
@@ -542,7 +543,6 @@ AttributionReportTemplateForm.propTypes = {
   saveAttributionReportTemplate: PropTypes.func,
   deleteAttributionReportTemplateById: PropTypes.func,
   selectAttributionReportTemplate: PropTypes.func,
-  $state: PropTypes.object.isRequired,
   setDirtyFlagToAttributionReportTemplate: PropTypes.func.isRequired,
   isSbomManager: PropTypes.bool,
 };

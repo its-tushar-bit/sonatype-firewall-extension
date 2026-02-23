@@ -12,15 +12,13 @@ import { render, within, screen } from 'TestRoot/SpecUtil';
 import userEvent from '@testing-library/user-event';
 
 describe('IqSidebarNav', function () {
-  let hrefSpy, includesSpy;
+  let hrefSpy;
 
   beforeEach(function () {
     hrefSpy = jest.fn().mockImplementation((args) => `href-${args}`);
-    includesSpy = jest.fn().mockReturnValue(false);
 
     jest.spyOn(routerContext, 'useRouterState').mockReturnValue({
       href: hrefSpy,
-      includes: includesSpy,
     });
   });
 
@@ -231,64 +229,55 @@ describe('IqSidebarNav', function () {
     });
 
     it('renders API link as selected when state matches', function () {
-      mockSelectedLink('api');
-      renderComponent(propsForRenderingAllLinks);
+      renderComponent({ ...propsForRenderingAllLinks, ...mockSelectedLink('api') });
 
       assertLinkPresentAndSelected('API ( NEW )');
     });
 
     it('renders Dashboard link as selected when state matches', function () {
-      mockSelectedLink('dashboard');
-      renderComponent(propsForRenderingAllLinks);
+      renderComponent({ ...propsForRenderingAllLinks, ...mockSelectedLink('dashboard') });
 
       assertLinkPresentAndSelected('Dashboard');
     });
 
     it('renders Orgs and Policies link as selected when state matches', function () {
-      mockSelectedLink('management');
-      renderComponent(propsForRenderingAllLinks);
+      renderComponent({ ...propsForRenderingAllLinks, ...mockSelectedLink('management') });
 
       assertLinkPresentAndSelected('Orgs and Policies');
     });
 
     it('renders Reports link as selected when state matches', function () {
-      mockSelectedLink('violations');
-      renderComponent(propsForRenderingAllLinks);
+      renderComponent({ ...propsForRenderingAllLinks, ...mockSelectedLink('violations') });
 
       assertLinkPresentAndSelected('Reports');
     });
 
     it('renders Success Metrics link as selected when state matches', function () {
-      mockSelectedLink('labs');
-      renderComponent(propsForRenderingAllLinks);
+      renderComponent({ ...propsForRenderingAllLinks, ...mockSelectedLink('labs') });
 
       assertLinkPresentAndSelected('Success Metrics');
     });
 
     it('renders Vulnerability Lookup link as selected when the state matches vulnerabilitySearch', function () {
-      mockSelectedLink('vulnerabilitySearch');
-      renderComponent(propsForRenderingAllLinks);
+      renderComponent({ ...propsForRenderingAllLinks, ...mockSelectedLink('vulnerabilitySearch') });
 
       assertLinkPresentAndSelected('Vulnerability Lookup');
     });
 
     it('renders Vulnerability Lookup link as selected when the state matches vulnerabilitySearchDetail', function () {
-      mockSelectedLink('vulnerabilitySearchDetail');
-      renderComponent(propsForRenderingAllLinks);
+      renderComponent({ ...propsForRenderingAllLinks, ...mockSelectedLink('vulnerabilitySearchDetail') });
 
       assertLinkPresentAndSelected('Vulnerability Lookup');
     });
 
     it('renders Advanced Search link as selected when the state matches', function () {
-      mockSelectedLink('advancedSearch');
-      renderComponent(propsForRenderingAllLinks);
+      renderComponent({ ...propsForRenderingAllLinks, ...mockSelectedLink('advancedSearch') });
 
       assertLinkPresentAndSelected('Advanced Search');
     });
 
     it('renders Legal link as selected when the state matches', function () {
-      mockSelectedLink('legal');
-      renderComponent(propsForRenderingAllLinks);
+      renderComponent({ ...propsForRenderingAllLinks, ...mockSelectedLink('legal') });
 
       assertLinkPresentAndSelected('Legal');
     });
@@ -311,8 +300,8 @@ describe('IqSidebarNav', function () {
     expect(within(navigationSection).queryByRole('link')).not.toBeInTheDocument();
   }
 
-  function mockSelectedLink(linkName) {
-    includesSpy.mockImplementation((state) => state === linkName);
+  function mockSelectedLink(stateName) {
+    return { currentState: { name: stateName } };
   }
 
   function assertLinkPresentAndSelected(name) {

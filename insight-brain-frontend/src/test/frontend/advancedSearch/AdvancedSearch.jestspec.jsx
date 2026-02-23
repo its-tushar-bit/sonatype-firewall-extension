@@ -9,6 +9,7 @@ import { render, screen, userEvent, within } from 'TestRoot/SpecUtil';
 import AdvancedSearchContainer from 'MainRoot/advancedSearch/AdvancedSearchContainer';
 import { assocPath, mergeDeepRight } from 'ramda';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
 
 /**
  * Note: this file currently only holds more-recently written tests for the page as a whole. See
@@ -42,8 +43,10 @@ describe('AdvancedSearch', function () {
 
   beforeEach(() => {
     user = userEvent.setup();
-    renderComponent = (preloadedState = initialState) =>
-      render(<AdvancedSearchContainer $state={mockRouterState} />, { preloadedState });
+
+    jest.spyOn(RouterStateContext, 'useRouterState').mockReturnValue(mockRouterState);
+
+    renderComponent = (preloadedState = initialState) => render(<AdvancedSearchContainer />, { preloadedState });
   });
 
   describe('help', function () {

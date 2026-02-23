@@ -16,11 +16,11 @@ import {
   selectIsRepository,
   selectRepositoryId,
   selectIsRepositoryManager,
-  selectIsSbomManager,
   selectSbomVersionId,
   selectIsSbomManagerComponentDetails,
   selectSbomComponentHash,
   selectSbomVersionIdCdp,
+  selectRoutePrefix,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { useRouterState } from '../../react/RouterStateContext';
@@ -42,12 +42,13 @@ const getBreadcrumb = (
   repositoryId,
   pageTitle,
   currentRouteName,
-  isSbomManager,
+  routePrefix,
   sbomVersionId,
   isSbomManagerCdp,
   sbomComponentHash,
   sbomManagerComponentDisplayName = ''
 ) => {
+  const isSbomManager = routePrefix === 'sbomManager.';
   const breadcrumb = [];
 
   if (isSbomManagerCdp) {
@@ -81,7 +82,7 @@ const getBreadcrumb = (
     const displayedApplication = ownersMap[applicationPublicId];
     breadcrumb.unshift({
       name: displayedApplication.name,
-      href: uiRouterState.href(`${isSbomManager ? 'sbomManager.' : ''}management.view.application`, {
+      href: uiRouterState.href(`${routePrefix}management.view.application`, {
         applicationPublicId: displayedApplication.publicId,
       }),
     });
@@ -91,7 +92,7 @@ const getBreadcrumb = (
     const displayedRepository = ownersMap[repositoryId];
     breadcrumb.unshift({
       name: `${displayedRepository.name} (${displayedRepository.format} : ${displayedRepository.repositoryType})`,
-      href: uiRouterState.href(`management.view.repository`, { repositoryId: repositoryId }),
+      href: uiRouterState.href(`${routePrefix}management.view.repository`, { repositoryId: repositoryId }),
     });
   }
 
@@ -101,10 +102,7 @@ const getBreadcrumb = (
     const [parentEntityIdKey, routeParams] = getOwnerInfo(currentOwner);
     breadcrumb.unshift({
       name: currentOwner.name,
-      href: uiRouterState.href(
-        `${isSbomManager ? 'sbomManager.' : ''}management.view.${currentOwner.type}`,
-        routeParams
-      ),
+      href: uiRouterState.href(`${routePrefix}management.view.${currentOwner.type}`, routeParams),
     });
 
     currentOwner = currentOwner[parentEntityIdKey] ? ownersMap[currentOwner[parentEntityIdKey]] : null;
@@ -126,7 +124,7 @@ const MenuBarStatefulBreadcrumb = () => {
   const applicationPublicId = useSelector(selectApplicationId);
   const repositoryId = useSelector(selectRepositoryId);
   const pageTitle = useSelector(selectCurrentRouteTitle);
-  const isSbomManager = useSelector(selectIsSbomManager);
+  const routePrefix = useSelector(selectRoutePrefix);
   const isSbomManagerCdp = useSelector(selectIsSbomManagerComponentDetails);
   const sbomVersionId = isSbomManagerCdp ? useSelector(selectSbomVersionIdCdp) : useSelector(selectSbomVersionId);
   const sbomManagerComponentDisplayName = useSelector(selectComponentDetails)?.displayName;
@@ -147,7 +145,7 @@ const MenuBarStatefulBreadcrumb = () => {
     repositoryId,
     pageTitle,
     routeName,
-    isSbomManager,
+    routePrefix,
     sbomVersionId,
     isSbomManagerCdp,
     sbomComponentHash,

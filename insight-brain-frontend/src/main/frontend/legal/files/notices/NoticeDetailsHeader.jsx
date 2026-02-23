@@ -12,6 +12,7 @@ import { backToComponentOverviewUrl, createSubtitle } from '../../legalUtility';
 import { faPen } from '@fortawesome/pro-solid-svg-icons';
 import NoticesModalContainer from './NoticesModalContainer';
 import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function NoticeDetailsHeader(props) {
   const {
@@ -24,13 +25,14 @@ export default function NoticeDetailsHeader(props) {
     stageTypeId,
     hash,
     noticeIndex,
-    $state,
     loadComponentAndNoticeDetails,
     setShowNoticesModal,
     showNoticesModal,
     componentIdentifier,
     isSbomManager,
   } = props;
+
+  const $state = useRouterState();
 
   function load() {
     loadComponentAndNoticeDetails(ownerType, ownerId, hash, noticeIndex, componentIdentifier);
@@ -53,7 +55,7 @@ export default function NoticeDetailsHeader(props) {
         )}
         text="Back to Component Obligations"
       />
-      <div className="nx-page-title">
+      <div id="notice-details-header" className="nx-page-title">
         <h1 className="nx-h1">Notice Files</h1>
         {createSubtitle(availableScopes, component)}
         <div className="nx-tile__actions">
@@ -78,7 +80,6 @@ NoticeDetailsHeader.propTypes = {
   hash: PropTypes.string,
   noticeIndex: PropTypes.string,
   availableScopes: availableScopesPropType,
-  $state: PropTypes.object.isRequired,
   showNoticesModal: PropTypes.bool.isRequired,
   setShowNoticesModal: PropTypes.func.isRequired,
   loadComponentAndNoticeDetails: PropTypes.func.isRequired,

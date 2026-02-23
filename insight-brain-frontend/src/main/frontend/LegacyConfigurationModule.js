@@ -3,18 +3,16 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function restoreLegacyBehavior($qProvider, $compileProvider, $locationProvider) {
+function restoreLegacyBehavior($qProvider, $compileProvider) {
   $qProvider.errorOnUnhandledRejections(false);
   $compileProvider.preAssignBindingsEnabled(true);
-  $locationProvider.hashPrefix('');
+  // Note: hashPrefix('') equivalent is handled by React ui-router's hashLocationPlugin default
 }
 
-restoreLegacyBehavior.$inject = ['$qProvider', '$compileProvider', '$locationProvider'];
+restoreLegacyBehavior.$inject = ['$qProvider', '$compileProvider'];
 
 /**
  * This module configures various angular providers in a way that restores behaviors which existed before
- * the upgrade to Angular 1.6.x and ui.router 1.x
+ * the upgrade to Angular 1.6.x
  */
-export default angular
-  .module('legacyConfiguration', ['ui.router', 'ui.router.state.events'])
-  .config(restoreLegacyBehavior);
+export default angular.module('legacyConfiguration', []).config(restoreLegacyBehavior);

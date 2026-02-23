@@ -163,6 +163,10 @@ public class ComponentLegalOverviewPage
     public SelenideElement text() {
       return child("blockquote");
     }
+
+    public SelenideElement viewMoreDetailsLink() {
+      return child("#legal-file-section-view-more-details a");
+    }
   }
 
   public static SelenideElement editLicensesButton() {
@@ -208,6 +212,10 @@ public class ComponentLegalOverviewPage
 
     public SelenideElement text() {
       return child("blockquote");
+    }
+
+    public SelenideElement viewMoreDetailsLink() {
+      return child("#legal-file-section-view-more-details a");
     }
   }
 

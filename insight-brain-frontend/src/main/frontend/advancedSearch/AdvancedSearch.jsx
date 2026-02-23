@@ -15,6 +15,7 @@ import AdvancedSearchExportButton from 'MainRoot/advancedSearch/AdvancedSearchEx
 import { includes } from 'ramda';
 import { selectIsDeveloper } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { useSelector } from 'react-redux';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function AdvancedSearch(props) {
   // Actions
@@ -46,7 +47,7 @@ export default function AdvancedSearch(props) {
     searchIncludedAllComponents,
   };
 
-  const { $state } = props;
+  const $state = useRouterState();
 
   const loadError = isEnabled ? loadErrorProp || noSbomManagerEnabledError : 'Advanced Search is not turned on!';
 

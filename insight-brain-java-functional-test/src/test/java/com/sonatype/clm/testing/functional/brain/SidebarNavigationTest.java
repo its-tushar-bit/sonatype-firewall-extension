@@ -665,7 +665,7 @@ public class SidebarNavigationTest
     waitUntilUrl(FirewallPage.url());
 
     SidebarNavigation.firewallRepositoriesNavigationButton().shouldBe(visible).click();
-    waitUntilUrl(OwnerSummaryPage.url().replace("#/", "#/firewall/"));
+    waitUntilUrl(OwnerSummaryPage.firewallUrl());
   }
 
   @Test
@@ -711,10 +711,10 @@ public class SidebarNavigationTest
 
     systemConfigMenu.dropdownToggle().click();
     systemConfigMenu.productLicense().shouldBe(visible).click();
-    waitUntilUrl(ProductLicensePage.url().replace("#/", "#/firewall/"));
+    waitUntilUrl(ProductLicensePage.firewallUrl());
 
     SidebarNavigation.firewallRepositoriesNavigationButton().shouldBe(visible).click();
-    waitUntilUrl(OwnerSummaryPage.url().replace("#/", "#/firewall/"));
+    waitUntilUrl(OwnerSummaryPage.firewallUrl());
   }
 
   private void enableAdvancedSearch() {

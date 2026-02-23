@@ -1,6 +1,0 @@
-<dashboard-header></dashboard-header>
-<!--
-This had to be moved out of load-wrapper and handled with ng-if because of an issue with ui-view directive
-(see https://github.com/angular-ui/ui-router/issues/552)
--->
-<div ng-if="vm.isFilterLoaded()" ui-view></div>

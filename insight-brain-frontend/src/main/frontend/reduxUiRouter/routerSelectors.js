@@ -123,6 +123,26 @@ export const selectIsDependencyTreePageFromPrioritiesPage = createSelector(selec
 export const selectIsStandaloneFirewall = createSelector(selectCurrentRouteName, nameStartsWithFirewall);
 export const selectIsStandaloneSbomManager = createSelector(selectCurrentRouteName, nameStartsWithSbomManager);
 
+/**
+ * Returns the route prefix based on current product context.
+ * - 'sbomManager.' for SBOM Manager routes
+ * - 'firewall.' for Firewall routes
+ * - '' (empty string) for Lifecycle routes
+ */
+export const selectRoutePrefix = createSelector(selectIsSbomManager, selectIsFirewall, (isSbomManager, isFirewall) =>
+  isSbomManager ? 'sbomManager.' : isFirewall ? 'firewall.' : ''
+);
+
+/**
+ * Returns a function that prefixes route names based on current product context.
+ * Usage:
+ *   const prefixRoute = useSelector(selectPrefixRoute);
+ *   const href = uiRouterState.href(prefixRoute('management.view.organization'), params);
+ */
+export const selectPrefixRoute = createSelector(selectRoutePrefix, (routePrefix) => (routeName) =>
+  `${routePrefix}${routeName}`
+);
+
 // we can access to component details page from application report but also from firewall or repository results view,
 // so this is used to find out if the route is a firewall route or repository route
 export const selectIsFirewallOrRepository = createSelector(

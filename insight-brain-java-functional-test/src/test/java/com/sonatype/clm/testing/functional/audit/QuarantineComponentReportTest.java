@@ -451,6 +451,7 @@ public class QuarantineComponentReportTest
     Date tokenExpiryTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
+
     waitUntilSpinnersGone();
 
     DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss 'UTC'XXX");

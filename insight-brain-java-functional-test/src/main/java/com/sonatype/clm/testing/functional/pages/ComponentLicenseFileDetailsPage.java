@@ -88,7 +88,7 @@ public final class ComponentLicenseFileDetailsPage
   public static class LicenseFileList
       extends BasicElement<LicenseFileList>
   {
-    private static final String LICENSE_LIST_SELECTOR = "license-files-details-list";
+    private static final String LICENSE_LIST_SELECTOR = "#license-files-details-list";
 
     public LicenseFileList() {
       super(LICENSE_LIST_SELECTOR);
@@ -106,7 +106,7 @@ public final class ComponentLicenseFileDetailsPage
   public static class LicenseFileEditor
       extends BasicElement<ComponentLicenseFileDetailsPage.LicenseFileEditor>
   {
-    private static final String LICENSE_EDITOR_MODAL_SELECTOR = "license-details-header div.nx-modal-backdrop";
+    private static final String LICENSE_EDITOR_MODAL_SELECTOR = "#license-details-header div.nx-modal-backdrop";
 
     public LicenseFileEditor() {
       super(LICENSE_EDITOR_MODAL_SELECTOR);

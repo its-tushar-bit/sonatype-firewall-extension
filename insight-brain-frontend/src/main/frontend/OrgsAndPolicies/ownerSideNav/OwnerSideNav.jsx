@@ -47,6 +47,7 @@ import {
   selectRouterCurrentParams,
   selectIsSbomManager,
   selectIsStandaloneFirewall,
+  selectPrefixRoute,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectIsScmEnabled,
@@ -107,13 +108,14 @@ export default function OwnerSideNav() {
   const isFirewallSupported = useSelector(selectIsFirewallSupported);
   const isScmEnabled = useSelector(selectIsScmEnabled);
   const routerCurrentParams = useSelector(selectRouterCurrentParams);
+  const prefixRoute = useSelector(selectPrefixRoute);
 
   const uiRouterState = useRouterState();
-  const goToRepositoriesUrl = uiRouterState.href('management.view.repository_container', {
+  const goToRepositoriesUrl = uiRouterState.href(prefixRoute('management.view.repository_container'), {
     repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
   });
 
-  const treeViewPageHref = uiRouterState.href(`${isSbomManager ? 'sbomManager.' : ''}management.tree`);
+  const treeViewPageHref = uiRouterState.href(prefixRoute('management.tree'));
 
   const onSearch = (query) => dispatch(actions.filterSidebarEntries(query));
   const openOwnerEditorModal = (isApp) => dispatch(ownerModalActions.openModal({ isApp }));
@@ -151,7 +153,7 @@ export default function OwnerSideNav() {
 
     const [, routeParams] = getOwnerInfo(displayedOrganization);
     const organizationUrl = uiRouterState.href(
-      `${isSbomManager ? 'sbomManager.' : ''}management.view.${displayedOrganization.type}`,
+      prefixRoute(`management.view.${displayedOrganization.type}`),
       routeParams
     );
 

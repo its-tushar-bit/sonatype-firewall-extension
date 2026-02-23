@@ -29,6 +29,6 @@ export default function routerStateReducer(state = initState, { type, payload })
   }
 }
 
-function getRouteStateData({ name, url, data }) {
+function getRouteStateData({ name, url, data } = {}) {
   return { name, url, data };
 }

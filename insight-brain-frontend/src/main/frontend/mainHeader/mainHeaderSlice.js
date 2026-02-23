@@ -7,6 +7,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getValidPermissions } from 'MainRoot/util/permissionService';
 import { stateRequiresAuthentication } from 'MainRoot/utility/services/routeStateUtilService';
 import { selectIsLoggedIn } from 'MainRoot/user/userSessionSelectors';
+import { selectRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const REDUCER_NAME = 'mainHeader';
 
@@ -50,7 +51,8 @@ export const checkShowLoginButton = createAsyncThunk(
     try {
       const state = getState();
       const isLoggedIn = selectIsLoggedIn(state);
-      const stateRequiresAuth = await stateRequiresAuthentication();
+      const currentRouterState = selectRouterState(state);
+      const stateRequiresAuth = await stateRequiresAuthentication(currentRouterState);
 
       return !stateRequiresAuth && !isLoggedIn;
     } catch (error) {

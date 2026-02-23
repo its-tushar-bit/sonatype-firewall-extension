@@ -16,14 +16,16 @@ import {
 } from '@sonatype/react-shared-components';
 import { displayName } from '../scmOnboarding/utils/providers';
 import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 const notValidParentOrganizationErrorMessage = 'Unable to update: fields with invalid or missing data.';
 
 export default function AutomaticApplicationsConfiguration(props) {
   const { load, update, toggleAutomaticApplicationEnabled, setParentOrganization, resetForm } = props;
   const { loading, isDirty, loadError, updateError, submitMaskState, organizations } = props;
-  const { $state, scmProvider } = props;
+  const { scmProvider } = props;
   const { enabled, parentOrganizationId } = props.formState;
+  const $state = useRouterState();
 
   const handleParentOrganizationChange = (evt) => {
     setParentOrganization(evt.target.value);
@@ -152,5 +154,4 @@ AutomaticApplicationsConfiguration.propTypes = {
   updateError: PropTypes.string,
   submitMaskState: PropTypes.bool,
   scmProvider: PropTypes.string,
-  $state: PropTypes.object.isRequired,
 };

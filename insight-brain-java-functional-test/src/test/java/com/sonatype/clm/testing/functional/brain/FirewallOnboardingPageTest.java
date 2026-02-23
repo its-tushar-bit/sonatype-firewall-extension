@@ -298,7 +298,7 @@ public class FirewallOnboardingPageTest
     page.incompleteConfigurationModal().shouldBe(visible);
     page.incompleteConfigurationModal().continueButton().click();
 
-    waitUntilUrl(UserManagementPage.url());
+    waitUntilUrl(UserManagementPage.firewallUrl());
     new UserManagementPage().shouldBe(visible);
   }
 

@@ -25,6 +25,7 @@ import NoticeTextsTile from './files/notices/NoticeTextsTile';
 import { createSubtitle, formatLicenseMeta, LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from './legalUtility';
 import LicenseFilesTile from './files/licenses/LicenseFilesTile';
 import OriginalSourcesTile from 'MainRoot/legal/originalSources/OriginalSourcesTile';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function ComponentLegalOverviewPage(props) {
   const {
@@ -49,7 +50,6 @@ export default function ComponentLegalOverviewPage(props) {
     showLicensesModal,
     showOriginalSourcesModal,
     ecosystem,
-    $state,
     prevState,
     prevParams,
     tabId,
@@ -66,6 +66,7 @@ export default function ComponentLegalOverviewPage(props) {
     setDisplayOriginalSourcesOverrideModal,
     isSbomManager,
   } = props;
+  const $state = useRouterState();
 
   // Check if we're in Firewall context by examining the current state
   const isFirewallContext = useMemo(() => {
@@ -255,7 +256,6 @@ export default function ComponentLegalOverviewPage(props) {
                       setShowNoticesModal,
                       showNoticesModal,
                       stageTypeId,
-                      $state,
                       component,
                       componentIdentifier,
                       availableScopes,
@@ -271,7 +271,6 @@ export default function ComponentLegalOverviewPage(props) {
                       setShowLicenseFilesModal,
                       showLicenseFilesModal,
                       stageTypeId,
-                      $state,
                       component,
                       availableScopes,
                       ownerType,
@@ -328,10 +327,6 @@ ComponentLegalOverviewPage.propTypes = {
   setDisplayOriginalSourcesOverrideModal: PropTypes.func.isRequired,
   showOriginalSourcesModal: PropTypes.bool.isRequired,
   ecosystem: PropTypes.string,
-  $state: PropTypes.shape({
-    href: PropTypes.func,
-    get: PropTypes.func,
-  }),
   prevState: PropTypes.shape({
     name: PropTypes.string,
   }),

@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage.Notices;
+import com.sonatype.clm.testing.functional.pages.ComponentNoticeDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.EditNoticesModal;
 import com.sonatype.clm.testing.functional.pages.EditNoticesModal.Notice;
@@ -49,6 +50,8 @@ import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -469,6 +472,28 @@ public class EditNoticesTest
       assertThat(componentLegalFileDAO.getAll()).hasSize(size + 1);
     }
     assertSaved(noticeContentsAndStatuses, newOwner, componentIdentifier);
+  }
+
+  @Test
+  public void testViewMoreDetailsNavigation_ByHash() {
+    loadByHash();
+    Notices notices = ComponentLegalOverviewPage.notices();
+    notices.all().shouldHave(size(2));
+    notices.at(0).viewMoreDetailsLink().click();
+    ComponentNoticeDetailsPage.noticeOverview().shouldBe(visible);
+    ComponentNoticeDetailsPage.noticeOverview().getNoticeText()
+        .shouldHave(text("Apache ServiceComb"));
+  }
+
+  @Test
+  public void testViewMoreDetailsNavigation_ByComponentIdentifier() throws UnsupportedEncodingException {
+    loadByComponentIdentifier();
+    Notices notices = ComponentLegalOverviewPage.notices();
+    notices.all().shouldHave(size(2));
+    notices.at(0).viewMoreDetailsLink().click();
+    ComponentNoticeDetailsPage.noticeOverview().shouldBe(visible);
+    ComponentNoticeDetailsPage.noticeOverview().getNoticeText()
+        .shouldHave(text("Apache ServiceComb"));
   }
 
   private void assertNotice(ComponentLegalOverviewPage.Notice notice, String relPath, String text) {

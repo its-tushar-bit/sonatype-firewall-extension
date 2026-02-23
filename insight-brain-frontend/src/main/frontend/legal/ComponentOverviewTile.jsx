@@ -10,9 +10,11 @@ import { terseAgo, timeAgo } from '../util/CommonServices';
 import { EFFECTIVELY_UNSPECIFIED_LICENSES, STAGE_NAME_TO_DISPLAY, STAGE_NAME_TO_ID } from './advancedLegalConstants';
 import { NxPolicyViolationIndicator, NxTextLink } from '@sonatype/react-shared-components';
 import { inc, prop, reduceBy } from 'ramda';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function ComponentOverviewTile(props) {
-  const { applicationPublicId, component, $state, isSbomManager } = props;
+  const { applicationPublicId, component, isSbomManager } = props;
+  const $state = useRouterState();
 
   const licenseLegalData = component.licenseLegalData;
   const obligations = component.licenseLegalData.obligations;
@@ -218,8 +220,4 @@ ComponentOverviewTile.propTypes = {
       licenseName: PropTypes.string.isRequired,
     })
   ),
-  $state: PropTypes.shape({
-    get: PropTypes.func.isRequired,
-    href: PropTypes.func.isRequired,
-  }).isRequired,
 };

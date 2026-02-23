@@ -22,6 +22,10 @@ public class UserManagementPage
     return BaseUrl.resolvePageUrl("/users");
   }
 
+  public static String firewallUrl() {
+    return BaseUrl.resolvePageUrl("/firewall/users");
+  }
+
   public UserManagementPage() {
     super(ROOT_SELECTOR);
   }

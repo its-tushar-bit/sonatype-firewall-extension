@@ -860,8 +860,8 @@ public class ApplicationReportTest
   public void testEmbeddable() {
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID) + "?embeddable");
 
-    // test that the header is not present but that the data and sidebar are
-    MainHeader.get().shouldNot(exist);
+    // test that the header menu bar is not present but that the data and sidebar are
+    MainHeader.menuBar().shouldNot(exist);
     reportPage.resultRows().shouldHave(size(EXPECTED_VIOLATIONS_COUNT));
     reportPage.aggregateByComponentToggle().shouldBeOn();
   }

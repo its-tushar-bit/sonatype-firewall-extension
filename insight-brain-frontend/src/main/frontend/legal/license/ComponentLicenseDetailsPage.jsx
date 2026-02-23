@@ -15,6 +15,7 @@ import LicenseFullDetailsTile from './LicenseFullDetailsTile';
 import { faPen } from '@fortawesome/pro-solid-svg-icons';
 import LicensesModalContainer from './LicensesModalContainer';
 import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function ComponentLicenseDetailsPage(props) {
   const {
@@ -32,10 +33,11 @@ export default function ComponentLicenseDetailsPage(props) {
     component,
     componentLicenseDetails,
     licenseLegalMetadata,
-    $state,
     loadComponentAndLicenseDetails,
     isSbomManager,
   } = props;
+
+  const $state = useRouterState();
 
   function load() {
     loadComponentAndLicenseDetails(ownerType, ownerId, hash, licenseIndex, componentIdentifier);
@@ -109,7 +111,6 @@ ComponentLicenseDetailsPage.propTypes = {
   component: componentPropType,
   componentLicenseDetails: PropTypes.object,
   licenseLegalMetadata: licenseLegalMetadataPropType,
-  $state: PropTypes.object.isRequired,
   loadComponentAndLicenseDetails: PropTypes.func.isRequired,
   isSbomManager: PropTypes.bool,
 };

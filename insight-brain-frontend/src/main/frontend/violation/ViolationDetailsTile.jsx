@@ -19,6 +19,7 @@ import PolicyViolationConstraintInfo, { constraintViolationsPropType } from './P
 import AddOrRequestWaiverButton from 'MainRoot/waivers/AddOrRequestWaiverButton';
 import ViolationName from 'MainRoot/componentDetails/ViolationsTableTile/ViolationName';
 import ReachabilityStatus from 'MainRoot/componentDetails/ReachabilityStatus/ReachabilityStatus';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 const ownerIdTypeMap = {
   application: 'applicationPublicId',
@@ -27,7 +28,6 @@ const ownerIdTypeMap = {
 
 export default function ViolationDetailsTile(props) {
   const {
-      $state,
       violationDetails,
       stageTypes,
       stateGo,
@@ -42,6 +42,7 @@ export default function ViolationDetailsTile(props) {
       isContainerImagesEvaluationEnabled,
       isWaiverRequestWorkflowEnabled,
     } = props,
+    $state = useRouterState(),
     applicationPublicId = isFirewallContext ? null : violationDetails.applicationPublicId,
     policyName = isFirewallContext ? policyDetail.policyName : violationDetails.policyName,
     policyExists = isFirewallContext ? !!policyDetail.policyOwner.ownerId : !!violationDetails.policyOwner.ownerId,
@@ -264,14 +265,6 @@ export const applicableWaiverPropTypes = {
 };
 
 ViolationDetailsTile.propTypes = {
-  $state: PropTypes.shape({
-    get: PropTypes.func.isRequired,
-    href: PropTypes.func.isRequired,
-    params: PropTypes.shape({
-      type: PropTypes.string,
-      sidebarReference: PropTypes.string,
-    }),
-  }).isRequired,
   selectedViolationId: PropTypes.string,
   violationDetails: PropTypes.shape(violationDetailsPropTypes),
   stageTypes: PropTypes.arrayOf(

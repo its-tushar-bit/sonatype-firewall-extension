@@ -8,6 +8,7 @@ import { screen, render, fireEvent, within } from 'TestRoot/SpecUtil';
 import { pathSet } from 'MainRoot/util/jsUtil';
 import ViolationDetailsTile from 'MainRoot/violation/ViolationDetailsTile';
 import * as commonServices from 'MainRoot/util/CommonServices';
+import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
 
 describe('ViolationDetailsTile', function () {
   let mockTimeAgo, stateGetMock, stateHrefMock, minimalProps, stateGoMock, goToWaiversMock, renderComponent;
@@ -37,15 +38,13 @@ describe('ViolationDetailsTile', function () {
     goToWaiversMock = jest.fn('stateGo').mockImplementation(() => {});
     stateGetMock = jest.fn('$state.get').mockReturnValue('theState');
     stateHrefMock = jest.fn('$state.href').mockReturnValue('#/foo');
+
+    jest.spyOn(RouterStateContext, 'useRouterState').mockReturnValue({
+      get: stateGetMock,
+      href: stateHrefMock,
+    });
+
     minimalProps = {
-      $state: {
-        get: stateGetMock,
-        href: stateHrefMock,
-        params: {
-          type: 'violation',
-          sidebarReference: 'filter',
-        },
-      },
       selectedViolationId: 'selectedViolationId',
       violationDetails: {
         policyViolationId: 'policyViolationId',

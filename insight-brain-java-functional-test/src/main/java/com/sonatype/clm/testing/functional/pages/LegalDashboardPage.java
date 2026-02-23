@@ -16,7 +16,7 @@ import static com.codeborne.selenide.Selenide.$$;
 
 public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
 {
-  public static final String ROOT = "legal-dashboard";
+  public static final String ROOT = "#legal-dashboard-container";
 
   private static final String CHECKBOX_SELECTOR = ".nx-checkbox";
 

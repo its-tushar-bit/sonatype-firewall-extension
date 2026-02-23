@@ -19,7 +19,7 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
 
 export default function SonatypeDeveloperSidebar(props) {
-  const { isLoggedIn, isAdvancedSearchEnabled, isApiPageEnabled } = props;
+  const { currentState, isLoggedIn, isAdvancedSearchEnabled, isApiPageEnabled } = props;
   const uiRouterState = useRouterState();
   const dashboardState = 'developer.dashboard';
   const prioritiesState = 'developer.priorities';
@@ -33,7 +33,12 @@ export default function SonatypeDeveloperSidebar(props) {
   const advancedSearchHref = uiRouterState.href(advancedSearchState);
   const apiHref = uiRouterState.href(apiState);
 
-  const isSelected = (entryName) => uiRouterState.includes(entryName);
+  // Use currentState from Redux props (triggers re-render) instead of uiRouterState.includes()
+  // which may return stale data when the re-render is driven by Redux state changes
+  const currentStateName = currentState?.name || '';
+  const isSelected = (entryName) => {
+    return currentStateName === entryName || currentStateName.startsWith(entryName + '.');
+  };
 
   return (
     <NxGlobalSidebar2
@@ -102,6 +107,7 @@ export default function SonatypeDeveloperSidebar(props) {
 }
 
 SonatypeDeveloperSidebar.propTypes = {
+  currentState: PropTypes.object,
   isLoggedIn: PropTypes.bool,
   isAdvancedSearchEnabled: PropTypes.bool,
   isApiPageEnabled: PropTypes.bool,

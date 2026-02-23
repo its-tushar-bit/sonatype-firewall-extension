@@ -29,7 +29,7 @@ export default function CopyrightDetailsContents(props) {
   // If we're loading data or in error state than the rendering will be handled by CopyrightDetailsHeader
   // component and this component should not be rendered
   return loading || error ? null : (
-    <div className="nx-scrollable nx-viewport-sized__scrollable">
+    <div id="copyright-details-contents" className="nx-scrollable nx-viewport-sized__scrollable">
       <CopyrightDetailsOverview
         availableScopes={availableScopes}
         component={component}

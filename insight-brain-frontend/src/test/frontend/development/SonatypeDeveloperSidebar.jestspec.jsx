@@ -35,7 +35,6 @@ describe('SonatypeDeveloperSidebar', () => {
             return '/mocked-default-href';
         }
       }),
-      includes: jest.fn(),
     };
     jest.spyOn(RouterStateContextModule, 'useRouterState').mockImplementation(() => mockRouterState);
 

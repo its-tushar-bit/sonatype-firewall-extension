@@ -1795,8 +1795,9 @@ public class ComponentDetailsTest
 
   private void navigateToLegalObligationsPage(final LicenseDetectionsTile licenseDetectionsTile) {
     licenseDetectionsTile.reviewObligationsButton().click();
-    String componentIdentifier = "%7B\"format\":\"maven\",\"coordinates\":%7B\"artifactId\":\"license-maven-plugin\","
-        + "\"classifier\":\"\",\"extension\":\"jar\",\"groupId\":\"com.mycila\",\"version\":\"2.11\"%7D%7D";
+    String componentIdentifier = "%7B\"format\"%3A\"maven\"%2C\"coordinates\"%3A%7B" +
+        "\"artifactId\"%3A\"license-maven-plugin\"%2C\"classifier\"%3A\"\"%2C\"extension\"%3A\"jar\"%2C" +
+        "\"groupId\"%3A\"com.mycila\"%2C\"version\"%3A\"2.11\"%7D%7D";
     waitUntilUrl(LegalApplicationDetailsPage.urlToComponentAtApplicationScopeByComponentIdentifier(
         componentIdentifier, app.getPublicId(), HASH, SCAN_ID, "legal"));
     ComponentLegalOverviewPage.editLicenseFilesButton().shouldBe(visible);

@@ -16,7 +16,7 @@ import {
   NxTextLink,
   NxTile,
 } from '@sonatype/react-shared-components';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from 'MainRoot/OrgsAndPolicies/publicDataSources/publicDataSourcesSlice';
@@ -27,7 +27,7 @@ import {
 } from 'MainRoot/OrgsAndPolicies/publicDataSources/publicDataSourcesSelectors';
 import { selectIsCpeMatchingSupported, selectLoadingFeatures } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsApplication, selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectOwnerProperties, selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectOwnerProperties, selectSelectedOwnerTypeAndId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import classNames from 'classnames';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
@@ -48,8 +48,8 @@ export default function PublicDataSourcesEditor() {
   const isCpeMatchingSupported = useSelector(selectIsCpeMatchingSupported);
   const isApp = useSelector(selectIsApplication);
   const isRootOrg = useSelector(selectIsRootOrganization);
-  const ownerId = useSelector(selectSelectedOwnerId);
-  const selectedOwnerProperties = useSelector(selectOwnerProperties);
+  const { ownerId: ownerPublicId } = useSelector(selectOwnerProperties);
+  const { ownerId: ownerInternalId } = useSelector(selectSelectedOwnerTypeAndId);
   const isSbomManagerOnlyLicense = useSelector(selectIsSbomManagerOnlyLicense);
   const isLoadingFeatures = useSelector(selectLoadingFeatures);
   const disabled = isSbomManager || (!parentAllowOverride && !isRootOrg);
@@ -71,9 +71,7 @@ export default function PublicDataSourcesEditor() {
 
   const href = uiRouterState.href(
     `management.edit.${isApp ? 'application' : 'organization'}.public-data-sources-editor`,
-    isApp
-      ? { applicationPublicId: selectedOwnerProperties.ownerId }
-      : { organizationId: selectedOwnerProperties.ownerId }
+    isApp ? { applicationPublicId: ownerPublicId } : { organizationId: ownerPublicId }
   );
 
   const doLoad = async () => {
@@ -85,10 +83,10 @@ export default function PublicDataSourcesEditor() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (ownerId) {
+    if (ownerInternalId) {
       doLoad();
     }
-  }, [ownerId, isSbomManagerOnlyLicense]);
+  }, [ownerInternalId, isSbomManagerOnlyLicense]);
 
   return (
     <>

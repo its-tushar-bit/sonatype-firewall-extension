@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* global CLM_SERVER_VERSION */
 import React, { useEffect, useMemo } from 'react';
-import PropTypes from 'prop-types';
 import { useSelector, useDispatch } from 'react-redux';
 import MenuBar from './MenuBar/MenuBar.jsx';
 import {
@@ -42,6 +42,7 @@ import {
   selectIsStandaloneFirewall,
   selectIsStandaloneSbomManager,
   selectCurrentRouteName,
+  selectRouterCurrentParams,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsLoggedIn } from 'MainRoot/user/userSessionSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
@@ -49,7 +50,10 @@ import { actions } from './mainHeaderSlice';
 import { selectPermissions, selectShouldShowLoginButton } from './mainHeaderSelectors';
 import { actions as userSessionActions } from 'MainRoot/user/userSessionSlice';
 
-export function MainHeader({ clmServerVersion = '' }) {
+export function MainHeader() {
+  const clmServerVersion = CLM_SERVER_VERSION; // Provided by webpack DefinePlugin
+  const routerParams = useSelector(selectRouterCurrentParams);
+
   const dispatch = useDispatch();
   const globalMajorMinorVersion = useMemo(
     () => (clmServerVersion ? `${clmServerVersion}` : '').split('.').splice(0, 2).join('.'),
@@ -105,6 +109,10 @@ export function MainHeader({ clmServerVersion = '' }) {
     }
   }, [dispatch, isLoggedIn]);
 
+  if (routerParams?.embeddable) {
+    return null;
+  }
+
   const handleLogin = () => {
     dispatch(userSessionActions.fetchUserSession(true));
   };
@@ -149,9 +157,5 @@ export function MainHeader({ clmServerVersion = '' }) {
     />
   );
 }
-
-MainHeader.propTypes = {
-  clmServerVersion: PropTypes.string,
-};
 
 export default MainHeader;

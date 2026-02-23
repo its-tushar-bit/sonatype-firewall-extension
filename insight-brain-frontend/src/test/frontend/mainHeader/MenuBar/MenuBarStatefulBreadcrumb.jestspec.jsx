@@ -9,7 +9,7 @@ import { mergeDeepRight } from 'ramda';
 import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
 import { render, screen } from 'TestRoot/SpecUtil';
 import { getOwnersMap } from 'TestRoot/OrgsAndPolicies/ownerSideNav/nLevelMockData';
-import { RouterStateProvider } from 'MainRoot/react/RouterStateContext';
+import router from 'MainRoot/router/routerInstance';
 import { fireEvent } from '@testing-library/react';
 
 describe('MenuBarStatefulBreadcrumb', () => {
@@ -19,20 +19,16 @@ describe('MenuBarStatefulBreadcrumb', () => {
     c++;
     return routerUrls + c;
   };
-  const mockUIRouterState = { href: generateFakeLink, includes: () => false, get: () => null, children: [] };
-  let mockRouter;
 
   beforeEach(() => {
-    mockRouter = { ...mockUIRouterState, includes: (stateName) => stateName === 'my.state' };
+    c = 0;
+    jest.spyOn(router.stateService, 'href').mockImplementation(generateFakeLink);
+    jest.spyOn(router.stateService, 'includes').mockImplementation((stateName) => stateName === 'my.state');
+    jest.spyOn(router.stateService, 'get').mockReturnValue(null);
   });
 
   const renderComponent = (preloadedState) => {
-    return render(
-      <RouterStateProvider value={mockRouter}>
-        <MenuBarStatefulBreadcrumb />
-      </RouterStateProvider>,
-      { preloadedState }
-    );
+    return render(<MenuBarStatefulBreadcrumb />, { preloadedState });
   };
   const applicationPublicId = 'application publicId 2 at organization 2';
   const organizationsDepth = 2;

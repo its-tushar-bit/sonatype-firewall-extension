@@ -20,7 +20,7 @@ public class RepositoryResultsSummaryPage
   }
 
   public static String url() {
-    return BaseUrl.resolvePageUrl("/management/view/repository_container/REPOSITORY_CONTAINER_ID");
+    return BaseUrl.resolvePageUrl("/firewall/management/view/repository_container/REPOSITORY_CONTAINER_ID");
   }
 
   public static RepositoriesSummaryTile summaryTile() {

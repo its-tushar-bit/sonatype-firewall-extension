@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector, useStore } from 'react-redux';
 import { load as loadAdvancedSearchConfig } from '../configuration/advancedSearch/advancedSearchConfigActions';
@@ -32,6 +32,7 @@ import {
   selectIsStandaloneFirewall,
   selectIsSbomManager,
   selectIsStandaloneDeveloper,
+  selectRouterState,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectIsSbomManagerOnlyLicense,
@@ -45,17 +46,12 @@ import { selectIsLoggedIn } from 'MainRoot/user/userSessionSelectors';
 import { selectIsLicensed } from 'MainRoot/productFeatures/productLicenseSelectors';
 import IqSidebarNav from 'MainRoot/react/iqSidebarNav/IqSidebarNav';
 
-export default function NavigationContainer({ clmServerVersion, $rootScope, $state }) {
+export default function NavigationContainer({ clmServerVersion }) {
   const dispatch = useDispatch();
   const store = useStore();
-  const [currentState, setCurrentState] = useState($state.current);
 
-  useEffect(() => {
-    const unsubscribe = $rootScope.$on('$stateChangeSuccess', () => {
-      setCurrentState($state.current);
-    });
-    return () => unsubscribe();
-  }, [$rootScope, $state]);
+  // Get current router state from Redux instead of Angular $state
+  const currentState = useSelector(selectRouterState);
 
   const productEdition = useSelector(selectProductEdition);
   const isAdvancedSearchEnabled = useSelector(selectIsAdvancedSearchEnabled);
@@ -147,6 +143,4 @@ export default function NavigationContainer({ clmServerVersion, $rootScope, $sta
 
 NavigationContainer.propTypes = {
   clmServerVersion: PropTypes.string,
-  $rootScope: PropTypes.object.isRequired,
-  $state: PropTypes.object.isRequired,
 };

@@ -9,7 +9,7 @@ import PublicDataSourcesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PublicD
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as publicDataSourcesSelectors from 'MainRoot/OrgsAndPolicies/publicDataSources/publicDataSourcesSelectors';
-import RouterStateContext from 'MainRoot/react/RouterStateContext';
+import router from 'MainRoot/router/routerInstance';
 
 describe('PublicDataSourcesTile', () => {
   let renderComponent, initialState;
@@ -61,19 +61,12 @@ describe('PublicDataSourcesTile', () => {
       },
     };
 
-    renderComponent = async (preloadedState = initialState) => {
-      const routerContext = {
-        href: jest.fn(() => '#'),
-        get: jest.fn(() => '#'),
-        includes: jest.fn(() => false),
-      };
+    jest.spyOn(router.stateService, 'href').mockReturnValue('#');
+    jest.spyOn(router.stateService, 'get').mockReturnValue('#');
+    jest.spyOn(router.stateService, 'includes').mockReturnValue(false);
 
-      return render(
-        <RouterStateContext.Provider value={routerContext}>
-          <PublicDataSourcesTile />
-        </RouterStateContext.Provider>,
-        { preloadedState }
-      );
+    renderComponent = async (preloadedState = initialState) => {
+      return render(<PublicDataSourcesTile />, { preloadedState });
     };
   });
 

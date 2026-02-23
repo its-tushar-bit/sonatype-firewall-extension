@@ -12,6 +12,7 @@ import { backToComponentOverviewUrl, createSubtitle } from '../../legalUtility';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
 import LicenseFilesModalContainer from './LicenseFilesModalContainer';
 import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function LicenseFilesDetailsHeader(props) {
   const {
@@ -25,12 +26,13 @@ export default function LicenseFilesDetailsHeader(props) {
     hash,
     componentIdentifier,
     licenseIndex,
-    $state,
     isSbomManager,
     loadComponentAndLicenseDetails,
     setShowLicenseFilesModal,
     showLicenseFilesModal,
   } = props;
+
+  const $state = useRouterState();
 
   function load() {
     loadComponentAndLicenseDetails(ownerType, ownerId, hash, licenseIndex, componentIdentifier);
@@ -53,7 +55,7 @@ export default function LicenseFilesDetailsHeader(props) {
         )}
         text="Back to Component Obligations"
       />
-      <div className="nx-page-title">
+      <div id="license-details-header" className="nx-page-title">
         <h1 className="nx-h1">License Files</h1>
         {createSubtitle(availableScopes, component)}
         <div className="nx-btn-bar">
@@ -79,7 +81,6 @@ LicenseFilesDetailsHeader.propTypes = {
   componentIdentifier: PropTypes.string,
   licenseIndex: PropTypes.string,
   availableScopes: availableScopesPropType,
-  $state: PropTypes.object.isRequired,
   showLicenseFilesModal: PropTypes.bool,
   isSbomManager: PropTypes.bool,
 

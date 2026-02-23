@@ -37,13 +37,14 @@
         ng-if="!$state.params.embeddable"
         clm-server-version='CLM_SERVER_VERSION'
       ></navigation-container>
-      <main-header ng-if="!$state.params.embeddable" clm-server-version='CLM_SERVER_VERSION'></main-header>
+      <main-header></main-header>
       <div id="iq-content" class="nx-page-content nx-page-content--full-width">
         <div id="iq-sidebar-container"></div>
         <div id="iq-footer-container" class="nx-global-footer-2-container" ng-class="{ 'nx-viewport-sized': $state.current.data.viewportSized }">
           <!-- In order for the footer to be displayed correctly at the bottom when login modal is shown, we need an .nx-page-main -->
-          <div class="nx-page-main" ng-if="!username"></div>
-          <ui-view ng-if="!error" ng-class="{ 'nx-viewport-sized__container': $state.current.data.viewportSized }"></ui-view>
+          <div class="nx-page-main" ng-if="showLoginModal"></div>
+          <!-- React router renders here -->
+          <div id="react-root"></div>
           <div class="nx-page-main nx-page-main--error" ng-if="error">
             <div ng-cloak class="iq-alert iq-alert--error">
               <i class="fa fa-warning"></i><strong>Error</strong>

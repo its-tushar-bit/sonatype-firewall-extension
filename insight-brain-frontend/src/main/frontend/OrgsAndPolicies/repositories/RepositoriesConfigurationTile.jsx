@@ -203,7 +203,7 @@ const RepositoriesConfigurationTile = () => {
                 href={
                   repositoryData.format === 'docker'
                     ? uiRouterState.href('firewall.containerRepositoryResults', { repositoryId: repositoryData.id })
-                    : uiRouterState.href('repository-report', { repositoryId: repositoryData.id })
+                    : uiRouterState.href('firewall.repository-report', { repositoryId: repositoryData.id })
                 }
               >
                 {repositoryData.publicId}

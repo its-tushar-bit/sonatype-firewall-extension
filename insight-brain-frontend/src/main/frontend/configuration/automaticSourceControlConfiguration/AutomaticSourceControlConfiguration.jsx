@@ -17,6 +17,7 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { displayName } from '../scmOnboarding/utils/providers';
 import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function AutomaticSourceControlConfiguration({
   load,
@@ -32,11 +33,12 @@ export default function AutomaticSourceControlConfiguration({
   parentOrganization,
   automaticApplicationsEnabled,
   scmProvider,
-  $state,
 }) {
   useEffect(() => {
     load();
   }, []);
+
+  const $state = useRouterState();
 
   const cancelButton = (
     <NxButton type="button" id="automatic-source-control-cancel" disabled={!isDirty} onClick={resetForm}>
@@ -123,5 +125,4 @@ AutomaticSourceControlConfiguration.propTypes = {
   }),
   automaticApplicationsEnabled: PropTypes.bool,
   scmProvider: PropTypes.string,
-  $state: PropTypes.object.isRequired,
 };

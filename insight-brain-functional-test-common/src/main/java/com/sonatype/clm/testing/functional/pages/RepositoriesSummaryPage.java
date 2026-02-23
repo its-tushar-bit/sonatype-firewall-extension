@@ -18,15 +18,15 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 public class RepositoriesSummaryPage
 {
   public static String url() {
-    return BaseUrl.resolvePageUrl("/management/view/repository_container/REPOSITORY_CONTAINER_ID");
+    return BaseUrl.resolvePageUrl("/firewall/management/view/repository_container/REPOSITORY_CONTAINER_ID");
   }
 
   public static String repositoryUrl(String repositoryId) {
-    return BaseUrl.resolvePageUrl("/management/view/repository/" + repositoryId);
+    return BaseUrl.resolvePageUrl("/firewall/management/view/repository/" + repositoryId);
   }
 
   public static String repositoryManagerUrl(String repositoryManagerId) {
-    return BaseUrl.resolvePageUrl("/management/view/repository_manager/" + repositoryManagerId);
+    return BaseUrl.resolvePageUrl("/firewall/management/view/repository_manager/" + repositoryManagerId);
   }
 
   public static RepositoriesSummaryTile summaryTile() {

@@ -12,6 +12,7 @@ import ReportsCta from './components/ReportsCta';
 import { displayName } from './utils/providers';
 import ImportStatusModal from './components/ImportStatusModal';
 import { repositoryPropType } from './scmPropTypes';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function ScmOnboarding(props) {
   const {
@@ -32,7 +33,6 @@ export default function ScmOnboarding(props) {
 
     // from angular URL router
     preselectedOrganizationId,
-    $state,
   } = props;
 
   function load() {
@@ -41,6 +41,8 @@ export default function ScmOnboarding(props) {
   useEffect(() => {
     load();
   }, []);
+
+  const $state = useRouterState();
 
   const repositoryCount = repositories ? repositories.length : 0;
   const alreadyImportedCount = totalRepositories - repositoryCount;
@@ -65,7 +67,7 @@ export default function ScmOnboarding(props) {
             )}
           </div>
           <section className="nx-tile">
-            <RepositoryPane {...props} />
+            <RepositoryPane $state={$state} {...props} />
           </section>
         </LoadWrapper>
       }
@@ -80,7 +82,6 @@ ScmOnboarding.propTypes = {
 
   // config
   loadingPage: PropTypes.bool.isRequired,
-  $state: PropTypes.object.isRequired,
   isScmTokenOverridden: PropTypes.bool,
   scmProvider: PropTypes.string,
 

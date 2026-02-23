@@ -14,7 +14,7 @@ import {
   getRepositoriesUrl,
 } from 'MainRoot/util/CLMLocation';
 import RepositoryPane from 'MainRoot/configuration/scmOnboarding/components/RepositoryPane';
-import RouterStateContext from 'MainRoot/react/RouterStateContext';
+import router from 'MainRoot/router/routerInstance';
 import { getOwnersMap } from '../../../OrgsAndPolicies/ownerSideNav/nLevelMockData';
 import { initialState } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { createOrgWithToken, createRepo } from './utils';
@@ -22,7 +22,6 @@ import { createOrgWithToken, createRepo } from './utils';
 describe('RepositoryPane', function () {
   let mockAxiosCalls;
   let state;
-  let routerContext;
   const organizationsDepth = 4;
   const ownersMap = getOwnersMap(organizationsDepth);
   const topParentOrganizationId = 'ROOT_ORGANIZATION_ID';
@@ -130,8 +129,8 @@ describe('RepositoryPane', function () {
       },
     };
 
-    routerContext = { href: jest.fn(), includes: () => false };
-    routerContext.href.mockImplementation(fakeRouterState);
+    jest.spyOn(router.stateService, 'href').mockImplementation(fakeRouterState);
+    jest.spyOn(router.stateService, 'includes').mockReturnValue(false);
 
     mockAxiosCalls.onGet(ownerListUrl).reply(200, ownerListPayload);
     mockAxiosCalls.onGet(getApplicationsUrl()).reply(200, []);
@@ -140,12 +139,7 @@ describe('RepositoryPane', function () {
   });
 
   const renderComponent = (props = initialProps) => {
-    return render(
-      <RouterStateContext.Provider value={routerContext}>
-        <RepositoryPane {...props} />
-      </RouterStateContext.Provider>,
-      { preloadedState: state }
-    );
+    return render(<RepositoryPane {...props} />, { preloadedState: state });
   };
 
   describe('render errors', () => {
@@ -203,13 +197,16 @@ describe('RepositoryPane', function () {
       dropdownMenu = document.querySelector('.nx-dropdown-menu');
       expect(dropdownMenu).toBeVisible();
 
-      let firstLink = screen.queryByRole('link', { name: 'org-org1' });
-      let secondLink = screen.queryByRole('link', { name: 'org-org2' });
-      let thirdLink = screen.queryByRole('link', { name: 'org-org3' });
+      let firstLink = screen.getByRole('link', { name: 'org-org1' });
+      let secondLink = screen.getByRole('link', { name: 'org-org2' });
+      let thirdLink = screen.getByRole('link', { name: 'org-org3' });
 
-      expect(firstLink).toBeNull();
-      expect(secondLink).toBeNull();
-      expect(thirdLink).toBeNull();
+      expect(firstLink).toBeVisible();
+      expect(firstLink).toHaveAttribute('href', '#/onboarding/id-org1');
+      expect(secondLink).toBeVisible();
+      expect(secondLink).toHaveAttribute('href', '#/onboarding/id-org2');
+      expect(thirdLink).toBeVisible();
+      expect(thirdLink).toHaveAttribute('href', '#/onboarding/id-org3');
     });
   });
 

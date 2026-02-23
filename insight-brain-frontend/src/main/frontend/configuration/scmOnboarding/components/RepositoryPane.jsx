@@ -23,6 +23,7 @@ import ownerConstant from '../../../utility/services/owner.constant';
 import { actions as ownerModalActions } from 'MainRoot/OrgsAndPolicies/ownerModal/ownerModalSlice';
 import { useDispatch } from 'react-redux';
 import OwnerModal from 'MainRoot/OrgsAndPolicies/ownerModal/OwnerModal';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 /*
  The tile which contains the repository list and all other associated UI elements
@@ -45,7 +46,6 @@ export default function RepositoryPane(props) {
     isSelectingOrganization,
     isScmTokenConfigured,
     isImporting,
-    $state,
 
     // sorting
     sortConfiguration,
@@ -57,6 +57,8 @@ export default function RepositoryPane(props) {
     loadRepositories,
     setShowHostDialog,
   } = props;
+
+  const $state = useRouterState();
 
   const dispatch = useDispatch();
   const openOwnerEditorModal = () => dispatch(ownerModalActions.openModal({ isApp: false }));
@@ -289,7 +291,6 @@ RepositoryPane.propTypes = {
   isGitHostNeeded: PropTypes.bool,
   isSelectingOrganization: PropTypes.bool,
   isImporting: PropTypes.bool,
-  $state: PropTypes.object.isRequired,
   isNewOrganizationModalVisible: PropTypes.bool.isRequired,
   isScmTokenConfigured: PropTypes.bool,
   isRootScmConfigured: PropTypes.bool,

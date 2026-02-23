@@ -5,7 +5,7 @@
  */
 import React from 'react';
 
-import RouterStateContext from 'MainRoot/react/RouterStateContext';
+import router from 'MainRoot/router/routerInstance';
 import { render, screen, within } from 'TestRoot/SpecUtil';
 import OwnerTree from 'MainRoot/OrgsAndPolicies/ownersTreePage/OwnerTree';
 import { getOwnersMap } from '../ownerSideNav/nLevelMockData';
@@ -16,19 +16,21 @@ describe('OwnerTree', () => {
   let state;
   let ownerId;
   let ownersMap;
-  let routerContext;
+  let mockIncludes;
 
   const fakeRouterState = (url, params) => {
     const isOrganization = url.includes('organization');
-    const isSbomManager = url.includes('sbomManager');
+    const isSbomManager = mockIncludes('sbomManager');
     const ownerType = isOrganization ? 'organization' : 'application';
     const id = isOrganization ? params.organizationId : params?.applicationPublicId;
     return `#${isSbomManager ? '/sbomManager' : ''}/management/view/${ownerType}/${id}`;
   };
 
   beforeEach(() => {
-    routerContext = { href: () => {}, includes: jest.fn(() => false) };
-    jest.spyOn(routerContext, 'href').mockImplementation(fakeRouterState);
+    mockIncludes = jest.fn(() => false);
+    jest.spyOn(router.stateService, 'href').mockImplementation(fakeRouterState);
+    jest.spyOn(router.stateService, 'includes').mockImplementation(mockIncludes);
+    jest.spyOn(router.stateService, 'get').mockReturnValue(null);
     ownersMap = getOwnersMap(3, false);
     state = {
       orgsAndPolicies: {
@@ -45,13 +47,8 @@ describe('OwnerTree', () => {
     minimalProps = {
       ownerId,
     };
-    renderComponent = (preloadedState = state, additionalProps = {}, router = routerContext) =>
-      render(
-        <RouterStateContext.Provider value={router}>
-          <OwnerTree {...minimalProps} {...additionalProps} />
-        </RouterStateContext.Provider>,
-        { preloadedState }
-      );
+    renderComponent = (preloadedState = state, additionalProps = {}) =>
+      render(<OwnerTree {...minimalProps} {...additionalProps} />, { preloadedState });
   });
 
   it('should not render OwnerTree', () => {
@@ -132,7 +129,8 @@ describe('OwnerTree', () => {
   });
 
   it('renders correct amount of clickable tree nodes with sbomManager url', () => {
-    renderComponent({ ...state, router: { currentState: { name: 'sbomManager' } } });
+    mockIncludes.mockImplementation((stateName) => stateName === 'sbomManager');
+    renderComponent();
 
     Object.values(ownersMap).forEach((owner) => {
       const aTag = screen.getByText(owner.name).closest('a');

@@ -21,18 +21,17 @@ import {
   selectIsRepositoriesRelated,
   selectIsRepositoryContainer,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { map, prepend, isEmpty, symmetricDifference, includes, pick, groupBy, reject } from 'ramda';
+import { map, prepend, isEmpty, symmetricDifference, pick, groupBy, reject, any, propEq } from 'ramda';
 import {
   formatGroupUsers,
   formatMembersForSaving,
   formatMembersForTransferList,
   removeFormatting,
 } from 'MainRoot/util/formatGroupUsers';
-import { pathSet } from 'MainRoot/util/reduxToolkitUtil';
+import { pathSet, propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
-import { propSet } from 'MainRoot/util/jsUtil';
 import { selectUnSortedAddedUsers, selectRole, selectRoleToEdit } from './accessSelectors';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 
@@ -75,6 +74,9 @@ export const loadRolesIfNeeded = () => (dispatch, getState) => {
   if (!roleToEditExistsInMemory) {
     dispatch(actions.loadRoles());
   } else {
+    // When role data is already in memory (e.g., loaded by AccessTile on Summary page),
+    // we need to explicitly set isNew and role since loadRoles won't be called again
+    dispatch(actions.setRoleForEdit(roleToEdit));
     const addedUsers = roleToEdit?.membersByOwner?.[0]?.members ?? [];
     const formattedAddedUsers = formatMembersForTransferList(addedUsers);
     dispatch(actions.setServerAddedUsers(formattedAddedUsers));
@@ -172,7 +174,7 @@ const loadFetchUsersFulfilled = (state, { payload }) => {
     state.fetchUsers.loadError = null;
     const addedUsers = state.addedUsers;
     const leftedUsers = compose(
-      reject((user) => includes(user, addedUsers)),
+      reject((user) => any(propEq('id', user.id), addedUsers)),
       formatGroupUsers
     )(formatMembersForTransferList(payload.members));
     state.fetchUsers.data = formatMembersForTransferList(leftedUsers);
@@ -334,6 +336,11 @@ const clearDeleteError = (state) => {
   state.deleteError = null;
 };
 
+const setRoleForEdit = (state, { payload }) => {
+  state.isNew = false;
+  state.role = pick(['roleId', 'roleName', 'roleDescription'], payload);
+};
+
 const accessEditPageSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -342,11 +349,12 @@ const accessEditPageSlice = createSlice({
     addSelectedUserGroup,
     setAddedUsers,
     setRole,
+    setRoleForEdit,
     setGroupName,
     setServerAddedUsers: propSet('serverAddedUsers'),
     setLoadingFetchUsers: pathSet(['fetchUsers', 'loading']),
-    saveMaskTimerDone: propSet('submitMaskState', null),
-    deleteMaskTimerDone: propSet('deleteMaskState', null),
+    saveMaskTimerDone: propSetConst('submitMaskState', null),
+    deleteMaskTimerDone: propSetConst('deleteMaskState', null),
     clearDeleteError,
     toggleInheritedAccessOpen,
   },

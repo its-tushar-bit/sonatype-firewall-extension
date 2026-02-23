@@ -39,7 +39,7 @@ public class BaseUrl
     return uri.toString().replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%2C", ",").replaceAll("%3A", ":");
   }
 
-  private static UriBuilder pageUriBuilder() {
+  public static UriBuilder pageUriBuilder() {
     return rootUriBuilder().path("assets/index.html");
   }
 

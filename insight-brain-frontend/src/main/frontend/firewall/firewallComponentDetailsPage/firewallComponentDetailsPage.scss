@@ -6,10 +6,8 @@
 
 @use '~@sonatype/react-shared-components/base-styles/nx-colors';
 
-firewall-component-details-page {
-  display: contents;
-
-  main.nx-page-main {
+#firewall-component-details-page {
+  &.nx-page-main {
     padding: 0;
     overflow-y: hidden;
 

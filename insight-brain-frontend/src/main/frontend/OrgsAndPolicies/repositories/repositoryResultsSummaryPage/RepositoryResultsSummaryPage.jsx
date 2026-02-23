@@ -76,18 +76,18 @@ export default function RepositoryResultsSummaryPage() {
     loadInitData();
   }, []);
 
-  const repositoryManagerName = prevStateIsRepositoryManagerView ? ownersMap[prevParams.repositoryManagerId].name : '';
+  const repositoryManager = prevStateIsRepositoryManagerView ? ownersMap[prevParams.repositoryManagerId] : null;
 
   const backButtonHref = () => {
     if (prevStateIsFirewall) {
       return uiRouterState.href('firewall.firewallPage');
     }
     if (prevStateIsRepositoryManagerView) {
-      return uiRouterState.href('management.view.repository_manager', {
+      return uiRouterState.href('firewall.management.view.repository_manager', {
         repositoryManagerId: prevParams.repositoryManagerId,
       });
     } else {
-      return uiRouterState.href('management.view.repository_container', {
+      return uiRouterState.href('firewall.management.view.repository_container', {
         repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
       });
     }
@@ -96,13 +96,13 @@ export default function RepositoryResultsSummaryPage() {
   const backButtonText = prevStateIsFirewall
     ? 'Firewall Dashboard'
     : prevStateIsRepositoryManagerView
-    ? repositoryManagerName
+    ? repositoryManager?.name
     : 'Repository Managers';
 
   return (
     <>
       <RepositoryResultsComponentsFilter repositoryId={params.repositoryId} />
-      <NxPageMain>
+      <NxPageMain id="repository-results-summary-page">
         {!hideBackButton && <MenuBarBackButton href={backButtonHref()} text={`Back to ${backButtonText}`} />}
         {showMaskSuccessDialog && <NxStatefulSubmitMask success={showReEvaluateMaskSuccess} message="Re-Evaluating" />}
         <NxLoadWrapper

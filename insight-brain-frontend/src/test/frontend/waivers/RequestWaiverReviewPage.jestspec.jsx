@@ -8,7 +8,7 @@ import React from 'react';
 import RequestWaiverReviewPage from 'MainRoot/waivers/RequestWaiverReviewPage';
 import { axiosMockAdapter, fireEvent, render, screen, waitFor } from 'TestRoot/SpecUtil';
 import { waiverRequestStatus } from 'MainRoot/util/waiverUtils';
-import RouterStateContext from 'MainRoot/react/RouterStateContext';
+import router from 'MainRoot/router/routerInstance';
 import {
   getApplicationSummaryUrl,
   getOwnerContextHierarchyUrl,
@@ -155,12 +155,8 @@ describe('RequestWaiverReviewPage', function () {
   beforeEach(() => {
     mock = axiosMockAdapter({ delayResponse: 200 }); // delay necessary for loading test
 
-    const routerContext = {
-      href: jest.fn(() => {
-        return '#';
-      }),
-      includes: jest.fn(() => false),
-    };
+    jest.spyOn(router.stateService, 'href').mockReturnValue('#');
+    jest.spyOn(router.stateService, 'includes').mockReturnValue(false);
 
     mock
       .onGet(getViewOrUpdatePolicyWaiverRequestUrl('application', 'applicationId', 'policyWaiverRequestId'))
@@ -198,13 +194,8 @@ describe('RequestWaiverReviewPage', function () {
       ],
     });
 
-    renderComponent = (preloadedState, router = routerContext) =>
-      render(
-        <RouterStateContext.Provider value={router}>
-          <RequestWaiverReviewPage />
-        </RouterStateContext.Provider>,
-        { preloadedState: preloadedState || defaultPreloadedState }
-      );
+    renderComponent = (preloadedState) =>
+      render(<RequestWaiverReviewPage />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
   const assertElementsDisabled = () => {

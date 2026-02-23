@@ -25,7 +25,7 @@ import static com.codeborne.selenide.Selenide.$$;
 public class SuccessMetricsReportPage
     extends BasicElement<SuccessMetricsReportPage>
 {
-  private static final String ROOT_SELECTOR = "success-metrics-report";
+  private static final String ROOT_SELECTOR = "#success-metrics-report";
 
   public static final WebElementCondition NO_DATA_INFO_TEXT_MONTHLY = Condition.text(
       "There's not enough data to generate Success Metrics. Run some evaluations and check again next month.");

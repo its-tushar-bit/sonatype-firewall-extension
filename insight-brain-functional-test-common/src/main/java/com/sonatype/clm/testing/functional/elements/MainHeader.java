@@ -11,8 +11,21 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class MainHeader
 {
+  /**
+   * @deprecated Use {@link #menuBar()} instead. The main-header element itself is always present,
+   * but may be empty when embeddable mode is active. Check for the actual menu bar content.
+   */
+  @Deprecated
   public static SelenideElement get() {
     return $("main-header");
+  }
+
+  /**
+   * Gets the actual menu bar element inside the header.
+   * This element will not be present when embeddable mode is active.
+   */
+  public static SelenideElement menuBar() {
+    return $("#menu-bar");
   }
 
   public static UserMenu userMenu() {

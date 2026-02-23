@@ -10,6 +10,8 @@ import { organizationPropType, textInputPropType } from '../scmPropTypes';
 import { hasValidationErrors } from '../../../util/validationUtil';
 import { validateHostUrl } from '../utils/validators';
 import CredentialsError from './CredentialsError';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
+
 /*
  The dialog which prompts users for a base host URL
  */
@@ -28,8 +30,9 @@ export default function GitHostModal(props) {
     setShowHostDialog,
     setIsGitHostNeeded,
     errorText,
-    $state,
   } = props;
+
+  const $state = useRouterState();
 
   const onCancelClicked = () => {
     setShowHostDialog(false);
@@ -130,6 +133,5 @@ GitHostModal.propTypes = {
   setShowHostDialog: PropTypes.func,
   errorText: PropTypes.object,
   setIsGitHostNeeded: PropTypes.func,
-  $state: PropTypes.object.isRequired,
   loadRepositoriesErrorCode: PropTypes.string,
 };

@@ -9,6 +9,7 @@ import { componentPropType } from '../../advancedLegalPropTypes';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function NoticeDetailsList(props) {
   const {
@@ -20,10 +21,10 @@ export default function NoticeDetailsList(props) {
     stageTypeId,
     loading,
     error,
-    $state,
     componentIdentifier,
     isSbomManager,
   } = props;
+  const $state = useRouterState();
   let listItems = null;
 
   const listLinkClass = (index) => classnames('nx-list__link', { selected: index === parseInt(noticeIndex) });
@@ -77,7 +78,7 @@ export default function NoticeDetailsList(props) {
   });
 
   return loading || error ? null : (
-    <aside className="nx-scrollable nx-viewport-sized__scrollable">
+    <aside id="notice-details-list" className="nx-scrollable nx-viewport-sized__scrollable">
       <ul className="nx-list nx-list--clickable">{listItems}</ul>
     </aside>
   );
@@ -92,7 +93,6 @@ NoticeDetailsList.propTypes = {
   ownerId: PropTypes.string,
   hash: PropTypes.string,
   stageTypeId: PropTypes.string,
-  $state: PropTypes.object.isRequired,
   noticeIndex: PropTypes.string.isRequired,
   isSbomManager: PropTypes.bool,
 };

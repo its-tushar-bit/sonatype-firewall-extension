@@ -20,6 +20,7 @@ import LicenseObligationModalContainer from './LicenseObligationModalContainer';
 import { find, propEq } from 'ramda';
 import AllLicenseObligationsModalContainer from './AllLicenseObligationsModalContainer';
 import { findSingleLicenseIndex, LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from '../legalUtility';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function LicenseObligationsTile(props) {
   const {
@@ -35,11 +36,12 @@ export default function LicenseObligationsTile(props) {
     ownerId,
     hash,
     stageTypeId,
-    $state,
     effectiveLicenses,
     componentIdentifier,
     isSbomManager,
   } = props;
+
+  const $state = useRouterState();
 
   const flatEffectiveLicenses = effectiveLicenses.map((e) => e.licenseId);
   const isObligationPresent = () => licenseObligations.length > 0;
@@ -252,7 +254,6 @@ LicenseObligationsTile.propTypes = {
   hash: PropTypes.string,
   stageTypeId: PropTypes.string,
   componentIdentifier: PropTypes.string,
-  $state: PropTypes.object.isRequired,
   effectiveLicenses: PropTypes.arrayOf(PropTypes.object),
   isSbomManager: PropTypes.bool,
 };

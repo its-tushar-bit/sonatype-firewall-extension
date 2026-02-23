@@ -34,4 +34,3 @@ function mapStateToProps({ advancedLegal, componentNoticeDetails, router }) {
 
 const NoticeDetailsListContainer = connect(mapStateToProps)(NoticeDetailsList);
 export default NoticeDetailsListContainer;
-NoticeDetailsListContainer.propTypes = pick(['$state'], NoticeDetailsList.propTypes);

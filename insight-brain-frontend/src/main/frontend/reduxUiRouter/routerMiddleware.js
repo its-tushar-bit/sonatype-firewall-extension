@@ -5,31 +5,31 @@
  */
 import { STATE_GO, STATE_RELOAD, STATE_TRANSITION_TO } from './routerActions';
 
-let $state;
+let stateService;
 
-export function setStateService(stateService) {
-  $state = stateService;
+export function setStateService(service) {
+  stateService = service;
 }
 
 const routerMiddleware = () => (next) => (action) => {
-  if (!$state) {
+  if (!stateService) {
     return next(action);
   }
 
   const { payload } = action;
-  const isStandaloneFirewall = $state.includes('firewall');
+  const isStandaloneFirewall = stateService.includes('firewall');
   const resolvedToState =
     payload && isStandaloneFirewall && !payload.to?.includes('firewall') ? `firewall.${payload.to}` : payload?.to;
 
   switch (action.type) {
     case STATE_GO:
-      return $state.go(resolvedToState, payload.params, payload.options).then(() => next(action));
+      return stateService.go(resolvedToState, payload.params, payload.options).then(() => next(action));
 
     case STATE_RELOAD:
-      return $state.reload(payload).then(() => next(action));
+      return stateService.reload(payload).then(() => next(action));
 
     case STATE_TRANSITION_TO:
-      return $state.transitionTo(resolvedToState, payload.params, payload.options).then(() => next(action));
+      return stateService.transitionTo(resolvedToState, payload.params, payload.options).then(() => next(action));
 
     default:
       return next(action);

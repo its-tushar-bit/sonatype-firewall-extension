@@ -9,6 +9,7 @@ import { componentPropType } from '../../advancedLegalPropTypes';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function LicenseFilesDetailsList(props) {
   const {
@@ -21,9 +22,10 @@ export default function LicenseFilesDetailsList(props) {
     componentIdentifier,
     loading,
     error,
-    $state,
     isSbomManager,
   } = props;
+
+  const $state = useRouterState();
 
   const adjustedIndex = parseInt(licenseIndex) || 0;
 
@@ -81,7 +83,7 @@ export default function LicenseFilesDetailsList(props) {
   });
 
   return loading || error ? null : (
-    <aside className="nx-scrollable nx-viewport-sized__scrollable">
+    <aside id="license-files-details-list" className="nx-scrollable nx-viewport-sized__scrollable">
       <ul className="nx-list nx-list--clickable">{listItems}</ul>
     </aside>
   );
@@ -96,7 +98,6 @@ LicenseFilesDetailsList.propTypes = {
   stageTypeId: PropTypes.string,
   hash: PropTypes.string,
   componentIdentifier: PropTypes.string,
-  $state: PropTypes.object.isRequired,
   licenseIndex: PropTypes.string,
   isSbomManager: PropTypes.bool,
 };

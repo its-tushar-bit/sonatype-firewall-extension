@@ -15,7 +15,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class RepositoryReportContainerPage
 {
   public static String url(String repositoryId) {
-    return BaseUrl.resolvePageUrl("/repository/{repositoryId}/result", repositoryId);
+    return BaseUrl.resolvePageUrl("/firewall/repository/{repositoryId}/result", repositoryId);
   }
 
   public static SelenideElement title() {

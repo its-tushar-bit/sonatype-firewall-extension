@@ -70,8 +70,6 @@ public class ApiGitHubAppServiceTest
   private static final String OAUTH_CODE = "test-oauth-code";
 
   private static final String ACCESS_TOKEN = "ghu_test_access_token";
-  
-  private static final String GITHUB_OWNER_TEST = "GitHubOwnerTest";
 
   @Rule
   public WireMockRule githubMockServer = new WireMockRule(wireMockConfig().dynamicPort());
@@ -752,7 +750,7 @@ public class ApiGitHubAppServiceTest
         baseUrl
     );
 
-    assertThatThrownBy(() -> testService.generateManifest(GITHUB_OWNER_TEST, "test-org"))
+    assertThatThrownBy(() -> testService.generateManifest(organization.getId(), "test-org"))
         .isInstanceOf(InternalServerErrorException.class)
         .hasMessageContaining("IQ Server base URL must be configured");
   }
@@ -762,7 +760,7 @@ public class ApiGitHubAppServiceTest
     when(baseUrl.get()).thenReturn(" ");
 
     ApiGitHubAppService testService = new ApiGitHubAppService(
-        
+
         gitHubAppDAO,
         installationStateDAO,
         registrationStateDAO,
@@ -774,7 +772,7 @@ public class ApiGitHubAppServiceTest
         baseUrl
     );
 
-    assertThatThrownBy(() -> testService.generateManifest(GITHUB_OWNER_TEST, "test-org"))
+    assertThatThrownBy(() -> testService.generateManifest(organization.getId(), "test-org"))
         .isInstanceOf(InternalServerErrorException.class)
         .hasMessageContaining("IQ Server base URL must be configured");
   }
@@ -796,9 +794,9 @@ public class ApiGitHubAppServiceTest
         baseUrl
     );
 
-    ApiGitHubAppManifestDTO result1 = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
-    ApiGitHubAppManifestDTO result2 = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
-    ApiGitHubAppManifestDTO result3 = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
+    ApiGitHubAppManifestDTO result1 = testService.generateManifest(organization.getId(), "test-org");
+    ApiGitHubAppManifestDTO result2 = testService.generateManifest(organization.getId(), "test-org");
+    ApiGitHubAppManifestDTO result3 = testService.generateManifest(organization.getId(), "test-org");
 
     assertThat(result1.state()).isNotEqualTo(result2.state());
     assertThat(result1.state()).isNotEqualTo(result3.state());
@@ -827,7 +825,7 @@ public class ApiGitHubAppServiceTest
     );
 
     long beforeGenerate = System.currentTimeMillis();
-    ApiGitHubAppManifestDTO result = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
+    ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
     long afterGenerate = System.currentTimeMillis();
 
     // generateManifest creates a GitHubAppRegistrationState, not InstallationState
@@ -864,7 +862,7 @@ public class ApiGitHubAppServiceTest
         baseUrl
     );
 
-    ApiGitHubAppManifestDTO result = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
+    ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
     Map<String, String> permissions = result.manifest().default_permissions();
 
     assertThat(permissions).isNotNull();
@@ -890,7 +888,7 @@ public class ApiGitHubAppServiceTest
         baseUrl
     );
 
-    ApiGitHubAppManifestDTO result = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
+    ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
 
     assertThat(result.state()).hasSize(32);
     assertThat(result.state()).matches("[A-Za-z0-9]+");
@@ -913,11 +911,11 @@ public class ApiGitHubAppServiceTest
         baseUrl
     );
 
-    ApiGitHubAppManifestDTO result1 = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
-    ApiGitHubAppManifestDTO result2 = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
-    ApiGitHubAppManifestDTO result3 = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
-    ApiGitHubAppManifestDTO result4 = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
-    ApiGitHubAppManifestDTO result5 = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
+    ApiGitHubAppManifestDTO result1 = testService.generateManifest(organization.getId(), "test-org");
+    ApiGitHubAppManifestDTO result2 = testService.generateManifest(organization.getId(), "test-org");
+    ApiGitHubAppManifestDTO result3 = testService.generateManifest(organization.getId(), "test-org");
+    ApiGitHubAppManifestDTO result4 = testService.generateManifest(organization.getId(), "test-org");
+    ApiGitHubAppManifestDTO result5 = testService.generateManifest(organization.getId(), "test-org");
 
     assertThat(result1.state()).isNotEqualTo(result2.state());
     assertThat(result1.state()).isNotEqualTo(result3.state());
@@ -946,7 +944,7 @@ public class ApiGitHubAppServiceTest
     );
 
     for (int i = 0; i < 10; i++) {
-      ApiGitHubAppManifestDTO result = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
+      ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
       assertThat(result.state()).matches("^[A-Za-z0-9]+$");
     }
   }
@@ -968,7 +966,7 @@ public class ApiGitHubAppServiceTest
         baseUrl
     );
 
-    ApiGitHubAppManifestDTO result = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
+    ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
     String appName = result.manifest().name();
 
     String suffix = appName.replace("Sonatype IQ Server ", "");
@@ -991,9 +989,9 @@ public class ApiGitHubAppServiceTest
         baseUrl
     );
 
-    ApiGitHubAppManifestDTO result1 = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
-    ApiGitHubAppManifestDTO result2 = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
-    ApiGitHubAppManifestDTO result3 = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
+    ApiGitHubAppManifestDTO result1 = testService.generateManifest(organization.getId(), "test-org");
+    ApiGitHubAppManifestDTO result2 = testService.generateManifest(organization.getId(), "test-org");
+    ApiGitHubAppManifestDTO result3 = testService.generateManifest(organization.getId(), "test-org");
 
     String name1 = result1.manifest().name();
     String name2 = result2.manifest().name();
@@ -1022,7 +1020,7 @@ public class ApiGitHubAppServiceTest
     );
 
     for (int i = 0; i < 10; i++) {
-      ApiGitHubAppManifestDTO result = testService.generateManifest(GITHUB_OWNER_TEST, "test-org");
+      ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
       String suffix = result.manifest().name().replace("Sonatype IQ Server ", "");
       assertThat(suffix).matches("^[A-Za-z0-9]+$");
     }

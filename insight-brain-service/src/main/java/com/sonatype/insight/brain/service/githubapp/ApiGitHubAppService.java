@@ -16,6 +16,8 @@ import com.sonatype.insight.brain.api.v2.githubapp.ApiGitHubAppResource;
 import com.sonatype.insight.brain.model.githubapp.GitHubAppRegistrationState;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.BaseUrl;
 import java.io.StringReader;
 import com.sonatype.nexus.scm.github.GitHubApiClient;
@@ -140,14 +142,34 @@ public class ApiGitHubAppService
 
   /**
    * Generates a GitHub App manifest for registration with GitHub's app creation flow.
+   * This wrapper method validates owner exists, then delegates to the authorized method for permission checking.
+   *
+   * @param ownerId Owner ID
+   * @param organizationName GitHub App organisation name
+   * @return ApiGitHubAppManifestDTO containing state token and manifest JSON
+   * @throws InternalServerErrorException if base URL is not configured or owner not found
+   */
+  public ApiGitHubAppManifestDTO generateManifest(final String ownerId, final String organizationName) {
+    Owner owner = ownerDAO.getByIdNotNull(ownerId);
+    return generateManifestAuthorized(owner, organizationName);
+  }
+
+  /**
+   * Internal method that generates a GitHub App manifest after authorization check.
    * Creates a unique app name with random suffix, OAuth callback URLs with CSRF-protected
    * state token (expires in 10 minutes), and required source control permissions.
+   * Uses WRITE permission on the owner, similar to ApiSourceControlService.addSourceControlByOwner.
    *
+   * @param owner Owner for authorization check
    * @param organizationName GitHub App organisation name
    * @return ApiGitHubAppManifestDTO containing state token and manifest JSON
    * @throws InternalServerErrorException if base URL is not configured or state token creation fails
    */
-  public ApiGitHubAppManifestDTO generateManifest(String ownerId,String organizationName) {
+  @Authorize(permission = Permission.WRITE)
+  ApiGitHubAppManifestDTO generateManifestAuthorized(
+      @AuthzContext(Key.OWNER) final Owner owner,
+      final String organizationName)
+  {
     final String baseUrlForManifest = baseUrl.get();
 
     if (StringUtils.isBlank(baseUrlForManifest)) {
@@ -169,7 +191,7 @@ public class ApiGitHubAppService
 
     final GitHubAppRegistrationState stateRecord = new GitHubAppRegistrationState();
     stateRecord.setStateToken(stateToken);
-    stateRecord.setOwnerId(ownerId);
+    stateRecord.setOwnerId(owner.getId());
     stateRecord.setGithubOrganizationName(organizationName);
     stateRecord.setExpiresAt(new Date(System.currentTimeMillis() + STATE_TOKEN_EXPIRATION_MS));
     stateRecord.setCreatedAt(new Date());
@@ -206,8 +228,8 @@ public class ApiGitHubAppService
 
   /**
    * Handle GitHub App installation setup callback after OAuth authorization.
-   * Validates state token (CSRF protection), exchanges OAuth code for access token,
-   * verifies user owns the installation, and configures installation ID.
+   * This wrapper method validates the state token, extracts owner information,
+   * and delegates to the authorized method for permission checking.
    *
    * @param installationId GitHub App installation ID
    * @param state State token for CSRF protection
@@ -215,7 +237,6 @@ public class ApiGitHubAppService
    * @return Owner object (used to build redirect URL in Resource layer)
    * @throws BadRequestException if validation fails or configuration errors occur
    */
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public Owner handleInstallationSetupCallback(
       final Long installationId,
       final String state,
@@ -239,7 +260,30 @@ public class ApiGitHubAppService
     }
 
     String ownerId = gitHubApp.getOwnerId();
+    Owner owner = ownerDAO.getByIdNotNull(ownerId);
 
+    return handleInstallationSetupCallbackAuthorized(owner, installationId, gitHubApp, oauthCode);
+  }
+
+  /**
+   * Internal method that performs the actual installation setup after authorization check.
+   * Uses WRITE permission on the owner, similar to ApiSourceControlService.addSourceControlByOwner.
+   * Exchanges OAuth code for access token, verifies user owns the installation, and configures installation ID.
+   *
+   * @param owner Owner for authorization check
+   * @param installationId GitHub App installation ID
+   * @param gitHubApp Pre-fetched GitHub App entity
+   * @param oauthCode OAuth authorization code
+   * @return Owner object (used to build redirect URL in Resource layer)
+   * @throws BadRequestException if validation fails or configuration errors occur
+   */
+  @Authorize(permission = Permission.WRITE)
+  Owner handleInstallationSetupCallbackAuthorized(
+      @AuthzContext(Key.OWNER) final Owner owner,
+      final Long installationId,
+      final GitHubApp gitHubApp,
+      final String oauthCode) throws IOException
+  {
     String userAccessToken = getUserAccessToken(oauthCode, gitHubApp);
 
     GitHubUserInstallations installations = getUserInstallations(userAccessToken);
@@ -260,23 +304,51 @@ public class ApiGitHubAppService
         .map(installation -> installation.getAccount().getLogin())
         .get();
 
-    log.info("OAuth validation successful for installation {} and owner {}", installationId, ownerId);
+    log.info("OAuth validation successful for installation {} and owner {}", installationId, owner.getId());
 
-    Owner owner = ownerDAO.getById(ownerId);
-
-    configureInstallation(gitHubApp, ownerId, installationId, accountName);
+    configureInstallation(gitHubApp, owner.getId(), installationId, accountName);
 
     return owner;
   }
 
-  @Authorize(permission = Permission.WRITE)
+  /**
+   * Handle GitHub App manifest conversion and registration.
+   * This wrapper method validates the state token, extracts owner information,
+   * and delegates to the authorized method for permission checking.
+   *
+   * @param code Temporary manifest conversion code from GitHub
+   * @param state OAuth state token for CSRF protection
+   * @return Installation URL for GitHub App
+   * @throws Exception if validation fails or registration errors occur
+   */
   public String handleManifestConversionAndRegistration(
       final String code,
       final String state) throws Exception
   {
-
     GitHubAppRegistrationState registrationState = findVerifyAndDeleteStateToken(state);
 
+    String ownerId = registrationState.getOwnerId();
+    Owner owner = ownerDAO.getByIdNotNull(ownerId);
+
+    return handleManifestConversionAndRegistrationAuthorized(owner, code, registrationState);
+  }
+
+  /**
+   * Internal method that performs the actual manifest conversion and registration after authorization check.
+   * Uses WRITE permission on the owner, similar to ApiSourceControlService.addSourceControlByOwner.
+   *
+   * @param owner Owner for authorization check
+   * @param code Temporary manifest conversion code from GitHub
+   * @param registrationState Pre-fetched registration state
+   * @return Installation URL for GitHub App
+   * @throws Exception if registration errors occur
+   */
+  @Authorize(permission = Permission.WRITE)
+  String handleManifestConversionAndRegistrationAuthorized(
+      @AuthzContext(Key.OWNER) final Owner owner,
+      final String code,
+      final GitHubAppRegistrationState registrationState) throws Exception
+  {
     final ApiGitHubAppDTO gitHubApp = createGitHubAppFromManifest(code, registrationState);
 
     GitHubAppInstallationState installationState =

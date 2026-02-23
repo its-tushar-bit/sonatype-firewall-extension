@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.git.RemediationPullRequestEligibilityService;
 import com.sonatype.insight.brain.git.RemediationPullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.ScmApplicationNameConverter;
 import com.sonatype.insight.brain.git.ScmOnboardingService;
+import com.sonatype.insight.brain.git.ScmRateLimitMetrics;
 import com.sonatype.insight.brain.git.ScmRateLimitProvider;
 import com.sonatype.insight.brain.git.ScmReducedSecurityService;
 import com.sonatype.insight.brain.git.ScmRepoVisibilityService;
@@ -183,6 +184,7 @@ public class IntegrationModule
     bind(ScanUploader.class);
     bind(ScmApplicationNameConverter.class);
     bind(ScmOnboardingService.class);
+    bind(ScmRateLimitMetrics.class);
     bind(ScmRateLimitProvider.class);
     bind(ScmReducedSecurityService.class);
     bind(ScmRepoVisibilityService.class);

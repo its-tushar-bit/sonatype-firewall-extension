@@ -74,7 +74,7 @@
     <drools.version>10.1.0</drools.version>
     <selenium.version>4.23.1</selenium.version>
     <httpcomponents.version>4.5.14</httpcomponents.version>
-    <nexus-scm-client.version>3.0.0</nexus-scm-client.version>
+    <nexus-scm-client.version>3.1.0-01</nexus-scm-client.version>
     <nexus-dependency-management.version>2.2.12-01</nexus-dependency-management.version>
     <!-- byte-buddy version should match whichever version mockito-core depends on in its pom.xml file. -->
     <mockito-core.version>5.21.0</mockito-core.version>

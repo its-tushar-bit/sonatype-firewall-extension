@@ -440,11 +440,11 @@ public class ScanUploaderTest
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
 
-    assertThatExceptionOfType(IllegalArgumentException.class)
+    assertThatExceptionOfType(UnsupportedIntegrationVersionException.class)
         .isThrownBy(() -> scanUploader.upload(scanEntity, app, null,
             "Maven_Plugin/1.0.0 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)", thirdPartyScanContext, false))
         .withMessageContaining("The integration version 1.0.0 of Maven_Plugin is not supported")
-        .withMessageContaining("Supported versions are: 1.3.0, 1.2.0, 1.1.0");
+        .withMessageContaining("Minimum supported version is 1.1.0.");
   }
 
   @Test

@@ -225,9 +225,8 @@ public class ScanUploader
     }
 
     if (sortedReleases.stream().noneMatch(release -> version.equals(release.version()))) {
-      throw new IllegalArgumentException("The integration version " + version + " of " + name
-          + " is not supported. Supported versions are: "
-          + sortedReleases.stream().map(IqIntegrationVersion::version).reduce((a, b) -> a + ", " + b).orElse(""));
+      throw new UnsupportedIntegrationVersionException(version, name,
+          sortedReleases.stream().map(IqIntegrationVersion::version).toList());
     }
   }
 }

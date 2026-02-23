@@ -145,12 +145,15 @@ public class LegacyViolationService
         if (!policyViolation.isLegacyViolation()) {
           Policy policy = policyDAO.getById(tx, policyViolation.getPolicyId());
           if (policy == null || policy.isLegacyViolationAllowed()) {
-            policyViolation.setLegacyViolationTime(now);
-            policyViolationDAO.update(tx, policyViolation);
-            policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, policyViolation);
-            policyViolationLogger.add(PolicyViolationLogEvent.GRANT_LEGACY_STATUS, policyViolation);
+            // Firewall (proxy stage) violations should not be marked as legacy
+            if (!Stage.ID_PROXY.equals(policyViolation.getStageTypeId())) {
+              policyViolation.setLegacyViolationTime(now);
+              policyViolationDAO.update(tx, policyViolation);
+              policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, policyViolation);
+              policyViolationLogger.add(PolicyViolationLogEvent.GRANT_LEGACY_STATUS, policyViolation);
 
-            changedPolicyViolationCount++;
+              changedPolicyViolationCount++;
+            }
           }
         }
       }

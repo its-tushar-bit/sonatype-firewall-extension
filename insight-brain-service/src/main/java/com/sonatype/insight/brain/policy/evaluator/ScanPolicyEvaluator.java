@@ -898,6 +898,10 @@ public class ScanPolicyEvaluator
             if (!isLegacyViolationApplicable) {
               oldPolicyViolation.setLegacyViolationTime(null);
             }
+            // Firewall (proxy stage) violations should not have legacy status
+            if (Stage.ID_PROXY.equals(oldPolicyViolation.getStageTypeId())) {
+              oldPolicyViolation.setLegacyViolationTime(null);
+            }
 
             if (keepExistingViolation) {
               // CLM-35315 - make sure after replacement to keep the latest reachability status
@@ -1047,7 +1051,12 @@ public class ScanPolicyEvaluator
       policyViolations.stream() //
           .filter(policyViolation -> policiesById.get(policyViolation.getPolicyId())
               .isLegacyViolationAllowed())
-          .forEach(policyViolation -> policyViolation.setLegacyViolationTime(policyEvaluationTime));
+          .forEach(policyViolation -> {
+            // Firewall (proxy stage) violations should not be marked as legacy
+            if (!Stage.ID_PROXY.equals(policyViolation.getStageTypeId())) {
+              policyViolation.setLegacyViolationTime(policyEvaluationTime);
+            }
+          });
     }
     else {
       List<PolicyViolation> legacyViolations =
@@ -1057,8 +1066,14 @@ public class ScanPolicyEvaluator
         PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
             .digestPolicyViolations(legacyViolations, policyViolations);
         policyViolationDiff.getSame().forEach( //
-            (legacyViolation, newPolicyViolation) -> newPolicyViolation
-                .setLegacyViolationTime(legacyViolation.getLegacyViolationTime()));
+            (legacyViolation, newPolicyViolation) -> {
+              // Firewall (proxy stage) violations should not inherit legacy status
+              // and should not propagate legacy status to other violations
+              if (!Stage.ID_PROXY.equals(newPolicyViolation.getStageTypeId()) &&
+                  !Stage.ID_PROXY.equals(legacyViolation.getStageTypeId())) {
+                newPolicyViolation.setLegacyViolationTime(legacyViolation.getLegacyViolationTime());
+              }
+            });
       }
     }
   }

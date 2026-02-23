@@ -6259,7 +6259,7 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_FirewallContext_LegacyViolationsEnforced() throws Exception {
-    // Firewall should enforce ALL legacy violations regardless of severity
+    // Firewall violations should NEVER be marked as legacy, and ALL violations should be enforced
     Stage proxyStage = new Stage(Stage.ID_PROXY);
     Repository repository = createTestRepository();
     organization.setRelatedRepositoryId(repository.getId());
@@ -6275,7 +6275,7 @@ public class ScanPolicyEvaluatorTest
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, proxyStage,
         ScanTriggerType.REPOSITORY_MANAGER, ClientScanType.SONATYPE, false);
 
-    // Mark all violations as legacy
+    // Manually mark all violations as legacy to simulate pre-fix data
     List<PolicyViolation> allViolations = results.allViolations;
     try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
       tx.begin();
@@ -6286,17 +6286,19 @@ public class ScanPolicyEvaluatorTest
       tx.commit();
     }
 
-    // Re-evaluate to get active violations with legacy flag applied
+    // Re-evaluate - Guards should clear legacy time from proxy violations
     results = scanPolicyEvaluator.evaluate(application, scanId, proxyStage,
         ScanTriggerType.REPOSITORY_MANAGER, ClientScanType.SONATYPE, false);
 
-    // Verify ALL legacy violations are included (Firewall ignores legacy flag)
+    // Verify Firewall violations do NOT have legacy time (Guards cleared it)
     List<PolicyViolation> activeViolations = results.activeViolations;
     long legacyCount = activeViolations.stream()
         .filter(PolicyViolation::isLegacyViolation)
         .count();
 
-    assertThat(legacyCount).isEqualTo(allViolations.size());
+    // Firewall violations should NEVER be legacy - legacy count should be 0
+    assertThat(legacyCount).isEqualTo(0L);
+    // ALL violations should still be active (enforced)
     assertThat(activeViolations.size()).isEqualTo(allViolations.size());
   }
 
@@ -6334,5 +6336,106 @@ public class ScanPolicyEvaluatorTest
         .count();
 
     assertThat(legacyInActiveCount).isEqualTo(0);
+  }
+
+  @Test
+  public void testEvaluate_ProxyStage_ViolationsNotMarkedAsLegacyOnFirstEvaluation() throws Exception {
+    Repository repository = createTestRepository();
+    organization.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(organization);
+
+    Policy policy = newSecurityPolicy();
+    policy.setLegacyViolationAllowed(true);
+    policy.getActions().put(Stage.ID_PROXY, Action.ID_FAIL);
+    policy.setOwnerId(repository.getId());
+    policyDAO.update(policy);
+
+    String scanId = simulateReportIsAvailable("report");
+    Stage proxyStage = new Stage(Stage.ID_PROXY);
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(
+        application, scanId, proxyStage,
+        ScanTriggerType.REPOSITORY_MANAGER, ClientScanType.SONATYPE, false);
+
+    // Verify violations are not marked as legacy for proxy stage
+    assertThat(results.allViolations).isNotEmpty();
+    for (PolicyViolation violation : results.allViolations) {
+      assertThat(violation.getLegacyViolationTime()).isNull();
+      assertThat(violation.getStageTypeId()).isEqualTo(Stage.ID_PROXY);
+    }
+    assertThat(results.activeViolations).hasSize(results.allViolations.size());
+  }
+
+  @Test
+  public void testEvaluate_ProxyStage_ViolationsDoNotInheritLegacyStatusOnSubsequentEvaluation() throws Exception {
+    Repository repository = createTestRepository();
+    organization.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(organization);
+
+    Policy policy = newSecurityPolicy();
+    policy.setLegacyViolationAllowed(true);
+    policy.getActions().put(Stage.ID_PROXY, Action.ID_FAIL);
+    policy.setOwnerId(repository.getId());
+    policyDAO.update(policy);
+
+    String scanId = simulateReportIsAvailable("report");
+    Stage proxyStage = new Stage(Stage.ID_PROXY);
+
+    // First evaluation creates violations
+    ScanPolicyEvaluatorResults firstResults = scanPolicyEvaluator.evaluate(
+        application, scanId, proxyStage,
+        ScanTriggerType.REPOSITORY_MANAGER, ClientScanType.SONATYPE, false);
+
+    assertThat(firstResults.allViolations).isNotEmpty();
+
+    // Manually mark violations as legacy to simulate pre-fix data
+    Date legacyTime = new Date();
+    try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+      tx.begin();
+      policyViolationDAO.getByApplicationId(application.getId()).forEach(policyViolation -> {
+        policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
+        policyViolation.setLegacyViolationTime(legacyTime);
+        policyViolationDAO.update(tx, policyViolation);
+      });
+      tx.commit();
+    }
+
+    waitForTimeAdvance();
+
+    // Second evaluation should not inherit legacy status for proxy stage
+    ScanPolicyEvaluatorResults secondResults = scanPolicyEvaluator.evaluate(
+        application, scanId, proxyStage,
+        ScanTriggerType.REPOSITORY_MANAGER, ClientScanType.SONATYPE, false);
+
+    // Verify violations are not marked as legacy
+    assertThat(secondResults.allViolations).isNotEmpty();
+    for (PolicyViolation violation : secondResults.allViolations) {
+      assertThat(violation.getLegacyViolationTime()).isNull();
+      assertThat(violation.getStageTypeId()).isEqualTo(Stage.ID_PROXY);
+    }
+    assertThat(secondResults.activeViolations).hasSize(secondResults.allViolations.size());
+  }
+
+  @Test
+  public void testEvaluate_BuildStage_ViolationsStillMarkedAsLegacyOnFirstEvaluation() throws Exception {
+    application = tempEntity.newApplicationWithParent();
+    application.setLegacyViolationEnabled(true);
+    applicationDAO.update(application);
+
+    Policy policy = newSecurityPolicy();
+    policy.setLegacyViolationAllowed(true);
+    policyDAO.update(policy);
+
+    String scanId = simulateReportIsAvailable("report");
+    Stage buildStage = new Stage(Stage.ID_BUILD);
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(
+        application, scanId, buildStage,
+        ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
+
+    // Verify Lifecycle stages still get legacy marking
+    List<PolicyViolation> inactiveViolations = getInactiveViolations(results);
+    assertThat(inactiveViolations).isNotEmpty().allSatisfy(violation -> {
+      assertThat(violation.getLegacyViolationTime()).isEqualTo(results.evaluation.getTime());
+    });
+    assertThat(results.activeViolations).isEmpty();
   }
 }

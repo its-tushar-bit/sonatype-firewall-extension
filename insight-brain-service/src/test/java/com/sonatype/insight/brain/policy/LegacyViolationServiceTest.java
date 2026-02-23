@@ -507,4 +507,28 @@ public class LegacyViolationServiceTest
             new LegacyViolationStatusDTO())
     );
   }
+
+  @Test
+  public void testGrantLegacyViolationStatus_ProxyStageViolationsNotMarkedAsLegacy() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    app.setLegacyViolationEnabled(true);
+    applicationDAO.update(app);
+
+    Policy buildStagePolicy = newPolicyAllowingLegacyViolations();
+    Policy proxyStagePolicy = newPolicyAllowingLegacyViolations();
+
+    PolicyEvaluation buildEvaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanId1");
+    PolicyViolation buildViolation = tempEntity.newPolicyViolation(buildEvaluation, buildStagePolicy);
+
+    PolicyEvaluation proxyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_PROXY, "scanId2");
+    PolicyViolation proxyViolation = tempEntity.newPolicyViolation(proxyEvaluation, proxyStagePolicy);
+
+    legacyViolationService.grantLegacyViolationStatus(app.getPublicId());
+
+    buildViolation = policyViolationDAO.getById(buildViolation.getId());
+    proxyViolation = policyViolationDAO.getById(proxyViolation.getId());
+
+    assertThat(buildViolation.getLegacyViolationTime()).isNotNull();
+    assertThat(proxyViolation.getLegacyViolationTime()).isNull();
+  }
 }

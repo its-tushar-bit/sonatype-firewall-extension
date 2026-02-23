@@ -766,6 +766,6 @@ public class ApiFirewallResource
   public ApplicationSummaryList verifyConnectionAndGetApplications() {
     apiFirewallService.checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
     // Get all applications (no organization or application ID filtering) accessible for component evaluation
-    return applicationSummaryService.getApplications(Goal.EVALUATE_COMPONENT, null, Collections.emptySet());
+    return applicationSummaryService.getApplications(Goal.VIEW_CIP, null, Collections.emptySet());
   }
 }

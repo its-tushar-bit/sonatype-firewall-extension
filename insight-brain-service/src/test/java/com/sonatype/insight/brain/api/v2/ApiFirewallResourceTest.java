@@ -845,4 +845,19 @@ public class ApiFirewallResourceTest
 
     assertResponseStatus(401, response);
   }
+
+  @Test
+  public void testVerifyConnectionAndGetApplications_WithoutEnforcementLicense() throws Exception {
+    setMissingFeature(LicensedFeature.ENFORCEMENT);
+    tempEntity.newApplicationWithParent();
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.CONNECTION_VERIFY_PATH)
+        .get();
+
+    assertResponseStatus(200, response);
+    ApplicationSummaryList result = response.getBody(ApplicationSummaryList.class);
+    assertThat(result).isNotNull();
+    assertThat(result.getApplicationSummaries()).isNotEmpty();
+  }
 }

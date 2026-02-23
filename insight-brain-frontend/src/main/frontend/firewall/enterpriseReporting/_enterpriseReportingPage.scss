@@ -1,0 +1,178 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// Make the custom Angular component transparent in layout
+enterprise-reporting-page {
+  display: contents;
+
+  .nx-alert--info {
+    margin-bottom: 20px;
+  }
+
+  .iq-enterprise-reporting-support-info {
+    margin-left: 0;
+  }
+}
+
+// Main container styles
+.iq-fw-enterprise-reporting {
+  &__back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nx-spacing-2x);
+    margin-bottom: var(--nx-spacing-4x);
+
+    .nx-icon {
+      font-size: 0.875rem;
+    }
+  }
+
+  &__header {
+    display: contents;
+  }
+
+  &__alerts-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nx-spacing-3x);
+    margin-bottom: var(--nx-spacing-6x);
+    width: 70%;
+    .nx-alert {
+      min-width: 100%;
+      margin: 0;
+    }
+  }
+
+  &__content {
+    margin-top: var(--nx-spacing-6x);
+    padding: var(--nx-spacing-6x);
+    text-align: center;
+  }
+}
+
+// Page-specific styles
+#fw-enterprise-reporting-page {
+  .nx-page-title {
+    margin-bottom: var(--nx-spacing-6x);
+  }
+}
+
+// Dashboard page component
+firewall-enterprise-reporting-dashboard-page {
+  display: contents;
+}
+
+// Dashboard page styles
+#fw-enterprise-reporting-dashboard-page {
+  .fw-enterprise-reporting-dashboard__back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nx-spacing-2x);
+    margin-bottom: var(--nx-spacing-4x);
+    font-weight: 600;
+
+    .nx-icon {
+      font-size: 14px;
+    }
+  }
+
+  .fw-enterprise-reporting-dashboard__container {
+    min-height: 600px;
+    width: 100%;
+    position: relative;
+
+    &.loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    iframe {
+      width: 100%;
+      border: none;
+      min-height: 600px;
+    }
+  }
+
+  .nx-page-title {
+    margin-bottom: var(--nx-spacing-4x);
+  }
+
+  // Demo placeholder (remove when API is ready)
+  .fw-enterprise-reporting-dashboard__demo-placeholder {
+    background: var(--nx-color-component-background);
+    border: 2px dashed var(--nx-color-border);
+    border-radius: var(--nx-border-radius);
+    padding: var(--nx-spacing-8x);
+    text-align: center;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fw-enterprise-reporting-dashboard__demo-content {
+    max-width: 700px;
+
+    h2 {
+      color: var(--nx-color-text);
+      margin-bottom: var(--nx-spacing-4x);
+      font-size: 1.75rem;
+    }
+
+    p {
+      color: var(--nx-color-text-subtle);
+      margin-bottom: var(--nx-spacing-6x);
+      font-size: 1rem;
+    }
+  }
+
+  .fw-enterprise-reporting-dashboard__demo-info {
+    background: var(--nx-color-background-mask);
+    border-radius: var(--nx-border-radius);
+    padding: var(--nx-spacing-6x);
+    text-align: left;
+
+    h3 {
+      color: var(--nx-color-text);
+      margin-bottom: var(--nx-spacing-4x);
+      font-size: 1.25rem;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 var(--nx-spacing-6x) 0;
+
+      li {
+        padding: var(--nx-spacing-2x) 0;
+        color: var(--nx-color-text);
+        font-size: 0.875rem;
+
+        strong {
+          color: var(--nx-color-text-strong);
+          margin-right: var(--nx-spacing-2x);
+        }
+      }
+    }
+  }
+
+  .fw-enterprise-reporting-dashboard__demo-notice {
+    background: var(--nx-color-info-background);
+    border-left: 4px solid var(--nx-color-info-border);
+    padding: var(--nx-spacing-4x);
+    border-radius: var(--nx-border-radius);
+
+    p {
+      margin: 0;
+      color: var(--nx-color-text);
+      font-size: 0.875rem;
+
+      strong {
+        color: var(--nx-color-text-strong);
+      }
+    }
+  }
+}

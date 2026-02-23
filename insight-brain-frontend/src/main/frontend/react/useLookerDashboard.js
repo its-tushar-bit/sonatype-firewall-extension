@@ -12,8 +12,8 @@ import { LookerEmbedSDK } from '@looker/embed-sdk';
 import { useDebounceCallback } from '@react-hook/debounce';
 
 import {
-  selectBaseUrl,
-  selectSelectedDashboard,
+  selectBaseUrl as defaultSelectBaseUrl,
+  selectSelectedDashboard as defaultSelectSelectedDashboard,
 } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSelectors';
 import {
   actions as filterActions,
@@ -26,8 +26,12 @@ import {
   getEnterpriseReportingGenerateEmbedTokensUrl,
 } from 'MainRoot/util/CLMLocation';
 
-export default function useLookerDashboard(iframeContainerId = '#dashboard') {
+export default function useLookerDashboard(iframeContainerId = '#dashboard', customSelectors = {}) {
   const dispatch = useDispatch();
+  // Use custom selectors if provided, otherwise use defaults
+  const selectBaseUrl = customSelectors.selectBaseUrl || defaultSelectBaseUrl;
+  const selectSelectedDashboard = customSelectors.selectSelectedDashboard || defaultSelectSelectedDashboard;
+
   const baseUrl = useSelector(selectBaseUrl);
   const selectedDashboard = useSelector(selectSelectedDashboard);
   const { appliedFilter, appliedFilterName, filterState, loadingAllFilters, savedFilters } = useSelector(

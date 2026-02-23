@@ -94,6 +94,9 @@
 @use '../legal/files/notices/componentNoticeDetails';
 @use '../legal/files/licenses/componentLicenseFilesDetails';
 @use '../firewall/firewall';
+@use '../firewall/enterpriseReporting/enterpriseReportingPage';
+@use '../firewall/enterpriseReporting/dashboard/firewallEnterpriseReportingDashboardPage';
+@use '../firewall/enterpriseReporting/card/firewallEnterpriseReportCard';
 @use '../../frontend/react/FirewallRepositoryList/FirewallRepositoryList';
 @use '../../frontend/react/IqCollapsibleRow/IqCollapsibleRow';
 @use '../../frontend/react/IqPageFooter/IqPageFooter';

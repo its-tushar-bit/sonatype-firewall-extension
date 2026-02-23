@@ -26,6 +26,7 @@ import {
   selectIsIntegratedEnterpriseReportingSupported,
   selectLoadingFeatures,
   selectIsAlpForSbomManagerEnabled,
+  selectIsFirewallEnterpriseReportingEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectIsStandaloneFirewall,
@@ -78,7 +79,7 @@ export default function NavigationContainer({ clmServerVersion, $rootScope, $sta
   const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
   const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
   const isAlpForSbomManagerEnabled = useSelector(selectIsAlpForSbomManagerEnabled);
-
+  const isFirewallEnterpriseReportingEnabled = useSelector(selectIsFirewallEnterpriseReportingEnabled);
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const isLicensed = useSelector(selectIsLicensed);
 
@@ -139,6 +140,7 @@ export default function NavigationContainer({ clmServerVersion, $rootScope, $sta
       isStandaloneFirewall={isStandaloneFirewall}
       isFirewallOnlyLicense={isFirewallOnlyLicense}
       isAlpForSbomManagerEnabled={isAlpForSbomManagerEnabled}
+      isFirewallEnterpriseReportingEnabled={isFirewallEnterpriseReportingEnabled}
     />
   );
 }

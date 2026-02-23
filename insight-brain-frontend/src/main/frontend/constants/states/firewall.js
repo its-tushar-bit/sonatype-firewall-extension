@@ -11,3 +11,4 @@ export const WAIVERS = 'waivers';
 export const ROI = 'roi';
 export const COMPONENTS = 'components';
 export const CONTAINERS = 'containers';
+export const DASHBOARD = 'dashboard';

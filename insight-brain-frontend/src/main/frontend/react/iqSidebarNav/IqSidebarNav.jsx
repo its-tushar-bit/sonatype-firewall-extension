@@ -52,6 +52,7 @@ function IqSidebarNav(props) {
     isStandaloneFirewall,
     isFirewallOnlyLicense,
     isAlpForSbomManagerEnabled,
+    isFirewallEnterpriseReportingEnabled,
   } = props;
 
   const apiHref = uiRouterState.href('api');
@@ -98,8 +99,13 @@ function IqSidebarNav(props) {
       isApiPageEnabled={isApiPageEnabled}
     />
   );
-  const sonatypeFirewallSidebar = <FirewallSidebar isLoggedIn={isLoggedIn} isApiPageEnabled={isApiPageEnabled} />;
-
+  const sonatypeFirewallSidebar = (
+    <FirewallSidebar
+      isLoggedIn={isLoggedIn}
+      isApiPageEnabled={isApiPageEnabled}
+      isFirewallEnterpriseReportingEnabled={isFirewallEnterpriseReportingEnabled}
+    />
+  );
   const iqSidebar = (
     <>
       <NxGlobalSidebar2
@@ -261,5 +267,6 @@ IqSidebarNav.propTypes = {
   isStandaloneDeveloper: PropTypes.bool,
   isStandaloneFirewall: PropTypes.bool,
   isFirewallOnlyLicense: PropTypes.bool,
+  isFirewallEnterpriseReportingEnabled: PropTypes.bool,
 };
 export default IqSidebarNav;

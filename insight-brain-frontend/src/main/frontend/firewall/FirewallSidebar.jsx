@@ -13,18 +13,20 @@ import {
   faHouse,
   faSitemap,
   faMicroscope,
+  faChartPie,
 } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
 
 export default function FirewallSidebar(props) {
-  const { isLoggedIn, isApiPageEnabled } = props;
+  const { isLoggedIn, isApiPageEnabled, isFirewallEnterpriseReportingEnabled } = props;
   const uiRouterState = useRouterState();
   const firewallState = 'firewall.firewallPage';
   const firewallRepositoriesState = 'firewall.management.view';
   const apiState = 'firewall.api';
   const vulnSearchState = 'firewall.vulnerabilitySearch';
   const vulnSearchDetailState = 'firewall.vulnerabilitySearchDetail';
+  const enterpriseReportingState = 'firewall.enterpriseReporting';
 
   const [sidebarOpen, onToggleCollapse] = useToggle(true);
 
@@ -32,6 +34,7 @@ export default function FirewallSidebar(props) {
   const firewallRepositoriesHref = uiRouterState.href(firewallRepositoriesState);
   const apiHref = uiRouterState.href(apiState);
   const vulnSearchHref = uiRouterState.href(vulnSearchState);
+  const enterpriseReportingHref = uiRouterState.href(enterpriseReportingState);
 
   const isSelected = (entryName) => uiRouterState.includes(entryName);
 
@@ -86,6 +89,16 @@ export default function FirewallSidebar(props) {
               href={apiHref}
             />
           )}
+          {isFirewallEnterpriseReportingEnabled && (
+            <NxGlobalSidebar2NavigationLink
+              isSelected={isSelected(enterpriseReportingState)}
+              id="enterprise-reporting-button"
+              className="iq-enterprise-reporting-nav-link"
+              icon={faChartPie}
+              text="Enterprise Reporting"
+              href={enterpriseReportingHref}
+            />
+          )}
         </>
       )}
     </NxGlobalSidebar2>
@@ -95,4 +108,5 @@ export default function FirewallSidebar(props) {
 FirewallSidebar.propTypes = {
   isLoggedIn: PropTypes.bool,
   isApiPageEnabled: PropTypes.bool,
+  isFirewallEnterpriseReportingEnabled: PropTypes.bool,
 };

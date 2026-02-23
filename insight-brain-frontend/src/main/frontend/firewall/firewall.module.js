@@ -10,6 +10,8 @@ import FirewallPageContainer from './FirewallPageContainer';
 import FirewallAutoUnqaurantinePageContainer from './autounquarantine/FirewallAutoUnquarantinePageContainer';
 import firewall from './firewall';
 import FirewallComponentDetailsPage from './firewallComponentDetailsPage/FirewallComponentDetailsPage';
+import EnterpriseReportingPage from './enterpriseReporting/EnterpriseReportingPage';
+import FirewallEnterpriseReportingDashboardPage from './enterpriseReporting/dashboard/FirewallEnterpriseReportingDashboardPage';
 import { selectIsDirty as policyEditorSelectIsDirty } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import {
   QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED,
@@ -36,6 +38,11 @@ export default angular
   .component('containerComponentDetails', iqReact2Angular(ComponentDetails, [], ['$state']))
   .component('containerRepositoryResults', iqReact2Angular(ContainerRepositoryResultsPage, [], ['$state']))
   .component('addContainerImageWaiverPage', iqReact2Angular(AddContainerImageWaiverPage, [], ['$state']))
+  .component('enterpriseReportingPage', iqReact2Angular(EnterpriseReportingPage, [], ['$state']))
+  .component(
+    'firewallEnterpriseReportingDashboardPage',
+    iqReact2Angular(FirewallEnterpriseReportingDashboardPage, [], ['$state'])
+  )
   .config(routes);
 
 const vulnerabilitiesRouteCommonProps = {
@@ -95,6 +102,20 @@ function routes($stateProvider, $urlServiceProvider) {
       component: 'firewallPage',
       data: {
         title: 'Dashboard',
+      },
+    })
+    .state('firewall.enterpriseReporting', {
+      url: '/enterprise-reporting',
+      component: 'enterpriseReportingPage',
+      data: {
+        title: 'Enterprise Reporting',
+      },
+    })
+    .state('firewall.enterpriseReportingDashboard', {
+      url: '/enterprise-reporting/{id}',
+      component: 'firewallEnterpriseReportingDashboardPage',
+      data: {
+        title: 'Dashboard Details',
       },
     })
     .state('firewall.firewallPage.components', {

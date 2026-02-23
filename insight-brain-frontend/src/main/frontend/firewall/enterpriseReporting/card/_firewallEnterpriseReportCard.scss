@@ -1,0 +1,48 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+// Firewall-specific styles for Enterprise Report Card component
+.fw-enterprise-report-card {
+  &__header {
+    &.nx-card__header {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      margin-top: 68px;
+    }
+
+    .nx-h3 {
+      margin-bottom: 0;
+    }
+  }
+
+  &__icon {
+    position: absolute;
+    top: var(--nx-spacing-6x);
+    left: var(--nx-spacing-6x);
+  }
+
+  &__spotlight-header {
+    color: var(--nx-swatch-teal-30);
+    font-style: italic;
+    font-family: sans-serif;
+    font-weight: 400;
+    margin-top: 0;
+    padding-top: 0;
+
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-swatch-teal-40);
+    }
+
+    &.nx-card__header {
+      margin-top: -8px;
+      padding-top: 0;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+  }
+}

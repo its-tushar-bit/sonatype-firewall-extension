@@ -31,6 +31,8 @@ describe('FirewallSidebar', () => {
             return '#/firewall/api';
           case 'firewall.vulnerabilitySearch':
             return '#/firewall/vulnerabilities';
+          case 'firewall.enterpriseReporting':
+            return '#/firewall/enterprise-reporting';
           default:
             return '/mocked-default-href';
         }
@@ -39,7 +41,7 @@ describe('FirewallSidebar', () => {
     };
     jest.spyOn(RouterStateContextModule, 'useRouterState').mockImplementation(() => mockRouterState);
 
-    const props = { isLoggedIn: true };
+    const props = { isLoggedIn: true, isFirewallEnterpriseReportingEnabled: true };
     renderComponent = (additionalProps, preloadedState) =>
       render(<FirewallSidebar {...props} {...additionalProps} />, {
         preloadedState: { ...defaultPreloadedState, ...preloadedState },
@@ -49,16 +51,19 @@ describe('FirewallSidebar', () => {
   it('renders correctly when user is logged in', () => {
     renderComponent();
     const sidebarLinks = screen.getAllByRole('link');
-    expect(sidebarLinks.length).toBe(3);
+    expect(sidebarLinks.length).toBe(4);
     const dashboardLink = sidebarLinks[0];
     const repositoriesLink = sidebarLinks[1];
     const vulnSearchLink = sidebarLinks[2];
+    const enterpriseReportingLink = sidebarLinks[3];
     expect(dashboardLink).toHaveTextContent('Dashboard');
     expect(dashboardLink).toHaveAttribute('href', '#/firewall/dashboard');
     expect(repositoriesLink).toHaveTextContent('Repos and Policies');
     expect(repositoriesLink).toHaveAttribute('href', '#/firewall/management/view');
     expect(vulnSearchLink).toHaveTextContent('Vulnerability Lookup');
     expect(vulnSearchLink).toHaveAttribute('href', '#/firewall/vulnerabilities');
+    expect(enterpriseReportingLink).toHaveTextContent('Enterprise Reporting');
+    expect(enterpriseReportingLink).toHaveAttribute('href', '#/firewall/enterprise-reporting');
   });
 
   it('does not render the sidebar when the user is not logged in', () => {
@@ -69,27 +74,31 @@ describe('FirewallSidebar', () => {
   it('does not render the api link when isApiPageEnabled is false', () => {
     renderComponent({ isApiPageEnabled: false });
     const sidebarLinks = screen.getAllByRole('link');
-    expect(sidebarLinks.length).toBe(3);
+    expect(sidebarLinks.length).toBe(4);
     const dashboardLink = sidebarLinks[0];
     const repositoriesLink = sidebarLinks[1];
     const vulnSearchLink = sidebarLinks[2];
+    const enterpriseReportingLink = sidebarLinks[3];
     expect(dashboardLink).toHaveTextContent('Dashboard');
     expect(dashboardLink).toHaveAttribute('href', '#/firewall/dashboard');
     expect(repositoriesLink).toHaveTextContent('Repos and Policies');
     expect(repositoriesLink).toHaveAttribute('href', '#/firewall/management/view');
     expect(vulnSearchLink).toHaveTextContent('Vulnerability Lookup');
     expect(vulnSearchLink).toHaveAttribute('href', '#/firewall/vulnerabilities');
+    expect(enterpriseReportingLink).toHaveTextContent('Enterprise Reporting');
+    expect(enterpriseReportingLink).toHaveAttribute('href', '#/firewall/enterprise-reporting');
     expect(screen.queryByRole('link', { name: 'API' })).not.toBeInTheDocument();
   });
 
   it('does render the api link when isApiPageEnabled is true', () => {
     renderComponent({ isApiPageEnabled: true });
     const sidebarLinks = screen.getAllByRole('link');
-    expect(sidebarLinks.length).toBe(4);
+    expect(sidebarLinks.length).toBe(5);
     const dashboardLink = sidebarLinks[0];
     const repositoriesLink = sidebarLinks[1];
     const vulnSearchLink = sidebarLinks[2];
     const apiLink = sidebarLinks[3];
+    const enterpriseReportingLink = sidebarLinks[4];
     expect(dashboardLink).toHaveTextContent('Dashboard');
     expect(dashboardLink).toHaveAttribute('href', '#/firewall/dashboard');
     expect(repositoriesLink).toHaveTextContent('Repos and Policies');
@@ -98,5 +107,7 @@ describe('FirewallSidebar', () => {
     expect(vulnSearchLink).toHaveAttribute('href', '#/firewall/vulnerabilities');
     expect(apiLink).toHaveTextContent('API');
     expect(apiLink).toHaveAttribute('href', '#/firewall/api');
+    expect(enterpriseReportingLink).toHaveTextContent('Enterprise Reporting');
+    expect(enterpriseReportingLink).toHaveAttribute('href', '#/firewall/enterprise-reporting');
   });
 });

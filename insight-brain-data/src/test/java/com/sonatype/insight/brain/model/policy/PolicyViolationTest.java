@@ -345,4 +345,12 @@ public class PolicyViolationTest
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> policyViolation.getConstraintFactsJson())
         .withMessageContaining("Constraint facts are not loaded yet for policyViolationId=");
   }
+
+  @Test
+  public void testIsRemediatedByVersionChange_DefaultNull() {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
+        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
+
+    assertThat(policyViolation.getIsRemediatedByVersionChange()).isNull();
+  }
 }

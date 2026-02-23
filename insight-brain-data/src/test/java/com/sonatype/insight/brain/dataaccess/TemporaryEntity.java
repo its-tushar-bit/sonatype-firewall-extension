@@ -73,6 +73,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfi
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.KeyValueDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
@@ -219,6 +220,7 @@ import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns;
+import com.sonatype.insight.brain.model.configuration.KeyValue;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.ProductLicense;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
@@ -724,6 +726,8 @@ public class TemporaryEntity
 
   private VersionEvaluationWindowDAO versionEvaluationWindowDAO;
 
+  private KeyValueDAO keyValueDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -1020,6 +1024,7 @@ public class TemporaryEntity
       delete(enterpriseReportingFilterDAO.getAll(), enterpriseReportingFilterDAO);
       delete(enterpriseReportingDefaultFilterDAO.getAll(), enterpriseReportingDefaultFilterDAO);
       delete(versionEvaluationWindowDAO.getAll(), versionEvaluationWindowDAO);
+      delete(keyValueDAO.getAll(), keyValueDAO);
 
       restoreInitialWaiverReasons();
       productLicenseDAO.delete();
@@ -6682,6 +6687,7 @@ public class TemporaryEntity
     gitHubAppInstallationStateDAO = daoFactory.createGitHubAppInstallationStateDAO();
     gitHubAppRegistrationStateDAO = daoFactory.createGitHubAppRegistrationStateDAO();
     versionEvaluationWindowDAO = daoFactory.createVersionEvaluationWindowDAO();
+    keyValueDAO = daoFactory.createKeyValueDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {
@@ -6822,5 +6828,13 @@ public class TemporaryEntity
     window.setMaxAgeInDays(maxAgeInDays);
     versionEvaluationWindowDAO.insert(window);
     return window;
+  }
+
+  public KeyValue newKeyValue(final String key, final String value) {
+    KeyValue keyValue = new KeyValue();
+    keyValue.setKey(key);
+    keyValue.setValue(value);
+    keyValueDAO.insert(keyValue);
+    return keyValue;
   }
 }

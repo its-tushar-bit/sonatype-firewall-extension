@@ -2237,3 +2237,9 @@ CREATE TABLE version_evaluation_window (
   CONSTRAINT version_evaluation_window_pk PRIMARY KEY (version_evaluation_window_id),
   CONSTRAINT version_evaluation_window_uk UNIQUE (owner_id, context_id)
 );
+
+CREATE TABLE key_value (
+  key varchar(50) NOT NULL,
+  value varchar(4000) NOT NULL,
+  CONSTRAINT key_value_pk PRIMARY KEY (key)
+);

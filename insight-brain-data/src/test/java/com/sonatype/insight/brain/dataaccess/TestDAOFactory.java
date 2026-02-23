@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfi
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.KeyValueDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
@@ -1291,6 +1292,11 @@ public class TestDAOFactory
   @Override
   public VersionEvaluationWindowDAO createVersionEvaluationWindowDAO() {
     return new VersionEvaluationWindowDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public KeyValueDAO createKeyValueDAO() {
+    return new KeyValueDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   private TemporaryTableHelper createTemporaryTableHelper() {

@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthentic
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.KeyValueDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppRegistrationStateDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
@@ -495,4 +496,6 @@ public interface DAOFactory
   EnterpriseReportingDefaultFilterDAO createEnterpriseReportingDefaultFilterDAO();
 
   VersionEvaluationWindowDAO createVersionEvaluationWindowDAO();
+
+  KeyValueDAO createKeyValueDAO();
 }

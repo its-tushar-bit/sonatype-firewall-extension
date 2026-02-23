@@ -162,6 +162,7 @@
     <class>com.sonatype.insight.brain.model.telemetry.ClusterIdentification</class>
     <class>com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration</class>
     <class>com.sonatype.insight.brain.model.configuration.VersionEvaluationWindow</class>
+    <class>com.sonatype.insight.brain.model.configuration.KeyValue</class>
     <properties>
       <property name="jakarta.persistence.sharedCache.mode" value="ENABLE_SELECTIVE"/>
       <!--

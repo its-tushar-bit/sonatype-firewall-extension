@@ -40,6 +40,8 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrlConfiguration;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.solution.Solution;
+import com.sonatype.insight.brain.solution.SolutionResolver;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -102,6 +104,9 @@ public class EnterpriseReportingServiceTest
   @Mock
   private Configuration mockConfiguration;
 
+  @Mock
+  private SolutionResolver mockSolutionResolver;
+
   @Inject
   private EnterpriseReportingService enterpriseReportingService;
 
@@ -118,6 +123,7 @@ public class EnterpriseReportingServiceTest
     binder.bind(MembershipMappingService.class).toInstance(mockMembershipMappingService);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     binder.bind(Configuration.class).toInstance(mockConfiguration);
+    binder.bind(SolutionResolver.class).toInstance(mockSolutionResolver);
     super.configure(binder);
   }
 
@@ -397,7 +403,7 @@ public class EnterpriseReportingServiceTest
     final var dashboardId = generateRandomString();
     final var groupId = generateRandomString();
     final var title = generateRandomString();
-    final var category = generateRandomString();
+    final var category = "partner"; // Use valid category for testing (no license required)
     final var description = generateRandomString();
     final var features = Collections.singletonList(generateRandomString());
     final var accessButtonText = generateRandomString();
@@ -704,6 +710,130 @@ public class EnterpriseReportingServiceTest
     assertThat(ssoEmbedUrlRequest.userPermissions).isEmpty();
     assertThat(ssoEmbedUrlRequest.applicationIds)
         .containsExactlyInAnyOrder(obfuscatedApplicationIds.toArray(new String[] {}));
+  }
+
+  @Test
+  public void testFilterByLicenseAndFeatureFlags_FirewallLicenseAndFeatureEnabled_ReturnsFirewallDashboards() {
+    EnterpriseReportingService spy = Mockito.spy(enterpriseReportingService);
+    Mockito.doReturn(true).when(spy).isFirewallReportingEnabled();
+
+    when(mockSolutionResolver.getLicensedSolutions())
+        .thenReturn(Set.of(Solution.FIREWALL));
+    List<DashboardMetadataDTO> allDashboards = List.of(
+        createDashboard("firewall-1", "firewall"),
+        createDashboard("enterprise-1", "enterprise")
+    );
+
+    List<DashboardMetadataDTO> result = spy.filterByLicenseAndFeatureFlags(allDashboards);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).dashboardId).isEqualTo("firewall-1");
+  }
+
+  @Test
+  public void testFilterByLicenseAndFeatureFlags_FirewallLicenseButFeatureDisabled_FiltersOutFirewall() {
+    EnterpriseReportingService spy = Mockito.spy(enterpriseReportingService);
+    Mockito.doReturn(false).when(spy).isFirewallReportingEnabled();
+
+    when(mockSolutionResolver.getLicensedSolutions())
+        .thenReturn(Set.of(Solution.FIREWALL));
+    List<DashboardMetadataDTO> allDashboards = List.of(
+        createDashboard("firewall-1", "firewall")
+    );
+
+    List<DashboardMetadataDTO> result = spy.filterByLicenseAndFeatureFlags(allDashboards);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testFilterByLicenseAndFeatureFlags_LifecycleLicense_ReturnsEnterpriseAndDataInsight() {
+    when(mockSolutionResolver.getLicensedSolutions())
+        .thenReturn(Set.of(Solution.LIFECYCLE));
+    List<DashboardMetadataDTO> allDashboards = List.of(
+        createDashboard("enterprise-1", "enterprise"),
+        createDashboard("datainsight-1", "dataInsight"),
+        createDashboard("firewall-1", "firewall")
+    );
+
+    List<DashboardMetadataDTO> result = enterpriseReportingService.filterByLicenseAndFeatureFlags(allDashboards);
+
+    assertThat(result).hasSize(2);
+    assertThat(result).extracting("category").containsExactlyInAnyOrder("enterprise", "dataInsight");
+  }
+
+  @Test
+  public void testFilterByLicenseAndFeatureFlags_BothLicenses_ReturnsAllAuthorized() {
+    EnterpriseReportingService spy = Mockito.spy(enterpriseReportingService);
+    Mockito.doReturn(true).when(spy).isFirewallReportingEnabled();
+
+    when(mockSolutionResolver.getLicensedSolutions())
+        .thenReturn(Set.of(Solution.LIFECYCLE,
+            Solution.FIREWALL));
+    List<DashboardMetadataDTO> allDashboards = List.of(
+        createDashboard("enterprise-1", "enterprise"),
+        createDashboard("firewall-1", "firewall"),
+        createDashboard("datainsight-1", "dataInsight")
+    );
+
+    List<DashboardMetadataDTO> result = spy.filterByLicenseAndFeatureFlags(allDashboards);
+
+    assertThat(result).hasSize(3);
+  }
+
+  @Test
+  public void testFilterByLicenseAndFeatureFlags_NoLicense_ReturnsOnlyPartner() {
+    when(mockSolutionResolver.getLicensedSolutions()).thenReturn(Collections.emptySet());
+    List<DashboardMetadataDTO> allDashboards = List.of(
+        createDashboard("enterprise-1", "enterprise"),
+        createDashboard("partner-1", "partner"),
+        createDashboard("firewall-1", "firewall")
+    );
+
+    List<DashboardMetadataDTO> result = enterpriseReportingService.filterByLicenseAndFeatureFlags(allDashboards);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).category).isEqualTo("partner");
+  }
+
+  @Test
+  public void testFilterByLicenseAndFeatureFlags_UnknownCategory_DeniesAccess() {
+    when(mockSolutionResolver.getLicensedSolutions())
+        .thenReturn(Set.of(Solution.LIFECYCLE));
+    DashboardMetadataDTO unknownDashboard = createDashboard("unknown-1", "new-category");
+
+    List<DashboardMetadataDTO> result =
+        enterpriseReportingService.filterByLicenseAndFeatureFlags(List.of(unknownDashboard));
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testFilterByLicenseAndFeatureFlags_NullCategory_DeniesAccess() {
+    when(mockSolutionResolver.getLicensedSolutions())
+        .thenReturn(Set.of(Solution.LIFECYCLE));
+    DashboardMetadataDTO nullCategoryDashboard = createDashboard("null-1", null);
+
+    List<DashboardMetadataDTO> result =
+        enterpriseReportingService.filterByLicenseAndFeatureFlags(List.of(nullCategoryDashboard));
+
+    assertThat(result).isEmpty();
+  }
+
+  private DashboardMetadataDTO createDashboard(String id, String category) {
+    DashboardMetadataDTO dashboard = new DashboardMetadataDTO();
+    dashboard.dashboardId = id;
+    dashboard.category = category;
+    dashboard.title = "Test Dashboard";
+    dashboard.description = "Test Description";
+    dashboard.features = Collections.singletonList("feature1");
+    dashboard.accessButtonText = "Access";
+    dashboard.previewImage = "image.png";
+    dashboard.previewImageIcon = "icon.png";
+    dashboard.priority = 1;
+    dashboard.spotlight = false;
+    dashboard.dashboardPath = "dashboards/test::test";
+    return dashboard;
   }
 
   private void verifyScheduledTaskVersionCache(Integer latestVersion) {

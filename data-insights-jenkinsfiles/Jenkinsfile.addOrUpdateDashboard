@@ -72,6 +72,7 @@ pipeline {
         defaultValue: ''
     )
 
+    // IMPORTANT: Keep in sync with EnterpriseReportingService.CATEGORY_* constants
     choice(
         name: 'category',
         choices: ['enterprise', 'dataInsight', 'firewall'],

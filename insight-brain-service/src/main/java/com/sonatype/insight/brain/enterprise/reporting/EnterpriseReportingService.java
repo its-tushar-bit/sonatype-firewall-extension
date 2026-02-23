@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.organization.ApplicationService;
@@ -49,6 +51,8 @@ import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.solution.Solution;
+import com.sonatype.insight.brain.solution.SolutionResolver;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.utils.MostRecentMemoizingFunction;
 import com.sonatype.insight.brain.utils.ResettableExpiringMemoizingSupplier;
@@ -132,6 +136,17 @@ public class EnterpriseReportingService
 
   private final Configuration configuration;
 
+  private final SolutionResolver solutionResolver;
+
+  // Dashboard category constants for authorization filtering
+  private static final String CATEGORY_FIREWALL = "firewall";
+
+  private static final String CATEGORY_ENTERPRISE = "enterprise";
+
+  private static final String CATEGORY_DATA_INSIGHT = "datainsight";
+
+  private static final String CATEGORY_PARTNER = "partner";
+
   private final ReadWriteLock iconReadWriteLock = new ReentrantReadWriteLock();
 
   private final Lock iconReadLock = iconReadWriteLock.readLock();
@@ -140,15 +155,16 @@ public class EnterpriseReportingService
 
   @Inject
   public EnterpriseReportingService(
-      final HdsClient hdsClient,
-      final CurrentUser currentUser,
-      final UserDAO userDAO,
-      final SsoUserService ssoUserService,
-      final MembershipMappingService membershipMappingService,
-      final ApplicationService applicationService,
-      final InsightWork insightWork,
-      final TaskScheduler taskScheduler,
-      final Configuration configuration)
+          final HdsClient hdsClient,
+          final CurrentUser currentUser,
+          final UserDAO userDAO,
+          final SsoUserService ssoUserService,
+          final MembershipMappingService membershipMappingService,
+          final ApplicationService applicationService,
+          final InsightWork insightWork,
+          final TaskScheduler taskScheduler,
+          final Configuration configuration,
+          final SolutionResolver solutionResolver)
   {
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
@@ -159,6 +175,7 @@ public class EnterpriseReportingService
     this.insightWork = insightWork;
     this.taskScheduler = taskScheduler;
     this.configuration = configuration;
+    this.solutionResolver = solutionResolver;
     this.currentDashboardsVersionSupplier = createDashboardsCurrentVersionSupplier();
     this.enterpriseReportingConfigDTOBaseUrlSupplier =
         new TenantReference<>(this::createEnterpriseReportingConfigDTOBaseUrlSupplier);
@@ -179,7 +196,18 @@ public class EnterpriseReportingService
   }
 
   public DashboardMetadataListDTO getDashboardMetadata() {
-    return dashboardMetadataGetter.apply(currentDashboardsVersionSupplier.get());
+    DashboardMetadataListDTO allDashboards =
+        dashboardMetadataGetter.apply(currentDashboardsVersionSupplier.get());
+
+    List<DashboardMetadataDTO> authorizedDashboards = filterByLicenseAndFeatureFlags(
+        allDashboards.dashboardMetadata
+    );
+
+    return new DashboardMetadataListDTO(
+        allDashboards.version,
+        authorizedDashboards,
+        allDashboards.dashboardGroupMetadata
+    );
   }
 
   public EmbedCookielessSessionAcquire acquireEmbedSession(
@@ -398,6 +426,62 @@ public class EnterpriseReportingService
 
   private DashboardMetadataListDTO getDashboardMetadataListDTOFromHds() {
     return hdsClient.get(DashboardMetadataListDTO.class, ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
+  }
+
+  @VisibleForTesting
+  List<DashboardMetadataDTO> filterByLicenseAndFeatureFlags(List<DashboardMetadataDTO> allDashboards) {
+    if (allDashboards == null || allDashboards.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();
+    boolean isFirewallReportingEnabled = isFirewallReportingEnabled();
+
+    return allDashboards.stream()
+        .filter(dashboard -> isDashboardAccessible(
+            dashboard,
+            licensedSolutions,
+            isFirewallReportingEnabled))
+        .collect(Collectors.toList());
+  }
+
+  @VisibleForTesting
+  boolean isDashboardAccessible(
+      DashboardMetadataDTO dashboard,
+      Set<Solution> licensedSolutions,
+      boolean isFirewallReportingEnabled)
+  {
+    String category = dashboard.category;
+
+    // Security: Deny access for null or missing categories (fail-closed approach)
+    // Note: HDS contract guarantees category is always present, but we validate defensively
+    if (category == null) {
+      log.warn("Dashboard '{}' has null category, denying access for security", dashboard.dashboardId);
+      return false;
+    }
+
+    // Normalize category to lowercase to handle mixed-case values from HDS (e.g., "dataInsight")
+    switch (category.toLowerCase()) {
+      case CATEGORY_FIREWALL:
+        return licensedSolutions.contains(Solution.FIREWALL) && isFirewallReportingEnabled;
+
+      case CATEGORY_ENTERPRISE:
+      case CATEGORY_DATA_INSIGHT:
+        return licensedSolutions.contains(Solution.LIFECYCLE);
+
+      case CATEGORY_PARTNER:
+        return true;
+
+      default:
+        log.warn("Unknown dashboard category '{}' for dashboard '{}', denying access",
+                 category, dashboard.dashboardId);
+        return false;
+    }
+  }
+
+  @VisibleForTesting
+  boolean isFirewallReportingEnabled() {
+    return SystemConfigurationPropertyFeature.FIREWALL_ENTERPRISE_REPORTING.isEnabled();
   }
 
   private InputStream getEnterpriseReportingDashboardIconsInputStreamFromHds() {

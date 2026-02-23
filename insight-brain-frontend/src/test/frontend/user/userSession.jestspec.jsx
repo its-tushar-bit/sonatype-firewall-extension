@@ -84,12 +84,7 @@ describe('userSessionUtils', () => {
 
       fetchUser();
 
-      try {
-        await waitForLogin();
-        fail('Promise should have been rejected');
-      } catch (e) {
-        expect(e.status).toEqual(500);
-      }
+      await expect(waitForLogin()).rejects.toMatchObject({ status: 500 });
     });
   });
 });

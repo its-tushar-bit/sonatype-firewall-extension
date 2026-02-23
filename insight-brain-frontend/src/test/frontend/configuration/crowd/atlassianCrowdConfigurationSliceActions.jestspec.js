@@ -9,7 +9,6 @@ import { getCrowdConfigurationTestUrl, getCrowdConfigurationUrl } from 'MainRoot
 import { omit } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('atlassianCrowdConfigurationSliceAction', () => {

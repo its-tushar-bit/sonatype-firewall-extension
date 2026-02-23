@@ -15,7 +15,6 @@ import {
   setNotificationViewed,
 } from '../../../../../main/frontend/mainHeader/MenuBar/NotificationsMenu/notificationsActions';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('notifications actions', function () {

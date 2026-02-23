@@ -11,7 +11,6 @@ import {
   updateLicenseNameFilter,
 } from '../../../../../main/frontend/legal/application/filter/legalApplicationDetailsFilterActions';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('LegalApplicationDetailsFilterActions', function () {

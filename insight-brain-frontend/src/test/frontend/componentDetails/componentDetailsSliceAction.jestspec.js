@@ -19,7 +19,6 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import * as componentDetailsSelectors from 'MainRoot/componentDetails/componentDetailsSelectors';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 const {

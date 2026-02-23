@@ -13,7 +13,6 @@ import {
   getPayload,
 } from 'TestRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalTestData';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('innerSourceRepositoryConfigurationModalSliceActions', () => {

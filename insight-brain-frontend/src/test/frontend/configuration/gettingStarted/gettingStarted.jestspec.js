@@ -8,7 +8,6 @@ import React from 'react';
 import { render, screen, within } from 'TestRoot/SpecUtil';
 import GettingStarted from '../../../../main/frontend/configuration/gettingStarted/GettingStarted';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('gettingStarted', function () {

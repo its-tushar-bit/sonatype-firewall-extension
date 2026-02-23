@@ -26,7 +26,6 @@ import {
 } from '../../../main/frontend/legal/advancedLegalActions';
 import { pick } from 'ramda';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('advancedLegalActions', function () {

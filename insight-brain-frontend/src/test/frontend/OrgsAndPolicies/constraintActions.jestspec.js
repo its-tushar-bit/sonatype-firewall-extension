@@ -8,7 +8,6 @@ import { actions } from 'MainRoot/OrgsAndPolicies/constraintSlice';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getConditionTypeUrl, getConditionValueTypeUrl } from 'MainRoot/util/CLMLocation';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('constraintActions', () => {

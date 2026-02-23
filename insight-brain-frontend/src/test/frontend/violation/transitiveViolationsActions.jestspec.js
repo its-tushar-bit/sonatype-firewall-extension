@@ -30,7 +30,6 @@ import {
   TRANSITIVE_VIOLATIONS_LOAD_REQUESTED,
 } from '../../../main/frontend/violation/transitiveViolationsActions';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('transitiveViolationsActions', function () {

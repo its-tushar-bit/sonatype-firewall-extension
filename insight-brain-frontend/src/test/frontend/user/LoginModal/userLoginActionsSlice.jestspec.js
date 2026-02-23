@@ -8,7 +8,6 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { getSessionUrl } from 'MainRoot/util/CLMLocation';
 import { actions as userLoginActions } from 'MainRoot/user/LoginModal/userLoginSlice';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 const { submitUserLogin } = userLoginActions;

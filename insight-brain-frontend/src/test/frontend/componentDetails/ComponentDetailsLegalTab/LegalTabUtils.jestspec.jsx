@@ -9,7 +9,6 @@ import {
 } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LegalTabUtils';
 import { render, screen } from 'TestRoot/SpecUtil';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('LegalTabUtils', () => {

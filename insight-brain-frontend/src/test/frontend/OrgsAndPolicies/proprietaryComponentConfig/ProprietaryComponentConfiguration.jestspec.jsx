@@ -9,7 +9,6 @@ import * as proprietarySelectors from 'MainRoot/OrgsAndPolicies/proprietarySelec
 import { actions } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
 import { render, screen, fireEvent, getAllByText, queryAllByText } from 'TestRoot/SpecUtil';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('ProprietaryComponentConfiguration', () => {

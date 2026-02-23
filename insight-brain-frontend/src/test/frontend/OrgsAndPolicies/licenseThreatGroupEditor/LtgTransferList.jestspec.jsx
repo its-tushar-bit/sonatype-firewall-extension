@@ -7,7 +7,6 @@ import React from 'react';
 import { render, screen } from 'TestRoot/SpecUtil';
 import LtgTransferList from 'MainRoot/OrgsAndPolicies/licenseThreatGroupEditor/LtgTransferList';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('LtgTransferList', () => {

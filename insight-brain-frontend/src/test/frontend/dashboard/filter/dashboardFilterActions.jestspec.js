@@ -25,7 +25,6 @@ import {
 import defaultFilter from '../../../../main/frontend/dashboard/filter/defaultFilter';
 import { filterToJson } from '../../../../main/frontend/dashboard/filter/dashboardFilterService';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('dashboardFilterActions: non-angular', function () {

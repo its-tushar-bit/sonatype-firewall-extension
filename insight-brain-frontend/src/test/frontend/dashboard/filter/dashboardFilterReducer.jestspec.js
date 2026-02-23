@@ -6,7 +6,6 @@
 import reduce from '../../../../main/frontend/dashboard/filter/dashboardFilterReducer';
 import { dashboardFilterOptionsTab } from 'MainRoot/dashboard/filter/staticFilterEntries';
 
-// Import MockData for jasmine compatibility layer
 import 'TestRoot/assets/MockData';
 
 describe('dashboardFilterReducer', () => {

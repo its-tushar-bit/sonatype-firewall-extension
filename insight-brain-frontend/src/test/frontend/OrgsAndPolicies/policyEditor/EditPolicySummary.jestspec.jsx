@@ -11,7 +11,6 @@ import * as policySelectors from 'MainRoot/OrgsAndPolicies/policySelectors';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('EditPolicySummary', () => {

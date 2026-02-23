@@ -9,7 +9,6 @@ import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
 import moment from 'moment';
 import DashboardWaiversTableRow from 'MainRoot/dashboard/results/waivers/DashboardWaiversTableRow';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('DashboardWaiversTableRow', function () {

@@ -17,7 +17,6 @@ import {
   refreshLicenseFilesDetails,
 } from '../../../../../main/frontend/legal/files/licenses/componentLicenseFilesDetailsActions';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('ComponentLicenseFileDetailsAction', function () {

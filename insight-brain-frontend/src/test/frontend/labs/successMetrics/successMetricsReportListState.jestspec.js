@@ -12,7 +12,6 @@ import {
 } from 'MainRoot/labs/successMetrics/successMetricsReportListSlice';
 import { getSuccessMetricsConfigUrl, getSuccessMetricsReportsUrl } from '../../../../main/frontend/util/CLMLocation';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('successMetricsReportListState', () => {

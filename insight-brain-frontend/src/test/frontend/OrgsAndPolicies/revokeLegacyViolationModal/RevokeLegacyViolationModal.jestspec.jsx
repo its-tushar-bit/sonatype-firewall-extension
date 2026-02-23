@@ -8,7 +8,6 @@ import RevokeLegacyViolationModal from 'MainRoot/OrgsAndPolicies/revokeLegacyVio
 import { fireEvent, render, screen, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { getRevokeLegacyViolationUrl } from 'MainRoot/util/CLMLocation';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('RevokeLegacyViolationModal', () => {

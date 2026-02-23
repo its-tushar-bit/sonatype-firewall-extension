@@ -7,7 +7,6 @@ import React from 'react';
 import FirewallWelcomeModal from 'MainRoot/firewall/FirewallWelcomeModal';
 import { fireEvent, render, screen } from 'TestRoot/SpecUtil';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('FirewallWelcomeModal', () => {

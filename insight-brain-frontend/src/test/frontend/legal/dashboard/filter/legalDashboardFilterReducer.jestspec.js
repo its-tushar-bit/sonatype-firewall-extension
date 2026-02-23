@@ -6,7 +6,6 @@
 
 import legalDashboardFilterReducer from '../../../../../main/frontend/legal/dashboard/filter/legalDashboardFilterReducer';
 
-// Import MockData for jasmine compatibility layer
 import 'TestRoot/assets/MockData';
 
 describe('legalDashboardFilterReducer', function () {

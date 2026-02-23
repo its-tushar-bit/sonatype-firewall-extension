@@ -64,13 +64,9 @@ describe('PermissionService.js', function () {
     it('Server Error', async function () {
       mock.onPut(getGlobalPermissionTestUrl(), ['ADMIN', 'ADMIN2']).reply(500, 'foo');
 
-      try {
-        await isAuthorized(['ADMIN', 'ADMIN2']);
-        fail('Expected function to throw');
-      } catch (error) {
-        expect(error.response.data).toEqual('foo');
-        expect(error.response.status).toEqual(500);
-      }
+      await expect(isAuthorized(['ADMIN', 'ADMIN2'])).rejects.toMatchObject({
+        response: { data: 'foo', status: 500 },
+      });
     });
   });
 
@@ -122,13 +118,9 @@ describe('PermissionService.js', function () {
     it('Server Error', async function () {
       mock.onPut(getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2']).reply(500, 'foo');
 
-      try {
-        await isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container');
-        fail('Expected function to throw');
-      } catch (error) {
-        expect(error.response.data).toEqual('foo');
-        expect(error.response.status).toEqual(500);
-      }
+      await expect(isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container')).rejects.toMatchObject({
+        response: { data: 'foo', status: 500 },
+      });
     });
   });
 
@@ -168,13 +160,9 @@ describe('PermissionService.js', function () {
     it('Server Error, Should throw', async function () {
       mock.onPut(getGlobalPermissionTestUrl(), ['ADMIN']).reply(500, 'Server Error');
 
-      try {
-        await getValidPermissions(['ADMIN']);
-        fail('Expected function to throw');
-      } catch (error) {
-        expect(error.response.data).toEqual('Server Error');
-        expect(error.response.status).toEqual(500);
-      }
+      await expect(getValidPermissions(['ADMIN'])).rejects.toMatchObject({
+        response: { data: 'Server Error', status: 500 },
+      });
     });
   });
 

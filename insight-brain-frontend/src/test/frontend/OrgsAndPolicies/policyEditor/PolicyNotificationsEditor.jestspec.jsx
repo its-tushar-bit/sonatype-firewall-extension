@@ -17,7 +17,6 @@ import {
 import { compose, last } from 'ramda';
 import { pathSet } from 'MainRoot/util/jsUtil';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 import * as productLicenseSelectors from 'MainRoot/productFeatures/productLicenseSelectors';

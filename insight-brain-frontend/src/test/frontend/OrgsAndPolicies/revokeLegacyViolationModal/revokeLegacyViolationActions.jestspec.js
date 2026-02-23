@@ -9,9 +9,7 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
-// Import SidebarResourceMockData for jasmine compatibility layer
 import 'TestRoot/mock.data/sidebar.resource.mock.data';
 
 const OWNER_ORG_NAME = 'Organization Two Name';

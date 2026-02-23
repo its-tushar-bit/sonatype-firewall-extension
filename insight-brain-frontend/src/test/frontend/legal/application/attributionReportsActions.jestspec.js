@@ -33,7 +33,6 @@ import {
   getAttributionReportTemplateUrl,
 } from '../../../../main/frontend/util/CLMLocation';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('attributionReportsActions', function () {

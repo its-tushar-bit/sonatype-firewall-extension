@@ -126,7 +126,7 @@ describe('legalDashboardFilterActions', function () {
       });
 
       it('will not fire getApplicationTagsUrl() when isSbomManager is true', function (done) {
-        specUtilFunctions.spyOn(routerSelectors, 'selectIsSbomManager', () => true);
+        jest.spyOn(routerSelectors, 'selectIsSbomManager').mockImplementation(() => true);
         mockAxiosCalls({
           get: {
             ...mockGetData,

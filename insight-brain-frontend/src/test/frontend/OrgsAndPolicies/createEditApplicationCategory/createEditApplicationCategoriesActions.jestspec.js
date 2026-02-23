@@ -21,7 +21,6 @@ import {
 import TagResourceMockData from 'TestRoot/OrgsAndPolicies/mock.data/tag.resource.mock.data';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 const { initialState: rscInitialState } = nxTextInputStateHelpers;

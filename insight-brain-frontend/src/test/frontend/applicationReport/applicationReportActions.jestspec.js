@@ -11,7 +11,6 @@ import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import { dependencyTreeData } from '../dependencyTree/dependencyTreeMockData';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 const createMockState = (isUnknownJs, bomData, unknownJsData, metadata, embeddable) => ({

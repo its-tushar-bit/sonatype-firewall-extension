@@ -10,9 +10,7 @@ import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPolic
 import { actions } from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/deleteOwnerSlice';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
-// Import SidebarResourceMockData for jasmine compatibility layer
 import 'TestRoot/mock.data/sidebar.resource.mock.data';
 
 const OWNER_ORG_NAME = 'Organization Two Name';

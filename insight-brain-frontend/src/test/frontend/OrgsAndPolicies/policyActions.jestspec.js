@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 import { actions, initialState } from 'MainRoot/OrgsAndPolicies/policySlice';

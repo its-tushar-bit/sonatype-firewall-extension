@@ -5,7 +5,6 @@
  */
 import { occurrencesPopoverActions } from '../../../../../main/frontend/componentDetails/overview/occurrencesPopover/occurrencesPopoverSlice';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('occurrencesPopoverActions', () => {

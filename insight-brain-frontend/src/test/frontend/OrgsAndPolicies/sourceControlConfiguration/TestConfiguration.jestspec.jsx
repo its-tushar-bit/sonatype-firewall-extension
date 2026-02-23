@@ -11,7 +11,6 @@ import { getValidateScmConfigButtonUrl } from 'MainRoot/util/CLMLocation';
 import { fireEvent } from '@testing-library/react';
 import { mergeDeepRight } from 'ramda';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 const ownerType = 'application';

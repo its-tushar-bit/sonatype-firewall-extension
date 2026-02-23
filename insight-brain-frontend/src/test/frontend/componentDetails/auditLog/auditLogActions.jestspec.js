@@ -9,7 +9,6 @@ import { getReportAuditLogUrl } from '../../../../main/frontend/util/CLMLocation
 import * as auditLogActions from '../../../../main/frontend/componentDetails/auditLog/auditLogActions';
 import * as sortUtils from '../../../../main/frontend/util/sortUtils';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 const {

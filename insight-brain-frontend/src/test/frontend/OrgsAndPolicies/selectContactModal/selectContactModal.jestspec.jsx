@@ -10,7 +10,6 @@ import { getUsersRoleMappingUrl } from 'MainRoot/util/CLMLocation';
 import { fireEvent, waitFor, within } from '@testing-library/react';
 import { NX_STANDARD_DEBOUNCE_TIME } from '@sonatype/react-shared-components';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 xdescribe('SelectContactModal', () => {
@@ -77,16 +76,10 @@ xdescribe('SelectContactModal', () => {
   });
 
   it("didn't fetch all available users, if the user didn't provide any actions", () => {
-    axiosMock.onGet('/users').reply(function () {
-      fail("Fetched all available users, even user didn't provide any actions");
-      return [
-        200,
-        {
-          users: [{ id: 1, name: 'John Smith' }],
-        },
-      ];
-    });
+    const usersRequestSpy = jest.fn(() => [200, { users: [{ id: 1, name: 'John Smith' }] }]);
+    axiosMock.onGet('/users').reply(usersRequestSpy);
     renderComponent();
+    expect(usersRequestSpy).not.toHaveBeenCalled();
   });
 
   it('shows warning message, if there are no available users', (done) => {

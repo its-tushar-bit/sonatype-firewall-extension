@@ -23,7 +23,6 @@ import {
 } from '../../../../main/frontend/util/CLMLocation';
 import { DASHBOARD } from 'MainRoot/legal/advancedLegalConstants';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('legalDashboardActions', function () {

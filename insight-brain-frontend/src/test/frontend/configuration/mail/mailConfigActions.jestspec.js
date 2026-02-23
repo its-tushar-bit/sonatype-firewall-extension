@@ -9,7 +9,6 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { actions } from '../../../../main/frontend/configuration/mail/mailConfigSlice';
 import { getMailConfigUrl, getTestMailUrl } from '../../../../main/frontend/util/CLMLocation';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 const {

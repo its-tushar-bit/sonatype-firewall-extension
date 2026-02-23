@@ -11,7 +11,6 @@ import { getSamlConfigurationUrl } from 'MainRoot/util/CLMLocation';
 import { uriTemplate } from 'MainRoot/util/urlUtil';
 import * as authorizationUtil from 'MainRoot/util/authorizationUtil';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 const {

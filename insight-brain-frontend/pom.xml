@@ -69,51 +69,14 @@
             </configuration>
           </execution>
           <execution>
-            <id>test-compile</id>
-            <phase>test-compile</phase>
-            <goals>
-              <goal>yarn</goal>
-            </goals>
-            <configuration>
-              <skip>${jasmine.tests.skip}</skip>
-              <arguments>run test-compile</arguments>
-            </configuration>
-          </execution>
-          <!--
-            There are currently two suites of frontend unit tests: newer tests in jest and
-            older tests in jasmine (the latter are run by karma). The two executions below run these
-            two suites respentively
-          -->
-          <execution>
             <id>jest</id>
             <phase>test</phase>
             <goals>
               <goal>yarn</goal>
             </goals>
             <configuration>
-              <skip>${jasmine.tests.skip}</skip>
+              <skip>${frontend.tests.skip}</skip>
               <arguments>run jest</arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>jasmine</id>
-            <phase>test</phase>
-            <goals>
-              <goal>yarn</goal>
-            </goals>
-            <configuration>
-              <skip>${jasmine.tests.skip}</skip>
-              <arguments>run karma</arguments>
-
-               <!--
-                   CI is set up to ignore test failures within the actual testing phase and then to inspect
-                   the junit.xml file for failures later. The jasmine test suite unfortunately is prone to
-                   failing due to uncaught promise rejections - which aren't recorded as part of any one test
-                   and thus don't show up in junit.xml. Those uncaught promises _do_ cause the test process
-                   to return an error code, but testFailureIgnore=true ignores that. So we need to override
-                   it to false here
-               -->
-              <testFailureIgnore>false</testFailureIgnore>
             </configuration>
           </execution>
         </executions>
@@ -135,7 +98,7 @@
         </property>
       </activation>
       <properties>
-        <jasmine.tests.skip>true</jasmine.tests.skip>
+        <frontend.tests.skip>true</frontend.tests.skip>
       </properties>
     </profile>
     <profile>

@@ -12,9 +12,7 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
-// Import SidebarResourceMockData for jasmine compatibility layer
 import 'TestRoot/mock.data/sidebar.resource.mock.data';
 
 const { initialState: rscInitialState } = nxTextInputStateHelpers;

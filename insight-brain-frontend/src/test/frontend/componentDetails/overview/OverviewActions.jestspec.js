@@ -17,7 +17,6 @@ import {
   getPolicyEvaluationTimestampUrl,
 } from 'MainRoot/util/CLMLocation';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('componentDetailsOverviewActions', () => {

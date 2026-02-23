@@ -251,7 +251,7 @@ describe('ReportContent component', function () {
     applicationReportSelectors.selectDependencyTreeIsAvailable.mockReturnValue(false);
     const tooltipText = 'some random tooltip text';
     applicationReportSelectors.selectDependencyTreeUnavailableMessage.mockReturnValue(tooltipText);
-    SpecUtil.requestIdleCallbackInvokeImmediate();
+    SpecUtil.requestIdleCallbackInvokeImmediateJest();
 
     renderComponent();
     const button = await screen.findByRole('button', { name: tooltipText });

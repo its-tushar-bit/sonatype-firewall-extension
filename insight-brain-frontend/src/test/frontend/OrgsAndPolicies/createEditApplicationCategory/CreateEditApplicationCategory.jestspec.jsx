@@ -10,7 +10,6 @@ import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSlice';
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('CreateEditApplicationCategory create', () => {

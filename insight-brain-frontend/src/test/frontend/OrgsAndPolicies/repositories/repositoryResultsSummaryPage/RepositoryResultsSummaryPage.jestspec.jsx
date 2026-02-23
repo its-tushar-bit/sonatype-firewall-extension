@@ -11,7 +11,6 @@ import * as repositoriesResultsSummaryPageSelectors from 'MainRoot/OrgsAndPolici
 import RepositoryResultsSummaryPage from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/RepositoryResultsSummaryPage';
 import { actions } from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSlice';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('RepositoryResultsSummaryPage', () => {

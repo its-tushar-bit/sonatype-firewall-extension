@@ -9,7 +9,6 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { save, del } from '../../../../main/frontend/configuration/proxy/proxyConfigActions';
 import { getProxyConfigUrl } from '../../../../main/frontend/util/CLMLocation';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('proxyConfigActions', () => {

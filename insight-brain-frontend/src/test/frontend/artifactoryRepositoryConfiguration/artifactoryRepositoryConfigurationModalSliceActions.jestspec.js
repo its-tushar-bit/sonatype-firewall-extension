@@ -13,7 +13,6 @@ import {
   getPayload,
 } from 'TestRoot/artifactoryRepositoryConfiguration/artifactoryRepositoryConfigurationModalTestData';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('artifactoryRepositoryConfigurationModalSliceActions', () => {

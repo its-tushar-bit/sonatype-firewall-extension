@@ -11,7 +11,6 @@ import { actions } from 'MainRoot/OrgsAndPolicies/access/accessSlice';
 import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import { NX_SEARCH_DROPDOWN_DEBOUNCE_TIME } from '@sonatype/react-shared-components';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('AccessPage Component', () => {

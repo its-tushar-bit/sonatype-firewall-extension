@@ -8,7 +8,6 @@ import React from 'react';
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import ViewAllPoliciesWaiversButton from 'MainRoot/firewall/firewallComponentDetailsPage/policyViolations/policyViolationsTile/ViewAllPoliciesWaiversButton';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('ViewAllPoliciesWaiversButton', () => {

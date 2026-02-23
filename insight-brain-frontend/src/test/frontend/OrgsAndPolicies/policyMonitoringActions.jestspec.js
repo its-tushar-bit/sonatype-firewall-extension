@@ -7,7 +7,6 @@ import axios from 'axios';
 import { actions } from 'MainRoot/OrgsAndPolicies/policyMonitoringSlice';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
-// Import SpecUtil for global definition
 import 'TestRoot/SpecUtil';
 
 import {

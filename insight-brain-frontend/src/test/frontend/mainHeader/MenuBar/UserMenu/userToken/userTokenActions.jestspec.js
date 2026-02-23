@@ -26,7 +26,6 @@ import {
 import { checkUserTokenExistenceUrl, userTokenUrl } from '../../../../../../main/frontend/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('userTokenActions', function () {

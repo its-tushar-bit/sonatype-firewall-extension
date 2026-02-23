@@ -11,7 +11,6 @@ import { getLegacyViolationURL } from 'MainRoot/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('legacViolationActions', () => {

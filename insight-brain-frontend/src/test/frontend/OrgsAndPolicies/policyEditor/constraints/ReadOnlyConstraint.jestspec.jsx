@@ -7,7 +7,6 @@ import React from 'react';
 import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import ReadOnlyConstraint from 'MainRoot/OrgsAndPolicies/policyEditor/constraints/ReadOnlyConstraint';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('ReadOnlyConstraint', () => {

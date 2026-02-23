@@ -10,7 +10,6 @@ import { render, screen, within } from 'TestRoot/SpecUtil';
 import { STANDARD_DATE_FORMAT } from 'MainRoot/util/dateUtils';
 import FirewallExistingWaiversPopover from 'MainRoot/firewall/firewallComponentDetailsPage/policyViolations/policyViolationsTile/FirewallExistingWaiversPopover';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('FirewallExistingWaiversPopover', () => {

@@ -34,7 +34,6 @@ import {
 } from 'MainRoot/legal/advancedLegalActions';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('originalSourcesFormActions', function () {

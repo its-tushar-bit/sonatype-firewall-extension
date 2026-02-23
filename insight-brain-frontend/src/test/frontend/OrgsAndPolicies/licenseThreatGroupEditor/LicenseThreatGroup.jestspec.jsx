@@ -9,7 +9,6 @@ import LicenseThreatGroupEditor from 'MainRoot/OrgsAndPolicies/licenseThreatGrou
 import * as ltgSelectors from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSelectors';
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('LicenseThreatGroup', () => {

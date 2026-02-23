@@ -9,7 +9,6 @@ import ComponentCoordinatesPopover from 'MainRoot/componentDetails/overview/Comp
 import { render, screen } from 'TestRoot/SpecUtil';
 import * as overviewSelectors from 'MainRoot/componentDetails/overview/overviewSelectors';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('ComponentCoordinatesPopover', () => {

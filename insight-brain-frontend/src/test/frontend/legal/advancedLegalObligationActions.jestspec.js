@@ -36,7 +36,6 @@ import {
   OBLIGATION_STATUS_OPEN,
 } from '../../../main/frontend/legal/advancedLegalConstants';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('advancedLegalObligationActions', function () {

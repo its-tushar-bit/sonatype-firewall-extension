@@ -23,7 +23,9 @@ const customMatchers = {
           ? { pass: true }
           : {
               pass: false,
-              message: `Expected ${actionType} to be the type of an action included in ${JSON.stringify(actions)}`,
+              message: makeMessage(
+                `Expected ${actionType} to be the type of an action included in ${JSON.stringify(actions)}`
+              ),
             };
       },
     };
@@ -46,7 +48,9 @@ const customMatchers = {
           ? { pass: true }
           : {
               pass: false,
-              message: `Expected { type: ${type}, payload: ${payload} } to be included in ${JSON.stringify(actions)}`,
+              message: makeMessage(
+                `Expected { type: ${type}, payload: ${payload} } to be included in ${JSON.stringify(actions)}`
+              ),
             };
       },
     };
@@ -90,7 +94,7 @@ const customMatchers = {
             const currentActionString = JSON.stringify(remainingExpectedActions[0]);
             return {
               pass: false,
-              message: `Expected ${currentActionString} to be included in ${JSON.stringify(actions)}`,
+              message: makeMessage(`Expected ${currentActionString} to be included in ${JSON.stringify(actions)}`),
             };
           }
         }

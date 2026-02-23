@@ -11,7 +11,6 @@ import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getApplicableOrganizationCategories, getApplicationCategoriesUrl } from 'MainRoot/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('assignApplicationCategoriesActions', () => {

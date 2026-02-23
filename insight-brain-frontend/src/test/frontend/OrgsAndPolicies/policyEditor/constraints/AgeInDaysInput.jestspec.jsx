@@ -7,7 +7,6 @@ import React from 'react';
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import AgeInDaysInput from 'MainRoot/OrgsAndPolicies/policyEditor/constraints/AgeInDaysInput';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('AgeInDaysInput', () => {

@@ -32,7 +32,6 @@ import {
   COPYRIGHT_DETAILS_REQUEST,
 } from '../../../../main/frontend/legal/copyright/componentCopyrightDetailsActions';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('copyrightOverrideFormAction', function () {

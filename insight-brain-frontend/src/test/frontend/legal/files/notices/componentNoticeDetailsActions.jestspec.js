@@ -17,7 +17,6 @@ import {
 } from 'MainRoot/util/CLMLocation';
 import { pathSet } from 'MainRoot/util/jsUtil';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('ComponentNoticeDetailsAction', function () {

@@ -11,7 +11,6 @@ import FirewallOverview from 'MainRoot/firewall/firewallComponentDetailsPage/ove
 import * as FirewallOverviewComponentInformationTile from 'MainRoot/firewall/firewallComponentDetailsPage/overview/componentInformationTile/FirewallOverviewComponentInformationTile';
 import * as firewallSelectors from 'MainRoot/firewall/firewallSelectors';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('FirewallOverview', () => {

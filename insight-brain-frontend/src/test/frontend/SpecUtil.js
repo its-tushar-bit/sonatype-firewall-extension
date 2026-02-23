@@ -9,7 +9,6 @@ import { configureStore as reduxToolkitConfigureStore, getDefaultMiddleware } fr
 import { Provider } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import reducers from '../../main/frontend/reduxConfig/reducers';
-import JasmineDOM from '@testing-library/jasmine-dom';
 import MockAdapter from 'axios-mock-adapter';
 import axios from 'axios';
 import { faker } from '@faker-js/faker';
@@ -18,191 +17,13 @@ import userEvent from '@testing-library/user-event';
 export const WAIVER_CREATE_TIME = '2022-08-18';
 export const WAIVER_EXPIRATION_TIME = '2023-08-18';
 
-const isJest = typeof jest !== 'undefined';
-const createSpy = isJest
-  ? (name, impl) => {
-      const spy = jest.fn().mockName(name);
-      if (impl) {
-        spy.mockImplementation(impl);
-      }
-      return spy;
-    }
-  : (name, impl) => {
-      const spy = jasmine.createSpy(name);
-      if (impl) {
-        spy.and.callFake(impl);
-      }
-      return spy;
-    };
-
-const spyOn = isJest
-  ? (obj, method, impl) => {
-      const spy = jest.spyOn(obj, method);
-      if (impl) {
-        spy.mockImplementation(impl);
-      }
-    }
-  : (obj, method, impl) => {
-      const spy = window.spyOn(obj, method);
-      if (impl) {
-        spy.and.callFake(impl);
-      }
-    };
-
 window.CLM = {
   path: '../brain/',
 };
 window.clmBuildTimestamp = '';
 window.angularDebug = true;
 window.SpecUtil = {
-  setupProviders: function (applicationId, organizationId) {
-    angular
-      .module('ApplicationIdProvider', [])
-      .service('ApplicationId', function () {
-        // TODO Are ui-router parameters encoded or decoded?
-        return {
-          encoded: function () {
-            return applicationId;
-          },
-        };
-      })
-      .service('OrganizationId', function () {
-        return {
-          encoded: function () {
-            return organizationId;
-          },
-        };
-      });
-  },
-
-  toRegExp: function toRegExp(url) {
-    var addedTimestamp = false,
-      parts = url.split('?');
-    //Note that i go through all of this funkiness as the params are added to the request
-    //alphabetically from the angular code, so when testing query param matching, need
-    //to make sure the timestamp param is in the proper position
-    if (parts.length > 1) {
-      parts = parts[1].split('&');
-
-      for (var i = 0; i < parts.length; i++) {
-        if ('timestamp' < parts[i]) {
-          url = url.replace(parts[i], 'timestamp=[0-9]+&' + parts[i]);
-          addedTimestamp = true;
-          break;
-        }
-      }
-    }
-
-    return new RegExp(
-      url.replace('?', '\\?').replace('+', '\\+') +
-        (!addedTimestamp ? (url.indexOf('?') < 0 ? '\\?' : '&') + 'timestamp=[0-9]+' : '')
-    );
-  },
-
-  setInput: function (inputElement, val) {
-    var evt = document.createEvent('HTMLEvents');
-    inputElement.val(val);
-
-    inject(function ($sniffer) {
-      var type = inputElement[0].localName;
-      evt.initEvent($sniffer.hasEvent(type) ? type : 'change', false, false);
-    });
-    inputElement[0].dispatchEvent(evt);
-  },
-
-  mockPermissionService: function ($provide) {
-    $provide.factory('PermissionService', [
-      '$q',
-      function ($q) {
-        var deferred = $q.defer();
-        deferred.resolve();
-        function fn() {
-          return deferred.promise;
-        }
-        return {
-          isAuthorized: fn,
-        };
-      },
-    ]);
-  },
-
   flushPromise: () => new Promise((resolve) => setTimeout(resolve, 0)),
-
-  promiseWrapper: function ($q) {
-    return function (promise) {
-      var deferred = $q.defer();
-
-      promise.then(
-        function () {
-          deferred.resolve.apply(deferred, arguments);
-        },
-        function () {
-          deferred.reject.apply(deferred, arguments);
-        }
-      );
-
-      return deferred.promise;
-    };
-  },
-
-  expectStateChangePrevented: function ($scope) {
-    var event = $scope.$broadcast('pageChangeStarted');
-
-    expect(event.defaultPrevented).toBeTruthy();
-  },
-
-  expectStateChangeNotPrevented: function ($scope) {
-    var event = $scope.$broadcast('pageChangeStarted');
-
-    expect(event.defaultPrevented).toBeFalsy();
-  },
-
-  /**
-   * This is used to test components connected to redux store.
-   * Just add this in the beginning of your test:
-   *
-   *    beforeEach(angular.mock.module(function($provide) {
-   *      SpecUtil.mockNgRedux($provide);
-   *    }));
-   *
-   *  It will create spies for all action creators passed to $ngRedux.connect().
-   *  Also connect() returns a spy to enable testing of unsubscribe.
-   */
-  mockNgRedux: function ($provide) {
-    var unsubscribeSpy = createSpy('unsubscribe');
-
-    $provide.service('$ngRedux', function () {
-      this.actions = [];
-      this.connect = createSpy('connect', function (mapStateToThis, actions) {
-        if (actions) {
-          // stub each action creator with spy
-          Object.keys(actions).forEach(function (actionCreator) {
-            // check if spy already created
-            if (actions[actionCreator].and || (isJest && jest.isMockFunction(actions[actionCreator]))) {
-              return;
-            }
-            (isJest ? jest.spyOn : window.spyOn)(actions, actionCreator);
-          });
-        }
-        return function (vm) {
-          angular.extend(vm, actions);
-          return unsubscribeSpy;
-        };
-      });
-      this.getState = createSpy('getState');
-      this.subscribe = createSpy('subscribe', unsubscribeSpy);
-      this.dispatch = createSpy('dispatch', (action) => {
-        if (angular.isFunction(action)) {
-          return action(this.dispatch, this.getState);
-        } else {
-          this.actions.push(action);
-          return action;
-        }
-      });
-    });
-
-    return unsubscribeSpy;
-  },
 
   /**
    * This is used to test redux actions creators (mostly used for testing async actions).
@@ -254,7 +75,7 @@ window.SpecUtil = {
     }
 
     function dispatch(action) {
-      if (angular.isFunction(action)) {
+      if (typeof action === 'function') {
         return action(dispatch, getState);
       } else {
         actions.push(action);
@@ -302,71 +123,37 @@ window.SpecUtil = {
    * @deprecated - use axiosMockAdapter()
    */
   axiosMockerGenerator: function (axios) {
+    function mockVerb(axiosInstance, method, urlMap) {
+      const spy = jest.spyOn(axiosInstance, method);
+      if (urlMap) {
+        spy.mockImplementation(function (url) {
+          const mock = urlMap[url];
+          if (typeof mock === 'function') {
+            return mock();
+          } else {
+            return mock;
+          }
+        });
+      }
+    }
+
     return function (responses) {
       responses = responses || {};
 
-      var get = responses.get;
-      var post = responses.post;
-      var put = responses.put;
-      var del = responses.del;
-
-      if (get) {
-        spyOn(axios, 'get', function (url) {
-          const mock = get[url];
-
-          if (typeof mock === 'function') {
-            return mock();
-          } else {
-            return mock;
-          }
-        });
+      if (responses.get) {
+        mockVerb(axios, 'get', responses.get);
       }
-
-      if (post) {
-        spyOn(axios, 'post', function (url) {
-          const mock = post[url];
-
-          if (typeof mock === 'function') {
-            return mock();
-          } else {
-            return mock;
-          }
-        });
+      if (responses.post) {
+        mockVerb(axios, 'post', responses.post);
       }
-
-      if (put) {
-        spyOn(axios, 'put', function (url) {
-          const mock = put[url];
-
-          if (typeof mock === 'function') {
-            return mock();
-          } else {
-            return mock;
-          }
-        });
+      if (responses.put) {
+        mockVerb(axios, 'put', responses.put);
       }
-
-      if (del) {
-        spyOn(axios, 'delete', function (url) {
-          const mock = del[url];
-
-          if (typeof mock === 'function') {
-            return mock();
-          } else {
-            return mock;
-          }
-        });
+      if (responses.del) {
+        mockVerb(axios, 'delete', responses.del);
       }
     };
   },
-  // Removes the delay rendering of NxTooltip.
-  // see react-shared-components/components/NxTooltip/updateBatcher.js for details on requestIdleCallback usage
-  requestIdleCallbackInvokeImmediate: () =>
-    spyOn(window, 'requestIdleCallback', (cb) => {
-      setTimeout(() => {
-        cb();
-      }, 0);
-    }),
 
   requestIdleCallbackInvokeImmediateJest: () => {
     window.requestIdleCallback = jest.fn().mockImplementation((cb) => {
@@ -376,38 +163,6 @@ window.SpecUtil = {
     });
   },
 };
-
-// custom equality tester for Sets
-// Sets are supported starting jasmine 2.6.0
-// https://github.com/jasmine/jasmine/blob/master/release_notes/2.6.0.md
-var customEqualityTesterForSets = function (as, bs) {
-  if (as instanceof Set && bs instanceof Set) {
-    return as.size === bs.size && all(isIn(bs), as);
-  }
-};
-
-function all(pred, as) {
-  var notAll = false;
-  // using forEach so it works in with ES5
-  as.forEach(function (a) {
-    notAll = notAll || !pred(a);
-  });
-
-  return !notAll;
-}
-
-function isIn(as) {
-  return function (a) {
-    return as.has(a);
-  };
-}
-
-// customize jasmine globally for all Specs
-beforeEach(function () {
-  if (typeof jasmine !== 'undefined') {
-    jasmine.addCustomEqualityTester(customEqualityTesterForSets);
-  }
-});
 
 export function configureStore(opts) {
   return reduxToolkitConfigureStore({
@@ -425,9 +180,6 @@ function render(
   ui,
   { preloadedState, store = configureStore({ reducer: reducers, preloadedState }), ...renderOptions } = {}
 ) {
-  if (typeof jasmine !== 'undefined') {
-    jasmine.addMatchers(JasmineDOM);
-  }
   function Wrapper({ children }) {
     return <Provider store={store}>{children}</Provider>;
   }
@@ -594,4 +346,3 @@ export const setupPortalContainer = () => {
 };
 
 export const getSpecUtil = () => window.SpecUtil;
-export { spyOn };

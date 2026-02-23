@@ -10,7 +10,6 @@ import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPolic
 import { actions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
 import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('Assign Application Categories Component', () => {

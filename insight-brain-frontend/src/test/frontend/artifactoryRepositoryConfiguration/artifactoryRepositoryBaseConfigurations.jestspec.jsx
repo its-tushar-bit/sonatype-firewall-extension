@@ -15,7 +15,6 @@ import {
   PARENT_ORGANIZATIONS_MUST_ALLOW_OVERRIDE,
 } from 'MainRoot/artifactoryRepositoryConfiguration/artifactoryRepositoryBaseConfigurationsSlice';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('ArtifactoryRepositoryBaseConfigurations', function () {

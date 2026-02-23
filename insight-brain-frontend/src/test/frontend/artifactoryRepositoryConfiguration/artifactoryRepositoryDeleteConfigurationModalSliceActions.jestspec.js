@@ -9,7 +9,6 @@ import { getArtifactoryConnectionUrl } from 'MainRoot/util/CLMLocation';
 import { omit } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 const TEST_ARTIFACTORY_CONNECTION_ID = 'someArtifactoryConnectionId';

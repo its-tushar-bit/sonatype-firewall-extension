@@ -9,7 +9,6 @@ import * as artifactoryRepositoryConfigurationModalSelectors from 'MainRoot/arti
 import { render, screen } from 'TestRoot/SpecUtil';
 import React from 'react';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('ArtifactoryRepositoryDeleteConfigurationModal', function () {

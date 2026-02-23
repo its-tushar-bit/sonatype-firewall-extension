@@ -11,7 +11,6 @@ import defaultFilter from 'MainRoot/dashboard/filter/defaultFilter';
 
 import { getWaiverRequestsUrl } from 'MainRoot/util/CLMLocation';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('DashboardWaiverRequestsTable', () => {

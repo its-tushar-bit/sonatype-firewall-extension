@@ -9,7 +9,6 @@ import { actions } from '../../../main/frontend/violation/waiveTransitiveViolati
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { getExpiryTime } from '../../../main/frontend/util/waiverUtils';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 const { setScope, setExpiration, setComments, cancel, save } = actions;

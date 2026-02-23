@@ -30,7 +30,6 @@ import {
   getOwnerHierarchyLegalReviewerUrl,
 } from '../../../../main/frontend/util/CLMLocation';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('ComponentCopyrightDetailsAction', function () {

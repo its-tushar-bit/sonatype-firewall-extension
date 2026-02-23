@@ -11,7 +11,6 @@ import PolicyActionsEditor from 'MainRoot/OrgsAndPolicies/policyEditor/policyAct
 import { actions as policyActions, initialState } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { pathSet } from 'MainRoot/util/jsUtil';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 const actionStages = [

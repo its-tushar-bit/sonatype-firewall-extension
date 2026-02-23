@@ -11,7 +11,6 @@ import * as VulnerabilitiesTableTile from 'MainRoot/componentDetails/Vulnerabili
 import * as firewallPolicyViolationsSelectors from 'MainRoot/firewall/firewallComponentDetailsPage/policyViolations/firewallPolicyViolationsSelectors.js';
 import * as vulnerabilitiesSelector from 'MainRoot/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSelectors';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('FirewallSecurityTab', () => {

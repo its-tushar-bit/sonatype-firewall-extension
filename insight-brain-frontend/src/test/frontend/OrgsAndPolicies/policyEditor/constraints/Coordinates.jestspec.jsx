@@ -8,7 +8,6 @@ import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import Coordinates from 'MainRoot/OrgsAndPolicies/policyEditor/constraints/Coordinates';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;

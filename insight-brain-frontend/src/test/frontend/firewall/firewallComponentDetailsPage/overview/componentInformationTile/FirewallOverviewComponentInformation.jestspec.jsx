@@ -9,7 +9,6 @@ import { render, screen, waitFor } from '../../../../SpecUtil';
 import FirewallOverviewComponentInformation from 'MainRoot/firewall/firewallComponentDetailsPage/overview/componentInformationTile/FirewallOverviewComponentInformation';
 import * as firewallSelectors from 'MainRoot/firewall/firewallSelectors';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('FirewallOverviewComponentInformation', () => {

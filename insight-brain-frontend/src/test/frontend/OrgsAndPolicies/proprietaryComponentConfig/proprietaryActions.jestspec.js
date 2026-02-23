@@ -9,7 +9,6 @@ import * as proprietarySelectors from 'MainRoot/OrgsAndPolicies/proprietarySelec
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getProprietaryConfigUrl } from 'MainRoot/util/CLMLocation';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('proprietaryActions', () => {

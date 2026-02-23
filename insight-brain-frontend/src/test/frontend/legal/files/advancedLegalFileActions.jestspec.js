@@ -44,7 +44,6 @@ import {
   ADVANCED_LEGAL_LOAD_MULTI_LICENSES_REQUESTED,
 } from '../../../../main/frontend/legal/advancedLegalActions';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('advancedLegalFileActions', function () {

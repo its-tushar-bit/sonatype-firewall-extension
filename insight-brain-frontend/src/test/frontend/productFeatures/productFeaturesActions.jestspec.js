@@ -11,7 +11,6 @@ import {
 } from 'MainRoot/util/CLMLocation';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('productFeaturesActions', () => {

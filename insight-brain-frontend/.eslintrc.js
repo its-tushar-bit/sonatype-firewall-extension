@@ -7,7 +7,6 @@ module.exports = {
   env: {
     browser: true,
     node: true,
-    jasmine: true,
     jest: true,
     es6: true,
   },
@@ -17,7 +16,6 @@ module.exports = {
     clmBuildTimestamp: false,
     Fuse: false,
     AngularStateUtils: false,
-    inject: false,
     Set: false,
     jQuery: false,
     SpecUtil: false,

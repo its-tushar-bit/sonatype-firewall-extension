@@ -10,7 +10,6 @@ import * as FirewallOverviewComponentInformationTile from 'MainRoot/firewall/fir
 import * as firewallSelectors from 'MainRoot/firewall/firewallSelectors';
 import * as firewallActions from 'MainRoot/firewall/firewallActions';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('FirewallOverviewComponentInformationTile', () => {

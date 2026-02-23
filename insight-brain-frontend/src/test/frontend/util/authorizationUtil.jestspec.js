@@ -15,7 +15,6 @@ import {
   featureNotEnableErrorMessage,
 } from 'MainRoot/util/authorizationUtil';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);

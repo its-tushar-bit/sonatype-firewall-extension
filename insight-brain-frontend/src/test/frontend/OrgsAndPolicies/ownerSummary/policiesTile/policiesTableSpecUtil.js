@@ -148,7 +148,7 @@ function verifyTableBody(
       let policy = sortedPolicies[index];
 
       let cells = within(row).getAllByRole('cell');
-      expect(cells).toHaveSize(totalOfColumns);
+      expect(cells).toHaveLength(totalOfColumns);
       verifyThreatLevelIndicator(row, policy.threatLevel);
       expect(within(row).getByRole('cell', { name: policy.name })).toBeVisible();
       editButton = within(row).getByRole('button', { name: `Edit ${policy.name} policy` });

@@ -7,7 +7,6 @@ import React from 'react';
 import { render, screen, within } from 'TestRoot/SpecUtil';
 import FirewallPolicyViolationsTableRow from 'MainRoot/firewall/firewallComponentDetailsPage/policyViolations/policyViolationsTile/FirewallPolicyViolationsTableRow';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('FirewallPolicyViolationsTableRow component', () => {

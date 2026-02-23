@@ -18,7 +18,6 @@ import QuarantineComponentReport from 'MainRoot/quarantinedComponentReport/Quara
 
 import { formatTimeAgo, formatDate } from 'MainRoot/util/dateUtils';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('QuarantineComponentReport', () => {

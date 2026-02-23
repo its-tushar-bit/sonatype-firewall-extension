@@ -9,7 +9,6 @@ import { actions } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSlice';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as orgAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import * as ltgSelectors from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSelectors';
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 import {

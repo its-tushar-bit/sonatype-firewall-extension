@@ -10,7 +10,6 @@ import ComponentRisk from 'MainRoot/dashboard/results/componentRisk/ComponentRis
 import { actions } from 'MainRoot/dashboard/results/componentRisk/componentRiskSlice';
 import * as componentRiskSelectors from 'MainRoot/dashboard/results/componentRisk/componentRiskSelectors';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('ComponentRisk', () => {

@@ -10,7 +10,6 @@ import * as componentDetailsSelectors from 'MainRoot/componentDetails/componentD
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import { dependencyTreeData } from 'TestRoot/dependencyTree/dependencyTreeMockData';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('DependencyTreeTile', () => {

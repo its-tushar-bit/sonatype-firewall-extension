@@ -8,7 +8,6 @@ import LegacyViolationModal from 'MainRoot/OrgsAndPolicies/legacyViolationModal/
 import { fireEvent, render, screen, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { getLegacyViolationModalUrl } from 'MainRoot/util/CLMLocation';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('LegacyViolation modal', () => {

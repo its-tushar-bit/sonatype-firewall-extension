@@ -14,7 +14,6 @@ import {
   FETCH_STAGE_TYPES_FAILED,
 } from '../../../main/frontend/stages/stagesActions';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('stagesActions', function () {

@@ -14,7 +14,6 @@ import {
 import { omit } from 'ramda';
 import { getPermissionContextTestUrl } from '../../../../main/frontend/util/CLMContextLocation';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('componentDetailsPolicyViolationsActions', () => {

@@ -12,7 +12,6 @@ import * as stagesSelectors from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/policyMonitoringSlice';
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('Continuous Monitoring Component', () => {

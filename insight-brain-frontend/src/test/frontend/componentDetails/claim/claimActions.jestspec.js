@@ -10,7 +10,6 @@ import { actions } from 'MainRoot/componentDetails/claim/claimSlice';
 import * as claimSelectors from 'MainRoot/componentDetails/claim/claimSelectors';
 import { getClaimComponentUrl } from 'MainRoot/util/CLMLocation';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('claimActions', () => {

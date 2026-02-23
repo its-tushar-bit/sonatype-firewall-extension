@@ -13,7 +13,6 @@ import { actions } from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/chang
 import { fireEvent, render, screen } from 'TestRoot/SpecUtil';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 const { initialState: rscInitialState } = nxTextInputStateHelpers;

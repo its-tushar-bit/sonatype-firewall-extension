@@ -32,7 +32,6 @@ import {
 import { getPermissionContextTestUrl } from 'MainRoot/util/CLMContextLocation';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('violationActions', function () {

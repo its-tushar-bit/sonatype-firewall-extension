@@ -14,7 +14,6 @@ import {
 } from '../../../../main/frontend/configuration/advancedSearch/advancedSearchConfigActions';
 import { getAdvancedSearchConfigUrl, getAdvancedSearchIndexUrl } from '../../../../main/frontend/util/CLMLocation';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('advancedSearchConfigActions', function () {

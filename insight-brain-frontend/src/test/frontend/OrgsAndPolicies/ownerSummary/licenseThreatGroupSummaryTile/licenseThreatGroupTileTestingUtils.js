@@ -12,7 +12,7 @@ export const verifyTableHead = (thead) => {
   let rows, headers;
 
   rows = within(thead).getAllByRole('row');
-  expect(rows).toHaveSize(1);
+  expect(rows).toHaveLength(1);
 
   headers = within(rows[0]).getAllByRole('columnheader');
   expect(headers.length).toBe(3);
@@ -35,7 +35,7 @@ export const nLevelVerifyTableContent = (tableSections, owners, goToEditLTGSpy) 
       ? `No ${owner.ownerName} threat groups defined`
       : 'No local threat groups defined';
 
-    expect(within(firstContentRow).getAllByRole('cell')).toHaveSize(cellsPerLTGRow);
+    expect(within(firstContentRow).getAllByRole('cell')).toHaveLength(cellsPerLTGRow);
 
     // render correct title
     if (owner.inherited) {
@@ -47,12 +47,12 @@ export const nLevelVerifyTableContent = (tableSections, owners, goToEditLTGSpy) 
     // if ltg count is 0, there should always be two rows and the empty message
     if (licenseThreatGroups.length === 0) {
       expect(within(section).getByText(expectedEmptyMessage)).toBeVisible();
-      expect(within(section).getAllByRole('row')).toHaveSize(2);
+      expect(within(section).getAllByRole('row')).toHaveLength(2);
     } else {
       allRows = within(section).getAllByRole('row');
       contentRows = allRows.slice(1);
-      expect(allRows).toHaveSize(licenseThreatGroups.length + 1);
-      expect(contentRows).toHaveSize(licenseThreatGroups.length);
+      expect(allRows).toHaveLength(licenseThreatGroups.length + 1);
+      expect(contentRows).toHaveLength(licenseThreatGroups.length);
 
       contentRows.forEach((row, index) => {
         ltg = licenseThreatGroups[index];

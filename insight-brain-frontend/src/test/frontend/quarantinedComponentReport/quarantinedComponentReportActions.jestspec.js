@@ -21,7 +21,6 @@ import {
   QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_REQUESTED,
 } from 'MainRoot/quarantinedComponentReport/quarantinedComponentReportActions';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('quarantinedComponentReportActions', function () {

@@ -8,7 +8,6 @@ import ToastContainer from 'MainRoot/toastContainer/ToastContainer';
 import { render, screen } from 'TestRoot/SpecUtil';
 import { fireEvent, within } from '@testing-library/react';
 
-// Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
 describe('Toast', () => {

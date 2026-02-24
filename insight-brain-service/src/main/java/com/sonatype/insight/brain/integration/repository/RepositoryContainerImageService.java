@@ -323,16 +323,20 @@ public class RepositoryContainerImageService
       String cycloneDxBomJson,
       PackageUrlIdentifier containerImagePurl)
   {
-    try {
-      String source = containerImagePurl.getNamespace() + ":" + containerImagePurl.getName() + ":" +
-          containerImagePurl.getVersion();
+    String source = String.format("%s:%s:%s",
+        containerImagePurl.getNamespace(),
+        containerImagePurl.getName(),
+        containerImagePurl.getVersion());
 
+    try {
       return scanner.scanThirdPartyContent(cycloneDxBomJson, application.getId(),
           ItemContentType.CONTAINER_URI_SONATYPE, source, SbomFormat.JSON, null,
           ScannerDriver.THIRD_PARTY_API.getValue());
     }
     catch (Exception e) {
-      throw new InternalServerException("Error scanning the container image CycloneDX BOM", e);
+      log.error("Error scanning container image {}: {}", source, e.getMessage(), e);
+      throw new InternalServerException(
+          String.format("Could not process container image %s", source), e);
     }
   }
 }

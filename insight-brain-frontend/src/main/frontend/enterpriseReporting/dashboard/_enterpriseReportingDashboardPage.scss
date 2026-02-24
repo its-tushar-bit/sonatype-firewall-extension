@@ -7,7 +7,14 @@
 enterprise-reporting-dashboard-page {
   --looker-iframe-margin: 60px;
 
-  display: contents;
+  display: block;
+  width: 100%;
+
+  // Ensure NxPageMain takes full width
+  .nx-page-main {
+    width: 100%;
+    max-width: 100%;
+  }
 
   iframe {
     height: 100%;
@@ -22,6 +29,7 @@ enterprise-reporting-dashboard-page {
 
   .nx-tabs {
     margin: 0;
+    width: 100%;
   }
   .nx-tab-list {
     margin-bottom: 0;
@@ -29,7 +37,10 @@ enterprise-reporting-dashboard-page {
   }
 
   .nx-tab-panel {
-    display: contents;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+
     .dashboard-disabled {
       margin-top: var(--nx-spacing-6x);
     }
@@ -45,6 +56,17 @@ enterprise-reporting-dashboard-page {
   // container's height to prevent elements underneath from jumping on the page as Looker
   // iframe loads
   &__container {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-height: 600px;
+    position: relative;
+
+    iframe {
+      width: 100% !important;
+      max-width: 100%;
+    }
+
     &.loading {
       height: 120px;
     }

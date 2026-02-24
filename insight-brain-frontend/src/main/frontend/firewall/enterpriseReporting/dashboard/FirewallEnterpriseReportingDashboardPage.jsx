@@ -42,7 +42,7 @@ export default function FirewallEnterpriseReportingDashboardPage() {
   const dashboards = useSelector((state) => state.firewallEnterpriseReporting.dashboards);
 
   // Pass Firewall-specific selectors to useLookerDashboard hook
-  const { loadingDashboard, iframeError } = useLookerDashboard('#dashboard', {
+  const { loadingDashboard, iframeError } = useLookerDashboard('#fw-dashboard', {
     selectBaseUrl,
     selectSelectedDashboard,
   });
@@ -78,7 +78,7 @@ export default function FirewallEnterpriseReportingDashboardPage() {
         />
       )}
       {!iframeError && !combinedError && (
-        <div className={iframeClassNames} id="dashboard" role="firewall-enterprise-reporting-dashboard" />
+        <div className={iframeClassNames} id="fw-dashboard" role="firewall-enterprise-reporting-dashboard" />
       )}
     </>
   );

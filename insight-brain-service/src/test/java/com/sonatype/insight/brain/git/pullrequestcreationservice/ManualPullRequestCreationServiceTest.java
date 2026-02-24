@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -22,9 +23,13 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentCha
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiSuggestedVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.GitHubAppAuthStrategyCache;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
@@ -38,12 +43,15 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.report.InnerSourceUtils;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.test.LogOutput;
+import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.github.dto.GithubUser;
 
@@ -61,6 +69,7 @@ import org.mockito.Mock;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -77,6 +86,39 @@ public class ManualPullRequestCreationServiceTest
   private static final String DEFAULT_VERSION = "1.0.0";
 
   private static final String DEFAULT_REMEDIATION_VERSION = "2.0.0";
+
+  /**
+   * Test-only RSA private key in Base64-encoded PKCS#8 format - 2048-bit key for RS256 algorithm.
+   * This is the raw Base64 PKCS8 bytes (PEM format with headers/footers removed and newlines stripped).
+   * This matches the format that is stored in the database BEFORE encryption.
+   */
+  private static final String VALID_BASE64_PKCS8 =
+      "MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCvxBfy5wcqJKrf" +
+      "qo/zY6eUcX6/VdtIO7CzbOi860dr9FbxOBXXnUryXNDsgkCbOutuDbNB/CZzeaVV" +
+      "MHT/3MXp/e0Ah0bx26Vm8IzerDc8FBbgvyUUJP9OmICVtmTsA4CeuPq3ys6eVRCl" +
+      "yePdJ9hio3bKguiW0ZREcv8rEGVZj6ZOg7vEIivvJmOhzZc0RBs1fQwj80hHMlzi" +
+      "v94lgaDV/CMGSB7tsZja65G1LIQmyH5EEzNwsSBHfWC+YzirQXhpdYHXTki0m8Ri" +
+      "whtboXgrnLRz4VI5i6ZSrWTuDNIn5vMEhlPYdmACLgoMIeZ+yNkkBrl++0ihj3eD" +
+      "7L0MLFj9AgMBAAECggEABY8frMkiPBdZOi9UU8j+maetAjfFTe57p7tn3wgO1k1S" +
+      "bcbSQ77iLrt4EZQLDTStEfxezLCu2lzXy8FSzpJLD1LjKtx34b6KnnmmgKlLmIBZ" +
+      "TSzcNEmwITN1uasKgIi+ZU/lJY0g5feEpX0kiS/oN+lMDlF/xHKG5+VQpAWKhMjN" +
+      "k75ofqmVs8d6meH7AijvcFRGAwdJJ7PGi2XeOk9gw4uTxXTGvzO8KGqAXxtC8D5F" +
+      "CoSdo8rRH6whKIMb5Ay7Vwc315JbaK/t0zQDWEB5w5gZ5f6O6H9W7NET7XvbLAUD" +
+      "32HvBxJ2AzGnO3siRzNQFNB2zl8eVm0ux25T7/vNEQKBgQDxPzhN3xnGCXudae3g" +
+      "1EpVFzaoCPECwhKXHqX8wOilXpN1rr/GvOQ/89uiR1/yc379irYZexbm3bcjc7QI" +
+      "gxe8NxCkNxmvRIYdo6fSddjECVQYQ/bVS3VKjK2L5fkb2TCVXSjzXKeA/kBhjlBF" +
+      "3bZG8WWyGAoVJZnSpoVPt9zIVQKBgQC6g8DM59ZOkAdxywLziWsswzmwi2Er6WtB" +
+      "t6oQ8CnD9dYQT0T9y9a7u3Z9ETusmzRQIiE1U8EM89258apvssqYxYsbTG04WS9/" +
+      "a5JDpHIHBhjSw8QXA35lEekjAOw5YSvDGXspXUAxx7CzI/V0wtuPDOI70KwJ7Y4x" +
+      "F1CWBWoWCQKBgAQySVRxcQ1U1OWkFhM3HiPkx3qczTRzE8e1LMX8xQ87We1OIN/g" +
+      "IUhLgaKNA0pAYBEg/JHs5jUV3j2roZIUVbFcc9mna7b0xjB1zFGI40BluSTC6eRD" +
+      "78JgOBSa535ohMPUXwX8sp03zv7jbtoIRUduo4o5iNNdWBOl+eOtGxYRAoGAHcKS" +
+      "C9/eIRD4Lx7+bI97q1vHI7VJnvESrRy6JRO9Bkh+jIGpd3mD3NaPlGsgg20MTtDz" +
+      "TYf8oK10roux7zqu+utiQ8vRDZGlc4Zdgy+FBjvh0BdufWGQVF4kPfKSvqETk4DI" +
+      "VxRK/uZm+l59dtD0qYGbw4GLQdZGvuyCbj2U7MkCgYB9Bvot0b1K0GYQgH6E4Ckc" +
+      "iQGoPf9T+n7lSIWYia0QPQnn+zKT2gSNwoYzCwF1b7RfG/mQLVasqqeh2rI+LVyg" +
+      "ukkm6Cc03G16SqcmicaVFoto9GSgI6ZX2ynicH7B58DARZrZxzMLRLd+NvDhUnLU" +
+      "/2Zcph16+6zclEkOgCD+Gw==";
 
   @Rule
   public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
@@ -108,6 +150,23 @@ public class ManualPullRequestCreationServiceTest
   @Override
   public void configure(Binder binder) {
     binder.bind(ComponentInfoService.class).toInstance(mockComponentInfoService);
+
+    // Override GitHubAppAuthStrategyCache to use WireMock URL for GitHub App endpoints
+    Provider<GitHubAppDAO> githubAppDAOProvider = binder.getProvider(GitHubAppDAO.class);
+    Provider<InsightProxy> insightProxyProvider = binder.getProvider(InsightProxy.class);
+    Provider<GitApiClientFactory> gitApiClientFactoryProvider = binder.getProvider(GitApiClientFactory.class);
+    Provider<PasswordHandler> passwordHandlerProvider = binder.getProvider(PasswordHandler.class);
+
+    binder.bind(GitHubAppAuthStrategyCache.class).toProvider(() ->
+        new GitHubAppAuthStrategyCache(
+            githubAppDAOProvider.get(),
+            insightProxyProvider.get(),
+            gitApiClientFactoryProvider.get(),
+            passwordHandlerProvider.get(),
+            gitService.baseUrl()
+        )
+    );
+
     super.configure(binder);
   }
 
@@ -441,6 +500,69 @@ public class ManualPullRequestCreationServiceTest
         SourceEndpoint.MANUAL_PULL_REQUEST,
         true)).thenReturn(setupComponentVersionInfoDTO());
     policyDAO.delete(policy);
+
+    PullRequestSubmissionResultDTO result = manualPrService.createManualRemediationPullRequest(
+        application.getId(),
+        DEFAULT_SCAN_ID,
+        mavenComponent,
+        DEFAULT_REMEDIATION_VERSION,
+        "Sonatype",
+        true
+    );
+
+    assertThat(result.id()).isNotEmpty();
+    SourceControlEvent sourceControlEvent = sourceControlEventDAO.getById(result.id());
+    assertThat(sourceControlEvent.getEventType()).isEqualTo(MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    assertThat(sourceControlEvent.getApplicationId()).isEqualTo(application.getId());
+    assertThat(sourceControlEvent.getScanId()).isEqualTo(DEFAULT_SCAN_ID);
+    assertThat(sourceControlEvent.getComponentIdentifier()).isEqualTo(mavenComponent);
+    assertThat(sourceControlEvent.getBranchName()).isEqualTo(branchName);
+    assertThat(sourceControlEvent.getRemediationVersion()).isEqualTo(DEFAULT_REMEDIATION_VERSION);
+    assertThat(sourceControlEvent.getStageTypeId()).isEqualTo(stage.getStageTypeId());
+    assertThat(sourceControlEvent.getInitiator()).isEqualTo("manual request");
+  }
+
+  @Test
+  public void testCreateManualRemediationPullRequest_withGitHubAppAuth() throws Exception {
+    ComponentIdentifier mavenComponentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "group", "artifact", DEFAULT_VERSION);
+    String branchName = branchNameGenerator.getBranchName(application, mavenComponent, DEFAULT_REMEDIATION_VERSION);
+
+    Long installationId = 789012L;
+    gitService.stubFor(post(urlPathMatching("/app/installations/" + installationId + "/access_tokens"))
+        .willReturn(aResponse()
+            .withStatus(201)
+            .withHeader("Content-Type", "application/json")
+            .withBody("{" +
+                "\"token\":\"ghs_generated_installation_token\"," +
+                "\"expires_at\":\"2099-01-01T00:00:00Z\"" +
+                "}")));
+
+    // Encrypt the valid Base64 PKCS8 key to match production format
+    PasswordHandler passwordHandler = lookup(PasswordHandler.class);
+    char[] encryptedKey = passwordHandler.encryptPassword(VALID_BASE64_PKCS8.toCharArray());
+
+    GitHubApp githubApp = new GitHubApp();
+    githubApp.setOwnerId(application.getId());
+    githubApp.setAppId(123456);
+    githubApp.setInstallationId(installationId);
+    githubApp.setSlug("test-github-app");
+    githubApp.setClientId("test-client-id");
+    githubApp.setClientSecret("test-client-secret");
+    githubApp.setGithubOrganizationName("test-org");
+    githubApp.setPrivateKey(String.valueOf(encryptedKey));
+    githubApp.setLastUpdatedAt(new Date());
+    tempEntity.newGitHubApp(githubApp);
+
+    SourceControl sourceControl = lookup(SourceControlDAO.class).getByOwnerId(application.getId());
+    sourceControl.setAuthenticationType(SourceControl.AuthenticationType.GITHUB_APP);
+    lookup(SourceControlDAO.class).update(sourceControl);
+
+    setupPolicyEvaluationAndViolation();
+    when(mockComponentInfoService.getComponentVersionInfoNoAuth(OwnerType.APPLICATION, application.getPublicId(),
+        mavenComponentIdentifier, "build", "Sonatype", DEFAULT_SCAN_ID, DependencyType.DIRECT,
+        SourceEndpoint.MANUAL_PULL_REQUEST,
+        true)).thenReturn(setupComponentVersionInfoDTO());
 
     PullRequestSubmissionResultDTO result = manualPrService.createManualRemediationPullRequest(
         application.getId(),

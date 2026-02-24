@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppRegistrationStateDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.git.GitHubAppAuthStrategyCache;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
@@ -98,6 +99,9 @@ public class ApiGitHubAppServiceTest
   @Inject
   private InsightProxy insightProxy;
 
+  @Inject
+  private GitHubAppAuthStrategyCache authStrategyCache;
+
   private ApiGitHubAppService service;
 
   private Organization organization;
@@ -122,6 +126,7 @@ public class ApiGitHubAppServiceTest
             passwordHandler,
             insightProxy,
             gitHubManifestService,
+        authStrategyCache,
             mockServerUrl,  // githubApiBaseUrl
             mockServerUrl,  // githubOAuthTokenUrl
             baseUrl
@@ -470,6 +475,7 @@ public class ApiGitHubAppServiceTest
             passwordHandler,
             insightProxy,
             gitHubManifestService,
+        authStrategyCache,
             mockBaseUrl
     );
 
@@ -519,6 +525,7 @@ public class ApiGitHubAppServiceTest
             passwordHandler,
             insightProxy,
             gitHubManifestService,
+        authStrategyCache,
             mockBaseUrl
     );
 
@@ -541,6 +548,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         mockBaseUrl
     );
 
@@ -567,6 +575,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         mockBaseUrl
     );
 
@@ -592,6 +601,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         mockBaseUrl
     );
 
@@ -615,6 +625,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         mockBaseUrl
     );
 
@@ -638,6 +649,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         mockBaseUrl
     );
 
@@ -661,6 +673,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         mockBaseUrl
     );
 
@@ -707,6 +720,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         mockBaseUrl
     );
 
@@ -747,6 +761,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         baseUrl
     );
 
@@ -769,6 +784,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         baseUrl
     );
 
@@ -791,6 +807,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         baseUrl
     );
 
@@ -821,6 +838,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         baseUrl
     );
 
@@ -859,6 +877,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         baseUrl
     );
 
@@ -885,6 +904,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         baseUrl
     );
 
@@ -908,6 +928,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         baseUrl
     );
 
@@ -940,6 +961,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         baseUrl
     );
 
@@ -963,6 +985,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         baseUrl
     );
 
@@ -986,6 +1009,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         baseUrl
     );
 
@@ -1016,6 +1040,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         baseUrl
     );
 
@@ -1481,6 +1506,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         mockBaseUrl
     );
 
@@ -1510,6 +1536,7 @@ public class ApiGitHubAppServiceTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        authStrategyCache,
         mockBaseUrl
     );
 

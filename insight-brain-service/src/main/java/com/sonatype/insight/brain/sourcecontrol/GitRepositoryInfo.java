@@ -33,7 +33,8 @@ public class GitRepositoryInfo
     this(repositoryUrl, SourceControl.normalizeRepositoryUrl(repositoryUrl), sshRepositoryUrl, username, token,
         provider, baseBranch, remediationPullRequestsEnabled, manualPullRequestsEnabled,
         innerSourceAutomatedUpdatesEnabled, statusChecksEnabled,
-        pullRequestCommentingEnabled, sourceControlEvaluationsEnabled, sshEnabled, sourceControlScanTarget);
+        pullRequestCommentingEnabled, sourceControlEvaluationsEnabled, sshEnabled, sourceControlScanTarget,
+        null, null);
   }
 
   public GitRepositoryInfo(final String repositoryUrl,
@@ -50,7 +51,9 @@ public class GitRepositoryInfo
                            final Boolean pullRequestCommentingEnabled,
                            final Boolean sourceControlEvaluationsEnabled,
                            final Boolean sshEnabled,
-                           final String sourceControlScanTarget)
+                           final String sourceControlScanTarget,
+                           final SourceControl.AuthenticationType authenticationType,
+                           final String ownerId)
   {
     this.repositoryUrl = repositoryUrl;
     this.normalizedRepositoryUrl = normalizedRepositoryUrl;
@@ -67,6 +70,8 @@ public class GitRepositoryInfo
     this.sourceControlEvaluationsEnabled = sourceControlEvaluationsEnabled;
     this.sshEnabled = sshEnabled;
     this.sourceControlScanTarget = sourceControlScanTarget;
+    this.authenticationType = authenticationType;
+    this.ownerId = ownerId;
   }
 
   public String repositoryUrl;
@@ -98,6 +103,10 @@ public class GitRepositoryInfo
   public Boolean sshEnabled;
 
   public String sourceControlScanTarget;
+
+  public SourceControl.AuthenticationType authenticationType;
+
+  public String ownerId;
 
   public String getRepositoryUrl() {
     return repositoryUrl;
@@ -155,6 +164,14 @@ public class GitRepositoryInfo
     return sourceControlScanTarget;
   }
 
+  public SourceControl.AuthenticationType getAuthenticationType() {
+    return authenticationType;
+  }
+
+  public String getOwnerId() {
+    return ownerId;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -178,7 +195,9 @@ public class GitRepositoryInfo
         Objects.equals(pullRequestCommentingEnabled, that.pullRequestCommentingEnabled) &&
         Objects.equals(sourceControlEvaluationsEnabled, that.sourceControlEvaluationsEnabled) &&
         Objects.equals(sshEnabled, that.sshEnabled) &&
-        Objects.equals(sourceControlScanTarget, that.sourceControlScanTarget);
+        Objects.equals(sourceControlScanTarget, that.sourceControlScanTarget) &&
+        authenticationType == that.authenticationType &&
+        Objects.equals(ownerId, that.ownerId);
   }
 
   @Override

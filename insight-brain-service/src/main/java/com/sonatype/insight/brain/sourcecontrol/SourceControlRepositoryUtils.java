@@ -80,8 +80,12 @@ public class SourceControlRepositoryUtils
 
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo();
     gitRepositoryInfo.repositoryUrl = repositoryUrl;
+    gitRepositoryInfo.normalizedRepositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl);
     gitRepositoryInfo.username = sourceControl.getUsername();
     gitRepositoryInfo.token = sourceControl.getToken();
+    gitRepositoryInfo.provider = sourceControl.getProvider();
+    gitRepositoryInfo.authenticationType = sourceControl.getAuthenticationType();
+    gitRepositoryInfo.ownerId = sourceControl.getOwnerId();
 
     try {
       GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);

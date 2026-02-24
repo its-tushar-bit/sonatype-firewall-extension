@@ -37,6 +37,7 @@ import com.sonatype.nexus.scm.gitlab.dto.GitlabMergeRequestResponse;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -50,6 +51,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.atLeastOnce;
 
 public class PullRequestPollingServiceTest
     extends VerifiableLoggingTestBase
@@ -719,6 +721,61 @@ public class PullRequestPollingServiceTest
     );
   }
 
+  @Test
+  public void testFetchAndSendPullRequests_WithPATAuthentication() throws Exception {
+    final Date pullRequestCreateDate = new Date();
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
+    TestablePullRequestPollingServiceBuilder builder = new TestablePullRequestPollingServiceBuilder();
+    PullRequestPollingService pollingService = builder
+        .forRepository("testorg/pat-repo", SourceControlProvider.GITHUB)
+        .withApplication("app-pat-polling", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(15, pullRequestCreateDate, "feature-branch", "main-branch",
+            "feature-commit-pat", "base-commit", PullRequestState.OPEN)
+        .build();
+
+    ArgumentCaptor<GitRepositoryInfo> repoInfoCaptor = ArgumentCaptor.forClass(GitRepositoryInfo.class);
+
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    verify(builder.mockGitClientFactory, atLeastOnce()).createApiClient(repoInfoCaptor.capture());
+
+    GitRepositoryInfo captured = repoInfoCaptor.getValue();
+    assertThat(captured.getAuthenticationType()).isNull();
+    assertThat(captured.token).isNotNull();
+    assertThat(captured.getOwnerId()).isNull();
+
+    verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
+  }
+
+  @Test
+  public void testFetchAndSendPullRequests_WithGitHubAppAuthentication() throws Exception {
+    final Date pullRequestCreateDate = new Date();
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
+    String appId = "app-githubapp-polling";
+    TestablePullRequestPollingServiceBuilder builder = new TestablePullRequestPollingServiceBuilder();
+    PullRequestPollingService pollingService = builder
+        .forRepository("testorg/githubapp-repo", SourceControlProvider.GITHUB)
+        .withApplication(appId, "main-branch")
+        .withGitHubAppAuthentication(appId)
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(25, pullRequestCreateDate, "feature-branch", "main-branch",
+            "feature-commit-githubapp", "base-commit", PullRequestState.OPEN)
+        .build();
+
+    ArgumentCaptor<GitRepositoryInfo> repoInfoCaptor = ArgumentCaptor.forClass(GitRepositoryInfo.class);
+
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    verify(builder.mockGitClientFactory, atLeastOnce()).createApiClient(repoInfoCaptor.capture());
+
+    GitRepositoryInfo captured = repoInfoCaptor.getValue();
+    assertThat(captured.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
+    assertThat(captured.getOwnerId()).isEqualTo(appId);
+
+    verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
+  }
+
   private class TestablePullRequestPollingServiceBuilder
   {
     private final List<MockRepo> mockRepoList = new ArrayList<>();
@@ -734,7 +791,7 @@ public class PullRequestPollingServiceTest
     private SourceControlUtils mockSourceControlUtils;
 
     @Mock
-    private GitClientFactory mockGitClientFactory;
+    GitClientFactory mockGitClientFactory;  // Package-private for test access
 
     @Mock
     private ScmRepoVisibilityService mockScmRepoVisibilityService;
@@ -850,9 +907,29 @@ public class PullRequestPollingServiceTest
               currentMockRepo.sourceControlProvider, true, true, defaultBranch, false, false, null, false, true, false,
               false, null, false, null);
       tempEntity.newSourceControl(currentMockRepo.sourceControl);
-      currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(currentMockRepo.repositoryUrl, null, username, "token",
+      currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(currentMockRepo.repositoryUrl,
+          currentMockRepo.repositoryUrl, null, username, "token",
           currentMockRepo.sourceControlProvider, defaultBranch, true, true,true, true, prCommentingEnabled, true, false,
-          null);
+          null, null, null);
+      return this;
+    }
+
+    TestablePullRequestPollingServiceBuilder withGitHubAppAuthentication(String ownerId) {
+      currentMockRepo.sourceControl.setAuthenticationType(SourceControl.AuthenticationType.GITHUB_APP);
+      sourceControlDAO.update(currentMockRepo.sourceControl);
+
+      currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(
+          currentMockRepo.repositoryUrl,
+          currentMockRepo.repositoryUrl,
+          null,
+          null,
+          null,
+          currentMockRepo.sourceControlProvider,
+          currentMockRepo.sourceControl.getBaseBranch(),
+          true, true, true, true, true, true, false,
+          null,
+          SourceControl.AuthenticationType.GITHUB_APP,
+          ownerId);
       return this;
     }
 

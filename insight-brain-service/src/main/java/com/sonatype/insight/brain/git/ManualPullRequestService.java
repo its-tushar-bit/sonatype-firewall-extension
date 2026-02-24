@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.hds.ComponentRemediationService;
@@ -20,6 +21,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.DependencyType;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.policy.StageTypeService;
@@ -61,6 +63,8 @@ public class ManualPullRequestService
 
   private final TenantUtil tenantUtil;
 
+  private final GitHubAppDAO gitHubAppDAO;
+
   @Inject
   public ManualPullRequestService(
       SourceControlDAO sourceControlDAO,
@@ -71,7 +75,7 @@ public class ManualPullRequestService
       PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
       ComponentRemediationService componentRemediationService,
       RemediationPullRequestEligibilityService remediationPullRequestEligibilityService,
-      TenantUtil tenantUtil)
+      TenantUtil tenantUtil, GitHubAppDAO gitHubAppDAO)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.stageTypeService = stageTypeService;
@@ -83,6 +87,7 @@ public class ManualPullRequestService
     this.componentRemediationService = componentRemediationService;
     this.remediationPullRequestEligibilityService = remediationPullRequestEligibilityService;
     this.tenantUtil = tenantUtil;
+    this.gitHubAppDAO = gitHubAppDAO;
   }
 
   /**
@@ -171,12 +176,20 @@ public class ManualPullRequestService
     GitRepositoryInfo
         gitRepositoryInfo = SourceControlUtils.getGitRepositoryInfoForApplicationStatic(sourceControl, owner.getId());
     if (gitRepositoryInfo != null) {
-      Optional<String> decryptedToken = decryptToken(sourceControl.getToken());
-      if (decryptedToken.isPresent()) {
-        gitRepositoryInfo.token = decryptedToken.get();
+      if (SourceControl.AuthenticationType.GITHUB_APP.equals(gitRepositoryInfo.authenticationType)) {
+        GitHubApp gitHubApp = gitHubAppDAO.getByOwnerId(sourceControl.getOwnerId());
+        if (gitHubApp == null || gitHubApp.getInstallationId() == null) {
+          return Optional.of(ManualPullRequestImpossibilityReason.SCM_NOT_CONFIGURED);
+        }
       }
       else {
-        return Optional.of(ManualPullRequestImpossibilityReason.SCM_NOT_CONFIGURED);
+        Optional<String> decryptedToken = decryptToken(sourceControl.getToken());
+        if (decryptedToken.isPresent()) {
+          gitRepositoryInfo.token = decryptedToken.get();
+        }
+        else {
+          return Optional.of(ManualPullRequestImpossibilityReason.SCM_NOT_CONFIGURED);
+        }
       }
     }
     return manualPullRequestFeatureCheck.isManualPullRequestFeatureSupported(gitRepositoryInfo);

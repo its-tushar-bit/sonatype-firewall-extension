@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.security.RotatableSecrets;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * @since 1.201
@@ -60,6 +61,21 @@ public class GitHubAppDAO
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
       return getByOwnerIds(tx, ownerIds);
+    }
+  }
+
+  public GitHubApp getByOwnerIdNotNull(TransactionContext tx, String ownerId) {
+    GitHubApp githubApp = getByOwnerId(tx, ownerId);
+    if (githubApp == null) {
+      throw new NotFoundException("GitHub App not found for ownerId: " + ownerId);
+    }
+    return githubApp;
+  }
+
+  public GitHubApp getByOwnerIdNotNull(String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      return getByOwnerIdNotNull(tx, ownerId);
     }
   }
 

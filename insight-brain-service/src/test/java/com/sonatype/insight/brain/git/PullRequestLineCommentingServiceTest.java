@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequ
 import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -112,6 +113,8 @@ public class PullRequestLineCommentingServiceTest
     MockitoAnnotations.openMocks(this);
     super.setup();
     when(gitRepositoryInfo.getProvider()).thenReturn(SourceControlProvider.GITHUB);
+    when(gitRepositoryInfo.getAuthenticationType()).thenReturn(null);  // Default to PAT
+    when(gitRepositoryInfo.getOwnerId()).thenReturn(null);
     locationDiscoveryResult = new LocationDiscoveryResult();
     List<RankedSourceLocation> list = new LinkedList<>();
     list.add(new RankedSourceLocation("path", 1, "content", 1));
@@ -582,6 +585,83 @@ public class PullRequestLineCommentingServiceTest
     assertThat(sourceControlPullRequestComment2.getPullRequestCommentVersion()).isEqualTo(85);
     assertThat(sourceControlPullRequestComment2.getSourcePolicyEvaluationId()).isEqualTo(sourcePolicyEvaluationId);
     assertThat(sourceControlPullRequestComment2.getTargetPolicyEvaluationId()).isEqualTo(basePolicyEvaluationId);
+  }
+
+  @Test
+  public void testCreatePullRequestLineComments_WithPATAuthentication() throws Exception {
+    // given: PAT (Personal Access Token) authentication configured
+    when(gitRepositoryInfo.getProvider()).thenReturn(SourceControlProvider.GITHUB);
+    when(gitRepositoryInfo.getAuthenticationType()).thenReturn(null);  // PAT auth uses null
+    when(gitRepositoryInfo.getOwnerId()).thenReturn(null);  // PAT auth uses null
+    when(gitRepositoryInfo.getToken()).thenReturn("ghp_test_token_123");  // PAT uses token
+
+    PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
+        .withCommentVersion(94)
+        .build();
+
+    // Setup ArgumentCaptor to capture GitRepositoryInfo
+    ArgumentCaptor<GitRepositoryInfo> repoInfoCaptor = ArgumentCaptor.forClass(GitRepositoryInfo.class);
+
+    // when: try to create line comments with PAT auth
+    PullRequestLineCommentCreationResult result = service.createPullRequestLineComments(getViolationList(1),
+        gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+
+    // then: verify gitClientFactory was called with PAT authentication (null authenticationType)
+    verify(mockGitClientFactory, atLeastOnce()).createApiClient(repoInfoCaptor.capture());
+
+    GitRepositoryInfo captured = repoInfoCaptor.getValue();
+    assertThat(captured.getAuthenticationType()).isNull();  // PAT auth uses null
+    assertThat(captured.getOwnerId()).isNull();  // PAT auth uses null
+    assertThat(captured.getToken()).isEqualTo("ghp_test_token_123");  // PAT auth uses token
+
+    // and: one comment should be created
+    List<PullRequestLineCommentDTO> lineComments = result.getPullRequestLineCommentDtoList();
+    assertThat(lineComments).isNotEmpty();
+    assertThat(lineComments.size()).isEqualTo(1);
+    assertThat(lineComments.get(0).getScmId()).isEqualTo(scmId);
+    assertThat(lineComments.get(0).getScmVersion()).isEqualTo(94);
+
+    // and: there were no exceptions recorded
+    assertThat(result.hasExceptions()).isFalse();
+  }
+
+  @Test
+  public void testCreatePullRequestLineComments_WithGitHubAppAuthentication() throws Exception {
+    // given: GitHub App authentication configured
+    String ownerId = "app-789";
+    when(gitRepositoryInfo.getProvider()).thenReturn(SourceControlProvider.GITHUB);
+    when(gitRepositoryInfo.getAuthenticationType()).thenReturn(SourceControl.AuthenticationType.GITHUB_APP);
+    when(gitRepositoryInfo.getOwnerId()).thenReturn(ownerId);
+
+    PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
+        .withCommentVersion(95)
+        .build();
+
+    // Setup ArgumentCaptor to capture GitRepositoryInfo
+    ArgumentCaptor<GitRepositoryInfo> repoInfoCaptor = ArgumentCaptor.forClass(GitRepositoryInfo.class);
+
+    // when: try to create line comments with GitHub App auth
+    PullRequestLineCommentCreationResult result = service.createPullRequestLineComments(getViolationList(1),
+        gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult, featureBranchScanId);
+
+    // then: verify gitClientFactory was called with correct GitHub App authentication
+    verify(mockGitClientFactory, atLeastOnce()).createApiClient(repoInfoCaptor.capture());
+
+    GitRepositoryInfo captured = repoInfoCaptor.getValue();
+    assertThat(captured.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
+    assertThat(captured.getOwnerId()).isEqualTo(ownerId);
+
+    // and: one comment should be created
+    List<PullRequestLineCommentDTO> lineComments = result.getPullRequestLineCommentDtoList();
+    assertThat(lineComments).isNotEmpty();
+    assertThat(lineComments.size()).isEqualTo(1);
+    assertThat(lineComments.get(0).getScmId()).isEqualTo(scmId);
+    assertThat(lineComments.get(0).getScmVersion()).isEqualTo(95);
+
+    // and: there were no exceptions recorded
+    assertThat(result.hasExceptions()).isFalse();
   }
 
   private List<PolicyViolation> getViolationList(int itemCount) {

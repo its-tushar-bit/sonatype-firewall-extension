@@ -5,13 +5,24 @@
  */
 package com.sonatype.insight.brain.git;
 
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.nexus.scm.GitApiClientFactory;
+import com.sonatype.nexus.scm.api.ContributorInfoProvider;
 import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
@@ -19,15 +30,28 @@ import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import com.sonatype.nexus.scm.github.GitHubApiClient;
 import com.sonatype.nexus.scm.github.graphql.GitHubGraphQlClient;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.inject.Binder;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+
+import java.util.Date;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -41,9 +65,16 @@ import static org.mockito.Mockito.when;
 public class GitClientFactoryTest
     extends AbstractComponentTest
 {
+  private static final int WIREMOCK_PORT = 18090;
+
+  private static final String GITHUB_INSTALLATION_TOKEN = "ghs_test_installation_token_123456";
+
   private static final GitRepositoryInfo GIT_REPO_INFO =
       new GitRepositoryInfo("https://github.com/org/repo", null, null, "token",
           GITHUB, "main", true, true, true, true, true, true, false, null);
+
+  @Rule
+  public WireMockRule githubMockServer = new WireMockRule(wireMockConfig().port(WIREMOCK_PORT));
 
   @Inject
   private GitClientFactory gitClientFactory;
@@ -51,6 +82,30 @@ public class GitClientFactoryTest
   private GitClientFactory spyGitClientFactory;
 
   private GitApiClientUtils mockGitApiClientUtils;
+
+  /**
+   * Override GitHubAppAuthStrategyCache bean to use WireMock URL for tests.
+   */
+  @Override
+  public void configure(Binder binder) {
+    // Get providers for dependencies - they'll be resolved lazily
+    Provider<GitHubAppDAO> githubAppDAOProvider = binder.getProvider(GitHubAppDAO.class);
+    Provider<InsightProxy> insightProxyProvider = binder.getProvider(InsightProxy.class);
+    Provider<GitApiClientFactory> gitApiClientFactoryProvider = binder.getProvider(GitApiClientFactory.class);
+    Provider<PasswordHandler> passwordHandlerProvider = binder.getProvider(PasswordHandler.class);
+
+    // Create provider that uses WireMock URL
+    binder.bind(GitHubAppAuthStrategyCache.class).toProvider(() ->
+        new GitHubAppAuthStrategyCache(
+            githubAppDAOProvider.get(),
+            insightProxyProvider.get(),
+            gitApiClientFactoryProvider.get(),
+            passwordHandlerProvider.get(),
+            "http://localhost:" + WIREMOCK_PORT
+        )
+    );
+    super.configure(binder);
+  }
 
   @Before
   public void setup() {
@@ -344,5 +399,249 @@ public class GitClientFactoryTest
   private GitRepositoryInfo createRepoInfo(String url, SourceControlProvider provider) {
     return new GitRepositoryInfo(url, null, null, "token", provider, "main",
         true, true, true, true, true, true, false, null);
+  }
+
+  @Test
+  public void testCreateApiClient_GitHubApp_NotFound() {
+    // Given: A repository configured for GitHub App auth but no GitHub App exists
+    GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/org/repo", GITHUB);
+    repoInfo.authenticationType =
+        com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType.GITHUB_APP;
+    repoInfo.ownerId = "non-existent-owner";
+
+    // When/Then: Creating API client should throw UncheckedExecutionException wrapping NotFoundException
+    assertThatThrownBy(() -> gitClientFactory.createApiClient(repoInfo))
+        .isInstanceOf(com.google.common.util.concurrent.UncheckedExecutionException.class)
+        .hasMessageContaining("GitHub App not found")
+        .hasMessageContaining("non-existent-owner")
+        .hasCauseInstanceOf(NotFoundException.class);
+  }
+
+  @Test
+  public void testCreateApiClient_GitHubApp_MissingOwnerId() {
+    // Given: A repository configured for GitHub App auth but ownerId is null
+    GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/org/repo", GITHUB);
+    repoInfo.authenticationType =
+        com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType.GITHUB_APP;
+    repoInfo.ownerId = null;  // Missing ownerId - should NOT fallback to PAT
+
+    // When/Then: Creating API client should throw IllegalStateException (fail fast)
+    assertThatThrownBy(() -> gitClientFactory.createApiClient(repoInfo))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("GitHub App authentication is configured but ownerId is not set")
+        .hasMessageContaining("https://github.com/org/repo");
+  }
+
+  @Test
+  public void testCreatePullRequestInfoClient_GitHubApp_MissingOwnerId() {
+    // Given: A repository configured for GitHub App auth but ownerId is null
+    GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/org/repo", GITHUB);
+    repoInfo.authenticationType =
+        com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType.GITHUB_APP;
+    repoInfo.ownerId = null;  // Missing ownerId - should NOT fallback to PAT
+
+    // When/Then: Creating PR info client should throw IllegalStateException (fail fast)
+    assertThatThrownBy(() -> gitClientFactory.createPullRequestInfoClient(repoInfo))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("GitHub App authentication is configured but ownerId is not set")
+        .hasMessageContaining("https://github.com/org/repo");
+  }
+
+  @Test
+  public void testCreateContributorInfoProvider_GitHubApp_MissingOwnerId() {
+    // Given: A repository configured for GitHub App auth but ownerId is null
+    GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/org/repo", GITHUB);
+    repoInfo.authenticationType =
+        com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType.GITHUB_APP;
+    repoInfo.ownerId = null;  // Missing ownerId - should NOT fallback to PAT
+
+    // When/Then: Creating contributor info provider should throw IllegalStateException (fail fast)
+    assertThatThrownBy(() -> gitClientFactory.createContributorInfoProvider(repoInfo))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("GitHub App authentication is configured but ownerId is not set")
+        .hasMessageContaining("https://github.com/org/repo");
+  }
+
+  @Test
+  public void testCreatePullRequestInfoClient_WithGitHubApp_MakesGraphQlCallWithAuth() throws Exception {
+    // Mock GitHub installation token endpoint (installation ID 7890123 from createTestGitHubApp)
+    githubMockServer.stubFor(
+        post(urlPathEqualTo("/app/installations/7890123/access_tokens"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"token\":\"" + GITHUB_INSTALLATION_TOKEN + "\"," +
+                    "\"expires_at\":\"2099-01-01T00:00:00Z\"}")
+            )
+    );
+
+    // Mock GraphQL endpoint
+    githubMockServer.stubFor(
+        post(urlPathEqualTo("/api/graphql"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"data\":{\"search\":{\"edges\":[],\"pageInfo\":{\"hasNextPage\":false}}}}")
+            )
+    );
+
+    // Create test application and GitHub App
+    Organization org = tempEntity.newOrganization("test-org");
+    Application app = tempEntity.newApplication(org.getId());
+    GitHubApp githubApp = createTestGitHubApp(app.getId());
+    tempEntity.newGitHubApp(githubApp);
+
+    // Create GitRepositoryInfo with WireMock URL and GitHub App authentication
+    GitRepositoryInfo repoInfo = createRepoInfo("http://localhost:" + WIREMOCK_PORT + "/test-org/repo", GITHUB);
+    repoInfo.authenticationType = SourceControl.AuthenticationType.GITHUB_APP;
+    repoInfo.ownerId = app.getId();
+
+    // Create GraphQL client and make API call
+    PullRequestInfoProvider prInfoClient = gitClientFactory.createPullRequestInfoClient(repoInfo);
+    assertThat(prInfoClient).isInstanceOf(GitHubGraphQlClient.class);
+
+    GitHubGraphQlClient graphQlClient = (GitHubGraphQlClient) prInfoClient;
+    graphQlClient.getPullRequestsSince("test-org", java.time.OffsetDateTime.now().minusDays(30), 10);
+
+    // Verify GraphQL endpoint was called with GitHub App authentication
+    githubMockServer.verify(
+        postRequestedFor(urlPathEqualTo("/api/graphql"))
+            .withHeader("Authorization", containing(GITHUB_INSTALLATION_TOKEN))
+    );
+  }
+
+  @Test
+  public void testCreateContributorInfoProvider_WithGitHubApp_Success() {
+    // Create test application and GitHub App
+    Organization org = tempEntity.newOrganization("test-org");
+    Application app = tempEntity.newApplication(org.getId());
+
+    // Create GitHub App
+    GitHubApp githubApp = createTestGitHubApp(app.getId());
+    tempEntity.newGitHubApp(githubApp);
+
+    // Create GitRepositoryInfo with GitHub App authentication
+    GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/test-org/repo", GITHUB);
+    repoInfo.authenticationType = SourceControl.AuthenticationType.GITHUB_APP;
+    repoInfo.ownerId = app.getId();
+
+    // Create contributor info provider
+    ContributorInfoProvider contributorProvider = gitClientFactory.createContributorInfoProvider(repoInfo);
+
+    // Verify provider was created successfully
+    assertThat(contributorProvider).isNotNull();
+  }
+
+  @Test
+  public void testCreateApiClient_UsesAuthStrategyCaching() throws Exception {
+    // Mock GitHub installation token endpoint (installation ID 7890123 from createTestGitHubApp)
+    githubMockServer.stubFor(
+        post(urlPathEqualTo("/app/installations/7890123/access_tokens"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"token\":\"" + GITHUB_INSTALLATION_TOKEN + "\"," +
+                    "\"expires_at\":\"2099-01-01T00:00:00Z\"}")
+            )
+    );
+
+    // Mock GraphQL endpoint for API calls
+    githubMockServer.stubFor(
+        post(urlPathEqualTo("/api/graphql"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"data\":{\"search\":{\"edges\":[],\"pageInfo\":{\"hasNextPage\":false}}}}")
+            )
+    );
+
+    // Create test application and GitHub App
+    Organization org = tempEntity.newOrganization("test-org");
+    Application app = tempEntity.newApplication(org.getId());
+
+    // Create GitHub App
+    GitHubApp githubApp = createTestGitHubApp(app.getId());
+    tempEntity.newGitHubApp(githubApp);
+
+    // Create GitRepositoryInfo with WireMock URL and GitHub App authentication
+    GitRepositoryInfo repoInfo = createRepoInfo("http://localhost:" + WIREMOCK_PORT + "/test-org/repo", GITHUB);
+    repoInfo.authenticationType = SourceControl.AuthenticationType.GITHUB_APP;
+    repoInfo.ownerId = app.getId();
+
+    // Create first PullRequestInfoProvider and make API call - should fetch installation token
+    PullRequestInfoProvider prInfoClient1 = gitClientFactory.createPullRequestInfoClient(repoInfo);
+    ((GitHubGraphQlClient) prInfoClient1).getPullRequestsSince("test-org",
+        java.time.OffsetDateTime.now().minusDays(30), 10);
+
+    // Verify the token endpoint was called once
+    githubMockServer.verify(1, postRequestedFor(urlPathEqualTo("/app/installations/7890123/access_tokens")));
+
+    // Create second PullRequestInfoProvider with same GitHub App and make API call
+    // Should reuse cached auth strategy without fetching token again
+    PullRequestInfoProvider prInfoClient2 = gitClientFactory.createPullRequestInfoClient(repoInfo);
+    ((GitHubGraphQlClient) prInfoClient2).getPullRequestsSince("test-org",
+        java.time.OffsetDateTime.now().minusDays(30), 10);
+
+    // Verify the token endpoint was still only called once (cache was used)
+    githubMockServer.verify(1, postRequestedFor(urlPathEqualTo("/app/installations/7890123/access_tokens")));
+
+    // Verify both API calls were made successfully
+    githubMockServer.verify(2, postRequestedFor(urlPathEqualTo("/api/graphql")));
+  }
+
+  private GitHubApp createTestGitHubApp(String ownerId) {
+    GitHubApp githubApp = new GitHubApp();
+    githubApp.setId(java.util.UUID.randomUUID().toString());
+    githubApp.setOwnerId(ownerId);
+    githubApp.setAppId(123456);
+    githubApp.setSlug("test-app");
+    githubApp.setClientId("test-client-id");
+    githubApp.setClientSecret("test-client-secret");
+    githubApp.setGithubOrganizationName("test-org");
+    githubApp.setInstallationId(7890123L);
+    githubApp.setLastUpdatedAt(new Date());
+
+    // Convert PEM to Base64 PKCS8, then encrypt
+    String pemKey = "-----BEGIN PRIVATE KEY-----\n" +
+        "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCVsrVrXls0IWh5\n" +
+        "ck+58RCytTi1nByt+YiOgsRQ9kB+Iy4OmTiQq8UjIUQJW/sxC2M9FMucWNmK9btQ\n" +
+        "NqoLOay/JvOp5zIrBCjv9MwOyJOvx0QY5Jq2Gq9clA8eY3pOB+b/LdbtMypzi7bq\n" +
+        "O5ncq5Wf4f8+8q3qEWj9FADgJTvV0jvItP6eIoZfl12SNWBHGjo0gnaltHr/WI98\n" +
+        "KIlMCqYmTTmg1ncoZlN1RnDAJh0C1+QEL40vqTD1m6iEzURA3HG8QQhD4n+z+ofb\n" +
+        "rSxfYe+LNpBfngRPzjR+aECYhZZ1W0nMGDv1uYe5G19+nw1x9ZXbjkkKFZ27L4j/\n" +
+        "G+TA9R3DAgMBAAECggEAAs285dFTKIkTErM4PVNIyDShQiDsqJV8+4m8A4grcZ8N\n" +
+        "6TODJyA1BZEgyaeD7yTuUAaM0tVgT/MX9d00zYWXAhjtO+zRuEo98OUiiK19lp00\n" +
+        "y5TX7F7qbnO8Anf6fdujdZ92KVH8AGlteCfhCdWRbGZM48xaDFzLryiXm5sW6qf3\n" +
+        "JfSoBR6W9ivd3BliCK7jfnk2y/trzX/1hgBnymgIXHXSk7bNU8EGxCLOdTG+7TKJ\n" +
+        "K1ugFkrjrdgSj4FkOo9ckApRs+jNkZkCH9/VxUZsB/HqvJzzi3ytTebrqoNXHLuQ\n" +
+        "UKDjGErnL3rLFfMTeW2Gv6p8jMIj2t5DRhYKDRk8AQKBgQDFin0MsAyMCNrM/1r5\n" +
+        "goe8r5w52bkbAmdOIDsYOeMmUfO2a75F3awrxGaMUxRMxC1QdO6z2Sr5a0AuNCBq\n" +
+        "dHRX5YDyjBOGoWOqX4mtw7EpNkOET02rAm2tOVEIhOOqhwz1VVBKm9Wk4AuhbO+a\n" +
+        "wH6njGOoaeplwvpVJO8Wyst0IQKBgQDB/7CAVoopfqsJ6Bsl+rnm8sFiU9yr1U4P\n" +
+        "94hcOUhK7f6oyU5SXiOzP1Mx5K850iUyRVCT0CbNyx/Nl1v7iWS1YAqRFPY7jSpZ\n" +
+        "fK7zSvcOqFO9O/+/8czRVs09BYm/Go9NoW9zAxFIm6DYnFF5nqnnRGvGNLPo+xpq\n" +
+        "uMTZs7CVYwKBgQCShRAPsxz7WS4BU35FB15qw86a0jUMJZI+ToXGiFlFeQ/NxMjS\n" +
+        "xYMIy5pMhurNrcz2mmTbHT9U1Qo7uwo4K7yH3YDxZpitCVQFcOuL6VSkfs1BfBjd\n" +
+        "uOVk0Nib+wVq3NTtu6PcUw36RvwZddWa8SCAYg8hQb5MUHyhXs3AGBckQQKBgCOz\n" +
+        "BavYQPx5zse36qcGiIczTNrnS8hjLEZL6s/typvfR+mPgdYudKtbj9eymXwua6Hg\n" +
+        "l39b4ogkROn0XHzhP6MQ1WD1VoqG47Ar/ZXPyb7swtwj2mBcArDTJFmCV2LPZGeI\n" +
+        "uZWUju2plePGgEe9Js7kDGEg+ap56taQwci+BFS5AoGBALD//nynCo8oBGqVOBCp\n" +
+        "e6X36qLcHE8YkM//FplnhsKPrzqdSXiP2T+BNrzj/rcHdPrA4Js5mggEtXk47/Vk\n" +
+        "LoPyDbBvEvkkOnmTjwfmKtFkVykt4q1etctaUyKkzGz6ICKxC73ET/hFlN9r0LXM\n" +
+        "JYwq8nvsGtyZSCMRwEVmvb+h\n" +
+        "-----END PRIVATE KEY-----";
+
+    // Convert PEM to Base64 PKCS8 (strip headers and newlines)
+    String base64Pkcs8 = pemKey
+        .replace("-----BEGIN PRIVATE KEY-----", "")
+        .replace("-----END PRIVATE KEY-----", "")
+        .replaceAll("\\s", "");
+
+    // Encrypt the Base64 PKCS8 key
+    PasswordHandler passwordHandler = lookup(PasswordHandler.class);
+    char[] encryptedKey = passwordHandler.encryptPassword(base64Pkcs8.toCharArray());
+    githubApp.setPrivateKey(String.valueOf(encryptedKey));
+
+    return githubApp;
   }
 }

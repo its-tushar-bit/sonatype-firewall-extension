@@ -15,6 +15,7 @@ import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -28,13 +29,18 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.test.LogOutput;
+import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import com.sonatype.nexus.scm.api.model.ProjectUrl;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
 import com.google.inject.Module;
+
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -69,6 +75,8 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 public class PullRequestPollingSchedulerSingleTenantTest
     extends AbstractBrainServiceIntegrationTest
 {
+  private static final int WIREMOCK_PORT = 18091;
+
   private static final String TOKEN = new String(
       new PasswordHandler(new TestEncryptionKeyStore())
           .encryptPassword("password".toCharArray())
@@ -83,7 +91,10 @@ public class PullRequestPollingSchedulerSingleTenantTest
   private static final Configurator CONFIGURATOR = config -> {
   };
 
-  @Rule
+  @Rule(order = 0)
+  public WireMockRule githubMockServer = new WireMockRule(wireMockConfig().port(WIREMOCK_PORT));
+
+  @Rule(order = 1)
   public LogOutput logOutput =
       new LogOutput(PullRequestPollingScheduler.class, PullRequestPollingService.class, SourceControlDAO.class);
 
@@ -114,8 +125,11 @@ public class PullRequestPollingSchedulerSingleTenantTest
     private GitClientFactory gitClientFactorySpy;
 
     @Inject
-    public GitClientFactorySpyProvider(InsightProxy insightProxy) {
-      gitClientFactorySpy = spy(new GitClientFactory(insightProxy));
+    public GitClientFactorySpyProvider(
+        InsightProxy insightProxy,
+        GitHubAppAuthStrategyCache authStrategyCache)
+    {
+      gitClientFactorySpy = spy(new GitClientFactory(insightProxy, authStrategyCache));
     }
 
     @Override
@@ -131,6 +145,24 @@ public class PullRequestPollingSchedulerSingleTenantTest
     {
       @Override
       protected void configure() {
+        // Configure GitHubAppAuthStrategyCache to use WireMock URL instead of https://api.github.com
+        // This prevents the test from making real network calls to GitHub if GitHub App auth is ever used
+        Binder binder = binder();
+        Provider<GitHubAppDAO> githubAppDAOProvider = binder.getProvider(GitHubAppDAO.class);
+        Provider<InsightProxy> insightProxyProvider = binder.getProvider(InsightProxy.class);
+        Provider<GitApiClientFactory> gitApiClientFactoryProvider = binder.getProvider(GitApiClientFactory.class);
+        Provider<PasswordHandler> passwordHandlerProvider = binder.getProvider(PasswordHandler.class);
+
+        binder.bind(GitHubAppAuthStrategyCache.class).toProvider(() ->
+            new GitHubAppAuthStrategyCache(
+                githubAppDAOProvider.get(),
+                insightProxyProvider.get(),
+                gitApiClientFactoryProvider.get(),
+                passwordHandlerProvider.get(),
+                "http://localhost:" + WIREMOCK_PORT  // Point to WireMock instead of real GitHub
+            )
+        );
+
         bind(GitClientFactory.class).toProvider(GitClientFactorySpyProvider.class);
         bind(IqForScmLicenseChecker.class).toInstance(licenseCheckerMock);
       }

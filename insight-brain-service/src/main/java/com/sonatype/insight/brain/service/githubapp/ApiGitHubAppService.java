@@ -24,6 +24,7 @@ import com.sonatype.nexus.scm.github.GitHubApiClient;
 import com.sonatype.nexus.scm.github.GitHubAppOAuthClient;
 import com.sonatype.insight.brain.api.v2.dto.ApiGitHubAppDTO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
+import com.sonatype.insight.brain.git.GitHubAppAuthStrategyCache;
 import com.sonatype.insight.brain.git.GitHubManifestService;
 import com.sonatype.insight.brain.model.githubapp.GitHubAppInstallationState;
 import jakarta.inject.Inject;
@@ -93,6 +94,8 @@ public class ApiGitHubAppService
 
   private final GitHubManifestService gitHubManifestService;
 
+  private final GitHubAppAuthStrategyCache authStrategyCache;
+
   private final String githubApiBaseUrl;
 
   private final String githubOAuthTokenUrl;
@@ -107,10 +110,11 @@ public class ApiGitHubAppService
       final PasswordHandler passwordHandler,
       final InsightProxy insightProxy,
           final GitHubManifestService gitHubManifestService,
+          final GitHubAppAuthStrategyCache authStrategyCache,
           final BaseUrl baseUrl)
   {
     this(gitHubAppDAO, installationStateDAO, registrationStateDAO, sourceControlDAO, ownerDAO,
-        passwordHandler, insightProxy, gitHubManifestService,
+        passwordHandler, insightProxy, gitHubManifestService, authStrategyCache,
         DEFAULT_GITHUB_API_BASE_URL, DEFAULT_GITHUB_OAUTH_TOKEN_URL, baseUrl);
   }
 
@@ -123,6 +127,7 @@ public class ApiGitHubAppService
       final PasswordHandler passwordHandler,
       final InsightProxy insightProxy,
           final GitHubManifestService gitHubManifestService,
+          final GitHubAppAuthStrategyCache authStrategyCache,
       final String githubApiBaseUrl,
       final String githubOAuthTokenUrl,
           final BaseUrl baseUrl)
@@ -135,6 +140,7 @@ public class ApiGitHubAppService
     this.passwordHandler = passwordHandler;
     this.insightProxy = insightProxy;
     this.gitHubManifestService = gitHubManifestService;
+    this.authStrategyCache = authStrategyCache;
     this.githubApiBaseUrl = githubApiBaseUrl;
     this.githubOAuthTokenUrl = githubOAuthTokenUrl;
     this.baseUrl = baseUrl;
@@ -385,6 +391,10 @@ public class ApiGitHubAppService
       final GitHubApp gitHubApp = createGitHubAppFromManifestResponse(githubResponse, registrationState);
       gitHubAppDAO.insert(tx, gitHubApp);
       tx.commit();
+
+      // Invalidate cache after GitHub App creation
+      authStrategyCache.invalidate(gitHubApp.getOwnerId());
+
       return toGitHubAppDTO(gitHubApp);
     }
   }
@@ -528,6 +538,9 @@ public class ApiGitHubAppService
           installationId, ownerId, accountName);
 
       tx.commit();
+
+      // Invalidate cache after GitHub App configuration update
+      authStrategyCache.invalidate(ownerId);
     }
   }
 

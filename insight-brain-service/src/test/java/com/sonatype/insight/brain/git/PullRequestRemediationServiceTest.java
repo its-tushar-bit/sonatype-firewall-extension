@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -579,5 +580,161 @@ public class PullRequestRemediationServiceTest
     result.setSuccessful(successful);
     result.setPullRequestUrl(url);
     return result;
+  }
+
+  @Test
+  public void testOnRemediatePullRequestClosing_WithPATAuthentication() throws Exception {
+    // given: SourceControl configured with PAT authentication
+    final String branchName = "test/pat/branch";
+    final String appId = "app-pat-123";
+    final int prNumber = 100;
+    final String pullRequestContents = "Closing PR with PAT auth";
+
+    // Setup GitRepositoryInfo with PAT (no GitHub App, no authenticationType)
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo(
+        "https://github.com/org/repo",
+        "https://github.com/org/repo",  // normalizedRepositoryUrl
+        "git@github.com:org/repo.git",
+        "username",
+        "test-pat-token",  // PAT token
+        SourceControlProvider.GITHUB,
+        "main",
+        true, true, true, true, true, true, false,
+        null,  // sourceControlScanTarget
+        null,  // authenticationType = null for PAT
+        null);  // ownerId = null for PAT
+
+    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(appId))
+        .thenReturn(gitRepositoryInfo);
+
+    SourceControlEvent event = new SourceControlEvent()
+        .setBranchName(branchName)
+        .setApplicationId(appId)
+        .setPullRequestNumber(prNumber)
+        .setPullRequestContents(pullRequestContents);
+
+    setupBranchExistence(branchName, true);
+
+    // Setup argument captor to verify GitRepositoryInfo passed to factory
+    ArgumentCaptor<GitRepositoryInfo> repoInfoCaptor =
+        ArgumentCaptor.forClass(GitRepositoryInfo.class);
+
+    // when: service closes PR
+    pullRequestRemediationService.onRemediatePullRequestClosing(event);
+
+    // then: verify gitClientFactory.createApiClient() was called with correct PAT authentication
+    verify(mockGitClientFactory, times(2)).createApiClient(repoInfoCaptor.capture());
+
+    // Verify the GitRepositoryInfo has PAT authentication fields
+    GitRepositoryInfo capturedRepoInfo = repoInfoCaptor.getValue();
+    assertThat(capturedRepoInfo.getAuthenticationType()).isNull();  // PAT = no auth type
+    assertThat(capturedRepoInfo.token).isEqualTo("test-pat-token");
+    assertThat(capturedRepoInfo.getOwnerId()).isNull();
+
+    // Verify PR operations were called
+    verify(mockGitApiClient).createPullRequestComment(prNumber, pullRequestContents);
+    verify(mockGitApiClient).closePullRequest(prNumber);
+  }
+
+  @Test
+  public void testOnRemediatePullRequestClosing_WithGitHubAppAuthentication() throws Exception {
+    final String branchName = "test/githubapp/branch";
+    final String appId = "app-githubapp-456";
+    final int prNumber = 200;
+    final String pullRequestContents = "Closing PR with GitHub App auth";
+
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo(
+        "https://github.com/org/repo",
+        "https://github.com/org/repo",
+        "git@github.com:org/repo.git",
+        null,
+        null,
+        SourceControlProvider.GITHUB,
+        "main",
+        true, true, true, true, true, true, false,
+        null,
+        SourceControl.AuthenticationType.GITHUB_APP,
+        appId);
+
+    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(appId))
+        .thenReturn(gitRepositoryInfo);
+
+    SourceControlEvent event = new SourceControlEvent()
+        .setBranchName(branchName)
+        .setApplicationId(appId)
+        .setPullRequestNumber(prNumber)
+        .setPullRequestContents(pullRequestContents);
+
+    setupBranchExistence(branchName, true);
+
+    ArgumentCaptor<GitRepositoryInfo> repoInfoCaptor =
+        ArgumentCaptor.forClass(GitRepositoryInfo.class);
+
+    pullRequestRemediationService.onRemediatePullRequestClosing(event);
+
+    verify(mockGitClientFactory, times(2)).createApiClient(repoInfoCaptor.capture());
+
+    GitRepositoryInfo capturedRepoInfo = repoInfoCaptor.getValue();
+    assertThat(capturedRepoInfo.getAuthenticationType())
+        .isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
+    assertThat(capturedRepoInfo.getOwnerId()).isEqualTo(appId);
+    assertThat(capturedRepoInfo.token).isNull();
+
+    verify(mockGitApiClient).createPullRequestComment(prNumber, pullRequestContents);
+    verify(mockGitApiClient).closePullRequest(prNumber);
+  }
+
+  @Test
+  public void testOnRemediateComponent_manualPullRequest_WithGitHubAppAuth() throws Exception {
+    final String branchName = "manual/githubapp/branch";
+    final String appId = "app-manual-githubapp-789";
+    final String prUrl = "https://github.com/org/repo/pull/42";
+    Application application = setupApplication(appId);
+    setupBranchExistence(branchName, false);
+
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo(
+        "https://github.com/org/repo",
+        "https://github.com/org/repo",
+        "git@github.com:org/repo.git",
+        null,
+        null,
+        SourceControlProvider.GITHUB,
+        "main",
+        true, true, true, true, true, true, false,
+        null,
+        SourceControl.AuthenticationType.GITHUB_APP,
+        appId);
+
+    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(appId))
+        .thenReturn(gitRepositoryInfo);
+    when(mockPullRequestTaskProvider.get()).thenReturn(mockPullRequestTask);
+
+    PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
+    when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
+
+    SourceControlEvent event = new SourceControlEvent()
+        .withComponentIdentifier(ComponentIdentifier.createNpmCoordinates("pkg-A", "version-X"))
+        .setApplicationId(application.getId())
+        .setRemediationVersion("version-Y")
+        .setScanId("scan-manual-githubapp")
+        .setStageTypeId(Stage.ID_BUILD)
+        .setPullRequestContents("manual PR with GitHub App auth")
+        .setBranchName(branchName)
+        .setEventType(SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+
+    pullRequestRemediationService.onRemediateComponent(event);
+
+    ArgumentCaptor<PullRequestRemediationDetails> detailsCaptor =
+        ArgumentCaptor.forClass(PullRequestRemediationDetails.class);
+    verify(mockPullRequestTask).run(detailsCaptor.capture(), any());
+
+    PullRequestRemediationDetails capturedDetails = detailsCaptor.getValue();
+    assertThat(capturedDetails.isManualPullRequest()).isTrue();
+
+    ArgumentCaptor<SourceControlEvent> eventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
+    verify(mockSourceControlEventDAO).update(eventCaptor.capture());
+
+    SourceControlEvent capturedEvent = eventCaptor.getValue();
+    assertThat(capturedEvent.getEventStatusDetails()).isEqualTo(prUrl);
   }
 }

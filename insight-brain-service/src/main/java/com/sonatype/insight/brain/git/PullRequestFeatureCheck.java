@@ -9,6 +9,7 @@ package com.sonatype.insight.brain.git;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.sourcecontrol.AuthenticationValidator;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 
 import org.slf4j.Logger;
@@ -46,7 +47,8 @@ public abstract class PullRequestFeatureCheck
         isBlank(gitRepositoryInfo.username)) {
       missingFields.add("Username");
     }
-    if (isBlank(gitRepositoryInfo.token)) {
+    // Check authentication based on type - for backward compatibility, null/unknown types check token
+    if (!AuthenticationValidator.hasValidCredentials(gitRepositoryInfo)) {
       missingFields.add("Token");
     }
     if (!missingFields.isEmpty()) {

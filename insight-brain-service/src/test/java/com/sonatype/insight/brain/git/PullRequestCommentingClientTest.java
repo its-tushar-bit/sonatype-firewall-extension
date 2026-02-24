@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
@@ -21,6 +22,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -37,6 +39,10 @@ import static org.mockito.Mockito.when;
 public class PullRequestCommentingClientTest
     extends VerifiableLoggingTestBase
 {
+  private static final String TEST_REPO_URL = "https://github.com/org/repo";
+
+  private static final String TEST_SSH_URL = "git@github.com:org/repo.git";
+
   @Mock
   private GitClientFactory mockGitClientFactory;
 
@@ -289,5 +295,108 @@ public class PullRequestCommentingClientTest
   private GitRepositoryInfo getGitRepositoryInfo() {
     return new GitRepositoryInfo("repoUrl", "sshRepoUrl", "username", "token", SourceControlProvider.GITLAB,
         "baseBranch", true, true, true,true, true, true, false, null);
+  }
+
+  @Test
+  public void testCreateOrUpdateComment_WithPATAuthentication() throws IOException {
+    // given: PR related data with PAT (Personal Access Token) authentication
+    String applicationId = "app-pat";
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo(
+        TEST_REPO_URL,
+        TEST_REPO_URL,  // normalizedRepositoryUrl
+        TEST_SSH_URL,
+        "username",
+        "token123",  // PAT token
+        SourceControlProvider.GITHUB,
+        "main",
+        true, true, true, true, true, true, false,
+        null,  // sourceControlScanTarget
+        null,  // PAT auth uses null authenticationType
+        null); // PAT auth uses null ownerId
+    int pullRequestNumber = 1;
+    String commentText = "Comment text with PAT";
+    PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1, "app1");
+    DefaultCommentResponse gitApiResponse = new DefaultCommentResponse();
+    gitApiResponse.setId(29L);
+    gitApiResponse.setVersion(1);
+    when(mockGitClientApi.createPullRequestComment(any(), any()))
+        .thenReturn(gitApiResponse);
+
+    // Setup ArgumentCaptor to capture GitRepositoryInfo
+    ArgumentCaptor<GitRepositoryInfo> repoInfoCaptor = ArgumentCaptor.forClass(GitRepositoryInfo.class);
+
+    // when: creating PR comment in git SCM with PAT auth
+    CommentResponse commentResponse = pullRequestCommentingClient
+        .createOrUpdateCommentInGitSCM(
+            applicationId,
+            gitRepositoryInfo,
+            pullRequestNumber,
+            commentText,
+            null,
+            prCommentTelemetry).get();
+
+    // then: verify gitClientFactory was called with PAT authentication (null authenticationType)
+    verify(mockGitClientFactory, times(1)).createApiClient(repoInfoCaptor.capture());
+
+    GitRepositoryInfo captured = repoInfoCaptor.getValue();
+    assertThat(captured.getAuthenticationType()).isNull();  // PAT auth uses null
+    assertThat(captured.getOwnerId()).isNull();  // PAT auth uses null
+    assertThat(captured.token).isEqualTo("token123");  // PAT auth uses token field
+
+    // and: PR comment was created
+    verify(mockGitClientApi, times(1)).createPullRequestComment(pullRequestNumber, commentText);
+    assertThat(commentResponse.getId()).isEqualTo(29L);
+  }
+
+  @Test
+  public void testCreateOrUpdateComment_WithGitHubAppAuthentication() throws IOException {
+    // given: PR related data with GitHub App authentication
+    String applicationId = "app-githubapp";
+    String ownerId = "app-123";
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo(
+        TEST_REPO_URL,
+        TEST_REPO_URL,  // normalizedRepositoryUrl
+        TEST_SSH_URL,
+        null,  // no username for GitHub App
+        null,  // no token for GitHub App
+        SourceControlProvider.GITHUB,
+        "main",
+        true, true, true, true, true, true, false,
+        null,  // sourceControlScanTarget
+        SourceControl.AuthenticationType.GITHUB_APP,
+        ownerId);
+    int pullRequestNumber = 1;
+    String commentText = "Comment text with GitHub App";
+    PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1, "app1");
+    DefaultCommentResponse gitApiResponse = new DefaultCommentResponse();
+    gitApiResponse.setId(30L);
+    gitApiResponse.setVersion(1);
+    when(mockGitClientApi.createPullRequestComment(any(), any()))
+        .thenReturn(gitApiResponse);
+
+    // Setup ArgumentCaptor to capture GitRepositoryInfo
+    ArgumentCaptor<GitRepositoryInfo> repoInfoCaptor = ArgumentCaptor.forClass(GitRepositoryInfo.class);
+
+    // when: creating PR comment in git SCM with GitHub App auth
+    CommentResponse commentResponse = pullRequestCommentingClient
+        .createOrUpdateCommentInGitSCM(
+            applicationId,
+            gitRepositoryInfo,
+            pullRequestNumber,
+            commentText,
+            null,
+            prCommentTelemetry).get();
+
+    // then: verify gitClientFactory was called with correct GitHub App authentication
+    verify(mockGitClientFactory, times(1)).createApiClient(repoInfoCaptor.capture());
+
+    GitRepositoryInfo captured = repoInfoCaptor.getValue();
+    assertThat(captured.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
+    assertThat(captured.getOwnerId()).isEqualTo(ownerId);
+    assertThat(captured.token).isNull();
+
+    // and: PR comment was created
+    verify(mockGitClientApi, times(1)).createPullRequestComment(pullRequestNumber, commentText);
+    assertThat(commentResponse.getId()).isEqualTo(30L);
   }
 }

@@ -5,14 +5,21 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Optional;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.git.utils.api.GitApi;
@@ -20,13 +27,12 @@ import com.sonatype.nexus.git.utils.api.JGitApi;
 import com.sonatype.nexus.git.utils.api.NativeGitApi;
 import com.sonatype.nexus.git.utils.api.NativeGitUtils;
 import com.sonatype.nexus.git.utils.api.NativeGitUtilsProvider;
+import com.sonatype.nexus.scm.github.auth.GitHubAppAuthStrategy;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Optional;
 
 @Named
 @Singleton
@@ -40,13 +46,29 @@ public class GitApiFactory
 
   private final PasswordHandler passwordHandler;
 
+  private final GitHubAppDAO githubAppDAO;
+
+  private final InsightProxy insightProxy;
+
+  private final GitHubAppAuthStrategyCache authStrategyCache;
+
   private final NativeGitUtilsProvider nativeGitUtilsProvider = new NativeGitUtilsProvider();
 
   @Inject
-  public GitApiFactory(Configuration configuration, InsightWork insightWork, PasswordHandler passwordHandler) {
+  public GitApiFactory(
+      final Configuration configuration,
+      final InsightWork insightWork,
+      final PasswordHandler passwordHandler,
+      final GitHubAppDAO githubAppDAO,
+      final InsightProxy insightProxy,
+      final GitHubAppAuthStrategyCache authStrategyCache)
+  {
     this.configuration = configuration;
     this.insightWork = insightWork;
     this.passwordHandler = passwordHandler;
+    this.githubAppDAO = githubAppDAO;
+    this.insightProxy = insightProxy;
+    this.authStrategyCache = authStrategyCache;
   }
 
   public GitApi createGitApi(final GitRepositoryInfo gitInfo) {
@@ -83,6 +105,39 @@ public class GitApiFactory
     return creatJGitIfAllowed(gitTimeoutSeconds, gitInfo, cloneUrl, isSsh, gpgSigningKey, gpgPassphrase);
   }
 
+  /**
+   * Resolves the authentication token for Git operations.
+   * If GitHub App authentication is configured, generates an installation token using the cached strategy.
+   * Otherwise, falls back to the PAT token from gitInfo.
+   *
+   * @param gitInfo repository information including authentication details
+   * @return authentication token (GitHub App installation token or PAT)
+   */
+  private String resolveAuthenticationToken(final GitRepositoryInfo gitInfo) {
+    if (SourceControl.AuthenticationType.GITHUB_APP.equals(gitInfo.authenticationType) &&
+        !StringUtils.isBlank(gitInfo.ownerId)) {
+      log.info("Using GitHub App authentication for repository cloning (ownerId: {})", gitInfo.ownerId);
+
+      GitHubAppAuthStrategy authStrategy =
+          (GitHubAppAuthStrategy) authStrategyCache.getOrCreate(gitInfo.ownerId);
+      try {
+        return authStrategy.getInstallationToken().getToken();
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException("Failed to get installation token for ownerId: " + gitInfo.ownerId, e);
+      }
+    }
+
+    if (SourceControl.AuthenticationType.GITHUB_APP.equals(gitInfo.authenticationType) &&
+        StringUtils.isBlank(gitInfo.ownerId)) {
+      throw new IllegalArgumentException(
+          "GitHub App authentication configured but ownerId is blank for repository: "
+              + gitInfo.normalizedRepositoryUrl);
+    }
+
+    return gitInfo.token;
+  }
+
   private NativeGitApi creatNativeGitApi(
       int gitTimeoutSeconds,
       GitRepositoryInfo gitInfo,
@@ -91,13 +146,17 @@ public class GitApiFactory
       String gpgSigningKey,
       String gpgPassphrase)
   {
+    // Resolve authentication token (PAT or GitHub App)
+    String authToken = resolveAuthenticationToken(gitInfo);
+    String username = getEffectiveUsername(gitInfo);
+
     NativeGitApi nativeGitApi;
     if (gitTimeoutSeconds > 0) {
-      nativeGitApi = new NativeGitApi(gitTimeoutSeconds, cloneUrl, gitInfo.token, gitInfo.username, gitExecutable,
+      nativeGitApi = new NativeGitApi(gitTimeoutSeconds, cloneUrl, authToken, username, gitExecutable,
           gpgSigningKey, gpgPassphrase);
     }
     else {
-      nativeGitApi = new NativeGitApi(cloneUrl, gitInfo.token, gitInfo.username, gitExecutable,
+      nativeGitApi = new NativeGitApi(cloneUrl, authToken, username, gitExecutable,
           gpgSigningKey, gpgPassphrase);
     }
     nativeGitApi.setTempDirectory(insightWork.getTemporaryDirectory());
@@ -118,15 +177,19 @@ public class GitApiFactory
           "application", cloneUrl));
     }
 
+    // Resolve authentication token (PAT or GitHub App)
+    String authToken = resolveAuthenticationToken(gitInfo);
+    String username = getEffectiveUsername(gitInfo);
+
     char[] passphrase = Optional.ofNullable(gpgPassphrase)
         .map(String::toCharArray)
         .orElse(null);
 
     if (gitTimeoutSeconds > 0) {
-      return new JGitApi(gitTimeoutSeconds, cloneUrl, gitInfo.token, gitInfo.username, gpgSigningKey, passphrase);
+      return new JGitApi(gitTimeoutSeconds, cloneUrl, authToken, username, gpgSigningKey, passphrase);
     }
     else {
-      return new JGitApi(cloneUrl, gitInfo.token, gitInfo.username, gpgSigningKey, passphrase);
+      return new JGitApi(cloneUrl, authToken, username, gpgSigningKey, passphrase);
     }
   }
 
@@ -145,6 +208,10 @@ public class GitApiFactory
       return null;
     }
     return passwordHandler.decryptPassword(encryptedGpgPassphrase);
+  }
+
+  private String getEffectiveUsername(final GitRepositoryInfo gitInfo) {
+    return gitInfo.username != null ? gitInfo.username : "x-access-token";
   }
 
   private String getCloneUrl(final GitRepositoryInfo gitRepositoryInfo) {

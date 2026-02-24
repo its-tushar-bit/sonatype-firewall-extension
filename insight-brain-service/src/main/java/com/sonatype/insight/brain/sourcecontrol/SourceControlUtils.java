@@ -93,7 +93,8 @@ public class SourceControlUtils
         sourceControl.getManualPullRequestsEnabled(), sourceControl.getInnerSourceAutomatedUpdatesEnabled(),
         sourceControl.getStatusChecksEnabled(),
         sourceControl.getPullRequestCommentingEnabled(), sourceControl.getSourceControlEvaluationsEnabled(),
-        sourceControl.getSshEnabled(), sourceControl.getSourceControlScanTarget());
+        sourceControl.getSshEnabled(), sourceControl.getSourceControlScanTarget(),
+        sourceControl.getAuthenticationType(), sourceControl.getOwnerId());
 
     if (Strings.isNullOrEmpty(gitRepositoryInfo.baseBranch)) {
       gitRepositoryInfo.baseBranch = DEFAULT_BASE_BRANCH;
@@ -115,12 +116,11 @@ public class SourceControlUtils
   }
 
   public boolean isScmEnabled(GitRepositoryInfo gitRepositoryInfo) {
-    if (gitRepositoryInfo == null) {
+    if (null == gitRepositoryInfo || null == gitRepositoryInfo.provider ||
+        !AuthenticationValidator.hasValidCredentials(gitRepositoryInfo)) {
       return false;
     }
-    return gitRepositoryInfo.provider != null
-        && StringUtils.isNotBlank(gitRepositoryInfo.repositoryUrl)
-        && StringUtils.isNotBlank(gitRepositoryInfo.token)
+    return StringUtils.isNotBlank(gitRepositoryInfo.repositoryUrl)
         && (!gitRepositoryInfo.provider.requiresUsername() || StringUtils.isNotBlank(gitRepositoryInfo.username))
         ;
   }
@@ -217,6 +217,8 @@ public class SourceControlUtils
     gitRepositoryInfo.sourceControlScanTarget = sourceControl.getSourceControlScanTarget();
     gitRepositoryInfo.innerSourceAutomatedUpdatesEnabled = sourceControl.getInnerSourceAutomatedUpdatesEnabled();
     gitRepositoryInfo.manualPullRequestsEnabled = sourceControl.getManualPullRequestsEnabled();
+    gitRepositoryInfo.authenticationType = sourceControl.getAuthenticationType();
+    gitRepositoryInfo.ownerId = sourceControl.getOwnerId();
 
     return gitRepositoryInfo;
   }

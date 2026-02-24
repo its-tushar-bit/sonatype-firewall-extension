@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppRegistrationStateDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.git.GitHubAppAuthStrategyCache;
 import com.sonatype.insight.brain.git.GitHubManifestService;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.githubapp.GitHubAppRegistrationState;
@@ -106,6 +107,7 @@ public class ApiGitHubAppServiceAuthzTest
         passwordHandler,
         insightProxy,
         gitHubManifestService,
+        mock(GitHubAppAuthStrategyCache.class),
         mockServerUrl,  // githubApiBaseUrl
         mockServerUrl,  // githubOAuthTokenUrl
         mock(BaseUrl.class)

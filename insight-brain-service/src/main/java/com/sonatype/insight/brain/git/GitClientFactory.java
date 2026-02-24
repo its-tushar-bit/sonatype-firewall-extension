@@ -7,14 +7,18 @@ package com.sonatype.insight.brain.git;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.tenancy.TenantReference;
+
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.ContributorInfoProvider;
@@ -22,6 +26,7 @@ import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
+import com.sonatype.nexus.scm.api.auth.AuthenticationStrategy;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
@@ -33,6 +38,8 @@ import org.apache.commons.lang3.StringUtils;
 public class GitClientFactory
 {
   private final InsightProxy insightProxy;
+
+  private final GitHubAppAuthStrategyCache authStrategyCache;
 
   private final GitApiClientFactory gitApiClientFactory = new GitApiClientFactory();
 
@@ -49,8 +56,12 @@ public class GitClientFactory
       new TenantReference<>(() -> CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).build());
 
   @Inject
-  public GitClientFactory(final InsightProxy insightProxy) {
+  public GitClientFactory(
+      final InsightProxy insightProxy,
+      final GitHubAppAuthStrategyCache authStrategyCache)
+  {
     this.insightProxy = insightProxy;
+    this.authStrategyCache = authStrategyCache;
   }
 
   public GitApiClient createApiClient(GitRepositoryInfo gitRepositoryInfo) {
@@ -58,15 +69,39 @@ public class GitClientFactory
     String apiUrl = getApiUrl(gitRepositoryInfo, configuration);
     insightProxy.contextualize(configuration, apiUrl);
 
+    if (gitRepositoryInfo.authenticationType == AuthenticationType.GITHUB_APP) {
+      if (gitRepositoryInfo.ownerId == null) {
+        throw new IllegalStateException(
+            "GitHub App authentication is configured but ownerId is not set for repository: "
+                + gitRepositoryInfo.normalizedRepositoryUrl);
+      }
+      AuthenticationStrategy authStrategy = authStrategyCache.getOrCreate(gitRepositoryInfo.ownerId);
+      return gitApiClientFactory.getGitHubApiClient(
+          configuration,
+          gitRepositoryInfo.normalizedRepositoryUrl,
+          (com.sonatype.nexus.scm.github.auth.GitHubAppAuthStrategy) authStrategy);
+    }
+
     return gitApiClientFactory.getGitApiClient(gitRepositoryInfo.provider, configuration,
         gitRepositoryInfo.normalizedRepositoryUrl, gitRepositoryInfo.username, gitRepositoryInfo.token);
   }
 
   public PullRequestInfoProvider createPullRequestInfoClient(GitRepositoryInfo gitRepositoryInfo) {
     Configuration configuration = gitApiClientFactory.createConfiguration();
-
     String graphqlApiUrl = getPullRequestInfoClientUrl(gitRepositoryInfo, configuration);
     insightProxy.contextualize(configuration, graphqlApiUrl);
+
+    if (gitRepositoryInfo.authenticationType == AuthenticationType.GITHUB_APP) {
+      if (gitRepositoryInfo.ownerId == null) {
+        throw new IllegalStateException(
+            "GitHub App authentication is configured but ownerId is not set for repository: "
+                + gitRepositoryInfo.normalizedRepositoryUrl);
+      }
+      AuthenticationStrategy authStrategy = authStrategyCache.getOrCreate(gitRepositoryInfo.ownerId);
+      return gitApiClientFactory.getGitHubPullRequestInfoClient(
+          configuration,
+          (com.sonatype.nexus.scm.github.auth.GitHubAppAuthStrategy) authStrategy);
+    }
 
     return gitApiClientFactory.getPullRequestInfoClient(gitRepositoryInfo.provider, configuration,
         gitRepositoryInfo.username, gitRepositoryInfo.token, gitRepositoryInfo.normalizedRepositoryUrl);
@@ -74,9 +109,20 @@ public class GitClientFactory
 
   public ContributorInfoProvider createContributorInfoProvider(GitRepositoryInfo gitRepositoryInfo) {
     Configuration configuration = gitApiClientFactory.createConfiguration();
-
-    final String graphqlApiUrl = getContributorInfoProviderUrl(gitRepositoryInfo, configuration);
+    String graphqlApiUrl = getContributorInfoProviderUrl(gitRepositoryInfo, configuration);
     insightProxy.contextualize(configuration, graphqlApiUrl);
+
+    if (gitRepositoryInfo.authenticationType == AuthenticationType.GITHUB_APP) {
+      if (gitRepositoryInfo.ownerId == null) {
+        throw new IllegalStateException(
+            "GitHub App authentication is configured but ownerId is not set for repository: "
+                + gitRepositoryInfo.normalizedRepositoryUrl);
+      }
+      AuthenticationStrategy authStrategy = authStrategyCache.getOrCreate(gitRepositoryInfo.ownerId);
+      return gitApiClientFactory.getGitHubContributorInfoClient(
+          configuration,
+          (com.sonatype.nexus.scm.github.auth.GitHubAppAuthStrategy) authStrategy);
+    }
 
     return gitApiClientFactory.getContributorInfoClient(
         gitRepositoryInfo.provider, configuration, gitRepositoryInfo.token);

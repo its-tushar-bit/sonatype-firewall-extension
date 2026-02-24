@@ -10,8 +10,10 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -1279,16 +1281,23 @@ public class PolicyWaiverDAOTest
 
     List<PolicyContainerWaiverData> waivers = dao.getAllContainerPolicyWaivers(1, 10);
     assertThat(waivers).hasSize(2);
-    assertThat(waivers.get(0).policyWaiverId()).isEqualTo(waiverContainer01.getId());
+    assertThat(waivers)
+        .extracting(PolicyContainerWaiverData::policyWaiverId)
+        .containsExactlyInAnyOrder(waiverContainer01.getId(), waiverContainer02.getId());
 
-    // Test pagination
+    // Test pagination - verify we get 1 result per page and all IDs are present
     waivers = dao.getAllContainerPolicyWaivers(1, 1);
     assertThat(waivers).hasSize(1);
-    assertThat(waivers.get(0).policyWaiverId()).isEqualTo(waiverContainer01.getId());
+    String firstPageWaiverId = waivers.get(0).policyWaiverId();
+    assertThat(firstPageWaiverId).isIn(waiverContainer01.getId(), waiverContainer02.getId());
 
     waivers = dao.getAllContainerPolicyWaivers(2, 1);
     assertThat(waivers).hasSize(1);
-    assertThat(waivers.get(0).policyWaiverId()).isEqualTo(waiverContainer02.getId());
+    String secondPageWaiverId = waivers.get(0).policyWaiverId();
+    assertThat(secondPageWaiverId).isIn(waiverContainer01.getId(), waiverContainer02.getId());
+
+    // Verify pagination returns different waivers
+    assertThat(firstPageWaiverId).isNotEqualTo(secondPageWaiverId);
   }
 
   @Test
@@ -1318,5 +1327,128 @@ public class PolicyWaiverDAOTest
     PolicyWaiver waiver = new PolicyWaiver(hash, policy.getId(), ownerId, "comment");
     waiver.setForContainerImageComponent(true);
     tempEntity.newWaiver(waiver);
+  }
+
+  @Test
+  public void testGetAllContainerPolicyWaivers_withAccessibleOwnerIds_returnsFilteredWaivers() {
+    Policy policy = tempEntity.newPolicy(organization, 10);
+
+    Application app1 = tempEntity.newApplication("app1", organization.getId());
+    Application app2 = tempEntity.newApplication("app2", organization.getId());
+    Application app3 = tempEntity.newApplication("app3", organization.getId());
+
+    createContainerWaiver(policy, app1.getId());
+    createComponentWaiver(policy, app1.getId(), "hash1");
+    createContainerWaiver(policy, app2.getId());
+    createComponentWaiver(policy, app2.getId(), "hash2");
+    createContainerWaiver(policy, app3.getId());
+    createComponentWaiver(policy, app3.getId(), "hash3");
+
+    Set<String> accessibleOwnerIds = new HashSet<>();
+    accessibleOwnerIds.add(app1.getId());
+    accessibleOwnerIds.add(app2.getId());
+
+    List<PolicyContainerWaiverData> waivers =
+        dao.getAllContainerPolicyWaivers(1, 10, accessibleOwnerIds);
+
+    assertThat(waivers).hasSize(2);
+    assertThat(waivers)
+        .extracting(PolicyContainerWaiverData::ownerId)
+        .containsExactlyInAnyOrder(app1.getId(), app2.getId());
+  }
+
+  @Test
+  public void testGetAllContainerPolicyWaivers_withEmptyOwnerIds_returnsEmpty() {
+    Policy policy = tempEntity.newPolicy(organization, 10);
+    createContainerWaiver(policy, application.getId());
+
+    List<PolicyContainerWaiverData> waivers =
+        dao.getAllContainerPolicyWaivers(1, 10, Collections.emptySet());
+
+    assertThat(waivers).isEmpty();
+  }
+
+  @Test
+  public void testGetAllContainerPolicyWaivers_withOrgId_includesOrgWaiver() {
+    Policy policy = tempEntity.newPolicy(organization, 10);
+    createContainerWaiver(policy, organization.getId());
+    createContainerWaiver(policy, application.getId());
+    createComponentWaiver(policy, application.getId(), "hash1");
+
+    Organization org2 = tempEntity.newOrganization();
+    Application app2 = tempEntity.newApplication("app2", org2.getId());
+    createContainerWaiver(policy, app2.getId());
+    createComponentWaiver(policy, app2.getId(), "hash2");
+
+    Set<String> accessibleOwnerIds = Collections.singleton(organization.getId());
+    List<PolicyContainerWaiverData> waivers =
+        dao.getAllContainerPolicyWaivers(1, 10, accessibleOwnerIds);
+
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).ownerId()).isEqualTo(organization.getId());
+  }
+
+  @Test
+  public void testGetContainerPolicyWaiversCount_withAccessibleOwnerIds() {
+    Policy policy = tempEntity.newPolicy(organization, 10);
+
+    Application app1 = tempEntity.newApplication("app1", organization.getId());
+    Application app2 = tempEntity.newApplication("app2", organization.getId());
+    Application app3 = tempEntity.newApplication("app3", organization.getId());
+
+    createContainerWaiver(policy, app1.getId());
+    createComponentWaiver(policy, app1.getId(), "hash1");
+    createContainerWaiver(policy, app2.getId());
+    createComponentWaiver(policy, app2.getId(), "hash2");
+    createContainerWaiver(policy, app3.getId());
+    createComponentWaiver(policy, app3.getId(), "hash3");
+
+    Set<String> accessibleOwnerIds = new HashSet<>();
+    accessibleOwnerIds.add(app1.getId());
+    accessibleOwnerIds.add(app2.getId());
+
+    long count = dao.getContainerPolicyWaiversCount(accessibleOwnerIds);
+
+    assertThat(count).isEqualTo(2);
+  }
+
+  @Test
+  public void testGetContainerPolicyWaiversCount_withEmptyOwnerIds_returnsZero() {
+    Policy policy = tempEntity.newPolicy(organization, 10);
+    createContainerWaiver(policy, application.getId());
+
+    long count = dao.getContainerPolicyWaiversCount(Collections.emptySet());
+
+    assertThat(count).isEqualTo(0);
+  }
+
+  @Test
+  public void testGetAllContainerPolicyWaivers_paginationWithFiltering() {
+    Application app1 = tempEntity.newApplication("app1", organization.getId());
+    Application app2 = tempEntity.newApplication("app2", organization.getId());
+
+    for (int i = 0; i < 5; i++) {
+      // Threat levels must be 0-10, use valid range
+      Policy uniquePolicy = tempEntity.newPolicy(organization, 5 + i);
+      createContainerWaiver(uniquePolicy, app1.getId());
+      createComponentWaiver(uniquePolicy, app1.getId(), "hash1-" + i);
+    }
+    for (int i = 0; i < 3; i++) {
+      // Threat levels must be 0-10, use valid range
+      Policy uniquePolicy = tempEntity.newPolicy(organization, 2 + i);
+      createContainerWaiver(uniquePolicy, app2.getId());
+      createComponentWaiver(uniquePolicy, app2.getId(), "hash2-" + i);
+    }
+
+    Set<String> app1Only = Collections.singleton(app1.getId());
+
+    List<PolicyContainerWaiverData> page1 = dao.getAllContainerPolicyWaivers(1, 3, app1Only);
+    List<PolicyContainerWaiverData> page2 = dao.getAllContainerPolicyWaivers(2, 3, app1Only);
+
+    assertThat(page1).hasSize(3);
+    assertThat(page2).hasSize(2);
+    assertThat(dao.getContainerPolicyWaiversCount(app1Only)).isEqualTo(5);
+    assertThat(page1).extracting(PolicyContainerWaiverData::ownerId).containsOnly(app1.getId());
+    assertThat(page2).extracting(PolicyContainerWaiverData::ownerId).containsOnly(app1.getId());
   }
 }

@@ -202,18 +202,39 @@ public class ApiFirewallContainerImagePolicyWaiverResourceTest
     createContainerWaiver(application02, policy, null, true, false);
     createContainerWaiver(application02, policy, "comp02-hash1", false, true);
 
-    HttpResponse response = restRequest()
+    // Get all results to verify pagination works correctly
+    HttpResponse responsePage1 = restRequest()
+        .path(POLICY_WAIVER)
+        .query("page", 1)
+        .query("pageSize", 1)
+        .get();
+
+    ApiPageResult<PolicyContainerWaiverData> pageResult1 =
+        getBodyByTypeReference(responsePage1.getBodyBytes(),
+            new TypeReference<ApiPageResult<PolicyContainerWaiverData>>() { });
+    assertThat(pageResult1).isNotNull();
+    assertThat(pageResult1.getResults()).hasSize(1);
+
+    HttpResponse responsePage2 = restRequest()
         .path(POLICY_WAIVER)
         .query("page", 2)
         .query("pageSize", 1)
         .get();
 
-    ApiPageResult<PolicyContainerWaiverData> pageResult =
-        getBodyByTypeReference(response.getBodyBytes(),
+    ApiPageResult<PolicyContainerWaiverData> pageResult2 =
+        getBodyByTypeReference(responsePage2.getBodyBytes(),
             new TypeReference<ApiPageResult<PolicyContainerWaiverData>>() { });
-    assertThat(pageResult).isNotNull();
-    assertThat(pageResult.getResults()).hasSize(1);
-    assertThat(pageResult.getResults().get(0).applicationScope()).isEqualTo(application02.getName());
+    assertThat(pageResult2).isNotNull();
+    assertThat(pageResult2.getResults()).hasSize(1);
+
+    // Verify both pages have different waivers
+    String page1AppScope = pageResult1.getResults().get(0).applicationScope();
+    String page2AppScope = pageResult2.getResults().get(0).applicationScope();
+    assertThat(page1AppScope).isNotEqualTo(page2AppScope);
+
+    // Verify both applications are present across both pages
+    assertThat(List.of(page1AppScope, page2AppScope))
+        .containsExactlyInAnyOrder(application.getName(), application02.getName());
   }
 
   @Test

@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
@@ -580,8 +581,38 @@ public class PolicyWaiverDAO
     createQuery(sQuery, ownerId).executeUpdate(tx);
   }
 
-  public List<PolicyContainerWaiverData> getAllContainerPolicyWaivers(int page, int pageSize) {
+  /**
+   * Get all container policy waivers filtered by accessible owner IDs.
+   *
+   * @param page Page number (1-based)
+   * @param pageSize Number of items per page
+   * @param accessibleOwnerIds Set of owner IDs user has access to (null means no filtering)
+   * @return List of container waivers
+   */
+  public List<PolicyContainerWaiverData> getAllContainerPolicyWaivers(
+      int page,
+      int pageSize,
+      Set<String> accessibleOwnerIds)
+  {
+    if (accessibleOwnerIds != null && accessibleOwnerIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
     String subquery = getContainerPolicyWaiversSubquery();
+    String whereClause;
+
+    if (accessibleOwnerIds == null) {
+      whereClause = "WHERE pw.is_for_container_image = true";
+    }
+    else {
+      String placeholders = String.join(", ",
+          IntStream.rangeClosed(1, accessibleOwnerIds.size())
+              .mapToObj(i -> "?" + i)
+              .toList());
+      whereClause = "WHERE pw.is_for_container_image = true" +
+          " AND pw.owner_id IN (" + placeholders + ")";
+    }
+
     String sQuery = String.format("""
         SELECT
           pw.policy_waiver_id,
@@ -594,39 +625,88 @@ public class PolicyWaiverDAO
           agg.unique_component_count
         FROM %1$s.policy_waiver pw
         LEFT JOIN (%2$s) agg ON agg.owner_id = pw.owner_id
-        WHERE pw.is_for_container_image = true;
-        """, getDatabaseSchema(), subquery);
+        %3$s
+        ORDER BY pw.policy_waiver_id
+        """, getDatabaseSchema(), subquery, whereClause);
 
     int offset = (page - 1) * pageSize;
     try (TransactionContext tx = createTransactionContext()) {
       jakarta.persistence.Query query = createNativePaginationQuery(tx, sQuery, offset, pageSize);
+
+      if (accessibleOwnerIds != null) {
+        List<String> ownerIdList = new ArrayList<>(accessibleOwnerIds);
+        for (int i = 0; i < ownerIdList.size(); i++) {
+          query.setParameter(i + 1, ownerIdList.get(i));
+        }
+      }
+
       return ((Stream<Object[]>) query.getResultStream())
           .map(array -> new PolicyContainerWaiverData(
               (String) array[0],
               (Date) array[1],
               (Date) array[2],
               (String) array[3],
-              ((Number) array[4]).intValue(),
+              array[4] != null ? ((Number) array[4]).intValue() : 0,
               (String) array[5],
-              ((Number) array[6]).longValue(),
-              ((Number) array[7]).longValue()))
+              array[6] != null ? ((Number) array[6]).longValue() : 0L,
+              array[7] != null ? ((Number) array[7]).longValue() : 0L))
           .toList();
     }
   }
 
-  public long getContainerPolicyWaiversCount() {
+  public List<PolicyContainerWaiverData> getAllContainerPolicyWaivers(int page, int pageSize) {
+    return getAllContainerPolicyWaivers(page, pageSize, null);
+  }
+
+  /**
+   * Get count of container policy waivers filtered by accessible owner IDs.
+   *
+   * @param accessibleOwnerIds Set of owner IDs user has access to (null means no filtering)
+   * @return Count of container waivers
+   */
+  public long getContainerPolicyWaiversCount(Set<String> accessibleOwnerIds) {
+    if (accessibleOwnerIds != null && accessibleOwnerIds.isEmpty()) {
+      return 0L;
+    }
+
     String subquery = getContainerPolicyWaiversSubquery();
+    String whereClause;
+
+    if (accessibleOwnerIds == null) {
+      whereClause = "WHERE pw.is_for_container_image = true";
+    }
+    else {
+      String placeholders = String.join(", ",
+          IntStream.rangeClosed(1, accessibleOwnerIds.size())
+              .mapToObj(i -> "?" + i)
+              .toList());
+      whereClause = "WHERE pw.is_for_container_image = true" +
+          " AND pw.owner_id IN (" + placeholders + ")";
+    }
+
     String sQuery = String.format("""
         SELECT COUNT(*)
         FROM %1$s.policy_waiver pw
         LEFT JOIN (%2$s) agg ON agg.owner_id = pw.owner_id
-        WHERE pw.is_for_container_image = true;
-        """, getDatabaseSchema(), subquery);
+        %3$s
+        """, getDatabaseSchema(), subquery, whereClause);
 
     try (TransactionContext tx = createTransactionContext()) {
       jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
+
+      if (accessibleOwnerIds != null) {
+        List<String> ownerIdList = new ArrayList<>(accessibleOwnerIds);
+        for (int i = 0; i < ownerIdList.size(); i++) {
+          query.setParameter(i + 1, ownerIdList.get(i));
+        }
+      }
+
       return ((Number) query.getSingleResult()).longValue();
     }
+  }
+
+  public long getContainerPolicyWaiversCount() {
+    return getContainerPolicyWaiversCount(null);
   }
 
   private String getContainerPolicyWaiversSubquery() {

@@ -92,6 +92,9 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1171,12 +1174,32 @@ public class ApiPolicyWaiverService
     }
   }
 
-  @Authorize(permission = Permission.READ)
   public ApiPageResult<PolicyContainerWaiverData> getAllPolicyContainerWaivers(final int page, final int pageSize) {
+    checkAuthenticated();
+
+    Map<String, Owner> availableOwners = ownerService.getOwnersWithReadPermissionsById();
+    Set<String> accessibleOwnerIds = availableOwners.keySet();
+
+    if (accessibleOwnerIds.isEmpty()) {
+      throw new UnauthorizedException(
+          "User does not have permission to view any container policy waivers");
+    }
+
     List<PolicyContainerWaiverData> policyContainerWaivers =
-        policyWaiverDAO.getAllContainerPolicyWaivers(page, pageSize);
-    return new ApiPageResult<>(policyWaiverDAO.getContainerPolicyWaiversCount(), page, pageSize,
+        policyWaiverDAO.getAllContainerPolicyWaivers(page, pageSize, accessibleOwnerIds);
+
+    return new ApiPageResult<>(
+        policyWaiverDAO.getContainerPolicyWaiversCount(accessibleOwnerIds),
+        page,
+        pageSize,
         policyContainerWaivers);
+  }
+
+  private static void checkAuthenticated() {
+    Object principal = SecurityUtils.getSubject().getPrincipal();
+    if (principal == null) {
+      throw new UnauthenticatedException("Anonymous access forbidden");
+    }
   }
 
   private void validateContainerImageId(String applicationId) {

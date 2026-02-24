@@ -125,7 +125,7 @@ public class ApiFirewallContainerImagePolicyWaiverResource
   @Operation(description = "Use this method to get all policy waivers for container images. " +
       "\n" +
       "\n" +
-      "Permissions required: Waive Policy Violations",
+      "Permissions required: View IQ Elements",
       responses = {
           @ApiResponse(
               responseCode = "200",

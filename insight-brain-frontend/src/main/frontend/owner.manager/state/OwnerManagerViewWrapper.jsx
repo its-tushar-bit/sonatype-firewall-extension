@@ -4,14 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { UIView } from '@uirouter/react';
-import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { selectRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';
 import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
 import OwnerSideNav from 'MainRoot/OrgsAndPolicies/ownerSideNav/OwnerSideNav';
 
 export function OwnerManagerViewWrapper() {
-  const routerState = useRouterState();
-  const currentStateData = routerState.current?.data || {};
+  const currentState = useSelector(selectRouterState);
+  const currentStateData = currentState?.data || {};
   const noSidebar = currentStateData.noSidebar;
   const viewportSized = currentStateData.viewportSized;
   const hideOverflowY = currentStateData.hideOverflowY;

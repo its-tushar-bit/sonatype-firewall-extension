@@ -160,8 +160,8 @@ public class OpenSearchIndexingContextTest
 
     // When/Then - Should fail after exhausting retries
     assertThatThrownBy(() -> context.addDocuments(documents))
-        .isInstanceOf(IOException.class)
-        .hasMessageContaining("Failed to index batch after 2 retries due to rate limiting");
+        .isInstanceOf(OpenSearchException.class)
+        .hasMessageContaining("Request failed: [error] server returned 429");
 
     // Should attempt 3 times (1 initial + 2 retries)
     verify(openSearchClient, times(3)).bulk(any(BulkRequest.class));
@@ -209,7 +209,7 @@ public class OpenSearchIndexingContextTest
     Exception ex = createOpenSearchException("server returned 429", 429);
 
     // When/Then
-    assertThat(OpenSearchIndexingContext.isRateLimitError(ex)).isTrue();
+    assertThat(OpenSearchSearchIndexClient.isRateLimitError(ex)).isTrue();
   }
 
   @Test
@@ -219,7 +219,7 @@ public class OpenSearchIndexingContextTest
     CompletionException wrapper = new CompletionException("Async operation failed", cause);
 
     // When/Then
-    assertThat(OpenSearchIndexingContext.isRateLimitError(wrapper)).isTrue();
+    assertThat(OpenSearchSearchIndexClient.isRateLimitError(wrapper)).isTrue();
   }
 
   @Test
@@ -228,7 +228,7 @@ public class OpenSearchIndexingContextTest
     Exception ex = createOpenSearchException("Too Many Requests", 429);
 
     // When/Then
-    assertThat(OpenSearchIndexingContext.isRateLimitError(ex)).isTrue();
+    assertThat(OpenSearchSearchIndexClient.isRateLimitError(ex)).isTrue();
   }
 
   @Test
@@ -237,7 +237,7 @@ public class OpenSearchIndexingContextTest
     IOException ex = new IOException("Connection timeout");
 
     // When/Then
-    assertThat(OpenSearchIndexingContext.isRateLimitError(ex)).isFalse();
+    assertThat(OpenSearchSearchIndexClient.isRateLimitError(ex)).isFalse();
   }
 
   @Test
@@ -246,7 +246,7 @@ public class OpenSearchIndexingContextTest
     Exception ex = createOpenSearchException("server returned 500", 500);
 
     // When/Then
-    assertThat(OpenSearchIndexingContext.isRateLimitError(ex)).isFalse();
+    assertThat(OpenSearchSearchIndexClient.isRateLimitError(ex)).isFalse();
   }
 
   @Test

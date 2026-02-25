@@ -6,11 +6,15 @@
 package com.sonatype.insight.brain.search.opensearch;
 
 import java.io.IOException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.sonatype.insight.brain.model.Organization;
@@ -34,6 +38,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.ErrorCause;
+import org.opensearch.client.opensearch._types.ErrorResponse;
+import org.opensearch.client.opensearch._types.OpenSearchException;
 import org.opensearch.client.opensearch.cat.IndicesResponse;
 import org.opensearch.client.opensearch.cat.indices.IndicesRecord;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
@@ -41,6 +48,7 @@ import org.opensearch.client.opensearch.indices.GetIndexRequest;
 import org.opensearch.client.opensearch.indices.GetIndexResponse;
 import org.opensearch.client.opensearch.indices.IndexState;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
+import org.apache.lucene.queryparser.classic.ParseException;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -227,5 +235,209 @@ public class OpenSearchSearchIndexClientTest
     // Check that the old search index is deleted
     IndicesResponse indicesResponse = openSearchSearchIndexClient.getClient().cat().indices();
     assertThat(indicesResponse.valueBody()).extracting(IndicesRecord::index).doesNotContain(oldRealIndexName.get());
+  }
+
+  @Test
+  public void testIsChangeSpecificError_ParseException() {
+    Exception e = new IOException(new ParseException("Parse error"));
+    assertThat(openSearchSearchIndexClient.isChangeSpecificError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsChangeSpecificError_IllegalArgumentException() {
+    Exception e = new IOException(new IllegalArgumentException("Invalid field"));
+    assertThat(openSearchSearchIndexClient.isChangeSpecificError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsChangeSpecificError_NullPointerException() {
+    Exception e = new IOException(new NullPointerException("Null field"));
+    assertThat(openSearchSearchIndexClient.isChangeSpecificError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsChangeSpecificError_MapperParsingException() {
+    Exception e = new RuntimeException("mapper_parsing_exception: failed to parse field");
+    assertThat(openSearchSearchIndexClient.isChangeSpecificError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsChangeSpecificError_DocumentParsingException() {
+    Exception e = new RuntimeException("document_parsing_exception: failed to parse document");
+    assertThat(openSearchSearchIndexClient.isChangeSpecificError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_UnknownHostException() {
+    Exception e = new UnknownHostException("opensearch.example.com");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_SocketException() {
+    Exception e = new SocketException("Connection reset");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_SocketTimeoutException() {
+    Exception e = new SocketTimeoutException("Read timed out");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_TimeoutException() {
+    Exception e = new IOException(new TimeoutException("Operation timed out"));
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_OpenSearchException500() {
+    OpenSearchException e = createOpenSearchException("Internal server error", 500);
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_OpenSearchException503() {
+    OpenSearchException e = createOpenSearchException("Service unavailable", 503);
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_CircuitBreakerException() {
+    OpenSearchException e = createOpenSearchExceptionWithType("circuit_breaking_exception");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_ClusterBlockException() {
+    OpenSearchException e = createOpenSearchExceptionWithType("cluster_block_exception");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_RateLimitError() {
+    OpenSearchException e = createOpenSearchException("Too many requests", 429);
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsRateLimitError_Status429() {
+    OpenSearchException e = createOpenSearchException("Too many requests", 429);
+    assertThat(OpenSearchSearchIndexClient.isRateLimitError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsRateLimitError_TooManyRequestsMessage() {
+    OpenSearchException e = createOpenSearchExceptionWithReason("too many requests");
+    assertThat(OpenSearchSearchIndexClient.isRateLimitError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsRateLimitError_NotARateLimitError() {
+    Exception e = new IOException("Generic error");
+    assertThat(OpenSearchSearchIndexClient.isRateLimitError(e)).isFalse();
+  }
+
+  @Test
+  public void testIsSystemicError_UnavailableShardsException() {
+    OpenSearchException e = createOpenSearchExceptionWithType("unavailable_shards_exception");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_NoShardAvailableActionException() {
+    OpenSearchException e = createOpenSearchExceptionWithType("no_shard_available_action_exception");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_MasterNotDiscoveredException() {
+    OpenSearchException e = createOpenSearchExceptionWithType("master_not_discovered_exception");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_ThrottlingInReason() {
+    OpenSearchException e = createOpenSearchExceptionWithReason("Request throttling applied");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_InternalFailureInReason() {
+    OpenSearchException e = createOpenSearchExceptionWithReason("Internal failure occurred");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_TimeoutInMessage() {
+    Exception e = new RuntimeException("Connection timeout while indexing");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_ServiceUnavailableInMessage() {
+    Exception e = new RuntimeException("Service unavailable");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_ConnectionRefusedInMessage() {
+    Exception e = new RuntimeException("Connection refused by server");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_UnreachableInMessage() {
+    Exception e = new RuntimeException("Host unreachable");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_ThrottlingInMessage() {
+    Exception e = new RuntimeException("Throttling limit exceeded");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_InternalFailureInMessage() {
+    Exception e = new RuntimeException("Internal failure detected");
+    assertThat(openSearchSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsChangeSpecificError_IllegalArgumentExceptionMessage() {
+    Exception e = new RuntimeException("illegal_argument_exception: invalid field value");
+    assertThat(openSearchSearchIndexClient.isChangeSpecificError(e)).isTrue();
+  }
+
+  private OpenSearchException createOpenSearchException(String reason, int status) {
+    ErrorCause errorCause = ErrorCause.of(builder -> builder
+        .type("test_error")
+        .reason(reason));
+    ErrorResponse errorResponse = ErrorResponse.of(builder -> builder
+        .error(errorCause)
+        .status(status));
+    return new OpenSearchException(errorResponse);
+  }
+
+  private OpenSearchException createOpenSearchExceptionWithType(String type) {
+    ErrorCause errorCause = ErrorCause.of(builder -> builder
+        .type(type)
+        .reason("Test error"));
+    ErrorResponse errorResponse = ErrorResponse.of(builder -> builder
+        .error(errorCause)
+        .status(400));
+    return new OpenSearchException(errorResponse);
+  }
+
+  private OpenSearchException createOpenSearchExceptionWithReason(String reason) {
+    ErrorCause errorCause = ErrorCause.of(builder -> builder
+        .type("test_error")
+        .reason(reason));
+    ErrorResponse errorResponse = ErrorResponse.of(builder -> builder
+        .error(errorCause)
+        .status(400));
+    return new OpenSearchException(errorResponse);
   }
 }

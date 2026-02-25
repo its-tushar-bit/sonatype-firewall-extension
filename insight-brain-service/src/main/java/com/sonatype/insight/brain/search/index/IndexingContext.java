@@ -18,13 +18,9 @@ import com.sonatype.insight.brain.search.ConversionHelper;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.lucene.document.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class IndexingContext
 {
-  private static final Logger log = LoggerFactory.getLogger(IndexingContext.class);
-
   private final OwnerDAO ownerDAO;
 
   private final Map<String, Owner> ownersById = new ConcurrentHashMap<>();
@@ -58,16 +54,11 @@ public abstract class IndexingContext
 
   public abstract void addDocuments(final List<Document> documents) throws IOException;
 
-  public void addDocumentsWithException(final List<Document> documents) {
-    try {
-      if (CollectionUtils.isEmpty(documents)) {
-        return;
-      }
-      addDocuments(documents.stream().filter(Objects::nonNull).toList());
+  public void addNonNullDocuments(final List<Document> documents) throws IOException {
+    if (CollectionUtils.isEmpty(documents)) {
+      return;
     }
-    catch (IOException e) {
-      log.error(e.getMessage(), e);
-    }
+    addDocuments(documents.stream().filter(Objects::nonNull).toList());
   }
 
   public ConversionHelper getConversionHelper() {

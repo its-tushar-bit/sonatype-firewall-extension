@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.search.index;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -21,8 +23,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -71,6 +78,8 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ListMultimap;
@@ -108,6 +117,26 @@ public abstract class AbstractSearchIndexClient
   private static final int INDEX_THREADS_DEFAULT = 1;
 
   private static final int QUEUE_POP_AMOUNT = 64_000;
+
+  private static final int MAX_CONSECUTIVE_FAILURES = 5;
+
+  private static final int MAX_CHANGE_FAILURES = 3;
+
+  private static final Duration MAX_COOLDOWN = Duration.ofMinutes(10);
+
+  private static final Duration INITIAL_COOLDOWN = Duration.ofSeconds(30);
+
+  private final TenantReference<AtomicLong> lastRecordedExceptionEpochMs =
+      new TenantReference<>(() -> new AtomicLong(0));
+
+  private final TenantReference<AtomicReference<Duration>> currentCooldown =
+      new TenantReference<>(() -> new AtomicReference<>(INITIAL_COOLDOWN));
+
+  private final TenantReference<Cache<String, Integer>> changeFailureCounts =
+      new TenantReference<>(() -> CacheBuilder.newBuilder()
+          .expireAfterWrite(1, TimeUnit.HOURS)
+          .maximumSize(10_000)
+          .build());
 
   public static final BadRequestException TOO_MANY_CLAUSES_EXCEPTION =
       new BadRequestException("Error performing search due to too many clauses. " +
@@ -373,7 +402,7 @@ public abstract class AbstractSearchIndexClient
     ownerDAO.walkHierarchy(organization).forEach(o -> parentOrganizations.add((Organization) o));
 
     StageType stageType = StageTypes.getById(stageTypeId);
-    indexingContext.addDocumentsWithException(
+    indexingContext.addNonNullDocuments(
         documentBuilderHelper.buildApplicationStageSVDocs(indexingContext, organization, application, stageType,
             parentOrganizations));
   }
@@ -421,7 +450,7 @@ public abstract class AbstractSearchIndexClient
     docsToAdd.addAll(sbomContentsDocs);
     docsToAdd.add(sbomDoc);
 
-    indexingContext.addDocumentsWithException(docsToAdd);
+    indexingContext.addNonNullDocuments(docsToAdd);
   }
 
   private void updateIndexForLabel(final String labelId, final IndexingContext indexingContext)
@@ -435,7 +464,7 @@ public abstract class AbstractSearchIndexClient
       return;
     }
 
-    indexingContext.addDocumentsWithException(
+    indexingContext.addNonNullDocuments(
         Collections.singletonList(documentBuilderHelper.buildDocument(indexingContext, label)));
   }
 
@@ -450,7 +479,7 @@ public abstract class AbstractSearchIndexClient
       return;
     }
 
-    indexingContext.addDocumentsWithException(
+    indexingContext.addNonNullDocuments(
         Collections.singletonList(documentBuilderHelper.buildDocument(indexingContext, policy)));
   }
 
@@ -465,7 +494,7 @@ public abstract class AbstractSearchIndexClient
       return;
     }
 
-    indexingContext.addDocumentsWithException(
+    indexingContext.addNonNullDocuments(
         Collections.singletonList(documentBuilderHelper.buildDocument(indexingContext, tag)));
   }
 
@@ -491,18 +520,18 @@ public abstract class AbstractSearchIndexClient
     indexingContext.addOwners(Collections.singletonList(application));
 
     // Index the app itself
-    indexingContext.addDocumentsWithException(
+    indexingContext.addNonNullDocuments(
         Collections.singletonList(documentBuilderHelper.buildDocument(indexingContext, application)));
     // Index the app labels
     List<Document> appLabelDocs = labelDAO.getByOwnerId(application.getId()).stream()
         .map(label -> documentBuilderHelper.buildDocument(indexingContext, label)).toList();
-    indexingContext.addDocumentsWithException(appLabelDocs);
+    indexingContext.addNonNullDocuments(appLabelDocs);
     // Index the app policies
     List<Document> appPolicyDocs = policyDAO.getByOwnerId(application.getId()).stream()
         .map(policy -> documentBuilderHelper.buildDocument(indexingContext, policy)).toList();
-    indexingContext.addDocumentsWithException(appPolicyDocs);
+    indexingContext.addNonNullDocuments(appPolicyDocs);
     // Index the app SVs
-    indexingContext.addDocumentsWithException(
+    indexingContext.addNonNullDocuments(
         documentBuilderHelper.buildApplicationSVDocs(indexingContext, organization, application,
             ImmutableMap.of(organization, parentOrganizations)));
   }
@@ -535,28 +564,28 @@ public abstract class AbstractSearchIndexClient
     Map<Organization, Collection<Organization>> parentOrgsMap = ImmutableMap.of(org, parentOrganizations);
 
     // Index the org itself
-    indexingContext.addDocumentsWithException(
+    indexingContext.addNonNullDocuments(
         Collections.singletonList(documentBuilderHelper.buildDocument(indexingContext, org)));
     // Index the org apps
     List<Document> orgAppDocs = applications.stream()
         .map(app -> documentBuilderHelper.buildDocument(indexingContext, app)).toList();
-    indexingContext.addDocumentsWithException(orgAppDocs);
+    indexingContext.addNonNullDocuments(orgAppDocs);
     // Index the org app categories
     List<Document> orgAppCategoryDocs = tagDAO.getByOrganizationId(org.getId()).stream()
         .map(appCategory -> documentBuilderHelper.buildDocument(indexingContext, appCategory)).toList();
-    indexingContext.addDocumentsWithException(orgAppCategoryDocs);
+    indexingContext.addNonNullDocuments(orgAppCategoryDocs);
     // Index the org labels
     List<Document> orgLabelDocs = labelDAO.getByOwnerId(org.getId()).stream()
         .map(label -> documentBuilderHelper.buildDocument(indexingContext, label)).toList();
-    indexingContext.addDocumentsWithException(orgLabelDocs);
+    indexingContext.addNonNullDocuments(orgLabelDocs);
     // Index the org policies
     List<Document> orgPolicyDocs = policyDAO.getByOwnerId(org.getId()).stream()
         .map(policy -> documentBuilderHelper.buildDocument(indexingContext, policy)).toList();
-    indexingContext.addDocumentsWithException(orgPolicyDocs);
+    indexingContext.addNonNullDocuments(orgPolicyDocs);
 
     // Index the security vulnerability data
     for (Application application : applications) {
-      indexingContext.addDocumentsWithException(
+      indexingContext.addNonNullDocuments(
           documentBuilderHelper.buildApplicationSVDocs(indexingContext, org, application, parentOrgsMap));
     }
 
@@ -790,15 +819,17 @@ public abstract class AbstractSearchIndexClient
     indexingContext.addOwners(organizations);
     indexingContext.addOwners(applications);
 
+    AtomicInteger consecutiveFailures = new AtomicInteger(0);
+
     CompletableFuture<Void> orgDocs = CompletableFuture.supplyAsync(
             () -> documentBuilderHelper.buildOrganizationDocs(indexingContext, organizations),
             getIndexingExecutor())
-        .thenAccept(indexingContext::addDocumentsWithException);
+        .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     CompletableFuture<Void> appDocs = CompletableFuture.supplyAsync(
             () -> documentBuilderHelper.buildApplicationDocs(indexingContext, applications),
             getIndexingExecutor())
-        .thenAccept(indexingContext::addDocumentsWithException);
+        .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     Function<Application, CompletableFuture<Void>> processSVDocsForApplication =
         application -> CompletableFuture
@@ -806,7 +837,7 @@ public abstract class AbstractSearchIndexClient
                 () -> documentBuilderHelper.buildApplicationSVDocs(indexingContext,
                     organizationById.get(application.getOrganizationId()),
                     application, parentsByOrganization), getIndexingExecutor())
-            .thenAccept(indexingContext::addDocumentsWithException);
+            .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     List<CompletableFuture<Void>> appSVDocs = applications
         .stream()
@@ -816,30 +847,30 @@ public abstract class AbstractSearchIndexClient
     CompletableFuture<Void> tagDocs =
         CompletableFuture.supplyAsync(
                 () -> documentBuilderHelper.buildTagDocs(indexingContext), getIndexingExecutor())
-            .thenAccept(indexingContext::addDocumentsWithException);
+            .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     CompletableFuture<Void> labelDocs =
         CompletableFuture.supplyAsync(
                 () -> documentBuilderHelper.buildLabelDocs(indexingContext),
                 getIndexingExecutor())
-            .thenAccept(indexingContext::addDocumentsWithException);
+            .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     CompletableFuture<Void> policyDocs =
         CompletableFuture.supplyAsync(
                 () -> documentBuilderHelper.buildPolicyDocs(indexingContext),
                 getIndexingExecutor())
-            .thenAccept(indexingContext::addDocumentsWithException);
+            .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     CompletableFuture<Void> sbomDocs = CompletableFuture.supplyAsync(
         () -> documentBuilderHelper.buildSbomDocs(indexingContext), getIndexingExecutor()
-    ).thenAccept(indexingContext::addDocumentsWithException);
+    ).thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     Function<Application, CompletableFuture<Void>> processSbomSVDocsForApplication =
         application -> CompletableFuture
             .supplyAsync(
                 () -> documentBuilderHelper.buildSbomSVDocs(organizationById.get(application.getOrganizationId()),
                     application, parentsByOrganization), getIndexingExecutor())
-            .thenAccept(indexingContext::addDocumentsWithException);
+            .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     List<CompletableFuture<Void>> sbomSVDocs = applications
         .stream()
@@ -865,6 +896,43 @@ public abstract class AbstractSearchIndexClient
     log.info("sbomSV indexing complete");
   }
 
+  protected void addDocumentsWithResilience(
+      final IndexingContext indexingContext,
+      final List<Document> documents,
+      final AtomicInteger consecutiveFailures)
+  {
+    try {
+      indexingContext.addNonNullDocuments(documents);
+      consecutiveFailures.set(0);
+    }
+    catch (IOException | RuntimeException e) {
+      if (isChangeSpecificError(e)) {
+        log.error("Skipping document batch due to change-specific error during population", e);
+      }
+      else {
+        int failures = consecutiveFailures.incrementAndGet();
+
+        if (isSystemicError(e)) {
+          log.error("Systemic failure during index population (consecutive failure {} in population)",
+              failures, e);
+        }
+        else {
+          log.error("Unknown error during index population (consecutive failure {} in population)",
+              failures, e);
+        }
+
+        if (failures >= MAX_CONSECUTIVE_FAILURES) {
+          log.error("Too many consecutive failures ({}) during index population. Aborting population.",
+              failures, e);
+          if (e instanceof RuntimeException runtimeException) {
+            throw runtimeException;
+          }
+          throw new UncheckedIOException((IOException) e);
+        }
+      }
+    }
+  }
+
   @Override
   public List<SearchIndexChange> getSearchIndexChanges() {
     // Note: this pops a limited amount of records off the 'queue' as there are cases of large amounts of rows
@@ -880,36 +948,160 @@ public abstract class AbstractSearchIndexClient
   {
     log.debug("Updating search index with {} changes", searchIndexChanges.size());
     Set<String> alreadyApplied = new HashSet<>();
+    int consecutiveFailures = 0;
+    int maxConsecutiveFailures = Math.min(searchIndexChanges.size(), MAX_CONSECUTIVE_FAILURES);
     for (SearchIndexChange change : searchIndexChanges) {
-      if (alreadyApplied.add(change.getChangeType() + "\t" + change.getChangeData())) {
+      String changeId = change.getChangeType() + "\t" + change.getChangeData();
+      if (alreadyApplied.add(changeId)) {
+        Integer failureCount = changeFailureCounts.get().getIfPresent(changeId);
+        if (failureCount != null && failureCount >= MAX_CHANGE_FAILURES) {
+          log.warn("Skipping search index update for change {} as it failed {} times", change, failureCount);
+          change.setProcessed(true);
+          deletionCallback.accept(change);
+          changeFailureCounts.get().invalidate(changeId);
+          continue;
+        }
+
         try {
           updateIndex(change, indexingContext);
+          change.setProcessed(true);
+          deletionCallback.accept(change);
+          consecutiveFailures = 0;
+          changeFailureCounts.get().invalidate(changeId);
           log.debug("Updated search index with change {}", change);
         }
-        catch (IOException e) {
-          if (hasParseExceptionInCauseChain(e)) {
-            log.warn("Skipping search index update due to parse exception", e);
+        catch (IOException | RuntimeException e) {
+          if (isChangeSpecificError(e)) {
+            log.warn("Skipping search index update due to change-specific error for change {}", change, e);
+            change.setProcessed(true);
+            deletionCallback.accept(change);
           }
           else {
-            throw e;
+            consecutiveFailures++;
+
+            if (isSystemicError(e)) {
+              log.warn("Systemic failure during search index update (attempt {} in this batch). " +
+                  "Change {} will be retried later.", consecutiveFailures, change, e);
+            }
+            else {
+              // Count unknown errors against the specific change
+              int count = (failureCount == null ? 0 : failureCount) + 1;
+              changeFailureCounts.get().put(changeId, count);
+              log.warn("Failed to update search index for change {}. Failure count: {}. Continuing with next change.",
+                  change, count, e);
+            }
+
+            if (consecutiveFailures >= maxConsecutiveFailures) {
+              log.error("Too many consecutive failures ({}) in search index update batch. Aborting batch.",
+                  consecutiveFailures, e);
+              throw e;
+            }
           }
         }
-        change.setProcessed(true);
-        deletionCallback.accept(change);
       }
     }
     log.debug("Updated search index");
   }
 
-  private boolean hasParseExceptionInCauseChain(Throwable throwable) {
-    Throwable cause = throwable;
-    while (cause != null) {
-      if (cause instanceof ParseException) {
+  /**
+   * Determines if an exception represents a change-specific error (bad data) rather than a systemic error.
+   * <p>
+   * Change-specific errors should skip the change immediately without retries. Implementations should call
+   * {@link #isCommonChangeSpecificError(Exception)} for shared logic.
+   *
+   * @param e the exception to check
+   * @return true if this is a change-specific error, false otherwise
+   */
+  protected abstract boolean isChangeSpecificError(Exception e);
+
+  /**
+   * Determines if an exception represents a systemic/infrastructure error rather than a change-specific error.
+   * <p>
+   * Systemic errors indicate temporary infrastructure issues and should not count against individual changes.
+   * Implementations should call {@link #isCommonSystemicError(Exception)} for shared logic.
+   *
+   * @param e the exception to check
+   * @return true if this is a systemic error, false otherwise
+   */
+  protected abstract boolean isSystemicError(Exception e);
+
+  /**
+   * Checks for common change-specific errors that apply to all search index implementations.
+   * <p>
+   * Common change-specific errors:
+   * <ul>
+   *   <li>ParseException - Query parsing errors</li>
+   *   <li>IllegalArgumentException - Invalid field values</li>
+   *   <li>NullPointerException - Null field values</li>
+   * </ul>
+   *
+   * @param e the exception to check
+   * @return true if this is a common change-specific error
+   */
+  protected boolean isCommonChangeSpecificError(final Exception e) {
+    return hasCauseOrMessage(e, cause -> cause instanceof ParseException || cause instanceof IllegalArgumentException ||
+        cause instanceof NullPointerException);
+  }
+
+  /**
+   * Checks for common systemic errors that apply to all search index implementations.
+   * <p>
+   * Common systemic errors:
+   * <ul>
+   *   <li>TimeoutException - Generic timeout</li>
+   * </ul>
+   *
+   * @param e the exception to check
+   * @return true if this is a common systemic error
+   */
+  protected boolean isCommonSystemicError(final Exception e) {
+    return hasCauseOrMessage(e, cause -> cause instanceof TimeoutException);
+  }
+
+  public static boolean hasCauseOrMessage(Throwable e, final Predicate<Throwable> predicate) {
+    while (e != null) {
+      if (predicate.test(e)) {
         return true;
       }
-      cause = cause.getCause();
+      e = e.getCause();
     }
     return false;
+  }
+
+  public boolean shouldThrow(final Exception e) {
+    return shouldThrow(e, this::isSystemicError, lastRecordedExceptionEpochMs.get(), currentCooldown.get(),
+        INITIAL_COOLDOWN, MAX_COOLDOWN);
+  }
+
+  public static boolean shouldThrow(
+      final Exception e,
+      final Predicate<Exception> test,
+      final AtomicLong lastRecordedExceptionEpochMs,
+      final AtomicReference<Duration> currentCooldown,
+      final Duration initialCooldown,
+      final Duration maxCooldown)
+  {
+    long now = System.currentTimeMillis();
+    if (test.test(e)) {
+      Duration duration = Duration.ofMillis(now - lastRecordedExceptionEpochMs.get());
+      if (duration.compareTo(currentCooldown.get()) < 0) {
+        return false;
+      }
+    }
+    Duration newCooldown = currentCooldown.get();
+    long timeSinceLastError = now - lastRecordedExceptionEpochMs.get();
+    if (timeSinceLastError > newCooldown.toMillis() * 2) {
+      newCooldown = initialCooldown;
+    }
+    else {
+      newCooldown = newCooldown.multipliedBy(2);
+      if (newCooldown.compareTo(maxCooldown) > 0) {
+        newCooldown = maxCooldown;
+      }
+    }
+    currentCooldown.set(newCooldown);
+    lastRecordedExceptionEpochMs.set(now);
+    return true;
   }
 
   @Override

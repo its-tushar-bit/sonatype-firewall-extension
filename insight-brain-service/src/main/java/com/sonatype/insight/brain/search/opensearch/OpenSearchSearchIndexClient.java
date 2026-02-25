@@ -6,8 +6,9 @@
 package com.sonatype.insight.brain.search.opensearch;
 
 import java.io.IOException;
-import java.net.ConnectException;
-import java.time.Duration;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -16,8 +17,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -58,6 +57,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.apache.lucene.document.Document;
 import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.ErrorCause;
 import org.opensearch.client.opensearch._types.FieldSort;
 import org.opensearch.client.opensearch._types.OpenSearchException;
 import org.opensearch.client.opensearch._types.ScoreSort;
@@ -112,9 +112,40 @@ public class OpenSearchSearchIndexClient
 
   private static final int DEFAULT_MAX_RESULT_WINDOW = 10000;
 
-  private static final Duration INITIAL_COOLDOWN = Duration.ofSeconds(30);
+  private static final Set<Class<?>> SYSTEMIC_NETWORK_EXCEPTIONS = Set.of(
+      SocketException.class,
+      SocketTimeoutException.class,
+      UnknownHostException.class
+  );
 
-  private static final Duration MAX_COOLDOWN = Duration.ofMinutes(10);
+  private static final Set<String> SYSTEMIC_OPENSEARCH_LOWERCASE_EXCEPTION_TYPES = Set.of(
+      "circuit_breaking_exception",
+      "cluster_block_exception",
+      "master_not_discovered_exception",
+      "no_shard_available_action_exception",
+      "unavailable_shards_exception"
+  );
+
+  private static final Set<String> SYSTEMIC_OPENSEARCH_LOWERCASE_REASON_FRAGMENTS = Set.of(
+      "internal failure",
+      "throttling",
+      "too many requests"
+  );
+
+  private static final Set<String> SYSTEMIC_OPENSEARCH_LOWERCASE_ERROR_MESSAGES = Set.of(
+      "connection refused",
+      "internal failure",
+      "service unavailable",
+      "throttling",
+      "timeout",
+      "unreachable"
+  );
+
+  private static final Set<String> CHANGE_SPECIFIC_OPENSEARCH_LOWERCASE_ERROR_MESSAGES = Set.of(
+      "document_parsing_exception",
+      "illegal_argument_exception",
+      "mapper_parsing_exception"
+  );
 
   private final OpenSearchTransport openSearchTransport;
 
@@ -123,10 +154,6 @@ public class OpenSearchSearchIndexClient
   private final ClusterLockManager clusterLockManager;
 
   private volatile OpenSearchClient openSearchClient;
-
-  private final AtomicLong lastRecordedConnectExceptionEpochMs = new AtomicLong();
-
-  private final AtomicReference<Duration> currentCooldown = new AtomicReference<>(INITIAL_COOLDOWN);
 
   private final SearchConfig searchConfig;
 
@@ -205,16 +232,11 @@ public class OpenSearchSearchIndexClient
     }
     catch (Exception e) {
       // Check if this is a rate limit error (may be wrapped in RuntimeException)
-      Throwable cause = e;
-      while (cause != null) {
-        if (cause instanceof Exception causeException && OpenSearchIndexingContext.isRateLimitError(causeException)) {
-          log.error("Rate limit error during index population after retries. " +
-              "Consider increasing bulkBatchDelayMs, bulkRetryBackoffSeconds, or " +
-              "decreasing bulkBatchSize in AWS OpenSearch config. " +
-              "New index '{}' will be deleted.", newIndexName);
-          break;
-        }
-        cause = cause.getCause();
+      if (isRateLimitError(e)) {
+        log.error("Rate limit error during index population after retries. " +
+            "Consider increasing bulkBatchDelayMs, bulkRetryBackoffSeconds, or " +
+            "decreasing bulkBatchSize in AWS OpenSearch config. " +
+            "New index '{}' will be deleted.", newIndexName);
       }
       throw new SearchIndexException("Error creating search index", e);
     }
@@ -249,35 +271,11 @@ public class OpenSearchSearchIndexClient
       }
     }
     catch (Exception e) {
-      if (shouldThrow(e, lastRecordedConnectExceptionEpochMs, currentCooldown, MAX_COOLDOWN)) {
+      if (shouldThrow(e)) {
         throw new SearchIndexException("Error updating the search index", e);
       }
       log.debug("Unable to connect to OpenSearch to update the search index.");
     }
-  }
-
-  // Visible for testing
-  public boolean shouldThrow(
-      final Exception e,
-      final AtomicLong lastRecordedExceptionEpochMs,
-      final AtomicReference<Duration> currentCooldown,
-      final Duration maxCooldown)
-  {
-    long now = System.currentTimeMillis();
-    if (e instanceof ConnectException) {
-      Duration duration = Duration.ofMillis(now - lastRecordedExceptionEpochMs.get());
-      if (duration.compareTo(currentCooldown.get()) < 0) {
-        return false;
-      }
-    }
-    Duration newCooldown = currentCooldown.get();
-    newCooldown = newCooldown.multipliedBy(2);
-    if (newCooldown.compareTo(maxCooldown) > 0) {
-      newCooldown = maxCooldown;
-    }
-    currentCooldown.set(newCooldown);
-    lastRecordedExceptionEpochMs.set(now);
-    return true;
   }
 
   @Override
@@ -656,5 +654,71 @@ public class OpenSearchSearchIndexClient
 
     return new OpenSearchIndexingContext(ownerDAO, conversionHelper, configProvider, getClient(),
         batchSize, batchDelayMs, maxRetries, retryBackoffMs, maxRetryBackoffMs);
+  }
+
+  @Override
+  protected boolean isChangeSpecificError(final Exception e) {
+    return isCommonChangeSpecificError(e) || hasCauseOrMessage(e, cause -> {
+      String msg = cause.getMessage();
+      return msg != null && CHANGE_SPECIFIC_OPENSEARCH_LOWERCASE_ERROR_MESSAGES.stream()
+          .anyMatch(m -> msg.toLowerCase().contains(m));
+    });
+  }
+
+  @Override
+  protected boolean isSystemicError(final Exception e) {
+    if (isCommonSystemicError(e)) {
+      return true;
+    }
+    if (isRateLimitError(e)) {
+      return true;
+    }
+    return hasCauseOrMessage(e, cause -> {
+      if (SYSTEMIC_NETWORK_EXCEPTIONS.contains(cause.getClass())) {
+        return true;
+      }
+      if (cause instanceof OpenSearchException ose) {
+        int status = ose.status();
+        if (status >= 500 && status < 600) {
+          return true;
+        }
+        ErrorCause error = ose.error();
+        if (error != null) {
+          String lowerType = error.type().toLowerCase();
+          if (SYSTEMIC_OPENSEARCH_LOWERCASE_EXCEPTION_TYPES.contains(lowerType)) {
+            return true;
+          }
+          String reason = error.reason();
+          if (reason != null) {
+            String lowerReason = reason.toLowerCase();
+            if (SYSTEMIC_OPENSEARCH_LOWERCASE_REASON_FRAGMENTS.stream().anyMatch(lowerReason::contains)) {
+              return true;
+            }
+          }
+        }
+      }
+      String msg = cause.getMessage();
+      if (msg != null) {
+        String lowerMessage = msg.toLowerCase();
+        return SYSTEMIC_OPENSEARCH_LOWERCASE_ERROR_MESSAGES.stream().anyMatch(lowerMessage::contains);
+      }
+      return false;
+    });
+  }
+
+  public static boolean isRateLimitError(final Exception e) {
+    return AbstractSearchIndexClient.hasCauseOrMessage(e, cause -> {
+      if (cause instanceof OpenSearchException ose) {
+        if (ose.status() == 429) {
+          return true;
+        }
+        ErrorCause error = ose.error();
+        if (error != null) {
+          String reason = error.reason();
+          return reason != null && reason.toLowerCase().contains("too many requests");
+        }
+      }
+      return false;
+    });
   }
 }

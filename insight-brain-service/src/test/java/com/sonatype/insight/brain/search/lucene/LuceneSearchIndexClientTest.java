@@ -5,10 +5,14 @@
  */
 package com.sonatype.insight.brain.search.lucene;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 import jakarta.inject.Inject;
 
@@ -48,8 +52,20 @@ import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.CheckIndex.CheckIndexException;
+import org.apache.lucene.index.CorruptIndexException;
+import org.apache.lucene.index.IndexFormatTooNewException;
+import org.apache.lucene.index.IndexFormatTooOldException;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.index.MergePolicy.MergeException;
+import org.apache.lucene.index.TwoPhaseCommitTool.CommitFailException;
+import org.apache.lucene.index.TwoPhaseCommitTool.PrepareCommitFailException;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.store.AlreadyClosedException;
+import org.apache.lucene.store.LockObtainFailedException;
+import org.apache.lucene.store.LockReleaseFailedException;
+import org.apache.lucene.util.ThreadInterruptedException;
 import org.assertj.core.groups.Tuple;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -733,5 +749,143 @@ public class LuceneSearchIndexClientTest
     assertThat((Long) telemetryData.getAttributes().get(SearchIndexClient.SEARCH_INDEX_DURATION_SECONDS))
         .isGreaterThanOrEqualTo(0).isLessThanOrEqualTo(duration);
     assertThat((Long) telemetryData.getAttributes().get(SearchIndexClient.SEARCH_INDEX_SIZE_BYTES)).isEqualTo(size);
+  }
+
+  @Test
+  public void testIsChangeSpecificError_ParseException() {
+    Exception e = new IOException(new ParseException("Parse error"));
+    assertThat(luceneSearchIndexClient.isChangeSpecificError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsChangeSpecificError_IllegalArgumentException() {
+    Exception e = new IOException(new IllegalArgumentException("Invalid field"));
+    assertThat(luceneSearchIndexClient.isChangeSpecificError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsChangeSpecificError_NullPointerException() {
+    Exception e = new IOException(new NullPointerException("Null field"));
+    assertThat(luceneSearchIndexClient.isChangeSpecificError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_FileSystemException() {
+    Exception e = new FileSystemException("Cannot access file");
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_FileNotFoundException() {
+    Exception e = new FileNotFoundException("Index file not found");
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_CorruptIndexException() {
+    Exception e = new CorruptIndexException("Index is corrupt", "resource");
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_LockObtainFailedException() {
+    Exception e = new LockObtainFailedException("Cannot obtain lock");
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_AlreadyClosedException() {
+    Exception e = new AlreadyClosedException("Index already closed");
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_TimeoutException() {
+    Exception e = new IOException(new TimeoutException("Operation timed out"));
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_NoSpaceLeft() {
+    Exception e = new IOException("No space left on device");
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_AccessDenied() {
+    Exception e = new IOException("Access denied to index directory");
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_TooManyOpenFiles() {
+    Exception e = new IOException("Too many open files");
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_IndexFormatTooNewException() {
+    Exception e = new IndexFormatTooNewException("resource", 10, 5, 8);
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_IndexFormatTooOldException() {
+    Exception e = new IndexFormatTooOldException("resource", 3, 5, 8);
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_LockReleaseFailedException() {
+    Exception e = new LockReleaseFailedException("Failed to release lock");
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_PrepareCommitFailException() {
+    Exception e = new PrepareCommitFailException(new IOException("Prepare failed"), null);
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_CommitFailException() {
+    Exception e = new CommitFailException(new IOException("Commit failed"), null);
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_MergeException() {
+    Exception e = new MergeException("Merge failed");
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_ThreadInterruptedException() {
+    Exception e = new ThreadInterruptedException(new InterruptedException("Thread interrupted"));
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_CheckIndexException() {
+    Exception e = new CheckIndexException("Index check failed");
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_NotEnoughSpace() {
+    Exception e = new IOException("Not enough space on device");
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_AccessIsDenied() {
+    Exception e = new IOException("Access is denied");
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
+  }
+
+  @Test
+  public void testIsSystemicError_PermissionDenied() {
+    Exception e = new IOException("Permission denied");
+    assertThat(luceneSearchIndexClient.isSystemicError(e)).isTrue();
   }
 }

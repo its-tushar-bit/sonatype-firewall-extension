@@ -18,7 +18,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.lucene.document.Document;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.BulkIndexByScrollFailure;
-import org.opensearch.client.opensearch._types.OpenSearchException;
 import org.opensearch.client.opensearch._types.Refresh;
 import org.opensearch.client.opensearch.core.BulkRequest;
 import org.opensearch.client.opensearch.core.BulkResponse;
@@ -103,10 +102,6 @@ public class OpenSearchIndexingContext
 
   @Override
   public void addDocuments(final List<Document> documents) throws IOException {
-    if (documents.isEmpty()) {
-      return;
-    }
-
     long now = System.currentTimeMillis();
     int totalDocuments = documents.size();
     int batchCount = (int) Math.ceil((double) totalDocuments / batchSize);
@@ -140,7 +135,6 @@ public class OpenSearchIndexingContext
 
   private void addDocumentBatchWithRetry(final List<Document> batch, final long createdAtEpochMs) throws IOException {
     int attempt = 0;
-    Exception lastException = null;
     int maxAttempts = maxRetries + 1; // 1 initial attempt + maxRetries retry attempts
 
     while (attempt < maxAttempts) {
@@ -151,11 +145,10 @@ public class OpenSearchIndexingContext
         }
         return;
       }
-      catch (Exception e) {
-        lastException = e;
+      catch (IOException | RuntimeException e) {
         attempt++;
 
-        if (isRateLimitError(e)) {
+        if (OpenSearchSearchIndexClient.isRateLimitError(e)) {
           if (attempt < maxAttempts) {
             int backoffMs = calculateBackoff(attempt);
             log.warn("Rate limit error (429) on attempt {}/{}. Retrying after {}s backoff. Error: {}",
@@ -170,21 +163,16 @@ public class OpenSearchIndexingContext
             }
           }
           else {
-            log.error("Rate limit error (429) persisted after {} retries. Giving up.", maxRetries);
-            throw new IOException("Failed to index batch after " + maxRetries + " retries due to rate limiting", e);
+            log.error("Rate limit error (429) persisted after {} retries. Giving up.", maxRetries, e);
+            throw e;
           }
         }
         else {
           // Non-rate-limit error, don't retry
-          if (e instanceof IOException) {
-            throw (IOException) e;
-          }
-          throw new IOException("Failed to index batch", e);
+          throw e;
         }
       }
     }
-
-    throw new IOException("Failed to index batch after " + maxRetries + " retries", lastException);
   }
 
   private void addDocumentBatch(final List<Document> batch, final long createdAtEpochMs) throws IOException {
@@ -206,27 +194,6 @@ public class OpenSearchIndexingContext
       throw new IOException(String.format("Failed to add batch of %d documents to index '%s'",
           batch.size(), indexName));
     }
-  }
-
-  /**
-   * Checks if an exception is caused by OpenSearch rate limiting (HTTP 429).
-   * Checks the entire exception chain to detect rate limit errors at any level.
-   *
-   * @param e the exception to check
-   * @return true if this is a rate limit error, false otherwise
-   */
-  public static boolean isRateLimitError(Exception e) {
-    Throwable cause = e;
-    while (cause != null) {
-      if (cause instanceof OpenSearchException openSearchException) {
-        if (openSearchException.status() == 429 || (openSearchException.error().reason() != null &&
-            openSearchException.error().reason().toLowerCase().contains("too many requests"))) {
-          return true;
-        }
-      }
-      cause = cause.getCause();
-    }
-    return false;
   }
 
   private int calculateBackoff(int attempt) {

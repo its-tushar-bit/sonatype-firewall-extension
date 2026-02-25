@@ -6,7 +6,10 @@
 package com.sonatype.insight.brain.search.lucene;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.FileSystemException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,19 +46,30 @@ import com.sonatype.insight.error.exception.ConflictException;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.CheckIndex.CheckIndexException;
+import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexFormatTooNewException;
+import org.apache.lucene.index.IndexFormatTooOldException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.index.MergePolicy.MergeException;
 import org.apache.lucene.index.SegmentInfos;
+import org.apache.lucene.index.TwoPhaseCommitTool.CommitFailException;
+import org.apache.lucene.index.TwoPhaseCommitTool.PrepareCommitFailException;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.IndexSearcher.TooManyClauses;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHits.Relation;
+import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.LockObtainFailedException;
+import org.apache.lucene.store.LockReleaseFailedException;
+import org.apache.lucene.util.ThreadInterruptedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
@@ -71,6 +85,31 @@ public class LuceneSearchIndexClient
     extends AbstractSearchIndexClient
 {
   private static final Logger log = LoggerFactory.getLogger(LuceneSearchIndexClient.class);
+
+  private static final Set<Class<?>> SYSTEMIC_LUCENE_EXCEPTIONS = Set.of(
+      AlreadyClosedException.class,
+      CheckIndexException.class,
+      CommitFailException.class,
+      CorruptIndexException.class,
+      FileNotFoundException.class,
+      FileSystemException.class,
+      IndexFormatTooNewException.class,
+      IndexFormatTooOldException.class,
+      LockObtainFailedException.class,
+      LockReleaseFailedException.class,
+      MergeException.class,
+      PrepareCommitFailException.class,
+      ThreadInterruptedException.class
+  );
+
+  private static final Set<String> SYSTEMIC_LUCENE_LOWERCASE_EXCEPTION_MESSAGES = Set.of(
+      "access denied",
+      "access is denied",
+      "no space left",
+      "not enough space",
+      "permission denied",
+      "too many open files"
+  );
 
   private final InsightWork insightWork;
 
@@ -132,7 +171,7 @@ public class LuceneSearchIndexClient
       return bytes;
     }
     catch (Exception e) {
-      throw new SearchIndexException(e);
+      throw new SearchIndexException("Error getting search index size", e);
     }
   }
 
@@ -150,7 +189,10 @@ public class LuceneSearchIndexClient
           deletionCallback);
     }
     catch (Exception e) {
-      throw new SearchIndexException("Error updating the search index", e);
+      if (shouldThrow(e)) {
+        throw new SearchIndexException("Error updating the search index", e);
+      }
+      log.debug("Unable to update the search index");
     }
   }
 
@@ -271,7 +313,7 @@ public class LuceneSearchIndexClient
             return indexSearcher.storedFields().document(scoreDocs[currentIndex++].doc);
           }
           catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
           }
         }
         return null;
@@ -294,5 +336,25 @@ public class LuceneSearchIndexClient
     catch (IOException e) {
       throw new ConflictException(NO_INDEX_ERROR_MESSAGE, e);
     }
+  }
+
+  @Override
+  protected boolean isChangeSpecificError(final Exception e) {
+    return isCommonChangeSpecificError(e);
+  }
+
+  @Override
+  protected boolean isSystemicError(final Exception e) {
+    return isCommonSystemicError(e) || hasCauseOrMessage(e, cause -> {
+      if (SYSTEMIC_LUCENE_EXCEPTIONS.contains(cause.getClass())) {
+        return true;
+      }
+      String msg = cause.getMessage();
+      if (msg != null) {
+        String lowerMsg = msg.toLowerCase();
+        return SYSTEMIC_LUCENE_LOWERCASE_EXCEPTION_MESSAGES.stream().anyMatch(lowerMsg::contains);
+      }
+      return false;
+    });
   }
 }

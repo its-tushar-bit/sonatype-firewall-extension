@@ -24,6 +24,7 @@ public class PublicDataSourcesEditorCommonUITest
   @Test
   public void testEditPublicDataSourceConfiguration_errorLicense_noCpeMatchingFeature() {
     productLicenseManager.getFeatures().remove(LicensedFeature.CPE_MATCHING);
+    refresh();
     assertThat(PublicDataSourcesEditorPage.errorMessage().text()
         .contains("Your IQ Server license does not enable this feature")).isTrue();
   }

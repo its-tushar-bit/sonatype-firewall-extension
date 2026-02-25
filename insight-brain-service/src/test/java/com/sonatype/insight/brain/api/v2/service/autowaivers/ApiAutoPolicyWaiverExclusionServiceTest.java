@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2.service.autowaivers;
 
 import java.util.Date;
 import java.util.List;
-import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -30,13 +29,17 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverExclusionTelemetryCollector;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
@@ -46,8 +49,6 @@ import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.isNotNull;
-import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -59,13 +60,12 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
   private ReportService reportService;
 
   @Mock
-  private AutoPolicyWaiverExclusionTelemetryCollector autoPolicyWaiverExclusionTelemetryCollector;
+  private TelemetrySender telemetrySender;
 
   @Override
   public void configure(Binder binder) {
     binder.bind(ReportService.class).toInstance(reportService);
-    binder.bind(AutoPolicyWaiverExclusionTelemetryCollector.class)
-        .toInstance(autoPolicyWaiverExclusionTelemetryCollector);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySender);
     super.configure(binder);
   }
 
@@ -109,9 +109,13 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     assertThat(resultingDto.scanId).isEqualTo(eval.getScanId());
     assertThat(resultingDto.componentIdentifier).isEqualTo(identifier);
     assertThat(resultingDto.componentMatchStrategy).isEqualTo(EXACT_COMPONENT);
-    
-    verify(autoPolicyWaiverExclusionTelemetryCollector).addTelemetryForCreateAutoWaiverExclusion(isNotNull(),
-        refEq(app));
+
+    ArgumentCaptor<List<TelemetryData>> captor = ArgumentCaptor.forClass(List.class);
+    verify(telemetrySender).send(captor.capture());
+    List<TelemetryData> telemetryData = captor.getValue();
+    assertThat(telemetryData).hasSize(1);
+    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(TelemetryPurpose.AUTO_POLICY_WAIVER_REVOCATIONS);
+    assertThat(telemetryData.get(0).getAttributes().get("auto_policy_waiver_revocation_action")).isEqualTo("CREATE");
   }
 
   @Test
@@ -263,8 +267,12 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
         exclusion.getId());
     assertThat(autoPolicyWaiverExclusionDAO.getByOwnerIdAndAutoPolicyWaiverId(app.getId(), waiver.getId())).isEmpty();
 
-    verify(autoPolicyWaiverExclusionTelemetryCollector).addTelemetryForDeleteAutoWaiverExclusion(isNotNull(),
-        refEq(app));
+    ArgumentCaptor<List<TelemetryData>> captor = ArgumentCaptor.forClass(List.class);
+    verify(telemetrySender).send(captor.capture());
+    List<TelemetryData> telemetryData = captor.getValue();
+    assertThat(telemetryData).hasSize(1);
+    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(TelemetryPurpose.AUTO_POLICY_WAIVER_REVOCATIONS);
+    assertThat(telemetryData.get(0).getAttributes().get("auto_policy_waiver_revocation_action")).isEqualTo("DELETE");
   }
 
   @Test
@@ -275,9 +283,13 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     apiAutoPolicyWaiverExclusionService.deleteAutoPolicyWaiverExclusion(OwnerType.ORGANIZATION, org.getId(),
         exclusion.getId());
     assertThat(autoPolicyWaiverExclusionDAO.getByOwnerIdAndAutoPolicyWaiverId(org.getId(), waiver.getId())).isEmpty();
-    
-    verify(autoPolicyWaiverExclusionTelemetryCollector).addTelemetryForDeleteAutoWaiverExclusion(isNotNull(),
-        refEq(org));
+
+    ArgumentCaptor<List<TelemetryData>> captor = ArgumentCaptor.forClass(List.class);
+    verify(telemetrySender).send(captor.capture());
+    List<TelemetryData> telemetryData = captor.getValue();
+    assertThat(telemetryData).hasSize(1);
+    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(TelemetryPurpose.AUTO_POLICY_WAIVER_REVOCATIONS);
+    assertThat(telemetryData.get(0).getAttributes().get("auto_policy_waiver_revocation_action")).isEqualTo("DELETE");
   }
 
   @Test
@@ -286,7 +298,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
         apiAutoPolicyWaiverExclusionService.deleteAutoPolicyWaiverExclusion(OwnerType.REPOSITORY, "ownerId",
             "exclusionId")
     ).isInstanceOf(BadRequestException.class).hasMessage("Unknown owner type: repository");
-    verifyNoInteractions(autoPolicyWaiverExclusionTelemetryCollector);
+    verifyNoInteractions(telemetrySender);
   }
 
   @Test
@@ -300,7 +312,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     ).isInstanceOf(NotFoundException.class).hasMessage(
         "Cannot find an auto policy waiver exclusion with ID " +
             exclusion.getId() + " for application with ID invalid");
-    verifyNoInteractions(autoPolicyWaiverExclusionTelemetryCollector);
+    verifyNoInteractions(telemetrySender);
   }
 
   @Test
@@ -314,7 +326,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     ).isInstanceOf(NotFoundException.class).hasMessage(
         "AutoPolicyWaiverExclusion with ID invalid does not exist."
     );
-    verifyNoInteractions(autoPolicyWaiverExclusionTelemetryCollector);
+    verifyNoInteractions(telemetrySender);
   }
 
   @Test
@@ -330,7 +342,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
         "Cannot find an auto policy waiver exclusion with ID " +
             exclusion.getId() + " for application with ID " + app.getOrganizationId()
     );
-    verifyNoInteractions(autoPolicyWaiverExclusionTelemetryCollector);
+    verifyNoInteractions(telemetrySender);
   }
 
   @Test
@@ -375,8 +387,12 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     assertThat(resultingDto.vulnerabilityIdentifiers).isEmpty();
     assertThat(resultingDto.policyId).isEqualTo(policy.getId());
 
-    verify(autoPolicyWaiverExclusionTelemetryCollector).addTelemetryForCreateAutoWaiverExclusion(isNotNull(),
-        refEq(app));
+    ArgumentCaptor<List<TelemetryData>> captor = ArgumentCaptor.forClass(List.class);
+    verify(telemetrySender).send(captor.capture());
+    List<TelemetryData> telemetryData = captor.getValue();
+    assertThat(telemetryData).hasSize(1);
+    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(TelemetryPurpose.AUTO_POLICY_WAIVER_REVOCATIONS);
+    assertThat(telemetryData.get(0).getAttributes().get("auto_policy_waiver_revocation_action")).isEqualTo("CREATE");
   }
 
   @Test
@@ -385,7 +401,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.REPOSITORY, "ownerId", dto)
     ).isInstanceOf(BadRequestException.class).hasMessage("Unknown owner type: repository");
-    verifyNoInteractions(autoPolicyWaiverExclusionTelemetryCollector);
+    verifyNoInteractions(telemetrySender);
   }
 
   @Test
@@ -408,7 +424,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
     ).isInstanceOf(BadRequestException.class).hasMessage("ownerId exceeds maximum length of 50 characters");
-    verifyNoInteractions(autoPolicyWaiverExclusionTelemetryCollector);
+    verifyNoInteractions(telemetrySender);
   }
 
   @Test
@@ -431,7 +447,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
     ).isInstanceOf(BadRequestException.class).hasMessage("scanId is required");
-    verifyNoInteractions(autoPolicyWaiverExclusionTelemetryCollector);
+    verifyNoInteractions(telemetrySender);
   }
 
   @Test
@@ -454,7 +470,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
     ).isInstanceOf(BadRequestException.class).hasMessage("scanId exceeds maximum length of 50 characters");
-    verifyNoInteractions(autoPolicyWaiverExclusionTelemetryCollector);
+    verifyNoInteractions(telemetrySender);
   }
 
   @Test
@@ -478,7 +494,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
         apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
     ).isInstanceOf(BadRequestException.class)
         .hasMessage("Unable to load report file for provided application public ID & scan ID");
-    verifyNoInteractions(autoPolicyWaiverExclusionTelemetryCollector);
+    verifyNoInteractions(telemetrySender);
   }
 
   @Test
@@ -501,7 +517,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
     ).isInstanceOf(BadRequestException.class).hasMessage("policyViolationId is required");
-    verifyNoInteractions(autoPolicyWaiverExclusionTelemetryCollector);
+    verifyNoInteractions(telemetrySender);
   }
 
   @Test
@@ -524,7 +540,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
     ).isInstanceOf(BadRequestException.class).hasMessage("policyViolationId exceeds maximum length of 50 characters");
-    verifyNoInteractions(autoPolicyWaiverExclusionTelemetryCollector);
+    verifyNoInteractions(telemetrySender);
   }
 
   @Test
@@ -546,7 +562,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
     ).isInstanceOf(BadRequestException.class).hasMessage("autoPolicyWaiverId is required");
-    verifyNoInteractions(autoPolicyWaiverExclusionTelemetryCollector);
+    verifyNoInteractions(telemetrySender);
   }
 
   @Test
@@ -569,7 +585,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
     ).isInstanceOf(BadRequestException.class).hasMessage("autoPolicyWaiverId exceeds maximum length of 50 characters");
-    verifyNoInteractions(autoPolicyWaiverExclusionTelemetryCollector);
+    verifyNoInteractions(telemetrySender);
   }
 
   @Test
@@ -593,7 +609,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     ).isInstanceOf(BadRequestException.class)
         .hasMessage(
             "Auto policy waiver with ID invalidAutoPolicyWaiverId not found for application with ID " + app.getId());
-    verifyNoInteractions(autoPolicyWaiverExclusionTelemetryCollector);
+    verifyNoInteractions(telemetrySender);
   }
 
   @Test
@@ -616,7 +632,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
     ).isInstanceOf(BadRequestException.class).hasMessage("matchStrategy is required");
-    verifyNoInteractions(autoPolicyWaiverExclusionTelemetryCollector);
+    verifyNoInteractions(telemetrySender);
   }
 
   @Test
@@ -894,8 +910,12 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
         apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
     ).isInstanceOf(BadRequestException.class).hasMessage("Exclusion already exists for this policy violation");
 
-    verify(autoPolicyWaiverExclusionTelemetryCollector).addTelemetryForCreateAutoWaiverExclusion(isNotNull(),
-        refEq(app));
+    ArgumentCaptor<List<TelemetryData>> captor = ArgumentCaptor.forClass(List.class);
+    verify(telemetrySender).send(captor.capture());
+    List<TelemetryData> telemetryData = captor.getValue();
+    assertThat(telemetryData).hasSize(1);
+    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(TelemetryPurpose.AUTO_POLICY_WAIVER_REVOCATIONS);
+    assertThat(telemetryData.get(0).getAttributes().get("auto_policy_waiver_revocation_action")).isEqualTo("CREATE");
   }
 
   @Test
@@ -929,8 +949,12 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     ).isInstanceOf(BadRequestException.class)
         .hasMessage("Exclusion already exists for this policy violation");
 
-    verify(autoPolicyWaiverExclusionTelemetryCollector).addTelemetryForCreateAutoWaiverExclusion(isNotNull(),
-        refEq(app));
+    ArgumentCaptor<List<TelemetryData>> captor = ArgumentCaptor.forClass(List.class);
+    verify(telemetrySender).send(captor.capture());
+    List<TelemetryData> telemetryData = captor.getValue();
+    assertThat(telemetryData).hasSize(1);
+    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(TelemetryPurpose.AUTO_POLICY_WAIVER_REVOCATIONS);
+    assertThat(telemetryData.get(0).getAttributes().get("auto_policy_waiver_revocation_action")).isEqualTo("CREATE");
   }
 
   @Test
@@ -964,8 +988,12 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
         apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
     ).isInstanceOf(BadRequestException.class).hasMessage("Exclusion already exists for this policy violation");
 
-    verify(autoPolicyWaiverExclusionTelemetryCollector).addTelemetryForCreateAutoWaiverExclusion(isNotNull(),
-        refEq(app));
+    ArgumentCaptor<List<TelemetryData>> captor = ArgumentCaptor.forClass(List.class);
+    verify(telemetrySender).send(captor.capture());
+    List<TelemetryData> telemetryData = captor.getValue();
+    assertThat(telemetryData).hasSize(1);
+    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(TelemetryPurpose.AUTO_POLICY_WAIVER_REVOCATIONS);
+    assertThat(telemetryData.get(0).getAttributes().get("auto_policy_waiver_revocation_action")).isEqualTo("CREATE");
   }
 
   private ConditionFact createSecurityStatusConditionFact(final String cve) {

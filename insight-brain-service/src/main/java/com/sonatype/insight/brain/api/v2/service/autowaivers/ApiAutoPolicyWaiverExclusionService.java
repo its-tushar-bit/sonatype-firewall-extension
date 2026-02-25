@@ -41,14 +41,19 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverExclusionTelemetryCollector;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
+@Singleton
 public class ApiAutoPolicyWaiverExclusionService
 {
   private static final Logger log = LoggerFactory.getLogger(ApiAutoPolicyWaiverExclusionService.class);
@@ -72,9 +77,9 @@ public class ApiAutoPolicyWaiverExclusionService
 
   private final OwnerDAO ownerDAO;
 
-  private final AutoPolicyWaiverExclusionTelemetryCollector autoPolicyWaiverExclusionTelemetryCollector;
-
   private final TelemetrySender telemetrySender;
+
+  private final TelemetryUtils telemetryUtils;
 
   @Inject
   public ApiAutoPolicyWaiverExclusionService(
@@ -83,10 +88,10 @@ public class ApiAutoPolicyWaiverExclusionService
       AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       ApplicationDAO applicationDAO,
       OrganizationDAO organizationDAO,
-      CurrentUser currentUser, 
+      CurrentUser currentUser,
       OwnerDAO ownerDAO,
-      AutoPolicyWaiverExclusionTelemetryCollector autoPolicyWaiverExclusionTelemetryCollector,
-      TelemetrySender telemetrySender)
+      TelemetrySender telemetrySender,
+      TelemetryUtils telemetryUtils)
   {
     this.reportService = reportService;
     this.autoPolicyWaiverExclusionDAO = autoPolicyWaiverExclusionDAO;
@@ -95,8 +100,8 @@ public class ApiAutoPolicyWaiverExclusionService
     this.organizationDAO = organizationDAO;
     this.currentUser = currentUser;
     this.ownerDAO = ownerDAO;
-    this.autoPolicyWaiverExclusionTelemetryCollector = autoPolicyWaiverExclusionTelemetryCollector;
     this.telemetrySender = telemetrySender;
+    this.telemetryUtils = telemetryUtils;
   }
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
@@ -181,8 +186,10 @@ public class ApiAutoPolicyWaiverExclusionService
       log.debug("Added auto policy waiver exclusion {}", newExclusion.getId());
 
       Owner owner = ownerDAO.getById(ownerId);
-      autoPolicyWaiverExclusionTelemetryCollector.addTelemetryForCreateAutoWaiverExclusion(newExclusion, owner);
-      sendTelemetry();
+      AutoPolicyWaiverExclusionTelemetryCollector telemetryCollector =
+          new AutoPolicyWaiverExclusionTelemetryCollector(telemetryUtils);
+      telemetryCollector.addTelemetryForCreateAutoWaiverExclusion(newExclusion, owner);
+      sendTelemetry(telemetryCollector);
 
       return ApiAutoPolicyWaiverExclusionAdapter.convertToDTO(newExclusion);
     }
@@ -211,9 +218,10 @@ public class ApiAutoPolicyWaiverExclusionService
     autoPolicyWaiverExclusionDAO.delete(autoPolicyWaiverExclusion);
 
     Owner owner = ownerDAO.getById(ownerId);
-    autoPolicyWaiverExclusionTelemetryCollector.addTelemetryForDeleteAutoWaiverExclusion(autoPolicyWaiverExclusion,
-        owner);
-    sendTelemetry();
+    AutoPolicyWaiverExclusionTelemetryCollector telemetryCollector =
+        new AutoPolicyWaiverExclusionTelemetryCollector(telemetryUtils);
+    telemetryCollector.addTelemetryForDeleteAutoWaiverExclusion(autoPolicyWaiverExclusion, owner);
+    sendTelemetry(telemetryCollector);
 
     log.debug("Deleted auto policy waiver exclusion {}", autoPolicyWaiverExclusionId);
   }
@@ -376,7 +384,7 @@ public class ApiAutoPolicyWaiverExclusionService
     }
   }
 
-  private void sendTelemetry() {
-    telemetrySender.send(autoPolicyWaiverExclusionTelemetryCollector.getTelemetryData());
+  private void sendTelemetry(AutoPolicyWaiverExclusionTelemetryCollector telemetryCollector) {
+    telemetrySender.send(telemetryCollector.getTelemetryData());
   }
 }

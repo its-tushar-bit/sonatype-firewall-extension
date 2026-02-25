@@ -35,16 +35,21 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverTelemetryCollector;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.api.v2.service.autowaivers.AutoPolicyWaiverUtil.anyEqualByOwnerAndScope;
 
+@Named
+@Singleton
 public class ApiAutoPolicyWaiverService
 {
   private static final Logger log = LoggerFactory.getLogger(ApiAutoPolicyWaiverService.class);
@@ -61,11 +66,11 @@ public class ApiAutoPolicyWaiverService
 
   private final CurrentUser currentUser;
 
-  private final AutoPolicyWaiverTelemetryCollector autoPolicyWaiverTelemetryCollector;
-
   private final AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
 
-  private TelemetrySender telemetrySender;
+  private final TelemetrySender telemetrySender;
+
+  private final TelemetryUtils telemetryUtils;
 
   @Inject
   public ApiAutoPolicyWaiverService(
@@ -75,9 +80,9 @@ public class ApiAutoPolicyWaiverService
       PolicyViolationDAO policyViolationDAO,
       OwnerDAO ownerDAO,
       CurrentUser currentUser,
-      AutoPolicyWaiverTelemetryCollector autoPolicyWaiverTelemetryCollector,
       AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO,
-      TelemetrySender telemetrySender)
+      TelemetrySender telemetrySender,
+      TelemetryUtils telemetryUtils)
   {
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
     this.applicationDAO = applicationDAO;
@@ -85,9 +90,9 @@ public class ApiAutoPolicyWaiverService
     this.policyViolationDAO = policyViolationDAO;
     this.ownerDAO = ownerDAO;
     this.currentUser = currentUser;
-    this.autoPolicyWaiverTelemetryCollector = autoPolicyWaiverTelemetryCollector;
     this.autoPolicyWaiverExclusionDAO = autoPolicyWaiverExclusionDAO;
     this.telemetrySender = telemetrySender;
+    this.telemetryUtils = telemetryUtils;
   }
 
   @Authorize(permission = Permission.READ)
@@ -153,6 +158,7 @@ public class ApiAutoPolicyWaiverService
 
     Owner owner = ownerDAO.getById(ownerId);
     List<ApiAutoPolicyWaiverDTO> storedApiAutoPolicyWaivers = new ArrayList<>();
+    AutoPolicyWaiverTelemetryCollector telemetryCollector = new AutoPolicyWaiverTelemetryCollector(telemetryUtils);
 
     for (ApiAutoPolicyWaiverDTO apiAutoPolicyWaiverDTO : apiAutoPolicyWaivers) {
       AutoPolicyWaiver autoPolicyWaiver = getAutoPolicyWaiver(ownerId, apiAutoPolicyWaiverDTO);
@@ -161,12 +167,12 @@ public class ApiAutoPolicyWaiverService
 
       log.debug("Auto policy waiver created for {} with ID {}", ownerType, autoPolicyWaiver.getId());
 
-      autoPolicyWaiverTelemetryCollector.addTelemetryForCreateAutoWaiver(autoPolicyWaiver, owner);
+      telemetryCollector.addTelemetryForCreateAutoWaiver(autoPolicyWaiver, owner);
 
       storedApiAutoPolicyWaivers.add(ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver));
     }
 
-    sendTelemetry();
+    sendTelemetry(telemetryCollector);
 
     return storedApiAutoPolicyWaivers;
   }
@@ -234,8 +240,9 @@ public class ApiAutoPolicyWaiverService
     log.debug("Auto policy waiver updated for {} with ID {}", ownerType, autoPolicyWaiver.getId());
 
     Owner owner = ownerDAO.getById(ownerId);
-    autoPolicyWaiverTelemetryCollector.addTelemetryForUpdateAutoWaiver(autoPolicyWaiver, owner);
-    sendTelemetry();
+    AutoPolicyWaiverTelemetryCollector telemetryCollector = new AutoPolicyWaiverTelemetryCollector(telemetryUtils);
+    telemetryCollector.addTelemetryForUpdateAutoWaiver(autoPolicyWaiver, owner);
+    sendTelemetry(telemetryCollector);
 
     return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
   }
@@ -259,8 +266,9 @@ public class ApiAutoPolicyWaiverService
     log.debug("Auto policy waiver deleted for {} with ID {}", ownerType, autoPolicyWaiver.getId());
 
     Owner owner = ownerDAO.getById(ownerId);
-    autoPolicyWaiverTelemetryCollector.addTelemetryForDeleteAutoWaiver(autoPolicyWaiver, owner);
-    sendTelemetry();
+    AutoPolicyWaiverTelemetryCollector telemetryCollector = new AutoPolicyWaiverTelemetryCollector(telemetryUtils);
+    telemetryCollector.addTelemetryForDeleteAutoWaiver(autoPolicyWaiver, owner);
+    sendTelemetry(telemetryCollector);
   }
 
   @Authorize(permission = Permission.READ)
@@ -475,7 +483,7 @@ public class ApiAutoPolicyWaiverService
     // no-op
   }
 
-  private void sendTelemetry() {
-    telemetrySender.send(autoPolicyWaiverTelemetryCollector.getTelemetryData());
+  private void sendTelemetry(AutoPolicyWaiverTelemetryCollector telemetryCollector) {
+    telemetrySender.send(telemetryCollector.getTelemetryData());
   }
 }

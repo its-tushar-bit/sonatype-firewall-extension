@@ -45,8 +45,6 @@ import com.sonatype.insight.brain.telemetry.TelemetryQueue;
 import com.sonatype.insight.brain.telemetry.TelemetryReceiptService;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryService;
-import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverExclusionTelemetryCollector;
-import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverTelemetryCollector;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
@@ -64,8 +62,6 @@ public class TelemetryModule
     bind(AdvancedSearchTelemetryMetrics.class).in(Singleton.class);
     bind(ApplicationTelemetryCollector.class).in(Singleton.class);
     bind(ApplicationCategoryTelemetryCollector.class).in(Singleton.class);
-    bind(AutoPolicyWaiverExclusionTelemetryCollector.class).in(Singleton.class);
-    bind(AutoPolicyWaiverTelemetryCollector.class).in(Singleton.class);
     bind(ClusterIdentificationService.class).in(Singleton.class);
     bind(ClusterTelemetryCollector.class).in(Singleton.class);
     bind(ClusterTelemetryTask.class).in(Singleton.class);

@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry.autowaivers;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,8 +20,6 @@ import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-@Named
-@Singleton
 public class AutoPolicyWaiverTelemetryCollector
 {
   public static final String APPLICATION_ID = "application_id";
@@ -50,7 +45,6 @@ public class AutoPolicyWaiverTelemetryCollector
 
   private final TelemetryUtils telemetryUtils;
 
-  @Inject
   public AutoPolicyWaiverTelemetryCollector(final TelemetryUtils telemetryUtils) {
     this.telemetryUtils = telemetryUtils;
   }

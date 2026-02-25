@@ -28,6 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AutoPolicyWaiverTelemetryCollectorTest extends AbstractComponentTest
 {
   @Inject
+  private TelemetryUtils telemetryUtils;
+
   private AutoPolicyWaiverTelemetryCollector telemetryCollector;
 
   private AutoPolicyWaiver autoPolicyWaiver1;
@@ -48,6 +50,8 @@ public class AutoPolicyWaiverTelemetryCollectorTest extends AbstractComponentTes
 
   @Before
   public void before() {
+    telemetryCollector = new AutoPolicyWaiverTelemetryCollector(telemetryUtils);
+
     autoPolicyWaiver1 = createAutoPolicyWaiver("autoPolicyWaiver1", "owner1", 1);
     autoPolicyWaiver2 = createAutoPolicyWaiver("autoPolicyWaiver2", "owner2", 2);
     autoPolicyWaiver3 = createAutoPolicyWaiver("autoPolicyWaiver3", "owner3", 3);

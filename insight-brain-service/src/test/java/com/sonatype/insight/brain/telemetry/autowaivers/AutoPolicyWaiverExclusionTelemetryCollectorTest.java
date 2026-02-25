@@ -27,6 +27,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AutoPolicyWaiverExclusionTelemetryCollectorTest extends AbstractComponentTest
 {
   @Inject
+  private TelemetryUtils telemetryUtils;
+
   private AutoPolicyWaiverExclusionTelemetryCollector telemetryCollector;
 
   private AutoPolicyWaiverExclusion autoWaiverExclusion1;
@@ -41,6 +43,8 @@ public class AutoPolicyWaiverExclusionTelemetryCollectorTest extends AbstractCom
 
   @Before
   public void before() {
+    telemetryCollector = new AutoPolicyWaiverExclusionTelemetryCollector(telemetryUtils);
+
     autoWaiverExclusion1 = createAutoPolicyWaiverExclusion("exclusionId1", "ownerId", "autoPolicyWaiverId1");
     autoWaiverExclusion2 = createAutoPolicyWaiverExclusion("exclusionId2", "ownerId", "autoPolicyWaiverId2");
     autoWaiverExclusion3 = createAutoPolicyWaiverExclusion("exclusionId3", "ownerId", "autoPolicyWaiverId3");

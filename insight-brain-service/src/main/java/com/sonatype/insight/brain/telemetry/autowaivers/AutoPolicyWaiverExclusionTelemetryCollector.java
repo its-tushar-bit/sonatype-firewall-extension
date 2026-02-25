@@ -10,9 +10,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Owner;
@@ -22,8 +19,6 @@ import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-@Named
-@Singleton
 public class AutoPolicyWaiverExclusionTelemetryCollector
 {
   public static final String APPLICATION_ID = "application_id";
@@ -47,7 +42,6 @@ public class AutoPolicyWaiverExclusionTelemetryCollector
 
   private final TelemetryUtils telemetryUtils;
 
-  @Inject
   public AutoPolicyWaiverExclusionTelemetryCollector(TelemetryUtils telemetryUtils) {
     this.telemetryUtils = telemetryUtils;
   }

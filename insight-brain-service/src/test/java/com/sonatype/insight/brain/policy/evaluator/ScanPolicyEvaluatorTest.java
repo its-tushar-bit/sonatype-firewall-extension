@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.EpssData;
 import com.sonatype.clm.dto.model.component.AiModelContentType;
@@ -145,7 +144,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.brain.telemetry.autowaivers.AutoPolicyWaiverTelemetryCollector;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.PolicyAlertEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -160,9 +158,11 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import jakarta.persistence.Query;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -201,7 +201,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -283,9 +283,6 @@ public class ScanPolicyEvaluatorTest
   @Mock
   private ApiVulnerabilityReachabilityStatusService apiVulnerabilityReachabilityStatusService;
 
-  @Mock
-  private AutoPolicyWaiverTelemetryCollector autoPolicyWaiverTelemetryCollector;
-
   private Organization organization;
 
   private Application application;
@@ -308,7 +305,6 @@ public class ScanPolicyEvaluatorTest
     binder.bind(ComponentInfoService.class).toInstance(mockComponentInfoService);
     binder.bind(ApiVulnerabilityReachabilityStatusService.class)
         .toInstance(apiVulnerabilityReachabilityStatusService);
-    binder.bind(AutoPolicyWaiverTelemetryCollector.class).toInstance(autoPolicyWaiverTelemetryCollector);
     super.configure(binder);
   }
 
@@ -5243,7 +5239,7 @@ public class ScanPolicyEvaluatorTest
     );
 
     // Create NPF auto waiver
-    final AutoPolicyWaiver noPFAutoWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, true);
+    tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, true);
 
     // Match the auto waiver with No Path Forward
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
@@ -5256,9 +5252,15 @@ public class ScanPolicyEvaluatorTest
     scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE, analysisDTO,
         false);
 
-    verify(autoPolicyWaiverTelemetryCollector)
-        .addTelemetryForApplyAutoWaiver(refEq(noPFAutoWaiver), any(PolicyViolation.class),
-            any(Owner.class));
+    ArgumentCaptor<List<TelemetryData>> captor = ArgumentCaptor.forClass(List.class);
+    verify(mockTelemetrySender, atLeastOnce()).send(captor.capture());
+    boolean foundAutoWaiverApplyTelemetry = captor.getAllValues().stream()
+        .flatMap(List::stream)
+        .anyMatch(td -> td.getPurpose() == TelemetryPurpose.AUTO_POLICY_WAIVER
+            && "APPLY".equals(td.getAttributes().get("auto_policy_waiver_action")));
+    assertThat(foundAutoWaiverApplyTelemetry)
+        .as("Expected to find auto waiver APPLY telemetry")
+        .isTrue();
   }
 
   @Test

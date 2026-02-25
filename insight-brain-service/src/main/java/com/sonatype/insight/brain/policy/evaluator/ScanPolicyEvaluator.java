@@ -199,8 +199,6 @@ public class ScanPolicyEvaluator
 
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
-  private final AutoPolicyWaiverTelemetryCollector autoPolicyWaiverTelemetryCollector;
-
   private final PathForwardInspector pathForwardInspector;
 
   private final ApiVulnerabilityReachabilityStatusService apiVulnerabilityReachabilityStatusService;
@@ -244,7 +242,6 @@ public class ScanPolicyEvaluator
       final ComponentInfoService componentInfoService,
       final ReportComponentService reportComponentService,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
-      final AutoPolicyWaiverTelemetryCollector autoPolicyWaiverTelemetryCollector,
       final PathForwardInspector pathForwardInspector,
       final ApiVulnerabilityReachabilityStatusService apiVulnerabilityReachabilityStatusService,
       final LicenseNameProvider licenseNameProvider,
@@ -282,7 +279,6 @@ public class ScanPolicyEvaluator
     this.reportComponentService = reportComponentService;
     componentInfoService.setToolName("ci");
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
-    this.autoPolicyWaiverTelemetryCollector = autoPolicyWaiverTelemetryCollector;
     this.pathForwardInspector = pathForwardInspector;
     this.apiVulnerabilityReachabilityStatusService = apiVulnerabilityReachabilityStatusService;
     this.licenseNameProvider = licenseNameProvider;
@@ -508,6 +504,7 @@ public class ScanPolicyEvaluator
       PolicyResults policyResults,
       List<Component> components,
       PolicyViolationTelemetryCollector telemetryCollector,
+      AutoPolicyWaiverTelemetryCollector autoPolicyWaiverTelemetryCollector,
       ApplicationReport applicationReport,
       ClientScanType clientScanType,
       VulnerabilitySignatureAnalysisDTO analysisDTO,
@@ -1654,12 +1651,15 @@ public class ScanPolicyEvaluator
         componentHelper
     );
 
+    AutoPolicyWaiverTelemetryCollector autoPolicyWaiverTelemetryCollector =
+        new AutoPolicyWaiverTelemetryCollector(telemetryUtils);
+
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
         processPolicyResults(application, scanId, stage, scanTriggerType, policies, forMonitoring, policyResults,
-            reportComponentData.components, telemetryCollector, reportComponentData.applicationReport,
-            clientScanType, analysisDTO, skipAutoWaivers);
+            reportComponentData.components, telemetryCollector, autoPolicyWaiverTelemetryCollector,
+            reportComponentData.applicationReport, clientScanType, analysisDTO, skipAutoWaivers);
 
-    sendAggregatePolicyViolationAndAutoWaiverTelemetry(telemetryCollector);
+    sendAggregatePolicyViolationAndAutoWaiverTelemetry(telemetryCollector, autoPolicyWaiverTelemetryCollector);
 
     sendLegacyViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations,
         stage.getStageTypeId());
@@ -1890,7 +1890,8 @@ public class ScanPolicyEvaluator
   }
 
   private void sendAggregatePolicyViolationAndAutoWaiverTelemetry(
-      final PolicyViolationTelemetryCollector policyViolationTelemetryCollector)
+      final PolicyViolationTelemetryCollector policyViolationTelemetryCollector,
+      final AutoPolicyWaiverTelemetryCollector autoPolicyWaiverTelemetryCollector)
   {
     final List<TelemetryData> aggregateTelemetryDataList = new ArrayList<>();
     aggregateTelemetryDataList.addAll(policyViolationTelemetryCollector.getTelemetryData());

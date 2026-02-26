@@ -83,6 +83,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.policy.AutoPolicyWaiverExclusionMatcherWrapper;
 import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.PathForwardInspector;
+import com.sonatype.insight.brain.policy.utils.EvaluationUtils;
 import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
@@ -741,11 +742,16 @@ public class ScanPolicyEvaluator
         // Fixed policy violations.
         for (PolicyViolation oldPolicyViolation : policyViolationDiff.getCleared()) {
           oldPolicyViolation.setFixTime(policyEvaluation.getTime());
-          policyViolationDAO.update(tx, oldPolicyViolation);
-          policyViolationLogger.add(PolicyViolationLogEvent.FIX, oldPolicyViolation);
 
           List<Component> found = findComponentsByComponentIdentifierElseVersionless(components,
               oldPolicyViolation.getComponentIdentifier());
+
+          oldPolicyViolation.setIsRemediatedByVersionChange(
+              EvaluationUtils.isRemediatedByVersionChange(found, oldPolicyViolation));
+
+          policyViolationDAO.update(tx, oldPolicyViolation);
+          policyViolationLogger.add(PolicyViolationLogEvent.FIX, oldPolicyViolation);
+
           telemetryCollector.addTelemetryForFixedViolation(oldPolicyViolation, found);
           results.fixedViolations.add(oldPolicyViolation);
         }

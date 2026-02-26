@@ -107,6 +107,8 @@ public class PolicyViolationTelemetryCollector
 
   static final String FIX_BY_VERSION_CHANGE = "fix_by_version_change";
 
+  static final String REMEDIATION_BY_VERSION_CHANGE = "remediation_by_version_change";
+
   static final String CALL_FLOW_EVALUATION_SUCCESSFUL = "call_flow_evaluation_successful";
 
   static final String CALL_FLOW_HAS_REACHABLE_INFORMATION_FOR_COMPONENT =
@@ -190,7 +192,8 @@ public class PolicyViolationTelemetryCollector
             createTelemetry(TelemetryPurpose.TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, fixedPolicyViolation, components)
                 .put(FIX_BY_VERSION_CHANGE, fixByVersionChange)
                 .put(REMEDIATION_VERSION, newComponent.getVersion())
-                .put(FIX_TIME, timeOfPolicyEvaluation.getTime());
+                .put(FIX_TIME, timeOfPolicyEvaluation.getTime())
+                .put(REMEDIATION_BY_VERSION_CHANGE, fixedPolicyViolation.getIsRemediatedByVersionChange());
 
         // need to account for the fact that the remediation PR could have been triggered by an evaluation at a
         // different (earlier) Lifecycle stage (i.e. it could have been a different policy violation that triggered it)

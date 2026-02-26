@@ -281,6 +281,116 @@ public class PolicyViolationTelemetryCollectorTest
   }
 
   @Test
+  public void testAddTelemetryForFixedViolation_FixedByUpgrade_WithIsRemediatedByVersionChangeTrue() {
+    // given a policy violation on lodash v4 that was fixed by upgrading with isRemediatedByVersionChange set to true
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4)
+            .withScmEnabled(true)
+            .openedHoursAgo(72)
+            .asDirectDependency(true)
+            .withPolicyViolationId("fixedByUpgradeWithVersionChangeFlag")
+            .markFixedByUpgrade()
+            .withIsRemediatedByVersionChange(true)
+            .withExpectedRemediationVersion(lodashv5.get(ComponentIdentifier.VERSION));
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when - pass in an upgraded component
+    telemetryCollector.addTelemetryForFixedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        createWrappedComponent(lodashv5, true, false)
+    );
+
+    // then - verify telemetry includes isRemediatedByVersionChange field
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(
+        telemetryData,
+        TIME_TO_REMEDIATE_POLICY_VIOLATION,
+        TIME_TO_CHANGE_VERSION_POLICY_VIOLATION
+    );
+
+    // Additional explicit check for the new field
+    TelemetryData ttcvpvData = telemetryData.stream()
+        .filter(td -> td.getPurpose() == TIME_TO_CHANGE_VERSION_POLICY_VIOLATION)
+        .findFirst()
+        .orElseThrow();
+    assertThat(ttcvpvData.getAttributes()).containsEntry(REMEDIATION_BY_VERSION_CHANGE, true);
+  }
+
+  @Test
+  public void testAddTelemetryForFixedViolation_FixedByUpgrade_WithIsRemediatedByVersionChangeNull() {
+    // given a policy violation on lodash v4 that was fixed by upgrading but isRemediatedByVersionChange is not set
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4)
+            .withScmEnabled(true)
+            .openedHoursAgo(72)
+            .asDirectDependency(true)
+            .withPolicyViolationId("fixedByUpgradeWithoutVersionChangeFlag")
+            .markFixedByUpgrade()
+            .withExpectedRemediationVersion(lodashv5.get(ComponentIdentifier.VERSION));
+    // Note: isRemediatedByVersionChange is NOT set, so it should be null in telemetry
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when - pass in an upgraded component
+    telemetryCollector.addTelemetryForFixedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        createWrappedComponent(lodashv5, true, false)
+    );
+
+    // then - verify telemetry includes isRemediatedByVersionChange field as null
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(
+        telemetryData,
+        TIME_TO_REMEDIATE_POLICY_VIOLATION,
+        TIME_TO_CHANGE_VERSION_POLICY_VIOLATION
+    );
+
+    // Additional explicit check - field should be present with null value
+    TelemetryData ttcvpvData = telemetryData.stream()
+        .filter(td -> td.getPurpose() == TIME_TO_CHANGE_VERSION_POLICY_VIOLATION)
+        .findFirst()
+        .orElseThrow();
+    assertThat(ttcvpvData.getAttributes()).containsEntry(REMEDIATION_BY_VERSION_CHANGE, null);
+  }
+
+  @Test
+  public void testAddTelemetryForFixedViolation_FixedByRemoval_WithIsRemediatedByVersionChangeFalse() {
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4)
+            .withScmEnabled(true)
+            .openedHoursAgo(48)
+            .asDirectDependency(true)
+            .withPolicyViolationId("fixedByRemovalWithFalseFlag")
+            .markFixedByRemoval()
+            .withIsRemediatedByVersionChange(false);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    telemetryCollector.addTelemetryForFixedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponents()
+    );
+
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(
+        telemetryData,
+        TIME_TO_REMEDIATE_POLICY_VIOLATION
+    );
+
+    // Additional check - TIME_TO_CHANGE_VERSION_POLICY_VIOLATION should NOT be present
+    boolean hasTTCVPV = telemetryData.stream()
+        .anyMatch(td -> td.getPurpose() == TIME_TO_CHANGE_VERSION_POLICY_VIOLATION);
+    assertThat(hasTTCVPV).isFalse();
+
+    // The false value is stored in DB but not sent in telemetry because
+    // TIME_TO_CHANGE_VERSION_POLICY_VIOLATION is only sent when version actually changes
+  }
+
+  @Test
   public void testAddTelemetryForFixedViolation_FixedByUpgrade_WithRemediationPullRequestAttribution() {
     // given a policy violation on jackson-databind v2.13.4 that was fixed by upgrading to v2.13.5 and a matching
     // remediation PR event
@@ -1077,6 +1187,9 @@ public class PolicyViolationTelemetryCollectorTest
     // Expected remediation version for TIME_TO_CHANGE_VERSION telemetry
     private String expectedRemediationVersion;
 
+    // Expected isRemediatedByVersionChange flag for TIME_TO_CHANGE_VERSION telemetry
+    private Boolean expectedIsRemediatedByVersionChange;
+
     TestablePolicyViolation(ComponentIdentifier componentIdentifier, String policyName) {
       this.component = new Component(componentIdentifier);
       this.components.add(component);
@@ -1377,6 +1490,12 @@ public class PolicyViolationTelemetryCollectorTest
       return this;
     }
 
+    TestablePolicyViolation withIsRemediatedByVersionChange(Boolean isRemediatedByVersionChange) {
+      this.expectedIsRemediatedByVersionChange = isRemediatedByVersionChange;
+      policyViolation.setIsRemediatedByVersionChange(isRemediatedByVersionChange);
+      return this;
+    }
+
     private String createPolicyId(String policyName) {
       return "ID_" + policyName;
     }
@@ -1467,6 +1586,8 @@ public class PolicyViolationTelemetryCollectorTest
         case TIME_TO_CHANGE_VERSION_POLICY_VIOLATION:
           validateMatchesOrNotExists(attributes, FIX_TIME, fixTime);
           validateMatchesOrNotExists(attributes, FIX_BY_VERSION_CHANGE, fixReason);
+          // is_remediated_by_version_change is always present in telemetry (even with null value)
+          assertThat(attributes).containsEntry(REMEDIATION_BY_VERSION_CHANGE, expectedIsRemediatedByVersionChange);
           // Assert remediation version if expected
           if (expectedRemediationVersion != null) {
             assertThat(attributes).containsEntry(REMEDIATION_VERSION, expectedRemediationVersion);
@@ -1700,6 +1821,7 @@ public class PolicyViolationTelemetryCollectorTest
       copy.setThreatLevel(original.getThreatLevel());
       copy.setWaiveTime(original.getWaiveTime());
       copy.setReachabilityStatus(original.getReachabilityStatus());
+      copy.setIsRemediatedByVersionChange(original.getIsRemediatedByVersionChange());
 
       return copy;
     }

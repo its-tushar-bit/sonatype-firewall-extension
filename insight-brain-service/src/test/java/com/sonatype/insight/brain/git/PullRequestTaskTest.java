@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -118,6 +119,9 @@ public class PullRequestTaskTest
   private SourceControlUtils mockSourceControlUtils;
 
   @Mock
+  private ScmOperationMetrics mockScmOperationMetrics;
+
+  @Mock
   private PullRequestExecutor mockPullRequestExecutor;
 
   //Subject
@@ -146,6 +150,7 @@ public class PullRequestTaskTest
     binder.bind(GitApiFactory.class).toInstance(mockGitApiFactory);
     binder.bind(AuditRecorder.class).toInstance(mockAuditRecorder);
     binder.bind(SourceControlUtils.class).toInstance(mockSourceControlUtils);
+    binder.bind(ScmOperationMetrics.class).toInstance(mockScmOperationMetrics);
 
     binder.bind(FileCleaner.class).toInstance(mockFileCleaner);
     super.configure(binder);
@@ -238,7 +243,7 @@ public class PullRequestTaskTest
     assertThat(logOutput).atInfoLevel().contains("successful=true");
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testRun_failure() throws Exception {
     File sonatypeWorkDir = tempDir.newFolder();
     insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
@@ -251,7 +256,11 @@ public class PullRequestTaskTest
     when(mockGitApi.cloneOrPullRepository(targetDirectory, gitRepositoryInfo.baseBranch))
         .thenThrow(new GitException("Something bad happened"));
 
-    pullRequestTask.run(mockPullRequestRemediationDetails, new PullRequestExecutor());
+    assertThatThrownBy(() -> pullRequestTask.run(mockPullRequestRemediationDetails, new PullRequestExecutor()))
+        .isInstanceOf(RuntimeException.class);
+
+    verify(mockScmOperationMetrics).startPrCreationTimer(anyString());
+    verify(mockScmOperationMetrics).recordPrCreationFailed(any());
   }
 
   @Test
@@ -275,6 +284,8 @@ public class PullRequestTaskTest
     assertThat(pullRequestCommand.getCommitter()).isEqualTo(DEFAULT_COMMITTER);
     assertThat(pullRequestCommand.getCommitterEmail()).isEqualTo(GitApi.DEFAULT_COMMITTER_EMAIL);
     assertThat(gitRepositoryInfo.getRepositoryUrl()).isEqualTo("http://localhost"); // repo url is unchanged
+    verify(mockScmOperationMetrics).startPrCreationTimer(anyString());
+    verify(mockScmOperationMetrics).recordPrCreationCompleted(any());
   }
 
   @Test
@@ -341,6 +352,9 @@ public class PullRequestTaskTest
     assertThatThrownBy(() -> pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor))
         .isInstanceOf(RuntimeException.class)
         .hasMessage("Failed to execute pull request for application '%s'".formatted(APP_INTERNAL_ID));
+
+    verify(mockScmOperationMetrics).startPrCreationTimer(anyString());
+    verify(mockScmOperationMetrics).recordPrCreationFailed(any());
   }
 
   @Test

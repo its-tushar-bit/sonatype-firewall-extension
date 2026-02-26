@@ -24,6 +24,12 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.git.RemediationPullRequestEligibilityService;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.ScmReducedSecurityService;
+import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
+
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.ALREADY_REMEDIATED;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NOT_ELIGIBLE;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NO_REMEDIATION;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.SAME_VERSION;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
@@ -73,6 +79,8 @@ public class ManualPullRequestCreationService
 
   private final CurrentUser currentUser;
 
+  private final ScmOperationMetrics scmOperationMetrics;
+
   @Inject
   public ManualPullRequestCreationService(
       final RemediationPullRequestEligibilityService eligibilityService,
@@ -89,7 +97,8 @@ public class ManualPullRequestCreationService
       final ComponentRemediationService componentRemediationService,
       final InnerSourceService innerSourceService,
       final CurrentUser currentUser,
-      final ScmReducedSecurityService scmReducedSecurityService)
+      final ScmReducedSecurityService scmReducedSecurityService,
+      final ScmOperationMetrics scmOperationMetrics)
   {
     super(baseUrl,
         sourceControlUtils,
@@ -106,6 +115,7 @@ public class ManualPullRequestCreationService
     this.policyNotificationUtil = policyNotificationUtil;
     this.policyViolationDAO = policyViolationDAO;
     this.currentUser = currentUser;
+    this.scmOperationMetrics = scmOperationMetrics;
     componentInfoService.setToolName("ci");
   }
 
@@ -121,6 +131,7 @@ public class ManualPullRequestCreationService
       final boolean isDirectDependency) throws IOException
   {
     if (targetVersion.equals(componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION))) {
+      scmOperationMetrics.recordPrCreationIneligible(SAME_VERSION);
       throw new BadRequestException("Target version must be different from the current version");
     }
 
@@ -128,6 +139,7 @@ public class ManualPullRequestCreationService
     String branchName = pullRequestBranchNameGenerator.getBranchName(app, componentIdentifier, targetVersion);
     boolean isRemediationWaitingOrDone = eligibilityService.isRemediationWaitingOrDone(app.getId(), branchName);
     if (isRemediationWaitingOrDone) {
+      scmOperationMetrics.recordPrCreationIneligible(ALREADY_REMEDIATED);
       throw new BadRequestException(
           "A remediation event for branch name '" + branchName + "' already exists for application '" +
               app.getPublicId() + "'. Please choose a different branch name.");
@@ -144,6 +156,7 @@ public class ManualPullRequestCreationService
     }
 
     if (!eligibilityService.isEligibleForManualPullRequest(app, stage, componentIdentifier, isDirectDependency)) {
+      scmOperationMetrics.recordPrCreationIneligible(NOT_ELIGIBLE);
       throw new BadRequestException(
           "Manual pull request creation is not eligible for application " + app.getPublicId() +
               " component " + ComponentDisplayNameUtil.fromIdentifier(componentIdentifier) +
@@ -169,6 +182,7 @@ public class ManualPullRequestCreationService
     Optional<RemediationVersionDTO> applicableVersionChange = getApplicableVersionChange(componentVersionInfoDTO);
 
     if (applicableVersionChange.isEmpty()) {
+      scmOperationMetrics.recordPrCreationIneligible(NO_REMEDIATION);
       throw new BadRequestException("No applicable version change found for component " +
           ComponentDisplayNameUtil.fromIdentifier(componentIdentifier));
     }

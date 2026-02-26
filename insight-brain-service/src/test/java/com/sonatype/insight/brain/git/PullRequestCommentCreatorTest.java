@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritiesUtilsService;
+import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
 import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
 import com.sonatype.insight.brain.scm.event.PullRequestCommentingLogger;
 import com.sonatype.insight.brain.scm.event.SourceControlEventLoggerFactory;
@@ -398,6 +399,9 @@ public class PullRequestCommentCreatorTest
     @Mock
     private OrganizationDAO mockOrganizationDAO;
 
+    @Mock
+    private ScmOperationMetrics mockScmOperationMetrics;
+
     private final LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
 
     private final Set<PullRequestPostCommentAction> postCommentActionList = new HashSet<>();
@@ -441,7 +445,8 @@ public class PullRequestCommentCreatorTest
           telemetryUtils,
           mockScmEventLoggerFactory,
           mockApplicationDAO,
-          mockOrganizationDAO
+          mockOrganizationDAO,
+          mockScmOperationMetrics
       );
     }
 

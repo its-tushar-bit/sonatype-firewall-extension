@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -74,8 +75,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.ALREADY_REMEDIATED;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NOT_ELIGIBLE;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NO_REMEDIATION;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.SAME_VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class ManualPullRequestCreationServiceTest
@@ -126,6 +133,9 @@ public class ManualPullRequestCreationServiceTest
   @Mock
   private ComponentInfoService mockComponentInfoService;
 
+  @Mock
+  private ScmOperationMetrics mockScmOperationMetrics;
+
   @Inject
   private PullRequestBranchNameGenerator branchNameGenerator;
 
@@ -150,6 +160,7 @@ public class ManualPullRequestCreationServiceTest
   @Override
   public void configure(Binder binder) {
     binder.bind(ComponentInfoService.class).toInstance(mockComponentInfoService);
+    binder.bind(ScmOperationMetrics.class).toInstance(mockScmOperationMetrics);
 
     // Override GitHubAppAuthStrategyCache to use WireMock URL for GitHub App endpoints
     Provider<GitHubAppDAO> githubAppDAOProvider = binder.getProvider(GitHubAppDAO.class);
@@ -228,6 +239,21 @@ public class ManualPullRequestCreationServiceTest
     assertThat(sourceControlEvent.getRemediationVersion()).isEqualTo(DEFAULT_REMEDIATION_VERSION);
     assertThat(sourceControlEvent.getStageTypeId()).isEqualTo(stage.getStageTypeId());
     assertThat(sourceControlEvent.getInitiator()).isEqualTo("manual request");
+    verifyNoInteractions(mockScmOperationMetrics);
+  }
+
+  @Test
+  public void testCreateManualRemediationPullRequest_sameVersion() {
+    assertThatThrownBy(() -> manualPrService.createManualRemediationPullRequest(
+        application.getId(),
+        DEFAULT_SCAN_ID,
+        mavenComponent,
+        DEFAULT_VERSION,
+        "Sonatype",
+        true
+    )).isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("Target version must be different from the current version");
+    verify(mockScmOperationMetrics).recordPrCreationIneligible(SAME_VERSION);
   }
 
   @Test
@@ -256,6 +282,7 @@ public class ManualPullRequestCreationServiceTest
                 branchNameGenerator.getBranchName(application, mavenComponent, DEFAULT_REMEDIATION_VERSION) +
                 "' already exists for application '" + application.getPublicId() +
                 "'. Please choose a different branch name.");
+    verify(mockScmOperationMetrics).recordPrCreationIneligible(ALREADY_REMEDIATED);
   }
 
   @Test
@@ -328,6 +355,7 @@ public class ManualPullRequestCreationServiceTest
     List<SourceControlEvent> events = sourceControlEventDAO.getAll();
     assertThat(events).isEmpty();
     assertThat(logOutput).atDebugLevel().contains("Attempt to create manual PR");
+    verify(mockScmOperationMetrics).recordPrCreationIneligible(NO_REMEDIATION);
   }
 
   @Test
@@ -399,6 +427,7 @@ public class ManualPullRequestCreationServiceTest
 
     List<SourceControlEvent> events = sourceControlEventDAO.getAll();
     assertThat(events).isEmpty();
+    verify(mockScmOperationMetrics).recordPrCreationIneligible(NOT_ELIGIBLE);
   }
 
   @Test

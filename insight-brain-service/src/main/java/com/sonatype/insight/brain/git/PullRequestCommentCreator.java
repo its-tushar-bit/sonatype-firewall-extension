@@ -11,9 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -22,9 +19,9 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritiesUtilsService;
 import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
-import com.sonatype.insight.brain.scm.event.PullRequestCommentingLogger;
-import com.sonatype.insight.brain.scm.event.SourceControlEventLoggerFactory;
-import com.sonatype.insight.brain.scm.event.SourceControlEventType;
+import com.sonatype.insight.brain.metrics.ScmCommentOperation;
+import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
+import com.sonatype.insight.brain.metrics.ScmTimerContext;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -32,6 +29,9 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.scm.event.PullRequestCommentingLogger;
+import com.sonatype.insight.brain.scm.event.SourceControlEventLoggerFactory;
+import com.sonatype.insight.brain.scm.event.SourceControlEventType;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -40,9 +40,14 @@ import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.metrics.ScmCommentOperation.CREATE;
+import static com.sonatype.insight.brain.metrics.ScmCommentOperation.UPDATE;
 import static com.sonatype.insight.brain.scm.event.AbstractSourceControlEventLogger.SourceControlEventData.forComment;
 import static com.sonatype.insight.brain.scm.event.AbstractSourceControlEventLogger.SourceControlEventData.forError;
 import static com.sonatype.insight.brain.scm.event.SourceControlEventType.API_ERROR;
@@ -86,6 +91,8 @@ public class PullRequestCommentCreator
 
   private final OrganizationDAO organizationDAO;
 
+  private final ScmOperationMetrics scmOperationMetrics;
+
   @Inject
   public PullRequestCommentCreator(
       final GitClientFactory gitClientFactory,
@@ -103,7 +110,8 @@ public class PullRequestCommentCreator
       final TelemetryUtils telemetryUtils,
       final SourceControlEventLoggerFactory scmEventLoggerFactory,
       final ApplicationDAO applicationDAO,
-      final OrganizationDAO organizationDAO)
+      final OrganizationDAO organizationDAO,
+      final ScmOperationMetrics scmOperationMetrics)
   {
     this.gitClientFactory = gitClientFactory;
     this.pullRequestCommentDAO = pullRequestCommentDAO;
@@ -121,6 +129,7 @@ public class PullRequestCommentCreator
     this.scmEventLoggerFactory = scmEventLoggerFactory;
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
+    this.scmOperationMetrics = scmOperationMetrics;
   }
 
   public void createPullRequestComment(
@@ -144,14 +153,13 @@ public class PullRequestCommentCreator
   }
 
   /**
-   * Ability to handle invoke post-comment actions (like Code Insights) without updating PR comments.
-   * This is useful when policy evaluations haven't changed, but we still want to post Code Insights
-   * for a new commit.
+   * Ability to handle invoke post-comment actions (like Code Insights) without updating PR comments. This is useful
+   * when policy evaluations haven't changed, but we still want to post Code Insights for a new commit.
    *
-   * @param prPolicyEvaluationsDTO the PR and policy evaluation context
-   * @param policyViolationDiff the diff between source and target evaluations
+   * @param prPolicyEvaluationsDTO        the PR and policy evaluation context
+   * @param policyViolationDiff           the diff between source and target evaluations
    * @param sourceControlComponentDetails component details needed for Code Insights
-   * @param locationDiscoveryResult location discovery result (can be null if not available)
+   * @param locationDiscoveryResult       location discovery result (can be null if not available)
    * @see <a href="https://sonatype.atlassian.net/browse/CLM-35694">CLM-35694</a>
    */
   public void handlePostCommentActions(
@@ -180,6 +188,8 @@ public class PullRequestCommentCreator
       final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       final String contentHash)
   {
+    ScmTimerContext timerContext = startPrCommentTimer(existingPullRequestComment, prPolicyEvaluationsDTO);
+
     Application application = applicationDAO.getById(prPolicyEvaluationsDTO.getApplicationId());
     Organization organization = application != null ? organizationDAO.getById(application.getOrganizationId()) : null;
 
@@ -265,6 +275,8 @@ public class PullRequestCommentCreator
               prPolicyEvaluationsDTO.getFeatureBranchName(),
               locationDiscoveryResult);
 
+          scmOperationMetrics.recordPrCommentCompleted(timerContext);
+
           prCommentingMetricsService.sendTelemetry(telemetry);
 
           AuditEvent auditEvent = existingPullRequestComment == null
@@ -283,6 +295,8 @@ public class PullRequestCommentCreator
       }
     }
     catch (Exception e) {
+      scmOperationMetrics.recordPrCommentFailed(timerContext);
+
       scmEventLogger.add(API_ERROR, forError("Failed to create or update PR comments: " + e.getMessage()));
       scmEventLogger.log();
 
@@ -399,5 +413,14 @@ public class PullRequestCommentCreator
     pullRequestPostCommentActionList.forEach(pullRequestPostCommentAction -> pullRequestPostCommentAction
         .invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, sourceControlComponentDetails,
             sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation, branch, locationDiscoveryResult));
+  }
+
+  private ScmTimerContext startPrCommentTimer(
+      final SourceControlPullRequestComment pullRequestComment,
+      final PullRequestPolicyEvaluationsDTO prPolicyEvaluationsDTO)
+  {
+    ScmCommentOperation operation = pullRequestComment == null ? CREATE : UPDATE;
+    String provider = prPolicyEvaluationsDTO.getGitRepositoryInfo().getProvider().name();
+    return scmOperationMetrics.startPrCommentTimer(operation, provider);
   }
 }

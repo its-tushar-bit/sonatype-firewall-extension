@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
+import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -36,17 +37,23 @@ import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.hc.core5.http.HttpHeaders;
+import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NOT_ELIGIBLE;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NOT_GOLDEN_VERSION;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class AutomatedPullRequestCreationServiceTest
     extends AbstractComponentTest
@@ -59,6 +66,9 @@ public class AutomatedPullRequestCreationServiceTest
 
   @Rule
   public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
+
+  @Mock
+  private ScmOperationMetrics mockScmOperationMetrics;
 
   @Inject
   private PullRequestBranchNameGenerator branchNameGenerator;
@@ -80,6 +90,12 @@ public class AutomatedPullRequestCreationServiceTest
   private ComponentIdentifier mavenComponent;
 
   private Stage stage;
+
+  @Override
+  public void configure(final Binder binder) {
+    binder.bind(ScmOperationMetrics.class).toInstance(mockScmOperationMetrics);
+    super.configure(binder);
+  }
 
   @Before
   public void setup() throws PlexusCipherException {
@@ -134,6 +150,7 @@ public class AutomatedPullRequestCreationServiceTest
     assertThat(event.getBranchName()).isEqualTo(branchName);
     assertThat(event.getInitiator()).isEqualTo("policy alert");
     assertThat(event.getEventType()).isEqualTo(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
+    verifyNoInteractions(mockScmOperationMetrics);
   }
 
   @Test
@@ -159,6 +176,7 @@ public class AutomatedPullRequestCreationServiceTest
         .atDebugLevel()
         .contains(String.format("Component '%s' in application '%s' is not eligible for automated PR", mavenComponent,
             application.getPublicId()));
+    verify(mockScmOperationMetrics).recordPrCreationIneligible(NOT_ELIGIBLE);
   }
 
   @Test
@@ -184,6 +202,7 @@ public class AutomatedPullRequestCreationServiceTest
     assertThat(eventList).isEmpty();
     assertThat(logOutput).atDebugLevel().contains(
         "Remediation type for component 'maven: {artifactId=artifact, groupId=group, version=1.0.0}' is not golden");
+    verify(mockScmOperationMetrics).recordPrCreationIneligible(NOT_GOLDEN_VERSION);
   }
 
   @Test
@@ -216,6 +235,7 @@ public class AutomatedPullRequestCreationServiceTest
     assertThat(event.getBranchName()).isEqualTo(branchName);
     assertThat(event.getInitiator()).isEqualTo("policy alert");
     assertThat(event.getEventType()).isEqualTo(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
+    verifyNoInteractions(mockScmOperationMetrics);
   }
 
   private List<PolicyNotification> createPolicyNotifications() {

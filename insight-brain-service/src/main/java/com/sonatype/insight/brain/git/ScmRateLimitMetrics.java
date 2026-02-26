@@ -9,8 +9,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.client.utils.RateLimitMetricsListener;
 import com.sonatype.insight.client.utils.RateLimitRecorder;
@@ -25,6 +23,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 
+import static com.sonatype.insight.brain.git.ScmMetricsTags.buildTagsWithTenantId;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Named
@@ -39,12 +38,6 @@ public class ScmRateLimitMetrics
   private static final String REMAINING_METRIC = "scm.rate.limit.remaining";
 
   private static final String EXCEEDED_METRIC = "scm.rate.limit.exceeded";
-
-  private static final String CLIENT_ID_TAG = "client_id";
-
-  private static final String USER_ID_TAG = "user_id";
-
-  private static final String TENANT_ID_TAG = "tenant_id";
 
   private final MeterRegistry meterRegistry;
 
@@ -78,7 +71,7 @@ public class ScmRateLimitMetrics
       return;
     }
 
-    Tags tags = buildTags(clientId, userId);
+    Tags tags = buildTagsWithTenantId(clientId, userId);
 
     Counter.builder(CALLS_METRIC)
         .tags(tags)
@@ -98,16 +91,11 @@ public class ScmRateLimitMetrics
       return;
     }
 
-    Tags tags = buildTags(clientId, userId);
+    Tags tags = buildTagsWithTenantId(clientId, userId);
 
     Counter.builder(EXCEEDED_METRIC)
         .tags(tags)
         .register(meterRegistry)
         .increment();
-  }
-
-  private Tags buildTags(final String clientId, final String userId) {
-    Tenant tenant = TenantThreadLocal.getTenant();
-    return Tags.of(CLIENT_ID_TAG, clientId, USER_ID_TAG, userId, TENANT_ID_TAG, tenant.tenantSlug);
   }
 }

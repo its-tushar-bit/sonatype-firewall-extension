@@ -15,6 +15,8 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
+import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
+import com.sonatype.insight.brain.metrics.ScmTimerContext;
 import com.sonatype.insight.brain.scm.event.PullRequestCommentingLogger;
 import com.sonatype.insight.brain.scm.event.SourceControlEventLoggerFactory;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
@@ -68,6 +70,8 @@ public class PullRequestTask
 
   private final SourceControlEventLoggerFactory scmEventLoggerFactory;
 
+  private final ScmOperationMetrics scmOperationMetrics;
+
   @Inject
   public PullRequestTask(
       final GitClientFactory gitClientFactory,
@@ -77,7 +81,8 @@ public class PullRequestTask
       final SourceControlUtils sourceControlUtils,
       final Configuration configuration,
       final SourceControlPullRequestDAO sourceControlPullRequestDAO,
-      final SourceControlEventLoggerFactory scmEventLoggerFactory)
+      final SourceControlEventLoggerFactory scmEventLoggerFactory,
+      final ScmOperationMetrics scmOperationMetrics)
   {
     this.gitClientFactory = gitClientFactory;
     this.metrics = metrics;
@@ -87,6 +92,7 @@ public class PullRequestTask
     this.configuration = configuration;
     this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
     this.scmEventLoggerFactory = scmEventLoggerFactory;
+    this.scmOperationMetrics = scmOperationMetrics;
   }
 
   public PullRequestResult run(
@@ -113,6 +119,7 @@ public class PullRequestTask
 
     File checkoutDir = null;
     Date start = new Date();
+    ScmTimerContext timerContext = null;
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
       log.info("Pull request task initiated for application '{}', remediation target: [{}]",
           applicationId, pullRequestRemediationDetails.getToBeRemediated());
@@ -134,6 +141,7 @@ public class PullRequestTask
           .withGitApi(gitApiFactory.createGitApi(gitRepositoryInfo))
           .build();
 
+      timerContext = scmOperationMetrics.startPrCreationTimer(gitRepositoryInfo.provider.name());
       PullRequestResult pullRequestResult = pullRequestExecutor.execute(command);
 
       Date commandFinishedTime = new Date();
@@ -159,6 +167,7 @@ public class PullRequestTask
       }
 
       if (pullRequestResult.isSuccessful()) {
+        scmOperationMetrics.recordPrCreationCompleted(timerContext);
         SourceControlPullRequest sourceControlPullRequest = new SourceControlPullRequest();
         sourceControlPullRequest.setRepositoryUrl(gitRepositoryInfo.repositoryUrl);
         sourceControlPullRequest.setPullRequestId(Integer.parseInt(pullRequestResult.getPullRequestUrl()
@@ -203,6 +212,7 @@ public class PullRequestTask
       return pullRequestResult;
     }
     catch (Exception e) {
+      scmOperationMetrics.recordPrCreationFailed(timerContext);
       log.error("Failed to execute pull request, cleaning pull request directory", e);
       scmEventLogger.add(API_ERROR, forError("Failed to execute pull request: " + e.getMessage()));
       scmEventLogger.log();

@@ -20,6 +20,12 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.git.RemediationPullRequestEligibilityService;
+import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
+
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.ALREADY_REMEDIATED;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NOT_ELIGIBLE;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NOT_GOLDEN_VERSION;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NO_REMEDIATION;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.ScmReducedSecurityService;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
@@ -44,6 +50,8 @@ public class AutomatedPullRequestCreationService
 {
   private static final Logger log = LoggerFactory.getLogger(AutomatedPullRequestCreationService.class);
 
+  private final ScmOperationMetrics scmOperationMetrics;
+
   @Inject
   public AutomatedPullRequestCreationService(
       final RemediationPullRequestEligibilityService eligibilityService,
@@ -53,7 +61,8 @@ public class AutomatedPullRequestCreationService
       final OrganizationDAO organizationDAO,
       final PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
       final ScmReducedSecurityService scmReducedSecurityService,
-      final InnerSourceService innerSourceService)
+      final InnerSourceService innerSourceService,
+      final ScmOperationMetrics scmOperationMetrics)
   {
     super(baseUrl,
         sourceControlUtils,
@@ -63,6 +72,7 @@ public class AutomatedPullRequestCreationService
         eligibilityService,
         scmReducedSecurityService,
         innerSourceService);
+    this.scmOperationMetrics = scmOperationMetrics;
   }
 
   public void createAutomatedRemediationPullRequest(
@@ -80,6 +90,7 @@ public class AutomatedPullRequestCreationService
         isDirectDependency)) {
       log.debug("Component '{}' in application '{}' is not eligible for automated PR", componentIdentifier,
           app.getPublicId());
+      scmOperationMetrics.recordPrCreationIneligible(NOT_ELIGIBLE);
       return;
     }
 
@@ -87,6 +98,7 @@ public class AutomatedPullRequestCreationService
     Optional<RemediationVersionDTO> remediationVersionOpt = remediationVersionDTOSupplier.get();
     if (remediationVersionOpt.isEmpty()) {
       log.debug("No remediation options found for component [{}]", componentIdentifier);
+      scmOperationMetrics.recordPrCreationIneligible(NO_REMEDIATION);
       return;
     }
     RemediationVersionDTO remediationVersionDTO = remediationVersionOpt.get();
@@ -94,6 +106,7 @@ public class AutomatedPullRequestCreationService
     String branchName =
         pullRequestBranchNameGenerator.getBranchName(app, componentIdentifier, remediationVersionDTO.getVersion());
     if (eligibilityService.isRemediationWaitingOrDone(app.getId(), branchName)) {
+      scmOperationMetrics.recordPrCreationIneligible(ALREADY_REMEDIATED);
       return;
     }
 
@@ -115,6 +128,7 @@ public class AutomatedPullRequestCreationService
         if (!isGoldenVersion) {
           log.debug("Remediation type for component '{}' is not golden: {}",
               componentIdentifier, remediationType);
+          scmOperationMetrics.recordPrCreationIneligible(NOT_GOLDEN_VERSION);
           return;
         }
         log.debug("Attempt to create golden PR for application '{}' component '{}'",

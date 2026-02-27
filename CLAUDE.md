@@ -116,3 +116,18 @@ New experimental features use `SystemConfigurationPropertyFeature` enum in datab
 ### jakarta.inject Migration
 The codebase has been migrated to `jakarta.inject` as part of the Jakarta EE 11 upgrade. Use `jakarta.inject` for all dependency injection.
 Do not use `javax.inject` as it is no longer supported. Mixing javax and jakarta imports can cause runtime errors.
+
+### Changes to classes structure or JSON serialization that may break policy violation comparison
+Classes that are converted to JSON or to Drools code and already exist in the `main` branch should not be changed without close inspection and peer/Tech Lead review.
+Changing such structure leads to existing policy violations and waivers in a database are no longer considered the same after upgrading IQ Server, which leads to data being seemingly loss (i.e. waivers no longer applied).
+Those classes are in the `insight-brain-data` module. Some examples:
+- Classes in the `com.sonatype.insight.brain.model.policy.facts` package.
+- Classes in the `com.sonatype.insight.brain.model.policy.conditions` package with the method `generateDroolsConditionCode`.
+- Classes with comments similar to "Any change to this class structure or to its JSON serialization may break policy violation comparison".
+
+### Incremental database SQL scripts need to be immutable
+Incremental database SQL scripts (aka migrations) that already exists in the target branch of a pull-request should not be changed.
+Doing so would case inconsistencies in database schemas both between teammates and potentially customers as well.
+Such SQL scripts are located under `insight-brain-db/src/main/resources/db` and are prefixed by `schema_incremental_`.
+Instead of changing the existing script, a new incremental SQL script should be created to take the database schema to the desired form.
+Scripts `schema.sql` on the other hand are expected to change so databases that are created for the first time using that file get the new schema from the start.

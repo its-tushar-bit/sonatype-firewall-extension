@@ -594,6 +594,61 @@ public class DashboardPolicyWaiverDTOComparatorTest
     assertThat(comparator.compare(olderWaiver, newerWaiver)).isGreaterThan(0);
   }
 
+  @Test
+  public void testCompare_POLICY_NAME_ASC_WithNullPolicyNames() {
+    // Test case for NEXUS-50278: Sorting by policy should handle null policy names
+    DashboardPolicyWaiverDTO nullPolicyName = new DashboardPolicyWaiverDTOBuilder().withPolicyName(null).getBuiltDTO();
+    DashboardPolicyWaiverDTO nonNullPolicyName =
+        new DashboardPolicyWaiverDTOBuilder().withPolicyName("Policy A").getBuiltDTO();
+
+    DashboardPolicyWaiverDTOComparator comparator =
+        new DashboardPolicyWaiverDTOComparator(DashboardPolicyWaiverOrderByEnum.POLICY_NAME.toString());
+
+    // Non-null policy names should come before null policy names
+    assertThat(comparator.compare(nonNullPolicyName, nullPolicyName)).isLessThan(0);
+    assertThat(comparator.compare(nullPolicyName, nonNullPolicyName)).isGreaterThan(0);
+
+    // Two null policy names should be equal (or sorted by expiration date)
+    DashboardPolicyWaiverDTO anotherNullPolicyName =
+        new DashboardPolicyWaiverDTOBuilder().withPolicyName(null).getBuiltDTO();
+    assertThat(comparator.compare(nullPolicyName, anotherNullPolicyName)).isEqualTo(0);
+  }
+
+  @Test
+  public void testCompare_POLICY_NAME_DESC_WithNullPolicyNames() {
+    // Test case for NEXUS-50278: Sorting by policy descending should handle null policy names
+    DashboardPolicyWaiverDTO nullPolicyName = new DashboardPolicyWaiverDTOBuilder().withPolicyName(null).getBuiltDTO();
+    DashboardPolicyWaiverDTO nonNullPolicyName =
+        new DashboardPolicyWaiverDTOBuilder().withPolicyName("Policy A").getBuiltDTO();
+
+    DashboardPolicyWaiverDTOComparator comparator =
+        new DashboardPolicyWaiverDTOComparator(ORDER_WAIVER_BY_DESC + DashboardPolicyWaiverOrderByEnum.POLICY_NAME);
+
+    // In descending order, non-null policy names should still come before null
+    assertThat(comparator.compare(nonNullPolicyName, nullPolicyName)).isLessThan(0);
+    assertThat(comparator.compare(nullPolicyName, nonNullPolicyName)).isGreaterThan(0);
+  }
+
+  @Test
+  public void testCompare_POLICY_NAME_WithNullAndExpirationDate() {
+    // Test that when both policy names are null, secondary sort by expiration date works
+    Instant seed = Instant.now();
+    DashboardPolicyWaiverDTO nullPolicyEarlierExpiry = new DashboardPolicyWaiverDTOBuilder()
+        .withPolicyName(null)
+        .withExpiryTime(Date.from(seed.plus(Duration.ofDays(1))))
+        .getBuiltDTO();
+    DashboardPolicyWaiverDTO nullPolicyLaterExpiry = new DashboardPolicyWaiverDTOBuilder()
+        .withPolicyName(null)
+        .withExpiryTime(Date.from(seed.plus(Duration.ofDays(3))))
+        .getBuiltDTO();
+
+    DashboardPolicyWaiverDTOComparator comparator =
+        new DashboardPolicyWaiverDTOComparator(DashboardPolicyWaiverOrderByEnum.POLICY_NAME.toString());
+
+    // When both policy names are null, should sort by expiration date (earlier first)
+    assertThat(comparator.compare(nullPolicyEarlierExpiry, nullPolicyLaterExpiry)).isLessThan(0);
+  }
+
   private List<DashboardPolicyWaiverDTO> getWaiversToSort(List<ComponentIdentifier> componentIdentifiers) {
     ComponentMatcherStrategyForWaiver[] waiverTypes = {EXACT_COMPONENT, ALL_VERSIONS};
     return IntStream.range(0, componentIdentifiers.size()).mapToObj(i -> {

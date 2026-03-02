@@ -55,7 +55,7 @@ public class DashboardPolicyWaiverDTOComparator
       case OWNER_SCOPE:
         return compareOwnerScope(dto1, dto2);
       case POLICY_NAME:
-        return comparePolicyNames(o1, o2);
+        return comparePolicyNames(dto1, dto2);
       case THREAT_LEVEL:
         return compareThreatLevel(o1, o2);
       default:
@@ -74,25 +74,12 @@ public class DashboardPolicyWaiverDTOComparator
   }
 
   private int comparePolicyNames(final DashboardPolicyWaiverDTO dto1, final DashboardPolicyWaiverDTO dto2) {
-    // Handle null policy names first - nulls always come last regardless of sort direction
-    if (dto1.policyName == null || dto2.policyName == null) {
-      if (dto1.policyName != null) {
-        return -1; // Non-null comes before null
-      }
-      if (dto2.policyName != null) {
-        return 1; // Null comes after non-null
-      }
-      // Both null, sort by expiration date
-      return compareExpirationDates(dto1, dto2);
-    }
 
-    // Both non-null: use Comparator with sort direction
-    int result = isAscending
-        ? String.CASE_INSENSITIVE_ORDER.compare(dto1.policyName, dto2.policyName)
-        : String.CASE_INSENSITIVE_ORDER.compare(dto2.policyName, dto1.policyName);
+    int sortByPolicyName =
+        String.CASE_INSENSITIVE_ORDER.compare(dto1.policyName, dto2.policyName);
 
-    // Secondary sort: expiration date when policy names are equal
-    return result == 0 ? compareExpirationDates(dto1, dto2) : result;
+    // do secondary sorting by expiration date when policy is same
+    return sortByPolicyName == 0 ? compareExpirationDates(dto1, dto2) : sortByPolicyName;
   }
 
   private int compareThreatLevel(final DashboardPolicyWaiverDTO o1, final DashboardPolicyWaiverDTO o2) {

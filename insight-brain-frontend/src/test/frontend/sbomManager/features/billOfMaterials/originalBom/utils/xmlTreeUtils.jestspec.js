@@ -9,7 +9,9 @@ import {
   expandXmlChildren,
   generateXmlPreview,
   findComponentInXml,
+  getXmlTotalDescendants,
 } from 'MainRoot/sbomManager/features/billOfMaterials/originalBom/utils/xmlTreeUtils';
+import { AUTO_EXPAND_THRESHOLD } from 'MainRoot/sbomManager/features/billOfMaterials/originalBom/utils/constants';
 
 describe('xmlTreeUtils', () => {
   describe('isXmlContent', () => {
@@ -41,11 +43,10 @@ describe('xmlTreeUtils', () => {
       expect(tree[0].name).toBe('root');
     });
 
-    it('handles invalid XML by returning parsererror node', () => {
+    it('handles invalid XML by returning empty array', () => {
       const tree = parseXmlToTree('invalid xml');
-      // DOMParser creates a parsererror element for invalid XML
-      expect(tree).toHaveLength(1);
-      expect(tree[0].name).toBe('parsererror');
+      // Parser errors are detected and filtered out
+      expect(tree).toHaveLength(0);
     });
   });
 
@@ -84,6 +85,149 @@ describe('xmlTreeUtils', () => {
 
       const textNode = children.find((c) => c.name === 'text content');
       expect(textNode).toBeDefined();
+    });
+
+    it('uses intelligent display names for repeated elements with name@version', () => {
+      const xml = `
+        <components>
+          <component>
+            <name>express</name>
+            <version>4.18.2</version>
+          </component>
+          <component>
+            <name>lodash</name>
+            <version>4.17.21</version>
+          </component>
+        </components>
+      `;
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const children = expandXmlChildren(doc.documentElement, 'components');
+
+      const components = children.filter((c) => c.name.includes('@'));
+      expect(components.length).toBeGreaterThan(0);
+      expect(components.some((c) => c.name === 'express@4.18.2')).toBe(true);
+      expect(components.some((c) => c.name === 'lodash@4.17.21')).toBe(true);
+    });
+
+    it('uses intelligent display name even for single element', () => {
+      const xml = `
+        <root>
+          <component>
+            <name>express</name>
+            <version>4.18.2</version>
+          </component>
+        </root>
+      `;
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const children = expandXmlChildren(doc.documentElement, 'root');
+
+      // Intelligent naming is ALWAYS applied for consistency
+      // Element should show name@version regardless of sibling count
+      const component = children.find((c) => c.name === 'express@4.18.2');
+      expect(component).toBeDefined();
+      expect(component.name).toBe('express@4.18.2');
+    });
+
+    it('falls back to purl when name is missing but version exists', () => {
+      const xml = `
+        <components>
+          <component>
+            <version>4.18.2</version>
+            <purl>pkg:npm/express@4.18.2</purl>
+          </component>
+        </components>
+      `;
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const children = expandXmlChildren(doc.documentElement, 'components');
+      const component = children.find((c) => c.name.includes('pkg:npm'));
+      expect(component).toBeDefined();
+      expect(component.name).toBe('pkg:npm/express@4.18.2');
+    });
+
+    it('handles empty name and version elements', () => {
+      const xml = `
+        <components>
+          <component>
+            <name></name>
+            <version></version>
+            <purl>pkg:npm/express@4.18.2</purl>
+          </component>
+        </components>
+      `;
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const children = expandXmlChildren(doc.documentElement, 'components');
+      const component = children.find((c) => c.name.includes('pkg:npm'));
+      expect(component).toBeDefined();
+      // Empty elements should be ignored, fall back to purl
+      expect(component.name).toBe('pkg:npm/express@4.18.2');
+    });
+
+    it('handles whitespace-only name and version elements', () => {
+      const xml = `
+        <components>
+          <component>
+            <name>   </name>
+            <version>  </version>
+            <id>my-component-id</id>
+          </component>
+        </components>
+      `;
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const children = expandXmlChildren(doc.documentElement, 'components');
+      const component = children.find((c) => c.name === 'my-component-id');
+      expect(component).toBeDefined();
+      // Whitespace-only should be ignored, fall back to id
+      expect(component.name).toBe('my-component-id');
+    });
+
+    it('does not truncate long name@version combinations', () => {
+      // name@version should not be truncated in the tree data structure
+      // Truncation happens only in the UI display layer
+      const longName = 'a'.repeat(100);
+      const longVersion = 'b'.repeat(100);
+      const xml = `
+        <components>
+          <component>
+            <name>${longName}</name>
+            <version>${longVersion}</version>
+          </component>
+        </components>
+      `;
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const children = expandXmlChildren(doc.documentElement, 'components');
+      const component = children[0];
+      expect(component.name).toBe(`${longName}@${longVersion}`);
+      expect(component.name.length).toBe(201); // 100 + '@' + 100
+    });
+
+    it('handles scoped package names with @ symbol', () => {
+      const xml = `
+        <components>
+          <component>
+            <name>@scope/package</name>
+            <version>1.0.0</version>
+          </component>
+        </components>
+      `;
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const children = expandXmlChildren(doc.documentElement, 'components');
+      const component = children[0];
+      expect(component.name).toBe('@scope/package@1.0.0');
+    });
+
+    it('handles special characters in name and version', () => {
+      const xml = `
+        <components>
+          <component>
+            <name>@org/pkg-name_v2</name>
+            <version>1.0.0-beta.1+build.123</version>
+          </component>
+        </components>
+      `;
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const children = expandXmlChildren(doc.documentElement, 'components');
+      const component = children[0];
+      expect(component.name).toBe('@org/pkg-name_v2@1.0.0-beta.1+build.123');
     });
   });
 
@@ -279,6 +423,110 @@ describe('xmlTreeUtils', () => {
     });
   });
 
+  describe('getXmlTotalDescendants', () => {
+    let parser;
+
+    beforeEach(() => {
+      parser = new DOMParser();
+    });
+
+    it('returns 0 for nodes without children', () => {
+      const node = { id: 'test', name: 'test' };
+      expect(getXmlTotalDescendants(node)).toBe(0);
+    });
+
+    it('returns 0 for null node', () => {
+      expect(getXmlTotalDescendants(null)).toBe(0);
+    });
+
+    it('returns 0 for node without xmlNode', () => {
+      const node = { id: 'test', name: 'test', xmlNode: null };
+      expect(getXmlTotalDescendants(node)).toBe(0);
+    });
+
+    it('does not count attributes as descendants', () => {
+      const xml = '<root attr1="value1" attr2="value2"/>';
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const node = { id: 'root', xmlNode: doc.documentElement };
+      // getElementsByTagName('*') only returns elements, not attributes
+      expect(getXmlTotalDescendants(node)).toBe(0);
+    });
+
+    it('counts element children as descendants', () => {
+      const xml = '<root><child1/><child2/><child3/></root>';
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const node = { id: 'root', xmlNode: doc.documentElement };
+      expect(getXmlTotalDescendants(node)).toBe(3);
+    });
+
+    it('counts attributes and children', () => {
+      const xml = '<root attr="value"><child1/><child2/></root>';
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const node = { id: 'root', xmlNode: doc.documentElement };
+      // getElementsByTagName('*') only returns elements, not attributes
+      expect(getXmlTotalDescendants(node)).toBe(2); // 2 child elements
+    });
+
+    it('counts nested descendants recursively', () => {
+      const xml = '<root><level1><level2><level3/></level2></level1></root>';
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const node = { id: 'root', xmlNode: doc.documentElement };
+      // level1 (1) + level2 (1) + level3 (1) = 3
+      expect(getXmlTotalDescendants(node)).toBe(3);
+    });
+
+    it('does not count leaf text nodes as separate items', () => {
+      const xml = '<root><child>text</child></root>';
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const node = { id: 'root', xmlNode: doc.documentElement };
+      // Only counts child element, not the text inside (leaf text node)
+      expect(getXmlTotalDescendants(node)).toBe(1);
+    });
+
+    it('counts text nodes in elements with attributes', () => {
+      const xml = '<root attr="value">text content</root>';
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const node = { id: 'root', xmlNode: doc.documentElement };
+      // getElementsByTagName('*') only returns elements, not attributes or text nodes
+      expect(getXmlTotalDescendants(node)).toBe(0);
+    });
+
+    it('returns actual count when below threshold', () => {
+      // Create deeply nested structure
+      // getElementsByTagName('*') has NO depth limit and returns ALL descendants
+      // This test verifies that counts below AUTO_EXPAND_THRESHOLD are returned as-is
+      let xml = '<root>';
+      for (let i = 0; i < 15; i++) {
+        xml += '<nested>';
+      }
+      for (let i = 0; i < 15; i++) {
+        xml += '</nested>';
+      }
+      xml += '</root>';
+
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const node = { id: 'root', xmlNode: doc.documentElement };
+      const count = getXmlTotalDescendants(node);
+      // Should return actual count (15) since it's below AUTO_EXPAND_THRESHOLD (1000)
+      expect(count).toBe(15);
+    });
+
+    it('returns actual count for large documents', () => {
+      // Create large structure exceeding AUTO_EXPAND_THRESHOLD
+      let xml = '<root>';
+      for (let i = 0; i < AUTO_EXPAND_THRESHOLD + 100; i++) {
+        xml += '<child/>';
+      }
+      xml += '</root>';
+
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const node = { id: 'root', xmlNode: doc.documentElement };
+      const count = getXmlTotalDescendants(node);
+      // Should return actual count (AUTO_EXPAND_THRESHOLD + 100 = 1100)
+      expect(count).toBe(AUTO_EXPAND_THRESHOLD + 100);
+    });
+  });
+
   describe('findComponentInXml', () => {
     let parser;
 
@@ -301,7 +549,8 @@ describe('xmlTreeUtils', () => {
       const node = findComponentInXml(doc, 'pkg:npm/test-component@1.0.0');
 
       expect(node).not.toBeNull();
-      expect(node.name).toBe('component');
+      // Uses intelligent naming with purl priority (purl comes before name)
+      expect(node.name).toBe('pkg:npm/test-component@1.0.0');
     });
 
     it('finds package by purl in SPDX format', () => {
@@ -321,7 +570,8 @@ describe('xmlTreeUtils', () => {
       const node = findComponentInXml(doc, 'pkg:npm/test-pkg@1.0.0');
 
       expect(node).not.toBeNull();
-      expect(node.name).toBe('packages');
+      // Uses intelligent naming to extract name from <name> child element
+      expect(node.name).toBe('test-pkg');
     });
 
     it('returns null when component not found', () => {

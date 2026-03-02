@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages.sbom;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.NxTree;
 import com.sonatype.clm.testing.functional.elements.sbom.ComponentsTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -100,5 +101,46 @@ public class SbomManagerBillOfMaterialsPage
 
   public SelenideElement invalidSbomIndicator() {
     return child(".sbom-manager-invalid-sbom-indicator");
+  }
+
+  // Original BOM Viewer elements
+  public ElementsCollection tabs() {
+    return children(".nx-tab");
+  }
+
+  public SelenideElement originalBomViewerTree() {
+    return child(".iq-original-bom-viewer__tree");
+  }
+
+  public NxTree originalBomTree() {
+    return new NxTree(".iq-original-bom-viewer__tree");
+  }
+
+  public SelenideElement originalBomViewerInfo() {
+    return child(".iq-original-bom-viewer__info");
+  }
+
+  public SelenideElement originalBomSearchInput() {
+    return child("#original-bom-search");
+  }
+
+  public ElementsCollection treeItems() {
+    return children(".nx-tree__item");
+  }
+
+  public ElementsCollection treeItemKeys() {
+    return children("span.iq-original-bom-viewer__key");
+  }
+
+  public ElementsCollection treeItemPreviews() {
+    return children(".iq-original-bom-viewer__preview");
+  }
+
+  public ElementsCollection searchHighlights() {
+    return children(".iq-original-bom-viewer__highlight");
+  }
+
+  public SelenideElement searchResultsCount() {
+    return child(".iq-original-bom-viewer__results-count");
   }
 }

@@ -9,6 +9,7 @@ import {
   expandJsonChildren,
   generateJsonPreview,
   findComponentInJson,
+  getJsonTotalDescendants,
 } from 'MainRoot/sbomManager/features/billOfMaterials/originalBom/utils/jsonTreeUtils';
 
 describe('jsonTreeUtils', () => {
@@ -52,6 +53,133 @@ describe('jsonTreeUtils', () => {
         rawData: obj,
         preview: 'nested: "data"',
       });
+    });
+
+    it('creates node with name@version for array items', () => {
+      const component = { name: 'express', version: '4.18.2', purl: 'pkg:npm/express@4.18.2' };
+      const node = createJsonNode(0, component, 'components[0]');
+      expect(node.name).toBe('express@4.18.2');
+      expect(node.id).toBe('components[0]');
+    });
+
+    it('uses purl when version is missing (purl has priority over name)', () => {
+      const component = { name: 'express', purl: 'pkg:npm/express@4.18.2' };
+      const node = createJsonNode(0, component, 'components[0]');
+      expect(node.name).toBe('pkg:npm/express@4.18.2');
+    });
+
+    it('uses numeric index for non-object array items', () => {
+      const node = createJsonNode(0, 'simple string', 'array[0]');
+      expect(node.name).toBe('0');
+    });
+
+    it('falls back to purl when name is missing but version exists', () => {
+      const component = { version: '4.18.2', purl: 'pkg:npm/express@4.18.2' };
+      const node = createJsonNode(0, component, 'components[0]');
+      // Should use purl since name is missing
+      expect(node.name).toBe('pkg:npm/express@4.18.2');
+    });
+
+    it('handles empty name and version strings', () => {
+      const component = { name: '', version: '', purl: 'pkg:npm/express@4.18.2' };
+      const node = createJsonNode(0, component, 'components[0]');
+      // Empty strings should be ignored, fall back to purl
+      expect(node.name).toBe('pkg:npm/express@4.18.2');
+    });
+
+    it('handles whitespace-only name and version', () => {
+      const component = { name: '   ', version: '  ', id: 'my-id' };
+      const node = createJsonNode(0, component, 'components[0]');
+      // Whitespace-only should be ignored, fall back to id
+      expect(node.name).toBe('my-id');
+    });
+
+    it('does not truncate long name@version combinations', () => {
+      // name@version should not be truncated by createJsonNode
+      // Truncation happens only in the UI display layer
+      const longName = 'a'.repeat(100);
+      const longVersion = 'b'.repeat(100);
+      const component = { name: longName, version: longVersion };
+      const node = createJsonNode(0, component, 'components[0]');
+      expect(node.name).toBe(`${longName}@${longVersion}`);
+      expect(node.name.length).toBe(201); // 100 + '@' + 100
+    });
+
+    it('handles scoped package names with @ symbol', () => {
+      const component = { name: '@scope/package', version: '1.0.0' };
+      const node = createJsonNode(0, component, 'components[0]');
+      expect(node.name).toBe('@scope/package@1.0.0');
+    });
+
+    it('handles special characters in name and version', () => {
+      const component = { name: '@org/pkg-name_v2', version: '1.0.0-beta.1+build.123' };
+      const node = createJsonNode(0, component, 'components[0]');
+      expect(node.name).toBe('@org/pkg-name_v2@1.0.0-beta.1+build.123');
+    });
+
+    it('respects field priority order when computing display name', () => {
+      // Start with an object containing all possible name fields
+      // Priority order (highest to lowest): name@version, purl, name, bom-ref, SPDXID, spdxId, id, type, ref
+      let component = {
+        name: 'test-name',
+        version: '1.0.0',
+        purl: 'pkg:npm/test@1.0.0',
+        id: 'test-id',
+        ref: 'test-ref',
+        'bom-ref': 'test-bom-ref',
+        SPDXID: 'test-spdxid',
+        spdxId: 'test-spdxid-lower',
+        type: 'library',
+      };
+
+      // With all fields, should use name@version (highest priority)
+      let node = createJsonNode(0, component, 'components[0]');
+      expect(node.name).toBe('test-name@1.0.0');
+
+      // Remove version, should use purl (second priority)
+      delete component.version;
+      node = createJsonNode(0, component, 'components[0]');
+      expect(node.name).toBe('pkg:npm/test@1.0.0');
+
+      // Remove purl, should fall back to name
+      delete component.purl;
+      node = createJsonNode(0, component, 'components[0]');
+      expect(node.name).toBe('test-name');
+
+      // Remove name, should fall back to bom-ref
+      delete component.name;
+      node = createJsonNode(0, component, 'components[0]');
+      expect(node.name).toBe('test-bom-ref');
+
+      // Remove bom-ref, should fall back to SPDXID
+      delete component['bom-ref'];
+      node = createJsonNode(0, component, 'components[0]');
+      expect(node.name).toBe('test-spdxid');
+
+      // Remove SPDXID, should fall back to spdxId
+      delete component.SPDXID;
+      node = createJsonNode(0, component, 'components[0]');
+      expect(node.name).toBe('test-spdxid-lower');
+
+      // Remove spdxId, should fall back to id
+      delete component.spdxId;
+      node = createJsonNode(0, component, 'components[0]');
+      expect(node.name).toBe('test-id');
+
+      // Remove id, should fall back to type
+      delete component.id;
+      node = createJsonNode(0, component, 'components[0]');
+      expect(node.name).toBe('library');
+
+      // Remove type, should fall back to ref
+      delete component.type;
+      node = createJsonNode(0, component, 'components[0]');
+      expect(node.name).toBe('test-ref');
+
+      // Remove ref, should fall back to numeric index
+      delete component.ref;
+      node = createJsonNode(0, component, 'components[0]');
+      expect(node.name).toBe('0');
     });
   });
 
@@ -318,6 +446,72 @@ describe('jsonTreeUtils', () => {
         const preview = generateJsonPreview(errorObj);
         expect(preview).toBe('{…}');
       });
+    });
+  });
+
+  describe('getJsonTotalDescendants', () => {
+    it('returns 0 for nodes without children', () => {
+      const node = { id: 'test', name: 'test' };
+      expect(getJsonTotalDescendants(node)).toBe(0);
+    });
+
+    it('returns 0 for null node', () => {
+      expect(getJsonTotalDescendants(null)).toBe(0);
+    });
+
+    it('returns 0 for node without rawData', () => {
+      const node = { id: 'test', name: 'test', rawData: null };
+      expect(getJsonTotalDescendants(node)).toBe(0);
+    });
+
+    it('counts direct children in object', () => {
+      const rawData = { key1: 'value1', key2: 'value2', key3: 'value3' };
+      const node = { id: 'test', rawData };
+      expect(getJsonTotalDescendants(node)).toBe(3);
+    });
+
+    it('counts direct children in array', () => {
+      const rawData = ['item1', 'item2', 'item3'];
+      const node = { id: 'test', rawData };
+      expect(getJsonTotalDescendants(node)).toBe(3);
+    });
+
+    it('counts nested descendants recursively', () => {
+      const rawData = {
+        level1: {
+          level2: {
+            level3: 'value',
+          },
+        },
+      };
+      const node = { id: 'test', rawData };
+      // level1 (1) + level2 (1) + level3 (1) = 3
+      expect(getJsonTotalDescendants(node)).toBe(3);
+    });
+
+    it('counts array items and nested objects', () => {
+      const rawData = {
+        components: [
+          { name: 'comp1', version: '1.0' },
+          { name: 'comp2', version: '2.0' },
+        ],
+        metadata: { name: 'test' },
+      };
+      const node = { id: 'test', rawData };
+      // components (1) + 2 array items (2) + comp1 props (2) + comp2 props (2) + metadata (1) + metadata.name (1) = 9
+      expect(getJsonTotalDescendants(node)).toBe(9);
+    });
+
+    it('respects max recursion depth', () => {
+      // Create deeply nested structure beyond MAX_RECURSION_DEPTH (32)
+      let deepObj = { value: 'deep' };
+      for (let i = 0; i < 50; i++) {
+        deepObj = { nested: deepObj };
+      }
+      const node = { id: 'test', rawData: deepObj };
+      const count = getJsonTotalDescendants(node);
+      // Should stop at exactly depth 32
+      expect(count).toBe(32);
     });
   });
 

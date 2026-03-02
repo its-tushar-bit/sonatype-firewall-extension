@@ -308,7 +308,7 @@ describe('searchUtils', () => {
     });
 
     it('respects MAX_SEARCH_DEPTH and prevents stack overflow on deeply nested structures', () => {
-      // Create a deeply nested structure (15 levels > MAX_SEARCH_DEPTH of 10)
+      // Create a deeply nested structure (50 levels > MAX_SEARCH_DEPTH of 32)
       const createDeeplyNestedRawData = (depth, maxDepth) => {
         if (depth >= maxDepth) {
           return { match: 'deepmatch' };
@@ -323,7 +323,7 @@ describe('searchUtils', () => {
           id: 'root',
           name: 'root',
           value: null,
-          rawData: createDeeplyNestedRawData(0, 15),
+          rawData: createDeeplyNestedRawData(0, 50),
         },
       ];
 
@@ -331,13 +331,13 @@ describe('searchUtils', () => {
       expect(() => {
         const result = filterTreeNodes(nodes, 'deepmatch');
         // The result should be empty or have limited depth because MAX_SEARCH_DEPTH stops expansion
-        // at depth 10, and the match is at depth 15
+        // at depth 32, and the match is at depth 50
         expect(result).toBeDefined();
       }).not.toThrow();
     });
 
     it('finds matches within MAX_SEARCH_DEPTH limit', () => {
-      // Create a nested structure within MAX_SEARCH_DEPTH (8 levels < MAX_SEARCH_DEPTH of 10)
+      // Create a nested structure within MAX_SEARCH_DEPTH (25 levels < MAX_SEARCH_DEPTH of 32)
       const createDeeplyNestedRawData = (depth, maxDepth) => {
         if (depth >= maxDepth) {
           return { match: 'shallowmatch' };
@@ -352,7 +352,7 @@ describe('searchUtils', () => {
           id: 'root',
           name: 'root',
           value: null,
-          rawData: createDeeplyNestedRawData(0, 8),
+          rawData: createDeeplyNestedRawData(0, 25),
         },
       ];
 
@@ -363,7 +363,7 @@ describe('searchUtils', () => {
     });
 
     it('prevents stack overflow with absolute depth limit on pathologically deep structures', () => {
-      // Create a structure deeper than MAX_SEARCH_DEPTH * 2 (25 levels > 20)
+      // Create a structure deeper than MAX_SEARCH_DEPTH * 2 (70 levels > 64)
       const createDeeplyNestedRawData = (depth, maxDepth) => {
         if (depth >= maxDepth) {
           return { match: 'verydeepmatch' };
@@ -378,7 +378,7 @@ describe('searchUtils', () => {
           id: 'root',
           name: 'root',
           value: null,
-          rawData: createDeeplyNestedRawData(0, 25),
+          rawData: createDeeplyNestedRawData(0, 70),
         },
       ];
 

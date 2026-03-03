@@ -12,13 +12,14 @@ import {
   NxPageMain,
   NxLoadWrapper,
   NxStatefulInfoAlert,
-  NxStatefulWarningAlert,
   NxH2,
   NxCard,
   NxTextLink,
+  NxFontAwesomeIcon,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faCalendar } from '@fortawesome/free-regular-svg-icons';
-import { faLightbulbOn, faQuestionCircle } from '@fortawesome/pro-regular-svg-icons';
+import { faInfoCircle, faLightbulbOn, faQuestionCircle } from '@fortawesome/pro-regular-svg-icons';
 import { selectEnterpriseReportingSupportInfo } from 'MainRoot/enterpriseReporting/supportInfo/enterpriseReportingSupportInfoSelectors';
 import {
   selectDashboards,
@@ -59,7 +60,7 @@ export default function EnterpriseReportingPage() {
   const statusIndicatorClassNames = classnames('nx-status-indicator', {
     'nx-status-indicator--positive': telemetryStatus?.advancedReportingEnabled,
   });
-
+  const dataInsightsTooltipText = `Enterprise Reports are product features offering a holistic view of Firewall usage, risk, and policy using Sonatype solutions.`;
   return (
     <NxPageMain id="fw-enterprise-reporting-page">
       <NxPageTitle id="fw-enterprise-reporting-page-title">
@@ -84,16 +85,17 @@ export default function EnterpriseReportingPage() {
       </NxPageTitle>
 
       <div className="iq-fw-enterprise-reporting__alerts-container">
-        <NxStatefulWarningAlert>
-          <strong>React2Shell:</strong> A severe flaw in the React Server Components could allow attackers to run
-          arbitrary code. Check your Repository instances now to understand your exposure and remediate quickly.
-        </NxStatefulWarningAlert>
         <NxStatefulInfoAlert>
           Dashboards and Insights may appear incomplete and/or nonfunctional if there is insufficient data.
         </NxStatefulInfoAlert>
       </div>
 
-      <NxH2>Data Insights</NxH2>
+      <NxH2>
+        <span className="iq-enterprise-reporting__dashboard-grouping__title">Enterprise Dashboards</span>
+        <NxTooltip title={dataInsightsTooltipText}>
+          <NxFontAwesomeIcon icon={faInfoCircle} className="iq-enterprise-reporting__dashboard-grouping__icon" />
+        </NxTooltip>
+      </NxH2>
       <NxLoadWrapper loading={loading} retryHandler={retryLoad} error={loadError}>
         {dashboards.length > 0 && (
           <NxCard.Container

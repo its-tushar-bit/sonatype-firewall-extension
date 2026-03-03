@@ -122,4 +122,63 @@ describe('FirewallEnterpriseReportCard', () => {
 
     expect(screen.getByText('Malware Insights')).toBeInTheDocument();
   });
+
+  it('should apply firewall class to icon when category is firewall', () => {
+    const { container } = renderComponent();
+
+    const iconCallout = container.querySelector('.fw-enterprise-report-card__icon');
+    expect(iconCallout).toBeInTheDocument();
+    expect(iconCallout).toHaveClass('firewall');
+  });
+
+  it('should not apply firewall class to icon when category is not firewall', () => {
+    const nonFirewallDashboard = {
+      ...mockDashboard,
+      category: 'enterprise',
+    };
+    const { container } = renderComponent({ dashboard: nonFirewallDashboard });
+
+    const iconCallout = container.querySelector('.fw-enterprise-report-card__icon');
+    expect(iconCallout).toBeInTheDocument();
+    expect(iconCallout).not.toHaveClass('firewall');
+  });
+
+  it('should apply firewall class to feature checkmark icons when category is firewall', () => {
+    const { container } = renderComponent();
+
+    const checkmarkIcons = container.querySelectorAll('.nx-list__item .nx-icon.firewall');
+    expect(checkmarkIcons.length).toBeGreaterThan(0);
+  });
+
+  it('should render spotlight with teal color for firewall category', () => {
+    const { container } = renderComponent();
+
+    const spotlight = container.querySelector('.iq-enterprise-reporting-card__spotlight');
+    expect(spotlight).toBeInTheDocument();
+    expect(spotlight).toHaveClass('nx-small-tag--teal');
+  });
+
+  it('should use dashboard spotlightColor when it is a valid small tag color', () => {
+    const dashboardWithBlueSpotlight = {
+      ...mockDashboard,
+      spotlightColor: 'blue',
+    };
+    const { container } = renderComponent({ dashboard: dashboardWithBlueSpotlight });
+
+    const spotlight = container.querySelector('.iq-enterprise-reporting-card__spotlight');
+    expect(spotlight).toBeInTheDocument();
+    expect(spotlight).toHaveClass('nx-small-tag--blue');
+  });
+
+  it('should fallback to teal when spotlightColor is not a valid small tag color', () => {
+    const dashboardWithInvalidColor = {
+      ...mockDashboard,
+      spotlightColor: 'yellow',
+    };
+    const { container } = renderComponent({ dashboard: dashboardWithInvalidColor });
+
+    const spotlight = container.querySelector('.iq-enterprise-reporting-card__spotlight');
+    expect(spotlight).toBeInTheDocument();
+    expect(spotlight).toHaveClass('nx-small-tag--teal');
+  });
 });

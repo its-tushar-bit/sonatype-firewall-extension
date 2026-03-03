@@ -24,10 +24,11 @@ import { useDispatch } from 'react-redux';
 
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { smallTagColors } from 'MainRoot/enterpriseReporting/utils';
+import './_firewallEnterpriseReportCard.scss';
 
 export default function FirewallEnterpriseReportCard(props) {
   const { dashboard, iqVersion } = props;
-  const isEnterprise = dashboard.category === 'enterprise';
+  const isFirewallCategory = dashboard.category === 'firewall';
 
   const dispatch = useDispatch();
 
@@ -43,15 +44,16 @@ export default function FirewallEnterpriseReportCard(props) {
 
   const spotlightText = dashboard.spotlightText || 'NEW';
 
-  const spotlightColor = smallTagColors.includes(dashboard.spotlightColor)
-    ? dashboard.spotlightColor
-    : isEnterprise
-    ? 'teal'
-    : 'purple';
+  const spotlightColor = smallTagColors.includes(dashboard.spotlightColor) ? dashboard.spotlightColor : 'teal';
 
   return (
     <div>
       <NxCard id={`fw-enterprise-reporting-dashboard-${dashboard.dashboardId}`} className={cardClassNames}>
+        {dashboard.spotlight || dashboard.spotlightText ? (
+          <NxSmallTag color={spotlightColor} className="iq-enterprise-reporting-card__spotlight">
+            {spotlightText}
+          </NxSmallTag>
+        ) : null}
         <NxCard.Header className="iq-enterprise-reporting-card__header">
           <hgroup>
             <NxH3>{dashboard.title}</NxH3>
@@ -59,17 +61,14 @@ export default function FirewallEnterpriseReportCard(props) {
         </NxCard.Header>
 
         <NxCard.Content>
-          <NxCard.CallOut className={classNames('iq-enterprise-reporting-card__icon', { enterprise: isEnterprise })}>
+          <NxCard.CallOut className={classNames('fw-enterprise-report-card__icon', { firewall: isFirewallCategory })}>
             <NxFontAwesomeIcon icon={icon} />
           </NxCard.CallOut>
-          <NxCard.Header className="fw-enterprise-report-card__spotlight-header">
-            {dashboard.spotlightText}
-          </NxCard.Header>
           <NxCard.Text>{dashboard.description}</NxCard.Text>
           <NxList bulleted className="iq-enterprise-reporting-card__features">
             {dashboard.features.map((f, idx) => (
               <NxList.Item key={idx}>
-                <NxFontAwesomeIcon className={isEnterprise && 'enterprise'} icon={fas.faCheck} />
+                <NxFontAwesomeIcon className={isFirewallCategory && 'firewall'} icon={fas.faCheck} />
                 <NxList.Text className="iq-enterprise-reporting-card__feature-item">{f}</NxList.Text>
               </NxList.Item>
             ))}

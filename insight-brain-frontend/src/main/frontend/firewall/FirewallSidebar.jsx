@@ -74,6 +74,16 @@ export default function FirewallSidebar(props) {
             text="Vulnerability Lookup"
             href={vulnSearchHref}
           />
+          {isFirewallEnterpriseReportingEnabled && (
+            <NxGlobalSidebar2NavigationLink
+              isSelected={isSelected(enterpriseReportingState)}
+              id="enterprise-reporting-button"
+              className="iq-enterprise-reporting-nav-link"
+              icon={faChartPie}
+              text="Enterprise Reporting"
+              href={enterpriseReportingHref}
+            />
+          )}
           {isApiPageEnabled && (
             <NxGlobalSidebar2NavigationLink
               isSelected={isSelected(apiState)}
@@ -92,16 +102,6 @@ export default function FirewallSidebar(props) {
                 </>
               }
               href={apiHref}
-            />
-          )}
-          {isFirewallEnterpriseReportingEnabled && (
-            <NxGlobalSidebar2NavigationLink
-              isSelected={isSelected(enterpriseReportingState)}
-              id="enterprise-reporting-button"
-              className="iq-enterprise-reporting-nav-link"
-              icon={faChartPie}
-              text="Enterprise Reporting"
-              href={enterpriseReportingHref}
             />
           )}
         </>

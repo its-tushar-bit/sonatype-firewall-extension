@@ -17,7 +17,9 @@
  *
  * Jenkinsfile.feature - Used for:
  *   - feature branches: Fast validation builds with build caching and selective testing
- *   - merge queue (gh-readonly-queue/*): Pre-merge validation before auto-merge to main
+ *
+ * Jenkinsfile.mergequeue - Used for:
+ *   - merge queue (gh-readonly-queue/*): Compile-only validation before auto-merge to main
  *
  * The buildMode parameter is defined in each sub-pipeline's configureBranchJob().
  * On first run, it defaults based on branch type. Subsequent runs use the selected value.
@@ -37,12 +39,15 @@ node {
   // On first run, params.buildMode will be null, so default to FEATURE
   def effectiveBuildMode = params.buildMode ?: (isMainOrReleaseBranch ? 'MAIN' : 'FEATURE')
 
-  if (effectiveBuildMode == 'MAIN' || isMainOrReleaseBranch) {
+  // Merge queue branches get a lightweight compile-only pipeline
+  if (branchName?.startsWith('gh-readonly-queue/')) {
+    pipelineScript = 'Jenkinsfile.mergequeue'
+  } else if (effectiveBuildMode == 'MAIN' || isMainOrReleaseBranch) {
     pipelineScript = 'Jenkinsfile.main'
   } else {
     pipelineScript = 'Jenkinsfile.feature'
   }
 
-  echo "Loading pipeline: ${pipelineScript} for branch: ${branchName} (buildMode: ${effectiveBuildMode})"
+  echo "Loading pipeline: ${pipelineScript} for branch: ${branchName}"
   load(pipelineScript)
 }

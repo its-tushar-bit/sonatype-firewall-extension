@@ -35,7 +35,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * REST API resource for managing CI integration configurations.
- * Supports hierarchical configuration inheritance from the organization hierarchy.
+ * Supports hierarchical configuration inheritance from the organization hierarchy. <br>
+ * Full feature details: <a href="https://sonatype.atlassian.net/wiki/x/EoCseg">here</a>
  *
  * @since 1.201
  */

@@ -35,12 +35,6 @@
         "content": "content",
         "contentHash": "contentHash",
         "type": "LICENSE"
-      },
-      {
-        "relPath": "README.md",
-        "content": "# Spring Boot Actuator\n\nCopyright 2020 Spring Contributors\n\nThis README contains project documentation.",
-        "contentHash": "readmeContentHash",
-        "type": "README"
       }
     ]
   }

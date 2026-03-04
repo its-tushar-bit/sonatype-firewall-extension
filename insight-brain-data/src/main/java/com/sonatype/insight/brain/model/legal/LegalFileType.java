@@ -15,7 +15,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum LegalFileType
 {
   NOTICE,
-  LICENSE;
+  LICENSE,
+  README;
 
   @Override
   @JsonValue

@@ -166,6 +166,42 @@ public class ComponentLegalFileDAOTest
   }
 
   @Test
+  public void testCRUD_README() {
+    Date now = new Date();
+    ComponentLegalFile componentLegalFile =
+        new ComponentLegalFile(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId(),
+            LegalFileType.README,
+            "readmeContentHash", "username");
+    componentLegalFile.setLastUpdatedAt(new Date(now.getTime() - 1));
+    dao.insert(componentLegalFile);
+    assertThat(componentLegalFile.getId()).isNotNull();
+
+    assertThat(dao.getById(componentLegalFile.getId())).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .isEqualTo(componentLegalFile);
+
+    assertThat(dao.getById(componentLegalFile.getId()).getType()).isEqualTo(LegalFileType.README);
+
+    dao.delete(componentLegalFile);
+    assertThat(dao.getById(componentLegalFile.getId())).isNull();
+  }
+
+  @Test
+  public void testGetByOwnerIdAndComponentIdentifierAndType_README() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentLegalFile readmeFile =
+        tempEntity.newComponentLegalFile(componentIdentifier, organization.getId(), LegalFileType.README,
+            "readmeHash");
+    tempEntity.newComponentLegalFile(componentIdentifier, organization.getId(), LegalFileType.NOTICE,
+        "noticeHash");
+    tempEntity.newComponentLegalFile(componentIdentifier, organization.getId(), LegalFileType.LICENSE,
+        "licenseHash");
+
+    assertThat(
+        dao.getByOwnerIdAndComponentIdentifierAndType(organization.getId(), componentIdentifier, LegalFileType.README))
+            .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(readmeFile);
+  }
+
+  @Test
   public void testGetAll() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentLegalFile componentLegalFile1 =

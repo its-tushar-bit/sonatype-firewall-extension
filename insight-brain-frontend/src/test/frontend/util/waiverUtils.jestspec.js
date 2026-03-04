@@ -486,8 +486,14 @@ describe('waiverUtils', function () {
     });
 
     it('should return the correct message for custom expiry time', () => {
-      const customExpiryTime = { value: moment().add(5, 'days').format('YYYY-MM-DD') };
-      expect(getExpirationDaysMessage('custom', customExpiryTime)).toBe('This waiver will expire in 5 days');
+      // Use fake timers to avoid DST boundary issues (e.g. spring-forward losing an hour)
+      jest.useFakeTimers({ now: new Date(2026, 0, 15) });
+      try {
+        const customExpiryTime = { value: moment().add(5, 'days').format('YYYY-MM-DD') };
+        expect(getExpirationDaysMessage('custom', customExpiryTime)).toBe('This waiver will expire in 5 days');
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 });

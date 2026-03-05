@@ -27,7 +27,7 @@ properties(
                 booleanParam(name: 'skipPublishAlpineDocker', defaultValue: false, description: 'Skip: Publish Alpine Docker Image'),
                 booleanParam(name: 'skipPublishRedHatDocker', defaultValue: false, description: 'Skip: Publish RedHat Docker Image to quay.io'),
                 booleanParam(name: 'skipPublishStandardDocker', defaultValue: false, description: 'Skip: Publish Standard Docker Image'),
-                booleanParam(name: 'skipPublishCloudFormation', defaultValue: false, description: 'Skip: Publish CloudFormation Templates'),
+                booleanParam(name: 'skipPublishCloudFormation', defaultValue: true, description: 'Skip: Publish CloudFormation Templates'),
                 booleanParam(name: 'skipReleaseCompleteNotifications', defaultValue: false, description: 'Skip: Send Release Complete Notifications'),
                 booleanParam(name: 'skipPostReleaseBuild', defaultValue: false, description: 'Skip: Trigger Post-Release Build')
             ]

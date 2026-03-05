@@ -5,11 +5,12 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -18,6 +19,12 @@ import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * @since 1.8
@@ -127,5 +134,45 @@ public class PolicyMonitoringDAO
       }
       tx.commit();
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  public Map<String, PolicyMonitoring> getByOwnerIdsAndStageTypeIdsWithInheritance(
+      final Set<String> ownerIds,
+      final String... stageTypeIds)
+  {
+    if (CollectionUtils.isEmpty(ownerIds)) {
+      return new HashMap<>();
+    }
+
+    String sQuery = "SELECT oa.id, oa.ancestorDistance, entity FROM PolicyMonitoring entity, OwnerAncestor oa " +
+        "WHERE oa.id IN (?1) " +
+        "AND oa.ancestorId = entity.ownerId";
+
+    if (ArrayUtils.isNotEmpty(stageTypeIds)) {
+      sQuery += " AND entity.stageTypeId IN (?2)";
+    }
+
+    String finalQuery = sQuery;
+
+    Map<String, Object[]> closest = new HashMap<>();
+    try (TransactionContext tx = createTransactionContext()) {
+      jakarta.persistence.Query query;
+      if (ArrayUtils.isEmpty(stageTypeIds)) {
+        query = createQuery(tx, finalQuery, ownerIds);
+      }
+      else {
+        query = createQuery(tx, finalQuery, ownerIds, Arrays.asList(stageTypeIds));
+      }
+      List<Object[]> results = (List<Object[]>) getListWithSqlInClause(ownerIds, ids -> query.getResultList());
+      for (Object[] row : results) {
+        closest.merge((String) row[0], row, (a, b) -> ((Integer) a[1] <= (Integer) b[1]) ? a : b);
+      }
+    }
+
+    Map<String, PolicyMonitoring> map = new HashMap<>();
+    closest.forEach((ownerId, row) -> map.put(ownerId, (PolicyMonitoring) row[2]));
+
+    return map;
   }
 }

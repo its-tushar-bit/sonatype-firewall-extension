@@ -6,9 +6,12 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -227,5 +230,166 @@ public class PolicyMonitoringDAOTest
     assertThat(policyMonitoringRetrieved.getStageTypeId()).isEqualTo(Stage.ID_COMPLIANCE);
     policyMonitoringRetrieved = dao.getByOwnerIdAndStageTypeId(ownerId, Stage.ID_BUILD);
     assertThat(policyMonitoringRetrieved).isNotNull();
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndStageTypeIdsWithInheritance_NullList() {
+    Map<String, PolicyMonitoring> result = dao.getByOwnerIdsAndStageTypeIdsWithInheritance(null, Stage.ID_RELEASE);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndStageTypeIdsWithInheritance_EmptyList() {
+    Map<String, PolicyMonitoring> result = dao.getByOwnerIdsAndStageTypeIdsWithInheritance(Set.of(), Stage.ID_RELEASE);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndStageTypeIdsWithInheritance_DirectPolicyMonitoring() {
+    String ownerId = application.getId();
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(ownerId, Stage.ID_RELEASE);
+    dao.insert(policyMonitoring);
+
+    Map<String, PolicyMonitoring> result =
+        dao.getByOwnerIdsAndStageTypeIdsWithInheritance(Set.of(ownerId), Stage.ID_RELEASE);
+
+    assertThat(result).hasSize(1);
+    assertThat(result).containsKey(ownerId);
+    assertThat(result.get(ownerId).getId()).isEqualTo(policyMonitoring.getId());
+    assertThat(result.get(ownerId).getStageTypeId()).isEqualTo(Stage.ID_RELEASE);
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndStageTypeIdsWithInheritance_InheritedFromParentOrg() {
+    String parentOrgId = organization.getId();
+    PolicyMonitoring parentPolicy = new PolicyMonitoring(parentOrgId, Stage.ID_RELEASE);
+    dao.insert(parentPolicy);
+    String childAppId = application.getId();
+
+    Map<String, PolicyMonitoring> result =
+        dao.getByOwnerIdsAndStageTypeIdsWithInheritance(Set.of(childAppId), Stage.ID_RELEASE);
+
+    assertThat(result).hasSize(1);
+    assertThat(result).containsKey(childAppId);
+    assertThat(result.get(childAppId).getId()).isEqualTo(parentPolicy.getId());
+    assertThat(result.get(childAppId).getOwnerId()).isEqualTo(parentOrgId);
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndStageTypeIdWithInheritance_MultipleOwners_MixedDirectAndInherited() {
+    String parentOrgId = organization.getId();
+    PolicyMonitoring parentPolicy = new PolicyMonitoring(parentOrgId, Stage.ID_RELEASE);
+    dao.insert(parentPolicy);
+
+    Organization childOrg = tempEntity.newOrganization(organization);
+    PolicyMonitoring childOrgPolicy = new PolicyMonitoring(childOrg.getId(), Stage.ID_RELEASE);
+    dao.insert(childOrgPolicy);
+
+    String appWithoutPolicy = application.getId();
+
+    Map<String, PolicyMonitoring> result = dao.getByOwnerIdsAndStageTypeIdsWithInheritance(
+        Set.of(parentOrgId, childOrg.getId(), appWithoutPolicy), Stage.ID_RELEASE);
+
+    assertThat(result).hasSize(3);
+    assertThat(result.get(parentOrgId).getId()).isEqualTo(parentPolicy.getId());
+    assertThat(result.get(childOrg.getId()).getId()).isEqualTo(childOrgPolicy.getId());
+    assertThat(result.get(appWithoutPolicy).getId()).isEqualTo(parentPolicy.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndStageTypeIdsWithInheritance_ClosestAncestorWins() {
+    Organization grandparentOrg = tempEntity.newOrganization("grandparent");
+    PolicyMonitoring grandparentPolicy = new PolicyMonitoring(grandparentOrg.getId(), Stage.ID_RELEASE);
+    dao.insert(grandparentPolicy);
+
+    Organization parentOrg = tempEntity.newOrganization(grandparentOrg);
+    PolicyMonitoring parentPolicy = new PolicyMonitoring(parentOrg.getId(), Stage.ID_RELEASE);
+    dao.insert(parentPolicy);
+
+    Organization childOrg = tempEntity.newOrganization(parentOrg);
+
+    Map<String, PolicyMonitoring> result = dao.getByOwnerIdsAndStageTypeIdsWithInheritance(
+        Set.of(childOrg.getId()), Stage.ID_RELEASE);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(childOrg.getId()).getId()).isEqualTo(parentPolicy.getId());
+    assertThat(result.get(childOrg.getId()).getOwnerId()).isEqualTo(parentOrg.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndStageTypeIdsWithInheritance_NoMatchingPolicyInHierarchy() {
+    Organization parentOrg = tempEntity.newOrganization("parent-no-policy");
+    Organization childOrg = tempEntity.newOrganization(parentOrg);
+
+    Map<String, PolicyMonitoring> result = dao.getByOwnerIdsAndStageTypeIdsWithInheritance(
+        Set.of(childOrg.getId()), Stage.ID_RELEASE);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndStageTypeIdWithInheritance_DifferentStageTypes() {
+    String orgId = organization.getId();
+    PolicyMonitoring releasePolicy = new PolicyMonitoring(orgId, Stage.ID_RELEASE);
+    dao.insert(releasePolicy);
+
+    PolicyMonitoring compliancePolicy = new PolicyMonitoring(orgId, Stage.ID_COMPLIANCE);
+    dao.insert(compliancePolicy);
+
+    String appId = application.getId();
+
+    Map<String, PolicyMonitoring> releaseResult =
+        dao.getByOwnerIdsAndStageTypeIdsWithInheritance(Set.of(appId), Stage.ID_RELEASE);
+    assertThat(releaseResult).hasSize(1);
+    assertThat(releaseResult.get(appId).getStageTypeId()).isEqualTo(Stage.ID_RELEASE);
+
+    Map<String, PolicyMonitoring> complianceResult =
+        dao.getByOwnerIdsAndStageTypeIdsWithInheritance(Set.of(appId), Stage.ID_COMPLIANCE);
+    assertThat(complianceResult).hasSize(1);
+    assertThat(complianceResult.get(appId).getStageTypeId()).isEqualTo(Stage.ID_COMPLIANCE);
+
+    Map<String, PolicyMonitoring> buildResult =
+        dao.getByOwnerIdsAndStageTypeIdsWithInheritance(Set.of(appId), Stage.ID_BUILD);
+    assertThat(buildResult).isEmpty();
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndStageTypeIdsWithInheritance_DirectPolicyOverridesInherited() {
+    String parentOrgId = organization.getId();
+    PolicyMonitoring parentPolicy = new PolicyMonitoring(parentOrgId, Stage.ID_RELEASE);
+    dao.insert(parentPolicy);
+
+    Organization childOrg = tempEntity.newOrganization(organization);
+    PolicyMonitoring childPolicy = new PolicyMonitoring(childOrg.getId(), Stage.ID_RELEASE);
+    dao.insert(childPolicy);
+
+    Map<String, PolicyMonitoring> result = dao.getByOwnerIdsAndStageTypeIdsWithInheritance(
+        Set.of(childOrg.getId()), Stage.ID_RELEASE);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(childOrg.getId()).getId()).isEqualTo(childPolicy.getId());
+    assertThat(result.get(childOrg.getId()).getOwnerId()).isEqualTo(childOrg.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndStageTypeIdsWithInheritance_MultipleOwnersWithDifferentHierarchies() {
+    Organization org1 = tempEntity.newOrganization("org1");
+    PolicyMonitoring org1Policy = new PolicyMonitoring(org1.getId(), Stage.ID_RELEASE);
+    dao.insert(org1Policy);
+    Organization childOrg1 = tempEntity.newOrganization(org1);
+
+    Organization org2 = tempEntity.newOrganization("org2");
+    PolicyMonitoring org2Policy = new PolicyMonitoring(org2.getId(), Stage.ID_RELEASE);
+    dao.insert(org2Policy);
+    Organization childOrg2 = tempEntity.newOrganization(org2);
+
+    Map<String, PolicyMonitoring> result = dao.getByOwnerIdsAndStageTypeIdsWithInheritance(
+        Set.of(childOrg1.getId(), childOrg2.getId()), Stage.ID_RELEASE);
+
+    assertThat(result).hasSize(2);
+    assertThat(result.get(childOrg1.getId()).getId()).isEqualTo(org1Policy.getId());
+    assertThat(result.get(childOrg2.getId()).getId()).isEqualTo(org2Policy.getId());
   }
 }

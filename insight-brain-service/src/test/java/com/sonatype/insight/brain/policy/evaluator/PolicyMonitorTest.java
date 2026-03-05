@@ -737,7 +737,7 @@ public class PolicyMonitorTest
         app.getName() + "' and stage '" + releaseStage.getStageTypeId() + "'");
     assertThat(logOutput).atDebugLevel().contains("SBOM Manager Policy Monitoring evaluated for application '" +
         app.getName() + "'");
-    assertThat(logOutput).atInfoLevel().contains("Finished policy monitoring applications");
+    assertThat(logOutput).atInfoLevel().contains("Finished policy monitoring");
 
     assertShutdownHandler();
   }

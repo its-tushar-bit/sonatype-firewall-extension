@@ -7,8 +7,9 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,8 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -28,18 +28,18 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -48,6 +48,7 @@ import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.PageIterator;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -59,6 +60,8 @@ import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,6 +81,8 @@ public class PolicyMonitor
 
   private static final int POLICY_MONITOR_THREADS_MAX = 20;
 
+  private static final int DEFAULT_PAGE_SIZE = 10_000;
+
   private ExecutorService executorService;
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
@@ -91,8 +96,6 @@ public class PolicyMonitor
   private final ScanUploadService scanUploadService;
 
   private final PolicyMonitoringDAO policyMonitoringDAO;
-
-  private final OwnerDAO ownerDAO;
 
   private final ApplicationDAO applicationDAO;
 
@@ -122,7 +125,6 @@ public class PolicyMonitor
       final AuditRecorder auditRecorder,
       final ScanUploadService scanUploadService,
       final PolicyMonitoringDAO policyMonitoringDAO,
-      final OwnerDAO ownerDAO,
       final ApplicationDAO applicationDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
@@ -140,7 +142,6 @@ public class PolicyMonitor
     this.auditRecorder = auditRecorder;
     this.scanUploadService = scanUploadService;
     this.policyMonitoringDAO = policyMonitoringDAO;
-    this.ownerDAO = ownerDAO;
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
@@ -195,26 +196,19 @@ public class PolicyMonitor
     log.info("Starting policy monitoring for tenant {}", TenantThreadLocal.getTenant());
 
     long start = System.currentTimeMillis();
-
-    List<PolicyMonitoring> policyMonitorings = policyMonitoringDAO.getAll();
-    if (policyMonitorings.isEmpty()) {
+    
+    if (policyMonitoringDAO.getCount() == 0) {
       log.info("Policy monitoring was not configured for any applications, organizations, or repositories.");
       return;
     }
-
-    Map<String, PolicyMonitoring> lcPolicyMonitoringsByOwnerId = new LinkedHashMap<>();
-    policyMonitorings.stream().filter(pm -> !pm.getStageTypeId().equals(ComplianceStageType.ID))
-        .forEach(pm -> lcPolicyMonitoringsByOwnerId.put(pm.getOwnerId(), pm));
-    Map<String, PolicyMonitoring> smPolicyMonitoringsByOwnerId = new LinkedHashMap<>();
-    policyMonitorings.stream().filter(pm -> pm.getStageTypeId().equals(ComplianceStageType.ID))
-        .forEach(pm -> smPolicyMonitoringsByOwnerId.put(pm.getOwnerId(), pm));
 
     try {
       executorService = initThreadPool(configuration);
       shutdownHandler.add(executorService);
 
-      evaluateApplications(lcPolicyMonitoringsByOwnerId);
-      evaluateApplications(smPolicyMonitoringsByOwnerId);
+      evaluateApplications(StageTypes.getAll().stream().filter(stageType -> stageType != StageTypes.COMPLIANCE)
+          .toArray(StageType[]::new));
+      evaluateApplications(StageTypes.COMPLIANCE);
     }
     finally {
       executorService.shutdown();
@@ -225,29 +219,26 @@ public class PolicyMonitor
         TenantThreadLocal.getTenant());
   }
 
-  private void evaluateApplications(final Map<String, PolicyMonitoring> policyMonitoringsByOwnerId) {
+  private void evaluateApplications(final StageType... stageTypes) {
     if (!isLicensedForApplications(productLicense)) {
       log.debug("Not licensed for Application Policy Monitoring.");
       return;
     }
     log.debug("Licensed for Application Policy Monitoring.");
 
-    List<Application> apps = applicationDAO.getAll();
-    log.info("Starting policy monitoring of applications");
+    Iterator<ApplicationWithPolicyMonitoring> monitoredApps = createApplicationWithPolicyMonitoringIterator(stageTypes);
+
+    log.info("Starting policy monitoring of applications (page size: {})", DEFAULT_PAGE_SIZE);
     long start = System.currentTimeMillis();
 
     List<CompletableFuture<Void>> futures = new ArrayList<>();
     Set<String> stagesDetectedDuringScan = new HashSet<>();
     long appsUnderContinuousMonitoringCount = 0;
 
-    for (Application app : apps) {
-      PolicyMonitoring policyMonitoring = null;
-      for (Owner owner : ownerDAO.walkHierarchy(app)) {
-        policyMonitoring = policyMonitoringsByOwnerId.get(owner.getId());
-        if (policyMonitoring != null) {
-          break;
-        }
-      }
+    while (monitoredApps.hasNext()) {
+      ApplicationWithPolicyMonitoring applicationWithPolicyMonitoring = monitoredApps.next();
+      Application app = applicationWithPolicyMonitoring.app();
+      PolicyMonitoring policyMonitoring = applicationWithPolicyMonitoring.policyMonitoring();
 
       if (policyMonitoring == null || !Stage.isValidStageTypeId(policyMonitoring.getStageTypeId())) {
         continue;
@@ -279,7 +270,7 @@ public class PolicyMonitor
     futures.forEach(CompletableFuture::join);
 
     long timeElapsed = System.currentTimeMillis() - start;
-    log.info("Finished policy monitoring applications in {} ms", timeElapsed);
+    log.info("Finished policy monitoring {} applications in {} ms", appsUnderContinuousMonitoringCount, timeElapsed);
     telemetrySender.send(telemetryUtils.buildContinuousMonitoringMetricsAttributes(appsUnderContinuousMonitoringCount,
         timeElapsed / 1000, String.join(",", stagesDetectedDuringScan)));
   }
@@ -475,5 +466,27 @@ public class PolicyMonitor
 
   static boolean isLicensed(ProductLicense productLicense) {
     return isLicensedForApplications(productLicense);
+  }
+
+  private record ApplicationWithPolicyMonitoring(Application app, PolicyMonitoring policyMonitoring) { }
+
+  private Iterator<ApplicationWithPolicyMonitoring> createApplicationWithPolicyMonitoringIterator(
+      final StageType... stageTypes)
+  {
+    return new PageIterator<>(1, DEFAULT_PAGE_SIZE, (page, pageSize) -> {
+      List<Application> apps = applicationDAO.getAll(page, pageSize);
+
+      if (apps.isEmpty()) {
+        return List.of();
+      }
+
+      Set<String> appIds = apps.stream().map(Application::getId).collect(Collectors.toSet());
+      Map<String, PolicyMonitoring> map = policyMonitoringDAO.getByOwnerIdsAndStageTypeIdsWithInheritance(appIds,
+          Arrays.stream(stageTypes).map(StageType::getId).toArray(String[]::new));
+
+      return apps.stream()
+          .map(app -> new ApplicationWithPolicyMonitoring(app, map.get(app.getId())))
+          .toList();
+    });
   }
 }

@@ -6,7 +6,11 @@
 package com.sonatype.insight.brain.service.githubapp;
 
 import java.io.IOException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -45,9 +49,11 @@ import org.junit.Test;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -88,6 +94,9 @@ public class ApiGitHubAppServiceTest
   private GitHubManifestService gitHubManifestService;
 
   @Inject
+  GitHubAppDeletionService gitHubAppDeletionService;
+
+  @Inject
   private SourceControlDAO sourceControlDAO;
 
   @Inject
@@ -126,7 +135,8 @@ public class ApiGitHubAppServiceTest
             passwordHandler,
             insightProxy,
             gitHubManifestService,
-        authStrategyCache,
+            authStrategyCache,
+            gitHubAppDeletionService,
             mockServerUrl,  // githubApiBaseUrl
             mockServerUrl,  // githubOAuthTokenUrl
             baseUrl
@@ -180,6 +190,15 @@ public class ApiGitHubAppServiceTest
                             .withHeader("Content-Type", "application/json")
                             .withBody("{\"total_count\":1,\"installations\":[{\"id\":" + INSTALLATION_ID
                                     + ",\"app_id\":" + APP_ID + ",\"account\":{\"login\":\"test-org\",\"id\":12345}}]}")
+                    )
+    );
+
+    // Mock delete installation API (for GitHubAppDeletionService)
+    // Accepts any Authorization header (JWT token from GitHubApp authentication)
+    githubMockServer.stubFor(
+            delete(urlMatching("/app/installations/.*"))
+                    .willReturn(aResponse()
+                            .withStatus(204)
                     )
     );
   }
@@ -476,6 +495,7 @@ public class ApiGitHubAppServiceTest
             insightProxy,
             gitHubManifestService,
         authStrategyCache,
+            gitHubAppDeletionService,
             mockBaseUrl
     );
 
@@ -525,7 +545,8 @@ public class ApiGitHubAppServiceTest
             passwordHandler,
             insightProxy,
             gitHubManifestService,
-        authStrategyCache,
+                authStrategyCache,
+            gitHubAppDeletionService,
             mockBaseUrl
     );
 
@@ -549,6 +570,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         mockBaseUrl
     );
 
@@ -576,6 +598,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         mockBaseUrl
     );
 
@@ -602,6 +625,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         mockBaseUrl
     );
 
@@ -626,6 +650,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         mockBaseUrl
     );
 
@@ -650,6 +675,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         mockBaseUrl
     );
 
@@ -674,6 +700,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         mockBaseUrl
     );
 
@@ -721,6 +748,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         mockBaseUrl
     );
 
@@ -762,6 +790,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         baseUrl
     );
 
@@ -785,6 +814,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         baseUrl
     );
 
@@ -808,6 +838,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         baseUrl
     );
 
@@ -839,6 +870,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         baseUrl
     );
 
@@ -878,6 +910,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         baseUrl
     );
 
@@ -905,6 +938,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         baseUrl
     );
 
@@ -929,6 +963,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         baseUrl
     );
 
@@ -962,6 +997,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         baseUrl
     );
 
@@ -986,6 +1022,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         baseUrl
     );
 
@@ -1010,6 +1047,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         baseUrl
     );
 
@@ -1041,6 +1079,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         baseUrl
     );
 
@@ -1216,10 +1255,183 @@ public class ApiGitHubAppServiceTest
         .isInstanceOf(BadRequestException.class);
   }
 
-  /**
-   * Helper methods to encapsulate database operations for cleaner tests.
-   * These wrap DAO calls to avoid explicit transaction management in test methods.
-   */
+  @Test
+  public void testCreateGitHubAppFromManifest_ReplacesExistingApp_DeletesOldInsertsNew() throws Exception {
+    deleteExistingGitHubAppForOwner(organization.getId());
+
+    GitHubApp existingApp = createGitHubApp(999999, "old-app-slug", "old-client-id",
+            organization.getId(), "old-org", null);
+
+    GitHubApp retrievedBefore = gitHubAppDAO.getByOwnerId(organization.getId());
+    assertThat(retrievedBefore).isNotNull();
+    assertThat(retrievedBefore.getAppId()).isEqualTo(999999);
+    assertThat(retrievedBefore.getSlug()).isEqualTo("old-app-slug");
+
+    Date futureDate = new Date(System.currentTimeMillis() + 900000);
+    GitHubAppRegistrationState registrationState = createRegistrationState("replace-app-state",
+            organization.getId(), futureDate);
+
+    String manifestCode = "replace-app-code";
+    Integer newAppId = APP_ID + 5000;
+    String newSlug = "new-app-slug";
+    mockManifestConversion(manifestCode, newAppId, newSlug);
+
+    service.createGitHubAppFromManifest(manifestCode, registrationState);
+
+    GitHubApp retrievedAfter = gitHubAppDAO.getByOwnerId(organization.getId());
+    assertThat(retrievedAfter).isNotNull();
+    assertThat(retrievedAfter.getAppId()).isEqualTo(newAppId);
+    assertThat(retrievedAfter.getSlug()).isEqualTo(newSlug);
+    assertThat(retrievedAfter.getClientId()).isEqualTo(CLIENT_ID);
+    assertThat(retrievedAfter.getOwnerId()).isEqualTo(organization.getId());
+    assertThat(retrievedAfter.getId()).isNotEqualTo(existingApp.getId());
+  }
+
+  @Test
+  public void testCreateGitHubAppFromManifest_GitHubApiDeleteFails_DatabaseDeletionProceeds() throws Exception {
+    deleteExistingGitHubAppForOwner(organization.getId());
+
+    GitHubApp existingApp = createGitHubApp(999999, "old-app-slug", "old-client-id",
+            organization.getId(), "old-org", 777777L);
+    String existingAppId = existingApp.getId();
+
+    GitHubApp retrievedBefore = gitHubAppDAO.getByOwnerId(organization.getId());
+    assertThat(retrievedBefore).isNotNull();
+    assertThat(retrievedBefore.getAppId()).isEqualTo(999999);
+    assertThat(retrievedBefore.getInstallationId()).isEqualTo(777777L);
+
+    githubMockServer.stubFor(
+            delete(urlPathEqualTo("/app/installations/777777"))
+                    .willReturn(aResponse()
+                            .withStatus(500)
+                            .withHeader("Content-Type", "application/json")
+                            .withBody("{\"message\":\"Internal server error\"}")
+                    )
+    );
+
+    // Create registration state for new app
+    Date futureDate = new Date(System.currentTimeMillis() + 900000);
+    GitHubAppRegistrationState registrationState = createRegistrationState("fail-delete-state",
+            organization.getId(), futureDate);
+
+    String manifestCode = "fail-delete-code";
+    Integer newAppId = APP_ID + 5500;
+    String newSlug = "new-app-after-failed-delete";
+    mockManifestConversion(manifestCode, newAppId, newSlug);
+
+    service.createGitHubAppFromManifest(manifestCode, registrationState);
+
+    GitHubApp retrievedAfter = gitHubAppDAO.getByOwnerId(organization.getId());
+    assertThat(retrievedAfter).isNotNull();
+    assertThat(retrievedAfter.getId()).isNotEqualTo(existingAppId);
+    assertThat(retrievedAfter.getAppId()).isNotEqualTo(999999);
+    assertThat(retrievedAfter.getSlug()).isNotEqualTo("old-app-slug");
+
+    // Verify new app WAS inserted successfully
+    assertThat(retrievedAfter.getAppId()).isEqualTo(newAppId);
+    assertThat(retrievedAfter.getSlug()).isEqualTo(newSlug);
+  }
+
+  @Test
+  public void testCreateGitHubAppFromManifest_ReplaceMultipleTimes_EachDeletesOldInsertsNew() throws Exception {
+    deleteExistingGitHubAppForOwner(organization.getId());
+
+    Date futureDate1 = new Date(System.currentTimeMillis() + 900000);
+    GitHubAppRegistrationState state1 = createRegistrationState("first-app-state",
+            organization.getId(), futureDate1);
+    String code1 = "first-app-code";
+    Integer appId1 = APP_ID + 7000;
+    mockManifestConversion(code1, appId1, "first-slug");
+    service.createGitHubAppFromManifest(code1, state1);
+
+    GitHubApp firstApp = gitHubAppDAO.getByOwnerId(organization.getId());
+    assertThat(firstApp).isNotNull();
+    assertThat(firstApp.getAppId()).isEqualTo(appId1);
+    String firstAppId = firstApp.getId();
+
+    Date futureDate2 = new Date(System.currentTimeMillis() + 900000);
+    GitHubAppRegistrationState state2 = createRegistrationState("second-app-state",
+            organization.getId(), futureDate2);
+    String code2 = "second-app-code";
+    Integer appId2 = APP_ID + 8000;
+    mockManifestConversion(code2, appId2, "second-slug");
+    service.createGitHubAppFromManifest(code2, state2);
+
+    GitHubApp secondApp = gitHubAppDAO.getByOwnerId(organization.getId());
+    assertThat(secondApp).isNotNull();
+    assertThat(secondApp.getAppId()).isEqualTo(appId2);
+    assertThat(secondApp.getId()).isNotEqualTo(firstAppId);
+
+    Date futureDate3 = new Date(System.currentTimeMillis() + 900000);
+    GitHubAppRegistrationState state3 = createRegistrationState("third-app-state",
+            organization.getId(), futureDate3);
+    String code3 = "third-app-code";
+    Integer appId3 = APP_ID + 9000;
+    mockManifestConversion(code3, appId3, "third-slug");
+    service.createGitHubAppFromManifest(code3, state3);
+
+    GitHubApp thirdApp = gitHubAppDAO.getByOwnerId(organization.getId());
+    assertThat(thirdApp).isNotNull();
+    assertThat(thirdApp.getAppId()).isEqualTo(appId3);
+    assertThat(thirdApp.getId()).isNotEqualTo(firstAppId);
+    assertThat(thirdApp.getId()).isNotEqualTo(secondApp.getId());
+
+    try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
+      tx.begin();
+      List<GitHubApp> allApps = gitHubAppDAO.getAll(tx);
+      long countForOwner = allApps.stream()
+              .filter(app -> organization.getId().equals(app.getOwnerId()))
+              .count();
+      assertThat(countForOwner).isEqualTo(1);
+      tx.commit();
+    }
+  }
+
+  private GitHubApp createGitHubApp(Integer appId, String slug, String clientId, String ownerId,
+                                     String githubOrgName, Long installationId)
+  {
+    GitHubApp app = new GitHubApp();
+    app.setAppId(appId);
+    app.setSlug(slug);
+    app.setClientId(clientId);
+    try {
+      app.setClientSecret(passwordHandler.encryptPassword("test-secret-" + appId));
+      app.setPrivateKey(passwordHandler.encryptPassword(generateTestRsaPrivateKey()));
+    }
+    catch (Exception e) {
+      throw new RuntimeException("Failed to encrypt password or private key", e);
+    }
+    app.setOwnerId(ownerId);
+    app.setGithubOrganizationName(githubOrgName);
+    app.setLastUpdatedAt(new Date());
+    app.setInstallationId(installationId);
+    return tempEntity.newGitHubApp(app);
+  }
+
+  private String generateTestRsaPrivateKey() {
+    try {
+      KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+      keyPairGenerator.initialize(2048);
+      KeyPair keyPair = keyPairGenerator.generateKeyPair();
+      byte[] pkcs8EncodedKey = keyPair.getPrivate().getEncoded();
+      return Base64.getEncoder().encodeToString(pkcs8EncodedKey);
+    }
+    catch (Exception e) {
+      throw new RuntimeException("Failed to generate test RSA key", e);
+    }
+  }
+
+  private void deleteExistingGitHubAppForOwner(String ownerId) {
+    GitHubApp existingApp = gitHubAppDAO.getByOwnerId(ownerId);
+    if (existingApp != null) {
+      try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
+        tx.begin();
+        gitHubAppDAO.delete(tx, existingApp);
+        tx.commit();
+      }
+    }
+  }
+
   private void insertStateToken(GitHubAppInstallationState token) {
     try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
       tx.begin();
@@ -1507,6 +1719,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         mockBaseUrl
     );
 
@@ -1537,6 +1750,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        gitHubAppDeletionService,
         mockBaseUrl
     );
 

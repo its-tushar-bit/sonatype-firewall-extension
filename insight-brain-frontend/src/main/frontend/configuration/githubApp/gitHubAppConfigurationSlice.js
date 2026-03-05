@@ -10,6 +10,10 @@ import axios from 'axios';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+import {
+  getScmFormStateStorageKey,
+  saveFormStateWithFallback,
+} from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 
 import { always } from 'ramda';
 
@@ -53,6 +57,15 @@ const initiateGitHubAppRegistration = createAsyncThunk(
       const state = getState();
       const owner = selectSelectedOwner(state);
       const orgName = organizationName?.trimmedValue || null;
+      // Save entire source control form state before redirecting to GitHub
+      const sourceControlState = state?.orgsAndPolicies?.sourceControlConfiguration;
+      if (sourceControlState?.sourceControl) {
+        const storageKey = getScmFormStateStorageKey(owner.type, owner.id);
+        // Save entire sourceControl object (except token for security)
+        const sourceControlToSave = { ...sourceControlState.sourceControl };
+        delete sourceControlToSave.token; // Remove token for security
+        saveFormStateWithFallback(storageKey, sourceControlToSave);
+      }
       const response = await axios.post(getGitHubAppManifestUrl(owner.id, orgName));
       const { manifest, state: stateToken } = response.data;
 

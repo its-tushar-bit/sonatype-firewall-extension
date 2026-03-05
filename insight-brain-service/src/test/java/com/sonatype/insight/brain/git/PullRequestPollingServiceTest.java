@@ -743,7 +743,7 @@ public class PullRequestPollingServiceTest
     GitRepositoryInfo captured = repoInfoCaptor.getValue();
     assertThat(captured.getAuthenticationType()).isNull();
     assertThat(captured.token).isNotNull();
-    assertThat(captured.getOwnerId()).isNull();
+    assertThat(captured.authOwnerId).isNull();
 
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
   }
@@ -771,7 +771,7 @@ public class PullRequestPollingServiceTest
 
     GitRepositoryInfo captured = repoInfoCaptor.getValue();
     assertThat(captured.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
-    assertThat(captured.getOwnerId()).isEqualTo(appId);
+    assertThat(captured.authOwnerId).isEqualTo(appId);
 
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
   }

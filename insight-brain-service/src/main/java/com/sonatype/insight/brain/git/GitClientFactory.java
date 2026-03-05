@@ -70,12 +70,7 @@ public class GitClientFactory
     insightProxy.contextualize(configuration, apiUrl);
 
     if (gitRepositoryInfo.authenticationType == AuthenticationType.GITHUB_APP) {
-      if (gitRepositoryInfo.ownerId == null) {
-        throw new IllegalStateException(
-            "GitHub App authentication is configured but ownerId is not set for repository: "
-                + gitRepositoryInfo.normalizedRepositoryUrl);
-      }
-      AuthenticationStrategy authStrategy = authStrategyCache.getOrCreate(gitRepositoryInfo.ownerId);
+      AuthenticationStrategy authStrategy = getGitHubAppAuthStrategy(gitRepositoryInfo);
       return gitApiClientFactory.getGitHubApiClient(
           configuration,
           gitRepositoryInfo.normalizedRepositoryUrl,
@@ -92,12 +87,7 @@ public class GitClientFactory
     insightProxy.contextualize(configuration, graphqlApiUrl);
 
     if (gitRepositoryInfo.authenticationType == AuthenticationType.GITHUB_APP) {
-      if (gitRepositoryInfo.ownerId == null) {
-        throw new IllegalStateException(
-            "GitHub App authentication is configured but ownerId is not set for repository: "
-                + gitRepositoryInfo.normalizedRepositoryUrl);
-      }
-      AuthenticationStrategy authStrategy = authStrategyCache.getOrCreate(gitRepositoryInfo.ownerId);
+      AuthenticationStrategy authStrategy = getGitHubAppAuthStrategy(gitRepositoryInfo);
       return gitApiClientFactory.getGitHubPullRequestInfoClient(
           configuration,
           (com.sonatype.nexus.scm.github.auth.GitHubAppAuthStrategy) authStrategy);
@@ -113,12 +103,7 @@ public class GitClientFactory
     insightProxy.contextualize(configuration, graphqlApiUrl);
 
     if (gitRepositoryInfo.authenticationType == AuthenticationType.GITHUB_APP) {
-      if (gitRepositoryInfo.ownerId == null) {
-        throw new IllegalStateException(
-            "GitHub App authentication is configured but ownerId is not set for repository: "
-                + gitRepositoryInfo.normalizedRepositoryUrl);
-      }
-      AuthenticationStrategy authStrategy = authStrategyCache.getOrCreate(gitRepositoryInfo.ownerId);
+      AuthenticationStrategy authStrategy = getGitHubAppAuthStrategy(gitRepositoryInfo);
       return gitApiClientFactory.getGitHubContributorInfoClient(
           configuration,
           (com.sonatype.nexus.scm.github.auth.GitHubAppAuthStrategy) authStrategy);
@@ -203,5 +188,16 @@ public class GitClientFactory
     return getUrl(gitRepositoryInfo, prInfoClientUrlCache.get(),
         gri -> getClientUtils(gri.provider, configuration)
             .getContributorInfoProviderUrl(gri.normalizedRepositoryUrl));
+  }
+
+  private AuthenticationStrategy getGitHubAppAuthStrategy(final GitRepositoryInfo gitRepositoryInfo) {
+    if (gitRepositoryInfo.authOwnerId == null) {
+      throw new IllegalStateException(
+          "GitHub App authentication is configured but no owner ID found for authentication lookup. "
+              + "Repository: " + gitRepositoryInfo.normalizedRepositoryUrl
+              + ". Please ensure a GitHub App is registered at the application or parent organization level.");
+    }
+
+    return authStrategyCache.getOrCreate(gitRepositoryInfo.authOwnerId);
   }
 }

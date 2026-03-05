@@ -108,6 +108,7 @@ public class ApiGitHubAppServiceAuthzTest
         insightProxy,
         gitHubManifestService,
         mock(GitHubAppAuthStrategyCache.class),
+        mock(GitHubAppDeletionService.class),
         mockServerUrl,  // githubApiBaseUrl
         mockServerUrl,  // githubOAuthTokenUrl
         mock(BaseUrl.class)

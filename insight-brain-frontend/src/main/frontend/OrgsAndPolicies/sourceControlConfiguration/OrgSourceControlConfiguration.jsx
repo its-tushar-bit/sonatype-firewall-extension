@@ -124,7 +124,7 @@ const OrgSourceControlConfiguration = () => {
       doLoad={doLoad}
       loading={formLoading}
       loadError={loadError}
-      validationErrors={getValidationMessage(isDirty, validationError)}
+      validationErrors={getValidationMessage(isDirty, validationError, sourceControl, isGithubAppAuthenticationEnabled)}
       submitMaskState={submitMaskState}
       submitError={submitError}
       submitBtnText="Update"
@@ -172,6 +172,7 @@ const OrgSourceControlConfiguration = () => {
         <GitHubAppAuthenticationMethod
           sourceControl={sourceControl}
           setValue={setValue}
+          setIsInherited={setIsInherited}
           areFieldsDisabled={areFieldsDisabled}
           onChangeToken={onChangeToken}
           isGithubAppAuthenticationEnabled={isGithubAppAuthenticationEnabled}
@@ -241,6 +242,15 @@ const OrgSourceControlConfiguration = () => {
                 {...(sourceControl?.token.isInherited && sourceControl?.provider.isInherited
                   ? sourceControl?.token.parentValue
                   : sourceControl?.token.rscValue)}
+                value={(() => {
+                  // Defensive masking: detect and mask encrypted tokens from backend
+                  const tokenVal = (sourceControl?.token.isInherited && sourceControl?.provider.isInherited
+                    ? sourceControl?.token.parentValue
+                    : sourceControl?.token.rscValue
+                  )?.value;
+                  // Backend should return masked tokens, but defensively check for encrypted format {base64}
+                  return tokenVal?.match(/^\{[A-Za-z0-9+/=]+\}$/) ? '#~FAKE~SECRET~KEY~#' : tokenVal;
+                })()}
                 disabled={isTokenDisabled}
                 type="password"
                 validatable

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.git;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,10 +23,14 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentCha
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiSuggestedVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.hds.ComponentRemediationService;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.DependencyType;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
@@ -78,9 +83,12 @@ public class ManualPullRequestServiceTest
 
   @Mock
   private ScmRepoVisibilityService mockScmRepoVisibilityService;
-  
+
   @Mock
   private TenantUtil mockTenantUtil;
+
+  @Mock
+  private GitHubAppDAO mockGitHubAppDAO;
 
   @Inject
   private ManualPullRequestService manualPullRequestService;
@@ -90,6 +98,7 @@ public class ManualPullRequestServiceTest
     super.configure(binder);
     binder.bind(ScmRepoVisibilityService.class).toInstance(mockScmRepoVisibilityService);
     binder.bind(TenantUtil.class).toInstance(mockTenantUtil);
+    binder.bind(GitHubAppDAO.class).toInstance(mockGitHubAppDAO);
   }
 
   @Before
@@ -406,5 +415,186 @@ public class ManualPullRequestServiceTest
     component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(
         ComponentIdentifier.createMavenCoordinates("g", "a", version, "c", "e"));
     return component;
+  }
+
+  @Test
+  public void testIsManualPullRequestPossible_WithGitHubApp_Success() {
+    GitHubApp githubApp = createTestGitHubApp(app.getId());
+    githubApp.setInstallationId(123456L);
+    tempEntity.newGitHubApp(githubApp);
+
+    SourceControl sourceControl = getSourceControl();
+    sourceControl.setAuthenticationType(SourceControl.AuthenticationType.GITHUB_APP);
+    sourceControl.setToken(null);
+    sourceControlDAO.updateWithoutValidation(sourceControl);
+
+    when(mockGitHubAppDAO.getNearestGitHubApp(app.getId())).thenReturn(githubApp);
+
+    ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+    remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
+
+    Optional<ManualPullRequestImpossibilityReason> result =
+        manualPullRequestService.isManualPullRequestPossible(
+            SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+            VALID_DEPENDENCY_TYPE, app, remediationDto);
+
+    assertThat(result).isEmpty();
+    assertThat(sourceControl.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
+    assertThat(sourceControl.getToken()).isNull();
+    assertThat(githubApp.getOwnerId()).isEqualTo(app.getId());
+    assertThat(githubApp.getInstallationId()).isNotNull().isEqualTo(123456L);
+  }
+
+  @Test
+  public void testIsManualPullRequestPossible_WithGitHubApp_NoGitHubAppInHierarchy() {
+    SourceControl sourceControl = getSourceControl();
+    sourceControl.setAuthenticationType(SourceControl.AuthenticationType.GITHUB_APP);
+    sourceControl.setToken(null);
+    sourceControlDAO.updateWithoutValidation(sourceControl);
+
+    when(mockGitHubAppDAO.getNearestGitHubApp(app.getId())).thenReturn(null);
+
+    ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+    remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
+
+    Optional<ManualPullRequestImpossibilityReason> result =
+        manualPullRequestService.isManualPullRequestPossible(
+            SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+            VALID_DEPENDENCY_TYPE, app, remediationDto);
+
+    assertThat(result).isPresent()
+        .contains(ManualPullRequestImpossibilityReason.SCM_NOT_CONFIGURED);
+    assertThat(sourceControl.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
+    assertThat(sourceControl.getToken()).isNull();
+  }
+
+  @Test
+  public void testIsManualPullRequestPossible_WithGitHubApp_MissingInstallationId() {
+    GitHubApp githubApp = createTestGitHubApp(app.getId());
+    githubApp.setInstallationId(null);
+    tempEntity.newGitHubApp(githubApp);
+
+    SourceControl sourceControl = getSourceControl();
+    sourceControl.setAuthenticationType(SourceControl.AuthenticationType.GITHUB_APP);
+    sourceControl.setToken(null);
+    sourceControlDAO.updateWithoutValidation(sourceControl);
+
+    when(mockGitHubAppDAO.getNearestGitHubApp(app.getId())).thenReturn(githubApp);
+
+    ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+    remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
+
+    Optional<ManualPullRequestImpossibilityReason> result =
+        manualPullRequestService.isManualPullRequestPossible(
+            SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+            VALID_DEPENDENCY_TYPE, app, remediationDto);
+
+    assertThat(result).isPresent()
+        .contains(ManualPullRequestImpossibilityReason.SCM_NOT_CONFIGURED);
+    assertThat(sourceControl.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
+    assertThat(sourceControl.getToken()).isNull();
+    assertThat(githubApp.getInstallationId()).isNull();
+  }
+
+  @Test
+  public void testIsManualPullRequestPossible_WithGitHubApp_NullOwnerId() {
+    // Create a valid GitHubApp with tempEntity for proper cleanup
+    GitHubApp validGithubApp = createTestGitHubApp(app.getId());
+    validGithubApp.setInstallationId(123456L);
+    tempEntity.newGitHubApp(validGithubApp);
+
+    // Create a separate GitHubApp instance with null ownerId to simulate the error condition
+    GitHubApp githubAppWithNullOwnerId = createTestGitHubApp(null);
+    githubAppWithNullOwnerId.setInstallationId(123456L);
+
+    SourceControl sourceControl = getSourceControl();
+    sourceControl.setAuthenticationType(SourceControl.AuthenticationType.GITHUB_APP);
+    sourceControl.setToken(null);
+    sourceControlDAO.updateWithoutValidation(sourceControl);
+
+    // Mock the DAO to return the GitHubApp with null ownerId
+    when(mockGitHubAppDAO.getNearestGitHubApp(app.getId())).thenReturn(githubAppWithNullOwnerId);
+
+    ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+    remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
+
+    Optional<ManualPullRequestImpossibilityReason> result =
+        manualPullRequestService.isManualPullRequestPossible(
+            SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+            VALID_DEPENDENCY_TYPE, app, remediationDto);
+
+    assertThat(result).isPresent()
+        .contains(ManualPullRequestImpossibilityReason.SCM_NOT_CONFIGURED);
+    assertThat(sourceControl.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
+    assertThat(sourceControl.getToken()).isNull();
+    assertThat(githubAppWithNullOwnerId.getOwnerId()).isNull();
+  }
+
+  @Test
+  public void testIsManualPullRequestPossible_WithGitHubApp_InheritsFromParentOrg() {
+    Organization parentOrg = tempEntity.newOrganization("parent-org");
+    Application childApp = tempEntity.newApplication(parentOrg.getId());
+    grantPermission(childApp.getId(), Permission.CREATE_PULL_REQUESTS);
+
+    GitHubApp githubApp = createTestGitHubApp(parentOrg.getId());
+    githubApp.setInstallationId(123456L);
+    tempEntity.newGitHubApp(githubApp);
+
+    SourceControl sourceControl = new SourceControl();
+    sourceControl.setOwnerId(childApp.getId());
+    sourceControl.setRepositoryUrl("https://github.com/test/repo");
+    sourceControl.setProvider(SourceControlProvider.GITHUB);
+    sourceControl.setBaseBranch("main");
+    sourceControl.setAuthenticationType(SourceControl.AuthenticationType.GITHUB_APP);
+    sourceControl.setManualPullRequestsEnabled(true);
+    tempEntity.newSourceControl(sourceControl);
+
+    when(mockGitHubAppDAO.getNearestGitHubApp(childApp.getId())).thenReturn(githubApp);
+
+    ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+    remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
+
+    Optional<ManualPullRequestImpossibilityReason> result =
+        manualPullRequestService.isManualPullRequestPossible(
+            SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+            VALID_DEPENDENCY_TYPE, childApp, remediationDto);
+
+    assertThat(result).isEmpty();
+    assertThat(sourceControl.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
+    assertThat(sourceControl.getToken()).isNull();
+    assertThat(githubApp.getOwnerId()).isEqualTo(parentOrg.getId());
+    assertThat(githubApp.getInstallationId()).isEqualTo(123456L);
+  }
+
+  @Test
+  public void testIsManualPullRequestPossible_WithTokenAuthentication_Succeeds() {
+    SourceControl sourceControl = getSourceControl();
+    sourceControl.setToken(passwordHandler.encryptPassword("valid-token"));
+    sourceControlDAO.updateWithoutValidation(sourceControl);
+
+    ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+    remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
+
+    Optional<ManualPullRequestImpossibilityReason> result =
+        manualPullRequestService.isManualPullRequestPossible(
+            SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+            VALID_DEPENDENCY_TYPE, app, remediationDto);
+
+    assertThat(result).isEmpty();
+    assertThat(sourceControl.getAuthenticationType()).isNull();
+    assertThat(sourceControl.getToken()).isNotNull();
+  }
+
+  private GitHubApp createTestGitHubApp(String ownerId) {
+    GitHubApp githubApp = new GitHubApp();
+    githubApp.setOwnerId(ownerId);
+    githubApp.setGithubOrganizationName("test-org");
+    githubApp.setAppId(123456);
+    githubApp.setSlug("test-github-app");
+    githubApp.setClientId("Iv1.test-client-id");
+    githubApp.setClientSecret("test-client-secret");
+    githubApp.setLastUpdatedAt(new Date());
+    githubApp.setPrivateKey("test-private-key");
+    return githubApp;
   }
 }

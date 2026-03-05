@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import com.sonatype.insight.brain.utils.SourceControlAuthenticationTransitionHandler;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -131,6 +133,8 @@ public class ApiSourceControlService
 
   private final SourceControlDataService sourceControlDataService;
 
+  private final SourceControlAuthenticationTransitionHandler sourceControlAuthenticationTransitionHandler;
+
   @Inject
   public ApiSourceControlService(
       final PasswordHandler passwordHandler,
@@ -150,7 +154,8 @@ public class ApiSourceControlService
       final TelemetryUtils telemetryUtils,
       final ScmRepoVisibilityService scmRepoVisibilityService,
       final ApiSourceControlAdapter apiSourceControlAdapter,
-      final SourceControlDataService sourceControlDataService)
+      final SourceControlDataService sourceControlDataService,
+      final SourceControlAuthenticationTransitionHandler sourceControlAuthenticationTransitionHandler)
   {
     this.passwordHandler = passwordHandler;
     this.sourceControlDAO = sourceControlDAO;
@@ -170,6 +175,7 @@ public class ApiSourceControlService
     this.scmRepoVisibilityService = scmRepoVisibilityService;
     this.apiSourceControlAdapter = apiSourceControlAdapter;
     this.sourceControlDataService = sourceControlDataService;
+    this.sourceControlAuthenticationTransitionHandler = sourceControlAuthenticationTransitionHandler;
   }
 
   @Authorize(permission = Permission.READ)
@@ -351,6 +357,7 @@ public class ApiSourceControlService
     sourceControl.setId(storedSourceControl.getId());
     sourceControl.setPullRequestPollTime(storedSourceControl.getPullRequestPollTime());
     sourceControl.setPullRequestErrorCount(storedSourceControl.getPullRequestErrorCount());
+    sourceControlAuthenticationTransitionHandler.handleAuthTransition(storedSourceControl, sourceControl);
 
     setTokenValueForSave(sourceControl);
     // updates may come with our 'fake' token
@@ -398,6 +405,7 @@ public class ApiSourceControlService
       deleteSourceControlDirectory(ownerId);
     }
     SourceControl compositeSourceControl = getCompositeSourceControl(ownerType, sourceControl);
+    sourceControlAuthenticationTransitionHandler.deleteGitHubAppInstallation(compositeSourceControl);
     sourceControlDAO.delete(sourceControl);
     auditSourceControl(sourceControl);
 

@@ -181,7 +181,7 @@ const RootSourceControlConfiguration = () => {
       doLoad={doLoad}
       loading={formLoading}
       loadError={loadError}
-      validationErrors={getValidationMessage(isDirty, validationError)}
+      validationErrors={getValidationMessage(isDirty, validationError, sourceControl, isGithubAppAuthenticationEnabled)}
       submitMaskState={submitMaskState}
       submitError={submitError}
       submitBtnText={sourceControl?.id ? 'Update' : 'Create'}

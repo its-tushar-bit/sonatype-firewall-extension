@@ -4612,7 +4612,8 @@ public class TemporaryEntity
     GitHubApp gitHubApp = new GitHubApp();
     gitHubApp.setId(uuid());
     gitHubApp.setOwnerId(ownerId);
-    gitHubApp.setAppId(12345);
+    // Generate unique app ID to avoid collisions
+    gitHubApp.setAppId((int) (System.currentTimeMillis() % Integer.MAX_VALUE));
     gitHubApp.setSlug("test-app");
     gitHubApp.setClientId("Iv1.1234567890abcdef");
     gitHubApp.setClientSecret("client-secret-test");

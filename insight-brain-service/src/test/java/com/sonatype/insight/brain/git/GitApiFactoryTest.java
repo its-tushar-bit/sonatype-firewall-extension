@@ -43,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -356,7 +357,7 @@ public class GitApiFactoryTest
         null, null, null, SourceControlProvider.GITHUB, "main",
         true, true, true, true, true, true, false, null);
     gitInfo.authenticationType = SourceControl.AuthenticationType.GITHUB_APP;
-    gitInfo.ownerId = "test-owner-id";
+    gitInfo.authOwnerId = "test-owner-id";
 
     when(spyGitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
 
@@ -379,7 +380,7 @@ public class GitApiFactoryTest
         "testuser", "test-pat-token", SourceControlProvider.GITHUB, "main",
         true, true, true, true, true, true, false, null);
     gitInfo.authenticationType = SourceControl.AuthenticationType.PAT;
-    gitInfo.ownerId = "test-owner-id";
+    gitInfo.authOwnerId = "test-owner-id";
 
     when(spyGitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
 
@@ -453,7 +454,7 @@ public class GitApiFactoryTest
         "testuser", "legacy-token", SourceControlProvider.GITHUB, "main",
         true, true, true, true, true, true, false, null);
     gitInfo.authenticationType = null; // Null should use legacy PAT behavior
-    gitInfo.ownerId = "test-owner-id";
+    gitInfo.authOwnerId = "test-owner-id";
 
     when(spyGitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
 
@@ -514,6 +515,82 @@ public class GitApiFactoryTest
     return githubApp;
   }
 
+  @Test
+  public void testCreateGitApi_WithGitHubAppAuth_UsesAuthOwnerIdWhenAvailable() throws Exception {
+    // Setup GitHub App in database for parent owner
+    GitHubApp githubApp = createTestGitHubApp("parent-owner-id");
+    githubApp = tempEntity.newGitHubApp(githubApp);
+
+    // Mock the auth strategy cache
+    GitHubAppAuthStrategy mockAuthStrategy = mock(GitHubAppAuthStrategy.class);
+    InstallationToken mockToken = mock(InstallationToken.class);
+
+    when(mockAuthStrategyCache.getOrCreate("parent-owner-id"))
+        .thenReturn(mockAuthStrategy);
+    when(mockAuthStrategy.getInstallationToken())
+        .thenReturn(mockToken);
+    when(mockToken.getToken())
+        .thenReturn("ghs_mocked_installation_token");
+
+    // Create GitRepositoryInfo with authOwnerId
+    GitRepositoryInfo gitInfo = new GitRepositoryInfo(
+        "https://github.com/test/repo",
+        null, null, null, SourceControlProvider.GITHUB, "main",
+        true, true, true, true, true, true, false, null);
+    gitInfo.authenticationType = SourceControl.AuthenticationType.GITHUB_APP;
+    gitInfo.authOwnerId = "parent-owner-id"; // Should use this for authentication
+
+    when(spyGitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
+
+    // Execute
+    GitApi gitApi = spyGitApiFactory.createGitApi(gitInfo);
+
+    // Verify
+    assertThat(gitApi).isNotNull();
+    assertThat(gitApi).isInstanceOf(NativeGitApi.class);
+
+    // Verify the cache was called with authOwnerId, not ownerId
+    verify(mockAuthStrategyCache).getOrCreate("parent-owner-id");
+    verify(mockAuthStrategyCache, never()).getOrCreate("child-owner-id");
+    verify(mockAuthStrategy).getInstallationToken();
+  }
+
+  @Test
+  public void testCreateGitApi_WithGitHubAppAuth_ThrowsExceptionWhenAuthOwnerIdIsNull() {
+    // Create GitRepositoryInfo with null authOwnerId
+    GitRepositoryInfo gitInfo = new GitRepositoryInfo(
+        "https://github.com/test/repo",
+        null, null, null, SourceControlProvider.GITHUB, "main",
+        true, true, true, true, true, true, false, null);
+    gitInfo.authenticationType = SourceControl.AuthenticationType.GITHUB_APP;
+    gitInfo.authOwnerId = null; // null - should throw exception
+
+    when(spyGitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
+
+    // Execute and verify exception
+    assertThatThrownBy(() -> spyGitApiFactory.createGitApi(gitInfo))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("GitHub App authentication is configured but no owner ID found");
+  }
+
+  @Test
+  public void testCreateGitApi_WithGitHubAppAuth_ThrowsExceptionWhenAuthOwnerIdIsNullAlternate() {
+    // Create GitRepositoryInfo with GitHub App auth but authOwnerId is null
+    GitRepositoryInfo gitInfo = new GitRepositoryInfo(
+        "https://github.com/test/repo",
+        null, null, null, SourceControlProvider.GITHUB, "main",
+        true, true, true, true, true, true, false, null);
+    gitInfo.authenticationType = SourceControl.AuthenticationType.GITHUB_APP;
+    gitInfo.authOwnerId = null;
+
+    when(spyGitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
+
+    // Execute and verify exception
+    assertThatThrownBy(() -> spyGitApiFactory.createGitApi(gitInfo))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("GitHub App authentication is configured but no owner ID found");
+  }
+
   /**
    * Helper method to create GitRepositoryInfo with GitHub App authentication
    */
@@ -522,7 +599,7 @@ public class GitApiFactoryTest
         "testuser", "placeholder-token", SourceControlProvider.GITHUB, "main",
         true, true, true, true, true, true, false, null);
     gitInfo.authenticationType = SourceControl.AuthenticationType.GITHUB_APP;
-    gitInfo.ownerId = ownerId;
+    gitInfo.authOwnerId = ownerId;
     return gitInfo;
   }
 }

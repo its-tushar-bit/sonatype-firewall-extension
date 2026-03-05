@@ -100,6 +100,8 @@ public class ApiGitHubAppService
 
   private final String githubOAuthTokenUrl;
 
+  private GitHubAppDeletionService gitHubAppDeletionService;
+
   @Inject
   public ApiGitHubAppService(
       final GitHubAppDAO gitHubAppDAO,
@@ -109,12 +111,13 @@ public class ApiGitHubAppService
       final OwnerDAO ownerDAO,
       final PasswordHandler passwordHandler,
       final InsightProxy insightProxy,
-          final GitHubManifestService gitHubManifestService,
-          final GitHubAppAuthStrategyCache authStrategyCache,
+      final GitHubManifestService gitHubManifestService,
+      final GitHubAppAuthStrategyCache authStrategyCache,
+      final GitHubAppDeletionService gitHubAppDeletionService,
           final BaseUrl baseUrl)
   {
     this(gitHubAppDAO, installationStateDAO, registrationStateDAO, sourceControlDAO, ownerDAO,
-        passwordHandler, insightProxy, gitHubManifestService, authStrategyCache,
+        passwordHandler, insightProxy, gitHubManifestService, authStrategyCache, gitHubAppDeletionService,
         DEFAULT_GITHUB_API_BASE_URL, DEFAULT_GITHUB_OAUTH_TOKEN_URL, baseUrl);
   }
 
@@ -128,6 +131,7 @@ public class ApiGitHubAppService
       final InsightProxy insightProxy,
           final GitHubManifestService gitHubManifestService,
           final GitHubAppAuthStrategyCache authStrategyCache,
+      final GitHubAppDeletionService gitHubAppDeletionService,
       final String githubApiBaseUrl,
       final String githubOAuthTokenUrl,
           final BaseUrl baseUrl)
@@ -141,6 +145,7 @@ public class ApiGitHubAppService
     this.insightProxy = insightProxy;
     this.gitHubManifestService = gitHubManifestService;
     this.authStrategyCache = authStrategyCache;
+    this.gitHubAppDeletionService = gitHubAppDeletionService;
     this.githubApiBaseUrl = githubApiBaseUrl;
     this.githubOAuthTokenUrl = githubOAuthTokenUrl;
     this.baseUrl = baseUrl;
@@ -384,6 +389,7 @@ public class ApiGitHubAppService
             gitHubManifestService.convertManifestCode(code, client);
 
     validateGitHubManifestResponse(githubResponse);
+    gitHubAppDeletionService.delete(registrationState.getOwnerId());
 
     try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
       tx.begin();

@@ -335,6 +335,14 @@ describe('selectSourceControlConfigurationSelectors', () => {
                   isPristine: false,
                 },
               },
+              authenticationType: {
+                value: 'GITHUB_APP',
+              },
+              githubApp: {
+                value: {
+                  installationId: 12345,
+                },
+              },
               username: {
                 rscValue: {
                   value: '',
@@ -436,6 +444,11 @@ describe('selectSourceControlConfigurationSelectors', () => {
     describe('GitHub App authentication', () => {
       it('does not validate token when provider is GitHub and authenticationType is GITHUB_APP', () => {
         const state = {
+          productFeatures: {
+            productFeatures: {
+              'github-app-authentication': true,
+            },
+          },
           orgsAndPolicies: {
             sourceControlConfiguration: {
               sourceControl: {
@@ -501,6 +514,11 @@ describe('selectSourceControlConfigurationSelectors', () => {
 
       it('returns error when GitHub App authentication is selected but not configured', () => {
         const state = {
+          productFeatures: {
+            productFeatures: {
+              'github-app-authentication': true,
+            },
+          },
           orgsAndPolicies: {
             sourceControlConfiguration: {
               sourceControl: {
@@ -564,6 +582,11 @@ describe('selectSourceControlConfigurationSelectors', () => {
 
       it('validates token when authenticationType is null for backwards compatibility', () => {
         const state = {
+          productFeatures: {
+            productFeatures: {
+              'github-app-authentication': true, // Feature flag enabled for this test
+            },
+          },
           orgsAndPolicies: {
             sourceControlConfiguration: {
               sourceControl: {
@@ -617,8 +640,473 @@ describe('selectSourceControlConfigurationSelectors', () => {
           },
         };
         const actual = selectValidationError(state);
+        expect(actual).toEqual('Please select an authentication method (GitHub App or Personal Access Token)');
+      });
+
+      it('validates token field when GitHub App feature is DISABLED', () => {
+        const state = {
+          productFeatures: {
+            productFeatures: {
+              'github-app-authentication': false, // Feature DISABLED
+            },
+          },
+          orgsAndPolicies: {
+            sourceControlConfiguration: {
+              sourceControl: {
+                provider: {
+                  rscValue: {
+                    value: 'github',
+                    validationErrors: null,
+                    isPristine: false,
+                  },
+                },
+                authenticationType: {
+                  value: null, // No auth type selection when feature is disabled
+                },
+                token: {
+                  rscValue: {
+                    value: '',
+                    trimmedValue: '',
+                    validationErrors: ['Must be non-empty'], // Token has validation error
+                    isPristine: false,
+                  },
+                },
+                baseBranch: {
+                  rscValue: {
+                    value: 'main',
+                    trimmedValue: 'main',
+                    validationErrors: null,
+                    isPristine: false,
+                  },
+                },
+                username: {
+                  rscValue: {
+                    value: '',
+                    trimmedValue: '',
+                    validationErrors: null,
+                    isPristine: false,
+                  },
+                },
+                closePrOnFailedChecksEnabled: {
+                  value: null,
+                },
+                closePrAfterDaysOpenEnabled: {
+                  value: null,
+                },
+                closePrAfterDays: {
+                  rscValue: {
+                    value: null,
+                  },
+                },
+              },
+            },
+          },
+        };
+        const actual = selectValidationError(state);
+        // When feature is disabled, should return generic validation error from token field
         expect(actual).toEqual(GLOBAL_FORM_VALIDATION_ERROR);
       });
+
+      describe('Inheritance scenarios', () => {
+        it('shows NO error when inheriting and parent has valid GitHub App configured', () => {
+          const state = {
+            productFeatures: {
+              productFeatures: {
+                'github-app-authentication': true,
+              },
+            },
+            orgsAndPolicies: {
+              sourceControlConfiguration: {
+                sourceControl: {
+                  provider: {
+                    rscValue: {
+                      value: 'github',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                  },
+                  authenticationType: {
+                    value: 'GITHUB_APP',
+                  },
+                  githubApp: {
+                    isInherited: true,
+                    parentValue: {
+                      installationId: 67890,
+                      name: 'parent-app',
+                      accountName: 'parent-org',
+                    },
+                    value: null,
+                  },
+                  username: {
+                    rscValue: {
+                      value: '',
+                      trimmedValue: '',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                  },
+                  token: {
+                    rscValue: {
+                      value: '',
+                      trimmedValue: '',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                  },
+                  baseBranch: {
+                    rscValue: {
+                      value: 'main',
+                      trimmedValue: 'main',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                  },
+                  closePrOnFailedChecksEnabled: {
+                    value: null,
+                  },
+                  closePrAfterDaysOpenEnabled: {
+                    value: null,
+                  },
+                  closePrAfterDays: {
+                    rscValue: {
+                      value: null,
+                    },
+                  },
+                },
+              },
+            },
+          };
+          const actual = selectValidationError(state);
+          expect(actual).toEqual(null);
+        });
+
+        it('shows error when inheriting but parent has NO GitHub App configured', () => {
+          const state = {
+            productFeatures: {
+              productFeatures: {
+                'github-app-authentication': true,
+              },
+            },
+            orgsAndPolicies: {
+              sourceControlConfiguration: {
+                sourceControl: {
+                  provider: {
+                    rscValue: {
+                      value: 'github',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                  },
+                  authenticationType: {
+                    value: 'GITHUB_APP',
+                  },
+                  githubApp: {
+                    isInherited: true,
+                    parentValue: null, // Parent has no GitHub App configured
+                    value: null,
+                  },
+                  username: {
+                    rscValue: {
+                      value: '',
+                      trimmedValue: '',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                  },
+                  token: {
+                    rscValue: {
+                      value: '',
+                      trimmedValue: '',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                  },
+                  baseBranch: {
+                    rscValue: {
+                      value: 'main',
+                      trimmedValue: 'main',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                  },
+                  closePrOnFailedChecksEnabled: {
+                    value: null,
+                  },
+                  closePrAfterDaysOpenEnabled: {
+                    value: null,
+                  },
+                  closePrAfterDays: {
+                    rscValue: {
+                      value: null,
+                    },
+                  },
+                },
+              },
+            },
+          };
+          const actual = selectValidationError(state);
+          expect(actual).toEqual(
+            'Please configure and install a GitHub App or switch to Personal Access Token authentication.'
+          );
+        });
+
+        it('shows error when overriding but own GitHub App is NOT configured', () => {
+          const state = {
+            productFeatures: {
+              productFeatures: {
+                'github-app-authentication': true,
+              },
+            },
+            orgsAndPolicies: {
+              sourceControlConfiguration: {
+                sourceControl: {
+                  provider: {
+                    rscValue: {
+                      value: 'github',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                  },
+                  authenticationType: {
+                    value: 'GITHUB_APP',
+                  },
+                  githubApp: {
+                    isInherited: false, // Overriding
+                    parentValue: {
+                      installationId: 67890,
+                      name: 'parent-app',
+                      accountName: 'parent-org',
+                    },
+                    value: null, // But own config is empty
+                  },
+                  username: {
+                    rscValue: {
+                      value: '',
+                      trimmedValue: '',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                  },
+                  token: {
+                    rscValue: {
+                      value: '',
+                      trimmedValue: '',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                  },
+                  baseBranch: {
+                    rscValue: {
+                      value: 'main',
+                      trimmedValue: 'main',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                  },
+                  closePrOnFailedChecksEnabled: {
+                    value: null,
+                  },
+                  closePrAfterDaysOpenEnabled: {
+                    value: null,
+                  },
+                  closePrAfterDays: {
+                    rscValue: {
+                      value: null,
+                    },
+                  },
+                },
+              },
+            },
+          };
+          const actual = selectValidationError(state);
+          expect(actual).toEqual(
+            'Please configure and install a GitHub App or switch to Personal Access Token authentication.'
+          );
+        });
+
+        it('shows NO error when inheriting and parent uses PAT authentication', () => {
+          const state = {
+            orgsAndPolicies: {
+              sourceControlConfiguration: {
+                sourceControl: {
+                  provider: {
+                    rscValue: {
+                      value: 'github',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                  },
+                  authenticationType: {
+                    value: 'PAT', // Parent uses PAT
+                    isInherited: true,
+                  },
+                  githubApp: {
+                    isInherited: true,
+                    parentValue: null, // No GitHub App because parent uses PAT
+                    value: null,
+                  },
+                  username: {
+                    rscValue: {
+                      value: '',
+                      trimmedValue: '',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                  },
+                  token: {
+                    rscValue: {
+                      value: '',
+                      trimmedValue: '',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                    isInherited: true,
+                    parentValue: {
+                      value: 'masked-token',
+                    },
+                  },
+                  baseBranch: {
+                    rscValue: {
+                      value: 'main',
+                      trimmedValue: 'main',
+                      validationErrors: null,
+                      isPristine: false,
+                    },
+                  },
+                  closePrOnFailedChecksEnabled: {
+                    value: null,
+                  },
+                  closePrAfterDaysOpenEnabled: {
+                    value: null,
+                  },
+                  closePrAfterDays: {
+                    rscValue: {
+                      value: null,
+                    },
+                  },
+                },
+              },
+            },
+          };
+          const actual = selectValidationError(state);
+          expect(actual).toEqual(null);
+        });
+      });
+    });
+  });
+
+  describe('selectIsAccessTokenRequiredOnNode', () => {
+    const {
+      selectIsAccessTokenRequiredOnNode,
+    } = require('MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors');
+
+    it('returns false when GitHub App auth is selected locally', () => {
+      const state = {
+        orgsAndPolicies: {
+          sourceControlConfiguration: {
+            sourceControl: {
+              provider: {
+                rscValue: {
+                  value: 'github',
+                },
+              },
+              authenticationType: {
+                value: 'GITHUB_APP',
+                isInherited: false,
+              },
+            },
+            serverSourceControl: {},
+          },
+        },
+        router: {
+          currentState: {
+            data: {
+              isApp: false,
+            },
+          },
+        },
+      };
+
+      const result = selectIsAccessTokenRequiredOnNode(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when GitHub App auth is inherited from parent', () => {
+      const state = {
+        orgsAndPolicies: {
+          sourceControlConfiguration: {
+            sourceControl: {
+              provider: {
+                rscValue: {
+                  value: 'github',
+                },
+              },
+              authenticationType: {
+                value: 'PAT', // Local value is PAT
+                isInherited: true, // But it's inherited
+                parentValue: 'GITHUB_APP', // Parent has GitHub App
+              },
+            },
+            serverSourceControl: {
+              provider: {
+                rscValue: {
+                  value: 'github',
+                },
+              },
+            },
+          },
+        },
+        router: {
+          currentState: {
+            data: {
+              isApp: false,
+            },
+          },
+        },
+      };
+
+      const result = selectIsAccessTokenRequiredOnNode(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for non-GitHub providers regardless of auth type', () => {
+      const state = {
+        orgsAndPolicies: {
+          sourceControlConfiguration: {
+            sourceControl: {
+              provider: {
+                rscValue: {
+                  value: 'gitlab',
+                },
+              },
+              authenticationType: {
+                value: 'PAT',
+                isInherited: false,
+              },
+            },
+            serverSourceControl: {
+              provider: {
+                rscValue: {
+                  value: 'gitlab',
+                },
+              },
+            },
+          },
+        },
+        router: {
+          currentState: {
+            data: {
+              isApp: false,
+            },
+          },
+        },
+      };
+
+      const result = selectIsAccessTokenRequiredOnNode(state);
+
+      expect(result).toBe(false);
     });
   });
 });

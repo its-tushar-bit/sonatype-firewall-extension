@@ -340,7 +340,7 @@ public class PullRequestCommentingClientTest
 
     GitRepositoryInfo captured = repoInfoCaptor.getValue();
     assertThat(captured.getAuthenticationType()).isNull();  // PAT auth uses null
-    assertThat(captured.getOwnerId()).isNull();  // PAT auth uses null
+    assertThat(captured.authOwnerId).isNull();  // PAT auth uses null
     assertThat(captured.token).isEqualTo("token123");  // PAT auth uses token field
 
     // and: PR comment was created
@@ -392,7 +392,7 @@ public class PullRequestCommentingClientTest
 
     GitRepositoryInfo captured = repoInfoCaptor.getValue();
     assertThat(captured.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
-    assertThat(captured.getOwnerId()).isEqualTo(ownerId);
+    assertThat(captured.authOwnerId).isEqualTo(ownerId);
     assertThat(captured.token).isNull();
 
     // and: PR comment was created

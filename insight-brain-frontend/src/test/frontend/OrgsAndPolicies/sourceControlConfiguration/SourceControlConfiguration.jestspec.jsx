@@ -294,7 +294,7 @@ describe('sourceControlConfiguration', () => {
       it('submits new configuration (Post request) if there is no entity before', async () => {
         const submitData = {
           authenticationType: null,
-          provider: 'github',
+          provider: 'gitlab',
           username: null,
           token: 'admin123',
           baseBranch: 'main',
@@ -313,8 +313,8 @@ describe('sourceControlConfiguration', () => {
         axiosMock.onPost(getSourceControlUrl(ownerType, ownerId), submitData).reply(200);
         renderComponent();
         const providerSelector = await screen.findByRole('combobox');
-        fireEvent.change(providerSelector, { target: { value: 'github' } });
-        expect(providerSelector.value).toBe('github');
+        fireEvent.change(providerSelector, { target: { value: 'gitlab' } });
+        expect(providerSelector.value).toBe('gitlab');
         const tokenInput = screen.getByLabelText('Access Token');
         fireEvent.change(tokenInput, { target: { value: 'admin123' } });
         const submitButton = screen.getByRole('button', { name: 'Create' });
@@ -1336,9 +1336,6 @@ describe('sourceControlConfiguration', () => {
         expect(repositoryUrl).not.toBeDisabled();
         expect(repositoryUrl).toHaveValue('');
 
-        const tokenWarning = screen.getByText('Access Token must be configured');
-        expect(tokenWarning).toBeVisible();
-
         await testSourceControlContainers(assertionsForAppDefaultState);
 
         expect(resetButton).toBeVisible();
@@ -1382,6 +1379,7 @@ describe('sourceControlConfiguration', () => {
         await testSourceControlContainers(assertionsForAppNoTokenInheritedState);
         const [, credentialsContainer] = await screen.findAllByRole('group');
         const [inherit, override] = within(credentialsContainer).getAllByRole('radio');
+        // Inherit radio is disabled because parent has no credentials to inherit (Azure provider but no username/token)
         expect(inherit).toBeDisabled();
         expect(override).not.toBeDisabled();
 

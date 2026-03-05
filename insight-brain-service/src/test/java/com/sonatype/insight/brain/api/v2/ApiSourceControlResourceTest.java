@@ -721,6 +721,54 @@ public class ApiSourceControlResourceTest
         .isEqualTo("An SCMUserMappingsDTO must be provided either with the request or at the organization level");
   }
 
+  @Test
+  public void testUpdateSourceControlByOwner_AuthTypeChange_GitHubAppToPat() throws Exception {
+    SourceControl sourceControl = tempEntity.newSourceControl(
+            app.getId(), VALID_URL, null, SourceControlProvider.GITHUB);
+    sourceControl.setAuthenticationType(SourceControl.AuthenticationType.GITHUB_APP);
+
+    ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
+    updateDTO.authenticationType = "PAT";
+    updateDTO.token = "new-pat-token";
+
+    HttpResponse response = restRequest()
+            .path(ApiSourceControlResource.BY_OWNER)
+            .parameter(OwnerType.APPLICATION, app.getId())
+            .body(updateDTO)
+            .put();
+
+    assertResponseStatus(200, response);
+    ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
+
+    assertThat(result.id).isEqualTo(sourceControl.getId());
+    assertThat(result.authenticationType).isEqualTo("PAT");
+    assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_AuthTypeChange_PatToGitHubApp() throws Exception {
+    SourceControl sourceControl = tempEntity.newSourceControl(
+            app.getId(), VALID_URL, "encrypted-token", SourceControlProvider.GITHUB);
+    sourceControl.setAuthenticationType(SourceControl.AuthenticationType.PAT);
+
+    ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
+    updateDTO.authenticationType = "GITHUB_APP";
+    updateDTO.token = SourceControl.FAKE_SECRET_KEY;
+
+    HttpResponse response = restRequest()
+            .path(ApiSourceControlResource.BY_OWNER)
+            .parameter(OwnerType.APPLICATION, app.getId())
+            .body(updateDTO)
+            .put();
+
+    assertResponseStatus(200, response);
+    ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
+
+    assertThat(result.id).isEqualTo(sourceControl.getId());
+    assertThat(result.authenticationType).isEqualTo("GITHUB_APP");
+    assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
+  }
+
   /**
    * This is a verbatim copy of the ApiSourceControlDTO class before some fields were deprecated.
    * It is used to test the API still works with the old API DTO.

@@ -22,7 +22,6 @@ import TestConfigurationResults from 'MainRoot/OrgsAndPolicies/sourceControlConf
 import TestConfigurationButton from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/TestConfigurationButton';
 import {
   getValidationMessage,
-  isAccessTokenRequiredOnNode,
   providerNeedsUsername,
   PROVIDERS_WITH_USERNAME,
   SCM_FEATURE_UNSUPPORTED_MESSAGE,
@@ -102,6 +101,13 @@ const AppSourceControlConfiguration = () => {
     ? 'Username and password cannot be inherited. No inheritable username defined.'
     : 'Access token cannot be inherited. No inheritable access token defined.';
 
+  // Check if parent has credentials that can be inherited
+  const hasParentToken = Boolean(sourceControl?.token?.parentValue?.value);
+  const hasParentUsername = Boolean(sourceControl?.username?.parentValue?.value);
+  const hasParentCredentials = providerNeedsUsername(sourceControl, serverSourceControl)
+    ? hasParentToken && hasParentUsername
+    : hasParentToken;
+
   const additionalFooterBtns = (
     <>
       <NxButton
@@ -145,7 +151,7 @@ const AppSourceControlConfiguration = () => {
       doLoad={doLoad}
       loading={formLoading}
       loadError={loadError}
-      validationErrors={getValidationMessage(isDirty, validationError)}
+      validationErrors={getValidationMessage(isDirty, validationError, sourceControl, isGithubAppAuthenticationEnabled)}
       submitMaskState={submitMaskState}
       submitError={submitError}
       submitBtnText="Update"
@@ -201,6 +207,7 @@ const AppSourceControlConfiguration = () => {
         <GitHubAppAuthenticationMethod
           sourceControl={sourceControl}
           setValue={setValue}
+          setIsInherited={setIsInherited}
           areFieldsDisabled={areFieldsDisabled}
           onChangeToken={onChangeToken}
           isGithubAppAuthenticationEnabled={isGithubAppAuthenticationEnabled}
@@ -216,19 +223,13 @@ const AppSourceControlConfiguration = () => {
         >
           {sourceControl?.provider.isInherited && (
             <>
-              <NxTooltip
-                title={
-                  isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp)
-                    ? credentialsDisabledMessage
-                    : ''
-                }
-              >
+              <NxTooltip title={!hasParentCredentials ? credentialsDisabledMessage : ''}>
                 <NxRadio
                   name="Credentials"
                   value="Inherit"
                   onChange={() => onChangeCredentialsInherited(true)}
                   isChecked={sourceControl?.token.isInherited}
-                  disabled={isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp) || areFieldsDisabled}
+                  disabled={!hasParentCredentials || areFieldsDisabled}
                 >
                   {sourceControl?.token.parentName
                     ? `Inherit from ${sourceControl?.token.parentName}`

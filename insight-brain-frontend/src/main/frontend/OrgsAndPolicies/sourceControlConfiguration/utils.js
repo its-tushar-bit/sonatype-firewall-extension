@@ -46,6 +46,65 @@ export const AUTHENTICATION_TYPES = {
 export const BRANCH_INPUT_MAX_CHARACTERS = 243,
   USERNAME_INPUT_MAX_CHARACTERS = 255,
   TOKEN_INPUT_MAX_CHARACTERS = 512;
+export const SCM_FORM_STATE_KEY_PREFIX = 'scmFormState_';
+
+/**
+ * Generates sessionStorage key for SCM form state scoped to specific owner.
+ * Keys are unique per owner to prevent cross-tenant data leakage in multi-tenant environments.
+ *
+ * @param {string} ownerType - Owner type: 'application' or 'organization'
+ * @param {string|number} ownerId - Unique identifier for the owner
+ * @returns {string} Storage key in format 'scmFormState_{ownerType}_{ownerId}'
+ * @example
+ * getScmFormStateStorageKey('organization', '12345')
+ * // Returns: 'scmFormState_organization_12345'
+ */
+export const getScmFormStateStorageKey = (ownerType, ownerId) => `${SCM_FORM_STATE_KEY_PREFIX}${ownerType}_${ownerId}`;
+
+/**
+ * Saves form state to sessionStorage.
+ * SessionStorage persists across cross-origin navigation (GitHub OAuth redirect)
+ * in all major browsers (Chrome, Edge, Firefox, Safari) and auto-clears on tab close.
+ *
+ * @param {string} key - Storage key (from getScmFormStateStorageKey)
+ * @param {Object} data - Form state data to save
+ */
+export const saveFormStateWithFallback = (key, data) => {
+  try {
+    sessionStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.warn('Failed to save form state to sessionStorage:', error);
+  }
+};
+
+/**
+ * Loads form state from sessionStorage.
+ *
+ * @param {string} key - Storage key (from getScmFormStateStorageKey)
+ * @returns {string|null} JSON string of saved form state, or null if not found
+ */
+export const loadFormStateWithFallback = (key) => {
+  try {
+    return sessionStorage.getItem(key);
+  } catch (error) {
+    console.warn('Failed to read from sessionStorage:', error);
+    return null;
+  }
+};
+
+/**
+ * Removes form state from sessionStorage.
+ * Best-effort cleanup - doesn't throw if removal fails.
+ *
+ * @param {string} key - Storage key (from getScmFormStateStorageKey)
+ */
+export const removeFormStateWithFallback = (key) => {
+  try {
+    sessionStorage.removeItem(key);
+  } catch (e) {
+    // Silent fail - cleanup is best-effort
+  }
+};
 export const SOURCE_CONTROL_OPTIONS = [
   {
     id: 'source-control-ssh',
@@ -219,20 +278,17 @@ export const compositeSourceControlToModel = (
       }),
     },
     githubApp: {
-      value: githubApp?.value ?? null,
+      // Shallow copy prevents shared references (githubApp contains only primitives)
+      value: githubApp?.value ? { ...githubApp.value } : null,
       isInherited: githubApp?.value === null && !isRootOrg,
-      parentValue: githubApp?.parentValue ?? null,
+      parentValue: githubApp?.parentValue ? { ...githubApp.parentValue } : null,
       parentName: githubApp?.parentName,
     },
   };
-  //set username and token
+  // Handle edge case: provider inherited from sub-org but token at root level
   if (provider.parentName !== ROOT_ORG_NAME && token.parentName === ROOT_ORG_NAME) {
-    // provider is inherited from a suborg but the token is at the root
-    // so act as if token is not set
     sourceControlData.token = {
-      rscValue: rscInitialState(token.value ?? '', () =>
-        textFieldValidator(token.value ?? '', TOKEN_INPUT_MAX_CHARACTERS)
-      ),
+      rscValue: rscInitialState(token.value ?? '', () => textFieldValidator(token.value, TOKEN_INPUT_MAX_CHARACTERS)),
       isInherited: false,
       parentName: null,
     };
@@ -246,13 +302,13 @@ export const compositeSourceControlToModel = (
     sourceControlData.token = {
       rscValue: rscInitialState(
         token.value ?? '',
-        token.value ? () => textFieldValidator(token.value ?? '', TOKEN_INPUT_MAX_CHARACTERS) : null
+        token.value ? () => textFieldValidator(token.value, TOKEN_INPUT_MAX_CHARACTERS) : null
       ),
       isInherited: token.value === null && !isRootOrg,
       parentName: token.parentName,
       parentValue: rscInitialState(
         token.parentValue ?? '',
-        token.parentValue ? () => textFieldValidator(token.parentValue ?? '', TOKEN_INPUT_MAX_CHARACTERS) : null
+        token.parentValue ? () => textFieldValidator(token.parentValue, TOKEN_INPUT_MAX_CHARACTERS) : null
       ),
     };
     sourceControlData.username = {
@@ -367,8 +423,30 @@ export const prepareSubmitData = (sourceControl, serverSourceControl, isApp, isR
     submitData.baseBranch = null;
   }
 
-  if ((!sourceControl.authenticationType.isInherited && !sourceControl.provider.isInherited) || isRootOrg) {
-    submitData.authenticationType = sourceControl.authenticationType.value;
+  // Save or clear authenticationType based on provider
+  const effectiveProviderValue = sourceControl.provider.isInherited
+    ? serverSourceControl.provider.parentValue.value
+    : sourceControl.provider.rscValue.value;
+
+  if (effectiveProviderValue === 'github') {
+    if (!sourceControl.authenticationType.isInherited || isRootOrg) {
+      submitData.authenticationType = sourceControl.authenticationType.value;
+    } else {
+      submitData.authenticationType = null;
+    }
+  } else {
+    submitData.authenticationType = null;
+  }
+  // Clear githubApp when: inherited, non-GitHub provider, or PAT auth selected
+  const isInheritingGithubApp = !isRootOrg && sourceControl.githubApp.isInherited;
+  const isNotGitHubProvider = effectiveProviderValue !== 'github';
+  const isUserSelectingPAT =
+    effectiveProviderValue === 'github' && sourceControl.authenticationType.value === AUTHENTICATION_TYPES.PAT;
+
+  const shouldClearGithubApp = isInheritingGithubApp || isNotGitHubProvider || isUserSelectingPAT;
+
+  if (shouldClearGithubApp) {
+    submitData.githubApp = null;
   }
 
   return submitData;
@@ -376,18 +454,17 @@ export const prepareSubmitData = (sourceControl, serverSourceControl, isApp, isR
 
 export const effectiveProvider = (sourceControl, serverSourceControl) => {
   if (!sourceControl) return;
-  return sourceControl.provider.isInherited
-    ? serverSourceControl.provider.parentValue.value
-    : sourceControl.provider.rscValue.value;
+  return sourceControl.provider?.isInherited
+    ? serverSourceControl?.provider?.parentValue?.value
+    : sourceControl.provider?.rscValue?.value;
 };
 
 /**
  * Determines if GitHub App authentication should be shown instead of standard credentials.
  *
  * Returns true when ALL of the following are true:
- * 1. The provider is GitHub
+ * 1. The provider is GitHub (either current or inherited)
  * 2. The GitHub App authentication feature is enabled
- * 3. The provider is NOT inherited (when inheriting provider, auth method is also inherited)
  *
  * @param {Object} sourceControl - Current source control configuration
  * @param {Object} serverSourceControl - Server-level source control configuration
@@ -396,8 +473,7 @@ export const effectiveProvider = (sourceControl, serverSourceControl) => {
  */
 export const shouldShowGitHubAppAuth = (sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled) => {
   const isGitHub = effectiveProvider(sourceControl, serverSourceControl) === 'github';
-  const isProviderOverridden = !sourceControl?.provider.isInherited;
-  return isGitHub && isGithubAppAuthenticationEnabled && isProviderOverridden;
+  return isGitHub && isGithubAppAuthenticationEnabled;
 };
 
 export const effectiveFieldInheritFrom = (sourceControl, serverSourceControl, field) => {
@@ -417,7 +493,114 @@ export const isUsernameRequiredOnNode = (sourceControl, serverSourceControl, isA
 };
 
 export const isAccessTokenRequiredOnNode = (sourceControl, serverSourceControl, isApp) => {
-  return isApp && !effectiveFieldInheritFrom(sourceControl, serverSourceControl, 'token');
+  // Only check at application level
+  if (!isApp) {
+    return false;
+  }
+
+  // Get effective provider (could be inherited or overridden)
+  const provider = effectiveProvider(sourceControl, serverSourceControl);
+  const isGitHub = provider === 'github';
+
+  // Check if provider is inherited (applies to all providers)
+  const isProviderInherited = sourceControl?.provider?.isInherited;
+  const hasParentProvider = sourceControl?.provider?.parentValue?.value;
+
+  // Cross-provider token validation: If provider changed and token is inherited from different provider
+  // then token is incompatible and required at app level
+  const isTokenInherited = sourceControl?.token?.isInherited;
+  const parentProvider = serverSourceControl?.provider?.parentValue?.value;
+  const currentProvider = sourceControl?.provider?.rscValue?.value;
+
+  if (
+    isTokenInherited &&
+    !isProviderInherited &&
+    currentProvider &&
+    parentProvider &&
+    currentProvider !== parentProvider
+  ) {
+    // Provider was overridden to a different provider but token is still inherited from old provider
+    // This means the inherited token is incompatible with the new provider
+    return true; // Token required - inherited token cannot be used with different provider
+  }
+
+  if (isGitHub) {
+    // For GitHub, auth inheritance is INDEPENDENT of provider inheritance
+    // User can inherit provider but override auth method (or vice versa)
+    const isAuthInherited = sourceControl?.authenticationType?.isInherited;
+    const hasParentAuth = sourceControl?.authenticationType?.parentValue;
+    if (isAuthInherited && hasParentAuth) {
+      // Auth method inherited from parent = no token needed at App level
+      return false;
+    }
+
+    // Auth method is overridden - check if it's GitHub App (no token needed)
+    const authType = sourceControl?.authenticationType?.value;
+    if (authType === AUTHENTICATION_TYPES.GITHUB_APP) {
+      // GitHub App authentication doesn't use token
+      return false;
+    }
+
+    // If provider is inherited AND auth is inherited AND parent has a token
+    // Check: provider inherited + no local auth override + auth inherited + token inherited + parent has token
+    const isTokenInherited = sourceControl?.token?.isInherited;
+    const hasParentToken = sourceControl?.token?.parentValue?.value;
+    if (
+      isProviderInherited &&
+      hasParentProvider &&
+      !authType &&
+      isAuthInherited &&
+      isTokenInherited &&
+      hasParentToken
+    ) {
+      // Fully inherited with token = no token needed at app level
+      return false;
+    }
+
+    // Check if token is inherited and parent has token (even if provider inherited)
+    if (isTokenInherited && hasParentToken) {
+      return false; // Token inherited from parent
+    }
+
+    // Check if app has a token value (either in current input or saved on server)
+    const hasCurrentToken = sourceControl?.token?.rscValue?.value || sourceControl?.token?.rscValue?.trimmedValue;
+    const hasSavedToken = serverSourceControl?.token?.value;
+
+    // Special case: If token is NOT currently inherited but parent has a token,
+    // this might be a case where app is switching from inherited to override
+    // and the field value hasn't been populated yet (happens during radio click).
+    // In this case, check if there's a parent token available that can be used.
+    const isOverridingWithParentToken = !isTokenInherited && hasParentToken && !hasCurrentToken && !hasSavedToken;
+
+    if (hasCurrentToken || hasSavedToken || isOverridingWithParentToken) {
+      return false; // App has a token (current, saved, or available from parent during override)
+    }
+
+    // Auth method overridden to PAT or provider overridden or no parent token = token required at app level
+    return true;
+  }
+
+  // For non-GitHub providers (Bitbucket, GitLab, Azure, etc.)
+  // Check if provider is inherited WITH a parent value AND parent has credentials
+  if (isProviderInherited && hasParentProvider) {
+    // Check if parent actually has credentials to inherit
+    const hasParentToken = sourceControl?.token?.parentValue?.value;
+    const hasParentUsername = sourceControl?.username?.parentValue?.value;
+    const providerNeedsUsernameValue = PROVIDERS_WITH_USERNAME.includes(hasParentProvider);
+
+    const hasParentCredentials = providerNeedsUsernameValue ? hasParentToken && hasParentUsername : hasParentToken;
+
+    if (hasParentCredentials) {
+      // Provider inherited AND parent has credentials = no token needed at app level
+      return false;
+    }
+
+    // Provider inherited but parent has NO credentials = token required at app level
+    return true;
+  }
+
+  // Provider overridden or no parent provider = token required
+  return true;
 };
 
 export const setDefaultIfNull = (value, parentValue, defaultValue) => {
@@ -597,6 +780,7 @@ export const setIsDirty = (state) => {
     'username',
     'baseBranch',
     'authenticationType',
+    'githubApp',
     'pullRequestCommentingEnabled',
     'commitStatusEnabled',
     'remediationPullRequestsEnabled',
@@ -609,24 +793,37 @@ export const setIsDirty = (state) => {
     'closePrAfterDaysOpenEnabled',
     'closePrAfterDays',
   ];
-  return formFields.some((property) => {
-    if (property === 'provider')
-      return (
+
+  const isDirty = formFields.some((property) => {
+    let fieldIsDirty = false;
+
+    if (property === 'provider') {
+      fieldIsDirty =
         sourceControl[property]?.rscValue?.value !== serverSourceControl[property]?.rscValue?.value ||
-        sourceControl[property]?.isInherited !== serverSourceControl[property]?.isInherited
-      );
-    if (property === 'repositoryUrl') return sourceControl[property]?.value !== serverSourceControl[property]?.value;
-    if (property === 'authenticationType')
-      return (
+        sourceControl[property]?.isInherited !== serverSourceControl[property]?.isInherited;
+    } else if (property === 'repositoryUrl') {
+      fieldIsDirty = sourceControl[property]?.value !== serverSourceControl[property]?.value;
+    } else if (property === 'authenticationType') {
+      fieldIsDirty =
         sourceControl[property]?.value !== serverSourceControl[property]?.value ||
-        sourceControl[property]?.isInherited !== serverSourceControl[property]?.isInherited
-      );
-    return (
-      sourceControl[property]?.rscValue?.trimmedValue !== serverSourceControl[property]?.rscValue?.trimmedValue ||
-      sourceControl[property]?.value !== serverSourceControl[property]?.value ||
-      sourceControl[property]?.isInherited !== serverSourceControl[property]?.isInherited
-    );
+        sourceControl[property]?.isInherited !== serverSourceControl[property]?.isInherited;
+    } else if (property === 'githubApp') {
+      // Compare GitHub App installation IDs to detect when a new installation is completed
+      const currentInstallationId = sourceControl[property]?.value?.installationId;
+      const serverInstallationId = serverSourceControl[property]?.value?.installationId;
+      const isInheritedChanged = sourceControl[property]?.isInherited !== serverSourceControl[property]?.isInherited;
+      fieldIsDirty = currentInstallationId !== serverInstallationId || isInheritedChanged;
+    } else {
+      fieldIsDirty =
+        sourceControl[property]?.rscValue?.trimmedValue !== serverSourceControl[property]?.rscValue?.trimmedValue ||
+        sourceControl[property]?.value !== serverSourceControl[property]?.value ||
+        sourceControl[property]?.isInherited !== serverSourceControl[property]?.isInherited;
+    }
+
+    return fieldIsDirty;
   });
+
+  return isDirty;
 };
 
 export const setIsRepoUrlDirty = (state) => {
@@ -634,9 +831,25 @@ export const setIsRepoUrlDirty = (state) => {
   return sourceControl['repositoryUrl']?.value !== serverSourceControl['repositoryUrl']?.value;
 };
 
-export const getValidationMessage = (isDirty, validationError) => {
+export const getValidationMessage = (
+  isDirty,
+  validationError,
+  sourceControl,
+  isGithubAppAuthenticationEnabled = true
+) => {
   if (!isDirty) {
+    const hasGitHubApp = sourceControl?.githubApp?.value?.installationId;
+    const isGitHubAppAuth = sourceControl?.authenticationType?.value === AUTHENTICATION_TYPES.GITHUB_APP;
+
+    if (hasGitHubApp && isGitHubAppAuth && isGithubAppAuthenticationEnabled) {
+      return 'GitHub App is already configured. No additional changes to save.';
+    }
     return MSG_NO_CHANGES_TO_SAVE;
   }
-  return validationError;
+  // For dirty forms, check validation errors (catches both user input errors and invalid backend states)
+  if (validationError) {
+    return validationError;
+  }
+
+  return null;
 };

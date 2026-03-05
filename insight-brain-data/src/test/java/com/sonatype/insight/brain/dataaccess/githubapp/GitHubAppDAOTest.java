@@ -38,7 +38,7 @@ public class GitHubAppDAOTest
 
     assertThat(gitHubApp.getId()).isNotNull();
     assertThat(gitHubApp.getOwnerId()).isEqualTo(app.getId());
-    assertThat(gitHubApp.getAppId()).isEqualTo(12345);
+    assertThat(gitHubApp.getAppId()).isNotNull();
     assertThat(gitHubApp.getSlug()).isEqualTo("test-app");
     assertThat(gitHubApp.getClientId()).isEqualTo("Iv1.1234567890abcdef");
     assertThat(gitHubApp.getClientSecret()).isEqualTo("client-secret-test");
@@ -61,5 +61,64 @@ public class GitHubAppDAOTest
     // Delete
     gitHubAppDAO.delete(gitHubApp);
     assertThat(gitHubAppDAO.getById(gitHubApp.getId())).isNull();
+  }
+
+  @Test
+  public void testGetNearestGitHubApp_DirectOwner() {
+    // Setup: Create org with GitHub App
+    var org = tempEntity.newOrganization();
+    GitHubApp expectedApp = tempEntity.newGitHubApp(org.getId());
+
+    // Test: Should find GitHub App at org level
+    GitHubApp result = gitHubAppDAO.getNearestGitHubApp(org.getId());
+
+    assertThat(result).isNotNull();
+    assertThat(result.getOwnerId()).isEqualTo(org.getId());
+    assertThat(result.getId()).isEqualTo(expectedApp.getId());
+  }
+
+  @Test
+  public void testGetNearestGitHubApp_InheritedFromParent() {
+    // Setup: Create hierarchy - Root Org (with GitHub App) -> Child Org -> Application
+    var rootOrg = tempEntity.newOrganization();
+    GitHubApp expectedApp = tempEntity.newGitHubApp(rootOrg.getId());
+    var childOrg = tempEntity.newOrganization(rootOrg);
+    var app = tempEntity.newApplication(childOrg.getId());
+
+    // Test: App should inherit GitHub App from root org
+    GitHubApp result = gitHubAppDAO.getNearestGitHubApp(app.getId());
+
+    assertThat(result).isNotNull();
+    assertThat(result.getOwnerId()).isEqualTo(rootOrg.getId());
+    assertThat(result.getId()).isEqualTo(expectedApp.getId());
+  }
+
+  @Test
+  public void testGetNearestGitHubApp_ClosestInHierarchy() {
+    // Setup: Create hierarchy with GitHub Apps at multiple levels
+    var rootOrg = tempEntity.newOrganization();
+    tempEntity.newGitHubApp(rootOrg.getId());
+    var childOrg = tempEntity.newOrganization(rootOrg);
+    GitHubApp expectedApp = tempEntity.newGitHubApp(childOrg.getId());
+    var app = tempEntity.newApplication(childOrg.getId());
+
+    // Test: Should return the closest GitHub App (child org, not root)
+    GitHubApp result = gitHubAppDAO.getNearestGitHubApp(app.getId());
+
+    assertThat(result).isNotNull();
+    assertThat(result.getOwnerId()).isEqualTo(childOrg.getId());
+    assertThat(result.getId()).isEqualTo(expectedApp.getId());
+  }
+
+  @Test
+  public void testGetNearestGitHubApp_NoGitHubAppInHierarchy() {
+    // Setup: Create hierarchy without GitHub App
+    var org = tempEntity.newOrganization();
+    var app = tempEntity.newApplication(org.getId());
+
+    // Test: Should return null when no GitHub App exists
+    GitHubApp result = gitHubAppDAO.getNearestGitHubApp(app.getId());
+
+    assertThat(result).isNull();
   }
 }

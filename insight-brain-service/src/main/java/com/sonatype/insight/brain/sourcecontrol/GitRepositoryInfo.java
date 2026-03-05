@@ -53,7 +53,7 @@ public class GitRepositoryInfo
                            final Boolean sshEnabled,
                            final String sourceControlScanTarget,
                            final SourceControl.AuthenticationType authenticationType,
-                           final String ownerId)
+                           final String authOwnerId)
   {
     this.repositoryUrl = repositoryUrl;
     this.normalizedRepositoryUrl = normalizedRepositoryUrl;
@@ -71,7 +71,7 @@ public class GitRepositoryInfo
     this.sshEnabled = sshEnabled;
     this.sourceControlScanTarget = sourceControlScanTarget;
     this.authenticationType = authenticationType;
-    this.ownerId = ownerId;
+    this.authOwnerId = authOwnerId;
   }
 
   public String repositoryUrl;
@@ -106,7 +106,7 @@ public class GitRepositoryInfo
 
   public SourceControl.AuthenticationType authenticationType;
 
-  public String ownerId;
+  public String authOwnerId;
 
   public String getRepositoryUrl() {
     return repositoryUrl;
@@ -168,10 +168,6 @@ public class GitRepositoryInfo
     return authenticationType;
   }
 
-  public String getOwnerId() {
-    return ownerId;
-  }
-
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -197,7 +193,7 @@ public class GitRepositoryInfo
         Objects.equals(sshEnabled, that.sshEnabled) &&
         Objects.equals(sourceControlScanTarget, that.sourceControlScanTarget) &&
         authenticationType == that.authenticationType &&
-        Objects.equals(ownerId, that.ownerId);
+        Objects.equals(authOwnerId, that.authOwnerId);
   }
 
   @Override

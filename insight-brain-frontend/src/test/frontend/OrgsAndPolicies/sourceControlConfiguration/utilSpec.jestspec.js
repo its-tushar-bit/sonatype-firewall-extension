@@ -11,11 +11,15 @@ import {
   getClosePrOnFailedChecksEnabledFlagFromModel,
   getPullRequestCommentingEnabledFlagFromModel,
   getRemediationPullRequestsEnabledFlagFromModel,
+  getScmFormStateStorageKey,
   getSourceControlEvaluationsEnabledFlagFromModel,
   getValidationMessage,
   isAccessTokenRequiredOnNode,
   isUsernameRequiredOnNode,
+  loadFormStateWithFallback,
   providerNeedsUsername,
+  removeFormStateWithFallback,
+  saveFormStateWithFallback,
   setDefaultIfNull,
   setIsDirty,
   setIsRepoUrlDirty,
@@ -44,6 +48,90 @@ describe('sourceControlConfiguration util', () => {
       const isDirty = true;
       const validationError = null;
       expect(getValidationMessage(isDirty, validationError)).toBe(null);
+    });
+
+    it('shows GitHub App specific message when GitHub App is configured and form is not dirty', () => {
+      const isDirty = false;
+      const validationError = null;
+      const sourceControl = {
+        githubApp: {
+          value: {
+            installationId: 12345,
+          },
+        },
+        authenticationType: {
+          value: 'GITHUB_APP',
+        },
+      };
+
+      const message = getValidationMessage(isDirty, validationError, sourceControl);
+
+      expect(message).toBe('GitHub App is already configured. No additional changes to save.');
+    });
+
+    it('shows MSG_NO_CHANGES_TO_SAVE when GitHub App exists but auth type is PAT', () => {
+      const isDirty = false;
+      const validationError = null;
+      const sourceControl = {
+        githubApp: {
+          value: {
+            installationId: 12345,
+          },
+        },
+        authenticationType: {
+          value: 'PAT',
+        },
+      };
+
+      const message = getValidationMessage(isDirty, validationError, sourceControl);
+
+      expect(message).toBe(MSG_NO_CHANGES_TO_SAVE);
+    });
+
+    it('shows MSG_NO_CHANGES_TO_SAVE when auth type is GitHub App but no installation exists', () => {
+      const isDirty = false;
+      const validationError = null;
+      const sourceControl = {
+        githubApp: {
+          value: null,
+        },
+        authenticationType: {
+          value: 'GITHUB_APP',
+        },
+      };
+
+      const message = getValidationMessage(isDirty, validationError, sourceControl);
+
+      expect(message).toBe(MSG_NO_CHANGES_TO_SAVE);
+    });
+
+    it('shows MSG_NO_CHANGES_TO_SAVE when sourceControl parameter is not provided', () => {
+      const isDirty = false;
+      const validationError = null;
+
+      const message = getValidationMessage(isDirty, validationError);
+
+      expect(message).toBe(MSG_NO_CHANGES_TO_SAVE);
+    });
+
+    it('shows MSG_NO_CHANGES_TO_SAVE when GitHub App exists but feature flag is disabled', () => {
+      const isDirty = false;
+      const validationError = null;
+      const sourceControl = {
+        githubApp: {
+          value: {
+            installationId: 12345,
+          },
+        },
+        authenticationType: {
+          value: 'GITHUB_APP',
+        },
+      };
+      const isGithubAppAuthenticationEnabled = false;
+
+      const message = getValidationMessage(isDirty, validationError, sourceControl, isGithubAppAuthenticationEnabled);
+
+      expect(message).toBe(MSG_NO_CHANGES_TO_SAVE);
     });
   });
 
@@ -332,6 +420,7 @@ describe('sourceControlConfiguration util', () => {
     beforeEach(() => {
       sourceControl = {
         provider: { isInherited: false },
+        token: {},
       };
       serverSourceControl = {
         token: { parentName: 'parentOrgName' },
@@ -347,6 +436,9 @@ describe('sourceControlConfiguration util', () => {
     });
     it('returns false if effectiveTokenInheritFrom returns token parentName', () => {
       sourceControl.provider.isInherited = true;
+      sourceControl.provider.parentValue = { value: 'github' };
+      sourceControl.token.isInherited = true;
+      sourceControl.token.parentValue = { value: '#~FAKE~SECRET~KEY~#' };
       expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp)).toBe(false);
     });
   });
@@ -999,11 +1091,12 @@ describe('sourceControlConfiguration util', () => {
         );
       });
 
-      it('returns false when provider is inherited (even if token is overridden)', () => {
+      it('returns true when provider is inherited and is GitHub (even if token is overridden)', () => {
         sourceControl.provider.isInherited = true;
         sourceControl.token.isInherited = false;
+        serverSourceControl.provider.parentValue.value = 'github';
         expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
-          false
+          true
         );
       });
 
@@ -1056,11 +1149,12 @@ describe('sourceControlConfiguration util', () => {
     });
 
     describe('when both provider and token are inherited', () => {
-      it('returns false when both provider and token are inherited', () => {
+      it('returns true when both provider and token are inherited and provider is GitHub', () => {
         sourceControl.provider.isInherited = true;
         sourceControl.token.isInherited = true;
+        serverSourceControl.provider.parentValue.value = 'github';
         expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
-          false
+          true
         );
       });
     });
@@ -1070,11 +1164,11 @@ describe('sourceControlConfiguration util', () => {
         sourceControl.provider.isInherited = true;
       });
 
-      it('returns false when inherited provider is GitHub (even with token overridden)', () => {
+      it('returns true when inherited provider is GitHub (even with token overridden)', () => {
         serverSourceControl.provider.parentValue.value = 'github';
         sourceControl.token.isInherited = false;
         expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
-          false
+          true
         );
       });
 
@@ -1098,11 +1192,11 @@ describe('sourceControlConfiguration util', () => {
 
       it('returns false when sourceControl.provider is undefined (effectiveProvider returns undefined)', () => {
         sourceControl.provider = undefined;
-        // When provider is undefined, effectiveProvider throws an error trying to access .isInherited
-        // This test documents that the function relies on effectiveProvider handling this case
-        expect(() =>
-          shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)
-        ).toThrow();
+        // When provider is undefined, effectiveProvider gracefully returns undefined (with optional chaining)
+        // shouldShowGitHubAppAuth handles undefined provider by returning false
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+          false
+        );
       });
 
       it('returns true when sourceControl.token is undefined (only checks provider)', () => {
@@ -1123,12 +1217,12 @@ describe('sourceControlConfiguration util', () => {
     });
 
     describe('complex scenarios', () => {
-      it('returns false when provider is GitHub, feature enabled, but both are fully inherited', () => {
+      it('returns true when provider is GitHub, feature enabled, and both are fully inherited', () => {
         sourceControl.provider.isInherited = true;
         sourceControl.token.isInherited = true;
         serverSourceControl.provider.parentValue.value = 'github';
         expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
-          false
+          true
         );
       });
 
@@ -1150,6 +1244,177 @@ describe('sourceControlConfiguration util', () => {
         expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
           false
         );
+      });
+    });
+  });
+
+  describe('storage utility functions', () => {
+    const TEST_KEY = 'test-storage-key';
+    const TEST_DATA = { field1: 'value1', field2: 'value2', timestamp: Date.now() };
+
+    beforeEach(() => {
+      sessionStorage.clear();
+      localStorage.clear();
+    });
+
+    afterEach(() => {
+      sessionStorage.clear();
+      localStorage.clear();
+    });
+
+    describe('getScmFormStateStorageKey', () => {
+      it('should generate correct storage key for organization', () => {
+        const key = getScmFormStateStorageKey('organization', 'org-123');
+        expect(key).toBe('scmFormState_organization_org-123');
+      });
+
+      it('should generate correct storage key for application', () => {
+        const key = getScmFormStateStorageKey('application', 'app-456');
+        expect(key).toBe('scmFormState_application_app-456');
+      });
+
+      it('should handle numeric IDs', () => {
+        const key = getScmFormStateStorageKey('organization', 12345);
+        expect(key).toBe('scmFormState_organization_12345');
+      });
+    });
+
+    describe('saveFormStateWithFallback', () => {
+      it('should save to sessionStorage successfully', () => {
+        saveFormStateWithFallback(TEST_KEY, TEST_DATA);
+
+        expect(sessionStorage.getItem(TEST_KEY)).toBe(JSON.stringify(TEST_DATA));
+      });
+
+      it('should handle save errors gracefully without throwing', () => {
+        const sessionStorageSetSpy = jest.spyOn(Storage.prototype, 'setItem');
+        sessionStorageSetSpy.mockImplementationOnce(() => {
+          throw new Error('QuotaExceededError');
+        });
+
+        expect(() => saveFormStateWithFallback(TEST_KEY, TEST_DATA)).not.toThrow();
+
+        sessionStorageSetSpy.mockRestore();
+      });
+
+      it('should handle complex nested objects', () => {
+        const complexData = {
+          provider: { value: 'github', rscValue: { isPristine: false } },
+          booleanFields: [true, false, true],
+          nested: { deep: { value: 'test' } },
+        };
+
+        saveFormStateWithFallback(TEST_KEY, complexData);
+
+        expect(sessionStorage.getItem(TEST_KEY)).toBe(JSON.stringify(complexData));
+      });
+
+      it('should handle null and undefined values', () => {
+        const dataWithNulls = { field1: null, field2: undefined, field3: 'value' };
+
+        saveFormStateWithFallback(TEST_KEY, dataWithNulls);
+
+        const stored = JSON.parse(sessionStorage.getItem(TEST_KEY));
+        expect(stored.field1).toBeNull();
+        expect(stored.field3).toBe('value');
+      });
+    });
+
+    describe('loadFormStateWithFallback', () => {
+      it('should load from sessionStorage when available', () => {
+        sessionStorage.setItem(TEST_KEY, JSON.stringify(TEST_DATA));
+
+        const result = loadFormStateWithFallback(TEST_KEY);
+
+        expect(result).toBe(JSON.stringify(TEST_DATA));
+      });
+
+      it('should return null when no data exists in sessionStorage', () => {
+        const result = loadFormStateWithFallback(TEST_KEY);
+
+        expect(result).toBeNull();
+      });
+
+      it('should handle sessionStorage read errors gracefully', () => {
+        const sessionStorageGetSpy = jest.spyOn(Storage.prototype, 'getItem');
+        sessionStorageGetSpy.mockImplementationOnce(() => {
+          throw new Error('SecurityError');
+        });
+
+        const result = loadFormStateWithFallback(TEST_KEY);
+
+        expect(result).toBeNull();
+
+        sessionStorageGetSpy.mockRestore();
+      });
+    });
+
+    describe('removeFormStateWithFallback', () => {
+      it('should remove from sessionStorage', () => {
+        sessionStorage.setItem(TEST_KEY, JSON.stringify(TEST_DATA));
+
+        removeFormStateWithFallback(TEST_KEY);
+
+        expect(sessionStorage.getItem(TEST_KEY)).toBeNull();
+      });
+
+      it('should handle missing keys gracefully', () => {
+        expect(() => removeFormStateWithFallback(TEST_KEY)).not.toThrow();
+
+        expect(sessionStorage.getItem(TEST_KEY)).toBeNull();
+      });
+
+      it('should handle sessionStorage removal errors gracefully', () => {
+        sessionStorage.setItem(TEST_KEY, JSON.stringify(TEST_DATA));
+
+        const sessionStorageRemoveSpy = jest.spyOn(Storage.prototype, 'removeItem');
+        sessionStorageRemoveSpy.mockImplementationOnce(() => {
+          throw new Error('SecurityError');
+        });
+
+        expect(() => removeFormStateWithFallback(TEST_KEY)).not.toThrow();
+
+        sessionStorageRemoveSpy.mockRestore();
+      });
+
+      it('should remove only specified key, not other keys', () => {
+        const OTHER_KEY = 'other-key';
+        sessionStorage.setItem(TEST_KEY, JSON.stringify(TEST_DATA));
+        sessionStorage.setItem(OTHER_KEY, JSON.stringify({ other: 'data' }));
+
+        removeFormStateWithFallback(TEST_KEY);
+
+        expect(sessionStorage.getItem(TEST_KEY)).toBeNull();
+        expect(sessionStorage.getItem(OTHER_KEY)).not.toBeNull();
+      });
+    });
+
+    describe('integration tests - full save/load/remove cycle', () => {
+      it('should handle complete save-load-remove cycle with sessionStorage', () => {
+        saveFormStateWithFallback(TEST_KEY, TEST_DATA);
+
+        const loadResult = loadFormStateWithFallback(TEST_KEY);
+        expect(JSON.parse(loadResult)).toEqual(TEST_DATA);
+
+        removeFormStateWithFallback(TEST_KEY);
+        expect(loadFormStateWithFallback(TEST_KEY)).toBeNull();
+      });
+
+      it('should handle multiple keys independently', () => {
+        const KEY1 = 'scmFormState_organization_1';
+        const KEY2 = 'scmFormState_application_2';
+        const DATA1 = { org: 'data1' };
+        const DATA2 = { app: 'data2' };
+
+        saveFormStateWithFallback(KEY1, DATA1);
+        saveFormStateWithFallback(KEY2, DATA2);
+
+        expect(JSON.parse(loadFormStateWithFallback(KEY1))).toEqual(DATA1);
+        expect(JSON.parse(loadFormStateWithFallback(KEY2))).toEqual(DATA2);
+
+        removeFormStateWithFallback(KEY1);
+        expect(loadFormStateWithFallback(KEY1)).toBeNull();
+        expect(JSON.parse(loadFormStateWithFallback(KEY2))).toEqual(DATA2);
       });
     });
   });

@@ -148,6 +148,12 @@ public class ManualPullRequestCreationServiceTest
   @Inject
   private PolicyDAO policyDAO;
 
+  @Inject
+  private SourceControlDAO sourceControlDAO;
+
+  @Inject
+  private PasswordHandler passwordHandler;
+
   @Rule
   public LogOutput logOutput = new LogOutput(ManualPullRequestCreationService.class);
 
@@ -568,7 +574,6 @@ public class ManualPullRequestCreationServiceTest
                 "}")));
 
     // Encrypt the valid Base64 PKCS8 key to match production format
-    PasswordHandler passwordHandler = lookup(PasswordHandler.class);
     char[] encryptedKey = passwordHandler.encryptPassword(VALID_BASE64_PKCS8.toCharArray());
 
     GitHubApp githubApp = new GitHubApp();
@@ -583,9 +588,9 @@ public class ManualPullRequestCreationServiceTest
     githubApp.setLastUpdatedAt(new Date());
     tempEntity.newGitHubApp(githubApp);
 
-    SourceControl sourceControl = lookup(SourceControlDAO.class).getByOwnerId(application.getId());
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(application.getId());
     sourceControl.setAuthenticationType(SourceControl.AuthenticationType.GITHUB_APP);
-    lookup(SourceControlDAO.class).update(sourceControl);
+    sourceControlDAO.update(sourceControl);
 
     setupPolicyEvaluationAndViolation();
     when(mockComponentInfoService.getComponentVersionInfoNoAuth(OwnerType.APPLICATION, application.getPublicId(),
@@ -612,6 +617,73 @@ public class ManualPullRequestCreationServiceTest
     assertThat(sourceControlEvent.getRemediationVersion()).isEqualTo(DEFAULT_REMEDIATION_VERSION);
     assertThat(sourceControlEvent.getStageTypeId()).isEqualTo(stage.getStageTypeId());
     assertThat(sourceControlEvent.getInitiator()).isEqualTo("manual request");
+  }
+
+  @Test
+  public void testCreateManualRemediationPullRequest_withGitHubAppAuth_InheritedFromRoot() throws Exception {
+    ComponentIdentifier mavenComponentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "group", "artifact", DEFAULT_VERSION);
+    String branchName = branchNameGenerator.getBranchName(application, mavenComponent, DEFAULT_REMEDIATION_VERSION);
+
+    Long installationId = 999999L;
+    gitService.stubFor(post(urlPathMatching("/app/installations/" + installationId + "/access_tokens"))
+        .willReturn(aResponse()
+            .withStatus(201)
+            .withHeader("Content-Type", "application/json")
+            .withBody("{" +
+                "\"token\":\"ghs_root_org_installation_token\"," +
+                "\"expires_at\":\"2099-01-01T00:00:00Z\"" +
+                "}")));
+
+    // Encrypt the valid Base64 PKCS8 key to match production format
+    char[] encryptedKey = passwordHandler.encryptPassword(VALID_BASE64_PKCS8.toCharArray());
+
+    // Create GitHub App at ROOT organization level
+    GitHubApp rootGithubApp = new GitHubApp();
+    rootGithubApp.setOwnerId(ROOT_ORGANIZATION_ID);
+    rootGithubApp.setAppId(888888);
+    rootGithubApp.setInstallationId(installationId);
+    rootGithubApp.setSlug("root-org-github-app");
+    rootGithubApp.setClientId("root-client-id");
+    rootGithubApp.setClientSecret("root-client-secret");
+    rootGithubApp.setGithubOrganizationName("root-org");
+    rootGithubApp.setPrivateKey(String.valueOf(encryptedKey));
+    rootGithubApp.setLastUpdatedAt(new Date());
+    tempEntity.newGitHubApp(rootGithubApp);
+
+    // Update application's source control to use GITHUB_APP authentication
+    // This will cause it to inherit from the root organization's GitHub App
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(application.getId());
+    sourceControl.setAuthenticationType(SourceControl.AuthenticationType.GITHUB_APP);
+    sourceControlDAO.update(sourceControl);
+
+    setupPolicyEvaluationAndViolation();
+    when(mockComponentInfoService.getComponentVersionInfoNoAuth(OwnerType.APPLICATION, application.getPublicId(),
+        mavenComponentIdentifier, "build", "Sonatype", DEFAULT_SCAN_ID, DependencyType.DIRECT,
+        SourceEndpoint.MANUAL_PULL_REQUEST,
+        true)).thenReturn(setupComponentVersionInfoDTO());
+
+    PullRequestSubmissionResultDTO result = manualPrService.createManualRemediationPullRequest(
+        application.getId(),
+        DEFAULT_SCAN_ID,
+        mavenComponent,
+        DEFAULT_REMEDIATION_VERSION,
+        "Sonatype",
+        true
+    );
+
+    assertThat(result.id()).isNotEmpty();
+    SourceControlEvent sourceControlEvent = sourceControlEventDAO.getById(result.id());
+    assertThat(sourceControlEvent.getEventType()).isEqualTo(MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    assertThat(sourceControlEvent.getApplicationId()).isEqualTo(application.getId());
+    assertThat(sourceControlEvent.getScanId()).isEqualTo(DEFAULT_SCAN_ID);
+    assertThat(sourceControlEvent.getComponentIdentifier()).isEqualTo(mavenComponent);
+    assertThat(sourceControlEvent.getBranchName()).isEqualTo(branchName);
+    assertThat(sourceControlEvent.getRemediationVersion()).isEqualTo(DEFAULT_REMEDIATION_VERSION);
+    assertThat(sourceControlEvent.getStageTypeId()).isEqualTo(stage.getStageTypeId());
+    assertThat(sourceControlEvent.getInitiator()).isEqualTo("manual request");
+
+    // Successful PR creation verifies that GitHub App was resolved from the root organization hierarchy
   }
 
   private void setupPolicyEvaluationAndViolation() {

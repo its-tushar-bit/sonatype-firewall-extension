@@ -629,7 +629,7 @@ public class PullRequestRemediationServiceTest
     GitRepositoryInfo capturedRepoInfo = repoInfoCaptor.getValue();
     assertThat(capturedRepoInfo.getAuthenticationType()).isNull();  // PAT = no auth type
     assertThat(capturedRepoInfo.token).isEqualTo("test-pat-token");
-    assertThat(capturedRepoInfo.getOwnerId()).isNull();
+    assertThat(capturedRepoInfo.authOwnerId).isNull();
 
     // Verify PR operations were called
     verify(mockGitApiClient).createPullRequestComment(prNumber, pullRequestContents);
@@ -677,7 +677,7 @@ public class PullRequestRemediationServiceTest
     GitRepositoryInfo capturedRepoInfo = repoInfoCaptor.getValue();
     assertThat(capturedRepoInfo.getAuthenticationType())
         .isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
-    assertThat(capturedRepoInfo.getOwnerId()).isEqualTo(appId);
+    assertThat(capturedRepoInfo.authOwnerId).isEqualTo(appId);
     assertThat(capturedRepoInfo.token).isNull();
 
     verify(mockGitApiClient).createPullRequestComment(prNumber, pullRequestContents);

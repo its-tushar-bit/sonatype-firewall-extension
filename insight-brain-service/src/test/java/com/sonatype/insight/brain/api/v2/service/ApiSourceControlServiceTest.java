@@ -8,10 +8,15 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import jakarta.inject.Inject;
@@ -28,6 +33,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.METHOD;
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -38,6 +44,7 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -45,9 +52,12 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.service.githubapp.GitHubAppDeletionService;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.utils.SourceControlAuthenticationTransitionHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -63,13 +73,19 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.github.dto.GithubRateLimitResponse;
 import com.sonatype.nexus.scm.github.dto.GithubRateLimitsResponse;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.inject.Binder;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT;
@@ -96,6 +112,14 @@ public class ApiSourceControlServiceTest
   private static final String VALID_URL = "https://example.com/organization/project";
 
   private static final String TOKEN = "token";
+
+  private static final Integer TEST_GITHUB_APP_ID = 12345;
+
+  private static final String TEST_GITHUB_APP_SLUG = "test-app";
+
+  private static final String TEST_CLIENT_SECRET = "test-client-secret";
+
+  private static final Long TEST_GITHUB_INSTALLATION_ID = 67890L;
 
   @Inject
   private ApiSourceControlService sourceControlService;
@@ -130,6 +154,15 @@ public class ApiSourceControlServiceTest
   @Inject
   private ApiSourceControlAdapter apiSourceControlAdapter;
 
+  @Inject
+  private GitHubAppDAO gitHubAppDAO;
+
+  @Inject
+  private InsightProxy insightProxy;
+
+  @Rule
+  public WireMockRule githubMockServer = new WireMockRule(wireMockConfig().dynamicPort());
+
   private Application app;
 
   private Organization org;
@@ -152,6 +185,26 @@ public class ApiSourceControlServiceTest
     org = tempEntity.newOrganization();
     rootOrgSourcecontrol = tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     app = tempEntity.newApplication(org.getId());
+  }
+
+  private void setupCustomGitHubAppCleanupService() {
+    String wireMockBaseUrl = "http://localhost:" + githubMockServer.port();
+    GitHubAppDeletionService gitHubAppDeletionService = new GitHubAppDeletionService(
+            gitHubAppDAO,
+            passwordHandler,
+            insightProxy,
+            wireMockBaseUrl
+    );
+
+    try {
+      Field field = sourceControlService.getClass()
+              .getDeclaredField("sourceControlAuthenticationTransitionHandler");
+      field.setAccessible(true);
+      field.set(sourceControlService, new SourceControlAuthenticationTransitionHandler(gitHubAppDeletionService));
+    }
+    catch (Exception e) {
+      throw new RuntimeException("Failed to inject test cleanup service", e);
+    }
   }
 
   @Test
@@ -1496,6 +1549,237 @@ public class ApiSourceControlServiceTest
     assertThat(results.results.get(0).title).isEqualTo("Auto Bump bar to 1.1");
   }
 
+  @Test
+  public void testUpdateSourceControlByOwner_AuthTypeChange_GitHubAppToPat_DeletesGitHubApp() {
+    setupCustomGitHubAppCleanupService();
+
+    createAndInsertGitHubApp(app.getId());
+    SourceControl sourceControl = createSourceControl(
+            app.getId(),
+            SourceControl.AuthenticationType.GITHUB_APP,
+            "http://example.com/test/test"
+    );
+    tempEntity.newSourceControl(sourceControl);
+
+    stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
+    ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
+    updateDTO.authenticationType = SourceControl.AuthenticationType.PAT.name();
+    updateDTO.token = "new-pat-token";
+
+    sourceControlService.updateSourceControlByOwner(OwnerType.APPLICATION, app.getId(), updateDTO);
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+
+    SourceControl updated = sourceControlDAO.getByOwnerId(app.getId());
+    assertThat(updated.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.PAT);
+    assertThat(updated.getToken()).isNotNull();
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_AuthTypeChange_PatToGitHubApp_ClearsToken() {
+    SourceControl sourceControl = createSourceControl(
+            app.getId(),
+            SourceControl.AuthenticationType.PAT,
+            "http://example.com/test/test"
+    );
+    sourceControl.setToken(passwordHandler.encryptPassword("pat-token"));
+    tempEntity.newSourceControl(sourceControl);
+
+    ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
+    updateDTO.authenticationType = SourceControl.AuthenticationType.GITHUB_APP.name();
+    updateDTO.token = null;
+
+    sourceControlService.updateSourceControlByOwner(OwnerType.APPLICATION, app.getId(), updateDTO);
+    SourceControl updated = sourceControlDAO.getByOwnerId(app.getId());
+    assertThat(updated.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
+    assertThat(updated.getToken()).isNull();
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_AuthTypeChange_NoGitHubApp_DoesNotFail() {
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
+
+    SourceControl sourceControl = createSourceControl(
+            app.getId(),
+            SourceControl.AuthenticationType.GITHUB_APP,
+            "http://example.com/test/test"
+    );
+    tempEntity.newSourceControl(sourceControl);
+
+    ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
+    updateDTO.authenticationType = "PAT";
+    updateDTO.token = "new-pat-token";
+
+    sourceControlService.updateSourceControlByOwner(OwnerType.APPLICATION, app.getId(), updateDTO);
+    SourceControl updated = sourceControlDAO.getByOwnerId(app.getId());
+    assertThat(updated.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.PAT);
+    assertThat(updated.getToken()).isNotNull();
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_AuthTypeChange_NonGitHubProvider_SkipsDeletion() {
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
+    createAndInsertGitHubApp(app.getId());
+    SourceControl sourceControl = createSourceControl(
+            app.getId(),
+            SourceControl.AuthenticationType.GITHUB_APP,
+            "https://bitbucket.example.com/scm/PROJECT/repo"
+    );
+    sourceControl.setProvider(SourceControlProvider.BITBUCKET);
+    tempEntity.newSourceControl(sourceControl);
+
+    ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
+    updateDTO.authenticationType = SourceControl.AuthenticationType.PAT.name();
+    updateDTO.token = "new-pat-token";
+
+    sourceControlService.updateSourceControlByOwner(OwnerType.APPLICATION, app.getId(), updateDTO);
+    GitHubApp stillExists = gitHubAppDAO.getByOwnerId(app.getId());
+    assertThat(stillExists).isNotNull();
+    SourceControl updated = sourceControlDAO.getByOwnerId(app.getId());
+    assertThat(updated.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.PAT);
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_AuthTypeChange_NoChange_TokenUnchanged() {
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
+
+    SourceControl sourceControl = createSourceControl(
+            app.getId(),
+            SourceControl.AuthenticationType.PAT,
+            "http://example.com/test/test"
+    );
+    String originalToken = passwordHandler.encryptPassword("original-token");
+    sourceControl.setToken(originalToken);
+    tempEntity.newSourceControl(sourceControl);
+
+    ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
+    updateDTO.authenticationType = SourceControl.AuthenticationType.PAT.name();
+    updateDTO.token = FAKE_SECRET_KEY;
+
+    sourceControlService.updateSourceControlByOwner(OwnerType.APPLICATION, app.getId(), updateDTO);
+    SourceControl updated = sourceControlDAO.getByOwnerId(app.getId());
+    assertThat(updated.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.PAT);
+    assertThat(updated.getToken()).isEqualTo(originalToken);
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_AuthTypeChange_WithInstallationStates_DeletesAll() {
+    setupCustomGitHubAppCleanupService();
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
+    createAndInsertGitHubApp(app.getId());
+    SourceControl sourceControl = createSourceControl(
+            app.getId(),
+            SourceControl.AuthenticationType.GITHUB_APP,
+            "http://example.com/test/test"
+    );
+    tempEntity.newSourceControl(sourceControl);
+
+    stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
+    ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
+    updateDTO.authenticationType = SourceControl.AuthenticationType.PAT.name();
+    updateDTO.token = "new-pat-token";
+
+    sourceControlService.updateSourceControlByOwner(OwnerType.APPLICATION, app.getId(), updateDTO);
+
+    SourceControl updated = sourceControlDAO.getByOwnerId(app.getId());
+    assertThat(updated.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.PAT);
+  }
+
+  @Test
+  public void testDeleteSourceControlByOwner_WithGitHubApp_DeletesGitHubApp() {
+    setupCustomGitHubAppCleanupService();
+    createAndInsertGitHubApp(app.getId());
+    SourceControl sourceControl = createSourceControl(
+            app.getId(),
+            SourceControl.AuthenticationType.GITHUB_APP,
+            "http://example.com/test/test"
+    );
+    tempEntity.newSourceControl(sourceControl);
+    stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNotNull();
+    sourceControlService.deleteSourceControlByOwner(OwnerType.APPLICATION, app.getId());
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    assertThat(sourceControlDAO.getByOwnerId(app.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteSourceControlByOwner_NonGitHubProvider_SkipsGitHubAppDeletion() {
+    GitHubApp gitHubApp = createAndInsertGitHubApp(app.getId());
+    SourceControl sourceControl = createSourceControl(
+            app.getId(),
+            SourceControl.AuthenticationType.GITHUB_APP,
+            "https://bitbucket.example.com/scm/PROJECT/repo"
+    );
+    sourceControl.setProvider(SourceControlProvider.BITBUCKET);
+    tempEntity.newSourceControl(sourceControl);
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNotNull();
+    sourceControlService.deleteSourceControlByOwner(OwnerType.APPLICATION, app.getId());
+
+    assertThat(sourceControlDAO.getByOwnerId(app.getId())).isNull();
+    GitHubApp stillExists = gitHubAppDAO.getByOwnerId(app.getId());
+    assertThat(stillExists).isNotNull();
+    assertThat(stillExists.getId()).isEqualTo(gitHubApp.getId());
+  }
+
+  @Test
+  public void testDeleteSourceControlByOwner_PatAuthentication_NoGitHubAppCleanup() {
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
+    SourceControl sourceControl = createSourceControl(
+            app.getId(),
+            SourceControl.AuthenticationType.PAT,
+            "http://example.com/test/test"
+    );
+    sourceControl.setToken(passwordHandler.encryptPassword("pat-token"));
+    tempEntity.newSourceControl(sourceControl);
+    assertThatNoException().isThrownBy(() ->
+            sourceControlService.deleteSourceControlByOwner(OwnerType.APPLICATION, app.getId())
+    );
+    assertThat(sourceControlDAO.getByOwnerId(app.getId())).isNull();
+  }
+
+  @Test
+  public void testAddSourceControlByOwner_NoneToGitHubApp_CreatesGitHubAppEntry() {
+    assertThat(sourceControlDAO.getByOwnerId(app.getId())).isNull();
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    ApiSourceControlDTO newSourceControl = new ApiSourceControlDTO();
+    newSourceControl.ownerId = app.getId();
+    newSourceControl.repositoryUrl = "https://github.com/test/repo";
+    newSourceControl.authenticationType = SourceControl.AuthenticationType.GITHUB_APP.name();
+    newSourceControl.provider = SourceControlProvider.GITHUB.name().toLowerCase();
+    ApiSourceControlDTO result = sourceControlService.addSourceControlByOwner(
+            OwnerType.APPLICATION, app.getId(), newSourceControl);
+    assertThat(result).isNotNull();
+    SourceControl created = sourceControlDAO.getByOwnerId(app.getId());
+    assertThat(created).isNotNull();
+    assertThat(created.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
+    assertThat(created.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(created.getToken()).isNull();
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_GitHubAppToGitLab_DeletesGitHubApp() {
+    setupCustomGitHubAppCleanupService();
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
+    createAndInsertGitHubApp(app.getId());
+    SourceControl sourceControl = createSourceControl(
+            app.getId(),
+            SourceControl.AuthenticationType.GITHUB_APP,
+            "https://github.com/test/repo"
+    );
+    tempEntity.newSourceControl(sourceControl);
+    stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
+    ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
+    updateDTO.repositoryUrl = "https://gitlab.com/test/repo";
+    updateDTO.provider = "gitlab";
+    updateDTO.authenticationType = "PAT";
+    updateDTO.token = "gitlab-token";
+    sourceControlService.updateSourceControlByOwner(OwnerType.APPLICATION, app.getId(), updateDTO);
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    SourceControl updated = sourceControlDAO.getByOwnerId(app.getId());
+    assertThat(updated.getProvider()).isEqualTo(SourceControlProvider.GITLAB);
+    assertThat(updated.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.PAT);
+    assertThat(updated.getToken()).isNotNull();
+  }
+
   private GeneralSCMApiClient createMockGeneralSCMApiClient() throws Exception {
     GeneralSCMApiClient mockGeneralSCMApiClient = mock(GeneralSCMApiClient.class);
     GithubRateLimitsResponse rateLimitsResponse = new GithubRateLimitsResponse();
@@ -1557,5 +1841,66 @@ public class ApiSourceControlServiceTest
   private void setLicensedForSourceControlByNotifications() {
     // remove automation feature, leaving notifications
     testProductLicense.setMissingFeatures(LicensedFeature.AUTOMATION);
+  }
+
+  private String generateTestRsaPrivateKey() {
+    try {
+      KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+      keyPairGenerator.initialize(2048);
+      KeyPair keyPair = keyPairGenerator.generateKeyPair();
+      byte[] pkcs8EncodedKey = keyPair.getPrivate().getEncoded();
+      return Base64.getEncoder().encodeToString(pkcs8EncodedKey);
+    }
+    catch (Exception e) {
+      throw new RuntimeException("Failed to generate test RSA key", e);
+    }
+  }
+
+  private GitHubApp createAndInsertGitHubApp(String ownerId) {
+    GitHubApp gitHubApp = new GitHubApp();
+    gitHubApp.setId(UUID.randomUUID().toString());
+    gitHubApp.setOwnerId(ownerId);
+    gitHubApp.setAppId(TEST_GITHUB_APP_ID);
+    gitHubApp.setSlug(TEST_GITHUB_APP_SLUG);
+    gitHubApp.setGithubOrganizationName("myOrg");
+    gitHubApp.setLastUpdatedAt(new Date());
+    gitHubApp.setClientId("client-id-" + UUID.randomUUID());
+    gitHubApp.setClientSecret(passwordHandler.encryptPassword(TEST_CLIENT_SECRET));
+    gitHubApp.setPrivateKey(passwordHandler.encryptPassword(generateTestRsaPrivateKey()));
+    gitHubApp.setInstallationId(TEST_GITHUB_INSTALLATION_ID);
+    return tempEntity.newGitHubApp(gitHubApp);
+  }
+
+  private SourceControl createSourceControl(
+          String ownerId,
+          SourceControl.AuthenticationType authType,
+          String repositoryUrl)
+  {
+    SourceControl sourceControl = new SourceControl();
+    sourceControl.setId(UUID.randomUUID().toString());
+    sourceControl.setOwnerId(ownerId);
+    sourceControl.setAuthenticationType(authType);
+    sourceControl.setProvider(SourceControlProvider.GITHUB);
+    sourceControl.setRepositoryUrl(repositoryUrl);
+    return sourceControl;
+  }
+
+  private void stubGitHubAppInstallationDeletion(Long installationId, boolean shouldSucceed) {
+    if (shouldSucceed) {
+      // GitHub API returns 204 No Content on successful deletion
+      githubMockServer.stubFor(
+              delete(urlPathEqualTo("/app/installations/" + installationId))
+                      .willReturn(aResponse()
+                              .withStatus(204)));
+    }
+    else {
+      // Simulate GitHub API failure
+      githubMockServer.stubFor(
+              delete(urlPathEqualTo("/app/installations/" + installationId))
+                      .willReturn(aResponse()
+                              .withStatus(500)
+                              .withHeader("Content-Type", "application/json")
+                              .withBody("{\"message\":\"Internal server error\"}")));
+    }
   }
 }

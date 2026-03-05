@@ -79,6 +79,9 @@ public class GitClientFactoryTest
   @Inject
   private GitClientFactory gitClientFactory;
 
+  @Inject
+  private GitHubAppDAO gitHubAppDAO;
+
   private GitClientFactory spyGitClientFactory;
 
   private GitApiClientUtils mockGitApiClientUtils;
@@ -407,7 +410,7 @@ public class GitClientFactoryTest
     GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/org/repo", GITHUB);
     repoInfo.authenticationType =
         com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType.GITHUB_APP;
-    repoInfo.ownerId = "non-existent-owner";
+    repoInfo.authOwnerId = "non-existent-owner";
 
     // When/Then: Creating API client should throw UncheckedExecutionException wrapping NotFoundException
     assertThatThrownBy(() -> gitClientFactory.createApiClient(repoInfo))
@@ -423,12 +426,12 @@ public class GitClientFactoryTest
     GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/org/repo", GITHUB);
     repoInfo.authenticationType =
         com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType.GITHUB_APP;
-    repoInfo.ownerId = null;  // Missing ownerId - should NOT fallback to PAT
+    repoInfo.authOwnerId = null;  // Missing ownerId - should NOT fallback to PAT
 
     // When/Then: Creating API client should throw IllegalStateException (fail fast)
     assertThatThrownBy(() -> gitClientFactory.createApiClient(repoInfo))
         .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("GitHub App authentication is configured but ownerId is not set")
+        .hasMessageContaining("GitHub App authentication is configured but no owner ID found")
         .hasMessageContaining("https://github.com/org/repo");
   }
 
@@ -438,12 +441,12 @@ public class GitClientFactoryTest
     GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/org/repo", GITHUB);
     repoInfo.authenticationType =
         com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType.GITHUB_APP;
-    repoInfo.ownerId = null;  // Missing ownerId - should NOT fallback to PAT
+    repoInfo.authOwnerId = null;  // Missing ownerId - should NOT fallback to PAT
 
     // When/Then: Creating PR info client should throw IllegalStateException (fail fast)
     assertThatThrownBy(() -> gitClientFactory.createPullRequestInfoClient(repoInfo))
         .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("GitHub App authentication is configured but ownerId is not set")
+        .hasMessageContaining("GitHub App authentication is configured but no owner ID found")
         .hasMessageContaining("https://github.com/org/repo");
   }
 
@@ -453,12 +456,12 @@ public class GitClientFactoryTest
     GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/org/repo", GITHUB);
     repoInfo.authenticationType =
         com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType.GITHUB_APP;
-    repoInfo.ownerId = null;  // Missing ownerId - should NOT fallback to PAT
+    repoInfo.authOwnerId = null;  // Missing ownerId - should NOT fallback to PAT
 
     // When/Then: Creating contributor info provider should throw IllegalStateException (fail fast)
     assertThatThrownBy(() -> gitClientFactory.createContributorInfoProvider(repoInfo))
         .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("GitHub App authentication is configured but ownerId is not set")
+        .hasMessageContaining("GitHub App authentication is configured but no owner ID found")
         .hasMessageContaining("https://github.com/org/repo");
   }
 
@@ -494,7 +497,7 @@ public class GitClientFactoryTest
     // Create GitRepositoryInfo with WireMock URL and GitHub App authentication
     GitRepositoryInfo repoInfo = createRepoInfo("http://localhost:" + WIREMOCK_PORT + "/test-org/repo", GITHUB);
     repoInfo.authenticationType = SourceControl.AuthenticationType.GITHUB_APP;
-    repoInfo.ownerId = app.getId();
+    repoInfo.authOwnerId = app.getId();
 
     // Create GraphQL client and make API call
     PullRequestInfoProvider prInfoClient = gitClientFactory.createPullRequestInfoClient(repoInfo);
@@ -523,7 +526,7 @@ public class GitClientFactoryTest
     // Create GitRepositoryInfo with GitHub App authentication
     GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/test-org/repo", GITHUB);
     repoInfo.authenticationType = SourceControl.AuthenticationType.GITHUB_APP;
-    repoInfo.ownerId = app.getId();
+    repoInfo.authOwnerId = app.getId();
 
     // Create contributor info provider
     ContributorInfoProvider contributorProvider = gitClientFactory.createContributorInfoProvider(repoInfo);
@@ -566,7 +569,7 @@ public class GitClientFactoryTest
     // Create GitRepositoryInfo with WireMock URL and GitHub App authentication
     GitRepositoryInfo repoInfo = createRepoInfo("http://localhost:" + WIREMOCK_PORT + "/test-org/repo", GITHUB);
     repoInfo.authenticationType = SourceControl.AuthenticationType.GITHUB_APP;
-    repoInfo.ownerId = app.getId();
+    repoInfo.authOwnerId = app.getId();
 
     // Create first PullRequestInfoProvider and make API call - should fetch installation token
     PullRequestInfoProvider prInfoClient1 = gitClientFactory.createPullRequestInfoClient(repoInfo);
@@ -587,6 +590,67 @@ public class GitClientFactoryTest
 
     // Verify both API calls were made successfully
     githubMockServer.verify(2, postRequestedFor(urlPathEqualTo("/api/graphql")));
+  }
+
+  @Test
+  public void testCreateApiClient_WithGitHubApp_UsesAuthOwnerIdWhenAvailable() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+
+    // Create GitHub App for parent organization
+    GitHubApp githubApp = createTestGitHubApp(org.getId());
+    tempEntity.newGitHubApp(githubApp);
+
+    // Create GitRepositoryInfo with authOwnerId set to parent org
+    GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/test-org/repo", GITHUB);
+    repoInfo.authenticationType = SourceControl.AuthenticationType.GITHUB_APP;
+    repoInfo.authOwnerId = org.getId(); // Parent org ID
+
+    // Execute
+    GitApiClient apiClient = gitClientFactory.createApiClient(repoInfo);
+
+    // Verify - the client should be created using the authOwnerId (parent org)
+    assertThat(apiClient).isNotNull();
+    // Verify the GitHub App was retrieved for the correct owner (parent org, not child app)
+    GitHubApp retrievedApp = gitHubAppDAO.getByOwnerIdNotNull(org.getId());
+    assertThat(retrievedApp).isNotNull();
+    assertThat(retrievedApp.getOwnerId()).isEqualTo(org.getId());
+    // Verify no GitHub App exists for the child app
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+  }
+
+  @Test
+  public void testCreateApiClient_WithGitHubApp_ThrowsExceptionWhenAuthOwnerIdIsNull() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+
+    // Create GitHub App for application
+    GitHubApp githubApp = createTestGitHubApp(app.getId());
+    tempEntity.newGitHubApp(githubApp);
+
+    // Create GitRepositoryInfo with null authOwnerId
+    GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/test-org/repo", GITHUB);
+    repoInfo.authenticationType = SourceControl.AuthenticationType.GITHUB_APP;
+    repoInfo.authOwnerId = null;
+
+    // Execute & Verify - should throw IllegalStateException when authOwnerId is null
+    assertThatThrownBy(() -> gitClientFactory.createApiClient(repoInfo))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("GitHub App authentication is configured but no owner ID found");
+  }
+
+  @Test
+  public void testCreateApiClient_WithGitHubApp_ThrowsExceptionWhenBothOwnerIdsAreNull() {
+    // Create GitRepositoryInfo with GitHub App auth but both owner IDs are null
+    GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/test-org/repo", GITHUB);
+    repoInfo.authenticationType = SourceControl.AuthenticationType.GITHUB_APP;
+    repoInfo.authOwnerId = null;
+    repoInfo.authOwnerId = null;
+
+    // Execute and verify exception
+    assertThatThrownBy(() -> gitClientFactory.createApiClient(repoInfo))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("GitHub App authentication is configured but no owner ID found");
   }
 
   private GitHubApp createTestGitHubApp(String ownerId) {

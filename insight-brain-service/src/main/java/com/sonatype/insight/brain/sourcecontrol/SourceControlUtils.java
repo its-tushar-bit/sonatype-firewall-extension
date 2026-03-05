@@ -17,8 +17,10 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -48,26 +50,52 @@ public class SourceControlUtils
 
   private final GitClientFactory gitClientFactory;
 
+  private final GitHubAppDAO gitHubAppDAO;
+
   @Inject
   public SourceControlUtils(
       SourceControlDataService sourceControlDataService,
       InsightWork insightWork,
       FileCleaner fileCleaner,
-      GitClientFactory gitClientFactory)
+      GitClientFactory gitClientFactory,
+      GitHubAppDAO gitHubAppDAO)
   {
     this.sourceControlDataService = sourceControlDataService;
     this.insightWork = insightWork;
     this.fileCleaner = fileCleaner;
     this.gitClientFactory = gitClientFactory;
+    this.gitHubAppDAO = gitHubAppDAO;
   }
 
   public GitRepositoryInfo getGitRepositoryInfoForApplication(String applicationId) {
     SourceControl sourceControl = sourceControlDataService.getCompositeSourceControlByOwnerDecrypted(applicationId);
-    return getGitRepositoryInfoForApplicationStatic(sourceControl, applicationId);
+    return getGitRepositoryInfoForApplicationInternal(sourceControl, applicationId);
   }
 
   public GitRepositoryInfo getGitRepositoryInfoForApplication(SourceControl sourceControl, String applicationId) {
-    return getGitRepositoryInfoForApplicationStatic(sourceControl, applicationId);
+    return getGitRepositoryInfoForApplicationInternal(sourceControl, applicationId);
+  }
+
+  /**
+   * Internal method that builds GitRepositoryInfo and applies GitHub App authentication if needed.
+   */
+  private GitRepositoryInfo getGitRepositoryInfoForApplicationInternal(
+      SourceControl sourceControl,
+      String applicationId)
+  {
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfoForApplicationStatic(sourceControl, applicationId);
+
+    if (gitRepositoryInfo != null) {
+      if (sourceControl.getAuthenticationType() == SourceControl.AuthenticationType.GITHUB_APP) {
+        GitHubApp gitHubApp = gitHubAppDAO.getNearestGitHubApp(applicationId);
+        gitRepositoryInfo.authOwnerId = gitHubApp != null ? gitHubApp.getOwnerId() : sourceControl.getOwnerId();
+      }
+      else {
+        gitRepositoryInfo.authOwnerId = sourceControl.getOwnerId();
+      }
+    }
+
+    return gitRepositoryInfo;
   }
 
   /**
@@ -218,7 +246,14 @@ public class SourceControlUtils
     gitRepositoryInfo.innerSourceAutomatedUpdatesEnabled = sourceControl.getInnerSourceAutomatedUpdatesEnabled();
     gitRepositoryInfo.manualPullRequestsEnabled = sourceControl.getManualPullRequestsEnabled();
     gitRepositoryInfo.authenticationType = sourceControl.getAuthenticationType();
-    gitRepositoryInfo.ownerId = sourceControl.getOwnerId();
+
+    if (sourceControl.getAuthenticationType() == SourceControl.AuthenticationType.GITHUB_APP) {
+      GitHubApp gitHubApp = gitHubAppDAO.getNearestGitHubApp(orgId);
+      gitRepositoryInfo.authOwnerId = gitHubApp != null ? gitHubApp.getOwnerId() : sourceControl.getOwnerId();
+    }
+    else {
+      gitRepositoryInfo.authOwnerId = sourceControl.getOwnerId();
+    }
 
     return gitRepositoryInfo;
   }

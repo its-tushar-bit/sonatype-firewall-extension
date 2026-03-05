@@ -23,6 +23,11 @@ describe('GitHubAppRegistrationModal', () => {
           isModalOpen: true, // Default to open for most tests
           ...preloadedState,
         },
+        productFeatures: {
+          productFeatures: {
+            'github-app-authentication': true, // Default to enabled for tests
+          },
+        },
       },
     });
   };

@@ -311,7 +311,7 @@ describe('GitHubAppAuthenticationMethod', () => {
       it('displays repositories link', () => {
         renderComponent({ sourceControl: configuredSourceControl });
 
-        const link = screen.getByRole('link', { name: /go to github repositories/i });
+        const link = screen.getByRole('link', { name: /go to github installation settings/i });
         expect(link).toBeInTheDocument();
         expect(link).toHaveAttribute('href', 'https://github.com/organizations/sonatype/settings/installations/12345');
       });
@@ -539,11 +539,14 @@ describe('GitHubAppAuthenticationMethod', () => {
       expect(patRadio).toBeDisabled();
     });
 
-    it('disables fieldset when fields are disabled', () => {
+    it('disables authentication method radios when fields are disabled', () => {
       renderComponent({ areFieldsDisabled: true });
 
-      const fieldset = screen.getByRole('group', { name: /authentication method/i });
-      expect(fieldset).toBeDisabled();
+      const githubAppRadio = screen.getByRole('radio', { name: /github app \(recommended\)/i });
+      const patRadio = screen.getByRole('radio', { name: /personal access token/i });
+
+      expect(githubAppRadio).toBeDisabled();
+      expect(patRadio).toBeDisabled();
     });
 
     it('allows interactions when fields are not disabled', () => {
@@ -571,6 +574,278 @@ describe('GitHubAppAuthenticationMethod', () => {
 
     it('renders without errors with all props', () => {
       expect(() => renderComponent()).not.toThrow();
+    });
+  });
+
+  describe('Inheritance - Org/App Level', () => {
+    describe('when inheriting GitHub App from parent', () => {
+      const inheritedGitHubAppSourceControl = {
+        token: {
+          rscValue: nxTextInputInitialState(''),
+          isInherited: true,
+          parentValue: nxTextInputInitialState('ghp_parent_token'),
+        },
+        provider: {
+          parentName: 'Root Organization',
+        },
+        authenticationType: {
+          value: null,
+          isInherited: true,
+          parentValue: AUTHENTICATION_TYPES.GITHUB_APP,
+        },
+        githubApp: {
+          value: null,
+          isInherited: true,
+          parentName: 'Root Organization',
+          parentValue: {
+            installationId: '99999',
+            accountName: 'parent-org',
+            accountType: 'organization',
+            name: 'Parent GitHub App',
+            configurationDate: '2024-02-01T12:00:00Z',
+          },
+        },
+      };
+
+      it('renders inheritance radios when setIsInherited prop is provided', () => {
+        const setIsInherited = jest.fn();
+        renderComponent({ sourceControl: inheritedGitHubAppSourceControl, setIsInherited });
+
+        expect(screen.getByRole('radio', { name: /inherit from root organization/i })).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: /override/i })).toBeInTheDocument();
+      });
+
+      it('shows "Inherit from [parentName]" when parent has GitHub App configured', () => {
+        const setIsInherited = jest.fn();
+        renderComponent({ sourceControl: inheritedGitHubAppSourceControl, setIsInherited });
+
+        expect(screen.getByRole('radio', { name: /inherit from root organization/i })).toBeInTheDocument();
+      });
+
+      it('shows "Inherit (Not Configured)" when parent has no GitHub App', () => {
+        const sourceControl = {
+          ...inheritedGitHubAppSourceControl,
+          token: {
+            ...inheritedGitHubAppSourceControl.token,
+            parentValue: null, // No parent token either
+          },
+          githubApp: {
+            ...inheritedGitHubAppSourceControl.githubApp,
+            parentName: null, // No parent has GitHub App
+            parentValue: null,
+          },
+        };
+        const setIsInherited = jest.fn();
+        renderComponent({ sourceControl, setIsInherited });
+
+        expect(screen.getByRole('radio', { name: /inherit \(not configured\)/i })).toBeInTheDocument();
+      });
+
+      it('checks Inherit radio when isInherited is true', () => {
+        const setIsInherited = jest.fn();
+        renderComponent({ sourceControl: inheritedGitHubAppSourceControl, setIsInherited });
+
+        const inheritRadio = screen.getByRole('radio', { name: /inherit from root organization/i });
+        expect(inheritRadio).toBeChecked();
+      });
+
+      it('displays inherited GitHub App details box when parent has GitHub App installed', () => {
+        const setIsInherited = jest.fn();
+        renderComponent({ sourceControl: inheritedGitHubAppSourceControl, setIsInherited });
+
+        // Verify details box renders
+        expect(screen.getByText('Organization:')).toBeInTheDocument();
+        expect(screen.getByText('parent-org')).toBeInTheDocument();
+        expect(screen.getByText('App:')).toBeInTheDocument();
+        expect(screen.getByText('Parent GitHub App')).toBeInTheDocument();
+      });
+
+      it('displays GitHub installation link for inherited GitHub App', () => {
+        const setIsInherited = jest.fn();
+        renderComponent({ sourceControl: inheritedGitHubAppSourceControl, setIsInherited });
+
+        const link = screen.getByRole('link', { name: /view github app configuration/i });
+        expect(link).toBeInTheDocument();
+        expect(link).toHaveAttribute(
+          'href',
+          'https://github.com/organizations/parent-org/settings/installations/99999'
+        );
+      });
+
+      it('displays configuration date for inherited GitHub App', () => {
+        const setIsInherited = jest.fn();
+        renderComponent({ sourceControl: inheritedGitHubAppSourceControl, setIsInherited });
+
+        expect(screen.getByText(/configuration date:/i)).toBeInTheDocument();
+        expect(screen.getByText(/2024/)).toBeInTheDocument();
+      });
+
+      it('does NOT display GitHub App details when parent has no installation (hasParentConfig check)', () => {
+        const sourceControl = {
+          ...inheritedGitHubAppSourceControl,
+          githubApp: {
+            ...inheritedGitHubAppSourceControl.githubApp,
+            parentName: null,
+            parentValue: null, // No installation data
+          },
+        };
+        const setIsInherited = jest.fn();
+        renderComponent({ sourceControl, setIsInherited });
+
+        // Details box should NOT render
+        expect(screen.queryByText('Organization:')).not.toBeInTheDocument();
+        expect(screen.queryByText('parent-org')).not.toBeInTheDocument();
+      });
+
+      it('does NOT display GitHub App details when parent selected GitHub App but has no installationId', () => {
+        const sourceControl = {
+          ...inheritedGitHubAppSourceControl,
+          githubApp: {
+            ...inheritedGitHubAppSourceControl.githubApp,
+            parentValue: {
+              accountName: 'parent-org',
+              // installationId missing - edge case
+            },
+          },
+        };
+        const setIsInherited = jest.fn();
+        renderComponent({ sourceControl, setIsInherited });
+
+        // Details box should NOT render without installationId
+        expect(screen.queryByText('Organization:')).not.toBeInTheDocument();
+      });
+
+      it('disables authentication method radios when inheriting', () => {
+        const setIsInherited = jest.fn();
+        renderComponent({ sourceControl: inheritedGitHubAppSourceControl, setIsInherited });
+
+        const githubAppRadio = screen.getByRole('radio', { name: /github app \(recommended\)/i });
+        const patRadio = screen.getByRole('radio', { name: /personal access token/i });
+
+        expect(githubAppRadio).toBeDisabled();
+        expect(patRadio).toBeDisabled();
+      });
+
+      it('shows GitHub App radio as checked when inheriting GitHub App', () => {
+        const setIsInherited = jest.fn();
+        renderComponent({ sourceControl: inheritedGitHubAppSourceControl, setIsInherited });
+
+        const githubAppRadio = screen.getByRole('radio', { name: /github app \(recommended\)/i });
+        expect(githubAppRadio).toBeChecked();
+      });
+
+      it('calls setIsInherited when Override radio is clicked', async () => {
+        const user = userEvent.setup();
+        const setIsInherited = jest.fn();
+        renderComponent({ sourceControl: inheritedGitHubAppSourceControl, setIsInherited });
+
+        const overrideRadio = screen.getByRole('radio', { name: /override/i });
+        await user.click(overrideRadio);
+
+        expect(setIsInherited).toHaveBeenCalledWith('authenticationType', false);
+      });
+
+      it('calls setIsInherited when Inherit radio is clicked', async () => {
+        const user = userEvent.setup();
+        const setIsInherited = jest.fn();
+        const sourceControl = {
+          ...inheritedGitHubAppSourceControl,
+          authenticationType: {
+            ...inheritedGitHubAppSourceControl.authenticationType,
+            isInherited: false, // Currently overriding
+          },
+        };
+        renderComponent({ sourceControl, setIsInherited });
+
+        const inheritRadio = screen.getByRole('radio', { name: /inherit from root organization/i });
+        await user.click(inheritRadio);
+
+        expect(setIsInherited).toHaveBeenCalledWith('authenticationType', true);
+      });
+
+      it('displays personal account URL when parent has personal account type', () => {
+        const sourceControl = {
+          ...inheritedGitHubAppSourceControl,
+          githubApp: {
+            ...inheritedGitHubAppSourceControl.githubApp,
+            parentValue: {
+              ...inheritedGitHubAppSourceControl.githubApp.parentValue,
+              accountType: 'personal',
+              accountName: 'john-doe',
+            },
+          },
+        };
+        const setIsInherited = jest.fn();
+        renderComponent({ sourceControl, setIsInherited });
+
+        const link = screen.getByRole('link', { name: /view github app configuration/i });
+        expect(link).toHaveAttribute('href', 'https://github.com/settings/installations/99999');
+      });
+
+      it('displays inherited PAT token field when parent uses PAT', () => {
+        const sourceControl = {
+          ...inheritedGitHubAppSourceControl,
+          authenticationType: {
+            ...inheritedGitHubAppSourceControl.authenticationType,
+            parentValue: AUTHENTICATION_TYPES.PAT,
+          },
+          githubApp: {
+            ...inheritedGitHubAppSourceControl.githubApp,
+            parentName: null,
+            parentValue: null,
+          },
+        };
+        const setIsInherited = jest.fn();
+        renderComponent({ sourceControl, setIsInherited });
+
+        // PAT radio should be checked
+        const patRadio = screen.getByRole('radio', { name: /personal access token/i });
+        expect(patRadio).toBeChecked();
+
+        // Token field should be visible and disabled
+        const tokenInput = document.querySelector('#source-control-token');
+        expect(tokenInput).toBeInTheDocument();
+        expect(tokenInput).toBeDisabled();
+      });
+    });
+
+    describe('when NOT inheriting (Root level or Override)', () => {
+      it('does NOT render inheritance radios when setIsInherited is not provided', () => {
+        renderComponent(); // No setIsInherited prop
+
+        expect(screen.queryByRole('radio', { name: /inherit/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('radio', { name: /override/i })).not.toBeInTheDocument();
+      });
+
+      it('enables authentication method radios when not inheriting', () => {
+        renderComponent(); // Root level
+
+        const githubAppRadio = screen.getByRole('radio', { name: /github app \(recommended\)/i });
+        const patRadio = screen.getByRole('radio', { name: /personal access token/i });
+
+        expect(githubAppRadio).not.toBeDisabled();
+        expect(patRadio).not.toBeDisabled();
+      });
+
+      it('does not show "Authentication Type" section label at Root level', () => {
+        renderComponent(); // No setIsInherited prop
+
+        expect(screen.queryByText('Authentication Type')).not.toBeInTheDocument();
+      });
+
+      it('shows "Authentication Type" section label at Org/App level', () => {
+        const setIsInherited = jest.fn();
+        const sourceControl = {
+          ...defaultSourceControl,
+          githubApp: {
+            value: null,
+            isInherited: false,
+          },
+        };
+        renderComponent({ sourceControl, setIsInherited });
+
+        expect(screen.getByText('Authentication Type')).toBeInTheDocument();
+      });
     });
   });
 });

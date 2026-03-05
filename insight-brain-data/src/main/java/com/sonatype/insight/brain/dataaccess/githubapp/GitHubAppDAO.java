@@ -94,4 +94,39 @@ public class GitHubAppDAO
       tx.commit();
     }
   }
+
+  /**
+   * Finds the nearest GitHubApp in the ownership hierarchy for the given owner.
+   * Searches up the organization hierarchy starting from the given ownerId and returns
+   * the first GitHubApp found, or null if none exists.
+   *
+   * @param ownerId the owner ID to search from
+   * @return the nearest GitHubApp in the hierarchy, or null if not found
+   */
+  public GitHubApp getNearestGitHubApp(String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      return getNearestGitHubApp(tx, ownerId);
+    }
+  }
+
+  /**
+   * Finds the nearest GitHubApp in the ownership hierarchy for the given owner.
+   * Uses JPQL with the OwnerAncestor view to traverse the organization hierarchy.
+   *
+   * @param tx transaction context
+   * @param ownerId the owner ID to search from
+   * @return the nearest GitHubApp in the hierarchy, or null if not found
+   */
+  private GitHubApp getNearestGitHubApp(TransactionContext tx, String ownerId) {
+    String query = "SELECT ga FROM GitHubApp ga, OwnerAncestor oa " +
+        "WHERE oa.id = ?1 AND ga.ownerId = oa.ancestorId " +
+        "ORDER BY oa.ancestorDistance";
+
+    List<GitHubApp> results = createQuery(tx, query, ownerId)
+        .setMaxResults(1)
+        .getResultList();
+
+    return results.isEmpty() ? null : results.get(0);
+  }
 }

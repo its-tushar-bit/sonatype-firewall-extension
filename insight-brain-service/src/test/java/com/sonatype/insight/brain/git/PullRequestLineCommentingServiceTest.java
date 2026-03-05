@@ -63,7 +63,6 @@ public class PullRequestLineCommentingServiceTest
   @Mock
   private GitApiClient mockGitApiClient;
 
-  @Mock
   private GitRepositoryInfo gitRepositoryInfo;
 
   @Mock
@@ -112,9 +111,16 @@ public class PullRequestLineCommentingServiceTest
   public void setup() {
     MockitoAnnotations.openMocks(this);
     super.setup();
-    when(gitRepositoryInfo.getProvider()).thenReturn(SourceControlProvider.GITHUB);
-    when(gitRepositoryInfo.getAuthenticationType()).thenReturn(null);  // Default to PAT
-    when(gitRepositoryInfo.getOwnerId()).thenReturn(null);
+    // Create a real GitRepositoryInfo object instead of mocking it
+    // This is needed because production code accesses authOwnerId field directly
+    gitRepositoryInfo = new GitRepositoryInfo(
+        "https://github.com/test/repo",
+        null, null, "test-token",
+        SourceControlProvider.GITHUB, "main",
+        true, true, true, true, true, true, false, null);
+    gitRepositoryInfo.authenticationType = null;  // Default to PAT
+    gitRepositoryInfo.authOwnerId = null;
+
     locationDiscoveryResult = new LocationDiscoveryResult();
     List<RankedSourceLocation> list = new LinkedList<>();
     list.add(new RankedSourceLocation("path", 1, "content", 1));
@@ -475,7 +481,14 @@ public class PullRequestLineCommentingServiceTest
   @Test
   public void testCreatePullRequestLineComments_gitlab() throws Exception {
     // given:
-    when(gitRepositoryInfo.getProvider()).thenReturn(SourceControlProvider.GITLAB);
+    gitRepositoryInfo = new GitRepositoryInfo(
+        "https://gitlab.com/test/repo",
+        null, null, "test-token",
+        SourceControlProvider.GITLAB, "main",
+        true, true, true, true, true, true, false, null);
+    gitRepositoryInfo.authenticationType = null;  // Default to PAT
+    gitRepositoryInfo.authOwnerId = null;
+
     PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
         .withTwoComponentsFoundInCode()
         .withTwoComponentsFoundInPrDiff()
@@ -499,7 +512,14 @@ public class PullRequestLineCommentingServiceTest
   @Test
   public void testCreatePullRequestLineComments_bitbucket() throws Exception {
     // given:
-    when(gitRepositoryInfo.getProvider()).thenReturn(SourceControlProvider.BITBUCKET);
+    gitRepositoryInfo = new GitRepositoryInfo(
+        "https://bitbucket.org/test/repo",
+        null, null, "test-token",
+        SourceControlProvider.BITBUCKET, "main",
+        true, true, true, true, true, true, false, null);
+    gitRepositoryInfo.authenticationType = null;  // Default to PAT
+    gitRepositoryInfo.authOwnerId = null;
+
     PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
         .withTwoComponentsFoundInCode()
         .withTwoComponentsFoundInPrDiff()
@@ -590,10 +610,13 @@ public class PullRequestLineCommentingServiceTest
   @Test
   public void testCreatePullRequestLineComments_WithPATAuthentication() throws Exception {
     // given: PAT (Personal Access Token) authentication configured
-    when(gitRepositoryInfo.getProvider()).thenReturn(SourceControlProvider.GITHUB);
-    when(gitRepositoryInfo.getAuthenticationType()).thenReturn(null);  // PAT auth uses null
-    when(gitRepositoryInfo.getOwnerId()).thenReturn(null);  // PAT auth uses null
-    when(gitRepositoryInfo.getToken()).thenReturn("ghp_test_token_123");  // PAT uses token
+    gitRepositoryInfo = new GitRepositoryInfo(
+        "https://github.com/test/repo",
+        null, null, "ghp_test_token_123",
+        SourceControlProvider.GITHUB, "main",
+        true, true, true, true, true, true, false, null);
+    gitRepositoryInfo.authenticationType = null;  // PAT auth uses null
+    gitRepositoryInfo.authOwnerId = null;  // PAT auth uses null
 
     PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
         .withCommentVersion(94)
@@ -612,7 +635,7 @@ public class PullRequestLineCommentingServiceTest
 
     GitRepositoryInfo captured = repoInfoCaptor.getValue();
     assertThat(captured.getAuthenticationType()).isNull();  // PAT auth uses null
-    assertThat(captured.getOwnerId()).isNull();  // PAT auth uses null
+    assertThat(captured.authOwnerId).isNull();  // PAT auth uses null
     assertThat(captured.getToken()).isEqualTo("ghp_test_token_123");  // PAT auth uses token
 
     // and: one comment should be created
@@ -630,9 +653,13 @@ public class PullRequestLineCommentingServiceTest
   public void testCreatePullRequestLineComments_WithGitHubAppAuthentication() throws Exception {
     // given: GitHub App authentication configured
     String ownerId = "app-789";
-    when(gitRepositoryInfo.getProvider()).thenReturn(SourceControlProvider.GITHUB);
-    when(gitRepositoryInfo.getAuthenticationType()).thenReturn(SourceControl.AuthenticationType.GITHUB_APP);
-    when(gitRepositoryInfo.getOwnerId()).thenReturn(ownerId);
+    gitRepositoryInfo = new GitRepositoryInfo(
+        "https://github.com/test/repo",
+        null, null, null,
+        SourceControlProvider.GITHUB, "main",
+        true, true, true, true, true, true, false, null);
+    gitRepositoryInfo.authenticationType = SourceControl.AuthenticationType.GITHUB_APP;
+    gitRepositoryInfo.authOwnerId = ownerId;
 
     PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
         .withCommentVersion(95)
@@ -651,7 +678,7 @@ public class PullRequestLineCommentingServiceTest
 
     GitRepositoryInfo captured = repoInfoCaptor.getValue();
     assertThat(captured.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
-    assertThat(captured.getOwnerId()).isEqualTo(ownerId);
+    assertThat(captured.authOwnerId).isEqualTo(ownerId);
 
     // and: one comment should be created
     List<PullRequestLineCommentDTO> lineComments = result.getPullRequestLineCommentDtoList();

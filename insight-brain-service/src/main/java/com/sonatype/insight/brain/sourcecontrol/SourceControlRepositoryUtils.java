@@ -10,11 +10,15 @@ import java.util.regex.Pattern;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.GitApiFactory;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.nexus.git.utils.api.GitApi;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,16 +28,29 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 public class SourceControlRepositoryUtils
 {
+  private static final Logger log = LoggerFactory.getLogger(SourceControlRepositoryUtils.class);
+
   private static final Pattern SSH_URL_PATTERN = Pattern.compile("git@(.+):(.+)", Pattern.CASE_INSENSITIVE);
 
   private final SourceControlDAO sourceControlDAO;
 
   private final GitApiFactory gitApiFactory;
 
+  private final SourceControlUtils sourceControlUtils;
+
+  private final GitHubAppDAO gitHubAppDAO;
+
   @Inject
-  public SourceControlRepositoryUtils(SourceControlDAO sourceControlDAO, GitApiFactory gitApiFactory) {
+  public SourceControlRepositoryUtils(
+      SourceControlDAO sourceControlDAO,
+      GitApiFactory gitApiFactory,
+      SourceControlUtils sourceControlUtils,
+      GitHubAppDAO gitHubAppDAO)
+  {
     this.sourceControlDAO = sourceControlDAO;
     this.gitApiFactory = gitApiFactory;
+    this.sourceControlUtils = sourceControlUtils;
+    this.gitHubAppDAO = gitHubAppDAO;
   }
 
   /**
@@ -85,7 +102,14 @@ public class SourceControlRepositoryUtils
     gitRepositoryInfo.token = sourceControl.getToken();
     gitRepositoryInfo.provider = sourceControl.getProvider();
     gitRepositoryInfo.authenticationType = sourceControl.getAuthenticationType();
-    gitRepositoryInfo.ownerId = sourceControl.getOwnerId();
+
+    if (sourceControl.getAuthenticationType() == SourceControl.AuthenticationType.GITHUB_APP) {
+      GitHubApp gitHubApp = gitHubAppDAO.getNearestGitHubApp(application.getId());
+      gitRepositoryInfo.authOwnerId = gitHubApp != null ? gitHubApp.getOwnerId() : sourceControl.getOwnerId();
+    }
+    else {
+      gitRepositoryInfo.authOwnerId = sourceControl.getOwnerId();
+    }
 
     try {
       GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);

@@ -173,14 +173,35 @@ public class ManualPullRequestService
     SourceControl sourceControl =
         sourceControlDAO.buildCompositeSourceControlInApplication(owner.getId());
 
-    GitRepositoryInfo
-        gitRepositoryInfo = SourceControlUtils.getGitRepositoryInfoForApplicationStatic(sourceControl, owner.getId());
+    GitRepositoryInfo gitRepositoryInfo =
+        SourceControlUtils.getGitRepositoryInfoForApplicationStatic(sourceControl, owner.getId());
+
     if (gitRepositoryInfo != null) {
       if (SourceControl.AuthenticationType.GITHUB_APP.equals(gitRepositoryInfo.authenticationType)) {
-        GitHubApp gitHubApp = gitHubAppDAO.getByOwnerId(sourceControl.getOwnerId());
-        if (gitHubApp == null || gitHubApp.getInstallationId() == null) {
+        log.debug("GitHub App authentication detected for owner: {}", owner.getId());
+        GitHubApp gitHubApp = gitHubAppDAO.getNearestGitHubApp(owner.getId());
+
+        if (gitHubApp == null) {
+          log.warn("No GitHub App found in hierarchy for owner: {}", owner.getId());
           return Optional.of(ManualPullRequestImpossibilityReason.SCM_NOT_CONFIGURED);
         }
+
+        String ownerId = gitHubApp.getOwnerId();
+        if (ownerId == null) {
+          log.warn("GitHub App has null ownerId for owner: {}", owner.getId());
+          return Optional.of(ManualPullRequestImpossibilityReason.SCM_NOT_CONFIGURED);
+        }
+
+        gitRepositoryInfo.authOwnerId = ownerId;
+        log.debug("Using authOwnerId: {} for owner: {}", gitRepositoryInfo.authOwnerId, owner.getId());
+
+        if (gitHubApp.getInstallationId() == null) {
+          log.warn("GitHub App missing installationId at authOwnerId: {}", gitRepositoryInfo.authOwnerId);
+          return Optional.of(ManualPullRequestImpossibilityReason.SCM_NOT_CONFIGURED);
+        }
+
+        log.debug("GitHub App found with installationId: {} at authOwnerId: {}",
+            gitHubApp.getInstallationId(), gitRepositoryInfo.authOwnerId);
       }
       else {
         Optional<String> decryptedToken = decryptToken(sourceControl.getToken());

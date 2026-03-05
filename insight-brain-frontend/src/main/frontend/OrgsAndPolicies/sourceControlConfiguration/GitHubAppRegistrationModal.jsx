@@ -22,11 +22,13 @@ import {
   selectIsGitHubAppRegistrationInProgress,
   selectGitHubAppSetupError,
 } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSelectors';
+import { selectIsGithubAppAuthenticationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import './_gitHubAppRegistrationModal.scss';
 
 const GitHubAppRegistrationModal = () => {
   const dispatch = useDispatch();
   const isOpen = useSelector(selectIsModalOpen);
+  const isFeatureEnabled = useSelector(selectIsGithubAppAuthenticationEnabled);
   const accountType = useSelector(selectAccountType);
   const organizationName = useSelector(selectOrganizationName);
   const registrationInProgress = useSelector(selectIsGitHubAppRegistrationInProgress);
@@ -56,7 +58,7 @@ const GitHubAppRegistrationModal = () => {
 
   const validationErrors = getFormLevelValidationError();
 
-  return isOpen ? (
+  return isOpen && isFeatureEnabled ? (
     <NxModal
       id="github-app-registration-modal"
       onCancel={handleCancel}

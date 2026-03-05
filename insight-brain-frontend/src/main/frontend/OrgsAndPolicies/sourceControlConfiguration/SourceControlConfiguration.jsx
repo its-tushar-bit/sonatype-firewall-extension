@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import {
   NxErrorAlert,
   NxH1,
@@ -28,6 +28,8 @@ import {
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
+import { actions as gitHubAppActions } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSlice';
+import { selectIsModalOpen as selectIsGitHubAppRegistrationModalOpen } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSelectors';
 import ResetSourceControlModal from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/ResetSourceControlModal';
 import UpdateSourceControlConfirmationModal from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/UpdateSourceControlConfirmationModal';
 import GitHubAppRegistrationModal from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/GitHubAppRegistrationModal';
@@ -62,9 +64,14 @@ const SourceControlConfiguration = () => {
   const routerParams = useSelector(selectRouterCurrentParams);
   const currentState = useSelector((state) => selectRouterState(state)?.name);
   const isGitHubAppSupported = useSelector(selectIsGithubAppAuthenticationEnabled);
+  const isGitHubAppRegistrationModalOpen = useSelector(selectIsGitHubAppRegistrationModalOpen);
 
   // Read githubAppSuccess parameter from route
   const githubAppSuccess = routerParams?.githubAppSuccess === 'true';
+
+  // Track whether we've already handled the githubAppSuccess parameter
+  // Prevents duplicate modal shows on back navigation, URL manipulation, and Strict Mode double-renders
+  const githubAppSuccessHandled = useRef(false);
 
   const doLoad = useCallback(() => {
     dispatch(actions.load());
@@ -74,20 +81,52 @@ const SourceControlConfiguration = () => {
     doLoad();
   }, [doLoad]);
 
+  // Reset the ref when user opens the GitHub App registration modal to start a new setup
+  useEffect(() => {
+    if (isGitHubAppRegistrationModalOpen) {
+      githubAppSuccessHandled.current = false;
+    }
+  }, [isGitHubAppRegistrationModalOpen]);
+
   useEffect(() => {
     if (!isGitHubAppSupported) return;
     if (isLoading) return;
     if (showGitHubAppSuccessModal) return;
     if (!githubAppSuccess) return;
+    if (githubAppSuccessHandled.current) return;
+
+    // Check if GitHub App is already configured (e.g., after page refresh)
+    // If installation already exists with features enabled, this is likely a stale query param
+    const hasExistingInstallation = sourceControl?.githubApp?.value?.installationId;
+    const featuresAlreadyEnabled =
+      sourceControl?.remediationPullRequestsEnabled?.value === true &&
+      sourceControl?.manualPullRequestsEnabled?.value === true;
+
+    if (hasExistingInstallation && featuresAlreadyEnabled) {
+      // Installation already complete and features enabled - just clear the param
+      githubAppSuccessHandled.current = true;
+      return;
+    }
+
+    // Mark as handled to prevent re-execution on back navigation, URL manipulation, or Strict Mode
+    githubAppSuccessHandled.current = true;
+
+    // Close the GitHubAppRegistrationModal if it's still open from the OAuth flow
+    dispatch(gitHubAppActions.closeModal());
 
     dispatch(actions.showGitHubAppSuccessModal());
-
-    dispatch(stateGo(currentState, { githubAppSuccess: null }, { location: 'replace' }));
-  }, [isGitHubAppSupported, isLoading, showGitHubAppSuccessModal, githubAppSuccess, currentState, dispatch]);
+  }, [
+    isGitHubAppSupported,
+    isLoading,
+    showGitHubAppSuccessModal,
+    githubAppSuccess,
+    currentState,
+    dispatch,
+    sourceControl,
+  ]);
 
   const handleCloseGitHubAppSuccessModal = useCallback(() => {
     // Enable features that were previously disabled
-    // Use enableGitHubAppFeatures action that doesn't mark form dirty
     if (!sourceControl?.remediationPullRequestsEnabled?.value || !sourceControl?.manualPullRequestsEnabled?.value) {
       dispatch(actions.enableGitHubAppFeatures());
     }

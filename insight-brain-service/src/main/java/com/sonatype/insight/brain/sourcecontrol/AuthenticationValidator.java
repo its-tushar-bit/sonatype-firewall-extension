@@ -19,7 +19,7 @@ public final class AuthenticationValidator
 
   /**
    * Validates that authentication credentials are present.
-   * For PAT authentication, checks token. For GitHub App authentication, checks ownerId.
+   * For PAT authentication, checks token. For GitHub App authentication, checks authOwnerId.
    *
    * @param gitRepoInfo the GitRepositoryInfo to validate
    * @return true if required credentials are present, false otherwise
@@ -30,7 +30,7 @@ public final class AuthenticationValidator
       return !Strings.isNullOrEmpty(gitRepoInfo.token);
     }
     else if (AuthenticationType.GITHUB_APP.equals(gitRepoInfo.authenticationType)) {
-      return !Strings.isNullOrEmpty(gitRepoInfo.ownerId);
+      return !Strings.isNullOrEmpty(gitRepoInfo.authOwnerId);
     }
     else {
       throw new IllegalArgumentException("Unknown authentication type: " + gitRepoInfo.authenticationType);

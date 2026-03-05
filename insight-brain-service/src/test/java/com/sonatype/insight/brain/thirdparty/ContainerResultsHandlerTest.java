@@ -177,6 +177,7 @@ public class ContainerResultsHandlerTest
 
   @Test
   public void testHandleAndFilterContents_FilteredProxy_WithoutContainerEvalLicense() throws Exception {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
     testProductLicense.setMissingFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
 
     String json = loadResource("alpine-3.6-proxy.json");

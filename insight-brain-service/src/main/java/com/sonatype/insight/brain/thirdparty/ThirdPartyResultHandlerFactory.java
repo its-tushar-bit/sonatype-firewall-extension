@@ -14,6 +14,8 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -87,6 +89,13 @@ public class ThirdPartyResultHandlerFactory
     }
     else if (ItemContentType.CONTAINER_URI.equals(itemContentType)
         || ItemContentType.CONTAINER_URI_SONATYPE.equals(itemContentType)) {
+
+      if (ItemContentType.CONTAINER_URI_SONATYPE.equals(itemContentType)
+          && !productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)) {
+        throw new InvalidLicenseException(
+            "Your IQ Server license does not include the Container Images Evaluation feature "
+                + "required for Sonatype container scans.");
+      }
 
       thirdPartyScanContext.setContainerItemContentType(itemContentType);
 

@@ -365,7 +365,7 @@ private void uploadSbom(String applicationName, String version, String fileName)
   httpRequest(
     url: targetUrl,
     httpMode: 'PUT',
-    authentication: 'sbom-release-deployer-iq',
+    authentication: 'jenkins-saas-service-acct',
     uploadFile: fileName,
     multipartName: fileName,
     wrapAsMultipart: false

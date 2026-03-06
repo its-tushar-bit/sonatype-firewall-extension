@@ -41,18 +41,13 @@ import {
   selectEnterpriseReportingLicenseError,
   selectLoadingFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { filterRetiredDashboards } from './utils';
 
 export default function EnterpriseReportingLandingPage() {
   const dispatch = useDispatch();
   const { iqVersion, loading, loadError } = useSelector(selectEnterpriseReportingLandingPage);
-  const allEnterpriseDashboards = useSelector(selectEnterpriseDashboards);
-  const allDataInsightsDashboards = useSelector(selectDataInsightsDashboards);
-  const allPartnerDashboards = useSelector(selectPartnerDashboards);
-
-  const activeEnterpriseDashboards = filterRetiredDashboards(allEnterpriseDashboards);
-  const activeDataInsightsDashboards = filterRetiredDashboards(allDataInsightsDashboards);
-  const activePartnerDashboards = filterRetiredDashboards(allPartnerDashboards);
+  const activeEnterpriseDashboards = useSelector(selectEnterpriseDashboards);
+  const activeDataInsightsDashboards = useSelector(selectDataInsightsDashboards);
+  const activePartnerDashboards = useSelector(selectPartnerDashboards);
   const { telemetryStatus, loading: loadingTelemetry, loadError: loadTelemetryError } = useSelector(
     selectEnterpriseReportingSupportInfo
   );

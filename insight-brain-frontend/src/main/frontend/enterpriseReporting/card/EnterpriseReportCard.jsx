@@ -23,13 +23,7 @@ import { fas as fasPro } from '@fortawesome/pro-solid-svg-icons';
 import { useDispatch } from 'react-redux';
 
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import {
-  smallTagColors,
-  getUpgradeVersion,
-  isElementDisabled,
-  isRetiringDashboard,
-  getFormattedRetirementDate,
-} from '../utils';
+import { smallTagColors, getUpgradeVersion, isElementDisabled } from '../utils';
 import './_enterpriseReportCard.scss';
 
 export default function EnterpriseReportCard(props) {
@@ -39,15 +33,7 @@ export default function EnterpriseReportCard(props) {
 
   const dispatch = useDispatch();
 
-  const retiringRegex = /retiring/i;
-  const isRetiring =
-    isRetiringDashboard(dashboard.dashboardId) &&
-    dashboard.spotlightText &&
-    retiringRegex.test(dashboard.spotlightText);
-
-  const cardClassNames = classNames('iq-enterprise-reporting-card iq-enterprise-reporting-card--dashboard', {
-    retiring: isRetiring,
-  });
+  const cardClassNames = classNames('iq-enterprise-reporting-card iq-enterprise-reporting-card--dashboard');
 
   const icon = fas[dashboard.previewImageIcon] ? fas[dashboard.previewImageIcon] : fasPro[dashboard.previewImageIcon];
 
@@ -74,15 +60,6 @@ export default function EnterpriseReportCard(props) {
         className={cardClassNames}
         role="enterprise-reporting-dashboard-card"
       >
-        {isRetiring && (
-          <div
-            className="iq-enterprise-reporting-card__retirement-date"
-            aria-label={`Retirement date: ${getFormattedRetirementDate()}`}
-          >
-            <NxFontAwesomeIcon icon={fas.faCalendar} />
-            <span>{getFormattedRetirementDate()}</span>
-          </div>
-        )}
         {dashboard.spotlight || dashboard.spotlightText ? (
           <NxSmallTag color={spotlightColor} className="iq-enterprise-reporting-card__spotlight">
             {spotlightText}

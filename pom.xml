@@ -61,7 +61,7 @@
     -->
     <clm.dto.model.version>2.1.11-01</clm.dto.model.version>
     <!-- The jetty.version must match (or be compatible with) the jersey version used by dropwizard -->
-    <jetty.version>12.1.5</jetty.version>
+    <jetty.version>12.1.7</jetty.version>
     <!-- The jakarta.servlet-api.version must match the jersey version used by dropwizard -->
     <jakarta.servlet-api.version>6.0.0</jakarta.servlet-api.version>
     <dropwizard.version>5.0.0</dropwizard.version>

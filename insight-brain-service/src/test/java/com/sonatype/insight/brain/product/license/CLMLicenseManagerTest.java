@@ -369,8 +369,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
         LicensedFeature.WAIVER_REPORTS,
-        LicensedFeature.ROI_CONFIGURATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION
+        LicensedFeature.ROI_CONFIGURATION
     );
   }
 
@@ -419,8 +418,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
         LicensedFeature.WAIVER_REPORTS,
-        LicensedFeature.ROI_CONFIGURATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION
+        LicensedFeature.ROI_CONFIGURATION
     );
   }
 
@@ -472,8 +470,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
         LicensedFeature.WAIVER_REPORTS,
-        LicensedFeature.ROI_CONFIGURATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION
+        LicensedFeature.ROI_CONFIGURATION
     );
   }
 
@@ -739,8 +736,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.SOURCE_CONTROL,
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
-        LicensedFeature.WAIVER_REPORTS,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+        LicensedFeature.WAIVER_REPORTS);
   }
 
   @Test
@@ -777,8 +773,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.SOURCE_CONTROL,
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
-        LicensedFeature.WAIVER_REPORTS,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+        LicensedFeature.WAIVER_REPORTS);
   }
 
   @Test
@@ -797,8 +792,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.DATA_RETENTION,
         LicensedFeature.ORGS_AND_APPS,
         LicensedFeature.ENFORCEMENT,
-        LicensedFeature.APPLICATION_EVALUATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+        LicensedFeature.APPLICATION_EVALUATION);
   }
 
   @Test
@@ -817,8 +811,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.DATA_RETENTION,
         LicensedFeature.ORGS_AND_APPS,
         LicensedFeature.ENFORCEMENT,
-        LicensedFeature.APPLICATION_EVALUATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+        LicensedFeature.APPLICATION_EVALUATION);
   }
 
   @Test
@@ -869,8 +862,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
         LicensedFeature.WAIVER_REPORTS,
-        LicensedFeature.ROI_CONFIGURATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+        LicensedFeature.ROI_CONFIGURATION);
   }
 
   @Test

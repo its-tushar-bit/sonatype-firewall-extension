@@ -41,7 +41,6 @@
           <includes>
             <include>${it.includes}</include>
           </includes>
-          <runOrder>alphabetical</runOrder>
           <trimStackTrace>false</trimStackTrace>
           <skip>false</skip>
           <skipITs>${skip.functional.tests}</skipITs>

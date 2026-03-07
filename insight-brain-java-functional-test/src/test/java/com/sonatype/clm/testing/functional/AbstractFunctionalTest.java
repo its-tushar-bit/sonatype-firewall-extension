@@ -398,6 +398,12 @@ public abstract class AbstractFunctionalTest
   public static void tearDownClass() {
     ThreadContext.unbindSecurityManager();
     ThreadContext.unbindSubject();
+    try {
+      WebDriverRunner.getWebDriver().get(Configuration.baseUrl + "about");
+    }
+    catch (Exception e) {
+      log.warn("Failed to navigate to about page in teardown: {}", e.getMessage());
+    }
     hardreset();
   }
 

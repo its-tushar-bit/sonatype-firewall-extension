@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.Collections;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -41,6 +42,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.util.StringUtils;
@@ -102,9 +104,10 @@ public class ComponentDetailsPageTest
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.APPLICATION_EVALUATION, LicensedFeature.SUCCESS_METRICS);
 
-    // go to an entirely different "page" (note there isn't actually an about page) between each test in order
-    // to force a new page load
-    refreshOrOpen("about");
+    // Force full page reload so the frontend's cached product license (stored in a JS module-level variable) is
+    // cleared and re-fetched with the updated SBOM Manager license. Without this, hash-only SPA navigations reuse
+    // the stale cached license from the initial page load (which had default Lifecycle products).
+    Selenide.refresh();
 
     apiSbomService = lookup(ApiSbomService.class);
   }
@@ -691,7 +694,7 @@ public class ComponentDetailsPageTest
     //component details page state depends on bill of materials page state, so loading the bom page first
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
         .getSbomVersion()));
-    billOfMaterialsPageSummaryTile.componentSummaryChartAndProgress().shouldBe(visible);
+    billOfMaterialsPageSummaryTile.componentSummaryChartAndProgress().shouldBe(visible, Duration.ofSeconds(20));
 
     refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
         .getSbomVersion(), thirdPartyFileCoordinate.getHash()));

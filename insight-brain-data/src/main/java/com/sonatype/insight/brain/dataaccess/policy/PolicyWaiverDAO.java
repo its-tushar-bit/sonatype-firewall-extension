@@ -626,7 +626,7 @@ public class PolicyWaiverDAO
         FROM %1$s.policy_waiver pw
         LEFT JOIN (%2$s) agg ON agg.owner_id = pw.owner_id
         %3$s
-        ORDER BY pw.policy_waiver_id
+        ORDER BY agg.max_threat_level DESC NULLS LAST, pw.policy_waiver_id
         """, getDatabaseSchema(), subquery, whereClause);
 
     int offset = (page - 1) * pageSize;

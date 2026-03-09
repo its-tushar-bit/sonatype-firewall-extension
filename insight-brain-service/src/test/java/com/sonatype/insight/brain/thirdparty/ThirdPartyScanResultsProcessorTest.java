@@ -494,6 +494,7 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_container_sonatype_content() throws Exception {
     mockValidSbomManagerLicense();
+    when(productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)).thenReturn(true);
 
     File scanFile = getScanFile("container/scan-with-container-sonatype-content.xml");
     File tempScanFile = tempDir.newFile();

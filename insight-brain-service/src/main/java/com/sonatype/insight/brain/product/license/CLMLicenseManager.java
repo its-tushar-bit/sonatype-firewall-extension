@@ -773,6 +773,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.SUCCESS_METRICS);
       features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
       features.add(LicensedFeature.WAIVER_REPORTS);
+      features.add(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
 
       stageTypes.addAll(allStagesWithoutCompliance);
     }
@@ -893,6 +894,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
       features.add(LicensedFeature.WAIVER_REPORTS);
       features.add(LicensedFeature.ROI_CONFIGURATION);
+      features.add(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
 
       stageTypes.addAll(allStagesWithoutCompliance);
     }
@@ -946,6 +948,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.ORGS_AND_APPS);
       features.add(LicensedFeature.ENFORCEMENT);
       features.add(LicensedFeature.APPLICATION_EVALUATION);
+      features.add(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
 
       stageTypes.add(StageTypes.COMPLIANCE);
     }
@@ -1042,6 +1045,7 @@ public class CLMLicenseManager
     features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
     features.add(LicensedFeature.WAIVER_REPORTS);
     features.add(LicensedFeature.ROI_CONFIGURATION);
+    features.add(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
   }
 
   private String getProperty(ProductLicenseKey key, String property) {

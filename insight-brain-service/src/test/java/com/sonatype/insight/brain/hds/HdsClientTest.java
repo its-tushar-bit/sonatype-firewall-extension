@@ -1240,6 +1240,82 @@ public class HdsClientTest
   }
 
   @Test
+  public void testExecute_NullLicenseTokenHeader_AcceptedForReferencePolicies() {
+    // Verify that requests with null license token header values are accepted for reference policies
+    AtomicInteger requestCount = new AtomicInteger();
+    handler = new HttpServlet()
+    {
+      @Override
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
+        requestCount.incrementAndGet();
+        response.setStatus(HttpStatus.OK_200);
+      }
+    };
+
+    HttpGet request = new HttpGet(configuration.getHdsUrl() + ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
+    client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"), request);
+    // Don't set X-CLM-Token header - it will be null
+    assertThat(requestCount.get()).isEqualTo(1);
+  }
+
+  @Test
+  public void testExecute_NullLicenseTokenHeaderValue_AcceptedForReferencePolicies() {
+    // Verify that requests with null license token header values are accepted for reference policies
+    AtomicInteger requestCount = new AtomicInteger();
+    handler = new HttpServlet()
+    {
+      @Override
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
+        requestCount.incrementAndGet();
+        response.setStatus(HttpStatus.OK_200);
+      }
+    };
+
+    HttpGet request = new HttpGet(configuration.getHdsUrl() + ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
+    request.setHeader("X-CLM-Token", null);
+    client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"), request);
+    assertThat(requestCount.get()).isEqualTo(1);
+  }
+
+  @Test
+  public void testExecute_NullLicenseTokenHeader_AcceptedForLicenseData() {
+    // Verify that requests with null license token header values are accepted for license data
+    AtomicInteger requestCount = new AtomicInteger();
+    handler = new HttpServlet()
+    {
+      @Override
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
+        requestCount.incrementAndGet();
+        response.setStatus(HttpStatus.OK_200);
+      }
+    };
+
+    HttpGet request = new HttpGet(configuration.getHdsUrl() + DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
+    client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"), request);
+    // Don't set X-CLM-Token header - it will be null
+    assertThat(requestCount.get()).isEqualTo(1);
+  }
+
+  @Test
+  public void testExecute_NullLicenseTokenHeaderValue_AcceptedForLicenseData() {
+    // Verify that requests with null license token header values are accepted for license data
+    AtomicInteger requestCount = new AtomicInteger();
+    handler = new HttpServlet()
+    {
+      @Override
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
+        requestCount.incrementAndGet();
+        response.setStatus(HttpStatus.OK_200);
+      }
+    };
+
+    HttpGet request = new HttpGet(configuration.getHdsUrl() + DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
+    request.setHeader("X-CLM-Token", null);
+    client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"), request);
+    assertThat(requestCount.get()).isEqualTo(1);
+  }
+
+  @Test
   public void testGetWithMultimap_ClientUserAgentOnRequests() {
     String testPath = "/rest/test";
 

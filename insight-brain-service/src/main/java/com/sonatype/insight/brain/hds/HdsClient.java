@@ -761,7 +761,18 @@ public class HdsClient
     Header productLicenseHeader = request.getFirstHeader("X-CLM-Token");
     // If the request is for product license details, the currently installed license may be invalid/expired,
     // so don't check it. The HDS does not require a product license for this request anyway.
-    if (request.getURI().getPath().endsWith(GET_PRODUCT_LICENSE_DETAILS_HDS_PATH)) {
+    String path = request.getURI().getPath();
+    if (path.endsWith(GET_PRODUCT_LICENSE_DETAILS_HDS_PATH)) {
+      return;
+    }
+
+    // Reference policies do not require a product license and may be requested before a license is installed
+    if (path.endsWith(ReferencePolicyFetcher.REFERENCE_POLICY_PATH)) {
+      return;
+    }
+
+    // License data does not require a product license and may be requested before a license is installed
+    if (path.endsWith(DefaultLicenseDataUpdater.HDS_LICENSE_PATH)) {
       return;
     }
 

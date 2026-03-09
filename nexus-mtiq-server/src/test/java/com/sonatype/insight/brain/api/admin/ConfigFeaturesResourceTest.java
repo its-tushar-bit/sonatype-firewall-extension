@@ -78,6 +78,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.getId(),
       SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.getId(),
       SystemConfigurationPropertyFeature.CODE_INSIGHTS.getId(),
+      SystemConfigurationPropertyFeature.FIREWALL_ENTERPRISE_REPORTING.getId(),
   };
 
   /**
@@ -120,6 +121,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.getId(),
       SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.getId(),
       SystemConfigurationPropertyFeature.CODE_INSIGHTS.getId(),
+      SystemConfigurationPropertyFeature.FIREWALL_ENTERPRISE_REPORTING.getId(),
   };
 
   /**
@@ -146,7 +148,6 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE.getId(),
           SystemConfigurationPropertyFeature.MALICIOUS_URLS_PARTNER_ACCESS.getId(),
           SystemConfigurationPropertyFeature.GITHUB_APP_AUTHENTICATION.getId(),
-          SystemConfigurationPropertyFeature.FIREWALL_ENTERPRISE_REPORTING.getId(),
       }
   )).toArray(String[]::new);
 

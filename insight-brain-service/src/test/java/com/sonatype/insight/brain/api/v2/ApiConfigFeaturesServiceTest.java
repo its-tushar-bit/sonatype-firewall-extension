@@ -1446,7 +1446,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("enableSsoOnly", false);
     expectedFeatureConfigMap.put("enableUnauthenticatedPages", true);
     expectedFeatureConfigMap.put("expireWaiverWhenRemediationAvailable", false);
-    expectedFeatureConfigMap.put("firewallEnterpriseReporting", false);
+    expectedFeatureConfigMap.put("firewallEnterpriseReporting", true);
     expectedFeatureConfigMap.put("githubAppAuthentication", false);
     expectedFeatureConfigMap.put("innerSourceRepositoryIntegration", true);
     expectedFeatureConfigMap.put("innerSourceTransitiveWaiver", true);

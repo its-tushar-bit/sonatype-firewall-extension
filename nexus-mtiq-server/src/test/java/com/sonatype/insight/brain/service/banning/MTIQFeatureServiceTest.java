@@ -266,7 +266,8 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.SAML_ENABLED,
         SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED,
         SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED,
-        SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR
+        SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR,
+        SystemConfigurationPropertyFeature.FIREWALL_ENTERPRISE_REPORTING
     ).collect(toSet()).toArray(new SystemConfigurationPropertyFeature[]{});
   }
 

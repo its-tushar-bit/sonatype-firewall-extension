@@ -1392,6 +1392,7 @@
                   <exclude>.zion/**</exclude>
                   <exclude>build-cache/**</exclude>
                   <exclude>.m2/**</exclude>
+                  <exclude>**/.build/**</exclude>
                   <exclude>.test-stash/**</exclude>
                   <exclude>**/doc/adr/**</exclude>
                   <exclude>.mvn/**</exclude>

@@ -55,6 +55,7 @@ import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetry
 import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.MANIFEST_TYPE_PROPERTY_NAME;
 import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.SCAN_DURATION_MILLISECONDS_PROPERTY_NAME;
 import static com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageUtils.SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME;
+import static com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageUtils.SONATYPE_NEXUS_REPOSITORY_WITH_QUARANTINE_PROPERTY_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -369,6 +370,66 @@ public class RepositoryContainerImageServiceTest
   }
 
   @Test
+  public void testEvaluateContainerImage_withQuarantinePropertyTrue() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("https://nexus.example.com");
+    Repository repository = tempEntity.newRepository(repositoryManager, "docker-proxy", RepositoryType.proxy, "docker");
+    repository.setAuditEnabled(false);
+    repository.setQuarantineEnabled(false);
+    repositoryDAO.update(repository);
+
+    FirewallContainerImageEvaluationResponse response = service.evaluateContainerImage(
+        repositoryManager.getInstanceId(),
+        repository.getPublicId(),
+        toJson(createValidBom(false, true)),
+        null);
+
+    assertThat(response).isNotNull();
+    Repository updatedRepository = repositoryDAO.getById(repository.getId());
+    assertThat(updatedRepository.isAuditEnabled()).isTrue();
+    assertThat(updatedRepository.isQuarantineEnabled()).isTrue();
+  }
+
+  @Test
+  public void testEvaluateContainerImage_withoutQuarantineProperty_defaultsToTrue() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("https://nexus.example.com");
+    Repository repository = tempEntity.newRepository(repositoryManager, "docker-proxy", RepositoryType.proxy, "docker");
+    repository.setAuditEnabled(false);
+    repository.setQuarantineEnabled(false);
+    repositoryDAO.update(repository);
+
+    FirewallContainerImageEvaluationResponse response = service.evaluateContainerImage(
+        repositoryManager.getInstanceId(),
+        repository.getPublicId(),
+        toJson(createValidBom(false, null)),
+        null);
+
+    assertThat(response).isNotNull();
+    Repository updatedRepository = repositoryDAO.getById(repository.getId());
+    assertThat(updatedRepository.isAuditEnabled()).isTrue();
+    assertThat(updatedRepository.isQuarantineEnabled()).isTrue();
+  }
+
+  @Test
+  public void testEvaluateContainerImage_withQuarantinePropertyFalse() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("https://nexus.example.com");
+    Repository repository = tempEntity.newRepository(repositoryManager, "docker-proxy", RepositoryType.proxy, "docker");
+    repository.setAuditEnabled(false);
+    repository.setQuarantineEnabled(true);
+    repositoryDAO.update(repository);
+
+    FirewallContainerImageEvaluationResponse response = service.evaluateContainerImage(
+        repositoryManager.getInstanceId(),
+        repository.getPublicId(),
+        toJson(createValidBom(false, false)),
+        null);
+
+    assertThat(response).isNotNull();
+    Repository updatedRepository = repositoryDAO.getById(repository.getId());
+    assertThat(updatedRepository.isAuditEnabled()).isTrue();
+    assertThat(updatedRepository.isQuarantineEnabled()).isFalse();
+  }
+
+  @Test
   public void testPollContainerImageEvaluationResult() {
     String containerImagePublicId = "containerImagePublicId";
     String statusId = "statusId";
@@ -514,6 +575,10 @@ public class RepositoryContainerImageServiceTest
   }
 
   private static Bom createValidBom(boolean includeTelemetry) {
+    return createValidBom(includeTelemetry, null);
+  }
+
+  private static Bom createValidBom(final boolean includeTelemetry, final Boolean withQuarantine) {
     Bom bom = new Bom();
     Metadata metadata = new Metadata();
 
@@ -549,6 +614,13 @@ public class RepositoryContainerImageServiceTest
       scanDurationProperty.setName(SCAN_DURATION_MILLISECONDS_PROPERTY_NAME);
       scanDurationProperty.setValue("5000");
       properties.add(scanDurationProperty);
+    }
+
+    if (withQuarantine != null) {
+      Property quarantineProperty = new Property();
+      quarantineProperty.setName(SONATYPE_NEXUS_REPOSITORY_WITH_QUARANTINE_PROPERTY_NAME);
+      quarantineProperty.setValue(Boolean.toString(withQuarantine));
+      properties.add(quarantineProperty);
     }
 
     metadata.setProperties(properties);

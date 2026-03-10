@@ -436,6 +436,7 @@ public abstract class AbstractRepositoryServiceTest
 
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, "docker-repo", RepositoryType.proxy, "docker");
+    repository.setQuarantineEnabled(true);
     repository.setRelatedOrganizationId(organization.getId());
     organization.setRelatedRepositoryId(repository.getId());
 

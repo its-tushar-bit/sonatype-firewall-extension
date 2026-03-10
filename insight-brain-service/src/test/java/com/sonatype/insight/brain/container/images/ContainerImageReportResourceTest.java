@@ -57,6 +57,7 @@ public class ContainerImageReportResourceTest
     organization.setRelatedRepositoryId(repository.getId());
     repository.setRelatedOrganizationId(organization.getId());
     repository.setFormat("docker");
+    repository.setQuarantineEnabled(true);
     repositoryDAO.update(repository);
     organizationDAO.update(organization);
     // Container Image applications

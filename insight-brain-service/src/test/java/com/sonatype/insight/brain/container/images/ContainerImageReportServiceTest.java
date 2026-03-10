@@ -58,6 +58,7 @@ public class ContainerImageReportServiceTest
     organization.setRelatedRepositoryId(repository.getId());
     repository.setRelatedOrganizationId(organization.getId());
     repository.setFormat("docker");
+    repository.setQuarantineEnabled(true);
     repositoryDAO.update(repository);
     organizationDAO.update(organization);
     // Container Image applications
@@ -111,6 +112,45 @@ public class ContainerImageReportServiceTest
     assertThat(summary.severeViolationCount).isEqualTo(1);
     assertThat(summary.moderateViolationCount).isEqualTo(1);
     assertThat(summary.affectedContainerImageCount).isEqualTo(2);
+  }
+
+  /**
+   * NEXUS-50206: Verify that quarantine count is 0 when quarantine is disabled,
+   * even when there are policy violations with "Fail" actions.
+   */
+  @Test
+  public void testGetContainerImagesSummary_QuarantineDisabled() {
+    Repository repository = tempEntity.newRepository("publicId");
+    Organization organization = tempEntity.newOrganization("org");
+    organization.setRelatedRepositoryId(repository.getId());
+    repository.setRelatedOrganizationId(organization.getId());
+    repository.setFormat("docker");
+    repository.setQuarantineEnabled(false);
+    repositoryDAO.update(repository);
+    organizationDAO.update(organization);
+    // Container Image application
+    Application application1 = tempEntity.newApplication("app1", "appPublicId1", organization.getId());
+
+    //policy evaluation
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application1.getId(), "proxy", "scanId1");
+
+    //policy for policy violation
+    Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
+
+    //create policy violation with fail action (quarantine)
+    PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
+    policyViolation1.setThreatLevel(10);
+    policyViolation1.setActionTypeId("fail");
+    policyViolationDAO.update(policyViolation1);
+
+    ContainerImageSummaryDTO summary = containerImageReportService.getContainerImagesSummary(repository.getId());
+
+    // Even though there's a fail action violation, quarantine count should be 0 when quarantine is disabled
+    assertThat(summary.totalContainerImageCount).isEqualTo(1);
+    assertThat(summary.totalContainerImageViolationCount).isEqualTo(1);
+    assertThat(summary.quarantinedContainerImageCount).isEqualTo(0);
+    assertThat(summary.criticalViolationCount).isEqualTo(1);
+    assertThat(summary.affectedContainerImageCount).isEqualTo(1);
   }
 
   @Test

@@ -458,6 +458,8 @@ public class RepositoryServiceTest extends AbstractComponentTest
   @Test
   public void testGetRepositorySummary() {
     Repository repo = tempEntity.newRepository();
+    repo.setQuarantineEnabled(true);
+    repositoryDAO.update(repo);
 
     // Component without violations
     tempEntity.newRepositoryComponent(repo.getId(), "no policy violations");
@@ -506,6 +508,36 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(summary.moderateViolationCount).isEqualTo(4);
     assertThat(summary.affectedComponentCount).isEqualTo(3);
     assertThat(summary.quarantinedComponentCount).isEqualTo(1);
+  }
+
+  /**
+   * NEXUS-50206: Verify that quarantine count is 0 when quarantine is disabled,
+   * even when components have quarantineTime set.
+   */
+  @Test
+  public void testGetRepositorySummary_QuarantineDisabled() {
+    Repository repo = tempEntity.newRepository();
+    repo.setQuarantineEnabled(false);
+    repositoryDAO.update(repo);
+
+    // Component without violations
+    tempEntity.newRepositoryComponent(repo.getId(), "no policy violations");
+    // Component with violations
+    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repo.getId(), "1");
+    // Quarantined component (has quarantineTime)
+    tempEntity.newRepositoryComponent(repo.getId(), "/quarantined", new Date(), null);
+
+    // Add some violations
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 10, component1.getPathname(), null);
+
+    RepositorySummary summary = repositoryService.getRepositorySummary(repo.getId());
+
+    assertThat(summary.knownComponentCount).isEqualTo(3);
+    assertThat(summary.totalComponentCount).isEqualTo(3);
+    assertThat(summary.criticalViolationCount).isEqualTo(1);
+    assertThat(summary.affectedComponentCount).isEqualTo(1);
+    // Quarantine count should be 0 even though component has quarantineTime set
+    assertThat(summary.quarantinedComponentCount).isEqualTo(0);
   }
 
   private void mockHdsRequest(

@@ -41,6 +41,7 @@ import com.sonatype.clm.testing.functional.pages.RepositoryResultsSummaryPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -78,6 +79,8 @@ public class RepositoryResultsSummaryTest
 {
   private MultiLicenseDAO multiLicenseDAO;
 
+  private RepositoryDAO repositoryDAO;
+
   private Repository repo;
 
   private RepositoryManager repositoryManager;
@@ -103,9 +106,13 @@ public class RepositoryResultsSummaryTest
   @Before
   public void before() {
     multiLicenseDAO = lookup(MultiLicenseDAO.class);
+    repositoryDAO = lookup(RepositoryDAO.class);
 
     repositoryManager = tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
     repo = tempEntity.newRepository(repositoryManager, "central");
+    // NEXUS-50206: Enable quarantine so quarantined components are counted
+    repo.setQuarantineEnabled(true);
+    repositoryDAO.update(repo);
     Instant instant = LocalDateTime.of(2020, 6, 1, 11, 0).atZone(ZoneId.systemDefault()).toInstant();
     Date june1st2020 = Date.from(instant);
 

@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.ApiVerifyOrCreateApplicationForContainerImageFirewallDTO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -34,10 +35,13 @@ public class ApplicationSummaryResourceTest
 
   private RepositoryManagerDAO repositoryManagerDAO;
 
+  private RepositoryDAO repositoryDAO;
+
   @Before
   public void setUp() {
     organizationDAO = lookup(OrganizationDAO.class);
     repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
+    repositoryDAO = lookup(RepositoryDAO.class);
   }
 
   @Override
@@ -173,6 +177,80 @@ public class ApplicationSummaryResourceTest
         .post();
     assertResponseStatus(200, response);
     assertThat(response.getBodyText()).isNotNull();
+  }
+
+  @Test
+  public void testVerifyOrCreateApplicationForContainerImageFirewall_defaultsQuarantineToTrueWhenMissing()
+      throws Exception
+  {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager("instance1");
+    repositoryManager.setBaseUrl("baseUrl1");
+    repositoryManagerDAO.update(repositoryManager);
+
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "proxy-docker-repository", RepositoryType.proxy, "docker");
+    repository.setAuditEnabled(false);
+    repository.setQuarantineEnabled(false);
+    repositoryDAO.update(repository);
+
+    ApiVerifyOrCreateApplicationForContainerImageFirewallDTO dto =
+        new ApiVerifyOrCreateApplicationForContainerImageFirewallDTO();
+    dto.setRepositoryManagerInstanceId(repositoryManager.getInstanceId());
+    dto.setRepositoryPublicId(repository.getPublicId());
+    dto.setContainerImageName("image1");
+    dto.setContainerImageNamespace("namespace1");
+    dto.setContainerImageVersion("version1");
+    dto.setBaseUrl("baseUrl1");
+    // quarantineEnabled intentionally omitted to validate default behavior.
+
+    HttpResponse response = restRequest()
+        .path(ApplicationSummaryResource.VERIFY_OR_CREATE_APP_FOR_CONTAINER_IMAGE_PATH)
+        .body(dto)
+        .post();
+    assertResponseStatus(200, response);
+
+    Repository updatedRepository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
+        repositoryManager.getInstanceId(), repository.getPublicId());
+    assertThat(updatedRepository.isAuditEnabled()).isTrue();
+    assertThat(updatedRepository.isQuarantineEnabled()).isTrue();
+  }
+
+  @Test
+  public void testVerifyOrCreateApplicationForContainerImageFirewall_honorsExplicitFalseQuarantine() throws Exception {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager("instance1");
+    repositoryManager.setBaseUrl("baseUrl1");
+    repositoryManagerDAO.update(repositoryManager);
+
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "proxy-docker-repository", RepositoryType.proxy, "docker");
+    repository.setAuditEnabled(false);
+    repository.setQuarantineEnabled(false);
+    repositoryDAO.update(repository);
+
+    ApiVerifyOrCreateApplicationForContainerImageFirewallDTO dto =
+        new ApiVerifyOrCreateApplicationForContainerImageFirewallDTO();
+    dto.setRepositoryManagerInstanceId(repositoryManager.getInstanceId());
+    dto.setRepositoryPublicId(repository.getPublicId());
+    dto.setContainerImageName("image1");
+    dto.setContainerImageNamespace("namespace1");
+    dto.setContainerImageVersion("version1");
+    dto.setBaseUrl("baseUrl1");
+    dto.setQuarantineEnabled(false);
+
+    HttpResponse response = restRequest()
+        .path(ApplicationSummaryResource.VERIFY_OR_CREATE_APP_FOR_CONTAINER_IMAGE_PATH)
+        .body(dto)
+        .post();
+    assertResponseStatus(200, response);
+
+    Repository updatedRepository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
+        repositoryManager.getInstanceId(), repository.getPublicId());
+    assertThat(updatedRepository.isAuditEnabled()).isTrue();
+    assertThat(updatedRepository.isQuarantineEnabled()).isFalse();
   }
 
   @Test

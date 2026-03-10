@@ -70,7 +70,9 @@ public class ContainerImageReportService
     summary.severeViolationCount = result.getSeverePolicyViolationsCount();
     summary.moderateViolationCount = result.getModeratePolicyViolationsCount();
     summary.affectedContainerImageCount = result.getAffectedContainerImagesCount();
-    summary.quarantinedContainerImageCount = result.getQuarantinedContainerImagesCount();
+    summary.quarantinedContainerImageCount = repository.isQuarantineEnabled()
+        ? result.getQuarantinedContainerImagesCount()
+        : 0;
     
     return summary;
   }

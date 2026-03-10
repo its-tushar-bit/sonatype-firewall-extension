@@ -110,8 +110,9 @@ public class ApplicationForContainerImageFirewallService
             + repositoryManager.getInstanceId());
       }
 
+      boolean withQuarantine = dto.getQuarantineEnabled() == null || dto.getQuarantineEnabled();
       repositoryService.configureAuditAndQuarantineInRepository(tx, repositoryManager.getInstanceId(), repository,
-          "docker", true, true);
+          "docker", withQuarantine, true);
 
       String applicationPublicId = NameHelper.convertContainerImageToApplicationPublicIdAndName(
           dto.getBaseUrl(),

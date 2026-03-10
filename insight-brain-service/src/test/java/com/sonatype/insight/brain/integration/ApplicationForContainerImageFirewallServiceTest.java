@@ -377,6 +377,91 @@ public class ApplicationForContainerImageFirewallServiceTest
   }
 
   @Test
+  public void testVerifyOrCreateApplicationForContainerImage_auditAndQuarantineEnabledByDefault() {
+    // When withQuarantine is absent, default should be true.
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("base-url");
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "proxy-docker-repository", RepositoryType.proxy, "docker");
+
+    // Ensure repository starts with both audit and quarantine disabled
+    repository.setAuditEnabled(false);
+    repository.setQuarantineEnabled(false);
+    repositoryDAO.update(repository);
+
+    ApiVerifyOrCreateApplicationForContainerImageFirewallDTO dto =
+        new ApiVerifyOrCreateApplicationForContainerImageFirewallDTO(
+            repositoryManager.getInstanceId(),
+            repository.getPublicId(),
+            repositoryManager.getBaseUrl(),
+            "containerImageNamespace",
+            "containerImageName",
+            "containerImageVersion");
+
+    String result = service.verifyOrCreateApplicationForContainerImage(repository, dto);
+    assertThat(result).isNotBlank();
+
+    Repository updatedRepository = repositoryDAO.getById(repository.getId());
+    assertThat(updatedRepository.isAuditEnabled()).isTrue();
+    assertThat(updatedRepository.isQuarantineEnabled()).isTrue();
+  }
+
+  @Test
+  public void testVerifyOrCreateApplicationForContainerImage_quarantineEnabledWhenProvided() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("base-url");
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "proxy-docker-repository", RepositoryType.proxy, "docker");
+
+    repository.setAuditEnabled(false);
+    repository.setQuarantineEnabled(false);
+    repositoryDAO.update(repository);
+
+    ApiVerifyOrCreateApplicationForContainerImageFirewallDTO dto =
+        new ApiVerifyOrCreateApplicationForContainerImageFirewallDTO(
+            repositoryManager.getInstanceId(),
+            repository.getPublicId(),
+            repositoryManager.getBaseUrl(),
+            "containerImageNamespace",
+            "containerImageName",
+            "containerImageVersion");
+    dto.setQuarantineEnabled(true);
+
+    String result = service.verifyOrCreateApplicationForContainerImage(repository, dto);
+    assertThat(result).isNotBlank();
+
+    Repository updatedRepository = repositoryDAO.getById(repository.getId());
+    assertThat(updatedRepository.isAuditEnabled()).isTrue();
+    assertThat(updatedRepository.isQuarantineEnabled()).isTrue();
+  }
+
+  @Test
+  public void testVerifyOrCreateApplicationForContainerImage_quarantineDisabledWhenProvided() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("base-url");
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "proxy-docker-repository", RepositoryType.proxy, "docker");
+
+    repository.setAuditEnabled(false);
+    repository.setQuarantineEnabled(true);
+    repositoryDAO.update(repository);
+
+    ApiVerifyOrCreateApplicationForContainerImageFirewallDTO dto =
+        new ApiVerifyOrCreateApplicationForContainerImageFirewallDTO(
+            repositoryManager.getInstanceId(),
+            repository.getPublicId(),
+            repositoryManager.getBaseUrl(),
+            "containerImageNamespace",
+            "containerImageName",
+            "containerImageVersion");
+    dto.setQuarantineEnabled(false);
+
+    String result = service.verifyOrCreateApplicationForContainerImage(repository, dto);
+    assertThat(result).isNotBlank();
+
+    Repository updatedRepository = repositoryDAO.getById(repository.getId());
+    assertThat(updatedRepository.isAuditEnabled()).isTrue();
+    assertThat(updatedRepository.isQuarantineEnabled()).isFalse();
+  }
+
+  @Test
   public void testVerifyOrCreateApplicationForContainerImage_withValidClientUserAgent() {
     String newBaseUrl = "https://repo-test.sonatype.com/" + IdUtil.newUUID();
     String clientUserAgent = "Nexus/3.50.0-SNAPSHOT (PRO; Mac OS X; 10.11.5; x86_64; 1.8.0_92)";

@@ -64,6 +64,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageUtils.SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME;
+import static com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageUtils.SONATYPE_NEXUS_REPOSITORY_WITH_QUARANTINE_PROPERTY_NAME;
 
 @Named
 @Singleton
@@ -307,7 +308,8 @@ public class RepositoryContainerImageService
         .orElseThrow(() -> new BadRequestException(
             "BOM must contain a property " + SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME));
 
-    return new ApiVerifyOrCreateApplicationForContainerImageFirewallDTO(
+    ApiVerifyOrCreateApplicationForContainerImageFirewallDTO dto =
+        new ApiVerifyOrCreateApplicationForContainerImageFirewallDTO(
         repositoryManagerInstanceId,
         repositoryPublicId,
         baseUrl,
@@ -316,6 +318,32 @@ public class RepositoryContainerImageService
         containerImagePurl.getVersion(),
         clientUserAgent
     );
+
+    // Resolve withQuarantine from BOM metadata and default to true when missing/invalid.
+    boolean withQuarantine = true;
+    String withQuarantineValue = CollectionUtils.emptyIfNull(bom.getMetadata().getProperties()).stream()
+        .filter(property -> SONATYPE_NEXUS_REPOSITORY_WITH_QUARANTINE_PROPERTY_NAME.equals(property.getName()))
+        .map(Property::getValue)
+        .findFirst()
+        .orElse(null);
+    if (withQuarantineValue == null ||  StringUtils.isBlank(withQuarantineValue)) {
+      log.warn("BOM is missing {} property or has blank value, defaulting to true",
+          SONATYPE_NEXUS_REPOSITORY_WITH_QUARANTINE_PROPERTY_NAME);
+    }
+    else {
+      if ("true".equalsIgnoreCase(withQuarantineValue) || "false".equalsIgnoreCase(withQuarantineValue)) {
+        withQuarantine = Boolean.parseBoolean(withQuarantineValue);
+      }
+      else {
+        log.debug("Ignoring non-boolean property {} with value {}",
+            SONATYPE_NEXUS_REPOSITORY_WITH_QUARANTINE_PROPERTY_NAME,
+            withQuarantineValue);
+      }
+    }
+
+    dto.setQuarantineEnabled(withQuarantine);
+
+    return dto;
   }
 
   private ScanResult createScanFileForContainerImage(

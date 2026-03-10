@@ -220,8 +220,9 @@ public class RepositoryService
 
     summary.affectedComponentCount =
         repositoryComponentDAO.getCountWithPolicyViolationInPolicyThreatLevelRange(repositoryId, 2, 10);
-    summary.quarantinedComponentCount =
-        repositoryComponentDAO.getQuarantinedComponentCountByRepositoryId(repositoryId);
+    summary.quarantinedComponentCount = repository.isQuarantineEnabled()
+        ? repositoryComponentDAO.getQuarantinedComponentCountByRepositoryId(repositoryId)
+        : 0;
 
     log.debug("Got summary for repository {}:{} ({}) in {} ms", repository.getRepositoryManagerId(),
         repository.getPublicId(), repositoryId, System.currentTimeMillis() - start);

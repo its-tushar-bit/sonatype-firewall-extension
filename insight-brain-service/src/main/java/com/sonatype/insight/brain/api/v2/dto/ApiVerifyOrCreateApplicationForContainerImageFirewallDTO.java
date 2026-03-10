@@ -21,6 +21,8 @@ public class ApiVerifyOrCreateApplicationForContainerImageFirewallDTO
 
   private String clientUserAgent;
 
+  private Boolean quarantineEnabled;
+
   public ApiVerifyOrCreateApplicationForContainerImageFirewallDTO() {
     // Default constructor
   }
@@ -113,5 +115,13 @@ public class ApiVerifyOrCreateApplicationForContainerImageFirewallDTO
 
   public void setClientUserAgent(final String clientUserAgent) {
     this.clientUserAgent = clientUserAgent;
+  }
+
+  public Boolean getQuarantineEnabled() {
+    return quarantineEnabled;
+  }
+
+  public void setQuarantineEnabled(final Boolean quarantineEnabled) {
+    this.quarantineEnabled = quarantineEnabled;
   }
 }

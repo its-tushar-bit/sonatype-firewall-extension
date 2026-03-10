@@ -673,4 +673,106 @@ public class DashboardPolicyWaiverDTOComparatorTest
       return this;
     }
   }
+
+  @Test
+  public void testCompare_POLICY_NAME_ASC_WithNullPolicyNames() {
+    // Test ascending sort with null policy names
+    Instant now = Instant.now();
+    List<DashboardPolicyWaiverDTO> waivers = new ArrayList<>();
+
+    waivers.add(new DashboardPolicyWaiverDTOBuilder()
+        .withPolicyName("Policy B")
+        .withExpiryTime(Date.from(now.plus(2, ChronoUnit.DAYS)))
+        .getBuiltDTO());
+    waivers.add(new DashboardPolicyWaiverDTOBuilder()
+        .withPolicyName(null)
+        .withExpiryTime(Date.from(now.plus(5, ChronoUnit.DAYS)))
+        .getBuiltDTO());
+    waivers.add(new DashboardPolicyWaiverDTOBuilder()
+        .withPolicyName("Policy A")
+        .withExpiryTime(Date.from(now.plus(1, ChronoUnit.DAYS)))
+        .getBuiltDTO());
+    waivers.add(new DashboardPolicyWaiverDTOBuilder()
+        .withPolicyName(null)
+        .withExpiryTime(Date.from(now.plus(3, ChronoUnit.DAYS)))
+        .getBuiltDTO());
+
+    DashboardPolicyWaiverDTOComparator comparator = new DashboardPolicyWaiverDTOComparator(
+        DashboardPolicyWaiverOrderByEnum.POLICY_NAME.toString());
+    waivers.sort(comparator);
+
+    // Verify: Non-null policies come first (A, B), then nulls (sorted by expiry)
+    assertThat(waivers.get(0).policyName).isEqualTo("Policy A");
+    assertThat(waivers.get(1).policyName).isEqualTo("Policy B");
+    assertThat(waivers.get(2).policyName).isNull();
+    assertThat(waivers.get(3).policyName).isNull();
+    // Null policies sorted by expiry date (ascending)
+    assertThat(waivers.get(2).expiryTime).isBefore(waivers.get(3).expiryTime);
+  }
+
+  @Test
+  public void testCompare_POLICY_NAME_DESC_WithNullPolicyNames() {
+    // Test descending sort with null policy names
+    Instant now = Instant.now();
+    List<DashboardPolicyWaiverDTO> waivers = new ArrayList<>();
+
+    waivers.add(new DashboardPolicyWaiverDTOBuilder()
+        .withPolicyName("Policy A")
+        .withExpiryTime(Date.from(now.plus(1, ChronoUnit.DAYS)))
+        .getBuiltDTO());
+    waivers.add(new DashboardPolicyWaiverDTOBuilder()
+        .withPolicyName(null)
+        .withExpiryTime(Date.from(now.plus(5, ChronoUnit.DAYS)))
+        .getBuiltDTO());
+    waivers.add(new DashboardPolicyWaiverDTOBuilder()
+        .withPolicyName("Policy B")
+        .withExpiryTime(Date.from(now.plus(2, ChronoUnit.DAYS)))
+        .getBuiltDTO());
+    waivers.add(new DashboardPolicyWaiverDTOBuilder()
+        .withPolicyName(null)
+        .withExpiryTime(Date.from(now.plus(3, ChronoUnit.DAYS)))
+        .getBuiltDTO());
+
+    DashboardPolicyWaiverDTOComparator comparator = new DashboardPolicyWaiverDTOComparator(
+        ORDER_WAIVER_BY_DESC + DashboardPolicyWaiverOrderByEnum.POLICY_NAME);
+    waivers.sort(comparator);
+
+    // Verify: Non-null policies come first (B, A in desc order), then nulls (sorted by expiry desc)
+    assertThat(waivers.get(0).policyName).isEqualTo("Policy B");
+    assertThat(waivers.get(1).policyName).isEqualTo("Policy A");
+    assertThat(waivers.get(2).policyName).isNull();
+    assertThat(waivers.get(3).policyName).isNull();
+    // Null policies sorted by expiry date descending (later expiry first)
+    assertThat(waivers.get(2).expiryTime).isAfter(waivers.get(3).expiryTime);
+  }
+
+  @Test
+  public void testCompare_POLICY_NAME_WithNullAndEqualPolicies() {
+    // Test secondary sort when policy names are equal
+    Instant now = Instant.now();
+    List<DashboardPolicyWaiverDTO> waivers = new ArrayList<>();
+
+    waivers.add(new DashboardPolicyWaiverDTOBuilder()
+        .withPolicyName("Policy X")
+        .withExpiryTime(Date.from(now.plus(5, ChronoUnit.DAYS)))
+        .getBuiltDTO());
+    waivers.add(new DashboardPolicyWaiverDTOBuilder()
+        .withPolicyName("Policy X")
+        .withExpiryTime(Date.from(now.plus(1, ChronoUnit.DAYS)))
+        .getBuiltDTO());
+    waivers.add(new DashboardPolicyWaiverDTOBuilder()
+        .withPolicyName("Policy X")
+        .withExpiryTime(null)
+        .getBuiltDTO());
+
+    DashboardPolicyWaiverDTOComparator comparator = new DashboardPolicyWaiverDTOComparator(
+        DashboardPolicyWaiverOrderByEnum.POLICY_NAME.toString());
+    waivers.sort(comparator);
+
+    // Verify: All have same policy name, sorted by expiry (earliest first, null last)
+    assertThat(waivers.get(0).policyName).isEqualTo("Policy X");
+    assertThat(waivers.get(0).expiryTime).isEqualTo(Date.from(now.plus(1, ChronoUnit.DAYS)));
+    assertThat(waivers.get(1).expiryTime).isEqualTo(Date.from(now.plus(5, ChronoUnit.DAYS)));
+    assertThat(waivers.get(2).expiryTime).isNull();
+  }
 }

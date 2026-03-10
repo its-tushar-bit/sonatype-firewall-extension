@@ -55,7 +55,7 @@ public class DashboardPolicyWaiverDTOComparator
       case OWNER_SCOPE:
         return compareOwnerScope(dto1, dto2);
       case POLICY_NAME:
-        return comparePolicyNames(dto1, dto2);
+        return comparePolicyNames(o1, o2);
       case THREAT_LEVEL:
         return compareThreatLevel(o1, o2);
       default:
@@ -74,12 +74,29 @@ public class DashboardPolicyWaiverDTOComparator
   }
 
   private int comparePolicyNames(final DashboardPolicyWaiverDTO dto1, final DashboardPolicyWaiverDTO dto2) {
+    if (dto1.policyName != null && dto2.policyName != null) {
+      return isAscending ? compareNonNullPolicyNames(dto1, dto2) : compareNonNullPolicyNames(dto2, dto1);
+    }
 
-    int sortByPolicyName =
-        String.CASE_INSENSITIVE_ORDER.compare(dto1.policyName, dto2.policyName);
+    return compareNullPolicyNames(dto1, dto2);
+  }
+
+  private int compareNonNullPolicyNames(final DashboardPolicyWaiverDTO dto1, final DashboardPolicyWaiverDTO dto2) {
+    int sortByPolicyName = String.CASE_INSENSITIVE_ORDER.compare(dto1.policyName, dto2.policyName);
 
     // do secondary sorting by expiration date when policy is same
     return sortByPolicyName == 0 ? compareExpirationDates(dto1, dto2) : sortByPolicyName;
+  }
+
+  private int compareNullPolicyNames(final DashboardPolicyWaiverDTO dto1, final DashboardPolicyWaiverDTO dto2) {
+    if (dto1.policyName != null) {
+      return -1;
+    }
+    else if (dto2.policyName != null) {
+      return 1;
+    }
+
+    return compareExpirationDates(dto1, dto2);
   }
 
   private int compareThreatLevel(final DashboardPolicyWaiverDTO o1, final DashboardPolicyWaiverDTO o2) {

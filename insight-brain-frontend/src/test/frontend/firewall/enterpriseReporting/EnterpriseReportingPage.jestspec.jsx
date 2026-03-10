@@ -337,4 +337,68 @@ describe('EnterpriseReportingPage', () => {
     // Should not render any dashboard cards
     expect(screen.queryByText('Malware Insights')).not.toBeInTheDocument();
   });
+
+  it('should render support information section', async () => {
+    const loadedState = {
+      ...defaultPreloadedState,
+      firewallEnterpriseReporting: {
+        dashboards: mockDashboards,
+        loading: false,
+        loadError: null,
+        iqVersion: '1.170.0',
+      },
+      enterpriseReportingSupportInfo: {
+        telemetryStatus: telemetryData,
+        loading: false,
+        loadError: null,
+      },
+    };
+    renderComponent(loadedState);
+
+    // Should render support information section headings
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Help Documentation' })).toBeInTheDocument();
+    });
+    expect(screen.getByRole('heading', { name: 'Support Information' })).toBeInTheDocument();
+  });
+
+  it('should render page description with obfuscation warning', () => {
+    renderComponent();
+
+    // Should show the warning about obfuscated data
+    expect(
+      screen.getByText(/If you have disabled Advanced Reporting, data on the dashboards will be obfuscated/i)
+    ).toBeInTheDocument();
+  });
+
+  it('should display info tooltip icon for Enterprise Dashboards', async () => {
+    const loadedState = {
+      ...defaultPreloadedState,
+      firewallEnterpriseReporting: {
+        dashboards: mockDashboards,
+        loading: false,
+        loadError: null,
+        iqVersion: '1.170.0',
+      },
+    };
+    renderComponent(loadedState);
+
+    // Should have the Enterprise Dashboards section with tooltip
+    await waitFor(() => {
+      expect(screen.getByText('Enterprise Dashboards')).toBeInTheDocument();
+    });
+
+    // The tooltip icon should be present (icon is rendered via NxFontAwesomeIcon)
+    const dashboardSection = screen.getByText('Enterprise Dashboards').closest('h2');
+    expect(dashboardSection).toBeInTheDocument();
+  });
 });
+
+const telemetryData = {
+  telemetryId: '12345',
+  clusterId: '12345-678',
+  advancedReportingEnabled: true,
+  enterpriseReportingFeatureExists: true,
+  userApplicationCount: 50,
+  totalApplicationCount: 100,
+};

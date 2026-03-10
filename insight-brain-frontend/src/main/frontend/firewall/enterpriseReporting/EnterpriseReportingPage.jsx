@@ -17,9 +17,11 @@ import {
   NxTextLink,
   NxFontAwesomeIcon,
   NxTooltip,
+  NxP,
 } from '@sonatype/react-shared-components';
 import { faCalendar } from '@fortawesome/free-regular-svg-icons';
-import { faInfoCircle, faLightbulbOn, faQuestionCircle } from '@fortawesome/pro-regular-svg-icons';
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { faLightbulbOn, faQuestionCircle } from '@fortawesome/pro-regular-svg-icons';
 import { selectEnterpriseReportingSupportInfo } from 'MainRoot/enterpriseReporting/supportInfo/enterpriseReportingSupportInfoSelectors';
 import {
   selectDashboards,
@@ -30,7 +32,7 @@ import {
 import { actions } from './firewallEnterpriseReportingSlice';
 import EnterpriseReportContactCard from 'MainRoot/enterpriseReporting/card/EnterpriseReportContactCard';
 import FirewallEnterpriseReportCard from './card/FirewallEnterpriseReportCard';
-import EnterpriseReportingSupportInfo from 'MainRoot/enterpriseReporting/supportInfo/EnterpiseReportingSupportInfo';
+import FirewallEnterpriseReportingSupportInfo from './supportInfo/FirewallEnterpriseReportingSupportInfo';
 import classnames from 'classnames';
 
 export default function EnterpriseReportingPage() {
@@ -73,15 +75,25 @@ export default function EnterpriseReportingPage() {
               <span className={statusIndicatorClassNames} role="status">
                 Advanced Reporting: {statusIndicatorText}
               </span>
-              <NxTextLink
-                external
-                href={'https://links.sonatype.com/products/nxiq/doc/data-insights-advanced-reporting'}
-              >
+              <NxTextLink external href={'https://links.sonatype.com/products/firewall/advanced-reporting-insights'}>
                 What&apos;s this?
               </NxTextLink>
             </div>
           )}
         </div>
+        <NxPageTitle.Description
+          id="fw-enterprise-reporting-landing-page-description"
+          className="iq-fw-enterprise-reporting__page-description"
+        >
+          <NxP>
+            If you have disabled Advanced Reporting, data on the dashboards will be obfuscated. To see full dashboard
+            data,{' '}
+            <NxTextLink external href={'https://links.sonatype.com/products/firewall/advanced-reporting-insights'}>
+              enable Advanced Reporting
+            </NxTextLink>
+            .
+          </NxP>
+        </NxPageTitle.Description>
       </NxPageTitle>
 
       <div className="iq-fw-enterprise-reporting__alerts-container">
@@ -135,7 +147,7 @@ export default function EnterpriseReportingPage() {
           external={true}
         />
       </NxCard.Container>
-      <EnterpriseReportingSupportInfo />
+      <FirewallEnterpriseReportingSupportInfo />
     </NxPageMain>
   );
 }

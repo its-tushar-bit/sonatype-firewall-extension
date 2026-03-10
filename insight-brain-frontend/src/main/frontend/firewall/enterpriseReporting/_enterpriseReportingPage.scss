@@ -4,6 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@mixin landing-page-tertiary-btn {
+  font-size: var(--nx-font-size-s);
+  font-weight: 400;
+  padding: var(--nx-spacing-base) var(--nx-spacing-3x);
+  width: max-content;
+}
+
 // Make the custom Angular component transparent in layout
 enterprise-reporting-page {
   display: contents;
@@ -50,6 +57,10 @@ enterprise-reporting-page {
     margin-top: var(--nx-spacing-6x);
     padding: var(--nx-spacing-6x);
     text-align: center;
+  }
+
+  &__page-description {
+    padding: var(--nx-spacing-base);
   }
 }
 

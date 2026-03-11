@@ -625,4 +625,245 @@ xdescribe('VexAnnotationDrawer', () => {
       expect(retryButton).toBeInTheDocument();
     });
   });
+
+  describe('Unsaved Changes Warning', () => {
+    // TODO (CLM-35530): Refactor to use accessible queries (screen.getByRole) instead of
+    // container.querySelector for better test maintainability and resilience to DOM changes
+    it('shows unsaved changes modal when closing drawer with modified details field', async () => {
+      const mockOnClose = jest.fn();
+      const { container } = renderWithOverriddenData({
+        ...mockVexAnnotationDrawer,
+        isRowAnnotated: false,
+        onClose: mockOnClose,
+      });
+
+      // Modify the details textarea
+      const detailsTextarea = container.querySelector('textarea');
+      fireEvent.change(detailsTextarea, { target: { value: 'New details text' } });
+
+      // Try to close the drawer by calling the close handler
+      const portalDrawer = container.querySelector('#vex-annotation-popover');
+      expect(portalDrawer).toBeInTheDocument();
+
+      // Simulate clicking outside to trigger close
+      const closeButton = container.querySelector('.nx-btn-bar__btn'); // Assuming close button exists
+      if (closeButton) {
+        fireEvent.click(closeButton);
+      }
+
+      // Verify unsaved changes modal appears
+      await waitFor(() => {
+        expect(screen.queryByText('Unsaved Changes')).toBeInTheDocument();
+        expect(
+          screen.queryByText('The page may contain unsaved changes; continuing will discard them.')
+        ).toBeInTheDocument();
+      });
+
+      // Verify drawer close handler was NOT called yet
+      expect(mockOnClose).not.toHaveBeenCalled();
+    });
+
+    it('shows unsaved changes modal when closing drawer with modified analysis status', async () => {
+      const mockOnClose = jest.fn();
+      const { container } = renderWithOverriddenData({
+        ...mockVexAnnotationDrawer,
+        isRowAnnotated: false,
+        onClose: mockOnClose,
+      });
+
+      // Change analysis status dropdown
+      const analysisDropdown = container.querySelector('#vex-annotation-drawer__form__analysis-status-select');
+      fireEvent.change(analysisDropdown, {
+        target: { value: analysisStatusesOptions[0].key },
+      });
+
+      // Trigger close - modal should appear
+      const closeButton = container.querySelector('.nx-btn-bar__btn');
+      if (closeButton) {
+        fireEvent.click(closeButton);
+      }
+
+      await waitFor(() => {
+        expect(screen.queryByText('Unsaved Changes')).toBeInTheDocument();
+      });
+
+      expect(mockOnClose).not.toHaveBeenCalled();
+    });
+
+    it('shows unsaved changes modal when closing drawer with modified justification', async () => {
+      const mockOnClose = jest.fn();
+      const { container } = renderWithOverriddenData({
+        ...mockVexAnnotationDrawer,
+        isRowAnnotated: false,
+        onClose: mockOnClose,
+      });
+
+      // Change justification dropdown
+      const justificationDropdown = container.querySelector('#vex-annotation-drawer__form__justification-select');
+      fireEvent.change(justificationDropdown, {
+        target: { value: justificationsOptions[0].key },
+      });
+
+      // Trigger close
+      const closeButton = container.querySelector('.nx-btn-bar__btn');
+      if (closeButton) {
+        fireEvent.click(closeButton);
+      }
+
+      await waitFor(() => {
+        expect(screen.queryByText('Unsaved Changes')).toBeInTheDocument();
+      });
+
+      expect(mockOnClose).not.toHaveBeenCalled();
+    });
+
+    it('shows unsaved changes modal when closing drawer with modified response', async () => {
+      const mockOnClose = jest.fn();
+      const { container } = renderWithOverriddenData({
+        ...mockVexAnnotationDrawer,
+        isRowAnnotated: false,
+        onClose: mockOnClose,
+      });
+
+      // Change response dropdown
+      const responseDropdown = container.querySelector('#vex-annotation-drawer__form__response-select');
+      fireEvent.change(responseDropdown, {
+        target: { value: responsesOptions[0].key },
+      });
+
+      // Trigger close
+      const closeButton = container.querySelector('.nx-btn-bar__btn');
+      if (closeButton) {
+        fireEvent.click(closeButton);
+      }
+
+      await waitFor(() => {
+        expect(screen.queryByText('Unsaved Changes')).toBeInTheDocument();
+      });
+
+      expect(mockOnClose).not.toHaveBeenCalled();
+    });
+
+    it('does not show modal when closing drawer without any changes', async () => {
+      const mockOnClose = jest.fn();
+      const { container } = renderWithOverriddenData({
+        ...mockVexAnnotationDrawer,
+        isRowAnnotated: false,
+        onClose: mockOnClose,
+      });
+
+      // Don't make any changes, just try to close
+      const closeButton = container.querySelector('.nx-btn-bar__btn');
+      if (closeButton) {
+        fireEvent.click(closeButton);
+      }
+
+      // Verify modal does NOT appear
+      await waitFor(() => {
+        expect(screen.queryByText('Unsaved Changes')).not.toBeInTheDocument();
+      });
+
+      // Verify drawer was closed
+      expect(mockOnClose).toHaveBeenCalled();
+    });
+
+    it('closes modal and keeps drawer open when Cancel button is clicked', async () => {
+      const mockOnClose = jest.fn();
+      const { container } = renderWithOverriddenData({
+        ...mockVexAnnotationDrawer,
+        isRowAnnotated: false,
+        onClose: mockOnClose,
+      });
+
+      // Make a change
+      const detailsTextarea = container.querySelector('textarea');
+      fireEvent.change(detailsTextarea, { target: { value: 'Modified' } });
+
+      // Trigger close to show modal
+      const closeButton = container.querySelector('.nx-btn-bar__btn');
+      if (closeButton) {
+        fireEvent.click(closeButton);
+      }
+
+      // Wait for modal to appear
+      await waitFor(() => {
+        expect(screen.queryByText('Unsaved Changes')).toBeInTheDocument();
+      });
+
+      // Click Cancel button in the modal
+      const cancelButton = screen.getByRole('button', { name: /Cancel/i });
+      fireEvent.click(cancelButton);
+
+      // Verify modal is closed
+      await waitFor(() => {
+        expect(screen.queryByText('Unsaved Changes')).not.toBeInTheDocument();
+      });
+
+      // Verify drawer was NOT closed
+      expect(mockOnClose).not.toHaveBeenCalled();
+
+      // Verify drawer is still open
+      expect(container.querySelector('#vex-annotation-popover')).toBeInTheDocument();
+    });
+
+    it('closes both modal and drawer when Continue button is clicked', async () => {
+      const mockOnClose = jest.fn();
+      const { container } = renderWithOverriddenData({
+        ...mockVexAnnotationDrawer,
+        isRowAnnotated: false,
+        onClose: mockOnClose,
+      });
+
+      // Make a change
+      const detailsTextarea = container.querySelector('textarea');
+      fireEvent.change(detailsTextarea, { target: { value: 'Modified' } });
+
+      // Trigger close to show modal
+      const closeButton = container.querySelector('.nx-btn-bar__btn');
+      if (closeButton) {
+        fireEvent.click(closeButton);
+      }
+
+      // Wait for modal to appear
+      await waitFor(() => {
+        expect(screen.queryByText('Unsaved Changes')).toBeInTheDocument();
+      });
+
+      // Click Continue button in the modal
+      const continueButton = screen.getByRole('button', { name: /Continue/i });
+      fireEvent.click(continueButton);
+
+      // Verify modal is closed
+      await waitFor(() => {
+        expect(screen.queryByText('Unsaved Changes')).not.toBeInTheDocument();
+      });
+
+      // Verify drawer close handler was called
+      expect(mockOnClose).toHaveBeenCalled();
+    });
+
+    it('does not show modal when closing annotated row without changes', async () => {
+      const mockOnClose = jest.fn();
+      const { container } = renderWithOverriddenData({
+        ...mockVexAnnotationDrawer,
+        isRowAnnotated: true,
+        details: 'Existing details',
+        analysisStatus: 'in_triage',
+      });
+
+      // Don't make any changes
+      const closeButton = container.querySelector('.nx-btn-bar__btn');
+      if (closeButton) {
+        fireEvent.click(closeButton);
+      }
+
+      // Verify modal does NOT appear
+      await waitFor(() => {
+        expect(screen.queryByText('Unsaved Changes')).not.toBeInTheDocument();
+      });
+
+      // Verify drawer was closed
+      expect(mockOnClose).toHaveBeenCalled();
+    });
+  });
 }); // End test file

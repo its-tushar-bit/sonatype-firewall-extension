@@ -4,12 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   allThreatLevelNumbers,
   combineValidationErrors,
   hasValidationErrors,
   NxButton,
+  NxButtonBar,
   NxDivider,
   NxDrawer,
   NxErrorAlert,
@@ -19,10 +20,13 @@ import {
   NxForm,
   NxFormSelect,
   nxFormSelectStateHelpers,
+  NxH2,
   NxLoadWrapper,
+  NxModal,
   NxTextInput,
   NxTextLink,
   NxThreatIndicator,
+  NxWarningAlert,
 } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { faCheckCircle, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
@@ -118,54 +122,124 @@ export default function VexAnnotationDrawer(props) {
   const [showSaveFormError, setShowSaveFormError] = useState(false);
   const [showValidationErrors, setShowValidationErrors] = useState(false);
   const [validationErrors, setValidationErrors] = useState([]);
+  const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
+  const isClosingModalRef = useRef(false);
+
+  // Refs to capture current form values (persist even when state is cleared)
+  const currentDetailsRef = useRef('');
+  const currentAnalysisStatusRef = useRef('');
+  const currentJustificationRef = useRef('');
+  const currentResponseRef = useRef('');
+
+  // Helper functions to compute initial values (DRY)
+  const getInitialDetailsValue = () => (isRowAnnotated ? (isNilOrEmpty(details) ? '' : details) : '');
+
+  const getInitialDropdownValue = (initialValue, options, isSet) => {
+    if (isSet) {
+      return isNil(initialValue) ? options[0]?.key : pickFirstVexResponse(initialValue);
+    }
+    return DROPDOWN_SELECT_OPTION;
+  };
+
+  const getInitialAnalysisStatusValue = () =>
+    getInitialDropdownValue(analysisStatus, analysisStatusesOptions, isRowAnnotated);
+
+  const getInitialJustificationValue = () =>
+    getInitialDropdownValue(justification, justificationsOptions, isJustificationSet);
+
+  const getInitialResponseValue = () => getInitialDropdownValue(response, responsesOptions, isResponseSet);
+
+  // Initialize form controls with computed initial values
   const [vexAnnotationDetailsControl, setVexAnnotationDetailsControl] = useState(
-    initialState(isRowAnnotated ? (isNilOrEmpty(details) ? '' : details) : '')
+    initialState(getInitialDetailsValue())
   );
 
-  const getDefaultStateForAnalysisDropdown = (initialValue, options, validator) =>
-    nxFormSelectStateHelpers.useNxFormSelectState(
-      isRowAnnotated
-        ? isNil(initialValue)
-          ? options[0]?.key
-          : pickFirstVexResponse(initialValue)
-        : DROPDOWN_SELECT_OPTION,
-      validator
-    );
-
-  const getDefaultStateForJustificationDropdown = (initialValue, options, validator) =>
-    nxFormSelectStateHelpers.useNxFormSelectState(
-      isJustificationSet
-        ? isNil(initialValue)
-          ? options[0]?.key
-          : pickFirstVexResponse(initialValue)
-        : DROPDOWN_SELECT_OPTION,
-      validator
-    );
-
-  const getDefaultStateForResponseDropdown = (initialValue, options, validator) =>
-    nxFormSelectStateHelpers.useNxFormSelectState(
-      isResponseSet
-        ? isNil(initialValue)
-          ? options[0]?.key
-          : pickFirstVexResponse(initialValue)
-        : DROPDOWN_SELECT_OPTION,
-      validator
-    );
-
-  const [analysisStatusControlState, setAnalysisStatusControlState] = getDefaultStateForAnalysisDropdown(
-    analysisStatus,
-    analysisStatusesOptions
+  const [analysisStatusControlState, setAnalysisStatusControlState] = nxFormSelectStateHelpers.useNxFormSelectState(
+    getInitialAnalysisStatusValue()
   );
 
-  const [justificationControlState, setJustificationControlState] = getDefaultStateForJustificationDropdown(
-    justification,
-    justificationsOptions
+  const [justificationControlState, setJustificationControlState] = nxFormSelectStateHelpers.useNxFormSelectState(
+    getInitialJustificationValue()
   );
 
-  const [responseControlState, setResponseControlState] = getDefaultStateForResponseDropdown(
-    response,
-    responsesOptions
+  const [responseControlState, setResponseControlState] = nxFormSelectStateHelpers.useNxFormSelectState(
+    getInitialResponseValue()
   );
+
+  // Keep refs in sync with state values
+  useEffect(() => {
+    currentDetailsRef.current = vexAnnotationDetailsControl?.value || '';
+    currentAnalysisStatusRef.current = analysisStatusControlState.value;
+    currentJustificationRef.current = justificationControlState.value;
+    currentResponseRef.current = responseControlState.value;
+  }, [vexAnnotationDetailsControl, analysisStatusControlState, justificationControlState, responseControlState]);
+
+  // Check if form has unsaved changes (using refs for persistence)
+  const hasUnsavedChanges = () => {
+    const initialDetails = isRowAnnotated ? (isNilOrEmpty(details) ? '' : details) : '';
+    const currentDetails = currentDetailsRef.current || '';
+    const detailsChanged = initialDetails !== currentDetails;
+
+    const initialAnalysisStatus = isRowAnnotated
+      ? isNil(analysisStatus)
+        ? analysisStatusesOptions[0]?.key
+        : pickFirstVexResponse(analysisStatus)
+      : DROPDOWN_SELECT_OPTION;
+    const analysisStatusChanged = initialAnalysisStatus !== currentAnalysisStatusRef.current;
+
+    const initialJustification = isJustificationSet
+      ? isNil(justification)
+        ? justificationsOptions[0]?.key
+        : pickFirstVexResponse(justification)
+      : DROPDOWN_SELECT_OPTION;
+    const justificationChanged = initialJustification !== currentJustificationRef.current;
+
+    const initialResponse = isResponseSet
+      ? isNil(response)
+        ? responsesOptions[0]?.key
+        : pickFirstVexResponse(response)
+      : DROPDOWN_SELECT_OPTION;
+    const responseChanged = initialResponse !== currentResponseRef.current;
+
+    return detailsChanged || analysisStatusChanged || justificationChanged || responseChanged;
+  };
+
+  // Handle drawer close with unsaved changes check
+  const handleCloseDrawer = () => {
+    // Don't show modal again if we're in the process of closing it
+    if (isClosingModalRef.current) {
+      return;
+    }
+
+    if (hasUnsavedChanges()) {
+      setShowUnsavedChangesModal(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleUnsavedChangesCancel = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    isClosingModalRef.current = true;
+    setShowUnsavedChangesModal(false);
+    // Reset the flag after a short delay
+    setTimeout(() => {
+      isClosingModalRef.current = false;
+    }, 100);
+  };
+
+  const handleUnsavedChangesContinue = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    isClosingModalRef.current = true;
+    setShowUnsavedChangesModal(false);
+    onClose();
+  };
 
   // Define validators for controls here
 
@@ -486,82 +560,105 @@ export default function VexAnnotationDrawer(props) {
   };
 
   return (
-    <PortalDrawer
-      size="medium"
-      id="vex-annotation-popover"
-      className="vex-annotation-drawer"
-      onClose={onClose}
-      open={isDrawerOpen}
-      aria-label={`Annotate ${issue}`}
-    >
-      <NxDrawer.Header>
-        <VexAnnotationDrawerHeader
-          headerTitle={`Annotate ${issue}`}
-          headerSize={'h2'}
-          onClose={onClose}
-          className={'vex-annotation-popover__header'}
-          componentPurl={componentPurl}
-        ></VexAnnotationDrawerHeader>
-      </NxDrawer.Header>
-      <NxDrawer.Content>
-        <NxLoadWrapper
-          retryHandler={loadVexReferenceData}
-          loading={isVulnerabilityReferenceDataLoading}
-          error={popOverContentError}
-        >
-          {vulnerabilityInformationHeaderFragment()}
-          <NxDivider />
-
-          <NxForm
-            id="vex-annotation-drawer__form"
-            showValidationErrors={false}
-            submitMaskState={formIsSaving}
-            submitMaskMessage="Saving..."
-            onSubmit={() => null}
+    <>
+      <PortalDrawer
+        id="vex-annotation-popover"
+        className="vex-annotation-drawer"
+        onClose={handleCloseDrawer}
+        onCancel={handleCloseDrawer}
+        open={isDrawerOpen}
+        aria-label={`Annotate ${issue}`}
+      >
+        <NxDrawer.Header>
+          <VexAnnotationDrawerHeader
+            headerTitle={`Annotate ${issue}`}
+            headerSize={'h2'}
+            componentPurl={componentPurl}
+          ></VexAnnotationDrawerHeader>
+        </NxDrawer.Header>
+        <NxDrawer.Content>
+          <NxLoadWrapper
+            retryHandler={loadVexReferenceData}
+            loading={isVulnerabilityReferenceDataLoading}
+            error={popOverContentError}
           >
-            {vexAnnotationFormFragment()}
-            {updatedInfoFragment()}
-          </NxForm>
-        </NxLoadWrapper>
-      </NxDrawer.Content>
+            {vulnerabilityInformationHeaderFragment()}
+            <NxDivider />
 
-      <NxFooter className="vex-annotation-popover__footer-nx-drawer">
-        <NxErrorAlert
-          className={cx(
-            'vex-annotation-popover__form-validation-errors',
-            showValidationErrors && hasValidationErrors(validationErrors) ? '' : 'vex-annotation-popover__footer-hidden'
-          )}
-        >
-          {validationErrors[0]}
-        </NxErrorAlert>
+            <NxForm
+              id="vex-annotation-drawer__form"
+              showValidationErrors={false}
+              submitMaskState={formIsSaving}
+              submitMaskMessage="Saving..."
+              onSubmit={() => null}
+            >
+              {vexAnnotationFormFragment()}
+              {updatedInfoFragment()}
+            </NxForm>
+          </NxLoadWrapper>
+        </NxDrawer.Content>
 
-        <NxErrorAlert
-          className={cx(
-            'vex-annotation-popover__form-save-errors',
-            showSaveFormError ? '' : 'vex-annotation-popover__footer-hidden'
-          )}
-        >
-          <span className={'vex-annotation-popover__form-save-error-message'}>{formError}</span>
-          <NxButton variant="error" onClick={() => handleOnSubmit()}>
-            Retry
-          </NxButton>
-        </NxErrorAlert>
-
-        <div className="vex-annotation-popover__footer-button-bar">
-          <NxButton
+        <NxFooter className="vex-annotation-popover__footer-nx-drawer">
+          <NxErrorAlert
             className={cx(
-              'vex-annotation-drawer__form__submit-button',
-              !hasValidationErrors(validationErrors) ? '' : 'vex-annotation-popover__footer-hidden',
-              showSaveFormError ? 'vex-annotation-popover__footer-hidden' : ''
+              'vex-annotation-popover__form-validation-errors',
+              showValidationErrors && hasValidationErrors(validationErrors)
+                ? ''
+                : 'vex-annotation-popover__footer-hidden'
             )}
-            onClick={() => handleOnSubmit()}
-            variant="primary"
           >
-            {isRowAnnotated === true ? 'Update' : 'Save'}
-          </NxButton>
-        </div>
-      </NxFooter>
-    </PortalDrawer>
+            {validationErrors[0]}
+          </NxErrorAlert>
+
+          <NxErrorAlert
+            className={cx(
+              'vex-annotation-popover__form-save-errors',
+              showSaveFormError ? '' : 'vex-annotation-popover__footer-hidden'
+            )}
+          >
+            <span className={'vex-annotation-popover__form-save-error-message'}>{formError}</span>
+            <NxButton variant="error" onClick={() => handleOnSubmit()}>
+              Retry
+            </NxButton>
+          </NxErrorAlert>
+
+          <div className="vex-annotation-popover__footer-button-bar">
+            <NxButton
+              className={cx(
+                'vex-annotation-drawer__form__submit-button',
+                !hasValidationErrors(validationErrors) ? '' : 'vex-annotation-popover__footer-hidden',
+                showSaveFormError ? 'vex-annotation-popover__footer-hidden' : ''
+              )}
+              onClick={() => handleOnSubmit()}
+              variant="primary"
+            >
+              {isRowAnnotated === true ? 'Update' : 'Save'}
+            </NxButton>
+          </div>
+        </NxFooter>
+      </PortalDrawer>
+
+      {showUnsavedChangesModal && (
+        <NxModal key="unsaved-changes-modal" id="unsaved-modal" variant="narrow" onCancel={handleUnsavedChangesCancel}>
+          <NxModal.Header>
+            <NxH2>Unsaved Changes</NxH2>
+          </NxModal.Header>
+          <NxModal.Content>
+            <NxWarningAlert className="nx-alert--modifier">
+              <span>The page may contain unsaved changes; continuing will discard them.</span>
+            </NxWarningAlert>
+          </NxModal.Content>
+          <NxFooter>
+            <NxButtonBar>
+              <NxButton onClick={handleUnsavedChangesCancel}>Cancel</NxButton>
+              <NxButton variant="primary" onClick={handleUnsavedChangesContinue}>
+                Continue
+              </NxButton>
+            </NxButtonBar>
+          </NxFooter>
+        </NxModal>
+      )}
+    </>
   );
 }
 

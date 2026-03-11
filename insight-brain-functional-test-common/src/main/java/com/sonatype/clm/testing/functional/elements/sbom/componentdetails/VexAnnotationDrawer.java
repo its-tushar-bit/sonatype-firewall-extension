@@ -9,6 +9,8 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$;
+
 public class VexAnnotationDrawer extends BasicElement<VexAnnotationDrawer>
 {
   static final String ROOT_SELECTOR = "#vex-annotation-popover";
@@ -67,5 +69,25 @@ public class VexAnnotationDrawer extends BasicElement<VexAnnotationDrawer>
 
   public SelenideElement annotationDetails() {
     return child("textarea");
+  }
+
+  public SelenideElement unsavedChangesModal() {
+    return $("#unsaved-modal");
+  }
+
+  public SelenideElement unsavedChangesModalHeader() {
+    return $("#unsaved-modal .nx-h2");
+  }
+
+  public SelenideElement unsavedChangesModalBody() {
+    return $("#unsaved-modal .nx-alert__content");
+  }
+
+  public SelenideElement unsavedChangesModalCancelButton() {
+    return $("#unsaved-modal .nx-btn-bar .nx-btn:first-child");
+  }
+
+  public SelenideElement unsavedChangesModalContinueButton() {
+    return $("#unsaved-modal .nx-btn--primary");
   }
 }

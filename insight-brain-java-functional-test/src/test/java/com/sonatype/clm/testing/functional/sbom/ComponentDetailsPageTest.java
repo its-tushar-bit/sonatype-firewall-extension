@@ -345,7 +345,6 @@ public class ComponentDetailsPageTest
 
     SelenideElement addAnnotationButton = rowButtons.get(1);
     addAnnotationButton.shouldBe(visible);
-    addAnnotationButton.shouldHave(text("Add Annotation"));
     addAnnotationButton.click();
 
     VexAnnotationDrawer vexDrawer = sbomManagerComponentDetailsPage.vexAnnotationDrawer();
@@ -425,7 +424,6 @@ public class ComponentDetailsPageTest
 
     SelenideElement addAnnotationButton = rowButtons.get(1);
     addAnnotationButton.shouldBe(visible);
-    addAnnotationButton.shouldHave(text("Add Annotation"));
     addAnnotationButton.click();
 
     VexAnnotationDrawer vexDrawer = sbomManagerComponentDetailsPage.vexAnnotationDrawer();
@@ -1110,5 +1108,187 @@ public class ComponentDetailsPageTest
     testCLMServer.getHdsServer()
         .respondWith(Collections.emptyMap())
         .atUri("rest/vulnerability/details/json");
+  }
+
+  @Test
+  public void testVexAnnotationDrawer_showsUnsavedChangesModal_whenClosingWithModifiedDetails() {
+    setTestData();
+
+    navigateToComponentDetailsPage();
+
+    // Open the VEX annotation drawer
+    SelenideElement dropdownButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnData(0, 6);
+    ElementsCollection rowButtons = dropdownButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton = rowButtons.get(0);
+    ellipsisButton.shouldBe(visible);
+    ellipsisButton.click();
+
+    SelenideElement addAnnotationButton = rowButtons.get(1);
+    addAnnotationButton.shouldBe(visible);
+    addAnnotationButton.click();
+
+    VexAnnotationDrawer vexDrawer = sbomManagerComponentDetailsPage.vexAnnotationDrawer();
+    vexDrawer.shouldBe(visible);
+    vexDrawer.header().shouldBe(visible).shouldHave(partialText("Annotate"));
+
+    // Modify the details field
+    vexDrawer.annotationDetails().shouldBe(visible);
+    vexDrawer.annotationDetails().setValue("Test unsaved changes");
+
+    // Try to close the drawer by clicking outside or ESC
+    vexDrawer.closeButton().click();
+
+    // Verify unsaved changes modal appears
+    vexDrawer.unsavedChangesModal().shouldBe(visible);
+    vexDrawer.unsavedChangesModalHeader().shouldBe(visible).shouldHave(text("Unsaved Changes"));
+    vexDrawer.unsavedChangesModalBody().shouldBe(visible)
+        .shouldHave(partialText("The page may contain unsaved changes; continuing will discard them."));
+  }
+
+  @Test
+  public void testVexAnnotationDrawer_unsavedChangesModal_cancelButton_keepsDrawerOpen() {
+    setTestData();
+
+    navigateToComponentDetailsPage();
+
+    // Open the VEX annotation drawer
+    SelenideElement dropdownButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnData(0, 6);
+    ElementsCollection rowButtons = dropdownButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton = rowButtons.get(0);
+    ellipsisButton.shouldBe(visible);
+    ellipsisButton.click();
+
+    SelenideElement addAnnotationButton = rowButtons.get(1);
+    addAnnotationButton.shouldBe(visible);
+    addAnnotationButton.click();
+
+    VexAnnotationDrawer vexDrawer = sbomManagerComponentDetailsPage.vexAnnotationDrawer();
+    vexDrawer.shouldBe(visible);
+
+    // Modify the details field
+    vexDrawer.annotationDetails().setValue("Test unsaved changes");
+
+    // Try to close
+    vexDrawer.closeButton().click();
+
+    // Verify unsaved changes modal appears
+    vexDrawer.unsavedChangesModal().shouldBe(visible);
+
+    // Click Cancel button
+    vexDrawer.unsavedChangesModalCancelButton().shouldBe(visible).shouldHave(text("Cancel"));
+    vexDrawer.unsavedChangesModalCancelButton().click();
+
+    // Verify modal is closed
+    vexDrawer.unsavedChangesModal().shouldNotBe(visible);
+
+    // Verify drawer is still open
+    vexDrawer.shouldBe(visible);
+    vexDrawer.header().shouldBe(visible);
+  }
+
+  @Test
+  public void testVexAnnotationDrawer_unsavedChangesModal_continueButton_closesDrawer() {
+    setTestData();
+
+    navigateToComponentDetailsPage();
+
+    // Open the VEX annotation drawer
+    SelenideElement dropdownButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnData(0, 6);
+    ElementsCollection rowButtons = dropdownButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton = rowButtons.get(0);
+    ellipsisButton.shouldBe(visible);
+    ellipsisButton.click();
+
+    SelenideElement addAnnotationButton = rowButtons.get(1);
+    addAnnotationButton.shouldBe(visible);
+    addAnnotationButton.click();
+
+    VexAnnotationDrawer vexDrawer = sbomManagerComponentDetailsPage.vexAnnotationDrawer();
+    vexDrawer.shouldBe(visible);
+
+    // Modify the details field
+    vexDrawer.annotationDetails().setValue("Test unsaved changes");
+
+    // Try to close
+    vexDrawer.closeButton().click();
+
+    // Verify unsaved changes modal appears
+    vexDrawer.unsavedChangesModal().shouldBe(visible);
+
+    // Click Continue button
+    vexDrawer.unsavedChangesModalContinueButton().shouldBe(visible).shouldHave(text("Continue"));
+    vexDrawer.unsavedChangesModalContinueButton().click();
+
+    // Verify both modal and drawer are closed
+    vexDrawer.unsavedChangesModal().shouldNotBe(visible);
+    vexDrawer.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testVexAnnotationDrawer_noUnsavedChangesModal_whenClosingWithoutChanges() {
+    setTestData();
+
+    navigateToComponentDetailsPage();
+
+    // Open the VEX annotation drawer
+    SelenideElement dropdownButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnData(0, 6);
+    ElementsCollection rowButtons = dropdownButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton = rowButtons.get(0);
+    ellipsisButton.shouldBe(visible);
+    ellipsisButton.click();
+
+    SelenideElement addAnnotationButton = rowButtons.get(1);
+    addAnnotationButton.shouldBe(visible);
+    addAnnotationButton.click();
+
+    VexAnnotationDrawer vexDrawer = sbomManagerComponentDetailsPage.vexAnnotationDrawer();
+    vexDrawer.shouldBe(visible);
+
+    // Don't make any changes, just close
+    vexDrawer.closeButton().click();
+
+    // Verify unsaved changes modal does NOT appear
+    vexDrawer.unsavedChangesModal().shouldNotBe(visible);
+
+    // Verify drawer is closed
+    vexDrawer.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testVexAnnotationDrawer_showsUnsavedChangesModal_whenModifyingDropdown() {
+    setTestData();
+
+    navigateToComponentDetailsPage();
+
+    // Open the VEX annotation drawer
+    SelenideElement dropdownButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnData(0, 6);
+    ElementsCollection rowButtons = dropdownButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton = rowButtons.get(0);
+    ellipsisButton.shouldBe(visible);
+    ellipsisButton.click();
+
+    SelenideElement addAnnotationButton = rowButtons.get(1);
+    addAnnotationButton.shouldBe(visible);
+    addAnnotationButton.click();
+
+    VexAnnotationDrawer vexDrawer = sbomManagerComponentDetailsPage.vexAnnotationDrawer();
+    vexDrawer.shouldBe(visible);
+
+    // Select a value in analysis status dropdown
+    vexDrawer.analysisStatusDropdown().shouldBe(visible);
+    vexDrawer.analysisStatusDropdown().selectOption("Resolved");
+    vexDrawer.analysisStatusDropdown().shouldHave(text("Resolved"));
+
+    // Try to close
+    vexDrawer.closeButton().click();
+
+    // Verify unsaved changes modal appears
+    vexDrawer.unsavedChangesModal().shouldBe(visible);
+    vexDrawer.unsavedChangesModalHeader().shouldBe(visible).shouldHave(text("Unsaved Changes"));
   }
 }

@@ -19,3 +19,7 @@
     color: var(--nx-color-text);
   }
 }
+
+.nx-radio.nx-radio-checkbox--disabled {
+  cursor: not-allowed;
+}

@@ -43,3 +43,10 @@
     }
   }
 }
+
+.iq-github-app-details-box__reconfigure {
+  button.nx-btn.disabled,
+  button.nx-btn[disabled] {
+    cursor: not-allowed !important;
+  }
+}

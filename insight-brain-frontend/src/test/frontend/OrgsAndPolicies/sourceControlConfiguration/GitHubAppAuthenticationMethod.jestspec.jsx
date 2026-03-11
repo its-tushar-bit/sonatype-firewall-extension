@@ -770,8 +770,7 @@ describe('GitHubAppAuthenticationMethod', () => {
             ...inheritedGitHubAppSourceControl.githubApp,
             parentValue: {
               ...inheritedGitHubAppSourceControl.githubApp.parentValue,
-              accountType: 'personal',
-              accountName: 'john-doe',
+              accountName: 'john-doe(personal)',
             },
           },
         };

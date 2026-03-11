@@ -76,8 +76,7 @@ public class ApiGitHubAppResource
   public ApiGitHubAppManifestDTO generateManifest(
       @Parameter(description = "Owner (organization/application) ID", required = true)
       @QueryParam("ownerId") @NotBlank final String ownerId,
-
-      @Parameter(description = "GitHub organization name", required = true)
+      @Parameter(description = "GitHub organization name", required = false)
       @QueryParam("organizationName") final String organizationName)
   {
     return apiGitHubAppService.generateManifest(ownerId, organizationName);

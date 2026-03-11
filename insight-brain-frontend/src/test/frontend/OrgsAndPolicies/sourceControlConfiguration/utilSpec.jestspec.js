@@ -5,16 +5,20 @@
  */
 import {
   arePullRequestsSupported,
+  AUTHENTICATION_TYPES,
   compositeSourceControlToModel,
   effectiveProvider,
   getBaseBranchValueFromModel,
+  getCleanAccountName,
   getClosePrOnFailedChecksEnabledFlagFromModel,
+  getGitHubAppInstallationUrl,
   getPullRequestCommentingEnabledFlagFromModel,
   getRemediationPullRequestsEnabledFlagFromModel,
   getScmFormStateStorageKey,
   getSourceControlEvaluationsEnabledFlagFromModel,
   getValidationMessage,
   isAccessTokenRequiredOnNode,
+  isPersonalAccount,
   isUsernameRequiredOnNode,
   loadFormStateWithFallback,
   providerNeedsUsername,
@@ -26,6 +30,7 @@ import {
   shouldShowGitHubAppAuth,
   textFieldValidator,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
+import { PERSONAL_ACCOUNT_MARKER } from 'MainRoot/OrgsAndPolicies/utility/constants';
 
 describe('sourceControlConfiguration util', () => {
   describe('validationMessage', () => {
@@ -440,6 +445,56 @@ describe('sourceControlConfiguration util', () => {
       sourceControl.token.isInherited = true;
       sourceControl.token.parentValue = { value: '#~FAKE~SECRET~KEY~#' };
       expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp)).toBe(false);
+    });
+
+    it('returns true when overriding auth method and parent uses GitHub App (feature enabled)', () => {
+      sourceControl.provider.rscValue = { value: 'github' };
+      sourceControl.token.isInherited = false;
+      sourceControl.token.parentValue = { value: '#~FAKE~SECRET~KEY~#' };
+      sourceControl.token.rscValue = { value: null, trimmedValue: null };
+      sourceControl.authenticationType = { parentValue: AUTHENTICATION_TYPES.GITHUB_APP };
+      serverSourceControl.token = { value: null };
+      expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, true)).toBe(true);
+    });
+
+    it('returns false when overriding auth method and parent uses PAT (feature enabled)', () => {
+      sourceControl.provider.rscValue = { value: 'github' };
+      sourceControl.token.isInherited = false;
+      sourceControl.token.parentValue = { value: '#~FAKE~SECRET~KEY~#' };
+      sourceControl.token.rscValue = { value: null, trimmedValue: null };
+      sourceControl.authenticationType = { parentValue: AUTHENTICATION_TYPES.PAT };
+      serverSourceControl.token = { value: null };
+      expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, true)).toBe(false);
+    });
+
+    it('returns false when parent auth type is undefined (feature enabled - backwards compatible)', () => {
+      sourceControl.provider.rscValue = { value: 'github' };
+      sourceControl.token.isInherited = false;
+      sourceControl.token.parentValue = { value: '#~FAKE~SECRET~KEY~#' };
+      sourceControl.token.rscValue = { value: null, trimmedValue: null };
+      sourceControl.authenticationType = { parentValue: undefined };
+      serverSourceControl.token = { value: null };
+      expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, true)).toBe(false);
+    });
+
+    it('returns false when parent auth type is null (feature enabled - backwards compatible)', () => {
+      sourceControl.provider.rscValue = { value: 'github' };
+      sourceControl.token.isInherited = false;
+      sourceControl.token.parentValue = { value: '#~FAKE~SECRET~KEY~#' };
+      sourceControl.token.rscValue = { value: null, trimmedValue: null };
+      sourceControl.authenticationType = { parentValue: null };
+      serverSourceControl.token = { value: null };
+      expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, true)).toBe(false);
+    });
+
+    it('returns false when feature is disabled (backwards compatible - always treat as PAT)', () => {
+      sourceControl.provider.rscValue = { value: 'github' };
+      sourceControl.token.isInherited = false;
+      sourceControl.token.parentValue = { value: '#~FAKE~SECRET~KEY~#' };
+      sourceControl.token.rscValue = { value: null, trimmedValue: null };
+      sourceControl.authenticationType = { parentValue: AUTHENTICATION_TYPES.GITHUB_APP };
+      serverSourceControl.token = { value: null };
+      expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, false)).toBe(false);
     });
   });
 
@@ -1415,6 +1470,201 @@ describe('sourceControlConfiguration util', () => {
         removeFormStateWithFallback(KEY1);
         expect(loadFormStateWithFallback(KEY1)).toBeNull();
         expect(JSON.parse(loadFormStateWithFallback(KEY2))).toEqual(DATA2);
+      });
+    });
+  });
+
+  describe('GitHub App Personal Account Utilities', () => {
+    describe('isPersonalAccount', () => {
+      it('returns true for account names with personal marker', () => {
+        expect(isPersonalAccount('john-doe(personal)')).toBe(true);
+        expect(isPersonalAccount('user_123(personal)')).toBe(true);
+        expect(isPersonalAccount('test-user(personal)')).toBe(true);
+      });
+
+      it('returns false for organization account names without marker', () => {
+        expect(isPersonalAccount('acme-corp')).toBe(false);
+        expect(isPersonalAccount('my-org')).toBe(false);
+        expect(isPersonalAccount('test-organization')).toBe(false);
+      });
+
+      it('handles null and undefined gracefully', () => {
+        expect(isPersonalAccount(null)).toBeFalsy();
+        expect(isPersonalAccount(undefined)).toBeFalsy();
+      });
+
+      it('handles empty string', () => {
+        expect(isPersonalAccount('')).toBe(false);
+      });
+
+      it('is case-sensitive for marker detection', () => {
+        expect(isPersonalAccount('user(Personal)')).toBe(false);
+        expect(isPersonalAccount('user(PERSONAL)')).toBe(false);
+      });
+
+      it('handles marker-only string (edge case during registration)', () => {
+        expect(isPersonalAccount('(personal)')).toBe(true);
+      });
+
+      it('does not match marker in the middle of string', () => {
+        expect(isPersonalAccount('(personal)user')).toBe(false);
+        expect(isPersonalAccount('user(personal)org')).toBe(false);
+      });
+
+      it('uses constant for marker detection', () => {
+        const accountName = 'user' + PERSONAL_ACCOUNT_MARKER;
+        expect(isPersonalAccount(accountName)).toBe(true);
+      });
+    });
+
+    describe('getCleanAccountName', () => {
+      it('strips personal marker from personal accounts', () => {
+        expect(getCleanAccountName('john-doe(personal)')).toBe('john-doe');
+        expect(getCleanAccountName('test_user(personal)')).toBe('test_user');
+        expect(getCleanAccountName('my-account(personal)')).toBe('my-account');
+      });
+
+      it('returns organization names unchanged', () => {
+        expect(getCleanAccountName('acme-corp')).toBe('acme-corp');
+        expect(getCleanAccountName('my-org')).toBe('my-org');
+        expect(getCleanAccountName('test-organization')).toBe('test-organization');
+      });
+
+      it('handles null and undefined by returning empty string', () => {
+        expect(getCleanAccountName(null)).toBe('');
+        expect(getCleanAccountName(undefined)).toBe('');
+      });
+
+      it('handles empty string', () => {
+        expect(getCleanAccountName('')).toBe('');
+      });
+
+      it('handles marker-only string (edge case during registration)', () => {
+        expect(getCleanAccountName('(personal)')).toBe('');
+      });
+
+      it('uses constant for marker length calculation', () => {
+        const accountName = 'user' + PERSONAL_ACCOUNT_MARKER;
+        const cleanName = getCleanAccountName(accountName);
+        expect(cleanName).toBe('user');
+        expect(cleanName).not.toContain(PERSONAL_ACCOUNT_MARKER);
+      });
+
+      it('handles names that contain parentheses but not the marker', () => {
+        expect(getCleanAccountName('user(test)')).toBe('user(test)');
+        expect(getCleanAccountName('org(2024)')).toBe('org(2024)');
+      });
+    });
+
+    describe('getGitHubAppInstallationUrl', () => {
+      describe('Personal Accounts', () => {
+        it('generates personal account URL for personal accounts', () => {
+          expect(getGitHubAppInstallationUrl('john-doe(personal)', 12345)).toBe(
+            'https://github.com/settings/installations/12345'
+          );
+          expect(getGitHubAppInstallationUrl('user(personal)', '67890')).toBe(
+            'https://github.com/settings/installations/67890'
+          );
+        });
+
+        it('handles marker-only accountName (registration in progress)', () => {
+          expect(getGitHubAppInstallationUrl('(personal)', 12345)).toBe(
+            'https://github.com/settings/installations/12345'
+          );
+        });
+      });
+
+      describe('Organization Accounts', () => {
+        it('generates organization URL for organization accounts', () => {
+          expect(getGitHubAppInstallationUrl('acme-corp', 12345)).toBe(
+            'https://github.com/organizations/acme-corp/settings/installations/12345'
+          );
+          expect(getGitHubAppInstallationUrl('my-org', '67890')).toBe(
+            'https://github.com/organizations/my-org/settings/installations/67890'
+          );
+        });
+
+        it('handles account names with hyphens and underscores', () => {
+          expect(getGitHubAppInstallationUrl('test-org-123', 12345)).toBe(
+            'https://github.com/organizations/test-org-123/settings/installations/12345'
+          );
+          expect(getGitHubAppInstallationUrl('my_organization', 12345)).toBe(
+            'https://github.com/organizations/my_organization/settings/installations/12345'
+          );
+        });
+      });
+
+      describe('Installation ID Handling', () => {
+        it('accepts installationId as both string and number', () => {
+          expect(getGitHubAppInstallationUrl('org', 12345)).toBe(
+            'https://github.com/organizations/org/settings/installations/12345'
+          );
+          expect(getGitHubAppInstallationUrl('org', '12345')).toBe(
+            'https://github.com/organizations/org/settings/installations/12345'
+          );
+        });
+
+        it('returns null when installationId is missing', () => {
+          expect(getGitHubAppInstallationUrl('john-doe(personal)', null)).toBe(null);
+          expect(getGitHubAppInstallationUrl('acme-corp', undefined)).toBe(null);
+        });
+
+        it('returns null when installationId is empty string', () => {
+          expect(getGitHubAppInstallationUrl('acme-corp', '')).toBe(null);
+        });
+
+        it('returns null when installationId is zero', () => {
+          expect(getGitHubAppInstallationUrl('acme-corp', 0)).toBe(null);
+        });
+      });
+
+      describe('Backend Consistency', () => {
+        it('generates URLs matching backend marker format', () => {
+          // Backend stores as: accountName + "(personal)" with NO space
+          const backendPersonalFormat = 'username(personal)';
+          const url = getGitHubAppInstallationUrl(backendPersonalFormat, 12345);
+          expect(url).toBe('https://github.com/settings/installations/12345');
+        });
+
+        it('uses constant for marker detection', () => {
+          const accountName = 'user' + PERSONAL_ACCOUNT_MARKER;
+          const url = getGitHubAppInstallationUrl(accountName, 12345);
+          expect(url).toBe('https://github.com/settings/installations/12345');
+        });
+      });
+    });
+
+    describe('Integration Tests', () => {
+      it('utilities work together for personal account flow', () => {
+        const personalAccount = 'john-doe(personal)';
+
+        // Check if personal
+        expect(isPersonalAccount(personalAccount)).toBe(true);
+
+        // Get clean name for display
+        const displayName = getCleanAccountName(personalAccount);
+        expect(displayName).toBe('john-doe');
+
+        // Generate installation URL
+        const url = getGitHubAppInstallationUrl(personalAccount, 12345);
+        expect(url).toBe('https://github.com/settings/installations/12345');
+        expect(url).not.toContain('organizations');
+      });
+
+      it('utilities work together for organization account flow', () => {
+        const orgAccount = 'acme-corp';
+
+        // Check if personal
+        expect(isPersonalAccount(orgAccount)).toBe(false);
+
+        // Get clean name (should be unchanged)
+        const displayName = getCleanAccountName(orgAccount);
+        expect(displayName).toBe('acme-corp');
+
+        // Generate installation URL
+        const url = getGitHubAppInstallationUrl(orgAccount, 12345);
+        expect(url).toBe('https://github.com/organizations/acme-corp/settings/installations/12345');
+        expect(url).toContain('organizations');
       });
     });
   });

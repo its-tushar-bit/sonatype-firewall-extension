@@ -286,7 +286,12 @@ const loadSCMRootConfig = createAsyncThunk(`${REDUCER_NAME}/loadSCMRootConfig`, 
         providerNeedsUsername(dirtySourceControl, originalSourceControl);
       dirtySourceControl.token.isInherited =
         dirtySourceControl.token?.isInherited &&
-        !isAccessTokenRequiredOnNode(dirtySourceControl, originalSourceControl, isApp);
+        !isAccessTokenRequiredOnNode(
+          dirtySourceControl,
+          originalSourceControl,
+          isApp,
+          isGithubAppAuthenticationEnabled
+        );
       dirtySourceControl.provider.isInherited = dirtySourceControl.provider.isInherited && !isRootOrg;
       originalSourceControl = { ...dirtySourceControl };
 

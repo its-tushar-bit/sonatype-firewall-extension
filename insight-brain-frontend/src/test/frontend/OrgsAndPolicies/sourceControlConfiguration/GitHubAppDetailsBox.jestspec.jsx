@@ -11,15 +11,13 @@ describe('GitHubAppDetailsBox', () => {
   const mockGithubAppOrganization = {
     installationId: '12345',
     accountName: 'my-org',
-    accountType: 'organization',
     name: 'MyApp',
     configurationDate: '2024-01-15T10:30:00Z',
   };
 
   const mockGithubAppPersonal = {
     installationId: '67890',
-    accountName: 'john-doe',
-    accountType: 'personal',
+    accountName: 'john-doe(personal)',
     name: 'PersonalApp',
     configurationDate: '2024-02-20T14:45:00Z',
   };
@@ -39,8 +37,9 @@ describe('GitHubAppDetailsBox', () => {
     it('renders all GitHub App details for personal account', () => {
       render(<GitHubAppDetailsBox githubApp={mockGithubAppPersonal} />);
 
-      expect(screen.getByText('Organization:')).toBeInTheDocument();
+      expect(screen.getByText('Account:')).toBeInTheDocument();
       expect(screen.getByText('john-doe')).toBeInTheDocument();
+      expect(screen.queryByText('john-doe(personal)')).not.toBeInTheDocument();
       expect(screen.getByText('App:')).toBeInTheDocument();
       expect(screen.getByText('PersonalApp')).toBeInTheDocument();
       expect(screen.getByText('Repositories:')).toBeInTheDocument();
@@ -166,20 +165,37 @@ describe('GitHubAppDetailsBox', () => {
   });
 
   describe('Edge Cases', () => {
-    it('handles missing accountType gracefully (defaults to organization URL)', () => {
-      const githubAppNoAccountType = {
+    it('handles account without marker (defaults to organization URL)', () => {
+      const githubAppNoMarker = {
         installationId: '12345',
         accountName: 'test-account',
         name: 'TestApp',
       };
 
-      render(<GitHubAppDetailsBox githubApp={githubAppNoAccountType} />);
+      render(<GitHubAppDetailsBox githubApp={githubAppNoMarker} />);
 
       const link = screen.getByRole('link');
       expect(link).toHaveAttribute(
         'href',
         'https://github.com/organizations/test-account/settings/installations/12345'
       );
+    });
+
+    it('handles marker-only accountName (personal account during registration)', () => {
+      const githubAppMarkerOnly = {
+        installationId: '12345',
+        accountName: '(personal)',
+        name: 'TestApp',
+      };
+
+      render(<GitHubAppDetailsBox githubApp={githubAppMarkerOnly} />);
+
+      expect(screen.getByText('Account:')).toBeInTheDocument();
+      const accountValue = screen.getByText('Account:').nextElementSibling;
+      expect(accountValue.textContent).toBe('');
+
+      const link = screen.getByRole('link');
+      expect(link).toHaveAttribute('href', 'https://github.com/settings/installations/12345');
     });
 
     it('renders with minimal valid data (only installationId and accountName)', () => {

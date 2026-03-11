@@ -76,6 +76,8 @@ public class ApiGitHubAppService
 
   private static final int RANDOM_SUFFIX_GENERATOR_LENGTH = 8;
 
+  private static final String PERSONAL_ACCOUNT_MARKER = "(personal)";
+
   private final BaseUrl baseUrl;
 
   private final GitHubAppDAO gitHubAppDAO;
@@ -203,7 +205,8 @@ public class ApiGitHubAppService
     final GitHubAppRegistrationState stateRecord = new GitHubAppRegistrationState();
     stateRecord.setStateToken(stateToken);
     stateRecord.setOwnerId(owner.getId());
-    stateRecord.setGithubOrganizationName(organizationName);
+    stateRecord.setGithubOrganizationName(
+        StringUtils.isBlank(organizationName) ? PERSONAL_ACCOUNT_MARKER : organizationName);
     stateRecord.setExpiresAt(new Date(System.currentTimeMillis() + STATE_TOKEN_EXPIRATION_MS));
     stateRecord.setCreatedAt(new Date());
 
@@ -536,8 +539,8 @@ public class ApiGitHubAppService
 
       gitHubApp.setOwnerId(ownerId);
       gitHubApp.setInstallationId(installationId);
-      if (StringUtils.isBlank(gitHubApp.getGithubOrganizationName())) {
-        gitHubApp.setGithubOrganizationName(accountName);
+      if (PERSONAL_ACCOUNT_MARKER.equals(gitHubApp.getGithubOrganizationName())) {
+        gitHubApp.setGithubOrganizationName(accountName + PERSONAL_ACCOUNT_MARKER);
       }
       gitHubAppDAO.update(tx, gitHubApp);
       log.info("Updated GitHub App {} with installation {} for owner: {} and account: {}", gitHubApp.getId(),

@@ -63,10 +63,44 @@ const GitHubAppAuthenticationMethod = ({
     // Re-running on authMethod changes would override user's manual selection
   }, []);
 
+  // Sync local authMethod state with loaded data from backend after save/reload
+  useEffect(() => {
+    // Only update if we have a definitive value from backend
+    if (sourceControl?.authenticationType?.value && sourceControl.authenticationType.value !== authMethod) {
+      setAuthMethod(sourceControl.authenticationType.value);
+    }
+    // If not inherited and no explicit value, but we can infer from token/githubApp
+    else if (
+      !sourceControl?.authenticationType?.isInherited &&
+      !sourceControl?.authenticationType?.value &&
+      authMethod === null
+    ) {
+      if (sourceControl?.githubApp?.value?.installationId) {
+        setAuthMethod(AUTHENTICATION_TYPES.GITHUB_APP);
+        if (setValue) {
+          setValue('authenticationType', AUTHENTICATION_TYPES.GITHUB_APP);
+        }
+      } else if (sourceControl?.token?.rscValue?.value) {
+        setAuthMethod(AUTHENTICATION_TYPES.PAT);
+        if (setValue) {
+          setValue('authenticationType', AUTHENTICATION_TYPES.PAT);
+        }
+      }
+    }
+  }, [
+    sourceControl?.authenticationType?.value,
+    sourceControl?.authenticationType?.isInherited,
+    sourceControl?.githubApp?.value?.installationId,
+    sourceControl?.token?.rscValue?.value,
+  ]);
+
   const handleAuthMethodChange = (method) => {
     setAuthMethod(method);
     if (setValue) {
       setValue('authenticationType', method);
+    }
+    if (method === AUTHENTICATION_TYPES.PAT && setIsInherited && !isAuthMethodInherited) {
+      setIsInherited('token', false);
     }
   };
 
@@ -100,7 +134,10 @@ const GitHubAppAuthenticationMethod = ({
               radioId="auth-method-inherit-radio"
               name="authMethodInheritance"
               value="Inherit"
-              onChange={() => setIsInherited('authenticationType', true)}
+              onChange={() => {
+                setIsInherited('authenticationType', true);
+                setIsInherited('token', true);
+              }}
               isChecked={isAuthMethodInherited}
               disabled={areFieldsDisabled}
             >
@@ -113,7 +150,10 @@ const GitHubAppAuthenticationMethod = ({
               radioId="auth-method-override-radio"
               name="authMethodInheritance"
               value="Override"
-              onChange={() => setIsInherited('authenticationType', false)}
+              onChange={() => {
+                setIsInherited('authenticationType', false);
+                setIsInherited('token', false);
+              }}
               isChecked={!isAuthMethodInherited}
               disabled={areFieldsDisabled}
             >
@@ -175,7 +215,6 @@ const GitHubAppAuthenticationMethod = ({
                 id="source-control-token"
                 onChange={onChangeToken}
                 {...sourceControl?.token.rscValue}
-                value={isAuthMethodInherited ? '#~FAKE~SECRET~KEY~#' : sourceControl?.token?.rscValue?.value}
                 type="password"
                 autoComplete="new-password"
                 validatable

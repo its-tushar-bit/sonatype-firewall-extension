@@ -24,7 +24,8 @@ export const selectSourceControlConfigurationSlice = createSelector(
 export const selectIsAccessTokenRequiredOnNode = createSelector(
   selectSourceControlConfigurationSlice,
   selectIsApplication,
-  (sourceControlConfiguration, isApp) => {
+  selectIsGithubAppAuthenticationEnabled,
+  (sourceControlConfiguration, isApp, isGithubAppAuthenticationEnabled) => {
     const { sourceControl, serverSourceControl } = sourceControlConfiguration;
 
     // Don't show banner if GitHub App authentication is selected (local or inherited)
@@ -44,7 +45,8 @@ export const selectIsAccessTokenRequiredOnNode = createSelector(
     }
 
     return (
-      isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp) && !sourceControl?.token?.rscValue?.value
+      isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, isGithubAppAuthenticationEnabled) &&
+      !sourceControl?.token?.rscValue?.value
     );
   }
 );
@@ -60,10 +62,8 @@ export const selectValidationError = createSelector(
     const provider = effectiveProvider(sourceControl, serverSourceControl);
     const isGitHub = provider === 'github';
 
-    // Auth type must be selected when GitHub provider is overridden (skip if inherited)
-    // Only validate this when GitHub App authentication feature is enabled
-    if (isGitHub && !sourceControl.provider?.isInherited && isGithubAppAuthenticationEnabled) {
-      if (!sourceControl.authenticationType?.value && !sourceControl.authenticationType?.isInherited) {
+    if (isGitHub && !sourceControl.authenticationType?.isInherited && isGithubAppAuthenticationEnabled) {
+      if (!sourceControl.authenticationType?.value) {
         return 'Please select an authentication method (GitHub App or Personal Access Token)';
       }
     }

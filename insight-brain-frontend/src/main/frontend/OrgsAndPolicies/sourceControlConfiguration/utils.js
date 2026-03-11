@@ -15,6 +15,7 @@ import {
   validatePatternMatch,
 } from 'MainRoot/util/validationUtil';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
+import { PERSONAL_ACCOUNT_MARKER } from '../utility/constants';
 const { initialState: rscInitialState } = nxTextInputStateHelpers;
 const { initialState: rscSelectInitialState } = nxFormSelectStateHelpers;
 
@@ -492,7 +493,12 @@ export const isUsernameRequiredOnNode = (sourceControl, serverSourceControl, isA
   );
 };
 
-export const isAccessTokenRequiredOnNode = (sourceControl, serverSourceControl, isApp) => {
+export const isAccessTokenRequiredOnNode = (
+  sourceControl,
+  serverSourceControl,
+  isApp,
+  isGithubAppAuthenticationEnabled = false
+) => {
   // Only check at application level
   if (!isApp) {
     return false;
@@ -566,11 +572,13 @@ export const isAccessTokenRequiredOnNode = (sourceControl, serverSourceControl, 
     const hasCurrentToken = sourceControl?.token?.rscValue?.value || sourceControl?.token?.rscValue?.trimmedValue;
     const hasSavedToken = serverSourceControl?.token?.value;
 
-    // Special case: If token is NOT currently inherited but parent has a token,
-    // this might be a case where app is switching from inherited to override
-    // and the field value hasn't been populated yet (happens during radio click).
-    // In this case, check if there's a parent token available that can be used.
-    const isOverridingWithParentToken = !isTokenInherited && hasParentToken && !hasCurrentToken && !hasSavedToken;
+    const parentAuthType = sourceControl?.authenticationType?.parentValue;
+    // When feature is disabled OR auth type is undefined/null, treat as PAT (backwards compatibility)
+    // When feature is enabled AND auth type is explicitly GITHUB_APP, cannot reuse token
+    const isParentUsingPAT =
+      !isGithubAppAuthenticationEnabled || !parentAuthType || parentAuthType === AUTHENTICATION_TYPES.PAT;
+    const isOverridingWithParentToken =
+      !isTokenInherited && hasParentToken && !hasCurrentToken && !hasSavedToken && isParentUsingPAT;
 
     if (hasCurrentToken || hasSavedToken || isOverridingWithParentToken) {
       return false; // App has a token (current, saved, or available from parent during override)
@@ -852,4 +860,52 @@ export const getValidationMessage = (
   }
 
   return null;
+};
+
+/**
+ * Determines if an account name represents a personal GitHub account
+ * Personal accounts are stored with the marker suffix: "username(personal)"
+ * IMPORTANT: Backend stores this as accountName + "(personal)" with NO space
+ * Keep in sync with backend constant at:
+ * insight-brain-service/.../githubapp/ApiGitHubAppService.java:PERSONAL_ACCOUNT_MARKER
+ *
+ * @param {string} accountName - The account name to check
+ * @returns {boolean} True if this is a personal account, false otherwise
+ */
+export const isPersonalAccount = (accountName) => {
+  return accountName?.endsWith(PERSONAL_ACCOUNT_MARKER);
+};
+
+/**
+ * Extracts the clean account name without the personal marker suffix
+ * For personal accounts "john-doe(personal)" returns "john-doe"
+ * For org accounts "acme-corp" returns "acme-corp" unchanged
+ *
+ * @param {string} accountName - The account name to clean
+ * @returns {string} Clean account name without marker suffix
+ */
+export const getCleanAccountName = (accountName) => {
+  if (!accountName) return '';
+  return isPersonalAccount(accountName) ? accountName.slice(0, -PERSONAL_ACCOUNT_MARKER.length) : accountName;
+};
+
+/**
+ * Generates the appropriate GitHub App installation URL based on account type
+ * Personal: https://github.com/settings/installations/{installationId}
+ * Organization: https://github.com/organizations/{orgName}/settings/installations/{installationId}
+ *
+ * @param {string} accountName - The account name (may have personal marker)
+ * @param {string|number} installationId - The GitHub App installation ID
+ * @returns {string|null} The GitHub URL or null if installationId is missing
+ */
+export const getGitHubAppInstallationUrl = (accountName, installationId) => {
+  if (!installationId) return null;
+
+  if (isPersonalAccount(accountName)) {
+    return `https://github.com/settings/installations/${installationId}`;
+  }
+  // Use cleaned account name for organization URLs
+  return `https://github.com/organizations/${getCleanAccountName(
+    accountName
+  )}/settings/installations/${installationId}`;
 };

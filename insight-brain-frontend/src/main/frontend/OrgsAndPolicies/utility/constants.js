@@ -7,3 +7,8 @@ export const OWNER_ACTIONS = 'ownerActions';
 
 // Policy condition operators
 export const DOES_NOT_EXIST_OPERATOR = 'does not exist';
+
+/**
+ * GitHub App personal account marker
+ */
+export const PERSONAL_ACCOUNT_MARKER = '(personal)';

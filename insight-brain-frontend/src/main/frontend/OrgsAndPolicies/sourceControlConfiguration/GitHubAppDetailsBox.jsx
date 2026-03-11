@@ -6,18 +6,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { NxButton, NxTextLink } from '@sonatype/react-shared-components';
+import { isPersonalAccount, getCleanAccountName, getGitHubAppInstallationUrl } from './utils';
 import './_gitHubAppDetailsBox.scss';
-
-/**
- * Helper function to generate GitHub App installation URL based on account type
- */
-const getGitHubAppUrl = (githubApp) => {
-  if (!githubApp?.installationId) return null;
-  if (githubApp.accountType === 'personal') {
-    return `https://github.com/settings/installations/${githubApp.installationId}`;
-  }
-  return `https://github.com/organizations/${githubApp.accountName}/settings/installations/${githubApp.installationId}`;
-};
 
 /**
  * Displays GitHub App configuration details in a formatted box
@@ -29,15 +19,19 @@ const GitHubAppDetailsBox = ({ githubApp, linkText, repositoryUrl, onReconfigure
     return null;
   }
 
-  const installationUrl = getGitHubAppUrl(githubApp);
+  const installationUrl = getGitHubAppInstallationUrl(githubApp.accountName, githubApp.installationId);
   // Use custom repository URL if provided, otherwise use installation URL
   const displayUrl = repositoryUrl || installationUrl;
+
+  // Check if this is a personal account and get clean display name
+  const isPersonal = isPersonalAccount(githubApp.accountName);
+  const displayAccountName = getCleanAccountName(githubApp.accountName);
 
   return (
     <>
       <dl className="iq-github-app-details-box">
-        <dt>Organization:</dt>
-        <dd>{githubApp.accountName || ''}</dd>
+        <dt>{isPersonal ? 'Account:' : 'Organization:'}</dt>
+        <dd>{displayAccountName}</dd>
         {githubApp.name && (
           <>
             <dt>App:</dt>
@@ -70,13 +64,11 @@ const GitHubAppDetailsBox = ({ githubApp, linkText, repositoryUrl, onReconfigure
             </dd>
           </>
         )}
-        {
-          <div className="iq-github-app-details-box__reconfigure">
-            <NxButton variant="tertiary" type="button" onClick={onReconfigure} disabled={disabled}>
-              Reconfigure
-            </NxButton>
-          </div>
-        }
+        <div className="iq-github-app-details-box__reconfigure">
+          <NxButton variant="tertiary" type="button" onClick={onReconfigure} disabled={disabled || !onReconfigure}>
+            Reconfigure
+          </NxButton>
+        </div>
       </dl>
     </>
   );

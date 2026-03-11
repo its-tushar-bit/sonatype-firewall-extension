@@ -153,7 +153,7 @@ public class ApiGitHubAppServiceTest
     gitHubApp.setClientSecret(passwordHandler.encryptPassword(CLIENT_SECRET));
     gitHubApp.setPrivateKey("test-private-key");
     gitHubApp.setOwnerId(organization.getId());
-    gitHubApp.setGithubOrganizationName(""); // Set to empty string so installation callback can populate it
+    gitHubApp.setGithubOrganizationName("(personal)"); // Set to marker so installation callback can populate it
     gitHubApp.setLastUpdatedAt(new Date());
     gitHubApp.setInstallationId(INSTALLATION_ID);
     gitHubApp = tempEntity.newGitHubApp(gitHubApp);
@@ -219,7 +219,7 @@ public class ApiGitHubAppServiceTest
 
     GitHubApp updated = gitHubAppDAO.getByOwnerId(organization.getId());
     assertThat(updated.getInstallationId()).isEqualTo(INSTALLATION_ID);
-    assertThat(updated.getGithubOrganizationName()).isEqualTo("test-org");
+    assertThat(updated.getGithubOrganizationName()).isEqualTo("test-org(personal)");
   }
 
   @Test
@@ -247,7 +247,7 @@ public class ApiGitHubAppServiceTest
 
     GitHubApp updated = gitHubAppDAO.getByOwnerId(organization.getId());
     assertThat(updated.getInstallationId()).isEqualTo(INSTALLATION_ID);
-    assertThat(updated.getGithubOrganizationName()).isEqualTo("personal-user");
+    assertThat(updated.getGithubOrganizationName()).isEqualTo("personal-user(personal)");
   }
 
   @Test
@@ -452,7 +452,7 @@ public class ApiGitHubAppServiceTest
 
     GitHubApp updated = gitHubAppDAO.getByOwnerId(organization.getId());
     assertThat(updated.getInstallationId()).isEqualTo(INSTALLATION_ID);
-    assertThat(updated.getGithubOrganizationName()).isEqualTo("test-org");
+    assertThat(updated.getGithubOrganizationName()).isEqualTo("test-org(personal)");
   }
 
   @Test
@@ -1760,7 +1760,7 @@ public class ApiGitHubAppServiceTest
       tx.begin();
       GitHubAppRegistrationState token = registrationStateDAO.findByStateToken(tx, result.state());
       assertThat(token).isNotNull();
-      assertThat(token.getGithubOrganizationName()).isNull();
+      assertThat(token.getGithubOrganizationName()).isEqualTo("(personal)");
       assertThat(token.getOwnerId()).isEqualTo(organization.getId());
       tx.commit();
     }

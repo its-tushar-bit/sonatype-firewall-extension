@@ -6,9 +6,9 @@
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
 
 /**
- This feature branch Jenkinsfile is intended for validation rather than producing releasable artifacts. It makes use of
- the Maven Build cache to reduce build time and by default excludes "slow" tests which are test classes that take longer
- than 50 seconds to run. Heavy tests are distributed across multiple agents to maximize parallelization.
+ This feature branch Jenkinsfile is intended for validation rather than producing releasable artifacts. It by default
+ excludes "slow" tests which are test classes that take longer than 50 seconds to run. Heavy tests are distributed
+ across multiple agents to maximize parallelization.
 
  All of these optimizations can be toggled using Build with Parameters.
 
@@ -32,7 +32,7 @@
  ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
  │  3. BUILD                                                                                    │
  │     • install -DskipTests                                                                    │
- │     • Uses build cache, -T 0.75C                                                             │
+ │     • Uses -T 0.75C for parallel builds                                                      │
  └──────────────────────────────────────────────────────────────────────────────────────────────┘
  │
  ▼
@@ -130,7 +130,6 @@ pipeline {
 
           echo "Pipeline Configuration:"
           echo "  Branch: ${env.BRANCH_NAME ?: gitBranch(env)}"
-          echo "  Build caching enabled: ${isBuildCachingEnabled()}"
           echo "  Bundling enabled: ${isBundlingEnabled()}"
           echo "  Include slow tests: ${params.includeSlowTests}"
 
@@ -142,19 +141,6 @@ pipeline {
 
     stage('Prepare') {
       parallel {
-        stage('Download Dependencies') {
-          when {
-            expression { isBuildCachingEnabled() }
-          }
-          steps {
-            script {
-              dir(env.BUILD_DIR) {
-                mvn getDependencyResolveConfig(), 'dependency:resolve'
-              }
-            }
-          }
-        }
-
         stage('Install Node/Yarn') {
           steps {
             script {
@@ -173,7 +159,6 @@ pipeline {
                             compressionMethod: 'TARGZ')
                     ]) {
                   // Install node/yarn binaries and download npm dependencies
-                  // Dependencies must be installed here (not just in Build stage) because build cache may skip yarn-install
                   mvn getFrontEndInstallConfig(),
                       'com.github.eirslett:frontend-maven-plugin:install-node-and-yarn@install-node-and-yarn com.github.' +
                           'eirslett:frontend-maven-plugin:yarn@yarn-install'
@@ -479,20 +464,6 @@ Map getMavenBuildConfig() {
   opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
-  // Build cache
-  if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.enabled=true"
-    opts << "-Dmaven.build.cache.remote.save.enabled=true"
-    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
-    // Activate CI profile to enable frontend build cache (disabled locally due to symlinks)
-    opts << "-Pci-cache-yarn"
-  }
-  else {
-    opts << "-Dmaven.build.cache.remote.enabled=false"
-    opts << "-Dmaven.build.cache.remote.save.enabled=false"
-  }
-
   // Skip options for faster builds
   opts << "-DskipTests"
   opts << "-Dpmd.skip=true"
@@ -527,11 +498,6 @@ Map getMavenStaticAnalysisConfig() {
   opts << "-T 2"
   opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  // Disable build cache for static analysis (both local and remote)
-  opts << "-Dmaven.build.cache.enabled=false"
-  opts << "-Dmaven.build.cache.remote.enabled=false"
-  opts << "-Dmaven.build.cache.remote.save.enabled=false"
 
   return mavenCommon(
       javaVersion: 'OpenJDK 17',
@@ -574,11 +540,6 @@ Map getFrontEndInstallConfig() {
   opts << "-pl insight-brain-frontend"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
-  // Use ci-cache-yarn profile to leverage Jenkins job cacher for yarn packages
-  if (isBuildCachingEnabled()) {
-    opts << "-Pci-cache-yarn"
-  }
-
   return mavenCommon(
       javaVersion: 'OpenJDK 17',
       mavenVersion: 'Maven 3.9.x',
@@ -594,11 +555,6 @@ Map getFrontEndTestConfig() {
   opts << "--no-transfer-progress"
   opts << "-pl insight-brain-frontend"
   opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  // Use ci-cache-yarn profile for consistency with Build stage
-  if (isBuildCachingEnabled()) {
-    opts << "-Pci-cache-yarn"
-  }
 
   return mavenCommon(
       javaVersion: 'OpenJDK 17',
@@ -618,11 +574,6 @@ Map getCheckstyleConfig() {
   opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
-  // Disable build cache for static analysis
-  opts << "-Dmaven.build.cache.enabled=false"
-  opts << "-Dmaven.build.cache.remote.enabled=false"
-  opts << "-Dmaven.build.cache.remote.save.enabled=false"
-
   return mavenCommon(
       javaVersion: 'OpenJDK 17',
       mavenVersion: 'Maven 3.9.x',
@@ -640,11 +591,6 @@ Map getPmdConfig() {
   opts << "-Ppre-check"
   opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  // Disable build cache for static analysis
-  opts << "-Dmaven.build.cache.enabled=false"
-  opts << "-Dmaven.build.cache.remote.enabled=false"
-  opts << "-Dmaven.build.cache.remote.save.enabled=false"
 
   return mavenCommon(
       javaVersion: 'OpenJDK 17',
@@ -727,14 +673,6 @@ String buildPostgresTestMavenOptions(String moduleList) {
   opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
-  // Build cache
-  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
-  opts << "-Dmaven.build.cache.remote.save.enabled=false"
-  if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
-  }
-
   // Test configuration
   opts << "-Dfailsafe.runOrder=alphabetical"
   opts << "-Dfailsafe.rerunFailingTestsCount=2"
@@ -782,14 +720,6 @@ String buildSlowTestMavenOptions(String moduleList) {
   opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
-  // Build cache
-  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
-  opts << "-Dmaven.build.cache.remote.save.enabled=false"
-  if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
-  }
-
   // Test configuration
   opts << "-Dfailsafe.runOrder=alphabetical"
   opts << "-Dfailsafe.rerunFailingTestsCount=2"
@@ -824,14 +754,6 @@ String buildSurefireTestMavenOptions(List<String> additionalExcludedGroups, Stri
   opts << "-pl '${moduleList}'"
   opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  // Build cache
-  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
-  opts << "-Dmaven.build.cache.remote.save.enabled=false"
-  if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
-  }
 
   // Test configuration
   opts << "-Dsurefire.runOrder=alphabetical"
@@ -873,14 +795,6 @@ String buildMtiqTestMavenOptions() {
   opts << "-pl 'nexus-mtiq-server'"
   opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  // Build cache
-  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
-  opts << "-Dmaven.build.cache.remote.save.enabled=false"
-  if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
-  }
 
   // Test configuration
   opts << "-Dsurefire.runOrder=alphabetical"
@@ -949,14 +863,6 @@ void pushMTIQDockerImage(boolean pushMtiqImage, String imageVersion) {
             --tag ${sonatypeDockerRegistryId()}/mtiq/server:${imageVersion} ."""
     }
   }
-}
-
-boolean isBuildCachingEnabled() {
-  // Disable for merge queue - dependency:resolve can't fetch new reactor modules not yet in remote repo
-  if ((env.BRANCH_NAME ?: gitBranch(env))?.startsWith('gh-readonly-queue/')) {
-    return false
-  }
-  return params.buildCachingEnabled
 }
 
 boolean isDynamicPolicyEvaluationEnabled() {
@@ -1241,15 +1147,6 @@ String buildDistributedFrontendTestMavenOptions() {
   opts << "-pl insight-brain-frontend"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
-  // Build cache - read only on distributed agents
-  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
-  opts << "-Dmaven.build.cache.remote.save.enabled=false"
-  if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
-    opts << "-Pci-cache-yarn"
-  }
-
   return opts.join(' ')
 }
 
@@ -1303,14 +1200,6 @@ String buildDistributedSurefireTestMavenOptions() {
   opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
-  // Build cache - read only on distributed agents
-  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
-  opts << "-Dmaven.build.cache.remote.save.enabled=false"
-  if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
-  }
-
   // Test configuration
   opts << "-Dsurefire.runOrder=alphabetical"
   opts << "-Dsurefire.rerunFailingTestsCount=2"
@@ -1349,14 +1238,6 @@ String buildDistributedPostgresTestMavenOptions() {
   opts << "-pl '!insight-brain-frontend,!nexus-mtiq-server'"
   opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  // Build cache - read only on distributed agents
-  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
-  opts << "-Dmaven.build.cache.remote.save.enabled=false"
-  if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
-  }
 
   // Test configuration
   opts << "-Dfailsafe.runOrder=alphabetical"
@@ -1404,14 +1285,6 @@ String buildDistributedMtiqTestMavenOptions() {
   opts << "-pl 'nexus-mtiq-server'"
   opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  // Build cache - read only on distributed agents
-  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
-  opts << "-Dmaven.build.cache.remote.save.enabled=false"
-  if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
-  }
 
   // Test configuration
   opts << "-Dsurefire.runOrder=alphabetical"
@@ -1509,14 +1382,6 @@ String buildDistributedTestMavenOptions(List<String> additionalExcludedGroups, S
   // Test pattern - only run tests matching this pattern
   // Using %regex[...] syntax (same as Jenkinsfile.main)
   opts << "-Dit.test=%regex[${testPattern}]"
-
-  // Build cache - read only on distributed agents
-  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
-  opts << "-Dmaven.build.cache.remote.save.enabled=false"
-  if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
-  }
 
   // Test configuration
   opts << "-Dfailsafe.runOrder=alphabetical"

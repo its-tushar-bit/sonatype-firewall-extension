@@ -66,16 +66,11 @@ If you just want to build the project in order to get up and running quickly, yo
 `mvn clean install -Pquick`
 
 ### Increasing build speed ###
-If you have maven v3.9.0+ installed then you can make use of the 
-[Maven Build Cache](https://maven.apache.org/extensions/maven-build-cache-extension/). See [Configuration parameters](https://maven.apache.org/extensions/maven-build-cache-extension/parameters.html) for advanced configuration options. One notable option if you wish to do a build without cache is to use `-Dmaven.build.cache.skipCache=true`. If you try to use `-Dmaven.build.cache.enabled=false` you will get an error due to the frontend module already configured to skipCache by default, which is not compatible with the cache being disabled.
+To improve build times you can make use of the [Maven Daemon](https://github.com/apache/maven-mvnd).
 
-To further improve build times you can make use of the [Maven Daemon](https://github.com/apache/maven-mvnd).
-
-1. Install version v3.9.0+ of `mvn` 
+1. Install version v3.9.0+ of `mvn`
 2. Install `mvnd` https://github.com/apache/maven-mvnd#how-to-install-mvnd
 3. Use `mvnd` instead of `mvn`
-
-*Note: To clear the local build cache run `rm -rf ~/.m2/build-cache/v1/`*
 
 ### Building for front-end development ###
 

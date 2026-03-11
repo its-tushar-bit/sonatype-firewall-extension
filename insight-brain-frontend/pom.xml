@@ -26,12 +26,6 @@
     </sonar.coverage.exclusions>
     <sonar.tests>src/test/frontend</sonar.tests>
     <sonar.javascript.lcov.reportPaths>${project.build.directory}/coverage/lcov.info</sonar.javascript.lcov.reportPaths>
-    <!--
-      Disable frontend build cache until the cache extension can handle symlinks in node_modules as a cache output.
-      When cache is enabled (true), skip it for frontend (true).
-      When cache is disabled (false), don't try to skip as this would result in an error.
-    -->
-    <maven.build.cache.skipCache>${maven.build.cache.enabled}</maven.build.cache.skipCache>
   </properties>
 
   <build>
@@ -127,41 +121,5 @@
       </build>
     </profile>
 
-    <!--
-    Profile to be used during CI builds. The install command will specify the yarn cache folder, which
-    the jenkins job cacher plugin will cache to speed up builds.
-    -->
-    <profile>
-      <id>ci-cache-yarn</id>
-      <activation>
-        <property>
-          <name>env.CI</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <properties>
-        <!-- Enable Maven build cache on CI (overrides default which disables due to symlinks locally) -->
-        <maven.build.cache.skipCache>false</maven.build.cache.skipCache>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.github.eirslett</groupId>
-            <artifactId>frontend-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>yarn-install</id>
-                <goals>
-                  <goal>yarn</goal>
-                </goals>
-                <configuration>
-                  <arguments>install --cache-folder yarn-cache --check-files --frozen-lockfile</arguments>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
   </profiles>
 </project>

@@ -23,13 +23,10 @@ make(
       echo "Using mavenVersion='${mavenCommon.get('mavenVersion')}'"
 
       /*
-        Main is configured not to use the cache. We also skip tests on main because it runs the tests in parallel stages
-        which requires copying the workspace. With cache enabled its actually faster to run the compilation and tests
-        in a single stage.
+        We skip tests on main because it runs the tests in parallel stages
+        which requires copying the workspace.
        */
       String mavenOptions = mavenCommon.get('mavenOptions')
-
-      mavenOptions = addBuildCacheOptions(mavenOptions, isBuildCachingEnabled())
 
       mavenOptions += " -DskipTests"
       mavenOptions += getRunRefPolicyImportIntTestMavenOption()
@@ -328,18 +325,6 @@ Map<String, Closure> getDockerSteps(List<String> zipFiles) {
   return [:]
 }
 
-private static String addBuildCacheOptions(String mavenOptions, boolean enabled) {
-  mavenOptions += " -Dmaven.build.cache.remote.enabled=${enabled}"
-  mavenOptions += " -Dmaven.build.cache.remote.save.enabled=${enabled}"
-
-  if (enabled) {
-    mavenOptions += ' -Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache'
-    mavenOptions += ' -Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app'
-  }
-
-  return mavenOptions
-}
-
 Map<String, Closure> getParallelTests(List <String> zips) {
   Map<String, Closure> testStages = [:]
 
@@ -504,7 +489,6 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex,
           mavenOptions += " -Pbuildsupport-sonar-coverage "
           mavenOptions += " --threads 4"
           mavenOptions += getRunRefPolicyImportIntTestMavenOption()
-          mavenOptions = addBuildCacheOptions(mavenOptions, false)
 
           Map<String, ?> testConfig = testConfig(mavenOptions, null, jdk)
           mvn testConfig, 'surefire:test failsafe:integration-test failsafe:verify'
@@ -534,7 +518,6 @@ Map<String, Closure> createMtiqUnitTests(String stageName, String jdk, List<Stri
           mavenOptions += " -Pbuildsupport-sonar-coverage "
           mavenOptions += " --threads 4"
           mavenOptions += getRunRefPolicyImportIntTestMavenOption()
-          mavenOptions = addBuildCacheOptions(mavenOptions, false)
 
           Map<String, ?> testConfig = testConfig(mavenOptions, null, jdk)
           // 90 minute timeout for Jakarta EE 11 migration experimentation (CLM-34044)
@@ -578,10 +561,6 @@ boolean isUnitTestsEnabled() {
   return !isMergeQueueBranch(env)
 }
 
-boolean isBuildCachingEnabled() {
-  // Build caching disabled for main-style builds (Jenkinsfile.main) - full rebuild every time
-  return false
-}
 
 boolean isDynamicPolicyEvaluationEnabled() {
   // Dynamic policy evaluation disabled for main-style builds (Jenkinsfile.main) - always run full evaluation

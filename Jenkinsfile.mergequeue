@@ -79,10 +79,6 @@ Map getMavenCompileConfig() {
   opts << "-DskipAssembly=true"
   opts << "-D skip-functional-test"
 
-  // No build cache - merge queue builds are one-off validations
-  opts << "-Dmaven.build.cache.remote.enabled=false"
-  opts << "-Dmaven.build.cache.remote.save.enabled=false"
-
   return mavenCommon(
       javaVersion: 'OpenJDK 17',
       mavenVersion: 'Maven 3.9.x',

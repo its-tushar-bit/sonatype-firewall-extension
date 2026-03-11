@@ -1361,13 +1361,6 @@
   </dependencyManagement>
 
   <build>
-    <extensions>
-      <extension>
-        <groupId>org.apache.maven.extensions</groupId>
-        <artifactId>maven-build-cache-extension</artifactId>
-        <version>1.2.1</version>
-      </extension>
-    </extensions>
     <pluginManagement>
       <plugins>
         <plugin>
@@ -1390,7 +1383,6 @@
                 <excludes>
                   <exclude>patches.yml</exclude>
                   <exclude>.zion/**</exclude>
-                  <exclude>build-cache/**</exclude>
                   <exclude>.m2/**</exclude>
                   <exclude>**/.build/**</exclude>
                   <exclude>.test-stash/**</exclude>
@@ -1577,9 +1569,6 @@
   <profiles>
     <profile>
       <id>pre-check</id>
-      <properties>
-        <maven.build.cache.enabled>false</maven.build.cache.enabled>
-      </properties>
       <build>
         <plugins>
           <plugin>

@@ -96,10 +96,6 @@ public TemporaryEntity tempEntity = new TemporaryEntity();
 - When creating a PR in github, the first line in the PR description should be a link to the Jira ticket. For ex:
   Jira: https://sonatype.atlassian.net/browse/CLM-12345
 
-### Maven Build Cache
-Use Maven 3.9.0+ with build cache extension for faster builds.
-Clear cache: `rm -rf ~/.m2/build-cache/v1/`
-
 ### Feature Flags
 New experimental features use `SystemConfigurationPropertyFeature` enum in database.
 

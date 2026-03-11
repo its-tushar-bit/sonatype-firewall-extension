@@ -3,7 +3,6 @@
 # Variables
 mvn := env_var_or_default("MVN", "mvnd")
 quick_opts := "-DskipTests -Pquick"
-build_cache_dir := "./build-cache"
 local_repo_dir := "./m2-directory"
 
 # Default recipe (runs when you just type 'just')
@@ -20,13 +19,13 @@ install:
 test:
    {{mvn}} install
 
-# Build, install into m2, using isolated cache and local repository
+# Build, install into m2, using isolated local repository
 install-isolated:
-    {{mvn}} -pl clean install {{quick_opts}} -Dmaven.build.cache.dir={{build_cache_dir}} -Dmaven.repo.local={{local_repo_dir}}
+    {{mvn}} -pl clean install {{quick_opts}} -Dmaven.repo.local={{local_repo_dir}}
 
-# Build, install into m2, without frontend, using isolated cache and local repository
+# Build, install into m2, without frontend, using isolated local repository
 install-be-isolated:
-    {{mvn}} -pl '!insight-brain-frontend' clean install {{quick_opts}} -Dmaven.build.cache.dir={{build_cache_dir}} -Dmaven.repo.local={{local_repo_dir}}
+    {{mvn}} -pl '!insight-brain-frontend' clean install {{quick_opts}} -Dmaven.repo.local={{local_repo_dir}}
 
 # Process classes for OpenJPA use
 process:
@@ -50,13 +49,13 @@ func-test-specific TEST:
 
 # Run a particular integration test in insight-brain-service
 it name:
-    {{mvn}} -pl 'insight-brain-service' -Dit.test={{name}} -Dmaven.build.cache.dir={{build_cache_dir}} -Dmaven.repo.local={{local_repo_dir}} -Dskip.shaded=true verify
+    {{mvn}} -pl 'insight-brain-service' -Dit.test={{name}} -Dmaven.repo.local={{local_repo_dir}} -Dskip.shaded=true verify
 
 # Run all integration tests in insight-brain-service
 run-all-its:
-    {{mvn}} verify -pl '!insight-brain-frontend' -DforkCount=12 -DreuseForks=false -Dparallel=classes -DthreadCountClasses=12 -DargLine="-Xmx5g" -Dcheckstyle.skip=true -Dpmd.skip=true -Dmaven.build.cache.dir={{build_cache_dir}} -Dmaven.repo.local={{local_repo_dir}}
+    {{mvn}} verify -pl '!insight-brain-frontend' -DforkCount=12 -DreuseForks=false -Dparallel=classes -DthreadCountClasses=12 -DargLine="-Xmx5g" -Dcheckstyle.skip=true -Dpmd.skip=true -Dmaven.repo.local={{local_repo_dir}}
 
 # Run a particular integration test in nexus-mtiq-server
 mtiq-it name:
-    {{mvn}} -pl 'nexus-mtiq-server' -Dit.test={{name}} -Dmaven.build.cache.dir={{build_cache_dir}} -Dmaven.repo.local={{local_repo_dir}} -Dskip.shaded=true verify
+    {{mvn}} -pl 'nexus-mtiq-server' -Dit.test={{name}} -Dmaven.repo.local={{local_repo_dir}} -Dskip.shaded=true verify
 

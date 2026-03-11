@@ -2,7 +2,7 @@
   "version": 1,
   "format": [
     {
-      "command": "mvn -Dmaven.build.cache.dir=./.build/cache -Dmaven.repo.local=./.build/m2 checkstyle:check pmd:check license:check"
+      "command": "mvn -Dmaven.repo.local=./.build/m2 checkstyle:check pmd:check license:check"
     },
     {
       "command": "cd insight-brain-frontend && yarn format --check"
@@ -13,12 +13,12 @@
   ],
   "build": [
     {
-      "command": "mvn -Dmaven.build.cache.dir=./.build/cache -Dmaven.repo.local=./.build/m2 clean install -Pquick"
+      "command": "mvn -Dmaven.repo.local=./.build/m2 clean install -Pquick"
     }
   ],
   "tests": [
     {
-      "command": "mvn -Dmaven.build.cache.dir=./.build/cache -Dmaven.repo.local=./.build/m2 verify -DexcludedGroups=SlowTest -Dskip-functional-test"
+      "command": "mvn -Dmaven.repo.local=./.build/m2 verify -DexcludedGroups=SlowTest -Dskip-functional-test"
     },
     {
       "command": "cd insight-brain-frontend && yarn test"

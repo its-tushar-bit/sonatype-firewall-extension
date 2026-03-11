@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -127,6 +129,18 @@ public class PolicyViolationTelemetryCollector
 
   static final String REMEDIATION_VERSION = "remediation_version";
 
+  static final String FROM_WAIVED_STATUS = "from_waived_status";
+
+  static final String WAIVER_AUDIT_INFO = "waiver_audit_info";
+
+  static final String ORIGINAL_WAIVER_REASON = "original_waiver_reason";
+
+  static final String ORIGINAL_WAIVER_COMMENT = "original_waiver_comment";
+
+  static final String ORIGINAL_WAIVER_DATE = "original_waiver_date";
+
+  static final String WAIVER_ID = "waiver_id";
+
   private final PolicyWaiverDAO policyWaiverDAO;
 
   private final SourceControlEventDAO sourceControlEventDAO;
@@ -173,6 +187,13 @@ public class PolicyViolationTelemetryCollector
           createTelemetry(TelemetryPurpose.TIME_TO_REMEDIATE_POLICY_VIOLATION, fixedPolicyViolation, components)
               .put(FIX_TIME, timeOfPolicyEvaluation.getTime())
               .put(IS_LEGACY_VIOLATION, fixedPolicyViolation.isLegacyViolation());
+
+      boolean fromWaivedStatus = checkIfRemediationFromWaived(fixedPolicyViolation);
+      telemetryData.put(FROM_WAIVED_STATUS, fromWaivedStatus);
+
+      if (Boolean.TRUE.equals(fromWaivedStatus)) {
+        addWaiverAuditInfo(telemetryData, fixedPolicyViolation);
+      }
 
       telemetryDataList.add(telemetryData);
       possiblyAddTelemetryForVersionChange(fixedPolicyViolation, components);
@@ -504,5 +525,36 @@ public class PolicyViolationTelemetryCollector
       }
     }
     return WAIVER_EXPIRATION_NEVER;
+  }
+
+  private boolean checkIfRemediationFromWaived(PolicyViolation policyViolation) {
+    Date fixTime = policyViolation.getFixTime();
+    Date waiveTime = policyViolation.getWaiveTime();
+
+    if (fixTime == null || waiveTime == null) {
+      return false;
+    }
+
+    return waiveTime.before(fixTime);
+  }
+
+  private void addWaiverAuditInfo(TelemetryData telemetryData, PolicyViolation policyViolation) {
+    String policyWaiverId = policyViolation.getPolicyWaiverId();
+    if (policyWaiverId == null) {
+      return;
+    }
+
+    Date waiveTime = policyViolation.getWaiveTime();
+    PolicyWaiver policyWaiver = policyWaiverDAO.getById(policyWaiverId);
+
+    if (policyWaiver != null) {
+      Map<String, Object> waiverAuditInfo = new HashMap<>();
+      waiverAuditInfo.put(ORIGINAL_WAIVER_REASON, policyWaiver.getWaiverReasonId());
+      waiverAuditInfo.put(ORIGINAL_WAIVER_COMMENT, policyWaiver.getComment());
+      waiverAuditInfo.put(ORIGINAL_WAIVER_DATE, waiveTime != null ? waiveTime.getTime() : null);
+      waiverAuditInfo.put(WAIVER_ID, policyWaiverId);
+
+      telemetryData.put(WAIVER_AUDIT_INFO, waiverAuditInfo);
+    }
   }
 }

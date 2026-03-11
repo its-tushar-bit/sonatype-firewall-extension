@@ -26,9 +26,11 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.license.LicenseNameProvider;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -1306,6 +1308,7 @@ public class PolicyViolationTelemetryCollectorTest
 
     TestablePolicyViolation markFixedByOtherMeans() {
       this.fixTime = policyEvaluation.getTime().getTime();
+      policyViolation.setFixTime(new Date(this.fixTime));
       return this;
     }
 
@@ -1614,6 +1617,12 @@ public class PolicyViolationTelemetryCollectorTest
         case TIME_TO_REMEDIATE_POLICY_VIOLATION:
           validateMatchesOrNotExists(attributes, FIX_TIME, fixTime);
           validateTimeAttribute(attributes, calculateExpectedFixTime());
+          // Validate waiver audit fields if present
+          if (attributes.containsKey(FROM_WAIVED_STATUS)) {
+            if (Boolean.TRUE.equals(attributes.get(FROM_WAIVED_STATUS))) {
+              assertThat(attributes).containsKey(WAIVER_AUDIT_INFO);
+            }
+          }
           break;
 
         case TIME_TO_WAIVE_POLICY_VIOLATION:
@@ -1786,6 +1795,93 @@ public class PolicyViolationTelemetryCollectorTest
     private static ConditionFact createConditionFact(int j, String conditionType) {
       return new ConditionFact(conditionType, j, "summary", "reason");
     }
+  }
+
+  @Test
+  public void testAddTelemetryForFixedViolation_WithWaiverAuditInfo() {
+    // given a policy violation that was waived then fixed
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(jacksonDatabind_2_13_4)
+            .openedHoursAgo(48)
+            .withPolicyViolationId("waivedThenFixed");
+
+    // Create a policy waiver
+    Policy policy = tempEntity.newPolicy();
+    Application app = tempEntity.newApplicationWithParent();
+    Date waiverCreateTime = new Date(policyEvaluation.getTime().getTime() - 24 * 60 * 60 * 1000); // 24 hours ago
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(
+        null, // hash
+        policy.getId(),
+        app.getId(),
+        "Test waiver comment",
+        null, // expiryTime
+        null, // constraintFacts
+        "REASON_123" // policyWaiverReasonId
+    );
+    policyWaiver.setCreateTime(waiverCreateTime);
+    policyWaiverDAO.updateWithNoChecks(policyWaiver);
+
+    Date waiveTime = new Date(policyEvaluation.getTime().getTime() - 12 * 60 * 60 * 1000);
+    testablePolicyViolation.policyViolation.setPolicyWaiverId(policyWaiver.getId());
+    testablePolicyViolation.policyViolation.setPolicyWaiverComment("Test waiver comment");
+    testablePolicyViolation.policyViolation.setWaiveTime(waiveTime);
+
+    testablePolicyViolation.markFixedByOtherMeans();
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when
+    telemetryCollector.addTelemetryForFixedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponents()
+    );
+
+    // then
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(1);
+
+    TelemetryData data = telemetryData.get(0);
+    assertThat(data.getPurpose()).isEqualTo(TIME_TO_REMEDIATE_POLICY_VIOLATION);
+
+    Map<String, Object> attributes = data.getAttributes();
+    assertThat(attributes).containsEntry(FROM_WAIVED_STATUS, true);
+    assertThat(attributes).containsKey(WAIVER_AUDIT_INFO);
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> waiverAuditInfo = (Map<String, Object>) attributes.get(WAIVER_AUDIT_INFO);
+    assertThat(waiverAuditInfo).containsEntry(ORIGINAL_WAIVER_REASON, "REASON_123");
+    assertThat(waiverAuditInfo).containsEntry(ORIGINAL_WAIVER_COMMENT, "Test waiver comment");
+    assertThat(waiverAuditInfo).containsEntry(ORIGINAL_WAIVER_DATE, waiveTime.getTime());
+    assertThat(waiverAuditInfo).containsEntry(WAIVER_ID, policyWaiver.getId());
+  }
+
+  @Test
+  public void testAddTelemetryForFixedViolation_NotFromWaived() {
+    // given a policy violation that was never waived, just fixed
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(jacksonDatabind_2_13_4)
+            .openedHoursAgo(48)
+            .withPolicyViolationId("neverWaived")
+            .markFixedByOtherMeans();
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when
+    telemetryCollector.addTelemetryForFixedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponents()
+    );
+
+    // then
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(1);
+
+    TelemetryData data = telemetryData.get(0);
+    Map<String, Object> attributes = data.getAttributes();
+    assertThat(attributes).containsEntry(FROM_WAIVED_STATUS, false);
+    assertThat(attributes).doesNotContainKey(WAIVER_AUDIT_INFO);
   }
 
   /**

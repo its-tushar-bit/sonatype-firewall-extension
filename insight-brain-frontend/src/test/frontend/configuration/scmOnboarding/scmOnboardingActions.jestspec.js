@@ -629,7 +629,7 @@ describe('scmOnboardingActions', function () {
   describe('setSelectedOrganization', function () {
     const prevOrg = {
       organization: { id: 'prevId' },
-      sourceControl: { token: { value: null } },
+      sourceControl: { token: { value: null }, authenticationType: { value: null, parentValue: null } },
     };
 
     // selected org action creator retrieves top-level state, so need to mock that instead of the narrow state
@@ -659,7 +659,11 @@ describe('scmOnboardingActions', function () {
       store = mockReduxStoreForSelectedOrg(false, prevOrg);
       const selectedOrg = {
         organization: { id: 'id1' },
-        sourceControl: { token: { value: null }, provider: { value: null, parentValue: 'github' } },
+        sourceControl: {
+          token: { value: null },
+          provider: { value: null, parentValue: 'github' },
+          authenticationType: { value: null, parentValue: null },
+        },
       };
 
       // no axios calls
@@ -684,6 +688,7 @@ describe('scmOnboardingActions', function () {
         sourceControl: {
           token: { value: null, parentValue: 'redacted', parentName: 'Root Organization' },
           provider: { value: null, parentValue: 'github' },
+          authenticationType: { value: null, parentValue: null },
         },
       };
 
@@ -698,7 +703,11 @@ describe('scmOnboardingActions', function () {
       store = mockReduxStoreForSelectedOrg(false, prevOrg);
       const selectedOrg = {
         organization: { id: 'id1' },
-        sourceControl: { token: { value: 'redacted' }, provider: { value: 'github' } },
+        sourceControl: {
+          token: { value: 'redacted' },
+          provider: { value: 'github' },
+          authenticationType: { value: null, parentValue: null },
+        },
       };
 
       // attempts to check if default host URL changed
@@ -711,7 +720,11 @@ describe('scmOnboardingActions', function () {
       store = mockReduxStoreForSelectedOrg(true, prevOrg);
       const selectedOrg = {
         organization: { id: 'id1' },
-        sourceControl: { token: { value: 'redacted' }, provider: { value: 'github' } },
+        sourceControl: {
+          token: { value: 'redacted' },
+          provider: { value: 'github' },
+          authenticationType: { value: null, parentValue: null },
+        },
       };
 
       store.dispatch(setSelectedOrganization(selectedOrg));
@@ -725,7 +738,11 @@ describe('scmOnboardingActions', function () {
       store = mockReduxStoreForSelectedOrg(true, prevOrg);
       const selectedOrg = {
         organization: { id: 'id1' },
-        sourceControl: { token: { value: 'redacted' }, provider: { value: 'github' } },
+        sourceControl: {
+          token: { value: 'redacted' },
+          provider: { value: 'github' },
+          authenticationType: { value: null, parentValue: null },
+        },
       };
 
       store.dispatch(setSelectedOrganization(selectedOrg)).then(() => {
@@ -752,6 +769,7 @@ describe('scmOnboardingActions', function () {
         sourceControl: {
           token: { value: null, parentValue: 'redacted' },
           provider: { value: null, parentValue: 'github' },
+          authenticationType: { value: null, parentValue: null },
         },
       };
 
@@ -774,7 +792,11 @@ describe('scmOnboardingActions', function () {
       store = mockReduxStoreForSelectedOrg(false, prevOrg);
       const selectedOrg = {
         organization: { id: 'id1' },
-        sourceControl: { token: { value: null }, provider: { value: null, parentValue: 'github' } },
+        sourceControl: {
+          token: { value: null },
+          provider: { value: null, parentValue: 'github' },
+          authenticationType: { value: null, parentValue: null },
+        },
       };
 
       // undefined because it does not make any axios calls

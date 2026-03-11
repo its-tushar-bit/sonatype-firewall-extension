@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationImportEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationImportEvent.ImportStatus;
@@ -1679,5 +1680,155 @@ public class ScmOnboardingServiceTest
     // given some existing users in IQ that will match the scm contributors
     tempEntity.newUser("some-user-1");
     tempEntity.newUser("some-other-user");
+  }
+
+  @Test
+  public void testImportRepositories_GitHubAppAuth_Success() throws Exception {
+    // Given: Organization with GitHub App authentication configured
+    Organization testOrg = tempEntity.newOrganization("github-app-org");
+
+    // Create GitHub App using tempEntity helper
+    tempEntity.newGitHubApp(testOrg.getId());
+
+    // Configure source control with GitHub App authentication using tempEntity
+    SourceControl orgSourceControl = new SourceControl();
+    orgSourceControl.setId(tempEntity.uuid());
+    orgSourceControl.setOwnerId(testOrg.getId());
+    orgSourceControl.setProvider(SourceControlProvider.GITHUB);
+    orgSourceControl.setAuthenticationType(AuthenticationType.GITHUB_APP);
+    orgSourceControl.setToken(null); // No PAT token for GitHub App
+    tempEntity.newSourceControl(orgSourceControl);
+
+    // Enable SCM imports
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+
+    // Mock GitHub API responses for repository listing and contributors
+    String repo1URL = String.format("%s/github-org/repo1", gitService.baseUrl());
+    String repo2URL = String.format("%s/github-org/repo2", gitService.baseUrl());
+
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/installation/repositories"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody("{\"total_count\": 2, \"repositories\": []}")));
+
+    // Mock repository info endpoint for checking if repos are private
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/repos/github-org/repo1"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody("{ \"private\": false }")));
+
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/repos/github-org/repo2"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody("{ \"private\": false }")));
+
+    // Mock contributors endpoint for automatic role assignment
+    gitService.stubFor(get(urlPathMatching("/api/v3/repos/github-org/repo[12]"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody(getResourceContents("/ScmOnboardingServiceTest/contributorsResponse.json"))));
+
+    // Given: List of repositories to import
+    SCMRepository[] reposToImport = new SCMRepository[]{
+        new SCMRepository(
+            SourceControlProvider.GITHUB,
+            repo1URL,
+            "git@github.com:github-org/repo1.git",
+            false,
+            "github-org",
+            "repo1",
+            "Test repository 1"
+        ),
+        new SCMRepository(
+            SourceControlProvider.GITHUB,
+            repo2URL,
+            "git@github.com:github-org/repo2.git",
+            false,
+            "github-org",
+            "repo2",
+            "Test repository 2"
+        )
+    };
+
+    int totalRepoCount = 50;
+    int prevImportedCount = 10;
+
+    givenScmMappingEnabledAndSomeIQUsersToMapTo();
+
+    // When: Repositories are imported using GitHub App authentication
+    ImportResults response = scmOnboardingService.importRepositories(
+        testOrg.getId(),
+        new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount)
+    );
+
+    // Then: All repositories should be successfully imported
+    List<SCMRepository> imported = response.getImportedRepositories();
+    assertThat(imported).hasSize(2);
+    assertThat(response.getFailedRepositories()).isEmpty();
+
+    // And: Imported repositories have correct details
+    assertThat(imported.get(0).getNamespace()).isEqualTo("github-org");
+    assertThat(imported.get(0).getProject()).isEqualTo("repo1");
+    assertThat(imported.get(0).getHttpCloneUrl()).isEqualTo(repo1URL);
+    assertThat(imported.get(0).getSshCloneUrl()).isEqualTo("git@github.com:github-org/repo1.git");
+    assertThat(imported.get(0).getSourceControlProvider()).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(imported.get(0).getDescription()).isEqualTo("Test repository 1");
+
+    assertThat(imported.get(1).getNamespace()).isEqualTo("github-org");
+    assertThat(imported.get(1).getProject()).isEqualTo("repo2");
+    assertThat(imported.get(1).getHttpCloneUrl()).isEqualTo(repo2URL);
+    assertThat(imported.get(1).getDescription()).isEqualTo("Test repository 2");
+
+    // And: Applications are created in the database
+    List<Application> apps = applicationDAO.getByOrganizationId(testOrg.getId());
+    assertThat(apps).hasSize(2);
+
+    // Verify applications are created with correct display names (title case with dash separator)
+    List<String> appNames = apps.stream()
+        .map(Application::getName)
+        .sorted()
+        .collect(Collectors.toList());
+    assertThat(appNames).containsExactly("Repo1 - Github Org", "Repo2 - Github Org");
+
+    // Verify application public IDs (lowercase with double underscore)
+    List<String> appPublicIds = apps.stream()
+        .map(Application::getPublicId)
+        .sorted()
+        .collect(Collectors.toList());
+    assertThat(appPublicIds).containsExactly("repo1__github-org", "repo2__github-org");
+
+    // And: Verify repository URLs are correctly stored
+    List<SourceControl> appSourceControls = sourceControlDAO.getAll().stream()
+        .filter(sc -> !sc.getOwnerId().equals(ROOT_ORGANIZATION_ID) && !sc.getOwnerId().equals(testOrg.getId()))
+        .collect(Collectors.toList());
+    assertThat(appSourceControls).hasSize(2);
+
+    // Verify source control details for first repository
+    SourceControl repo1SourceControl = appSourceControls.stream()
+        .filter(sc -> sc.getRepositoryUrl().equals(repo1URL))
+        .findFirst()
+        .orElseThrow();
+    assertThat(repo1SourceControl.getRepositoryUrl()).isEqualTo(repo1URL);
+    assertThat(repo1SourceControl.getRepositorySshUrl()).isEqualTo("git@github.com:github-org/repo1.git");
+
+    // Verify source control details for second repository
+    SourceControl repo2SourceControl = appSourceControls.stream()
+        .filter(sc -> sc.getRepositoryUrl().equals(repo2URL))
+        .findFirst()
+        .orElseThrow();
+    assertThat(repo2SourceControl.getRepositoryUrl()).isEqualTo(repo2URL);
+    assertThat(repo2SourceControl.getRepositorySshUrl()).isEqualTo("git@github.com:github-org/repo2.git");
+
+    // And: Verify the organization has GitHub App authentication configured
+    SourceControl verifiedOrgSourceControl = sourceControlDAO.getByOwnerId(testOrg.getId());
+    assertThat(verifiedOrgSourceControl).isNotNull();
+    assertThat(verifiedOrgSourceControl.getAuthenticationType()).isEqualTo(AuthenticationType.GITHUB_APP);
+    assertThat(verifiedOrgSourceControl.getToken()).isNull(); // No PAT token for GitHub App auth
+
+    // And: Telemetry was sent (2 repos x 2 telemetry each + 1 import telemetry = 5 total)
+    // - 2 owner maintenance telemetry events (one per application created)
+    // - 2 source control telemetry events (one per repository imported)
+    // - 1 import telemetry event
+    verify(telemetrySenderMock, times(5)).send(any(TelemetryData.class));
   }
 }

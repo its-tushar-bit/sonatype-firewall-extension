@@ -23,13 +23,40 @@ function valueFromHierarchy(compositeDto) {
 }
 
 function tokenForOrg(org) {
-  if (!org) {
-    return null;
-  }
-  // if the selected org has a custom provider, then any tokens set at earlier levels should be disregarded.
-  // They were created by a different provider and so can't be shared. We must use the org's token,
-  // even if it is null.
-  return org.sourceControl.provider.value ? org.sourceControl.token.value : valueFromHierarchy(org.sourceControl.token);
+  const authMethod = getAuthMethodForOrg(org);
+  return authMethod === 'PAT' ? 'token' : authMethod;
 }
 
-export { displayName, valueFromHierarchy, tokenForOrg };
+function getAuthMethodForOrg(org) {
+  if (!org || !org.sourceControl) {
+    return null;
+  }
+
+  // Determine effective authentication type (value or inherited)
+  const authType = org.sourceControl.provider.value
+    ? org.sourceControl.authenticationType?.value
+    : valueFromHierarchy(org.sourceControl.authenticationType);
+
+  // Check GitHub App authentication
+  if (authType === 'GITHUB_APP') {
+    const githubApp = org.sourceControl.provider.value
+      ? org.sourceControl.githubApp?.value
+      : valueFromHierarchy(org.sourceControl.githubApp);
+
+    // Valid if GitHub App has installationId
+    return githubApp?.installationId ? 'GITHUB_APP' : null;
+  }
+
+  // Check PAT authentication
+  const token = org.sourceControl.provider.value
+    ? org.sourceControl.token?.value
+    : valueFromHierarchy(org.sourceControl.token);
+
+  return token ? 'PAT' : null;
+}
+
+function hasAuth(org) {
+  return !!getAuthMethodForOrg(org);
+}
+
+export { displayName, valueFromHierarchy, tokenForOrg, getAuthMethodForOrg, hasAuth };

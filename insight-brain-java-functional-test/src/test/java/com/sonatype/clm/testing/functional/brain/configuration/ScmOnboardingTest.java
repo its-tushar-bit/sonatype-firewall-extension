@@ -276,9 +276,10 @@ public class ScmOnboardingTest
 
     // then a permission denied error is shown
     scmOnboardingPage.repoTableLoadError()
-        .shouldHave(text("We could not find a token. You can configure a token to be " +
-            "shared across organizations in the Root Organization's Source Control Configuration page, " +
-            "or you can provide a custom token for the Test Org Organization."));
+        .shouldHave(text("Source control authentication is not configured. You can configure authentication " +
+            "(GitHub App or Personal Access Token) to be shared across organizations in the Root Organization's " +
+            "Source Control Configuration page, or you can provide a custom configuration for the Test Org " +
+            "Organization."));
 
     // and form elements are hidden
     scmOnboardingPage.resultsTable().shouldBe(hidden);
@@ -1936,10 +1937,10 @@ public class ScmOnboardingTest
     // then the git host dialog is not loaded
     scmOnboardingPage.modalDialog().shouldNotBe(visible);
 
-    // and a token error is shown
-    scmOnboardingPage.loadError().shouldHave(text("We could not find a token."));
+    // and an authentication error is shown
+    scmOnboardingPage.loadError().shouldHave(text("Source control authentication is not configured."));
     scmOnboardingPage.loadError()
-        .shouldHave(text("or you can provide a custom token for the Custom Provider Organization."));
+        .shouldHave(text("or you can provide a custom configuration for the Custom Provider Organization."));
   }
 
   private String getIdSelector(String id) {

@@ -5,9 +5,13 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
+import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.nexus.scm.github.auth.GitHubAppAuthStrategy;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -26,12 +30,13 @@ import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
-import com.sonatype.nexus.scm.api.auth.AuthenticationStrategy;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
@@ -42,6 +47,10 @@ public class GitClientFactory
   private final GitHubAppAuthStrategyCache authStrategyCache;
 
   private final GitApiClientFactory gitApiClientFactory = new GitApiClientFactory();
+
+  private final PasswordHandler passwordHandler;
+
+  private static final Logger log = LoggerFactory.getLogger(GitClientFactory.class);
 
   /**
    * Caches API URLs for git API clients
@@ -58,10 +67,12 @@ public class GitClientFactory
   @Inject
   public GitClientFactory(
       final InsightProxy insightProxy,
-      final GitHubAppAuthStrategyCache authStrategyCache)
+      final GitHubAppAuthStrategyCache authStrategyCache,
+      final PasswordHandler passwordHandler)
   {
     this.insightProxy = insightProxy;
     this.authStrategyCache = authStrategyCache;
+    this.passwordHandler = passwordHandler;
   }
 
   public GitApiClient createApiClient(GitRepositoryInfo gitRepositoryInfo) {
@@ -70,11 +81,11 @@ public class GitClientFactory
     insightProxy.contextualize(configuration, apiUrl);
 
     if (gitRepositoryInfo.authenticationType == AuthenticationType.GITHUB_APP) {
-      AuthenticationStrategy authStrategy = getGitHubAppAuthStrategy(gitRepositoryInfo);
+      GitHubAppAuthStrategy authStrategy = getGitHubAppAuthStrategy(gitRepositoryInfo);
       return gitApiClientFactory.getGitHubApiClient(
           configuration,
           gitRepositoryInfo.normalizedRepositoryUrl,
-          (com.sonatype.nexus.scm.github.auth.GitHubAppAuthStrategy) authStrategy);
+          authStrategy);
     }
 
     return gitApiClientFactory.getGitApiClient(gitRepositoryInfo.provider, configuration,
@@ -87,10 +98,10 @@ public class GitClientFactory
     insightProxy.contextualize(configuration, graphqlApiUrl);
 
     if (gitRepositoryInfo.authenticationType == AuthenticationType.GITHUB_APP) {
-      AuthenticationStrategy authStrategy = getGitHubAppAuthStrategy(gitRepositoryInfo);
+      GitHubAppAuthStrategy authStrategy = getGitHubAppAuthStrategy(gitRepositoryInfo);
       return gitApiClientFactory.getGitHubPullRequestInfoClient(
           configuration,
-          (com.sonatype.nexus.scm.github.auth.GitHubAppAuthStrategy) authStrategy);
+          authStrategy);
     }
 
     return gitApiClientFactory.getPullRequestInfoClient(gitRepositoryInfo.provider, configuration,
@@ -103,10 +114,10 @@ public class GitClientFactory
     insightProxy.contextualize(configuration, graphqlApiUrl);
 
     if (gitRepositoryInfo.authenticationType == AuthenticationType.GITHUB_APP) {
-      AuthenticationStrategy authStrategy = getGitHubAppAuthStrategy(gitRepositoryInfo);
+      GitHubAppAuthStrategy authStrategy = getGitHubAppAuthStrategy(gitRepositoryInfo);
       return gitApiClientFactory.getGitHubContributorInfoClient(
           configuration,
-          (com.sonatype.nexus.scm.github.auth.GitHubAppAuthStrategy) authStrategy);
+          authStrategy);
     }
 
     return gitApiClientFactory.getContributorInfoClient(
@@ -119,15 +130,24 @@ public class GitClientFactory
       final String username,
       final String token)
   {
-    Configuration configuration = gitApiClientFactory.createConfiguration();
-    insightProxy.contextualize(configuration);
-    String baseApiUrl = getClientUtils(sourceControlProvider, configuration).getBaseApiUrl(hostUrl, token);
-    configuration.setServerUrl(baseApiUrl);
+    Configuration configuration = createConfigurationWithBaseUrl(sourceControlProvider, hostUrl, token);
     return gitApiClientFactory.getGeneralSCMApiClient(sourceControlProvider, configuration, username, token);
   }
 
   public GitApiClientUtils getClientUtils(final SourceControlProvider provider, Configuration configuration) {
     return gitApiClientFactory.getGitApiClientUtils(provider, configuration);
+  }
+
+  private Configuration createConfigurationWithBaseUrl(
+      final SourceControlProvider provider,
+      final String hostUrl,
+      final String token)
+  {
+    Configuration configuration = gitApiClientFactory.createConfiguration();
+    insightProxy.contextualize(configuration);
+    String baseApiUrl = getClientUtils(provider, configuration).getBaseApiUrl(hostUrl, token);
+    configuration.setServerUrl(baseApiUrl);
+    return configuration;
   }
 
   @VisibleForTesting
@@ -190,7 +210,7 @@ public class GitClientFactory
             .getContributorInfoProviderUrl(gri.normalizedRepositoryUrl));
   }
 
-  private AuthenticationStrategy getGitHubAppAuthStrategy(final GitRepositoryInfo gitRepositoryInfo) {
+  private GitHubAppAuthStrategy getGitHubAppAuthStrategy(final GitRepositoryInfo gitRepositoryInfo) {
     if (gitRepositoryInfo.authOwnerId == null) {
       throw new IllegalStateException(
           "GitHub App authentication is configured but no owner ID found for authentication lookup. "
@@ -199,5 +219,27 @@ public class GitClientFactory
     }
 
     return authStrategyCache.getOrCreate(gitRepositoryInfo.authOwnerId);
+  }
+
+  public GeneralSCMApiClient createGeneralApiClient(
+          final SourceControlProvider provider,
+          final String hostUrl,
+          final GitHubApp gitHubApp) throws IOException
+  {
+    if (provider != SourceControlProvider.GITHUB) {
+      throw new IllegalArgumentException("GitHub App authentication only supports GitHub provider");
+    }
+
+    if (gitHubApp.getInstallationId() == null) {
+      throw new IllegalArgumentException("GitHub App installation ID is required");
+    }
+
+    Configuration configuration = createConfigurationWithBaseUrl(provider, hostUrl, null);
+
+    log.debug("Creating GitHub API client with GitHub App installationId: {}", gitHubApp.getInstallationId());
+
+    GitHubAppAuthStrategy authStrategy = authStrategyCache.getOrCreate(gitHubApp.getOwnerId());
+
+    return gitApiClientFactory.getGitHubGeneralSCMApiClient(configuration, authStrategy);
   }
 }

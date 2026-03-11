@@ -38,7 +38,7 @@ import { over, lensPath } from 'ramda';
 import { propSet } from 'MainRoot/util/jsUtil';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 import ownerConstant from 'MainRoot/utility/services/owner.constant';
-import { valueFromHierarchy, tokenForOrg } from './utils/providers';
+import { valueFromHierarchy, hasAuth } from './utils/providers';
 import { Messages } from 'MainRoot/util/CommonServices';
 
 const initialState = {
@@ -174,7 +174,7 @@ function loadPageFulfilled(payload, state) {
     ? null
     : valueFromHierarchy(selectedOrganization.sourceControl.provider);
   const rootOrgProvider = rootOrg === null ? null : rootOrg.sourceControl.provider.value;
-  const hasToken = !!tokenForOrg(selectedOrganization);
+  const hasToken = hasAuth(selectedOrganization);
   let newState = {
     ...state,
     viewState: {
@@ -268,7 +268,7 @@ function setTargetOrgFulfilled({ selectedOrganization, defaultHostUrl }, state) 
   const currOrg = selectedOrganization;
   const currTokenOverridden =
     !!selectedOrganization && !!selectedOrganization.sourceControl && !!selectedOrganization.sourceControl.token.value;
-  const hasToken = !!tokenForOrg(selectedOrganization);
+  const hasToken = hasAuth(selectedOrganization);
 
   const isAuthFailure = !!state.viewState.loadRepositoriesErrorCode;
 

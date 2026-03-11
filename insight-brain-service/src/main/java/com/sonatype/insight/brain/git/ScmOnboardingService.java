@@ -22,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -166,6 +168,8 @@ public class ScmOnboardingService
 
   private final ScmUserMappingService scmUserMappingService;
 
+  private final GitHubAppDAO gitHubAppDAO;
+
   @Inject
   public ScmOnboardingService(
       final SourceControlDAO sourceControlDAO,
@@ -186,7 +190,8 @@ public class ScmOnboardingService
       final Configuration configuration,
       final ShutdownHandler shutdownHandler,
       final ScmUserMatchingService userMatchingService,
-      final ScmUserMappingService scmUserMappingService)
+      final ScmUserMappingService scmUserMappingService,
+      final GitHubAppDAO gitHubAppDAO)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
@@ -206,6 +211,7 @@ public class ScmOnboardingService
     this.executor = new SourceControlImportThreadPoolExecutor(configuration.getSourceControlImportPoolSize());
     this.userMatchingService = userMatchingService;
     this.scmUserMappingService = scmUserMappingService;
+    this.gitHubAppDAO = gitHubAppDAO;
     shutdownHandler.add(executor);
   }
 
@@ -241,7 +247,7 @@ public class ScmOnboardingService
     ApiCompositeSourceControlDTO sourceControlDTO =
         apiCompositeSourceControlService.getCompositeSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, orgId);
 
-    String providerString = sourceControlDTO.provider.value != null ?
+    String providerString = StringUtils.isNotBlank(sourceControlDTO.provider.value) ?
         sourceControlDTO.provider.value :
         sourceControlDTO.provider.parentValue;
 
@@ -251,15 +257,29 @@ public class ScmOnboardingService
 
     SourceControlProvider provider = SourceControlProvider.fromString(providerString);
 
-    String username = sourceControlDTO.username.value != null ?
-        sourceControlDTO.username.value :
-        sourceControlDTO.username.parentValue;
-    String token = sourceControlDTO.token.value != null ?
-        sourceControlDTO.token.value :
-        sourceControlDTO.token.parentValue;
+    String authenticationType = sourceControlDTO.authenticationType.value != null ?
+            sourceControlDTO.authenticationType.value :
+            sourceControlDTO.authenticationType.parentValue;
 
-    log.debug("Attempting to retrieve repositories using given host url: {}", hostUrl);
-    GeneralSCMApiClient generalClient = gitClientFactory.createGeneralApiClient(provider, hostUrl, username, token);
+    log.debug("Loading repositories for org {} using authentication type: {} using host url: {}",
+        orgId, authenticationType, hostUrl);
+
+    GeneralSCMApiClient generalClient = null;
+    String githubAppAuthType = SourceControl.AuthenticationType.GITHUB_APP.toString();
+    if (authenticationType != null && authenticationType.equals(githubAppAuthType)) {
+      generalClient = createGitHubAppClient(orgId, provider, hostUrl);
+    }
+    else {
+      String username = StringUtils.isNotBlank(sourceControlDTO.username.value) ?
+          sourceControlDTO.username.value :
+          sourceControlDTO.username.parentValue;
+      String token = StringUtils.isNotBlank(sourceControlDTO.token.value) ?
+              sourceControlDTO.token.value :
+              sourceControlDTO.token.parentValue;
+      log.debug("Attempting to retrieve repositories using given host url: {}", hostUrl);
+      generalClient = gitClientFactory.createGeneralApiClient(provider, hostUrl, username, token);
+    }
+
     try {
       List<SCMRepository> allRepositories = postProcess(generalClient.listAllRepositories());
       List<SCMRepository> availableRepositories = trimAlreadyConfigured(allRepositories);
@@ -1066,5 +1086,22 @@ public class ScmOnboardingService
   // visible for testing
   static void setScmParallelImportMaxRepositoriesPerBatch(int maxRepositoriesPerBatch) {
     scmParallelImportMaxRepositoriesPerBatch = maxRepositoriesPerBatch;
+  }
+
+  private GeneralSCMApiClient createGitHubAppClient(
+          final String orgId,
+          final SourceControlProvider provider,
+          final String hostUrl) throws IOException
+  {
+    GitHubApp gitHubApp = gitHubAppDAO.getNearestGitHubApp(orgId);
+
+    if (gitHubApp == null || gitHubApp.getInstallationId() == null) {
+      log.warn("No GitHub App found or installation incomplete for organization: {}", orgId);
+      throw new IllegalStateException("GitHub App authentication is configured but installation is not complete");
+    }
+
+    log.debug("Using GitHub App from owner: {} for organization: {}", gitHubApp.getOwnerId(), orgId);
+
+    return gitClientFactory.createGeneralApiClient(provider, hostUrl, gitHubApp);
   }
 }

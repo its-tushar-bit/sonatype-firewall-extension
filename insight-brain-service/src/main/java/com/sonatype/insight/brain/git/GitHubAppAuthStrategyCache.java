@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.nexus.scm.GitApiClientFactory;
-import com.sonatype.nexus.scm.api.auth.AuthenticationStrategy;
 import com.sonatype.nexus.scm.github.auth.GitHubAppAuthStrategy;
 
 import com.google.common.cache.Cache;
@@ -58,7 +57,7 @@ public class GitHubAppAuthStrategyCache
 
   private final String githubApiBaseUrl;
 
-  private final TenantReference<Cache<String, AuthenticationStrategy>> caches;
+  private final TenantReference<Cache<String, GitHubAppAuthStrategy>> caches;
 
   @Inject
   public GitHubAppAuthStrategyCache(
@@ -89,9 +88,9 @@ public class GitHubAppAuthStrategyCache
    * Get or create a GitHubAppAuthStrategy for the given ownerId.
    *
    * @param ownerId the GitHub App owner ID
-   * @return cached or newly created AuthenticationStrategy
+   * @return cached or newly created GitHubAppAuthStrategy
    */
-  public AuthenticationStrategy getOrCreate(final String ownerId) {
+  public GitHubAppAuthStrategy getOrCreate(final String ownerId) {
     try {
       return getCache().get(ownerId, () -> createAuthStrategy(ownerId));
     }
@@ -114,7 +113,7 @@ public class GitHubAppAuthStrategyCache
     log.debug("Invalidated cached GitHubAppAuthStrategy for ownerId: {}", ownerId);
   }
 
-  private Cache<String, AuthenticationStrategy> createCache() {
+  private Cache<String, GitHubAppAuthStrategy> createCache() {
     return newCacheBuilder()
         .expireAfterAccess(EXPIRATION_AFTER_ACCESS.toMillis(), TimeUnit.MILLISECONDS)
         .maximumSize(MAXIMUM_SIZE)
@@ -125,11 +124,11 @@ public class GitHubAppAuthStrategyCache
     return CacheBuilder.newBuilder();
   }
 
-  private Cache<String, AuthenticationStrategy> getCache() {
+  private Cache<String, GitHubAppAuthStrategy> getCache() {
     return caches.get();
   }
 
-  private AuthenticationStrategy createAuthStrategy(final String ownerId) {
+  private GitHubAppAuthStrategy createAuthStrategy(final String ownerId) {
     log.debug("Creating new GitHubAppAuthStrategy for ownerId: {}", ownerId);
 
     GitHubApp githubApp = githubAppDAO.getByOwnerIdNotNull(ownerId);

@@ -143,12 +143,13 @@ describe('RepositoryPane', function () {
   };
 
   describe('render errors', () => {
-    it('renders token not configured error', () => {
+    it('renders authentication not configured error with updated messaging', () => {
       renderComponent({ ...initialProps, isScmTokenConfigured: false });
       const errorAlert = screen.getByRole('alert');
       expect(errorAlert).toBeVisible();
+      // Updated messaging to be more generic about authentication (not just token)
       expect(errorAlert).toHaveTextContent(
-        "An error occurred loading data. We could not find a token. You can configure a token to be shared across organizations in the Root Organization's Source Control Configuration page, or you can provide a custom token for the org-org1 Organization."
+        "An error occurred loading data. Source control authentication is not configured. You can configure authentication (GitHub App or Personal Access Token) to be shared across organizations in the Root Organization's Source Control Configuration page, or you can provide a custom configuration for the org-org1 Organization."
       );
     });
 
@@ -263,6 +264,66 @@ describe('RepositoryPane', function () {
         const repoCells = within(repo).getAllByRole('cell');
         expect(repoCells[2]).toHaveTextContent(`${repositories[index].project}`);
       });
+    });
+  });
+
+  describe('GitHub App authentication scenarios', () => {
+    it('renders successfully when GitHub App is configured', () => {
+      const propsWithGitHubApp = {
+        ...initialProps,
+        isScmTokenConfigured: true,
+      };
+      renderComponent(propsWithGitHubApp);
+
+      // Should not show authentication error
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+      // Should render repository table
+      const reposTable = screen.getByRole('table');
+      expect(reposTable).toBeVisible();
+    });
+
+    it('links to Source Control Configuration page in error message', () => {
+      renderComponent({ ...initialProps, isScmTokenConfigured: false });
+      const errorAlert = screen.getByRole('alert');
+
+      // Should contain link to configuration page
+      const link = within(errorAlert).getByRole('link', { name: /Source Control Configuration/i });
+      expect(link).toBeVisible();
+      expect(link).toHaveAttribute('href', '#');
+    });
+
+    it('mentions custom configuration option for organization in error message', () => {
+      renderComponent({ ...initialProps, isScmTokenConfigured: false });
+      const errorAlert = screen.getByRole('alert');
+
+      // Should mention option to configure for specific org
+      expect(errorAlert.textContent).toContain('custom configuration');
+      expect(errorAlert.textContent).toContain('org-org1');
+    });
+
+    it('handles transition from PAT to GitHub App authentication', () => {
+      // Initially configured with PAT
+      const { rerender } = renderComponent({
+        ...initialProps,
+        isScmTokenConfigured: true,
+      });
+
+      // No error shown
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+      // Re-render with GitHub App configuration (still shows as configured)
+      rerender(
+        <RepositoryPane
+          {...{
+            ...initialProps,
+            isScmTokenConfigured: true,
+          }}
+        />
+      );
+
+      // Still no error shown
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
   });
 });

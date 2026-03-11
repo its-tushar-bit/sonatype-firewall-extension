@@ -15,9 +15,8 @@ import {
   getScmDefaultHostUrl,
   getImportRepositoriesUrl,
 } from 'MainRoot/util/CLMLocation';
-import { valueFromHierarchy, tokenForOrg } from './utils/providers';
+import { valueFromHierarchy, hasAuth } from './utils/providers';
 import { checkPermissions, checkFeatures } from 'MainRoot/util/authorizationUtil';
-
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 
@@ -110,10 +109,7 @@ function loadScmOnboardingInformation(orgId) {
         );
         const selectedOrganization = organizationsResults.data.find((org) => org.organization.id === orgId);
         if (selectedOrganization) dispatch(setSelectedOrganization(selectedOrganization));
-        const hasToken =
-          selectedOrganization &&
-          (selectedOrganization.sourceControl.token.value !== null ||
-            selectedOrganization.sourceControl.token.parentValue);
+        const hasToken = selectedOrganization && hasAuth(selectedOrganization);
         if (orgId && hasToken && hostUrlResult && hostUrlResult.data.defaultHostUrl) {
           dispatch(loadRepositories(orgId, hostUrlResult.data.defaultHostUrl));
         }
@@ -175,9 +171,8 @@ export function setSelectedOrganization(selectedOrg) {
     const isSelectedTokenOverridden = selectedOrg.sourceControl.token.value != null;
     const isProviderOverridden = selectedOrg.sourceControl.provider.value != null;
     const provider = valueFromHierarchy(selectedOrg.sourceControl.provider);
-    const hasToken = !!tokenForOrg(selectedOrg);
     dispatch(setTargetOrganizationRequested());
-    if (!hasToken) {
+    if (!hasAuth(selectedOrg)) {
       // no token, so can't query for anything
       dispatch(
         setTargetOrganizationFulfilled({
@@ -261,6 +256,12 @@ export function importSelectedRepositories(orgId, totalRepoCount, prevImportedCo
       .post(getImportRepositoriesUrl(orgId), postBody)
       .then(({ data }) => {
         dispatch(importSelectedRepositoriesFulfilled(data));
+
+        // Force reload the sidebar (/rest/sidebar API) to fetch newly imported applications.
+        // Without this, imported apps won't appear in the Organizations & Policies sidebar
+        // until the user manually refreshes the page or navigates away and back.
+        // The 'true' parameter forces a fresh fetch from the server instead of using cached data.
+        dispatch(ownerSideNavActions.loadOwnerList(true));
       })
       .catch((error) => {
         dispatch(importSelectedRepositoriesFailed(error));

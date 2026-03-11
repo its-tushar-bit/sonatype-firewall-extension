@@ -127,9 +127,10 @@ public class PullRequestPollingSchedulerSingleTenantTest
     @Inject
     public GitClientFactorySpyProvider(
         InsightProxy insightProxy,
-        GitHubAppAuthStrategyCache authStrategyCache)
+        GitHubAppAuthStrategyCache authStrategyCache,
+        PasswordHandler passwordHandler)
     {
-      gitClientFactorySpy = spy(new GitClientFactory(insightProxy, authStrategyCache));
+      gitClientFactorySpy = spy(new GitClientFactory(insightProxy, authStrategyCache, passwordHandler));
     }
 
     @Override

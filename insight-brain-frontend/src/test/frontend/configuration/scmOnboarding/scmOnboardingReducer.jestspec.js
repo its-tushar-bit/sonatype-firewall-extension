@@ -80,7 +80,11 @@ describe('scmOnboardingReducer', function () {
             name: 'name0',
             id: 'id0',
           },
-          sourceControl: { provider: { value: null, parentValue: 'github' }, token: { value: null } },
+          sourceControl: {
+            provider: { value: null, parentValue: 'github' },
+            token: { value: null },
+            authenticationType: { value: null, parentValue: null },
+          },
         },
         {
           organization: {
@@ -90,6 +94,7 @@ describe('scmOnboardingReducer', function () {
           sourceControl: {
             provider: { value: null, parentValue: 'github' },
             token: { value: null, parentValue: 'parentValue' },
+            authenticationType: { value: null, parentValue: null },
           },
         },
         {
@@ -100,6 +105,7 @@ describe('scmOnboardingReducer', function () {
           sourceControl: {
             provider: { value: 'gitlab', parentValue: null },
             token: { value: 'token', parentValue: null, parentName: null },
+            authenticationType: { value: null, parentValue: null },
           },
         },
       ];
@@ -117,6 +123,7 @@ describe('scmOnboardingReducer', function () {
           compositeSourceControlResults: {
             provider: { value: null, parentValue: 'github' },
             token: { value: 'token' },
+            authenticationType: { value: null, parentValue: null },
           },
           hostUrlResult: { defaultHostUrl: 'http://localhost/' },
         };
@@ -213,6 +220,7 @@ describe('scmOnboardingReducer', function () {
           compositeSourceControlResults: {
             provider: { value: null, parentValue: 'github' },
             token: { parentValue: 'token' },
+            authenticationType: { value: null, parentValue: null },
           },
           hostUrlResult: { defaultHostUrl: 'http://localhost/' },
         };
@@ -263,6 +271,7 @@ describe('scmOnboardingReducer', function () {
           sourceControl: {
             provider: {},
             token: {},
+            authenticationType: {},
             id: null,
           },
         };
@@ -275,6 +284,7 @@ describe('scmOnboardingReducer', function () {
           compositeSourceControlResults: {
             provider: { value: null, parentValue: null },
             token: { parentValue: null },
+            authenticationType: { value: null, parentValue: null },
           },
           hostUrlResult: { defaultHostUrl: 'http://localhost/' },
         };
@@ -685,6 +695,7 @@ describe('scmOnboardingReducer', function () {
           sourceControl: {
             token: { value: 'redacted' },
             provider: { value: 'github' },
+            authenticationType: { value: null, parentValue: null },
           },
         };
 
@@ -725,6 +736,7 @@ describe('scmOnboardingReducer', function () {
                   sourceControl: {
                     provider: { value: null, parentValue: 'github' },
                     token: { value: 'redacted' },
+                    authenticationType: { value: null, parentValue: null },
                   },
                 },
               },
@@ -752,6 +764,7 @@ describe('scmOnboardingReducer', function () {
                   sourceControl: {
                     provider: { value: null, parentValue: 'github' },
                     token: { value: 'redacted' },
+                    authenticationType: { value: null, parentValue: null },
                   },
                 },
               },
@@ -808,6 +821,7 @@ describe('scmOnboardingReducer', function () {
               sourceControl: {
                 provider: { value: null, parentValue: testData.provider },
                 token: { value: null, parentValue: 'redacted' },
+                authenticationType: { value: null, parentValue: null },
               },
             };
             const newState = reduce(state, {

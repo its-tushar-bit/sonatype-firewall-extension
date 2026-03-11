@@ -124,8 +124,7 @@ public class GitApiFactory
 
       log.info("Using GitHub App authentication for repository cloning (ownerId: {})", gitInfo.authOwnerId);
 
-      GitHubAppAuthStrategy authStrategy =
-          (GitHubAppAuthStrategy) authStrategyCache.getOrCreate(gitInfo.authOwnerId);
+      GitHubAppAuthStrategy authStrategy = authStrategyCache.getOrCreate(gitInfo.authOwnerId);
       try {
         return authStrategy.getInstallationToken().getToken();
       }

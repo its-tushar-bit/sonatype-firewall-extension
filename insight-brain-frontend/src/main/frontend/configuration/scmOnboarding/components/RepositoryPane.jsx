@@ -71,15 +71,16 @@ export default function RepositoryPane(props) {
   const orgsAndPoliciesRootOrgHref = $state.href($state.get('management.edit.organization.edit-source-control'), {
     organizationId: ownerConstant.ROOT_ORGANIZATION_ID,
   });
-  const tokenNotConfiguredMessage = () => {
+  const authNotConfiguredMessage = () => {
     if (!selectedOrganization) {
       return null;
     }
     return (
       <span>
-        We could not find a token. You can configure a token to be shared across organizations in the Root
-        Organization&apos;s <NxTextLink href={orgsAndPoliciesRootOrgHref}>Source Control Configuration</NxTextLink>{' '}
-        page, or you can provide a custom token for the{' '}
+        Source control authentication is not configured. You can configure authentication (GitHub App or Personal Access
+        Token) to be shared across organizations in the Root Organization&apos;s{' '}
+        <NxTextLink href={orgsAndPoliciesRootOrgHref}>Source Control Configuration</NxTextLink> page, or you can provide
+        a custom configuration for the{' '}
         <NxTextLink href={orgsAndPoliciesHref}>{selectedOrganization.organization.name}</NxTextLink> Organization.
       </span>
     );
@@ -156,7 +157,7 @@ export default function RepositoryPane(props) {
   };
 
   const resultsTableError = !isScmTokenConfigured
-    ? tokenNotConfiguredMessage()
+    ? authNotConfiguredMessage()
     : isGitHostNeeded
     ? gitHostUrlMessage(true)
     : loadRepositoriesErrorCode

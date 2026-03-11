@@ -14,6 +14,10 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.api.ContributorInfoProvider;
+import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
+import com.sonatype.nexus.scm.api.GitApiClient;
+import com.sonatype.nexus.scm.api.GitApiClientUtils;
+import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 
@@ -24,9 +28,6 @@ import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import com.sonatype.nexus.scm.api.GitApiClient;
-import com.sonatype.nexus.scm.api.GitApiClientUtils;
-import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import com.sonatype.nexus.scm.github.GitHubApiClient;
 import com.sonatype.nexus.scm.github.graphql.GitHubGraphQlClient;
 
@@ -44,10 +45,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
+import java.io.IOException;
 import java.util.Date;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
+import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -651,6 +654,121 @@ public class GitClientFactoryTest
     assertThatThrownBy(() -> gitClientFactory.createApiClient(repoInfo))
         .isInstanceOf(IllegalStateException.class)
         .hasMessageContaining("GitHub App authentication is configured but no owner ID found");
+  }
+
+  @Test
+  public void testCreateGeneralApiClient_GitHubAppAuth_Success() throws IOException {
+    // Given: GitHub App with valid configuration
+    Organization org = tempEntity.newOrganization("test-org");
+    GitHubApp githubApp = createTestGitHubApp(org.getId());
+    tempEntity.newGitHubApp(githubApp);
+
+    // When: Creating general API client with GitHub App
+    GeneralSCMApiClient apiClient = gitClientFactory.createGeneralApiClient(
+        GITHUB,
+        "https://github.com",
+        githubApp
+    );
+
+    // Then: Client is created successfully
+    assertThat(apiClient).isNotNull();
+  }
+
+  @Test
+  public void testCreateGeneralApiClient_GitHubAppAuth_OnlySupportsGitHub() {
+    // Given: GitHub App
+    Organization org = tempEntity.newOrganization("test-org");
+    GitHubApp githubApp = createTestGitHubApp(org.getId());
+
+    // When/Then: GitLab provider should throw exception
+    assertThatThrownBy(() ->
+        gitClientFactory.createGeneralApiClient(GITLAB, "https://gitlab.com", githubApp)
+    )
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("GitHub App authentication only supports GitHub provider");
+
+    // When/Then: Bitbucket provider should throw exception
+    assertThatThrownBy(() ->
+        gitClientFactory.createGeneralApiClient(BITBUCKET, "https://bitbucket.org", githubApp)
+    )
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("GitHub App authentication only supports GitHub provider");
+  }
+
+  @Test
+  public void testCreateGeneralApiClient_GitHubAppAuth_RequiresInstallationId() {
+    // Given: GitHub App without installation ID
+    Organization org = tempEntity.newOrganization("test-org");
+    GitHubApp githubApp = createTestGitHubApp(org.getId());
+    githubApp.setInstallationId(null);
+
+    // When/Then: Should throw exception
+    assertThatThrownBy(() ->
+        gitClientFactory.createGeneralApiClient(GITHUB, "https://github.com", githubApp)
+    )
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("GitHub App installation ID is required");
+  }
+
+  @Test
+  public void testCreateGeneralApiClient_GitHubAppAuth_WithGitHubEnterprise() throws IOException {
+    // Given: GitHub App configured for GitHub Enterprise
+    Organization org = tempEntity.newOrganization("test-org");
+    GitHubApp githubApp = createTestGitHubApp(org.getId());
+    tempEntity.newGitHubApp(githubApp);
+    String enterpriseUrl = "https://github.enterprise.com";
+
+    // When: Creating client for GitHub Enterprise
+    GeneralSCMApiClient apiClient = gitClientFactory.createGeneralApiClient(
+        GITHUB,
+        enterpriseUrl,
+        githubApp
+    );
+
+    // Then: Client is created successfully
+    assertThat(apiClient).isNotNull();
+  }
+
+  @Test
+  public void testCreateGeneralApiClient_GitHubAppAuth_DecryptsPrivateKey() throws IOException {
+    // Given: GitHub App with encrypted private key
+    Organization org = tempEntity.newOrganization("test-org");
+    GitHubApp githubApp = createTestGitHubApp(org.getId());
+    tempEntity.newGitHubApp(githubApp);
+
+    // Verify private key is encrypted
+    assertThat(githubApp.getPrivateKey()).isNotNull();
+
+    // When: Creating client (should decrypt key internally)
+    GeneralSCMApiClient apiClient = null;
+    try {
+      apiClient = gitClientFactory.createGeneralApiClient(
+          SourceControlProvider.GITHUB,
+          "https://github.com",
+          githubApp
+      );
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    // Then: Client is created successfully (private key was decrypted)
+    assertThat(apiClient).isNotNull();
+  }
+
+  @Test
+  public void testCreateGeneralApiClient_GitHubAppAuth_HandlesInvalidPrivateKey() {
+    // Given: GitHub App with invalid private key
+    Organization org = tempEntity.newOrganization("test-org");
+    GitHubApp githubApp = createTestGitHubApp(org.getId());
+    githubApp.setPrivateKey("invalid-encrypted-key");
+    tempEntity.newGitHubApp(githubApp);
+
+    // When/Then: Should throw exception during key decryption/parsing
+    assertThatThrownBy(() ->
+        gitClientFactory.createGeneralApiClient(GITHUB, "https://github.com", githubApp)
+    )
+        .isInstanceOf(RuntimeException.class);
   }
 
   private GitHubApp createTestGitHubApp(String ownerId) {

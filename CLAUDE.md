@@ -107,7 +107,6 @@ New experimental features use `SystemConfigurationPropertyFeature` enum in datab
 ### Code Quality
 - Checkstyle and PMD are enforced
 - License headers required (use `header.txt`)
-- Git hooks configured in `githooks/` directory
 
 ### jakarta.inject Migration
 The codebase has been migrated to `jakarta.inject` as part of the Jakarta EE 11 upgrade. Use `jakarta.inject` for all dependency injection.

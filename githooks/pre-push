@@ -1,9 +1,0 @@
-#!/bin/sh
-#
-# Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
-# Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
-# "Sonatype" is a trademark of Sonatype, Inc.
-#
-trap 'echo pre-push hook - completed. see insight-brain/docs/devdocs/git-hooks.md for details' EXIT
-echo 'pre-push hook - running'
-mvn -e -C -N validate -P pre-check

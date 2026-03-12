@@ -1587,65 +1587,6 @@
       </build>
     </profile>
     <profile>
-      <id>githook-checks</id>
-      <activation>
-        <os>
-          <family>!windows</family>
-        </os>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.rudikershaw.gitbuildhook</groupId>
-            <artifactId>git-build-hook-maven-plugin</artifactId>
-            <version>3.5.0</version>
-            <configuration>
-              <gitConfig>
-                <core.hooksPath>githooks/</core.hooksPath>
-              </gitConfig>
-            </configuration>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>configure</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>githook-checks-windows</id>
-      <activation>
-        <os>
-          <family>windows</family>
-        </os>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.rudikershaw.gitbuildhook</groupId>
-            <artifactId>git-build-hook-maven-plugin</artifactId>
-            <version>3.5.0</version>
-            <configuration>
-              <gitConfig>
-                <core.hooksPath>githooks/windows/</core.hooksPath>
-              </gitConfig>
-            </configuration>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>configure</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
       <id>jenkins</id>
       <!-- Removed jdks-maven-plugin.base-url override - now uses default GitHub URLs
            because jdks-maven-plugin cannot handle authentication credentials (NEXUS-50423) -->

@@ -101,15 +101,7 @@ git clone <repository-url>
 cd insight-brain
 ```
 
-### 2. Install Git Hooks (Recommended)
-```bash
-# Copy pre-commit and pre-push hooks
-cp githooks/pre-commit .git/hooks/
-cp githooks/pre-push .git/hooks/
-chmod +x .git/hooks/pre-commit .git/hooks/pre-push
-```
-
-### 3. Initial Build
+### 2. Initial Build
 ```bash
 # Quick build (skips tests - faster for first setup)
 mvn clean install -Pquick

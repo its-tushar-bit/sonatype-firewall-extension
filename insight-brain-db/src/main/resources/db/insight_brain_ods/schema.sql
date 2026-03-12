@@ -249,6 +249,7 @@ CREATE TABLE role_permission (
 -- System Administrator role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1b68169c84874c69b4ac30a391b46212', '1b92fae3e55a411793a091fb821c422d', 'CONFIGURE_SYSTEM');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('971e6e9fa55e402f9809a814993261d8', '1b92fae3e55a411793a091fb821c422d', 'VIEW_ROLES');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('3229ffe4e3a945c3bf11ab649ffa875e', '1b92fae3e55a411793a091fb821c422d', 'ACCESS_AUDIT_LOG');
 -- Policy Administrator role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1539fa2c5afd4cd4b7102ef6c8d0bf6b', 'b9646757e98e486da7d730025f5245f8', 'WRITE');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('c49843ffa4ae4bb68c3e35b25244486e', 'b9646757e98e486da7d730025f5245f8', 'READ');

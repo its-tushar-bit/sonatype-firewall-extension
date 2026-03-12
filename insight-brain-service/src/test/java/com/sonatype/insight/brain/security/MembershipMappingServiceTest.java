@@ -1096,7 +1096,7 @@ public class MembershipMappingServiceTest
 
   @Test
   public void testGetPermissionsForUserPrincipal() {
-    testGetPermissionsForUserPrincipal("Add", "Change", "Claim", "Edit", "Evaluate", "Manage",
+    testGetPermissionsForUserPrincipal("Access", "Add", "Change", "Claim", "Edit", "Evaluate", "Manage",
         "Review", "View", "Waive", "Create");
   }
 

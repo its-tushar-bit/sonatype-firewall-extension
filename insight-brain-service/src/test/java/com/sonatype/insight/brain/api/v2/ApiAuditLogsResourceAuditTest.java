@@ -11,9 +11,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
@@ -31,9 +29,7 @@ public class ApiAuditLogsResourceAuditTest
 
   @Test
   public void testGetAuditLogs() throws Exception {
-    User user = tempEntity.newUser();
-    Role role = tempEntity.newRole(false /* global */, Permission.ACCESS_AUDIT_LOG);
-    tempEntity.newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, role.getId(), user.getUsername());
+    User user = createUserWithPermissions(Permission.ACCESS_AUDIT_LOG);
 
     HttpResponse response = restRequest().auth(user)
         .query("startUtcDate", "2024-02-04")
@@ -46,12 +42,15 @@ public class ApiAuditLogsResourceAuditTest
 
   @Test
   public void testGetAuditLogs_Unauthorized() throws Exception {
-    HttpResponse response = restRequest()
+    // Create a user without ACCESS_AUDIT_LOG permission
+    User user = createUserWithPermissions(Permission.READ);
+
+    HttpResponse response = restRequest().auth(user)
         .query("startUtcDate", "2024-02-10")
         .query("endUtcDate", "2024-02-08")
         .get();
 
     assertResponseStatus(HttpStatus.SC_FORBIDDEN, response);
-    assertAuditLog(AuditEvent.EXPORT_AUDIT_LOG, "unauthorized", "admin");
+    assertAuditLog(AuditEvent.EXPORT_AUDIT_LOG, "unauthorized", user.getUsername());
   }
 }

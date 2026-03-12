@@ -19,9 +19,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserActivityDetailDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserActivitySummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserActivityFilterOptionsDTO;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -160,7 +158,7 @@ public class UserActivityResourceTest
 
   @Test
   public void testGetFilterOptions_Unauthorized() throws Exception {
-    HttpResponse response = restRequest()
+    HttpResponse response = restRequest().auth(getUserWithoutAuditLogAccess())
         .path("/filterOptions")
         .get();
 
@@ -169,7 +167,7 @@ public class UserActivityResourceTest
 
   @Test
   public void testGetUserActivitySummary_Unauthorized() throws Exception {
-    HttpResponse response = restRequest()
+    HttpResponse response = restRequest().auth(getUserWithoutAuditLogAccess())
         .query("startUtcDate", "2024-03-10")
         .query("endUtcDate", "2024-03-13")
         .get();
@@ -256,7 +254,7 @@ public class UserActivityResourceTest
 
   @Test
   public void testExportUserActivitySummary_Unauthorized() throws Exception {
-    HttpResponse response = restRequest()
+    HttpResponse response = restRequest().auth(getUserWithoutAuditLogAccess())
         .path("/export")
         .query("startUtcDate", "2024-03-10")
         .query("endUtcDate", "2024-03-13")
@@ -267,7 +265,7 @@ public class UserActivityResourceTest
 
   @Test
   public void testExportUserActivityDetail_Unauthorized() throws Exception {
-    HttpResponse response = restRequest()
+    HttpResponse response = restRequest().auth(getUserWithoutAuditLogAccess())
         .path("/export")
         .query("startUtcDate", "2024-03-10")
         .query("endUtcDate", "2024-03-13")
@@ -297,9 +295,10 @@ public class UserActivityResourceTest
   }
 
   private User getUser() {
-    User user = tempEntity.newUser();
-    Role role = tempEntity.newRole(false /* global */, Permission.ACCESS_AUDIT_LOG);
-    tempEntity.newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, role.getId(), user.getUsername());
-    return user;
+    return createUserWithPermissions(Permission.ACCESS_AUDIT_LOG);
+  }
+
+  private User getUserWithoutAuditLogAccess() {
+    return createUserWithPermissions(Permission.READ);
   }
 }

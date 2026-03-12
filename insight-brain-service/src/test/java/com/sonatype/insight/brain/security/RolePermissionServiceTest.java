@@ -36,7 +36,7 @@ public class RolePermissionServiceTest
         () -> rolePermissionService.setPermissionsForRole(role.getId(), EnumSet.of(Permission.CONFIGURE_SYSTEM)))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Cannot change permissions for built-in role '" + role.getName() + "'");
-    assertThat(rolePermissionService.getPermissionsForRole(role.getId())).hasSize(2);
+    assertThat(rolePermissionService.getPermissionsForRole(role.getId())).hasSize(3);
   }
 
   @Test

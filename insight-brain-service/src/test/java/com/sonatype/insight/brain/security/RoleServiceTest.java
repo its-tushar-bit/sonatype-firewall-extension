@@ -64,7 +64,7 @@ public class RoleServiceTest
 
     assertThat(roleDTO.id).isEqualTo(Role.SYSTEM_ADMIN_ROLE_ID);
     assertThat(roleDTO.permissionCategories).hasSize(3);
-    assertAllowedPermissions(roleDTO, Permission.CONFIGURE_SYSTEM, Permission.VIEW_ROLES);
+    assertAllowedPermissions(roleDTO, Permission.CONFIGURE_SYSTEM, Permission.VIEW_ROLES, Permission.ACCESS_AUDIT_LOG);
 
     PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
     assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());

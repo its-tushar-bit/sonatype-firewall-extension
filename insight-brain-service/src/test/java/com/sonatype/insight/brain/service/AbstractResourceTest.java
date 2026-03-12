@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
 /**
@@ -14,4 +18,17 @@ import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 public abstract class AbstractResourceTest
     extends AbstractBrainServiceIntegrationTest
 {
+  /**
+   * Helper method to create a user with specified permissions.
+   * Reduces code duplication when creating test users with specific permission sets.
+   *
+   * @param permissions the permissions to grant to the user
+   * @return a new user with the specified permissions
+   */
+  protected User createUserWithPermissions(Permission... permissions) {
+    User user = tempEntity.newUser();
+    Role role = tempEntity.newRole(false /* global */, permissions);
+    tempEntity.newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, role.getId(), user.getUsername());
+    return user;
+  }
 }

@@ -311,6 +311,36 @@ public class GitHubAppInstallationStateDAOTest
     }
   }
 
+  @Test
+  public void testDeleteByGitHubAppId_MultipleStates() {
+    Date expiresAt = new Date(System.currentTimeMillis() + 900000);
+    tempEntity.newGitHubAppInstallationState("delete-token-1", githubAppId, "code-verifier-1", expiresAt);
+    tempEntity.newGitHubAppInstallationState("delete-token-2", githubAppId, "code-verifier-2", expiresAt);
+    tempEntity.newGitHubAppInstallationState("delete-token-3", githubAppId, "code-verifier-3", expiresAt);
+
+    dao.deleteByGitHubAppId(githubAppId);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      assertThat(dao.findByStateToken(tx, "delete-token-1")).isNull();
+      assertThat(dao.findByStateToken(tx, "delete-token-2")).isNull();
+      assertThat(dao.findByStateToken(tx, "delete-token-3")).isNull();
+      assertThat(dao.findByStateToken(tx, STATE_TOKEN)).isNull();
+      tx.commit();
+    }
+  }
+
+  @Test
+  public void testDeleteByGitHubAppId_NoStates() {
+    dao.deleteByGitHubAppId(githubAppId);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      assertThat(dao.findByStateToken(tx, STATE_TOKEN)).isNull();
+      tx.commit();
+    }
+  }
+
   private GitHubAppInstallationState createInstallationState(
       String stateToken,
       String githubAppId,

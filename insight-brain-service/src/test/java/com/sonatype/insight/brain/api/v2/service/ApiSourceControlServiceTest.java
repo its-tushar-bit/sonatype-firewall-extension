@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -58,6 +59,7 @@ import com.sonatype.insight.brain.service.githubapp.GitHubAppDeletionService;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.SourceControlAuthenticationTransitionHandler;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -158,6 +160,9 @@ public class ApiSourceControlServiceTest
   private GitHubAppDAO gitHubAppDAO;
 
   @Inject
+  private GitHubAppInstallationStateDAO installationStateDAO;
+
+  @Inject
   private InsightProxy insightProxy;
 
   @Rule
@@ -191,6 +196,7 @@ public class ApiSourceControlServiceTest
     String wireMockBaseUrl = "http://localhost:" + githubMockServer.port();
     GitHubAppDeletionService gitHubAppDeletionService = new GitHubAppDeletionService(
             gitHubAppDAO,
+            installationStateDAO,
             passwordHandler,
             insightProxy,
             wireMockBaseUrl
@@ -1699,6 +1705,42 @@ public class ApiSourceControlServiceTest
     sourceControlService.deleteSourceControlByOwner(OwnerType.APPLICATION, app.getId());
     assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
     assertThat(sourceControlDAO.getByOwnerId(app.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteSourceControlByOwner_WithGitHubAppAndPendingInstallationStates_DeletesBoth() {
+    setupCustomGitHubAppCleanupService();
+    GitHubApp gitHubApp = createAndInsertGitHubApp(app.getId());
+
+    Date expiresAt = new Date(System.currentTimeMillis() + 900000);
+    tempEntity.newGitHubAppInstallationState("pending-state-1", gitHubApp.getId(), "code-verifier-1", expiresAt);
+    tempEntity.newGitHubAppInstallationState("pending-state-2", gitHubApp.getId(), "code-verifier-2", expiresAt);
+
+    SourceControl sourceControl = createSourceControl(
+            app.getId(),
+            SourceControl.AuthenticationType.GITHUB_APP,
+            "http://example.com/test/test"
+    );
+    tempEntity.newSourceControl(sourceControl);
+    stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
+
+    try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
+      tx.begin();
+      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-1")).isNotNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-2")).isNotNull();
+      tx.commit();
+    }
+
+    sourceControlService.deleteSourceControlByOwner(OwnerType.APPLICATION, app.getId());
+
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    assertThat(sourceControlDAO.getByOwnerId(app.getId())).isNull();
+    try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
+      tx.begin();
+      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-1")).isNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-2")).isNull();
+      tx.commit();
+    }
   }
 
   @Test

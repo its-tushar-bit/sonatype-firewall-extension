@@ -13,6 +13,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
 import com.sonatype.insight.brain.git.GitHubAppKeyUtils;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -27,6 +28,7 @@ import org.slf4j.LoggerFactory;
  * Service for deleting GitHub App entities and cleaning up associated GitHub installations.
  *
  * <ol>
+ *   <li>Deletes pending installation state records</li>
  *   <li>Attempts to delete the GitHub App installation via GitHub API (if installation ID exists)</li>
  *   <li>Deletes the GitHubApp database record</li>
  * </ol>
@@ -42,6 +44,8 @@ public class GitHubAppDeletionService
 
   private final GitHubAppDAO gitHubAppDAO;
 
+  private final GitHubAppInstallationStateDAO installationStateDAO;
+
   private final PasswordHandler passwordHandler;
 
   private final InsightProxy insightProxy;
@@ -51,20 +55,23 @@ public class GitHubAppDeletionService
   @Inject
   public GitHubAppDeletionService(
           final GitHubAppDAO gitHubAppDAO,
+          final GitHubAppInstallationStateDAO installationStateDAO,
           final PasswordHandler passwordHandler,
           final InsightProxy insightProxy)
   {
-    this(gitHubAppDAO, passwordHandler, insightProxy,
+    this(gitHubAppDAO, installationStateDAO, passwordHandler, insightProxy,
             DEFAULT_GITHUB_API_BASE_URL);
   }
 
   public GitHubAppDeletionService(
           final GitHubAppDAO gitHubAppDAO,
+          final GitHubAppInstallationStateDAO installationStateDAO,
           final PasswordHandler passwordHandler,
           final InsightProxy insightProxy,
           final String githubApiBaseUrl)
   {
     this.gitHubAppDAO = gitHubAppDAO;
+    this.installationStateDAO = installationStateDAO;
     this.passwordHandler = passwordHandler;
     this.insightProxy = insightProxy;
     this.githubApiBaseUrl = githubApiBaseUrl;
@@ -79,6 +86,11 @@ public class GitHubAppDeletionService
       return;
     }
     deleteGitHubAppInstallationViaApi(gitHubApp);
+    deleteGitHubAppInstallation(gitHubApp);
+  }
+
+  private void deleteGitHubAppInstallation(final GitHubApp gitHubApp) {
+    installationStateDAO.deleteByGitHubAppId(gitHubApp.getId());
     gitHubAppDAO.delete(gitHubApp);
   }
 

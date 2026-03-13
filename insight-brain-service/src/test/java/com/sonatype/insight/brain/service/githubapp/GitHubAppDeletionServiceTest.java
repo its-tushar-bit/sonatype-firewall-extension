@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.security.PasswordHandler;
@@ -48,6 +49,9 @@ public class GitHubAppDeletionServiceTest extends AbstractComponentTest
   private GitHubAppDAO gitHubAppDAO;
 
   @Inject
+  private GitHubAppInstallationStateDAO installationStateDAO;
+
+  @Inject
   private PasswordHandler passwordHandler;
 
   @Inject
@@ -68,6 +72,7 @@ public class GitHubAppDeletionServiceTest extends AbstractComponentTest
     String wireMockBaseUrl = "http://localhost:" + githubMockServer.port();
     deletionService = new GitHubAppDeletionService(
             gitHubAppDAO,
+            installationStateDAO,
             passwordHandler,
             insightProxy,
             wireMockBaseUrl
@@ -138,6 +143,25 @@ public class GitHubAppDeletionServiceTest extends AbstractComponentTest
 
     Application app = tempEntity.newApplicationWithParent();
     createGitHubApp(app.getId());
+    deletionService.delete(app.getId());
+
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    verify(deleteRequestedFor(urlEqualTo("/app/installations/" + TEST_VALID_INSTALLATION_ID)));
+  }
+
+  @Test
+  public void testDelete_WithPendingInstallationStates() {
+    Application app = tempEntity.newApplicationWithParent();
+    createGitHubApp(app.getId());
+
+    GitHubApp gitHubApp = gitHubAppDAO.getByOwnerId(app.getId());
+    assertThat(gitHubApp).isNotNull();
+
+    Date expiresAt = new Date(System.currentTimeMillis() + 900000);
+
+    tempEntity.newGitHubAppInstallationState("pending-state-1", gitHubApp.getId(), "code-verifier-1", expiresAt);
+    tempEntity.newGitHubAppInstallationState("pending-state-2", gitHubApp.getId(), "code-verifier-2", expiresAt);
+
     deletionService.delete(app.getId());
 
     assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();

@@ -1387,6 +1387,95 @@ public class ApiGitHubAppServiceTest
     }
   }
 
+  @Test
+  public void testCreateGitHubAppFromManifest_WithPendingInstallationStates_DeletesStatesAndApp() throws Exception {
+    deleteExistingGitHubAppForOwner(organization.getId());
+
+    GitHubApp existingApp = createGitHubApp(999999, "old-app-slug", "old-client-id",
+            organization.getId(), "old-org", 888888L);
+
+    Date expiresAt = new Date(System.currentTimeMillis() + 900000);
+    tempEntity.newGitHubAppInstallationState("pending-state-1", existingApp.getId(), "code-verifier-1", expiresAt);
+    tempEntity.newGitHubAppInstallationState("pending-state-2", existingApp.getId(), "code-verifier-2", expiresAt);
+
+    try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
+      tx.begin();
+      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-1")).isNotNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-2")).isNotNull();
+      tx.commit();
+    }
+
+    Date futureDate = new Date(System.currentTimeMillis() + 900000);
+    GitHubAppRegistrationState registrationState = createRegistrationState("replace-with-states",
+            organization.getId(), futureDate);
+
+    String manifestCode = "replace-code-with-states";
+    Integer newAppId = APP_ID + 10000;
+    String newSlug = "new-app-after-states-cleanup";
+    mockManifestConversion(manifestCode, newAppId, newSlug);
+
+    service.createGitHubAppFromManifest(manifestCode, registrationState);
+
+    GitHubApp retrievedAfter = gitHubAppDAO.getByOwnerId(organization.getId());
+    assertThat(retrievedAfter).isNotNull();
+    assertThat(retrievedAfter.getAppId()).isEqualTo(newAppId);
+    assertThat(retrievedAfter.getSlug()).isEqualTo(newSlug);
+
+    try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
+      tx.begin();
+      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-1")).isNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-2")).isNull();
+      tx.commit();
+    }
+  }
+
+  @Test
+  public void testCreateGitHubAppFromManifest_MultiplePendingStates_DeletesAllBeforeApp() throws Exception {
+    deleteExistingGitHubAppForOwner(organization.getId());
+
+    GitHubApp existingApp = createGitHubApp(999998, "app-with-many-states", "client-many-states",
+            organization.getId(), "org-many-states", 888887L);
+
+    Date expiresAt = new Date(System.currentTimeMillis() + 900000);
+    tempEntity.newGitHubAppInstallationState("state-1", existingApp.getId(), "verifier-1", expiresAt);
+    tempEntity.newGitHubAppInstallationState("state-2", existingApp.getId(), "verifier-2", expiresAt);
+    tempEntity.newGitHubAppInstallationState("state-3", existingApp.getId(), "verifier-3", expiresAt);
+    tempEntity.newGitHubAppInstallationState("state-4", existingApp.getId(), "verifier-4", expiresAt);
+
+    try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
+      tx.begin();
+      assertThat(installationStateDAO.findByStateToken(tx, "state-1")).isNotNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "state-2")).isNotNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "state-3")).isNotNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "state-4")).isNotNull();
+      tx.commit();
+    }
+
+    Date futureDate = new Date(System.currentTimeMillis() + 900000);
+    GitHubAppRegistrationState registrationState = createRegistrationState("replace-many-states",
+            organization.getId(), futureDate);
+
+    String manifestCode = "replace-code-many-states";
+    Integer newAppId = APP_ID + 11000;
+    String newSlug = "new-app-after-many-states";
+    mockManifestConversion(manifestCode, newAppId, newSlug);
+
+    service.createGitHubAppFromManifest(manifestCode, registrationState);
+
+    GitHubApp retrievedAfter = gitHubAppDAO.getByOwnerId(organization.getId());
+    assertThat(retrievedAfter).isNotNull();
+    assertThat(retrievedAfter.getAppId()).isEqualTo(newAppId);
+
+    try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
+      tx.begin();
+      assertThat(installationStateDAO.findByStateToken(tx, "state-1")).isNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "state-2")).isNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "state-3")).isNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "state-4")).isNull();
+      tx.commit();
+    }
+  }
+
   private GitHubApp createGitHubApp(Integer appId, String slug, String clientId, String ownerId,
                                      String githubOrgName, Long installationId)
   {

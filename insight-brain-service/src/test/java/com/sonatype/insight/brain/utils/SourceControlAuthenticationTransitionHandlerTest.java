@@ -15,6 +15,7 @@ import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.service.githubapp.GitHubAppDeletionService;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -22,6 +23,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl.Authenticati
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -60,6 +62,9 @@ public class SourceControlAuthenticationTransitionHandlerTest extends AbstractCo
   private GitHubAppDAO gitHubAppDAO;
 
   @Inject
+  private GitHubAppInstallationStateDAO installationStateDAO;
+
+  @Inject
   private PasswordHandler passwordHandler;
 
   @Inject
@@ -78,6 +83,7 @@ public class SourceControlAuthenticationTransitionHandlerTest extends AbstractCo
     String wireMockBaseUrl = "http://localhost:" + githubMockServer.port();
     GitHubAppDeletionService deletionService = new GitHubAppDeletionService(
             gitHubAppDAO,
+            installationStateDAO,
             passwordHandler,
             insightProxy,
             wireMockBaseUrl
@@ -160,7 +166,73 @@ public class SourceControlAuthenticationTransitionHandlerTest extends AbstractCo
     verify(deleteRequestedFor(urlPathMatching("/app/installations/.*")));
   }
 
-  private void createAndInsertGitHubApp(String ownerId) {
+  @Test
+  public void testDeleteGitHubAppInstallation_WithPendingInstallationStates_DeletesBoth() {
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp gitHubApp = createAndInsertGitHubApp(app.getId());
+
+    Date expiresAt = new Date(System.currentTimeMillis() + 900000);
+    tempEntity.newGitHubAppInstallationState("pending-state-1", gitHubApp.getId(), "code-verifier-1", expiresAt);
+    tempEntity.newGitHubAppInstallationState("pending-state-2", gitHubApp.getId(), "code-verifier-2", expiresAt);
+
+    SourceControl sc = createSourceControl(
+            app.getId(), SourceControlProvider.GITHUB, AuthenticationType.GITHUB_APP);
+
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNotNull();
+    try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
+      tx.begin();
+      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-1")).isNotNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-2")).isNotNull();
+      tx.commit();
+    }
+
+    cleanupHandler.deleteGitHubAppInstallation(sc);
+
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
+      tx.begin();
+      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-1")).isNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-2")).isNull();
+      tx.commit();
+    }
+    verify(deleteRequestedFor(urlPathMatching("/app/installations/.*")));
+  }
+
+  @Test
+  public void testHandleAuthTransition_GitHubAppToPat_WithPendingStates_DeletesAllData() {
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp gitHubApp = createAndInsertGitHubApp(app.getId());
+
+    Date expiresAt = new Date(System.currentTimeMillis() + 900000);
+    tempEntity.newGitHubAppInstallationState("transition-state-1", gitHubApp.getId(), "code-verifier-1", expiresAt);
+    tempEntity.newGitHubAppInstallationState("transition-state-2", gitHubApp.getId(), "code-verifier-2", expiresAt);
+
+    SourceControl storedSC = createSourceControl(
+            app.getId(), SourceControlProvider.GITHUB, AuthenticationType.GITHUB_APP);
+    SourceControl newSC = createSourceControl(
+            app.getId(), SourceControlProvider.GITHUB, AuthenticationType.PAT);
+
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNotNull();
+    try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
+      tx.begin();
+      assertThat(installationStateDAO.findByStateToken(tx, "transition-state-1")).isNotNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "transition-state-2")).isNotNull();
+      tx.commit();
+    }
+
+    cleanupHandler.handleAuthTransition(storedSC, newSC);
+
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
+      tx.begin();
+      assertThat(installationStateDAO.findByStateToken(tx, "transition-state-1")).isNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "transition-state-2")).isNull();
+      tx.commit();
+    }
+    verify(deleteRequestedFor(urlPathMatching("/app/installations/.*")));
+  }
+
+  private GitHubApp createAndInsertGitHubApp(String ownerId) {
     GitHubApp gitHubApp = new GitHubApp();
     gitHubApp.setId(UUID.randomUUID().toString());
     gitHubApp.setOwnerId(ownerId);
@@ -172,7 +244,7 @@ public class SourceControlAuthenticationTransitionHandlerTest extends AbstractCo
     gitHubApp.setClientSecret(passwordHandler.encryptPassword(TEST_CLIENT_SECRET));
     gitHubApp.setPrivateKey(passwordHandler.encryptPassword(generateTestRsaPrivateKey()));
     gitHubApp.setInstallationId(TEST_INSTALLATION_ID);
-    tempEntity.newGitHubApp(gitHubApp);
+    return tempEntity.newGitHubApp(gitHubApp);
   }
 
   private SourceControl createSourceControl(

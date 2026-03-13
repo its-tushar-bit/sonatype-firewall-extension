@@ -63,4 +63,17 @@ public class GitHubAppInstallationStateDAO extends AbstractOperationalSqlDAO<Git
     String query = "SELECT e FROM GitHubAppInstallationState e WHERE e.stateToken=?1";
     return get(tx, query, stateToken);
   }
+
+  public void deleteByGitHubAppId(final String githubAppId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      deleteByGitHubAppId(tx, githubAppId);
+      tx.commit();
+    }
+  }
+
+  public void deleteByGitHubAppId(final TransactionContext tx, final String githubAppId) {
+    String query = "DELETE FROM GitHubAppInstallationState e WHERE e.githubAppId = ?1";
+    createQuery(tx, query, githubAppId).executeUpdate();
+  }
 }

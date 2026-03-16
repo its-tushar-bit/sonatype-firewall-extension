@@ -12,7 +12,7 @@ export const Messages = {
     if (typeof args === 'string') {
       return args;
     }
-    if (angular.isArray(args) || args.toString() === '[object Arguments]') {
+    if (Array.isArray(args) || args.toString() === '[object Arguments]') {
       args = {
         status: args[1],
         data: args[0],
@@ -25,7 +25,7 @@ export const Messages = {
       return Messages.getHttpErrorMessage(args.response);
     } else {
       let message = '',
-        headers = angular.isFunction(args.headers) ? args.headers() : args.headers;
+        headers = typeof args.headers === 'function' ? args.headers() : args.headers;
       if (args.status <= 0 || args.status >= 1000) {
         message = 'Unable to reach Sonatype IQ Server';
       } else if (
@@ -38,8 +38,7 @@ export const Messages = {
           message = message.message || 'Error';
         }
       }
-      // Angular misses statusText (cf. https://github.com/angular/angular.js/pull/2665)
-      // , so at least ensure message for typical proxy errors
+      // Ensure message for typical proxy errors
       else if (args.status === 502) {
         message = 'Bad Gateway';
       } else if (args.status === 503) {

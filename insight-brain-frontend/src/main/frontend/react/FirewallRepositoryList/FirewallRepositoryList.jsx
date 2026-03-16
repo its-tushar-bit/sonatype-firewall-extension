@@ -5,7 +5,15 @@
  */
 import React, { useState, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxCheckbox, NxTable, NxH2, NxOverflowTooltip, NxTooltip } from '@sonatype/react-shared-components';
+import {
+  NxCheckbox,
+  NxFontAwesomeIcon,
+  NxTable,
+  NxH2,
+  NxOverflowTooltip,
+  NxTooltip,
+} from '@sonatype/react-shared-components';
+import { faBan } from '@fortawesome/free-solid-svg-icons';
 import { sortItemsByFields } from 'MainRoot/util/sortUtils';
 
 /**
@@ -130,7 +138,7 @@ function FirewallRepositoryList({
               <NxTooltip
                 title={`This repository with format '${repo.format}' is not supported by the Firewall. Please contact your administrator for more information.`}
               >
-                <i className="fa fa-ban" data-testid="repo-disabled-icon"></i>
+                <NxFontAwesomeIcon icon={faBan} data-testid="repo-disabled-icon" />
               </NxTooltip>
             )}
           </NxTable.Cell>

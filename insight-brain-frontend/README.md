@@ -22,7 +22,6 @@
     - [ Linting and Formatting ](#linting-and-formatting)
     - [ Re-installing packages with yarn ](#re-installing-packages-with-yarn)
 - [ Supported browsers and resolution ](#supported-browsers-and-resolution)
-- [ Notes on Angular, Redux, & React ](#notes-on-angular-redux--react)
 - [ Code Conventions & Patterns ](#code-conventions--patterns)
 
 ## Front-end development
@@ -149,11 +148,9 @@ As of January 2021, we currently support the latest desktop versions of Chrome, 
 
 Our current minimum screen resolution is 1366 pixels.
 
-## Notes on Angular, Redux, & React
+## React & Redux
 
-Historically, the front-end of IQ was built using AngularJS. In 2017, we introduced Redux for state management by way of [`ng-redux`](https://github.com/angular-redux/ng-redux).
-
-In 2018/2019, several developers from across Sonatype researched several different front-end frameworks to decide the company direction going forward. The consensus of that summit was to use React. Since then we have started migrating UI components in IQ from AngularJS to React.
+This project uses React for the frontend and Redux for state management.
 
 If you want to become more familiar with React and/or Redux, consider any of the following tutorials:
 

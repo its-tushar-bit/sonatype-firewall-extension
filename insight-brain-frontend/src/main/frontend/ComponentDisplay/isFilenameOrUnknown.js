@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /**
- * A shared utility used by both the angular and react implementations of component-display.  Not intended for
+ * A shared utility used by the component-display component. Not intended for
  * use outside of this folder
  *
  * @param the component

@@ -171,14 +171,14 @@ $total-delta-icon-margin-left: 8px;
   fill: $iq-dark-green;
 }
 
-.fa.iq-violation-trends__delta-icon {
-  font-size: 18px;
-
-  &.fa-caret-up {
+.iq-violation-trends__delta-icon {
+  .fa-caret-up {
+    height: 18px;
     color: $iq-dark-red;
   }
 
-  &.fa-caret-down {
+  .fa-caret-down {
+    height: 18px;
     color: $iq-dark-blue;
   }
 }

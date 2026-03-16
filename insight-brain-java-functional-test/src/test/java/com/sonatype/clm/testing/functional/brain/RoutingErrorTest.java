@@ -54,7 +54,7 @@ public class RoutingErrorTest
   public void invalidRoutesShowErrorThenHiddenOnNewValidRoute() {
     refreshOrOpen(invalidUrl());
     RoutingErrorBox.errorBox().shouldBe(Condition.visible);
-    MainHeader.get().shouldBe(Condition.visible);
+    MainHeader.menuBar().shouldBe(Condition.visible);
     RoutingErrorBox.errorMessage().shouldHave(RoutingErrorBox.errorText("Unknown Address"));
     eyesWatcher.eyesCheck();
 

@@ -8,7 +8,7 @@ import router from 'MainRoot/router/routerInstance';
 import SbomManagerDashboard from './features/dashboard/SbomManagerDashboard';
 import BillOfMaterials from './features/billOfMaterials/BillOfMaterials';
 import ComponentDetailsPage from './features/componentDetails/ComponentDetailsPage';
-import SbomContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/SbomContinuousMonitoringEditor';
+import SbomContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/continuousMonitoringEditor/SbomContinuousMonitoringEditor';
 import LearnMoreSbomManager from './features/LearnMoreSbomManager';
 import SbomApplicationsPage from './features/sbomApplicationsPage/SbomApplicationsPage';
 import { selectHasSbomManagerLicense } from 'MainRoot/productFeatures/productLicenseSelectors';

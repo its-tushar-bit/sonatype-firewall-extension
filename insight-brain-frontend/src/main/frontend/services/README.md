@@ -6,4 +6,4 @@
 
 -->
 
-This is the directory for standalone services (each service is a separate angular module)
+This is the directory for standalone services (each service is a separate JavaScript module)

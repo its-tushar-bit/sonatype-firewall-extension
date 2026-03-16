@@ -334,8 +334,8 @@ function handleTransitionStart() {
 
 /**
  * Main intialization function for the application.
- * @param {object} stateService - The ui-router state service, known in angular as $state
- * @param {object} transitionService - The ui-router transition service, known in angular as $transitions
+ * @param {object} stateService - The ui-router state service
+ * @param {object} transitionService - The ui-router transition service
  */
 export default async function main(stateService, transitionService) {
   // Reinitialize module-scoped state

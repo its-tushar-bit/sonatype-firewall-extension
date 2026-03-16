@@ -14,6 +14,25 @@ export default function ApplicationReportRoot() {
   const routerState = useRouterState();
   const params = routerState.params;
 
+  // HACK: The deps array intentionally omits params that change on sub-route navigations
+  // (componentHash, tabId, unknownjs, embeddable, policyViolationId). setReportParameters resets
+  // the Redux state including selectedReport, which causes a race condition: ComponentDetails'
+  // useEffect (child, fires first) starts an async chain that reads selectedReport, then this
+  // effect (parent, fires second) synchronously wipes it, and the async chain crashes on the
+  // now-null state.
+  //
+  // Before CLM-34416 (Angular removal), this component never re-rendered on sub-route
+  // navigations because its parent (ReactRouterRoot) had no useSelector calls, so route changes
+  // didn't propagate re-renders down the tree. The effect's deps were irrelevant because they
+  // were never re-evaluated. After App.jsx's PageLayout was updated to use
+  // useSelector(selectRouterState), the entire tree now re-renders on every route change,
+  // which exposes the race condition. Restricting deps to [publicId, scanId] restores the prior
+  // behavior where this effect only runs on initial mount and when the report itself changes.
+  //
+  // The proper fix would be to restructure how report parameters flow so that setReportParameters
+  // doesn't need to wipe selectedReport, or to avoid the parent re-render propagation entirely
+  // (e.g. by memoizing the subtree or removing the useSelector from PageLayout).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     dispatch(
       setReportParameters(
@@ -27,16 +46,7 @@ export default function ApplicationReportRoot() {
         true
       )
     );
-  }, [
-    dispatch,
-    params.publicId,
-    params.scanId,
-    params.unknownjs,
-    params.embeddable,
-    params.policyViolationId,
-    params.componentHash,
-    params.tabId,
-  ]);
+  }, [dispatch, params.publicId, params.scanId]);
 
   return <UIView />;
 }

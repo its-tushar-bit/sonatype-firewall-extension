@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import ContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/ContinuousMonitoringEditor';
+import ContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/continuousMonitoringEditor/ContinuousMonitoringEditor';
 import * as policyMonitoringSelectors from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
 
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';

@@ -7,7 +7,7 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import { NxCheckbox, getUniqueId, NxFontAwesomeIcon, NxRadio, NxErrorAlert } from '@sonatype/react-shared-components';
 import cx from 'classnames';
-import { angularToRscColorMap } from 'MainRoot/OrgsAndPolicies/utility/util';
+import { backendToRscColorMap } from 'MainRoot/OrgsAndPolicies/utility/util';
 
 import Hexagon from './Hexagon';
 
@@ -63,7 +63,7 @@ export const IqAssociationEditor = ({
       {hasItems ? (
         items.map((item, index) => {
           const iconIsHexagon = icon === 'hexagon';
-          const color = item.color ? `nx-selectable-color--${angularToRscColorMap[item.color]}` : '';
+          const color = item.color ? `nx-selectable-color--${backendToRscColorMap[item.color]}` : '';
 
           const renderIcon = () =>
             iconIsHexagon ? <Hexagon className={color} /> : <NxFontAwesomeIcon icon={icon} className={color} />;

@@ -231,7 +231,7 @@ describe('violationTrendsChartUtils', function () {
       const expectedTooltipLeft = 244;
       const expectedTooltipTop = 632;
       expect(tooltip.show).toHaveBeenCalledWith(expectedTooltipLeft, expectedTooltipTop, expect.any(String));
-      expect(tooltip.show.mock.calls[tooltip.show.mock.calls.length - 1][2]).toMatch('17<i');
+      expect(tooltip.show.mock.calls[tooltip.show.mock.calls.length - 1][2]).toMatch('17<span');
     });
   });
 });

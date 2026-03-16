@@ -8,7 +8,7 @@ import { faAd } from '@fortawesome/pro-regular-svg-icons';
 
 import { render, screen, within, fireEvent } from 'TestRoot/SpecUtil';
 import { IqAssociationEditor, FieldType } from 'MainRoot/react/IqAssociationEditor';
-import { angularToRscColorMap } from 'MainRoot/OrgsAndPolicies/utility/util';
+import { backendToRscColorMap } from 'MainRoot/OrgsAndPolicies/utility/util';
 
 import 'TestRoot/SpecUtil';
 
@@ -95,9 +95,9 @@ describe('IqAssociationEditor', () => {
     const icons = within(fieldSet).getAllByRole('presentation');
 
     expect(icons[0]).toBeVisible();
-    expect(icons[0]).toHaveClass(`nx-selectable-color--${angularToRscColorMap[minimalProps.items[0].color]}`);
+    expect(icons[0]).toHaveClass(`nx-selectable-color--${backendToRscColorMap[minimalProps.items[0].color]}`);
     expect(icons[1]).toBeVisible();
-    expect(icons[1]).toHaveClass(`nx-selectable-color--${angularToRscColorMap[minimalProps.items[1].color]}`);
+    expect(icons[1]).toHaveClass(`nx-selectable-color--${backendToRscColorMap[minimalProps.items[1].color]}`);
   });
 
   it('renders a Fontawesome icon', () => {
@@ -109,9 +109,9 @@ describe('IqAssociationEditor', () => {
     const icons = within(fieldSet).getAllByRole('img', { hidden: true });
 
     expect(icons[0]).toBeVisible();
-    expect(icons[0]).toHaveClass(`nx-selectable-color--${angularToRscColorMap[minimalProps.items[0].color]}`);
+    expect(icons[0]).toHaveClass(`nx-selectable-color--${backendToRscColorMap[minimalProps.items[0].color]}`);
     expect(icons[1]).toBeVisible();
-    expect(icons[1]).toHaveClass(`nx-selectable-color--${angularToRscColorMap[minimalProps.items[1].color]}`);
+    expect(icons[1]).toHaveClass(`nx-selectable-color--${backendToRscColorMap[minimalProps.items[1].color]}`);
   });
 
   it('renders items with no color', () => {

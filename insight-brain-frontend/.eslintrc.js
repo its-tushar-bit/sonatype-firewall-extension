@@ -11,11 +11,9 @@ module.exports = {
     es6: true,
   },
   globals: {
-    angular: false,
     $: false,
     clmBuildTimestamp: false,
     Fuse: false,
-    AngularStateUtils: false,
     Set: false,
     jQuery: false,
     SpecUtil: false,
@@ -45,7 +43,6 @@ module.exports = {
     'vars-on-top': 'off',
     'no-console': isProd ? ['error', { allow: ['warn', 'error'] }] : 'off',
     'no-debugger': isProd ? 'error' : 'off',
-    'deprecate/member-expression': ['error', { name: 'angular.merge', use: 'ramdajs deep merge methods' }],
     'prettier/prettier': ['error', { endOfLine: 'auto' }],
   },
   settings: {

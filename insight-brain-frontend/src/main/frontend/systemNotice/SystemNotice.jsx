@@ -14,7 +14,13 @@ export default function SystemNotice(props) {
     loadSystemNotice();
   }, []);
 
-  return message && <div className="nx-system-notice">{message}</div>;
+  return (
+    message && (
+      <div id="system-notice" className="nx-system-notice">
+        {message}
+      </div>
+    )
+  );
 }
 
 SystemNotice.propTypes = {

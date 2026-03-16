@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 
 import Hexagon from 'MainRoot/react/Hexagon';
-import { angularToRscColorMap, deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
+import { backendToRscColorMap, deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
 
 import {
   selectAppliedCategories,
@@ -112,7 +112,7 @@ export default function ApplicationCategoriesTile() {
   const renderHexagon = (category) => (
     <Hexagon
       className={
-        angularToRscColorMap[category.color] ? `nx-selectable-color--${angularToRscColorMap[category.color]}` : ''
+        backendToRscColorMap[category.color] ? `nx-selectable-color--${backendToRscColorMap[category.color]}` : ''
       }
     />
   );

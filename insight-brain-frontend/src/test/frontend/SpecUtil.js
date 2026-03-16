@@ -20,8 +20,6 @@ export const WAIVER_EXPIRATION_TIME = '2023-08-18';
 window.CLM = {
   path: '../brain/',
 };
-window.clmBuildTimestamp = '';
-window.angularDebug = true;
 window.SpecUtil = {
   flushPromise: () => new Promise((resolve) => setTimeout(resolve, 0)),
 

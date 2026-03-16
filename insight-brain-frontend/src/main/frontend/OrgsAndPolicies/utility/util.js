@@ -159,7 +159,12 @@ export const getNotificationsOverride = (ownerHierarchyIds, policy) => {
 export const sortByThreatLevel = sortWith([descend(prop('threatLevel')), descend(prop('name'))]);
 export const sortByThreatGroupName = sortWith([descend(prop('name')), descend(prop('threatLevel'))]);
 
-export const rscToAngularColorMap = {
+/**
+ * Maps RSC color names to backend color names (the naming convention used by the backend Color enum).
+ * Used when sending color values from the frontend color picker to the backend API.
+ * @type { Record<string, string> }
+ */
+export const rscToBackendColorMap = {
   purple: 'light-purple',
   pink: 'light-red',
   blue: 'dark-blue',
@@ -172,7 +177,12 @@ export const rscToAngularColorMap = {
   indigo: 'dark-purple',
 };
 
-export const angularToRscColorMap = invertObj(rscToAngularColorMap);
+/**
+ * Maps backend color names to RSC color names.
+ * Used when displaying color values from the backend API in the frontend color picker.
+ * @type { Record<string, string> }
+ */
+export const backendToRscColorMap = invertObj(rscToBackendColorMap);
 
 /**
  * @param membersByRoles - array of roles

@@ -3,8 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import './webpackGlobals.js';
-
 import 'components-font-awesome/css/font-awesome.min.css';
 import './lib/glyphicon/glyphicons.css';
 import './lib/bootstrap.scss';
@@ -15,7 +13,6 @@ import './sonatype-icons.css';
 import './scss/scss.scss';
 
 import './lib/jquery-loader';
-import 'angular';
 import 'es6-collections';
 import { polyfill } from 'es6-promise';
 
@@ -30,7 +27,6 @@ import Fuse from 'fuse.js';
 import ClassyBrew from 'classybrew/src/classybrew';
 
 import './utility/Polyfills';
-import './ManagementApp';
 
 import Base64 from './lib/Base64';
 
@@ -44,18 +40,18 @@ polyfill();
 import React from 'react';
 import ReactDOM from 'react-dom';
 import router from './router/routerInstance';
-import ReactRouterRoot from './router/ReactRouterRoot';
+import App from './App';
 import { initializeRouterListener } from './reduxUiRouter/routerListener';
 import { setStateService } from './reduxUiRouter/routerMiddleware';
 import main from './main';
 import handleOnEnterPermissions from './routeProductLicenseValidator/RouteProductLicenseValidator';
 import { setUrlService } from './pendo/mainBundlePendoService';
+import { initDocumentTitle } from './documentTitle';
+import { initFavicon } from './favicon';
 
 // Import all route definitions (each route file self-registers on import)
 import './allRoutes';
 
-// After Angular bootstrap (which happens automatically via ng-app in index.html),
-// initialize React ui-router
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize pendo service with router's URL service
   setUrlService(router.urlService);
@@ -66,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Ensure URL is synced after successful transitions
   // This handles cases where the built-in URL sync might not fire
-  router.transitionService.onSuccess({}, (transition) => {
+  router.transitionService.onSuccess({}, () => {
     // Force URL sync to ensure browser URL matches the current state
     router.urlService.sync();
   });
@@ -79,9 +75,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize application logic (framework-agnostic!)
   main(router.stateService, router.transitionService);
 
+  // Initialize document title and favicon
+  initDocumentTitle();
+  initFavicon();
+
   // Render React app - UIRouter component will call router.start() automatically
   const container = document.getElementById('react-root');
   if (container) {
-    ReactDOM.render(<ReactRouterRoot />, container);
+    ReactDOM.render(<App />, container);
   }
 });

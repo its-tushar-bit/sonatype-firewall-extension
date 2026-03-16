@@ -45,7 +45,7 @@ export default function BulkWaiveButton({ disabled, publicId, className = '', sk
   };
 
   if (permissionsLoading) {
-    return <NxFontAwesomeIcon icon={faCircleNotch} className="fa-spin nx-loading-spinner__icon" />;
+    return <NxFontAwesomeIcon icon={faCircleNotch} spin className="nx-loading-spinner__icon" />;
   }
 
   if (permissionsError) {

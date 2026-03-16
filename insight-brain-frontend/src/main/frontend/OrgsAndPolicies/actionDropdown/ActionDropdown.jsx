@@ -269,7 +269,7 @@ const ActionDropdown = () => {
                 onClick={handleGrantLegacyViolationStatus}
                 className={`nx-dropdown-button ${legacyViolationDisabled ? 'disabled' : ''}`}
               >
-                <NxFontAwesomeIcon icon={faHammer} className="fa-flip-horizontal" />
+                <NxFontAwesomeIcon icon={faHammer} flip="horizontal" />
                 <span>Legacy existing violations</span>
               </button>
             </LegacyViolationTooltip>

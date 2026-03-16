@@ -18,7 +18,7 @@ import {
   NxCollapsibleItems,
 } from '@sonatype/react-shared-components';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { angularToRscColorMap } from 'MainRoot/OrgsAndPolicies/utility/util';
+import { backendToRscColorMap } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { selectEntityId, selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   selectApplicableLabels,
@@ -105,7 +105,7 @@ export default function LabelsTile() {
       <NxFontAwesomeIcon
         key={label.id}
         icon={faTag}
-        className={angularToRscColorMap[label.color] ? `nx-selectable-color--${angularToRscColorMap[label.color]}` : ''}
+        className={backendToRscColorMap[label.color] ? `nx-selectable-color--${backendToRscColorMap[label.color]}` : ''}
       />
     );
   };

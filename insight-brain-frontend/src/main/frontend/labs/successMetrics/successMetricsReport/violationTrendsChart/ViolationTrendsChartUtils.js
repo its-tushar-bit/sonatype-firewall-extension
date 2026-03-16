@@ -6,6 +6,8 @@
 
 import { Scales, Components, Interactions, Plots, Dataset } from 'plottable';
 import $ from 'jquery';
+import { icon } from '@fortawesome/fontawesome-svg-core';
+import { faCaretUp, faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import {
   props,
   prop,
@@ -184,9 +186,9 @@ export function moveBarTooltip(el, nearestEntity, tooltip, tooltipOffsetTop, sho
 
   if (showTrendArrow) {
     if (nearestEntity.datum.violations > 0) {
-      trendsIcon = getTrendsIconHtml('up');
+      trendsIcon = getTrendsIconHtml(faCaretUp);
     } else if (nearestEntity.datum.violations < 0) {
-      trendsIcon = getTrendsIconHtml('down');
+      trendsIcon = getTrendsIconHtml(faCaretDown);
     }
   }
 
@@ -236,8 +238,9 @@ export function generateGuidelinePlot(xScale, data) {
     .attr('opacity', 0);
 }
 
-function getTrendsIconHtml(iconClassSuffix) {
-  return `<i class="iq-violation-trends__delta-icon fa fa-caret-${iconClassSuffix}"></i>`;
+function getTrendsIconHtml(faIcon) {
+  const svgHtml = icon(faIcon).html[0];
+  return `<span class="iq-violation-trends__delta-icon">${svgHtml}</span>`;
 }
 
 function TrendsTooltip(id, container) {

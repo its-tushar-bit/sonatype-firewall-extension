@@ -33,7 +33,7 @@ import {
   selectLabelsDeleteError,
   selectLabelsDeleteMaskState,
 } from '../labelsSelectors';
-import { angularToRscColorMap, rscToAngularColorMap } from '../utility/util';
+import { backendToRscColorMap, rscToBackendColorMap } from '../utility/util';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 const getValidationMessage = (isDirty, validationError) => {
@@ -118,8 +118,8 @@ export default function CreateComponentLabel() {
             <NxColorPicker
               id="editor-label-color-picker"
               label="Color"
-              value={angularToRscColorMap[color]}
-              onChange={(value) => saveLabelColor(rscToAngularColorMap[value])}
+              value={backendToRscColorMap[color]}
+              onChange={(value) => saveLabelColor(rscToBackendColorMap[value])}
               isRequired
             />
           </NxTile.Content>

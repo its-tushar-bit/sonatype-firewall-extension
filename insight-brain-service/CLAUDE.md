@@ -407,7 +407,7 @@ public ExampleDTO getExample(@PathParam("id") String id) {
 ## Related Modules
 
 - **insight-brain-data**: Data access layer and entities
-- **insight-brain-frontend**: React/Angular UI components
+- **insight-brain-frontend**: React UI components
 - **insight-brain-policy**: Policy evaluation engine
 - **insight-brain-db**: Database schema and migrations
 - **nexus-iq-server**: Single-tenant server bundle

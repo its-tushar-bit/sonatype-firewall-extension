@@ -11,10 +11,7 @@
   width: max-content;
 }
 
-// Make the custom Angular component transparent in layout
-enterprise-reporting-page {
-  display: contents;
-
+#fw-enterprise-reporting-page {
   .nx-alert--info {
     margin-bottom: 20px;
   }
@@ -69,11 +66,6 @@ enterprise-reporting-page {
   .nx-page-title {
     margin-bottom: var(--nx-spacing-6x);
   }
-}
-
-// Dashboard page component
-firewall-enterprise-reporting-dashboard-page {
-  display: contents;
 }
 
 // Dashboard page styles

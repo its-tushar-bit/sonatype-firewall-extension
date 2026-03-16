@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import '@testing-library/jest-dom';
-import 'angular';
 import customMatchers from './customMatchers';
 import $ from 'jquery';
 

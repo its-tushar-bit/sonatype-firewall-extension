@@ -5,7 +5,8 @@
  */
 
 import React, { useEffect } from 'react';
-import { NxLoadWrapper } from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxLoadWrapper } from '@sonatype/react-shared-components';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import * as PropTypes from 'prop-types';
 import { submitData, VISITED_ACTION } from './gettingStartedTelemetryServiceHelper';
 import ProductLicenseSummary from './components/ProductLicenseSummary';
@@ -46,7 +47,7 @@ export default function GettingStarted({
           <section className="iq-tile iq-alert" id="hds-unreachable-warning">
             <div className="iq-tile-header">
               <div className="iq-tile-header__title">
-                <i className="iq-tile-header__icon fa fa-warning"></i>
+                <NxFontAwesomeIcon icon={faExclamationTriangle} className="iq-tile-header__icon" />
                 <h2>Sonatype Data Services unreachable</h2>
               </div>
             </div>

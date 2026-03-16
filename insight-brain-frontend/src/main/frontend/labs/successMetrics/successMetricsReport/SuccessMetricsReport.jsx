@@ -6,7 +6,7 @@
 
 import React, { useEffect, Fragment } from 'react';
 import * as PropTypes from 'prop-types';
-import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
+import { faInfoCircle, faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import ViolationsByCategoryChart from './violationsByCategoryChart/ViolationsByCategoryChart';
 import ViolationTrendsChart from './violationTrendsChart/ViolationTrendsChart';
 import {
@@ -105,7 +105,7 @@ const SuccessMetricsReport = ({
             `
                 ) : (
                   <span id="no-data-warning">
-                    <i className="fa fa-info-circle"></i>
+                    <NxFontAwesomeIcon icon={faInfoCircle} />
                     {` There's not enough data to generate Success Metrics. Run some evaluations and check again${
                       includeLatestData ? '' : ' next month'
                     }.${

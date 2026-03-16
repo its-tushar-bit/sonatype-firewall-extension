@@ -50,7 +50,7 @@ export default function NavigationContainer({ clmServerVersion }) {
   const dispatch = useDispatch();
   const store = useStore();
 
-  // Get current router state from Redux instead of Angular $state
+  // Get current router state from Redux
   const currentState = useSelector(selectRouterState);
 
   const productEdition = useSelector(selectProductEdition);

@@ -61,7 +61,7 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
 import Hexagon from 'MainRoot/react/Hexagon';
-import { angularToRscColorMap } from 'MainRoot/OrgsAndPolicies/utility/util';
+import { backendToRscColorMap } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { selectLabelsSiblings } from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 import { selectRolesSiblings } from 'MainRoot/OrgsAndPolicies/access/accessSelectors';
 import { selectSiblings as selectApplicationCategoriesSiblings } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSelectors';
@@ -235,7 +235,7 @@ export default function OwnerDetailSidebar() {
                   href={`${linkMainHref}/category/${id}`}
                 >
                   <Hexagon
-                    className={angularToRscColorMap[color] ? `nx-selectable-color--${angularToRscColorMap[color]}` : ''}
+                    className={backendToRscColorMap[color] ? `nx-selectable-color--${backendToRscColorMap[color]}` : ''}
                   />
                   {name}
                 </NxTextLink>
@@ -335,7 +335,7 @@ export default function OwnerDetailSidebar() {
                 <NxTextLink className={id === labelId ? 'selected' : ''} href={`${linkMainHref}/label/${id}`}>
                   <NxFontAwesomeIcon
                     icon={faTag}
-                    className={angularToRscColorMap[color] ? `nx-selectable-color--${angularToRscColorMap[color]}` : ''}
+                    className={backendToRscColorMap[color] ? `nx-selectable-color--${backendToRscColorMap[color]}` : ''}
                   />
                   {label}
                 </NxTextLink>

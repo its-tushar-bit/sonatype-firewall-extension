@@ -23,7 +23,7 @@ export const formatDate = (date, format = STANDARD_DATE_TIME_FORMAT) => {
   return moment(date).format(format);
 };
 
-// Copied from our AngularCommon library
+// Copied from our time utilities library
 export const formatTimeAgo = (date, isTruncated = false, now = new Date()) => {
   if (!date) {
     return '';
@@ -65,7 +65,7 @@ export const formatTimeAgoUpToDay = (date) => {
   return reduceStringDateToDay(timeAgoDateInString);
 };
 
-// Copied from our AngularCommon library
+// Copied from our time utilities library
 export const reduceStringDateToDay = (timeAgoDateInString) => {
   if (
     timeAgoDateInString.indexOf('seconds ago') > -1 ||

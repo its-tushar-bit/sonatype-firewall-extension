@@ -5,6 +5,8 @@
  */
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { actions } from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSlice';
 import { selectShouldDisplayNotice } from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSelectors';
 import { selectIsBaseUrlConfigurationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
@@ -26,7 +28,7 @@ export default function BaseUrlNotSetNotice() {
   return shouldDisplayNotice ? (
     <>
       <div id="base-url-not-set-notice" className="nx-system-notice nx-system-notice--alert">
-        <i className="fa fa-warning"></i>
+        <NxFontAwesomeIcon icon={faExclamationTriangle} />
         <strong> The Base URL is not configured.</strong>
         <span> This setting is required for features such as email, SCM, and Jira integration.</span>
       </div>

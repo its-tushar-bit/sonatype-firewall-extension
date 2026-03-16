@@ -16,7 +16,6 @@ export const sortOwnerByName = (listOrMapper) => {
 };
 
 // original FuseFilter is in MainRoot/utility/filters/fuzzy.filter.js
-// this implementation has no angular dependencies
 export const fuzzyFilter = (input, term, searchField, resultField) => {
   if (!input || isEmpty(input) || !term || !searchField) {
     return input;

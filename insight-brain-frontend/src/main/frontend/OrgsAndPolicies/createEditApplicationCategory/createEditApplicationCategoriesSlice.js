@@ -46,7 +46,7 @@ import {
   validateDoubleWhitespace,
 } from 'MainRoot/util/validationUtil';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
-import { rscToAngularColorMap } from '../utility/util';
+import { rscToBackendColorMap } from '../utility/util';
 
 const { initialState: rscInitialState, userInput } = nxTextInputStateHelpers;
 
@@ -60,7 +60,7 @@ export const initialState = {
   isDirty: false,
   currentCategory: {
     id: null,
-    color: Object.values(rscToAngularColorMap)[0],
+    color: Object.values(rscToBackendColorMap)[0],
     name: rscInitialState('', validateNonEmpty),
     description: rscInitialState('', validateNonEmpty),
   },
@@ -239,7 +239,7 @@ const loadCategoryEditor = createAsyncThunk(
             currentCategory: {
               name: '',
               description: '',
-              color: Object.values(rscToAngularColorMap)[0],
+              color: Object.values(rscToBackendColorMap)[0],
             },
           };
         }

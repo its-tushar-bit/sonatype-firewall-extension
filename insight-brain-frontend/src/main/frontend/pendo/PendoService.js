@@ -9,8 +9,7 @@ import { getUserTelemetryConfig, getUserTelemetryProxy, getUserTelemetryJavascri
 
 export default function PendoService(sanitizeUrlService) {
   /* eslint-disable */
-  // Snippet from Pendo which creates a stub pendo object and adds pendo script, slightly changed to modify the URL and
-  // to use Angular wrapper objects.
+  // Snippet from Pendo which creates a stub pendo object and adds pendo script, slightly changed to modify the URL
   (function (p, e, n, d, o) {
     var v, w, x, y, z;
     o = p[d] = p[d] || {};

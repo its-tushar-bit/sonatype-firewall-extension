@@ -30,14 +30,6 @@
   }
 }
 
-system-notice {
-  display: contents;
-}
-
-change-default-admin-password-notice {
-  display: contents;
-}
-
 .iq-alert--error {
   background-color: $iq-fail-color-bg;
   border-color: $iq-fail-color;

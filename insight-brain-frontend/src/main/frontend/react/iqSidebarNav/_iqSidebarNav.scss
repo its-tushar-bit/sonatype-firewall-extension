@@ -4,12 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-main-header,
-navigation-container,
-iq-sidebar-nav {
-  display: contents;
-}
-
 .iq-sidebar-nav-footer {
   .nx-global-sidebar__release {
     // In IQ, we want the "Release 123" (or whatever) text to appear even when the sidebar is collapsed.

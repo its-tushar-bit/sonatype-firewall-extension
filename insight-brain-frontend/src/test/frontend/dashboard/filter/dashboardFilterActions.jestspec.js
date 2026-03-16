@@ -27,7 +27,7 @@ import { filterToJson } from '../../../../main/frontend/dashboard/filter/dashboa
 
 import 'TestRoot/SpecUtil';
 
-describe('dashboardFilterActions: non-angular', function () {
+describe('dashboardFilterActions', function () {
   let store;
 
   const filterJson = {

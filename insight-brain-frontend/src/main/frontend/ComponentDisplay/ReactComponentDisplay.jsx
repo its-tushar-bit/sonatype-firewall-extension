@@ -13,7 +13,7 @@ import { waiverMatcherStrategy } from '../util/waiverUtils';
 import { getComponentName, getComponentNameWithoutVersion } from '../util/componentNameUtils';
 
 /**
- * The React implementation of the component-display angular component
+ * The React implementation of the component-display component
  */
 export default function ComponentDisplay({
   component,

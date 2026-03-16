@@ -34,7 +34,7 @@ import {
   selectTagPolicyList,
 } from './createEditApplicationCategoriesSelectors';
 
-import { angularToRscColorMap, rscToAngularColorMap } from '../utility/util';
+import { backendToRscColorMap, rscToBackendColorMap } from '../utility/util';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 const getValidationMessage = (isDirty, validationError) => {
@@ -159,8 +159,8 @@ export default function CreateEditApplicationCategory() {
             <NxColorPicker
               id="editor-category-color-picker"
               label="Color"
-              value={angularToRscColorMap[color]}
-              onChange={(value) => saveCategoryColor(rscToAngularColorMap[value])}
+              value={backendToRscColorMap[color]}
+              onChange={(value) => saveCategoryColor(rscToBackendColorMap[value])}
               isRequired
             />
           </NxTile.Content>

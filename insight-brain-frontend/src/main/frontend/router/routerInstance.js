@@ -16,8 +16,7 @@ router.plugin(hashLocationPlugin);
 router.urlService.config.strictMode(false);
 
 // Normalize value-less query params by adding =true
-// This is needed because React UI-Router doesn't handle value-less query params
-// the same way Angular UI-Router did
+// This is needed because React UI-Router doesn't handle value-less query params identically
 const valuelessParamRegex = /(^|&)([^=&#]+)(?=&|$)/g;
 
 function normalizeValuelessQueryParams() {

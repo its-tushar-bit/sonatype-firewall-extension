@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 
 ## Module Overview
 
-**insight-brain-frontend** is the frontend module for Nexus IQ Server, containing the user interface for all four Sonatype products: **Lifecycle**, **SBOM Manager**, **Firewall**, and **Developer**. It implements a hybrid architecture combining React and AngularJS with Redux state management.
+**insight-brain-frontend** is the frontend module for Nexus IQ Server, containing the user interface for all four Sonatype products: **Lifecycle**, **SBOM Manager**, **Firewall**, and **Developer**. It implements React with Redux state management.
 
 ## Key Responsibilities
 
 - **User Interface**: Complete frontend UI for all IQ Server products
 - **State Management**: Redux-based state management with both legacy and modern patterns
-- **Component Library**: React components integrated with AngularJS via react2angular
+- **Component Library**: React components
 - **Asset Management**: Webpack-based build system with multiple bundles
 - **Testing Infrastructure**: Dual testing framework (Jest + Jasmine) with comprehensive coverage
 - **Styling System**: SCSS-based styling with BEM conventions
@@ -22,9 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 #### Core Frameworks
 
 - **React 16.14.0**: Modern component development (preferred for new features)
-- **AngularJS 1.6.10**: Legacy framework (being gradually migrated away from)
 - **Redux 3.7.2 + Redux Toolkit 1.5.1**: State management
-- **react2angular**: Bridge between React and AngularJS
 - **@sonatype/react-shared-components**: Sonatype's shared React component library
 
 #### Build Tools
@@ -142,31 +140,6 @@ ComponentName.propTypes = {
 - Always create and use dedicated selectors in separate `featureSelectors.js` files rather than accessing state directly with `useSelector((state) => state.featureName.data)`. This approach provides better performance through memoization, improves testability, and makes state access patterns more reusable across components.
 - All CSS class names must use the `iq-` prefix following BEM naming conventions (e.g., `iq-component-name`, `iq-component-name__element`, `iq-component-name--modifier`).
 
-### AngularJS Integration Pattern
-
-```javascript
-// module.js
-import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
-import ComponentName from './ComponentName.jsx';
-
-export default angular
-  .module('insight.componentName', [])
-  .component('componentName', iqReact2Angular(ComponentName, ['someProp'], ['$ngRedux', '$state']));
-```
-
-**Important**: For each custom Angular component created via `iqReact2Angular`, you must set `display: contents` in your SCSS:
-
-```scss
-// _componentName.scss
-component-name {
-  display: contents;
-}
-
-.iq-component-name {
-  // Your component styles here
-}
-```
-
 ### Redux State Management Pattern
 
 ```javascript
@@ -174,7 +147,7 @@ component-name {
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { getFeatureDataUrl } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 const REDUCER_NAME = 'feature';
 
@@ -745,21 +718,19 @@ Always check **React Shared Components Library** before building custom componen
 1. **Create feature directory**: `src/main/frontend/newFeature/`
 2. **Implement React components**: Use modern patterns and hooks
 3. **Create Redux slice**: Use Redux Toolkit
-4. **Add routing**: Configure AngularJS routes
+4. **Add routing**: Configure routes
 5. **Write tests**: Jest tests for new components
 6. **Add styling**: SCSS with BEM conventions
-7. **Integration**: Use `iqReact2Angular` for AngularJS integration
 
 ## Migration Status
 
 ### Current State
 
-- **React**: Required for new UI components
-- **AngularJS**: Legacy, primarily still used for routing and utilities, being gradually migrated
+- **React**: Required for all UI components
 - **Jest**: Preferred for new tests
-- **Jasmine**: Legacy, being phased out
+- **Jasmine**: Legacy tests being phased out
 - **Redux Toolkit**: Preferred for state management
-- **Legacy Redux**: Still present, migrate to Redux Toolkit when touching
+- **Legacy Redux**: Still present in some areas, migrate to Redux Toolkit when touching
 
 ### Testing Strategy
 

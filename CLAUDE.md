@@ -45,7 +45,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Multi-Module Maven Project Structure
 - **insight-brain-service**: Main server application (Dropwizard + JAX-RS)
-- **insight-brain-frontend**: React/Angular hybrid frontend (npm/webpack)
+- **insight-brain-frontend**: React frontend (npm/webpack)
 - **insight-brain-db**: Database layer (OpenJPA/PostgreSQL/H2)
 - **insight-brain-data**: Data access layer
 - **insight-brain-policy**: Policy engine (Drools)
@@ -56,7 +56,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Technology Stack
 - **Backend**: Java 17, Dropwizard 3.x, JAX-RS, Guice DI
 - **Database**: PostgreSQL (prod), H2 (dev/test/light prod), OpenJPA ORM
-- **Frontend**: React 16, Redux, Angular 1.6 (legacy), Webpack, SCSS
+- **Frontend**: React 16, Redux, Webpack, SCSS
 - **Testing**: JUnit 4, Mockito, Selenium, Karma/Jasmine, Jest, React Testing Library
 - **Security**: Apache Shiro, Keycloak SAML
 

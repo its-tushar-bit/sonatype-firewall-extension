@@ -87,7 +87,7 @@ const NavPills = ({ list, root }) => {
   useEffect(() => {
     let observer;
 
-    // Wait for the tiles to render. This is a hack but once the parent page is no longer in angular it
+    // Wait for the tiles to render. This is a hack but now that the parent page is fully React
     // should be feasible to completely change how this component gets the references to the tiles and get rid
     // of this setTimeout
     const timeout = setTimeout(() => {

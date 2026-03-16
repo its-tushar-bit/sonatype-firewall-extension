@@ -10,11 +10,6 @@
 
 @use './MenuBar/MenuBar';
 
-// Required for React component wrapped with iqReact2Angular
-main-header {
-  display: contents;
-}
-
 .iq-header {
   display: flex;
   align-items: center;
@@ -38,11 +33,7 @@ main-header {
   }
 }
 
-main-header.nx-page-header {
-  border-bottom: none;
-}
-
-main-header .menu-bar .nx-dropdown-menu {
+.menu-bar .nx-dropdown-menu {
   z-index: 1500;
 }
 

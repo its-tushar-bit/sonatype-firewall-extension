@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { clone } from 'ramda';
 import defaultFilter from '../../../../main/frontend/dashboard/filter/defaultFilter';
 import { filterToJson } from '../../../../main/frontend/dashboard/filter/dashboardFilterService';
 import reduce, {
@@ -102,7 +103,7 @@ describe('manageFiltersReducer', function () {
       it('sets showDirtyAsterisk to true if saved filter has changed', function () {
         initState.showDirtyAsterisk = false;
         const state = Object.freeze(initState);
-        action.payload.filter = angular.copy(filterJson);
+        action.payload.filter = clone(filterJson);
         action.payload.filter.minPolicyThreatLevel = 2;
         const newState = reduce(state, action);
         expect(newState.showDirtyAsterisk).toBe(true);

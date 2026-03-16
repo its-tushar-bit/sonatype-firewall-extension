@@ -27,7 +27,7 @@ import {
   validateDoubleWhitespace,
 } from 'MainRoot/util/validationUtil';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
-import { rscToAngularColorMap } from './utility/util';
+import { rscToBackendColorMap } from './utility/util';
 
 const { initialState: rscInitialState, userInput } = nxTextInputStateHelpers;
 
@@ -42,7 +42,7 @@ export const initialState = {
   success: null,
   loading: false,
   currentLabel: {
-    color: Object.values(rscToAngularColorMap)[0],
+    color: Object.values(rscToBackendColorMap)[0],
     description: rscInitialState(''),
     label: rscInitialState('', validateNonEmpty),
   },
@@ -262,7 +262,7 @@ const loadLabelsEditor = createAsyncThunk(
           siblings,
           currentLabel: isEditMode
             ? match
-            : { color: Object.values(rscToAngularColorMap)[0], description: '', label: '' },
+            : { color: Object.values(rscToBackendColorMap)[0], description: '', label: '' },
         };
       })
       .catch(rejectWithValue);

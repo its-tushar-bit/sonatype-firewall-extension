@@ -6,7 +6,7 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react';
 import { axiosMockAdapter, render, waitFor } from 'TestRoot/SpecUtil';
-import SbomContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/SbomContinuousMonitoringEditor';
+import SbomContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/continuousMonitoringEditor/SbomContinuousMonitoringEditor';
 import {
   getApplicablePolicyMonitoringUrl,
   getCliStageUrl,

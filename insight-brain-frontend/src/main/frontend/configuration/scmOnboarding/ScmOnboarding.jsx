@@ -31,7 +31,7 @@ export default function ScmOnboarding(props) {
     repositories,
     totalRepositories,
 
-    // from angular URL router
+    // from URL router params
     preselectedOrganizationId,
   } = props;
 
@@ -93,7 +93,7 @@ ScmOnboarding.propTypes = {
   totalRepositories: PropTypes.number,
   importedRepositoryCount: PropTypes.number,
 
-  // from angular router
+  // from router params
   preselectedOrganizationId: PropTypes.string,
 
   // actions

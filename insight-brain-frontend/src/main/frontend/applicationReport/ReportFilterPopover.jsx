@@ -99,7 +99,7 @@ export default function ReportFilterPopover() {
 
   /**
    * The new react report filters uses `NxTreeViewMultiSelect` which supports a list of strings as options.
-   *  whereas the existing angular report adopts a boolean true/false for the proprietary/Non-proprietary values
+   *  whereas the existing report adopts a boolean true/false for the proprietary/Non-proprietary values
    *  (also dispatches the same action value). This function translates the new string value to the existing boolean,
    *  so that the same action dispatch can be reused.
    */

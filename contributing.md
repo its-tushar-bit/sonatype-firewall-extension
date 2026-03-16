@@ -73,8 +73,8 @@ So you've done some discovery, and it turns out you've got a novel idea. Now it'
 * Clone this repo and create a branch locally for your contribution. You can push that branch to this repository 
  (check with Nick/Tim/Brandon to get access if you don't already). 
 * If your change set includes visual changes, enable our visual testing in your Jenkins feature branch build.
-* Use the [Sonatype codestyle](https://github.com/sonatype/codestyle) in your IDE. We have a test in our
- CI process that will fail if it doesn't match. You can test locally with `mvn checkstyle:check`.
+* Code formatting is enforced by [Spotless](https://github.com/diffplug/spotless) with an Eclipse formatter config.
+ Locally, `spotless:apply` auto-formats changed files automatically during builds. You can check locally with `mvn spotless:check`.
 * Make sure license headers are applied; this is the first test in our CI build.
 * Include tests!
 * If you see a minor improvement within the context of the change, feel free to include it!

@@ -135,7 +135,7 @@ pipeline {
 
           withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
                 options: [ artifactsPublisher(disabled: true), junitPublisher(disabled: true) ]) {
-            sh './rebuild.sh -Dmaven.repo.local="${WORKSPACE}/.zion/repository" -T 1C -DskipTests -Dpmd.skip -Dskip-obfuscate'
+            sh './rebuild.sh -Dmaven.repo.local="${WORKSPACE}/.zion/repository" -T 1C -DskipTests -Dspotless.apply.skip=true -Dspotless.check.skip=true -Dskip-obfuscate'
             sh 'mvn dependency:copy-dependencies -pl :nexus-stress-testsuite'
             sh "echo 'Location ${WORKSPACE}; ls ${WORKSPACE}'"
           }
@@ -149,7 +149,7 @@ pipeline {
         withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
                 options: [ artifactsPublisher(disabled: true), junitPublisher(disabled: true) ]) {
           sh '''
-            mvn clean install -Dmaven.repo.local="$WORKSPACE/.zion/repository" -T 1C -DskipTests -Dpmd.skip -Dskip-obfuscate \
+            mvn clean install -Dmaven.repo.local="$WORKSPACE/.zion/repository" -T 1C -DskipTests -Dspotless.apply.skip=true -Dspotless.check.skip=true -Dskip-obfuscate \
                 -pl -insight-brain-frontend,-nexus-iq-server,-insight-rm-common
           '''
         }

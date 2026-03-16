@@ -12,7 +12,6 @@ import org.junit.experimental.categories.Category;
 
 @PostgresTest
 @Category(PostgresTestCategory.class)
-@SuppressWarnings("checkstyle:TypeName")
 public class ExistingDbConnectionAdminHealthCheckEndpoint_Postgres_Test
     extends AbstractExistingDbConnectionAdminHealthCheckEndpointTest
 {

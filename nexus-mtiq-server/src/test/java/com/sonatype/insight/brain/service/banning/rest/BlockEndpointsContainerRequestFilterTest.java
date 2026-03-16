@@ -135,7 +135,6 @@ public class BlockEndpointsContainerRequestFilterTest
     }
   }
 
-  @SuppressWarnings("checkstyle:TypeName")
   private static class BlockedEndpointTestGuice$$
       extends BlockedEndpointTest
   {
@@ -143,7 +142,7 @@ public class BlockEndpointsContainerRequestFilterTest
     public void blocked() {
     }
 
-    @SuppressWarnings({"unused", "checkstyle:MethodName"})
+    @SuppressWarnings("unused")
     public void onlyInBlockedAnnotationTestGuice() {
     }
   }
@@ -156,7 +155,6 @@ public class BlockEndpointsContainerRequestFilterTest
     }
   }
 
-  @SuppressWarnings("checkstyle:TypeName")
   private static class BlockedClassTestGuice$$
       extends BlockedClassTest
   {

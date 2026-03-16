@@ -35,9 +35,13 @@ process:
 license:
     {{mvn}} license:check
 
-# Check styling
+# Check formatting
 style:
-    {{mvn}} checkstyle:check pmd:check
+    {{mvn}} spotless:check
+
+# Apply formatting to changed files
+format:
+    {{mvn}} spotless:apply
 
 # Run all functional tests with Docker
 func-test:
@@ -53,7 +57,7 @@ it name:
 
 # Run all integration tests in insight-brain-service
 run-all-its:
-    {{mvn}} verify -pl '!insight-brain-frontend' -DforkCount=12 -DreuseForks=false -Dparallel=classes -DthreadCountClasses=12 -DargLine="-Xmx5g" -Dcheckstyle.skip=true -Dpmd.skip=true -Dmaven.repo.local={{local_repo_dir}}
+    {{mvn}} verify -pl '!insight-brain-frontend' -DforkCount=12 -DreuseForks=false -Dparallel=classes -DthreadCountClasses=12 -DargLine="-Xmx5g" -Dspotless.apply.skip=true -Dspotless.check.skip=true -Dmaven.repo.local={{local_repo_dir}}
 
 # Run a particular integration test in nexus-mtiq-server
 mtiq-it name:

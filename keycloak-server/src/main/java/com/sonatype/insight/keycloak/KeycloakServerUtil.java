@@ -55,7 +55,10 @@ public class KeycloakServerUtil
     this.url = url;
     RealmRepresentation realmRepresentation = getMasterRealm();
     realmRepresentation.setAccessTokenLifespan(ADMIN_TOKEN_LIFESPAN_IN_SECONDS);
-    ClientBuilder.newClient().target(url).path("admin/realms/master").request()
+    ClientBuilder.newClient()
+        .target(url)
+        .path("admin/realms/master")
+        .request()
         .header("Authorization", "Bearer " + getToken(KeycloakServer.DEFAULT_USERNAME, KeycloakServer.DEFAULT_PASSWORD))
         .put(Entity.entity(realmRepresentation, MediaType.APPLICATION_JSON_TYPE));
     adminToken = getToken(KeycloakServer.DEFAULT_USERNAME, KeycloakServer.DEFAULT_PASSWORD);
@@ -72,10 +75,14 @@ public class KeycloakServerUtil
   public String getToken(String username, String password) throws InterruptedException {
     for (int i = 5;; i--) {
       try {
-        return ClientBuilder.newClient().target(url).path("realms/master/protocol/openid-connect/token")
+        return ClientBuilder.newClient()
+            .target(url)
+            .path("realms/master/protocol/openid-connect/token")
             .request(MediaType.APPLICATION_JSON_TYPE)
-            .post(Entity.entity(new Form().param("username", username).param("password", password)
-                .param("client_id", "admin-cli").param("grant_type", "password"),
+            .post(Entity.entity(new Form().param("username", username)
+                .param("password", password)
+                .param("client_id", "admin-cli")
+                .param("grant_type", "password"),
                 MediaType.APPLICATION_FORM_URLENCODED_TYPE), Token.class).accessToken;
       }
       catch (NotAuthorizedException e) {
@@ -91,7 +98,10 @@ public class KeycloakServerUtil
   public void createClient(ClientRepresentation client) {
     log.info("KeycloakServerUtil.createClient() start clientId:{}", client.getClientId());
 
-    Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/clients").request()
+    Response response = ClientBuilder.newClient()
+        .target(url)
+        .path("admin/realms/master/clients")
+        .request()
         .header("Authorization", "Bearer " + adminToken)
         .post(Entity.entity(client, MediaType.APPLICATION_JSON));
 
@@ -110,7 +120,10 @@ public class KeycloakServerUtil
   }
 
   public ClientRepresentation createClientRepresentation(String xmlMetadata) {
-    return ClientBuilder.newClient().target(url).path("admin/realms/master/client-description-converter").request()
+    return ClientBuilder.newClient()
+        .target(url)
+        .path("admin/realms/master/client-description-converter")
+        .request()
         .header("Authorization", "Bearer " + adminToken)
         .post(Entity.xml(xmlMetadata), ClientRepresentation.class);
   }
@@ -121,7 +134,10 @@ public class KeycloakServerUtil
   public String createUser(UserRepresentation user) {
     log.info("KeycloakServerUtil.createUser() start username:{}", user.getUsername());
 
-    Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/users").request()
+    Response response = ClientBuilder.newClient()
+        .target(url)
+        .path("admin/realms/master/users")
+        .request()
         .header("Authorization", "Bearer " + adminToken)
         .post(Entity.entity(user, MediaType.APPLICATION_JSON));
 
@@ -140,7 +156,7 @@ public class KeycloakServerUtil
           responseBody);
       throw new RuntimeException(
           "User creation failed with status code: " + response.getStatus() + " for username:" + user.getUsername() +
-          ", response: " + responseBody);
+              ", response: " + responseBody);
     }
   }
 
@@ -182,7 +198,10 @@ public class KeycloakServerUtil
     groupRepresentation.setName(groupName);
     // Note: Do NOT set path - Keycloak 23+ computes it automatically as "/<groupName>"
 
-    Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/groups").request()
+    Response response = ClientBuilder.newClient()
+        .target(url)
+        .path("admin/realms/master/groups")
+        .request()
         .header("Authorization", "Bearer " + adminToken)
         .post(Entity.entity(groupRepresentation, MediaType.APPLICATION_JSON));
 
@@ -203,8 +222,13 @@ public class KeycloakServerUtil
 
   public void assignUserToGroup(String userId, String groupId) {
     Response response =
-        ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(userId).path("groups")
-            .path(groupId).request()
+        ClientBuilder.newClient()
+            .target(url)
+            .path("admin/realms/master/users")
+            .path(userId)
+            .path("groups")
+            .path(groupId)
+            .request()
             .header("Authorization", "Bearer " + adminToken)
             // Keycloak API for assigning users to groups is exposed for PUT but does not care about body
             // Jersey does not like null in PUT hence we are sending some empty json here
@@ -217,7 +241,11 @@ public class KeycloakServerUtil
 
   public void updateUser(UserRepresentation user) {
     Response response =
-        ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(user.getId()).request()
+        ClientBuilder.newClient()
+            .target(url)
+            .path("admin/realms/master/users")
+            .path(user.getId())
+            .request()
             .header("Authorization", "Bearer " + adminToken)
             .put(Entity.entity(user, MediaType.APPLICATION_JSON));
 
@@ -231,12 +259,21 @@ public class KeycloakServerUtil
    * Also send notification to all clients that have an admin URL to invalidate the sessions for the particular user
    */
   public void logoutUser(String userId) {
-    ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(userId).path("logout").request()
-        .header("Authorization", "Bearer " + adminToken).post(null);
+    ClientBuilder.newClient()
+        .target(url)
+        .path("admin/realms/master/users")
+        .path(userId)
+        .path("logout")
+        .request()
+        .header("Authorization", "Bearer " + adminToken)
+        .post(null);
   }
 
   public String getSamlMetadataXml() {
-    return ClientBuilder.newClient().target(url).path("realms/master/protocol/saml/descriptor").request()
+    return ClientBuilder.newClient()
+        .target(url)
+        .path("realms/master/protocol/saml/descriptor")
+        .request()
         .get(String.class);
   }
 
@@ -289,8 +326,13 @@ public class KeycloakServerUtil
 
     for (String clientId : createdClientIds) {
       log.info("KeycloakServerUtil.clean() deleting clientId:{}", clientId);
-      Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/clients").path(clientId)
-          .request().header("Authorization", "Bearer " + adminToken).delete();
+      Response response = ClientBuilder.newClient()
+          .target(url)
+          .path("admin/realms/master/clients")
+          .path(clientId)
+          .request()
+          .header("Authorization", "Bearer " + adminToken)
+          .delete();
       if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
         throw new IllegalStateException(
             "Client clean failed with Status Code: " + response.getStatus() + " for clientId:" + clientId);
@@ -302,8 +344,13 @@ public class KeycloakServerUtil
 
     for (String userId : createdUserIds) {
       log.info("KeycloakServerUtil.clean() deleting userId:{}", userId);
-      Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(userId).request()
-          .header("Authorization", "Bearer " + adminToken).delete();
+      Response response = ClientBuilder.newClient()
+          .target(url)
+          .path("admin/realms/master/users")
+          .path(userId)
+          .request()
+          .header("Authorization", "Bearer " + adminToken)
+          .delete();
       if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
         throw new IllegalStateException(
             "User clean failed with Status Code: " + response.getStatus() + " for userId:" + userId);
@@ -315,8 +362,13 @@ public class KeycloakServerUtil
 
     for (String groupId : createdGroupIds) {
       log.info("KeycloakServerUtil.clean() deleting groupId:{}", groupId);
-      Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/groups").path(groupId)
-          .request().header("Authorization", "Bearer " + adminToken).delete();
+      Response response = ClientBuilder.newClient()
+          .target(url)
+          .path("admin/realms/master/groups")
+          .path(groupId)
+          .request()
+          .header("Authorization", "Bearer " + adminToken)
+          .delete();
       if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
         throw new IllegalStateException(
             "Group clean failed with Status Code: " + response.getStatus() + " for groupId:" + groupId);
@@ -330,38 +382,61 @@ public class KeycloakServerUtil
   }
 
   ClientRepresentation[] getClients() {
-    return ClientBuilder.newClient().target(url).path("admin/realms/master/clients").request()
-        .header("Authorization", "Bearer " + adminToken).get(ClientRepresentation[].class);
+    return ClientBuilder.newClient()
+        .target(url)
+        .path("admin/realms/master/clients")
+        .request()
+        .header("Authorization", "Bearer " + adminToken)
+        .get(ClientRepresentation[].class);
   }
 
   UserRepresentation[] getUsers() {
     // briefRepresentation=false is required for Keycloak 26+ to include user attributes in the response
-    return ClientBuilder.newClient().target(url).path("admin/realms/master/users")
+    return ClientBuilder.newClient()
+        .target(url)
+        .path("admin/realms/master/users")
         .queryParam("briefRepresentation", "false")
         .request()
-        .header("Authorization", "Bearer " + adminToken).get(UserRepresentation[].class);
+        .header("Authorization", "Bearer " + adminToken)
+        .get(UserRepresentation[].class);
   }
 
   UserRepresentation getUserById(String userId) {
     // Getting a user by ID returns full user details including attributes
-    return ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(userId)
+    return ClientBuilder.newClient()
+        .target(url)
+        .path("admin/realms/master/users")
+        .path(userId)
         .request()
-        .header("Authorization", "Bearer " + adminToken).get(UserRepresentation.class);
+        .header("Authorization", "Bearer " + adminToken)
+        .get(UserRepresentation.class);
   }
 
   GroupRepresentation[] getGroups() {
-    return ClientBuilder.newClient().target(url).path("admin/realms/master/groups").request()
-        .header("Authorization", "Bearer " + adminToken).get(GroupRepresentation[].class);
+    return ClientBuilder.newClient()
+        .target(url)
+        .path("admin/realms/master/groups")
+        .request()
+        .header("Authorization", "Bearer " + adminToken)
+        .get(GroupRepresentation[].class);
   }
 
   UserSessionRepresentation[] getSessionsOfUser(String userId) {
-    return ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(userId).path("sessions")
+    return ClientBuilder.newClient()
+        .target(url)
+        .path("admin/realms/master/users")
+        .path(userId)
+        .path("sessions")
         .request()
-        .header("Authorization", "Bearer " + adminToken).get(UserSessionRepresentation[].class);
+        .header("Authorization", "Bearer " + adminToken)
+        .get(UserSessionRepresentation[].class);
   }
 
   RealmRepresentation getMasterRealm() throws InterruptedException {
-    return ClientBuilder.newClient().target(url).path("admin/realms/master").request()
+    return ClientBuilder.newClient()
+        .target(url)
+        .path("admin/realms/master")
+        .request()
         .header("Authorization", "Bearer " + getToken(KeycloakServer.DEFAULT_USERNAME, KeycloakServer.DEFAULT_PASSWORD))
         .get(RealmRepresentation.class);
   }
@@ -376,21 +451,24 @@ public class KeycloakServerUtil
     // The User Profile configuration needs to have unmanagedAttributePolicy set to ENABLED
     // This is done via the realm's user profile endpoint
     // Note: firstName, lastName, email are optional (no "required" field) for test compatibility
-    @SuppressWarnings("checkstyle:LineLength")
-    String userProfileConfig = """
-        {
-          "attributes": [
-            {"name": "username", "displayName": "${username}", "validations": {"length": {"min": 3, "max": 255}}, "permissions": {"view": ["admin", "user"], "edit": ["admin", "user"]}, "multivalued": false},
-            {"name": "email", "displayName": "${email}", "validations": {"email": {}, "length": {"max": 255}}, "permissions": {"view": ["admin", "user"], "edit": ["admin", "user"]}, "multivalued": false},
-            {"name": "firstName", "displayName": "${firstName}", "validations": {"length": {"max": 255}}, "permissions": {"view": ["admin", "user"], "edit": ["admin", "user"]}, "multivalued": false},
-            {"name": "lastName", "displayName": "${lastName}", "validations": {"length": {"max": 255}}, "permissions": {"view": ["admin", "user"], "edit": ["admin", "user"]}, "multivalued": false}
-          ],
-          "groups": [{"name": "user-metadata", "displayHeader": "User metadata", "displayDescription": "Attributes, which refer to user metadata"}],
-          "unmanagedAttributePolicy": "ENABLED"
-        }
-        """;
+    String userProfileConfig =
+        """
+            {
+              "attributes": [
+                {"name": "username", "displayName": "${username}", "validations": {"length": {"min": 3, "max": 255}}, "permissions": {"view": ["admin", "user"], "edit": ["admin", "user"]}, "multivalued": false},
+                {"name": "email", "displayName": "${email}", "validations": {"email": {}, "length": {"max": 255}}, "permissions": {"view": ["admin", "user"], "edit": ["admin", "user"]}, "multivalued": false},
+                {"name": "firstName", "displayName": "${firstName}", "validations": {"length": {"max": 255}}, "permissions": {"view": ["admin", "user"], "edit": ["admin", "user"]}, "multivalued": false},
+                {"name": "lastName", "displayName": "${lastName}", "validations": {"length": {"max": 255}}, "permissions": {"view": ["admin", "user"], "edit": ["admin", "user"]}, "multivalued": false}
+              ],
+              "groups": [{"name": "user-metadata", "displayHeader": "User metadata", "displayDescription": "Attributes, which refer to user metadata"}],
+              "unmanagedAttributePolicy": "ENABLED"
+            }
+            """;
 
-    Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/users/profile").request()
+    Response response = ClientBuilder.newClient()
+        .target(url)
+        .path("admin/realms/master/users/profile")
+        .request()
         .header("Authorization", "Bearer " + adminToken)
         .put(Entity.entity(userProfileConfig, MediaType.APPLICATION_JSON));
 

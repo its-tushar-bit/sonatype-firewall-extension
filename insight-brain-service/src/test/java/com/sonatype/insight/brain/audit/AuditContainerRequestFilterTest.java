@@ -541,7 +541,6 @@ public class AuditContainerRequestFilterTest
     }
   }
 
-  @SuppressWarnings("checkstyle:TypeName")
   private static class AuditedAnnotationTestGuice$$
       extends AuditedAnnotationTest
   {
@@ -549,7 +548,7 @@ public class AuditContainerRequestFilterTest
     public void audited() {
     }
 
-    @SuppressWarnings({"unused", "checkstyle:MethodName"})
+    @SuppressWarnings("unused")
     public void onlyInAuditedAnnotationTestGuice$$() {
     }
 

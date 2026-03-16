@@ -365,7 +365,7 @@ public class ApplicationCloneService
       return;
     }
 
-    for (PolicyMonitoring policyMonitoring: policyMonitorings) {
+    for (PolicyMonitoring policyMonitoring : policyMonitorings) {
       String sourcePolicyMonitoringId = policyMonitoring.getId();
 
       detachEntity(policyMonitoring);
@@ -456,7 +456,6 @@ public class ApplicationCloneService
               }
               break;
             default:
-              // Checkstyle requires default for all switches
           }
         }
       }
@@ -606,7 +605,6 @@ public class ApplicationCloneService
           break;
         }
         default:
-          // Checkstyle requires default for all switches
       }
     }
   }

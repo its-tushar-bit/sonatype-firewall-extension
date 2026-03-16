@@ -105,7 +105,10 @@ New experimental features use `SystemConfigurationPropertyFeature` enum in datab
 - **react-shared-components**: Shared React component library
 
 ### Code Quality
-- Checkstyle and PMD are enforced
+- Spotless auto-formatter with Eclipse formatter config (`sonatype-config/sonatype-eclipse.xml`)
+  - Locally: `spotless:apply` auto-formats changed files (via `sonatype` profile, active by default)
+  - CI: `spotless:check` validates formatting (apply is skipped via `ci` profile)
+  - Only formats files changed vs `origin/main` (ratchetFrom)
 - License headers required (use `header.txt`)
 
 ### jakarta.inject Migration

@@ -321,7 +321,6 @@ public class PolicyViolationComparatorTest
   }
 
   @Test
-  @SuppressWarnings("checkstyle:LineLength")
   public void testCompare_ConditionFactsTriggers_ConditionTypeStoresTriggerData_LegacyPolicyViolationWithoutTriggerData() {
     // Legacy policy violation without trigger data
     ConditionFact conditionFact1 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
@@ -374,7 +373,7 @@ public class PolicyViolationComparatorTest
         Lists.newArrayList(constraintFact3));
     compareAndAssert(v1, v3, 0);
 
-    // Violation formatted like v1, but with slightly different data.  Since the other three violations are all equal,
+    // Violation formatted like v1, but with slightly different data. Since the other three violations are all equal,
     // they should all compare to this one the same way. If a naive lexical comparison were done, v4 would come out
     // above v2 and v3 because '"' is higher than newline characters.
     ConditionFact conditionFact4 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
@@ -407,7 +406,7 @@ public class PolicyViolationComparatorTest
     PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
         Lists.newArrayList(constraintFact2));
 
-    // this ConditionFact is not equal to the other two, and needs to compare similarly to each of them.  If a naive
+    // this ConditionFact is not equal to the other two, and needs to compare similarly to each of them. If a naive
     // lexical comparison were done it will compare as greater than v1 and less than v2
     ConditionFact conditionFact3 = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
         0 /* conditionIndex */, "test summary", "test reason");
@@ -441,8 +440,7 @@ public class PolicyViolationComparatorTest
         "Coordinates",
         1, /* conditionIndex */
         "Coordinates match " + coordinatePattern,
-        "Coordinates were com.thoughtworks.xstream : xstream : 1.2 (match " + coordinatePattern + ")"
-    );
+        "Coordinates were com.thoughtworks.xstream : xstream : 1.2 (match " + coordinatePattern + ")");
     conditionFact1.setTriggerJson(triggerJson1);
     ConstraintFact constraintFact1 = buildConstraintFact("constraintId", "Constraint Name", conditionFact1);
     PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
@@ -454,8 +452,7 @@ public class PolicyViolationComparatorTest
         "Coordinates",
         0, /* conditionIndex - different! */
         "Coordinates match " + coordinatePattern,
-        "Coordinates were com.thoughtworks.xstream : xstream : 1.2 (match " + coordinatePattern + ")"
-    );
+        "Coordinates were com.thoughtworks.xstream : xstream : 1.2 (match " + coordinatePattern + ")");
     conditionFact2.setTriggerJson(triggerJson2);
     ConstraintFact constraintFact2 = buildConstraintFact("constraintId", "Constraint Name", conditionFact2);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
@@ -478,8 +475,7 @@ public class PolicyViolationComparatorTest
         "Coordinates",
         0,
         "Coordinates match " + coordinatePattern1,
-        "Coordinates were com.thoughtworks.xstream : xstream : 1.2 (match " + coordinatePattern1 + ")"
-    );
+        "Coordinates were com.thoughtworks.xstream : xstream : 1.2 (match " + coordinatePattern1 + ")");
     conditionFact1.setTriggerJson(triggerJson1);
     ConstraintFact constraintFact1 = buildConstraintFact("constraintId", "Constraint Name", conditionFact1);
     PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
@@ -492,8 +488,7 @@ public class PolicyViolationComparatorTest
         "Coordinates",
         0,
         "Coordinates match " + coordinatePattern2,
-        "Coordinates were com.thoughtworks.xstream : xstream : 2.0 (match " + coordinatePattern2 + ")"
-    );
+        "Coordinates were com.thoughtworks.xstream : xstream : 2.0 (match " + coordinatePattern2 + ")");
     conditionFact2.setTriggerJson(triggerJson2);
     ConstraintFact constraintFact2 = buildConstraintFact("constraintId", "Constraint Name", conditionFact2);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
@@ -514,8 +509,7 @@ public class PolicyViolationComparatorTest
         "Coordinates",
         0,
         "Coordinates match maven:com.thoughtworks.xstream:xstream:1.*:*:*",
-        "Coordinates were com.thoughtworks.xstream : xstream : 1.2"
-    );
+        "Coordinates were com.thoughtworks.xstream : xstream : 1.2");
     // Note: no setTriggerJson() call - simulates legacy violation
     ConstraintFact constraintFact1 = buildConstraintFact("constraintId", "Constraint Name", conditionFact1);
     PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
@@ -526,8 +520,7 @@ public class PolicyViolationComparatorTest
         "Coordinates",
         1, /* different index */
         "Coordinates match maven:com.thoughtworks.xstream:xstream:1.*:*:*",
-        "Coordinates were com.thoughtworks.xstream : xstream : 1.2"
-    );
+        "Coordinates were com.thoughtworks.xstream : xstream : 1.2");
     // Note: no setTriggerJson() call - simulates legacy violation
     ConstraintFact constraintFact2 = buildConstraintFact("constraintId", "Constraint Name", conditionFact2);
     PolicyViolation v2 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,
@@ -538,8 +531,7 @@ public class PolicyViolationComparatorTest
         "Coordinates",
         0, /* same index */
         "Coordinates match maven:com.thoughtworks.xstream:xstream:1.*:*:*",
-        "Coordinates were com.thoughtworks.xstream : xstream : 1.2"
-    );
+        "Coordinates were com.thoughtworks.xstream : xstream : 1.2");
     // Note: no setTriggerJson() call - simulates legacy violation
     ConstraintFact constraintFact3 = buildConstraintFact("constraintId", "Constraint Name", conditionFact3);
     PolicyViolation v3 = buildPolicyViolation("1", "Policy", 1, "hash", componentA,

@@ -57,7 +57,8 @@ public class TelemetryContainerRequestFilter
       // jersey 2.41 changed the way they calculate normalized templates.
       // In order to have consistent data for telemetry, we need to parse the new normalized templates and change them
       // to match the values from jersey <= 2.40.
-      String anonymisedPath = extendedUriInfo.getMatchedTemplates().stream()
+      String anonymisedPath = extendedUriInfo.getMatchedTemplates()
+          .stream()
           .map(t -> normalizePathForTelemetry(new UriTemplateParser(t.getTemplate()).getNormalizedTemplate()))
           .reduce((t1, t2) -> t2.concat(t1))
           .orElse(null);
@@ -93,7 +94,7 @@ public class TelemetryContainerRequestFilter
           continue;
         case '}':
           skipChar = false;
-          //$FALL-THROUGH$ (for Eclipse) // fall through (for CheckStyle)
+          //$FALL-THROUGH$
         default:
           if (!skipChar) {
             result.append(c);
@@ -107,7 +108,10 @@ public class TelemetryContainerRequestFilter
   @Override
   public List<TelemetryData> collectAllData() {
     List<TelemetryData> telemetryData =
-        REST_ENDPOINT_INVOCATIONS.get().entrySet().stream().map(this::createTelemetryData)
+        REST_ENDPOINT_INVOCATIONS.get()
+            .entrySet()
+            .stream()
+            .map(this::createTelemetryData)
             .collect(Collectors.toList());
     REST_ENDPOINT_INVOCATIONS.get().clear();
     return telemetryData;

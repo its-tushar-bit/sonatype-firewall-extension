@@ -19,13 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The purpose of this class is to handle the boilerplate processing of historical telemetry data.  Depending on
- * the telemetry data in question, this can be rather memory intensive.  To mitigate possible memory issues we do
+ * The purpose of this class is to handle the boilerplate processing of historical telemetry data. Depending on
+ * the telemetry data in question, this can be rather memory intensive. To mitigate possible memory issues we do
  * a couple of things:
- *   - we check the available memory before starting to collect and send telemetry
- *   - we expect data to be pushed to us rather than consuming the entire dataset in a single operation
- *     - we stream the result set in hopes of making memory usage as efficient as possible
- *   - if we reach a preset memory limit while processing a batch, we suspend the processing
+ * - we check the available memory before starting to collect and send telemetry
+ * - we expect data to be pushed to us rather than consuming the entire dataset in a single operation
+ * - we stream the result set in hopes of making memory usage as efficient as possible
+ * - if we reach a preset memory limit while processing a batch, we suspend the processing
  */
 public abstract class HistoricalTelemetryService
 {
@@ -36,12 +36,12 @@ public abstract class HistoricalTelemetryService
   @VisibleForTesting
   enum Status
   {
-    PENDING,      // ok - initial state
-    IN_PROGRESS,  // ok - successfully started processing of historical telemetry
-    DONE,         // ok, terminal - successfully completed processing of historical telemetry
-    ERROR,        // terminal - an error occurred while processing historical telemetry - we won't try again
-    SKIPPED,      // ok - an error occurred while in the pending state - we can try again next time
-    SUSPENDED     // terminal - hit a memory limit while processing historical telemetry - we won't try again
+    PENDING, // ok - initial state
+    IN_PROGRESS, // ok - successfully started processing of historical telemetry
+    DONE, // ok, terminal - successfully completed processing of historical telemetry
+    ERROR, // terminal - an error occurred while processing historical telemetry - we won't try again
+    SKIPPED, // ok - an error occurred while in the pending state - we can try again next time
+    SUSPENDED // terminal - hit a memory limit while processing historical telemetry - we won't try again
   }
 
   private final TenantReference<HistoricalTelemetryState> historicalTelemetryState = new TenantReference<>();
@@ -106,8 +106,7 @@ public abstract class HistoricalTelemetryService
               "Insufficient free memory to continue processing %s telemetry, %dMB required, %dMB available",
               telemetryPurpose.name(),
               historicalTelemetryState.get().getMinFreeMemoryMb(),
-              freeMemory
-          );
+              freeMemory);
       log.warn(message);
       throw new InsufficientMemoryException(message);
     }
@@ -189,7 +188,6 @@ public abstract class HistoricalTelemetryService
     return Status.DONE.name().equals(status);
   }
 
-  @SuppressWarnings("checkstyle:MissingSwitchDefault")
   private boolean fetchHistoricalTelemetryStateAndCheckStatus() {
     HistoricalTelemetryState telemetryState = historicalTelemetryStateDAO.getById(telemetryPurpose.name());
     if (null == telemetryState) {
@@ -212,8 +210,7 @@ public abstract class HistoricalTelemetryService
       case IN_PROGRESS -> log.info("{} telemetry collection already in progress", telemetryPurpose.name());
       case DONE -> log.info("{} telemetry already collected and sent", telemetryPurpose.name());
       case ERROR -> log.warn("{} telemetry collection previously failed, skipping", telemetryPurpose.name());
-      case SUSPENDED ->
-          log.warn("{} telemetry collection previously suspended, skipping", telemetryPurpose.name());
+      case SUSPENDED -> log.warn("{} telemetry collection previously suspended, skipping", telemetryPurpose.name());
     }
 
     return okToTry;
@@ -259,8 +256,7 @@ public abstract class HistoricalTelemetryService
         sendCount,
         telemetryPurpose.name(),
         lastRecordTime,
-        getFreeMemoryMb()
-    );
+        getFreeMemoryMb());
   }
 
   protected void markSkipped() {

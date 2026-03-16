@@ -166,8 +166,7 @@ public class SbomImportServiceTest
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        expectedApplicationVersion
-    );
+        expectedApplicationVersion);
     assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadata.getFilename()));
   }
 
@@ -202,8 +201,7 @@ public class SbomImportServiceTest
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        expectedApplicationVersion
-    );
+        expectedApplicationVersion);
     assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadata.getFilename()));
   }
 
@@ -237,14 +235,13 @@ public class SbomImportServiceTest
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        expectedApplicationVersion
-    );
+        expectedApplicationVersion);
     assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadata.getFilename()));
   }
 
   @Test
   public void testDetectSbom_Success_IgnoreValidationError_ValidSPDX() throws IOException {
-    String expectedApplicationVersion =  "a140fd3c3ded4bb0a640dc31e2904dc9";
+    String expectedApplicationVersion = "a140fd3c3ded4bb0a640dc31e2904dc9";
     SbomSummary expectedSummary = new SbomSummary();
     expectedSummary.specification = "SPDX";
     expectedSummary.format = "json";
@@ -273,14 +270,13 @@ public class SbomImportServiceTest
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        expectedApplicationVersion
-    );
+        expectedApplicationVersion);
     assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadata.getFilename()));
   }
 
   @Test
   public void testDetectSbom_Success_IgnoreValidationError_InvalidCycloneDx() throws IOException {
-    String expectedApplicationVersion =  "a140fd3c3ded4bb0a640dc31e2904dc9";
+    String expectedApplicationVersion = "a140fd3c3ded4bb0a640dc31e2904dc9";
     SbomSummary expectedSummary = new SbomSummary();
     expectedSummary.specification = "CycloneDx";
     expectedSummary.format = "json";
@@ -329,14 +325,14 @@ public class SbomImportServiceTest
     assertThat(actual.getErrorMessage()).isNull();
     assertThat(actual.getValidationErrors()).isNull();
     assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
-    assertThat(actual.getSbomSummary()).usingRecursiveComparison().ignoringFields("serialNumber")
+    assertThat(actual.getSbomSummary()).usingRecursiveComparison()
+        .ignoringFields("serialNumber")
         .isEqualTo(expectedSummary);
     assertThat(actual.getSavedVersion()).isEqualTo(expectedApplicationVersion);
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        expectedApplicationVersion
-    );
+        expectedApplicationVersion);
     assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadata.getFilename()));
   }
 
@@ -390,8 +386,7 @@ public class SbomImportServiceTest
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        expectedApplicationVersion
-    );
+        expectedApplicationVersion);
     assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadata.getFilename()));
   }
 
@@ -427,13 +422,13 @@ public class SbomImportServiceTest
           application.getId(),
           new ByteArrayInputStream(sbom),
           "valid-cyclonedx-bom.xml",
-          false
-      );
+          false);
     }).limit(CONCURRENCY).toList();
 
     executor = new ThreadPoolExecutor(CONCURRENCY, CONCURRENCY, 0, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     executor.prestartAllCoreThreads();
-    Set<String> versions = executor.invokeAll(calls, 1, TimeUnit.SECONDS).stream()
+    Set<String> versions = executor.invokeAll(calls, 1, TimeUnit.SECONDS)
+        .stream()
         .map(future -> {
           try {
             return future.get();
@@ -460,13 +455,13 @@ public class SbomImportServiceTest
           application.getId(),
           new ByteArrayInputStream(sbom),
           "no-version-cyclonedx-bom.xml",
-          false
-      );
+          false);
     }).limit(CONCURRENCY).toList();
 
     executor = new ThreadPoolExecutor(CONCURRENCY, CONCURRENCY, 0, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     executor.prestartAllCoreThreads();
-    Set<String> versions = executor.invokeAll(calls, 1, TimeUnit.SECONDS).stream()
+    Set<String> versions = executor.invokeAll(calls, 1, TimeUnit.SECONDS)
+        .stream()
         .map(future -> {
           try {
             return future.get();
@@ -502,8 +497,7 @@ public class SbomImportServiceTest
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        actual.getSavedVersion()
-    );
+        actual.getSavedVersion());
     assertThat(sbomMetadata.getOriginalBinaryFileName()).isEqualTo("binary.jar");
     assertExistingSbomFiles("temp/persistent/%s/binary.jar".formatted(sbomMetadata.getId()));
   }
@@ -528,8 +522,7 @@ public class SbomImportServiceTest
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        actual.getSavedVersion()
-    );
+        actual.getSavedVersion());
     assertThat(sbomMetadata.getOriginalBinaryFileName()).isEqualTo("binary.jar");
     assertExistingSbomFiles("temp/persistent/%s/binary.jar".formatted(sbomMetadata.getId()));
   }
@@ -554,8 +547,7 @@ public class SbomImportServiceTest
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        actual.getSavedVersion()
-    );
+        actual.getSavedVersion());
     assertThat(sbomMetadata.getOriginalBinaryFileName()).isEqualTo("binary.jar");
     assertExistingSbomFiles("temp/persistent/%s/binary.jar".formatted(sbomMetadata.getId()));
   }
@@ -580,8 +572,7 @@ public class SbomImportServiceTest
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        actual.getSavedVersion()
-    );
+        actual.getSavedVersion());
     assertThat(sbomMetadata.getOriginalBinaryFileName()).isEqualTo("binary.jar");
     assertExistingSbomFiles("temp/persistent/%s/binary.jar".formatted(sbomMetadata.getId()));
   }
@@ -597,8 +588,7 @@ public class SbomImportServiceTest
         application.getId(),
         new ByteArrayInputStream(Files.readAllBytes(binary.toPath())),
         "..",
-        false
-    )).isInstanceOf(BadRequestException.class);
+        false)).isInstanceOf(BadRequestException.class);
 
     assertExistingSbomFiles();
   }
@@ -614,8 +604,7 @@ public class SbomImportServiceTest
         application.getId(),
         new ByteArrayInputStream(Files.readAllBytes(binary.toPath())),
         "binary.jar/..",
-        false
-    )).isInstanceOf(BadRequestException.class);
+        false)).isInstanceOf(BadRequestException.class);
 
     assertExistingSbomFiles();
   }
@@ -632,8 +621,7 @@ public class SbomImportServiceTest
         application.getId(),
         new ByteArrayInputStream(Files.readAllBytes(binary.toPath())),
         "binary.jar/.",
-        false
-    )).isInstanceOf(BadRequestException.class);
+        false)).isInstanceOf(BadRequestException.class);
 
     assertExistingSbomFiles();
   }
@@ -651,8 +639,7 @@ public class SbomImportServiceTest
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        actual.getSavedVersion()
-    );
+        actual.getSavedVersion());
     var thirdPartyFile = thirdPartyFileDAO.getById(sbomMetadata.getThirdPartyFileId());
     assertThat(thirdPartyFile.getFilename()).isEqualTo("valid-cyclonedx-bom.xml");
     assertThat(sbomMetadata.getFilename()).matches("\\p{XDigit}+\\.xml\\.gz");
@@ -672,8 +659,7 @@ public class SbomImportServiceTest
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        actual.getSavedVersion()
-    );
+        actual.getSavedVersion());
     var thirdPartyFile = thirdPartyFileDAO.getById(sbomMetadata.getThirdPartyFileId());
     assertThat(thirdPartyFile.getFilename()).isEqualTo("valid-cyclonedx-bom.xml");
     assertThat(sbomMetadata.getFilename()).matches("\\p{XDigit}+\\.xml\\.gz");
@@ -691,8 +677,7 @@ public class SbomImportServiceTest
         application.getId(),
         new ByteArrayInputStream(Files.readAllBytes(binary.toPath())),
         "..",
-        false
-    )).isInstanceOf(BadRequestException.class);
+        false)).isInstanceOf(BadRequestException.class);
 
     assertExistingSbomFiles();
   }
@@ -708,8 +693,7 @@ public class SbomImportServiceTest
         application.getId(),
         new ByteArrayInputStream(Files.readAllBytes(binary.toPath())),
         "valid-cyclonedx-bom.xml/..",
-        false
-    )).isInstanceOf(BadRequestException.class);
+        false)).isInstanceOf(BadRequestException.class);
 
     assertExistingSbomFiles();
   }
@@ -726,8 +710,7 @@ public class SbomImportServiceTest
         application.getId(),
         new ByteArrayInputStream(Files.readAllBytes(binary.toPath())),
         "valid-cyclonedx-bom.xml/.",
-        false
-    )).isInstanceOf(BadRequestException.class);
+        false)).isInstanceOf(BadRequestException.class);
 
     assertExistingSbomFiles();
   }
@@ -779,15 +762,13 @@ public class SbomImportServiceTest
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
         "Line: 11, Column: 6, Path: $.components[1], Error: required property 'type' not found",
-        "Line: 15, Column: 6, Path: $.components[2], Error: required property 'type' not found"
-    );
+        "Line: 15, Column: 6, Path: $.components[2], Error: required property 'type' not found");
 
     assertTelemetryData("json", CYCLONEDX.toString(), "1.4", 2, false, false);
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        actual.getSavedVersion()
-    );
+        actual.getSavedVersion());
     assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadata.getFilename()));
   }
 
@@ -825,15 +806,13 @@ public class SbomImportServiceTest
         "Line: 8, Column: 16, Path: //bom[1]/components[1], Error: cvc-complex-type.4: Attribute 'type' must appear " +
             "on element 'component'.",
         "Line: 12, Column: 16, Path: //bom[1]/components[1], Error: cvc-complex-type.4: Attribute 'type' must appear " +
-            "on element 'component'."
-    );
+            "on element 'component'.");
 
     assertTelemetryData("xml", CYCLONEDX.toString(), "1.4", 2, false, false);
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        actual.getSavedVersion()
-    );
+        actual.getSavedVersion());
     assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadata.getFilename()));
   }
 
@@ -908,15 +887,13 @@ public class SbomImportServiceTest
         "Line: 13, Column: 6, Path: $.packages[1], Error: required property 'downloadLocation' not found",
         "Line: 17, Column: 6, Path: $.packages[2], Error: required property 'downloadLocation' not found",
         "Line: 1, Column: 2, Path: $, Error: required property 'creationInfo' not found",
-        "Line: 1, Column: 2, Path: $, Error: required property 'dataLicense' not found"
-    );
+        "Line: 1, Column: 2, Path: $, Error: required property 'dataLicense' not found");
 
     assertTelemetryData("json", SPDX.toString(), "2.3", 4, false, false);
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        actual.getSavedVersion()
-    );
+        actual.getSavedVersion());
     assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadata.getFilename()));
   }
 
@@ -956,15 +933,13 @@ public class SbomImportServiceTest
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
         "Error: Missing required Creator",
-        "Error: Missing required data license"
-    );
+        "Error: Missing required data license");
 
     assertTelemetryData("xml", SPDX.toString(), "2.3", 2, false, false);
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        actual.getSavedVersion()
-    );
+        actual.getSavedVersion());
     assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadata.getFilename()));
   }
 
@@ -1001,7 +976,6 @@ public class SbomImportServiceTest
   }
 
   @Test
-  @SuppressWarnings("checkstyle:LineLength")
   public void testDetectSbom_Failure_Invalid_CDX_XML_Structure() throws IOException {
     String sbom = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -1103,9 +1077,8 @@ public class SbomImportServiceTest
   @Test
   public void testDetectSbom_Failure_InvalidApplicationId() throws IOException {
     assertThrows("Application with id applicationId does not exist", NotFoundException.class,
-        () ->
-            sbomImportService.detectSbom("applicationId", new ByteArrayInputStream(new byte[0]), TEST_FILENAME_XML,
-                false));
+        () -> sbomImportService.detectSbom("applicationId", new ByteArrayInputStream(new byte[0]), TEST_FILENAME_XML,
+            false));
 
     assertExistingSbomFiles();
   }
@@ -1117,8 +1090,7 @@ public class SbomImportServiceTest
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        actual.getSavedVersion()
-    );
+        actual.getSavedVersion());
     assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadata.getFilename()));
   }
 
@@ -1129,8 +1101,7 @@ public class SbomImportServiceTest
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        actual.getSavedVersion()
-    );
+        actual.getSavedVersion());
     assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadata.getFilename()));
   }
 
@@ -1141,8 +1112,7 @@ public class SbomImportServiceTest
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        actual.getSavedVersion()
-    );
+        actual.getSavedVersion());
     assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadata.getFilename()));
   }
 
@@ -1161,8 +1131,7 @@ public class SbomImportServiceTest
         application.getId(),
         detectionResult.getSavedVersion(),
         "1.2.3.4",
-        "clientUserAgent"
-    );
+        "clientUserAgent");
     assertThat(response).isNotNull();
     assertThat(response.getStatus()).isEqualTo(Status.ACCEPTED.getStatusCode());
     assertThat(response.getEntity()).isNotNull();
@@ -1187,8 +1156,7 @@ public class SbomImportServiceTest
         application.getId(),
         detectionResult.getSavedVersion(),
         "   ",
-        "clientUserAgent"
-    )).isInstanceOf(BadRequestException.class);
+        "clientUserAgent")).isInstanceOf(BadRequestException.class);
   }
 
   @Test
@@ -1204,8 +1172,7 @@ public class SbomImportServiceTest
         application.getId(),
         detectionResult1.getSavedVersion(),
         "1.2.3.4",
-        "clientUserAgent"
-    );
+        "clientUserAgent");
     assertThat(response).isNotNull();
     assertThat(response.getStatus()).isEqualTo(Status.ACCEPTED.getStatusCode());
     assertThat(response.getEntity()).isNotNull();
@@ -1224,8 +1191,7 @@ public class SbomImportServiceTest
         application.getId(),
         detectionResult2.getSavedVersion(),
         "1.2.3.4",
-        "clientUserAgent"
-    )).isInstanceOf(ConflictException.class);
+        "clientUserAgent")).isInstanceOf(ConflictException.class);
   }
 
   public SbomDetectionResultDTO testImportDetectedSbom_Success(
@@ -1245,8 +1211,7 @@ public class SbomImportServiceTest
         application.getId(),
         detectionResult.getSavedVersion(),
         null,
-        "clientUserAgent"
-    );
+        "clientUserAgent");
     assertThat(response).isNotNull();
     assertThat(response.getStatus()).isEqualTo(Status.ACCEPTED.getStatusCode());
     assertThat(response.getEntity()).isNotNull();
@@ -1261,8 +1226,7 @@ public class SbomImportServiceTest
   @Test
   public void testImportDetectedSbom_Failure_InvalidApplicationId() throws IOException {
     assertThrows("Application with id applicationId does not exist", NotFoundException.class,
-        () ->
-            sbomImportService.importDetectedSbom("notAnApplicationId", "1", null, "userAgent"));
+        () -> sbomImportService.importDetectedSbom("notAnApplicationId", "1", null, "userAgent"));
 
     assertExistingSbomFiles();
   }
@@ -1302,8 +1266,7 @@ public class SbomImportServiceTest
         application.getId(),
         detectionResult1.getSavedVersion(),
         "1.2.3.4",
-        "clientUserAgent"
-    );
+        "clientUserAgent");
     assertThat(response).isNotNull();
     assertThat(response.getStatus()).isEqualTo(Status.ACCEPTED.getStatusCode());
     assertThat(response.getEntity()).isNotNull();
@@ -1316,14 +1279,12 @@ public class SbomImportServiceTest
         SbomImportServiceTest.class.getResourceAsStream("/SbomImportServiceTest/valid-cyclonedx-bom.xml");
     var detectionResult2 = sbomImportService.detectSbom(application.getId(), file2, "valid-cyclonedx-bom.xml", false);
 
-    assertThatThrownBy(() ->
-        sbomImportService.importDetectedSbom(
-            application.getId(),
-            detectionResult2.getSavedVersion(),
-            "1.2.3.4",  // Try to use same version
-            "clientUserAgent"
-        ))
-        .isInstanceOf(ConflictException.class);
+    assertThatThrownBy(() -> sbomImportService.importDetectedSbom(
+        application.getId(),
+        detectionResult2.getSavedVersion(),
+        "1.2.3.4", // Try to use same version
+        "clientUserAgent"))
+            .isInstanceOf(ConflictException.class);
 
     ThirdPartySbomMetadata metadata =
         thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(application.getId(),
@@ -1331,12 +1292,13 @@ public class SbomImportServiceTest
     assertThat(metadata.getStatus()).isEqualTo(ThirdPartySbomMetadataStatus.UPLOADED);
   }
 
-  private void assertTelemetryData(final String format,
-                                   final String spec,
-                                   final String specVersion,
-                                   final int validationErrorsCount,
-                                   final boolean isSkipSbomValidationFeatureFlagEnabled,
-                                   final boolean isSbomValid)
+  private void assertTelemetryData(
+      final String format,
+      final String spec,
+      final String specVersion,
+      final int validationErrorsCount,
+      final boolean isSkipSbomValidationFeatureFlagEnabled,
+      final boolean isSbomValid)
   {
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender, times(1)).send(telemetryDataArgumentCaptor.capture());

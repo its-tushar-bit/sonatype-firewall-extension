@@ -106,8 +106,7 @@ make(
         '**/original-*'
       ]
     ],
-    usePMD: true,
-    useCheckstyle: true,
+    useSpotless: true,
     releaseRetentionPolicy: RetentionPolicy.TEN_BUILDS,
     onSuccess: {
         postBuild()

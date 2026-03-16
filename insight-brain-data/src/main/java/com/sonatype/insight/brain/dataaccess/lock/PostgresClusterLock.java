@@ -57,7 +57,6 @@ public class PostgresClusterLock
     }
   }
 
-  @SuppressWarnings("PMD.DoNotThrowExceptionInFinally")
   private boolean acquire() {
     Connection connection = getNewConnection();
 
@@ -119,7 +118,6 @@ public class PostgresClusterLock
     }
   }
 
-  @SuppressWarnings("PMD.DoNotThrowExceptionInFinally")
   private void rollbackAndCloseConnection(Connection connection) throws SQLException {
     SQLException sqlException = null;
     try {

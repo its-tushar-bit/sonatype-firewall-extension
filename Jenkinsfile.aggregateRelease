@@ -101,7 +101,7 @@ pipeline {
       steps {
         dir('insight-brain') {
           script {
-            def mavenOpts = "-Dskip-functional-test -DskipTests -Dpmd.skip=true -Dbuild.number=${env.BUILD_NUMBER} --threads 4"
+            def mavenOpts = "-Dskip-functional-test -DskipTests -Dspotless.apply.skip=true -Dspotless.check.skip=true -Dbuild.number=${env.BUILD_NUMBER} --threads 4"
             def config = mavenCommon(javaVersion: 'OpenJDK 17', mavenVersion: 'Maven 3.9.x', useEventSpy: false, mavenOptions: mavenOpts)
 
             withSonatypeDockerRegistry() {

@@ -53,23 +53,23 @@ public class RepositoryPolicyViolation
    *             See https://issues.sonatype.org/browse/CLM-14555 for more details.
    */
   @Deprecated
-  @SuppressWarnings("PMD.UnusedPrivateField")
   @Column(name = "active")
   private boolean active = true;
 
   public RepositoryPolicyViolation() {
   }
 
-  public RepositoryPolicyViolation(String repositoryId,
-                                   String pathname,
-                                   Date time,
-                                   String policyId,
-                                   String policyName,
-                                   int threatLevel,
-                                   PolicyThreatCategory threatCategory,
-                                   String hash,
-                                   ComponentIdentifier componentIdentifier,
-                                   List<ConstraintFact> constraintFacts)
+  public RepositoryPolicyViolation(
+      String repositoryId,
+      String pathname,
+      Date time,
+      String policyId,
+      String policyName,
+      int threatLevel,
+      PolicyThreatCategory threatCategory,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      List<ConstraintFact> constraintFacts)
   {
     super(policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFacts);
     this.repositoryId = repositoryId;

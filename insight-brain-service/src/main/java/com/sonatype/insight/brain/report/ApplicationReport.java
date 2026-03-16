@@ -65,8 +65,7 @@ public class ApplicationReport
             REPORT_ENTITY_LOADING_THREADS_MIN,
             REPORT_ENTITY_LOADING_THREADS_MAX,
             REPORT_ENTITY_LOADING_THREADS_DEFAULT,
-            REPORT_ENTITY_LOADING_THREADS
-        );
+            REPORT_ENTITY_LOADING_THREADS);
         TenantThreadPoolExecutor tenantThreadPoolExecutor = new TenantThreadPoolExecutor(
             reportEntityLoadingThreadCount,
             reportEntityLoadingThreadCount,
@@ -76,15 +75,15 @@ public class ApplicationReport
             new ThreadFactoryBuilder().setNameFormat("ReportEntityLoading-%d").build(),
             new ThreadPoolExecutor.CallerRunsPolicy(),
             "report_entity_loading",
-            ApplicationReport.class.getSimpleName()
-        );
+            ApplicationReport.class.getSimpleName());
         tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
         return tenantThreadPoolExecutor;
       });
 
   public enum ReportType
   {
-    FULL, ERROR
+    FULL,
+    ERROR
   }
 
   public enum ReportFileLocationType
@@ -105,14 +104,14 @@ public class ApplicationReport
     ADDITIONAL
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
   /**
    * See also com.sonatype.insight.scan.application.ApplicationReportGenerator.
    * As-is we copy any original file requested to the cache
    * see FileApplicationReportPersistenceService.getOrCreateLocalCopyReportEntity
    * and S3ApplicationReportPersistenceService.getOrCreateCacheReportEntity.
    * This is not an exhaustive list as some files with dynamic names can be added to the report.zip e.g.
-   * <a href="https://github.com/sonatype/hosted-data-services/blob/926c58ea6000cb08b7a5309cf44e7878c529ce62/insight-scan-processor/src/main/java/com/sonatype/insight/scan/application/ApplicationReportGenerator.java#L389">here</a>
+   * <a href=
+   * "https://github.com/sonatype/hosted-data-services/blob/926c58ea6000cb08b7a5309cf44e7878c529ce62/insight-scan-processor/src/main/java/com/sonatype/insight/scan/application/ApplicationReportGenerator.java#L389">here</a>
    */
   public enum ReportFile
   {
@@ -270,9 +269,9 @@ public class ApplicationReport
   /**
    * Generic helper method to load multiple entries in parallel.
    *
-   * @param names  list of entry names to load
+   * @param names list of entry names to load
    * @param loader function that loads a single entry by name
-   * @param <T>    type of the entry being loaded
+   * @param <T> type of the entry being loaded
    * @return map of entry name to loaded entry (null values if entry doesn't exist)
    * @throws IOException if there's an error loading any entry
    */

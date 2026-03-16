@@ -48,7 +48,7 @@
  │  Frontend Tests         │  Static Analysis      │  Policy Evaluation (conditional)          │
  │  ──────────────         │  ───────────────      │  ────────────────────────────             │
  │  • main agent           │  • agent: iq          │  • nexusPolicyEvaluation                  │
- │  • Jest + Karma         │  • Checkstyle/PMD     │                                           │
+ │  • Jest + Karma         │  • Spotless Check     │                                           │
  │                         │  • License Check      │                                           │
  ├───────────────────┬────────────┬────────────┬────────────┬────────────┬────────────────────┤
  │  Postgres Tests   │  Surefire  │  Failsafe  │  Failsafe  │  Failsafe  │  Failsafe          │
@@ -239,7 +239,7 @@ pipeline {
               script {
                 // Ensure static analysis failures fail the entire build
                 currentBuild.result = 'FAILURE'
-                error('Static analysis (Checkstyle/PMD) failed - see logs for violations')
+                error('Static analysis (Spotless/License) failed - see logs for violations')
               }
             }
           }
@@ -466,8 +466,8 @@ Map getMavenBuildConfig() {
 
   // Skip options for faster builds
   opts << "-DskipTests"
-  opts << "-Dpmd.skip=true"
-  opts << "-Dcheckstyle.skip=true"
+  opts << "-Dspotless.apply.skip=true"
+  opts << "-Dspotless.check.skip=true"
   opts << "-Dsource.skip=true"
   opts << "-Dmaven.javadoc.skip=true"
   // Note: Do NOT skip install - forked test processes need artifacts in local repo
@@ -489,7 +489,7 @@ Map getMavenBuildConfig() {
   )
 }
 
-// Get Maven config for static analysis (checkstyle, PMD)
+// Get Maven config for static analysis (spotless, license)
 Map getMavenStaticAnalysisConfig() {
   def opts = []
 
@@ -521,8 +521,8 @@ Map getDependencyResolveConfig() {
   opts << "-DskipTests"
   opts << "-Dmaven.javadoc.skip=true"
   opts << "-Dsource.skip=true"
-  opts << "-Dcheckstyle.skip=true"
-  opts << "-Dpmd.skip=true"
+  opts << "-Dspotless.apply.skip=true"
+  opts << "-Dspotless.check.skip=true"
 
   return mavenCommon(
       javaVersion: 'OpenJDK 17',
@@ -554,42 +554,6 @@ Map getFrontEndTestConfig() {
 
   opts << "--no-transfer-progress"
   opts << "-pl insight-brain-frontend"
-  opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  return mavenCommon(
-      javaVersion: 'OpenJDK 17',
-      mavenVersion: 'Maven 3.9.x',
-      useEventSpy: false,
-      mavenOptions: opts.join(' ')
-  )
-}
-
-// Get Maven config for Checkstyle analysis
-Map getCheckstyleConfig() {
-  def opts = []
-
-  opts << "--no-transfer-progress"
-  opts << "-T 2"
-  opts << "-Ppre-check"
-  opts << "-D skip-functional-test"
-  opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  return mavenCommon(
-      javaVersion: 'OpenJDK 17',
-      mavenVersion: 'Maven 3.9.x',
-      useEventSpy: false,
-      mavenOptions: opts.join(' ')
-  )
-}
-
-// Get Maven config for PMD analysis
-Map getPmdConfig() {
-  def opts = []
-
-  opts << "--no-transfer-progress"
-  opts << "-T 2"
-  opts << "-Ppre-check"
-  opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
   return mavenCommon(
@@ -1073,7 +1037,7 @@ String unstashTestArtifacts() {
 }
 
 /**
- * Run static analysis (Checkstyle, PMD, License Check) on a distributed agent.
+ * Run static analysis (Spotless, License Check) on a distributed agent.
  *
  * This runs on a fresh checkout - no unstash needed since static analysis
  * only requires source code, not compiled artifacts.
@@ -1085,10 +1049,10 @@ void runDistributedStaticAnalysis() {
   // Restore stashed artifacts
   def localRepo = unstashTestArtifacts()
 
-  // Run Checkstyle, PMD, and License Check
+  // Run Spotless check and License Check
   // These only need source code, not compiled artifacts
   mvnDirectForDistributedTests(buildStaticAnalysisMavenOptions(),
-      'checkstyle:checkstyle checkstyle:check pmd:pmd pmd:check license:check',
+      'spotless:check license:check',
       localRepo)
 }
 
@@ -1108,10 +1072,6 @@ String buildStaticAnalysisMavenOptions() {
   opts << "-Dmaven.build.cache.enabled=false"
   opts << "-Dmaven.build.cache.remote.enabled=false"
   opts << "-Dmaven.build.cache.remote.save.enabled=false"
-
-  // Explicitly fail build on static analysis violations
-  opts << "-Dcheckstyle.failOnViolation=true"
-  opts << "-Dpmd.failOnViolation=true"
 
   return opts.join(' ')
 }

@@ -56,7 +56,6 @@ public class PullRequestCodeInsightsDetails
   // We provide the IQ report link at the Code Insight report level. The annotation link is not required.
   private static final URI ANNOTATION_LINK = null;
 
-  @SuppressWarnings("checkstyle:LineLength")
   // BitBucket Cloud and BitBucket Server have a limit of 1000 annotations per report
   // https://support.atlassian.com/bitbucket-cloud/docs/code-insights/#Annotations
   // https://developer.atlassian.com/server/bitbucket/rest/v819/api-group-builds-and-deployments/#api-insights-latest-projects-projectkey-repos-repositoryslug-commits-commitid-reports-key-annotations-post
@@ -91,7 +90,8 @@ public class PullRequestCodeInsightsDetails
       final String baseUrl,
       final LocationDiscoveryResult locationDiscoveryResult,
       final PolicyDAO policyDAO,
-      final OrganizationDAO organizationDAO, final boolean reducedSecurityData)
+      final OrganizationDAO organizationDAO,
+      final boolean reducedSecurityData)
   {
     super(organizationDAO, reducedSecurityData);
     this.repositoryUrl = checkNotNull(repositoryUrl, "repositoryUrl is required and cannot be null");
@@ -216,8 +216,8 @@ public class PullRequestCodeInsightsDetails
     // Order is important here. The six data fields in the report go from left to right, top to bottom.
     // So in the UI the order defined below will be the following. Note Critical/Severe/Moderate are on the left side:
     // | Critical: 0 | Organization: org |
-    // | Severe: 0   | Stage: stage      |
-    // | Moderate: 0 | Details: details  |
+    // | Severe: 0 | Stage: stage |
+    // | Moderate: 0 | Details: details |
     return new ImmutableMap.Builder<String, Object>()
         .put("Critical", critical)
         .put("Organization", getOrganizationName(application))
@@ -240,8 +240,7 @@ public class PullRequestCodeInsightsDetails
           ANNOTATION_TYPE,
           getReportUri(),
           null,
-          null
-      );
+          null);
     }
     else {
       newPolicyViolations.forEach(policyViolation -> {
@@ -265,8 +264,7 @@ public class PullRequestCodeInsightsDetails
             ANNOTATION_TYPE,
             ANNOTATION_LINK,
             path,
-            lineOfCode
-        );
+            lineOfCode);
       });
     }
     return builder.build();
@@ -274,6 +272,7 @@ public class PullRequestCodeInsightsDetails
 
   /**
    * attempt to find a source location for a given policy violation. If nothing is found, returns null
+   *
    * @param locationDiscoveryResult list of all possibly location discovery results for violations
    * @param policyViolation violation to search for
    * @return top ranked source location if found, null otherwise
@@ -329,7 +328,7 @@ public class PullRequestCodeInsightsDetails
         final PolicyViolation policyViolation,
         final String componentDisplayName)
     {
-      // Message format is:  {threat level} - {policy name} - {component name}
+      // Message format is: {threat level} - {policy name} - {component name}
       message = String.format("%d - %s - %s", policyViolation.getThreatLevel(), policyViolation.getPolicyName(),
           componentDisplayName);
 

@@ -1408,6 +1408,7 @@
                   <exclude>**/src/test/data/module/**/*</exclude>
                   <exclude>**/releasenotes/assets/css/style.scss</exclude>
                   <exclude>**/sonatype-work/**</exclude>
+                  <exclude>**/sonatype-eclipse.xml</exclude>
                 </excludes>
               </licenseSet>
             </licenseSets>
@@ -1495,73 +1496,20 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>3.1.0</version>
         <configuration>
-          <consoleOutput>true</consoleOutput>
-          <configLocation>sonatype/checkstyle-configuration.xml</configLocation>
-          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <ratchetFrom>origin/main</ratchetFrom>
+          <java>
+            <removeUnusedImports/>
+            <trimTrailingWhitespace/>
+            <endWithNewline/>
+            <eclipse>
+              <file>${maven.multiModuleProjectDirectory}/sonatype-config/sonatype-eclipse.xml</file>
+            </eclipse>
+          </java>
         </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>com.sonatype</groupId>
-            <artifactId>checkstyle-checks</artifactId>
-            <version>19</version>
-          </dependency>
-        </dependencies>
-      </plugin>
-      <plugin>
-        <artifactId>maven-pmd-plugin</artifactId>
-        <version>3.21.2</version>
-        <configuration>
-          <linkXRef>false</linkXRef>
-          <printFailingErrors>true</printFailingErrors>
-          <includeTests>true</includeTests>
-          <rulesets>
-            <ruleset>pmd-ruleset/ruleset.xml</ruleset>
-          </rulesets>
-          <excludes>
-            <exclude>rst/pdfbox/layout/text/TextLine.java</exclude>
-          </excludes>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>com.sonatype</groupId>
-            <artifactId>pmd-ruleset</artifactId>
-            <version>22</version>
-          </dependency>
-        </dependencies>
-      </plugin>
-      <plugin>
-        <groupId>org.openrewrite.maven</groupId>
-        <artifactId>rewrite-maven-plugin</artifactId>
-        <version>6.25.0</version>
-        <configuration>
-          <activeRecipes>
-            <recipe>org.openrewrite.java.migrate.jakarta.JakartaEE11</recipe>
-          </activeRecipes>
-        </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>org.openrewrite.recipe</groupId>
-            <artifactId>rewrite-migrate-java</artifactId>
-            <version>3.23.0</version>
-          </dependency>
-        </dependencies>
       </plugin>
     </plugins>
   </build>
@@ -1603,10 +1551,48 @@
         <skipJasmineTests>true</skipJasmineTests>
         <jasmine.tests.skip>true</jasmine.tests.skip>
         <failIfNoTests>false</failIfNoTests>
-        <checkstyle.skip>true</checkstyle.skip>
-        <pmd.skip>true</pmd.skip>
         <clm.skip>true</clm.skip>
+        <spotless.apply.skip>true</spotless.apply.skip>
+        <spotless.check.skip>true</spotless.check.skip>
       </properties>
+    </profile>
+    <profile>
+      <id>sonatype</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <!-- the default behavior is to run the apply goal, which will apply linting to edited files -->
+            <groupId>com.diffplug.spotless</groupId>
+            <artifactId>spotless-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>apply</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>ci</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.diffplug.spotless</groupId>
+            <artifactId>spotless-maven-plugin</artifactId>
+            <configuration>
+              <!-- when the ci profile is activated, we skip the apply goal -->
+              <!-- spotless:check is ran during the static analysis stage -->
+              <applySkip>true</applySkip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
     <profile>
       <id>it</id>

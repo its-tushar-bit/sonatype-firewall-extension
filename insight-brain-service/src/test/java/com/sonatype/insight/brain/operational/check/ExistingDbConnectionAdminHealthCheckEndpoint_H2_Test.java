@@ -11,7 +11,6 @@ import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import org.junit.experimental.categories.Category;
 
 @H2DiskTest
-@SuppressWarnings("checkstyle:TypeName")
 @Category(SlowTest.class)
 public class ExistingDbConnectionAdminHealthCheckEndpoint_H2_Test
     extends AbstractExistingDbConnectionAdminHealthCheckEndpointTest

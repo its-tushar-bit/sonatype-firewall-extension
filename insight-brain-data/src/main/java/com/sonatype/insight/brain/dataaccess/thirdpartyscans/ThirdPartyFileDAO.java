@@ -65,9 +65,6 @@ public class ThirdPartyFileDAO
     return get(sQuery, id);
   }
 
-  // PMD incorrectly thinks this method needs an @Override annotation. Adding one does
-  // not compile
-  @SuppressWarnings("PMD")
   public void delete(TransactionContext tx, String thirdPartyFileId) {
     delete(tx, getById(thirdPartyFileId));
   }

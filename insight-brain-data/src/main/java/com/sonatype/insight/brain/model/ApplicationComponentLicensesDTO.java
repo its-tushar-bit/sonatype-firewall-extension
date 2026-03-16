@@ -77,7 +77,6 @@ public class ApplicationComponentLicensesDTO
     licensesString = String.join(String.valueOf(LICENSES_DELIMITER_CHAR), licenseIds);
   }
 
-  @SuppressWarnings("checkstyle:LineLength")
   /**
    * See CLM-34753
    * The ComponentIdentifier we save to the database originates from the ComponentDetails from HDS
@@ -85,7 +84,7 @@ public class ApplicationComponentLicensesDTO
    * https://github.com/sonatype/insight-brain/blob/93b43562a4ce96795bc01b9e0c99b838a89be9a0/insight-brain-service/src/main/java/com/sonatype/insight/brain/api/v2/service/legal/ApiLicenseLegalService.java#L851-L854
    * https://github.com/sonatype/hosted-data-services/blob/57787712fb319d1f07a6be78f75a78409aacf5a1/insight-scan-processor/src/main/java/com/sonatype/insight/scan/ComponentDetailsLoader.java#L280-L291
    * https://github.com/sonatype/insight-dto-model/blob/1b69168eecb74481e30a2cd95b4947dc4440284e/com.sonatype.clm.dto.model/src/main/java/com/sonatype/clm/dto/model/component/ComponentIdentifier.java#L726-L738
-   * However when loading 
+   * However when loading
    * 1. All application legal obligations
    * https://github.com/sonatype/insight-brain/blob/cf2b94b7ba0fc9ee67238001628b6b096cea50c0/insight-brain-data/src/main/java/com/sonatype/insight/brain/dataaccess/ApplicationComponentLicenseDAO.java#L154
    * 2. All component legal obligations
@@ -109,8 +108,7 @@ public class ApplicationComponentLicensesDTO
           componentIdentifier.get(ComponentIdentifier.CONAN_NAME),
           componentIdentifier.get(ComponentIdentifier.VERSION),
           componentIdentifier.get(ComponentIdentifier.CONAN_OWNER),
-          componentIdentifier.get(ComponentIdentifier.CONAN_CHANNEL)
-      );
+          componentIdentifier.get(ComponentIdentifier.CONAN_CHANNEL));
     }
     return componentIdentifier;
   }

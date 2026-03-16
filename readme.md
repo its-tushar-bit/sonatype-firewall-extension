@@ -15,6 +15,7 @@
 * [ Working with `insight-brain` ](#working-with-insight-brain)
     * [ Requirements ](#requirements)
     * [ Building ](#building)
+    * [ Code Formatting ](#code-formatting)
     * [ Deployment ](#deployment)
     * [ Running Tests ](#running-tests)
 * [ API Guidelines ](./doc/devdocs/api-guide-lines.md)
@@ -79,6 +80,40 @@ The front-end build is included in the main Maven build, and it is also compiled
 ## Deployment ##
 
 The server is deployed from the `insight-brain-service` directory - see the [`README`](insight-brain-service/README.md) there for details.
+
+## Code Formatting ##
+
+Code formatting is enforced by [Spotless](https://github.com/diffplug/spotless) with an Eclipse formatter config
+located at `sonatype-config/sonatype-eclipse.xml`.
+
+**Local development**: Spotless automatically formats changed files during the build (the `sonatype` profile runs
+`spotless:apply` by default). Only files changed relative to `origin/main` are formatted (`ratchetFrom`).
+
+**CI builds**: The `ci` profile skips auto-formatting; CI runs `spotless:check` separately to fail the build on
+violations.
+
+### Check formatting
+
+    mvn spotless:check
+
+### Fix formatting
+
+If you encounter a formatting error, the easiest way to address it is to invoke the `apply` goal, optionally
+scoped to the failing module:
+
+    mvn spotless:apply
+    mvn spotless:apply -pl :insight-brain-data
+
+### Formatting a specific file
+
+To format a single file without running the full build:
+
+    mvn spotless:apply -DspotlessFiles='.*MyClass\.java'
+
+### Editing the formatter config
+
+The Eclipse formatter settings live in `sonatype-config/sonatype-eclipse.xml`. If you need to adjust a rule,
+edit that file and commit it alongside the reformatted code.
 
 ## Running Tests ##
 

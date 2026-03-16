@@ -229,8 +229,9 @@ public class InsightConfig
 
   /**
    * @since 1.59
-   * This configuration disables the HTTP CSP header. It only exists because that header breaks the Geb functional
-   * tests
+   *        This configuration disables the HTTP CSP header. It only exists because that header breaks the Geb
+   *        functional
+   *        tests
    */
   @JsonProperty
   private Boolean cspEnabled;
@@ -246,6 +247,7 @@ public class InsightConfig
    * set to {@code true}, the feature is enabled. To disable it, explicitly set it to {@code false}.
    * <p>
    * For example:
+   *
    * <pre>
    * # features are enabled by default - set to false if you want to disable them
    * features:
@@ -702,7 +704,6 @@ public class InsightConfig
    * @deprecated removed in Jan 2024 as we no longer have any customers running an IQ this old. See CLM-29089.
    */
   @Deprecated
-  @SuppressWarnings("checkstyle:ParameterName")
   public void setConsentToUpgradeToVersion_1_45(@SuppressWarnings("unused") boolean consentToUpgradeToVersion_1_45) {
     log.warn("The consentToUpgradeToVersion_1_45 configuration option is obsolete and can be removed from the " +
         "config yml file.");
@@ -823,7 +824,8 @@ public class InsightConfig
 
   /**
    * Returns {@code true} if a feature flag, identified by name, is enabled; returns {@code false} otherwise.
-   * <p>If the feature flag is not explicitly declared it is considered enabled by default.
+   * <p>
+   * If the feature flag is not explicitly declared it is considered enabled by default.
    *
    * @see InsightConfig#features for details on how feature flags are specified
    */
@@ -834,7 +836,8 @@ public class InsightConfig
 
   /**
    * Returns {@code true} if a feature flag is enabled; returns {@code false} otherwise.
-   * <p>If the feature flag is not explicitly declared it is considered enabled by default.
+   * <p>
+   * If the feature flag is not explicitly declared it is considered enabled by default.
    *
    * @see InsightConfig#features for details on how feature flags are specified
    */
@@ -901,6 +904,7 @@ public class InsightConfig
    * the feature flag is set to {@code true}, the feature is enabled. To disable it, explicitly set it to {@code false}.
    * <p>
    * For example:
+   *
    * <pre>
    * # features are enabled by default - set to false if you want to disable them
    * features:
@@ -909,7 +913,8 @@ public class InsightConfig
    * </pre>
    */
   public enum Feature
-      implements com.sonatype.insight.license.model.Feature
+      implements
+      com.sonatype.insight.license.model.Feature
   {
     CODE_INSIGHTS("codeInsights"),
     COMPONENT_SEARCH_API_WITH_INNERSOURCE("componentSearchApiWithInnerSource"),
@@ -957,7 +962,7 @@ public class InsightConfig
 
   /**
    * @deprecated The initial admin password must now be set using an environment variable
-   * {@link com.sonatype.insight.brain.migration.AdminInitialPasswordMigrator#NXIQ_INITIAL_ADMIN_PASSWORD}
+   *             {@link com.sonatype.insight.brain.migration.AdminInitialPasswordMigrator#NXIQ_INITIAL_ADMIN_PASSWORD}
    */
   @Deprecated
   public void setInitialAdminPassword(@SuppressWarnings("unused") String initialAdminPassword) {
@@ -1022,8 +1027,11 @@ public class InsightConfig
   }
 
   public String getApplicationConnectorPorts() {
-    return ((DefaultServerFactory) getServerFactory()).getApplicationConnectors().stream()
-        .map(applicationConnector -> ((HttpConnectorFactory) applicationConnector).getPort()).sorted()
-        .map(String::valueOf).collect(Collectors.joining(","));
+    return ((DefaultServerFactory) getServerFactory()).getApplicationConnectors()
+        .stream()
+        .map(applicationConnector -> ((HttpConnectorFactory) applicationConnector).getPort())
+        .sorted()
+        .map(String::valueOf)
+        .collect(Collectors.joining(","));
   }
 }

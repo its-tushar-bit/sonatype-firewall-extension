@@ -73,7 +73,9 @@ public class ConfigurationTest
     binder.bind(TaskScheduler.class).toInstance(taskScheduler);
 
     // Bind a Provider for List<HdsClient>
-    binder.bind(new TypeLiteral<List<HdsClient>>() {})
+    binder.bind(new TypeLiteral<List<HdsClient>>()
+    {
+    })
         .toInstance(Lists.newArrayList(hdsClient1, hdsClient2));
 
     // Bind other mocks
@@ -135,7 +137,6 @@ public class ConfigurationTest
   }
 
   @Test
-  @SuppressWarnings("checkstyle:LineLength")
   public void testConfigurationChanged_shouldFireServerConfigurationChangedEventOnHdsClientForConnectionTimeoutChange() {
     configuration.configurationChanged(ImmutableSet.of(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS));
 
@@ -215,8 +216,7 @@ public class ConfigurationTest
     // given that the configuration has changed
     // and waived_component_upgrade_monitoring_is_enabled
     configurationService.setConfigurationInDatabaseNoAuthz(
-        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, true
-    );
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, true);
     configuration.configurationChanged(ImmutableSet.of(
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED));
     configurationService.setConfigurationInDatabaseNoAuthz(
@@ -239,8 +239,7 @@ public class ConfigurationTest
 
     // enable the scheduler
     configurationService.setConfigurationInDatabaseNoAuthz(
-        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, true
-    );
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, true);
     configuration.configurationChanged(ImmutableSet.of(
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED));
 
@@ -250,8 +249,7 @@ public class ConfigurationTest
 
     // toggle it back to false
     configurationService.setConfigurationInDatabaseNoAuthz(
-        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, false
-    );
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, false);
     configuration.configurationChanged(ImmutableSet.of(
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED));
 
@@ -271,8 +269,7 @@ public class ConfigurationTest
     configurationService.setConfigurationInDatabaseNoAuthz(
         SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 31);
     configurationService.setConfigurationInDatabaseNoAuthz(
-        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, true
-    );
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, true);
     configurationService.setConfigurationInDatabaseNoAuthz(
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 2);
 
@@ -295,7 +292,6 @@ public class ConfigurationTest
   }
 
   @Test
-  @SuppressWarnings("checkstyle:LineLength")
   public void testConfigurationChanged_shouldNotScheduleWaivedComponentUpgradesWhenUpgradeInspectionHourChangedAndDisabled() {
     when(taskScheduler.isSchedulerInitialized()).thenReturn(true);
 
@@ -344,8 +340,7 @@ public class ConfigurationTest
 
   private void givenCacheAndDatabaseAreNotInSync(
       final int maxPoolSize,
-      final String givenSomeCustomBaseUrl
-  )
+      final String givenSomeCustomBaseUrl)
   {
     // given the database and the cache are out of sync
     configurationService.setConfigurationInDatabaseNoAuthz(

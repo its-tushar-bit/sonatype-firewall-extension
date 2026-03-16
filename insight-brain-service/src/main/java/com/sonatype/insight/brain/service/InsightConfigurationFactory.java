@@ -56,10 +56,11 @@ public class InsightConfigurationFactory
 
   static final Duration DEFAULT_IDLE_TIMEOUT = Duration.minutes(15);
 
-  @SuppressWarnings("checkstyle:LineLength")
   static final String SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE =
-      "\n=================================================================================================================" +
-          "\nYour configuration file contains properties that are only compatible with Nexus IQ Server version 1.42 and lower." +
+      "\n================================================================================================================="
+          +
+          "\nYour configuration file contains properties that are only compatible with Nexus IQ Server version 1.42 and lower."
+          +
           "\nUpdate your configuration file to be compatible with this version of Nexus IQ Server." +
           "\nRefer to our configuration update guide at:" +
           "\nhttps://links.sonatype.com/products/nxiq/doc/updating-your-configuration" +
@@ -68,9 +69,9 @@ public class InsightConfigurationFactory
   private static final Set<String> DROPWIZARD_062_PROPERTIES = Sets
       .newHashSet("http", "logging.console", "logging.file", "logging.syslog");
 
-  @SuppressWarnings("checkstyle:LineLength")
   static final String NO_CONFIGURATION_EXCEPTION_MESSAGE =
-      "\n=================================================================================================================" +
+      "\n================================================================================================================="
+          +
           "\nNo configuration file was specified/found." +
           "\nYou must provide the path to your configuration file." +
           "\nRefer to our help documentation at:" +
@@ -88,8 +89,9 @@ public class InsightConfigurationFactory
   }
 
   @Override
-  public InsightConfig build(ConfigurationSourceProvider provider, String path)
-      throws IOException, ConfigurationException
+  public InsightConfig build(
+      ConfigurationSourceProvider provider,
+      String path) throws IOException, ConfigurationException
   {
     if (!new File(path).exists()) {
       throw new RuntimeException(NO_CONFIGURATION_EXCEPTION_MESSAGE);
@@ -102,7 +104,8 @@ public class InsightConfigurationFactory
     }
     catch (ConfigurationParsingException e) {
       if (e.getCause() instanceof UnrecognizedPropertyException &&
-          DROPWIZARD_062_PROPERTIES.contains(pathToString(((UnrecognizedPropertyException) e.getCause()).getPath()))) {
+          DROPWIZARD_062_PROPERTIES.contains(pathToString(((UnrecognizedPropertyException) e.getCause()).getPath())))
+      {
         throw new RuntimeException(SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE, e);
       }
       throw e;
@@ -110,8 +113,9 @@ public class InsightConfigurationFactory
   }
 
   private String pathToString(Collection<Reference> references) {
-    return
-        references == null ? null : references.stream().map(Reference::getFieldName).collect(Collectors.joining("."));
+    return references == null
+        ? null
+        : references.stream().map(Reference::getFieldName).collect(Collectors.joining("."));
   }
 
   @Override
@@ -152,7 +156,9 @@ public class InsightConfigurationFactory
       @SuppressWarnings("rawtypes") Class<? extends AbstractAppenderFactory> appenderFactoryType,
       String logFormat)
   {
-    appenderFactories.stream().filter(appenderFactoryType::isInstance).map(appenderFactoryType::cast)
+    appenderFactories.stream()
+        .filter(appenderFactoryType::isInstance)
+        .map(appenderFactoryType::cast)
         .filter(abtractAppenderFactory -> abtractAppenderFactory.getLogFormat() == null)
         .forEach(abtractAppenderFactory -> abtractAppenderFactory.setLogFormat(logFormat));
   }

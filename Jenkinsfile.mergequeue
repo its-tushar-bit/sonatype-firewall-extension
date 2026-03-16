@@ -71,8 +71,8 @@ Map getMavenCompileConfig() {
 
   // Skip everything except compilation
   opts << "-DskipTests"
-  opts << "-Dpmd.skip=true"
-  opts << "-Dcheckstyle.skip=true"
+  opts << "-Dspotless.apply.skip=true"
+  opts << "-Dspotless.check.skip=true"
   opts << "-Dsource.skip=true"
   opts << "-Dmaven.javadoc.skip=true"
   opts << "-Dshade.skip=true"

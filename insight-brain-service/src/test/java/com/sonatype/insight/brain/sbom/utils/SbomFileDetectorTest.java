@@ -95,11 +95,9 @@ public class SbomFileDetectorTest
   }
 
   @Test
-  @SuppressWarnings("checkstyle:LineLength")
   public void testGetSbomMetadata_CycloneDx_XML_Invalid_1_4() throws Exception {
     List<String> expectedErrors = List.of(
-        "Line: 22, Column: 16, Path: //bom[1]/components[1]/component[1], Error: cvc-complex-type.2.4.a: Invalid content was found starting with element '{\"http://cyclonedx.org/schema/bom/1.4\":version}'. One of '{\"http://cyclonedx.org/schema/bom/1.4\":name}' is expected."
-    );
+        "Line: 22, Column: 16, Path: //bom[1]/components[1]/component[1], Error: cvc-complex-type.2.4.a: Invalid content was found starting with element '{\"http://cyclonedx.org/schema/bom/1.4\":version}'. One of '{\"http://cyclonedx.org/schema/bom/1.4\":name}' is expected.");
     SbomDetectionResult expected = createExpectedResult(true, false, true, "application/xml",
         "Not a valid CycloneDX SBOM file.", expectedErrors, "1.4", "CycloneDx", "xml", 1, 1,
         "insight-scanner", "2.36.19-SNAPSHOT");
@@ -177,7 +175,6 @@ public class SbomFileDetectorTest
   }
 
   @Test
-  @SuppressWarnings("checkstyle:LineLength")
   public void testGetSbomMetadata_CycloneDx_InvalidXml() throws Exception {
     List<String> expectedErrors = List.of(
         "Line: 24, Column: 14, Error: The end-tag for element type \"component\" must end with a '>' delimiter.");
@@ -188,7 +185,6 @@ public class SbomFileDetectorTest
   }
 
   @Test
-  @SuppressWarnings("checkstyle:LineLength")
   public void testGetSbomMetadata_CycloneDx_InvalidXml2() throws Exception {
     List<String> expectedErrors = List.of(
         "Line: 3612, Column: 59, Path: //bom[1]/components[1]/component[113]/externalReferences[1]/reference[1]/url[1], Error: cvc-datatype-valid.1.2.1: 'git@github.com:colorjs/color-name.git' is not a valid value for 'anyURI'.",
@@ -198,8 +194,7 @@ public class SbomFileDetectorTest
         "Line: 8857, Column: 67, Path: //bom[1]/components[1]/component[279]/externalReferences[1]/reference[1]/url[1], Error: cvc-datatype-valid.1.2.1: 'git@github.com:jprichardson/node-jsonfile.git' is not a valid value for 'anyURI'.",
         "Line: 8857, Column: 67, Path: //bom[1]/components[1]/component[279]/externalReferences[1]/reference[1]/url[1], Error: cvc-type.3.1.3: The value 'git@github.com:jprichardson/node-jsonfile.git' of element 'url' is not valid.",
         "Line: 14669, Column: 56, Path: //bom[1]/components[1]/component[463]/externalReferences[1]/reference[1]/url[1], Error: cvc-datatype-valid.1.2.1: 'git@github.com:lupomontero/psl.git' is not a valid value for 'anyURI'.",
-        "Line: 14669, Column: 56, Path: //bom[1]/components[1]/component[463]/externalReferences[1]/reference[1]/url[1], Error: cvc-type.3.1.3: The value 'git@github.com:lupomontero/psl.git' of element 'url' is not valid."
-    );
+        "Line: 14669, Column: 56, Path: //bom[1]/components[1]/component[463]/externalReferences[1]/reference[1]/url[1], Error: cvc-type.3.1.3: The value 'git@github.com:lupomontero/psl.git' of element 'url' is not valid.");
     SbomDetectionResult expected =
         createExpectedResult(true, false, true, "application/xml", "Not a valid CycloneDX SBOM file.",
             expectedErrors, "1.4", "CycloneDx", "xml", 592, 24,
@@ -280,7 +275,6 @@ public class SbomFileDetectorTest
   }
 
   @Test
-  @SuppressWarnings("checkstyle:LineLength")
   public void testGetSbomMetadata_CDX_Json_BadStructure() throws Exception {
     List<String> expectedErrors = List.of("Error: Unable to parse BOM from byte array",
         "Line: 11, Column: 3, Error: Unexpected close marker ']': expected '}' (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 6, column: 2])");
@@ -304,7 +298,6 @@ public class SbomFileDetectorTest
   }
 
   @Test
-  @SuppressWarnings("checkstyle:LineLength")
   public void testGetSbomMetadata_SPDX_Json_BadStructure() throws Exception {
     List<String> expectedErrors = List.of(
         "Line: 20, Column: 3, Error: Unexpected close marker ']': expected '}' (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 15, column: 2])");
@@ -355,7 +348,9 @@ public class SbomFileDetectorTest
   }
 
   private void checkSbomMetadataUsingString(
-      String fileName, SbomDetectionResult expected, boolean ignoreValidationError) throws Exception
+      String fileName,
+      SbomDetectionResult expected,
+      boolean ignoreValidationError) throws Exception
   {
     Path fileToDetect = getTestPath(fileName);
     SbomDetectionResult resultFromFile =
@@ -365,7 +360,9 @@ public class SbomFileDetectorTest
   }
 
   private void checkSbomMetadataUsingFileWithGenericExtension(
-      String fileName, SbomDetectionResult expected, boolean ignoreValidationError) throws Exception
+      String fileName,
+      SbomDetectionResult expected,
+      boolean ignoreValidationError) throws Exception
   {
     Path fileToDetect = copyFileWithGenericExtension(getTestPath(fileName));
     SbomDetectionResult resultFromFile = detector.getSbomDetectionResult(fileToDetect, fileName, ignoreValidationError);
@@ -373,8 +370,10 @@ public class SbomFileDetectorTest
     verifySbomDetectionResult(resultFromFile, expected);
   }
 
-  private void checkSbomMetadata(String fileName, SbomDetectionResult expected, boolean ignoreValidationError)
-      throws Exception
+  private void checkSbomMetadata(
+      String fileName,
+      SbomDetectionResult expected,
+      boolean ignoreValidationError) throws Exception
   {
     checkSbomMetadataUsingFile(fileName, expected, ignoreValidationError);
     checkSbomMetadataUsingString(fileName, expected, ignoreValidationError);

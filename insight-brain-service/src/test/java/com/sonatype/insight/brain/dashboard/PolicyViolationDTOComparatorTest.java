@@ -18,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PolicyViolationDTOComparatorTest
 {
   @Test
-  @SuppressWarnings("checkstyle:LocalVariableName")
   public void testPolicyViolationDTOComparison() {
     PolicyViolationDTO dto9AA = buildPolicyViolationDTO(9, "A", "A", null, null);
     PolicyViolationDTO dto8AA = buildPolicyViolationDTO(8, "A", "A", null, null);
@@ -56,11 +55,12 @@ public class PolicyViolationDTOComparatorTest
     assertThat(sorted).isEqualTo(expected);
   }
 
-  private PolicyViolationDTO buildPolicyViolationDTO(int threatLevel,
-                                                     String policyName,
-                                                     String applicationName,
-                                                     ComponentIdentifier componentIdentifier,
-                                                     String hash)
+  private PolicyViolationDTO buildPolicyViolationDTO(
+      int threatLevel,
+      String policyName,
+      String applicationName,
+      ComponentIdentifier componentIdentifier,
+      String hash)
   {
     PolicyViolationDTO dto = new PolicyViolationDTO();
     dto.id = UUID.randomUUID().toString();

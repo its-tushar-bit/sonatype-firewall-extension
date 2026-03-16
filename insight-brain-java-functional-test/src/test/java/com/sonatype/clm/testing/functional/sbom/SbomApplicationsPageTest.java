@@ -91,23 +91,28 @@ public class SbomApplicationsPageTest
     applicationsTable.table().shouldBe(visible);
 
     applicationsTable.tableHeaders().shouldHave(size(6));
-    applicationsTable.columnHeader(0).shouldHave(
-        text("NAME"));
-    applicationsTable.columnHeader(1).shouldHave(
-        text("LATEST VERSION"));
-    applicationsTable.columnHeader(2).shouldHave(
-        text("RELEASE STATUS"));
-    applicationsTable.columnHeader(3).shouldHave(
-        text("IMPORT DATE"));
+    applicationsTable.columnHeader(0)
+        .shouldHave(
+            text("NAME"));
+    applicationsTable.columnHeader(1)
+        .shouldHave(
+            text("LATEST VERSION"));
+    applicationsTable.columnHeader(2)
+        .shouldHave(
+            text("RELEASE STATUS"));
+    applicationsTable.columnHeader(3)
+        .shouldHave(
+            text("IMPORT DATE"));
     applicationsTable.columnHeader(4).shouldHave(text("VULNERABILITIES"));
-    applicationsTable.columnHeader(5).shouldHave(
-        text("VIOLATIONS"));
+    applicationsTable.columnHeader(5)
+        .shouldHave(
+            text("VIOLATIONS"));
     ElementsCollection tableRows = applicationsTable.tableBodyRows();
     tableRows.shouldHave(sizeGreaterThan(49));
     applicationsTable.footer().shouldBe(visible);
     applicationsTable.paginationStatus().shouldHave(visible);
   }
-  
+
   @Test
   public void testApplicationsPage__nameFilter() throws Exception {
     setSbomApplicationsTableData();
@@ -158,13 +163,14 @@ public class SbomApplicationsPageTest
     tableRows.get(8).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(8)));
     tableRows.get(49).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(49)));
     paginationButtons.get(1).shouldHave(text("2")).click();
-    tableRows.get(24).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(74))); //50 + 24
+    tableRows.get(24).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(74))); // 50 + 24
 
     // sort asc
     refreshOrOpen(SbomApplicationsPage.url());
     paginationButtons.get(0).shouldHave(text("1")).click();
     applicationsTable.columnHeader(3).click();
-    tableRows.get(0).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(74))); //(50 + 24) - 0
+    tableRows.get(0).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(74))); // (50 + 24) -
+                                                                                                         // 0
     tableRows.get(49).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(74 - 49)));
     paginationButtons.get(1).shouldHave(text("2")).click();
     tableRows.get(24).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(74 - 24)));
@@ -231,7 +237,7 @@ public class SbomApplicationsPageTest
     SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
     applicationsTable.table().shouldBe(visible);
     applicationsTable.columnHeader(2).shouldHave(text("RELEASE STATUS")).click();
-    verifySortOrderReleaseStatus(true, applicationsTable); //verify asc
+    verifySortOrderReleaseStatus(true, applicationsTable); // verify asc
     applicationsTable.columnHeader(2).shouldHave(text("RELEASE STATUS")).click();
     verifySortOrderReleaseStatus(false, applicationsTable);
   }
@@ -246,10 +252,10 @@ public class SbomApplicationsPageTest
 
     applicationsTable.columnHeader(4).shouldHave(text("VULNERABILITIES")).click();
     Selenide.sleep(1000);
-    verifySortOrderVulnerabilities(true, applicationsTable); //verify asc
+    verifySortOrderVulnerabilities(true, applicationsTable); // verify asc
     applicationsTable.columnHeader(4).shouldHave(text("VULNERABILITIES")).click();
     Selenide.sleep(1000);
-    verifySortOrderVulnerabilities(false, applicationsTable); //verify DESC
+    verifySortOrderVulnerabilities(false, applicationsTable); // verify DESC
   }
 
   private void verifySortOrderVulnerabilities(boolean ascending, SbomApplicationsTable applicationsTable) {
@@ -337,7 +343,7 @@ public class SbomApplicationsPageTest
 
       if (i < 30) {
         for (int j = 4; j <= 10; j++) {
-          ThirdPartyCoordinateSecurity coordinateSecurity = 
+          ThirdPartyCoordinateSecurity coordinateSecurity =
               tempEntity.newThirdPartyCoordinateSecurity(
                   coordinate1,
                   "r-" + i + j,
@@ -346,10 +352,9 @@ public class SbomApplicationsPageTest
                   "link7",
                   Math.min(i, 10),
                   "severity",
-                  "fix7"
-              );
+                  "fix7");
           if (j <= 7) {
-            insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity); 
+            insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity);
           }
         }
       }
@@ -375,37 +380,65 @@ public class SbomApplicationsPageTest
     else if (seconds <= 89) {
       return "a minute ago";
     }
-    else if (seconds <= 2640) { //90 seconds to 44 minutes
+    else if (seconds <= 2640) { // 90 seconds to 44 minutes
       long minutes = duration.toMinutes();
       return minutes + " minutes ago";
     }
-    else if (seconds <= 5340) { //45 to 89 minutes
+    else if (seconds <= 5340) { // 45 to 89 minutes
       return "an hour ago";
     }
-    else if (seconds <= 75600) { //90 minutes to 21 hours
+    else if (seconds <= 75600) { // 90 minutes to 21 hours
       long hours = duration.toHours();
       return hours + " hours ago";
     }
-    else if (seconds <= 126000) { //22 to 35 hours
+    else if (seconds <= 126000) { // 22 to 35 hours
       return "a day ago";
     }
-    else if (seconds <= 2160000) { //36 hours to 25 days
+    else if (seconds <= 2160000) { // 36 hours to 25 days
       long days = duration.toDays();
       return days + " days ago";
     }
-    else if (seconds <= 3888000) { //26 to 45 days
+    else if (seconds <= 3888000) { // 26 to 45 days
       return "a month ago";
     }
-    else if (seconds <= 27561600) { //45 to 319 days
-      long months = Math.round(duration.toMillis() / (double) ChronoUnit.MONTHS.getDuration().toMillis());
+    else if (seconds <= 27561600) { // 45 to 319 days
+      long months = getRelativeMonthsAgoSimilarToMomentJSFromNow(now, rowDateTime);
       return months + " months ago";
     }
-    else if (seconds <= 47260800) { //320 to 547 days (1.5 years)
+    else if (seconds <= 47260800) { // 320 to 547 days (1.5 years)
       return "a year ago";
     }
     else {
       long years = Math.round(duration.toMillis() / (double) ChronoUnit.YEARS.getDuration().toMillis());
       return years + " years ago";
     }
+  }
+
+  private static long getRelativeMonthsAgoSimilarToMomentJSFromNow(
+      final LocalDateTime now,
+      final LocalDateTime rowDateTime)
+  {
+    // Mirror moment.js monthDiff: use calendar-aware arithmetic rather than fixed average month length
+    int calendarMonthDiff = (now.getYear() - rowDateTime.getYear()) * 12
+        + (now.getMonthValue() - rowDateTime.getMonthValue());
+
+    // Land on the same day-of-month as rowDateTime, but calendarMonthDiff months ahead
+    LocalDateTime wholeMonthAnchor = rowDateTime.plusMonths(calendarMonthDiff);
+
+    double fractionalMonthAdjustment;
+    if (wholeMonthAnchor.isAfter(now)) {
+      // wholeMonthAnchor overshot — step back one month to bracket 'now'
+      LocalDateTime oneMonthBefore = rowDateTime.plusMonths(calendarMonthDiff - 1);
+      fractionalMonthAdjustment = (double) Duration.between(wholeMonthAnchor, now).toDays()
+          / (double) Duration.between(oneMonthBefore, wholeMonthAnchor).toDays();
+    }
+    else {
+      // wholeMonthAnchor undershot — step forward one month to bracket 'now'
+      LocalDateTime oneMonthAfter = rowDateTime.plusMonths(calendarMonthDiff + 1);
+      fractionalMonthAdjustment = (double) Duration.between(wholeMonthAnchor, now).toDays()
+          / (double) Duration.between(wholeMonthAnchor, oneMonthAfter).toDays();
+    }
+
+    return Math.round(calendarMonthDiff + fractionalMonthAdjustment);
   }
 }

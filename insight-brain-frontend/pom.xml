@@ -34,6 +34,19 @@
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
         <executions>
+          <!-- install-node-and-npm provides node/node_modules/npm/bin/node-gyp-bin/,
+               which prevents yarn 1.x's _checkForGyp from corrupting the shared
+               Config object via global.run() during "Building fresh packages". -->
+          <execution>
+            <id>install-node-and-npm</id>
+            <goals>
+              <goal>install-node-and-npm</goal>
+            </goals>
+            <configuration>
+              <nodeVersion>${node.version}</nodeVersion>
+              <npmVersion>10.8.2</npmVersion>
+            </configuration>
+          </execution>
           <execution>
             <id>install-node-and-yarn</id>
             <goals>

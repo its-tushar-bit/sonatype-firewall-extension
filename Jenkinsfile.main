@@ -309,6 +309,19 @@ void runBuildAndParallelSteps(Map<String, ?> mavenCommon, String keystoreCredId,
     def parallelSteps = new HashMap<String, Closure>(getParallelTests(zips))
     parallelSteps.putAll(getDockerSteps(zips))
     parallel(parallelSteps)
+
+    // Collect JaCoCo coverage from all parallel test stages into a single report
+    dir('jacoco-collection') {
+      parallelSteps.keySet().each { stageName ->
+        String stashName = "jacoco-${stageName.replaceAll('[^a-zA-Z0-9]', '-')}"
+        try {
+          dir(stashName) { unstash stashName }
+        } catch (e) {
+          echo "No JaCoCo coverage data from ${stageName}: ${e.message}"
+        }
+      }
+      recordCoverage(tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']])
+    }
   }
 }
 
@@ -490,7 +503,7 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex,
           mavenOptions += getRunRefPolicyImportIntTestMavenOption()
 
           Map<String, ?> testConfig = testConfig(mavenOptions, null, jdk)
-          mvn testConfig, 'surefire:test failsafe:integration-test failsafe:verify'
+          mvn testConfig, 'jacoco:prepare-agent surefire:test failsafe:integration-test failsafe:verify jacoco:report'
         }
         finally {
           captureResultsAndCleanup()
@@ -521,7 +534,7 @@ Map<String, Closure> createMtiqUnitTests(String stageName, String jdk, List<Stri
           Map<String, ?> testConfig = testConfig(mavenOptions, null, jdk)
           // 90 minute timeout for Jakarta EE 11 migration experimentation (CLM-34044)
           timeout(time: 90, unit: 'MINUTES') {
-            mvn testConfig, 'initialize surefire:test failsafe:integration-test failsafe:verify'
+            mvn testConfig, 'jacoco:prepare-agent initialize surefire:test failsafe:integration-test failsafe:verify jacoco:report'
           }
         }
         finally {
@@ -547,7 +560,12 @@ Map<String, ?> testConfig(String mavenOptions, String pomFile = null, String jav
 
 void captureResultsAndCleanup() {
   archiveArtifacts(artifacts: '**/target/*-reports/**', excludes: '**/TEST-*.xml, **/*-output.txt')
+  // Archive JaCoCo coverage data files for offline analysis
+  archiveArtifacts(artifacts: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmptyArchive: true)
   collectTestResults(['**/target/*-reports/*.xml'])
+  // Stash JaCoCo coverage data (exec + XML) for collection after all parallel stages complete
+  String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
+  stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
   deleteDir()
 }
 

@@ -260,6 +260,10 @@ pipeline {
           post {
             always {
               junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml', allowEmptyResults: true
+              script {
+                String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
+                stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
+              }
             }
           }
         }
@@ -277,6 +281,10 @@ pipeline {
           post {
             always {
               junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
+              script {
+                String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
+                stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
+              }
             }
           }
         }
@@ -291,6 +299,10 @@ pipeline {
           post {
             always {
               junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
+              script {
+                String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
+                stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
+              }
             }
           }
         }
@@ -305,6 +317,10 @@ pipeline {
           post {
             always {
               junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
+              script {
+                String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
+                stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
+              }
             }
           }
         }
@@ -319,6 +335,10 @@ pipeline {
           post {
             always {
               junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
+              script {
+                String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
+                stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
+              }
             }
           }
         }
@@ -365,9 +385,34 @@ pipeline {
     }
 
     stage('Collect Results') {
+      when {
+        expression { return true } // Always run to collect results even if tests fail
+      }
       steps {
         script {
           dir(env.BUILD_DIR) {
+            // Unstash JaCoCo data from distributed test agents
+            // Exec files go into build dir so report-aggregate can find them
+            // XML files go into separate directories for recordCoverage to merge
+            def distributedStages = [
+                'Postgres + MTIQ Tests',
+                'Failsafe Tests 1 (A)',
+                'Failsafe Tests 2 (B-L)',
+                'Failsafe Tests 3 (M-R)',
+                'Failsafe Tests 4 (S-Z)'
+            ]
+            distributedStages.each { stageName ->
+              String stashName = "jacoco-${stageName.replaceAll('[^a-zA-Z0-9]', '-')}"
+              try {
+                // Unstash exec files directly into build dir (report-aggregate needs them in place)
+                unstash stashName
+                // Also unstash into separate dir for XML aggregation (avoid overwrites)
+                dir("jacoco-results/${stashName}") { unstash stashName }
+              } catch (e) {
+                echo "No JaCoCo coverage data from ${stageName}: ${e.message}"
+              }
+            }
+
             junit(
                 testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml, ' +
                     '**/target/karma-reports/*.xml, **/target/jest-reports/*.xml',
@@ -380,6 +425,14 @@ pipeline {
                 allowEmptyArchive: true,
                 fingerprint: false
             )
+            // Archive JaCoCo coverage data files for offline analysis
+            archiveArtifacts(
+                artifacts: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml',
+                allowEmptyArchive: true,
+                fingerprint: false
+            )
+            // Single recordCoverage call merges XML reports from all distributed agents + slow tests
+            recordCoverage(tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']])
           }
         }
       }
@@ -612,7 +665,7 @@ void mvnDirectForTests(String mavenOptions, String goals) {
   configFileProvider([configFile(fileId: npmConfigFileId, variable: 'NPM_CONFIG_USERCONFIG')]) {
     withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
         publisherStrategy: 'EXPLICIT') {
-      String mvnCmdLine = "mvn ${goals} -Dmaven.repo.local='${localRepo}'"
+      String mvnCmdLine = "mvn jacoco:prepare-agent ${goals} jacoco:report -Dmaven.repo.local='${localRepo}'"
       mvnCmdLine += " -DnpmRegistryURL="
       mvnCmdLine += " -DyarnDownloadRoot=https://sonatype.repo.sonatype.app/repository/yarn-binaries/"
       mvnCmdLine += " -DnodeDownloadRoot=https://sonatype.repo.sonatype.app/repository/nodejs-dist/"
@@ -1382,7 +1435,7 @@ void mvnDirectForDistributedTests(String mavenOptions, String goals, String loca
   configFileProvider([configFile(fileId: npmConfigFileId, variable: 'NPM_CONFIG_USERCONFIG')]) {
     withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
         publisherStrategy: 'EXPLICIT') {
-      String mvnCmdLine = "mvn ${goals} -Dmaven.repo.local='${localRepo}'"
+      String mvnCmdLine = "mvn jacoco:prepare-agent ${goals} jacoco:report -Dmaven.repo.local='${localRepo}'"
       mvnCmdLine += " -DnpmRegistryURL="
       mvnCmdLine += " -DyarnDownloadRoot=https://sonatype.repo.sonatype.app/repository/yarn-binaries/"
       mvnCmdLine += " -DnodeDownloadRoot=https://sonatype.repo.sonatype.app/repository/nodejs-dist/"

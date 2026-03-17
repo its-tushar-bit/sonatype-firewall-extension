@@ -195,8 +195,8 @@ public abstract class AbstractMtiqFunctionalTest
     auth0AuthAPI = Mockito.mock(Auth0AuthAPI.class);
     initMocks();
 
-    // Reuse the configurator to allow reuse of MTIQ server
-    String contextPath = System.getProperty("iq.contextPath", "/iq-test");
+    // In dev mode, use root context path so that API paths match what the webpack-dev-server proxy expects
+    String contextPath = TestCLMServer.WEBPACK_DEV_MODE ? "" : System.getProperty("iq.contextPath", "/iq-test");
     Configurator mtiqConfigurator = config -> {
       ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
       MultiTenantInsightConfig mtiqConfig = (MultiTenantInsightConfig) config;
@@ -211,7 +211,10 @@ public abstract class AbstractMtiqFunctionalTest
         new TestCLMServer(new MultiTenantTestInsightBrainServiceFactory(), false /* isProxyRequiredToReachHds */,
             getBrainModules(), mtiqConfigurator, multiTenantDatabaseContainerRule.getDatabaseContainer());
 
-    reverseProxyServer = new ReverseProxyServer(testCLMServer.getCLMServer().getPort());
+    // In dev mode, proxy to the webpack-dev-server so it serves frontend assets with instant rebuilds,
+    // while still allowing reverse proxy handlers (e.g. ResponseCopyHandler) to intercept requests.
+    int reverseProxyTarget = TestCLMServer.WEBPACK_DEV_MODE ? 8070 : testCLMServer.getCLMServer().getPort();
+    reverseProxyServer = new ReverseProxyServer(reverseProxyTarget);
 
     try {
       // Insert license so it can be populated on server start-up
@@ -779,7 +782,9 @@ public abstract class AbstractMtiqFunctionalTest
   }
 
   protected void cleanupAllPersistedUserSessions() {
-    persistedUserSessionDAO.getAll().stream().map(PersistedUserSession::getId)
+    persistedUserSessionDAO.getAll()
+        .stream()
+        .map(PersistedUserSession::getId)
         .forEach(shiroSessionDAO::deleteById);
   }
 

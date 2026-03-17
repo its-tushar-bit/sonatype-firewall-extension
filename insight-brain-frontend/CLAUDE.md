@@ -67,6 +67,20 @@ mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainSe
 yarn start                     # Main bundle only (faster)
 ```
 
+### Fast Frontend Development Loop with Functional Tests
+
+To iterate on frontend changes without rebuilding `insight-brain-service`, you can run functional tests against the WDS:
+
+1. Start the WDS: `yarn start` (serves on port 8070, proxies `/rest`, `/api`, `/ui`, `/policy-assets`, `/saml` to `localhost:8072`)
+2. Run a functional test with `-Dfunctional-test-webpack-dev-server=true` from `insight-brain-java-functional-test/`
+
+```bash
+cd insight-brain-java-functional-test
+mvn verify -Dit.test=SomeTest#someMethod -Dfunctional-test-webpack-dev-server=true
+```
+
+The test server starts on fixed port 8072 and the browser is pointed at the WDS on port 8070, so frontend changes are reflected instantly without any Java rebuild. Works with both local Chrome (`-Drun-functional-tests=local`) and the default Docker Selenium container.
+
 ### Testing
 
 ```bash

@@ -76,6 +76,8 @@ mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainSe
 java -jar target/insight-brain-service-*-SNAPSHOT-server.jar server src/test/resources/config-dev.yml
 ```
 
+**Tip**: When iterating on frontend changes alongside functional tests, use the webpack-dev-server mode instead of running this server directly — see the "Fast Frontend Development Loop with Functional Tests" section in the root `CLAUDE.md` or `insight-brain-frontend/CLAUDE.md`.
+
 ### Testing
 ```bash
 # Run all service tests

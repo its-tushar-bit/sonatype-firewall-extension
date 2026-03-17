@@ -38,6 +38,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Jest watch mode**: `yarn jest-watch`
 - **Individual test file**: `yarn jest -- <test-name>`
 
+### Fast Frontend Development Loop with Functional Tests
+To iterate on frontend changes without a full rebuild, use the webpack-dev-server (WDS) mode:
+
+1. Start the WDS from `insight-brain-frontend/`: `yarn start` (serves on port 8070, proxies API calls to port 8072)
+2. Run any functional test with `-Dfunctional-test-webpack-dev-server=true` (from `insight-brain-java-functional-test/`)
+
+```bash
+cd insight-brain-java-functional-test
+mvn verify -Dit.test=SomeTest#someMethod -Dfunctional-test-webpack-dev-server=true
+```
+
+In this mode the test server starts on fixed port 8072 (matching the WDS proxy target) and the browser points at the WDS on port 8070. Frontend changes are picked up instantly by the WDS without any rebuild of `insight-brain-service`.
+
 ### Development Profiles
 - **Quick profile**: `-Pquick` - skips tests, linting, and checks
 

@@ -179,9 +179,11 @@ public abstract class AbstractFunctionalTest
 
   /**
    * A map from class to mock instance.
-   * <br /><br />
+   * <br />
+   * <br />
    * Individual test methods should add mocks to this map if needed.
-   * <br /><br />
+   * <br />
+   * <br />
    * Mock instances are cleared at the end of each test.
    */
   protected static Map<Class<?>, Object> mocks = new HashMap<>();
@@ -215,15 +217,18 @@ public abstract class AbstractFunctionalTest
     jiraService = Mockito.mock(JiraService.class);
     initMocks();
 
-    // Reuse the configurator to allow reuse of MTIQ server
-    String contextPath = System.getProperty("iq.contextPath", "/iq-test");
+    // In dev mode, use root context path so that API paths match what the webpack-dev-server proxy expects
+    String contextPath = TestCLMServer.WEBPACK_DEV_MODE ? "" : System.getProperty("iq.contextPath", "/iq-test");
     Configurator configurator = config -> {
       ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
     };
 
     testCLMServer = new TestCLMServer(new DefaultInsightBrainServiceFactory(),
         false /* isProxyRequiredToReachHds */, getBrainModules(), configurator, databaseContainer);
-    reverseProxyServer = new ReverseProxyServer(testCLMServer.getCLMServer().getPort());
+    // In dev mode, proxy to the webpack-dev-server so it serves frontend assets with instant rebuilds,
+    // while still allowing reverse proxy handlers (e.g. ResponseCopyHandler) to intercept requests.
+    int reverseProxyTarget = TestCLMServer.WEBPACK_DEV_MODE ? 8070 : testCLMServer.getCLMServer().getPort();
+    reverseProxyServer = new ReverseProxyServer(reverseProxyTarget);
 
     try {
       // Insert license so it can be populated on server start-up - can't use a @Rule because this functional test is
@@ -510,7 +515,7 @@ public abstract class AbstractFunctionalTest
 
         // Bind an interceptor to intercept method calls to classes that can normally be mocked / spied
         // i.e. not final and containing a non-private constructor or no constructor.
-        // 
+        //
         // When a method is intercepted, get its declaring class and check if there is a mock object for that class.
         // If there is, invoke the method on the mock object instead.
         //
@@ -838,7 +843,9 @@ public abstract class AbstractFunctionalTest
   }
 
   protected void cleanupAllPersistedUserSessions() {
-    persistedUserSessionDAO.getAll().stream().map(PersistedUserSession::getId)
+    persistedUserSessionDAO.getAll()
+        .stream()
+        .map(PersistedUserSession::getId)
         .forEach(shiroSessionDAO::deleteById);
   }
 

@@ -21,6 +21,20 @@ import com.google.inject.Module;
  */
 public class TestCLMServer
 {
+  /**
+   * When the system property {@code functional-test-webpack-dev-server} is set to {@code true}, the functional test
+   * server uses fixed ports (8072 for the application, 8073 for admin) matching the default webpack-dev-server proxy
+   * target. This enables a fast frontend development loop: run {@code yarn start} in insight-brain-frontend (serves on
+   * port 8070 and proxies API calls to 8072), then run a functional test with
+   * {@code -Dfunctional-test-webpack-dev-server=true} so the browser points at the webpack-dev-server for instant
+   * frontend rebuilds while API calls are handled by the test server.
+   */
+  public static final boolean WEBPACK_DEV_MODE = Boolean.getBoolean("functional-test-webpack-dev-server");
+
+  private static final int WEBPACK_WEBPACK_DEV_MODE_APP_PORT = 8072;
+
+  private static final int WEBPACK_WEBPACK_DEV_MODE_ADMIN_PORT = 8073;
+
   private final HdsMockServerRule hdsMockServer;
 
   private final boolean hdsMockServerOwned;
@@ -96,10 +110,13 @@ public class TestCLMServer
     hdsMockServer = new HdsMockServerRule(hdsMockServerPort, isProxyRequiredToReachHds);
     hdsMockServerOwned = true;
 
+    int appPort = WEBPACK_DEV_MODE ? WEBPACK_WEBPACK_DEV_MODE_APP_PORT : PortAllocator.nextFreePort();
+    int adminPort = WEBPACK_DEV_MODE ? WEBPACK_WEBPACK_DEV_MODE_ADMIN_PORT : PortAllocator.nextFreePort();
+
     brain = new TestInsightBrainServiceRule(insightBrainServiceFactory,
-        PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
+        appPort, adminPort,
         "http://localhost:" + hdsMockServerPort, databaseContainer, isProxyRequiredToReachHds, modules)
-        .setConfigurator(configurator);
+            .setConfigurator(configurator);
   }
 
   public void start() throws Exception {

@@ -1,5 +1,7 @@
 # Justfile for Nexus IQ Server (insight-brain) project
 
+import? 'Justfile.local'
+
 # Variables
 mvn := env_var_or_default("MVN", "mvnd")
 quick_opts := "-DskipTests -Pquick"

@@ -7,11 +7,10 @@ package com.sonatype.insight.brain.labs;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import com.sonatype.insight.brain.testing.BrainInjectedTest;
+import com.sonatype.insight.brain.hds.HdsClient;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
@@ -20,15 +19,22 @@ import org.apache.http.HttpEntity;
 import org.apache.http.ParseException;
 import org.apache.http.StatusLine;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class LabsServiceTest
-    extends BrainInjectedTest
 {
-  @Inject
+  @Mock
+  private HdsClient hdsClient;
+
+  @InjectMocks
   private LabsService labsService;
 
   @Test

@@ -6,20 +6,15 @@
 
 package com.sonatype.insight.brain.scan.matcher.firewall;
 
-import jakarta.inject.Inject;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class NpmPathnameParserTest
-    extends BrainInjectedTest
 {
-  @Inject
-  private NpmPathnameParser npmPathnameParser;
+  private final NpmPathnameParser npmPathnameParser = new NpmPathnameParser();
 
   @Test
   public void testPathnameParser_NullPath() {

@@ -14,20 +14,14 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.testing.BrainInjectedTest;
-
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JmxInfoTest
-    extends BrainInjectedTest
 {
-  @Inject
-  private JmxInfo jmxInfo;
+  private final JmxInfo jmxInfo = new JmxInfo();
 
   @Test
   public void testGetJmxInfo() {

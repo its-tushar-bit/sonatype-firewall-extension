@@ -5,9 +5,14 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
-import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import com.sonatype.insight.brain.SslSettings;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
@@ -17,7 +22,8 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
-import com.sonatype.insight.brain.testing.BrainInjectedTest;
+import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
 import com.sonatype.insight.test.networking.SslProperties;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
@@ -28,19 +34,20 @@ import org.apache.shiro.subject.PrincipalCollection;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import com.sonatype.insight.brain.common.test.SlowTest;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @since 1.7
  */
-@Category(SlowTest.class)
 public class LdapRealmTest
-    extends BrainInjectedTest
 {
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -57,14 +64,24 @@ public class LdapRealmTest
   @Rule
   public SslSettings sslSettings = new SslSettings();
 
-  @Inject
   private LdapService ldapService;
 
-  @Inject
   private LdapRealm realm;
 
-  @Inject
+  // In-memory DAO storage
+  private final Map<String, LdapServer> ldapServerStore = new HashMap<>();
+
+  private final Map<String, LdapConnection> ldapConnectionStore = new HashMap<>();
+
+  private final Map<String, LdapUserMapping> ldapUserMappingStore = new HashMap<>();
+
+  private LdapServerDAO ldapServerDAO;
+
+  private LdapConnectionDAO ldapConnectionDAO;
+
   private LdapUserMappingDAO ldapUserMappingDAO;
+
+  private PasswordHandler passwordHandler;
 
   private LdapServer ldapServer;
 
@@ -73,6 +90,62 @@ public class LdapRealmTest
     authentication = LdapAuthenticationMethod.NONE;
     authenticateWithBind = false;
     protocol = LdapProtocol.LDAP;
+
+    ldapServerStore.clear();
+    ldapConnectionStore.clear();
+    ldapUserMappingStore.clear();
+
+    passwordHandler = new PasswordHandler(new TestEncryptionKeyStore());
+
+    // Set up mock DAOs with in-memory storage
+    ldapServerDAO = mock(LdapServerDAO.class);
+    ldapConnectionDAO = mock(LdapConnectionDAO.class);
+    ldapUserMappingDAO = mock(LdapUserMappingDAO.class);
+
+    when(ldapServerDAO.getAll()).thenAnswer(inv -> new ArrayList<>(ldapServerStore.values()));
+    when(ldapServerDAO.getByIdNotNull(anyString())).thenAnswer(inv -> {
+      String id = inv.getArgument(0);
+      LdapServer server = ldapServerStore.get(id);
+      if (server == null) {
+        throw new RuntimeException("LdapServer not found: " + id);
+      }
+      return server;
+    });
+
+    doAnswer(inv -> {
+      LdapConnection conn = inv.getArgument(0);
+      if (conn.getId() == null) {
+        conn.setId(UUID.randomUUID().toString());
+      }
+      ldapConnectionStore.put(conn.getServerId(), conn);
+      return null;
+    }).when(ldapConnectionDAO).insert(any(LdapConnection.class));
+
+    doAnswer(inv -> {
+      LdapConnection conn = inv.getArgument(0);
+      ldapConnectionStore.put(conn.getServerId(), conn);
+      return null;
+    }).when(ldapConnectionDAO).update(any(LdapConnection.class));
+
+    when(ldapConnectionDAO.getByServerId(anyString())).thenAnswer(inv -> {
+      String serverId = inv.getArgument(0);
+      LdapConnection conn = ldapConnectionStore.get(serverId);
+      return conn != null ? new LdapConnection(conn) : null;
+    });
+
+    doAnswer(inv -> {
+      LdapUserMapping mapping = inv.getArgument(0);
+      ldapUserMappingStore.put(mapping.getServerId(), mapping);
+      return null;
+    }).when(ldapUserMappingDAO).insert(any(LdapUserMapping.class));
+
+    when(ldapUserMappingDAO.getByServerId(anyString())).thenAnswer(inv -> {
+      String serverId = inv.getArgument(0);
+      return ldapUserMappingStore.get(serverId);
+    });
+
+    ldapService = new LdapService(passwordHandler, ldapServerDAO, ldapConnectionDAO, ldapUserMappingDAO);
+    realm = new LdapRealm(ldapService, ldapServerDAO);
   }
 
   @Test
@@ -245,7 +318,10 @@ public class LdapRealmTest
   }
 
   private LdapRealmTest startLdapServer() throws Exception {
-    ldapServer = tempEntity.newLdapServer("Test Server");
+    // Create LdapServer with a manual ID instead of tempEntity.newLdapServer()
+    ldapServer = new LdapServer("Test Server");
+    ldapServer.setId(UUID.randomUUID().toString());
+    ldapServerStore.put(ldapServer.getId(), ldapServer);
 
     LdapUserMapping ldapUserMapping = new LdapUserMapping();
     ldapUserMapping.setServerId(ldapServer.getId());

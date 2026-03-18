@@ -5,20 +5,24 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import jakarta.inject.Inject;
+import java.util.Map;
+import java.util.UUID;
 
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
-import com.sonatype.insight.brain.testing.BrainInjectedTest;
+import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.junit.Before;
@@ -26,15 +30,18 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Mapping tests ported from nexus-ldap-common; LDAP schema files (ldif) were not changed.
  *
  * @since 1.7
  */
-@Category(SlowTest.class)
 public class LdapUserAndGroupMappingTest
-    extends BrainInjectedTest
 {
   private LdapAuthenticationMethod authentication;
 
@@ -43,12 +50,66 @@ public class LdapUserAndGroupMappingTest
 
   private LdapServer ldapServer;
 
-  @Inject
   private LdapService ldapService;
+
+  // In-memory DAO storage
+  private final Map<String, LdapServer> ldapServerStore = new HashMap<>();
+
+  private final Map<String, LdapConnection> ldapConnectionStore = new HashMap<>();
+
+  private final Map<String, LdapUserMapping> ldapUserMappingStore = new HashMap<>();
 
   @Before
   public void initialize() {
     authentication = LdapAuthenticationMethod.SIMPLE;
+
+    ldapServerStore.clear();
+    ldapConnectionStore.clear();
+    ldapUserMappingStore.clear();
+
+    PasswordHandler passwordHandler = new PasswordHandler(new TestEncryptionKeyStore());
+
+    LdapServerDAO ldapServerDAO = mock(LdapServerDAO.class);
+    LdapConnectionDAO ldapConnectionDAO = mock(LdapConnectionDAO.class);
+    LdapUserMappingDAO ldapUserMappingDAO = mock(LdapUserMappingDAO.class);
+
+    when(ldapServerDAO.getAll()).thenAnswer(inv -> new ArrayList<>(ldapServerStore.values()));
+    when(ldapServerDAO.getByIdNotNull(anyString())).thenAnswer(inv -> {
+      String id = inv.getArgument(0);
+      LdapServer server = ldapServerStore.get(id);
+      if (server == null) {
+        throw new RuntimeException("LdapServer not found: " + id);
+      }
+      return server;
+    });
+
+    doAnswer(inv -> {
+      LdapConnection conn = inv.getArgument(0);
+      if (conn.getId() == null) {
+        conn.setId(UUID.randomUUID().toString());
+      }
+      ldapConnectionStore.put(conn.getServerId(), conn);
+      return null;
+    }).when(ldapConnectionDAO).insert(any(LdapConnection.class));
+
+    doAnswer(inv -> {
+      LdapConnection conn = inv.getArgument(0);
+      ldapConnectionStore.put(conn.getServerId(), conn);
+      return null;
+    }).when(ldapConnectionDAO).update(any(LdapConnection.class));
+
+    when(ldapConnectionDAO.getByServerId(anyString())).thenAnswer(inv -> {
+      String serverId = inv.getArgument(0);
+      LdapConnection conn = ldapConnectionStore.get(serverId);
+      return conn != null ? new LdapConnection(conn) : null;
+    });
+
+    when(ldapUserMappingDAO.getByServerId(anyString())).thenAnswer(inv -> {
+      String serverId = inv.getArgument(0);
+      return ldapUserMappingStore.get(serverId);
+    });
+
+    ldapService = new LdapService(passwordHandler, ldapServerDAO, ldapConnectionDAO, ldapUserMappingDAO);
   }
 
   @Test
@@ -278,7 +339,10 @@ public class LdapUserAndGroupMappingTest
   }
 
   private LdapUserAndGroupMappingTest startLdapServer() throws Exception {
-    ldapServer = tempEntity.newLdapServer("Test Server");
+    // Create LdapServer with a manual ID instead of tempEntity.newLdapServer()
+    ldapServer = new LdapServer("Test Server");
+    ldapServer.setId(UUID.randomUUID().toString());
+    ldapServerStore.put(ldapServer.getId(), ldapServer);
 
     if (authentication == LdapAuthenticationMethod.SIMPLE) {
       testLdapServer.setAuthenticationSimple();
@@ -300,8 +364,10 @@ public class LdapUserAndGroupMappingTest
     return this;
   }
 
+  // Constructed directly rather than via ldapService.getLdapConnection() to avoid
+  // needing a pre-persisted connection — the mock DAO handles persistence in upsertLdapConnection.
   private LdapConnection createLdapConnection() {
-    LdapConnection ldapConnection = ldapService.getLdapConnection(ldapServer.getId());
+    LdapConnection ldapConnection = new LdapConnection();
     ldapConnection.setServerId(ldapServer.getId());
 
     ldapConnection.setProtocol(LdapProtocol.LDAP);

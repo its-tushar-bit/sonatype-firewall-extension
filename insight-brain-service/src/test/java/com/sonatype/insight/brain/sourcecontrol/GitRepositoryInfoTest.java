@@ -5,15 +5,12 @@
  */
 package com.sonatype.insight.brain.sourcecontrol;
 
-import com.sonatype.insight.brain.testing.BrainInjectedTest;
-
 import org.junit.Test;
 
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GitRepositoryInfoTest
-    extends BrainInjectedTest
 {
   @Test
   public void testEquals() {

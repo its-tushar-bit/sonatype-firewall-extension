@@ -5,31 +5,26 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.Collections;
-import java.util.Map;
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class TelemetryDataObfuscatorTest
-    extends BrainInjectedTest
 {
-  @Inject
-  private TelemetryDataObfuscator telemetryDataObfuscator;
-
-  @Inject
+  @Mock
   private Configuration configuration;
 
-  @Inject
-  private ApiConfigurationService configurationService;
+  @InjectMocks
+  private TelemetryDataObfuscator telemetryDataObfuscator;
 
   @Test
   public void testObfuscate() {
@@ -40,10 +35,7 @@ public class TelemetryDataObfuscatorTest
 
   @Test
   public void testObfuscateIfAdvancedReportingDisabled_propertyIsEnabled_doesNotObfuscate() {
-    Map<String, Object> properties =
-        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
-    configurationService.setConfigurationInDatabaseNoAuthz(properties);
-    configuration.configurationChanged(properties.keySet());
+    when(configuration.getAdvanceReportingInsightsEnabled()).thenReturn(true);
 
     String potentialApplicationId = "potentialApplicationId";
     String obfuscated = telemetryDataObfuscator.obfuscateIfAdvancedReportingDisabled(potentialApplicationId);
@@ -52,10 +44,7 @@ public class TelemetryDataObfuscatorTest
 
   @Test
   public void testObfuscateIfAdvancedReportingDisabled_propertyIsDisabled() {
-    Map<String, Object> properties =
-        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
-    configurationService.setConfigurationInDatabaseNoAuthz(properties);
-    configuration.configurationChanged(properties.keySet());
+    when(configuration.getAdvanceReportingInsightsEnabled()).thenReturn(false);
 
     String potentialApplicationId = "potentialApplicationId";
     String obfuscated = telemetryDataObfuscator.obfuscateIfAdvancedReportingDisabled(potentialApplicationId);

@@ -5,14 +5,13 @@
  */
 package com.sonatype.insight.brain.security;
 
-import jakarta.inject.Inject;
+import java.util.Collections;
+import java.util.Set;
 
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.jaxrs.error.JavaLangErrorHandler;
 
-import com.google.inject.Binder;
 import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.AuthenticationListener;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.lang.util.LifecycleUtils;
@@ -20,6 +19,7 @@ import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.realm.Realm;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
+import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,46 +36,44 @@ import static org.mockito.Mockito.when;
  * Tests for authentication aspects that are not limited or specific to a single class.
  */
 public class AuthenticationTest
-    extends BrainInjectedTest
 {
-  @Inject
   private SecurityManager securityManager;
 
-  @Inject
   private JavaLangErrorHandler javaLangErrorHandler;
 
   private Realm mockRealm;
 
   private Subject subject;
 
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    InsightConfig config = new InsightConfig();
-    binder.bind(InsightConfig.class).toInstance(config);
+  @Before
+  public void setUp() {
+    javaLangErrorHandler = new JavaLangErrorHandler();
+    javaLangErrorHandler.setExitOnFatalErrorSupplier(() -> false);
 
     mockRealm = mock(Realm.class);
-    SecurityModule securityModule = new SecurityModule()
-    {
-      @Override
-      protected void configureShiro() {
-        super.configureShiro();
-        bindRealm().toInstance(mockRealm);
-      }
-    };
-    binder.install(securityModule);
-  }
 
-  @Before
-  public void setUpSecurity() {
-    javaLangErrorHandler.setExitOnFatalErrorSupplier(() -> false);
+    // Set up authentication listener that handles java.lang.Error
+    JavaLangErrorHandlerAuthListener authListener = new JavaLangErrorHandlerAuthListener(javaLangErrorHandler);
+    Set<AuthenticationListener> listeners = Collections.singleton(authListener);
+    Set<Realm> realms = Collections.singleton(mockRealm);
+
+    // Create the authenticator used in production
+    FirstSuccessfulRealmAuthenticator authenticator = new FirstSuccessfulRealmAuthenticator(realms, listeners);
+
+    // Create security manager — realms are not set on the manager directly; they reach it
+    // through FirstSuccessfulRealmAuthenticator, matching production wiring.
+    DefaultWebSecurityManager webSecurityManager = new DefaultWebSecurityManager();
+    webSecurityManager.setAuthenticator(authenticator);
+    webSecurityManager.setRememberMeManager(null);
+    this.securityManager = webSecurityManager;
+
     ThreadContext.bind(securityManager);
     subject = (new Subject.Builder()).buildSubject();
     ThreadContext.bind(subject);
   }
 
   @After
-  public void tearDownSecurity() {
+  public void tearDown() {
     ThreadContext.unbindSecurityManager();
     ThreadContext.unbindSubject();
     LifecycleUtils.destroy(securityManager);

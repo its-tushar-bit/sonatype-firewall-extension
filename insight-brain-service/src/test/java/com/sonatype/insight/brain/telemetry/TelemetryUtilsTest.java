@@ -11,13 +11,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -25,37 +22,44 @@ import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
-import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
 import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class TelemetryUtilsTest
-    extends BrainInjectedTest
 {
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-  @Inject
-  private TelemetryUtils telemetryUtils;
-
-  @Inject
-  private TelemetryDataObfuscator telemetryDataObfuscator;
-
-  @Inject
+  @Mock
   private Configuration configuration;
 
-  @Inject
-  private ApiConfigurationService configurationService;
+  private TelemetryDataObfuscator telemetryDataObfuscator;
+
+  private TelemetryUtils telemetryUtils;
+
+  @Before
+  public void setUp() {
+    // Default: advanced reporting is enabled (real_application_id is not obfuscated)
+    when(configuration.getAdvanceReportingInsightsEnabled()).thenReturn(true);
+    telemetryDataObfuscator = new TelemetryDataObfuscator(configuration);
+    telemetryUtils = new TelemetryUtils(telemetryDataObfuscator);
+  }
 
   @Test
   public void test_buildThirdPartyScanTelemetryData() {
@@ -268,10 +272,7 @@ public class TelemetryUtilsTest
 
   @Test
   public void testObfuscateIfAdvancedReportingDisabled_propertyIsEnabled_doesNotObfuscate() {
-    Map<String, Object> properties =
-        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
-    configurationService.setConfigurationInDatabaseNoAuthz(properties);
-    configuration.configurationChanged(properties.keySet());
+    when(configuration.getAdvanceReportingInsightsEnabled()).thenReturn(true);
 
     String potentialApplicationId = "potentialApplicationId";
     String obfuscated = telemetryUtils.obfuscateIfAdvancedReportingDisabled(potentialApplicationId);
@@ -280,10 +281,7 @@ public class TelemetryUtilsTest
 
   @Test
   public void testObfuscateIfAdvancedReportingDisabled_propertyIsDisabled() {
-    Map<String, Object> properties =
-        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
-    configurationService.setConfigurationInDatabaseNoAuthz(properties);
-    configuration.configurationChanged(properties.keySet());
+    when(configuration.getAdvanceReportingInsightsEnabled()).thenReturn(false);
 
     String potentialApplicationId = "potentialApplicationId";
     String obfuscated = telemetryUtils.obfuscateIfAdvancedReportingDisabled(potentialApplicationId);
@@ -292,10 +290,7 @@ public class TelemetryUtilsTest
 
   @Test
   public void testIncludeRealOwnerId_obfuscatesValueIfAdvancedReportingDisabled() {
-    Map<String, Object> properties =
-        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
-    configurationService.setConfigurationInDatabaseNoAuthz(properties);
-    configuration.configurationChanged(properties.keySet());
+    when(configuration.getAdvanceReportingInsightsEnabled()).thenReturn(false);
 
     String potentialApplicationId = "potentialApplicationId";
     Map<String, Object> telemetryAttributes = new HashMap<>();
@@ -306,10 +301,7 @@ public class TelemetryUtilsTest
 
   @Test
   public void testIncludeRealOwnerId() {
-    Map<String, Object> properties =
-        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
-    configurationService.setConfigurationInDatabaseNoAuthz(properties);
-    configuration.configurationChanged(properties.keySet());
+    when(configuration.getAdvanceReportingInsightsEnabled()).thenReturn(true);
 
     String potentialApplicationId = "potentialApplicationId";
     Map<String, Object> telemetryAttributes = new HashMap<>();
@@ -320,10 +312,7 @@ public class TelemetryUtilsTest
 
   @Test
   public void testIncludeRealApplicationId_obfuscatesValueIfAdvancedReportingDisabled() {
-    Map<String, Object> properties =
-        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
-    configurationService.setConfigurationInDatabaseNoAuthz(properties);
-    configuration.configurationChanged(properties.keySet());
+    when(configuration.getAdvanceReportingInsightsEnabled()).thenReturn(false);
 
     String potentialApplicationId = "potentialApplicationId";
     Map<String, Object> telemetryAttributes = new HashMap<>();
@@ -334,10 +323,7 @@ public class TelemetryUtilsTest
 
   @Test
   public void testIncludeRealApplicationId() {
-    Map<String, Object> properties =
-        Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
-    configurationService.setConfigurationInDatabaseNoAuthz(properties);
-    configuration.configurationChanged(properties.keySet());
+    when(configuration.getAdvanceReportingInsightsEnabled()).thenReturn(true);
 
     String potentialApplicationId = "potentialApplicationId";
     Map<String, Object> telemetryAttributes = new HashMap<>();

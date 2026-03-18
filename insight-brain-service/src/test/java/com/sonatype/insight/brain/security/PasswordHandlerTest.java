@@ -5,12 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
-import jakarta.inject.Inject;
-
 import java.security.InvalidKeyException;
 import java.security.NoSuchProviderException;
-
-import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,13 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PasswordHandlerTest
-    extends BrainInjectedTest
 {
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-  @Inject
-  private PasswordHandler pwHandler;
+  private final PasswordHandler pwHandler = new PasswordHandler(new TestEncryptionKeyStore());
 
   @Test
   public void testEncryptPasswordDecryptPassword() {
@@ -138,7 +132,7 @@ public class PasswordHandlerTest
     assertThat(passwordHandler.decryptPassword(passwordHandler.encryptPassword(password)))
         .isEqualTo(password);
 
-    password = "\t&#128507;U+1F605的字δБ";
+    password = "\t&#128507;U+1F605的字\u03B4\u0411";
     assertThat(passwordHandler.decryptPassword(passwordHandler.encryptPassword(password)))
         .isEqualTo(password);
     removeBouncyCastleFipsProvider();

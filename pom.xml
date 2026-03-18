@@ -1505,7 +1505,7 @@
         <artifactId>spotless-maven-plugin</artifactId>
         <version>3.1.0</version>
         <configuration>
-          <!--<ratchetFrom>origin/main</ratchetFrom>-->
+          <ratchetFrom>origin/main</ratchetFrom>
           <java>
             <removeUnusedImports/>
             <trimTrailingWhitespace/>

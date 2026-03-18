@@ -142,3 +142,120 @@ Doing so would case inconsistencies in database schemas both between teammates a
 Such SQL scripts are located under `insight-brain-db/src/main/resources/db` and are prefixed by `schema_incremental_`.
 Instead of changing the existing script, a new incremental SQL script should be created to take the database schema to the desired form.
 Scripts `schema.sql` on the other hand are expected to change so databases that are created for the first time using that file get the new schema from the start.
+
+## Code Review Guidelines
+
+These guidelines are used by both automated AI reviewers and human reviewers. They are ordered by priority.
+Based on analysis of 300 merged PRs, 15 reverts, 81 bug-fix PRs, and 100+ Jira bugs from Dec 2025 – Mar 2026.
+
+### 1. Database migration integrity
+- Incremental SQL scripts (`schema_incremental_*.sql`) already in the target branch MUST NOT be modified — create a new incremental script instead. Violating this causes schema drift between existing and fresh installations (caused reverts: PR #15241, PR #15249; reviewer caught in PR #15204)
+- New columns MUST be added at the END of the table definition in `schema.sql` (PostgreSQL `ALTER TABLE ADD COLUMN` always appends; mismatches break `CanonicalSchemaValidationTest`)
+- No `COMMENT` statements in schema files (causes byte-for-byte drift between schema.sql and migrations)
+- PostgreSQL INSERT statements in tests must explicitly list all column names (never rely on column order)
+- `schema.sql` files ARE expected to change (for fresh installs) — only incrementals are immutable
+- **New nullable columns and existing data**: when adding columns that will be NULL for existing records, ALL code paths reading that column must handle NULL. Java immutable collections (`Set.of()`, `List.of()`) throw NPE on `.contains(null)` — this caused a Critical production bug (CLM-37961: NPE in SBOM vulnerability details post-upgrade from v191→v195)
+
+### 2. Policy violation comparison classes (data loss risk)
+- Classes in `com.sonatype.insight.brain.model.policy.facts` and `com.sonatype.insight.brain.model.policy.conditions` with `generateDroolsConditionCode` are serialized to JSON for violation/waiver matching. Changing their structure or JSON serialization breaks existing waivers in customer databases (waivers stop matching violations, appearing as data loss)
+- Any structural change to these classes requires Tech Lead review and a migration plan
+- Look for comments like "Any change to this class structure or to its JSON serialization may break policy violation comparison"
+
+### 3. Bugs and logic errors
+- **Null handling**: Missing null checks on data from external systems (HDS, OpenSearch, user input). Comparators without `nullsFirst`/`nullsLast` have caused same-day reverts (PR #15290 → #15303 → #15305). Optional misuse (`.get()` without `.isPresent()`). Java immutable collections (`Set.of()`, `List.of()`) throw NPE on `.contains(null)` unlike `HashSet` (CLM-37961)
+- **Concurrency issues**: Race conditions in telemetry, caching, and batch operations. Double-checked locking bugs (PR #15048: httpClient assignment outside synchronized block). `BooleanSupplierShutdownRequest` polling forever when supplier returns true instead of false (PR #15048)
+- **Off-by-one errors** in pagination, aggregation sizes, retry loop bounds (PR #14975: retry loop doing `maxRetries - 1` instead of `maxRetries`), or index calculations
+- **Policy evaluation logic**: High regression risk — verify constraint evaluation doesn't introduce performance bottlenecks (CLM-38159: security vulnerability group constraints caused Sev-1 outages at $1.5M ARR customer)
+- **Arithmetic overflow**: Exponential backoff calculations with bit shifts can overflow for large attempt values (PR #14975). Cap shift values before computing.
+- **Return null vs empty collection**: Methods returning `List` should return `Collections.emptyList()` instead of `null` to keep API consistent and reduce null-handling at call sites (flagged in PR #15168)
+
+### 4. Regressions
+- If the PR modifies **policy evaluation** or Drools rules: flag for extra scrutiny (historically high regression area across v195/v196 releases). CLM-38699: DependencyType condition with other conditions never matches
+- If the PR modifies **SBOM processing** (CycloneDX/SPDX): check for API backward compatibility (CLM-37982: DELETE SBOM API broke in v195). Verify non-standard license identifiers are handled gracefully — recurring failures on Artistic-dist (CLM-38792), SMAIL-GPL (CLM-38555), license URLs exceeding 200 chars (CLM-38729), and SPDX license expressions (CLM-38381)
+- If the PR modifies **authentication/authorization** (Shiro, Keycloak, GitHub App): verify all auth modes still work and inheritance logic doesn't bypass security checks. GitHub App auth is the #1 source of bugs: 29 PRs, 2 reverts, 13+ Jira bugs since Dec 2025
+- If the PR modifies **OpenSearch queries**: flag for performance review
+- If the PR removes or changes `@Transactional` boundaries or OpenJPA entity relationships: flag potential data consistency issues. Entity manager lifecycle bugs cause "entity manager closed" exceptions when accessed across thread boundaries or in async callbacks (PR #15190)
+- If the PR changes **feature flag** logic (`SystemConfigurationPropertyFeature`): verify `enabledWhenAbsent` behavior is correct (CLM-38204). Incorrect feature gating silently disables functionality — CLM-38213 (Critical): container scanning returned no violations because feature was gated on license feature
+- If the PR modifies **scan report data or fields**: verify behavior in BOTH manual scan AND continuous monitoring contexts. CLM-38947 (Critical): reachability markers lost during CM, causing auto-waivers to disappear
+- If the PR modifies **streaming endpoints or HTTP headers**: verify behavior behind load balancers/proxies (ALB, nginx) and across HTTP 1.0/1.1. CLM-38045 (Blocker): ALB idle timeout from delayed CSV output. CLM-37981: Advanced Search Export broken with HTTP 1.0. CLM-38675: invalid `Content-Encoding: utf-8` header broke Jenkins pipelines
+
+### 5. GitHub App / SCM configuration changes
+GitHub App authentication is the highest-churn, highest-bug-rate area in the codebase (29 PRs, 2 reverts, 13+ Jira bugs since Dec 2025). PRs in this area require extra scrutiny:
+- **Inheritance hierarchy**: verify behavior at ALL levels (root org → child org → application) and ALL transitions (PAT ↔ GitHub App ↔ inherited). CLM-38874: 500 error switching auth methods. CLM-38951: incorrect display at org level. CLM-38709: GitHub App remains selected after switching to PAT
+- **Registration/installation lifecycle**: verify cleanup on deletion (CLM-39016: GitHub App not deleted from DB when App/Org deleted), re-registration flows (CLM-38945), and personal account vs organization account paths (CLM-38950, CLM-38932)
+- **State management in frontend**: source control config has complex state interactions between provider selection, auth type, inheritance, and GitHub App installation. Review comments on PR #15276 flagged missing feature flag checks, inconsistent naming, and need for shared utility methods
+- **Caching with tenant safety**: GitHub App auth strategies must be cached per-ownerId and wrapped in `TenantReference` for MTIQ safety (PR #15120 review feedback)
+- **Accidental scope creep**: PR #15156 reverted because unrelated Auto-PR/PR-commenting changes were accidentally merged into the GitHub App registration feature. PRs should contain only changes related to the stated Jira ticket(s)
+
+### 6. Missing or inadequate tests
+- New backend logic without tests — this project uses JUnit 4 + Mockito, but integration tests with real beans are preferred over mocked unit tests
+- Tests using `Thread.sleep()` instead of explicit waits or synchronization (ongoing flakiness source — PRs #15219, #15284, #15348)
+- Tests using `@Ignore` to suppress failures without a clear justification and linked ticket to re-enable (PR #14972 reverted an `@Ignore` that was premature)
+- Tests that don't use `TemporaryEntity` rule for database cleanup
+- Frontend tests using `fireEvent` instead of `userEvent` (React Testing Library best practice)
+- Calendar/time-dependent tests without mocked clocks (break on month boundaries — PR #15402)
+- Tests that pass on the feature branch but fail after merge to main — this has caused multiple reverts (PRs #15329, #15352). Ensure tests don't depend on branch-specific state
+- Don't write tests for trivial getters/setters (PR #15249 review feedback)
+
+### 7. Multi-tenant (MTIQ) safety
+- Changes to **license validation** logic: intermittent 402 errors have caused tenant-wide outages (CLM-38370). Verify license check paths handle nulls and edge cases
+- **Database connection pool** changes: verify health checks test write capability, not just connectivity (CLM-37841, CLM-37843). MTIQ uses Aurora — connection pool must handle failover (CLM-37842: `maxConnectionLifetimeSeconds` needed)
+- **Tenant isolation**: verify no data leakage between tenants. Changes to shared services must not expose tenant-specific data. Caches must be wrapped in `TenantReference` (PR #15120)
+- Feature flags: ensure `enabledWhenAbsent` defaults are correct for both on-prem and MTIQ variants
+- **SaaS-specific behavior**: features that should be disabled for SaaS tenants (CLM-38607: SaaS customers able to configure custom email servers). Verify SaaS-only restrictions are enforced
+- **Tenant lifecycle**: operations on deleted/unlicensed tenants must be handled (CLM-38973: TenantLicenseUpdaterTask updates deleted tenants; CLM-38966: infinite license update loop)
+
+### 8. Resource and performance issues
+- **Unbounded collections** (ConcurrentHashMap, ArrayList without size limits) that grow over time — telemetry memory leaks have been a recurring issue (PR #15280, CLM-38822, CLM-36031). Prefer returning `TelemetryData` from methods instead of accumulating in instance variable lists (PR #15280 review feedback)
+- **Missing database indexes** on columns used in WHERE/ORDER BY clauses
+- **N+1 query patterns**: especially in policy evaluation (CLM-38159: 3400 component versions each triggering vulnerability group queries — Sev-1 at Vanguard), SBOM processing, org hierarchy traversal (CLM-38233: Support Zip import taking 15+ min), and license threat group operations (CLM-38299: thousands of queries on save)
+- **Large-scale data operations**: operations that iterate over all apps/components/violations in an org must be reviewed for scale with 1000+ entities. CLM-38965: org deletion with thousands of apps taking days. Consider batch processing and progress tracking
+- **UI performance at scale**: queries that work for small datasets but degrade at enterprise scale (40k+ apps — CLM-36272). CLM-38700: UI unusable with hundreds of concurrent scans. Verify pagination and filtering
+- **Excessive logging**: recurring issue — CLM-38750 (applicableWaivers REST API excessive logging), CLM-34561 (ThirdPartyScanResultsProcessor). Use parameterized logging (`log.warn("msg {}", arg)`) instead of string concatenation (PR #15168 review feedback)
+- **Static allocation**: avoid creating new collections per method invocation when a static final field suffices (PR #14899: `new HashSet<>(Set.of(...))` on every call → `private static final Set`)
+
+### 9. Security
+- **Authentication bypass**: changes to Shiro configuration, Keycloak SAML, or GitHub App auth that might skip auth for protected endpoints
+- **Authorization logic**: filter/permission bypasses (PR #15273: container waiver permission filtering fix). GitHub App auth inheritance must not bypass security checks at any level (PR #15297, CLM-38874)
+- **Feature-gated security scanning**: incorrect feature flag checks can silently disable security functionality. CLM-38213 (Critical): container scanning returned no policy violations because the feature was gated on a license feature the customer didn't have — scans should fail explicitly rather than silently return empty results
+- **Cookie security**: SameSite attributes, HttpOnly flags (CLM-31884)
+- Missing input validation at API boundaries (user input, external API responses)
+- Exposed secrets or credentials in config files or logs. Version information exposure on SaaS instances (CLM-38871)
+- **Dependency upgrades**: verify upgrades don't introduce breaking changes (PR #15353: Jetty CVE, PR #15268: Axios DoS). Cryptographic library upgrades are especially sensitive — PR #15075: BouncyCastle upgrade broke FIPS loading, requiring revert. Always run FIPS tests after crypto library changes
+
+### 10. Upgrade path compatibility
+PRs that add new database columns, change data formats, or modify API contracts must be verified against upgrade scenarios:
+- **New columns with null existing data**: code must handle NULL values for the new column in all existing records (CLM-37961: Critical NPE post-upgrade)
+- **API backward compatibility**: existing API consumers must continue to work after changes (CLM-37982: DELETE SBOM API broke in v195; CLM-37981: Advanced Search Export broke with HTTP 1.0 from CLM-35734 changes)
+- **File system operations in HA/shared storage**: file operations must handle NFS attribute caching and concurrent access (CLM-38445: FileAlreadyExistsException on NFS). Check file existence before deletion (CLM-37904: Delete SBOM binary only if file exists)
+- **Reachability/scan data preservation**: features that enrich scan reports must preserve data through re-evaluation and continuous monitoring (CLM-38947)
+
+### 11. Jakarta EE migration
+- `javax.inject` imports MUST NOT be used — the codebase has migrated to `jakarta.inject`. Mixing javax and jakarta causes runtime injection failures
+- Watch for `javax.inject` in new or modified files
+
+### 12. Configuration and infrastructure
+- Dropwizard `config.yml` changes: verify they apply to both on-prem and MTIQ variants (PR #15172: syntax fix in MTIQ config.yml)
+- Environment-specific configs in `src/test/resources/config-*.yml`
+- Jenkinsfile changes: verify pipeline stages, parallelism, and timeout values
+- Build profile changes (`-Pquick`, `--Pci`, `sonatype` profile): verify Spotless behavior (apply vs check)
+
+### 13. Documentation coherence
+- If the PR changes behavior documented in CLAUDE.md, the CLAUDE.md must be updated too
+- Javadoc that contradicts actual behavior
+
+### 14. Process compliance
+- PR description must include a Jira ticket link (`Jira: https://sonatype.atlassian.net/browse/CLM-####`)
+- Branch name must be prefixed with Jira ticket ID (e.g., `CLM-12345-description`)
+- Spotless formatting must be applied (`mvn spotless:apply`)
+- PRs should contain only changes related to the stated Jira ticket(s) — unrelated changes should be in separate PRs (PR #15156 revert: unrelated backend changes accidentally merged)
+
+### What NOT to flag in reviews
+- Code formatting or style (Spotless handles this)
+- Missing comments on self-explanatory code
+- Naming preferences that are subjective
+- Theoretical issues that require impossible conditions
+- Copyright headers (automated checks handle this)
+- Import ordering
+- Suggestions to add error handling for scenarios that genuinely cannot happen
+- Trivial getter/setter tests (PR #15249)

@@ -30,7 +30,7 @@ public class AssetsTest
 
   @Test
   public void testCssUrlsRelative() throws Exception {
-    final List<String> CSS_PATHS = Arrays.asList("style.css", "version-graph-react.css", "viewdetails-react.css");
+    final List<String> CSS_PATHS = Arrays.asList("bundle.css", "version-graph-react.css", "viewdetails-react.css");
     final List<String> failingCssPaths = new ArrayList<>();
     for (String cssPath : CSS_PATHS) {
       HttpResponse response = restRequest().path(cssPath).get();
@@ -49,7 +49,7 @@ public class AssetsTest
     assertResponseStatus(200, response);
     assertThat(response.getContentType()).isEqualToIgnoringCase("text/html;charset=UTF-8");
 
-    response = restRequest().path("style.css").get();
+    response = restRequest().path("bundle.css").get();
     assertResponseStatus(200, response);
     assertThat(response.getContentType()).isEqualToIgnoringCase("text/css;charset=UTF-8");
 
@@ -57,7 +57,7 @@ public class AssetsTest
     assertResponseStatus(200, response);
     assertThat(response.getContentType()).isEqualToIgnoringCase("text/javascript;charset=UTF-8");
 
-    response = restRequest().path("fonts/glyphicons-regular.woff").get();
+    response = restRequest().path("fonts/sonatype-icons.woff").get();
     assertResponseStatus(200, response);
     assertThat(response.getContentType()).isEqualToIgnoringCase("font/woff;charset=utf-8");
   }

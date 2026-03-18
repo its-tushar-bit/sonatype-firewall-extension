@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { TextEncoder } from 'util';
+global.TextEncoder = TextEncoder;
+
 import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { getSessionUrl } from 'MainRoot/util/CLMLocation';
@@ -21,10 +24,6 @@ describe('userLoginActions', () => {
 
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   beforeEach(function () {
-    window.Base64 = {
-      encode: (args) => args,
-    };
-
     state = {
       loginSubmitError: null,
       loginSubmitMaskState: null,
@@ -72,7 +71,7 @@ describe('userLoginActions', () => {
           {
             waitForLogin: false,
             headers: {
-              Authorization: `Basic testUser:testPassword`,
+              Authorization: `Basic dGVzdFVzZXI6dGVzdFBhc3N3b3Jk`,
             },
           }
         );

@@ -181,7 +181,7 @@ void configureBranchJob() {
       booleanParam(name: 'skipUnitS', defaultValue: false, description: 'Skip: Unit and Integration Tests S'),
       booleanParam(name: 'skipUnitCUZ', defaultValue: false, description: 'Skip: Unit and Integration Tests C+U-Z'),
       booleanParam(name: 'skipUnitMtiq', defaultValue: false, description: 'Skip: MTIQ Unit and Integration Tests'),
-      booleanParam(name: 'skipFrontend', defaultValue: false, description: 'Skip: Frontend Tests (Jasmine/Jest)')
+      booleanParam(name: 'skipFrontend', defaultValue: false, description: 'Skip: Frontend Tests (Jest)')
       ]
 
   // Jenkins unfortunately will overwrite any parameters defined at the folder level using this dynamic approach for
@@ -397,7 +397,7 @@ Map<String, Closure> getParallelTests(List <String> zips) {
       testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 17', 'OpenJDK 17', zips)
     }
     if (!params.skipFrontend) {
-      testStages << createFrontendTests('Frontend Tests - Jasmine/Jest', zips)
+      testStages << createFrontendTests('Frontend Tests - Jest', zips)
     }
   }
   return testStages
@@ -466,13 +466,12 @@ Map<String, Closure> createFrontendTests(String stageName, List<String> zipFiles
           String mavenOptions = "-pl 'com.sonatype.insight.brain:insight-brain-frontend'"
           mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
           mavenOptions += " -Pbuildsupport-sonar-coverage"
-          // Use single thread to prevent Jest/Karma parallelization issues causing test timeouts
+          // Use single thread to prevent Jest parallelization issues causing test timeouts
           mavenOptions += " --threads 1"
 
           Map<String, ?> testConfig = testConfig(mavenOptions, null,  'OpenJDK 17')
 
-          mvn testConfig, "com.github.eirslett:frontend-maven-plugin:yarn@jasmine " +
-              "com.github.eirslett:frontend-maven-plugin:yarn@jest"
+          mvn testConfig, "com.github.eirslett:frontend-maven-plugin:yarn@jest"
         }
         finally {
           captureResultsAndCleanup()

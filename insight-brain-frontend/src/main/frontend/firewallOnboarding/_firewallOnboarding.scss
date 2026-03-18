@@ -98,8 +98,8 @@ firewall-onboarding-page {
   }
 
   .welcome-screen-wrapper {
-    background: 12% 95% no-repeat url('firewall-logo-white.png'), 88% 97% no-repeat url('products-icons.png'),
-      url('welcome-bg.png') center / cover;
+    background: 12% 95% no-repeat url('./firewall-logo-white.png'), 88% 97% no-repeat url('./products-icons.png'),
+      url('./welcome-bg.png') center / cover;
     display: grid;
     grid-template-columns: 10% 623px;
     grid-template-areas: 'margin content';

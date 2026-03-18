@@ -28,9 +28,6 @@ import ClassyBrew from 'classybrew/src/classybrew';
 
 import './utility/Polyfills';
 
-import Base64 from './lib/Base64';
-
-window.Base64 = Base64;
 window.Fuse = Fuse;
 window.d3 = d3;
 window.classyBrew = ClassyBrew;

@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global Base64 */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { getSessionUrl, assign } from 'MainRoot/util/CLMLocation';
@@ -51,7 +50,7 @@ export const initialState = Object.freeze({
  */
 const submitUserLogin = createAsyncThunk(`${REDUCER_NAME}/submitUserLogin`, (userCredentials, { rejectWithValue }) => {
   const { loginUsername, loginPassword } = userCredentials;
-  const encodedCredentials = Base64.encode(loginUsername + ':' + loginPassword);
+  const encodedCredentials = btoa(String.fromCharCode(...new TextEncoder().encode(loginUsername + ':' + loginPassword)));
   const headers = {
     Authorization: `Basic ${encodedCredentials}`,
   };

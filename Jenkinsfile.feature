@@ -48,7 +48,7 @@
  │  Frontend Tests         │  Static Analysis      │  Policy Evaluation (conditional)          │
  │  ──────────────         │  ───────────────      │  ────────────────────────────             │
  │  • main agent           │  • agent: iq          │  • nexusPolicyEvaluation                  │
- │  • Jest + Karma         │  • Spotless Check     │                                           │
+ │  • Jest                 │  • Spotless Check     │                                           │
  │                         │  • License Check      │                                           │
  ├───────────────────┬────────────┬────────────┬────────────┬────────────┬────────────────────┤
  │  Postgres Tests   │  Surefire  │  Failsafe  │  Failsafe  │  Failsafe  │  Failsafe          │
@@ -69,7 +69,7 @@
  ▼
  ┌───────────────────────────────────────────────────────────────────────────────────────────────┐
  │  7. COLLECT RESULTS                                                                           │
- │     • junit: Collect test reports (surefire, failsafe, karma, jest)                           │
+ │     • junit: Collect test reports (surefire, failsafe, jest)                                  │
  │     • archiveArtifacts: Test report files                                                     │
  └───────────────────────────────────────────────────────────────────────────────────────────────┘
  │
@@ -198,9 +198,9 @@ pipeline {
           steps {
             script {
               dir(env.BUILD_DIR) {
-                // Run Jest and Karma tests using cached node/yarn from Prepare stage
+                // Run Jest tests using cached node/yarn from Prepare stage
                 mvn getFrontEndTestConfig(),
-                    'com.github.eirslett:frontend-maven-plugin:yarn@jest com.github.eirslett:frontend-maven-plugin:yarn@jasmine'
+                    'com.github.eirslett:frontend-maven-plugin:yarn@jest'
               }
             }
           }
@@ -626,7 +626,7 @@ Map getFrontEndInstallConfig() {
   )
 }
 
-// Get Maven config for frontend test stages (Jest/Karma)
+// Get Maven config for frontend test stages (Jest)
 Map getFrontEndTestConfig() {
   def opts = []
 
@@ -1148,11 +1148,11 @@ String buildStaticAnalysisMavenOptions() {
 }
 
 /**
- * Run frontend tests (Jest + Karma) on a distributed agent.
+ * Run frontend tests (Jest) on a distributed agent.
  *
  * This function:
  * 1. Unstashes the build artifacts from the main build agent
- * 2. Runs Jest and Karma tests in parallel
+ * 2. Runs Jest tests
  */
 void runDistributedFrontendTests() {
   echo "Running distributed frontend tests..."
@@ -1161,10 +1161,10 @@ void runDistributedFrontendTests() {
   // Restore stashed artifacts
   def localRepo = unstashTestArtifacts()
 
-  // Run Jest and Karma in parallel using Maven
+  // Run Jest tests using Maven
   def opts = buildDistributedFrontendTestMavenOptions()
   mvnDirectForDistributedTests(opts,
-      'com.github.eirslett:frontend-maven-plugin:yarn@jest com.github.eirslett:frontend-maven-plugin:yarn@jasmine',
+      'com.github.eirslett:frontend-maven-plugin:yarn@jest',
       localRepo)
 }
 

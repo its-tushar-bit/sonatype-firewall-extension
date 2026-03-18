@@ -213,13 +213,38 @@ pipeline {
           steps {
             script {
               dir(env.BUILD_DIR) {
+                def reachabilityConfig = [
+                    javaAnalysis: [
+                        enable: true,
+                        includes: [
+                            [pattern: 'nexus-iq-server/target/insight-brain-service-*.jar']
+                        ],
+                        entrypointStrategy: 'JAVA_MAIN',
+                        namespaces: [
+                            [namespace: 'com.sonatype.insight']
+                        ]
+                    ],
+                    jsAnalysis: [
+                        enable: true,
+                        node: [
+                            executable: "${env.WORKSPACE}/insight-brain-frontend/node/node"
+                        ],
+                        projectDirectory: 'insight-brain-frontend',
+                        sourceFiles: [
+                            [pattern: 'src/main/**']
+                        ],
+                        excludeFiles: [
+                            [pattern: 'src/test/**']
+                        ]
+                    ]
+                ]
                 nexusPolicyEvaluation(
                     iqStage: 'develop',
                     iqApplication: 'insight-brain',
                     iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
                     iqModuleExcludes: [[moduleExclude: '**/test/**'], [moduleExclude: '**/test-classes/**/module.xml']],
                     failBuildOnNetworkError: true,
-                    reachability: null
+                    reachability: reachabilityConfig
                 )
               }
             }
@@ -482,9 +507,9 @@ void configureBranchJob() {
       booleanParam(defaultValue: true,
           description: 'If checked will use maven build caching to speed up the build (not available on Main)',
           name: 'buildCachingEnabled'),
-      booleanParam(defaultValue: true,
-          description: 'Only run policy violations when manifests have changed (not available on Main)',
-          name: 'dynamicPolicyEvaluationEnabled'),
+      booleanParam(defaultValue: false,
+          description: 'If checked will run policy evaluation with full reachability analysis (same as Main)',
+          name: 'policyEvaluationEnabled'),
       booleanParam(defaultValue: mtiqImagePushEnabledByDefault,
           description: 'If checked will push the MTIQ Docker image to RSC for this branch (not available on Main)',
           name: 'mtiqImagePushEnabled'),
@@ -882,19 +907,12 @@ void pushMTIQDockerImage(boolean pushMtiqImage, String imageVersion) {
   }
 }
 
-boolean isDynamicPolicyEvaluationEnabled() {
-  return params.dynamicPolicyEvaluationEnabled
-}
-
 boolean isBundlingEnabled() {
   return params.bundlingEnabled
 }
 
 boolean shouldRunPolicyEvaluation() {
-  if (!isDynamicPolicyEvaluationEnabled()) {
-    return true
-  }
-  return haveDependenciesChanged(['pom.xml', 'package.json', 'yarn.lock'])
+  return params.policyEvaluationEnabled
 }
 
 /**

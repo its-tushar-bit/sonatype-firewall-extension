@@ -37,7 +37,7 @@ import com.sonatype.insight.brain.common.test.SlowTest;
  * It is similar to parts of NewInstancePopulatorTest, but that test uses a canned policy as test data, and in doing
  * so, is able to verify the import contents to a greater degree of detail. With this class on the other hand, we don't
  * want to be updating it every time the reference policy gets updated, so we only test things that don't require
- * hard-coded assumptions about the policy file contents.  Mainly, that the number of entities in the JSON matches the
+ * hard-coded assumptions about the policy file contents. Mainly, that the number of entities in the JSON matches the
  * number of entities in the database tables after the import.
  */
 @Category(SlowTest.class)

@@ -103,7 +103,9 @@ public class MtiqUserResourceTest
 
     assertResponseStatus(200, response);
 
-    List<MtiqUserDTO> data = JsonUtils.parse(response.getBodyText(), new TypeReference<List<MtiqUserDTO>>() { });
+    List<MtiqUserDTO> data = JsonUtils.parse(response.getBodyText(), new TypeReference<List<MtiqUserDTO>>()
+    {
+    });
     assertThat(data).hasSize(1);
     assertThat(MtiqUserDTO.ssoUserToMtiqUser(SsoUser.fromSamlUser(samlUser))).usingRecursiveComparison()
         .isEqualTo(data.get(0));
@@ -121,7 +123,9 @@ public class MtiqUserResourceTest
 
     assertResponseStatus(200, response);
 
-    List<MtiqUserDTO> data = JsonUtils.parse(response.getBodyText(), new TypeReference<List<MtiqUserDTO>>() { });
+    List<MtiqUserDTO> data = JsonUtils.parse(response.getBodyText(), new TypeReference<List<MtiqUserDTO>>()
+    {
+    });
     assertThat(data).hasSize(1);
     assertThat(MtiqUserDTO.ssoUserToMtiqUser(SsoUser.fromOAuth2User(oAuth2User))).usingRecursiveComparison()
         .isEqualTo(data.get(0));
@@ -307,7 +311,7 @@ public class MtiqUserResourceTest
 
     @Override
     public void deleteUser(final String username, final String connectionId) {
-      //no-op
+      // no-op
     }
   }
 

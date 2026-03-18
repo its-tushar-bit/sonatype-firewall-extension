@@ -109,7 +109,7 @@ public class ApplicationManagementSummaryDTO
 
   /**
    * @return true if there is source control evaluation source control event (new or in progress) for this
-   * application;  false otherwise
+   *         application; false otherwise
    */
   public boolean getHasPendingSourceControlPolicyEvaluation() {
     return hasPendingSourceControlPolicyEvaluation;

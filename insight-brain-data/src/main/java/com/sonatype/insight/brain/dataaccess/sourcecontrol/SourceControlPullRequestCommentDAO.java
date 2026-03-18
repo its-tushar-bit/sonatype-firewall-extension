@@ -49,8 +49,7 @@ public class SourceControlPullRequestCommentDAO
   {
     return get(
         SELECT_ENTITY + "WHERE entity.applicationId=?1 AND entity.pullRequestId=?2 AND entity.componentHash IS NULL",
-        applicationInternalId, pullRequestId
-    );
+        applicationInternalId, pullRequestId);
   }
 
   /**
@@ -64,8 +63,7 @@ public class SourceControlPullRequestCommentDAO
     return getList(
         SELECT_ENTITY
             + "WHERE entity.applicationId=?1 AND entity.pullRequestId=?2 AND entity.componentHash IS NOT NULL",
-        applicationInternalId, pullRequestId
-    );
+        applicationInternalId, pullRequestId);
   }
 
   /**
@@ -79,8 +77,7 @@ public class SourceControlPullRequestCommentDAO
   {
     return get(
         SELECT_ENTITY + "WHERE entity.applicationId=?1 AND entity.componentHash=?2 AND entity.pullRequestId=?3",
-        applicationInternalId, componentHash, pullRequestId
-    );
+        applicationInternalId, componentHash, pullRequestId);
   }
 
   /**
@@ -105,7 +102,8 @@ public class SourceControlPullRequestCommentDAO
       int pullRequestId)
   {
     for (SourceControlPullRequestComment comment : getByApplicationIdAndPullRequestIdWithComponents(applicationId,
-        pullRequestId)) {
+        pullRequestId))
+    {
       delete(ctx, comment);
     }
   }
@@ -137,7 +135,7 @@ public class SourceControlPullRequestCommentDAO
   @Override
   public void insert(TransactionContext tx, SourceControlPullRequestComment pullRequestComment) {
     validateOwnership(tx, pullRequestComment);
-    
+
     super.insert(tx, pullRequestComment);
   }
 

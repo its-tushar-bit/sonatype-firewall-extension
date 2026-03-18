@@ -36,11 +36,11 @@ public class IntegrationVersionCacheLoaderTest
     IntegrationVersionCacheKey key = new IntegrationVersionCacheKey("Maven_Plugin", 5);
 
     IqIntegrationVersion[] hdsResponse = {
-        new IqIntegrationVersion("Maven_Plugin", "1.5.0"),
-        new IqIntegrationVersion("Maven_Plugin", "1.4.0"),
-        new IqIntegrationVersion("Maven_Plugin", "1.3.0"),
-        new IqIntegrationVersion("Maven_Plugin", "1.2.0"),
-        new IqIntegrationVersion("Maven_Plugin", "1.1.0")
+      new IqIntegrationVersion("Maven_Plugin", "1.5.0"),
+      new IqIntegrationVersion("Maven_Plugin", "1.4.0"),
+      new IqIntegrationVersion("Maven_Plugin", "1.3.0"),
+      new IqIntegrationVersion("Maven_Plugin", "1.2.0"),
+      new IqIntegrationVersion("Maven_Plugin", "1.1.0")
     };
 
     when(mockHdsClient.get(IqIntegrationVersion[].class, "rest/iqIntegrations/versions",

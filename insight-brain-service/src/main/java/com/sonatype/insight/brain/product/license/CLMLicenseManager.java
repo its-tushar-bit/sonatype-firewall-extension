@@ -282,7 +282,7 @@ public class CLMLicenseManager
     return Sets.newHashSet(productList);
   }
 
-  //visible for testing
+  // visible for testing
   void updateLicenseCacheFromDatabase() {
     try {
       SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
@@ -291,7 +291,7 @@ public class CLMLicenseManager
       }
       else {
         ProductLicenseKey licenseKey = licenseManager.getLicenseDetails();
-        //not verifying signature intentionally. This is expected to be used only to update the cache
+        // not verifying signature intentionally. This is expected to be used only to update the cache
         // from the database which is already verified.
         populateLicenseCache(licenseKey, licenseDetails, false);
       }
@@ -334,7 +334,8 @@ public class CLMLicenseManager
     String licenseFingerprint = licenseFingerprinter.calculate(licenseKey);
     SignedProductLicenseDetailsDTO licenseDetails = queryLicenseDetailsFromHds(licenseData, licenseFingerprint);
     if (!config.isDatabaseEmbedded() && !licenseDetails.features.contains(LicensedFeature.EXTERNAL_DATABASE.name())
-        && !migrationTrackerDAO.isTrackerPresent(MIGRATION_TRACKER_EXTERNAL_DB)) {
+        && !migrationTrackerDAO.isTrackerPresent(MIGRATION_TRACKER_EXTERNAL_DB))
+    {
       throw new ExternalDatabaseNotSupportedException("The product license does not support use of an external database"
           + ", please reconfigure IQ Server to use the embedded database before installing the license.");
     }
@@ -413,8 +414,10 @@ public class CLMLicenseManager
     String productLicenseExpiry = ZonedDateTime
         .ofInstant(Instant.ofEpochMilli(productLicense.getExpirationTimestamp()), ZoneId.systemDefault())
         .format(DateTimeFormatter.ISO_LOCAL_DATE);
-    AuditData.get().setData("productLicenseFingerprint", productLicense.getFingerprint())
-        .setData("productLicenseFilename", filename).setData("productLicenseExpiry", productLicenseExpiry);
+    AuditData.get()
+        .setData("productLicenseFingerprint", productLicense.getFingerprint())
+        .setData("productLicenseFilename", filename)
+        .setData("productLicenseExpiry", productLicenseExpiry);
   }
 
   /**
@@ -685,10 +688,13 @@ public class CLMLicenseManager
     Set<LicensedFeature> features = EnumSet.noneOf(LicensedFeature.class);
     Set<StageType> stageTypes = new LinkedHashSet<>();
     Collection<StageType> allStagesWithoutCompliance =
-        StageTypes.getAll().stream().filter(stageType -> !StageTypes.COMPLIANCE.equals(stageType))
+        StageTypes.getAll()
+            .stream()
+            .filter(stageType -> !StageTypes.COMPLIANCE.equals(stageType))
             .collect(Collectors.toSet());
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK)
-        || products.contains(ProductLicenseDetails.PRODUCT_AUDITOR_SAAS)) {
+        || products.contains(ProductLicenseDetails.PRODUCT_AUDITOR_SAAS))
+    {
       features.add(LicensedFeature.POLICY_MONITORING);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
       features.add(LicensedFeature.DASHBOARD);
@@ -727,7 +733,8 @@ public class CLMLicenseManager
       stageTypes.add(StageTypes.RELEASE);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)
-        || products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS)) {
+        || products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS))
+    {
       addLifecycleFeatures(features);
       stageTypes.addAll(allStagesWithoutCompliance);
     }
@@ -741,7 +748,8 @@ public class CLMLicenseManager
       stageTypes.add(StageTypes.RELEASE);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FOUNDATION)
-        || products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FOUNDATION_SAAS)) {
+        || products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FOUNDATION_SAAS))
+    {
       features.add(LicensedFeature.DASHBOARD);
       features.add(LicensedFeature.WAIVERS_DASHBOARD);
       features.add(LicensedFeature.CLI_INTEGRATION);
@@ -778,7 +786,8 @@ public class CLMLicenseManager
       stageTypes.addAll(allStagesWithoutCompliance);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL) ||
-        products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY)) {
+        products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY))
+    {
       features.add(LicensedFeature.FIREWALL);
       features.add(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
@@ -812,7 +821,8 @@ public class CLMLicenseManager
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_V2) ||
         products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2) ||
-        products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS)) {
+        products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS))
+    {
       features.add(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
       features.add(LicensedFeature.RELEASE_INTEGRITY);
       features.add(LicensedFeature.FIREWALL);
@@ -936,7 +946,8 @@ public class CLMLicenseManager
       stageTypes.add(StageTypes.RELEASE);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER) ||
-        products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS)) {
+        products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS))
+    {
       features.add(LicensedFeature.API_PAGE);
       features.add(LicensedFeature.SBOM_MANAGER);
       features.add(LicensedFeature.POLICY_MONITORING);

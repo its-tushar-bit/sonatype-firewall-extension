@@ -57,7 +57,8 @@ public class ProxyConfigurationPageTest
 
   @Override
   protected void afterDatabaseReset() {
-    testCLMServer.getCLMServer().getInstance(ApiProxyServerConfigurationService.class)
+    testCLMServer.getCLMServer()
+        .getInstance(ApiProxyServerConfigurationService.class)
         .applyProxyServerConfigurationToClients();
   }
 
@@ -161,7 +162,8 @@ public class ProxyConfigurationPageTest
     refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.hostName().setValue("a.hostname");
     proxyConfigurationPage.save().click();
-    FormUtils.getAlertElement(proxyConfigurationPage).shouldBe(visible)
+    FormUtils.getAlertElement(proxyConfigurationPage)
+        .shouldBe(visible)
         .shouldBe(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " Hostname and Port are required details."));
     cancel();
   }
@@ -171,7 +173,8 @@ public class ProxyConfigurationPageTest
     refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.port().setValue("8080");
     proxyConfigurationPage.save().click();
-    FormUtils.getAlertElement(proxyConfigurationPage).shouldBe(visible)
+    FormUtils.getAlertElement(proxyConfigurationPage)
+        .shouldBe(visible)
         .shouldBe(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " Hostname and Port are required details."));
     cancel();
   }
@@ -182,9 +185,10 @@ public class ProxyConfigurationPageTest
     refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.hostName().setValue("new-host");
     proxyConfigurationPage.save().click();
-    FormUtils.getAlertElement(proxyConfigurationPage).shouldBe(visible)
-        .shouldBe(text(DEFAULT_VALIDATION_ERRORS_PREFIX + 
-        " Password must be provided when updating Hostname or Port."));
+    FormUtils.getAlertElement(proxyConfigurationPage)
+        .shouldBe(visible)
+        .shouldBe(text(DEFAULT_VALIDATION_ERRORS_PREFIX +
+            " Password must be provided when updating Hostname or Port."));
     cancel();
   }
 
@@ -194,9 +198,10 @@ public class ProxyConfigurationPageTest
     refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.port().setValue("9090");
     proxyConfigurationPage.save().click();
-    FormUtils.getAlertElement(proxyConfigurationPage).shouldBe(visible)
-        .shouldBe(text(DEFAULT_VALIDATION_ERRORS_PREFIX + 
-        " Password must be provided when updating Hostname or Port."));
+    FormUtils.getAlertElement(proxyConfigurationPage)
+        .shouldBe(visible)
+        .shouldBe(text(DEFAULT_VALIDATION_ERRORS_PREFIX +
+            " Password must be provided when updating Hostname or Port."));
     cancel();
   }
 
@@ -347,7 +352,8 @@ public class ProxyConfigurationPageTest
     proxyConfigurationPage.port().setValue("nineteen-eighty-four");
 
     proxyConfigurationPage.save().click();
-    FormUtils.getAlertElement(proxyConfigurationPage).shouldBe(visible)
+    FormUtils.getAlertElement(proxyConfigurationPage)
+        .shouldBe(visible)
         .shouldBe(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " Hostname and Port are required details."));
     cancel();
   }

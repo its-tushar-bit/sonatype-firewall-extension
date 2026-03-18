@@ -124,8 +124,7 @@ public class SourceControlEventProcessorTest
         mockSourceControlService,
         mockCurrentUser,
         configuration,
-        mockShutdownHandler
-    ));
+        mockShutdownHandler));
     sourceControlEventProcessor.setRepoAccessController(poolTenantReference);
 
     // Set logger to DEBUG level to ensure all log messages are captured
@@ -258,8 +257,7 @@ public class SourceControlEventProcessorTest
     // then:
     verifyEventStarted(event);
     assertThatLogMessagesContain(
-        debug("Unable to acquire repo access for application 'app1'")
-    );
+        debug("Unable to acquire repo access for application 'app1'"));
   }
 
   @Test
@@ -280,8 +278,7 @@ public class SourceControlEventProcessorTest
     verifyEventCompleted(event);
     assertThatLogMessagesEqual(
         debug(getProcessedEventMessage(event)),
-        warn("Unable to release repo access for application 'app1'")
-    );
+        warn("Unable to release repo access for application 'app1'"));
   }
 
   @Test
@@ -381,33 +378,31 @@ public class SourceControlEventProcessorTest
   }
 
   @Test
-  public void testProcessEvent_StatusUpdateDoesNotBlockOtherEvents()
-      throws InterruptedException, GitException, IOException
-  {
+  public void testProcessEvent_StatusUpdateDoesNotBlockOtherEvents() throws InterruptedException, GitException, IOException {
     // Given: STATUS_UPDATE_EVENT and SOURCE_CONTROL_EVALUATION_EVENT for the same application
     SourceControlEvent statusUpdateEvent = createEvent();
     statusUpdateEvent.setEventType(SourceControlEvent.STATUS_UPDATE_EVENT);
-    
+
     SourceControlEvent repoScanEvent = createEvent();
     repoScanEvent.setApplicationId(statusUpdateEvent.getApplicationId()); // Same application ID
     repoScanEvent.setEventType(SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
-    
+
     CountDownLatch statusUpdateLatch = createOnEventFinishedLatch(statusUpdateEvent);
     CountDownLatch repoScanLatch = createOnEventFinishedLatch(repoScanEvent);
-    
+
     // When: both events are processed in parallel
     sourceControlEventProcessor.processEvent(statusUpdateEvent, mockStatusListener);
     sourceControlEventProcessor.processEvent(repoScanEvent, mockStatusListener);
-    
+
     // Wait for both events to complete
     verifyUnlatched(statusUpdateLatch);
     verifyUnlatched(repoScanLatch);
-    
+
     // Then: Only ONE acquire call should happen (from SOURCE_CONTROL_EVALUATION_EVENT)
     // STATUS_UPDATE_EVENT should never acquire locks, allowing it to run in parallel
     verify(mockRepoAccessController, times(1)).acquire(eq(repoScanEvent.getApplicationId()));
     verify(mockRepoAccessController, times(1)).release(eq(repoScanEvent.getApplicationId()));
-    
+
     // And both events should complete successfully
     verify(mockGitCommitStatusService, times(1)).onSendCommitStatus(eq(statusUpdateEvent));
     verify(mockSourceControlScanService, times(1)).onSourceControlScan(eq(repoScanEvent));
@@ -423,8 +418,7 @@ public class SourceControlEventProcessorTest
 
       Map<String, String> expectedThreadPoolTags = Map.of(
           "kind", "source_control_events",
-          "name", "SourceControlEventProcessor"
-      );
+          "name", "SourceControlEventProcessor");
 
       for (String eventType : SourceControlEvent.EVENT_TYPES) {
         SourceControlEvent event = createEvent();
@@ -438,14 +432,14 @@ public class SourceControlEventProcessorTest
         Map<String, String> expectedRunnableTags = Map.of(
             "kind", "source_control_events",
             "name", "SourceControlEventProcessor",
-            "source_control_event_type", eventType.replaceAll(" ", "_")
-        );
+            "source_control_event_type", eventType.replaceAll(" ", "_"));
         Assertions.assertThat(meterRegistry.getMeters())
             .extracting(meter -> Tuple.tuple(
                 meter.getId().getName(),
-                meter.getId().getTags().stream()
-                    .collect(Collectors.toMap(Tag::getKey, Tag::getValue))
-            ))
+                meter.getId()
+                    .getTags()
+                    .stream()
+                    .collect(Collectors.toMap(Tag::getKey, Tag::getValue))))
             .contains(
                 Tuple.tuple("executor.active", expectedThreadPoolTags),
                 Tuple.tuple("executor.queued", expectedThreadPoolTags),
@@ -456,8 +450,7 @@ public class SourceControlEventProcessorTest
                 Tuple.tuple("executor.idle", expectedRunnableTags),
                 Tuple.tuple("executor", expectedRunnableTags),
                 Tuple.tuple("executor.failed", expectedRunnableTags),
-                Tuple.tuple("executor.completed", expectedRunnableTags)
-            );
+                Tuple.tuple("executor.completed", expectedRunnableTags));
       }
     }
     finally {

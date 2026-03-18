@@ -15,7 +15,8 @@ import com.sonatype.insight.model.HasStringId;
 
 @Entity
 @Table(name = "license_threat_group")
-public class LicenseThreatGroup extends Nameable
+public class LicenseThreatGroup
+    extends Nameable
     implements HasStringId
 {
   @Id

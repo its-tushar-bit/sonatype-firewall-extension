@@ -47,7 +47,8 @@ public class H2ClusterLock
   @Override
   public void unlock() {
     if (acquired && semaphore != null &&
-        (long) semaphore.availablePermits() + lockType.getPermits() <= Integer.MAX_VALUE) {
+        (long) semaphore.availablePermits() + lockType.getPermits() <= Integer.MAX_VALUE)
+    {
       semaphore.release(lockType.getPermits());
       acquired = false;
     }

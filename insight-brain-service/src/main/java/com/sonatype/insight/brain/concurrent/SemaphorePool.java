@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The purpose of the SemaphorePool is to try to maintain a finite availableSemaphorePool of semaphores.  The
+ * The purpose of the SemaphorePool is to try to maintain a finite availableSemaphorePool of semaphores. The
  * availableSemaphorePool will grow to the needed size, based on access, but will shrink back to the desired
  * availableSemaphorePool size as semaphores are released.
  */
@@ -26,7 +26,7 @@ public class SemaphorePool
 {
   private static final Logger log = LoggerFactory.getLogger(SemaphorePool.class);
 
-  // this is an 'ideal' size for the availableSemaphorePool;  the availableSemaphorePool is unbounded but can shrink
+  // this is an 'ideal' size for the availableSemaphorePool; the availableSemaphorePool is unbounded but can shrink
   // back to the ideal availableSemaphorePool size over time as semaphores are released
   private final int idealPoolSize;
 
@@ -40,7 +40,7 @@ public class SemaphorePool
   // acquire access to a semaphore already in use for that key will join the existing one
   private Map<String, Semaphore> semaphoresInUse = new HashMap<>();
 
-  // keep track of acquire (increment) and release (decrement) calls for the given key.  Relying on the semaphores
+  // keep track of acquire (increment) and release (decrement) calls for the given key. Relying on the semaphores
   // themselves is unreliable because we don't call acquire on them inside the internal lock
   private AtomicLongMap<String> keyUsageCounter = AtomicLongMap.create();
 

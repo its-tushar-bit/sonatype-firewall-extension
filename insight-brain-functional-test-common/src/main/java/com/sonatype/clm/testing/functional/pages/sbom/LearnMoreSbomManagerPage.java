@@ -20,7 +20,7 @@ public class LearnMoreSbomManagerPage
   public SelenideElement infoAlert() {
     return child(".nx-alert--info");
   }
-  
+
   public SelenideElement infoLink() {
     return child(".nx-alert--info a");
   }

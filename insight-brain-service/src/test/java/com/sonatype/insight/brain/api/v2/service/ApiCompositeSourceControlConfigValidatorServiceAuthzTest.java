@@ -29,8 +29,8 @@ public class ApiCompositeSourceControlConfigValidatorServiceAuthzTest
   public void testGetCompositeSourceControlByOwner_Authorized() {
     grantReadPermission(app.getId());
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, "TOKEN",
-            SourceControlProvider.GITHUB, null, null,
-            "BASE_BRANCH", null);
+        SourceControlProvider.GITHUB, null, null,
+        "BASE_BRANCH", null);
     tempEntity.newSourceControl(app.getId(), VALID_URL, null, null);
     // should pass auth stage and promptly throw an exception because TOKEN can't be decrypted
     assertThatExceptionOfType(IllegalStateException.class)

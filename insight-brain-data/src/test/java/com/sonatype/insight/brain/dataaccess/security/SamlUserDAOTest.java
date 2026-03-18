@@ -105,8 +105,8 @@ public class SamlUserDAOTest
 
     assertThat(samlUserDAO.getByIds(
         new HashSet<>(Arrays.asList(samlUser1.getId(), samlUser2.getId()))))
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(samlUser1, samlUser2);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(samlUser1, samlUser2);
   }
 
   @Test
@@ -115,7 +115,8 @@ public class SamlUserDAOTest
     tempEntity.newSamlUser();
 
     assertThat(samlUserDAO.getByUsername(samlUser.getUsername())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(samlUser);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(samlUser);
   }
 
   @Test
@@ -125,7 +126,8 @@ public class SamlUserDAOTest
     samlUserDAO.upsertByUsername(samlUser);
 
     assertThat(samlUserDAO.getByUsername(samlUser.getUsername())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(samlUser);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(samlUser);
   }
 
   @Test
@@ -139,7 +141,8 @@ public class SamlUserDAOTest
     samlUserDAO.upsertByUsername(samlUser);
 
     assertThat(samlUserDAO.getByUsername(samlUser.getUsername())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(samlUser);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(samlUser);
   }
 
   @Test
@@ -262,9 +265,13 @@ public class SamlUserDAOTest
 
   private void assertSamlUser(SamlUser expectedSamlUser, List<SamlUser> users) {
     SamlUser foundUser = users.stream()
-        .filter(samlUser -> expectedSamlUser.getUsername().equals(samlUser.getUsername())).findFirst().orElse(null);
+        .filter(samlUser -> expectedSamlUser.getUsername().equals(samlUser.getUsername()))
+        .findFirst()
+        .orElse(null);
 
-    assertThat(foundUser).isNotNull().usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(foundUser).isNotNull()
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(expectedSamlUser);
   }
 
@@ -273,7 +280,8 @@ public class SamlUserDAOTest
     SamlUser samlUser = tempEntity.newSamlUser();
 
     assertThat(samlUserDAO.getByUsernameNotNull(samlUser.getUsername())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(samlUser);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(samlUser);
   }
 
   @Test
@@ -487,7 +495,8 @@ public class SamlUserDAOTest
   }
 
   private void assertSamlUserWithGroups(SamlUser expectedSamlUser, SamlUser foundUser, Set<String> expectedGroups) {
-    assertThat(foundUser).isNotNull().usingRecursiveComparison()
+    assertThat(foundUser).isNotNull()
+        .usingRecursiveComparison()
         .ignoringFields(JPA.IGNORE_FIELDS)
         .ignoringFields("groupsString")
         .isEqualTo(expectedSamlUser);

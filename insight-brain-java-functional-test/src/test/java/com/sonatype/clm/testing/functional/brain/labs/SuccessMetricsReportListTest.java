@@ -87,7 +87,8 @@ public class SuccessMetricsReportListTest
     successMetricsReportListPage.shouldBe(visible);
 
     successMetricsReportListPage.reports().shouldHave(size(0));
-    successMetricsReportListPage.emptyDescriptor().shouldBe(visible)
+    successMetricsReportListPage.emptyDescriptor()
+        .shouldBe(visible)
         .shouldHave(SuccessMetricsReportListPage.EMPTY_TEXT);
 
     tempEntity.newSuccessMetricsReport("admin", "Test Success Metric",
@@ -201,8 +202,10 @@ public class SuccessMetricsReportListTest
     // Delete this SuccessMetricsReport.
     chartPage.deleteBtn().shouldBe(visible).click();
     NxDeleteModal deleteModal = new NxDeleteModal("#delete-modal");
-    deleteModal.alertContent().shouldBe(visible).shouldHave(
-        SuccessMetricsReportPage.confirmRemovalText("Application Chart"));
+    deleteModal.alertContent()
+        .shouldBe(visible)
+        .shouldHave(
+            SuccessMetricsReportPage.confirmRemovalText("Application Chart"));
     deleteModal.header().shouldHave(SuccessMetricsReportPage.CONFIRM_REMOVAL_HEADER_TEXT);
     deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();

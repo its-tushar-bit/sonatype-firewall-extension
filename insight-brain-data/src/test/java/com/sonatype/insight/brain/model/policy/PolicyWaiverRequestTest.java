@@ -87,9 +87,10 @@ public class PolicyWaiverRequestTest
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
     policyWaiverRequest.setConstraintFacts(constraintFacts);
-    assertThat(policyWaiverRequest.getConstraintFactsJson()).isEqualTo(constraintFactsJson).doesNotContain("\n", "\r",
-        "\\n",
-        "\\r");
+    assertThat(policyWaiverRequest.getConstraintFactsJson()).isEqualTo(constraintFactsJson)
+        .doesNotContain("\n", "\r",
+            "\\n",
+            "\\r");
     assertConstraintFacts(policyWaiverRequest.getConstraintFacts(), constraintFacts);
   }
 
@@ -121,9 +122,10 @@ public class PolicyWaiverRequestTest
     PolicyWaiverRequest policyWaiverRequest =
         new PolicyWaiverRequest("hash", "policyId", "ownerId", constraintFacts, "comment");
 
-    assertThat(policyWaiverRequest.getConstraintFactsJson()).isEqualTo(constraintFactsJson).doesNotContain("\n", "\r",
-        "\\n",
-        "\\r");
+    assertThat(policyWaiverRequest.getConstraintFactsJson()).isEqualTo(constraintFactsJson)
+        .doesNotContain("\n", "\r",
+            "\\n",
+            "\\r");
     assertConstraintFacts(policyWaiverRequest.getConstraintFacts(), constraintFacts);
   }
 
@@ -251,13 +253,16 @@ public class PolicyWaiverRequestTest
 
     assertThat(componentIdentifier).isInstanceOf(ComponentIdentifier.class);
     assertThat(componentIdentifier.getFormat()).isEqualTo("maven");
-    assertThat(componentIdentifier.getCoordinates()).hasSize(5).isEqualTo(new TreeMap<String, String>() {{
+    assertThat(componentIdentifier.getCoordinates()).hasSize(5).isEqualTo(new TreeMap<String, String>()
+    {
+      {
         this.put("artifactId", "artifact");
         this.put("classifier", "c1");
         this.put("extension", "jar");
         this.put("groupId", "group");
         this.put("version", "1.0");
-      }});
+      }
+    });
 
     policyWaiverRequest = new PolicyWaiverRequest("hash", "policyId", "ownerId", null, DEFAULT, "comment");
 
@@ -286,7 +291,8 @@ public class PolicyWaiverRequestTest
       assertThat(actualConstraintFact.getConstraintName()).isEqualTo(expectedConstraintFact.getConstraintName());
       assertThat(actualConstraintFact.getOperatorName()).isEqualTo(expectedConstraintFact.getOperatorName());
       for (int conditionFactIndex = 0; conditionFactIndex < expectedConstraintFact.getConditionFacts()
-          .size(); conditionFactIndex++) {
+          .size(); conditionFactIndex++)
+      {
         ConditionFact expectedConditionFact = expectedConstraintFact.getConditionFacts().get(conditionFactIndex);
         ConditionFact actualConditionFact = actualConstraintFact.getConditionFacts().get(conditionFactIndex);
         assertThat(actualConditionFact.getConditionTypeId()).isEqualTo(expectedConditionFact.getConditionTypeId());

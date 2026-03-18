@@ -116,7 +116,7 @@ public class RepositoryUrlErrorRuleTest
     // when: generate a number of errors not related to the URL
     exceedUrlErrorLimit(rule, event, "something broke");
 
-    // then:  we can still push the event (per this rule anyway)
+    // then: we can still push the event (per this rule anyway)
     assertThat(rule.canPushEvent(event)).isTrue();
   }
 
@@ -151,6 +151,6 @@ public class RepositoryUrlErrorRuleTest
 
   private GitRepositoryInfo createGitRepositoryInfo(String repositoryUrl) {
     return new GitRepositoryInfo(repositoryUrl, null, "user", "token", SourceControlProvider.GITLAB, "main", true, true,
-        true, true,true, true, false, null);
+        true, true, true, true, false, null);
   }
 }

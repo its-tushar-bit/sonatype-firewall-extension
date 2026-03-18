@@ -30,9 +30,11 @@ class SlowMoFilter
     Long delay = Long.getLong("slowmo.delay");
     if (enable && delay != null && delay > 0) {
       SlowMoFilter filter = new SlowMoFilter(delay);
-      env.servlets().addFilter("RestSlowMoFilter", filter)
+      env.servlets()
+          .addFilter("RestSlowMoFilter", filter)
           .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/rest/*");
-      env.servlets().addFilter("HtmlSlowMoFilter", filter)
+      env.servlets()
+          .addFilter("HtmlSlowMoFilter", filter)
           .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "*.html");
     }
   }
@@ -48,8 +50,10 @@ class SlowMoFilter
   }
 
   @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
-      ServletException
+  public void doFilter(
+      ServletRequest request,
+      ServletResponse response,
+      FilterChain chain) throws IOException, ServletException
   {
     try {
       Thread.sleep(delay);

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.policy.evaluator;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -77,10 +78,17 @@ public class PolicyEvaluateResourceAuditTest
         app.getPublicId(), app.getName(), null, SCAN_ID, null);
   }
 
-  private HttpResponse evaluate(Consumer<HttpRequest> user, String applicationPublicId, String scanId, String stageId)
-      throws Exception
+  private HttpResponse evaluate(
+      Consumer<HttpRequest> user,
+      String applicationPublicId,
+      String scanId,
+      String stageId) throws Exception
   {
-    return restRequest().with(user).path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)
-        .parameter(applicationPublicId).body(new Stage(stageId)).post();
+    return restRequest().with(user)
+        .path(PolicyEvaluateResource.RESOURCE_PATH)
+        .query("scanId", scanId)
+        .parameter(applicationPublicId)
+        .body(new Stage(stageId))
+        .post();
   }
 }

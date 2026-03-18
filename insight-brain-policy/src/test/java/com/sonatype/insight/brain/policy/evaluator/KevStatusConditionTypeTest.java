@@ -35,8 +35,8 @@ public class KevStatusConditionTypeTest
     policy.setConstraints(constraints);
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
-    Component component1 = ComponentFactory.forCoordinates("maven","g1", "a1", "v1", "jar", "");
-    Component component2 = ComponentFactory.forCoordinates("maven","g2", "a2", "v2", "jar", "");
+    Component component1 = ComponentFactory.forCoordinates("maven", "g1", "a1", "v1", "jar", "");
+    Component component2 = ComponentFactory.forCoordinates("maven", "g2", "a2", "v2", "jar", "");
     SecurityVulnerability securityVulnerabilityThatTriggersPolicy =
         new SecurityVulnerability("osvdb", "sv2", 3F);
     KevData kevData = new KevData(true);
@@ -54,8 +54,15 @@ public class KevStatusConditionTypeTest
         new TriggerSecurityVulnerabilityWithKev(securityVulnerabilityThatTriggersPolicy));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID,
         KevStatusConditionType.ID, expectedConditionTrigger, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo(
         "Vulnerability sv2 listed in the Known Exploited Vulnerabilities (KEV) database.");
   }
@@ -69,8 +76,8 @@ public class KevStatusConditionTypeTest
     policy.setConstraints(constraints);
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
-    Component component1 = ComponentFactory.forCoordinates("maven","g1", "a1", "v1", "jar", "");
-    Component component2 = ComponentFactory.forCoordinates("maven","g2", "a2", "v2", "jar", "");
+    Component component1 = ComponentFactory.forCoordinates("maven", "g1", "a1", "v1", "jar", "");
+    Component component2 = ComponentFactory.forCoordinates("maven", "g2", "a2", "v2", "jar", "");
     SecurityVulnerability securityVulnerabilityThatTriggersPolicy =
         new SecurityVulnerability("osvdb", "sv2", 3F);
     KevData kevData = new KevData(false);
@@ -93,8 +100,8 @@ public class KevStatusConditionTypeTest
     policy.setConstraints(constraints);
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
-    Component component1 = ComponentFactory.forCoordinates("maven","g1", "a1", "v1", "jar", "");
-    Component component2 = ComponentFactory.forCoordinates("maven","g2", "a2", "v2", "jar", "");
+    Component component1 = ComponentFactory.forCoordinates("maven", "g1", "a1", "v1", "jar", "");
+    Component component2 = ComponentFactory.forCoordinates("maven", "g2", "a2", "v2", "jar", "");
     SecurityVulnerability securityVulnerabilityThatTriggersPolicy =
         new SecurityVulnerability("osvdb", "sv2", 3F);
     KevData kevData = new KevData(null);
@@ -117,9 +124,9 @@ public class KevStatusConditionTypeTest
     policy.setConstraints(constraints);
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
-    Component component1 = ComponentFactory.forCoordinates("maven","g1", "a1", "v1", "jar", "");
+    Component component1 = ComponentFactory.forCoordinates("maven", "g1", "a1", "v1", "jar", "");
 
-    Component component2 = ComponentFactory.forCoordinates("maven","g2", "a2", "v2", "jar", "");
+    Component component2 = ComponentFactory.forCoordinates("maven", "g2", "a2", "v2", "jar", "");
     SecurityVulnerability securityVulnerabilityThatTriggersPolicy =
         new SecurityVulnerability("osvdb", "sv2", 3F);
     KevData kevData = new KevData(false);
@@ -137,8 +144,15 @@ public class KevStatusConditionTypeTest
         new TriggerSecurityVulnerabilityWithKev(securityVulnerabilityThatTriggersPolicy));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID,
         KevStatusConditionType.ID, expectedConditionTrigger, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo(
         "Vulnerability sv2 not listed in the Known Exploited Vulnerabilities (KEV) database.");
   }
@@ -152,7 +166,7 @@ public class KevStatusConditionTypeTest
     policy.setConstraints(constraints);
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
-    Component component1 = ComponentFactory.forCoordinates("maven","g1", "a1", "v1", "jar", "");
+    Component component1 = ComponentFactory.forCoordinates("maven", "g1", "a1", "v1", "jar", "");
     SecurityVulnerability securityVulnerability =
         new SecurityVulnerability("osvdb", "sv5", 3F);
     KevData kevData = new KevData(true);
@@ -175,7 +189,7 @@ public class KevStatusConditionTypeTest
     policy.setConstraints(constraints);
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
-    Component component1 = ComponentFactory.forCoordinates("maven","g1", "a1", "v1", "jar", "");
+    Component component1 = ComponentFactory.forCoordinates("maven", "g1", "a1", "v1", "jar", "");
     SecurityVulnerability securityVulnerability =
         new SecurityVulnerability("osvdb", "sv5", 3F);
     KevData kevData = new KevData(null);

@@ -37,7 +37,8 @@ import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDete
 import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.PUBLIC_RESEARCH;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SbomComponentsResourceTest extends AbstractResourceTest
+public class SbomComponentsResourceTest
+    extends AbstractResourceTest
 {
   private InsightWork work;
 
@@ -240,11 +241,11 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
             "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-            "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
+        "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
-            "r1", "s1", "j1", "r1", "d1");
+        "r1", "s1", "j1", "r1", "d1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
-            "r1", "s1", "j1", "r1", "d1");
+        "r1", "s1", "j1", "r1", "d1");
 
     File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
     FileUtils.copyURLToFile(ReportHelper
@@ -286,17 +287,17 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
             "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
-            "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
+        "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
-            "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
+        "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
-            "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
+        "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
-            "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
+        "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
-            "r1", "s1", "j1", "r1", "d1");
+        "r1", "s1", "j1", "r1", "d1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
-            "r1", "s1", "j1", "r1", "d1");
+        "r1", "s1", "j1", "r1", "d1");
 
     File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
     FileUtils.copyURLToFile(ReportHelper
@@ -328,7 +329,7 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
         .withThirdPartyFileId(thirdPartyScan.getThirdPartyFileId())
         .build();
     tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h1", "u1", ThirdPartyDependencyType.DIRECT);
+        "s", "SPDX", "n1", "v1", "h1", "u1", ThirdPartyDependencyType.DIRECT);
 
     File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
     FileUtils.copyURLToFile(ReportHelper

@@ -210,7 +210,7 @@ public class TenantThreadLocalTest
     new Thread(() -> {
       assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(tenant1);
 
-      //Invalidating here to guarantee the thread ran successfully
+      // Invalidating here to guarantee the thread ran successfully
       tenant1.invalidate();
 
       lock.countDown();
@@ -322,7 +322,7 @@ public class TenantThreadLocalTest
 
     MutableBoolean closureRan = new MutableBoolean(false);
 
-    assertThatThrownBy(() -> TenantThreadLocal.runAs(tenant2, (Supplier<Void>)() -> {
+    assertThatThrownBy(() -> TenantThreadLocal.runAs(tenant2, (Supplier<Void>) () -> {
       closureRan.setTrue();
       return null;
     }))

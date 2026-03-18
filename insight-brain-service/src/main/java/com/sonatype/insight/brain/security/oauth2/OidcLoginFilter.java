@@ -159,7 +159,8 @@ public class OidcLoginFilter
   }
 
   private void sendAuthorizationRequest(
-      final HttpServletResponse res, final OidcConfiguration oidcConfiguration,
+      final HttpServletResponse res,
+      final OidcConfiguration oidcConfiguration,
       final String callbackUrl)
   {
     AuthenticationRequest authorizeUrlRequest = buildAuthenticationRequest(oidcConfiguration, callbackUrl);
@@ -199,9 +200,9 @@ public class OidcLoginFilter
           new Scope(OIDC_SCOPES),
           clientID,
           callback)
-          .endpointURI(new URI(authorizationUrl))
-          .state(state)
-          .nonce(nonce);
+              .endpointURI(new URI(authorizationUrl))
+              .state(state)
+              .nonce(nonce);
 
       // Add custom parameters to the request
       authorizationRequestParameters.forEach(builder::customParameter);

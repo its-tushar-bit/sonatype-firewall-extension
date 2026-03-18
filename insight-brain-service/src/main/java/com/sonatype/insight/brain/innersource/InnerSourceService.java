@@ -49,9 +49,10 @@ public class InnerSourceService
       throw new NotFoundException("InnerSource component not found for " + componentIdentifier);
     }
 
-    return innerSourceVersionDAO.getByInnerSourceApplicationId(innerSourceApplication.getId()).stream()
-        .max(Comparator.comparing(c ->
-            InnerSourceUtils.createCompositeComparableVersion(c.getLatestVersion(), componentIdentifier.getFormat())))
+    return innerSourceVersionDAO.getByInnerSourceApplicationId(innerSourceApplication.getId())
+        .stream()
+        .max(Comparator.comparing(c -> InnerSourceUtils.createCompositeComparableVersion(c.getLatestVersion(),
+            componentIdentifier.getFormat())))
         .map(InnerSourceVersion::getLatestVersion)
         .orElse(null);
   }

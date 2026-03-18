@@ -10,5 +10,11 @@ package com.sonatype.insight.brain.dashboard;
  */
 public enum ComponentRiskOrderByEnum
 {
-  NAME, NUMBER_OF_AFFECTED_APPS, TOTAL_RISK, CRITICAL_RISK, SEVERE_RISK, MODERATE_RISK, LOW_RISK;
+  NAME,
+  NUMBER_OF_AFFECTED_APPS,
+  TOTAL_RISK,
+  CRITICAL_RISK,
+  SEVERE_RISK,
+  MODERATE_RISK,
+  LOW_RISK;
 }

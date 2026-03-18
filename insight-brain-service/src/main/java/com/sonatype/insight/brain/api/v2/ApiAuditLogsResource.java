@@ -45,27 +45,24 @@ public class ApiAuditLogsResource
 
   @GET
   @Produces(MediaType.TEXT_PLAIN)
-  @Operation(description =
-      "Use this method to retrieve the audit events for the specified time period." +
-          "\n" +
-          "\n" +
-          "Permissions required: Access Audit Log",
+  @Operation(description = "Use this method to retrieve the audit events for the specified time period." +
+      "\n" +
+      "\n" +
+      "Permissions required: Access Audit Log",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response text contains lines of audit events in chronologically ascending order.",
-              content =
-                  {
-                      @Content(mediaType = MediaType.TEXT_PLAIN)
-                  })
-      }
-  )
+        @ApiResponse(responseCode = "200",
+            description = "The response text contains lines of audit events in chronologically ascending order.",
+            content = {
+              @Content(mediaType = MediaType.TEXT_PLAIN)
+            })
+      })
 
   @Audited(AuditEvent.EXPORT_AUDIT_LOG)
   public StreamingOutput getAuditLogs(
-      @Parameter(description = "Enter the start UTC date in the format (yyyy-mm-dd).")
-      @QueryParam("startUtcDate") final String startUtcDate,
-      @Parameter(description = "Enter the end UTC date in the format (yyyy-mm-dd).")
-      @QueryParam("endUtcDate") final String endUtcDate)
+      @Parameter(
+          description = "Enter the start UTC date in the format (yyyy-mm-dd).") @QueryParam("startUtcDate") final String startUtcDate,
+      @Parameter(
+          description = "Enter the end UTC date in the format (yyyy-mm-dd).") @QueryParam("endUtcDate") final String endUtcDate)
   {
     return apiAuditLogsService.getAuditLogs(startUtcDate, endUtcDate);
   }

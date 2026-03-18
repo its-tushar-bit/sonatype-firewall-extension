@@ -281,7 +281,7 @@ public class ApiSourceControlService
 
         SourceControl compositeSourceControl = getCompositeSourceControl(OwnerType.APPLICATION, sourceControl);
         sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE, compositeSourceControl, OwnerType.APPLICATION);
-        
+
         setTokenValueForReturn(sourceControl);
       }
       else {
@@ -425,10 +425,12 @@ public class ApiSourceControlService
     }
   }
 
-  /** Builds a composite source control record starting from the given ownerId and looking up the owner hierarchy for
-   *  missing fields. It also decrypts any non-empty tokens.
-   *  <br/>
-   *  Note: The composite source control owner ID can be different from the given owner ID.
+  /**
+   * Builds a composite source control record starting from the given ownerId and looking up the owner hierarchy for
+   * missing fields. It also decrypts any non-empty tokens.
+   * <br/>
+   * Note: The composite source control owner ID can be different from the given owner ID.
+   *
    * @param ownerId an application or organization ID
    */
   public SourceControl getCompositeSourceControlByOwnerDecrypted(final String ownerId) {
@@ -473,7 +475,7 @@ public class ApiSourceControlService
       throw new InvalidLicenseException();
     }
   }
-  
+
   private void sendSourceControlTelemetryData(
       final METHOD method,
       final SourceControl sourceControl,
@@ -556,8 +558,8 @@ public class ApiSourceControlService
   @VisibleForTesting
   void validateUrl(final String repositoryUrl) {
     boolean validUrl =
-        repositoryUrl.startsWith("https:")                              // HTTPS URL
-        || repositoryUrl.startsWith("http:")                            // HTTP URL
+        repositoryUrl.startsWith("https:") // HTTPS URL
+            || repositoryUrl.startsWith("http:") // HTTP URL
     ;
     if (!validUrl) {
       throw new BadRequestException("Unsupported repository URL format: `" + repositoryUrl + "`");
@@ -576,7 +578,8 @@ public class ApiSourceControlService
     checkLicense();
 
     List<EnhancedPullRequestResult> enhancedPullRequestResults =
-        sourceControlPullRequestMetrics.metricsForApplication(ownerId).stream()
+        sourceControlPullRequestMetrics.metricsForApplication(ownerId)
+            .stream()
             .filter(Predicate.not(EnhancedPullRequestResult::isManualPR))
             .toList();
 
@@ -630,8 +633,11 @@ public class ApiSourceControlService
       ApiUserRateLimitsDTO dto = rateLimitsByUser.get(user);
       if (dto != null) {
         dto.definingOwners.addAll(
-            definingOwnersByToken.get(sourceControl.getToken()).stream().map(ApiOwnerDTO::fromOwner).collect(
-                Collectors.toSet()));
+            definingOwnersByToken.get(sourceControl.getToken())
+                .stream()
+                .map(ApiOwnerDTO::fromOwner)
+                .collect(
+                    Collectors.toSet()));
         dto.associatedApplications.add(ApiOwnerDTO.fromOwner(application));
       }
       else {
@@ -640,12 +646,18 @@ public class ApiSourceControlService
         dto.provider = sourceControl.getProvider();
         dto.definingOwners = new TreeSet<>();
         dto.definingOwners.addAll(
-            definingOwnersByToken.get(sourceControl.getToken()).stream().map(ApiOwnerDTO::fromOwner).collect(
-                Collectors.toSet()));
+            definingOwnersByToken.get(sourceControl.getToken())
+                .stream()
+                .map(ApiOwnerDTO::fromOwner)
+                .collect(
+                    Collectors.toSet()));
         dto.associatedApplications = new TreeSet<>();
         dto.associatedApplications.add(ApiOwnerDTO.fromOwner(application));
-        dto.rateLimits = getRateLimits(sourceControl).getRateLimitResponses().stream().map(ApiRateLimitDTO::convert)
-            .sorted(Comparator.comparing(rateLimitDTO -> rateLimitDTO.category)).collect(Collectors.toList());
+        dto.rateLimits = getRateLimits(sourceControl).getRateLimitResponses()
+            .stream()
+            .map(ApiRateLimitDTO::convert)
+            .sorted(Comparator.comparing(rateLimitDTO -> rateLimitDTO.category))
+            .collect(Collectors.toList());
         rateLimitsByUser.put(user, dto);
       }
     }
@@ -685,7 +697,8 @@ public class ApiSourceControlService
       final Map<String, Collection<Instant>> emailAndCommitDateMap)
   {
     if (Objects.nonNull(emailAndCommitDateMap)
-        && emailAndCommitDateMap.size() > EMAIL_AND_COMMIT_DATE_MAP_LIMIT) {
+        && emailAndCommitDateMap.size() > EMAIL_AND_COMMIT_DATE_MAP_LIMIT)
+    {
       log.warn("Email and commit date map must have " + EMAIL_AND_COMMIT_DATE_MAP_LIMIT + " or less entries");
     }
     else {

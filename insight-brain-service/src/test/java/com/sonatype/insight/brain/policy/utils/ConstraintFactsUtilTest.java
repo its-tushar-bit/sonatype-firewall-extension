@@ -142,8 +142,7 @@ public class ConstraintFactsUtilTest
         "CVE-2021-44906",
         9.8,
         "ARBITRARY_CODE_EXECUTION",
-        "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
-    );
+        "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H");
 
     CveData cveData = ConstraintFactsUtil.extractCveData(constraintFacts);
 

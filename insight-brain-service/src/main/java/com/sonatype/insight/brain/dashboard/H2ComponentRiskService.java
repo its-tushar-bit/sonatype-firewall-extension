@@ -54,7 +54,9 @@ public class H2ComponentRiskService
   public H2ComponentRiskService(
       final ApplicationService applicationService,
       final PolicyViolationLoader policyViolationLoader,
-      final DashboardUtils dashboardUtils, final AuditService auditService, final PolicyViolationDAO policyViolationDAO)
+      final DashboardUtils dashboardUtils,
+      final AuditService auditService,
+      final PolicyViolationDAO policyViolationDAO)
   {
     super(applicationService, dashboardUtils, auditService);
     this.policyViolationLoader = policyViolationLoader;
@@ -118,7 +120,7 @@ public class H2ComponentRiskService
     List<Application> applications = getApplications(organizationIds, applicationIds, tagIds);
 
     return getPolicyViolations(applications, stageIds, policyThreatCategoryFilter, policyThreatLevelFilter,
-            policyViolationStateFilter);
+        policyViolationStateFilter);
   }
 
   /**

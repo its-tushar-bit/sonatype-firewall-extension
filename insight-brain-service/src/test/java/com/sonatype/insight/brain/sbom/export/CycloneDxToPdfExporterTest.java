@@ -53,13 +53,12 @@ public class CycloneDxToPdfExporterTest
         versionService,
         apiReportDataServiceV2,
         licenseResolutionService,
-        buildThirdPartyPersistenceService()
-    );
+        buildThirdPartyPersistenceService());
   }
 
   @Test
   public void testExportPdf_withMergedVulnerabilitiesLicenses() throws Exception {
-    //Given
+    // Given
     File testBomFile = mockOriginalSbomFile("test-1-bom.xml");
     ThirdPartySbomMetadata sbomMetadata =
         createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_15, SbomFormat.XML);
@@ -70,8 +69,7 @@ public class CycloneDxToPdfExporterTest
         tempDir,
         "/CycloneDxToPdfExporterTest/report-for-test-1",
         app.getId(),
-        SCAN_ID
-    );
+        SCAN_ID);
     setupTestComponents();
 
     ApiReportRawDataDTOV2 rawData = new ApiReportRawDataDTOV2();
@@ -80,7 +78,7 @@ public class CycloneDxToPdfExporterTest
     rawData.components.add(
         setupReportRawDataLTG("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar", 10));
 
-    //When
+    // When
     SbomExportParams exportParams = withExportParams(sbomMetadata, CYCLONEDX_15, SbomFormat.JSON);
     exportParams.withReportRawData(rawData);
     exporter.setExportParams(exportParams);
@@ -90,7 +88,7 @@ public class CycloneDxToPdfExporterTest
 
   @Test
   public void testExportPdf_withDuplicateComponentsInOriginalSbom() throws Exception {
-    //Given
+    // Given
     File testBomFile = mockOriginalSbomFile("duplicate-components-bom.json");
     ThirdPartySbomMetadata sbomMetadata =
         createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_16, SbomFormat.JSON);
@@ -101,8 +99,7 @@ public class CycloneDxToPdfExporterTest
         tempDir,
         "/CycloneDxToPdfExporterTest/report-for-duplicate-components",
         app.getId(),
-        SCAN_ID
-    );
+        SCAN_ID);
     setupTestComponentsForDuplicateComponentsTest();
 
     ApiReportRawDataDTOV2 rawData = new ApiReportRawDataDTOV2();
@@ -111,7 +108,7 @@ public class CycloneDxToPdfExporterTest
     rawData.components.add(
         setupReportRawDataLTG("pkg:nuget/Microsoft.Extensions.ApiDescription.Server@3.0.0", 10));
 
-    //When
+    // When
     SbomExportParams exportParams = withExportParams(sbomMetadata, CYCLONEDX_16, SbomFormat.JSON);
     exportParams.withReportRawData(rawData);
     exporter.setExportParams(exportParams);
@@ -130,7 +127,9 @@ public class CycloneDxToPdfExporterTest
     assertThat(pdfData.sbomMetadata.scanId).isEqualTo("sid1");
 
     PdfComponent c1 = pdfData.components.stream()
-        .filter(c -> c.displayName.contains("Microsoft.Extensions.ApiDescription.Server 3.0.0")).findFirst().get();
+        .filter(c -> c.displayName.contains("Microsoft.Extensions.ApiDescription.Server 3.0.0"))
+        .findFirst()
+        .get();
     assertThat(c1.displayName).isEqualTo("Microsoft.Extensions.ApiDescription.Server 3.0.0");
     assertThat(c1.matchState).isEqualTo("exact");
     assertThat(c1.policyViolations).hasSize(4);
@@ -142,33 +141,31 @@ public class CycloneDxToPdfExporterTest
     assertThat(c1.securityIssues.stream().map(s -> s.reference)).containsExactlyInAnyOrder("sonatype-2021-0713",
         "sonatype-2022-5998", "CVE-2024-21907");
 
-    //LTGs
+    // LTGs
     assertThat(c1.effectiveLicenseThreats).hasSize(1);
     assertThat(c1.effectiveLicenseThreats.get(0).licenseThreatGroupLevel).isEqualTo(10);
   }
 
   @Test
   public void testExportPdf_withMissingReportData() throws Exception {
-    //Given
+    // Given
     File testBomFile = mockOriginalSbomFile("test-1-bom.xml");
     ThirdPartySbomMetadata sbomMetadata =
         createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_15, SbomFormat.XML);
     exporter.setExportParams(withExportParams(sbomMetadata, CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fc1 = setupFileCoordinateEntity("log4j", "1.2.8", "3640dd71069d7986c9a1",
-        "pkg:maven/log4j/log4j@1.2.8?type=jar", "pkg:maven/log4j/log4j@1.2.8?type=jar:3640dd71069d7986c9a1"
-    );
+        "pkg:maven/log4j/log4j@1.2.8?type=jar", "pkg:maven/log4j/log4j@1.2.8?type=jar:3640dd71069d7986c9a1");
     setupFileCoordinateEntity("jackson-databind", "2.9.9", "43482bee60d253ab70b6",
         "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar",
-        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
-    );
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar");
     setupCoordinateSecurityEntity(fc1, "CVE-2022-23307", "name=CVE-2022-23307", "HIGH", "502", "CVSSV3",
         "NVD", 8.8d, null);
 
-    //When
+    // When
     PdfData pdfData = exporter.exportPdf();
 
-    //Then
+    // Then
     assertThat(pdfData.title).isEqualTo(app.getName() + REPORT_NAME);
     assertThat(pdfData.createdDate).isNotNull();
     assertThat(pdfData.analyzedDate).isNotNull();
@@ -200,14 +197,14 @@ public class CycloneDxToPdfExporterTest
 
   @Test
   public void testExportPdf_withOverriddenLicenses_forLifeCycleProduct() throws Exception {
-    //Given
+    // Given
     productLicense.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
     testExportPdf_withOverriddenLicenses("MIT", "Aladdin");
   }
 
   @Test
   public void testExportPdf_withOverriddenLicenses_forSbomAndALPProduct() throws Exception {
-    //Given
+    // Given
     productLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
         ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
     testExportPdf_withOverriddenLicenses("MIT", "Aladdin");
@@ -215,7 +212,7 @@ public class CycloneDxToPdfExporterTest
 
   @Test
   public void testExportPdf_withOverriddenLicenses_forSbomProduct() throws Exception {
-    //Given
+    // Given
     productLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
     testExportPdf_withOverriddenLicenses("MPL-2.0", "Apache-2.0");
   }
@@ -229,21 +226,19 @@ public class CycloneDxToPdfExporterTest
     exporter.setExportParams(withExportParams(sbomMetadata, CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     setupFileCoordinateEntity("log4j", "1.2.8", "3640dd71069d7986c9a1",
-        purl1, "pkg:maven/log4j/log4j@1.2.8?type=jar:3640dd71069d7986c9a1"
-    );
+        purl1, "pkg:maven/log4j/log4j@1.2.8?type=jar:3640dd71069d7986c9a1");
     setupFileCoordinateEntity("jackson-databind", "2.9.9", "43482bee60d253ab70b6",
-        purl2, "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
-    );
+        purl2, "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar");
     ComponentIdentifier id1 = new PackageUrlIdentifier(purl1).toComponentIdentifier();
     id1.ensureComplete();
     tempEntity.newLicenseOverride(app.getId(), id1, LicenseOverrideStatus.OVERRIDDEN, "MIT");
     ComponentIdentifier id2 = new PackageUrlIdentifier(purl2).toComponentIdentifier();
     id2.ensureComplete();
     tempEntity.newLicenseOverride(app.getId(), id2, LicenseOverrideStatus.SELECTED, "Aladdin");
-    //When
+    // When
     PdfData pdfData = exporter.exportPdf();
 
-    //Then
+    // Then
     assertThat(pdfData.title).isEqualTo(app.getName() + REPORT_NAME);
 
     PdfComponent c1 = pdfData.components.stream().filter(c -> c.displayName.contains("log4j")).findFirst().get();
@@ -261,7 +256,7 @@ public class CycloneDxToPdfExporterTest
 
   @Test
   public void tesExportPdf_withEmptyReportData() throws Exception {
-    //Given
+    // Given
     File testBomFile = mockOriginalSbomFile("test-empty-bom.xml");
     ThirdPartySbomMetadata sbomMetadata =
         createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_15, SbomFormat.XML);
@@ -269,10 +264,10 @@ public class CycloneDxToPdfExporterTest
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     setupTestComponents();
 
-    //When
+    // When
     PdfData pdfData = exporter.exportPdf();
 
-    //Then
+    // Then
     assertThat(pdfData.title).isEqualTo(app.getName() + REPORT_NAME);
     assertThat(pdfData.createdDate).isNotNull();
     assertThat(pdfData.analyzedDate).isNotNull();

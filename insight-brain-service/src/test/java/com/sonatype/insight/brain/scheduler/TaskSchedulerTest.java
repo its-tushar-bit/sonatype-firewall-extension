@@ -390,10 +390,12 @@ public class TaskSchedulerTest
     JobDetail job = JobBuilder.newJob(TestJob.class).withIdentity(jobKey).build();
 
     assertThatNoException().isThrownBy(() -> taskScheduler.scheduleTask((Scheduler) null, job, null, null));
-    logOutput.assertThat().atWarnLevel().contains(
-        "Cannot schedule task, jobKey 'DEFAULT.TestJob' " +
-            "for tenant Tenant[tenantSlug='notused', createdByThread='main', valid='true'] " +
-            "because a scheduler is not available.");
+    logOutput.assertThat()
+        .atWarnLevel()
+        .contains(
+            "Cannot schedule task, jobKey 'DEFAULT.TestJob' " +
+                "for tenant Tenant[tenantSlug='notused', createdByThread='main', valid='true'] " +
+                "because a scheduler is not available.");
   }
 
   @Test
@@ -520,8 +522,9 @@ public class TaskSchedulerTest
     taskScheduler.triggerTaskNow(testJob, Collections.singletonMap("key", "true"));
     assertThat(taskScheduler.isJobTriggered(testJob, Collections.singletonMap("key", "false"))).isFalse();
     assertThat(taskScheduler.isJobTriggered(testJob, Collections.singletonMap("key", "true"))).isTrue();
-    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
-        assertThat(taskScheduler.isJobTriggered(testJob, Collections.singletonMap("key", "true"))).isFalse());
+    await().atMost(10, TimeUnit.SECONDS)
+        .untilAsserted(
+            () -> assertThat(taskScheduler.isJobTriggered(testJob, Collections.singletonMap("key", "true"))).isFalse());
   }
 
   @Test
@@ -587,8 +590,12 @@ public class TaskSchedulerTest
     List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
     assertThat(triggers).hasSize(2);
     nodeIds.forEach(nodeId -> {
-      Trigger trigger = triggers.stream().filter(t -> t.getKey().getName()
-          .equals(TestJob.NAME + "For" + nodeId)).findFirst().orElse(null);
+      Trigger trigger = triggers.stream()
+          .filter(t -> t.getKey()
+              .getName()
+              .equals(TestJob.NAME + "For" + nodeId))
+          .findFirst()
+          .orElse(null);
       assertThat(trigger).isInstanceOf(SimpleTrigger.class);
       SimpleTrigger simpleTrigger = (SimpleTrigger) trigger;
       assertThat(simpleTrigger.getMisfireInstruction())
@@ -623,8 +630,12 @@ public class TaskSchedulerTest
     List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
     assertThat(triggers).hasSize(2);
     nodeIds.forEach(nodeId -> {
-      Trigger trigger = triggers.stream().filter(t -> t.getKey().getName()
-          .equals(TestJob.NAME + "For" + nodeId)).findFirst().orElse(null);
+      Trigger trigger = triggers.stream()
+          .filter(t -> t.getKey()
+              .getName()
+              .equals(TestJob.NAME + "For" + nodeId))
+          .findFirst()
+          .orElse(null);
       assertThat(trigger).isInstanceOf(SimpleTrigger.class);
       SimpleTrigger simpleTrigger = (SimpleTrigger) trigger;
       assertThat(simpleTrigger.getMisfireInstruction())
@@ -762,7 +773,8 @@ public class TaskSchedulerTest
         " (SCHED_NAME, INSTANCE_NAME, LAST_CHECKIN_TIME, CHECKIN_INTERVAL) " + //
         " VALUES (?1, ?2, ?3, ?4)";
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-         PreparedStatement statement = connection.prepareStatement(sQuery)) {
+        PreparedStatement statement = connection.prepareStatement(sQuery))
+    {
       statement.setString(1, taskScheduler.getScheduler().getSchedulerName());
       statement.setString(2, instanceId);
       statement.setLong(3, checkinTimestamp);
@@ -774,7 +786,8 @@ public class TaskSchedulerTest
   private void deleteAllSchedulerStateRecords() throws Exception {
     String sQuery = "DELETE FROM " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE";
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-         PreparedStatement statement = connection.prepareStatement(sQuery)) {
+        PreparedStatement statement = connection.prepareStatement(sQuery))
+    {
       statement.execute();
     }
   }
@@ -787,8 +800,7 @@ public class TaskSchedulerTest
   private void testInMultipleThreadsAndThrowAnyException(
       final Runnable runnable,
       final int threadCount,
-      final Duration duration)
-      throws Exception
+      final Duration duration) throws Exception
   {
     java.util.concurrent.atomic.AtomicReference<Exception> exception = new AtomicReference<>();
 

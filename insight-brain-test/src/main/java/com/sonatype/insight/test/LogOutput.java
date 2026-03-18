@@ -215,7 +215,8 @@ public class LogOutput
     synchronized (appender.list) {
       for (ILoggingEvent event : appender.list) {
         if ((level == null || level.equals(event.getLevel()))
-            && (logger == null || logger.equals(event.getLoggerName()))) {
+            && (logger == null || logger.equals(event.getLoggerName())))
+        {
           handler.accept(event, messages);
         }
       }

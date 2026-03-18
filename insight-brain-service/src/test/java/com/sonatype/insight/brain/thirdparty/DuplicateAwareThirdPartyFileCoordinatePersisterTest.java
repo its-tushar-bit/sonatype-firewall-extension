@@ -193,13 +193,13 @@ public class DuplicateAwareThirdPartyFileCoordinatePersisterTest
     tempEntity.newThirdPartyCoordinateLicense(toSave, "toSaveLicenseId", "toSaveLicenseName", "licenseUrl");
 
     tempEntity.newThirdPartyCoordinateSecurity(toKeep, "vulnId", "Description",
-            "link", 9.0, "Description", "fixed by");
+        "link", 9.0, "Description", "fixed by");
     tempEntity.newThirdPartyCoordinateSecurity(toKeep, "toKeep", "Description",
-            "link", 9.0, "Description", "fixed by");
+        "link", 9.0, "Description", "fixed by");
     tempEntity.newThirdPartyCoordinateSecurity(toSave, "vulnId", "Description",
         "link", 9.0, "Description", "fixed by");
     tempEntity.newThirdPartyCoordinateSecurity(toKeep, "toSave", "Description",
-            "link", 9.0, "Description", "fixed by");
+        "link", 9.0, "Description", "fixed by");
 
     Optional<String> persistedComponentRef =
         persister.consolidate(List.of(toKeep.getComponentRef(), toSave.getComponentRef()), tpf.getId());
@@ -247,7 +247,7 @@ public class DuplicateAwareThirdPartyFileCoordinatePersisterTest
         tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(toKeepCoordinateSecurity,
             toKeepCoordinateSecurity.getRefId(), "State", "resp", "detail", "detail");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(toMergeCoordinateSecurity,
-            toMergeCoordinateSecurity.getRefId(), "State2", "resp2", "detail2", "detail2");
+        toMergeCoordinateSecurity.getRefId(), "State2", "resp2", "detail2", "detail2");
     ThirdPartyVulnerabilityExploitabilityExchange toKeepVex2 =
         tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(toMergeCoordinateSecurity2,
             toMergeCoordinateSecurity2.getRefId(), "State3", "resp3", "detail3", "detail3");
@@ -270,8 +270,13 @@ public class DuplicateAwareThirdPartyFileCoordinatePersisterTest
   }
 
   private void assertPersisted(
-      final ThirdPartyFileCoordinate persisted, final String hash, final String componentRef,
-      final String version, final String dependencyType, final String dependencyOccurrence, final String matchState)
+      final ThirdPartyFileCoordinate persisted,
+      final String hash,
+      final String componentRef,
+      final String version,
+      final String dependencyType,
+      final String dependencyOccurrence,
+      final String matchState)
   {
     assertThat(persisted.getId()).isNotNull();
     assertThat(persisted.getHash()).isEqualTo(hash);
@@ -279,9 +284,9 @@ public class DuplicateAwareThirdPartyFileCoordinatePersisterTest
     assertThat(persisted.getFormat()).isEqualTo("format");
     assertThat(persisted.getName()).isEqualTo("name");
     assertThat(persisted.getVersion()).isEqualTo(version);
-    assertThat(persisted.getDependencyType()).isEqualTo(dependencyType); //updated
-    assertThat(persisted.getMatchStateId()).isEqualTo(matchState); //updated
-    assertThat(persisted.getIdentificationSourcesAsSet()).contains("SBOM", "Sonatype"); //updated
+    assertThat(persisted.getDependencyType()).isEqualTo(dependencyType); // updated
+    assertThat(persisted.getMatchStateId()).isEqualTo(matchState); // updated
+    assertThat(persisted.getIdentificationSourcesAsSet()).contains("SBOM", "Sonatype"); // updated
     assertThat(persisted.getOccurrencesList()).containsExactlyInAnyOrder("occ1", "occ2",
         dependencyOccurrence);
     assertThat(persisted.getFilenamesList()).contains("file1", "file2");

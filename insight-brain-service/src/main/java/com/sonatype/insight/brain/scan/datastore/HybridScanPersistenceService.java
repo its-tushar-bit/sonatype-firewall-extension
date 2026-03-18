@@ -59,7 +59,7 @@ public class HybridScanPersistenceService
     /*
      * The order of this collection is significant:
      * 1. The first element is the default storage mechanism.
-     *    - All writes are directed here.
+     * - All writes are directed here.
      * 2. The remaining elements act as backup storage mechanisms.
      *
      * Behavior:
@@ -73,8 +73,9 @@ public class HybridScanPersistenceService
       scanPersistenceServiceByClass.put(scanPersistenceService.getClass(), scanPersistenceService);
     }
     this.apiConfigurationServiceProvider = apiConfigurationServiceProvider;
-    warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get().getConfigurationNoAuthz(
-        SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
+    warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get()
+        .getConfigurationNoAuthz(
+            SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
   }
 
   @Override
@@ -82,7 +83,8 @@ public class HybridScanPersistenceService
     ScanEntity scanEntity = hybridDoGetScan(appId, scanId);
     log.trace("Getting scan by id from {}.", scanEntity.getLocation());
     if (warnOnNonPrimaryStorageAccess &&
-        !scanPersistenceServices.get(0).getClass().equals(scanEntity.getScanPersistenceServiceClass())) {
+        !scanPersistenceServices.get(0).getClass().equals(scanEntity.getScanPersistenceServiceClass()))
+    {
       log.warn("Non-primary storage access for scan by id from {}.", scanEntity.getLocation());
     }
     return scanEntity;
@@ -104,8 +106,10 @@ public class HybridScanPersistenceService
   }
 
   @Override
-  public void moveTempScan(final ScanEntity tempScanEntity, final String appId, final String scanId)
-      throws IOException
+  public void moveTempScan(
+      final ScanEntity tempScanEntity,
+      final String appId,
+      final String scanId) throws IOException
   {
     ScanEntity targetScanEntity = scanPersistenceServices.get(0).getScan(appId, scanId);
     if (tempScanEntity.getClass() != targetScanEntity.getClass()) {
@@ -139,7 +143,8 @@ public class HybridScanPersistenceService
     log.trace("Copying scan from {} to {}.", source.getLocation(), destination.getLocation());
 
     if (!scanPersistenceServiceByClass.containsKey(source.getScanPersistenceServiceClass()) ||
-        !scanPersistenceServiceByClass.containsKey(destination.getScanPersistenceServiceClass())) {
+        !scanPersistenceServiceByClass.containsKey(destination.getScanPersistenceServiceClass()))
+    {
       throw new IllegalStateException("Source and/or destination scan files are on unsupported storage mechanisms.");
     }
 
@@ -188,8 +193,9 @@ public class HybridScanPersistenceService
   @Override
   public void configurationChanged(final Set<String> propertyNames) {
     if (propertyNames.contains(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS)) {
-      warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get().getConfigurationNoAuthz(
-          SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
+      warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get()
+          .getConfigurationNoAuthz(
+              SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
     }
   }
 }

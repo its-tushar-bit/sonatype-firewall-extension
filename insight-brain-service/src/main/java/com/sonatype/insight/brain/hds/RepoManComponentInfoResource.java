@@ -31,7 +31,7 @@ import com.codahale.metrics.annotation.Timed;
 
 /**
  * Provides data supporting the component information panel (CIP) used by repository managers.
- * 
+ *
  * @since 1.10
  */
 @Path(RepoManComponentInfoResource.RESOURCE_PATH)

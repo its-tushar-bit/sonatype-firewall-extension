@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.git;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -185,7 +186,7 @@ public class PullRequestCommentingRemediationServiceTest
 
     when(mockComponentInfoService.getComponentDetailsForAllVersionsNoAuth(
         any(), any(), any(), any(), any(), any(), any(), anyBoolean()))
-        .thenReturn(Pair.of(componentDetailsDTOs, null));
+            .thenReturn(Pair.of(componentDetailsDTOs, null));
   }
 
   private void componentRemediationServiceSetup(

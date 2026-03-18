@@ -54,8 +54,9 @@ public class ComponentInfoServiceAuthzTest
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     NamedComponentDetails namedComponentDetails = new NamedComponentDetails();
     componentDetailsList.setList(new ArrayList<>());
-    lenient().when(hdsClientMock.get(any(Class.class), any(String.class), any(Map.class))).thenReturn(
-        componentDetailsList);
+    lenient().when(hdsClientMock.get(any(Class.class), any(String.class), any(Map.class)))
+        .thenReturn(
+            componentDetailsList);
     lenient().when(hdsClientMock.relay(any(), any(Class.class), any(String.class), any(Map.class)))
         .thenReturn(new RelayResponse<>(namedComponentDetails));
   }
@@ -108,8 +109,9 @@ public class ComponentInfoServiceAuthzTest
   // /
 
   @Deprecated
-  private void testGetComponentDetailsList_ReadPermission_Authorized(final Owner owner, final String ownerId)
-      throws Exception
+  private void testGetComponentDetailsList_ReadPermission_Authorized(
+      final Owner owner,
+      final String ownerId) throws Exception
   {
     configureHdsClientMock();
     grantReadPermission(owner.getId());
@@ -166,8 +168,9 @@ public class ComponentInfoServiceAuthzTest
     testGetComponentDetailsList_ReadPermission_Unauthenticated(repository, repository.getId());
   }
 
-  private void testGetComponentDetails_ReadPermission_Authorized(final Owner owner, final String ownerId)
-      throws Exception
+  private void testGetComponentDetails_ReadPermission_Authorized(
+      final Owner owner,
+      final String ownerId) throws Exception
   {
     configureHdsClientMock();
     grantReadPermission(owner.getId());
@@ -186,8 +189,9 @@ public class ComponentInfoServiceAuthzTest
     testGetComponentDetails_ReadPermission_Authorized(repository, repository.getId());
   }
 
-  private void testGetComponentDetails_ReadPermission_Unauthorized(final Owner owner, final String ownerId)
-      throws Exception
+  private void testGetComponentDetails_ReadPermission_Unauthorized(
+      final Owner owner,
+      final String ownerId) throws Exception
   {
     login();
     componentInfoService.getComponentDetails_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER,
@@ -205,8 +209,9 @@ public class ComponentInfoServiceAuthzTest
     testGetComponentDetails_ReadPermission_Unauthorized(repository, repository.getId());
   }
 
-  private void testGetComponentDetails_ReadPermission_Unauthenticated(final Owner owner, final String ownerId)
-      throws Exception
+  private void testGetComponentDetails_ReadPermission_Unauthenticated(
+      final Owner owner,
+      final String ownerId) throws Exception
   {
     componentInfoService.getComponentDetails_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER,
         MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */,
@@ -392,8 +397,9 @@ public class ComponentInfoServiceAuthzTest
             app.getPublicId(), COMPONENT_IDENTIFIER, SourceEndpoint.IDE);
   }
 
-  private void testGetComponentVersionInfo_Authorized_ReadPermission(final Owner owner, final String ownerId)
-      throws Exception
+  private void testGetComponentVersionInfo_Authorized_ReadPermission(
+      final Owner owner,
+      final String ownerId) throws Exception
   {
     configureHdsClientMock();
     grantReadPermission(owner.getId());

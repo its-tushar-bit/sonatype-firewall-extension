@@ -64,9 +64,10 @@ public class ScanResource
   private final AntiCsrfFilter antiCsrfFilter;
 
   @Inject
-  public ScanResource(ScanService scanService,
-                      ErrorResponseGenerator errorResponseGenerator,
-                      AntiCsrfFilter antiCsrfFilter)
+  public ScanResource(
+      ScanService scanService,
+      ErrorResponseGenerator errorResponseGenerator,
+      AntiCsrfFilter antiCsrfFilter)
   {
     this.scanService = scanService;
     this.errorResponseGenerator = errorResponseGenerator;
@@ -77,16 +78,17 @@ public class ScanResource
   @Produces({MediaType.APPLICATION_JSON, ErrorResponse.CONTENT_TYPE})
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Audited(AuditEvent.EVALUATE_APPLICATION)
-  public Response uploadBinary(@PathParam("applicationPublicId") String appPublicId,
-                               @FormDataParam("file") InputStream is,
-                               @FormDataParam("file") FormDataContentDisposition fileDetail,
-                               @FormDataParam("filename") String filename,
-                               @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
-                               @Context HttpHeaders headers,
-                               @QueryParam("stageId") String stageId,
-                               @QueryParam("sendNotifications") boolean sendNotifications,
-                               @QueryParam("noFormData") boolean noFormData,
-                               @Context HttpServletRequest request) throws Exception
+  public Response uploadBinary(
+      @PathParam("applicationPublicId") String appPublicId,
+      @FormDataParam("file") InputStream is,
+      @FormDataParam("file") FormDataContentDisposition fileDetail,
+      @FormDataParam("filename") String filename,
+      @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
+      @Context HttpHeaders headers,
+      @QueryParam("stageId") String stageId,
+      @QueryParam("sendNotifications") boolean sendNotifications,
+      @QueryParam("noFormData") boolean noFormData,
+      @Context HttpServletRequest request) throws Exception
   {
     try {
       // Mark this request as coming from the Web UI (not an external integration)
@@ -123,8 +125,9 @@ public class ScanResource
   @Path("/{ticketId}")
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public ScanTicket getTicket(@PathParam("applicationPublicId") String appPublicId,
-                              @PathParam("ticketId") String ticketId) throws Exception
+  public ScanTicket getTicket(
+      @PathParam("applicationPublicId") String appPublicId,
+      @PathParam("ticketId") String ticketId) throws Exception
   {
     return scanService.getTicket(appPublicId, ticketId);
   }

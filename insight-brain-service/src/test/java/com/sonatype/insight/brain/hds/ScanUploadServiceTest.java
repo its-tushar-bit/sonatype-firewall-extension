@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.hds;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -144,7 +145,7 @@ public class ScanUploadServiceTest
         eq(null))).thenReturn(scanRequestId);
     when(scanUploader.upload(any(ScanEntity.class), eq(app), eq(stage.getStageTypeId()), eq(null),
         eq(mockContext), eq(false)))
-        .thenReturn(scanReceipt);
+            .thenReturn(scanReceipt);
 
     ArgumentCaptor<ScanEntity> scanEntityCaptor = ArgumentCaptor.forClass(ScanEntity.class);
 
@@ -344,12 +345,12 @@ public class ScanUploadServiceTest
   public void testUpload_MissingRequiredArguments() {
     ScanEntity scanEntity = createScanFile(app, TemporaryEntity.uuid().substring(0, 10));
     String stageTypeId = ComplianceStageType.ID;
-    //null app
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
-        service.upload(scanEntity, null, stageTypeId, null, null, null, null, false));
-    //null scanFile
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
-        service.upload(null, app, stageTypeId, null, null, null, null, false));
+    // null app
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> service.upload(scanEntity, null, stageTypeId, null, null, null, null, false));
+    // null scanFile
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> service.upload(null, app, stageTypeId, null, null, null, null, false));
   }
 
   private ScanEntity createScanFile(Application app, String scanId) {

@@ -16,7 +16,7 @@ import jakarta.ws.rs.ext.ExceptionMapper;
 /**
  * Ensures that any exceptions internally created by the JAX-RS container have a plain text body with the error message
  * like we do in the {@link ErrorResponseGenerator}.
- * 
+ *
  * If the mapped exception is an instance of java.lang.Error or was caused by an instance of java.lang.Error, then
  * it terminates the JVM. This can be disabled by setting the exitOnFatalError flag.
  */
@@ -34,8 +34,9 @@ public class JaxRsExceptionMapper
   }
 
   @Inject
-  public JaxRsExceptionMapper(ErrorResponseGenerator errorResponseGenerator,
-                              JavaLangErrorHandler javaLangErrorHandler)
+  public JaxRsExceptionMapper(
+      ErrorResponseGenerator errorResponseGenerator,
+      JavaLangErrorHandler javaLangErrorHandler)
   {
     this.errorResponseGenerator = errorResponseGenerator;
     this.javaLangErrorHandler = javaLangErrorHandler;
@@ -47,7 +48,9 @@ public class JaxRsExceptionMapper
 
     ErrorResponse response = errorResponseGenerator.mapExceptionAndLog(exception);
 
-    return Response.status(response.getStatusCode()).type(ErrorResponse.CONTENT_TYPE).entity(response.getMessageBody())
+    return Response.status(response.getStatusCode())
+        .type(ErrorResponse.CONTENT_TYPE)
+        .entity(response.getMessageBody())
         .build();
   }
 }

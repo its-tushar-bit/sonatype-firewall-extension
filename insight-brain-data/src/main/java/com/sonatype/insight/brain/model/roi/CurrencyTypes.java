@@ -13,8 +13,10 @@ public enum CurrencyTypes
   USD;
 
   public static CurrencyTypes fromString(String currencyType) {
-    return Arrays.stream(CurrencyTypes.values()).filter(currency -> currency.name().equalsIgnoreCase(currencyType))
-        .findFirst().orElseThrow(() ->
-            new NotFoundException(String.format("Provided currency type %s is not found", currencyType)));
+    return Arrays.stream(CurrencyTypes.values())
+        .filter(currency -> currency.name().equalsIgnoreCase(currencyType))
+        .findFirst()
+        .orElseThrow(
+            () -> new NotFoundException(String.format("Provided currency type %s is not found", currencyType)));
   }
 }

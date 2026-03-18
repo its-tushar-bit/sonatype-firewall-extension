@@ -64,8 +64,9 @@ public class IntegrityRatingConditionType
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
     return "Integrity Rating was " + matchFact.getComponent().getIntegrityRating().getName()
-        + ("is not".equals(condition.getOperator()) ?
-        ", not " + IntegrityRating.getById(condition.getValue()).getName() : "");
+        + ("is not".equals(condition.getOperator())
+            ? ", not " + IntegrityRating.getById(condition.getValue()).getName()
+            : "");
   }
 
   @Override
@@ -74,8 +75,10 @@ public class IntegrityRatingConditionType
   }
 
   @Override
-  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
-      throws InvalidConditionException
+  public void validateCondition(
+      TransactionContext tx,
+      Condition condition,
+      String ownerId) throws InvalidConditionException
   {
     super.validateCondition(tx, condition, ownerId);
 

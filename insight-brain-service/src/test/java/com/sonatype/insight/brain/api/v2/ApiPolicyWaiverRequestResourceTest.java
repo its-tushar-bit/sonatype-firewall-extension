@@ -95,8 +95,10 @@ public class ApiPolicyWaiverRequestResourceTest
     apiPolicyWaiverRequestOptionsDTO.expiryTime = expiryDate;
     apiPolicyWaiverRequestOptionsDTO.matcherStrategy = ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
     HttpResponse response =
-        restRequest().path(POLICY_VIOLATION_ID_PATH).parameter(owner.getType(), owner.getId(), policyViolation.getId())
-            .body(apiPolicyWaiverRequestOptionsDTO, MediaType.APPLICATION_JSON).post();
+        restRequest().path(POLICY_VIOLATION_ID_PATH)
+            .parameter(owner.getType(), owner.getId(), policyViolation.getId())
+            .body(apiPolicyWaiverRequestOptionsDTO, MediaType.APPLICATION_JSON)
+            .post();
 
     assertResponseStatus(200, response);
     ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
@@ -120,7 +122,8 @@ public class ApiPolicyWaiverRequestResourceTest
     apiPolicyWaiverRequestOptionsDTO.matcherStrategy = ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
     HttpResponse response = restRequest().path(POLICY_WAIVER_REQUEST_ID_PATH)
         .parameter(owner.getType(), owner.getId(), policyWaiverRequestId)
-        .body(apiPolicyWaiverRequestOptionsDTO, MediaType.APPLICATION_JSON).put();
+        .body(apiPolicyWaiverRequestOptionsDTO, MediaType.APPLICATION_JSON)
+        .put();
 
     assertResponseStatus(200, response);
     ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
@@ -153,7 +156,8 @@ public class ApiPolicyWaiverRequestResourceTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
 
     HttpResponse response = restRequest().path(POLICY_VIOLATION_ID_PATH)
-        .parameter(OwnerType.APPLICATION, app.getId(), policyViolation.getId()).post();
+        .parameter(OwnerType.APPLICATION, app.getId(), policyViolation.getId())
+        .post();
 
     assertResponseStatus(200, response);
     ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
@@ -268,8 +272,10 @@ public class ApiPolicyWaiverRequestResourceTest
     apiPolicyWaiverRequestOptionsDTO.expiryTime = expiryDate;
     apiPolicyWaiverRequestOptionsDTO.matcherStrategy = ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
     HttpResponse response =
-        restRequest().path(POLICY_VIOLATION_ID_PATH).parameter(ownerType, ownerId, policyViolation.getId())
-            .body(apiPolicyWaiverRequestOptionsDTO, MediaType.APPLICATION_JSON).post();
+        restRequest().path(POLICY_VIOLATION_ID_PATH)
+            .parameter(ownerType, ownerId, policyViolation.getId())
+            .body(apiPolicyWaiverRequestOptionsDTO, MediaType.APPLICATION_JSON)
+            .post();
     assertResponseStatus(200, response);
     ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
     String policyWaiverRequestId = apiPolicyWaiverRequestDTO.policyWaiverRequestId;
@@ -286,8 +292,11 @@ public class ApiPolicyWaiverRequestResourceTest
     apiPolicyWaiverRequestReviewDTO.matcherStrategy = ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
     apiPolicyWaiverRequestReviewDTO.status = PolicyWaiverRequestStatus.APPROVED.name();
     response =
-        restRequest().path(POLICY_WAIVER_REQUEST_REVIEW_PATH).parameter(ownerType, ownerId, policyWaiverRequestId)
-            .body(apiPolicyWaiverRequestReviewDTO, MediaType.APPLICATION_JSON).auth(reviewer).post();
+        restRequest().path(POLICY_WAIVER_REQUEST_REVIEW_PATH)
+            .parameter(ownerType, ownerId, policyWaiverRequestId)
+            .body(apiPolicyWaiverRequestReviewDTO, MediaType.APPLICATION_JSON)
+            .auth(reviewer)
+            .post();
 
     assertResponseStatus(200, response);
     apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
@@ -318,8 +327,10 @@ public class ApiPolicyWaiverRequestResourceTest
     apiPolicyWaiverRequestOptionsDTO.expiryTime = expiryDate;
     apiPolicyWaiverRequestOptionsDTO.matcherStrategy = ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
     HttpResponse response =
-        restRequest().path(POLICY_VIOLATION_ID_PATH).parameter(app.getType(), app.getId(), policyViolation.getId())
-            .body(apiPolicyWaiverRequestOptionsDTO, MediaType.APPLICATION_JSON).post();
+        restRequest().path(POLICY_VIOLATION_ID_PATH)
+            .parameter(app.getType(), app.getId(), policyViolation.getId())
+            .body(apiPolicyWaiverRequestOptionsDTO, MediaType.APPLICATION_JSON)
+            .post();
     assertResponseStatus(200, response);
     ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
     String policyWaiverRequestId = apiPolicyWaiverRequestDTO.policyWaiverRequestId;
@@ -334,7 +345,9 @@ public class ApiPolicyWaiverRequestResourceTest
     apiPolicyWaiverRequestReviewDTO.rejectionReason = "rejection reason";
     response = restRequest().path(POLICY_WAIVER_REQUEST_REVIEW_PATH)
         .parameter(app.getType(), app.getId(), policyWaiverRequestId)
-        .body(apiPolicyWaiverRequestReviewDTO, MediaType.APPLICATION_JSON).auth(reviewer).post();
+        .body(apiPolicyWaiverRequestReviewDTO, MediaType.APPLICATION_JSON)
+        .auth(reviewer)
+        .post();
 
     assertResponseStatus(200, response);
     apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
@@ -421,15 +434,18 @@ public class ApiPolicyWaiverRequestResourceTest
     apiPolicyWaiverRequestOptionsDTO.expiryTime = expiryDate;
     apiPolicyWaiverRequestOptionsDTO.matcherStrategy = ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
     HttpResponse response =
-        restRequest().path(POLICY_VIOLATION_ID_PATH).parameter(ownerType, ownerId, policyViolation.getId())
-            .body(apiPolicyWaiverRequestOptionsDTO, MediaType.APPLICATION_JSON).post();
+        restRequest().path(POLICY_VIOLATION_ID_PATH)
+            .parameter(ownerType, ownerId, policyViolation.getId())
+            .body(apiPolicyWaiverRequestOptionsDTO, MediaType.APPLICATION_JSON)
+            .post();
     assertResponseStatus(200, response);
     ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
     String policyWaiverRequestId = apiPolicyWaiverRequestDTO.policyWaiverRequestId;
 
     // Get the policy waiver request created above
     response =
-        restRequest().path(POLICY_WAIVER_REQUEST_ID_PATH).parameter(ownerType, ownerId, policyWaiverRequestId)
+        restRequest().path(POLICY_WAIVER_REQUEST_ID_PATH)
+            .parameter(ownerType, ownerId, policyWaiverRequestId)
             .get();
 
     assertResponseStatus(200, response);

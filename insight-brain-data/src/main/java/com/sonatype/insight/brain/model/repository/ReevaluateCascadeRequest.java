@@ -26,7 +26,8 @@ import jakarta.persistence.TemporalType;
  */
 @Entity
 @Table(name = "reevaluate_cascade_request")
-public class ReevaluateCascadeRequest implements HasStringId
+public class ReevaluateCascadeRequest
+    implements HasStringId
 {
   @Id
   @Column(name = "reevaluate_cascade_request_id")

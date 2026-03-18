@@ -286,7 +286,8 @@ public class SourceControlScanServiceTest
     doThrow(testException).when(spySourceControlUtils)
         .getCheckoutDirectory(any(Application.class));
     assertThatThrownBy(() -> service.onSourceControlScan(sourceControlEvent))
-        .isInstanceOf(RuntimeException.class).hasMessage(testException.getMessage());
+        .isInstanceOf(RuntimeException.class)
+        .hasMessage(testException.getMessage());
 
     // and there was no policy evaluation
     verify(policyEvaluateService, never()).evaluateWithPolling(any(), any(), any(), any(), any(), any(), any(), any(),

@@ -75,8 +75,7 @@ public class PullRequestCommentingServiceTest
     verify(mockPolicyEvaluationDiffService).createPolicyViolationDiffByComponents(any(), any(),
         eq(PullRequestCommentingService.MINIMUM_THREAT_LEVEL));
     assertThatLogMessagesEqual(
-        info("Unable to get the policy evaluation diff for application 'app1' pull request '123'.")
-    );
+        info("Unable to get the policy evaluation diff for application 'app1' pull request '123'."));
   }
 
   @Test
@@ -106,8 +105,7 @@ public class PullRequestCommentingServiceTest
         eq(PullRequestCommentingService.MINIMUM_THREAT_LEVEL));
     assertThatLogMessagesEqual(
         info("No added or cleared violations in policy evaluation diff, and no previous PR comments for application" +
-            " 'app1' pull request '123'.")
-    );
+            " 'app1' pull request '123'."));
   }
 
   @Test
@@ -241,8 +239,7 @@ public class PullRequestCommentingServiceTest
         eq(PullRequestCommentingService.MINIMUM_THREAT_LEVEL));
 
     assertThatLogMessagesEqual(
-        info("Policy evaluations have not changed for application 'app1' pull request '123'.")
-    );
+        info("Policy evaluations have not changed for application 'app1' pull request '123'."));
   }
 
   @Test
@@ -283,8 +280,7 @@ public class PullRequestCommentingServiceTest
 
     assertThatLogMessagesEqual(
         info("Policy evaluations have not changed for application 'app1' pull request '123'."),
-        debug("Only handling post actions, no comments updated for Bitbucket pull request")
-    );
+        debug("Only handling post actions, no comments updated for Bitbucket pull request"));
   }
 
   @Test
@@ -329,8 +325,7 @@ public class PullRequestCommentingServiceTest
 
       assertThatLogMessagesEqual(
           info("Policy evaluations have not changed for application 'app1' pull request '123'."),
-          debug("Updating pull request comments for Bitbucket pull request")
-      );
+          debug("Updating pull request comments for Bitbucket pull request"));
     }
     finally {
       // disable the flag after the test to avoid affecting other tests
@@ -380,9 +375,10 @@ public class PullRequestCommentingServiceTest
         .setPullRequestNumber(123);
 
     // expect:
-    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() ->
-        pullRequestCommentingService.doCreateOrUpdatePullRequestComment(pullRequestPolicyEvaluationsDTO)
-    ).withMessage("test");
+    assertThatExceptionOfType(SourceControlException.class)
+        .isThrownBy(
+            () -> pullRequestCommentingService.doCreateOrUpdatePullRequestComment(pullRequestPolicyEvaluationsDTO))
+        .withMessage("test");
     verify(mockPolicyEvaluationDiffService).createPolicyViolationDiffByComponents(any(), any(),
         eq(PullRequestCommentingService.MINIMUM_THREAT_LEVEL));
 
@@ -481,8 +477,7 @@ public class PullRequestCommentingServiceTest
           mockPolicyEvaluationDiffService,
           mockPullRequestCommentDAO,
           mockRemediationService,
-          mockSourceControlComponentLoader
-      );
+          mockSourceControlComponentLoader);
     }
 
     private void setupContentHash() {

@@ -96,8 +96,9 @@ public class UserTokenRealm
   }
 
   @Override
-  protected void assertCredentialsMatch(final AuthenticationToken token, final AuthenticationInfo info)
-      throws AuthenticationException
+  protected void assertCredentialsMatch(
+      final AuthenticationToken token,
+      final AuthenticationInfo info) throws AuthenticationException
   {
     super.assertCredentialsMatch(token, info);
     SimpleAuthenticationInfoWithUserToken simpleAuthenticationInfoWithUserToken =
@@ -179,7 +180,8 @@ public class UserTokenRealm
     catch (UserNotFoundException e) {
       // The Crowd user was deleted.
       try (AuditSession auditSession = AuditData.get()
-          .recordSystemEvent(AuditEvent.DELETE_USER_TOKEN, true /* independent */)) {
+          .recordSystemEvent(AuditEvent.DELETE_USER_TOKEN, true /* independent */))
+      {
         userTokenService.deleteAndAuditUserToken(userToken);
       }
       log.info(
@@ -192,7 +194,8 @@ public class UserTokenRealm
     catch (Exception e) {
       throw new AuthenticationException(
           String.format("Could not authenticate the '%s' Crowd user with their '%s' user token.",
-              userToken.getUsername(), userToken.getUserCode()), e);
+              userToken.getUsername(), userToken.getUserCode()),
+          e);
     }
   }
 
@@ -211,7 +214,8 @@ public class UserTokenRealm
     catch (NameNotFoundException e) {
       // The LDAP user was deleted.
       try (AuditSession auditSession =
-               AuditData.get().recordSystemEvent(AuditEvent.DELETE_USER_TOKEN, true /* independent */)) {
+          AuditData.get().recordSystemEvent(AuditEvent.DELETE_USER_TOKEN, true /* independent */))
+      {
         userTokenService.deleteAndAuditUserToken(userToken);
       }
 

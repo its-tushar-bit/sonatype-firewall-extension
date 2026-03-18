@@ -46,7 +46,7 @@ public class RepositoryClientFactory
 
   public static class RepositoryClientBuilder
   {
-    //visible for testing
+    // visible for testing
     final Configuration config;
 
     RepositoryClientBuilder(final Configuration config) {
@@ -57,7 +57,7 @@ public class RepositoryClientFactory
       config.setServerUrl(baseUrl);
       checkState(baseUrl != null, "Missing repository base url");
 
-      //anonymous access does not require authentication
+      // anonymous access does not require authentication
       if (username != null && password != null) {
         SimpleAuthentication authentication = new SimpleAuthentication();
         authentication.setUsername(username);

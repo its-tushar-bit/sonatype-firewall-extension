@@ -134,7 +134,7 @@ public class DashboardWaivers
   }
 
   public class WaiverTile
-          extends BasicElement<WaiverTile>
+      extends BasicElement<WaiverTile>
   {
     public WaiverTile(String selector) {
       super(selector);

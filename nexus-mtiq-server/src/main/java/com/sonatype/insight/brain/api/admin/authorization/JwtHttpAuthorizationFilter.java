@@ -55,8 +55,10 @@ public class JwtHttpAuthorizationFilter
   }
 
   @Override
-  protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
-      throws IOException, ServletException
+  protected void doFilter(
+      HttpServletRequest req,
+      HttpServletResponse res,
+      FilterChain chain) throws IOException, ServletException
   {
     if (multiTenantJwkProvider.denyRequest()) {
       log.warn("Can't authorize request for {} to {} {}", req.getRemoteAddr(), req.getMethod(), req.getServletPath());
@@ -65,7 +67,7 @@ public class JwtHttpAuthorizationFilter
     }
 
     Optional<DecodedJWT> jwt = validateJwt(req, res);
-    //TODO add fine-grained validations according to roles definition, e.g. resource and method access CLM-25676
+    // TODO add fine-grained validations according to roles definition, e.g. resource and method access CLM-25676
     if (jwt.isPresent()) {
       log.debug("Permit request for {} to {} {}", req.getRemoteAddr(), req.getMethod(), req.getServletPath());
       req.setAttribute(SUBJECT_USER, getSubjectUserClaim(jwt.get()));
@@ -76,8 +78,9 @@ public class JwtHttpAuthorizationFilter
     }
   }
 
-  private Optional<DecodedJWT> validateJwt(final HttpServletRequest req, final HttpServletResponse res)
-      throws IOException
+  private Optional<DecodedJWT> validateJwt(
+      final HttpServletRequest req,
+      final HttpServletResponse res) throws IOException
   {
     final String authorizationHeader = req.getHeader(HttpHeaders.AUTHORIZATION);
 

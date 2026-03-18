@@ -167,7 +167,7 @@ public class EditAttributionsTest
     editAttributionModal.shouldNotBe(Condition.visible);
     assertThat(componentObligationAttributionDAO.getByOwnerIdAndComponentIdentifierAndObligationNames(app.getId(),
         componentIdentifier, Collections.singleton(null))).extracting(ComponentObligationAttribution::getContent)
-        .containsExactly("changed");
+            .containsExactly("changed");
     attribution.content().shouldHave(Condition.text("changed"));
     attribution.button().shouldHave(Condition.text("Edit"));
   }
@@ -272,7 +272,7 @@ public class EditAttributionsTest
     }
     assertThat(componentObligationAttributionDAO.getByOwnerIdAndComponentIdentifierAndObligationNames(newOwner.getId(),
         componentIdentifier, Collections.singleton(null))).extracting(ComponentObligationAttribution::getContent)
-        .containsExactly(attributionText);
+            .containsExactly(attributionText);
   }
 
   private void assertOption(SelenideElement option, Owner owner) {

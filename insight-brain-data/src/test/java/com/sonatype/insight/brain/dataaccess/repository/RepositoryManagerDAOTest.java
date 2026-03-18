@@ -30,7 +30,8 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
+public class RepositoryManagerDAOTest
+    extends NameableDAOTest<RepositoryManager>
 {
   private RepositoryManagerDAO dao;
 
@@ -56,7 +57,7 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
   protected AbstractOperationalSqlDAO<RepositoryManager> getDao() {
     return dao;
   }
-  
+
   @Override
   protected int getMaxNameLength() {
     return NameHelper.MAX_NAME_LENGTH_APP_ORG;
@@ -172,7 +173,8 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
     RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
     tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setOwnerId(repoManager.getId())
-        .setPolicyId(policy.getId()).setPolicyViolationId(policyViolation.getId()));
+        .setPolicyId(policy.getId())
+        .setPolicyViolationId(policyViolation.getId()));
 
     // sanity check
     PolicyWaiverRequestDAO policyWaiverRequestDAO = daoFactory.createPolicyWaiverRequestDAO();

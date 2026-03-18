@@ -140,7 +140,8 @@ public class SamlRealmTest
   @Test
   public void testDoGetAuthenticationInfo_NoUsername() {
     assertThatThrownBy(() -> doGetAuthenticationInfo(null, new MultivaluedHashMap<>(), new MultivaluedHashMap<>()))
-        .isInstanceOf(AuthenticationException.class).hasMessageContaining("username is required");
+        .isInstanceOf(AuthenticationException.class)
+        .hasMessageContaining("username is required");
   }
 
   @Test

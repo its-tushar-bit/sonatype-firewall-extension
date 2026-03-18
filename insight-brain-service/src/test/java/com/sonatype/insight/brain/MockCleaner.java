@@ -19,9 +19,9 @@ import org.mockito.mock.MockCreationSettings;
  * The parameter strong references are not released if the test does not explicitly verify all mock invocations.
  * In practice, it's next to impossible to verify all invocations and many tests don't do that because not all
  * invocations are important for all tests.
- * 
+ *
  * This causes memory leaks and when they accumulate, OutOfMemoryErrors.
- * 
+ *
  * This class registers a listener for mockito mock creations and records all mocks created by a test.
  * After the test, it clears all invocations for all mocks, which cause mockito to release the strong references to all
  * invocation parameters.

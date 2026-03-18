@@ -32,7 +32,7 @@ public class VersionResourceTest
     assertResponseStatus(200, response);
     Properties versionInfo = response.getBody(Properties.class);
     assertThat(versionInfo).isNotNull();
-    for (String key : new String[] { "name", "version", "timestamp", "tag", "build" }) {
+    for (String key : new String[]{"name", "version", "timestamp", "tag", "build"}) {
       assertThat(versionInfo.getProperty(key, "")).as("Testing: " + key + " of " + versionInfo).isNotEmpty();
     }
   }

@@ -11,7 +11,8 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class AtlassianCrowdConfigurationPage extends BasicElement<AtlassianCrowdConfigurationPage>
+public class AtlassianCrowdConfigurationPage
+    extends BasicElement<AtlassianCrowdConfigurationPage>
 {
   public static String url() {
     return BaseUrl.resolvePageUrl("/crowd");

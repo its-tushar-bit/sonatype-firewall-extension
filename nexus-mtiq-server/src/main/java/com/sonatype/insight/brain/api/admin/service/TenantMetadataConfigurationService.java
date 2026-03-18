@@ -34,8 +34,7 @@ public class TenantMetadataConfigurationService
       @Nullable MultiTenantEncryptionKeyStore multiTenantEncryptionKeyStore,
       TenantMetadataDAO tenantMetadataDAO,
       TenantUtil tenantUtil,
-      TenantValidator tenantValidator
-  )
+      TenantValidator tenantValidator)
   {
     this.multiTenantEncryptionKeyStore = multiTenantEncryptionKeyStore;
     this.tenantMetadataDAO = tenantMetadataDAO;

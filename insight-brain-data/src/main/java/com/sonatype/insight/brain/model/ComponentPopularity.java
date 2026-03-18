@@ -60,7 +60,7 @@ public class ComponentPopularity
   @Deprecated
   /**
    * @deprecated since 1.13.0
-   * simply used for deserialization from older reports where componentIdentifier wasn't available
+   *             simply used for deserialization from older reports where componentIdentifier wasn't available
    */
   private void setArtifactId(String artifactId) {
     this.artifactId = artifactId;
@@ -78,7 +78,7 @@ public class ComponentPopularity
   @Deprecated
   /**
    * @deprecated since 1.13.0
-   * simply used for deserialization from older reports where componentIdentifier wasn't available
+   *             simply used for deserialization from older reports where componentIdentifier wasn't available
    */
   private void setGroupId(String groupId) {
     this.groupId = groupId;
@@ -92,7 +92,7 @@ public class ComponentPopularity
   @Deprecated
   /**
    * @deprecated since 1.13.0
-   * simply used for deserialization from older reports where componentIdentifier wasn't available
+   *             simply used for deserialization from older reports where componentIdentifier wasn't available
    */
   private void setVersion(String version) {
     this.version = version;

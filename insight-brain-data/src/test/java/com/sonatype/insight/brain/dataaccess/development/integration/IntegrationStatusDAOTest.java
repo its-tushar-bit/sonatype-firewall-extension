@@ -80,18 +80,18 @@ public class IntegrationStatusDAOTest
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_BUILD, "testScanId");
     evaluation.setForMonitoring(false);
     evaluation.setReevaluation(false);
-    
+
     List<IntegrationStatusSummary> result = integrationStatusDAO.getIntegrationStatusBulk(
         Arrays.asList(application.getId(), app2.getId()), CUTOFF_DATE);
-    
+
     assertThat(result).hasSize(2);
-    
+
     // Find the summary for app2 which should have policy evaluation data
     IntegrationStatusSummary app2Summary = result.stream()
         .filter(s -> s.applicationId().equals(app2.getId()))
         .findFirst()
         .orElse(null);
-    
+
     assertThat(app2Summary).isNotNull();
     assertThat(app2Summary.applicationId()).isEqualTo(app2.getId());
     assertThat(app2Summary.applicationName()).isEqualTo(app2.getName());
@@ -104,12 +104,12 @@ public class IntegrationStatusDAOTest
   @PostgresTest
   public void testGetIntegrationStatusBulk_PostgreSQL_WithSourceControlData() {
     Date commitTime = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000L); // 1 day ago
-    SourceControlDefaultBranchCommitHistory commitHistory = 
+    SourceControlDefaultBranchCommitHistory commitHistory =
         tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commitHash", commitTime, null);
-    
+
     List<IntegrationStatusSummary> result = integrationStatusDAO.getIntegrationStatusBulk(
         Collections.singletonList(application.getId()), CUTOFF_DATE);
-    
+
     assertThat(result).hasSize(1);
     IntegrationStatusSummary summary = result.get(0);
     assertThat(summary.lastCommitTimestamp()).isEqualTo(commitHistory.getCommitTime().getTime());
@@ -120,16 +120,16 @@ public class IntegrationStatusDAOTest
   @PostgresTest
   public void testGetIntegrationStatusBulk_PostgreSQL_WithCIIntegration() {
     Application app3 = tempEntity.newApplication("TestApp3", "TestApp3-PublicId", organization.getId());
-    
+
     // Create a recent policy evaluation (within 84 days) to indicate CI integration
     PolicyEvaluation recentEvaluation = tempEntity.newPolicyEvaluation(app3.getId(), Stage.ID_BUILD, "recentScanId");
     recentEvaluation.setForMonitoring(false);
     recentEvaluation.setReevaluation(false);
     recentEvaluation.setTime(new Date(System.currentTimeMillis() - 30 * 24 * 60 * 60 * 1000L)); // 30 days ago
-    
+
     List<IntegrationStatusSummary> result = integrationStatusDAO.getIntegrationStatusBulk(
         Collections.singletonList(app3.getId()), CUTOFF_DATE);
-    
+
     assertThat(result).hasSize(1);
     IntegrationStatusSummary summary = result.get(0);
     assertThat(summary.isCiIntegrationEnabled()).isEqualTo(true);
@@ -141,7 +141,7 @@ public class IntegrationStatusDAOTest
   public void testGetIntegrationStatusBulk_PostgreSQL_CompleteIntegrationScenario() {
     Application fullyIntegratedApp = tempEntity.newApplication("FullyIntegratedApp",
         "FullyIntegratedApp-PublicId", organization.getId());
-    
+
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(fullyIntegratedApp.getId(),
         Stage.ID_BUILD, "fullScanId");
     evaluation.setForMonitoring(false);
@@ -152,10 +152,10 @@ public class IntegrationStatusDAOTest
 
     List<IntegrationStatusSummary> result = integrationStatusDAO.getIntegrationStatusBulk(
         Collections.singletonList(fullyIntegratedApp.getId()), CUTOFF_DATE);
-    
+
     assertThat(result).hasSize(1);
     IntegrationStatusSummary summary = result.get(0);
-    
+
     // Verify all integration aspects
     assertThat(summary.applicationId()).isEqualTo(fullyIntegratedApp.getId());
     assertThat(summary.applicationName()).isEqualTo(fullyIntegratedApp.getName());
@@ -173,7 +173,7 @@ public class IntegrationStatusDAOTest
   @PostgresTest
   public void testGetIntegrationStatusBulk_PostgreSQL_LargeDataSet() {
     // Creates 100 applications to test the optimization with realistic scale
-    
+
     final int appCount = 100;
     final List<Application> apps = new ArrayList<>();
     final List<String> appIds = new ArrayList<>();
@@ -181,48 +181,48 @@ public class IntegrationStatusDAOTest
 
     // Create 100 applications with varying integration data
     for (int i = 0; i < appCount; i++) {
-      Application app = tempEntity.newApplication("BulkApp" + i, "BulkApp" + i + "-PublicId", 
+      Application app = tempEntity.newApplication("BulkApp" + i, "BulkApp" + i + "-PublicId",
           organization.getId());
       apps.add(app);
       appIds.add(app.getId());
-      
+
       // Add policy evaluations to every 3rd app (simulating real-world sparse data)
       if (i % 3 == 0) {
-        PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, 
+        PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD,
             "bulkScanId" + i);
         eval.setForMonitoring(false);
         eval.setReevaluation(false);
         evaluations.add(eval);
       }
-      
+
       // Add source control history to every 4th app
       if (i % 4 == 0) {
         Date commitTime = new Date(System.currentTimeMillis() - (i * 1000 * 60)); // Varying commit times
-        tempEntity.newSourceControlDefaultBranchCommitHistory(app.getId(), "commit" + i, 
+        tempEntity.newSourceControlDefaultBranchCommitHistory(app.getId(), "commit" + i,
             commitTime, null);
       }
     }
-    
+
     // Execute bulk query
     long startTime = System.currentTimeMillis();
     List<IntegrationStatusSummary> result = integrationStatusDAO.getIntegrationStatusBulk(appIds, CUTOFF_DATE);
     long executionTime = System.currentTimeMillis() - startTime;
-    
+
     // Verify results
     assertThat(result).hasSize(appCount);
     assertThat(executionTime)
         .as("Query should complete reasonably fast for bulk data")
         .isLessThan(5000L);
-    
+
     // Count applications with different integration states
     int appsWithEvaluations = 0;
     int appsWithSourceControl = 0;
     int appsWithCiIntegration = 0;
-    
+
     for (IntegrationStatusSummary summary : result) {
       assertThat(summary.organizationId()).isEqualTo(organization.getId());
       assertThat(summary.applicationName()).startsWith("BulkApp");
-      
+
       if (summary.lastEvaluationTimestamp() > 0) {
         appsWithEvaluations++;
       }
@@ -233,7 +233,7 @@ public class IntegrationStatusDAOTest
         appsWithCiIntegration++;
       }
     }
-    
+
     // Verify expected distribution based on our test data setup
     assertThat(appsWithEvaluations)
         .as("Should have evaluations for every 3rd app")
@@ -244,7 +244,7 @@ public class IntegrationStatusDAOTest
     assertThat(appsWithCiIntegration)
         .as("CI integration should match apps with recent evaluations")
         .isEqualTo(appsWithEvaluations);
-    
+
     // Verify results are consistently ordered by application_id
     String previousAppId = null;
     for (IntegrationStatusSummary summary : result) {

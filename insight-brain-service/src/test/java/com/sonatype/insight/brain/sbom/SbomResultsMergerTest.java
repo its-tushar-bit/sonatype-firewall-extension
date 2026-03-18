@@ -183,8 +183,7 @@ public class SbomResultsMergerTest
 
     File updatedReport = mockReportZipWithUpdatedThirdPartyData(
         "/SbomResultsMergerTest/report-for-binary-scan-with-thirdparty",
-        tpComponent
-    );
+        tpComponent);
     ReportHelper.saveMockReport(insightWork, tempDir, updatedReport.toPath(), application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
@@ -197,7 +196,7 @@ public class SbomResultsMergerTest
         new File(insightWork.getScanDir(updatedMetadata.getApplicationId()), tpScan.getFilteredScanFile());
     assertThat(filteredScanFile).exists();
 
-    //verify all components
+    // verify all components
     List<ThirdPartyFileCoordinate> fileCoordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(updatedMetadata.getThirdPartyFileId());
     Map<PackageUrlIdentifier, ThirdPartyFileCoordinate> coords = fileCoordinates.stream()
@@ -207,7 +206,7 @@ public class SbomResultsMergerTest
     List<PackageUrlIdentifier> expectedPurls = List.of(purl1, purl2, purl3, purl4);
     assertThat(coords.keySet()).containsExactlyInAnyOrderElementsOf(expectedPurls);
 
-    //verify component is merged
+    // verify component is merged
     ThirdPartyFileCoordinate tpfc1 = coords.get(purl1);
     assertThat(tpfc1.getId()).isNotEmpty();
     assertThat(tpfc1.getThirdPartyFileId()).isEqualTo(updatedMetadata.getThirdPartyFileId());
@@ -221,13 +220,13 @@ public class SbomResultsMergerTest
     assertThat(tpfc1.getFilenamesList()).isEqualTo(List.of("pkg:pypi/orange@1.0.1"));
     assertThat(tpfc1.getComponentRef()).isNotEqualTo(originalComponentRef);
 
-    //verify dependency types correctly set
+    // verify dependency types correctly set
     assertThat(coords.get(purl1).getDependencyType()).isEqualTo("D");
     assertThat(coords.get(purl2).getDependencyType()).isEqualTo("T");
     assertThat(coords.get(purl3).getDependencyType()).isEqualTo("D");
     assertThat(coords.get(purl4).getDependencyType()).isEqualTo("T");
 
-    //verify security vulnerabilities are merged
+    // verify security vulnerabilities are merged
     List<ThirdPartyCoordinateSecurity> tpvListC1 = thirdPartyCoordinateSecurityDAO
         .getByFileCoordinateId(tpfc1.getId());
 
@@ -240,7 +239,7 @@ public class SbomResultsMergerTest
     assertThat(fgr00274.getRefId()).isEqualTo("FG-R00274");
     assertThat(fgr00274.getIdentificationSources()).isEqualTo("Sonatype");
 
-    //verify licenses are merged
+    // verify licenses are merged
     List<ThirdPartyCoordinateLicense> tclListC1 = thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(tpfc1.getId());
     assertThat(tclListC1.size()).isEqualTo(2);
     ThirdPartyCoordinateLicense component1License1 = tclListC1.get(0);
@@ -250,7 +249,7 @@ public class SbomResultsMergerTest
     assertThat(component1License2.getLicenseId()).isEqualTo("MIT");
     assertThat(component1License2.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
 
-    //verify original SBOM
+    // verify original SBOM
     Bom originalBom = merger.getOriginalBom();
     assertThat(originalBom.getMetadata().getProperties()).hasSize(1);
     assertThat(originalBom.getMetadata().getProperties().get(0).getName())
@@ -263,26 +262,29 @@ public class SbomResultsMergerTest
       assertThat(component.getProperties().get(0).getValue()).isNotEmpty();
     });
     Component bomComponent =
-        originalBom.getComponents().stream().filter(c -> new PackageUrlIdentifier(c.getPurl()).equals(purl1))
-            .findFirst().get();
+        originalBom.getComponents()
+            .stream()
+            .filter(c -> new PackageUrlIdentifier(c.getPurl()).equals(purl1))
+            .findFirst()
+            .get();
     assertThat(originalBom.getVulnerabilities()).hasSize(1);
     Vulnerability vuln = originalBom.getVulnerabilities().get(0);
     assertThat(vuln.getAffects()).hasSize(1);
     assertThat(vuln.getAffects().get(0).getRef()).isEqualTo(bomComponent.getBomRef());
 
-    //disclosed vulnerabilities
+    // disclosed vulnerabilities
     Analysis disclosedAnalysis = vuln.getAnalysis();
     assertThat(disclosedAnalysis).isNotNull();
     assertThat(disclosedAnalysis.getState()).isEqualTo(RESOLVED);
     assertThat(disclosedAnalysis.getJustification()).isEqualTo(Justification.CODE_NOT_REACHABLE);
     assertThat(disclosedAnalysis.getResponses().get(0)).isEqualTo(Response.WILL_NOT_FIX);
 
-    //disclosed licenses
+    // disclosed licenses
     assertThat(bomComponent.getLicenses()).isNotNull();
     assertThat(bomComponent.getLicenses().getLicenses()).hasSize(1);
     assertThat(bomComponent.getLicenses().getLicenses().get(0).getId()).isEqualTo("MIT");
 
-    //verify filtered SBOM
+    // verify filtered SBOM
     Bom filteredBom = merger.getFilteredBom();
     assertThat(filteredBom.getComponents()).hasSize(4)
         .allSatisfy(component -> {
@@ -290,7 +292,8 @@ public class SbomResultsMergerTest
           assertComponentRefProperty(component);
         });
 
-    Optional<Component> tpBomComponentOptional = filteredBom.getComponents().stream()
+    Optional<Component> tpBomComponentOptional = filteredBom.getComponents()
+        .stream()
         .filter(component -> new PackageUrlIdentifier(component.getPurl()).equals(purl1))
         .findFirst();
     assertThat(tpBomComponentOptional).isPresent();
@@ -298,7 +301,7 @@ public class SbomResultsMergerTest
     assertThat(properties).hasSize(3);
     assertComponentRefProperty(tpBomComponentOptional.get());
 
-    //verify telemetry data
+    // verify telemetry data
     ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
     verify(mockTelemetrySender, times(1)).send(telemetryDataArgumentCaptor.capture());
     List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
@@ -314,7 +317,7 @@ public class SbomResultsMergerTest
     assertThat(telemetry.getAdditionalVulnerabilitiesCount()).isEqualTo(1);
     assertThat(telemetry.getTotalVulnerabilitiesCount()).isEqualTo(1);
 
-    //verify bom.json update
+    // verify bom.json update
     ContainerNode<ObjectNode> bomJsonData =
         JsonUtils.parse(Objects.requireNonNull(appReport.getEntry(BOM_JSON.getName())).buf);
     ArrayNode bomArray = (ArrayNode) bomJsonData.get("aaData");
@@ -339,18 +342,20 @@ public class SbomResultsMergerTest
     merger.mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
-    //original sbom is generated and saved as expected
+    // original sbom is generated and saved as expected
     File actualSbomFile =
         new File(insightWork.getSbomDir(updatedMetadata.getApplicationId()), updatedMetadata.getFilename());
     try (InputStream actualInputStream = new GZIPInputStream(new FileInputStream(actualSbomFile));
-         InputStream expectedInputStream =
-             ThirdPartyDataServiceTest.class
-                 .getResourceAsStream("/SbomResultsMergerTest/binaryScanOriginalSboms/original-bom.json")) {
+        InputStream expectedInputStream =
+            ThirdPartyDataServiceTest.class
+                .getResourceAsStream("/SbomResultsMergerTest/binaryScanOriginalSboms/original-bom.json"))
+    {
       String actualSbomAsString = IOUtils.toString(actualInputStream, Charset.defaultCharset());
       String expectedSbomAsString = IOUtils.toString(expectedInputStream, Charset.defaultCharset());
       assertThatJson(actualSbomAsString)
           .whenIgnoringPaths("metadata.timestamp", "components[*].bom-ref",
-              "components[*].properties[0].value", "dependencies").isEqualTo(expectedSbomAsString);
+              "components[*].properties[0].value", "dependencies")
+          .isEqualTo(expectedSbomAsString);
       Bom actualBom = SbomCycloneDxUtils.parseContentNoValidation(actualSbomAsString);
       List<Dependency> actualDependencies = actualBom.getDependencies();
       assertThat(actualDependencies).hasSize(1);
@@ -358,10 +363,16 @@ public class SbomResultsMergerTest
       assertThat(actualDependency.getDependencies()).hasSize(1);
       String actualParentComponentBomRef = actualDependency.getRef();
       String actualChildComponentBomRef = actualDependency.getDependencies().get(0).getRef();
-      Component actualParentComponent = actualBom.getComponents().stream()
-          .filter(it -> it.getBomRef().equals(actualParentComponentBomRef)).findFirst().get();
-      Component actualChildComponent = actualBom.getComponents().stream()
-          .filter(it -> it.getBomRef().equals(actualChildComponentBomRef)).findFirst().get();
+      Component actualParentComponent = actualBom.getComponents()
+          .stream()
+          .filter(it -> it.getBomRef().equals(actualParentComponentBomRef))
+          .findFirst()
+          .get();
+      Component actualChildComponent = actualBom.getComponents()
+          .stream()
+          .filter(it -> it.getBomRef().equals(actualChildComponentBomRef))
+          .findFirst()
+          .get();
       assertThat(actualParentComponent.getPurl())
           .isEqualTo("pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0");
       assertThat(actualChildComponent.getPurl()).isEqualTo("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1");
@@ -370,14 +381,14 @@ public class SbomResultsMergerTest
       throw new RuntimeException(e);
     }
 
-    //filtered scan file is generated and exists
+    // filtered scan file is generated and exists
     ThirdPartyScan tpScan = thirdPartyScanDAO.getByThirdPartyFileId(updatedMetadata.getThirdPartyFileId());
     assertThat(tpScan.getFilteredScanFile()).isEqualTo("scan-" + tpScan.getScanId() + "-filtered.xml.gz");
     File filteredScanFile =
         new File(insightWork.getScanDir(updatedMetadata.getApplicationId()), tpScan.getFilteredScanFile());
     assertThat(filteredScanFile).exists();
 
-    //components are saved as expected
+    // components are saved as expected
     List<ThirdPartyFileCoordinate> fileCoordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(updatedMetadata.getThirdPartyFileId());
     Map<String, ThirdPartyFileCoordinate> coords = fileCoordinates.stream()
@@ -623,11 +634,11 @@ public class SbomResultsMergerTest
 
       sbomComponent = thirdPartyFileCoordinateDAO.getById(sbomComponent.getId());
       assertThat(sbomComponent.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
-      //updated purl from the best match result
+      // updated purl from the best match result
       assertThat(sbomComponent.getPackageUrl()).isEqualTo(
           "pkg:pypi/citrus/orange@1.0.1?extension=whl&qualifier=py2.py3-none-any&arch=x86_64");
 
-      //updated hash from the best match result
+      // updated hash from the best match result
       assertThat(sbomComponent.getHash()).isEqualTo("093080a1a4bbd2750544");
 
       ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
@@ -644,7 +655,7 @@ public class SbomResultsMergerTest
       List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
       assertThat(telemetryDataList).hasSize(2);
 
-      //verify telemetry data post import metrics
+      // verify telemetry data post import metrics
       TelemetryData telemetryData = telemetryDataList.get(0);
       assertThat(telemetryData).isNotNull();
       assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_POST_IMPORT_METRICS);
@@ -656,7 +667,7 @@ public class SbomResultsMergerTest
       assertThat(importMetricsTelemetry.getAdditionalVulnerabilitiesCount()).isEqualTo(2);
       assertThat(importMetricsTelemetry.getTotalVulnerabilitiesCount()).isEqualTo(0);
 
-      //verify telemetry data best match metrics
+      // verify telemetry data best match metrics
       telemetryData = telemetryDataList.get(1);
       assertThat(telemetryData).isNotNull();
       assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_RESULT_BEST_MATCH_METRICS);
@@ -706,7 +717,7 @@ public class SbomResultsMergerTest
       assertThat(sbomComponent.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
       assertThat(sbomComponent.getPackageUrl()).isEqualTo(
           "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar");
-      //updated hash from the matched result from HDS
+      // updated hash from the matched result from HDS
       assertThat(sbomComponent.getHash()).isEqualTo("af008de6e523b6eeb5e8");
 
       List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
@@ -726,9 +737,7 @@ public class SbomResultsMergerTest
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testMergeSonatypeDataWithSbomData_VerifySecurityVulnerabilityUpdatesAndInsertsAndTelemetry()
-      throws Exception
-  {
+  public void testMergeSonatypeDataWithSbomData_VerifySecurityVulnerabilityUpdatesAndInsertsAndTelemetry() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
@@ -738,15 +747,16 @@ public class SbomResultsMergerTest
         tempEntity.newThirdPartyFileCoordinate(file, "IaC", "terraform", "aws_s3_bucket.test01", "current",
             "0d8e3bd6ee4e6d50557a", "pkg:terraform/plan.tfplan/aws_s3_bucket.test01@current");
 
-    //Update Scenario 1: existing third party security in db is not modified if not present in report zip or in sonatype
-    //FG-R00228 not in report zip but in db with minimal third party vulnerability data
+    // Update Scenario 1: existing third party security in db is not modified if not present in report zip or in
+    // sonatype
+    // FG-R00228 not in report zip but in db with minimal third party vulnerability data
     ThirdPartyCoordinateSecurity tpVuln1 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00228", "", null, 0f, null, null);
     tpVuln1.setIdentificationSources("SBOM, Sonatype");
     thirdPartyCoordinateSecurityDAO.update(tpVuln1);
 
-    //Update Scenario 2: existing third party coordinate security record in db is modified with sonatype data
-    //FG-R00229 with complete third party vulnerability data
+    // Update Scenario 2: existing third party coordinate security record in db is modified with sonatype data
+    // FG-R00229 with complete third party vulnerability data
     ThirdPartyCoordinateSecurity tpVuln2 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00229", "description1", "link1", 1.0f,
             "deepdive1", "fixedby1");
@@ -755,11 +765,11 @@ public class SbomResultsMergerTest
     tpVuln2.setDetectionType(SECONDARY.getId());
     thirdPartyCoordinateSecurityDAO.update(tpVuln2);
 
-    //Insert Scenario 1: new third party coordinate security record is inserted in db with the minimal sonatype data
-    //FG-R00274 with no third party vulnerability data in report zip or db
+    // Insert Scenario 1: new third party coordinate security record is inserted in db with the minimal sonatype data
+    // FG-R00274 with no third party vulnerability data in report zip or db
 
-    //Insert Scenario 2: new third party coordinate security record is inserted in db with complete sonatype data
-    //FG-R00275 with no third party vulnerability data in report zip or db
+    // Insert Scenario 2: new third party coordinate security record is inserted in db with complete sonatype data
+    // FG-R00275 with no third party vulnerability data in report zip or db
 
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
 
@@ -776,7 +786,7 @@ public class SbomResultsMergerTest
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
     assertThat(thirdPartyCoordinateSecurityList).hasSize(7);
 
-    //Update Scenario 1
+    // Update Scenario 1
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00228");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM");
@@ -793,7 +803,7 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurity.getDetectionType()).isEqualTo(PRIMARY.getId());
     assertThat(thirdPartyCoordinateSecurity.getRatingMethod()).isEqualTo("m1");
 
-    //Update Scenario 2
+    // Update Scenario 2
     thirdPartyCoordinateSecurity =
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00229");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
@@ -810,7 +820,7 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurity.getDetectionType()).isEqualTo(SECONDARY.getId());
     assertThat(thirdPartyCoordinateSecurity.getRatingMethod()).isEqualTo("m1");
 
-    //Insert Scenario 1
+    // Insert Scenario 1
     thirdPartyCoordinateSecurity =
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00274");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
@@ -827,7 +837,7 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurity.getDetectionType()).isEqualTo(PRIMARY.getId());
     assertThat(thirdPartyCoordinateSecurity.getRatingMethod()).isNull();
 
-    //Insert Scenario 2
+    // Insert Scenario 2
     thirdPartyCoordinateSecurity =
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00275");
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
@@ -862,7 +872,7 @@ public class SbomResultsMergerTest
     assertThat(telemetry.getAdditionalVulnerabilitiesCount()).isEqualTo(5);
     assertThat(telemetry.getTotalVulnerabilitiesCount()).isEqualTo(2);
 
-    //verify cpe results telemetry
+    // verify cpe results telemetry
     assertThat(cpeResultsTelemetry.getCpeUnMatchedVulnerabilityCount()).isEqualTo(1);
   }
 
@@ -1195,9 +1205,7 @@ public class SbomResultsMergerTest
   }
 
   @Test
-  public void testMergeSonatypeDataWithSbomData_duplicatedComponentsWithDifferentPurlHashGetsInsertedInsteadOfMerging()
-      throws Exception
-  {
+  public void testMergeSonatypeDataWithSbomData_duplicatedComponentsWithDifferentPurlHashGetsInsertedInsteadOfMerging() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile("binary.temp");
@@ -1234,8 +1242,10 @@ public class SbomResultsMergerTest
         "24.0", null, "tar.gz");
     final PackageUrlIdentifier expectedPurlTarGz = PackageUrlIdentifier
         .fromComponentIdentifier(expectedComponentIdentifier);
-    Optional<ThirdPartyFileCoordinate> componentUpdatedTarGzExtensionOptional = componentsInserted.stream().filter(
-        c -> c.getPackageUrl().equals(expectedPurlTarGz.getPackageUrl())).findFirst();
+    Optional<ThirdPartyFileCoordinate> componentUpdatedTarGzExtensionOptional = componentsInserted.stream()
+        .filter(
+            c -> c.getPackageUrl().equals(expectedPurlTarGz.getPackageUrl()))
+        .findFirst();
     // Hash updated
     assertThat(componentUpdatedTarGzExtensionOptional.isPresent()).isTrue();
     assertThat(componentUpdatedTarGzExtensionOptional.get().getHash()).isEqualTo("964cd74171f427720480");
@@ -1244,8 +1254,10 @@ public class SbomResultsMergerTest
     expectedComponentIdentifier = ComponentIdentifier.createPypiCoordinates("pip", "24.0", "py3-none-any", "whl");
     final PackageUrlIdentifier expectedPurlWhl = PackageUrlIdentifier.fromComponentIdentifier(
         expectedComponentIdentifier);
-    Optional<ThirdPartyFileCoordinate> newlyInsertedComponentUpdatedWhlOptional = componentsInserted.stream().filter(
-        c -> c.getPackageUrl().equals(expectedPurlWhl.getPackageUrl())).findFirst();
+    Optional<ThirdPartyFileCoordinate> newlyInsertedComponentUpdatedWhlOptional = componentsInserted.stream()
+        .filter(
+            c -> c.getPackageUrl().equals(expectedPurlWhl.getPackageUrl()))
+        .findFirst();
     assertThat(newlyInsertedComponentUpdatedWhlOptional.isPresent()).isTrue();
     assertThat(newlyInsertedComponentUpdatedWhlOptional.get().getHash()).isEqualTo("e44313ae1e6af3c2bd3b");
 
@@ -1254,9 +1266,7 @@ public class SbomResultsMergerTest
   }
 
   @Test
-  public void testMergeSonatypeDataWithSbomData_VerifyComponentIdentificationSourceAndDependencyType()
-      throws Exception
-  {
+  public void testMergeSonatypeDataWithSbomData_VerifyComponentIdentificationSourceAndDependencyType() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
@@ -1548,8 +1558,12 @@ public class SbomResultsMergerTest
     thirdPartyScan.setPreviousScanId("previousScanId");
     thirdPartyScanDAO.update(thirdPartyScan);
 
-    String applicationReportPath = tempDir.getRoot().toPath()
-        .relativize(insightWork.getReportDir(appId).toPath()).normalize().toString().concat("/");
+    String applicationReportPath = tempDir.getRoot()
+        .toPath()
+        .relativize(insightWork.getReportDir(appId).toPath())
+        .normalize()
+        .toString()
+        .concat("/");
     tempDir.newFolder(applicationReportPath + thirdPartyScan.getPreviousScanId());
     tempDir.newFolder(applicationReportPath + thirdPartyScan.getScanId());
 
@@ -1600,8 +1614,11 @@ public class SbomResultsMergerTest
   }
 
   private void assertComponentRefProperty(Component component) {
-    Property componentRefProperty = component.getProperties().stream().filter(property ->
-        property.getName().equals("componentRef")).findFirst().orElse(null);
+    Property componentRefProperty = component.getProperties()
+        .stream()
+        .filter(property -> property.getName().equals("componentRef"))
+        .findFirst()
+        .orElse(null);
     assertThat(componentRefProperty).isNotNull();
     assertThat(componentRefProperty.getValue()).isNotBlank().hasSize(40);
   }

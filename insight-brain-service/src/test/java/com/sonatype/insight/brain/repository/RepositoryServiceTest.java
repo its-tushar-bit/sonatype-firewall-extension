@@ -92,7 +92,8 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class RepositoryServiceTest extends AbstractComponentTest
+public class RepositoryServiceTest
+    extends AbstractComponentTest
 {
   private static final String REPO_MAN_INSTANCE_ID = "repoManagerInstanceId";
 
@@ -560,14 +561,15 @@ public class RepositoryServiceTest extends AbstractComponentTest
             isNull(), eq(hdsRequest))).thenReturn(hdsResult);
   }
 
-  private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier,
-                                                                String hash,
-                                                                MatchState matchState,
-                                                                int index,
-                                                                Set<License> declaredLicenses,
-                                                                Set<License> observedLicenses,
-                                                                List<SecurityVulnerability> securityVulnerabilities,
-                                                                Integer relativePopularity)
+  private ComponentEvaluationData createComponentEvaluationData(
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      MatchState matchState,
+      int index,
+      Set<License> declaredLicenses,
+      Set<License> observedLicenses,
+      List<SecurityVulnerability> securityVulnerabilities,
+      Integer relativePopularity)
   {
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.requestIndex = index;
@@ -643,7 +645,8 @@ public class RepositoryServiceTest extends AbstractComponentTest
     repositoryService.reevaluateRepository(repository.getId());
 
     await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-      Date lastEvaluationTime = repositoryComponentDAO.getByRepositoryId(repository.getId()).get(0)
+      Date lastEvaluationTime = repositoryComponentDAO.getByRepositoryId(repository.getId())
+          .get(0)
           .getLastEvaluationTime();
       assertThat(lastEvaluationTime).isAfterOrEqualTo(beforeEvaluation);
     });
@@ -973,8 +976,8 @@ public class RepositoryServiceTest extends AbstractComponentTest
     List<RepositoryManager> repoManagers = repositoryService.getUnconfiguredRepositoryManagers();
     assertThat(repoManagers).hasSize(2);
     assertThat(repoManagers).usingRecursiveFieldByFieldElementComparator(
-        RecursiveComparisonConfiguration.builder().withIgnoredFields(JPA.IGNORE_FIELDS).build()
-    ).containsExactlyInAnyOrder(nexusUnconfiguredRepoManager, artifactoryUnconfiguredRepoManager);
+        RecursiveComparisonConfiguration.builder().withIgnoredFields(JPA.IGNORE_FIELDS).build())
+        .containsExactlyInAnyOrder(nexusUnconfiguredRepoManager, artifactoryUnconfiguredRepoManager);
   }
 
   @Test
@@ -1419,8 +1422,8 @@ public class RepositoryServiceTest extends AbstractComponentTest
   @Test
   public void testUpdateName_idNull() {
     assertThatExceptionOfType(NotFoundException.class)
-            .isThrownBy(() -> repositoryService.updateName(null, "Repo Name2"))
-            .withMessage("RepositoryManager with ID null does not exist.");
+        .isThrownBy(() -> repositoryService.updateName(null, "Repo Name2"))
+        .withMessage("RepositoryManager with ID null does not exist.");
   }
 
   @Test
@@ -1430,7 +1433,8 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
     List<RepositoryManager> repoManagers = repositoryService.getRepositoryManagers();
 
-    assertThat(repoManagers).usingRecursiveComparison().ignoringCollectionOrder()
+    assertThat(repoManagers).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(Arrays.asList(repoManagerOne, repoManagerTwo));
   }
 
@@ -1466,7 +1470,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
         ProprietaryComponentNamePatternFilter.SortField.SortableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
         true /* asc */, 1 /* sortPriority */));
 
-    //Repository Level - result must include only patterns of repo1
+    // Repository Level - result must include only patterns of repo1
     ProprietaryComponentNamePatternsPage result =
         repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY, repo1.getId(), request);
     assertThat(result.hasNextPage).isFalse();
@@ -1476,7 +1480,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
     request.pageSize = 3;
 
-    //Repository Manager Level - result must include only patterns of repos in repoManager2
+    // Repository Manager Level - result must include only patterns of repos in repoManager2
     result =
         repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_MANAGER, repoManager2.getId(),
             request);
@@ -1485,7 +1489,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(0), pattern3);
     assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(1), pattern4);
 
-    //Repository Container Level - result must include patterns of all repos
+    // Repository Container Level - result must include patterns of all repos
     result =
         repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY_CONTAINER,
             RepositoryContainer.REPOSITORY_CONTAINER_ID, request);

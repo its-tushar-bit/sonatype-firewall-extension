@@ -489,13 +489,14 @@ public class PolicyMonitoringResourceTest
     assertThat(policyMonitoringByOwner.policyMonitorings).isEmpty();
   }
 
-  private void assertPolicyMonitoringByOwner(Owner owner,
-                                             String stageTypeId,
-                                             PolicyMonitoringByOwner policyMonitoringByOwner)
+  private void assertPolicyMonitoringByOwner(
+      Owner owner,
+      String stageTypeId,
+      PolicyMonitoringByOwner policyMonitoringByOwner)
   {
     assertThat(policyMonitoringByOwner.ownerName).isEqualTo(owner.getName());
     assertThat(policyMonitoringByOwner.policyMonitorings).isNotNull();
-    for (PolicyMonitoring policyMonitoring: policyMonitoringByOwner.policyMonitorings) {
+    for (PolicyMonitoring policyMonitoring : policyMonitoringByOwner.policyMonitorings) {
       assertPolicyMonitoring(owner.getId(), stageTypeId, policyMonitoring);
     }
   }

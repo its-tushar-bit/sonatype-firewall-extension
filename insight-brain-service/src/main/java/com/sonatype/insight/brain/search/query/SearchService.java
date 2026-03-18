@@ -142,8 +142,7 @@ public class SearchService
               currentPage++,
               allComponents,
               isSbomManagerMode,
-              searchAfter
-          );
+              searchAfter);
           searchAfter = searchResultDTO.searchAfter;
           searchAfterRef.set(searchAfter);
           List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
@@ -157,10 +156,12 @@ public class SearchService
         }
       }
     };
-    httpServletResponse.setTrailerFields(() ->
-        searchAfterRef.get() == null ? Map.of() : Map.of(SEARCH_AFTER_HEADER, String.join(",", searchAfterRef.get())));
+    httpServletResponse.setTrailerFields(() -> searchAfterRef.get() == null
+        ? Map.of()
+        : Map.of(SEARCH_AFTER_HEADER, String.join(",", searchAfterRef.get())));
     ResponseBuilder responseBuilder = Response.ok(createAdvancedSearchCSV(iterator, pageSize, isSbomManagerMode))
-        .type("application/csv; charset=UTF-8").encoding("UTF-8")
+        .type("application/csv; charset=UTF-8")
+        .encoding("UTF-8")
         .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(EXPORT_FILE_NAME));
     return responseBuilder.build();
   }
@@ -172,15 +173,19 @@ public class SearchService
   {
     SearchRowFactory searchExportRowFactory = getSearchRowFactory(isSbomManagerMode);
 
-    CSVFormat csvFormat = CSVFormat.Builder.create().setHeader(searchExportRowFactory.getHeaders())
-        .setDelimiter(configuration.getAdvancedSearchCSVExportDelimiter()).build();
+    CSVFormat csvFormat = CSVFormat.Builder.create()
+        .setHeader(searchExportRowFactory.getHeaders())
+        .setDelimiter(configuration.getAdvancedSearchCSVExportDelimiter())
+        .build();
 
     String baseUrl = Objects.toString(systemConfigurationPropertyDAO.get(SystemConfigurationProperty.BASE_URL), "");
 
     return os -> {
       int count = 0;
-      try (Writer writer = new BufferedWriter(new OutputStreamWriter(os)); CSVPrinter printer = new CSVPrinter(writer,
-          csvFormat)) {
+      try (Writer writer = new BufferedWriter(new OutputStreamWriter(os));
+          CSVPrinter printer = new CSVPrinter(writer,
+              csvFormat))
+      {
         while (searchResultItemsDTOSIterator.hasNext() && (pageSize == null || count < pageSize)) {
           for (SearchResultItemDTO searchResultItemDTO : searchResultItemsDTOSIterator.next()) {
             count++;

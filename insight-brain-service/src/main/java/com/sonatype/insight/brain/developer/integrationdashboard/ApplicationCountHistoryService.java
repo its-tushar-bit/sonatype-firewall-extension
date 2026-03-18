@@ -49,8 +49,7 @@ public class ApplicationCountHistoryService
       final ApplicationDAO applicationDAO,
       final DateTimeService dateTimeService,
       final PolicyViolationDAO policyViolationDAO,
-      final CIEvaluationStatService ciEvaluationStatService
-  )
+      final CIEvaluationStatService ciEvaluationStatService)
   {
     this.applicationCountHistoryDAO = applicationCountHistoryDAO;
     this.applicationSourceControlService = applicationSourceControlService;
@@ -90,8 +89,7 @@ public class ApplicationCountHistoryService
 
   public List<ApiUsageIncrementDto> getUsageOverTime(
       final long incrementSizeMillis,
-      final int numberOfIncrements
-  )
+      final int numberOfIncrements)
   {
     final List<ApiUsageIncrementDto> usageOverTime = new ArrayList<>();
 
@@ -109,8 +107,7 @@ public class ApplicationCountHistoryService
           ApiUsageIncrementDto.fromApplicationHistoryCount(
               currentUpperBound,
               totalNumberOfAppsUsingCiCDAtTime,
-              getApplicationHistoryCount(timeOfIncrement)
-          ));
+              getApplicationHistoryCount(timeOfIncrement)));
 
       currentUpperBound += incrementSizeMillis;
     }

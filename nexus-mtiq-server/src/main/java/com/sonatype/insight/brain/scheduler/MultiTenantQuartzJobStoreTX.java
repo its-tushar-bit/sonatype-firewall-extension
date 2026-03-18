@@ -30,8 +30,7 @@ public class MultiTenantQuartzJobStoreTX
       ProductLicense productLicense,
       InsightConfig insightConfig,
       OperationalDataStore operationalDataStore,
-      TenantUtil tenantUtil)
-      throws InvalidConfigurationException
+      TenantUtil tenantUtil) throws InvalidConfigurationException
   {
     super(productLicense, insightConfig, operationalDataStore);
     this.tenantUtil = tenantUtil;

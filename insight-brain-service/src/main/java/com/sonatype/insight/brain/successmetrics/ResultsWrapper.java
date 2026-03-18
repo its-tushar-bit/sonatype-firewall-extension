@@ -31,16 +31,17 @@ class ResultsWrapper
     discoveredCounts = new EnumIntegerTable<>(PolicyThreatCategory.class, ThreatLevel.class);
     fixedCounts = new EnumIntegerTable<>(PolicyThreatCategory.class, ThreatLevel.class);
     waivedCounts = new EnumIntegerTable<>(PolicyThreatCategory.class, ThreatLevel.class);
-    
+
     this.openCounts = openCounts;
   }
 
-  public ResultsWrapper(MttrStats mttrStats,
-                        int evaluationCount,
-                        Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts,
-                        Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
-                        Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
-                        Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts)
+  public ResultsWrapper(
+      MttrStats mttrStats,
+      int evaluationCount,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts)
   {
     this.mttrStats = mttrStats;
     this.evaluationCount = evaluationCount;

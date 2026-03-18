@@ -86,8 +86,10 @@ public abstract class BrainInjectedTest
   @Rule(order = 3)
   public TemporaryEntity tempEntity = createTemporaryEntity();
 
-  /** You should only use this `daoFactory` when you override the `configure` method and you need to crate DAOs there.
-   * Otherwise, always prefer the use of the `@Inject` annotation to inject the DAOs you need for your test */
+  /**
+   * You should only use this `daoFactory` when you override the `configure` method and you need to crate DAOs there.
+   * Otherwise, always prefer the use of the `@Inject` annotation to inject the DAOs you need for your test
+   */
   protected DAOFactory daoFactory;
 
   @BeforeClass
@@ -97,9 +99,7 @@ public abstract class BrainInjectedTest
 
   @Before
   @Override
-  public void setUp()
-      throws Exception
-  {
+  public void setUp() throws Exception {
     // Re-inject classes that have static dependencies
     daoFactory = new TestDAOFactory(databaseContainerRule);
     StaticInjectionTestHelper.inject(daoFactory);
@@ -125,6 +125,7 @@ public abstract class BrainInjectedTest
 
   /**
    * These modules mimic a Production IQ server
+   *
    * @param modules - the list of modules
    */
   private void addProductionModules(final List<Module> modules) {
@@ -160,8 +161,8 @@ public abstract class BrainInjectedTest
     modules.add(new ComponentModule());
     modules.add(new CoreServiceModule());
     modules.add(new DashboardModule());
-    modules.add(new DbBasedModule(() -> databaseContainerRule.getDatabaseContainer()));  // Database-specific bindings
-    modules.add(new DataAccessModule());  // Auto-bind all @Named DAOs from data layer
+    modules.add(new DbBasedModule(() -> databaseContainerRule.getDatabaseContainer())); // Database-specific bindings
+    modules.add(new DataAccessModule()); // Auto-bind all @Named DAOs from data layer
     modules.add(new FirewallModule());
     modules.add(new IntegrationModule());
     modules.add(new IqOnlyModule());
@@ -180,6 +181,7 @@ public abstract class BrainInjectedTest
 
   /**
    * These modules are specific to testing only
+   *
    * @param modules - the list of modules to add to
    */
   private void addTestSpecificModules(final List<Module> modules) {
@@ -243,7 +245,9 @@ public abstract class BrainInjectedTest
    * Configure test-specific bindings. Override this method to provide bindings that will override production bindings.
    * This method is called automatically by the test infrastructure.
    *
-   * <p>Example:
+   * <p>
+   * Example:
+   *
    * <pre>
    * {@literal @}Override
    * public void configure(Binder binder) {

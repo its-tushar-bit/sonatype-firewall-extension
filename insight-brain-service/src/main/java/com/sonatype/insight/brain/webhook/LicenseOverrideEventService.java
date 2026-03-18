@@ -30,15 +30,17 @@ public class LicenseOverrideEventService
   private final CurrentUser currentUser;
 
   @Inject
-  public LicenseOverrideEventService(final AsyncEventBus asyncEventBus,
-                                     final CurrentUser currentUser)
+  public LicenseOverrideEventService(
+      final AsyncEventBus asyncEventBus,
+      final CurrentUser currentUser)
   {
     this.asyncEventBus = asyncEventBus;
     this.currentUser = currentUser;
   }
 
-  public void postEvent(final EventAction action,
-                        final LicenseOverride licenseOverride)
+  public void postEvent(
+      final EventAction action,
+      final LicenseOverride licenseOverride)
   {
     try {
       LicenseOverrideEvent event = new LicenseOverrideEvent();

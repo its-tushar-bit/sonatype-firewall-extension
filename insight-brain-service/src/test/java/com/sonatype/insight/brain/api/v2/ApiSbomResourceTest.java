@@ -125,7 +125,8 @@ public class ApiSbomResourceTest
         .build();
 
     HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VERSION_PATH)
-        .parameter(thirdPartySbomMetadata.getApplicationId(), thirdPartySbomMetadata.getSbomVersion()).delete();
+        .parameter(thirdPartySbomMetadata.getApplicationId(), thirdPartySbomMetadata.getSbomVersion())
+        .delete();
     assertResponseStatus(204, response);
 
     ThirdPartySbomMetadata retrievedSbomMetadata =
@@ -154,7 +155,8 @@ public class ApiSbomResourceTest
     assertThat(response.getContentType()).isEqualTo("application/xml");
     assertContentHeader(response, app, sbomMetadata.getSbomVersion(), ".xml", SbomSpecification.CYCLONEDX, true);
     String actualContent = new String(response.getBodyBytes());
-    XmlAssert.assertThat(actualContent).and(expectedContentIn("third-party-simple-bom.xml"))
+    XmlAssert.assertThat(actualContent)
+        .and(expectedContentIn("third-party-simple-bom.xml"))
         .areIdentical();
   }
 
@@ -177,7 +179,8 @@ public class ApiSbomResourceTest
 
     assertContentHeader(response, app, sbomVersion, ".xml", SbomSpecification.CYCLONEDX, false);
     String sbomContent = new String(response.getBodyBytes());
-    XmlAssert.assertThat(sbomContent).and(expectedContentIn("sboms/valid-cyclonedx-result-bom.xml"))
+    XmlAssert.assertThat(sbomContent)
+        .and(expectedContentIn("sboms/valid-cyclonedx-result-bom.xml"))
         .withNodeFilter(cycloneDxIgnoreNodesFilter())
         .withAttributeFilter(cycloneDxIgnoreAttributesFilter())
         .ignoreWhitespace()
@@ -258,7 +261,8 @@ public class ApiSbomResourceTest
         "state", "justification", "response", "detail");
 
     HttpResponse response = restRequest().path(ApiSbomResource.SBOMS_APPLICATION_PATH)
-        .parameter(app.getId()).get();
+        .parameter(app.getId())
+        .get();
     assertResponseStatus(200, response);
 
     ThirdPartySbomMetadataSummaryListDTO result = response.getBody(ThirdPartySbomMetadataSummaryListDTO.class);
@@ -428,7 +432,8 @@ public class ApiSbomResourceTest
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scan.getScanId());
 
     HttpResponse response = restRequest().path(ApiSbomResource.SBOM_COMPONENTS_PATH)
-        .parameter(app.getId(), sbomMetadata.getSbomVersion()).get();
+        .parameter(app.getId(), sbomMetadata.getSbomVersion())
+        .get();
 
     assertResponseStatus(200, response);
     SbomComponentListDTO result = response.getBody(SbomComponentListDTO.class);
@@ -666,8 +671,8 @@ public class ApiSbomResourceTest
     SbomComponentListDTO result = response.getBody(SbomComponentListDTO.class);
 
     assertThat(result).isNotNull();
-    //componentIdentifier1, componentIdentifier2 match based on license text (license-x)
-    //while componentIdentifier4 is matched based on component name (d-license-blah)
+    // componentIdentifier1, componentIdentifier2 match based on license text (license-x)
+    // while componentIdentifier4 is matched based on component name (d-license-blah)
     assertThat(result.getTotalResultsCount()).isEqualTo(3);
   }
 
@@ -700,7 +705,7 @@ public class ApiSbomResourceTest
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-1", "License 1", "http://license1");
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-3", "SpecialChars %$3", "http://license3");
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-4", "Another 4", "http://license4");
-    //mock license override
+    // mock license override
     tempEntity.newLicenseOverride(application.getId(), componentIdentifier2, LicenseOverrideStatus.SELECTED,
         Set.of("Aladdin", "MIT"));
 
@@ -727,7 +732,8 @@ public class ApiSbomResourceTest
     assertThat(result).isNotNull();
     assertThat(result.getTotalResultsCount()).isEqualTo(2);
     assertThat(result.getResults().stream().filter(r -> r.getComponentIdentifier().equals(componentIdentifier2)))
-        .hasSize(1).allSatisfy(dto -> {
+        .hasSize(1)
+        .allSatisfy(dto -> {
           assertThat(dto.getLicenses()).extracting(ResolvedLicenseDTO::licenseId)
               .containsExactlyInAnyOrder("Aladdin", "MIT");
           assertThat(dto.getLicenses()).extracting(ResolvedLicenseDTO::overrideStatus)
@@ -1087,8 +1093,9 @@ public class ApiSbomResourceTest
   }
 
   private ApiSbomStatusDTO getSbomStatusDTO(String statusUrl) {
-    HttpResponse response = await().atMost(10, TimeUnit.SECONDS).until(() -> super.restRequest().path(statusUrl).get(),
-        resp -> resp.getStatusCode() == 200);
+    HttpResponse response = await().atMost(10, TimeUnit.SECONDS)
+        .until(() -> super.restRequest().path(statusUrl).get(),
+            resp -> resp.getStatusCode() == 200);
     return response.getBody(ApiSbomStatusDTO.class);
   }
 
@@ -1113,8 +1120,7 @@ public class ApiSbomResourceTest
             sbomVersion +
             "_(\\d)+." +
             (sbomSpec.equals(SbomSpecification.SPDX) ? "spdx" : "cdx") +
-            specFormat
-    );
+            specFormat);
   }
 
   private void assertSbomMetadataIdIsSetOnThirdPartyCoordinateSecurityEntities(ApiSbomStatusDTO resultDTO) {

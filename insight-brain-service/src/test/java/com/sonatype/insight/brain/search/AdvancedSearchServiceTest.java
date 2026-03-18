@@ -123,12 +123,16 @@ public class AdvancedSearchServiceTest
     indexService.createSearchIndex();
     taskScheduler.createScheduler();
     File segmentFile = Arrays.stream(insightWork.getSearchIndexDir().listFiles())
-        .filter(file -> file.getName().startsWith("segment")).findFirst().get();
+        .filter(file -> file.getName().startsWith("segment"))
+        .findFirst()
+        .get();
     long firstIndexTime = segmentFile.lastModified();
     assertThat(advancedSearchService.getStatus().lastIndexTime).isEqualTo(firstIndexTime);
     indexService.createSearchIndex();
     segmentFile = Arrays.stream(insightWork.getSearchIndexDir().listFiles())
-        .filter(file -> file.getName().startsWith("segment")).findFirst().get();
+        .filter(file -> file.getName().startsWith("segment"))
+        .findFirst()
+        .get();
     segmentFile.setLastModified(segmentFile.lastModified() + 1000); // Ensure the next index time is different
     long secondIndexTime = segmentFile.lastModified();
     assertThat(secondIndexTime).isGreaterThan(firstIndexTime);

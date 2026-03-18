@@ -109,9 +109,11 @@ public abstract class AbstractReportPurgerTest
 
     reportPurger.purgeReports();
 
-    logOutput.assertThat().atDebugLevel().contains(
-        "Using data retention policy for build reports for owner " + org.getId() +
-            " with maxCount 3 and maxAgeInDays null.");
+    logOutput.assertThat()
+        .atDebugLevel()
+        .contains(
+            "Using data retention policy for build reports for owner " + org.getId() +
+                " with maxCount 3 and maxAgeInDays null.");
     assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
     assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-1")).isFalse();
     assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-2")).isFalse();
@@ -137,17 +139,23 @@ public abstract class AbstractReportPurgerTest
 
     reportPurger.purgeReports();
 
-    logOutput.assertThat().atDebugLevel().contains(
-        "Using data retention policy for build reports for owner " + org.getId() +
-            " with maxCount null and maxAgeInDays 2.");
+    logOutput.assertThat()
+        .atDebugLevel()
+        .contains(
+            "Using data retention policy for build reports for owner " + org.getId() +
+                " with maxCount null and maxAgeInDays 2.");
     logOutput.assertThat().atDebugLevel().contains("Found 7 primary non-monitoring reports.");
-    logOutput.assertThat().atDebugLevel().contains(
-        "Oldest report report-0 with time " + oldest.getTime() + ". Newest report report-6 with time " +
-            newest.getTime() + ".");
+    logOutput.assertThat()
+        .atDebugLevel()
+        .contains(
+            "Oldest report report-0 with time " + oldest.getTime() + ". Newest report report-6 with time " +
+                newest.getTime() + ".");
     logOutput.assertThat().atDebugLevel().contains("Determined cutoff date to be");
-    logOutput.assertThat().atDebugLevel().contains(
-        "Purging 4 reports from report report-0 with time " + oldest.getTime() + " to report report-3 with time " +
-            toEvaluation.getTime() + ".");
+    logOutput.assertThat()
+        .atDebugLevel()
+        .contains(
+            "Purging 4 reports from report report-0 with time " + oldest.getTime() + " to report report-3 with time " +
+                toEvaluation.getTime() + ".");
     assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-0")).isFalse();
     assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-1")).isFalse();
     assertThat(applicationReportPersistenceService.reportExists(app.getId(), "report-2")).isFalse();
@@ -199,9 +207,11 @@ public abstract class AbstractReportPurgerTest
     reportPurger.purgeReports();
 
     for (String stageId : appEvalStageIds) {
-      logOutput.assertThat().atDebugLevel().contains(
-          "Using data retention policy for " + stageId + " reports for owner " + org.getId() +
-              " with maxCount 1 and maxAgeInDays null.");
+      logOutput.assertThat()
+          .atDebugLevel()
+          .contains(
+              "Using data retention policy for " + stageId + " reports for owner " + org.getId() +
+                  " with maxCount 1 and maxAgeInDays null.");
     }
 
     for (String stageId : appEvalStageIds) {
@@ -224,9 +234,11 @@ public abstract class AbstractReportPurgerTest
 
     reportPurger.purgeReports();
 
-    logOutput.assertThat().atDebugLevel().contains(
-        "Using data retention policy for continuous-monitoring reports for owner " + org.getId() +
-            " with maxCount 1 and maxAgeInDays null.");
+    logOutput.assertThat()
+        .atDebugLevel()
+        .contains(
+            "Using data retention policy for continuous-monitoring reports for owner " + org.getId() +
+                " with maxCount 1 and maxAgeInDays null.");
     assertThat(applicationReportPersistenceService.reportExists(app.getId(), Stage.ID_RELEASE + "-latest")).isTrue();
     assertThat(applicationReportPersistenceService.reportExists(app.getId(), Stage.ID_OPERATE + "-obsolete")).isFalse();
     assertThat(applicationReportPersistenceService.reportExists(app.getId(), Stage.ID_OPERATE + "-latest")).isTrue();

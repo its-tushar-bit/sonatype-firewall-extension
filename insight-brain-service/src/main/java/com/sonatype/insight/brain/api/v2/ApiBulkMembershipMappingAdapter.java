@@ -34,8 +34,7 @@ public class ApiBulkMembershipMappingAdapter
         internal.membersByRole.stream()
             .map(this::toApiRoleWithMembersByOwnerDTO)
             .toList(),
-        internal.groupSearchEnabled
-    );
+        internal.groupSearchEnabled);
   }
 
   private ApiRoleWithMembersByOwnerDTO toApiRoleWithMembersByOwnerDTO(final MembersByRole internal) {
@@ -45,8 +44,7 @@ public class ApiBulkMembershipMappingAdapter
         internal.roleDescription,
         internal.membersByOwner.stream()
             .map(this::toApiMembersByOwnerDTO)
-            .toList()
-    );
+            .toList());
   }
 
   private ApiMembersByOwnerDTO toApiMembersByOwnerDTO(final MembersByOwner internal) {
@@ -56,8 +54,7 @@ public class ApiBulkMembershipMappingAdapter
         internal.ownerType != null ? internal.ownerType.name() : null,
         internal.members.stream()
             .map(this::toApiMemberWithDetailsDTO)
-            .toList()
-    );
+            .toList());
   }
 
   private ApiMemberWithDetailsDTO toApiMemberWithDetailsDTO(final Member internal) {
@@ -66,8 +63,7 @@ public class ApiBulkMembershipMappingAdapter
         internal.getInternalName(),
         internal.getDisplayName(),
         internal.getEmail(),
-        internal.getRealm()
-    );
+        internal.getRealm());
   }
 
   public List<Member> toInternalMembers(final List<ApiMemberWithDetailsDTO> apiMembers) {

@@ -956,8 +956,10 @@ public class TemporaryEntity
       delete(autoPolicyWaiverExclusionDAO.getAll(), autoPolicyWaiverExclusionDAO);
       delete(autoPolicyWaiverDAO.getAll(), autoPolicyWaiverDAO);
       delete(policyDAO.getAll(), entity -> policyDAO.getById(entity.getId()), policyDAO::delete);
-      List<Organization> orgs = orgDAO.getAll().stream()
-          .filter(org -> !Organization.ROOT_ORGANIZATION_ID.equals(org.getId())).collect(toList());
+      List<Organization> orgs = orgDAO.getAll()
+          .stream()
+          .filter(org -> !Organization.ROOT_ORGANIZATION_ID.equals(org.getId()))
+          .collect(toList());
       delete(appDAO.getAll(), appDAO);
       orgs = sortNLevelOrgsWithLeafNodesOnTop(orgs);
       delete(orgs, orgDAO);
@@ -1067,7 +1069,8 @@ public class TemporaryEntity
       });
       userIdePolicyEvaluationDAO.getAll().forEach(userIdePolicyEvaluationDAO::delete);
       delete(perpetualLockDAO.getAll(), perpetualLockDAO);
-      applicationCountHistoryDAO.getAll().stream()
+      applicationCountHistoryDAO.getAll()
+          .stream()
           .filter(applicationCountHistory -> !applicationCountHistory.getId().equals("initialization"))
           .forEach(applicationCountHistoryDAO::delete);
       delete(oAuth2ConfigurationDAO.getAll(), oAuth2ConfigurationDAO);
@@ -1103,7 +1106,7 @@ public class TemporaryEntity
         }
         catch (IllegalAccessException e) {
           e.printStackTrace();
-          //Do not re-throw, this should not block the tests
+          // Do not re-throw, this should not block the tests
         }
       }
     }
@@ -1154,8 +1157,11 @@ public class TemporaryEntity
   }
 
   public void cleanupPersistedUserSessions() {
-    persistedUserSessionDAO.getAll().stream().map(PersistedUserSession::getId)
-        .filter(id -> !persistedUserSessionIds.contains(id)).forEach(shiroSessionDAO::deleteById);
+    persistedUserSessionDAO.getAll()
+        .stream()
+        .map(PersistedUserSession::getId)
+        .filter(id -> !persistedUserSessionIds.contains(id))
+        .forEach(shiroSessionDAO::deleteById);
   }
 
   public void deleteAllPolicyViolationAggregations() {
@@ -1208,7 +1214,8 @@ public class TemporaryEntity
         "(dashboard_filter_id, username, username_lowercase, name, name_lowercase_no_whitespace, filter_json) " + //
         "VALUES (?1, ?2, ?3, ?4, ?5, ?6)";
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-         PreparedStatement statement = connection.prepareStatement(sql)) {
+        PreparedStatement statement = connection.prepareStatement(sql))
+    {
       statement.setString(1, id);
       statement.setString(2, username);
       statement.setString(3, User.normalizeUsername(username));
@@ -1366,15 +1373,14 @@ public class TemporaryEntity
   }
 
   /*
-    Use this function with a name function if you wish to override the way orgs are name,
-    or if you wish for the names to be constant
+   * Use this function with a name function if you wish to override the way orgs are name,
+   * or if you wish for the names to be constant
    */
   public List<Organization> newRelatedOrganizationsAsList(
       int orgsPerLevel,
       int depth,
       int appsPerOrg,
-      Function<String, String> nameSupplier
-  )
+      Function<String, String> nameSupplier)
   {
     Map<Integer, List<Organization>> orgs =
         newRelatedOrganizationsAsMap(null, orgsPerLevel, depth, appsPerOrg, nameSupplier);
@@ -1386,8 +1392,7 @@ public class TemporaryEntity
       int orgsPerLevel,
       int depth,
       int appsPerOrg,
-      Function<String, String> nameSupplier
-  )
+      Function<String, String> nameSupplier)
   {
     Map<Integer, List<Organization>> orgs =
         newRelatedOrganizationsAsMap(parentOrg, orgsPerLevel, depth, appsPerOrg, nameSupplier);
@@ -1404,8 +1409,7 @@ public class TemporaryEntity
       Organization parentOrg,
       int orgsPerLevel,
       int depth,
-      int appsPerOrg
-  )
+      int appsPerOrg)
   {
     Map<Integer, List<Organization>> orgs =
         newRelatedOrganizationsAsMap(parentOrg, orgsPerLevel, depth, appsPerOrg);
@@ -1417,8 +1421,7 @@ public class TemporaryEntity
       int orgsPerLevel,
       int depth,
       int appsPerOrg,
-      Function<String, String> nameSupplier
-  )
+      Function<String, String> nameSupplier)
   {
     Map<Integer, List<Organization>> organizations = new HashMap<>();
     newRelatedOrganizations(parentOrg, orgsPerLevel, depth - 1, appsPerOrg, organizations, nameSupplier);
@@ -1429,8 +1432,7 @@ public class TemporaryEntity
       Organization parentOrg,
       int orgsPerLevel,
       int depth,
-      int appsPerOrg
-  )
+      int appsPerOrg)
   {
     Map<Integer, List<Organization>> organizations = new HashMap<>();
     newRelatedOrganizations(parentOrg, orgsPerLevel, depth - 1, appsPerOrg, organizations, null);
@@ -1443,8 +1445,7 @@ public class TemporaryEntity
       int depth,
       int appsPerOrg,
       Map<Integer, List<Organization>> organizations,
-      Function<String, String> nameSupplier
-  )
+      Function<String, String> nameSupplier)
   {
     if (depth >= 0) {
       List<Organization> levelOrganizations = organizations.getOrDefault(depth, new LinkedList<>());
@@ -1666,7 +1667,7 @@ public class TemporaryEntity
   public SamlUser newSamlUser(String username) {
     String uuid = uuid();
     return newSamlUser(username, "firstName" + uuid, "lastName" + uuid, "email@domain" + uuid + ".com",
-            new LinkedHashSet<>(Arrays.asList("group1" + uuid, "group2" + uuid)));
+        new LinkedHashSet<>(Arrays.asList("group1" + uuid, "group2" + uuid)));
   }
 
   public SamlUser newSamlUser(String username, Set<String> groups) {
@@ -1943,8 +1944,7 @@ public class TemporaryEntity
         false,
         "fakeCreatorId",
         "fakeCreatorName",
-        new Date()
-    );
+        new Date());
     autoPolicyWaiverDAO.insert(autoPolicyWaiver);
     return autoPolicyWaiver;
   }
@@ -1962,8 +1962,7 @@ public class TemporaryEntity
         pathForward,
         "fakeCreatorId",
         "fakeCreatorName",
-        new Date()
-    );
+        new Date());
     autoPolicyWaiverDAO.insert(autoPolicyWaiver);
     return autoPolicyWaiver;
   }
@@ -1983,8 +1982,7 @@ public class TemporaryEntity
         "fakeCreatorId",
         "fakeCreatorName",
         new Date(),
-        scopesOperatorAny
-    );
+        scopesOperatorAny);
     autoPolicyWaiverDAO.insert(autoPolicyWaiver);
     return autoPolicyWaiver;
   }
@@ -1997,8 +1995,7 @@ public class TemporaryEntity
         false,
         "fakeCreatorId",
         "fakeCreatorName",
-        new Date()
-    );
+        new Date());
     autoPolicyWaiverDAO.insert(autoPolicyWaiver);
     return autoPolicyWaiver;
   }
@@ -2022,7 +2019,9 @@ public class TemporaryEntity
 
   public AutoPolicyWaiverExclusion newAutoPolicyWaiverExclusionForAllVersions(
       String ownerId,
-      String autoPolicyWaiverId, String scanId, String packageUrl)
+      String autoPolicyWaiverId,
+      String scanId,
+      String packageUrl)
   {
     AutoPolicyWaiverExclusion autoPolicyWaiverExclusion = new AutoPolicyWaiverExclusion();
     autoPolicyWaiverExclusion.setOwnerId(ownerId);
@@ -2055,8 +2054,7 @@ public class TemporaryEntity
         autoPolicyWaiverId,
         scanId,
         hash,
-        matchStrategy
-    );
+        matchStrategy);
     autoPolicyWaiverExclusionDAO.insert(autoPolicyWaiverExclusion);
     return autoPolicyWaiverExclusion;
   }
@@ -2087,8 +2085,7 @@ public class TemporaryEntity
         autoPolicyWaiverId,
         scanId,
         hash,
-        matchStrategy
-    );
+        matchStrategy);
     autoPolicyWaiverExclusion.setPolicyViolationId(policyViolationId);
     autoPolicyWaiverExclusion.setThreatLevel(threatLevel);
     autoPolicyWaiverExclusion.setVulnerabilityIdentifiers(vulnerabilityIdentifiers);
@@ -2116,8 +2113,7 @@ public class TemporaryEntity
         autoPolicyWaiverId,
         scanId,
         violation.getHash(),
-        violation
-    );
+        violation);
   }
 
   public AutoPolicyWaiverExclusion newAutoPolicyWaiverExclusion(
@@ -2145,8 +2141,7 @@ public class TemporaryEntity
         null,
         violation.getPolicyId(),
         violation.getComponentIdentifier(),
-        violation.getConstraintFacts()
-    );
+        violation.getConstraintFacts());
   }
 
   public AutoPolicyWaiver newAutoPolicyWaiver(AutoPolicyWaiver autoPolicyWaiver) {
@@ -2194,8 +2189,7 @@ public class TemporaryEntity
       String comment,
       Date expiryTime,
       List<ConstraintFact> constraintFacts,
-      final String policyWaiverReasonId
-  )
+      final String policyWaiverReasonId)
   {
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, comment);
     waiver.setExpiryTime(expiryTime);
@@ -2267,8 +2261,9 @@ public class TemporaryEntity
 
   private void fillAdditionalFixedData(final String hash, final PolicyWaiver waiver) {
     addCreatorDataToWaiver(waiver);
-    ComponentMatcherStrategyForWaiver strategyForWaiver = hash !=
-        null ? ComponentMatcherStrategyForWaiver.EXACT_COMPONENT : ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
+    ComponentMatcherStrategyForWaiver strategyForWaiver = hash != null
+        ? ComponentMatcherStrategyForWaiver.EXACT_COMPONENT
+        : ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
     waiver.setComponentMatchStrategy(strategyForWaiver);
   }
 
@@ -2446,8 +2441,7 @@ public class TemporaryEntity
         comment,
         createTime,
         expiryTime,
-        null
-    );
+        null);
   }
 
   public PolicyWaiver newWaiver(
@@ -2679,8 +2673,10 @@ public class TemporaryEntity
   }
 
   public HashComponentIdentifier newClaimedComponent(
-      String hash, ComponentIdentifier componentIdentifier,
-      String claimerId, String claimerName)
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      String claimerId,
+      String claimerName)
   {
     HashComponentIdentifier claimedComponent = new HashComponentIdentifier(hash, componentIdentifier);
     claimedComponent.setComment("testing");
@@ -2752,8 +2748,7 @@ public class TemporaryEntity
         pullRequestCommentVersion,
         contentHash,
         sourcePolicyEvaluationId,
-        targetPolicyEvaluationId
-    );
+        targetPolicyEvaluationId);
     return newSourceControlPullRequestComment(pullRequestComment);
   }
 
@@ -2775,8 +2770,7 @@ public class TemporaryEntity
         pullRequestCommentId,
         pullRequestCommentVersion,
         sourcePolicyEvaluationId,
-        targetPolicyEvaluationId
-    );
+        targetPolicyEvaluationId);
     return newSourceControlPullRequestComment(pullRequestComment);
   }
 
@@ -2787,8 +2781,7 @@ public class TemporaryEntity
       String policyEvaluationId)
   {
     SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory = new SourceControlDefaultBranchCommitHistory(
-        applicationId, commitHash, commitTime, policyEvaluationId
-    );
+        applicationId, commitHash, commitTime, policyEvaluationId);
     sourceControlDefaultBranchCommitHistoryDAO.insert(defaultBranchCommitHistory);
     return defaultBranchCommitHistory;
   }
@@ -2931,7 +2924,8 @@ public class TemporaryEntity
     Constraint constraint = policy.getConstraints().get(0);
     Condition condition = constraint.getConditions().get(0);
     ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(), constraint
-        .getOperator().name());
+        .getOperator()
+        .name());
     String conditionTypeId = condition.getConditionTypeId();
     ConditionFact conditionFact = new ConditionFact(conditionTypeId, 0 /* conditionIndex */, "summary",
         reason);
@@ -3229,7 +3223,8 @@ public class TemporaryEntity
     Constraint constraint = policy.getConstraints().get(0);
     Condition condition = constraint.getConditions().get(0);
     ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(), constraint
-        .getOperator().name());
+        .getOperator()
+        .name());
     ConditionFact conditionFact = new ConditionFact(condition.getConditionTypeId(), 0 /* conditionIndex */, "summary",
         "reason");
     constraintFact.addConditionFact(conditionFact);
@@ -3405,7 +3400,8 @@ public class TemporaryEntity
         "(user_viewed_product_notification_id, username, username_lowercase, notification_id) " + //
         "VALUES (?1, ?2, ?3, ?4)";
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-         PreparedStatement statement = connection.prepareStatement(sql)) {
+        PreparedStatement statement = connection.prepareStatement(sql))
+    {
       statement.setString(1, id);
       statement.setString(2, username);
       statement.setString(3, User.normalizeUsername(username));
@@ -3940,7 +3936,9 @@ public class TemporaryEntity
   }
 
   public ReevaluateCascadeRequest newReevaluateCascadeRequest(
-      String requestId, String componentHash, String username,
+      String requestId,
+      String componentHash,
+      String username,
       ReevaluateCascadeRequestStatus status)
   {
     ReevaluateCascadeRequest request =
@@ -3951,8 +3949,11 @@ public class TemporaryEntity
   }
 
   public ReevaluateCascadeProgress newReevaluateCascadeProgress(
-      String progressId, String requestId,
-      String repositoryId, String repositoryComponentId, String status)
+      String progressId,
+      String requestId,
+      String repositoryId,
+      String repositoryComponentId,
+      String status)
   {
     ReevaluateCascadeProgress progress = new ReevaluateCascadeProgress(requestId, repositoryId,
         repositoryComponentId, ReevaluateCascadeProgressStatus.fromString(status));
@@ -4257,8 +4258,10 @@ public class TemporaryEntity
   }
 
   public Webhook newWebhookWithSecret(
-      String url, Set<WebhookEventType> events,
-      String description, String secretKey)
+      String url,
+      Set<WebhookEventType> events,
+      String description,
+      String secretKey)
   {
     Webhook webhook = new Webhook(url, secretKey, events, description);
     webhookDAO.insert(webhook);
@@ -4350,10 +4353,10 @@ public class TemporaryEntity
    * Persist and return a new PolicyViolationAggregation with supplied violation counts per threat category
    *
    * @param securityViolationCounts counts for low, moderate, severe and critical security violations
-   * @param licenseViolationCounts  counts for low, moderate, severe and critical license violations
-   * @param qualityViolationCounts  counts for low, moderate, severe and critical quality violations
-   * @param otherViolationCounts    counts for low, moderate, severe and critical other violations
-   * @param evaluationCount         number of evaluations
+   * @param licenseViolationCounts counts for low, moderate, severe and critical license violations
+   * @param qualityViolationCounts counts for low, moderate, severe and critical quality violations
+   * @param otherViolationCounts counts for low, moderate, severe and critical other violations
+   * @param evaluationCount number of evaluations
    */
   public PolicyViolationAggregation newPolicyViolationAggregation(
       String applicationId,
@@ -4531,8 +4534,7 @@ public class TemporaryEntity
       Boolean remediationPullRequestsEnabled,
       Boolean statusChecksEnabled,
       String baseBranch,
-      Date pullRequestPollTime
-  )
+      Date pullRequestPollTime)
   {
     return newSourceControl(applicationId, repositoryUrl, username, token, provider, remediationPullRequestsEnabled,
         statusChecksEnabled, baseBranch, pullRequestPollTime, null, null,
@@ -4551,8 +4553,7 @@ public class TemporaryEntity
       Date pullRequestPollTime,
       Boolean pullRequestCommentingEnabled,
       Boolean sourceControlEvaluationsEnabled,
-      String sourceControlScanTarget
-  )
+      String sourceControlScanTarget)
   {
     return newSourceControl(applicationId, repositoryUrl, null, username, token, provider,
         remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestPollTime,
@@ -4576,8 +4577,7 @@ public class TemporaryEntity
       Boolean sshEnabled,
       Boolean commitStatusEnabled,
       Boolean manualPullRequestsEnabled,
-      Boolean innerSourceAutomatedUpdatesEnabled
-  )
+      Boolean innerSourceAutomatedUpdatesEnabled)
   {
     SourceControl sourceControl =
         new SourceControl.Builder()
@@ -4621,7 +4621,7 @@ public class TemporaryEntity
     gitHubApp.setGithubOrganizationName("test-org");
     gitHubApp.setLastUpdatedAt(new Date());
     // Generate unique installation ID to avoid collisions
-    gitHubApp.setInstallationId(System.currentTimeMillis() + (long)(Math.random() * 10000));
+    gitHubApp.setInstallationId(System.currentTimeMillis() + (long) (Math.random() * 10000));
     return newGitHubApp(gitHubApp);
   }
 
@@ -5172,10 +5172,9 @@ public class TemporaryEntity
       String advisories,
       String identificationSources)
   {
-    return
-        this.newThirdPartyCoordinateSecurity(fileCoordinate, refId, null, description, link, severity,
-            fixedBy, vulnerabilitySource, cvssVectorString, severityDescription, cwes, ratingMethod, recommendations,
-            advisories, identificationSources, null, null);
+    return this.newThirdPartyCoordinateSecurity(fileCoordinate, refId, null, description, link, severity,
+        fixedBy, vulnerabilitySource, cvssVectorString, severityDescription, cwes, ratingMethod, recommendations,
+        advisories, identificationSources, null, null);
   }
 
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity(
@@ -5459,8 +5458,7 @@ public class TemporaryEntity
 
     return setProductLicense(
         Base64.getEncoder().encodeToString(licenseBytes),
-        "LICENSE_DETAILS"
-    );
+        "LICENSE_DETAILS");
   }
 
   public FirewallIgnorePatterns setFirewallIgnorePatterns(
@@ -5737,8 +5735,7 @@ public class TemporaryEntity
       boolean includeAppendix,
       boolean includeStandardLicenseTexts,
       boolean includeInnerSource,
-      boolean includeSonatypeSpecialLicenses
-  )
+      boolean includeSonatypeSpecialLicenses)
   {
     AttributionReportTemplate template = new AttributionReportTemplate(templateName,
         documentTitle,
@@ -6098,8 +6095,7 @@ public class TemporaryEntity
       final int scmFeedBackCount,
       final int policyActionFailuresByAppCount,
       final int waiversCount,
-      final long meanTimeToRemediateMs
-  )
+      final long meanTimeToRemediateMs)
   {
     final ApplicationCountHistory applicationCountHistory = new ApplicationCountHistory(
         date,
@@ -6107,8 +6103,7 @@ public class TemporaryEntity
         scmFeedBackCount,
         policyActionFailuresByAppCount,
         waiversCount,
-        meanTimeToRemediateMs
-    );
+        meanTimeToRemediateMs);
 
     applicationCountHistoryDAO.insert(applicationCountHistory);
   }
@@ -6141,8 +6136,7 @@ public class TemporaryEntity
   {
 
     final SastPullRequestComment sastPullRequestComment = new SastPullRequestComment(
-        sastScanId, pullRequestUrl, commitHash, contentHash, pullRequestCommentId, 0
-    );
+        sastScanId, pullRequestUrl, commitHash, contentHash, pullRequestCommentId, 0);
     sastPullRequestCommentDAO.insert(sastPullRequestComment);
     return sastPullRequestComment;
   }
@@ -6151,8 +6145,7 @@ public class TemporaryEntity
       PolicyEvaluation policyEvaluation,
       Policy policy,
       Date openTime,
-      final long durationToFixMs
-  )
+      final long durationToFixMs)
   {
     final Date closeTime = new Date(openTime.getTime() + durationToFixMs);
     final PolicyViolation waivedPolicyViolation = this.newPolicyViolation(policyEvaluation, policy);
@@ -6172,8 +6165,7 @@ public class TemporaryEntity
       BigDecimal namespaceAttacksPrevented,
       BigDecimal safeComponentsAutoSelected,
       Integer baselineDaysToResolveViolation,
-      BigDecimal dailyRiskCostOfUnfixedViolation
-  )
+      BigDecimal dailyRiskCostOfUnfixedViolation)
   {
     RoiConfiguration roiConfiguration = new RoiConfiguration(
         currency,
@@ -6181,8 +6173,7 @@ public class TemporaryEntity
         namespaceAttacksPrevented,
         safeComponentsAutoSelected,
         baselineDaysToResolveViolation,
-        dailyRiskCostOfUnfixedViolation
-    );
+        dailyRiskCostOfUnfixedViolation);
 
     roiConfigurationDAO.insert(roiConfiguration);
     return roiConfigurationDAO.getById(roiConfiguration.getId());
@@ -6199,8 +6190,7 @@ public class TemporaryEntity
       Integer baselineDaysToResolveViolationDefault,
       Integer baselineDaysToResolveViolationMinimum,
       BigDecimal dailyRiskCostOfUnfixedViolationDefault,
-      BigDecimal dailyRiskCostOfUnfixedViolationMinimum
-  )
+      BigDecimal dailyRiskCostOfUnfixedViolationMinimum)
   {
     RoiConfigurationDefaultValues roiConfigurationDefaultValues =
         new RoiConfigurationDefaultValues(
@@ -6214,8 +6204,7 @@ public class TemporaryEntity
             baselineDaysToResolveViolationDefault,
             baselineDaysToResolveViolationMinimum,
             dailyRiskCostOfUnfixedViolationDefault,
-            dailyRiskCostOfUnfixedViolationMinimum
-        );
+            dailyRiskCostOfUnfixedViolationMinimum);
 
     roiConfigurationDefaultValuesDAO.insert(roiConfigurationDefaultValues);
     return roiConfigurationDefaultValuesDAO.getById(roiConfigurationDefaultValues.getId());
@@ -6226,8 +6215,7 @@ public class TemporaryEntity
       Policy policy,
       Date openTime,
       final long durationToWaiveMs,
-      final long durationToFixMs
-  )
+      final long durationToFixMs)
   {
     final PolicyViolation policyViolation = createWaivedPolicyViolation(
         policyEvaluation,
@@ -6247,8 +6235,7 @@ public class TemporaryEntity
       PolicyEvaluation policyEvaluation,
       Policy policy,
       Date openTime,
-      final long durationToWaiveMs
-  )
+      final long durationToWaiveMs)
   {
     final Date closeTime = new Date(openTime.getTime() + durationToWaiveMs);
     final PolicyViolation waivedPolicyViolation = this.newPolicyViolation(policyEvaluation, policy);
@@ -6263,8 +6250,7 @@ public class TemporaryEntity
 
   public PolicyViolation createPolicyViolationCompliance(
       PolicyEvaluation policyEvaluation,
-      Policy policy
-  )
+      Policy policy)
   {
     final PolicyViolation policyViolation = this.newPolicyViolation(policyEvaluation, policy);
     policyViolation.setStageTypeId("compliance");
@@ -6274,7 +6260,8 @@ public class TemporaryEntity
   }
 
   public ThirdPartySbomMetadata createSbomMetadata(
-      final String applicationId, final String sbomVersion,
+      final String applicationId,
+      final String sbomVersion,
       final ThirdPartyFile thirdPartyFile,
       final ThirdPartySbomMetadataStatus sbomStatus)
   {

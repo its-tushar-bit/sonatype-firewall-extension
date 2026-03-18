@@ -32,11 +32,11 @@ public class ActionsSection
   public SelenideElement paragraph() {
     return $(createSelector(ROOT_SELECTOR, "p"));
   }
-  
+
   public SelenideElement table() {
     return $(ACTIONS_TABLE_ROOT_SELECTOR);
   }
-  
+
   public ElementsCollection tableRows() {
     return $$(createSelector(ACTIONS_TABLE_ROOT_SELECTOR, ".nx-table-row"));
   }
@@ -68,7 +68,7 @@ public class ActionsSection
   public Stage operate() {
     return new Stage(ACTIONS_TABLE_ROOT_SELECTOR, "operate");
   }
-  
+
   public Stage compliance() {
     return new Stage(ACTIONS_TABLE_ROOT_SELECTOR, "compliance");
   }

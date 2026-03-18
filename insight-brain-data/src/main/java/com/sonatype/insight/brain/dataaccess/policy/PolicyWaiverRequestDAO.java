@@ -154,7 +154,9 @@ public class PolicyWaiverRequestDAO
 
       Predicate<PolicyWaiverRequest> purlFilter =
           policyWaiverRequest -> policyWaiverRequest.getComponentIdentifier() != null && policyWaiverRequest
-              .getComponentIdentifier().createAlternativeVersion("*").equals(wildcardVersionIdentifier);
+              .getComponentIdentifier()
+              .createAlternativeVersion("*")
+              .equals(wildcardVersionIdentifier);
 
       filter = purlFilter.and(filter);
     }

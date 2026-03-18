@@ -189,10 +189,10 @@ public class ApiSastScanService
 
   private SastScanResponseDTO toSastScanDTO(final SastScan sastScan) {
     return new SastScanResponseDTO.Builder()
-            .setSastScanId(sastScan.getId())
-            .setCreatedAt(sastScan.getCreatedAt())
-            .setFindings(toSastFindingDTOs(sastScan.getId()))
-            .build();
+        .setSastScanId(sastScan.getId())
+        .setCreatedAt(sastScan.getCreatedAt())
+        .setFindings(toSastFindingDTOs(sastScan.getId()))
+        .build();
   }
 
   private SastScanResponseDTO toSastScanDTO(
@@ -201,18 +201,17 @@ public class ApiSastScanService
       final String sastPullRequestUrl)
   {
     SastScanResponseDTO.Builder builder = new SastScanResponseDTO.Builder()
-            .setSastScanId(sastScan.getId())
-            .setCreatedAt(sastScan.getCreatedAt())
-            .setFindings(toSastFindingDTOs(sastScan.getId()));
+        .setSastScanId(sastScan.getId())
+        .setCreatedAt(sastScan.getCreatedAt())
+        .setFindings(toSastFindingDTOs(sastScan.getId()));
     return Optional.ofNullable(sastScmScanContext)
-            .map(scmContext -> builder.setSastScmScanContext(
-                            new SastScanResponseDTO.SastScmScanContextResponseDTO(
-                                    scmContext.getBranchName(),
-                                    scmContext.getCommitHash(),
-                                    sastPullRequestUrl))
-                    .build()
-            )
-            .orElseGet(builder::build);
+        .map(scmContext -> builder.setSastScmScanContext(
+            new SastScanResponseDTO.SastScmScanContextResponseDTO(
+                scmContext.getBranchName(),
+                scmContext.getCommitHash(),
+                sastPullRequestUrl))
+            .build())
+        .orElseGet(builder::build);
   }
 
   private List<SastFindingResponseDTO> toSastFindingDTOs(final String sastScanId) {
@@ -314,7 +313,9 @@ public class ApiSastScanService
 
   private static Map<String, Object> jsonStringToMap(final String jsonString) throws JsonProcessingException {
     final ObjectMapper mapper = configureObjectMapper(new ObjectMapper());
-    final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>(){};
+    final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>()
+    {
+    };
     return mapper.readValue(jsonString, typeRef);
   }
 

@@ -100,8 +100,9 @@ public class PostgresApplicationRiskService
     }
     else {
       dashboardResultsDTO.hasNextPage = applicationRiskScoreDTOs.size() > pageSize;
-      dashboardResultsDTO.dashboardResults = dashboardResultsDTO.hasNextPage ?
-          applicationRiskScoreDTOs.subList(0, applicationRiskScoreDTOs.size() - 1) : applicationRiskScoreDTOs;
+      dashboardResultsDTO.dashboardResults = dashboardResultsDTO.hasNextPage
+          ? applicationRiskScoreDTOs.subList(0, applicationRiskScoreDTOs.size() - 1)
+          : applicationRiskScoreDTOs;
     }
 
     log.debug("getApplicationRisks finished in {} ms", System.currentTimeMillis() - start);
@@ -132,7 +133,9 @@ public class PostgresApplicationRiskService
     Set<String> violationStateFilter = policyViolationStateFilter != null
         ? policyViolationStateFilter.getPolicyViolationStates().stream().map(Enum::name).collect(Collectors.toSet())
         : Set.of();
-    Set<String> stageTypesFilter = dashboardUtils.getStageTypes(stageIds).stream().map(StageType::getId)
+    Set<String> stageTypesFilter = dashboardUtils.getStageTypes(stageIds)
+        .stream()
+        .map(StageType::getId)
         .collect(Collectors.toSet());
 
     Pair<String, String> sortColumnAndDirection = getSortColumnAndDirection(orderBy);
@@ -148,10 +151,11 @@ public class PostgresApplicationRiskService
   {
     List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = new ArrayList<>();
     for (ApplicationRiskDTO applicationRiskDTO : applicationRiskDTOs) {
-      ApplicationRiskScoreDTO applicationRiskScoreDTOLast = applicationRiskScoreDTOs.isEmpty() ? null :
-          applicationRiskScoreDTOs.get(applicationRiskScoreDTOs.size() - 1);
+      ApplicationRiskScoreDTO applicationRiskScoreDTOLast =
+          applicationRiskScoreDTOs.isEmpty() ? null : applicationRiskScoreDTOs.get(applicationRiskScoreDTOs.size() - 1);
       if (applicationRiskScoreDTOLast == null ||
-          !applicationRiskScoreDTOLast.applicationName.equals(applicationRiskDTO.applicationName())) {
+          !applicationRiskScoreDTOLast.applicationName.equals(applicationRiskDTO.applicationName()))
+      {
         RiskDTO totalApplicationRisk = new RiskDTO();
         totalApplicationRisk.totalRisk = applicationRiskDTO.totalRiskPerStageUnique();
         totalApplicationRisk.criticalRisk = applicationRiskDTO.criticalPerStageUnique();
@@ -164,8 +168,7 @@ public class PostgresApplicationRiskService
             applicationRiskDTO.organizationId(),
             applicationRiskDTO.applicationName(),
             applicationRiskDTO.publicId(),
-            applicationRiskDTO.applicationId()
-        );
+            applicationRiskDTO.applicationId());
         applicationRiskScoreDTO.totalApplicationRisk = totalApplicationRisk;
 
         applicationRiskScoreDTO.stageRisks = new ArrayList<>();
@@ -208,7 +211,8 @@ public class PostgresApplicationRiskService
   private void sortStagesInChronologicalOrder(final List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs) {
     for (ApplicationRiskScoreDTO applicationRiskScoreDTO : applicationRiskScoreDTOs) {
       Set<String> stageIds = applicationRiskScoreDTO.stageRisks.stream()
-          .map(s -> s.stageTypeId).collect(Collectors.toSet());
+          .map(s -> s.stageTypeId)
+          .collect(Collectors.toSet());
       Set<StageType> stageTypesInChronologicalOrder = dashboardUtils.getStageTypes(stageIds);
 
       List<StageRiskScoreDTO> stageRisksOrdered = new ArrayList<>();

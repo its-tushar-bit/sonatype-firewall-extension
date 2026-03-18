@@ -171,8 +171,8 @@ public class PostgresAdvisoryLockDAO
     /*
      * In Java 21 this could be:
      * var lockObjInt = switch (clusterLockId) {
-     *   case SimpleId simple -> 0;
-     *   case CompoundId compound -> compound.lockObjId().hashCode();
+     * case SimpleId simple -> 0;
+     * case CompoundId compound -> compound.lockObjId().hashCode();
      * }
      */
     if (clusterLockId instanceof CompoundId compoundId) {

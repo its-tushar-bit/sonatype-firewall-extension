@@ -36,7 +36,8 @@ public class ReleaseGraphCacheProvider
   }
 
   public void initializeCache() {
-    cache.set(CacheBuilder.newBuilder().maximumSize(configuration.getReleaseGraphCacheSize())
+    cache.set(CacheBuilder.newBuilder()
+        .maximumSize(configuration.getReleaseGraphCacheSize())
         .build(cacheLoaderProvider.get()));
   }
 

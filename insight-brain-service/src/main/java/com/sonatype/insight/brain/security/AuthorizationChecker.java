@@ -174,8 +174,7 @@ public class AuthorizationChecker
       case DIRECT_CONTEXT_ID:
         return new HashSet<>(
             membershipMappingDAO
-                .getContextIdsByUserCaseInsensitiveAndGroupsAndRoles(username, groups, roleIds)
-        );
+                .getContextIdsByUserCaseInsensitiveAndGroupsAndRoles(username, groups, roleIds));
       // Full MembershipMapping + mapping approach - traditional method
       case FULL_MEMBERSHIP_MAPPING_CONTEXT_ID:
       default:

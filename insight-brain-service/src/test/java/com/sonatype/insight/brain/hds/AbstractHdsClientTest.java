@@ -77,10 +77,12 @@ public abstract class AbstractHdsClientTest
 
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
     context.setContextPath("/");
-    context.addServlet(new ServletHolder(new HttpServlet() {
+    context.addServlet(new ServletHolder(new HttpServlet()
+    {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
+      protected void service(
+          HttpServletRequest request,
+          HttpServletResponse response) throws IOException, ServletException
       {
         if (handler != null) {
           handler.service(request, response);

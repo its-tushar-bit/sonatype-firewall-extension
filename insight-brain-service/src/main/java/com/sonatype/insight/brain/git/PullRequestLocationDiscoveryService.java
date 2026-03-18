@@ -68,7 +68,8 @@ public class PullRequestLocationDiscoveryService
    * The output of this step is a map between components (ComponentIdentifier) and a list of
    * potential locations to comment on (RankedSourceLocation).
    */
-  public LocationDiscoveryResult doLocationDiscovery(final List<PolicyViolation> violationList,
+  public LocationDiscoveryResult doLocationDiscovery(
+      final List<PolicyViolation> violationList,
       final GitRepositoryInfo gitRepositoryInfo,
       final String branch,
       final String applicationId)
@@ -81,8 +82,8 @@ public class PullRequestLocationDiscoveryService
         .filter(pv -> pv.getComponentIdentifier() != null)
         .map(PolicyViolation::getComponentIdentifier)
         .filter(ci -> ci.getFormat().equalsIgnoreCase(ComponentIdentifier.FORMAT_MAVEN) ||
-                      ci.getFormat().equalsIgnoreCase(ComponentIdentifier.FORMAT_NPM) ||
-                      ci.getFormat().equalsIgnoreCase(ComponentIdentifier.FORMAT_GOLANG))
+            ci.getFormat().equalsIgnoreCase(ComponentIdentifier.FORMAT_NPM) ||
+            ci.getFormat().equalsIgnoreCase(ComponentIdentifier.FORMAT_GOLANG))
         .distinct()
         .collect(Collectors.toList());
 

@@ -111,8 +111,7 @@ public class SpdxToCycloneDxExporter
         versionService,
         apiReportDataServiceV2,
         licenseResolutionService,
-        thirdPartyPersistenceService
-    );
+        thirdPartyPersistenceService);
   }
 
   @Override
@@ -126,7 +125,8 @@ public class SpdxToCycloneDxExporter
     catch (IOException | GeneratorException e) {
       throw new SbomExportException(
           String.format("Internal error reading from the original SBOM file for application %s, version %s",
-              exportParams.sbomMetadata.getApplicationId(), exportParams.sbomMetadata.getSbomVersion()), e);
+              exportParams.sbomMetadata.getApplicationId(), exportParams.sbomMetadata.getSbomVersion()),
+          e);
     }
   }
 
@@ -152,8 +152,9 @@ public class SpdxToCycloneDxExporter
     catch (InvalidSPDXAnalysisException e) {
       throw new SbomExportException(
           String.format("Internal error creating CycloneDX SBOM from the original SPDX SBOM file " +
-                  "for application %s, version %s", exportParams.sbomMetadata.getApplicationId(),
-              exportParams.sbomMetadata.getSbomVersion()), e);
+              "for application %s, version %s", exportParams.sbomMetadata.getApplicationId(),
+              exportParams.sbomMetadata.getSbomVersion()),
+          e);
     }
     return target;
   }
@@ -208,8 +209,8 @@ public class SpdxToCycloneDxExporter
     try {
       final Optional<String> sha1Optional = getChecksum(spdxPackage, ChecksumAlgorithm.SHA1);
       sha1Optional.ifPresent(sha1 -> SbomCycloneDxUtils.addSonatypeTruncatedSha1(sha1, component));
-      sha1Optional.ifPresent(sha1 ->
-          component.setHashes(Collections.singletonList(new Hash(Hash.Algorithm.SHA1, sha1))));
+      sha1Optional
+          .ifPresent(sha1 -> component.setHashes(Collections.singletonList(new Hash(Hash.Algorithm.SHA1, sha1))));
     }
     catch (InvalidSPDXAnalysisException e) {
       log.debug("Unable to read sha1 from SPDX package with ID {}", spdxPackage.getId(), e);
@@ -265,18 +266,17 @@ public class SpdxToCycloneDxExporter
     }
 
     if (licenseChoice.getExpression() == null && CollectionUtils.isEmpty(licenseChoice.getLicenses())) {
-      // 1.6+ new library won't validate/generate  an empty array of licenses and a null expression on a component
+      // 1.6+ new library won't validate/generate an empty array of licenses and a null expression on a component
       component.setLicenses(null);
     }
-    else
-    {
+    else {
       component.setLicenses(licenseChoice);
     }
   }
 
-  private void setVulnerabilities(final List<SpdxPackage> packages,
-                                  final Bom target)
-      throws InvalidSPDXAnalysisException
+  private void setVulnerabilities(
+      final List<SpdxPackage> packages,
+      final Bom target) throws InvalidSPDXAnalysisException
   {
     List<Vulnerability> targetVulnerabilities = new ArrayList<>();
     for (SpdxPackage spdxPackage : packages) {
@@ -299,9 +299,9 @@ public class SpdxToCycloneDxExporter
     target.setVulnerabilities(targetVulnerabilities);
   }
 
-  private void setDependencies(final SpdxDocument base,
-                               final Bom target)
-      throws InvalidSPDXAnalysisException
+  private void setDependencies(
+      final SpdxDocument base,
+      final Bom target) throws InvalidSPDXAnalysisException
   {
     SpdxPackage rootSpdxPackage = SbomSpdxUtils.getRootPackage(base);
     // Set root of dependency tree first referencing the Bom Component ref
@@ -312,15 +312,18 @@ public class SpdxToCycloneDxExporter
       addChildDependencies(rootBomDependency, rootSpdxPackage);
       target.addDependency(rootBomDependency);
     }
-    List<SpdxPackage> directAndTransitiveDependencies = SbomSpdxUtils.getAllPackages(base).stream()
-        .filter(pkg -> !pkg.getId().equals(rootSpdxPackage.getId())).toList();
+    List<SpdxPackage> directAndTransitiveDependencies = SbomSpdxUtils.getAllPackages(base)
+        .stream()
+        .filter(pkg -> !pkg.getId().equals(rootSpdxPackage.getId()))
+        .toList();
     for (SpdxPackage spdxPackage : directAndTransitiveDependencies) {
       addAvailableDependencies(target, spdxPackage);
     }
   }
 
-  private void addAvailableDependencies(Bom cycloneDxSbom,
-                                        SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException
+  private void addAvailableDependencies(
+      Bom cycloneDxSbom,
+      SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException
   {
     if (hasDependsOnRelationship(spdxPackage)) {
       Dependency dependency = new Dependency(spdxPackageIdsToCdxBomRefs.get(spdxPackage.getId()));
@@ -347,13 +350,15 @@ public class SpdxToCycloneDxExporter
     return false;
   }
 
-  private void addChildDependencies(final Dependency dependency, final SpdxPackage spdxPackage)
-      throws InvalidSPDXAnalysisException
+  private void addChildDependencies(
+      final Dependency dependency,
+      final SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException
   {
     dependency.setDependencies(new ArrayList<>());
     for (Relationship relationship : spdxPackage.getRelationships()) {
-      relationship.getRelatedSpdxElement().ifPresent(pkg ->
-          dependency.getDependencies().add(new Dependency(spdxPackageIdsToCdxBomRefs.get(pkg.getId()))));
+      relationship.getRelatedSpdxElement()
+          .ifPresent(
+              pkg -> dependency.getDependencies().add(new Dependency(spdxPackageIdsToCdxBomRefs.get(pkg.getId()))));
     }
   }
 

@@ -101,20 +101,19 @@ public class SbomManagerBillOfMaterialsPageTest
 
     File reportFile = insightWork.getReportFile(application.getId(), scan.getScanId());
     FileUtils.copyURLToFile(ReportHelper
-            .zipReport("/SbomManagerBillOfMaterialsPageTest", tempDir), reportFile);
+        .zipReport("/SbomManagerBillOfMaterialsPageTest", tempDir), reportFile);
 
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scan.getScanId());
 
     sbomMetadata = tempEntity.newThirdPartySbomMetadata(
-      scannedFile.getId(),
-      application.getId(),
-      "test-version",
-      ACTIVE,
+        scannedFile.getId(),
+        application.getId(),
+        "test-version",
+        ACTIVE,
         zippedBom.getFileName().toString(),
-      SbomSpecification.CYCLONEDX.toString(),
-      SbomFormat.XML.name(),
-        "1.6"
-    );
+        SbomSpecification.CYCLONEDX.toString(),
+        SbomFormat.XML.name(),
+        "1.6");
   }
 
   @BeforeClass
@@ -140,11 +139,13 @@ public class SbomManagerBillOfMaterialsPageTest
     refreshOrOpen(IndexPage.url());
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     billOfMaterialsPageSummaryTile.componentSummaryChartAndProgress().shouldBe(visible);
-    billOfMaterialsPageSummaryTile.componentSummaryChartAndProgress().shouldHave(text("Component Summary\n" +
-        "1\n" +
-        "0 Direct\n" +
-        "0 Transitive\n" +
-        "1 Unspecified")).shouldBe(visible);
+    billOfMaterialsPageSummaryTile.componentSummaryChartAndProgress()
+        .shouldHave(text("Component Summary\n" +
+            "1\n" +
+            "0 Direct\n" +
+            "0 Transitive\n" +
+            "1 Unspecified"))
+        .shouldBe(visible);
   }
 
   @Test
@@ -163,12 +164,14 @@ public class SbomManagerBillOfMaterialsPageTest
     refreshOrOpen(IndexPage.url());
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     billOfMaterialsPageSummaryTile.vulnerabilitySummaryChartAndProgress().shouldBe(visible);
-    billOfMaterialsPageSummaryTile.vulnerabilitySummaryChartAndProgress().shouldHave(text("Vulnerabilities Summary\n" +
-        "3\n" +
-        "0 Critical\n" +
-        "1 High\n" +
-        "1 Medium\n" +
-        "1 Low")).shouldBe(visible);
+    billOfMaterialsPageSummaryTile.vulnerabilitySummaryChartAndProgress()
+        .shouldHave(text("Vulnerabilities Summary\n" +
+            "3\n" +
+            "0 Critical\n" +
+            "1 High\n" +
+            "1 Medium\n" +
+            "1 Low"))
+        .shouldBe(visible);
   }
 
   @Test
@@ -189,11 +192,12 @@ public class SbomManagerBillOfMaterialsPageTest
     billOfMaterialsPageSummaryTile.policyViolationSummaryChartAndProgress().shouldBe(visible);
     billOfMaterialsPageSummaryTile.policyViolationSummaryChartAndProgress()
         .shouldHave(text("Policy Violation Summary\n" +
-        "4\n" +
-        "2 Critical\n" +
-        "1 Severe\n" +
-        "1 Moderate\n" +
-        "0 Low")).shouldBe(visible);
+            "4\n" +
+            "2 Critical\n" +
+            "1 Severe\n" +
+            "1 Moderate\n" +
+            "0 Low"))
+        .shouldBe(visible);
   }
 
   @Test
@@ -227,24 +231,27 @@ public class SbomManagerBillOfMaterialsPageTest
     billOfMaterialsPageSummaryTile.releaseStatusSummaryDescription().shouldBe(visible);
     billOfMaterialsPageSummaryTile.releaseStatusSummaryDescription()
         .shouldHave(text("0% of critical and high vulnerabilities " +
-        "have been annotated with exploitability information")).shouldBe(visible);
+            "have been annotated with exploitability information"))
+        .shouldBe(visible);
 
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
         "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
+            "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity2 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
+            "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
         "r1", "s1", "j1", "r1", "d1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
         "r1", "s1", "j1", "r1", "d1");
 
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
-    billOfMaterialsPageSummaryTile.releaseStatusSummaryDescription().shouldHave(text("100% of critical " +
-            "and high vulnerabilities have been annotated with exploitability information")).shouldBe(visible);
+    billOfMaterialsPageSummaryTile.releaseStatusSummaryDescription()
+        .shouldHave(text("100% of critical " +
+            "and high vulnerabilities have been annotated with exploitability information"))
+        .shouldBe(visible);
   }
 
   @Test
@@ -268,10 +275,10 @@ public class SbomManagerBillOfMaterialsPageTest
         "r1", sbomMetadata.getId(), "d1", "l1", 5.5, "sd1", "f1");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity1 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
+            "r2", sbomMetadata.getId(), "d2", "l2", 7.5, "sd2", "f1");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity2 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
-        "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
+            "r3", sbomMetadata.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity1,
         "r1", "s1", "j1", "r1", "d1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
@@ -282,37 +289,41 @@ public class SbomManagerBillOfMaterialsPageTest
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     billOfMaterialsPageSummaryTile.summaryTileMetadataAccordion().shouldBe(visible);
     billOfMaterialsPageSummaryTile.summaryTileMetadataAccordion().click();
-    billOfMaterialsPageSummaryTile.summaryTileMetadataAccordion().shouldHave(text("Show metadata\n" +
-        "Author\n" +
-        "NONE\n" +
-        "Manufacturer\n" +
-        "NONE\n" +
-        "Supplier\n" +
-        "NONE\n" +
-        "Specification\n" +
-        "CycloneDx\n" +
-        "Spec Version\n" +
-        "1.6\n" +
-        "File Format\n" +
-        "XML")).shouldBe(visible);
+    billOfMaterialsPageSummaryTile.summaryTileMetadataAccordion()
+        .shouldHave(text("Show metadata\n" +
+            "Author\n" +
+            "NONE\n" +
+            "Manufacturer\n" +
+            "NONE\n" +
+            "Supplier\n" +
+            "NONE\n" +
+            "Specification\n" +
+            "CycloneDx\n" +
+            "Spec Version\n" +
+            "1.6\n" +
+            "File Format\n" +
+            "XML"))
+        .shouldBe(visible);
 
     sbomMetadata.setMetadataJson(metadataJson);
     thirdPartySbomMetadataDAO.update(sbomMetadata);
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     billOfMaterialsPageSummaryTile.summaryTileMetadataAccordion().click();
-    billOfMaterialsPageSummaryTile.summaryTileMetadataAccordion().shouldHave(text("Show metadata\n" +
-        "Author\n" +
-        "John Doe\n" +
-        "Manufacturer\n" +
-        "John Doe\n" +
-        "Supplier\n" +
-        "John Doe\n" +
-        "Specification\n" +
-        "CycloneDx\n" +
-        "Spec Version\n" +
-        "1.6\n" +
-        "File Format\n" +
-        "XML")).shouldBe(visible);
+    billOfMaterialsPageSummaryTile.summaryTileMetadataAccordion()
+        .shouldHave(text("Show metadata\n" +
+            "Author\n" +
+            "John Doe\n" +
+            "Manufacturer\n" +
+            "John Doe\n" +
+            "Supplier\n" +
+            "John Doe\n" +
+            "Specification\n" +
+            "CycloneDx\n" +
+            "Spec Version\n" +
+            "1.6\n" +
+            "File Format\n" +
+            "XML"))
+        .shouldBe(visible);
   }
 
   @Test
@@ -322,10 +333,11 @@ public class SbomManagerBillOfMaterialsPageTest
     setLicensedProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     waitUntilUrl(LearnMoreSbomManagerPage.url());
-    
+
     LearnMoreSbomManagerPage learnMoreSbomManagerPage = new LearnMoreSbomManagerPage();
-    learnMoreSbomManagerPage.infoAlert().shouldHave(text("SBOM Manager is currently not enabled for your " +
-        "organization. Learn more about SBOM Manager."));
+    learnMoreSbomManagerPage.infoAlert()
+        .shouldHave(text("SBOM Manager is currently not enabled for your " +
+            "organization. Learn more about SBOM Manager."));
   }
 
   @Test
@@ -336,17 +348,23 @@ public class SbomManagerBillOfMaterialsPageTest
     componentsTile.shouldBe(visible);
     componentsTile.header().shouldHave(text("Components"));
     componentsTile.tableHeaders().shouldHave(size(6));
-    componentsTile.columnHeader(0).shouldHave(
+    componentsTile.columnHeader(0)
+        .shouldHave(
             text("TYPE"));
-    componentsTile.columnHeader(1).shouldHave(
+    componentsTile.columnHeader(1)
+        .shouldHave(
             text("NAME"));
-    componentsTile.columnHeader(2).shouldHave(
+    componentsTile.columnHeader(2)
+        .shouldHave(
             text("VULNERABILITIES"));
-    componentsTile.columnHeader(3).shouldHave(
+    componentsTile.columnHeader(3)
+        .shouldHave(
             text("VIOLATIONS"));
-    componentsTile.columnHeader(4).shouldHave(
+    componentsTile.columnHeader(4)
+        .shouldHave(
             text("RELEASE STATUS"));
-    componentsTile.columnHeader(5).shouldHave(
+    componentsTile.columnHeader(5)
+        .shouldHave(
             text("LICENSE"));
   }
 
@@ -395,8 +413,7 @@ public class SbomManagerBillOfMaterialsPageTest
         zippedBom.getFileName().toString(),
         SbomSpecification.CYCLONEDX.toString(),
         SbomFormat.XML.name(),
-        "1.6"
-    );
+        "1.6");
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);
     for (int i = 0; i < 60; i++) {
@@ -408,7 +425,7 @@ public class SbomManagerBillOfMaterialsPageTest
             thirdPartyScan.getThirdPartyFileId(), "s", "SPDX", "n", "v1", "h1",
             packageUrlIdentifier.getPackageUrl(), ThirdPartyDependencyType.DIRECT);
       }
-      //insert some vex -9 low, 8 medium, 5 high, 3 critical
+      // insert some vex -9 low, 8 medium, 5 high, 3 critical
       else {
         ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(
             thirdPartyScan.getThirdPartyFileId(), "s", "SPDX", "n", "v1", "h1",
@@ -445,8 +462,7 @@ public class SbomManagerBillOfMaterialsPageTest
         SbomFormat.XML.name(),
         "1.6",
         new Date(0),
-        false
-    );
+        false);
     thirdPartySbomMetadataDAO.update(sbomMetadata);
     refreshOrOpen(IndexPage.url());
   }
@@ -471,7 +487,8 @@ public class SbomManagerBillOfMaterialsPageTest
     sbomManagerBillOfMaterialsPage.exportButton().shouldHave(visible);
     sbomManagerBillOfMaterialsPage.exportButton().shouldHave(text("Export SBOM")).click();
     NxSubmitMask.seeAndWaitForDismissal();
-    File downloadedSbom = sbomManagerBillOfMaterialsPage.exportButton().shouldHave(text("Export SBOM"))
+    File downloadedSbom = sbomManagerBillOfMaterialsPage.exportButton()
+        .shouldHave(text("Export SBOM"))
         .download(3000L);
     byte[] fileBeginning = new byte[5];
     try (FileInputStream stream = new FileInputStream(downloadedSbom)) {
@@ -488,7 +505,8 @@ public class SbomManagerBillOfMaterialsPageTest
     sbomManagerBillOfMaterialsPage.exportButton().shouldHave(visible);
     sbomManagerBillOfMaterialsPage.exportButtonMenu().click();
     sbomManagerBillOfMaterialsPage.exportButtonMenuItems().shouldBe(size(3));
-    File downloadedSbom = sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(0)
+    File downloadedSbom = sbomManagerBillOfMaterialsPage.exportButtonMenuItems()
+        .get(0)
         .shouldHave(text("Export Original SBOM"))
         .download();
     byte[] fileBeginning = new byte[5];
@@ -509,29 +527,37 @@ public class SbomManagerBillOfMaterialsPageTest
 
     sbomManagerBillOfMaterialsPage.additionalExportOptionsModal().shouldBe(visible);
     sbomManagerBillOfMaterialsPage.sbomModalOptions().shouldBe(size(2));
-    sbomManagerBillOfMaterialsPage.sbomSpecificationOptions().shouldHave(size(2))
-        .get(0).shouldHave(text("Cyclone DX"));
-    sbomManagerBillOfMaterialsPage.sbomSpecificationOptions().shouldHave(size(2))
-        .get(1).shouldHave(text("SPDX"));
-    sbomManagerBillOfMaterialsPage.sbomsFormatOptions().shouldHave(size(2))
-        .get(0).shouldHave(text("JSON"));
-    sbomManagerBillOfMaterialsPage.sbomsFormatOptions().shouldHave(size(2))
-        .get(1).shouldHave(text("XML"));
+    sbomManagerBillOfMaterialsPage.sbomSpecificationOptions()
+        .shouldHave(size(2))
+        .get(0)
+        .shouldHave(text("Cyclone DX"));
+    sbomManagerBillOfMaterialsPage.sbomSpecificationOptions()
+        .shouldHave(size(2))
+        .get(1)
+        .shouldHave(text("SPDX"));
+    sbomManagerBillOfMaterialsPage.sbomsFormatOptions()
+        .shouldHave(size(2))
+        .get(0)
+        .shouldHave(text("JSON"));
+    sbomManagerBillOfMaterialsPage.sbomsFormatOptions()
+        .shouldHave(size(2))
+        .get(1)
+        .shouldHave(text("XML"));
     sbomManagerBillOfMaterialsPage.exportSbomButtonModal().shouldBe(visible);
     sbomManagerBillOfMaterialsPage.cancelButtonModal().shouldBe(visible);
 
-    SelenideElement spdxRadioButton =  sbomManagerBillOfMaterialsPage.sbomSpecificationOptions().get(1);
+    SelenideElement spdxRadioButton = sbomManagerBillOfMaterialsPage.sbomSpecificationOptions().get(1);
     spdxRadioButton.click();
     spdxRadioButton.shouldHave(cssClass("tm-checked"));
-    SelenideElement cycloneDxRadioButton =  sbomManagerBillOfMaterialsPage.sbomSpecificationOptions().get(0);
+    SelenideElement cycloneDxRadioButton = sbomManagerBillOfMaterialsPage.sbomSpecificationOptions().get(0);
     cycloneDxRadioButton.click();
     spdxRadioButton.shouldHave(cssClass("tm-unchecked"));
     cycloneDxRadioButton.shouldHave(cssClass("tm-checked"));
 
-    SelenideElement jsonRadioButton =  sbomManagerBillOfMaterialsPage.sbomsFormatOptions().get(0);
+    SelenideElement jsonRadioButton = sbomManagerBillOfMaterialsPage.sbomsFormatOptions().get(0);
     jsonRadioButton.click();
     jsonRadioButton.shouldHave(cssClass("tm-checked"));
-    SelenideElement xmlRadioButton =  sbomManagerBillOfMaterialsPage.sbomsFormatOptions().get(1);
+    SelenideElement xmlRadioButton = sbomManagerBillOfMaterialsPage.sbomsFormatOptions().get(1);
     xmlRadioButton.click();
     jsonRadioButton.shouldHave(cssClass("tm-unchecked"));
     xmlRadioButton.shouldHave(cssClass("tm-checked"));
@@ -545,11 +571,12 @@ public class SbomManagerBillOfMaterialsPageTest
     sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(1).shouldHave(text("Additional Export Options")).click();
     sbomManagerBillOfMaterialsPage.additionalExportOptionsModal().shouldBe(visible);
 
-    SelenideElement jsonRadioButton =  sbomManagerBillOfMaterialsPage.sbomsFormatOptions().get(0);
+    SelenideElement jsonRadioButton = sbomManagerBillOfMaterialsPage.sbomsFormatOptions().get(0);
     jsonRadioButton.click();
     jsonRadioButton.shouldHave(cssClass("tm-checked"));
 
-    File downloadedSbom = sbomManagerBillOfMaterialsPage.exportSbomButtonModal().shouldHave(text("Export SBOM"))
+    File downloadedSbom = sbomManagerBillOfMaterialsPage.exportSbomButtonModal()
+        .shouldHave(text("Export SBOM"))
         .download(3000L);
     assertThat(downloadedSbom.getName()).endsWith(".json");
 
@@ -557,10 +584,11 @@ public class SbomManagerBillOfMaterialsPageTest
     sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(1).shouldHave(text("Additional Export Options")).click();
     sbomManagerBillOfMaterialsPage.additionalExportOptionsModal().shouldBe(visible);
 
-    SelenideElement xmlRadioButton =  sbomManagerBillOfMaterialsPage.sbomsFormatOptions().get(1);
+    SelenideElement xmlRadioButton = sbomManagerBillOfMaterialsPage.sbomsFormatOptions().get(1);
     xmlRadioButton.click();
     xmlRadioButton.shouldHave(cssClass("tm-checked"));
-    downloadedSbom = sbomManagerBillOfMaterialsPage.exportSbomButtonModal().shouldHave(text("Export SBOM"))
+    downloadedSbom = sbomManagerBillOfMaterialsPage.exportSbomButtonModal()
+        .shouldHave(text("Export SBOM"))
         .download(3000L);
     assertThat(downloadedSbom.getName()).endsWith(".xml");
   }
@@ -572,11 +600,17 @@ public class SbomManagerBillOfMaterialsPageTest
 
     sbomManagerBillOfMaterialsPage.exportButton().shouldBe(enabled).shouldHave(text("Export SBOM"));
     sbomManagerBillOfMaterialsPage.exportButtonMenu().click();
-    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(0).shouldBe(enabled)
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems()
+        .get(0)
+        .shouldBe(enabled)
         .shouldHave(text("Export Original SBOM"));
-    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(1).shouldBe(enabled)
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems()
+        .get(1)
+        .shouldBe(enabled)
         .shouldHave(text("Additional Export Options"));
-    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(2).shouldNotHave(cssClass("disabled"))
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems()
+        .get(2)
+        .shouldNotHave(cssClass("disabled"))
         .shouldHave(text("Export PDF"));
 
     String cdxExportVersion = getCDXExportVersion(Files.readString(sbomManagerBillOfMaterialsPage.exportButton()
@@ -585,11 +619,12 @@ public class SbomManagerBillOfMaterialsPageTest
 
     sbomManagerBillOfMaterialsPage.exportButtonMenu().click();
     String cdxOriginalExportVersion =
-        getCDXExportVersion(Files.readString(sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(0)
+        getCDXExportVersion(Files.readString(sbomManagerBillOfMaterialsPage.exportButtonMenuItems()
+            .get(0)
             .download(3000L)
             .toPath()));
     assertThat(cdxOriginalExportVersion).isEqualTo("1.4");
-    
+
     GenericVersionScheme scheme = new GenericVersionScheme();
     Version parsedCdxExportVersion = scheme.parseVersion(cdxExportVersion);
     Version parsedCdxOriginalExportVersion = scheme.parseVersion(cdxOriginalExportVersion);
@@ -603,11 +638,17 @@ public class SbomManagerBillOfMaterialsPageTest
 
     sbomManagerBillOfMaterialsPage.exportButton().shouldBe(enabled).shouldHave(text("Export Original SBOM"));
     sbomManagerBillOfMaterialsPage.exportButtonMenu().click();
-    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(0).shouldBe(disabled)
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems()
+        .get(0)
+        .shouldBe(disabled)
         .shouldHave(text("Export SBOM"));
-    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(1).shouldBe(disabled)
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems()
+        .get(1)
+        .shouldBe(disabled)
         .shouldHave(text("Additional Export Options"));
-    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(2).shouldHave(cssClass("disabled"))
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems()
+        .get(2)
+        .shouldHave(cssClass("disabled"))
         .shouldHave(text("Export PDF"));
 
     String cdxOriginalExportVersion = getCDXExportVersion(Files.readString(sbomManagerBillOfMaterialsPage.exportButton()
@@ -689,8 +730,7 @@ public class SbomManagerBillOfMaterialsPageTest
         zippedBom.getFileName().toString(),
         SbomSpecification.CYCLONEDX.toString(),
         SbomFormat.XML.name(),
-        "1.6"
-    );
+        "1.6");
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);
     List<String> componentNames = List.of("insight-scanner-manifest-model", "jackson-annotations",

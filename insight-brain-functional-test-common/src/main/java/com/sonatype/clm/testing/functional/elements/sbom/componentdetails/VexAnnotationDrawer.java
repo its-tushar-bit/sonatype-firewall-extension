@@ -11,7 +11,8 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
-public class VexAnnotationDrawer extends BasicElement<VexAnnotationDrawer>
+public class VexAnnotationDrawer
+    extends BasicElement<VexAnnotationDrawer>
 {
   static final String ROOT_SELECTOR = "#vex-annotation-popover";
 

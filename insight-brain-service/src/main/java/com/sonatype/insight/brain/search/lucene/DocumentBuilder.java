@@ -158,15 +158,17 @@ public class DocumentBuilder
   }
 
   public DocumentBuilder setParentOrganizationNames(Collection<Organization> parentOrganizations) {
-    this.parentOrganizationNames = Optional.of(parentOrganizations.stream().map(
-        parentOrg -> new TextField(PARENT_ORGANIZATION_NAME.label, parentOrg.getName(), Store.YES))
+    this.parentOrganizationNames = Optional.of(parentOrganizations.stream()
+        .map(
+            parentOrg -> new TextField(PARENT_ORGANIZATION_NAME.label, parentOrg.getName(), Store.YES))
         .toArray(Field[]::new));
     return this;
   }
 
   public DocumentBuilder setParentOrganizationIds(Collection<Organization> parentOrganizations) {
-    this.parentOrganizationIds = Optional.of(parentOrganizations.stream().map(
-        parentOrg -> new TextField(PARENT_ORGANIZATION_ID.label, parentOrg.getId(), Store.YES))
+    this.parentOrganizationIds = Optional.of(parentOrganizations.stream()
+        .map(
+            parentOrg -> new TextField(PARENT_ORGANIZATION_ID.label, parentOrg.getId(), Store.YES))
         .toArray(Field[]::new));
     return this;
   }
@@ -208,15 +210,24 @@ public class DocumentBuilder
   }
 
   public DocumentBuilder setComponentCoordinates(final Component component) {
-    this.componentCoordinates = Optional.of(component.getComponentIdentifier().getCoordinates().entrySet().stream().map(
-        coordinate -> new TextField(getFieldNameForCoordinate(coordinate.getKey()), coordinate.getValue(), Store.YES))
+    this.componentCoordinates = Optional.of(component.getComponentIdentifier()
+        .getCoordinates()
+        .entrySet()
+        .stream()
+        .map(
+            coordinate -> new TextField(getFieldNameForCoordinate(coordinate.getKey()), coordinate.getValue(),
+                Store.YES))
         .toArray(Field[]::new));
     return this;
   }
 
   public DocumentBuilder setComponentCoordinates(final ComponentIdentifier componentIdentifier) {
-    this.componentCoordinates = Optional.of(componentIdentifier.getCoordinates().entrySet().stream().map(
-        coordinate -> new TextField(getFieldNameForCoordinate(coordinate.getKey()), coordinate.getValue(), Store.YES))
+    this.componentCoordinates = Optional.of(componentIdentifier.getCoordinates()
+        .entrySet()
+        .stream()
+        .map(
+            coordinate -> new TextField(getFieldNameForCoordinate(coordinate.getKey()), coordinate.getValue(),
+                Store.YES))
         .toArray(Field[]::new));
     return this;
   }
@@ -235,7 +246,7 @@ public class DocumentBuilder
     if (vulnerabilitySeverity != null) {
       this.vulnerabilitySeverity =
           Optional.of(new Field[]{new FloatPoint(VULNERABILITY_SEVERITY.label, vulnerabilitySeverity),
-              new StoredField(VULNERABILITY_SEVERITY.label, vulnerabilitySeverity)});
+            new StoredField(VULNERABILITY_SEVERITY.label, vulnerabilitySeverity)});
     }
     return this;
   }
@@ -324,7 +335,7 @@ public class DocumentBuilder
 
   public DocumentBuilder setPolicyThreatLevel(final int policyThreatLevel) {
     this.policyThreatLevel = Optional.of(new Field[]{new IntPoint(POLICY_THREAT_LEVEL.label, policyThreatLevel),
-        new StoredField(POLICY_THREAT_LEVEL.label, policyThreatLevel)});
+      new StoredField(POLICY_THREAT_LEVEL.label, policyThreatLevel)});
     return this;
   }
 

@@ -83,7 +83,7 @@ public class OrgsAndPoliciesSidebarTest
       Collections.sort(organizations.get(key), Comparator.comparing(o -> o.getName().toUpperCase()));
     });
 
-    //Getting ROOT_ORG
+    // Getting ROOT_ORG
     Owner selectedOrg = organizationDAO.getById("ROOT_ORGANIZATION_ID");
     testSideNavbarContent(selectedOrg, 21, 6);
 
@@ -104,7 +104,7 @@ public class OrgsAndPoliciesSidebarTest
 
     NxLoadingSpinner.seeAndWaitForDismissal(OwnerSummaryPage.sidebar().getElement());
 
-    //Getting ROOT_ORG
+    // Getting ROOT_ORG
     Owner selectedOrg = organizationDAO.getById("ROOT_ORGANIZATION_ID");
     testSideNavbarContent(selectedOrg, 21, 6);
   }
@@ -112,28 +112,22 @@ public class OrgsAndPoliciesSidebarTest
   @Test
   public void testOrgsAndPoliciesSideNavbar_repoManagersMenu() {
     RepositoryManager repositoryManagerA = tempEntity.newRepositoryManager(
-        "5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AA"
-    );
+        "5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AA");
     RepositoryManager repositoryManagerB = tempEntity.newRepositoryManager(
-        "P39Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B"
-    );
+        "P39Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
     tempEntity.newRepository(repositoryManagerA, "a123", false);
     tempEntity.newRepository(repositoryManagerB, "b123", true);
     tempEntity.newRepositoryManager("AB9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
     tempEntity.newRepositoryManager("XY9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
     RepositoryManager firstRepositoryManagerInSortedList = tempEntity.newRepositoryManager(
-        "1Z9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B"
-    );
+        "1Z9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
     Repository npmHostedRepository = tempEntity.newHostedRepository(
-        firstRepositoryManagerInSortedList, "npm-hosted", "npm", true
-    );
+        firstRepositoryManagerInSortedList, "npm-hosted", "npm", true);
     tempEntity.newProxyRepository(firstRepositoryManagerInSortedList, "npm-proxy", "npm", true, true);
     Repository mavenCentralRepository = tempEntity.newProxyRepository(
-        firstRepositoryManagerInSortedList, "maven-central-proxy", "maven", true, true
-    );
+        firstRepositoryManagerInSortedList, "maven-central-proxy", "maven", true, true);
     RepositoryManager namedRepositoryManager = tempEntity.newRepositoryManager(
-        "2Z9Q1VFX-3AHKKK7Y-0L0XUPQA-WLFF6J4J-9KIPGT6B", "Repo Manager", "Nexus", "1.0"
-    );
+        "2Z9Q1VFX-3AHKKK7Y-0L0XUPQA-WLFF6J4J-9KIPGT6B", "Repo Manager", "Nexus", "1.0");
 
     refresh();
 
@@ -216,8 +210,7 @@ public class OrgsAndPoliciesSidebarTest
     testSideNavbarContent(
         parentOrganization,
         new ArrayList<>(organizationDAO.getByParentOrganizationId(parentOrganization.getId())),
-        new ArrayList<>(applicationDAO.getByOrganizationId(parentOrganization.getId()))
-    );
+        new ArrayList<>(applicationDAO.getByOrganizationId(parentOrganization.getId())));
 
     selectAddApplicationOption();
 
@@ -252,8 +245,7 @@ public class OrgsAndPoliciesSidebarTest
     testSideNavbarContent(
         parentOrganization,
         new ArrayList<>(organizationDAO.getByParentOrganizationId(parentOrganization.getId())),
-        new ArrayList<>(applicationDAO.getByOrganizationId(parentOrganization.getId()))
-    );
+        new ArrayList<>(applicationDAO.getByOrganizationId(parentOrganization.getId())));
   }
 
   @Test
@@ -272,8 +264,7 @@ public class OrgsAndPoliciesSidebarTest
     testSideNavbarContent(
         parentOrganization,
         new ArrayList<>(organizationDAO.getByParentOrganizationId(parentOrganization.getId())),
-        new ArrayList<>(applicationDAO.getByOrganizationId(parentOrganization.getId()))
-    );
+        new ArrayList<>(applicationDAO.getByOrganizationId(parentOrganization.getId())));
 
     MoveOwnerDialog modal = new MoveOwnerDialog();
     selectOptionAndSubmit(modal, newParentOrganization);
@@ -293,8 +284,7 @@ public class OrgsAndPoliciesSidebarTest
     testSideNavbarContent(
         newParentOrganization,
         new ArrayList<>(organizationDAO.getByParentOrganizationId(newParentOrganization.getId())),
-        new ArrayList<>(applicationDAO.getByOrganizationId(newParentOrganization.getId()))
-    );
+        new ArrayList<>(applicationDAO.getByOrganizationId(newParentOrganization.getId())));
   }
 
   @Test

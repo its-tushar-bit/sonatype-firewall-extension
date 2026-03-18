@@ -207,7 +207,7 @@ public class DeveloperReportListPageTest
     sleep(500);
     String currentUrl = WebDriverRunner.url();
     assertTrue("URL should contain filter parameter",
-            currentUrl.contains("componentNameFilter=" + filterText));
+        currentUrl.contains("componentNameFilter=" + filterText));
 
     page.componentNameFilter().shouldBe(focused);
   }
@@ -294,7 +294,7 @@ public class DeveloperReportListPageTest
   private void setUpInnerSourceVersion() {
     ApplicationDAO applicationDAO = lookup(ApplicationDAO.class);
     Application appId1 = applicationDAO.getByPublicId("appId1");
-    //add inner source data
+    // add inner source data
     ComponentIdentifier innersourceDirectComponent =
         ComponentIdentifier.createMavenCoordinates("org.jclouds.driver", "jclouds-enterprise", "1.3.1", "", "jar");
     PackageUrlIdentifier versionlessPurl = InnerSourceUtils.getVersionlessPackageUrl(innersourceDirectComponent);

@@ -49,17 +49,17 @@ public class SbomManagerPolicyEditorPageTest
     extends AbstractMtiqFunctionalTest
 {
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
-  
+
   protected static final String COMPLIANCE = new ComplianceStageType().getId();
-  
+
   private Organization rootOrganization;
-  
+
   private Organization org1;
-  
+
   private Application app1;
 
   private PolicyDAO policyDAO;
-  
+
   @Before
   public void init() {
     setFeatures(LicensedFeature.POLICY_MANAGEMENT, LicensedFeature.POLICY_READ_ONLY,
@@ -74,7 +74,7 @@ public class SbomManagerPolicyEditorPageTest
     refreshOrOpen(IndexPage.url());
     loginAsAdmin();
   }
-  
+
   @Test
   public void testEditPolicyPage_RootOrgRendersLocalPolicySuccessfully() {
     logout();
@@ -83,18 +83,21 @@ public class SbomManagerPolicyEditorPageTest
     refreshOrOpen(OwnerSummaryPage.sbomManagerUrl(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID));
     OwnerSummaryPage.policyTile().localPolicyList().row(1).click();
     Assert.assertTrue(WebDriverRunner.getWebDriver().getCurrentUrl().contains("/sbomManager"));
-    
+
     summarySectionElementsAreDisabled();
     inheritanceSectionIsRenderedCorrectly(rootOrganization.getName());
     constraintSectionElementsAreDisabled();
     PolicyEditorPage.actionsSection().title().shouldNotBe(visible);
     PolicyEditorPage.actionsSection().table().shouldNotBe(visible);
-    PolicyEditorPage.notificationsSection().headers().get(0).shouldBe(visible)
-      .shouldHave(text(COMPLIANCE));
+    PolicyEditorPage.notificationsSection()
+        .headers()
+        .get(0)
+        .shouldBe(visible)
+        .shouldHave(text(COMPLIANCE));
     PolicyEditorPage.deleteButton().shouldBe(hidden);
     OwnerDetailSidebar.policyGroup().shouldBe(visible);
   }
-  
+
   @Test
   public void testEditPolicyPage_OrgRendersInheritedPolicySuccessfully() {
     logout();
@@ -105,7 +108,7 @@ public class SbomManagerPolicyEditorPageTest
     inheritanceSectionIsRenderedCorrectly(rootOrganization.getName());
     testOrgRendersCorrectly();
   }
-  
+
   @Test
   public void testEditPolicyPage_OrgRendersLocalPolicySuccessfully() {
     logout();
@@ -117,7 +120,7 @@ public class SbomManagerPolicyEditorPageTest
     inheritanceSectionIsRenderedCorrectly(org1.getName());
     testOrgRendersCorrectly();
   }
-  
+
   @Test
   public void testEditPolicyPage_AppRendersInheritedPolicySuccessfully() {
     logout();
@@ -125,11 +128,11 @@ public class SbomManagerPolicyEditorPageTest
     loginAsAdmin();
     refreshOrOpen(OwnerSummaryPage.sbomManagerUrl(OwnerType.APPLICATION, "app1"));
     OwnerSummaryPage.policyTile().policyList(2).row(1).click();
-    
+
     inheritanceSectionIsRenderedCorrectly(rootOrganization.getName());
     testAppRendersCorrectly();
   }
-  
+
   @Test
   public void testEditPolicyPage_AppRendersLocalPolicySuccessfully() {
     logout();
@@ -138,7 +141,7 @@ public class SbomManagerPolicyEditorPageTest
     createPolicy(app1.getId(), "appPolicy1");
     refreshOrOpen(OwnerSummaryPage.sbomManagerUrl(OwnerType.APPLICATION, "app1"));
     OwnerSummaryPage.policyTile().policyList(0).row(1).click();
-    
+
     PolicyEditorPage.inheritanceSection().shouldNotBe(visible);
     testAppRendersCorrectly();
   }
@@ -181,7 +184,7 @@ public class SbomManagerPolicyEditorPageTest
     // Wait for page to fully load.
     Selenide.sleep(1000);
     String href = PolicyEditorPage.linkToLifecycle().getAttribute("href");
-    String expectedPath = "iq-test/assets/index.html#/management/edit/organization/" + org1.getId() + "/policy/" ;
+    String expectedPath = "iq-test/assets/index.html#/management/edit/organization/" + org1.getId() + "/policy/";
     Assert.assertTrue(href.contains(expectedPath));
   }
 
@@ -200,7 +203,7 @@ public class SbomManagerPolicyEditorPageTest
     String expectedPath = "iq-test/assets/index.html#/management/edit/application/app1/policy/";
     Assert.assertTrue(href.contains(expectedPath));
   }
-  
+
   private void summarySectionElementsAreDisabled() {
     SummarySection summarySection = PolicyEditorPage.summarySection();
     summarySection.policyName().input().shouldBe(visible, disabled);
@@ -208,7 +211,7 @@ public class SbomManagerPolicyEditorPageTest
     summarySection.legacyViolationTitle().shouldBe(hidden);
     summarySection.legacyViolationCheckbox().shouldBe(hidden);
   }
-  
+
   private void inheritanceSectionIsRenderedCorrectly(String ownerName) {
     PolicyInheritsToSection inheritanceSection = PolicyEditorPage.inheritanceSection();
     inheritanceSection.allChildrenInheritRadio().shouldBe(visible, disabled);
@@ -216,18 +219,19 @@ public class SbomManagerPolicyEditorPageTest
     inheritanceSection.specifiedChildrenInheritRadio().shouldNotBe(visible);
     inheritanceSection.policyActionsOverrideCheckbox().shouldNotBe(visible);
     inheritanceSection.policyNotificationsOverrideCheckbox().shouldBe(visible);
-    inheritanceSection.policyNotificationsOverrideCheckbox().label().shouldHave(
-        text("Allow notification overrides at organization and application levels")
-    );
+    inheritanceSection.policyNotificationsOverrideCheckbox()
+        .label()
+        .shouldHave(
+            text("Allow notification overrides at organization and application levels"));
   }
-  
+
   private void constraintSectionElementsAreDisabled() {
     ConstraintSection constraintsSection = PolicyEditorPage.constraintSection();
     constraintsSection.addConstraintButton().shouldBe(visible, disabled);
     constraintsSection.constraintSummary(0).editConstraintButton().shouldBe(visible, disabled);
     constraintsSection.constraintSummary(0).deleteConstraintButton().shouldBe(visible, disabled);
   }
-  
+
   private Policy createPolicy(String ownerId, String policyName) {
     Policy policy = tempEntity.newPolicy(ownerId, policyName, 1);
     Constraint constraint1 = new Constraint(policy.getId() + "1", "First Constraint with One Condition", null);
@@ -237,29 +241,35 @@ public class SbomManagerPolicyEditorPageTest
     policyDAO.update(policy);
     return policy;
   }
-  
+
   private void testOrgRendersCorrectly() {
     Assert.assertTrue(WebDriverRunner.getWebDriver().getCurrentUrl().contains("/sbomManager"));
-    
+
     summarySectionElementsAreDisabled();
     constraintSectionElementsAreDisabled();
     PolicyEditorPage.actionsSection().title().shouldNotBe(visible);
     PolicyEditorPage.actionsSection().table().shouldNotBe(visible);
-    PolicyEditorPage.notificationsSection().headers().get(0).shouldBe(visible)
-      .shouldHave(text(COMPLIANCE));
+    PolicyEditorPage.notificationsSection()
+        .headers()
+        .get(0)
+        .shouldBe(visible)
+        .shouldHave(text(COMPLIANCE));
     PolicyEditorPage.deleteButton().shouldBe(hidden);
     OwnerDetailSidebar.policyGroup().shouldBe(hidden);
   }
-  
+
   private void testAppRendersCorrectly() {
     Assert.assertTrue(WebDriverRunner.getWebDriver().getCurrentUrl().contains("/sbomManager"));
-    
+
     summarySectionElementsAreDisabled();
     constraintSectionElementsAreDisabled();
     PolicyEditorPage.actionsSection().title().shouldNotBe(visible);
     PolicyEditorPage.actionsSection().table().shouldNotBe(visible);
-    PolicyEditorPage.notificationsSection().headers().get(0).shouldBe(visible)
-      .shouldHave(text(COMPLIANCE));
+    PolicyEditorPage.notificationsSection()
+        .headers()
+        .get(0)
+        .shouldBe(visible)
+        .shouldHave(text(COMPLIANCE));
     PolicyEditorPage.deleteButton().shouldBe(hidden);
     OwnerDetailSidebar.policyGroup().shouldBe(hidden);
   }

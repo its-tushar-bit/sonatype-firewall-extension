@@ -98,8 +98,9 @@ public class InactiveRepositoryViolationCleanerTest
     RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
     String databaseSchema = databaseContainerRule.getOperationalDataStore().getDatabaseSchema();
     try (Connection connection = databaseContainerRule.getOperationalDataStore().getDataSource().getConnection();
-         PreparedStatement preparedStatement = connection.prepareStatement("UPDATE " + databaseSchema +
-             ".repository_policy_violation SET active=false WHERE repository_policy_violation_id=?")) {
+        PreparedStatement preparedStatement = connection.prepareStatement("UPDATE " + databaseSchema +
+            ".repository_policy_violation SET active=false WHERE repository_policy_violation_id=?"))
+    {
       connection.setAutoCommit(true);
       preparedStatement.setString(1, repositoryPolicyViolation.getId());
       int updated = preparedStatement.executeUpdate();
@@ -113,7 +114,8 @@ public class InactiveRepositoryViolationCleanerTest
     try (Connection connection = databaseContainerRule.getOperationalDataStore().getDataSource().getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(
             "SELECT COUNT(*) FROM " + databaseSchema +
-                ".repository_policy_violation WHERE repository_id=? AND active=false")) {
+                ".repository_policy_violation WHERE repository_id=? AND active=false"))
+    {
       preparedStatement.setString(1, repository.getId());
       try (ResultSet resultSet = preparedStatement.executeQuery()) {
         resultSet.next();

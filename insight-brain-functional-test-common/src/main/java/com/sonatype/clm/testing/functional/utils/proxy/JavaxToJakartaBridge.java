@@ -416,8 +416,9 @@ public class JavaxToJakartaBridge
     }
 
     @Override
-    public jakarta.servlet.AsyncContext startAsync(jakarta.servlet.ServletRequest servletRequest,
-                                                    jakarta.servlet.ServletResponse servletResponse)
+    public jakarta.servlet.AsyncContext startAsync(
+        jakarta.servlet.ServletRequest servletRequest,
+        jakarta.servlet.ServletResponse servletResponse)
     {
       throw new UnsupportedOperationException("startAsync bridging not implemented");
     }
@@ -477,8 +478,7 @@ public class JavaxToJakartaBridge
     public void addCookie(jakarta.servlet.http.Cookie cookie) {
       javax.servlet.http.Cookie javaxCookie = new javax.servlet.http.Cookie(
           cookie.getName(),
-          cookie.getValue()
-      );
+          cookie.getValue());
       javaxCookie.setDomain(cookie.getDomain());
       javaxCookie.setPath(cookie.getPath());
       javaxCookie.setMaxAge(cookie.getMaxAge());

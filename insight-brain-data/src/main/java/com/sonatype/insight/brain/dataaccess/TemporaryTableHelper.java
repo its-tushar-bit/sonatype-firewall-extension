@@ -37,7 +37,7 @@ public class TemporaryTableHelper
    * This method will 'maybe' create the temporary table. It will only do it if actually necessary (more than 65,535
    * IDs) and then will return a boolean if the table was created or not. This will allow more efficient usage.
    *
-   * @param tx  The transaction context to participate in. Note `tx.begin` is called in this method.
+   * @param tx The transaction context to participate in. Note `tx.begin` is called in this method.
    * @param ids The IDs to insert into the temporary table
    */
   public boolean maybeCreateTemporaryTableWithIds(

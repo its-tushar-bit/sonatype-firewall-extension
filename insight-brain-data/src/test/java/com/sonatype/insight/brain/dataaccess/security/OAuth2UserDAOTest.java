@@ -105,8 +105,8 @@ public class OAuth2UserDAOTest
 
     assertThat(oAuth2UserDAO.getByIds(
         new HashSet<>(Arrays.asList(oAuth2User1.getId(), oAuth2User2.getId()))))
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(oAuth2User1, oAuth2User2);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(oAuth2User1, oAuth2User2);
   }
 
   @Test
@@ -115,7 +115,8 @@ public class OAuth2UserDAOTest
     tempEntity.newOAuth2User();
 
     assertThat(oAuth2UserDAO.getByUsername(oAuth2User.getUsername())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(oAuth2User);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(oAuth2User);
   }
 
   @Test
@@ -125,7 +126,8 @@ public class OAuth2UserDAOTest
     oAuth2UserDAO.upsertByUsername(oAuth2User);
 
     assertThat(oAuth2UserDAO.getByUsername(oAuth2User.getUsername())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(oAuth2User);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(oAuth2User);
   }
 
   @Test
@@ -139,7 +141,8 @@ public class OAuth2UserDAOTest
     oAuth2UserDAO.upsertByUsername(oAuth2User);
 
     assertThat(oAuth2UserDAO.getByUsername(oAuth2User.getUsername())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(oAuth2User);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(oAuth2User);
   }
 
   @Test
@@ -266,9 +269,12 @@ public class OAuth2UserDAOTest
 
   private void assertOauth2User(OAuth2User expectedOAuth2User, List<OAuth2User> users) {
     OAuth2User foundUser = users.stream()
-        .filter(oAuth2User -> expectedOAuth2User.getUsername().equals(oAuth2User.getUsername())).findFirst()
+        .filter(oAuth2User -> expectedOAuth2User.getUsername().equals(oAuth2User.getUsername()))
+        .findFirst()
         .orElse(null);
-    assertThat(foundUser).isNotNull().usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(foundUser).isNotNull()
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(expectedOAuth2User);
   }
 
@@ -277,7 +283,8 @@ public class OAuth2UserDAOTest
     OAuth2User oAuth2User = tempEntity.newOAuth2User();
 
     assertThat(oAuth2UserDAO.getByUsernameNotNull(oAuth2User.getUsername())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(oAuth2User);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(oAuth2User);
   }
 
   @Test
@@ -423,7 +430,7 @@ public class OAuth2UserDAOTest
 
     assertThat(
         oAuth2UserDAO.findUsersByNameOrUsernameQuery("%-SoNaTypE%")).usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(oAuth2User1, oAuth2User2);
+            .containsExactly(oAuth2User1, oAuth2User2);
   }
 
   @Test
@@ -496,7 +503,8 @@ public class OAuth2UserDAOTest
       OAuth2User foundUser,
       Set<String> expectedGroups)
   {
-    assertThat(foundUser).isNotNull().usingRecursiveComparison()
+    assertThat(foundUser).isNotNull()
+        .usingRecursiveComparison()
         .ignoringFields(JPA.IGNORE_FIELDS)
         .ignoringFields("groupsJson")
         .isEqualTo(expectedSamlUser);

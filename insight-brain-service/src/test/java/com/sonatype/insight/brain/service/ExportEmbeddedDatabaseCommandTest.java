@@ -69,7 +69,8 @@ public class ExportEmbeddedDatabaseCommandTest
 
   private void initData(@SuppressWarnings("unused") InsightConfig config /* unused */) {
     try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection();
-         Statement statement = connection.createStatement()) {
+        Statement statement = connection.createStatement())
+    {
       statement.execute("INSERT INTO insight_brain_ods.saml_configuration " +
           "VALUES ('\0a74878d8bfe44d2086ca8387e340692f', '{}', '', '');");
     }
@@ -89,7 +90,8 @@ public class ExportEmbeddedDatabaseCommandTest
 
     assertThatExceptionOfType(RuntimeException.class)
         .isThrownBy(() -> newService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
-            dumpFile.getPath())).withMessageContaining("Cannot find the embedded database");
+            dumpFile.getPath()))
+        .withMessageContaining("Cannot find the embedded database");
     assertThat(dumpFile).doesNotExist();
   }
 
@@ -101,7 +103,8 @@ public class ExportEmbeddedDatabaseCommandTest
 
     assertThatExceptionOfType(RuntimeException.class)
         .isThrownBy(() -> service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
-            dumpFile.getPath())).withMessageContaining("The server needs to have been started normally once before" +
+            dumpFile.getPath()))
+        .withMessageContaining("The server needs to have been started normally once before" +
             " in order to complete the required upgrade steps.");
     assertThat(dumpFile).doesNotExist();
   }
@@ -131,7 +134,8 @@ public class ExportEmbeddedDatabaseCommandTest
     // so the easiest to consume it from a dummy class.
     PostgresTest postgresTest = DummyForAnnotation.class.getAnnotation(PostgresTest.class);
     try (PostgresDatabaseFixture postgresDatabaseFixture = new PostgresDatabaseFixture(
-        "testRun_DumpImportableIntoPostgres", postgresTest)) {
+        "testRun_DumpImportableIntoPostgres", postgresTest))
+    {
       File dumpFile = new File(tempDir.getRoot(), "dump.sql");
 
       DefaultTestInsightBrainService service = newService();
@@ -159,7 +163,8 @@ public class ExportEmbeddedDatabaseCommandTest
           postgresDatabaseFixture.getDatabaseConfig(DatabaseName.ods.name());
       try (Connection connection = DriverManager.getConnection(pgDatabaseConfig.getUrl(),
           pgDatabaseConfig.getUsername(),
-          pgDatabaseConfig.getPassword())) {
+          pgDatabaseConfig.getPassword()))
+      {
         loadTableRows(actualTablesBySchema, connection);
       }
 
@@ -175,7 +180,8 @@ public class ExportEmbeddedDatabaseCommandTest
           actualRows.sort(null);
           expectedRows.sort(null);
           for (int i = 0; i < actualRows.size(); i++) {
-            assertThat(actualRows.get(i)).as(schemaName + "." + tableName + "." + i).usingRecursiveComparison()
+            assertThat(actualRows.get(i)).as(schemaName + "." + tableName + "." + i)
+                .usingRecursiveComparison()
                 .withComparatorForType((String o1, String o2) -> o2.replace("\0", "").compareTo(o1), String.class)
                 .isEqualTo(expectedRows.get(i));
           }
@@ -209,8 +215,9 @@ public class ExportEmbeddedDatabaseCommandTest
     }
   }
 
-  private void loadTableRows(Map<String, Map<String, List<TableRow>>> tablesBySchema, Connection connection)
-      throws Exception
+  private void loadTableRows(
+      Map<String, Map<String, List<TableRow>>> tablesBySchema,
+      Connection connection) throws Exception
   {
     DatabaseMetaData metadata = connection.getMetaData();
     try (ResultSet schemas = metadata.getSchemas(null, "insight_%")) {
@@ -225,7 +232,8 @@ public class ExportEmbeddedDatabaseCommandTest
             tablesBySchema.get(schemaName).put(tableName.toLowerCase(Locale.ROOT), tableRows);
             Set<String> primaryKeys = getPrimaryKeys(metadata, schemaName, tableName);
             try (Statement query = connection.createStatement();
-                ResultSet rows = query.executeQuery("SELECT * FROM " + schemaName + "." + tableName)) {
+                ResultSet rows = query.executeQuery("SELECT * FROM " + schemaName + "." + tableName))
+            {
               int columnCount = rows.getMetaData().getColumnCount();
               while (rows.next()) {
                 TableRow tableRow = new TableRow();
@@ -271,11 +279,12 @@ public class ExportEmbeddedDatabaseCommandTest
   @H2DiskTest
   public void testRun_SqlStatementsInCorrectOrder() throws Exception {
     File dumpFile = new File(tempDir.getRoot(), "dump.sql");
-    
+
     DefaultTestInsightBrainService service = newService();
     service.setConfigurator(config -> {
       try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection();
-           Statement statement = connection.createStatement()) {
+          Statement statement = connection.createStatement())
+      {
         statement.execute("CREATE SCHEMA test_schema;");
         statement.execute("CREATE TABLE test_schema.test_table (id VARCHAR(36) PRIMARY KEY);");
         statement.execute("CREATE VIEW test_schema.test_view AS SELECT * FROM test_schema.test_table;");
@@ -290,12 +299,12 @@ public class ExportEmbeddedDatabaseCommandTest
 
     assertThat(dumpFile).isFile();
     List<String> lines = Files.readAllLines(dumpFile.toPath());
-    
+
     int schemaIndex = findStatementIndex(lines, "CREATE SCHEMA");
     int tableIndex = findStatementIndex(lines, "CREATE TABLE");
     int viewIndex = findStatementIndex(lines, "CREATE VIEW");
     int insertIndex = findStatementIndex(lines, "COPY ");
-    
+
     assertThat(schemaIndex).as("Schema statements should come first").isLessThan(tableIndex);
     assertThat(tableIndex).as("Table statements should come before view statements").isLessThan(viewIndex);
     assertThat(viewIndex).as("View statements should come before insert statements").isLessThan(insertIndex);
@@ -305,7 +314,7 @@ public class ExportEmbeddedDatabaseCommandTest
   @H2DiskTest
   public void testRun_ConstraintManagementStatements() throws Exception {
     File dumpFile = new File(tempDir.getRoot(), "dump.sql");
-    
+
     DefaultTestInsightBrainService service = newService();
     service.setConfigurator(this::initData);
 
@@ -313,12 +322,12 @@ public class ExportEmbeddedDatabaseCommandTest
 
     assertThat(dumpFile).isFile();
     List<String> lines = Files.readAllLines(dumpFile.toPath());
-    
+
     boolean foundDisableConstraints = false;
     boolean foundEnableConstraints = false;
     int disableIndex = -1;
     int enableIndex = -1;
-    
+
     for (int i = 0; i < lines.size(); i++) {
       String line = lines.get(i).trim();
       if (line.equals("SET session_replication_role = replica;")) {
@@ -330,7 +339,7 @@ public class ExportEmbeddedDatabaseCommandTest
         enableIndex = i;
       }
     }
-    
+
     assertThat(foundDisableConstraints).as("Should disable constraints at beginning").isTrue();
     assertThat(foundEnableConstraints).as("Should enable constraints at end").isTrue();
     assertThat(disableIndex).as("Disable constraints should appear early in file").isLessThan(enableIndex);
@@ -340,7 +349,7 @@ public class ExportEmbeddedDatabaseCommandTest
   @H2DiskTest
   public void testRun_StatementClassificationAndComments() throws Exception {
     File dumpFile = new File(tempDir.getRoot(), "dump.sql");
-    
+
     DefaultTestInsightBrainService service = newService();
     service.setConfigurator(this::initData);
 
@@ -348,10 +357,10 @@ public class ExportEmbeddedDatabaseCommandTest
 
     assertThat(dumpFile).isFile();
     List<String> lines = Files.readAllLines(dumpFile.toPath());
-    
+
     boolean foundConstraintDisableComment = false;
     boolean foundConstraintEnableComment = false;
-    
+
     for (String line : lines) {
       if (line.contains("-- Disable foreign key constraints and triggers for bulk import")) {
         foundConstraintDisableComment = true;
@@ -360,7 +369,7 @@ public class ExportEmbeddedDatabaseCommandTest
         foundConstraintEnableComment = true;
       }
     }
-    
+
     assertThat(foundConstraintDisableComment).as("Should include constraint disable comment").isTrue();
     assertThat(foundConstraintEnableComment).as("Should include constraint enable comment").isTrue();
   }

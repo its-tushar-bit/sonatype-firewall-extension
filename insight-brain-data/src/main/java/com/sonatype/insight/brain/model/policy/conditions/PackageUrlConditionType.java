@@ -79,7 +79,7 @@ public class PackageUrlConditionType
     String format;
 
     if (value.contains(PackageUrlIdentifier.PURL_NEXUS_TYPE) && value.contains(StandardTypes.GENERIC)) {
-      //It means it's already a generic purl and the format is part of the of the qualifiers
+      // It means it's already a generic purl and the format is part of the of the qualifiers
       format = originalPurl.getQualifiers().get(PackageUrlIdentifier.PURL_NEXUS_TYPE);
       genericPackageUrl = value;
     }
@@ -111,8 +111,10 @@ public class PackageUrlConditionType
   }
 
   @Override
-  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
-      throws InvalidConditionException
+  public void validateCondition(
+      TransactionContext tx,
+      Condition condition,
+      String ownerId) throws InvalidConditionException
   {
     try {
       String value = condition.getValue();

@@ -10,25 +10,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collections;
 import java.util.Map;
 
-public abstract class HeaderFactory {
-    @JsonProperty
-    private boolean enabled = false;
+public abstract class HeaderFactory
+{
+  @JsonProperty
+  private boolean enabled = false;
 
-    public boolean isEnabled() {
-        return enabled;
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
+
+  public Map<String, String> build() {
+    if (enabled) {
+      return buildHeaders();
     }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+    else {
+      return Collections.emptyMap();
     }
+  }
 
-    public Map<String, String> build() {
-        if (enabled) {
-            return buildHeaders();
-        } else {
-            return Collections.emptyMap();
-        }
-    }
-
-    protected abstract Map<String, String> buildHeaders();
+  protected abstract Map<String, String> buildHeaders();
 }

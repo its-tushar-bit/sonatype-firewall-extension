@@ -89,19 +89,15 @@ public class ApiReportDataResourceV2
       description = "This is an older version of the endpoint. This call will now be redirected to " +
           "/api/v2/applications/{applicationPublicId}/reports/{scanId}/raw.",
       responses = {
-          @ApiResponse(
-              responseCode = "307",
-              description = "Temporary redirect to the new endpoint."
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "307",
+            description = "Temporary redirect to the new endpoint.")
+      })
   public Response getData(
       @Parameter(description = "Enter the applicationPublicId for the evaluated application.",
-          required = true)
-      @PathParam("applicationPublicId") String applicationPublicId,
+          required = true) @PathParam("applicationPublicId") String applicationPublicId,
       @Parameter(description = "Enter the scanId (reportId) of the application report created after the evaluation. ",
-          required = true)
-      @PathParam("scanId") String scanId) throws Exception
+          required = true) @PathParam("scanId") String scanId) throws Exception
   {
     return Response.temporaryRedirect(new URI(baseUrl.get()).resolve(getDataUrl(applicationPublicId, scanId))).build();
   }
@@ -124,19 +120,17 @@ public class ApiReportDataResourceV2
           "/n" +
           "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response fields contain the 'raw' data for the reportId (scanId) specified " +
-                  "in the method call. The fields corresponding to 'dependencyData' will indicate if the " +
-                  "component is a direct dependency (true/false), an InnerSource component" +
-                  "(true/false), the associated parentComponentPurls (package URLs of the parent component " +
-                  "ownerApplicationName (name of the owner application), ownerApplicatonId (internal ID " +
-                  "of the owner application, innerSourceComponentPurl (the package URL of the InnerSource" +
-                  "Component.)",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response fields contain the 'raw' data for the reportId (scanId) specified " +
+                "in the method call. The fields corresponding to 'dependencyData' will indicate if the " +
+                "component is a direct dependency (true/false), an InnerSource component" +
+                "(true/false), the associated parentComponentPurls (package URLs of the parent component " +
+                "ownerApplicationName (name of the owner application), ownerApplicatonId (internal ID " +
+                "of the owner application, innerSourceComponentPurl (the package URL of the InnerSource" +
+                "Component.)",
+            useReturnTypeSchema = true)
+      })
   public ApiReportRawDataDTOV2 getRawData(
       @Parameter(description = "Enter the applicationPublicId (assigned at the time of creating a new application.) ",
           required = true) @PathParam("applicationPublicId") String applicationPublicId,
@@ -164,23 +158,20 @@ public class ApiReportDataResourceV2
           "/n" +
           "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response fields contain the policy violation data for the reportId (scanId) " +
-                  "specified in the method call. The fields corresponding to 'violations' include the " +
-                  "violation details for each policy, for the component.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response fields contain the policy violation data for the reportId (scanId) " +
+                "specified in the method call. The fields corresponding to 'violations' include the " +
+                "violation details for each policy, for the component.",
+            useReturnTypeSchema = true)
+      })
   public ApiReportPolicyDataDTOV2 getPolicyViolations(
       @Parameter(description = "Enter the applicationPublicId created at the time of creating the " +
           "application.", required = true) @PathParam("applicationPublicId") String applicationPublicId,
       @Parameter(description = "Enter the reportId (scanId) created at the time of evaluating the " +
           "application.", required = true) @PathParam("scanId") String scanId,
       @Parameter(description = "Set to true to include policy violation times (open, legacy, waived, fixed) in the" +
-          " response if set.")
-      @QueryParam("includeViolationTimes") @DefaultValue("false") boolean includeViolationTimes) throws Exception
+          " response if set.") @QueryParam("includeViolationTimes") @DefaultValue("false") boolean includeViolationTimes) throws Exception
   {
     AuditData.get().setReportId(scanId);
     return reportDataService.getPolicyViolationsData(applicationPublicId, scanId, includeViolationTimes);
@@ -198,24 +189,21 @@ public class ApiReportDataResourceV2
           "\n" +
           "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response fields contain the 'Dependency Tree' data  under the 'children' section. " +
-                  "The 'children' section may contain more tree nodes. " +
-                  "Every direct dependency can have zero or more transitive dependencies. " +
-                  "Each tree node contains the packageUrl, component identifier and a dependency tree node (if it " +
-                  "exists.) The component identifier section contains the format and coordinates for the component.",
-              useReturnTypeSchema = true),
-          @ApiResponse(
-              responseCode = "400",
-              description = "Missing or invalid parameter."
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "The requested dependency tree was not found."
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response fields contain the 'Dependency Tree' data  under the 'children' section. " +
+                "The 'children' section may contain more tree nodes. " +
+                "Every direct dependency can have zero or more transitive dependencies. " +
+                "Each tree node contains the packageUrl, component identifier and a dependency tree node (if it " +
+                "exists.) The component identifier section contains the format and coordinates for the component.",
+            useReturnTypeSchema = true),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Missing or invalid parameter."),
+        @ApiResponse(
+            responseCode = "404",
+            description = "The requested dependency tree was not found.")
+      })
   public ApiDependencyTreeResponseDTO getDependencyTree(
       @Parameter(description = "Enter the applicationPublicId created at the time of creating the " +
           "application.", required = true) @PathParam("applicationPublicId") String applicationPublicId,
@@ -233,7 +221,8 @@ public class ApiReportDataResourceV2
     return UriBuilder.fromPath(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
         .path(ApiReportDataResourceV2.SCAN_PATH)
         .path(ApiReportDataResourceV2.RAW_DATA_PATH)
-        .build(applicationPublicId, scanId).toString();
+        .build(applicationPublicId, scanId)
+        .toString();
   }
 
   @GET
@@ -248,38 +237,32 @@ public class ApiReportDataResourceV2
           "\n" +
           "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains the violation details grouped under addedViolations, " +
-                  "sameViolations and removedViolations for the two policy evaluations being compared.",
-              useReturnTypeSchema = true),
-          @ApiResponse(
-              responseCode = "400",
-              description = "Missing or invalid parameter. Check if the policy evaluations are still available, " +
-                  "based on the Data Retention Policies."
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "Policy violation diff could not be determined for the given request."
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains the violation details grouped under addedViolations, " +
+                "sameViolations and removedViolations for the two policy evaluations being compared.",
+            useReturnTypeSchema = true),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Missing or invalid parameter. Check if the policy evaluations are still available, " +
+                "based on the Data Retention Policies."),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Policy violation diff could not be determined for the given request.")
+      })
   public ApiPolicyViolationDiffDTO getPolicyViolationDiff(
       @Parameter(description = "Enter the applicationPublicId, created at the time of creating " +
           "the application", required = true) @PathParam("applicationPublicId") final String applicationPublicId,
-      @Parameter(description = "Enter the commit hash linked to the earlier policy evaluation.", required = true)
-      @QueryParam("fromCommit") final String fromCommit,
+      @Parameter(description = "Enter the commit hash linked to the earlier policy evaluation.",
+          required = true) @QueryParam("fromCommit") final String fromCommit,
       @Parameter(description = "Enter the commit hash linked to the other (later) policy evaluation to compare.",
-          required = true)
-      @QueryParam("toCommit") final String toCommit,
-      @Parameter(description = "Enter the policy evaluation Id linked to the earlier policy evaluation to compare")
-      @QueryParam("fromPolicyEvaluationId") final String fromPolicyEvaluationId,
+          required = true) @QueryParam("toCommit") final String toCommit,
+      @Parameter(
+          description = "Enter the policy evaluation Id linked to the earlier policy evaluation to compare") @QueryParam("fromPolicyEvaluationId") final String fromPolicyEvaluationId,
       @Parameter(description = "Enter the policy evaluation Id linked to the other (later) policy evaluation " +
-          "to compare")
-      @QueryParam("toPolicyEvaluationId") final String toPolicyEvaluationId,
+          "to compare") @QueryParam("toPolicyEvaluationId") final String toPolicyEvaluationId,
       @Parameter(description = "Set to true to include policy violation times (open, legacy, waived, fixed) in the" +
-          " response if set.")
-      @QueryParam("includeViolationTimes") @DefaultValue("false") boolean includeViolationTimes)
+          " response if set.") @QueryParam("includeViolationTimes") @DefaultValue("false") boolean includeViolationTimes)
   {
     return apiReportViolationsDiffService
         .getPolicyViolationDiff(applicationPublicId, fromCommit, toCommit, fromPolicyEvaluationId,

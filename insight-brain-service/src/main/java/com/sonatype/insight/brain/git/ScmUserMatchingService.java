@@ -112,8 +112,7 @@ public class ScmUserMatchingService
   @Authorize(permission = Permission.EDIT_ACCESS_CONTROL)
   public SCMUserMatchingResultDTO automaticRoleAssignmentByMapping(
       final @AuthzContext(Key.APPLICATION_PUBLIC_ID) String publicId,
-      SCMUserMappingsDTO scmUserMappingsDTO
-  )
+      SCMUserMappingsDTO scmUserMappingsDTO)
   {
     final Application application = applicationDAO.getByPublicId(publicId);
     return automaticRoleAssignmentByMappingNoAuthz(application, scmUserMappingsDTO);
@@ -148,8 +147,7 @@ public class ScmUserMatchingService
 
   private SCMUserMatchingResultDTO getMatchingUsers(
       final GitRepositoryInfo gitRepositoryInfo,
-      List<UserMapping> userMappings
-  )
+      List<UserMapping> userMappings)
   {
     // these will be fetched once, if needed to avoid fetching anything we don't use
     Set<String> githubUsernames = null;
@@ -161,7 +159,7 @@ public class ScmUserMatchingService
       }
 
       if (isNull(contributors) && needsToFetchContributors(mapping)) {
-        contributors  = getContributorsBasedOnLastHundredCommits(gitRepositoryInfo);
+        contributors = getContributorsBasedOnLastHundredCommits(gitRepositoryInfo);
       }
 
       final Set<String> matchingUsers = getUserNamesForMapping(mapping, githubUsernames, contributors);
@@ -183,8 +181,7 @@ public class ScmUserMatchingService
   private Set<String> getUserNamesForMapping(
       final UserMapping userMapping,
       final Set<String> githubUsernames,
-      final Set<Contributor> contributors
-  )
+      final Set<Contributor> contributors)
   {
     switch (userMapping.from()) {
       case SCM_USERNAME -> {
@@ -234,8 +231,7 @@ public class ScmUserMatchingService
 
   private Set<String> matchValueTo(
       final ToMappingEnum toMappingEnum,
-      final Set<String> valuesToMatch
-  )
+      final Set<String> valuesToMatch)
   {
     if (toMappingEnum.equals(IQ_USERNAME)) {
       return getAllAvailableUsernamesForMatching(valuesToMatch);
@@ -350,8 +346,7 @@ public class ScmUserMatchingService
 
   private SCMUserMappingsDTO provideConfiguredSCMUserMappingsWhenNull(
       final SCMUserMappingsDTO scmUserMappingsDTO,
-      final String internalAppId
-  )
+      final String internalAppId)
   {
     if (!isNull(scmUserMappingsDTO)) {
       return scmUserMappingsDTO;

@@ -18,8 +18,9 @@ public class LicenseOverrideUtil
 
     return new LicenseOverride(
         apiLicenseOverrideDTO.ownerId,
-        apiLicenseOverrideDTO.componentIdentifier != null ?
-            apiLicenseOverrideDTO.componentIdentifier.toComponentIdentifier() : null,
+        apiLicenseOverrideDTO.componentIdentifier != null
+            ? apiLicenseOverrideDTO.componentIdentifier.toComponentIdentifier()
+            : null,
         apiLicenseOverrideDTO.status,
         apiLicenseOverrideDTO.licenseIds,
         apiLicenseOverrideDTO.comment);

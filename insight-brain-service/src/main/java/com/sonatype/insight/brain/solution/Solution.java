@@ -7,5 +7,9 @@ package com.sonatype.insight.brain.solution;
 
 public enum Solution
 {
-  DEVELOPER, FIREWALL, LIFECYCLE, REPO_MANAGER, SBOM_MANAGER
+  DEVELOPER,
+  FIREWALL,
+  LIFECYCLE,
+  REPO_MANAGER,
+  SBOM_MANAGER
 }

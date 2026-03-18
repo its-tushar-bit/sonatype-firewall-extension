@@ -63,7 +63,7 @@ public class DashboardFilterServiceTest
 
   @Inject
   private DashboardFilterDAO dashboardFilterDAO;
-  
+
   @Inject
   private DashboardFilterService dashboardFilterService;
 
@@ -312,9 +312,7 @@ public class DashboardFilterServiceTest
   }
 
   @Test
-  public void testCreateOrUpdateDashboardFilterForCurrentUser_Update_NeedsAcknowledgementOfInitialDashboardFilter()
-      throws Exception
-  {
+  public void testCreateOrUpdateDashboardFilterForCurrentUser_Update_NeedsAcknowledgementOfInitialDashboardFilter() throws Exception {
     testCreateOrUpdateDashboardFilterForCurrentUser_Update(true);
   }
 
@@ -330,10 +328,10 @@ public class DashboardFilterServiceTest
     setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
 
     NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName1, 3, 9);
-    //this should update the above filter
+    // this should update the above filter
     dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dto2);
 
-    //verify that the filter above was updated successfully
+    // verify that the filter above was updated successfully
     DashboardFilter actual = dashboardFilterDAO.getById(filter1.getId());
     DashboardFilterDTO actualDto = JsonUtils.parse(actual.getFilter(), DashboardFilterDTO.class);
 
@@ -406,9 +404,7 @@ public class DashboardFilterServiceTest
   }
 
   @Test
-  public void testCreateOrUpdateDashboardFilterForCurrentUser_Insert_NeedsAcknowledgementOfInitialDashboardFilter()
-      throws Exception
-  {
+  public void testCreateOrUpdateDashboardFilterForCurrentUser_Insert_NeedsAcknowledgementOfInitialDashboardFilter() throws Exception {
     testCreateOrUpdateDashboardFilterForCurrentUser_Insert(true);
   }
 
@@ -444,9 +440,10 @@ public class DashboardFilterServiceTest
         .withMessage("The dashboard feature has been disabled.");
   }
 
-  private void assertFilterEmptyState(DashboardFilterDTO actualDto,
-                                      int minPolicyThreatLevel,
-                                      int maxPolicyThreatLevel)
+  private void assertFilterEmptyState(
+      DashboardFilterDTO actualDto,
+      int minPolicyThreatLevel,
+      int maxPolicyThreatLevel)
   {
     assertThat(actualDto.minPolicyThreatLevel).isEqualTo(minPolicyThreatLevel);
     assertThat(actualDto.maxPolicyThreatLevel).isEqualTo(maxPolicyThreatLevel);
@@ -464,9 +461,7 @@ public class DashboardFilterServiceTest
   }
 
   @Test
-  public void testGetActiveDashboardFilterForCurrentUser_NewFilter_NeedsAcknowledgementOfInitialDashboardFilter()
-      throws Exception
-  {
+  public void testGetActiveDashboardFilterForCurrentUser_NewFilter_NeedsAcknowledgementOfInitialDashboardFilter() throws Exception {
     testGetActiveDashboardFilterForCurrentUser_NewFilter(true);
   }
 
@@ -509,9 +504,7 @@ public class DashboardFilterServiceTest
   }
 
   @Test
-  public void testGetActiveDashboardFilterForCurrentUser_ExistingFilter_NeedsAcknowledgementOfInitialDashboardFilter()
-      throws Exception
-  {
+  public void testGetActiveDashboardFilterForCurrentUser_ExistingFilter_NeedsAcknowledgementOfInitialDashboardFilter() throws Exception {
     // Create an unnamed active filter that was not acknowledged by the user.
     NamedDashboardFilterDTO namedDashboardFilterDTO = createNamedDashboardFilterDTO(ACTIVE_FILTER_NAME, 5, 7);
     DashboardFilter activeFilter = tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME,
@@ -641,10 +634,12 @@ public class DashboardFilterServiceTest
 
     when(currentUserMock.getUsername()).thenReturn(USERNAME);
     when(currentUserMock.getRealmId()).thenReturn(InternalRealm.ID);
-    doReturn(null).when(dashboardFilterDaoSpy).getByUsernameAndRealmIdAndName(USERNAME, InternalRealm.ID,
-        ACTIVE_FILTER_NAME);
-    doReturn(dashboardFilter).when(dashboardFilterDaoSpy).getByUsernameAndRealmIdAndName(USERNAME,
-        InternalRealm.ID, filterName);
+    doReturn(null).when(dashboardFilterDaoSpy)
+        .getByUsernameAndRealmIdAndName(USERNAME, InternalRealm.ID,
+            ACTIVE_FILTER_NAME);
+    doReturn(dashboardFilter).when(dashboardFilterDaoSpy)
+        .getByUsernameAndRealmIdAndName(USERNAME,
+            InternalRealm.ID, filterName);
     doThrow(new RuntimeException("Something went wrong.")).when(dashboardFilterDaoSpy).delete(dashboardFilter);
 
     assertThatExceptionOfType(RuntimeException.class)
@@ -671,9 +666,10 @@ public class DashboardFilterServiceTest
         .withMessage("The dashboard feature has been disabled.");
   }
 
-  private NamedDashboardFilterDTO createNamedDashboardFilterDTO(String filterName,
-                                                                int minPolicyThreatLevel,
-                                                                int maxPolicyThreatLevel)
+  private NamedDashboardFilterDTO createNamedDashboardFilterDTO(
+      String filterName,
+      int minPolicyThreatLevel,
+      int maxPolicyThreatLevel)
   {
     NamedDashboardFilterDTO dto = new NamedDashboardFilterDTO();
     DashboardFilterDTO filter = new DashboardFilterDTO();
@@ -690,10 +686,11 @@ public class DashboardFilterServiceTest
     return dto;
   }
 
-  private void assertNamedDashboardFilterDTO(NamedDashboardFilterDTO actual,
-                                             String name,
-                                             String basedOnFilterName,
-                                             boolean needsAcknowledgement)
+  private void assertNamedDashboardFilterDTO(
+      NamedDashboardFilterDTO actual,
+      String name,
+      String basedOnFilterName,
+      boolean needsAcknowledgement)
   {
     assertThat(actual.name).isEqualTo(name);
     assertThat(actual.basedOnFilterName).isEqualTo(basedOnFilterName);

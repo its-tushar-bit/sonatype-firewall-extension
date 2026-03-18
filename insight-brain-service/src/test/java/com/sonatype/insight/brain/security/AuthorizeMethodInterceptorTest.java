@@ -45,9 +45,10 @@ public class AuthorizeMethodInterceptorTest
   }
 
   @Authorize(permission = Permission.READ)
-  public String stubSomeContext(@AuthzContext(AuthzContext.Key.TYPE) String arg0,
-                                @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) String arg1,
-                                @SuppressWarnings("unused") String arg2)
+  public String stubSomeContext(
+      @AuthzContext(AuthzContext.Key.TYPE) String arg0,
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) String arg1,
+      @SuppressWarnings("unused") String arg2)
   {
     return arg0;
   }
@@ -82,16 +83,17 @@ public class AuthorizeMethodInterceptorTest
   public void testGetContextParameters_Some() throws Exception {
     when(invoc.getMethod()).thenReturn(
         getClass().getMethod("stubSomeContext", String.class, String.class, String.class));
-    when(invoc.getArguments()).thenReturn(new Object[] { "app", "dev", "foo" });
+    when(invoc.getArguments()).thenReturn(new Object[]{"app", "dev", "foo"});
     Map<AuthzContext.Key, Object> params = AuthorizeMethodInterceptor.getContextParameters(invoc);
     assertThat(params).containsOnlyKeys(AuthzContext.Key.TYPE, AuthzContext.Key.ID)
-        .containsEntry(AuthzContext.Key.TYPE, "app").containsEntry(AuthzContext.Key.ID, "dev");
+        .containsEntry(AuthzContext.Key.TYPE, "app")
+        .containsEntry(AuthzContext.Key.ID, "dev");
   }
 
   @Test
   public void testInvoke_Pass() throws Throwable {
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
-    when(invoc.getArguments()).thenReturn(new Object[] { "test" });
+    when(invoc.getArguments()).thenReturn(new Object[]{"test"});
     when(invoc.proceed()).thenReturn("test");
     when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyMap())).thenReturn(true);
     when(subject.getPrincipal()).thenReturn(adminPrincipal());
@@ -101,7 +103,7 @@ public class AuthorizeMethodInterceptorTest
   @Test
   public void testInvoke_FailWithException() throws Throwable {
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
-    when(invoc.getArguments()).thenReturn(new Object[] { "test" });
+    when(invoc.getArguments()).thenReturn(new Object[]{"test"});
     when(invoc.proceed()).thenReturn("test");
     when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyList())).thenReturn(false);
     when(subject.getPrincipal()).thenReturn(adminPrincipal());
@@ -112,7 +114,7 @@ public class AuthorizeMethodInterceptorTest
   @Test
   public void testInvoke_NoPrincipal() throws Throwable {
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
-    when(invoc.getArguments()).thenReturn(new Object[] { "test" });
+    when(invoc.getArguments()).thenReturn(new Object[]{"test"});
     when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyList())).thenReturn(true);
     assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() -> interceptor.invoke(invoc))
         .withMessage("Anonymous access forbidden");

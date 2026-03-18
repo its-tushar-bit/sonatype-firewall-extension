@@ -82,12 +82,12 @@ public abstract class AbstractOwnerDetailsEditingTest
 
     if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
       ltgs = new LicenseThreatGroup[]{
-          tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Bar", 1),
-          tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Foo", 10)
+        tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Bar", 1),
+        tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Foo", 10)
       };
       policies = new Policy[]{
-          tempEntity.newPolicy(currentOwner.getId(), "Bar", 1),
-          tempEntity.newPolicy(currentOwner.getId(), "Foo", 10)
+        tempEntity.newPolicy(currentOwner.getId(), "Bar", 1),
+        tempEntity.newPolicy(currentOwner.getId(), "Foo", 10)
       };
       category = tempEntity.newTag(currentOwner.getId());
     }

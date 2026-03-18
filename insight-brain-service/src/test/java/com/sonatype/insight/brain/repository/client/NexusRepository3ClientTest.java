@@ -41,7 +41,7 @@ public class NexusRepository3ClientTest
 {
   @Rule
   public WireMockRule nxrm3MockSever = new WireMockRule(wireMockConfig().dynamicPort());
-  
+
   public static final String NXRM_VERSION_HEADER_MOCK_VALUE = "Nexus/3.37.3-02 (PRO)";
 
   @Mock

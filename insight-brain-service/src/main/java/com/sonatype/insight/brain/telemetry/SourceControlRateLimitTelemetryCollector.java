@@ -64,8 +64,7 @@ public class SourceControlRateLimitTelemetryCollector
         DigestUtils.sha512Hex(userId),
         calls,
         minRemaining,
-        timesExceeded
-    ));
+        timesExceeded));
 
     telemetryDataList.add(telemetryData);
   }

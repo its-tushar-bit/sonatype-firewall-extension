@@ -142,12 +142,12 @@ public class FirewallAutoUnquarantinePageTest
 
   @Test
   public void testFirewallAutoUnquarantinePage_LoadErrorTest() {
-    //induce error by removing feature
+    // induce error by removing feature
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
 
-    //verify initial status with error
+    // verify initial status with error
     page.shouldBe(visible);
     page.firewallConfigurationModal().shouldBe(hidden);
     page.firewallAutoUnquarantineStatus().shouldBe(hidden);
@@ -156,10 +156,10 @@ public class FirewallAutoUnquarantinePageTest
     page.loadError().shouldBe(visible);
     page.retryButton().shouldBe(visible);
 
-    //resolve error
+    // resolve error
     testProductLicense.reset();
 
-    //retry
+    // retry
     page.retryButton().click();
 
     page.shouldBe(visible);
@@ -189,40 +189,52 @@ public class FirewallAutoUnquarantinePageTest
     NxTableHeader quarantineTimeHeader = page.firewallUnquarantineTable().quarantineTimeHeader();
     NxTableHeader releaseQuarantineTimeHeader = page.firewallUnquarantineTable().releaseQuarantineTimeHeader();
 
-    quarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Quarantine Date unsorted"));
-    releaseQuarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Date Cleared unsorted"));
+    quarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Quarantine Date unsorted"));
+    releaseQuarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Date Cleared unsorted"));
     quarantineTimeHeader.click();
 
-    quarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Quarantine Date ascending"));
-    releaseQuarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Date Cleared unsorted"));
+    quarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Quarantine Date ascending"));
+    releaseQuarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Date Cleared unsorted"));
     quarantineTimeHeader.click();
 
-    quarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Quarantine Date descending"));
-    releaseQuarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Date Cleared unsorted"));
+    quarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Quarantine Date descending"));
+    releaseQuarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Date Cleared unsorted"));
     releaseQuarantineTimeHeader.click();
 
-    quarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Quarantine Date unsorted"));
-    releaseQuarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Date Cleared ascending"));
+    quarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Quarantine Date unsorted"));
+    releaseQuarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Date Cleared ascending"));
     releaseQuarantineTimeHeader.click();
 
-    quarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Quarantine Date unsorted"));
-    releaseQuarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Date Cleared descending"));
+    quarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Quarantine Date unsorted"));
+    releaseQuarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Date Cleared descending"));
     releaseQuarantineTimeHeader.click();
 
-    quarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Quarantine Date unsorted"));
-    releaseQuarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Date Cleared unsorted"));
+    quarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Quarantine Date unsorted"));
+    releaseQuarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Date Cleared unsorted"));
   }
 
   @Test

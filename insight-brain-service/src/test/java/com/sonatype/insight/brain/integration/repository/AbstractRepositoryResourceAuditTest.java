@@ -380,7 +380,8 @@ public abstract class AbstractRepositoryResourceAuditTest
 
     restRequest().path(getResourcePath(), AbstractRepositoryResource.PROPRIETARY_NAMES_PATH)
         .parameter(repositoryManager.getInstanceId(), REPOSITORY_PUBLIC_ID)
-        .body(new ProprietaryComponentNames("npm").addNames("name1", "name").addNamespaces("namespace1")).post();
+        .body(new ProprietaryComponentNames("npm").addNames("name1", "name").addNamespaces("namespace1"))
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.ADD_PROPRIETARY_COMPONENT_NAMES, null);
     assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
@@ -395,7 +396,8 @@ public abstract class AbstractRepositoryResourceAuditTest
     restRequest().path(getResourcePath(), AbstractRepositoryResource.PROPRIETARY_NAMES_PATH)
         .parameter(repositoryManager.getInstanceId(), REPOSITORY_PUBLIC_ID)
         .body(new ProprietaryComponentNames("npm").addNames("name1", "name").addNamespaces("namespace1"))
-        .with(unauthorizedUser()).post();
+        .with(unauthorizedUser())
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.ADD_PROPRIETARY_COMPONENT_NAMES, "unauthorized");
     assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
@@ -417,7 +419,9 @@ public abstract class AbstractRepositoryResourceAuditTest
     ConfigureRepositoriesRequest configureRepositoriesRequest = createConfigureRepositoriesRequest(repositoryDTO);
 
     restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
-        .parameter(repositoryManager.getInstanceId()).body(configureRepositoriesRequest).post();
+        .parameter(repositoryManager.getInstanceId())
+        .body(configureRepositoriesRequest)
+        .post();
 
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.CONFIGURE_REPOSITORY, 2, null /* error */);
     for (AuditDTO auditDTO : auditDTOs) {
@@ -447,7 +451,9 @@ public abstract class AbstractRepositoryResourceAuditTest
     ConfigureRepositoriesRequest configureRepositoriesRequest = createConfigureRepositoriesRequest(repositoryDTO);
 
     restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
-        .parameter(repositoryManager.getInstanceId()).body(configureRepositoriesRequest).post();
+        .parameter(repositoryManager.getInstanceId())
+        .body(configureRepositoriesRequest)
+        .post();
 
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.CONFIGURE_REPOSITORY, 2, null /* error */);
     for (AuditDTO auditDTO : auditDTOs) {
@@ -477,7 +483,9 @@ public abstract class AbstractRepositoryResourceAuditTest
     ConfigureRepositoriesRequest configureRepositoriesRequest = createConfigureRepositoriesRequest(repositoryDTO);
 
     restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
-        .parameter(repositoryManager.getInstanceId()).body(configureRepositoriesRequest).post();
+        .parameter(repositoryManager.getInstanceId())
+        .body(configureRepositoriesRequest)
+        .post();
 
     List<AuditDTO> auditDTOs = getLogEntries(AuditEvent.CONFIGURE_REPOSITORY);
     for (AuditDTO auditDTO : auditDTOs) {
@@ -515,7 +523,9 @@ public abstract class AbstractRepositoryResourceAuditTest
     ConfigureRepositoriesRequest configureRepositoriesRequest = createConfigureRepositoriesRequest(repositoryDTO);
 
     restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
-        .parameter(repositoryManager.getInstanceId()).body(configureRepositoriesRequest).post();
+        .parameter(repositoryManager.getInstanceId())
+        .body(configureRepositoriesRequest)
+        .post();
 
     List<AuditDTO> auditDTOs = getLogEntries(AuditEvent.CONFIGURE_REPOSITORY);
     for (AuditDTO auditDTO : auditDTOs) {
@@ -541,7 +551,8 @@ public abstract class AbstractRepositoryResourceAuditTest
     Repository repository = tempEntity.newRepository(repositoryManager, "testRepoMaven", "maven2");
 
     restRequest().path(getResourcePath(), AbstractRepositoryResource.REPOSITORY_PATH)
-        .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).delete();
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+        .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_REPOSITORY, null);
     assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
@@ -554,7 +565,8 @@ public abstract class AbstractRepositoryResourceAuditTest
 
     restRequest().path(getResourcePath(), AbstractRepositoryResource.CONFIGURE_REPOSITORIES_PATH)
         .parameter(repositoryManager.getInstanceId())
-        .with(unauthorizedUser()).post();
+        .with(unauthorizedUser())
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY, "unauthorized");
     assertCustomData(auditDTO, "repositoryManagerInstanceId", repositoryManager.getInstanceId());
@@ -569,20 +581,24 @@ public abstract class AbstractRepositoryResourceAuditTest
         .parameter(repositoryManagerInstanceId, repositoryPublicId, auditEnabled);
   }
 
-  private HttpRequest evaluateRequest(boolean withQuarantine,
-                                      String repositoryManagerInstanceId,
-                                      String repositoryPublicId,
-                                      RepositoryComponentEvaluationDataRequestList repoComponentEvalList)
+  private HttpRequest evaluateRequest(
+      boolean withQuarantine,
+      String repositoryManagerInstanceId,
+      String repositoryPublicId,
+      RepositoryComponentEvaluationDataRequestList repoComponentEvalList)
   {
     return restRequest().path(getResourcePath(),
-        withQuarantine ? AbstractRepositoryResource.EVALUATE_COMPONENTS_WITH_QUARANTINE_PATH
+        withQuarantine
+            ? AbstractRepositoryResource.EVALUATE_COMPONENTS_WITH_QUARANTINE_PATH
             : AbstractRepositoryResource.EVALUATE_COMPONENTS_PATH)
-        .parameter(repositoryManagerInstanceId, repositoryPublicId).body(repoComponentEvalList);
+        .parameter(repositoryManagerInstanceId, repositoryPublicId)
+        .body(repoComponentEvalList);
   }
 
-  private HttpRequest quarantineRequest(String repositoryManagerInstanceId,
-                                        String repositoryPublicId,
-                                        boolean enabled)
+  private HttpRequest quarantineRequest(
+      String repositoryManagerInstanceId,
+      String repositoryPublicId,
+      boolean enabled)
   {
     return restRequest().path(getResourcePath(), AbstractRepositoryResource.QUARANTINE_PATH)
         .parameter(repositoryManagerInstanceId, repositoryPublicId, enabled);

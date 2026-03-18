@@ -139,7 +139,7 @@ public class IntegrationsPageTest
     prioritiesReportViewLink(7).shouldBe(visible).shouldHave(text("View"));
 
     Selenide.sleep(1000);
-    //eyesWatcher.eyesCheck(); https://sonatype.atlassian.net/browse/CLM-30559
+    // eyesWatcher.eyesCheck(); https://sonatype.atlassian.net/browse/CLM-30559
 
     prioritiesReportViewLink(9).click();
 
@@ -230,9 +230,7 @@ public class IntegrationsPageTest
   }
 
   @Test
-  public void testAppIntegrationsAndRiskTable_shouldCorrectlyShowScmAsConfiguredWhenConfiguredFully()
-      throws PlexusCipherException
-  {
+  public void testAppIntegrationsAndRiskTable_shouldCorrectlyShowScmAsConfiguredWhenConfiguredFully() throws PlexusCipherException {
     final Application applicationWithScmConfigured = tempEntity.newApplicationWithParent("app1", "app1");
 
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null,
@@ -258,8 +256,7 @@ public class IntegrationsPageTest
         true,
         true,
         false,
-        false
-    );
+        false);
 
     refreshOrOpen(IntegrationsPage.urlOverview());
 
@@ -272,9 +269,7 @@ public class IntegrationsPageTest
   }
 
   @Test
-  public void testAppIntegrationsAndRiskTable_shouldCorrectlyShowScmAsNotConfiguredWhenNotConfiguredFully()
-      throws PlexusCipherException
-  {
+  public void testAppIntegrationsAndRiskTable_shouldCorrectlyShowScmAsNotConfiguredWhenNotConfiguredFully() throws PlexusCipherException {
     final Application applicationWithScmConfigured = tempEntity.newApplicationWithParent("app1", "app1");
 
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null,
@@ -342,7 +337,7 @@ public class IntegrationsPageTest
 
     developerDashboardGraphTooltip().shouldBe(visible);
 
-    //eyesWatcher.eyesCheck(null, false, false); https://sonatype.atlassian.net/browse/CLM-30559
+    // eyesWatcher.eyesCheck(null, false, false); https://sonatype.atlassian.net/browse/CLM-30559
   }
 
   @Test

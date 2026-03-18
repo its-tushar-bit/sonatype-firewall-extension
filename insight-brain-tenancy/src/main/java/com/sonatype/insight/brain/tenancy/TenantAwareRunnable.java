@@ -25,9 +25,9 @@ public class TenantAwareRunnable
   private final Tenant tenant;
 
   /*
-  In Shiro 2.0.4+ a change removed the InheritableThreadLocal approach from ThreadContext
-  (it was causing nasty classloader/thread-local cleanup problems in app servers when apps spawned threads)
-  */
+   * In Shiro 2.0.4+ a change removed the InheritableThreadLocal approach from ThreadContext
+   * (it was causing nasty classloader/thread-local cleanup problems in app servers when apps spawned threads)
+   */
   private final Subject subject;
 
   public TenantAwareRunnable(Runnable wrapped) {

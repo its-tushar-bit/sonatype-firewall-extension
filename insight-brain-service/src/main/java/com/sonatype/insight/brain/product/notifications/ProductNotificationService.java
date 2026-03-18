@@ -63,9 +63,11 @@ public class ProductNotificationService
       String username = currentUser.getUsername();
       String realmId = currentUser.getRealmId();
       if (userViewedProductNotificationDAO.getByUsernameAndRealmIdAndNotificationId(tx, username, realmId,
-          notificationDTO.id) == null) {
+          notificationDTO.id) == null)
+      {
         if (userViewedProductNotificationDAO.getLegacyByUsernameAndNotificationId(tx, username,
-            notificationDTO.id) != null) {
+            notificationDTO.id) != null)
+        {
           userViewedProductNotificationDAO.deleteLegacyByUsername(tx, username);
         }
         UserViewedProductNotification userViewedProductNotification =
@@ -83,19 +85,22 @@ public class ProductNotificationService
   private Set<String> getViewedNotificationIdSet() {
     Set<String> notificationIdSet = new HashSet<>();
     for (UserViewedProductNotification viewedMapping : userViewedProductNotificationDAO
-        .getByUsernameAndRealmId(currentUser.getUsername(), currentUser.getRealmId())) {
+        .getByUsernameAndRealmId(currentUser.getUsername(), currentUser.getRealmId()))
+    {
       notificationIdSet.add(viewedMapping.getNotificationId());
     }
     for (UserViewedProductNotification viewedMapping : userViewedProductNotificationDAO
-        .getLegacyByUsername(currentUser.getUsername())) {
+        .getLegacyByUsername(currentUser.getUsername()))
+    {
       notificationIdSet.add(viewedMapping.getNotificationId());
     }
     return notificationIdSet;
   }
 
-  private List<ProductNotification> getPage(final List<ProductNotification> notificationList,
-                                            final int pageSize,
-                                            final int page)
+  private List<ProductNotification> getPage(
+      final List<ProductNotification> notificationList,
+      final int pageSize,
+      final int page)
   {
     if (pageSize >= notificationList.size()) {
       if (page == 1) {
@@ -115,8 +120,9 @@ public class ProductNotificationService
   }
 
   @VisibleForTesting
-  protected ProductNotificationListDTO convert(final List<ProductNotification> notifications,
-                                               final Set<String> viewedNotificationSet)
+  protected ProductNotificationListDTO convert(
+      final List<ProductNotification> notifications,
+      final Set<String> viewedNotificationSet)
   {
     ProductNotificationListDTO notificationListDTO = new ProductNotificationListDTO();
     notificationListDTO.notifications = new ArrayList<>(notifications.size());

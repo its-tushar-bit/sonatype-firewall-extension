@@ -96,33 +96,33 @@ public class ApplicationEvaluationResource
   {
     if (stage.getStageTypeId().equals(Stage.ID_PROXY)) {
       return evaluateWithPollingForContainerImageEvaluation(
-              applicationPublicId, integrationType, stage, clientScanType, req);
+          applicationPublicId, integrationType, stage, clientScanType, req);
     }
     else {
       return evaluateWithPollingForApplicationEvaluation(
-              applicationPublicId, integrationType, stage, clientScanType, req);
+          applicationPublicId, integrationType, stage, clientScanType, req);
     }
   }
 
   @ProductLicenseEnforcementPoint(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
   @HasFeature(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED)
   PolicyEvaluationReceipt evaluateWithPollingForContainerImageEvaluation(
-          String applicationPublicId,
-          IntegrationType integrationType,
-          Stage stage,
-          ClientScanType clientScanType,
-          HttpServletRequest req) throws IOException
+      String applicationPublicId,
+      IntegrationType integrationType,
+      Stage stage,
+      ClientScanType clientScanType,
+      HttpServletRequest req) throws IOException
   {
     return policyEvaluateService.evaluateWithPolling(integrationType, applicationPublicId, clientScanType, req, stage);
   }
 
   @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
   PolicyEvaluationReceipt evaluateWithPollingForApplicationEvaluation(
-          String applicationPublicId,
-          IntegrationType integrationType,
-          Stage stage,
-          ClientScanType clientScanType,
-          HttpServletRequest req) throws IOException
+      String applicationPublicId,
+      IntegrationType integrationType,
+      Stage stage,
+      ClientScanType clientScanType,
+      HttpServletRequest req) throws IOException
   {
     return policyEvaluateService.evaluateWithPolling(integrationType, applicationPublicId, clientScanType, req, stage);
   }

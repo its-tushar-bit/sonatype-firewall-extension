@@ -28,7 +28,7 @@ public class RecentVulnerabilitiesDTO
     refId = (String) array[0];
     severity = (double) array[1];
     severityStatus = String.valueOf(array[2]);
-    createdAt = (Date)array[3];
+    createdAt = (Date) array[3];
   }
 
   public String getRefId() {

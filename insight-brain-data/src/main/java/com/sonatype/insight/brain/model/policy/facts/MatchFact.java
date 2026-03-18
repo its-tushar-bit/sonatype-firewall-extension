@@ -26,19 +26,21 @@ public class MatchFact
    */
   private final List<ConditionTrigger> conditionTriggers;
 
-  public MatchFact(final Component component,
-                   final String policyId,
-                   final String constraintId,
-                   final List<ConditionTrigger> conditionTriggers)
+  public MatchFact(
+      final Component component,
+      final String policyId,
+      final String constraintId,
+      final List<ConditionTrigger> conditionTriggers)
   {
     this(component, policyId, constraintId, -1 /* indicates all conditions */, conditionTriggers);
   }
 
-  public MatchFact(final Component component,
-                   final String policyId,
-                   final String constraintId,
-                   final int conditionIndex,
-                   final List<ConditionTrigger> conditionTriggers)
+  public MatchFact(
+      final Component component,
+      final String policyId,
+      final String constraintId,
+      final int conditionIndex,
+      final List<ConditionTrigger> conditionTriggers)
   {
     this.component = component;
     this.policyId = policyId;
@@ -74,7 +76,9 @@ public class MatchFact
   }
 
   public ConditionTrigger getConditionTriggerByConditionIndex(int conditionIndex) {
-    return getConditionTriggers().stream().filter(x -> x.getConditionIndex() == conditionIndex).findFirst()
+    return getConditionTriggers().stream()
+        .filter(x -> x.getConditionIndex() == conditionIndex)
+        .findFirst()
         .orElse(null);
   }
 }

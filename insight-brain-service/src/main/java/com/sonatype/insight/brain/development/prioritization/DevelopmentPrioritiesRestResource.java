@@ -46,8 +46,7 @@ public class DevelopmentPrioritiesRestResource
       @DefaultValue(DEFAULT_PAGE) @QueryParam("page") final int page,
       @DefaultValue(DEFAULT_PAGE_SIZE) @QueryParam("pageSize") final int pageSize,
       @QueryParam("componentNameFilter") final String componentNameFilter,
-      @QueryParam("filterOnPolicyActions") @DefaultValue("true") final boolean filterOnPolicyActions
-  )
+      @QueryParam("filterOnPolicyActions") @DefaultValue("true") final boolean filterOnPolicyActions)
   {
     return developmentPrioritiesService
         .getPrioritizedFindings(applicationId, scanId, page, pageSize,

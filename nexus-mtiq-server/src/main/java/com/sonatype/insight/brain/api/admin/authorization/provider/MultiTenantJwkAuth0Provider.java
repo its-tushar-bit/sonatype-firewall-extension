@@ -38,7 +38,7 @@ public class MultiTenantJwkAuth0Provider
     auth0Config = multiTenantInsightConfig.getAuth0Config();
 
     try {
-      //Caching for 2 keys (current, next) with 24h ttl.
+      // Caching for 2 keys (current, next) with 24h ttl.
       jwkProvider = new JwkProviderBuilder(auth0Config.getDomain()).cached(2, 24, TimeUnit.HOURS).build();
       log.debug("Jwk Auth0 Provider created using domain {}", auth0Config.getDomain());
     }

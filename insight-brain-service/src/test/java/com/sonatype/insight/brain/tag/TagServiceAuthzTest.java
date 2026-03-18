@@ -187,8 +187,10 @@ public class TagServiceAuthzTest
     Tag tag2 = tempEntity.newTag(organization2.getId());
     tempEntity.newApplicationTag(application2.getId(), tag2.getId());
 
-    List<Tag> allTags = tagService.getTagsUsedByApplications().stream()
-        .map(dto -> TagService.fromDTO(dto, dto.organizationId)).collect(Collectors.toList());
+    List<Tag> allTags = tagService.getTagsUsedByApplications()
+        .stream()
+        .map(dto -> TagService.fromDTO(dto, dto.organizationId))
+        .collect(Collectors.toList());
     assertThat(allTags).extracting(Tag::getId).containsExactly(tag1.getId());
   }
 

@@ -191,8 +191,10 @@ public class UserTokenServiceTest
       assertThat(persistedToken.isInternalUser()).isFalse();
       assertThat(persistedToken.getPassCode()).isNotEqualTo(apiUserTokenDTO.passCode);
 
-      assertThat(spySamlUserDAO.getByUsername(samlUser.getUsername())).usingRecursiveComparison().ignoringFields(
-          JPA.IGNORE_FIELDS).isEqualTo(samlUser);
+      assertThat(spySamlUserDAO.getByUsername(samlUser.getUsername())).usingRecursiveComparison()
+          .ignoringFields(
+              JPA.IGNORE_FIELDS)
+          .isEqualTo(samlUser);
       verify(spySamlUserDAO, never()).insert(any(), any());
     }
     finally {
@@ -241,8 +243,10 @@ public class UserTokenServiceTest
       assertThat(persistedToken.isInternalUser()).isFalse();
       assertThat(persistedToken.getPassCode()).isNotEqualTo(apiUserTokenDTO.passCode);
 
-      assertThat(spyOAuth2UserDAO.getByUsername(oauth2User.getUsername())).usingRecursiveComparison().ignoringFields(
-          JPA.IGNORE_FIELDS).isEqualTo(oauth2User);
+      assertThat(spyOAuth2UserDAO.getByUsername(oauth2User.getUsername())).usingRecursiveComparison()
+          .ignoringFields(
+              JPA.IGNORE_FIELDS)
+          .isEqualTo(oauth2User);
       verify(spyOAuth2UserDAO, never()).insert(any(), any());
     }
     finally {
@@ -277,7 +281,8 @@ public class UserTokenServiceTest
     tempEntity.newUserToken(username, InternalRealm.ID);
     when(subject.getPrincipal()).thenReturn(new UserPrincipal("JohnDoe", "John Doe", InternalRealm.ID));
     assertThatThrownBy(() -> userTokenService.createUserToken())
-        .isInstanceOf(BadRequestException.class).hasMessage("UserToken already exists for user: JohnDoe");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("UserToken already exists for user: JohnDoe");
   }
 
   @Test
@@ -565,7 +570,7 @@ public class UserTokenServiceTest
       userTokenDAO.delete(userTokenDAO.getByUsernameAndRealmId(userPrincipal.getUsername(), CrowdRealm.ID));
     }
   }
-  
+
   @Test
   public void testGetUserTokensCreatedBetweenAndRealmId_Crowd_CrowdIntegrationFeatureDisabled() {
     SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
@@ -578,10 +583,10 @@ public class UserTokenServiceTest
         userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", User.INTERNAL_REALM_ID);
 
     assertThat(result).extracting(dto -> dto.username).containsExactly(internal2.getUsername());
-    
+
     result =
         userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", CrowdRealm.ID);
-    
+
     assertThat(result).extracting(dto -> dto.username).containsExactly(internal2.getUsername());
   }
 

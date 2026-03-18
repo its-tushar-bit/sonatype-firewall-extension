@@ -199,8 +199,7 @@ public class ApiCrowdConfigurationServiceTest
   private void testInsertOrUpdateCrowdConfiguration_Update_EmptyOrWhitespaceValue(
       String fieldName,
       String value,
-      String expectedErrorMessage)
-      throws Exception
+      String expectedErrorMessage) throws Exception
   {
     CrowdConfiguration crowdConfiguration = dao.get();
     ApiCrowdConfigurationDTO dto = new ApiCrowdConfigurationDTO();

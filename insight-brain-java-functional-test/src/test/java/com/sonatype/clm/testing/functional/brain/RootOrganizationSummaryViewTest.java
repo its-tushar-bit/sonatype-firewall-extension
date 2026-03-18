@@ -32,7 +32,8 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
+public class RootOrganizationSummaryViewTest
+    extends AbstractFunctionalTest
 {
   private Organization rootOrg;
 
@@ -65,12 +66,16 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(
-        Condition.text(String.format("Configures the integration with an external SCM for the %s", rootOrg.getName())));
+    tile.nxSubHeader()
+        .shouldBe(visible)
+        .shouldHave(
+            Condition
+                .text(String.format("Configures the integration with an external SCM for the %s", rootOrg.getName())));
     tile.rows().shouldHave(size(1));
 
     tile.itemSubText().shouldNotBe(visible);
-    tile.itemText().shouldBe(visible)
+    tile.itemText()
+        .shouldBe(visible)
         .shouldHave(Condition.text("Source Control not configured"));
 
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, "TEST_TOKEN", SourceControlProvider.GITHUB);
@@ -81,16 +86,20 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(
-        Condition.text(String.format("Configures the integration with an external SCM for the %s", rootOrg.getName())));
+    tile.nxSubHeader()
+        .shouldBe(visible)
+        .shouldHave(
+            Condition
+                .text(String.format("Configures the integration with an external SCM for the %s", rootOrg.getName())));
     tile.rows().shouldHave(size(1));
 
-    //Verify valid source control record exists here
+    // Verify valid source control record exists here
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
-    tile.itemSubText().shouldBe(visible)
+    tile.itemSubText()
+        .shouldBe(visible)
         .shouldHave(Condition.text("Provides the default source control configuration settings"));
 
-    //eyesWatcher.eyesCheck("Valid source control configured"); https://sonatype.atlassian.net/browse/CLM-30559
+    // eyesWatcher.eyesCheck("Valid source control configured"); https://sonatype.atlassian.net/browse/CLM-30559
   }
 
   @Test
@@ -118,8 +127,10 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Configures the integration with an external SCM for the %s", rootOrg.getName())));
+    tile.nxSubHeader()
+        .shouldBe(visible)
+        .shouldHave(Condition.text(String
+            .format("Configures the integration with an external SCM for the %s", rootOrg.getName())));
     tile.content().shouldBe(visible);
 
     tile.itemText().shouldBe(visible);

@@ -84,14 +84,13 @@ public class ApiCiConfigurationResource
       responseCode = "404",
       description = "No CI configuration found for the specified owner or its hierarchy.")
   public ApiCiConfigurationResponseDto getConfiguration(
-      @Parameter(description = "The owner type (application or organization)", required = true)
-      @PathParam("ownerType") final OwnerType ownerType,
-      @Parameter(description = "The internal ID of the owner", required = true)
-      @PathParam("ownerId") final String ownerId,
+      @Parameter(description = "The owner type (application or organization)",
+          required = true) @PathParam("ownerType") final OwnerType ownerType,
+      @Parameter(description = "The internal ID of the owner",
+          required = true) @PathParam("ownerId") final String ownerId,
       @Parameter(description = """
           Set to true to retrieve only direct configuration, false (default) to retrieve merged configuration \
-          from hierarchy""")
-      @QueryParam("direct") @DefaultValue("false") final boolean direct)
+          from hierarchy""") @QueryParam("direct") @DefaultValue("false") final boolean direct)
   {
     return ciConfigurationService.getConfiguration(ownerType, ownerId, direct);
   }
@@ -115,16 +114,15 @@ public class ApiCiConfigurationResource
       description = "Invalid configuration provided (e.g., empty strings).")
   @Audited(AuditEvent.UPDATE_CI_CONFIGURATION)
   public ApiCiConfigurationDto setConfiguration(
-      @Parameter(description = "The owner type (application or organization)", required = true)
-      @PathParam("ownerType") final OwnerType ownerType,
-      @Parameter(description = "The internal ID of the owner", required = true)
-      @PathParam("ownerId") final String ownerId,
+      @Parameter(description = "The owner type (application or organization)",
+          required = true) @PathParam("ownerType") final OwnerType ownerType,
+      @Parameter(description = "The internal ID of the owner",
+          required = true) @PathParam("ownerId") final String ownerId,
       @RequestBody(
           description = """
               Provide the CI integration configuration as a JSON object. The structure supports different \
               CI systems.""",
-          useParameterTypeSchema = true)
-      final ApiCiConfigurationDto configuration)
+          useParameterTypeSchema = true) final ApiCiConfigurationDto configuration)
   {
     return ciConfigurationService.setConfiguration(ownerType, ownerId, configuration);
   }
@@ -143,10 +141,10 @@ public class ApiCiConfigurationResource
       description = "CI configuration not found for the specified owner.")
   @Audited(AuditEvent.DELETE_CI_CONFIGURATION)
   public void deleteConfiguration(
-      @Parameter(description = "The owner type (application or organization)", required = true)
-      @PathParam("ownerType") final OwnerType ownerType,
-      @Parameter(description = "The internal ID of the owner", required = true)
-      @PathParam("ownerId") final String ownerId)
+      @Parameter(description = "The owner type (application or organization)",
+          required = true) @PathParam("ownerType") final OwnerType ownerType,
+      @Parameter(description = "The internal ID of the owner",
+          required = true) @PathParam("ownerId") final String ownerId)
   {
     ciConfigurationService.deleteConfiguration(ownerType, ownerId);
   }

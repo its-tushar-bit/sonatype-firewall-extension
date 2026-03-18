@@ -61,7 +61,8 @@ public class ReleaseGraphResourceTest
     copyReport("report");
     HttpResponse response = addCoords(
         addCoords(getRequest(app.getPublicId(), scanId),
-            ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar")), "ignored",
+            ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar")),
+        "ignored",
         "ignored", "ignored").get();
     assertResponseStatus(200, response);
     byte[] image = response.getBodyBytes();

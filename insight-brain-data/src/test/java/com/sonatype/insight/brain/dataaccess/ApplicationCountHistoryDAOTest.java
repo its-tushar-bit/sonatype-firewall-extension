@@ -5,6 +5,7 @@
  */
 
 package com.sonatype.insight.brain.dataaccess;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -51,15 +52,15 @@ public class ApplicationCountHistoryDAOTest
 
     assertThat(applicationCountHistoryDAO.getApplicationCountAtOrDefault(
         Date.from(Instant.now().plus(1, ChronoUnit.DAYS))))
-        .isEqualTo(145);
+            .isEqualTo(145);
 
     assertThat(applicationCountHistoryDAO.getApplicationCountAtOrDefault(
         Date.from(Instant.now().minus(3, ChronoUnit.DAYS))))
-        .isEqualTo(133);
+            .isEqualTo(133);
 
     assertThat(applicationCountHistoryDAO.getApplicationCountAtOrDefault(
         Date.from(Instant.now().minus(14, ChronoUnit.DAYS))))
-        .isEqualTo(0);
+            .isEqualTo(0);
   }
 
   @Test
@@ -70,7 +71,7 @@ public class ApplicationCountHistoryDAOTest
     tempEntity.newApplicationCountHistoryEntry(givenDate, givenGivenTotalCount);
 
     assertThat(applicationCountHistoryDAO.getApplicationCountAtOrDefault(
-        Date.from(LocalDate.of(1970,1,1).atStartOfDay(ZoneId.systemDefault()).toInstant())))
-        .isEqualTo(0);
+        Date.from(LocalDate.of(1970, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant())))
+            .isEqualTo(0);
   }
 }

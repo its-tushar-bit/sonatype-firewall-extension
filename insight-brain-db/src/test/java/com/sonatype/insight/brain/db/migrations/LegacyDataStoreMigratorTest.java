@@ -44,8 +44,7 @@ public class LegacyDataStoreMigratorTest
   @H2DiskTest(
       suppressMigrations = true,
       copyExistingDatabase = "DataStoreMigratorTest/" +
-          "testMigrate_VersionFileUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript"
-  )
+          "testMigrate_VersionFileUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript")
   @Category(SlowTest.class)
   public void testMigrate_VersionFileUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript() throws Exception {
     File databaseVersionFile = new File(getDatabasePath(), "dm.ver");
@@ -58,7 +57,7 @@ public class LegacyDataStoreMigratorTest
     // this case, schema_incremental_0006.sql).
     assertThatThrownBy(
         () -> runDataStoreMigrator(databaseRule.getDataMartDataStore())).isInstanceOf(
-        ScriptStatementFailedException.class);
+            ScriptStatementFailedException.class);
     assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo("6");
   }
 
@@ -73,7 +72,7 @@ public class LegacyDataStoreMigratorTest
     // this case, schema_incremental_0006.sql).
     assertThatThrownBy(
         () -> runDataStoreMigrator(databaseRule.getDataMartDataStore())).isInstanceOf(
-        ScriptStatementFailedException.class);
+            ScriptStatementFailedException.class);
 
     File backupFile = new File(getDatabasePath(), "backup/dm.zip");
     assertThat(backupFile).isFile();
@@ -83,8 +82,7 @@ public class LegacyDataStoreMigratorTest
   @H2DiskTest(
       suppressMigrations = true,
       copyExistingDatabase = "DataStoreMigratorTest/" +
-          "testMigrate_CreatesDatabaseBackup_DatabaseVersionStoredInSeparateFile"
-  )
+          "testMigrate_CreatesDatabaseBackup_DatabaseVersionStoredInSeparateFile")
   @Category(SlowTest.class)
   public void testMigrate_CreatesDatabaseBackup_DatabaseVersionStoredInSeparateFile() throws Exception {
     // The migration should fail because schema_incremental_0007.sql drops the license_category table, but we already
@@ -93,7 +91,7 @@ public class LegacyDataStoreMigratorTest
     // this case, schema_incremental_0006.sql).
     assertThatThrownBy(
         () -> runDataStoreMigrator(databaseRule.getDataMartDataStore())).isInstanceOf(
-        ScriptStatementFailedException.class);
+            ScriptStatementFailedException.class);
 
     File backupFile = new File(getDatabasePath(), "backup/dm.zip");
     assertThat(backupFile).isFile();
@@ -103,8 +101,7 @@ public class LegacyDataStoreMigratorTest
   @H2DiskTest(
       suppressMigrations = true,
       copyExistingDatabase = "DataStoreMigratorTest/" +
-          "testMigrate_VersionUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript"
-  )
+          "testMigrate_VersionUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript")
   @Category(SlowTest.class)
   public void testMigrate_VersionUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript() throws Exception {
     // Note - this test is an H2 database named `test.h2.db` which contains a schema named this
@@ -126,8 +123,7 @@ public class LegacyDataStoreMigratorTest
   @Test
   @H2DiskTest(
       suppressMigrations = true,
-      copyExistingDatabase = "DataStoreMigratorTest/PostIncrementalMigrator"
-  )
+      copyExistingDatabase = "DataStoreMigratorTest/PostIncrementalMigrator")
   @Category(SlowTest.class)
   public void testMigrate_RunsPostIncrementalMigrators() throws Exception {
     DatabaseConfig databaseConfig = getDatabaseConfig("test");
@@ -182,9 +178,10 @@ public class LegacyDataStoreMigratorTest
 
     assertThatThrownBy(
         () -> runDataStoreMigrator(new TestDataStore(databaseConfig, "MissingVersion", "MissingVersion")))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessage("Missing the database schema version either in the database itself or in the database version " +
-            "file " + databaseVersionFile + ".");
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage(
+                "Missing the database schema version either in the database itself or in the database version " +
+                    "file " + databaseVersionFile + ".");
   }
 
   @Test
@@ -193,12 +190,12 @@ public class LegacyDataStoreMigratorTest
   public void testMigrate_OperationalDataStore_ThrowsExceptionDuringExecute() {
     assertThatThrownBy(() -> newDataStoreMigrator(databaseRule.getOperationalDataStore())
         .runPostIncrementalMigrator("/DataStoreMigratorTest/"
-                + "testMigrate_OperationalDataStore_ThrowsExecuteExceptionMessage/schema_incremental_0089.cls",
+            + "testMigrate_OperationalDataStore_ThrowsExecuteExceptionMessage/schema_incremental_0089.cls",
             mock(DataSource.class), databaseRule.getOperationalDataStore().getDatabaseSchema())).isInstanceOf(
-            RuntimeException.class)
-        .hasMessage("Failed to execute the PostIncrementalMigrator referenced in "
-            + "/DataStoreMigratorTest/testMigrate_OperationalDataStore_ThrowsExecuteExceptionMessage/"
-            + "schema_incremental_0089.cls.");
+                RuntimeException.class)
+                .hasMessage("Failed to execute the PostIncrementalMigrator referenced in "
+                    + "/DataStoreMigratorTest/testMigrate_OperationalDataStore_ThrowsExecuteExceptionMessage/"
+                    + "schema_incremental_0089.cls.");
   }
 
   @Test
@@ -207,12 +204,12 @@ public class LegacyDataStoreMigratorTest
   public void testMigrate_OperationalDataStore_ThrowsExceptionDuringLoad() {
     assertThatThrownBy(() -> newDataStoreMigrator(databaseRule.getOperationalDataStore())
         .runPostIncrementalMigrator("/DataStoreMigratorTest/"
-                + "testMigrate_OperationalDataStore_ThrowsLoadExceptionMessage/schema_incremental_0090.cls",
+            + "testMigrate_OperationalDataStore_ThrowsLoadExceptionMessage/schema_incremental_0090.cls",
             mock(DataSource.class), databaseRule.getOperationalDataStore().getDatabaseSchema()))
-        .isInstanceOf(RuntimeException.class)
-        .hasMessage("Failed to execute the PostIncrementalMigrator referenced in "
-            + "/DataStoreMigratorTest/testMigrate_OperationalDataStore_ThrowsLoadExceptionMessage/"
-            + "schema_incremental_0090.cls.");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Failed to execute the PostIncrementalMigrator referenced in "
+                    + "/DataStoreMigratorTest/testMigrate_OperationalDataStore_ThrowsLoadExceptionMessage/"
+                    + "schema_incremental_0090.cls.");
   }
 
   @Test
@@ -257,7 +254,7 @@ public class LegacyDataStoreMigratorTest
     assertThat(DatabaseUtil.schemaExists(dataSource, dataStore.getDatabaseSchema())).isTrue();
     assertThat(
         DatabaseUtil.getLegacyDatabaseSchemaVersion(dataStore)).isEqualTo(
-        LegacyDataStoreMigrator.determineDesiredVersion(dataStore.getDatabaseSchema()));
+            LegacyDataStoreMigrator.determineDesiredVersion(dataStore.getDatabaseSchema()));
   }
 
   private LegacyDataStoreMigrator newDataStoreMigrator(final DataStore dataStore) {

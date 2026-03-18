@@ -41,8 +41,9 @@ public class ManagementEventService
   private final CurrentUser currentUser;
 
   @Inject
-  public ManagementEventService(final AsyncEventBus eventBus,
-                                final CurrentUser currentUser)
+  public ManagementEventService(
+      final AsyncEventBus eventBus,
+      final CurrentUser currentUser)
   {
     this.eventBus = eventBus;
     this.currentUser = currentUser;
@@ -104,9 +105,10 @@ public class ManagementEventService
     }
   }
 
-  public void postEvent(final EventAction action,
-                        final Map<String, List<Member>> roleToMembers,
-                        final String internalOwnerId)
+  public void postEvent(
+      final EventAction action,
+      final Map<String, List<Member>> roleToMembers,
+      final String internalOwnerId)
   {
     try {
       RoleEvent roleEvent = buildOwnerManagementEvent(action, internalOwnerId, new RoleEvent());
@@ -118,9 +120,10 @@ public class ManagementEventService
     }
   }
 
-  private <T extends ManagementEvent> T buildOwnerManagementEvent(final EventAction action,
-                                                                  final String ownerId,
-                                                                  final T event)
+  private <T extends ManagementEvent> T buildOwnerManagementEvent(
+      final EventAction action,
+      final String ownerId,
+      final T event)
   {
     event.action = action;
     event.ownerId = ownerId;

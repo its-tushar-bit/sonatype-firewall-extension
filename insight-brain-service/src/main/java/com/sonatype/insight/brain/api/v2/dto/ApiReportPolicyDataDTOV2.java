@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * DTO describing the policy violations data in an application composition report.
- * 
+ *
  * @since 1.64
  */
 public class ApiReportPolicyDataDTOV2

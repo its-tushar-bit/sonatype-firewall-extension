@@ -41,10 +41,10 @@ public class InsightHttpsConnectorFactory
     setUseForwardedHeaders(true);
 
     /*
-      In Jetty 10 a number of security improvements were made including better checks of SNI Host names
-      https://github.com/jetty/jetty.project/issues/5379. Modern browsers will provide the SNI Host name but there is
-      no guarantee that our integrations will. Disabling for now to prevent issues.This blog post helps explain the
-      change: https://peterobrien.blog/2024/02/29/invalid-sni-what-is-it-and-how-to-fix-it/
+     * In Jetty 10 a number of security improvements were made including better checks of SNI Host names
+     * https://github.com/jetty/jetty.project/issues/5379. Modern browsers will provide the SNI Host name but there is
+     * no guarantee that our integrations will. Disabling for now to prevent issues.This blog post helps explain the
+     * change: https://peterobrien.blog/2024/02/29/invalid-sni-what-is-it-and-how-to-fix-it/
      */
     setDisableSniHostCheck(true);
   }

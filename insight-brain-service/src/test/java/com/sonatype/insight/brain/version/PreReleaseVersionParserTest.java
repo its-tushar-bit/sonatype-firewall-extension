@@ -59,8 +59,7 @@ public class PreReleaseVersionParserTest
       "6.0.2-nightly-2",
       "1.2.3-ea",
       "2.0.0-ea1",
-      "3.1.4-ea-2"
-  );
+      "3.1.4-ea-2");
 
   private static final List<String> RELEASE_VERSIONS = List.of(
       "1",
@@ -85,8 +84,7 @@ public class PreReleaseVersionParserTest
       "2.0.CORE",
       "1.2.3-marcos-release",
       "1.2.1+102-efcf0a38",
-      "2.3.0-1-cfcb3657"
-  );
+      "2.3.0-1-cfcb3657");
 
   @Test
   public void testIsPreReleaseVersion_MatchPreReleaseVersions() {

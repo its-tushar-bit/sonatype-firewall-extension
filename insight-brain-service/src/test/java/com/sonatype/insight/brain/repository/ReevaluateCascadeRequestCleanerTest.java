@@ -70,7 +70,8 @@ public class ReevaluateCascadeRequestCleanerTest
 
   @Test
   public void testDisallowConcurrentExecution() {
-    assertThat(JobBuilder.newJob(ReevaluateCascadeRequestCleaner.class).build()
+    assertThat(JobBuilder.newJob(ReevaluateCascadeRequestCleaner.class)
+        .build()
         .isConcurrentExectionDisallowed()).isTrue();
   }
 

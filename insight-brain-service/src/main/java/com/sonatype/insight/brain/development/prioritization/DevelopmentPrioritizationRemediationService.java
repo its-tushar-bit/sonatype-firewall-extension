@@ -77,7 +77,10 @@ public class DevelopmentPrioritizationRemediationService
   }
 
   public void fetchAndPersistRemediationRecommendations(
-      List<ComponentIdentifier> componentIdentifiers, String scanId, String appId, Stage stage)
+      List<ComponentIdentifier> componentIdentifiers,
+      String scanId,
+      String appId,
+      Stage stage)
   {
     Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationVersions =
         getRemediationVersions(componentIdentifiers, appId, stage.getStageName(), scanId);
@@ -85,14 +88,16 @@ public class DevelopmentPrioritizationRemediationService
   }
 
   void persistRemediationRecommendations(
-      Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationVersions, String scanId)
+      Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationVersions,
+      String scanId)
   {
     DevelopmentPrioritization scanPrioritization = new DevelopmentPrioritization(scanId);
     try (TransactionContext tx = developmentPrioritizationDAO.createTransactionContext()) {
       tx.begin();
       developmentPrioritizationDAO.insert(tx, scanPrioritization);
       String parentId = scanPrioritization.getId();
-      List<DevelopmentPrioritizationComponentInfo> componentInfoList = remediationVersions.entrySet().stream()
+      List<DevelopmentPrioritizationComponentInfo> componentInfoList = remediationVersions.entrySet()
+          .stream()
           .map(entry -> convertRemediationVersionsEntry(entry, parentId, scanId))
           .collect(Collectors.toList());
       developmentPrioritizationComponentInfoDAO.insertBatch(tx, componentInfoList);
@@ -102,7 +107,8 @@ public class DevelopmentPrioritizationRemediationService
 
   private static DevelopmentPrioritizationComponentInfo convertRemediationVersionsEntry(
       Entry<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationVersionEntry,
-      final String parentId, final String scanId)
+      final String parentId,
+      final String scanId)
   {
     ComponentIdentifier componentIdentifier = remediationVersionEntry.getKey();
     PrioritizationRemediationVersionDTO remediationVersion = remediationVersionEntry.getValue();
@@ -140,8 +146,8 @@ public class DevelopmentPrioritizationRemediationService
       List<ComponentDetailsDTO> componentDetailsDTOs = componentDetailsForAllVersionsNoAuthBulk.get(pkgIdentifier);
 
       // FIXME: Should the strategy actually be false? I suspect that it should not be and that we should
-      //        change this code to use getSuggestedRemediation instead that will use the advanced strategy
-      //        if applicable. https://sonatype.atlassian.net/browse/SDEV-1597
+      // change this code to use getSuggestedRemediation instead that will use the advanced strategy
+      // if applicable. https://sonatype.atlassian.net/browse/SDEV-1597
       ApiComponentRemediationValueDTO remediationValueDto =
           componentRemediationService.getSuggestedSelectedRemediation(componentIdentifier, componentDetailsDTOs,
               app, stage, componentDetailsLoader, false);
@@ -157,8 +163,8 @@ public class DevelopmentPrioritizationRemediationService
       }
       return Maps.immutableEntry(componentIdentifier, (PrioritizationRemediationVersionDTO) null);
     })
-    .filter(entrySet -> Objects.nonNull(entrySet.getValue()))
-    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+        .filter(entrySet -> Objects.nonNull(entrySet.getValue()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
   }
 
   private PrioritizationRemediationVersionDTO getPrioritizationRemediationVersionDTO(
@@ -170,8 +176,7 @@ public class DevelopmentPrioritizationRemediationService
 
     ApiComponentIdentifierDTOV2 identifierDTOV2 = versionChangeDTO.get()
         .getData()
-        .getComponent()
-        .componentIdentifier;
+        .getComponent().componentIdentifier;
 
     ComponentIdentifier remediationComponentIdentifier =
         new ComponentIdentifier(identifierDTOV2.getFormat(), identifierDTOV2.getCoordinates());

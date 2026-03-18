@@ -75,15 +75,13 @@ public class ApiConfigFeaturesService
   static final String FEATURE_EXIT_ON_FATAL_ERROR = "exitOnFatalError";
 
   private static final List<UnsupportedFeature> NO_LONGER_SUPPORTED_FLAGS = Arrays.asList(
-      new UnsupportedFeature("transitiveSolverDisable", FEATURE_TRANSITIVE_SOLVER)
-  );
+      new UnsupportedFeature("transitiveSolverDisable", FEATURE_TRANSITIVE_SOLVER));
 
   /**
    * This list contains a list of features that must not be enabled for Self Hosted IQ
    */
   static final List<String> NOT_SUPPORTED_SELF_HOSTED_SYSTEM_PROPERTIES = Arrays.asList(
-      SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED
-  );
+      SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED);
 
   private final TenantUtil tenantUtil;
 
@@ -199,25 +197,20 @@ public class ApiConfigFeaturesService
     return switch (feature) {
       case FEATURE_DASHBOARD -> SystemConfigurationProperty.DASHBOARD_DISABLED;
       case FEATURE_REPORTS_LIST -> SystemConfigurationProperty.REPORTS_LIST_DISABLED;
-      case FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION ->
-          SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED;
+      case FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION -> SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED;
       case FEATURE_TRANSITIVE_SOLVER -> SystemConfigurationProperty.TRANSITIVE_SOLVER_ENABLED;
       case FEATURE_CODE_INSIGHTS -> SystemConfigurationProperty.CODE_INSIGHTS;
-      case FEATURE_COMPONENT_SEARCH_API_WITH_INNERSOURCE ->
-          SystemConfigurationProperty.COMPONENT_SEARCH_API_WITH_INNERSOURCE;
+      case FEATURE_COMPONENT_SEARCH_API_WITH_INNERSOURCE -> SystemConfigurationProperty.COMPONENT_SEARCH_API_WITH_INNERSOURCE;
       case FEATURE_DEFAULT_BRANCH_MONITORING -> SystemConfigurationProperty.DEFAULT_BRANCH_MONITORING;
       case FEATURE_DEPENDENCY_DATA_IN_API -> SystemConfigurationProperty.DEPENDENCY_DATA_IN_API;
       case FEATURE_INNER_SOURCE_TRANSITIVE_WAIVER -> SystemConfigurationProperty.INNER_SOURCE_TRANSITIVE_WAIVER;
-      case FEATURE_INNER_SOURCE_REPOSITORY_INTEGRATION ->
-          SystemConfigurationProperty.INNER_SOURCE_REPOSITORY_INTEGRATION;
+      case FEATURE_INNER_SOURCE_REPOSITORY_INTEGRATION -> SystemConfigurationProperty.INNER_SOURCE_REPOSITORY_INTEGRATION;
       case FEATURE_PR_COMMENTING -> SystemConfigurationProperty.PR_COMMENTING;
       case FEATURE_PR_LINE_COMMENTING -> SystemConfigurationProperty.PR_LINE_COMMENTING;
-      case FEATURE_PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE ->
-          SystemConfigurationProperty.PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE;
+      case FEATURE_PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE -> SystemConfigurationProperty.PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE;
       case FEATURE_ENABLE_UNAUTHENTICATED_PAGES -> SystemConfigurationProperty.ENABLE_UNAUTHENTICATED_PAGES;
       case FEATURE_ENABLE_SSO_ONLY -> SystemConfigurationProperty.ENABLE_SSO_ONLY;
-      case FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS ->
-          SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS;
+      case FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS -> SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS;
       case FEATURE_SCM_UX_IMPROVEMENTS -> SystemConfigurationProperty.SCM_UX_IMPROVEMENTS;
       case FEATURE_SAAS_LIFECYCLE_SCM_ENABLED -> SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED;
       case FEATURE_SAAS_LIFECYCLE_SCM_PRS_ENABLED -> SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_PRS_ENABLED;
@@ -240,10 +233,10 @@ public class ApiConfigFeaturesService
     List<SystemConfigurationPropertyFeature> allFeatures =
         new ArrayList<>(List.of(SystemConfigurationPropertyFeature.values()));
 
-    //filter out custom requested features
+    // filter out custom requested features
     Optional.ofNullable(customFilter).ifPresent(allFeatures::removeAll);
 
-    //filter out unsupported features
+    // filter out unsupported features
     NO_LONGER_SUPPORTED_FLAGS.forEach(unsupportedFeature -> allFeatures.removeIf(
         property -> unsupportedFeature.getReplacementFeatureName()
             .equals(getFeatureForPropertyName(property.getPropertyName()))));
@@ -261,25 +254,20 @@ public class ApiConfigFeaturesService
     return switch (propertyName) {
       case SystemConfigurationProperty.DASHBOARD_DISABLED -> FEATURE_DASHBOARD;
       case SystemConfigurationProperty.REPORTS_LIST_DISABLED -> FEATURE_REPORTS_LIST;
-      case SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED ->
-          FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION;
+      case SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED -> FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION;
       case SystemConfigurationProperty.TRANSITIVE_SOLVER_ENABLED -> FEATURE_TRANSITIVE_SOLVER;
       case SystemConfigurationProperty.CODE_INSIGHTS -> FEATURE_CODE_INSIGHTS;
-      case SystemConfigurationProperty.COMPONENT_SEARCH_API_WITH_INNERSOURCE ->
-          FEATURE_COMPONENT_SEARCH_API_WITH_INNERSOURCE;
+      case SystemConfigurationProperty.COMPONENT_SEARCH_API_WITH_INNERSOURCE -> FEATURE_COMPONENT_SEARCH_API_WITH_INNERSOURCE;
       case SystemConfigurationProperty.DEFAULT_BRANCH_MONITORING -> FEATURE_DEFAULT_BRANCH_MONITORING;
       case SystemConfigurationProperty.DEPENDENCY_DATA_IN_API -> FEATURE_DEPENDENCY_DATA_IN_API;
       case SystemConfigurationProperty.INNER_SOURCE_TRANSITIVE_WAIVER -> FEATURE_INNER_SOURCE_TRANSITIVE_WAIVER;
-      case SystemConfigurationProperty.INNER_SOURCE_REPOSITORY_INTEGRATION ->
-          FEATURE_INNER_SOURCE_REPOSITORY_INTEGRATION;
+      case SystemConfigurationProperty.INNER_SOURCE_REPOSITORY_INTEGRATION -> FEATURE_INNER_SOURCE_REPOSITORY_INTEGRATION;
       case SystemConfigurationProperty.PR_COMMENTING -> FEATURE_PR_COMMENTING;
       case SystemConfigurationProperty.PR_LINE_COMMENTING -> FEATURE_PR_LINE_COMMENTING;
-      case SystemConfigurationProperty.PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE ->
-          FEATURE_PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE;
+      case SystemConfigurationProperty.PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE -> FEATURE_PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE;
       case SystemConfigurationProperty.ENABLE_UNAUTHENTICATED_PAGES -> FEATURE_ENABLE_UNAUTHENTICATED_PAGES;
       case SystemConfigurationProperty.ENABLE_SSO_ONLY -> FEATURE_ENABLE_SSO_ONLY;
-      case SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS ->
-          FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS;
+      case SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS -> FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS;
       case SystemConfigurationProperty.SCM_UX_IMPROVEMENTS -> FEATURE_SCM_UX_IMPROVEMENTS;
       case SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED -> FEATURE_SAAS_LIFECYCLE_SCM_ENABLED;
       case SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_PRS_ENABLED -> FEATURE_SAAS_LIFECYCLE_SCM_PRS_ENABLED;

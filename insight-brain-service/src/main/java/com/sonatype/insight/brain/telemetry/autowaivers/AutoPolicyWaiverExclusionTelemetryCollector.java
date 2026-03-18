@@ -57,8 +57,7 @@ public class AutoPolicyWaiverExclusionTelemetryCollector
     createTelemetry(
         AutoPolicyWaiverExclusionTelemetry.AutoPolicyWaiverExclusionAction.CREATE,
         autoPolicyWaiverExclusion,
-        owner
-    );
+        owner);
   }
 
   public void addTelemetryForDeleteAutoWaiverExclusion(
@@ -68,8 +67,7 @@ public class AutoPolicyWaiverExclusionTelemetryCollector
     createTelemetry(
         AutoPolicyWaiverExclusionTelemetry.AutoPolicyWaiverExclusionAction.DELETE,
         autoPolicyWaiverExclusion,
-        owner
-    );
+        owner);
   }
 
   private TelemetryData createTelemetry(

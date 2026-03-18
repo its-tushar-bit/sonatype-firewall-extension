@@ -98,7 +98,8 @@ public class ProprietaryComponentNameDetector
       return true;
     }
     if (!proprietaryComponentNamePatternDAO.isDatabaseEmbedded()
-        && System.currentTimeMillis() - matcher.getCreateTime() > 60_000 * 3) {
+        && System.currentTimeMillis() - matcher.getCreateTime() > 60_000 * 3)
+    {
       return true;
     }
     return false;
@@ -115,7 +116,7 @@ public class ProprietaryComponentNameDetector
    * This method is intended to be called by NXRM/Artifactory when they push Namespace Confusion Protection patterns to
    * IQ. The patterns may already exists in IQ and they may be disabled.
    * This method should not change the enabled/disabled state of the existing patterns.
-   * 
+   *
    * @return The number of new patterns added
    */
   public int addPatterns(String format, Collection<ProprietaryComponentNamePattern> patterns) {

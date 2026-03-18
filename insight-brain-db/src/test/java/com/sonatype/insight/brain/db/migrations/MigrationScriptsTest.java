@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.db.migrations;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -60,8 +61,7 @@ public class MigrationScriptsTest
       File dbDirectory = new File(getClass().getClassLoader().getResource("db/" + dataStore.getID()).getFile());
       assertThat(dbDirectory).isDirectory();
       List<File> incrementalScripts = new ArrayList<>(
-          Arrays.stream(dbDirectory.listFiles(new PatternFilenameFilter("schema_incremental.*sql"))).toList()
-      );
+          Arrays.stream(dbDirectory.listFiles(new PatternFilenameFilter("schema_incremental.*sql"))).toList());
       Map<Integer, List<String>> numberToTypes = new TreeMap<>();
       for (File incrementalScript : incrementalScripts) {
         String name = incrementalScript.getName();

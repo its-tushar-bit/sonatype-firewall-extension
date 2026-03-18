@@ -561,7 +561,8 @@ public class RepositoryServiceAuthzTest
 
     grantReadPermission(repositoryManagerTwo.getId());
 
-    List<String> allRepositoryManagersIds = repositoryService.getRepositoryManagers().stream()
+    List<String> allRepositoryManagersIds = repositoryService.getRepositoryManagers()
+        .stream()
         .map(RepositoryManager::getId)
         .collect(toList());
     assertThat(allRepositoryManagersIds).containsExactlyInAnyOrder(
@@ -594,7 +595,7 @@ public class RepositoryServiceAuthzTest
     request.pageSize = 3;
 
     grantReadPermission(repo1.getId());
-    //Repository Level - result must include only patterns of repo1
+    // Repository Level - result must include only patterns of repo1
     ProprietaryComponentNamePatternsPage result =
         repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY, repo1.getId(), request);
     assertThat(result.proprietaryComponentNamePatterns).hasSize(1);
@@ -616,7 +617,7 @@ public class RepositoryServiceAuthzTest
     assertThat(result.proprietaryComponentNamePatterns.get(0).id).isEqualTo(pattern1.getId());
 
     grantReadPermission(repoManager1.getId());
-    //Repository Manager Level - result must include only patterns of repos in repoManager1
+    // Repository Manager Level - result must include only patterns of repos in repoManager1
     result = repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY, repo2.getId(), request);
     assertThat(result.proprietaryComponentNamePatterns).hasSize(1);
     assertThat(result.proprietaryComponentNamePatterns.get(0).id).isEqualTo(pattern2.getId());
@@ -640,7 +641,7 @@ public class RepositoryServiceAuthzTest
     assertThat(result.proprietaryComponentNamePatterns.get(1).id).isEqualTo(pattern2.getId());
 
     grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    //Repository Container Level - result must include patterns of all repos
+    // Repository Container Level - result must include patterns of all repos
     result = repositoryService.getProprietaryComponentNamePatternsByOwner(OwnerType.REPOSITORY, repo1.getId(), request);
     assertThat(result.proprietaryComponentNamePatterns).hasSize(1);
     assertThat(result.proprietaryComponentNamePatterns.get(0).id).isEqualTo(pattern1.getId());

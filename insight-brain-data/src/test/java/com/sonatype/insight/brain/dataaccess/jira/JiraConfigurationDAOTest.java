@@ -48,8 +48,7 @@ public class JiraConfigurationDAOTest
         createUrlWithLength(MAX_URL_LENGTH),
         StringUtils.repeat("b", MAX_USERNAME_LENGTH),
         StringUtils.repeat("c", MAX_PASSWORD_LENGTH).toCharArray(),
-        null
-    );
+        null);
     config.setCustomFieldsJson(createJsonWithLength(MAX_CUSTOM_FIELDS_JSON_LENGTH));
     dao.insert(config);
     assertThat(config.getId()).isNotNull();

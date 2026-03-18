@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.repository;
 public class ContainerImageSummaryDTO
 {
   public long totalContainerImageCount;
-  
+
   public long totalContainerImageViolationCount;
 
   public long criticalViolationCount;

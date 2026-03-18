@@ -257,25 +257,29 @@ public class TagDAO
 
     // Cascade to vulnerability custom remediation tags
     for (VulnerabilityCustomRemediationTag vulnerabilityCustomRemediationTag : vulnerabilityCustomRemediationTagDAO
-        .getByTagId(tx, tag.getId())) {
+        .getByTagId(tx, tag.getId()))
+    {
       vulnerabilityCustomRemediationTagDAO.delete(tx, vulnerabilityCustomRemediationTag);
     }
 
     // Cascade to vulnerability custom CWE tags
     for (VulnerabilityCustomCweTag vulnerabilityCustomCweTag : vulnerabilityCustomCweTagDAO.getByTagId(tx,
-        tag.getId())) {
+        tag.getId()))
+    {
       vulnerabilityCustomCweTagDAO.delete(tx, vulnerabilityCustomCweTag);
     }
 
     // Cascade to vulnerability custom CVSS vector tags
     for (VulnerabilityCustomCvssVectorTag vulnerabilityCustomCvssVectorTag : vulnerabilityCustomCvssVectorTagDAO
-        .getByTagId(tx, tag.getId())) {
+        .getByTagId(tx, tag.getId()))
+    {
       vulnerabilityCustomCvssVectorTagDAO.delete(tx, vulnerabilityCustomCvssVectorTag);
     }
 
     // Cascade to vulnerability custom CVSS severity tags
     for (VulnerabilityCustomCvssSeverityTag vulnerabilityCustomCvssSeverityTag : vulnerabilityCustomCvssSeverityTagDAO
-        .getByTagId(tx, tag.getId())) {
+        .getByTagId(tx, tag.getId()))
+    {
       vulnerabilityCustomCvssSeverityTagDAO.delete(tx, vulnerabilityCustomCvssSeverityTag);
     }
 

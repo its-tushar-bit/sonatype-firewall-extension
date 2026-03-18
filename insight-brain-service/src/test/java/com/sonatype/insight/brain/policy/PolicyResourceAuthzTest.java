@@ -80,9 +80,7 @@ public class PolicyResourceAuthzTest
   }
 
   @Test
-  public void testGetPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode()
-      throws Exception
-  {
+  public void testGetPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode() throws Exception {
     HttpRequest request = restRequest().path(
         "withProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode");
 
@@ -169,8 +167,9 @@ public class PolicyResourceAuthzTest
 
     grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
-    response = testAuthzPost(restRequest().body(newPolicy()).parameter(OwnerType.REPOSITORY_CONTAINER,
-        RepositoryContainer.REPOSITORY_CONTAINER_ID));
+    response = testAuthzPost(restRequest().body(newPolicy())
+        .parameter(OwnerType.REPOSITORY_CONTAINER,
+            RepositoryContainer.REPOSITORY_CONTAINER_ID));
     assertResponseStatus(200, response);
   }
 
@@ -199,8 +198,9 @@ public class PolicyResourceAuthzTest
     grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
     policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    testAuthzPut(restRequest().body(policy).parameter(OwnerType.REPOSITORY_CONTAINER,
-        RepositoryContainer.REPOSITORY_CONTAINER_ID));
+    testAuthzPut(restRequest().body(policy)
+        .parameter(OwnerType.REPOSITORY_CONTAINER,
+            RepositoryContainer.REPOSITORY_CONTAINER_ID));
   }
 
   @Test
@@ -208,8 +208,11 @@ public class PolicyResourceAuthzTest
     Policy policy = tempEntity.newPolicy(app);
 
     setMissingFeature(LicensedFeature.POLICY_READ_ONLY);
-    HttpResponse response = restRequest().path(NOTIFICATIONS_PATH).auth(authorized).body(policy)
-        .parameter(OwnerType.APPLICATION, app.getPublicId()).put();
+    HttpResponse response = restRequest().path(NOTIFICATIONS_PATH)
+        .auth(authorized)
+        .body(policy)
+        .parameter(OwnerType.APPLICATION, app.getPublicId())
+        .put();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_PAYMENT_REQUIRED);
     setFeatures(LicensedFeature.POLICY_READ_ONLY);
 
@@ -236,18 +239,28 @@ public class PolicyResourceAuthzTest
 
     policy = tempEntity.newPolicy(repositoryManager);
 
-    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.REPOSITORY_MANAGER,
-        repositoryManager.getId()), HttpStatus.SC_FORBIDDEN);
+    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH)
+        .body(policy)
+        .parameter(OwnerType.REPOSITORY_MANAGER,
+            repositoryManager.getId()),
+        HttpStatus.SC_FORBIDDEN);
     grantWritePermission(repositoryManager.getId());
-    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.REPOSITORY_MANAGER,
-        repositoryManager.getId()));
+    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH)
+        .body(policy)
+        .parameter(OwnerType.REPOSITORY_MANAGER,
+            repositoryManager.getId()));
 
     policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.REPOSITORY_CONTAINER,
-        RepositoryContainer.REPOSITORY_CONTAINER_ID), HttpStatus.SC_FORBIDDEN);
+    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH)
+        .body(policy)
+        .parameter(OwnerType.REPOSITORY_CONTAINER,
+            RepositoryContainer.REPOSITORY_CONTAINER_ID),
+        HttpStatus.SC_FORBIDDEN);
     grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.REPOSITORY_CONTAINER,
-        RepositoryContainer.REPOSITORY_CONTAINER_ID));
+    testAuthzPut(restRequest().path(NOTIFICATIONS_PATH)
+        .body(policy)
+        .parameter(OwnerType.REPOSITORY_CONTAINER,
+            RepositoryContainer.REPOSITORY_CONTAINER_ID));
   }
 
   @Test

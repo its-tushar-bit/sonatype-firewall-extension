@@ -18,7 +18,8 @@ public abstract class ExecutorThreadPools
 
   public enum ThreadPools
   {
-    DAO, GENERAL
+    DAO,
+    GENERAL
   }
 
   private static ExecutorThreadPools INSTANCE;
@@ -36,10 +37,11 @@ public abstract class ExecutorThreadPools
   public static ExecutorThreadPools getInstance() {
     if (INSTANCE == null) {
       /*
-        This class used to be static rather than Guice managed. This makes it difficult to extend / modify
-        functionality. We make use of static injection
-        (https://github.com/google/guice/wiki/Injections#static-injections) which allows us to retain existing behaviour
-        and not have to refactor hundreds of classes while also giving us support for injection.
+       * This class used to be static rather than Guice managed. This makes it difficult to extend / modify
+       * functionality. We make use of static injection
+       * (https://github.com/google/guice/wiki/Injections#static-injections) which allows us to retain existing
+       * behaviour
+       * and not have to refactor hundreds of classes while also giving us support for injection.
        */
       INSTANCE = new DefaultExecutorThreadPools();
 

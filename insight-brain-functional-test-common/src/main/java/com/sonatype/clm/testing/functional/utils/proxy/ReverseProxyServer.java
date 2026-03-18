@@ -12,23 +12,25 @@ import com.sonatype.insight.test.reverseproxy.IRequestHandler;
 /**
  * Allows support for HDS ReverseProxyServer by bridging between Javax and Jakarta
  */
-public class ReverseProxyServer extends com.sonatype.insight.test.reverseproxy.ReverseProxyServer
+public class ReverseProxyServer
+    extends com.sonatype.insight.test.reverseproxy.ReverseProxyServer
 {
   public ReverseProxyServer(final int proxiedServerPort) {
     super(proxiedServerPort);
   }
 
   public void addHandler(final RequestHandler handler) {
-    super.addHandler(new IRequestHandler() {
+    super.addHandler(new IRequestHandler()
+    {
       @Override
       public boolean matches(final javax.servlet.http.HttpServletRequest httpServletRequest) {
         return handler.matches(new JavaxToJakartaBridge.RequestAdapter(httpServletRequest));
       }
 
       @Override
-      public void handle(final javax.servlet.http.HttpServletRequest httpServletRequest,
-          final javax.servlet.http.HttpServletResponse httpServletResponse)
-          throws IOException
+      public void handle(
+          final javax.servlet.http.HttpServletRequest httpServletRequest,
+          final javax.servlet.http.HttpServletResponse httpServletResponse) throws IOException
       {
         handler.handle(new JavaxToJakartaBridge.RequestAdapter(httpServletRequest),
             new JavaxToJakartaBridge.ResponseAdapter(httpServletResponse));

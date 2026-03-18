@@ -40,7 +40,7 @@ public enum ScanTriggerType
   ScanTriggerType(String displayName) {
     this(displayName, false);
   }
-  
+
   ScanTriggerType(String displayName, Boolean internal) {
     this.displayName = displayName;
     this.internal = internal;
@@ -62,6 +62,5 @@ public enum ScanTriggerType
   public static final List<ScanTriggerType> internalScanTypes = Arrays.asList(
       SOURCE_CONTROL_INTERNAL_ONBOARDING,
       SOURCE_CONTROL_INTERNAL_PULL_REQUEST,
-      SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING
-  );
+      SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING);
 }

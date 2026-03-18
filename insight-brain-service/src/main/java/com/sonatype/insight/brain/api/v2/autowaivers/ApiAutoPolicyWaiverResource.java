@@ -62,29 +62,25 @@ public class ApiAutoPolicyWaiverResource
   @GET
   @Path(BY_AUTO_POLICY_WAIVER_ID_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Operation(description =
-      "Use this method to retrieve auto policy waiver details for the autoPolicyWaiverId specified." +
+  @Operation(
+      description = "Use this method to retrieve auto policy waiver details for the autoPolicyWaiverId specified." +
           "\n" +
           "\n" +
           "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description =
-                  "The response contains waiver details corresponding to the auto policy waiver id specified.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains waiver details corresponding to the auto policy waiver id specified.",
+            useReturnTypeSchema = true)
       })
   public ApiAutoPolicyWaiverDTO getAutoPolicyWaiver(
       @Parameter(description = "Enter the ownerType to specify the scope. The response will contain the details " +
-          "for waivers within the scope.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
-      @PathParam("ownerId") String ownerId,
-      @Parameter(description =
-          "Enter the autoPolicyWaiverId for which you want to retrieve the auto policy waiver details.",
-          required = true)
-      @PathParam("autoPolicyWaiverId") String autoPolicyWaiverId)
+          "for waivers within the scope.", required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the corresponding id for the ownerType specified above.",
+          required = true) @PathParam("ownerId") String ownerId,
+      @Parameter(
+          description = "Enter the autoPolicyWaiverId for which you want to retrieve the auto policy waiver details.",
+          required = true) @PathParam("autoPolicyWaiverId") String autoPolicyWaiverId)
   {
     return apiAutoPolicyWaiverService.getAutoPolicyWaiver(ownerType, ownerId, autoPolicyWaiverId);
   }
@@ -98,19 +94,17 @@ public class ApiAutoPolicyWaiverResource
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains waiver details for the specified ownerType and the corresponding " +
-                  "ownerId, grouped by the autoPolicyWaiverId.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains waiver details for the specified ownerType and the corresponding " +
+                "ownerId, grouped by the autoPolicyWaiverId.",
+            useReturnTypeSchema = true)
       })
   public List<ApiAutoPolicyWaiverDTO> getAutoPolicyWaivers(
       @Parameter(description = "Enter the ownerType to specify the scope. The response will contain " +
-          "waivers that are within the scope specified.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
-      @PathParam("ownerId") String ownerId)
+          "waivers that are within the scope specified.", required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the corresponding id for the ownerType specified above.",
+          required = true) @PathParam("ownerId") String ownerId)
   {
     return apiAutoPolicyWaiverService.getAutoPolicyWaivers(ownerType, ownerId);
   }
@@ -128,19 +122,16 @@ public class ApiAutoPolicyWaiverResource
           "\n" +
           "Permissions required: Waive Policy Violations",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Auto waiver has been created successfully.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Auto waiver has been created successfully.",
+            useReturnTypeSchema = true)
+      })
   public List<ApiAutoPolicyWaiverDTO> addAutoPolicyWaivers(
       @Parameter(description = "Enter the ownerType to specify the scope. The response will contain the details " +
-          "for waivers within the scope.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
-      @PathParam("ownerId") String ownerId,
+          "for waivers within the scope.", required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the corresponding id for the ownerType specified above.",
+          required = true) @PathParam("ownerId") String ownerId,
       @RequestBody(
           description = "The request JSON can be an array that include the fields" +
               "<ol>" +
@@ -148,8 +139,7 @@ public class ApiAutoPolicyWaiverResource
               "<li>pathForward</li>" +
               "<li>reachable</li>" +
               "</ol>",
-          required = true
-      ) final List<ApiAutoPolicyWaiverDTO> autoPolicyWaivers)
+          required = true) final List<ApiAutoPolicyWaiverDTO> autoPolicyWaivers)
   {
     return apiAutoPolicyWaiverService.addAutoPolicyWaivers(ownerType, ownerId, autoPolicyWaivers);
   }
@@ -166,19 +156,16 @@ public class ApiAutoPolicyWaiverResource
           "\n" +
           "Permissions required: Waive Policy Violations",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Auto waiver has been created successfully.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Auto waiver has been created successfully.",
+            useReturnTypeSchema = true)
+      })
   public ApiAutoPolicyWaiverDTO addAutoPolicyWaiver(
       @Parameter(description = "Enter the ownerType to specify the scope. The response will contain the details " +
-          "for waivers within the scope.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
-      @PathParam("ownerId") String ownerId,
+          "for waivers within the scope.", required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the corresponding id for the ownerType specified above.",
+          required = true) @PathParam("ownerId") String ownerId,
       @RequestBody(
           description = "The request JSON can include the fields" +
               "<ol>" +
@@ -186,8 +173,7 @@ public class ApiAutoPolicyWaiverResource
               "<li>pathForward</li>" +
               "<li>reachable</li>" +
               "</ol>",
-          required = true
-      ) final ApiAutoPolicyWaiverDTO autoPolicyWaiverDTO)
+          required = true) final ApiAutoPolicyWaiverDTO autoPolicyWaiverDTO)
   {
     return apiAutoPolicyWaiverService.addAutoPolicyWaiver(ownerType, ownerId, autoPolicyWaiverDTO);
   }
@@ -202,20 +188,18 @@ public class ApiAutoPolicyWaiverResource
       "\n" +
       "Permissions required: Write IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Auto Policy Waiver has been updated successfully.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Auto Policy Waiver has been updated successfully.",
+            useReturnTypeSchema = true)
       })
   public ApiAutoPolicyWaiverDTO updateAutoPolicyWaiver(
       @Parameter(description = "Enter the ownerType to specify the scope. The response will contain the details " +
-          "for waivers within the scope.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
-      @PathParam("ownerId") String ownerId,
-      @Parameter(description = "Enter the autoPolicyWaiverId to be updated.")
-      @PathParam("autoPolicyWaiverId") String autoPolicyWaiverId,
+          "for waivers within the scope.", required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the corresponding id for the ownerType specified above.",
+          required = true) @PathParam("ownerId") String ownerId,
+      @Parameter(
+          description = "Enter the autoPolicyWaiverId to be updated.") @PathParam("autoPolicyWaiverId") String autoPolicyWaiverId,
       @RequestBody(
           description = "The request JSON can include the fields" +
               "<ol>" +
@@ -224,8 +208,7 @@ public class ApiAutoPolicyWaiverResource
               "<li>pathForward</li>" +
               "<li>reachable</li>" +
               "</ol>",
-          required = true
-      ) final ApiAutoPolicyWaiverDTO autoPolicyWaiverDTO)
+          required = true) final ApiAutoPolicyWaiverDTO autoPolicyWaiverDTO)
   {
     return apiAutoPolicyWaiverService.updateAutoPolicyWaiver(ownerType, ownerId, autoPolicyWaiverId,
         autoPolicyWaiverDTO);
@@ -239,20 +222,19 @@ public class ApiAutoPolicyWaiverResource
       "\n" +
       "Permissions required: Waive Policy Violations",
       responses = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "Auto Policy Waiver has been deleted successfully.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "204",
+            description = "Auto Policy Waiver has been deleted successfully.",
+            useReturnTypeSchema = true)
       })
   public void deleteAutoPolicyWaiver(
       @Parameter(description = "Enter the ownerType to specify the scope. A waiver corresponding to the " +
-          "autoPolicyWaiverId provided and within the scope specified will be deleted.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
-      @PathParam("ownerId") String ownerId,
-      @Parameter(description = "Enter the autoPolicyWaiverId to be deleted")
-      @PathParam("autoPolicyWaiverId") String autoPolicyWaiverId)
+          "autoPolicyWaiverId provided and within the scope specified will be deleted.",
+          required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the corresponding id for the ownerType specified above.",
+          required = true) @PathParam("ownerId") String ownerId,
+      @Parameter(
+          description = "Enter the autoPolicyWaiverId to be deleted") @PathParam("autoPolicyWaiverId") String autoPolicyWaiverId)
   {
     apiAutoPolicyWaiverService.deleteAutoPolicyWaiver(ownerType, ownerId, autoPolicyWaiverId);
   }
@@ -266,21 +248,19 @@ public class ApiAutoPolicyWaiverResource
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description =
-                  "The response contains auto policy waiver status details for the specified ownerType and the " +
-                      "corresponding ownerId.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains auto policy waiver status details for the specified ownerType and the "
+                +
+                "corresponding ownerId.",
+            useReturnTypeSchema = true)
       })
   public ApiAutoPolicyWaiverStatusDTO getAutoPolicyWaiverStatus(
       @Parameter(description = "Enter the ownerType to specify the scope. The response will contain " +
           "status details for the active auto policy waiver, if any, that is within the scope specified.",
-          required = true)
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
-      @PathParam("ownerId") String ownerId)
+          required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the corresponding id for the ownerType specified above.",
+          required = true) @PathParam("ownerId") String ownerId)
   {
     return apiAutoPolicyWaiverService.getAutoPolicyWaiverStatus(ownerType, ownerId);
   }
@@ -294,21 +274,18 @@ public class ApiAutoPolicyWaiverResource
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description =
-                  "The response contains applicable auto policy waivers for the specified ownerType and the " +
-                      "corresponding ownerId.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains applicable auto policy waivers for the specified ownerType and the " +
+                "corresponding ownerId.",
+            useReturnTypeSchema = true)
       })
   public List<ApiAutoPolicyWaiverStatusDTO> getApplicableAutoWaivers(
       @Parameter(description = "Enter the ownerType to specify the scope. The response will contain " +
           "applicable auto policy waivers, if any, that are within the scope specified.",
-          required = true)
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the corresponding id for the ownerType.", required = true)
-      @PathParam("ownerId") String ownerId)
+          required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the corresponding id for the ownerType.",
+          required = true) @PathParam("ownerId") String ownerId)
   {
     return apiAutoPolicyWaiverService.getApplicableAutoWaivers(ownerType, ownerId);
   }

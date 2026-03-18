@@ -38,7 +38,7 @@ public class HdsClientAnalyticsTest
   /**
    * Obfuscation must use an algorithm where the original value cannot be derived from the obfuscated value.
    *
-   * We've decided to use SHA1 hashing.  The test ensures this remains the case because a different value would affect
+   * We've decided to use SHA1 hashing. The test ensures this remains the case because a different value would affect
    * the analytics reporting.
    */
   @Test

@@ -60,13 +60,14 @@ public class OwnerDTOUtil
   private final MembershipMappingDAO membershipMappingDAO;
 
   @Inject
-  public OwnerDTOUtil(final OwnerDAO ownerDAO,
-                      final TagDAO tagDAO,
-                      final LabelDAO labelDAO,
-                      final LicenseThreatGroupDAO licenseThreatGroupDAO,
-                      final PolicyDAO policyDAO,
-                      final RoleDAO roleDAO,
-                      final MembershipMappingDAO membershipMappingDAO)
+  public OwnerDTOUtil(
+      final OwnerDAO ownerDAO,
+      final TagDAO tagDAO,
+      final LabelDAO labelDAO,
+      final LicenseThreatGroupDAO licenseThreatGroupDAO,
+      final PolicyDAO policyDAO,
+      final RoleDAO roleDAO,
+      final MembershipMappingDAO membershipMappingDAO)
   {
     this.ownerDAO = ownerDAO;
     this.tagDAO = tagDAO;

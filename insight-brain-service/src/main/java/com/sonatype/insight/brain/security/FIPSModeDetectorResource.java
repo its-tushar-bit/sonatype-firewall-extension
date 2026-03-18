@@ -30,5 +30,7 @@ public class FIPSModeDetectorResource
     return new FIPSModeStatus(isEnabled);
   }
 
-  public record FIPSModeStatus(boolean enabled) {}
+  public record FIPSModeStatus(boolean enabled)
+  {
+  }
 }

@@ -110,7 +110,8 @@ public class ApplicationComponentLicenseDAO
           " WHERE ac.stage_type_id IN " + buildPositionalParameters(stageTypeIds, 2) + //
           (!requiresManualFilter
               ? " AND ac.application_id IN " + buildPositionalParameters(applicationIds, stageTypeIds.size() + 2)
-              : "") + //
+              : "")
+          + //
           " GROUP BY ac.application_id, ac.hash, ac.component_id_format,ac.component_id_coordinates_json";
 
       jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
@@ -172,7 +173,8 @@ public class ApplicationComponentLicenseDAO
       // Query and replace by license overrides, if any
 
       Map<ComponentIdentifier, List<ApplicationComponentLicensesDTO>> componentByComponentIdentifier = componentLicenses
-          .stream().collect(Collectors.groupingBy(ApplicationComponentLicensesDTO::getComponentIdentifier));
+          .stream()
+          .collect(Collectors.groupingBy(ApplicationComponentLicensesDTO::getComponentIdentifier));
 
       Set<ComponentIdentifier> componentsWithOverrides = new HashSet<>();
 
@@ -182,7 +184,8 @@ public class ApplicationComponentLicenseDAO
               componentByComponentIdentifier.get(licenseOverride.getComponentIdentifier());
 
           if (componentsWithLicenseOverride != null
-              && !componentsWithOverrides.contains(licenseOverride.getComponentIdentifier())) {
+              && !componentsWithOverrides.contains(licenseOverride.getComponentIdentifier()))
+          {
             if (CollectionUtils.isNotEmpty(licenseOverride.getLicenseIds())) {
               componentsWithLicenseOverride
                   .forEach(component -> component.setLicenses(licenseOverride.getLicenseIds()));

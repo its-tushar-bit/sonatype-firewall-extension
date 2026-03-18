@@ -81,8 +81,10 @@ public class ApiSamlConfigurationResourceAuditTest
   public void testInsertOrUpdateSamlConfiguration_Unauthorized() throws Exception {
     tempEntity.newSamlConfiguration(xml, ENTITY_ID);
 
-    restRequest().with(unauthorizedUser()).part("identityProviderXml", xml)
-        .part("samlConfiguration", apiSamlConfigurationDTO).put();
+    restRequest().with(unauthorizedUser())
+        .part("identityProviderXml", xml)
+        .part("samlConfiguration", apiSamlConfigurationDTO)
+        .put();
 
     assertAuditLog(AuditEvent.CONFIGURE_SAML, "unauthorized");
   }

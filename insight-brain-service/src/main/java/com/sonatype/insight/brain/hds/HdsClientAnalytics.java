@@ -13,7 +13,7 @@ import com.sonatype.insight.scan.util.HashUtils;
 
 /**
  * Carries data that should be included in requests to the HDS for the purpose of analytics.
- * 
+ *
  * @since 1.19
  */
 public class HdsClientAnalytics

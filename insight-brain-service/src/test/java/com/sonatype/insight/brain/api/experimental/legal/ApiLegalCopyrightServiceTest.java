@@ -65,8 +65,8 @@ public class ApiLegalCopyrightServiceTest
   @Test
   public void testGetCopyrightFilePaths_Unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-        apiLegalCopyrightService.getCopyrightFilePaths(
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> apiLegalCopyrightService.getCopyrightFilePaths(
             OwnerType.APPLICATION, "1",
             ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
             "hash", "copyright hash 2", 0, 10));
@@ -75,8 +75,8 @@ public class ApiLegalCopyrightServiceTest
   @Test
   public void testGetCopyrightFileCount_Unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-        apiLegalCopyrightService.getCopyrightFileCount(
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> apiLegalCopyrightService.getCopyrightFileCount(
             OwnerType.APPLICATION, "1",
             ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
             "hash"));
@@ -85,8 +85,8 @@ public class ApiLegalCopyrightServiceTest
   @Test
   public void testGetCopyrightContextContent_Unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-        apiLegalCopyrightService.getCopyrightContextContent(
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> apiLegalCopyrightService.getCopyrightContextContent(
             OwnerType.APPLICATION, "1",
             ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
             "hash", "copyright hash 2", "path/file"));
@@ -96,36 +96,32 @@ public class ApiLegalCopyrightServiceTest
   public void testGetCopyrightFilePathsInvalidComponentId() throws JsonProcessingException {
     final ComponentIdentifier componentIdentifier = createInvalidComponentIdentifier();
     assertThatExceptionOfType(InvalidComponentIdentifierException.class)
-        .isThrownBy(() ->
-            apiLegalCopyrightService.getCopyrightFilePaths(
-                OwnerType.APPLICATION, "1",
-                componentIdentifier, "hash", "copyright hash 2", 0, 10));
+        .isThrownBy(() -> apiLegalCopyrightService.getCopyrightFilePaths(
+            OwnerType.APPLICATION, "1",
+            componentIdentifier, "hash", "copyright hash 2", 0, 10));
   }
 
   @Test
   public void testGetCopyrightContextContentInvalidPagination() {
     final ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() ->
-            apiLegalCopyrightService.getCopyrightFilePaths(
-                OwnerType.APPLICATION, "1",
-                mavenIdentifier, "hash", "copyright hash 2", 0, 0));
+        .isThrownBy(() -> apiLegalCopyrightService.getCopyrightFilePaths(
+            OwnerType.APPLICATION, "1",
+            mavenIdentifier, "hash", "copyright hash 2", 0, 0));
 
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() ->
-            apiLegalCopyrightService.getCopyrightFilePaths(
-                OwnerType.APPLICATION, "1",
-                mavenIdentifier, "hash", "copyright hash 2", -1, 10));
+        .isThrownBy(() -> apiLegalCopyrightService.getCopyrightFilePaths(
+            OwnerType.APPLICATION, "1",
+            mavenIdentifier, "hash", "copyright hash 2", -1, 10));
   }
 
   @Test
   public void testGetCopyrightContextContentInvalidComponentId() throws JsonProcessingException {
     final ComponentIdentifier componentIdentifier = createInvalidComponentIdentifier();
     assertThatExceptionOfType(InvalidComponentIdentifierException.class)
-        .isThrownBy(() ->
-            apiLegalCopyrightService.getCopyrightContextContent(
-                OwnerType.APPLICATION, "1",
-                componentIdentifier, "hash", "copyright hash 2", "path"));
+        .isThrownBy(() -> apiLegalCopyrightService.getCopyrightContextContent(
+            OwnerType.APPLICATION, "1",
+            componentIdentifier, "hash", "copyright hash 2", "path"));
   }
 
   @Test
@@ -156,38 +152,42 @@ public class ApiLegalCopyrightServiceTest
         mavenIdentifier, "hash", "copyright hash 2", 0, 10);
 
     assertThat(copyrightContexts.getTotalFileMatches()).isEqualTo(3);
-    assertThat(copyrightContexts.getFilePaths()).hasSize(3).containsExactly(
-        filePath("path1/file1", 2),
-        filePath("path2/file1", 2),
-        filePath("path2/file2", 1));
+    assertThat(copyrightContexts.getFilePaths()).hasSize(3)
+        .containsExactly(
+            filePath("path1/file1", 2),
+            filePath("path2/file1", 2),
+            filePath("path2/file2", 1));
 
     final CopyrightFilePathsDTO copyrightContextsPage1 = apiLegalCopyrightService.getCopyrightFilePaths(
         OwnerType.APPLICATION, "1",
         mavenIdentifier, "hash", "copyright hash 2", 0, 2);
 
     assertThat(copyrightContextsPage1.getTotalFileMatches()).isEqualTo(3);
-    assertThat(copyrightContextsPage1.getFilePaths()).hasSize(2).containsExactly(
-        filePath("path1/file1", 2),
-        filePath("path2/file1", 2));
+    assertThat(copyrightContextsPage1.getFilePaths()).hasSize(2)
+        .containsExactly(
+            filePath("path1/file1", 2),
+            filePath("path2/file1", 2));
 
     final CopyrightFilePathsDTO copyrightContextsPage2 = apiLegalCopyrightService.getCopyrightFilePaths(
         OwnerType.APPLICATION, "1",
         mavenIdentifier, "hash", "copyright hash 2", 1, 2);
 
     assertThat(copyrightContextsPage1.getTotalFileMatches()).isEqualTo(3);
-    assertThat(copyrightContextsPage2.getFilePaths()).hasSize(2).containsExactly(
-        filePath("path2/file1", 2),
-        filePath("path2/file2", 1));
+    assertThat(copyrightContextsPage2.getFilePaths()).hasSize(2)
+        .containsExactly(
+            filePath("path2/file1", 2),
+            filePath("path2/file2", 1));
 
     final CopyrightFilePathsDTO contextsHash3 = apiLegalCopyrightService.getCopyrightFilePaths(
         OwnerType.APPLICATION, "1",
         mavenIdentifier, "hash", "copyright hash 3", 0, 10);
 
     assertThat(contextsHash3.getTotalFileMatches()).isEqualTo(3);
-    assertThat(contextsHash3.getFilePaths()).hasSize(3).containsExactly(
-        filePath("path1/file1", 1),
-        filePath("path2/file1", 1),
-        filePath("path2/file2", 1));
+    assertThat(contextsHash3.getFilePaths()).hasSize(3)
+        .containsExactly(
+            filePath("path1/file1", 1),
+            filePath("path2/file1", 1),
+            filePath("path2/file2", 1));
   }
 
   private CopyrightFilePathDTO filePath(final String filePath, final int count) {
@@ -275,29 +275,32 @@ public class ApiLegalCopyrightServiceTest
         anameIdentifier, componentHash, "content1Hash", 0, 10);
 
     assertThat(copyrightContexts.getTotalFileMatches()).isEqualTo(4);
-    assertThat(copyrightContexts.getFilePaths()).hasSize(4).containsExactly(
-        filePath("other/path", 1),
-        filePath("path2/file", 1),
-        filePath("some/path", 2),
-        filePath("z/path", 1));
+    assertThat(copyrightContexts.getFilePaths()).hasSize(4)
+        .containsExactly(
+            filePath("other/path", 1),
+            filePath("path2/file", 1),
+            filePath("some/path", 2),
+            filePath("z/path", 1));
 
     final CopyrightFilePathsDTO copyrightContextsPage1 = apiLegalCopyrightService.getCopyrightFilePaths(
         OwnerType.APPLICATION, "1",
         anameIdentifier, componentHash, "content1Hash", 0, 2);
 
     assertThat(copyrightContextsPage1.getTotalFileMatches()).isEqualTo(4);
-    assertThat(copyrightContextsPage1.getFilePaths()).hasSize(2).containsExactly(
-        filePath("other/path", 1),
-        filePath("path2/file", 1));
+    assertThat(copyrightContextsPage1.getFilePaths()).hasSize(2)
+        .containsExactly(
+            filePath("other/path", 1),
+            filePath("path2/file", 1));
 
     final CopyrightFilePathsDTO copyrightContextsPage2 = apiLegalCopyrightService.getCopyrightFilePaths(
         OwnerType.APPLICATION, "1",
         anameIdentifier, componentHash, "content1Hash", 2, 4);
 
     assertThat(copyrightContextsPage2.getTotalFileMatches()).isEqualTo(4);
-    assertThat(copyrightContextsPage2.getFilePaths()).hasSize(2).containsExactly(
-        filePath("some/path", 2),
-        filePath("z/path", 1));
+    assertThat(copyrightContextsPage2.getFilePaths()).hasSize(2)
+        .containsExactly(
+            filePath("some/path", 2),
+            filePath("z/path", 1));
   }
 
   @Test
@@ -462,9 +465,7 @@ public class ApiLegalCopyrightServiceTest
         null)).isEmpty();
   }
 
-  private ComponentIdentifier createInvalidComponentIdentifier()
-      throws JsonProcessingException
-  {
+  private ComponentIdentifier createInvalidComponentIdentifier() throws JsonProcessingException {
     return new ObjectMapper().readValue("{\n" +
         "            \"format\": \"maven\",\n" +
         "            \"coordinates\": {\n" +
@@ -473,4 +474,3 @@ public class ApiLegalCopyrightServiceTest
         "            }}", ComponentIdentifier.class);
   }
 }
-

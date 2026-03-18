@@ -75,8 +75,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
       "foo/bar ",
       "foo/bar /",
       "foo/bar /baz",
-      "  "
-  );
+      "  ");
 
   private static final Set<String> GOOD_NAMES = Set.of(
       "bar..foo",
@@ -87,8 +86,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
       "foo\\",
       "foo/",
       "foo bar",
-      "foo bar/baz"
-  );
+      "foo bar/baz");
 
   @Inject
   protected InsightConfig insightConfig;
@@ -236,8 +234,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
       helper.saveEmptyMockReport(scanName);
 
       assertThatThrownBy(
-          () -> service.getReportEntity(APPLICATION_ID, scanName, name)
-      ).isInstanceOf(IllegalArgumentException.class);
+          () -> service.getReportEntity(APPLICATION_ID, scanName, name)).isInstanceOf(IllegalArgumentException.class);
     });
 
     assertThat(GOOD_NAMES).allSatisfy(name -> {
@@ -245,8 +242,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
       helper.saveEmptyMockReport(scanName);
 
       assertThatCode(
-          () -> service.getReportEntity(APPLICATION_ID, scanName, name)
-      ).doesNotThrowAnyException();
+          () -> service.getReportEntity(APPLICATION_ID, scanName, name)).doesNotThrowAnyException();
     });
   }
 
@@ -283,8 +279,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
                 // new file from additional files dir
                 assertThat(entity.getName()).isEqualTo("foo.txt");
                 helper.assertEntityContents(entity, "foobar");
-              })
-      );
+              }));
     }
   }
 
@@ -311,8 +306,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
                 // ReportHelper.saveMockReport, it's not in the src/test/resources/… dir)
                 assertThat(entity.getName()).isEqualTo("index.html");
                 helper.assertEntityContents(entity, "<html></html>");
-              })
-      );
+              }));
     }
   }
 
@@ -373,10 +367,9 @@ abstract class AbstractApplicationReportPersistenceServiceTest
    * test, this might fail to save the second file (index.html) but not the first.
    *
    * @return the service instance to test, which might be different from this.service in order to facilitate dependency
-   * mocking
+   *         mocking
    */
-  protected abstract ApplicationReportPersistenceService mockForSaveOriginalReport_cleansUpOnFailure()
-      throws IOException;
+  protected abstract ApplicationReportPersistenceService mockForSaveOriginalReport_cleansUpOnFailure() throws IOException;
 
   @Test
   @Category(SlowTest.class)
@@ -469,8 +462,8 @@ abstract class AbstractApplicationReportPersistenceServiceTest
       helper.saveEmptyMockReport(scanName);
 
       assertThatThrownBy(
-          () -> service.saveReportFile(APPLICATION_ID, scanName, name, InputStream.nullInputStream())
-      ).isInstanceOf(IllegalArgumentException.class);
+          () -> service.saveReportFile(APPLICATION_ID, scanName, name, InputStream.nullInputStream()))
+              .isInstanceOf(IllegalArgumentException.class);
     });
 
     assertThat(GOOD_NAMES).allSatisfy(name -> {
@@ -478,8 +471,8 @@ abstract class AbstractApplicationReportPersistenceServiceTest
       helper.saveEmptyMockReport(scanName);
 
       assertThatCode(
-          () -> service.saveReportFile(APPLICATION_ID, scanName, name, InputStream.nullInputStream())
-      ).doesNotThrowAnyException();
+          () -> service.saveReportFile(APPLICATION_ID, scanName, name, InputStream.nullInputStream()))
+              .doesNotThrowAnyException();
     });
   }
 
@@ -533,8 +526,8 @@ abstract class AbstractApplicationReportPersistenceServiceTest
       helper.saveEmptyMockReport(scanName);
 
       assertThatThrownBy(
-          () -> service.saveAdditionalReportFile(APPLICATION_ID, scanName, name, InputStream.nullInputStream())
-      ).isInstanceOf(IllegalArgumentException.class);
+          () -> service.saveAdditionalReportFile(APPLICATION_ID, scanName, name, InputStream.nullInputStream()))
+              .isInstanceOf(IllegalArgumentException.class);
     });
 
     assertThat(GOOD_NAMES).allSatisfy(name -> {
@@ -542,8 +535,8 @@ abstract class AbstractApplicationReportPersistenceServiceTest
       helper.saveEmptyMockReport(scanName);
 
       assertThatCode(
-          () -> service.saveAdditionalReportFile(APPLICATION_ID, scanName, name, InputStream.nullInputStream())
-      ).doesNotThrowAnyException();
+          () -> service.saveAdditionalReportFile(APPLICATION_ID, scanName, name, InputStream.nullInputStream()))
+              .doesNotThrowAnyException();
     });
   }
 
@@ -709,13 +702,11 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   @Test
   public void testGetReportLocation() {
     // The output of this API will differ by OS depending on the path separator character
-    String suffix = FileSystems.getDefault().getSeparator().equals("\\") ?
-         "\\report\\app1\\scan1" :
-         "/report/app1/scan1";
+    String suffix =
+        FileSystems.getDefault().getSeparator().equals("\\") ? "\\report\\app1\\scan1" : "/report/app1/scan1";
 
     assertThat(service.getReportLocation(APPLICATION_ID, SCAN_ID)).isEqualTo(
-        insightConfig.getClusterDirectory().toString() + suffix
-    );
+        insightConfig.getClusterDirectory().toString() + suffix);
   }
 
   @Test
@@ -735,7 +726,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   @Test
   public void testReportExists_OnlyCopyMarkerExists() throws Exception {
     service.saveAdditionalReportFile(APPLICATION_ID, SCAN_ID, CopyStorageService.COPY_MARKER,
-        new ByteArrayInputStream(new byte[] {0}));
+        new ByteArrayInputStream(new byte[]{0}));
 
     assertThat(service.reportExists(APPLICATION_ID, SCAN_ID)).isFalse();
   }
@@ -751,7 +742,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   public void testReportExists_CopyMarkerAndReportFilesExist() throws Exception {
     helper.saveEmptyMockReport();
     service.saveAdditionalReportFile(APPLICATION_ID, SCAN_ID, CopyStorageService.COPY_MARKER,
-        new ByteArrayInputStream(new byte[] {0}));
+        new ByteArrayInputStream(new byte[]{0}));
 
     assertThat(service.reportExists(APPLICATION_ID, SCAN_ID)).isFalse();
   }
@@ -759,7 +750,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   @Test
   public void testReportExists_CopyMarkerDeleted() throws Exception {
     service.saveAdditionalReportFile(APPLICATION_ID, SCAN_ID, CopyStorageService.COPY_MARKER,
-        new ByteArrayInputStream(new byte[] {0}));
+        new ByteArrayInputStream(new byte[]{0}));
     ReportEntity copyMarker = service.getReportEntity(APPLICATION_ID, SCAN_ID, CopyStorageService.COPY_MARKER);
     service.deleteReportEntity(copyMarker);
 
@@ -868,8 +859,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   private void assertMetadataEqualsDirectCalls(final BaseReportEntity reportEntity) throws Exception {
     Optional<Metadata> metadata = reportEntity.getMetadata(
         MetadataAttribute.LAST_MODIFIED_EPOCH_TIME,
-        MetadataAttribute.SIZE_IN_BYTES
-    );
+        MetadataAttribute.SIZE_IN_BYTES);
     assertThat(metadata).isPresent();
     assertThat(metadata.get().lastModifiedEpochTime()).isEqualTo(reportEntity.getTime());
     assertThat(metadata.get().sizeInBytes()).isEqualTo(reportEntity.length());
@@ -892,8 +882,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
         application.getId(),
         BuildStageType.ID,
-        TemporaryEntity.uuid()
-    );
+        TemporaryEntity.uuid());
 
     for (ReportFile reportFile : ReportFile.values()) {
       ReportEntity reportEntity;
@@ -931,8 +920,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
         application.getId(),
         BuildStageType.ID,
-        TemporaryEntity.uuid()
-    );
+        TemporaryEntity.uuid());
 
     for (ReportFile reportFile : ReportFile.values()) {
       ReportEntity reportEntity;
@@ -970,8 +958,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
         application.getId(),
         BuildStageType.ID,
-        TemporaryEntity.uuid()
-    );
+        TemporaryEntity.uuid());
     createReport(service, eval, 1);
     ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
 
@@ -979,8 +966,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     Map<String, ReportEntry> entries = report.getEntries(List.of(
         BOM_JSON.getName(),
         SECURITY_JSON.getName(),
-        LICENSES_JSON.getName()
-    ));
+        LICENSES_JSON.getName()));
 
     // Verify all entries were loaded
     assertThat(entries).hasSize(3);
@@ -1000,8 +986,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
         application.getId(),
         BuildStageType.ID,
-        TemporaryEntity.uuid()
-    );
+        TemporaryEntity.uuid());
     createReport(service, eval, 1);
     ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
 
@@ -1016,15 +1001,13 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
         application.getId(),
         BuildStageType.ID,
-        TemporaryEntity.uuid()
-    );
+        TemporaryEntity.uuid());
     createReport(service, eval, 1);
     ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
 
     Map<String, ReportEntry> entries = report.getEntries(List.of(
         BOM_JSON.getName(),
-        "nonexistent.json"
-    ));
+        "nonexistent.json"));
 
     assertThat(entries).hasSize(2);
     assertThat(entries.get(BOM_JSON.getName())).isNotNull();
@@ -1037,8 +1020,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
         application.getId(),
         BuildStageType.ID,
-        TemporaryEntity.uuid()
-    );
+        TemporaryEntity.uuid());
     createReport(service, eval, "{\"aaData\":\"", 1, "\"}");
     ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
 
@@ -1046,8 +1028,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     Map<String, ContainerNode<?>> entries = report.loadReportEntries(List.of(
         BOM_JSON.getName(),
         SECURITY_JSON.getName(),
-        LICENSES_JSON.getName()
-    ));
+        LICENSES_JSON.getName()));
 
     // Verify all entries were loaded and parsed
     assertThat(entries).hasSize(3);
@@ -1067,8 +1048,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
         application.getId(),
         BuildStageType.ID,
-        TemporaryEntity.uuid()
-    );
+        TemporaryEntity.uuid());
     createReport(service, eval, "{\"aaData\":\"", 1, "\"}");
     ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
 
@@ -1083,8 +1063,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
         application.getId(),
         BuildStageType.ID,
-        TemporaryEntity.uuid()
-    );
+        TemporaryEntity.uuid());
     createReport(service, eval, "{\"aaData\":\"", 1, "\"}");
     ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
 
@@ -1093,7 +1072,6 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     // in that ApplicationReport.getEntry guards against missing files whilst ApplicationReport.loadReportEntry does not
     assertThatExceptionOfType(IOException.class).isThrownBy(() -> report.loadReportEntries(List.of(
         BOM_JSON.getName(),
-        "nonexistent.json"
-    )));
+        "nonexistent.json")));
   }
 }

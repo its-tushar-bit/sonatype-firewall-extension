@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Given a Throwable instance, it searches for an instance of java.lang.Error in the causality chain(s).
  * If a fatal java.lang.Error instance is found, it logs it and exits the JVM if the exitOnFatalError flag is true.
- * 
+ *
  * @since 2.1.7
  */
 @Named

@@ -166,8 +166,9 @@ public class WebhookConfigurationTest
       NxDeleteModal deleteModal = new NxDeleteModal("#delete-modal");
 
       deleteModal.header().shouldHave(text("Delete Webhook"));
-      deleteModal.alertContent().shouldHave(text("You are about to permanently remove webhook for " +
-          url + ". This action cannot be undone."));
+      deleteModal.alertContent()
+          .shouldHave(text("You are about to permanently remove webhook for " +
+              url + ". This action cannot be undone."));
       deleteModal.submitButton().click();
       deleteModal.should(disappear);
 
@@ -180,7 +181,7 @@ public class WebhookConfigurationTest
 
   @Test
   public void testInvalidWebhookIDErrorMessage() {
-    //navigate to a non-existing webhook
+    // navigate to a non-existing webhook
     String badWebhookIdUrl = WebhookEditPage.url("BAD_ID");
     refreshOrOpen(badWebhookIdUrl);
 
@@ -189,8 +190,11 @@ public class WebhookConfigurationTest
 
     webhookEditPage.errorAlert().should(appear);
     // Re-trying a bad webhook ID won't change the page.
-    webhookEditPage.errorAlert().retryButton().should(appear)
-        .shouldHave(text("Retry")).click();
+    webhookEditPage.errorAlert()
+        .retryButton()
+        .should(appear)
+        .shouldHave(text("Retry"))
+        .click();
 
     webhookEditPage.errorAlert()
         .shouldHave(text("An error occurred loading data. Unable to locate webhook"));
@@ -203,7 +207,7 @@ public class WebhookConfigurationTest
   public void testUnsavedChangesModal() {
     UnsavedModal unsavedChangesModal = new UnsavedModal();
 
-    //Unsaved changes when creating webhook
+    // Unsaved changes when creating webhook
 
     SelenideElement newWebhook = webhookConfigurationPage.newWebhook();
     newWebhook.shouldBe(visible);
@@ -229,7 +233,7 @@ public class WebhookConfigurationTest
 
     unsavedChangesModal.shouldNot(appear);
 
-    //Unsaved changes when editing webhook
+    // Unsaved changes when editing webhook
     webhookConfigurationPage.webhook(0).link().click();
 
     String previousUrl = webhookEditPage.url().val();
@@ -296,16 +300,19 @@ public class WebhookConfigurationTest
 
     webhookEditPage.should(appear);
     webhookEditPage.httpUrlWarningAlertMessage().shouldBe(visible);
-    webhookEditPage.httpUrlWarningAlertMessage().shouldHave(text("HTTPS is recommended because it is more secure " +
-        "than HTTP"));
+    webhookEditPage.httpUrlWarningAlertMessage()
+        .shouldHave(text("HTTPS is recommended because it is more secure " +
+            "than HTTP"));
 
     webhookEditPage.secretKey().val("new secret");
     webhookEditPage.save().shouldBe(visible);
     webhookEditPage.save().shouldBe(enabled).click();
 
     webhookEditPage.httpUrlWarningModal().shouldBe(visible);
-    webhookEditPage.httpUrlWarningModal().content().shouldHave(text("Using HTTP URLS for webhooks is less secure " +
-        "than HTTPS. Would you like to continue?"));
+    webhookEditPage.httpUrlWarningModal()
+        .content()
+        .shouldHave(text("Using HTTP URLS for webhooks is less secure " +
+            "than HTTPS. Would you like to continue?"));
 
     webhookEditPage.httpUrlWarningModal().cancelButton().shouldHave(text("Cancel"));
     webhookEditPage.httpUrlWarningModal().cancelButton().click();
@@ -317,8 +324,9 @@ public class WebhookConfigurationTest
 
     webhookConfigurationPage.should(appear);
 
-    webhookConfigurationPage.webhooks().shouldHave(texts("https://localhost0", "https://localhost1",
-        "https://localhost2", "http://localhost" + lastWebhookIndex));
+    webhookConfigurationPage.webhooks()
+        .shouldHave(texts("https://localhost0", "https://localhost1",
+            "https://localhost2", "http://localhost" + lastWebhookIndex));
     webhookConfigurationPage.webhook(3).shouldHave(text("http://localhost" + lastWebhookIndex));
   }
 
@@ -333,16 +341,19 @@ public class WebhookConfigurationTest
 
     webhookEditPage.url().val("http://foo.bar");
     webhookEditPage.httpUrlWarningAlertMessage().shouldBe(visible);
-    webhookEditPage.httpUrlWarningAlertMessage().shouldHave(text("HTTPS is recommended because it is more secure " +
-        "than HTTP"));
+    webhookEditPage.httpUrlWarningAlertMessage()
+        .shouldHave(text("HTTPS is recommended because it is more secure " +
+            "than HTTP"));
 
     webhookEditPage.save().shouldHave(text("Create"));
     eyesWatcher.eyesCheck();
     webhookEditPage.save().shouldBe(enabled).click();
 
     webhookEditPage.httpUrlWarningModal().shouldBe(visible);
-    webhookEditPage.httpUrlWarningModal().content().shouldHave(text("Using HTTP URLS for webhooks is less secure " +
-        "than HTTPS. Would you like to continue?"));
+    webhookEditPage.httpUrlWarningModal()
+        .content()
+        .shouldHave(text("Using HTTP URLS for webhooks is less secure " +
+            "than HTTPS. Would you like to continue?"));
 
     webhookEditPage.httpUrlWarningModal().cancelButton().shouldHave(text("Cancel"));
     webhookEditPage.httpUrlWarningModal().cancelButton().click();
@@ -354,8 +365,9 @@ public class WebhookConfigurationTest
 
     webhookConfigurationPage.should(appear);
 
-    webhookConfigurationPage.webhooks().shouldHave(texts("https://localhost0", "https://localhost1",
-        "https://localhost2", "http://foo.bar"));
+    webhookConfigurationPage.webhooks()
+        .shouldHave(texts("https://localhost0", "https://localhost1",
+            "https://localhost2", "http://foo.bar"));
     webhookConfigurationPage.webhook(3).shouldHave(text("http://foo.bar"));
   }
 

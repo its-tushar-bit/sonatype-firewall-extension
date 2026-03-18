@@ -53,8 +53,10 @@ public class LabelConditionType
   }
 
   @Override
-  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
-      throws InvalidConditionException
+  public void validateCondition(
+      TransactionContext tx,
+      Condition condition,
+      String ownerId) throws InvalidConditionException
   {
     super.validateCondition(tx, condition, ownerId);
 
@@ -98,7 +100,8 @@ public class LabelConditionType
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
     TriggerLabel conditionTrigger = (TriggerLabel) matchFact
-        .getConditionTriggerByConditionIndex(condition.getConditionIndex()).getTrigger();
+        .getConditionTriggerByConditionIndex(condition.getConditionIndex())
+        .getTrigger();
     Label label = labelDAO.getById(conditionTrigger.id);
     if ("is".equals(condition.getOperator())) {
       return "Found label '" + label.getLabel() + "'";

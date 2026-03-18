@@ -74,7 +74,8 @@ public class EvaluateApplicationModal
     }
   }
 
-  public static class ProgressBar extends BasicElement<ProgressBar>
+  public static class ProgressBar
+      extends BasicElement<ProgressBar>
   {
     public ProgressBar(String selector) {
       super(selector);

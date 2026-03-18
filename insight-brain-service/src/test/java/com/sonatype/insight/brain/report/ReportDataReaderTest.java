@@ -202,7 +202,8 @@ public class ReportDataReaderTest
     assertThat(details.getComponentIdentifier()).isEqualTo(identifier);
     assertThat(details.getDeclaredLicenseIds()).containsExactlyInAnyOrder("Apache-2.0");
     assertThat(details.getObservedLicenseIds()).containsExactlyInAnyOrder("Apache-2.0", "MIT");
-    assertThat(details.getEffectiveLicenses()).isNotEmpty().extracting("licenseId")
+    assertThat(details.getEffectiveLicenses()).isNotEmpty()
+        .extracting("licenseId")
         .containsExactlyInAnyOrder("MIT");
     assertThat(details.getSecurityVulnerabilities()).hasSize(1);
     SecurityVulnerability vulnerability = details.getSecurityVulnerabilities().get(0);
@@ -220,7 +221,8 @@ public class ReportDataReaderTest
   }
 
   private static void assertAnalyzerFeatures(
-      final NamedComponentDetails details, final AnalyzerFeatures expectedAnalyzerFeatures)
+      final NamedComponentDetails details,
+      final AnalyzerFeatures expectedAnalyzerFeatures)
   {
     assertThat(details.getAnalyzerFeatures()).isNotNull();
     assertThat(details.getAnalyzerFeatures().getAnalysisType()).isEqualTo(expectedAnalyzerFeatures.getAnalysisType());

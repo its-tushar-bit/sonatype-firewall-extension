@@ -45,16 +45,14 @@ public class ApiLicensedSolutionsResource
           "\n" +
           "Permissions required: None ",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Successfully retrieved the list of licensed solutions.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successfully retrieved the list of licensed solutions.",
+            useReturnTypeSchema = true)
+      })
   public List<ApiLicensedSolutionDTO> getLicensedSolutions(
-      @Parameter(description = "Whether or not relative URLs should be allowed.")
-      @DefaultValue("false") @QueryParam("allowRelativeUrls") boolean allowRelativeUrls)
+      @Parameter(
+          description = "Whether or not relative URLs should be allowed.") @DefaultValue("false") @QueryParam("allowRelativeUrls") boolean allowRelativeUrls)
   {
     return licensedSolutionService.getLicensedSolutions(allowRelativeUrls);
   }

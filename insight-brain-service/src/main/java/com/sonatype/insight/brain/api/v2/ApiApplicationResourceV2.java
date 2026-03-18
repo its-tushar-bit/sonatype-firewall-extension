@@ -48,8 +48,7 @@ import org.apache.commons.lang3.StringUtils;
         "\n" +
         "\n" +
         "In addition to the primary functions of create, update and delete, you can also move applications from one " +
-        "organization to other."
-)
+        "organization to other.")
 /**
  *
  * @since 1.11.0
@@ -96,14 +95,12 @@ public class ApiApplicationResourceV2
 
       Permissions required: View IQ Elements""",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the details of the application corresponding to the applicationId.",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the details of the application corresponding to the applicationId.",
+            useReturnTypeSchema = true)
+      })
   public ApiApplicationDTO getApplication(
-      @Parameter(description = "Enter the applicationId.")
-      @PathParam("applicationId") final String applicationId)
+      @Parameter(description = "Enter the applicationId.") @PathParam("applicationId") final String applicationId)
   {
     return apiApplicationService.getApplicationById(applicationId);
   }
@@ -122,27 +119,23 @@ public class ApiApplicationResourceV2
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Returns either a list of applications or a list of applications with category tags " +
-                  "depending on the `includeCategories` parameter.",
-              content = {
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON,
-                      schema = @Schema(oneOf = {
-                          ApiApplicationListDTO.class,
-                          ApiApplicationCategoriesListDTO.class
-                      })
-                  )
-              }
-          ),
+        @ApiResponse(
+            responseCode = "200",
+            description = "Returns either a list of applications or a list of applications with category tags " +
+                "depending on the `includeCategories` parameter.",
+            content = {
+              @Content(
+                  mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(oneOf = {
+                    ApiApplicationListDTO.class,
+                    ApiApplicationCategoriesListDTO.class
+                  }))
+            }),
       })
   public Response getApplications(
-      @Parameter(description = "Enter the applicationId.")
-      @QueryParam("publicId") final Set<String> publicIds,
+      @Parameter(description = "Enter the applicationId.") @QueryParam("publicId") final Set<String> publicIds,
       @Parameter(description = "Set this parameter to `true` to obtain the application tags (application categories) " +
-          "in the response.")
-      @QueryParam("includeCategories") @DefaultValue("false") final boolean includeCategories)
+          "in the response.") @QueryParam("includeCategories") @DefaultValue("false") final boolean includeCategories)
   {
     if (includeCategories) {
       return Response.ok(apiApplicationService.getApplicationsWithAppliedCategories(publicIds),
@@ -165,15 +158,13 @@ public class ApiApplicationResourceV2
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the details of all applications found under the " +
-                  "organizationId provided.",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the details of all applications found under the " +
+                "organizationId provided.",
+            useReturnTypeSchema = true)
+      })
   public ApiApplicationListDTO getApplicationsByOrganizationId(
-      @Parameter(description = "Enter the organizationId.")
-      @PathParam("organizationId") String organizationId)
+      @Parameter(description = "Enter the organizationId.") @PathParam("organizationId") String organizationId)
   {
     return apiApplicationService.getApplicationsByOrganizationId(organizationId);
   }
@@ -188,10 +179,9 @@ public class ApiApplicationResourceV2
       "\n" +
       "Permissions required: Add Application (on parent organization)",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains application details for the application created using this method.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(responseCode = "200",
+            description = "The response contains application details for the application created using this method.",
+            useReturnTypeSchema = true)
       })
   public ApiApplicationDTO addApplication(
       @Parameter(description = "Specify the applicationId, application name and the organizationId under which the " +
@@ -199,8 +189,7 @@ public class ApiApplicationResourceV2
           "represents the user name. If LDAP is used for authentication, you can use LDAP usernames." +
           "`tagId` is the internal identifier for the Application Category that you want to apply to the " +
           "application. " +
-          "Use the Application Categories REST API for the available categories and the corresponding tagIds.")
-      final ApiApplicationDTO applicationDTO)
+          "Use the Application Categories REST API for the available categories and the corresponding tagIds.") final ApiApplicationDTO applicationDTO)
   {
     return apiApplicationService.addApplication(applicationDTO);
   }
@@ -219,12 +208,11 @@ public class ApiApplicationResourceV2
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the updated application name, contact user name and " +
-                  "application tags,  for the applicationId provided",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the updated application name, contact user name and " +
+                "application tags,  for the applicationId provided",
+            useReturnTypeSchema = true)
+      })
   public ApiApplicationDTO updateApplication(
       @Parameter(description = "Specify the applicationId, application name and the organizationId under which  " +
           "the application exists. `contactUserName` corresponds to the 'contact' field in the UI and " +
@@ -255,13 +243,12 @@ public class ApiApplicationResourceV2
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "Application deleted successfully"
-          )
+        @ApiResponse(responseCode = "204",
+            description = "Application deleted successfully")
       })
   public void deleteApplication(
-      @Parameter(description = "Enter the applicationId to be deleted.")
-      @PathParam("applicationId") final String applicationId) throws IOException
+      @Parameter(
+          description = "Enter the applicationId to be deleted.") @PathParam("applicationId") final String applicationId) throws IOException
   {
     apiApplicationService.deleteApplication(applicationId);
   }
@@ -275,17 +262,17 @@ public class ApiApplicationResourceV2
       "\n" +
       "Permissions required: Add Application (on the parent organization)",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains application details of the cloned application.",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains application details of the cloned application.",
+            useReturnTypeSchema = true)
       })
   public ApiApplicationDTO cloneApplication(
-      @Parameter(description = "Enter the applicationId for the application to be cloned.", required = true)
-      @PathParam("sourceApplicationId") String sourceApplicationId,
-      @Parameter(description = "Enter the application name for the new cloned application.")
-      @QueryParam("clonedApplicationName") String clonedApplicationName,
-      @Parameter(description = "Enter the applicationPublicId for the cloned application.")
-      @QueryParam("clonedApplicationPublicId") String clonedApplicationPublicId)
+      @Parameter(description = "Enter the applicationId for the application to be cloned.",
+          required = true) @PathParam("sourceApplicationId") String sourceApplicationId,
+      @Parameter(
+          description = "Enter the application name for the new cloned application.") @QueryParam("clonedApplicationName") String clonedApplicationName,
+      @Parameter(
+          description = "Enter the applicationPublicId for the cloned application.") @QueryParam("clonedApplicationPublicId") String clonedApplicationPublicId)
   {
     return applicationCloneService.cloneApplication(sourceApplicationId, clonedApplicationName,
         clonedApplicationPublicId);
@@ -301,19 +288,19 @@ public class ApiApplicationResourceV2
           "\n" +
           "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200", description = "Application moved successfully, with/without warnings. " +
-              "Warnings, if any, will appear in the response body.", useReturnTypeSchema = true),
-          @ApiResponse(responseCode = "409", description = "Moving the application failed due " +
-              "to conflicts between the organizations."),
-          @ApiResponse(responseCode = "404", description = "Moving the application failed because " +
-              "either an application with the provided applicationId or the organizationId for the organization " +
-              "where it is to be moved is not found."),
+        @ApiResponse(responseCode = "200", description = "Application moved successfully, with/without warnings. " +
+            "Warnings, if any, will appear in the response body.", useReturnTypeSchema = true),
+        @ApiResponse(responseCode = "409", description = "Moving the application failed due " +
+            "to conflicts between the organizations."),
+        @ApiResponse(responseCode = "404", description = "Moving the application failed because " +
+            "either an application with the provided applicationId or the organizationId for the organization " +
+            "where it is to be moved is not found."),
       })
   public ApiMoveApplicationResponseDTOV2 moveApplication(
-      @Parameter(description = "Enter the applicationId of the application to be moved.", required = true)
-      @PathParam("applicationId") String applicationId,
-      @Parameter(description = "Enter the organizationId of the destination organization.", required = true)
-      @PathParam("organizationId") String organizationId)
+      @Parameter(description = "Enter the applicationId of the application to be moved.",
+          required = true) @PathParam("applicationId") String applicationId,
+      @Parameter(description = "Enter the organizationId of the destination organization.",
+          required = true) @PathParam("organizationId") String organizationId)
   {
     return applicationMoveService.moveApplication(applicationId, organizationId);
   }

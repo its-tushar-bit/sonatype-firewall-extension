@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Association of a component hash to a component identifier.
- * 
+ *
  * @since 1.4.1
  */
 @Entity
@@ -42,7 +42,7 @@ public class HashComponentIdentifier
 
   @Column(name = "create_time")
   private Date createTime;
-  
+
   @Column(name = "claimer_id")
   private String claimerId;
 
@@ -90,7 +90,7 @@ public class HashComponentIdentifier
   public void setCreateTime(Date createTime) {
     this.createTime = createTime;
   }
-  
+
   public String getClaimerId() {
     return claimerId;
   }
@@ -98,7 +98,7 @@ public class HashComponentIdentifier
   public void setClaimerId(String claimerId) {
     this.claimerId = claimerId;
   }
-  
+
   public String getClaimerName() {
     return claimerName;
   }

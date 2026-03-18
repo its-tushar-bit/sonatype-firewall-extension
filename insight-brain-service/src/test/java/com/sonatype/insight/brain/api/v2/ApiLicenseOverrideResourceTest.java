@@ -35,7 +35,8 @@ import java.io.File;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApiLicenseOverrideResourceTest extends AbstractResourceTest
+public class ApiLicenseOverrideResourceTest
+    extends AbstractResourceTest
 {
   private LicenseOverrideDAO licenseOverrideDAO;
 
@@ -48,8 +49,10 @@ public class ApiLicenseOverrideResourceTest extends AbstractResourceTest
   }
 
   private HttpRequest restRequest(OwnerType ownerType, String ownerId, String... paths) {
-    return restRequest().path(PublicApiPaths.LICENSE_OVERRIDE_RESOURCE_PATH_V2).path(paths).parameter(ownerType,
-        ownerId);
+    return restRequest().path(PublicApiPaths.LICENSE_OVERRIDE_RESOURCE_PATH_V2)
+        .path(paths)
+        .parameter(ownerType,
+            ownerId);
   }
 
   private HttpRequest restRequest(
@@ -58,7 +61,8 @@ public class ApiLicenseOverrideResourceTest extends AbstractResourceTest
       ComponentIdentifier componentIdentifier,
       String... paths)
   {
-    return restRequest().path(PublicApiPaths.LICENSE_OVERRIDE_RESOURCE_PATH_V2).path(paths)
+    return restRequest().path(PublicApiPaths.LICENSE_OVERRIDE_RESOURCE_PATH_V2)
+        .path(paths)
         .query("componentIdentifier", componentIdentifier)
         .parameter(ownerType, ownerId);
   }
@@ -136,16 +140,20 @@ public class ApiLicenseOverrideResourceTest extends AbstractResourceTest
         RepositoryContainer.REPOSITORY_CONTAINER_ID, true, true);
   }
 
-  private void testCRUD(OwnerType ownerType, String ownerPublicId, String ownerId,
-                              boolean isLegalReviewer, boolean isNugetCoordinate) throws Exception
+  private void testCRUD(
+      OwnerType ownerType,
+      String ownerPublicId,
+      String ownerId,
+      boolean isLegalReviewer,
+      boolean isNugetCoordinate) throws Exception
   {
     String user = "admin";
     String where = "EdgeOfSpace";
-    String path = isLegalReviewer ?
-        ApiLicenseOverrideResource.LEGAL_REVIEWER_PATH : "";
+    String path = isLegalReviewer ? ApiLicenseOverrideResource.LEGAL_REVIEWER_PATH : "";
     ComponentIdentifier componentIdentifier =
-        isNugetCoordinate ? ComponentIdentifier.createNugetCoordinates("p1", "v1") :
-            ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+        isNugetCoordinate
+            ? ComponentIdentifier.createNugetCoordinates("p1", "v1")
+            : ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
 
     HttpRequest getRequest =
         restRequest(ownerType, ownerPublicId, componentIdentifier, path).query("where", where);
@@ -215,9 +223,12 @@ public class ApiLicenseOverrideResourceTest extends AbstractResourceTest
     assertThat(licenseOverride).isNull();
   }
 
-  private void assertAuditLog(String ownerId, String user, String where, boolean isDelete,
-                              ApiLicenseOverrideDTO expected)
-      throws Exception
+  private void assertAuditLog(
+      String ownerId,
+      String user,
+      String where,
+      boolean isDelete,
+      ApiLicenseOverrideDTO expected) throws Exception
   {
     // Verify the license override audit
     File logFile = new File(getCLMServer().getInstance(InsightWork.class).getAuditDir(ownerId), "licenses.json");
@@ -246,12 +257,13 @@ public class ApiLicenseOverrideResourceTest extends AbstractResourceTest
         .containsExactlyInAnyOrderElementsOf(expected.licenseIds);
   }
 
-  private void assertLicenseOverride(String ownerId,
-                                     ComponentIdentifier componentIdentifier,
-                                     LicenseOverrideStatus status,
-                                     String licenseId,
-                                     String comment,
-                                     LicenseOverride actual)
+  private void assertLicenseOverride(
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      LicenseOverrideStatus status,
+      String licenseId,
+      String comment,
+      LicenseOverride actual)
   {
     assertThat(actual.getOwnerId()).isEqualTo(ownerId);
     assertThat(actual.getComponentIdentifier()).isEqualTo(componentIdentifier);
@@ -260,12 +272,13 @@ public class ApiLicenseOverrideResourceTest extends AbstractResourceTest
     assertThat(actual.getComment()).isEqualTo(comment);
   }
 
-  private void assertLicenseOverride(String ownerId,
-                                     ComponentIdentifier componentIdentifier,
-                                     LicenseOverrideStatus status,
-                                     String licenseId,
-                                     String comment,
-                                     ApiLicenseOverrideDTO actual)
+  private void assertLicenseOverride(
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      LicenseOverrideStatus status,
+      String licenseId,
+      String comment,
+      ApiLicenseOverrideDTO actual)
   {
     assertThat(actual.ownerId).isEqualTo(ownerId);
     assertThat(actual.componentIdentifier.toComponentIdentifier()).isEqualTo(componentIdentifier);
@@ -274,14 +287,17 @@ public class ApiLicenseOverrideResourceTest extends AbstractResourceTest
     assertThat(actual.comment).isEqualTo(comment);
   }
 
-  private LicenseOverride getLicenseOverrideFromApplied(ApiAppliedLicenseOverridesDTO appliedLicenseOverrides,
-                                             final String licenseOverrideId)
+  private LicenseOverride getLicenseOverrideFromApplied(
+      ApiAppliedLicenseOverridesDTO appliedLicenseOverrides,
+      final String licenseOverrideId)
   {
-    return appliedLicenseOverrides.licenseOverridesByOwner.stream().filter(
-        licenseOverrideByOwner -> licenseOverrideByOwner.licenseOverride != null &&
-          licenseOverrideByOwner.licenseOverride.getId().equals(licenseOverrideId)
-    ).findFirst().map(
-        licenseOverrideByOwner -> licenseOverrideByOwner.licenseOverride
-    ).orElse(null);
+    return appliedLicenseOverrides.licenseOverridesByOwner.stream()
+        .filter(
+            licenseOverrideByOwner -> licenseOverrideByOwner.licenseOverride != null &&
+                licenseOverrideByOwner.licenseOverride.getId().equals(licenseOverrideId))
+        .findFirst()
+        .map(
+            licenseOverrideByOwner -> licenseOverrideByOwner.licenseOverride)
+        .orElse(null);
   }
 }

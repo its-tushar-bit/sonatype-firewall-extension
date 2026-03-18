@@ -64,9 +64,8 @@ public class SourceControlEventDAO
   private static final String UPDATED_EVENT_WITH_STATUS = "updated event {} with status {}";
 
   private static final List<String> REMEDIATION_EVENT_TYPES = List.of(
-      REMEDIATION_PULL_REQUEST_EVENT, 
-      MANUAL_REMEDIATION_PULL_REQUEST_EVENT
-  );
+      REMEDIATION_PULL_REQUEST_EVENT,
+      MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
 
   @Inject
   public SourceControlEventDAO(OperationalDataStore operationalDataStore) {
@@ -74,7 +73,7 @@ public class SourceControlEventDAO
   }
 
   /**
-   * The purpose of this method is to release (i.e. unassign) events that are 'related' to the given event.  Events are
+   * The purpose of this method is to release (i.e. unassign) events that are 'related' to the given event. Events are
    * related if they are for the same scm user.
    *
    * @param event
@@ -84,11 +83,10 @@ public class SourceControlEventDAO
       txn.begin();
 
       txn.createNativeQuery(
-              "UPDATE " + getDatabaseSchema() + ".source_control_event" +
-                  " SET instance_id = NULL" +
-                  " WHERE scm_username = ?1 " +
-                  "   AND event_status = 'new'"
-          )
+          "UPDATE " + getDatabaseSchema() + ".source_control_event" +
+              " SET instance_id = NULL" +
+              " WHERE scm_username = ?1 " +
+              "   AND event_status = 'new'")
           .setParameter(1, event.getScmUsername())
           .executeUpdate();
       txn.commit();
@@ -127,8 +125,7 @@ public class SourceControlEventDAO
                   "       AND event_status IN ('new', 'in progress')" +
                   "     ) AS events_reserved_for_other_instances" +
                   "   WHERE events_reserved_for_other_instances.reserved_count = 0" +
-                  " );"
-          )
+                  " );")
           .setParameter(1, instanceId)
           .executeUpdate();
       txn.commit();
@@ -367,11 +364,11 @@ public class SourceControlEventDAO
     String coordinatesJson = ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates());
 
     String sQuery = SELECT_ENTITY + """
-        WHERE entity.applicationId = :appId 
-        AND entity.eventType = :eventType 
-        AND entity.eventStatus = :eventStatus 
-        AND entity.componentIdFormat = :format 
-        AND entity.componentIdCoordinatesJson = :coordinates 
+        WHERE entity.applicationId = :appId
+        AND entity.eventType = :eventType
+        AND entity.eventStatus = :eventStatus
+        AND entity.componentIdFormat = :format
+        AND entity.componentIdCoordinatesJson = :coordinates
         AND entity.completeTime >= :pullRequestCreationMinCutoffTime
         AND entity.completeTime <= :pullRequestCreationMaxCutoffTime""";
 
@@ -399,8 +396,7 @@ public class SourceControlEventDAO
         branchName,
         SourceControlEvent.EVENT_STATUS_NEW,
         SourceControlEvent.EVENT_STATUS_IN_PROGRESS,
-        SourceControlEvent.EVENT_STATUS_COMPLETE
-    );
+        SourceControlEvent.EVENT_STATUS_COMPLETE);
   }
 
   @Override
@@ -436,11 +432,11 @@ public class SourceControlEventDAO
    * This is used to retrieve golden status information from the original PR creation.
    */
   public SourceControlEvent getLatestRemediationEventForPullRequest(String applicationId, int pullRequestNumber) {
-    String sQuery = SELECT_ENTITY + 
+    String sQuery = SELECT_ENTITY +
         "WHERE entity.applicationId = ?1 AND entity.pullRequestNumber = ?2 " +
         "AND entity.eventType IN ?3 " +
         "ORDER BY entity.createTime DESC";
-    
+
     Query<SourceControlEvent> query = new Query<>(sQuery, applicationId, pullRequestNumber, REMEDIATION_EVENT_TYPES);
     query.setMaxResults(1);
     List<SourceControlEvent> events = query.getList();

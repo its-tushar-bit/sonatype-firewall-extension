@@ -10,7 +10,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApiDependencyTreeNodeDTO 
+public class ApiDependencyTreeNodeDTO
 {
   private String packageUrl;
 

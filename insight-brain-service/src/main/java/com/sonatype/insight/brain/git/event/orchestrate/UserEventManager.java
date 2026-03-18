@@ -78,8 +78,8 @@ public class UserEventManager
 
   private final SingleApplicationSelectionRule singleApplicationSelectionRule = new SingleApplicationSelectionRule();
 
-  private final UserScopeEventProcessingSuspensionRule
-      userScopeEventProcessingSuspensionRule = new UserScopeEventProcessingSuspensionRule();
+  private final UserScopeEventProcessingSuspensionRule userScopeEventProcessingSuspensionRule =
+      new UserScopeEventProcessingSuspensionRule();
 
   private final List<EventProcessedListener> eventProcessedListeners;
 
@@ -354,7 +354,7 @@ public class UserEventManager
   /**
    * The natural triggers for event processing (new events, completed events, error events)
    * are not sufficient in all cases to keep events from sitting idle (event suspension due to errors or performance,
-   * for example).  Therefore, a simple timer will run periodically to ensure that events continue to flow with
+   * for example). Therefore, a simple timer will run periodically to ensure that events continue to flow with
    * minimal undesired interruption.
    */
   private void startBackupEventPushTrigger() {

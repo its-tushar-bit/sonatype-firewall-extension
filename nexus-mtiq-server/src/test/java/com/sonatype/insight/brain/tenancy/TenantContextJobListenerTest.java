@@ -102,7 +102,7 @@ public class TenantContextJobListenerTest
 
   @Test
   public void shouldInvalidateTenant_afterJobExecution() throws Exception {
-    underTest =  new TenantContextJobListener(tenantManager, tenantService, new TenantUtil(), deletedTenantDAO);
+    underTest = new TenantContextJobListener(tenantManager, tenantService, new TenantUtil(), deletedTenantDAO);
 
     testAsTenant(new Tenant("tenant"), tenant -> {
       underTest.jobWasExecuted(context, null);
@@ -114,7 +114,7 @@ public class TenantContextJobListenerTest
 
   @Test
   public void shouldInvalidateTenant_onJobVeto() throws Exception {
-    underTest =  new TenantContextJobListener(tenantManager, tenantService, new TenantUtil(), deletedTenantDAO);
+    underTest = new TenantContextJobListener(tenantManager, tenantService, new TenantUtil(), deletedTenantDAO);
 
     testAsTenant(new Tenant("tenant"), tenant -> {
       underTest.jobExecutionVetoed(context);
@@ -132,7 +132,7 @@ public class TenantContextJobListenerTest
    */
   @Test
   public void shouldInvalidateTenant_beforeSettingUpJobExecution() throws Exception {
-    underTest =  new TenantContextJobListener(tenantManager, tenantService, new TenantUtil(), deletedTenantDAO);
+    underTest = new TenantContextJobListener(tenantManager, tenantService, new TenantUtil(), deletedTenantDAO);
     when(detail.getJobClass()).thenAnswer(i -> job.getClass());
 
     String tenantForJob = "tenant-for-job";
@@ -156,7 +156,7 @@ public class TenantContextJobListenerTest
    */
   @Test
   public void shouldInvalidateTenant_whenExceptionThrown() throws Exception {
-    underTest =  new TenantContextJobListener(tenantManager, tenantService, new TenantUtil(), deletedTenantDAO);
+    underTest = new TenantContextJobListener(tenantManager, tenantService, new TenantUtil(), deletedTenantDAO);
 
     Tenant jobTenant = new Tenant(TenantTestHelper.createTenantNameFromTest(testName));
 
@@ -171,7 +171,7 @@ public class TenantContextJobListenerTest
         underTest.jobToBeExecuted(context);
       }
       catch (Exception e) {
-        //no-op
+        // no-op
       }
 
       assertThat(jobTenant.isInvalid()).isTrue();
@@ -194,8 +194,7 @@ public class TenantContextJobListenerTest
       when(deletedTenantDAO.getAllTenantDeletions()).thenReturn(deletedTenants);
       when(tenantService.getAllTenantsNames()).thenReturn(Stream.concat(
           tenantNames.stream(),
-          deletedTenants.stream().map(DeletedTenant::getId)
-      ).collect(Collectors.toList()));
+          deletedTenants.stream().map(DeletedTenant::getId)).collect(Collectors.toList()));
 
       when(detail.getKey()).thenReturn(new JobKey("name", "global"));
 

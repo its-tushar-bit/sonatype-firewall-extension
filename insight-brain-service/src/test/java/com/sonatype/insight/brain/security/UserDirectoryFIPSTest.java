@@ -18,7 +18,8 @@ import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastl
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 @Category(SlowTest.class)
-public class UserDirectoryFIPSTest extends UserDirectoryTest
+public class UserDirectoryFIPSTest
+    extends UserDirectoryTest
 {
   @Rule
   public EnvironmentVariables environmentVariables;

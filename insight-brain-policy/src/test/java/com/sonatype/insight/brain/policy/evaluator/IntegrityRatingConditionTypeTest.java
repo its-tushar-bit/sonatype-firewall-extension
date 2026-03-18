@@ -62,8 +62,15 @@ public class IntegrityRatingConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, IntegrityRatingConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Integrity Rating was Suspicious");
   }
 
@@ -93,8 +100,15 @@ public class IntegrityRatingConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, IntegrityRatingConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo(String.format("Integrity Rating was %s, not %s", SUSPICIOUS.getName(), NORMAL.getName()));
   }
@@ -104,6 +118,7 @@ public class IntegrityRatingConditionTypeTest
     Condition condition = new Condition(IntegrityRatingConditionType.ID, "is", "abc");
     assertThatThrownBy(
         () -> new IntegrityRatingConditionType().validateCondition(null, condition, null /* applicationId */))
-        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
+            .isInstanceOf(InvalidConditionException.class)
+            .hasMessageEndingWith("Value not supported: abc");
   }
 }

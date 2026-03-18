@@ -1070,8 +1070,7 @@ public class Auth0ManagementAPITest
       final String name,
       final String tenantUrl,
       final String description,
-      final String logoUrl)
-      throws Auth0Exception
+      final String logoUrl) throws Auth0Exception
   {
     verify(auth0ManagementAPI).clients();
     verify(mockClientsEntity).create(clientCaptor.capture());
@@ -1085,8 +1084,7 @@ public class Auth0ManagementAPITest
       final String name,
       final String tenantUrl,
       final String description,
-      final String logoUrl
-  ) throws Auth0Exception
+      final String logoUrl) throws Auth0Exception
   {
     verify(auth0ManagementAPI).clients();
     verify(mockClientsEntity).update(clientIdCaptor.capture(), clientCaptor.capture());
@@ -1098,8 +1096,7 @@ public class Auth0ManagementAPITest
 
   private void verifyCreateConnectionRequestWasSent(
       final String name,
-      final List<String> clientIds)
-      throws Auth0Exception
+      final List<String> clientIds) throws Auth0Exception
   {
     verify(auth0ManagementAPI, times(2)).connections();
     verify(mockConnectionsEntity).listAll(connectionFilterCaptor.capture());
@@ -1115,8 +1112,7 @@ public class Auth0ManagementAPITest
 
   private void verifyUpdateConnectionRequestWasSent(
       final String id,
-      final List<String> clientIds)
-      throws Auth0Exception
+      final List<String> clientIds) throws Auth0Exception
   {
     verify(auth0ManagementAPI, times(2)).connections();
     verify(mockConnectionsEntity).get(id, null);
@@ -1127,9 +1123,7 @@ public class Auth0ManagementAPITest
     assertCapturedConnectionToUpdateIsTheExpected(clientIds);
   }
 
-  private void verifyNewConnectionWasNotCreated()
-      throws Auth0Exception
-  {
+  private void verifyNewConnectionWasNotCreated() throws Auth0Exception {
     verify(auth0ManagementAPI, times(1)).connections();
     verify(mockConnectionsEntity).listAll(connectionFilterCaptor.capture());
     verify(mockConnectionsEntity, never()).create(any(Connection.class));
@@ -1138,8 +1132,10 @@ public class Auth0ManagementAPITest
     assertFilterIsTheExpected(connectionFilterCaptor.getValue(), "name,id,enabled_clients");
   }
 
-  private void verifyCreateUserRequestWasSent(final String email, final String firstName, final String lastName)
-      throws Exception
+  private void verifyCreateUserRequestWasSent(
+      final String email,
+      final String firstName,
+      final String lastName) throws Exception
   {
     verify(auth0ManagementAPI, times(2)).users();
     verify(mockUsersEntity).listByEmail(emailCaptor.capture(), fieldsFilterCaptor.capture());
@@ -1152,9 +1148,7 @@ public class Auth0ManagementAPITest
     assertFilterIsTheExpected(fieldsFilterCaptor.getValue(), "email,user_id,identities,user_metadata");
   }
 
-  private void verifyNewUserWasNotCreated(final String email)
-      throws Auth0Exception
-  {
+  private void verifyNewUserWasNotCreated(final String email) throws Auth0Exception {
     verify(auth0ManagementAPI, times(1)).users();
     verify(mockUsersEntity).listByEmail(emailCaptor.capture(), fieldsFilterCaptor.capture());
     verify(mockUsersEntity, never()).create(any(User.class));
@@ -1176,9 +1170,7 @@ public class Auth0ManagementAPITest
     assertFilterIsTheExpected(fieldsFilterCaptor.getValue(), "email,user_id,identities,user_metadata");
   }
 
-  private void verifyDeleteUserRequestWasNotSent(final String email)
-      throws Auth0Exception
-  {
+  private void verifyDeleteUserRequestWasNotSent(final String email) throws Auth0Exception {
     verify(auth0ManagementAPI, times(1)).users();
     verify(mockUsersEntity).listByEmail(emailCaptor.capture(), fieldsFilterCaptor.capture());
     verify(mockUsersEntity, never()).delete(any(String.class));
@@ -1197,8 +1189,7 @@ public class Auth0ManagementAPITest
   private void verifyCreateOrganizationRequestWasSent(
       final String name,
       final String displayName,
-      final List<EnabledConnection> connectionsToEnable)
-      throws Auth0Exception
+      final List<EnabledConnection> connectionsToEnable) throws Auth0Exception
   {
     verify(auth0ManagementAPI, times(2)).organizations();
     verify(mockOrganizationsEntity).getByName(name);
@@ -1217,8 +1208,7 @@ public class Auth0ManagementAPITest
       final String name,
       final String displayName,
       final List<EnabledConnection> connectionsToEnable,
-      final List<EnabledConnection> connectionsToUpdate)
-      throws Auth0Exception
+      final List<EnabledConnection> connectionsToUpdate) throws Auth0Exception
   {
     verify(auth0ManagementAPI, times(5)).organizations();
     verify(mockOrganizationsEntity).getByName(name);
@@ -1440,7 +1430,7 @@ public class Auth0ManagementAPITest
     updateConnectionForOrganizationMockRequest = mock(Request.class);
     when(mockOrganizationsEntity.updateConnection(any(String.class), any(String.class),
         any(EnabledConnection.class))).thenReturn(
-        updateConnectionForOrganizationMockRequest);
+            updateConnectionForOrganizationMockRequest);
   }
 
   private void mockGetOrganizationMembersRequest() {

@@ -81,7 +81,9 @@ public class QuarantinedComponentResourceTest
     // when anonymous request
     final HttpResponse response = restRequest()
         .path(QuarantinedComponentResource.RESOURCE_PATH, QuarantinedComponentResource.QUARANTINED_COMPONENT_PATH)
-        .parameter(encodedToken).anon().get();
+        .parameter(encodedToken)
+        .anon()
+        .get();
 
     // then
     assertResponseStatus(200, response);
@@ -109,7 +111,8 @@ public class QuarantinedComponentResourceTest
     // when authenticated request
     response = restRequest()
         .path(QuarantinedComponentResource.RESOURCE_PATH, QuarantinedComponentResource.QUARANTINED_COMPONENT_PATH)
-        .parameter(encodedToken).get();
+        .parameter(encodedToken)
+        .get();
 
     // then success
     assertResponseStatus(200, response);
@@ -141,8 +144,9 @@ public class QuarantinedComponentResourceTest
     assertResponseStatus(200, response);
     QuarantinedComponentOverviewDto quarantinedComponentOverviewDto =
         response.getBody(QuarantinedComponentOverviewDto.class);
-    assertThat(quarantinedComponentOverviewDto.componentIdentifier).usingRecursiveComparison().isEqualTo(
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    assertThat(quarantinedComponentOverviewDto.componentIdentifier).usingRecursiveComparison()
+        .isEqualTo(
+            ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
     assertThat(quarantinedComponentOverviewDto.componentHash).isEqualTo("testHash");
     assertThat(quarantinedComponentOverviewDto.matchState).isEqualTo(MatchState.EXACT.toString());
     assertThat(quarantinedComponentOverviewDto.pathname).isEqualTo("com/lingocoder/abi.cli/0.5.2/abi.cli-0.5.2.jar");
@@ -183,8 +187,9 @@ public class QuarantinedComponentResourceTest
     assertResponseStatus(200, response);
     QuarantinedComponentOverviewDto quarantinedComponentOverviewDto =
         response.getBody(QuarantinedComponentOverviewDto.class);
-    assertThat(quarantinedComponentOverviewDto.componentIdentifier).usingRecursiveComparison().isEqualTo(
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    assertThat(quarantinedComponentOverviewDto.componentIdentifier).usingRecursiveComparison()
+        .isEqualTo(
+            ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
     assertThat(quarantinedComponentOverviewDto.componentHash).isEqualTo("testHash");
     assertThat(quarantinedComponentOverviewDto.matchState).isEqualTo(MatchState.EXACT.toString());
     assertThat(quarantinedComponentOverviewDto.pathname).isEqualTo("com/lingocoder/abi.cli/0.5.2/abi.cli-0.5.2.jar");
@@ -234,7 +239,9 @@ public class QuarantinedComponentResourceTest
     // when
     final HttpResponse response =
         restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
-            QuarantinedComponentResource.QUARANTINED_COMPONENT_VERSION_REMEDIATION_PATH).parameter(encodedToken).anon()
+            QuarantinedComponentResource.QUARANTINED_COMPONENT_VERSION_REMEDIATION_PATH)
+            .parameter(encodedToken)
+            .anon()
             .get();
 
     // then
@@ -282,7 +289,9 @@ public class QuarantinedComponentResourceTest
     HttpResponse response = restRequest()
         .path(QuarantinedComponentResource.RESOURCE_PATH,
             QuarantinedComponentResource.QUARANTINED_COMPONENT_VERSION_REMEDIATION_PATH)
-        .parameter(encodedToken).anon().get();
+        .parameter(encodedToken)
+        .anon()
+        .get();
 
     // then 401 is returned
     assertThat(response.getStatusCode()).isEqualTo(401);
@@ -291,7 +300,8 @@ public class QuarantinedComponentResourceTest
     response = restRequest()
         .path(QuarantinedComponentResource.RESOURCE_PATH,
             QuarantinedComponentResource.QUARANTINED_COMPONENT_VERSION_REMEDIATION_PATH)
-        .parameter(encodedToken).get();
+        .parameter(encodedToken)
+        .get();
 
     // then success
     assertResponseStatus(200, response);
@@ -351,7 +361,9 @@ public class QuarantinedComponentResourceTest
     // when anonymous request
     final HttpResponse response =
         restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
-            QuarantinedComponentResource.QUARANTINED_COMPONENT_POLICY_VIOLATIONS_PATH).parameter(encodedToken).anon()
+            QuarantinedComponentResource.QUARANTINED_COMPONENT_POLICY_VIOLATIONS_PATH)
+            .parameter(encodedToken)
+            .anon()
             .get();
 
     // then
@@ -410,7 +422,9 @@ public class QuarantinedComponentResourceTest
     HttpResponse response = restRequest()
         .path(QuarantinedComponentResource.RESOURCE_PATH,
             QuarantinedComponentResource.QUARANTINED_COMPONENT_POLICY_VIOLATIONS_PATH)
-        .parameter(encodedToken).anon().get();
+        .parameter(encodedToken)
+        .anon()
+        .get();
     // then 401 is returned
     assertThat(response.getStatusCode()).isEqualTo(401);
 
@@ -418,7 +432,8 @@ public class QuarantinedComponentResourceTest
     response = restRequest()
         .path(QuarantinedComponentResource.RESOURCE_PATH,
             QuarantinedComponentResource.QUARANTINED_COMPONENT_POLICY_VIOLATIONS_PATH)
-        .parameter(encodedToken).get();
+        .parameter(encodedToken)
+        .get();
 
     // then success
     assertResponseStatus(200, response);
@@ -487,13 +502,20 @@ public class QuarantinedComponentResourceTest
     // when anonymous request
     final HttpResponse response =
         restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
-            QuarantinedComponentResource.QUARANTINED_COMPONENT_OTHER_VERSIONS_PATH).parameter(encodedToken).anon()
-            .query("page", 1).query("pageSize", 5).query("asc", true).get();
+            QuarantinedComponentResource.QUARANTINED_COMPONENT_OTHER_VERSIONS_PATH)
+            .parameter(encodedToken)
+            .anon()
+            .query("page", 1)
+            .query("pageSize", 5)
+            .query("asc", true)
+            .get();
 
     // then
     assertResponseStatus(200, response);
     ApiPageResult<String> responseDTO = getBodyByTypeReference(response.getBodyBytes(),
-        new TypeReference<ApiPageResult<String>>() { });
+        new TypeReference<ApiPageResult<String>>()
+        {
+        });
     assertThat(responseDTO.getTotal()).isEqualTo(2);
     assertThat(responseDTO.getPage()).isEqualTo(1);
     assertThat(responseDTO.getPageSize()).isEqualTo(5);
@@ -540,14 +562,23 @@ public class QuarantinedComponentResourceTest
     HttpResponse response = restRequest()
         .path(QuarantinedComponentResource.RESOURCE_PATH,
             QuarantinedComponentResource.QUARANTINED_COMPONENT_OTHER_VERSIONS_PATH)
-        .parameter(encodedToken).anon().query("page", 1).query("pageSize", 5).query("asc", true).get();
+        .parameter(encodedToken)
+        .anon()
+        .query("page", 1)
+        .query("pageSize", 5)
+        .query("asc", true)
+        .get();
     // then 401 is returned
     assertThat(response.getStatusCode()).isEqualTo(401);
 
     // when authenticated request
     response = restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
-        QuarantinedComponentResource.QUARANTINED_COMPONENT_OTHER_VERSIONS_PATH).parameter(encodedToken)
-        .query("page", 1).query("pageSize", 5).query("asc", true).get();
+        QuarantinedComponentResource.QUARANTINED_COMPONENT_OTHER_VERSIONS_PATH)
+        .parameter(encodedToken)
+        .query("page", 1)
+        .query("pageSize", 5)
+        .query("asc", true)
+        .get();
 
     // then success
     assertResponseStatus(200, response);
@@ -582,7 +613,10 @@ public class QuarantinedComponentResourceTest
     HttpResponse response = restRequest()
         .path(QuarantinedComponentResource.RESOURCE_PATH,
             QuarantinedComponentResource.QUARANTINED_COMPONENT_VERSION_DETAILS_PATH)
-        .parameter(encodedToken).query("version", "v").anon().get();
+        .parameter(encodedToken)
+        .query("version", "v")
+        .anon()
+        .get();
 
     // then
     assertResponseStatus(200, response);
@@ -595,7 +629,7 @@ public class QuarantinedComponentResourceTest
     assertThat(namedComponentDetails.getDeclaredLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getObservedLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getEffectiveLicenses()).extracting(
-            com.sonatype.clm.dto.model.License::getLicenseId)
+        com.sonatype.clm.dto.model.License::getLicenseId)
         .containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getOverriddenLicenses()).isEmpty();
     assertThat(namedComponentDetails.getPolicyMaxThreatLevelsByCategory()).isEmpty();
@@ -638,7 +672,10 @@ public class QuarantinedComponentResourceTest
     HttpResponse response = restRequest()
         .path(QuarantinedComponentResource.RESOURCE_PATH,
             QuarantinedComponentResource.QUARANTINED_COMPONENT_VERSION_DETAILS_PATH)
-        .parameter(encodedToken).query("version", "v").anon().get();
+        .parameter(encodedToken)
+        .query("version", "v")
+        .anon()
+        .get();
 
     // then 401 is returned
     assertThat(response.getStatusCode()).isEqualTo(401);
@@ -647,7 +684,9 @@ public class QuarantinedComponentResourceTest
     response = restRequest()
         .path(QuarantinedComponentResource.RESOURCE_PATH,
             QuarantinedComponentResource.QUARANTINED_COMPONENT_VERSION_DETAILS_PATH)
-        .parameter(encodedToken).query("version", "v").get();
+        .parameter(encodedToken)
+        .query("version", "v")
+        .get();
 
     // then success
     assertResponseStatus(200, response);
@@ -660,7 +699,7 @@ public class QuarantinedComponentResourceTest
     assertThat(namedComponentDetails.getDeclaredLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getObservedLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getEffectiveLicenses()).extracting(
-            com.sonatype.clm.dto.model.License::getLicenseId)
+        com.sonatype.clm.dto.model.License::getLicenseId)
         .containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getOverriddenLicenses()).isEmpty();
     assertThat(namedComponentDetails.getPolicyMaxThreatLevelsByCategory()).isEmpty();
@@ -704,4 +743,3 @@ public class QuarantinedComponentResourceTest
     return Base64.getUrlEncoder().withoutPadding().encodeToString(token.getBytes(StandardCharsets.UTF_8));
   }
 }
-

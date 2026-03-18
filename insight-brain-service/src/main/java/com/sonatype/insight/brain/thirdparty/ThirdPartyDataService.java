@@ -214,7 +214,7 @@ public class ThirdPartyDataService
     return thirdPartyApplicationReportDTO;
   }
 
-  //Visible for testing
+  // Visible for testing
   ComponentIdentifier getComponentIdentifier(final ThirdPartyFileCoordinate coord) {
     ComponentIdentifier componentIdentifier;
     if (StringUtils.isNotBlank(coord.getPackageUrl())) {
@@ -233,8 +233,9 @@ public class ThirdPartyDataService
       final ComponentIdentifier componentIdentifier,
       final ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO)
   {
-    thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(coord.getId()).forEach(
-        sec -> thirdPartyApplicationReportDTO.securityRows.add(toSecurityRow(sec, componentIdentifier, coord)));
+    thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(coord.getId())
+        .forEach(
+            sec -> thirdPartyApplicationReportDTO.securityRows.add(toSecurityRow(sec, componentIdentifier, coord)));
   }
 
   private ThirdPartyHealthCheckReportSecurityRowDTO toSecurityRow(
@@ -289,14 +290,15 @@ public class ThirdPartyDataService
       final Date scanTime)
   {
     ThirdPartyFileCoordinate coordinate = coordinates.get(0);
-    final ThirdPartyBillOfMaterialsRowDTO dto
-        = new ThirdPartyBillOfMaterialsRowDTO(componentIdentifier, coordinate.getHash());
+    final ThirdPartyBillOfMaterialsRowDTO dto =
+        new ThirdPartyBillOfMaterialsRowDTO(componentIdentifier, coordinate.getHash());
     dto.createTime = scanTime.getTime();
     dto.matchState = MatchState.EXACT.toString();
     dto.identificationSource = coordinate.getSource();
     dto.pathnames = coordinates.stream().parallel().map(c -> c.getPackageUrl()).collect(Collectors.toSet());
-    dto.setPackageUrl(StringUtils.isNotEmpty(coordinate.getPackageUrl()) ?
-        coordinate.getPackageUrl() : PackageUrlIdentifier.toPackageUrl(componentIdentifier));
+    dto.setPackageUrl(StringUtils.isNotEmpty(coordinate.getPackageUrl())
+        ? coordinate.getPackageUrl()
+        : PackageUrlIdentifier.toPackageUrl(componentIdentifier));
     dto.cpe = coordinate.getCpe();
     String swid = coordinate.getSwid();
     if (swid != null) {
@@ -421,8 +423,7 @@ public class ThirdPartyDataService
   public void mergeSonatypeDataWithSbomDataWithIndexing(
       final String scanId,
       final ApplicationReport applicationReport,
-      final CpeResultsTelemetry cpeResultsTelemetry)
-      throws IOException
+      final CpeResultsTelemetry cpeResultsTelemetry) throws IOException
   {
     if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
       return;

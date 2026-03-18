@@ -36,16 +36,17 @@ public class ApiMetricsReportingAggregationDTOV2
 
   public int evaluationCount;
 
-  public ApiMetricsReportingAggregationDTOV2(String timePeriodStart,
-                                             Long mttrLowThreat,
-                                             Long mttrModerateThreat,
-                                             Long mttrSevereThreat,
-                                             Long mttrCriticalThreat,
-                                             Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> discoveredCounts,
-                                             Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> fixedCounts,
-                                             Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> waivedCounts,
-                                             Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> openCounts,
-                                             int evaluationCount)
+  public ApiMetricsReportingAggregationDTOV2(
+      String timePeriodStart,
+      Long mttrLowThreat,
+      Long mttrModerateThreat,
+      Long mttrSevereThreat,
+      Long mttrCriticalThreat,
+      Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> discoveredCounts,
+      Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> fixedCounts,
+      Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> waivedCounts,
+      Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> openCounts,
+      int evaluationCount)
   {
     this.timePeriodStart = timePeriodStart;
     this.mttrLowThreat = mttrLowThreat;

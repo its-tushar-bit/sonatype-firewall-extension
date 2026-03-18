@@ -24,12 +24,13 @@ public class ApiMetricsReportingDTOV2
 
   public final List<ApiMetricsReportingAggregationDTOV2> aggregations;
 
-  public ApiMetricsReportingDTOV2(String applicationId,
-                                  String applicationPublicId,
-                                  String applicationName,
-                                  String organizationId,
-                                  String organizationName,
-                                  List<ApiMetricsReportingAggregationDTOV2> aggregations)
+  public ApiMetricsReportingDTOV2(
+      String applicationId,
+      String applicationPublicId,
+      String applicationName,
+      String organizationId,
+      String organizationName,
+      List<ApiMetricsReportingAggregationDTOV2> aggregations)
   {
     this.applicationId = applicationId;
     this.applicationPublicId = applicationPublicId;

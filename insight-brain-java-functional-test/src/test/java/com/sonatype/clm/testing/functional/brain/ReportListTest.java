@@ -259,7 +259,9 @@ public class ReportListTest
 
     List<String> names = new ArrayList<>();
     ReportListPage.consumeAllRows(row -> names.add(row.applicationName().getText()));
-    assertThat(names).isEqualTo(apps.subList(0, ReportListPage.RESULTS_PER_PAGE).stream().map(Application::getName)
+    assertThat(names).isEqualTo(apps.subList(0, ReportListPage.RESULTS_PER_PAGE)
+        .stream()
+        .map(Application::getName)
         .collect(Collectors.toList()));
 
     ScrollUtil.awaitEndOfScrolling(ReportListPage.load().scrollIntoView(false).shouldBe(visible));
@@ -275,8 +277,10 @@ public class ReportListTest
   }
 
   private void createAlphabeticalOrgsAndApps(List<Organization> orgs, List<Application> apps) {
-    orgs.addAll(organizationDAO.getAll().stream()
-        .filter(org -> !org.getId().equals(Organization.ROOT_ORGANIZATION_ID)).collect(Collectors.toList()));
+    orgs.addAll(organizationDAO.getAll()
+        .stream()
+        .filter(org -> !org.getId().equals(Organization.ROOT_ORGANIZATION_ID))
+        .collect(Collectors.toList()));
     apps.addAll(applicationDAO.getAll());
     for (int result = 0; result < ReportListPage.RESULTS_PER_PAGE; result++) {
       String orgSuffix = getAlphabeticalSequenceElement(result);

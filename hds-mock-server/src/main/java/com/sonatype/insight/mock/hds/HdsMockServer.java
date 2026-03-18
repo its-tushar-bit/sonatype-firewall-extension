@@ -314,8 +314,9 @@ public class HdsMockServer
     }
 
     @Override
-    protected void service(HttpServletRequest request, HttpServletResponse response)
-        throws IOException, ServletException
+    protected void service(
+        HttpServletRequest request,
+        HttpServletResponse response) throws IOException, ServletException
     {
       captureRequestHttpHeaders(request);
       captureRequestHttpBody(request);
@@ -418,8 +419,10 @@ public class HdsMockServer
     }
 
     @Override
-    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-        throws IOException, ServletException
+    public void doFilter(
+        ServletRequest req,
+        ServletResponse res,
+        FilterChain chain) throws IOException, ServletException
     {
       HttpServletRequest request = (HttpServletRequest) req;
       HttpServletResponse response = (HttpServletResponse) res;

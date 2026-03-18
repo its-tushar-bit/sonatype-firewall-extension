@@ -24,7 +24,8 @@ import org.apache.openjpa.persistence.DataCache;
 @Cacheable
 @Entity
 @Table(name = "application")
-public class Application extends Nameable
+public class Application
+    extends Nameable
     implements HasStringId, Owner
 {
   @Id

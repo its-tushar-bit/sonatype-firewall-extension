@@ -123,12 +123,13 @@ public class ComponentDetailsLoader
     List<HashComponentIdentifier> hashComponentIdentifiers = hashComponentIdentifierDAO.getByHashes(sanitizedHashes);
 
     return hashComponentIdentifiers.stream()
-        .map(i -> toComponentDetails(i,  i.getComponentIdentifier()))
+        .map(i -> toComponentDetails(i, i.getComponentIdentifier()))
         .collect(Collectors.toMap(NamedComponentDetails::getHash, Function.identity()));
   }
 
-  private static NamedComponentDetails toComponentDetails(HashComponentIdentifier hashComponentIdentifier,
-                                                          ComponentIdentifier componentIdentifier)
+  private static NamedComponentDetails toComponentDetails(
+      HashComponentIdentifier hashComponentIdentifier,
+      ComponentIdentifier componentIdentifier)
   {
     NamedComponentDetails componentDetails = null;
 
@@ -275,7 +276,8 @@ public class ComponentDetailsLoader
     componentDetails.setMatchState(StringUtils.isBlank(matchState) ? MatchState.EXACT.getId() : matchState);
 
     if (!isThirdPartyIdentificationSource(componentDetails.getIdentificationSource())
-        && !IdentificationSource.PACKAGE_MANIFEST.getId().equals(componentDetails.getIdentificationSource())) {
+        && !IdentificationSource.PACKAGE_MANIFEST.getId().equals(componentDetails.getIdentificationSource()))
+    {
       componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
     }
 
@@ -308,8 +310,9 @@ public class ComponentDetailsLoader
     // Use CLM data to populate the component details
     for (String licenseId : component.getLicenseOverrideIds()) {
       com.sonatype.insight.brain.model.license.License overriddenLicense = getLicense(licenseId);
-      componentDetails.getOverriddenLicenses().add(
-          new License(overriddenLicense.getId(), overriddenLicense.getShortDisplayName()));
+      componentDetails.getOverriddenLicenses()
+          .add(
+              new License(overriddenLicense.getId(), overriddenLicense.getShortDisplayName()));
     }
 
     // Calculate the effective licenses
@@ -345,7 +348,8 @@ public class ComponentDetailsLoader
       for (SecurityVulnerability issue : componentDetails.getSecurityVulnerabilities()) {
         issue.setStatus(SecurityVulnerabilityOverrideStatus.OPEN.getName());
         for (com.sonatype.insight.brain.model.component.SecurityVulnerability sv : component
-            .getSecurityVulnerabilities()) {
+            .getSecurityVulnerabilities())
+        {
           if (issue.getRefId().equals(sv.getRefId()) && isSameSource(issue.getSource(), sv.getSource())) {
             issue.setStatus(sv.getStatus().getName());
             break;
@@ -375,7 +379,7 @@ public class ComponentDetailsLoader
   }
 
   private boolean isSameSource(final String issueSource, final String svSource) {
-    //for third party components the source may not exist
+    // for third party components the source may not exist
     if (issueSource == null) {
       return svSource == null;
     }

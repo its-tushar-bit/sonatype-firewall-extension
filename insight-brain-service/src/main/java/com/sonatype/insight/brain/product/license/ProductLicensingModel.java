@@ -7,5 +7,8 @@ package com.sonatype.insight.brain.product.license;
 
 public enum ProductLicensingModel
 {
-  LEGACY, USER_BASED, APP_BASED, SBOM_BASED
+  LEGACY,
+  USER_BASED,
+  APP_BASED,
+  SBOM_BASED
 }

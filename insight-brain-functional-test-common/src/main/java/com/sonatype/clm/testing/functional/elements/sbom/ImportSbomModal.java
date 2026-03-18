@@ -23,7 +23,7 @@ public class ImportSbomModal
     return child(".nx-h2");
   }
 
-  //Initial content
+  // Initial content
   public SelenideElement fileUpload() {
     return child(".nx-file-upload__input");
   }
@@ -44,12 +44,12 @@ public class ImportSbomModal
     return child(".nx-copy-to-clipboard .nx-btn");
   }
 
-  //Uploading and commiting content
+  // Uploading and commiting content
   public SelenideElement progressBar() {
     return child(".nx-progress-bar");
   }
 
-  //Summary content
+  // Summary content
   public SelenideElement summaryApplicationName() {
     return child("#import-sbom-modal-application-name");
   }

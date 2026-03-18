@@ -55,8 +55,7 @@ public class AutoPolicyWaiverUtilTest
         waiverNR2,
         waiverNR3,
         waiverNPF2,
-        waiverNPF3
-    );
+        waiverNPF3);
 
     final List<AutoPolicyWaiver> applicableAutoWaivers =
         AutoPolicyWaiverUtil.getApplicableAutoPolicyWaivers(autoWaivers);
@@ -99,8 +98,7 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiver2.pathForward = true;
 
     assertThat(
-        anyEqualByScope(apiAutoPolicyWaivers)
-    ).isTrue();
+        anyEqualByScope(apiAutoPolicyWaivers)).isTrue();
 
     apiAutoPolicyWaiver1.reachability = false;
     apiAutoPolicyWaiver1.pathForward = true;
@@ -108,8 +106,7 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiver2.pathForward = true;
 
     assertThat(
-        anyEqualByScope(apiAutoPolicyWaivers)
-    ).isTrue();
+        anyEqualByScope(apiAutoPolicyWaivers)).isTrue();
 
     apiAutoPolicyWaiver1.reachability = true;
     apiAutoPolicyWaiver1.pathForward = false;
@@ -117,8 +114,7 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiver2.pathForward = false;
 
     assertThat(
-        anyEqualByScope(apiAutoPolicyWaivers)
-    ).isTrue();
+        anyEqualByScope(apiAutoPolicyWaivers)).isTrue();
 
     apiAutoPolicyWaiver1.reachability = false;
     apiAutoPolicyWaiver1.pathForward = true;
@@ -126,8 +122,7 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiver2.pathForward = true;
 
     assertThat(
-        anyEqualByScope(apiAutoPolicyWaivers)
-    ).isFalse();
+        anyEqualByScope(apiAutoPolicyWaivers)).isFalse();
 
     apiAutoPolicyWaiver1.reachability = true;
     apiAutoPolicyWaiver1.pathForward = false;
@@ -135,8 +130,7 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiver2.pathForward = true;
 
     assertThat(
-        anyEqualByScope(apiAutoPolicyWaivers)
-    ).isFalse();
+        anyEqualByScope(apiAutoPolicyWaivers)).isFalse();
 
     apiAutoPolicyWaiver1.reachability = true;
     apiAutoPolicyWaiver1.pathForward = true;
@@ -144,8 +138,7 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiver2.pathForward = true;
 
     assertThat(
-        anyEqualByScope(apiAutoPolicyWaivers)
-    ).isFalse();
+        anyEqualByScope(apiAutoPolicyWaivers)).isFalse();
 
     apiAutoPolicyWaiver1.reachability = true;
     apiAutoPolicyWaiver1.pathForward = true;
@@ -153,8 +146,7 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiver2.pathForward = false;
 
     assertThat(
-        anyEqualByScope(apiAutoPolicyWaivers)
-    ).isFalse();
+        anyEqualByScope(apiAutoPolicyWaivers)).isFalse();
 
     apiAutoPolicyWaiver1.reachability = false;
     apiAutoPolicyWaiver1.pathForward = false;
@@ -162,8 +154,7 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiver2.pathForward = true;
 
     assertThat(
-        anyEqualByScope(apiAutoPolicyWaivers)
-    ).isFalse();
+        anyEqualByScope(apiAutoPolicyWaivers)).isFalse();
 
     apiAutoPolicyWaiver1.reachability = false;
     apiAutoPolicyWaiver1.pathForward = false;
@@ -171,8 +162,7 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiver2.pathForward = true;
 
     assertThat(
-        anyEqualByScope(apiAutoPolicyWaivers)
-    ).isFalse();
+        anyEqualByScope(apiAutoPolicyWaivers)).isFalse();
 
     apiAutoPolicyWaiver1.reachability = true;
     apiAutoPolicyWaiver1.pathForward = false;
@@ -180,8 +170,7 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiver2.pathForward = false;
 
     assertThat(
-        anyEqualByScope(apiAutoPolicyWaivers)
-    ).isFalse();
+        anyEqualByScope(apiAutoPolicyWaivers)).isFalse();
 
     apiAutoPolicyWaiver1.reachability = false;
     apiAutoPolicyWaiver1.pathForward = true;
@@ -189,8 +178,7 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiver2.pathForward = false;
 
     assertThat(
-        anyEqualByScope(apiAutoPolicyWaivers)
-    ).isFalse();
+        anyEqualByScope(apiAutoPolicyWaivers)).isFalse();
 
     apiAutoPolicyWaiver1.reachability = false;
     apiAutoPolicyWaiver1.pathForward = false;
@@ -198,17 +186,14 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiver2.pathForward = false;
 
     assertThat(
-        anyEqualByScope(apiAutoPolicyWaivers)
-    ).isFalse();
+        anyEqualByScope(apiAutoPolicyWaivers)).isFalse();
 
     apiAutoPolicyWaiver1.reachability = false;
     apiAutoPolicyWaiver1.pathForward = false;
     apiAutoPolicyWaiver2.reachability = false;
     apiAutoPolicyWaiver2.pathForward = false;
 
-    assertThatThrownBy(() ->
-        anyEqualByScope(apiAutoPolicyWaivers)
-    ).isInstanceOf(IllegalStateException.class)
+    assertThatThrownBy(() -> anyEqualByScope(apiAutoPolicyWaivers)).isInstanceOf(IllegalStateException.class)
         .hasMessage("Equal Auto Policy Waiver found for reachability: 'false' and " +
             "pathForward 'false' but are not allowed to be both false.");
   }
@@ -226,9 +211,7 @@ public class AutoPolicyWaiverUtilTest
         anyEqualByOwnerAndScope(
             "1234",
             List.of(new ApiAutoPolicyWaiverDTO()),
-            List.of(new AutoPolicyWaiver())
-        )
-    ).isFalse();
+            List.of(new AutoPolicyWaiver()))).isFalse();
   }
 
   @Test
@@ -243,34 +226,30 @@ public class AutoPolicyWaiverUtilTest
     autoPolicyWaiver.setOwnerId(ownerId);
 
     assertThatThrownBy(
-        () -> anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isInstanceOf(IllegalStateException.class)
-        .hasMessage("Auto Policy Waiver with id: null is equal by owner id: 1234 and reachability: 'null' and " +
-            "pathForward 'null' but are not allowed to be both false.");
+        () -> anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver)))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("Auto Policy Waiver with id: null is equal by owner id: 1234 and reachability: 'null' and " +
+                "pathForward 'null' but are not allowed to be both false.");
 
     apiAutoPolicyWaiverDTO.reachability = true;
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isFalse();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isFalse();
 
     apiAutoPolicyWaiverDTO.pathForward = true;
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isFalse();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isFalse();
 
     autoPolicyWaiver.setReachability(true);
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isFalse();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isFalse();
 
     autoPolicyWaiver.setPathForward(true);
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isTrue();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isTrue();
   }
 
   @Test
@@ -288,8 +267,7 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiverDTO.pathForward = true;
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isFalse();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isFalse();
   }
 
   @Test
@@ -307,8 +285,7 @@ public class AutoPolicyWaiverUtilTest
     apiAutoPolicyWaiverDTO.pathForward = true;
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isTrue();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isTrue();
 
     apiAutoPolicyWaiverDTO.reachability = false;
     apiAutoPolicyWaiverDTO.pathForward = true;
@@ -316,8 +293,7 @@ public class AutoPolicyWaiverUtilTest
     autoPolicyWaiver.setPathForward(true);
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isTrue();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isTrue();
 
     apiAutoPolicyWaiverDTO.reachability = true;
     apiAutoPolicyWaiverDTO.pathForward = false;
@@ -325,8 +301,7 @@ public class AutoPolicyWaiverUtilTest
     autoPolicyWaiver.setPathForward(false);
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isTrue();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isTrue();
 
     apiAutoPolicyWaiverDTO.reachability = false;
     apiAutoPolicyWaiverDTO.pathForward = true;
@@ -334,8 +309,7 @@ public class AutoPolicyWaiverUtilTest
     autoPolicyWaiver.setPathForward(true);
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isFalse();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isFalse();
 
     apiAutoPolicyWaiverDTO.reachability = true;
     apiAutoPolicyWaiverDTO.pathForward = false;
@@ -343,8 +317,7 @@ public class AutoPolicyWaiverUtilTest
     autoPolicyWaiver.setPathForward(true);
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isFalse();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isFalse();
 
     apiAutoPolicyWaiverDTO.reachability = true;
     apiAutoPolicyWaiverDTO.pathForward = true;
@@ -352,8 +325,7 @@ public class AutoPolicyWaiverUtilTest
     autoPolicyWaiver.setPathForward(true);
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isFalse();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isFalse();
 
     apiAutoPolicyWaiverDTO.reachability = true;
     apiAutoPolicyWaiverDTO.pathForward = true;
@@ -361,8 +333,7 @@ public class AutoPolicyWaiverUtilTest
     autoPolicyWaiver.setPathForward(false);
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isFalse();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isFalse();
 
     apiAutoPolicyWaiverDTO.reachability = false;
     apiAutoPolicyWaiverDTO.pathForward = false;
@@ -370,8 +341,7 @@ public class AutoPolicyWaiverUtilTest
     autoPolicyWaiver.setPathForward(true);
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isFalse();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isFalse();
 
     apiAutoPolicyWaiverDTO.reachability = false;
     apiAutoPolicyWaiverDTO.pathForward = false;
@@ -379,8 +349,7 @@ public class AutoPolicyWaiverUtilTest
     autoPolicyWaiver.setPathForward(true);
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isFalse();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isFalse();
 
     apiAutoPolicyWaiverDTO.reachability = true;
     apiAutoPolicyWaiverDTO.pathForward = false;
@@ -388,8 +357,7 @@ public class AutoPolicyWaiverUtilTest
     autoPolicyWaiver.setPathForward(false);
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isFalse();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isFalse();
 
     apiAutoPolicyWaiverDTO.reachability = false;
     apiAutoPolicyWaiverDTO.pathForward = true;
@@ -397,8 +365,7 @@ public class AutoPolicyWaiverUtilTest
     autoPolicyWaiver.setPathForward(false);
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isFalse();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isFalse();
 
     apiAutoPolicyWaiverDTO.reachability = false;
     apiAutoPolicyWaiverDTO.pathForward = false;
@@ -406,19 +373,18 @@ public class AutoPolicyWaiverUtilTest
     autoPolicyWaiver.setPathForward(false);
 
     assertThat(
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isFalse();
+        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))).isFalse();
 
     apiAutoPolicyWaiverDTO.reachability = false;
     apiAutoPolicyWaiverDTO.pathForward = false;
     autoPolicyWaiver.setReachability(false);
     autoPolicyWaiver.setPathForward(false);
 
-    assertThatThrownBy(() ->
-        anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver))
-    ).isInstanceOf(IllegalStateException.class)
-        .hasMessage("Auto Policy Waiver with id: null is equal by owner id: 1234 and reachability: 'false' and " +
-            "pathForward 'false' but are not allowed to be both false.");
+    assertThatThrownBy(
+        () -> anyEqualByOwnerAndScope(ownerId, List.of(apiAutoPolicyWaiverDTO), List.of(autoPolicyWaiver)))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("Auto Policy Waiver with id: null is equal by owner id: 1234 and reachability: 'false' and " +
+                "pathForward 'false' but are not allowed to be both false.");
 
   }
 

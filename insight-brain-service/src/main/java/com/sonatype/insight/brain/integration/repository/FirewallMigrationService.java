@@ -131,12 +131,14 @@ public class FirewallMigrationService
     }
   }
 
-  void migrateRepositoryHistory(String sourceRepositoryManagerInstanceId,
-                                String sourceRepositoryPublicId,
-                                String targetRepositoryManagerInstanceId,
-                                String targetRepositoryPublicId)
+  void migrateRepositoryHistory(
+      String sourceRepositoryManagerInstanceId,
+      String sourceRepositoryPublicId,
+      String targetRepositoryManagerInstanceId,
+      String targetRepositoryPublicId)
   {
-    AuditData.get().setData("sourceRepositoryManagerInstanceId", sourceRepositoryManagerInstanceId)
+    AuditData.get()
+        .setData("sourceRepositoryManagerInstanceId", sourceRepositoryManagerInstanceId)
         .setData("sourceRepositoryPublicId", sourceRepositoryPublicId)
         .setData("repositoryManagerInstanceId", targetRepositoryManagerInstanceId)
         .setRepositoryPublicId(targetRepositoryPublicId);
@@ -149,7 +151,8 @@ public class FirewallMigrationService
     Repository targetRepository = createOrUpdateTargetRepository(sourceRepository, targetRepositoryManagerInstanceId,
         targetRepositoryPublicId);
 
-    AuditData.get().setData("sourceRepositoryId", sourceRepository.getId())
+    AuditData.get()
+        .setData("sourceRepositoryId", sourceRepository.getId())
         .setRepository(targetRepository)
         .setData("quarantine", sourceRepository.isQuarantineEnabled() ? "enabled" : "disabled");
 
@@ -165,9 +168,10 @@ public class FirewallMigrationService
    * the database.
    */
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  synchronized Repository createOrUpdateTargetRepository(@AuthzContext(Key.REPOSITORY) Repository sourceRepository,
-                                                         String targetRepositoryManagerInstanceId,
-                                                         String targetRepositoryPublicId)
+  synchronized Repository createOrUpdateTargetRepository(
+      @AuthzContext(Key.REPOSITORY) Repository sourceRepository,
+      String targetRepositoryManagerInstanceId,
+      String targetRepositoryPublicId)
   {
     Repository targetRepository = repositoryDAO
         .getByRepositoryManagerInstanceIdAndPublicId(targetRepositoryManagerInstanceId, targetRepositoryPublicId);
@@ -192,8 +196,9 @@ public class FirewallMigrationService
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  void migrateRepositoryHistory(Repository sourceRepository,
-                                @AuthzContext(Key.REPOSITORY) Repository targetRepository)
+  void migrateRepositoryHistory(
+      Repository sourceRepository,
+      @AuthzContext(Key.REPOSITORY) Repository targetRepository)
   {
     RepositoryMigration repositoryMigration = repositoryMigrationDAO.getByRepositoryId(targetRepository.getId());
     if (repositoryMigration != null) {
@@ -227,8 +232,9 @@ public class FirewallMigrationService
     }
   }
 
-  MigrationDetails getRepositoryMigrationState(String targetRepositoryManagerInstanceId,
-                                               String targetRepositoryPublicId)
+  MigrationDetails getRepositoryMigrationState(
+      String targetRepositoryManagerInstanceId,
+      String targetRepositoryPublicId)
   {
     checkLicenseFeature();
 

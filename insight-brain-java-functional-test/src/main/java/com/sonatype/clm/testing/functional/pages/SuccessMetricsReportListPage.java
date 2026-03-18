@@ -69,8 +69,9 @@ public class SuccessMetricsReportListPage
       return child("a");
     }
   }
-  
-  public class AlertError extends BasicElement<AlertError>
+
+  public class AlertError
+      extends BasicElement<AlertError>
   {
     public AlertError(String... selector) {
       super(selector);

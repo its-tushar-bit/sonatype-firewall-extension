@@ -130,21 +130,22 @@ public class SupportService
   private final ClusterLockManager clusterLockManager;
 
   @Inject
-  public SupportService(final InsightConfig config,
-                        final Configuration configuration,
-                        final VersionService versionService,
-                        final LdapService ldapService,
-                        final JmxInfo jmxInfo,
-                        final DbData dbData,
-                        final SystemInfo systemInfo,
-                        final ConfigurationInfo configurationInfo,
-                        final SourceControlConfigurationInfo sourceControlConfigurationInfo,
-                        final FeaturePropertiesInfo featurePropertiesInfo,
-                        final InsightWork work,
-                        final DbDiagnostics dbDiagnostics,
-                        final LdapServerDAO ldapServerDAO,
-                        final LdapUserMappingDAO ldapUserMappingDAO,
-                        final ClusterLockManager clusterLockManager)
+  public SupportService(
+      final InsightConfig config,
+      final Configuration configuration,
+      final VersionService versionService,
+      final LdapService ldapService,
+      final JmxInfo jmxInfo,
+      final DbData dbData,
+      final SystemInfo systemInfo,
+      final ConfigurationInfo configurationInfo,
+      final SourceControlConfigurationInfo sourceControlConfigurationInfo,
+      final FeaturePropertiesInfo featurePropertiesInfo,
+      final InsightWork work,
+      final DbDiagnostics dbDiagnostics,
+      final LdapServerDAO ldapServerDAO,
+      final LdapUserMappingDAO ldapUserMappingDAO,
+      final ClusterLockManager clusterLockManager)
   {
     this.config = config;
     this.configuration = configuration;
@@ -164,8 +165,7 @@ public class SupportService
         work.getSbomDir(),
         work.getScanDir(),
         new File(config.getClusterDirectory(), "source-control"),
-        new File(config.getClusterDirectory(), "temp")
-    );
+        new File(config.getClusterDirectory(), "temp"));
     this.dbDiagnostics = dbDiagnostics;
     this.ldapServerDAO = ldapServerDAO;
     this.ldapUserMappingDAO = ldapUserMappingDAO;
@@ -174,8 +174,7 @@ public class SupportService
         "audit.log",
         "request.log",
         "clm-server.log",
-        "policy-violation.log"
-    );
+        "policy-violation.log");
   }
 
   File getWorkDir() {
@@ -231,8 +230,11 @@ public class SupportService
     Map<String, JsonNode> loggers = loggingFactory.getLoggers();
     JsonNode loggerNode = loggers.getOrDefault(loggerName, MissingNode.getInstance());
     return StreamSupport.stream(loggerNode.path("appenders").spliterator(), false /* parallel */)
-        .map(appender -> appender.path("currentLogFilename")).filter(JsonNode::isTextual)
-        .map(nameNode -> new File(nameNode.asText())).findFirst().orElse(null);
+        .map(appender -> appender.path("currentLogFilename"))
+        .filter(JsonNode::isTextual)
+        .map(nameNode -> new File(nameNode.asText()))
+        .findFirst()
+        .orElse(null);
   }
 
   private static List<String> getFilenames(List<? extends AppenderFactory<?>> appenderFactories) {
@@ -276,18 +278,20 @@ public class SupportService
     }
   }
 
-  private void addLogFileIfExists(final List<SupportFile> filesToAdd,
-                                  final File fileToAdd,
-                                  final String skipDescription)
+  private void addLogFileIfExists(
+      final List<SupportFile> filesToAdd,
+      final File fileToAdd,
+      final String skipDescription)
   {
     addFileIfExists(filesToAdd, fileToAdd, skipDescription, SupportFileType.LOG, false);
   }
 
-  private void addFileIfExists(final List<SupportFile> files,
-                               final File fileToAdd,
-                               final String skipDescription,
-                               final SupportFileType supportFileType,
-                               final boolean isDeleteAfterZipped)
+  private void addFileIfExists(
+      final List<SupportFile> files,
+      final File fileToAdd,
+      final String skipDescription,
+      final SupportFileType supportFileType,
+      final boolean isDeleteAfterZipped)
   {
     if (fileToAdd != null && fileToAdd.exists()) {
       log.info("Generating support {} file: {}", supportFileType, fileToAdd.getName());
@@ -307,9 +311,7 @@ public class SupportService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  File createSupportZip(final boolean includeDb, final String requestUrl, final boolean noLimit)
-      throws IOException
-  {
+  File createSupportZip(final boolean includeDb, final String requestUrl, final boolean noLimit) throws IOException {
     try (ClusterLock clusterLock = clusterLockManager.createForSupportZip()) {
       // Try to acquire the lock without waiting. If another thread/node is already generating a support zip,
       // return an error immediately rather than waiting.
@@ -350,7 +352,8 @@ public class SupportService
 
       addFileIfExists(filesToZip,
           writeTextToFile(systemInfo.getPropertiesJson(versionService.getProperties(), "product-version"),
-              new File(workDir, "product-version.json")), "product-version", SupportFileType.INFO, true);
+              new File(workDir, "product-version.json")),
+          "product-version", SupportFileType.INFO, true);
 
       addFileIfExists(filesToZip,
           writeTextToFile(systemInfo.getProductLicense(), new File(workDir, "product-license.json")), "product-license",
@@ -390,11 +393,11 @@ public class SupportService
           new File(workDir, "scm.json")), "scm", SupportFileType.CONFIG, true);
 
       addFileIfExists(filesToZip, writeTextToFile(featurePropertiesInfo.getSystemConfigPropertiesJson(),
-              new File(workDir, "systemConfigurationProperties.json")), "system-config-properties",
+          new File(workDir, "systemConfigurationProperties.json")), "system-config-properties",
           SupportFileType.CONFIG, true);
 
       addFileIfExists(filesToZip, writeTextToFile(featurePropertiesInfo.getFeatureConfigPropertiesJson(),
-              new File(workDir, "featuresConfigurationProperties.json")), "features-config-properties",
+          new File(workDir, "featuresConfigurationProperties.json")), "features-config-properties",
           SupportFileType.CONFIG, true);
 
       addDbData(filesToZip, workDir, dbData.getMigrationTracker());
@@ -409,10 +412,11 @@ public class SupportService
     }
   }
 
-  void populateZip(final String prefix,
-                   final File supportZip,
-                   final List<SupportFile> filesToZip,
-                   final boolean noLimit) throws IOException
+  void populateZip(
+      final String prefix,
+      final File supportZip,
+      final List<SupportFile> filesToZip,
+      final boolean noLimit) throws IOException
   {
     log.info("Populating support.zip: {}, noLimit: {}", supportZip, noLimit);
     try (final ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(supportZip))) {
@@ -435,7 +439,8 @@ public class SupportService
         else {
           // Limit max size of file content we allow to copy
           try (LimitedFileInputStream lis = new LimitedFileInputStream(fileToAdd.file,
-              configuration.getSupportReadLimitBytes())) {
+              configuration.getSupportReadLimitBytes()))
+          {
             copyLimited(lis, zos);
             if (lis.isReadLimitMet()) {
               isTruncated = true;
@@ -500,10 +505,10 @@ public class SupportService
     addDbData(filesToZip, workDir, dbData.getCiIntegrationsConfig());
   }
 
-  private void addDbData(final List<SupportFile> filesToZip,
-                         final File workDir,
-                         final Entry<String, Object> entry)
-      throws IOException
+  private void addDbData(
+      final List<SupportFile> filesToZip,
+      final File workDir,
+      final Entry<String, Object> entry) throws IOException
   {
     final String keyname = entry.getKey();
     addFileIfExists(filesToZip, writeTextToFile(JsonUtils.format(entry), new File(workDir, keyname + ".json")),
@@ -533,7 +538,7 @@ public class SupportService
     try {
       List<File> clusterLogFiles = new ArrayList<>();
 
-      File[] clusterDirRootLogFiles =  clusterDirectory.listFiles(
+      File[] clusterDirRootLogFiles = clusterDirectory.listFiles(
           (FileFilter) getClusterWhitelistLogFilesFilter());
 
       // Add log files at cluster dir root level
@@ -542,14 +547,14 @@ public class SupportService
       }
 
       // Get only directories at the cluster dir root level (non-recursive) excluding non-necessary ones
-      File[] filteredClusterTopLevelDirs =  clusterDirectory.listFiles(((FileFilter) DirectoryFileFilter.DIRECTORY
+      File[] filteredClusterTopLevelDirs = clusterDirectory.listFiles(((FileFilter) DirectoryFileFilter.DIRECTORY
           .and(excludeDirectoriesFilter)));
 
       if (filteredClusterTopLevelDirs != null) {
         // Traverse recursively to find log files
-        Arrays.stream(filteredClusterTopLevelDirs).forEach( topLevelDir -> {
-          clusterLogFiles.addAll( FileUtils.listFiles(topLevelDir, clusterLogFileFilter,
-              excludeDirFilter() ));
+        Arrays.stream(filteredClusterTopLevelDirs).forEach(topLevelDir -> {
+          clusterLogFiles.addAll(FileUtils.listFiles(topLevelDir, clusterLogFileFilter,
+              excludeDirFilter()));
         });
       }
 
@@ -566,15 +571,15 @@ public class SupportService
 
   private IOFileFilter getClusterExcludedDirectoriesAtTopLevelFilter() {
     AndFileFilter excludeDirectoriesAtTopLevelFilter = new AndFileFilter();
-    //Exclude paths at the root level of the cluster dir
+    // Exclude paths at the root level of the cluster dir
     excludedDirs.forEach(directoryToExclude -> {
-      //IOFileFilter prefixFileFilter = FileFilterUtils.prefixFileFilter(directoryToExclude.getPath());
-      IOFileFilter prefixFileFilter = FileFilterUtils.asFileFilter(pathname ->
-          pathname.getPath().startsWith(directoryToExclude.getPath()));
+      // IOFileFilter prefixFileFilter = FileFilterUtils.prefixFileFilter(directoryToExclude.getPath());
+      IOFileFilter prefixFileFilter =
+          FileFilterUtils.asFileFilter(pathname -> pathname.getPath().startsWith(directoryToExclude.getPath()));
 
       NotFileFilter excludeFileWithThisPathFilter = new NotFileFilter(prefixFileFilter);
 
-      excludeDirectoriesAtTopLevelFilter.addFileFilter( excludeFileWithThisPathFilter );
+      excludeDirectoriesAtTopLevelFilter.addFileFilter(excludeFileWithThisPathFilter);
     });
 
     return excludeDirectoriesAtTopLevelFilter;
@@ -582,10 +587,10 @@ public class SupportService
 
   private IOFileFilter getClusterWhitelistLogFilesFilter() {
     OrFileFilter listOfValidLogFiles = new OrFileFilter();
-    //Exclude paths at the root level of the cluster dir
+    // Exclude paths at the root level of the cluster dir
     clusterLogFileNames.forEach(logFilenameToSearch -> {
       IOFileFilter regexFileFilter = new RegexFileFilter("^.*" + logFilenameToSearch + "$");
-      listOfValidLogFiles.addFileFilter( regexFileFilter );
+      listOfValidLogFiles.addFileFilter(regexFileFilter);
     });
 
     return listOfValidLogFiles;
@@ -594,7 +599,8 @@ public class SupportService
   @VisibleForTesting
   IOFileFilter excludeDirFilter() {
     List<String> dirNamesToExclude = excludedDirs.stream().map(File::getName).toList();
-    return new IOFileFilter() {
+    return new IOFileFilter()
+    {
 
       @Override
       public boolean accept(File file) {

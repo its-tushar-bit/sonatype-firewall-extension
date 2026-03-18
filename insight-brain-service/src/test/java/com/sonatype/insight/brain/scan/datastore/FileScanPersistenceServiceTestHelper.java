@@ -54,7 +54,8 @@ public class FileScanPersistenceServiceTestHelper
 
     // Read GZIP compressed content and decompress it
     try (var fileInputStream = Files.newInputStream(scanFile);
-         var gzipInputStream = new java.util.zip.GZIPInputStream(fileInputStream)) {
+        var gzipInputStream = new java.util.zip.GZIPInputStream(fileInputStream))
+    {
       byte[] decompressedContent = gzipInputStream.readAllBytes();
       return new String(decompressedContent, StandardCharsets.UTF_8);
     }
@@ -75,9 +76,7 @@ public class FileScanPersistenceServiceTestHelper
           "Expected scan %s/%s to %s, but it %s".formatted(
               applicationId, scanId,
               expected ? "exist" : "not exist",
-              exists ? "exists" : "does not exist"
-          )
-      );
+              exists ? "exists" : "does not exist"));
     }
   }
 
@@ -96,8 +95,9 @@ public class FileScanPersistenceServiceTestHelper
 
   private void writeCompressedScanContent(Path file, String content) throws IOException {
     try (var fileOut = Files.newOutputStream(file);
-         var gzipOut = new GZIPOutputStream(fileOut);
-         var writer = new OutputStreamWriter(gzipOut, StandardCharsets.UTF_8)) {
+        var gzipOut = new GZIPOutputStream(fileOut);
+        var writer = new OutputStreamWriter(gzipOut, StandardCharsets.UTF_8))
+    {
       writer.write(content);
     }
   }

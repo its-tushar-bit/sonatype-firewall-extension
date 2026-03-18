@@ -289,7 +289,8 @@ public class OwnerDAO
       // Return an iterable that will initially return the passed-in owner and then call walkHierarchy on that
       // owner's parent lazily, only if needed
       return () -> {
-        return new Iterator<>() {
+        return new Iterator<>()
+        {
           private boolean returnedImmediateOwner = false;
 
           private Iterator<Owner> parentIterator;
@@ -336,7 +337,7 @@ public class OwnerDAO
 
   /**
    * @param type the type of the owner whose ancestors are being queried. Can be left null if unknown, or specified
-   * if known in order to optimize the number of queries performed
+   *          if known in order to optimize the number of queries performed
    */
   public Iterable<Owner> walkHierarchy(final TransactionContext tx, final String ownerId, final OwnerType type) {
     // We use Stream for its laziness, but Stream itself cannot be iterated multiple times, so we must wrap its
@@ -361,25 +362,24 @@ public class OwnerDAO
         hierarchyBuilder.accept(lazy(() -> tx == null ? repoDAO.getById(ownerId) : repoDAO.getById(tx, ownerId)));
       }
       if (fetchRepoManager) {
-        Supplier<RepositoryManager> repoManagerSupplier = () -> tx == null ?
-            repoManagerDAO.getByIdOrRepositoryId(ownerId) :
-            repoManagerDAO.getByIdOrRepositoryId(tx, ownerId);
+        Supplier<RepositoryManager> repoManagerSupplier = () -> tx == null
+            ? repoManagerDAO.getByIdOrRepositoryId(ownerId)
+            : repoManagerDAO.getByIdOrRepositoryId(tx, ownerId);
 
         hierarchyBuilder.accept(
             lazy(repoManagerSupplier)
                 .filter(Objects::nonNull)
                 // NOTE: we avoid doing a separate database lookup for the RepositoryContainer - we know that if
                 // a repo manager is an ancestor then a RepositoryContainer is as well.
-                .flatMap(repoManager -> Stream.of(repoManager, RepositoryContainer.SINGLETON))
-        );
+                .flatMap(repoManager -> Stream.of(repoManager, RepositoryContainer.SINGLETON)));
       }
       if (fetchRepoContainerSeparately) {
         hierarchyBuilder.accept(Stream.of(RepositoryContainer.SINGLETON));
       }
 
-      Supplier<Stream<Organization>> parentOrgSupplier = () -> tx == null ?
-          orgDAO.getAllParentOrganizations(ownerId, type).stream() :
-          orgDAO.getAllParentOrganizations(tx, ownerId, type).stream();
+      Supplier<Stream<Organization>> parentOrgSupplier = () -> tx == null
+          ? orgDAO.getAllParentOrganizations(ownerId, type).stream()
+          : orgDAO.getAllParentOrganizations(tx, ownerId, type).stream();
 
       hierarchyBuilder.accept(lazy(parentOrgSupplier).flatMap(Function.identity()).map(Owner.class::cast));
 
@@ -409,7 +409,8 @@ public class OwnerDAO
 
     // Because the returned list will contain objects of multiple different types, we have to fetch them in multiple
     // JPA queries
-    List<Owner> children = orgDAO.getAllChildOrganizations(tx, ownerId).stream()
+    List<Owner> children = orgDAO.getAllChildOrganizations(tx, ownerId)
+        .stream()
         // the first org is the owner that was queried, so skip it
         .skip(1)
         .collect(Collectors.toCollection(ArrayList::new));
@@ -467,7 +468,8 @@ public class OwnerDAO
         updated = true;
       }
       if (policy.getPolicyNotificationsOverrides() != null &&
-          policy.getPolicyNotificationsOverrides().containsKey(owner.getId())) {
+          policy.getPolicyNotificationsOverrides().containsKey(owner.getId()))
+      {
         policy.getPolicyNotificationsOverrides().remove(owner.getId());
         updated = true;
       }
@@ -518,7 +520,8 @@ public class OwnerDAO
     ComponentObligationAttributionDAO componentObligationAttributionDAO =
         componentObligationAttributionDAOProvider.get();
     for (ComponentObligationAttribution componentObligationAttribution : componentObligationAttributionDAO
-        .getByOwnerId(tx, owner.getId())) {
+        .getByOwnerId(tx, owner.getId()))
+    {
       componentObligationAttributionDAO.delete(tx, componentObligationAttribution);
     }
 
@@ -532,7 +535,8 @@ public class OwnerDAO
     VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO =
         vulnerabilityCustomRemediationDAOProvider.get();
     for (VulnerabilityCustomRemediation vulnerabilityCustomRemediation : vulnerabilityCustomRemediationDAO
-        .getByOwnerId(tx, owner.getId())) {
+        .getByOwnerId(tx, owner.getId()))
+    {
       vulnerabilityCustomRemediationDAO.delete(tx, vulnerabilityCustomRemediation);
     }
 
@@ -545,16 +549,18 @@ public class OwnerDAO
     // Cascade to vulnerability custom CVSS vector data
     VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssDAO = vulnerabilityCustomCvssVectorDAOProvider.get();
     for (VulnerabilityCustomCvssVector vulnerabilityCustomCvss : vulnerabilityCustomCvssDAO.getByOwnerId(tx,
-        owner.getId())) {
+        owner.getId()))
+    {
       vulnerabilityCustomCvssDAO.delete(tx, vulnerabilityCustomCvss);
     }
 
     // Cascade to vulnerability custom CVSS severity data
     VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO =
         vulnerabilityCustomCvssSeverityDAOProvider.get();
-    for (VulnerabilityCustomCvssSeverity vulnerabilityCustomCvssSeverity :
-        vulnerabilityCustomCvssSeverityDAO.getByOwnerId(tx,
-            owner.getId())) {
+    for (VulnerabilityCustomCvssSeverity vulnerabilityCustomCvssSeverity : vulnerabilityCustomCvssSeverityDAO
+        .getByOwnerId(tx,
+            owner.getId()))
+    {
       vulnerabilityCustomCvssSeverityDAO.delete(tx, vulnerabilityCustomCvssSeverity);
     }
 
@@ -621,8 +627,7 @@ public class OwnerDAO
   public List<Owner> getOwnersByAppTagsAndOrgs(
       final Set<String> applicationIds,
       final Set<String> tagIds,
-      final Set<String> organizationsIds
-  )
+      final Set<String> organizationsIds)
   {
     if (isEmpty(applicationIds) && isEmpty(tagIds) && isEmpty(organizationsIds)) {
       return Collections.emptyList();
@@ -650,35 +655,32 @@ public class OwnerDAO
 
   private String getApplicationsForOwnersByAppAndTagIdsQuery(
       final Set<String> applicationIds,
-      final Set<String> tagIds
-  )
+      final Set<String> tagIds)
   {
     final String getApplicationsTemplate = """
-          SELECT
-            DISTINCT application.public_id,
-            application.name,
-            application.organization_id as parent_owner_id,
-            application.application_id as id,
-            false as have_children,
-            ''APPLICATION'' as type
-          FROM {0}.application application
-          LEFT OUTER JOIN {0}.application_tag application_tag
-            ON application_tag.application_id = application.application_id
-          {1}
-          """;
+        SELECT
+          DISTINCT application.public_id,
+          application.name,
+          application.organization_id as parent_owner_id,
+          application.application_id as id,
+          false as have_children,
+          ''APPLICATION'' as type
+        FROM {0}.application application
+        LEFT OUTER JOIN {0}.application_tag application_tag
+          ON application_tag.application_id = application.application_id
+        {1}
+        """;
 
     return MessageFormat.format(
         getApplicationsTemplate,
         getDatabaseSchema(),
-        getWhereClauseForOwnersByAppAndTagIds(applicationIds, tagIds)
-    );
+        getWhereClauseForOwnersByAppAndTagIds(applicationIds, tagIds));
   }
 
   private String getOrganizationsQuery(
       final Set<String> applicationIds,
       final Set<String> tagIds,
-      final Set<String> organizationsIds
-  )
+      final Set<String> organizationsIds)
   {
     final int startForOrgIds = getOrgIdsOffset(applicationIds, tagIds);
 
@@ -703,8 +705,7 @@ public class OwnerDAO
 
   private String getWhereClauseForOwnersByAppAndTagIds(
       final Set<String> applicationIds,
-      final Set<String> tagIds
-  )
+      final Set<String> tagIds)
   {
     final boolean hasTags = isNotEmpty(tagIds);
     final boolean hasApplicationIds = isNotEmpty(applicationIds);
@@ -721,8 +722,8 @@ public class OwnerDAO
             %s
           )
           """.formatted(
-              buildPositionalParameters(applicationIds, 1),
-              getTagIdConditionalExpressionForOwnersByAppAndTagIds(tagIds, startForTagIds));
+          buildPositionalParameters(applicationIds, 1),
+          getTagIdConditionalExpressionForOwnersByAppAndTagIds(tagIds, startForTagIds));
     }
     else if (!hasApplicationIds) {
       // only tags
@@ -737,8 +738,7 @@ public class OwnerDAO
 
   private String getTagIdConditionalExpressionForOwnersByAppAndTagIds(
       final Set<String> tagIds,
-      final int startForTagIds
-  )
+      final int startForTagIds)
   {
     final boolean includeAppsWithNoTags = tagIds.contains(null);
 
@@ -756,8 +756,7 @@ public class OwnerDAO
       final jakarta.persistence.Query query,
       final Set<String> applicationIds,
       final Set<String> tagIds,
-      final Set<String> organizationIds
-  )
+      final Set<String> organizationIds)
   {
     if (isNotEmpty(applicationIds)) {
       addPositionalParameters(query, applicationIds, 1);
@@ -775,12 +774,12 @@ public class OwnerDAO
     try (Stream<Object[]> resultStream = query.getResultStream()) {
       return resultStream.map(values -> {
         return new OwnerImpl(
-          (String) values[0], // public id
-          (String) values[1], // name
-          (String) values[2], // parent owner id
-          (Boolean) values[4], // can have children
-          OwnerType.fromString((String) values[5]), // type
-          (String) values[3]); // id
+            (String) values[0], // public id
+            (String) values[1], // name
+            (String) values[2], // parent owner id
+            (Boolean) values[4], // can have children
+            OwnerType.fromString((String) values[5]), // type
+            (String) values[3]); // id
       }).collect(Collectors.toList());
     }
   }

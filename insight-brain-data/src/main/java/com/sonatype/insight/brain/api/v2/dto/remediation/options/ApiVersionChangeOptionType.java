@@ -13,8 +13,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * @since 1.64
- * From 1.178 Pulled up from the same-named package of the insight-brain-service module,
- * because now we need this type at the ORM level (DevelopmentPrioritizationComponentInfo).
+ *        From 1.178 Pulled up from the same-named package of the insight-brain-service module,
+ *        because now we need this type at the ORM level (DevelopmentPrioritizationComponentInfo).
  */
 public enum ApiVersionChangeOptionType
 {

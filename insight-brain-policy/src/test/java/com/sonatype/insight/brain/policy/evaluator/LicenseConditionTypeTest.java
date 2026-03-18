@@ -97,8 +97,15 @@ public class LicenseConditionTypeTest
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Found 'Not Provided' license");
   }
 
@@ -132,8 +139,15 @@ public class LicenseConditionTypeTest
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Did not find 'Not Provided' license");
   }
 
@@ -167,8 +181,15 @@ public class LicenseConditionTypeTest
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Found 'Not Provided' license");
   }
 
@@ -202,8 +223,15 @@ public class LicenseConditionTypeTest
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Did not find 'Not Provided' license");
   }
 
@@ -241,8 +269,15 @@ public class LicenseConditionTypeTest
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Found 'Not Provided' license");
   }
 
@@ -277,8 +312,15 @@ public class LicenseConditionTypeTest
     assertContainsPolicyAlert(component, policy, constraint1, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Found 'Apache-2.0' license");
 
     constraints = new ArrayList<>();
@@ -298,8 +340,15 @@ public class LicenseConditionTypeTest
     assertContainsPolicyAlert(component, policy, constraint2, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Found 'AFL-1.2' license");
   }
 
@@ -337,8 +386,15 @@ public class LicenseConditionTypeTest
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Did not find 'Not Provided' license");
   }
 
@@ -347,8 +403,8 @@ public class LicenseConditionTypeTest
     Condition condition = new Condition(LicenseConditionType.ID, "is", "abc");
     assertThatThrownBy(
         () -> ConditionTypes.LicenseConditionType.validateCondition(null, condition, null /* applicationId */))
-        .isInstanceOf(InvalidConditionException.class)
-        .hasMessageEndingWith("Invalid license id: abc");
+            .isInstanceOf(InvalidConditionException.class)
+            .hasMessageEndingWith("Invalid license id: abc");
   }
 
   @Test
@@ -374,8 +430,15 @@ public class LicenseConditionTypeTest
     assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, LicenseConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Found 'Apache-2.0' license");
   }
 

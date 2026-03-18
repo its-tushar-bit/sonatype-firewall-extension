@@ -128,7 +128,7 @@ public class IdeResource
   /**
    * Get the result from a scan request, or a wait delta
    *
-   * @param scanType    simple or enhanced though we do not enforce that in the Brain
+   * @param scanType simple or enhanced though we do not enforce that in the Brain
    * @param appPublicId the public application id
    * @return the result of the scan or a wait delta
    * @since 1.2
@@ -179,7 +179,8 @@ public class IdeResource
 
     IdeMatchedComponent ideComponent = getComponent(matchedComponent);
     if (ideComponent.getWaitDelta() == null
-        && (!"unknown".equals(ideComponent.getMatchState()) || !ideComponent.isSimpleMatch() || forceEvaluation)) {
+        && (!"unknown".equals(ideComponent.getMatchState()) || !ideComponent.isSimpleMatch() || forceEvaluation))
+    {
       Component component =
           componentLoaderFactory.createComponentLoader(app)
               .getComponent(matchedComponent, configuration.isALPObservedLicenseDetectionEnabled());
@@ -210,7 +211,9 @@ public class IdeResource
         Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier));
 
     List<?> list = client.relay(req, List.class, "rest/ide/scan/coordinates", queryParams).content;
-    List<MatchedComponent> matchedComponents = JSON.convertValue(list, new TypeReference<List<MatchedComponent>>() { });
+    List<MatchedComponent> matchedComponents = JSON.convertValue(list, new TypeReference<List<MatchedComponent>>()
+    {
+    });
 
     return matchedComponents.stream()
         .map(mc -> fromMatchedComponent(mc, app, proprietary, true))
@@ -220,7 +223,7 @@ public class IdeResource
   /**
    * Submit a scan request, may return the result or a wait delta.
    *
-   * @param scanType            simple or enhanced though we do not enforce that in the Brain
+   * @param scanType simple or enhanced though we do not enforce that in the Brain
    * @param applicationPublicId the public applicationId
    * @return the result of the scan or a wait delta
    * @since 1.2
@@ -281,7 +284,7 @@ public class IdeResource
    * Send telemetry data for APPLICATION_EVALUATION_COMPONENT_COUNTS purpose.
    *
    * @param applicationPublicId the public applicationId
-   * @param componentCounts     the total components by each component type
+   * @param componentCounts the total components by each component type
    * @since 1.136
    */
   @POST
@@ -307,8 +310,7 @@ public class IdeResource
         ScanTriggerType.IDE,
         userAgent,
         instanceId,
-        Collections.singletonMap("component_counts", componentCounts)
-    );
+        Collections.singletonMap("component_counts", componentCounts));
     telemetrySender.send(telemetryData);
   }
 
@@ -316,7 +318,7 @@ public class IdeResource
    * Send telemetry data for APPLICATION_EVALUATION_COMPONENT_COUNTS purpose V2.
    *
    * @param applicationPublicId the public applicationId
-   * @param telemetryRequest    a map of attributes requested containing the inner map of total components by type
+   * @param telemetryRequest a map of attributes requested containing the inner map of total components by type
    * @since 1.144
    */
   @POST
@@ -342,8 +344,7 @@ public class IdeResource
         ScanTriggerType.IDE,
         userAgent,
         instanceId,
-        telemetryRequest
-    );
+        telemetryRequest);
     telemetrySender.send(telemetryData);
   }
 }

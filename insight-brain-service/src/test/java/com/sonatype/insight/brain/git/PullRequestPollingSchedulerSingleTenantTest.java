@@ -79,13 +79,12 @@ public class PullRequestPollingSchedulerSingleTenantTest
 
   private static final String TOKEN = new String(
       new PasswordHandler(new TestEncryptionKeyStore())
-          .encryptPassword("password".toCharArray())
-  );
+          .encryptPassword("password".toCharArray()));
 
   // There seems to be a quirk in AbstractBaseIntegrationTest (this class' grandparent) where it won't reliable
   // start a distinct IQ server for a given test class, using that class' `getBrainModules` method, unless that
   // class also specifies a custom configurator or one of a number of other things (see the logic in
-  // AbstractBaseIntegrationTest.maybeStopTestIqServer).  We don't need a custom configurator generally, but in
+  // AbstractBaseIntegrationTest.maybeStopTestIqServer). We don't need a custom configurator generally, but in
   // order to get our `getBrainModules` method to be used reliably, we need to specify a configurator that is
   // specific to this class. This no-op function below will do.
   private static final Configurator CONFIGURATOR = config -> {
@@ -154,15 +153,14 @@ public class PullRequestPollingSchedulerSingleTenantTest
         Provider<GitApiClientFactory> gitApiClientFactoryProvider = binder.getProvider(GitApiClientFactory.class);
         Provider<PasswordHandler> passwordHandlerProvider = binder.getProvider(PasswordHandler.class);
 
-        binder.bind(GitHubAppAuthStrategyCache.class).toProvider(() ->
-            new GitHubAppAuthStrategyCache(
+        binder.bind(GitHubAppAuthStrategyCache.class)
+            .toProvider(() -> new GitHubAppAuthStrategyCache(
                 githubAppDAOProvider.get(),
                 insightProxyProvider.get(),
                 gitApiClientFactoryProvider.get(),
                 passwordHandlerProvider.get(),
-                "http://localhost:" + WIREMOCK_PORT  // Point to WireMock instead of real GitHub
-            )
-        );
+                "http://localhost:" + WIREMOCK_PORT // Point to WireMock instead of real GitHub
+        ));
 
         bind(GitClientFactory.class).toProvider(GitClientFactorySpyProvider.class);
         bind(IqForScmLicenseChecker.class).toInstance(licenseCheckerMock);
@@ -183,7 +181,7 @@ public class PullRequestPollingSchedulerSingleTenantTest
 
     doReturn(pullRequestInfoProviderMock).when(gitClientFactorySpy).createPullRequestInfoClient(any());
     doAnswer(invocation -> {
-      GitRepositoryInfo repoInfo = (GitRepositoryInfo)invocation.getArgument(0);
+      GitRepositoryInfo repoInfo = (GitRepositoryInfo) invocation.getArgument(0);
 
       GitApiClient gitApiClient = mock(GitApiClient.class);
       ProjectUrl projectUrl = mock(ProjectUrl.class);
@@ -223,15 +221,15 @@ public class PullRequestPollingSchedulerSingleTenantTest
     tempEntity.newSourceControl(orgWithScmConfId, null, TOKEN, SourceControlProvider.GITLAB);
 
     // All apps have only a partial SCM configuration of their own. However one of the apps is in an org
-    // that has a full SCM configuration from which it inherits.  This first one has PR commenting explicitly turned
+    // that has a full SCM configuration from which it inherits. This first one has PR commenting explicitly turned
     // off - ensure that that is also processed correctly and doesn't cause exceptions that prevent the processing
     // of the remaining ones
-    tempEntity.newSourceControl(app2WithoutParentScmConf.getId(), (SourceControlProvider)null, null,
+    tempEntity.newSourceControl(app2WithoutParentScmConf.getId(), (SourceControlProvider) null, null,
         "https://localhost:12345/foo/asdf", null, false, null, null, null);
-    tempEntity.newSourceControl(appWithoutParentScmConf.getId(), (SourceControlProvider)null, null,
+    tempEntity.newSourceControl(appWithoutParentScmConf.getId(), (SourceControlProvider) null, null,
         "https://localhost:12346/foo/asdf", null, true, null, null, null);
 
-    tempEntity.newSourceControl(appWithParentScmConf.getId(), (SourceControlProvider)null, null,
+    tempEntity.newSourceControl(appWithParentScmConf.getId(), (SourceControlProvider) null, null,
         "https://localhost:12347/bar/qwerty", null, true, null, null, null);
 
     lookup(SourceControlDAO.class).delete(tempOrgSourceControl);

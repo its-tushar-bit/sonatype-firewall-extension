@@ -36,7 +36,7 @@ public class ZScalerValidatorTest
     ZScalerValidator.validateHostName("https://proxy.internal.net");
     ZScalerValidator.validateHostName("https://gateway.example.org");
     ZScalerValidator.validateHostName("https://firewall.corporate.net");
-    
+
     ZScalerValidator.validateHostName("https://api.zscaler.net");
     ZScalerValidator.validateHostName("https://zsapi.zscalertwo.net");
     ZScalerValidator.validateHostName("https://admin.zscalerthree.net");
@@ -56,7 +56,7 @@ public class ZScalerValidatorTest
     ZScalerValidator.validateHostName("https://my.company.example.com");
     ZScalerValidator.validateHostName("https://test-env.proxy.internal.net");
     ZScalerValidator.validateHostName("https://api-v2.gateway.corporate.org");
-    
+
     ZScalerValidator.validateHostName("https://company.zscalerone.net");
     ZScalerValidator.validateHostName("https://dev.zscalertwo.net");
     ZScalerValidator.validateHostName("https://prod.zscalerthree.net");
@@ -69,7 +69,7 @@ public class ZScalerValidatorTest
     ZScalerValidator.validateHostName("http://proxy.internal.net:80");
     ZScalerValidator.validateHostName("https://gateway.example.org:8080");
     ZScalerValidator.validateHostName("http://firewall.corporate.net:9000");
-    
+
     ZScalerValidator.validateHostName("https://api.zscaler.net:443");
     ZScalerValidator.validateHostName("http://api.zscloud.net:8080");
   }

@@ -52,8 +52,7 @@ public abstract class AbstractScanPersistenceServiceTest
       "foo/bar ",
       "foo/bar /",
       "foo/bar /baz",
-      "  "
-  );
+      "  ");
 
   @Inject
   protected InsightConfig insightConfig;
@@ -244,8 +243,7 @@ public abstract class AbstractScanPersistenceServiceTest
         "12345",
         "valid-scan-id",
         "scan_with_underscores",
-        "scan-with-dashes"
-    );
+        "scan-with-dashes");
 
     assertThat(validScanIds).allSatisfy(scanId -> {
       String appId = "app" + count.getAndIncrement();

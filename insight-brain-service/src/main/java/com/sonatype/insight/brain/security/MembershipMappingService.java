@@ -106,8 +106,9 @@ public class MembershipMappingService
   }
 
   // Authorization is checked in loadMembersByRoleForGlobalContext and loadMembersByRoleForNonGlobalContext
-  public ApplicableMembershipMappings getApplicableMembershipMappings(final OwnerType ownerType,
-                                                                      final String internalOwnerId)
+  public ApplicableMembershipMappings getApplicableMembershipMappings(
+      final OwnerType ownerType,
+      final String internalOwnerId)
   {
     log.debug("Getting all applicable membership mappings for {} id {}", ownerType, internalOwnerId);
 
@@ -162,7 +163,8 @@ public class MembershipMappingService
         getApplicableMembershipMappings(ownerType, internalOwnerId);
     ApiRoleMemberMappingListDTO roleMemberMappingList = apiMemberMappingAdapter.convert(applicableMembershipMappings);
     roleMemberMappingList.memberMappings = roleMemberMappingList.memberMappings.stream()
-        .filter(dto -> !dto.members.isEmpty()).collect(Collectors.toList());
+        .filter(dto -> !dto.members.isEmpty())
+        .collect(Collectors.toList());
     return roleMemberMappingList;
   }
 
@@ -260,7 +262,7 @@ public class MembershipMappingService
         roleId, memberName, memberType);
 
     if (existing != null) {
-      return;  // Already granted
+      return; // Already granted
     }
 
     Member member = new Member();
@@ -344,10 +346,11 @@ public class MembershipMappingService
   }
 
   @Authorize(permission = Permission.READ)
-  protected void loadMembersByRoleForNonGlobalContext(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-                                                      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
-                                                      List<Role> roles,
-                                                      Map<String, MembersByRole> membersByRoleByRoleId)
+  protected void loadMembersByRoleForNonGlobalContext(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
+      List<Role> roles,
+      Map<String, MembersByRole> membersByRoleByRoleId)
   {
     if (OwnerType.GLOBAL.equals(ownerType)) {
       throw new BadRequestException("The '" + ownerType + "' context is not allowed.");
@@ -378,9 +381,10 @@ public class MembershipMappingService
   }
 
   // Authorization is checked in setMembershipMappingsForGlobalContext and setMembershipMappingsForNonGlobalContext
-  public void setMembershipMappings(final OwnerType ownerType,
-                                    final String internalOwnerId,
-                                    final Map<String, List<Member>> roleToMembers)
+  public void setMembershipMappings(
+      final OwnerType ownerType,
+      final String internalOwnerId,
+      final Map<String, List<Member>> roleToMembers)
   {
     if (OwnerType.GLOBAL.equals(ownerType)) {
       setMembershipMappingsForGlobalContext(roleToMembers);
@@ -396,7 +400,8 @@ public class MembershipMappingService
   }
 
   public Set<String> getPermissionsForUserPrincipal(String username, Set<String> userMembership) {
-    return membershipMappingDAO.getByUserCaseInsensitiveAndGroups(username, userMembership).stream()
+    return membershipMappingDAO.getByUserCaseInsensitiveAndGroups(username, userMembership)
+        .stream()
         .map(it -> rolePermissionDAO.getPermissionsForRole(it.getRoleId()))
         .filter(Objects::nonNull)
         .flatMap(Collection::stream)
@@ -406,9 +411,10 @@ public class MembershipMappingService
   }
 
   @Authorize(permission = Permission.EDIT_ACCESS_CONTROL)
-  protected void setMembershipMappingsForNonGlobalContext(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-                                                          @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
-                                                          Map<String, List<Member>> roleToMembers)
+  protected void setMembershipMappingsForNonGlobalContext(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
+      Map<String, List<Member>> roleToMembers)
   {
     if (OwnerType.GLOBAL.equals(ownerType)) {
       throw new BadRequestException("The '" + ownerType + "' context is not allowed.");
@@ -470,9 +476,10 @@ public class MembershipMappingService
     }
   }
 
-  private void setMembershipMappingsForRoles(OwnerType ownerType,
-                                             String internalOwnerId,
-                                             Map<String, List<Member>> roleToMembers)
+  private void setMembershipMappingsForRoles(
+      OwnerType ownerType,
+      String internalOwnerId,
+      Map<String, List<Member>> roleToMembers)
   {
     try (TransactionContext tx = membershipMappingDAO.createTransactionContext()) {
       tx.begin();
@@ -492,11 +499,12 @@ public class MembershipMappingService
     managementEventService.postEvent(EventAction.UPDATED, roleToMembers, internalOwnerId);
   }
 
-  private void setMembershipMappingsForRole(final TransactionContext tx,
-                                            final OwnerType ownerType,
-                                            final String internalOwnerId,
-                                            final String roleId,
-                                            final List<Member> members)
+  private void setMembershipMappingsForRole(
+      final TransactionContext tx,
+      final OwnerType ownerType,
+      final String internalOwnerId,
+      final String roleId,
+      final List<Member> members)
   {
     log.debug("Setting membership mappings for {} id {} and role id {}", ownerType, internalOwnerId, roleId);
 
@@ -522,7 +530,9 @@ public class MembershipMappingService
 
   private void auditConfigureRoleMembership(Role role, Collection<Member> members) {
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONFIGURE_ROLE_MEMBERSHIP, false)) {
-      AuditData.get().setData("roleId", role.getId()).setData("roleName", role.getName())
+      AuditData.get()
+          .setData("roleId", role.getId())
+          .setData("roleName", role.getName())
           .setData("roleMembers", MemberDTO.transcribe(members));
     }
   }
@@ -563,10 +573,11 @@ public class MembershipMappingService
     }
   }
 
-  private Map<String, MembersByOwner> loadMembers(final String ownerId,
-                                                  final String ownerName,
-                                                  final OwnerType ownerType,
-                                                  final List<Role> roles)
+  private Map<String, MembersByOwner> loadMembers(
+      final String ownerId,
+      final String ownerName,
+      final OwnerType ownerType,
+      final List<Role> roles)
   {
     final Map<String, MembersByOwner> membersByOwnerByRoleId = new LinkedHashMap<>();
     for (final MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(ownerId)) {
@@ -660,7 +671,7 @@ public class MembershipMappingService
             membershipMapping.getRoleId(), membershipMapping.getMemberName(), membershipMapping.getMemberType());
 
     if (existing != null) {
-      return;  // Already granted
+      return; // Already granted
     }
 
     membershipMappingDAO.insert(tx, membershipMapping);
@@ -694,10 +705,9 @@ public class MembershipMappingService
     }
     else if (ownerType == OwnerType.APPLICATION) {
       Application application = appDAO.getById(internalOwnerId);
-      if (
-          application != null &&
-          application.getOrganizationId() != null
-      ) {
+      if (application != null &&
+          application.getOrganizationId() != null)
+      {
         validateRelatedOrganization(orgDAO.getById(application.getOrganizationId()), true);
       }
     }
@@ -709,20 +719,17 @@ public class MembershipMappingService
     }
     if (organization.getId().equals(repositoryContainerDAO.getRelatedOrganizationId())) {
       throw new BadRequestException(
-          "Access control is not permitted for an organization related to a repository container."
-      );
+          "Access control is not permitted for an organization related to a repository container.");
     }
     else if (organization.getRelatedRepositoryManagerId() != null) {
       throw new BadRequestException(
-          "Access control is not permitted for an organization related to a repository manager."
-      );
+          "Access control is not permitted for an organization related to a repository manager.");
     }
     else if (organization.getRelatedRepositoryId() != null) {
       throw new BadRequestException(
-        fromApplication
-          ? "Access control is not permitted for an application whose parent organization is related to a repository."
-          : "Access control is not permitted for an organization related to a repository."
-      );
+          fromApplication
+              ? "Access control is not permitted for an application whose parent organization is related to a repository."
+              : "Access control is not permitted for an organization related to a repository.");
     }
   }
 }

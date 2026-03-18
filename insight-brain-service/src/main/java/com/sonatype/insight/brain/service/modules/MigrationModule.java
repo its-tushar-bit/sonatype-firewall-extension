@@ -46,7 +46,8 @@ import com.sonatype.insight.brain.migration.SourceControlFileStorageMigrator;
  * Guice module providing explicit bindings for Migration components.
  * This replaces Sisu's automatic @Named component discovery.
  */
-public class MigrationModule extends AbstractModule
+public class MigrationModule
+    extends AbstractModule
 {
   @Override
   protected void configure() {

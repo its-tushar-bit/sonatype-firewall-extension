@@ -147,8 +147,7 @@ public class MoveOrganizationService
   public MoveOrganizationResponseDTO moveOrganization(
       @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) final String movedOrgId,
       final String newParentId,
-      boolean failEarlyOnError
-  )
+      boolean failEarlyOnError)
   {
     return moveOrganizationCheckDestinationWritePermissions(movedOrgId, newParentId, failEarlyOnError);
   }
@@ -158,14 +157,12 @@ public class MoveOrganizationService
   MoveOrganizationResponseDTO moveOrganizationCheckDestinationWritePermissions(
       final String movedOrgId,
       @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) final String newParentId,
-      boolean failEarlyOnError
-  )
+      boolean failEarlyOnError)
   {
     final boolean checkWarnings = true;
 
     MoveOrganizationValidator moveOrganizationValidator = new MoveOrganizationValidator();
-    MoveOrganizationResponseDTO
-        moveOrganizationResponseDTO =
+    MoveOrganizationResponseDTO moveOrganizationResponseDTO =
         moveOrganizationValidator.validateMoveOrganizationOperation(movedOrgId, newParentId, failEarlyOnError,
             checkWarnings);
 
@@ -196,9 +193,8 @@ public class MoveOrganizationService
     final boolean checkWarnings = false;
 
     MoveOrganizationValidator moveOrganizationValidator = new MoveOrganizationValidator();
-    return
-        moveOrganizationValidator.validateMoveOrganizationOperation(movedOrgId, newParentId, failEarlyOnError,
-            checkWarnings).errors;
+    return moveOrganizationValidator.validateMoveOrganizationOperation(movedOrgId, newParentId, failEarlyOnError,
+        checkWarnings).errors;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -216,7 +212,8 @@ public class MoveOrganizationService
         organization -> !organizationToMove.getParentOrganizationId().equals(organization.getId());
     Predicate<Organization> notChildrenOfMovedOrg = getNotChildrenOfMovedOrgPredicate(organizationToMove);
 
-    return organizationService.getAllWithWritePermissions().stream()
+    return organizationService.getAllWithWritePermissions()
+        .stream()
         .filter(notSelf)
         .filter(notCurrentParentOfMovedOrg)
         .filter(notChildrenOfMovedOrg)
@@ -292,8 +289,7 @@ public class MoveOrganizationService
         final String movedOrgId,
         final String newParentId,
         final boolean failEarlyOnError,
-        final boolean checkWarnings
-    )
+        final boolean checkWarnings)
     {
 
       this.failEarlyOnError = failEarlyOnError;
@@ -306,7 +302,7 @@ public class MoveOrganizationService
         return moveOrganizationResponseDTO;
       }
 
-      //get all new and old parents
+      // get all new and old parents
       oldParents = IterableUtils.toList(ownerDAO.walkHierarchy(movedOrg.getParentOrganizationId()));
       newParents = IterableUtils.toList(ownerDAO.walkHierarchy(newParentId));
 
@@ -325,15 +321,15 @@ public class MoveOrganizationService
       oldParentOrgName = organizationDAO.getById(movedOrg.getParentOrganizationId()).getName();
       newParentOrgName = newParentOrg.getName();
 
-      //store configuration for new parents hierarchy
+      // store configuration for new parents hierarchy
       storeParentOrganizationsConfig(newParents, newInheritedTags, newInheritedLabels, newInheritedLtgs,
           newInheritedPolicies);
 
-      //store configuration for old parents hierarchy
+      // store configuration for old parents hierarchy
       storeParentOrganizationsConfig(oldParents, oldInheritedTags, oldInheritedLabels, oldInheritedLtgs,
           oldInheritedPolicies);
 
-      //store configurations for all child organizations and applications
+      // store configurations for all child organizations and applications
       prepareChildrenValidationDataByOwner(movedOrg);
 
       for (Application application : applications) {
@@ -349,13 +345,13 @@ public class MoveOrganizationService
       validateLicenseThreatGroups();
       validateInheritedPolicies();
 
-      //check that config names are not duplicated between moved org children and new orgs hierarchy
+      // check that config names are not duplicated between moved org children and new orgs hierarchy
       validateDuplicatedTagsBetweenMovedOrgChildrenAndNewParentOrgs();
       validateDuplicatedLabelsBetweenMovedOrgChildrenAndNewParentOrgs();
       validateDuplicatedLTGsBetweenMovedOrgChildrenAndNewParentOrgs();
       validateDuplicatedPoliciesBetweenMovedOrgChildrenAndNewParentOrgs();
 
-      //check potential warnings that might come from the move and have to be informed
+      // check potential warnings that might come from the move and have to be informed
       if (checkWarnings) {
         validateLicenseOverrides();
         validatePolicyWaivers();
@@ -385,7 +381,8 @@ public class MoveOrganizationService
       if (parentHierarchyViolated) {
         addValidationErrorToResponse(MoveOrganizationValidationErrorType.PARENT_HIERARCHY,
             String.format(ValidationError.INVALID_PARENT_HIERARCHY_MSG, newParent.getName(),
-                movedOrganization.getName()), Collections.emptySet());
+                movedOrganization.getName()),
+            Collections.emptySet());
       }
       return parentHierarchyViolated;
     }
@@ -420,7 +417,8 @@ public class MoveOrganizationService
         List<LicenseOverride> inheritedOverrides = licenseOverrideDAO.getByOwnerId(ownerId);
         for (LicenseOverride inheritedOverride : inheritedOverrides) {
           if (isLicenseOverrideApplicable(appOverrides, inheritedOverride)
-              && isLicenseOverrideApplicable(oldInheritedOverrides, inheritedOverride)) {
+              && isLicenseOverrideApplicable(oldInheritedOverrides, inheritedOverride))
+          {
             oldInheritedOverrides.add(inheritedOverride);
           }
         }
@@ -437,15 +435,16 @@ public class MoveOrganizationService
           }
         }
         if (newInheritedOverride == null || !newInheritedOverride.getStatus().equals(oldInheritedOverride.getStatus())
-            || !newInheritedOverride.getLicenseIds().equals(oldInheritedOverride.getLicenseIds())) {
+            || !newInheritedOverride.getLicenseIds().equals(oldInheritedOverride.getLicenseIds()))
+        {
           addValidationWarningToResponse(MoveOrganizationValidationWarningType.LICENSE_OVERRIDE,
               String.format(ValidationWarning.LICENSE_OVERRIDES_LOST_MSG, newParentOrgName, oldParentOrgName));
           break;
           /*
            * TODO: performance improvement
-           *  We only need one entry for license override message. Once we find first violation,
-           *  we don't need to keep traversing for other override checks.
-           * */
+           * We only need one entry for license override message. Once we find first violation,
+           * we don't need to keep traversing for other override checks.
+           */
         }
       }
     }
@@ -474,7 +473,8 @@ public class MoveOrganizationService
         return true;
       }
       if (effective.isMaven() && other.isMaven() && effective.getCoordinates()
-          .equals(ComponentIdentifierAdapter.toGavOnlyCoordinates(other.getCoordinates()))) {
+          .equals(ComponentIdentifierAdapter.toGavOnlyCoordinates(other.getCoordinates())))
+      {
         return true;
       }
       return false;
@@ -483,8 +483,8 @@ public class MoveOrganizationService
     private void validateLicenseThreatGroups() {
       /*
        * TODO: performance improvement
-       *  Do not need to re-check of the ltg is already reported once.
-       * */
+       * Do not need to re-check of the ltg is already reported once.
+       */
       Set<String> missingLTGs = new HashSet<>();
       for (LicenseThreatGroup oldLtg : oldInheritedLtgs) {
         for (Policy policy : ownPolicies) {
@@ -505,9 +505,9 @@ public class MoveOrganizationService
     private void validateLabels() {
       /*
        * TODO: perf improvement opp here.
-       *  since the message is onl going to contain label name,
+       * since the message is onl going to contain label name,
        * we can put in the list to see if we really need to go through policies and conditions to check again and again.
-       *  */
+       */
       Set<String> missingLabels = new HashSet<>();
       for (Label label : oldInheritedLabels) {
         for (Policy policy : ownPolicies) {
@@ -544,7 +544,8 @@ public class MoveOrganizationService
       for (Constraint constraint : policy.getConstraints()) {
         for (Condition condition : constraint.getConditions()) {
           if (LicenseThreatGroupConditionType.ID.equals(condition.getConditionTypeId()) &&
-              !LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID.equals(condition.getValue())) {
+              !LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID.equals(condition.getValue()))
+          {
             conditions.add(condition);
           }
         }
@@ -556,9 +557,9 @@ public class MoveOrganizationService
       Set<String> missingTags = new HashSet<>();
       for (Application app : applications) {
         /*
-        //todo: performance improvement here.
-        // put the tag in a set here for that we don't keep hitting db again
-        as it does not matter if it is missing in one app or more.
+         * //todo: performance improvement here.
+         * // put the tag in a set here for that we don't keep hitting db again
+         * as it does not matter if it is missing in one app or more.
          */
         for (Tag tag : oldInheritedTags) {
           ApplicationTag applicationTag =
@@ -649,7 +650,8 @@ public class MoveOrganizationService
       Optional<PolicyMonitoring> configuredOrInheritedMonitoring =
           allOldOwnersToCheckForPolicyMonitoring.stream()
               .flatMap(ownerId -> policyMonitoringDAO.getByOwnerId(ownerId).stream())
-              .filter(Objects::nonNull).findFirst();
+              .filter(Objects::nonNull)
+              .findFirst();
 
       if (configuredOrInheritedMonitoring.isPresent()) {
         PolicyMonitoring currentPolicyMonitoring = configuredOrInheritedMonitoring.get();
@@ -725,8 +727,7 @@ public class MoveOrganizationService
 
       moveOrganizationResponseDTO.errors.add(
           new ValidationError(errorType,
-              completeErrorMessage)
-      );
+              completeErrorMessage));
     }
 
     private void addValidationWarningToResponse(
@@ -734,8 +735,7 @@ public class MoveOrganizationService
         String message)
     {
       moveOrganizationResponseDTO.warnings.add(
-          new ValidationWarning(warningType, message)
-      );
+          new ValidationWarning(warningType, message));
     }
   }
 }

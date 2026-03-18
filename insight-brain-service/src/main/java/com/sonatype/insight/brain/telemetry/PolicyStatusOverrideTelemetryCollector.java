@@ -33,8 +33,9 @@ public class PolicyStatusOverrideTelemetryCollector
   public static final String POLICY_WAIVER_COUNT = "policy_waiver_count";
 
   @Inject
-  public PolicyStatusOverrideTelemetryCollector(SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
-                                                PolicyWaiverDAO policyWaiverDAO)
+  public PolicyStatusOverrideTelemetryCollector(
+      SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
+      PolicyWaiverDAO policyWaiverDAO)
   {
     this.securityVulnerabilityOverrideDAO = securityVulnerabilityOverrideDAO;
     this.policyWaiverDAO = policyWaiverDAO;

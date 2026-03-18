@@ -137,6 +137,7 @@ public class ApiLicenseLegalHdsService
    * component hash for the resulting {@link ComponentLegalCommentDTO} from the provided component ID -> hash map.
    * <p>
    * For example following response
+   *
    * <pre>
    *   [{
    *      componentIdentifier: "1",
@@ -148,7 +149,9 @@ public class ApiLicenseLegalHdsService
    *      comments: [{ 2 }]
    *   }]
    * </pre>
+   *
    * will be converted to this:
+   *
    * <pre>
    *   [{
    *      componentIdentifier: "1",
@@ -159,9 +162,9 @@ public class ApiLicenseLegalHdsService
    * </p>
    *
    * @param anameAggregateFileGroups Set of {@link AnameAggregateFileGroup} to retrieve A-name comments
-   * @param componentIdentifierHash  A Map from the component identifier to the component hash. If no component hash
-   *                                 exist in the map for any given identifier, then {@literal null} will be used for
-   *                                 the componentHash in the response
+   * @param componentIdentifierHash A Map from the component identifier to the component hash. If no component hash
+   *          exist in the map for any given identifier, then {@literal null} will be used for
+   *          the componentHash in the response
    * @return Set of {@link ComponentLegalCommentDTO}
    */
   public Set<ComponentLegalCommentDTO> getAnameComponentLegalComments(
@@ -181,7 +184,9 @@ public class ApiLicenseLegalHdsService
           componentComment.getComments());
     }
 
-    return componentCommentMap.asMap().entrySet().stream()
+    return componentCommentMap.asMap()
+        .entrySet()
+        .stream()
         .map(entry -> entryToComponentLegalComment(
             entry,
             componentIdentifierHash.getOrDefault(entry.getKey(), null)))
@@ -199,7 +204,7 @@ public class ApiLicenseLegalHdsService
 
   public Set<LegalSourceLinkDTO> getSourceLinksFromComponentIdentifier(ComponentIdentifier componentIdentifier) {
     return ImmutableList.copyOf(
-            hdsClient.post(ComponentSourceLinkDTO[].class, SOURCE_LINK_URL, ImmutableList.of(componentIdentifier)))
+        hdsClient.post(ComponentSourceLinkDTO[].class, SOURCE_LINK_URL, ImmutableList.of(componentIdentifier)))
         .stream()
         .flatMap(componentSourceLinkDTO -> componentSourceLinkDTO.getSourceLinks().stream())
         .map(LegalSourceLinkDTO::new)

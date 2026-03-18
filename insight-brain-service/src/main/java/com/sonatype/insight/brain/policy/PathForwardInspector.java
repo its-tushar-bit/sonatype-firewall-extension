@@ -78,7 +78,8 @@ public class PathForwardInspector
     if (currentComponentIndex == -1) {
       return false;
     }
-    hasPathForward = componentDetailsDTOList.stream().parallel()
+    hasPathForward = componentDetailsDTOList.stream()
+        .parallel()
         .skip(currentComponentIndex)
         .anyMatch(dto -> dto.violatedPolicyCount == 0);
 

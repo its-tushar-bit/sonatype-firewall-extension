@@ -112,8 +112,8 @@ public class TenantSecurityConfigurationServiceTest
 
       assertThatThrownBy(
           () -> underTest.updateSamlConfigurationAndGrantAdminPermissions(securityConfiguration, tenant.tenantSlug))
-          .withFailMessage("Tenant doesn't exist")
-          .isInstanceOf(NotFoundException.class);
+              .withFailMessage("Tenant doesn't exist")
+              .isInstanceOf(NotFoundException.class);
     });
   }
 
@@ -122,8 +122,8 @@ public class TenantSecurityConfigurationServiceTest
     testAsGlobalTenant(tenant -> {
       assertThatThrownBy(
           () -> underTest.updateSamlConfigurationAndGrantAdminPermissions(securityConfiguration, tenant.tenantSlug))
-          .withFailMessage("Invalid tenant")
-          .isInstanceOf(BadRequestException.class);
+              .withFailMessage("Invalid tenant")
+              .isInstanceOf(BadRequestException.class);
     });
   }
 
@@ -149,8 +149,8 @@ public class TenantSecurityConfigurationServiceTest
 
       assertThatThrownBy(
           () -> underTest.updateSamlConfiguration(securityConfiguration, tenant.tenantSlug))
-          .withFailMessage("Tenant doesn't exist")
-          .isInstanceOf(NotFoundException.class);
+              .withFailMessage("Tenant doesn't exist")
+              .isInstanceOf(NotFoundException.class);
     });
   }
 
@@ -159,8 +159,8 @@ public class TenantSecurityConfigurationServiceTest
     testAsGlobalTenant(tenant -> {
       assertThatThrownBy(
           () -> underTest.updateSamlConfiguration(securityConfiguration, tenant.tenantSlug))
-          .withFailMessage("Invalid tenant")
-          .isInstanceOf(BadRequestException.class);
+              .withFailMessage("Invalid tenant")
+              .isInstanceOf(BadRequestException.class);
     });
   }
 
@@ -188,8 +188,8 @@ public class TenantSecurityConfigurationServiceTest
 
       assertThatThrownBy(
           () -> underTest.grantAdminPermissionForAdmins(securityConfiguration.getAdminEmails(), tenant.tenantSlug))
-          .withFailMessage("Tenant doesn't exist")
-          .isInstanceOf(NotFoundException.class);
+              .withFailMessage("Tenant doesn't exist")
+              .isInstanceOf(NotFoundException.class);
     });
   }
 
@@ -198,8 +198,8 @@ public class TenantSecurityConfigurationServiceTest
     testAsGlobalTenant(tenant -> {
       assertThatThrownBy(
           () -> underTest.grantAdminPermissionForAdmins(securityConfiguration.getAdminEmails(), tenant.tenantSlug))
-          .withFailMessage("Invalid tenant")
-          .isInstanceOf(BadRequestException.class);
+              .withFailMessage("Invalid tenant")
+              .isInstanceOf(BadRequestException.class);
     });
   }
 

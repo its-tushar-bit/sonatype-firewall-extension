@@ -164,28 +164,28 @@ public class SbomMetadataBuilder
 
   public static String buildMetadataJson() {
     String json =
-            "{\"created\":\"2020-01-01T00:00:00Z\",\"creators\":[{\"type\":\"Author\",\"name\":\"John Doe\"," +
-                "\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"},{\"type\":\"Manufacturer\"," +
-                "\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"," +
-                "\"url\":\"example.com,example2.com,example3.com\"},{\"type\":\"Manufacturer\"," +
-                "\"name\":\"Jane Doe\",\"email\":\"jane.doe@example.com\",\"phone\":\"1-800-222-2222\"," +
-                "\"url\":\"example.com,example2.com,example3.com\"},{\"type\":\"Supplier\",\"name\":\"John Doe\"," +
-                "\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"," +
-                "\"url\":\"example.com,example2.com,example3.com\"},{\"type\":\"Supplier\",\"name\":\"Jane Doe\"," +
-                "\"email\":\"jane.doe@example.com\",\"phone\":\"1-800-222-2222\"," +
-                "\"url\":\"example.com,example2.com,example3.com\"}],\"tools\":[{\"type\":\"application\"," +
-                "\"name\":\"Tool\",\"version\":\"1.0-RELEASE\"}]}";
+        "{\"created\":\"2020-01-01T00:00:00Z\",\"creators\":[{\"type\":\"Author\",\"name\":\"John Doe\"," +
+            "\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"},{\"type\":\"Manufacturer\"," +
+            "\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"," +
+            "\"url\":\"example.com,example2.com,example3.com\"},{\"type\":\"Manufacturer\"," +
+            "\"name\":\"Jane Doe\",\"email\":\"jane.doe@example.com\",\"phone\":\"1-800-222-2222\"," +
+            "\"url\":\"example.com,example2.com,example3.com\"},{\"type\":\"Supplier\",\"name\":\"John Doe\"," +
+            "\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"," +
+            "\"url\":\"example.com,example2.com,example3.com\"},{\"type\":\"Supplier\",\"name\":\"Jane Doe\"," +
+            "\"email\":\"jane.doe@example.com\",\"phone\":\"1-800-222-2222\"," +
+            "\"url\":\"example.com,example2.com,example3.com\"}],\"tools\":[{\"type\":\"application\"," +
+            "\"name\":\"Tool\",\"version\":\"1.0-RELEASE\"}]}";
 
     return json;
   }
 
   private static String buildSPDXMetadataJson() {
     String json =
-            "{\"created\":\"2020-01-01T00:00:00Z\",\"creators\":[{\"type\":\"Person\",\"name\":\"John Doe\"," +
-                "\"email\":\"john.doe@example.com\"},{\"type\":\"Person\",\"name\":\"Jane Doe\"}," +
-                "{\"type\":\"Organization\",\"name\":\"Example Organization\",\"email\":\"example@example.com\"}," +
-                "{\"type\":\"Organization\",\"name\":\"Example Organization\"}]," +
-                "\"tools\":[{\"name\":\"Sonatype IQ Server\",\"version\":\"1.175.0-SNAPSHOT\"}]}";
+        "{\"created\":\"2020-01-01T00:00:00Z\",\"creators\":[{\"type\":\"Person\",\"name\":\"John Doe\"," +
+            "\"email\":\"john.doe@example.com\"},{\"type\":\"Person\",\"name\":\"Jane Doe\"}," +
+            "{\"type\":\"Organization\",\"name\":\"Example Organization\",\"email\":\"example@example.com\"}," +
+            "{\"type\":\"Organization\",\"name\":\"Example Organization\"}]," +
+            "\"tools\":[{\"name\":\"Sonatype IQ Server\",\"version\":\"1.175.0-SNAPSHOT\"}]}";
     return json;
   }
 }

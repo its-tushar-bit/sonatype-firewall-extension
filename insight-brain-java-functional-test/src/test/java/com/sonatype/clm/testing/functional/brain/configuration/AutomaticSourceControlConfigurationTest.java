@@ -109,7 +109,8 @@ public class AutomaticSourceControlConfigurationTest
 
     // then a description about usage of automatic applications is visible
     eyesWatcher.eyesCheck();
-    configurationPage.explanationAutomaticApplications().shouldBe(visible)
+    configurationPage.explanationAutomaticApplications()
+        .shouldBe(visible)
         .shouldHave(text("imported into automatic source control test Organization which uses GitHub."));
   }
 

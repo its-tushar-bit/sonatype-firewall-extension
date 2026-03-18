@@ -30,7 +30,7 @@ public final class TemplateHelper
     return readResource(testClazz.getSimpleName(), resourceName);
   }
 
-  public static String readResource(String dirName , String resourceName) throws IOException, URISyntaxException {
+  public static String readResource(String dirName, String resourceName) throws IOException, URISyntaxException {
     final String file = format("/%s/", dirName) + resourceName;
     final URL dirUrl = TemplateHelper.class.getResource(file);
     if (dirUrl == null) {

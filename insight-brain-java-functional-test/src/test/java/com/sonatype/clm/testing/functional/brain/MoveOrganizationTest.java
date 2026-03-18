@@ -128,9 +128,11 @@ public class MoveOrganizationTest
     // error state
     modal.shouldBe(visible);
     modal.retryButton().shouldBe(visible);
-    modal.errorMessage().shouldBe(visible).shouldHave(text(
-        "Incompatible Destination: There are configuration conflicts preventing the move operation."
-            + " Errors details can be accessed by fetching a CSV file for download. Retry"));
+    modal.errorMessage()
+        .shouldBe(visible)
+        .shouldHave(text(
+            "Incompatible Destination: There are configuration conflicts preventing the move operation."
+                + " Errors details can be accessed by fetching a CSV file for download. Retry"));
     eyesWatcher.eyesCheck();
     modal.retryButton().shouldBe(visible).click();
     FormMask.seeAndWaitForDismissal();
@@ -165,7 +167,8 @@ public class MoveOrganizationTest
     modal.moveButton().shouldBe(visible);
     modal.body().shouldBe(visible);
     modal.header().shouldBe(visible).shouldHave(text("Move " + orgName));
-    modal.message().shouldBe(visible)
+    modal.message()
+        .shouldBe(visible)
         .shouldHave(text("Moving " + orgName + " will move " + descendants + " descendants. "
             + "Confirm inheritance details after the move is complete."));
 

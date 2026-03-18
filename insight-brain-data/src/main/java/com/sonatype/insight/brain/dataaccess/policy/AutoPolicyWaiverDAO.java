@@ -23,7 +23,7 @@ public class AutoPolicyWaiverDAO
     extends AbstractOperationalSqlDAO<AutoPolicyWaiver>
 {
   private final AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
-  
+
   @Inject
   public AutoPolicyWaiverDAO(
       final OperationalDataStore operationalDataStore,
@@ -70,11 +70,12 @@ public class AutoPolicyWaiverDAO
     String sQuery = "SELECT waiver FROM AutoPolicyWaiver waiver WHERE waiver.id=?1 AND waiver.ownerId=?2";
     return get(tx, sQuery, autoPolicyWaiverId, ownerId);
   }
-  
+
   @Override
   public void delete(TransactionContext tx, AutoPolicyWaiver autoPolicyWaiver) {
     for (AutoPolicyWaiverExclusion autoPolicyWaiverExclusion : autoPolicyWaiverExclusionDAO
-        .getByOwnerIdAndAutoPolicyWaiverId(autoPolicyWaiver.getOwnerId(), autoPolicyWaiver.getId())) {
+        .getByOwnerIdAndAutoPolicyWaiverId(autoPolicyWaiver.getOwnerId(), autoPolicyWaiver.getId()))
+    {
       autoPolicyWaiverExclusionDAO.delete(autoPolicyWaiverExclusion);
     }
     super.delete(tx, autoPolicyWaiver);

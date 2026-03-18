@@ -116,7 +116,7 @@ public class HdsClientTest
       @Override
       protected void service(HttpServletRequest request, HttpServletResponse response) {
         headers.clear();
-        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
+        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
           String headerName = en.nextElement();
           headers.put(headerName, request.getHeader(headerName));
         }
@@ -216,7 +216,8 @@ public class HdsClientTest
   private String getBrainVersion() throws IOException {
     Properties props = new Properties();
     try (InputStream is = this.getClass()
-        .getResourceAsStream("/HdsClientTest/testBrainUserAgentOnRequests.properties")) {
+        .getResourceAsStream("/HdsClientTest/testBrainUserAgentOnRequests.properties"))
+    {
       props.load(is);
       return props.getProperty("version");
     }
@@ -479,7 +480,7 @@ public class HdsClientTest
     {
       @Override
       protected void service(HttpServletRequest request, HttpServletResponse response) {
-        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
+        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
           headers.add(en.nextElement());
         }
       }
@@ -494,8 +495,10 @@ public class HdsClientTest
 
     client.relay(request, String.class, "/rest/test");
 
-    assertThat(headers).usingElementComparator(String.CASE_INSENSITIVE_ORDER).isNotEmpty().doesNotContain(
-        HttpHeaders.AUTHORIZATION, HttpHeaders.PROXY_AUTHORIZATION, HttpHeaders.COOKIE, "Cookie2", usernameHeader);
+    assertThat(headers).usingElementComparator(String.CASE_INSENSITIVE_ORDER)
+        .isNotEmpty()
+        .doesNotContain(
+            HttpHeaders.AUTHORIZATION, HttpHeaders.PROXY_AUTHORIZATION, HttpHeaders.COOKIE, "Cookie2", usernameHeader);
   }
 
   @Test
@@ -505,7 +508,7 @@ public class HdsClientTest
     {
       @Override
       protected void service(HttpServletRequest request, HttpServletResponse response) {
-        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
+        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
           headers.add(en.nextElement());
         }
       }
@@ -519,7 +522,8 @@ public class HdsClientTest
 
     client.relay(request, String.class, "/rest/test");
 
-    assertThat(headers).usingElementComparator(String.CASE_INSENSITIVE_ORDER).isNotEmpty()
+    assertThat(headers).usingElementComparator(String.CASE_INSENSITIVE_ORDER)
+        .isNotEmpty()
         .doesNotContain("X-Forwarded-Host", "X-Forwarded-Server", "X-Forwarded-For");
   }
 
@@ -548,9 +552,7 @@ public class HdsClientTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpStatus.UNAUTHORIZED_401);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("PASSED");
@@ -559,7 +561,8 @@ public class HdsClientTest
 
     assertThatExceptionOfType(BadGatewayException.class)
         .isThrownBy(() -> client.get(String.class, "/any", null))
-        .withMessageContaining("401").withMessageContaining("PASSED");
+        .withMessageContaining("401")
+        .withMessageContaining("PASSED");
   }
 
   @Test
@@ -567,9 +570,7 @@ public class HdsClientTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpStatus.FORBIDDEN_403);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("PASSED");
@@ -578,7 +579,8 @@ public class HdsClientTest
 
     assertThatExceptionOfType(BadGatewayException.class)
         .isThrownBy(() -> client.get(String.class, "/any", null))
-        .withMessageContaining("403").withMessageContaining("PASSED");
+        .withMessageContaining("403")
+        .withMessageContaining("PASSED");
   }
 
   @Test
@@ -586,9 +588,7 @@ public class HdsClientTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpStatus.PROXY_AUTHENTICATION_REQUIRED_407);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("PASSED");
@@ -597,7 +597,8 @@ public class HdsClientTest
 
     assertThatExceptionOfType(BadGatewayException.class)
         .isThrownBy(() -> client.get(String.class, "/any", null))
-        .withMessageContaining("407").withMessageContaining("PASSED");
+        .withMessageContaining("407")
+        .withMessageContaining("PASSED");
   }
 
   @Test
@@ -605,9 +606,7 @@ public class HdsClientTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpStatus.SERVICE_UNAVAILABLE_503);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("PASSED");
@@ -624,9 +623,7 @@ public class HdsClientTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpStatus.BAD_GATEWAY_502);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("PASSED");
@@ -711,9 +708,7 @@ public class HdsClientTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpStatus.OK_200);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("Not an integer");
@@ -757,9 +752,7 @@ public class HdsClientTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("Some error message");
@@ -782,9 +775,7 @@ public class HdsClientTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpStatus.OK_200);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println(request.getQueryString());
@@ -803,7 +794,7 @@ public class HdsClientTest
     // Null params should not cause exceptions and should not be included
     queryParams.put("name3", null);
 
-    //making sure reserved characters are preserved where they should be and encoded in the query values
+    // making sure reserved characters are preserved where they should be and encoded in the query values
     String requestUri = client.relay(httpServletRequest, String.class, "rest/ci/componentDetails", queryParams).content;
     assertThat("&" + requestUri).contains(
         "&name2=%7B%22format%22%3A%22a-name%22%2C%22coordinates%22%3A%7B%22name%22%3A%22org.dojotoolkit"
@@ -911,9 +902,7 @@ public class HdsClientTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
           ByteArrayDataSource multipartDataSource = new ByteArrayDataSource(request.getInputStream(),
               "multipart/form-data");
@@ -983,7 +972,7 @@ public class HdsClientTest
     {
       @Override
       protected void service(HttpServletRequest request, HttpServletResponse response) {
-        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
+        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
           String headerName = en.nextElement();
           headers.put(headerName, request.getHeader(headerName));
         }
@@ -1055,9 +1044,7 @@ public class HdsClientTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         requests.incrementAndGet();
         response.setStatus(HttpStatus.BAD_GATEWAY_502);
         response.setContentType("text/plain;charset=UTF-8");
@@ -1070,7 +1057,7 @@ public class HdsClientTest
     request.setHeader("X-CLM-Token", "license-fingerprint");
     assertThatThrownBy(
         () -> client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"), request))
-        .isInstanceOf(BadGatewayException.class);
+            .isInstanceOf(BadGatewayException.class);
     assertThat(requests.get()).isEqualTo(5);
     assertThat(queryStrings).containsExactly(null, "retryCount=1", "retryCount=2", "retryCount=3", "retryCount=4");
   }
@@ -1082,9 +1069,7 @@ public class HdsClientTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         requests.incrementAndGet();
         if (requests.get() > 1) {
           response.setStatus(HttpStatus.OK_200);
@@ -1335,9 +1320,7 @@ public class HdsClientTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpStatus.OK_200);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println(request.getQueryString());

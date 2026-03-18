@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Migrates the persisted JSON blob for policies to the latest version.
- * 
+ *
  * @since 1.21
  */
 @Named
@@ -123,10 +123,11 @@ public class PolicyJsonMigrator
     return policy;
   }
 
-  private void migrateNotification(Policy policy,
-                                   String stageId,
-                                   Action action,
-                                   Map<String, Notification> notificationsByTarget)
+  private void migrateNotification(
+      Policy policy,
+      String stageId,
+      Action action,
+      Map<String, Notification> notificationsByTarget)
   {
     String key = action.getTargetType() + ":" + action.getTarget();
     Notification notification = notificationsByTarget.get(key);

@@ -55,7 +55,8 @@ public class ProprietaryComponentNamePatternMigrator
   {
     try (Connection connection = dataSource.getConnection();
         PreparedStatement statement = connection.prepareStatement("SELECT repository_manager_id FROM "
-            + databaseSchema + ".repository_manager WHERE instance_id = ?");) {
+            + databaseSchema + ".repository_manager WHERE instance_id = ?");)
+    {
       statement.setString(1, repositoryManagerInstanceId);
       try (ResultSet resultSet = statement.executeQuery()) {
         while (resultSet.next()) {
@@ -68,7 +69,8 @@ public class ProprietaryComponentNamePatternMigrator
     try (Connection connection = dataSource.getConnection();
         PreparedStatement insertStmt =
             connection.prepareStatement("INSERT INTO " + databaseSchema
-                + ".repository_manager (repository_manager_id, instance_id) VALUES (?, ?)");) {
+                + ".repository_manager (repository_manager_id, instance_id) VALUES (?, ?)");)
+    {
       connection.setAutoCommit(true);
       insertStmt.setString(1, repositoryManagerId);
       insertStmt.setString(2, repositoryManagerInstanceId);
@@ -91,7 +93,8 @@ public class ProprietaryComponentNamePatternMigrator
         PreparedStatement statement =
             connection.prepareStatement(
                 "SELECT repository_id, repository_type FROM " + databaseSchema
-                    + ".repository WHERE repository_manager_id = ? AND public_id = ?");) {
+                    + ".repository WHERE repository_manager_id = ? AND public_id = ?");)
+    {
       statement.setString(1, repositoryManagerId);
       statement.setString(2, repositoryPublicId);
       try (ResultSet resultSet = statement.executeQuery()) {
@@ -111,7 +114,8 @@ public class ProprietaryComponentNamePatternMigrator
             connection.prepareStatement("INSERT INTO " + databaseSchema
                 + ".repository (repository_id, repository_manager_id, public_id, repository_type, format, enabled, "
                 + "quarantine_enabled, policy_compliant_component_selection_enabled, "
-                + "namespace_confusion_protection_enabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");) {
+                + "namespace_confusion_protection_enabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");)
+    {
       connection.setAutoCommit(true);
       insertStmt.setString(1, repositoryId);
       insertStmt.setString(2, repositoryManagerId);
@@ -144,7 +148,8 @@ public class ProprietaryComponentNamePatternMigrator
     try (Connection connection = dataSource.getConnection();
         PreparedStatement updateStmt = connection.prepareStatement("UPDATE "
             + databaseSchema + ".proprietary_component_name_pattern"
-            + " SET repository_id=? WHERE proprietary_component_name_pattern_id=?");) {
+            + " SET repository_id=? WHERE proprietary_component_name_pattern_id=?");)
+    {
       connection.setAutoCommit(true);
       updateStmt.setString(1, repositoryId);
       updateStmt.setString(2, proprietaryComponentNamePatternId);
@@ -169,14 +174,16 @@ public class ProprietaryComponentNamePatternMigrator
       format = resultSet.getString(4);
     }
 
-    static List<OldProprietaryComponentNamePattern> getAll(final DataSource dataSource, final String databaseSchema)
-        throws SQLException
+    static List<OldProprietaryComponentNamePattern> getAll(
+        final DataSource dataSource,
+        final String databaseSchema) throws SQLException
     {
       try (Connection connection = dataSource.getConnection();
           PreparedStatement statement = connection.prepareStatement(
               "SELECT proprietary_component_name_pattern_id, repository_manager_instance_id, "
                   + "repository_public_id, format FROM "
-                  + databaseSchema + ".proprietary_component_name_pattern");) {
+                  + databaseSchema + ".proprietary_component_name_pattern");)
+      {
         List<OldProprietaryComponentNamePattern> result = new ArrayList<>();
         try (ResultSet resultSet = statement.executeQuery()) {
           while (resultSet.next()) {

@@ -90,9 +90,10 @@ public class ApiComponentDetailsServiceV2Test
   }
 
   private void mockHdsRequest(ComponentEvaluationDataRequestList hdsRequest, ComponentEvaluationDataList hdsResult) {
-    doReturn(hdsResult).when(client).post(eq(ComponentEvaluationDataList.class),
-        eq(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest),
-        eq(ApiComponentDetailsServiceV2.PURPOSE_INTEGRATION));
+    doReturn(hdsResult).when(client)
+        .post(eq(ComponentEvaluationDataList.class),
+            eq(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest),
+            eq(ApiComponentDetailsServiceV2.PURPOSE_INTEGRATION));
   }
 
   @Test
@@ -265,7 +266,7 @@ public class ApiComponentDetailsServiceV2Test
         .isThrownBy(() -> apiComponentDetailsServiceV2.getComponentDetails(request))
         .withMessage("No components provided in the request");
   }
-  
+
   @Test
   public void testGetComponentDetails_nullRequest() {
     assertThatExceptionOfType(BadRequestException.class)
@@ -369,10 +370,11 @@ public class ApiComponentDetailsServiceV2Test
         PackageUrlIdentifier.toPackageUrl(componentIdentifier));
   }
 
-  private void assertComponentDetails(ApiComponentDetailsDTOV2 resultComponentDTO,
-                                      ComponentIdentifier expectedComponentIdentifier,
-                                      String expectedHash,
-                                      String expectedPackageUrl)
+  private void assertComponentDetails(
+      ApiComponentDetailsDTOV2 resultComponentDTO,
+      ComponentIdentifier expectedComponentIdentifier,
+      String expectedHash,
+      String expectedPackageUrl)
   {
     assertThat(resultComponentDTO).isNotNull();
     assertThat(resultComponentDTO.component).isNotNull();
@@ -418,15 +420,19 @@ public class ApiComponentDetailsServiceV2Test
     assertThat(resultComponentDTO.licenseData).isNotNull();
     assertThat(resultComponentDTO.licenseData.declaredLicenses).extracting(dto -> dto.licenseId, dto -> dto.licenseName)
         .containsExactly(declaredLicenses.stream()
-            .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
+            .map(license -> tuple(license.getLicenseId(), license.getLicenseName()))
+            .toArray(Tuple[]::new));
 
     assertThat(resultComponentDTO.licenseData.observedLicenses).extracting(dto -> dto.licenseId, dto -> dto.licenseName)
         .containsExactly(observedLicenses.stream()
-            .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
+            .map(license -> tuple(license.getLicenseId(), license.getLicenseName()))
+            .toArray(Tuple[]::new));
 
     assertThat(resultComponentDTO.licenseData.effectiveLicenses)
-        .extracting(dto -> dto.licenseId, dto -> dto.licenseName).containsExactlyInAnyOrder(effectiveLicenses.stream()
-            .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
+        .extracting(dto -> dto.licenseId, dto -> dto.licenseName)
+        .containsExactlyInAnyOrder(effectiveLicenses.stream()
+            .map(license -> tuple(license.getLicenseId(), license.getLicenseName()))
+            .toArray(Tuple[]::new));
 
     assertThat(resultComponentDTO.licenseData.overriddenLicenses).isNull();
 

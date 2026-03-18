@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.experimental;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -127,8 +128,9 @@ public class ApiCallFlowAnalysisConfigServiceAuthzTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       apiCallFlowAnalysisService
           .getCallFlowAnalysisConfig(org.getType(), org.getId());
-    }).withMessage("Call Flow Analysis Config not found for ownerId "
-        + org.getId());
+    })
+        .withMessage("Call Flow Analysis Config not found for ownerId "
+            + org.getId());
   }
 
   @Test(expected = NotFoundException.class)

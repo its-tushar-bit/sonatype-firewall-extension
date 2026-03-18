@@ -102,9 +102,10 @@ public class ComponentEvaluationV2Helper
     return componentEvaluationData;
   }
 
-  public ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier,
-                                           final String hash,
-                                           final String packageUrl)
+  public ApiComponentDTOV2 createComponent(
+      final ComponentIdentifier componentIdentifier,
+      final String hash,
+      final String packageUrl)
   {
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
@@ -208,16 +209,20 @@ public class ComponentEvaluationV2Helper
     assertThat(resultComponentDTO.licenseData).isNotNull();
     assertThat(resultComponentDTO.licenseData.declaredLicenses).extracting(dto -> dto.licenseId, dto -> dto.licenseName)
         .containsExactlyInAnyOrder(declaredLicenses.stream()
-            .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
+            .map(license -> tuple(license.getLicenseId(), license.getLicenseName()))
+            .toArray(Tuple[]::new));
     assertThat(resultComponentDTO.licenseData.observedLicenses).extracting(dto -> dto.licenseId, dto -> dto.licenseName)
         .containsExactlyInAnyOrder(observedLicenses.stream()
-            .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
+            .map(license -> tuple(license.getLicenseId(), license.getLicenseName()))
+            .toArray(Tuple[]::new));
     Set<License> effectiveLicenses = new HashSet<>();
     effectiveLicenses.addAll(declaredLicenses);
     effectiveLicenses.addAll(observedLicenses);
     assertThat(resultComponentDTO.licenseData.effectiveLicenses)
-        .extracting(dto -> dto.licenseId, dto -> dto.licenseName).containsExactlyInAnyOrder(effectiveLicenses.stream()
-            .map(license -> tuple(license.getLicenseId(), license.getLicenseName())).toArray(Tuple[]::new));
+        .extracting(dto -> dto.licenseId, dto -> dto.licenseName)
+        .containsExactlyInAnyOrder(effectiveLicenses.stream()
+            .map(license -> tuple(license.getLicenseId(), license.getLicenseName()))
+            .toArray(Tuple[]::new));
     assertThat(resultComponentDTO.licenseData.overriddenLicenses).isEmpty();
 
     assertThat(resultComponentDTO.securityData).isNotNull();

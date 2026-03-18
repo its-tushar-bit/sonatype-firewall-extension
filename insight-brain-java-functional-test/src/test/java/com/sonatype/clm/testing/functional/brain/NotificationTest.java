@@ -29,19 +29,21 @@ public class NotificationTest
     Date now = new Date();
     long tenMinutesAgo = now.getTime() - (1000 * 60 * 10);
     long tenHoursAgo = now.getTime() - (1000 * 60 * 60 * 10);
-    testCLMServer.getHdsServer().respondWith("{\"productNotifications\":[{" +
-        "\"id\" : \"1\"," +
-        "\"type\" : \"DEFAULT\"," +
-        "\"summaryText\" : \"summary1\"," +
-        "\"detailHtml\" : \"detail1\"," +
-        "\"dateCreated\" : " + tenMinutesAgo +
-        "},{" +
-        "\"id\" : \"2\"," +
-        "\"type\" : \"DEFAULT\"," +
-        "\"summaryText\" : \"summary2\"," +
-        "\"detailHtml\" : \"<a href='about:blank?foo' target='_blank'>detail2</a>\"," +
-        "\"dateCreated\" : " + tenHoursAgo +
-        "}]}").atUri("rest/productNotifications");
+    testCLMServer.getHdsServer()
+        .respondWith("{\"productNotifications\":[{" +
+            "\"id\" : \"1\"," +
+            "\"type\" : \"DEFAULT\"," +
+            "\"summaryText\" : \"summary1\"," +
+            "\"detailHtml\" : \"detail1\"," +
+            "\"dateCreated\" : " + tenMinutesAgo +
+            "},{" +
+            "\"id\" : \"2\"," +
+            "\"type\" : \"DEFAULT\"," +
+            "\"summaryText\" : \"summary2\"," +
+            "\"detailHtml\" : \"<a href='about:blank?foo' target='_blank'>detail2</a>\"," +
+            "\"dateCreated\" : " + tenHoursAgo +
+            "}]}")
+        .atUri("rest/productNotifications");
 
     refreshOrOpen(ReportListPage.url());
     loginAsAdmin();

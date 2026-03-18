@@ -84,8 +84,9 @@ public class RequestPolicyWaiverEventService
 
   /**
    * @deprecated since 1.192
-   * Kept only for the legacy endpoint "/waiverRequests/{policyViolationId}" which is no longer called by the UI.
-   * Use {@link #postPolicyWaiverRequestEvent(String, String, String, String, String, String)} instead.
+   *             Kept only for the legacy endpoint "/waiverRequests/{policyViolationId}" which is no longer called by
+   *             the UI.
+   *             Use {@link #postPolicyWaiverRequestEvent(String, String, String, String, String, String)} instead.
    */
   @Deprecated(since = "1.192")
   public void postRequestPolicyWaiverEvent(
@@ -100,8 +101,7 @@ public class RequestPolicyWaiverEventService
         apiRequestWaiverDTO.policyViolationLink,
         apiRequestWaiverDTO.addWaiverLink,
         null,
-        apiRequestWaiverDTO.reasonId
-    );
+        apiRequestWaiverDTO.reasonId);
     eventBus.post(waiverRequestEvent);
     sendTelemetryForWaiverRequest(waiverRequestEvent);
   }
@@ -128,8 +128,7 @@ public class RequestPolicyWaiverEventService
         policyViolationLink,
         addWaiverLink, // New event receivers won't need this link, however legacy ones might still expect it.
         reviewWaiverRequestLink,
-        reasonId
-    );
+        reasonId);
     eventBus.post(waiverRequestEvent);
   }
 
@@ -168,7 +167,8 @@ public class RequestPolicyWaiverEventService
 
   private void verifyDtoContainsRequiredInformation(final ApiRequestPolicyWaiverDTO apiRequestWaiverDTO) {
     if (apiRequestWaiverDTO == null || StringUtils.isBlank(apiRequestWaiverDTO.addWaiverLink) ||
-        StringUtils.isBlank(apiRequestWaiverDTO.policyViolationLink)) {
+        StringUtils.isBlank(apiRequestWaiverDTO.policyViolationLink))
+    {
       throw new BadRequestException("both addWaiverLink and policyViolationLink are required");
     }
   }

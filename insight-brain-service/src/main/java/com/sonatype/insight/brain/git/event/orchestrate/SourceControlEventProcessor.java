@@ -51,11 +51,11 @@ public class SourceControlEventProcessor
   static final String REPO_ACCESS_LOCK_ERROR = "Unable to process event. Could not acquire the repo access lock.";
 
   /*
-    work for the same repo/application should be done sequentially; work for different apps can be done in parallel.
-
-    Note (12/2/2021): We control this via the IQ application ID.  There could be multiple IQ applications for the
-    same repo, which means we would have multiple git workspaces for the same repo (different, app specific
-    folders, though, so no real problem here - just something to keep in mind).
+   * work for the same repo/application should be done sequentially; work for different apps can be done in parallel.
+   *
+   * Note (12/2/2021): We control this via the IQ application ID. There could be multiple IQ applications for the
+   * same repo, which means we would have multiple git workspaces for the same repo (different, app specific
+   * folders, though, so no real problem here - just something to keep in mind).
    */
   private TenantReference<SemaphorePool> repoAccessController;
 
@@ -100,7 +100,7 @@ public class SourceControlEventProcessor
     repoAccessController = new TenantReference<>(() -> new SemaphorePool(threadPoolSize));
     lazyInitThreadPoolExecutor = new LazyInitThreadPoolExecutor(threadPoolSize, threadPoolSize,
         "SourceControlEventProcessor-%s", CORE_THREAD_KEEP_ALIVE_SECONDS, shutdownHandler)
-        .setShouldClearShiroThreadContextBeforeThreadStart(true);
+            .setShouldClearShiroThreadContextBeforeThreadStart(true);
   }
 
   // Visible for testing
@@ -109,10 +109,10 @@ public class SourceControlEventProcessor
   }
 
   public void processEvent(SourceControlEvent event, SourceControlEventStatusListener statusListener) {
-    lazyInitThreadPoolExecutor.getThreadPoolExecutor().execute(new TaggedRunnable(
-        () -> handleSourceControlEventAndExitOnError(event, statusListener),
-        Tags.of("source_control_event_type", event.getEventType().replaceAll(" ", "_"))
-    ));
+    lazyInitThreadPoolExecutor.getThreadPoolExecutor()
+        .execute(new TaggedRunnable(
+            () -> handleSourceControlEventAndExitOnError(event, statusListener),
+            Tags.of("source_control_event_type", event.getEventType().replaceAll(" ", "_"))));
   }
 
   private void handleSourceControlEventAndExitOnError(
@@ -203,7 +203,7 @@ public class SourceControlEventProcessor
       log.trace("No lock required for STATUS_UPDATE_EVENT '{}'", event.getId());
       return true;
     }
-    
+
     // All other events use existing application-level locking for safety
     return acquireRepoAccess(event.getApplicationId());
   }
@@ -213,9 +213,9 @@ public class SourceControlEventProcessor
       log.trace("No lock to release for STATUS_UPDATE_EVENT '{}'", event.getId());
       return;
     }
-    
-    log.trace("Released repo access for event '{}' of type '{}' for application '{}'", 
-              event.getId(), event.getEventType(), event.getApplicationId());
+
+    log.trace("Released repo access for event '{}' of type '{}' for application '{}'",
+        event.getId(), event.getEventType(), event.getApplicationId());
     releaseRepoAccess(event.getApplicationId());
   }
 
@@ -255,8 +255,7 @@ public class SourceControlEventProcessor
           pullRequestCommentingEventHandler.onDiscoveredPullRequest(event);
           break;
 
-        case SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT,
-             SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT:
+        case SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT:
           pullRequestRemediationService.onRemediateComponent(event);
           break;
 

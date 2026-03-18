@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
-public class GitApiFactory 
+public class GitApiFactory
 {
   private static final Logger log = LoggerFactory.getLogger(GitApiFactory.class);
 
@@ -193,7 +193,7 @@ public class GitApiFactory
 
   /**
    * @param gitExecutable fully qualified path to a git executable, may be null in which case git will attempt to find
-   *                      an executable in the PATH
+   *          an executable in the PATH
    */
   @VisibleForTesting
   boolean isNativeGitAvailable(String gitExecutable) {

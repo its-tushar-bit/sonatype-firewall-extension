@@ -56,8 +56,7 @@ public class ScanPersistenceServiceProviderTest
         insightConfig,
         s3ScanPersistenceServiceProvider,
         fileScanPersistenceServiceProvider,
-        hybridScanPersistenceServiceProvider
-    );
+        hybridScanPersistenceServiceProvider);
 
     when(s3ScanPersistenceServiceProvider.get()).thenReturn(s3ScanPersistenceService);
     when(fileScanPersistenceServiceProvider.get()).thenReturn(fileScanPersistenceService);

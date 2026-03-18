@@ -33,23 +33,23 @@ public class ThreatLevelDisplayTest
 
   @Test
   public void testFromValue_severe() {
-    runFromValueTest(SEVERE, ORANGE_LINK, 4,5,6,7);
+    runFromValueTest(SEVERE, ORANGE_LINK, 4, 5, 6, 7);
   }
 
   @Test
   public void testFromValue_moderate() {
-    runFromValueTest(MODERATE, YELLOW_LINK, 2,3);
+    runFromValueTest(MODERATE, YELLOW_LINK, 2, 3);
   }
 
   @Test
   public void testFromValue_low() {
-    runFromValueTest(LOW, DARK_BLUE_LINK, 0,1);
+    runFromValueTest(LOW, DARK_BLUE_LINK, 0, 1);
   }
 
   private static void runFromValueTest(
       final ThreatLevel expectedThreatLevel,
       final String expectedColorLink,
-      final int ... threatLevelNumbers)
+      final int... threatLevelNumbers)
   {
     stream(threatLevelNumbers)
         .forEach(threatLevelNum -> {

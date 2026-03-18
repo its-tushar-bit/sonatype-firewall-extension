@@ -92,17 +92,16 @@ public class FirewallContainerComponentDetailsPageTest
   @Before
   public void start() throws IOException {
     setFeatures(
-            LicensedFeature.CONTAINER_IMAGES_EVALUATION,
-            LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
-            LicensedFeature.APPLICATION_EVALUATION,
-            LicensedFeature.APPLICATION_REPORTS,
-            LicensedFeature.SUCCESS_METRICS,
-            LicensedFeature.COMPONENT_LABELS,
-            LicensedFeature.POLICY_MANAGEMENT,
-            LicensedFeature.POLICY_WAIVERS,
-            LicensedFeature.POLICY_VIOLATIONS,
-            LicensedFeature.COMPONENT_EVALUATION
-    );
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION,
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.COMPONENT_EVALUATION);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
 
     hardreset();
@@ -117,7 +116,7 @@ public class FirewallContainerComponentDetailsPageTest
     testCLMServer.getHdsServer()
         .respondWith(IOUtils
             .toString(Objects.requireNonNull(
-                    this.getClass().getResourceAsStream("/legal/legalLicenseMetadataHdsResponse.json")),
+                this.getClass().getResourceAsStream("/legal/legalLicenseMetadataHdsResponse.json")),
                 StandardCharsets.UTF_8))
         .atUri("/rest/license/metadata");
     testCLMServer.getHdsServer()
@@ -129,7 +128,7 @@ public class FirewallContainerComponentDetailsPageTest
     testCLMServer.getHdsServer()
         .respondWith(IOUtils
             .toString(Objects.requireNonNull(this.getClass()
-                    .getResourceAsStream("/legal/ApplicationAttributionReportTest-legalFileHdsResponse.json")),
+                .getResourceAsStream("/legal/ApplicationAttributionReportTest-legalFileHdsResponse.json")),
                 StandardCharsets.UTF_8))
         .atUri("/rest/legal/file");
     testCLMServer.getHdsServer()
@@ -439,7 +438,8 @@ public class FirewallContainerComponentDetailsPageTest
     VulnerabilitiesTable vulnerabilitiesTable = componentDetailsPage.securityTabContent().vulnerabilitiesTable();
     vulnerabilitiesTable.shouldBe(visible);
 
-    vulnerabilitiesTable.getHeaderRow().findAll(By.tagName("th"))
+    vulnerabilitiesTable.getHeaderRow()
+        .findAll(By.tagName("th"))
         .shouldHave(exactTexts("CVSS", "ISSUES", "DATA ENRICHMENT", "STATUS", ""));
 
     vulnerabilitiesTable.getRows().shouldHave(size(3));
@@ -506,7 +506,8 @@ public class FirewallContainerComponentDetailsPageTest
 
       LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
 
-      licenseDetectionsTile.shouldBe(visible).observedLicenses()
+      licenseDetectionsTile.shouldBe(visible)
+          .observedLicenses()
           .shouldHave(text("Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on."));
 
       licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses()).isEmpty();
@@ -619,7 +620,7 @@ public class FirewallContainerComponentDetailsPageTest
       element.sendKeys("claimed");
     }
 
-    claimTabContent.createdTime().setValue("20102021"); //20.10.2021
+    claimTabContent.createdTime().setValue("20102021"); // 20.10.2021
   }
 
   private void checkFieldsValue(ClaimTabContent claimTabContent) {

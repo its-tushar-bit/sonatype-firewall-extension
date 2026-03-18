@@ -37,11 +37,11 @@ public class ApplicationsHistoryTile
     }
 
     public SelenideElement listLabel(int index) {
-      return child(createSelector(".sbom-manager-applications-history-tile-list__label",  nthOfType(index + 1)));
+      return child(createSelector(".sbom-manager-applications-history-tile-list__label", nthOfType(index + 1)));
     }
 
     public SelenideElement listValue(int index) {
-      return child(createSelector(".sbom-manager-applications-history-tile-list__value",  nthOfType(index + 1)));
+      return child(createSelector(".sbom-manager-applications-history-tile-list__value", nthOfType(index + 1)));
     }
   }
 }

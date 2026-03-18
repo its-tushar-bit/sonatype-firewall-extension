@@ -118,7 +118,7 @@ public class PullRequestLineCommentingServiceTest
         null, null, "test-token",
         SourceControlProvider.GITHUB, "main",
         true, true, true, true, true, true, false, null);
-    gitRepositoryInfo.authenticationType = null;  // Default to PAT
+    gitRepositoryInfo.authenticationType = null; // Default to PAT
     gitRepositoryInfo.authOwnerId = null;
 
     locationDiscoveryResult = new LocationDiscoveryResult();
@@ -486,7 +486,7 @@ public class PullRequestLineCommentingServiceTest
         null, null, "test-token",
         SourceControlProvider.GITLAB, "main",
         true, true, true, true, true, true, false, null);
-    gitRepositoryInfo.authenticationType = null;  // Default to PAT
+    gitRepositoryInfo.authenticationType = null; // Default to PAT
     gitRepositoryInfo.authOwnerId = null;
 
     PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
@@ -517,7 +517,7 @@ public class PullRequestLineCommentingServiceTest
         null, null, "test-token",
         SourceControlProvider.BITBUCKET, "main",
         true, true, true, true, true, true, false, null);
-    gitRepositoryInfo.authenticationType = null;  // Default to PAT
+    gitRepositoryInfo.authenticationType = null; // Default to PAT
     gitRepositoryInfo.authOwnerId = null;
 
     PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
@@ -615,8 +615,8 @@ public class PullRequestLineCommentingServiceTest
         null, null, "ghp_test_token_123",
         SourceControlProvider.GITHUB, "main",
         true, true, true, true, true, true, false, null);
-    gitRepositoryInfo.authenticationType = null;  // PAT auth uses null
-    gitRepositoryInfo.authOwnerId = null;  // PAT auth uses null
+    gitRepositoryInfo.authenticationType = null; // PAT auth uses null
+    gitRepositoryInfo.authOwnerId = null; // PAT auth uses null
 
     PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
         .withCommentVersion(94)
@@ -634,9 +634,9 @@ public class PullRequestLineCommentingServiceTest
     verify(mockGitClientFactory, atLeastOnce()).createApiClient(repoInfoCaptor.capture());
 
     GitRepositoryInfo captured = repoInfoCaptor.getValue();
-    assertThat(captured.getAuthenticationType()).isNull();  // PAT auth uses null
-    assertThat(captured.authOwnerId).isNull();  // PAT auth uses null
-    assertThat(captured.getToken()).isEqualTo("ghp_test_token_123");  // PAT auth uses token
+    assertThat(captured.getAuthenticationType()).isNull(); // PAT auth uses null
+    assertThat(captured.authOwnerId).isNull(); // PAT auth uses null
+    assertThat(captured.getToken()).isEqualTo("ghp_test_token_123"); // PAT auth uses token
 
     // and: one comment should be created
     List<PullRequestLineCommentDTO> lineComments = result.getPullRequestLineCommentDtoList();
@@ -774,17 +774,16 @@ public class PullRequestLineCommentingServiceTest
 
         Optional<String> markup = Optional.of(markupContent);
         when(mockPullRequestFeedbackMarkupService.createLineMarkup(
-                anyList(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                anyBoolean()
-        ))
-            .thenReturn(markup);
+            anyList(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            anyBoolean()))
+                .thenReturn(markup);
 
         CommentResponse response = new DefaultCommentResponse();
         response.setId(scmId);
@@ -813,8 +812,7 @@ public class PullRequestLineCommentingServiceTest
           mockPullRequestFeedbackMarkupService,
           mockPositionDiscoveryExecutor,
           pullRequestCommentingEligibilityValidator,
-          mockProductLicense
-      );
+          mockProductLicense);
     }
 
     TestablePullRequestLineCommentingServiceBuilder withFeatureFlagDisabled() {

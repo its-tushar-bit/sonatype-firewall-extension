@@ -85,7 +85,7 @@ public class ApiOrganizationServiceTest
   @Test
   public void testAddOrganization_IdNotSupported() {
     final String ORGANIZATION_NAME = "testName";
-    
+
     ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO("testId", ORGANIZATION_NAME);
 
     assertThatExceptionOfType(BadRequestException.class)

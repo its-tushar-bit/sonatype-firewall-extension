@@ -161,7 +161,7 @@ public abstract class AbstractPolicyViolation
   public String getConstraintFactsJson() {
     return JsonUtils.writeUnformatted(getConstraintFacts());
   }
-  
+
   /**
    * To be used only for tests
    */

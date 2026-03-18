@@ -19,11 +19,11 @@ import jakarta.persistence.EntityManagerFactory;
  * Some related details on IQ database terminology. The code references four terms, each of which can be used
  * differently depending on how IQ is deployed and what database is used. The terms are:
  * <ol>
- *   <li>Database - An actual database. The two supported are H2 and PostgreSQL.</li>
- *   <li>DataSource - As in the {@link javax.sql.DataSource} class, which also means the connection pools itself.</li>
- *   <li>Schema - A database feature that generally lets you namespace items such as tables, views, etc...</li>
- *   <li>DataStore - Refers to a related set of data/tables. There are four data stores in use for IQ: Operational,
- *   Aggregation, Data mart, Third party scans
+ * <li>Database - An actual database. The two supported are H2 and PostgreSQL.</li>
+ * <li>DataSource - As in the {@link javax.sql.DataSource} class, which also means the connection pools itself.</li>
+ * <li>Schema - A database feature that generally lets you namespace items such as tables, views, etc...</li>
+ * <li>DataStore - Refers to a related set of data/tables. There are four data stores in use for IQ: Operational,
+ * Aggregation, Data mart, Third party scans
  * </ol>
  * </p>
  *
@@ -37,42 +37,42 @@ import jakarta.persistence.EntityManagerFactory;
  * <p>
  * <b>H2 - Single Tenant</b>
  * <ul>
- *   <li>Database - each of the 4 data stores is a fully separate H2 .db file.</li>
- *   <li>DataSource - each of the 4 data stores is a fully separate `javax.sql.DataSource`.</li>
- *   <li>Schema - within each of the 4 physical databases, it will use the data store name as the schema name.</li>
+ * <li>Database - each of the 4 data stores is a fully separate H2 .db file.</li>
+ * <li>DataSource - each of the 4 data stores is a fully separate `javax.sql.DataSource`.</li>
+ * <li>Schema - within each of the 4 physical databases, it will use the data store name as the schema name.</li>
  * </ul>
  * </p>
  * <br/>
  * <p>
  * <b>Postgres - Single-Tenant</b>
  * <ul>
- *   <li>Database - A single database running on a PostgreSQL cluster. Note that 'cluster' is the correct term for a
- *   running PostgreSQL instance, and that cluster can have many databases on it.</li>
- *   <li>DataSource - each of the 4 data stores is a fully separate `javax.sql.DataSource`.</li>
- *   <li>Schema - within the single database, each of the 4 data stores is a separate PostgreSQL schema.</li>
+ * <li>Database - A single database running on a PostgreSQL cluster. Note that 'cluster' is the correct term for a
+ * running PostgreSQL instance, and that cluster can have many databases on it.</li>
+ * <li>DataSource - each of the 4 data stores is a fully separate `javax.sql.DataSource`.</li>
+ * <li>Schema - within the single database, each of the 4 data stores is a separate PostgreSQL schema.</li>
  * </ul>
  * </p>
  * <br/>
  * <p>
  * <b>Postgres - Multi-Tenant (for our Sonatype Saas deployment only)</b>
  * <ul>
- *   <li>Database - A single database running on a PostgreSQL cluster.</li>
- *   <li>DataSource - we only want a single (large) connection pool so each of the 4 data store providers use the same
- *   `javax.sql.DataSource`. Connections are shared across tenants. Note that each tenant still has its own
- *   {@link jakarta.persistence.EntityManagerFactory}</li>
- *   <li>Schema - each tenant is in its own schema. The data store name is not used as the schema. It is tracked inside
- *   the `schema_version` table</li>
+ * <li>Database - A single database running on a PostgreSQL cluster.</li>
+ * <li>DataSource - we only want a single (large) connection pool so each of the 4 data store providers use the same
+ * `javax.sql.DataSource`. Connections are shared across tenants. Note that each tenant still has its own
+ * {@link jakarta.persistence.EntityManagerFactory}</li>
+ * <li>Schema - each tenant is in its own schema. The data store name is not used as the schema. It is tracked inside
+ * the `schema_version` table</li>
  * </ul>
  * </p>
  * <br/>
  *
  * <p>
- *   <b>Special mention: The 'locks' DataSource</b><br/>
- *   During the initiative to operate IQ in a clustered deployment, a custom locking mechanism was developed and the
- *   locks themselves were implemented in the database (CLM-16475). This applies to Postgres only (so a customer
- *   single-tenant clustered Postgres, and the Sonatype multi-tenant Saas). A separate {@link javax.sql.DataSource} was
- *   used for this to avoid deadlocks (CLM-17692) and in multi-tenant mode that separate DataSource is also used,
- *   though there is one globally and not per-tenant.
+ * <b>Special mention: The 'locks' DataSource</b><br/>
+ * During the initiative to operate IQ in a clustered deployment, a custom locking mechanism was developed and the
+ * locks themselves were implemented in the database (CLM-16475). This applies to Postgres only (so a customer
+ * single-tenant clustered Postgres, and the Sonatype multi-tenant Saas). A separate {@link javax.sql.DataSource} was
+ * used for this to avoid deadlocks (CLM-17692) and in multi-tenant mode that separate DataSource is also used,
+ * though there is one globally and not per-tenant.
  * </p>
  */
 public interface DataStore

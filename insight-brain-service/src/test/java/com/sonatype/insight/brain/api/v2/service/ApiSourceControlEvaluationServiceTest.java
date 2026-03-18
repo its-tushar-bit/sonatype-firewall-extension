@@ -132,7 +132,7 @@ public class ApiSourceControlEvaluationServiceTest
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
         new ApiSourceControlEvaluationRequestDTO(stageId, branchName);
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSourceControlEvaluationService
-            .evaluateSourceControl(app.getId(), apiSourceControlEvaluationRequestDTO, null /* userAgent */))
+        .evaluateSourceControl(app.getId(), apiSourceControlEvaluationRequestDTO, null /* userAgent */))
         .withMessage("Stage " + stageId + " is invalid.");
   }
 

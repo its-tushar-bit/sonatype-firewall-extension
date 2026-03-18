@@ -30,8 +30,7 @@ public class H2DatabaseStabilityTest
   @Test
   @H2DiskTest(
       suppressMigrations = true,
-      copyExistingDatabase = "H2DatabaseStabilityTest"
-  )
+      copyExistingDatabase = "H2DatabaseStabilityTest")
   @Category(SlowTest.class)
   public void testOpenTwice1_3_174Database() throws Exception {
     DatabaseConfig databaseConfig = databaseRule.getDatabaseConfig(DatabaseName.ods.name());
@@ -58,14 +57,14 @@ public class H2DatabaseStabilityTest
   @Test
   @H2DiskTest(
       suppressMigrations = true,
-      copyExistingDatabase = "H2DatabaseStabilityTest"
-  )
+      copyExistingDatabase = "H2DatabaseStabilityTest")
   @Category(SlowTest.class)
   public void testLegacyTimestampFormat() throws Exception {
     DatabaseConfig databaseConfig = getDatabaseConfig("timestamp");
     try (Connection connection = DriverManager.getConnection(databaseConfig.getUrl(), "", "");
         Statement statement = connection.createStatement();
-        ResultSet results = statement.executeQuery("SELECT open_time FROM policy_violation")) {
+        ResultSet results = statement.executeQuery("SELECT open_time FROM policy_violation"))
+    {
       int rows = 0;
       while (results.next()) {
         rows++;

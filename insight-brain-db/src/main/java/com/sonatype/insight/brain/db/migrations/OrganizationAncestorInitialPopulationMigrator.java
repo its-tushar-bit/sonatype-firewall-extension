@@ -32,8 +32,8 @@ public class OrganizationAncestorInitialPopulationMigrator
   // It works with the numberless syntax.
   private static final String ORG_INSERT =
       "INSERT INTO %s.organization_ancestor (" +
-      "  organization_ancestor_id, organization_id, ancestor_id, ancestor_distance" +
-      ") VALUES (?, ?, ?, ?)";
+          "  organization_ancestor_id, organization_id, ancestor_id, ancestor_distance" +
+          ") VALUES (?, ?, ?, ?)";
 
   @Override
   public void migrate(DataSource dataSource, String databaseSchema) throws SQLException {
@@ -62,8 +62,7 @@ public class OrganizationAncestorInitialPopulationMigrator
   private void populateResultsFromOrgParentMap(
       Connection conn,
       Map<String, String> orgParentMap,
-      String databaseSchema)
-      throws SQLException
+      String databaseSchema) throws SQLException
   {
     try (PreparedStatement stmt = conn.prepareStatement(String.format(ORG_INSERT, databaseSchema))) {
       for (Map.Entry<String, String> childParent : orgParentMap.entrySet()) {

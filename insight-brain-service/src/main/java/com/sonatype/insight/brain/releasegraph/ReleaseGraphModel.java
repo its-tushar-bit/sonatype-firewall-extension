@@ -94,7 +94,8 @@ public class ReleaseGraphModel
             }
             else {
               mostPopulous =
-                  mostPopulous != -1 && pop.popularity[mostPopulous] > pop.popularity[candidate] ? mostPopulous
+                  mostPopulous != -1 && pop.popularity[mostPopulous] > pop.popularity[candidate]
+                      ? mostPopulous
                       : candidate;
             }
           }
@@ -137,7 +138,8 @@ public class ReleaseGraphModel
             // Next pile already contains an important item, or the previous pile does not contain an
             // important item and the second important item i
             if (containsImportant(buckets[i + 1], pop)
-                || (importantVersions[1] == pop.currentVersionIndex && !containsImportant(buckets[i - 1], pop))) {
+                || (importantVersions[1] == pop.currentVersionIndex && !containsImportant(buckets[i - 1], pop)))
+            {
               // push first down
               slotIndices[i - 1] = importantVersions[0];
               slotIndices[i] = importantVersions[1];
@@ -185,7 +187,8 @@ public class ReleaseGraphModel
         return candidate;
       }
       else {
-        mostPopulous = mostPopulous != -1 && pop.popularity[mostPopulous] > pop.popularity[candidate] ? mostPopulous
+        mostPopulous = mostPopulous != -1 && pop.popularity[mostPopulous] > pop.popularity[candidate]
+            ? mostPopulous
             : candidate;
       }
     }

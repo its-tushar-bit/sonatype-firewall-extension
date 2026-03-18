@@ -24,9 +24,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class FIPSProviderFactoryTest
 {
   private static final String[] EXPECTED_EMBEDDED_FIPS_JARS = {
-      "lib/bc-fips.jar",
-      "lib/bcpkix-fips.jar",
-      "lib/bctls-fips.jar"
+    "lib/bc-fips.jar",
+    "lib/bcpkix-fips.jar",
+    "lib/bctls-fips.jar"
   };
 
   private static final String EXPECTED_BCFIPS_NAME = "BCFIPS";
@@ -87,16 +87,18 @@ public class FIPSProviderFactoryTest
    * Helper method to invoke {@link FIPSProviderFactory#createFipsProvider()} using a specific {@link ClassLoader}
    * context.
    *
-   * <p>This method loads the {@link FIPSProviderFactory} class using the provided ClassLoader and invokes
+   * <p>
+   * This method loads the {@link FIPSProviderFactory} class using the provided ClassLoader and invokes
    * its static createFipsProvider() method via reflection. This allows testing the factory behavior in different
-   * classloader contexts (restricted, embedded JAR scenarios, etc.).</p>
+   * classloader contexts (restricted, embedded JAR scenarios, etc.).
+   * </p>
    *
    * @param classLoader the {@link ClassLoader} context to use for loading the factory class
    * @return the FIPS {@link Provider} created by the factory
    * @throws ReflectiveOperationException if the factory class cannot be loaded or method invoked
    */
-  private Provider createFipsProviderWithClassLoader(final ClassLoader classLoader)
-      throws ReflectiveOperationException
+  private Provider createFipsProviderWithClassLoader(
+      final ClassLoader classLoader) throws ReflectiveOperationException
   {
     Method createMethod = classLoader
         .loadClass(FIPSProviderFactory.class.getName())
@@ -161,9 +163,7 @@ public class FIPSProviderFactoryTest
    *
    * @return ClassLoader that provides only some FIPS JAR resources
    */
-  private ClassLoader createClassLoaderWithPartialEmbeddedJars()
-      throws ReflectiveOperationException, IOException
-  {
+  private ClassLoader createClassLoaderWithPartialEmbeddedJars() throws ReflectiveOperationException, IOException {
     ClassLoader parentLoader = this.getClass().getClassLoader();
     byte[] fipsJarBytes = loadFipsJarBytes();
 
@@ -232,11 +232,15 @@ public class FIPSProviderFactoryTest
    * Abstract ClassLoader that excludes specific classes by name while providing a common implementation for loading in
    * restricted test contexts.
    *
-   * <p>This base class handles the common concern of loading the classes from bytecode in an isolated classloader
-   * context, while allowing subclasses to define their own class exclusion rules and resource handling strategies.</p>
+   * <p>
+   * This base class handles the common concern of loading the classes from bytecode in an isolated classloader
+   * context, while allowing subclasses to define their own class exclusion rules and resource handling strategies.
+   * </p>
    *
-   * <p>Subclasses must implement {@code loadClass(String)} to define which classes should
-   * be excluded and how they should be handled.</p>
+   * <p>
+   * Subclasses must implement {@code loadClass(String)} to define which classes should
+   * be excluded and how they should be handled.
+   * </p>
    */
   private abstract static class ExcludeByNameClassLoader
       extends ClassLoader
@@ -273,7 +277,7 @@ public class FIPSProviderFactoryTest
    *
    * @return byte array containing the FIPS JAR content
    * @throws ReflectiveOperationException if FIPS class cannot be loaded
-   * @throws IOException                  if JAR file cannot be read
+   * @throws IOException if JAR file cannot be read
    */
   private static byte[] loadFipsJarBytes() throws ReflectiveOperationException, IOException {
     Class<?> fipsClass = Class.forName(FIPS_PROVIDER_CLASS_NAME);

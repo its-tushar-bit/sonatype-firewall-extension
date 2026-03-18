@@ -28,7 +28,7 @@ public class TenantUtil
 
   static final String IS_MTIQ_BATCH = "IS_MTIQ_BATCH";
 
-  //Visible for testing
+  // Visible for testing
   Boolean mtiqBatchMode;
 
   public boolean isAllTenantsJob(Class clazz) {
@@ -44,9 +44,9 @@ public class TenantUtil
   }
 
   /*
-      MTIQ - None of the errors in this validation method should ever be hit once multi-tenancy is complete.
-      During MTIQ development this can be used as a catch-all for any tenancy issues which still need to be addressed.
-      Most commonly for system initiated events you need to call TenantUtils.initTenancy
+   * MTIQ - None of the errors in this validation method should ever be hit once multi-tenancy is complete.
+   * During MTIQ development this can be used as a catch-all for any tenancy issues which still need to be addressed.
+   * Most commonly for system initiated events you need to call TenantUtils.initTenancy
    */
   public Tenant validateTenantForType(Class clazz, Tenant tenant) {
     if (!isMultiTenant()) {
@@ -71,7 +71,8 @@ public class TenantUtil
     // Skip validation if clazz can be used in either a per-tenant or global context
     if (GlobalTenantJob.class.isAssignableFrom(clazz)
         && TenantManaged.class.isAssignableFrom(clazz)
-        && !AllTenantsJob.class.isAssignableFrom(clazz)) {
+        && !AllTenantsJob.class.isAssignableFrom(clazz))
+    {
       return tenant;
     }
 
@@ -84,7 +85,8 @@ public class TenantUtil
           "tenant was set: " + clazz);
     }
     else if (!GlobalTenantJob.class.isAssignableFrom(clazz) && TenantManaged.class.isAssignableFrom(clazz)
-        && !isAllTenantsJob(clazz) && GLOBAL_TENANT.equals(tenant)) {
+        && !isAllTenantsJob(clazz) && GLOBAL_TENANT.equals(tenant))
+    {
       logTenancyIssue("TenantJob was invoked which expects a specific tenant to be set but instead global " +
           "tenant was set: " + clazz);
     }
@@ -186,7 +188,7 @@ public class TenantUtil
   }
 
   /**
-   * Admin API requests should use the global tenant.  Additionally, assume that calls to a IP-address hostname are to
+   * Admin API requests should use the global tenant. Additionally, assume that calls to a IP-address hostname are to
    * admin APIs (probably /healthcheck)
    */
   public boolean requestShouldUseGlobalTenant(ServletRequest request) {

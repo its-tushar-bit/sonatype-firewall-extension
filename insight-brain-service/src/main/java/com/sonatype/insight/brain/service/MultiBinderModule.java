@@ -53,7 +53,7 @@ public class MultiBinderModule
 
       for (Class<?> to : scannedClasses) {
         if (!from.equals(to) && from.isAssignableFrom(to) && isMultiBinderTarget(to)) {
-          if (Provider.class.isAssignableFrom(to) /*|| jakarta.inject.Provider.class.isAssignableFrom(to)*/) {
+          if (Provider.class.isAssignableFrom(to) /* || jakarta.inject.Provider.class.isAssignableFrom(to) */) {
             continue;
           }
           Multibinder<?> multibinder = Multibinder.newSetBinder(binder(), from);

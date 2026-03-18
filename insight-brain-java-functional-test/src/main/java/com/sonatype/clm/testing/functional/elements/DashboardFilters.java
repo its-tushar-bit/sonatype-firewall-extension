@@ -269,7 +269,7 @@ public class DashboardFilters
       return getFilterCheckboxAt(1);
     }
 
-    public NxCheckbox getFilterCheckboxAt(int i ) {
+    public NxCheckbox getFilterCheckboxAt(int i) {
       return new NxCheckbox(child(".nx-collapsible-items__children .nx-collapsible-items__child", nthChild(i + 1)));
     }
   }

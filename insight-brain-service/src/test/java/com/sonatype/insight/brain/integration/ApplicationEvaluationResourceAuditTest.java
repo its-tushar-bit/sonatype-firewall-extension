@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.integration;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -68,11 +69,15 @@ public class ApplicationEvaluationResourceAuditTest
         app.getPublicId(), app.getName(), null, null, null);
   }
 
-  private HttpResponse evaluate(Consumer<HttpRequest> user, String applicationPublicId, String stageId)
-      throws Exception
+  private HttpResponse evaluate(
+      Consumer<HttpRequest> user,
+      String applicationPublicId,
+      String stageId) throws Exception
   {
     return restRequest().with(user)
         .path(ApplicationEvaluationResource.RESOURCE_PATH, ApplicationEvaluationResource.EVALUATE_PATH)
-        .query("scanType", ClientScanType.SONATYPE).parameter(applicationPublicId, IntegrationType.CLI, stageId).post();
+        .query("scanType", ClientScanType.SONATYPE)
+        .parameter(applicationPublicId, IntegrationType.CLI, stageId)
+        .post();
   }
 }

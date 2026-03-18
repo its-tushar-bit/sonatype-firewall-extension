@@ -32,15 +32,15 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class FirewallUserTokensConfigurationTest
-        extends AbstractFunctionalTest
+    extends AbstractFunctionalTest
 {
   private static final String FIREWALL_USER_TOKENS_URL =
-          BaseUrl.resolvePageUrl("/firewall/userTokensConfiguration");
+      BaseUrl.resolvePageUrl("/firewall/userTokensConfiguration");
 
   private final SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
 
   private final UserTokensConfigurationPage configPage =
-          new UserTokensConfigurationPage();
+      new UserTokensConfigurationPage();
 
   @BeforeClass
   public static void startup() {
@@ -95,7 +95,7 @@ public class FirewallUserTokensConfigurationTest
 
     configPage.update().click();
     FormUtils.getAlertElement(configPage)
-            .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to update."));
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to update."));
 
     configPage.expirationEnabledToggle().click();
     configPage.expirationEnabledToggle().input().shouldBe(checked);

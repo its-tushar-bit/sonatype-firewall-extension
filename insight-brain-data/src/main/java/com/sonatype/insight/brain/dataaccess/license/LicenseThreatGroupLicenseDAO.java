@@ -39,9 +39,10 @@ public class LicenseThreatGroupLicenseDAO
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
   }
 
-  private LicenseThreatGroupLicense getByGroupIdAndLicenseId(TransactionContext tx,
-                                                             String ownerId,
-                                                             String licenseThreatGroupId)
+  private LicenseThreatGroupLicense getByGroupIdAndLicenseId(
+      TransactionContext tx,
+      String ownerId,
+      String licenseThreatGroupId)
   {
     String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
         " WHERE entity.licenseThreatGroupId=?1 AND entity.licenseId=?2";

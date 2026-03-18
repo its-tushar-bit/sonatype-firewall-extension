@@ -33,7 +33,8 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class LdapServerDAOTest extends NameableDAOTest<LdapServer>
+public class LdapServerDAOTest
+    extends NameableDAOTest<LdapServer>
 {
   private LdapConnectionDAO ldapConnectionDAO;
 
@@ -71,12 +72,12 @@ public class LdapServerDAOTest extends NameableDAOTest<LdapServer>
   protected AbstractOperationalSqlDAO<LdapServer> getDao() {
     return dao;
   }
-  
+
   @Override
   protected int getMaxNameLength() {
     return NameHelper.MAX_NAME_LENGTH;
   }
-  
+
   @Override
   protected LdapServer getEntityByName(String name) {
     return dao.getByName(name);

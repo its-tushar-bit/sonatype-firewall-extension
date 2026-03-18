@@ -54,7 +54,8 @@ public class DbQuarantinedComponentAccessManager
     final QuarantinedComponentAccess quarantinedComponentAccess =
         new QuarantinedComponentAccess(repositoryComponent.getRepositoryId(), repositoryComponent.getId(), new Date());
     quarantinedComponentAccessDAO.insert(quarantinedComponentAccess);
-    return Base64.getUrlEncoder().withoutPadding()
+    return Base64.getUrlEncoder()
+        .withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
   }
 

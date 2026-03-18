@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  * Likewise, if it detects that it should approve more of the workload it will try to reserve new partitions
  * of work as they are requested.
  *
- * The load balancer does not do the work and doesn't direct other classes to do the work.  It simply serves
+ * The load balancer does not do the work and doesn't direct other classes to do the work. It simply serves
  * as a coordinator
  */
 public abstract class SelfThrottlingLoadBalancer
@@ -118,8 +118,8 @@ public abstract class SelfThrottlingLoadBalancer
 
   /**
    * There are two steps in getting permission to use the given partition:
-   *   1 - checking to see if the partition is either available or already in use by this instance
-   *   2 - actually getting the perpetual lock for the partition
+   * 1 - checking to see if the partition is either available or already in use by this instance
+   * 2 - actually getting the perpetual lock for the partition
    *
    * @return true if we can get the lock, false otherwise
    */
@@ -175,8 +175,7 @@ public abstract class SelfThrottlingLoadBalancer
 
   private boolean tryToReservePartition(String partitionKey) {
     return TenantThreadLocal.runAsGlobal(
-        () -> perpetualLockManager.tryAcquireLock(partitionKey, category, myInstanceId, partitionReservationSeconds)
-    );
+        () -> perpetualLockManager.tryAcquireLock(partitionKey, category, myInstanceId, partitionReservationSeconds));
   }
 
   private void validateInitParams(String category) {

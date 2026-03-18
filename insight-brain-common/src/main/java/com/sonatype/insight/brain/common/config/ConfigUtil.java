@@ -12,6 +12,7 @@ public class ConfigUtil
   /**
    * Get the configuration value from the system properties or environment variable or will fallback to the default
    * value.
+   *
    * @param key - the configuration key
    * @param defaultValue - value to use if no system property or environment variable is set
    * @return configuration value

@@ -127,13 +127,14 @@ public class UserTokenTest
     MainHeader.userMenu().manageUserToken().shouldBe(Condition.visible).click();
     userTokenModal.should(Condition.appear);
     userTokenModal.tokenExistenceAlert().shouldBe(Condition.visible);
-    
+
     userTokenModal.deleteUserTokenButton().shouldBe(Condition.visible);
 
     // Verify expiration section is displayed
     userTokenModal.expirationSection().shouldBe(Condition.visible);
     userTokenModal.expirationHeading().shouldBe(Condition.visible).shouldHave(Condition.text("User Token Status"));
-    userTokenModal.expirationSubtitle().shouldBe(Condition.visible)
+    userTokenModal.expirationSubtitle()
+        .shouldBe(Condition.visible)
         .shouldHave(Condition.text("Time remaining until user token expires"));
     userTokenModal.expirationDate().shouldBe(Condition.visible).shouldHave(Condition.text("Expires:"));
 

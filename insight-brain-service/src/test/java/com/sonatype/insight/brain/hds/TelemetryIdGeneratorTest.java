@@ -70,6 +70,6 @@ public class TelemetryIdGeneratorTest
 
     // then: the telemetry host is unchanged
     assertThat(generatedId).matches(TELEMETRY_ID_PATTERN)
-         .startsWith(telemetryHost + "-");
+        .startsWith(telemetryHost + "-");
   }
 }

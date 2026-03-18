@@ -69,8 +69,7 @@ public class AdminServletTest
         testBlockResource.blocker,
         Duration.ofMinutes(1),
         "[^']*ActiveRequestCounterFilter[^']*",
-        () -> assertThat(restRequest().path("rest", "product", "version").get().getStatusCode()).isEqualTo(503)
-    );
+        () -> assertThat(restRequest().path("rest", "product", "version").get().getStatusCode()).isEqualTo(503));
     assertThat(blockResponse.get().getStatusCode()).isEqualTo(204);
   }
 
@@ -85,8 +84,7 @@ public class AdminServletTest
           () -> taskScheduler.scheduleOneTimeTask(testBlockJob),
           testBlockJob.blocker,
           Duration.ofMinutes(1),
-          "[^']*StdScheduler[^']*"
-      );
+          "[^']*StdScheduler[^']*");
       assertThat(taskScheduler.getScheduler()).isNull();
     }
     finally {
@@ -104,8 +102,7 @@ public class AdminServletTest
         thread::start,
         blocker,
         Duration.ofMinutes(1),
-        "[^']*" + Integer.toHexString(thread.hashCode()) + "[^']*"
-    );
+        "[^']*" + Integer.toHexString(thread.hashCode()) + "[^']*");
     assertThat(thread.isAlive()).isFalse();
   }
 
@@ -119,8 +116,7 @@ public class AdminServletTest
         () -> executorService.submit(() -> tryCheckedRunnable(blocker::block)),
         blocker,
         Duration.ofMinutes(1),
-        "[^']*" + Integer.toHexString(executorService.hashCode()) + "[^']*"
-    );
+        "[^']*" + Integer.toHexString(executorService.hashCode()) + "[^']*");
   }
 
   private void testTasksShutdown_WaitsFor(
@@ -142,13 +138,15 @@ public class AdminServletTest
       Thread shutdownTaskThread = new Thread(
           () -> tryCheckedRunnable(() -> shutdownResponse.set(adminRequest().path("tasks", "shutdown").post())));
       shutdownTaskThread.start();
-      await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> assertThat(logOutput)
-          .atDebugLevel()
-          .containsPattern(
-              String.format("Initiating shutdown for order '[^']*', origin '[^']*', item '%s'.", itemDescriptionRegex)
-          ).containsPattern(
-              String.format("Waiting for shutdown for order '[^']*', origin '[^']*', item '%s'.", itemDescriptionRegex)
-          ));
+      await().atMost(5, TimeUnit.SECONDS)
+          .untilAsserted(() -> assertThat(logOutput)
+              .atDebugLevel()
+              .containsPattern(
+                  String.format("Initiating shutdown for order '[^']*', origin '[^']*', item '%s'.",
+                      itemDescriptionRegex))
+              .containsPattern(
+                  String.format("Waiting for shutdown for order '[^']*', origin '[^']*', item '%s'.",
+                      itemDescriptionRegex)));
 
       // Wait some time
       Thread.sleep(extraMillisToWait);

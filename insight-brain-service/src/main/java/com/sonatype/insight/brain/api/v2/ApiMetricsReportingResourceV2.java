@@ -72,20 +72,16 @@ public class ApiMetricsReportingResourceV2
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "Select the media type JSON or csv for the preferred output format.",
-              content = {
-                  @Content(
-                      mediaType = "text/csv"
-                  ),
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON,
-                      array = @ArraySchema(schema = @Schema(implementation = ApiMetricsReportingDTOV2.class))
-                  )
-              }
-          )
-      }
-  )
+        @ApiResponse(responseCode = "200",
+            description = "Select the media type JSON or csv for the preferred output format.",
+            content = {
+              @Content(
+                  mediaType = "text/csv"),
+              @Content(
+                  mediaType = MediaType.APPLICATION_JSON,
+                  array = @ArraySchema(schema = @Schema(implementation = ApiMetricsReportingDTOV2.class)))
+            })
+      })
   public Response getMetrics(ApiMetricsReportingQueryDTOV2 queryDTO) {
     metricsReportingService.validate(queryDTO);
     List<Application> applications = metricsReportingService.getApplications(queryDTO);
@@ -115,7 +111,9 @@ public class ApiMetricsReportingResourceV2
     StreamingOutput stream = os -> {
       CsvMapper csvMapper = new CsvMapper();
       try (SequenceWriter writer = csvMapper
-          .writer(csvMapper.schemaFor(ApiMetricsReportingFlattenedDTOV2.class).withHeader()).writeValuesAsArray(os)) {
+          .writer(csvMapper.schemaFor(ApiMetricsReportingFlattenedDTOV2.class).withHeader())
+          .writeValuesAsArray(os))
+      {
         DateTime now = new DateTime();
         for (int beginIndex = 0; beginIndex < applications.size(); beginIndex += chunkSize) {
           int endIndex = Math.min(beginIndex + chunkSize, applications.size());

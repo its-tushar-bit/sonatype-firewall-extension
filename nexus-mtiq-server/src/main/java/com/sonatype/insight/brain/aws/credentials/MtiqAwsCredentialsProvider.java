@@ -29,14 +29,16 @@ public class MtiqAwsCredentialsProvider
   @Override
   public AwsCredentialsProvider get() {
     return LazyAwsCredentialsProvider.create(
-        () -> AwsCredentialsProviderChain.builder().reuseLastProviderEnabled(true)
+        () -> AwsCredentialsProviderChain.builder()
+            .reuseLastProviderEnabled(true)
             .credentialsProviders(new AwsCredentialsProvider[]{
-                WebIdentityTokenFileCredentialsProvider.builder().asyncCredentialUpdateEnabled(false).build(),
-                SystemPropertyCredentialsProvider.create(),
-                EnvironmentVariableCredentialsProvider.create(),
-                ProfileCredentialsProvider.create(),
-                ContainerCredentialsProvider.builder().asyncCredentialUpdateEnabled(false).build(),
-                InstanceProfileCredentialsProvider.builder().asyncCredentialUpdateEnabled(false).build(),
-                }).build());
+              WebIdentityTokenFileCredentialsProvider.builder().asyncCredentialUpdateEnabled(false).build(),
+              SystemPropertyCredentialsProvider.create(),
+              EnvironmentVariableCredentialsProvider.create(),
+              ProfileCredentialsProvider.create(),
+              ContainerCredentialsProvider.builder().asyncCredentialUpdateEnabled(false).build(),
+              InstanceProfileCredentialsProvider.builder().asyncCredentialUpdateEnabled(false).build(),
+            })
+            .build());
   }
 }

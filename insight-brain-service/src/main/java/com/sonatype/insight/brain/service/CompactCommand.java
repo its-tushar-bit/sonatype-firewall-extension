@@ -46,10 +46,10 @@ public class CompactCommand
   }
 
   @Override
-  protected void run(final Bootstrap<InsightConfig> bootstrap,
-                     final Namespace namespace,
-                     final InsightConfig insightConfig)
-      throws Exception
+  protected void run(
+      final Bootstrap<InsightConfig> bootstrap,
+      final Namespace namespace,
+      final InsightConfig insightConfig) throws Exception
   {
     if (!insightConfig.isDatabaseEmbedded()) {
       throw new BadRequestException("The " + getName() + " command is supported only for h2 databases.");
@@ -69,7 +69,8 @@ public class CompactCommand
       log.info("This might take a while, please be patient.");
       final long startTime = System.currentTimeMillis();
       try (final Connection connection = dataSource.getConnection();
-           final Statement statement = connection.createStatement()) {
+          final Statement statement = connection.createStatement())
+      {
         statement.execute("SHUTDOWN COMPACT");
       }
       final long newSize = Files.size(databaseFile);

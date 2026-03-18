@@ -23,7 +23,7 @@ public class RoiConfigurationDefaultValuesDAOTest
 
   @Before
   @Override
-  public  void setup() {
+  public void setup() {
     super.setup();
     dao = daoFactory.createRoiConfigurationDefaultValuesDAO();
     dao.getAll().forEach(dao::delete);
@@ -42,8 +42,7 @@ public class RoiConfigurationDefaultValuesDAOTest
         30,
         15,
         BigDecimal.valueOf(800),
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
 
     // read
     RoiConfigurationDefaultValues roiConfigurationDefaultValuesExisting =
@@ -59,7 +58,7 @@ public class RoiConfigurationDefaultValuesDAOTest
     assertThat(roiConfigurationDefaultValuesExisting.getNamespaceAttacksPreventedDefault()).isEqualTo(
         BigDecimal.valueOf(10000));
 
-    //delete
+    // delete
     dao.delete(roiConfigurationDefaultValuesExisting);
     assertThat(dao.getById(roiConfigurationDefaultValuesExisting.getId())).isNull();
   }
@@ -77,8 +76,7 @@ public class RoiConfigurationDefaultValuesDAOTest
         30,
         15,
         BigDecimal.valueOf(800),
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
     RoiConfigurationDefaultValues roiConfigurationDefaultValues = dao.getByCurrencyType(CurrencyTypes.USD);
     assertThat(roiConfigurationDefaultValues).isNotNull();
     assertRoiConfigurationDefaultValuesEntityValues(roiConfigurationDefaultValues);

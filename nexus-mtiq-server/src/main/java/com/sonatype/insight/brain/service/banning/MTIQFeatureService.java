@@ -75,8 +75,7 @@ public class MTIQFeatureService
       SystemConfigurationPropertyFeature.SCAN_POM_FILES_IN_META_INF_DIRECTORY,
       SystemConfigurationPropertyFeature.VULNERABILITY_SOURCE,
       SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE,
-      SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS
-  );
+      SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
 
   private final ApiConfigFeaturesService service;
 

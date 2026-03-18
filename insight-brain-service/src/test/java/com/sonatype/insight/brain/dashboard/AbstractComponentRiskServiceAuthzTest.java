@@ -83,7 +83,7 @@ public abstract class AbstractComponentRiskServiceAuthzTest
     DashboardResultsDTO<ComponentRiskDTO> result =
         getComponentRiskService()
             .getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null,
-            "-TOTAL_RISK", 0, 100);
+                "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.hasNextPage).isEqualTo(false);
   }
@@ -94,7 +94,7 @@ public abstract class AbstractComponentRiskServiceAuthzTest
     DashboardResultsDTO<ComponentRiskDTO> result =
         getComponentRiskService()
             .getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null,
-            "-TOTAL_RISK", 0, 100);
+                "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).isEmpty();
     assertThat(result.hasNextPage).isEqualTo(false);
   }
@@ -105,7 +105,7 @@ public abstract class AbstractComponentRiskServiceAuthzTest
     DashboardResultsDTO<ComponentRiskDTO> result =
         getComponentRiskService()
             .getComponentRisks(Collections.singleton(org.getId()), null, null, null, null, null, null,
-            "-TOTAL_RISK", 0, 100);
+                "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.hasNextPage).isEqualTo(false);
   }

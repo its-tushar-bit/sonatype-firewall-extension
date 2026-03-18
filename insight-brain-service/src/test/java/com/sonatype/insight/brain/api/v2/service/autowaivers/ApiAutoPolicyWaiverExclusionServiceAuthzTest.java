@@ -78,8 +78,7 @@ public class ApiAutoPolicyWaiverExclusionServiceAuthzTest
 
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         identifier,
-        violation
-    );
+        violation);
 
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
@@ -157,8 +156,7 @@ public class ApiAutoPolicyWaiverExclusionServiceAuthzTest
 
   private PolicyThreats.Component createPolicyThreatsComponents(
       ComponentIdentifier componentIdentifier,
-      PolicyViolation violation
-  )
+      PolicyViolation violation)
   {
     PolicyThreats.PolicyViolation policyViolation = new PolicyThreats.PolicyViolation();
     policyViolation.policyThreatLevel = violation.getThreatLevel();

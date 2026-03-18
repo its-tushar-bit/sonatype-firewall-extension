@@ -77,8 +77,7 @@ public class ClusterIdentificationServiceTest
         mockApplicationDAO,
         mockBaseUrlProvider,
         clusterIdentificationDAO,
-        mockTelemetryQueue
-    );
+        mockTelemetryQueue);
     testStartTime = new Date();
     updateTime = null;
   }
@@ -426,8 +425,7 @@ public class ClusterIdentificationServiceTest
     final var oneSampleApplication = 1L;
     when(mockApplicationDAO.getCount()).thenReturn(oneSampleApplication);
     when(mockApplicationDAO.getByPublicId(SampleDataCreator.SAMPLE_APPLICATION_PUBLIC_ID)).thenReturn(
-        new Application(SampleDataCreator.SAMPLE_APPLICATION_PUBLIC_ID, "sample-application-name", "orgId")
-    );
+        new Application(SampleDataCreator.SAMPLE_APPLICATION_PUBLIC_ID, "sample-application-name", "orgId"));
   }
 
   private ClusterIdentification initializeClusterIdentificationWithApps(

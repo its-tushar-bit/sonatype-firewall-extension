@@ -72,12 +72,14 @@ public class RepositoryPolicyEditorTest
     inheritance.specifiedChildrenInheritRadio().shouldHave(specifiedRadioText("Root Organization"));
     inheritance.associationEditor().shouldBe(hidden);
 
-    inheritance.policyActionsOverrideCheckbox().label().shouldHave(
-        text("Allow action overrides at organization, application and repositories levels")
-    );
-    inheritance.policyNotificationsOverrideCheckbox().label().shouldHave(
-        text("Allow notification overrides at organization, application and repositories levels")
-    );
+    inheritance.policyActionsOverrideCheckbox()
+        .label()
+        .shouldHave(
+            text("Allow action overrides at organization, application and repositories levels"));
+    inheritance.policyNotificationsOverrideCheckbox()
+        .label()
+        .shouldHave(
+            text("Allow notification overrides at organization, application and repositories levels"));
 
     eyesWatcher.eyesCheck("Policy Editor Inheritance section at repository level for root org policy");
   }
@@ -98,13 +100,15 @@ public class RepositoryPolicyEditorTest
     inheritance.associationEditor().shouldBe(hidden);
 
     inheritance.policyActionsOverrideCheckbox().shouldBe(disabled);
-    inheritance.policyActionsOverrideCheckbox().label().shouldHave(
-        text("Allow action overrides at repository manager and repository level")
-    );
+    inheritance.policyActionsOverrideCheckbox()
+        .label()
+        .shouldHave(
+            text("Allow action overrides at repository manager and repository level"));
     inheritance.policyNotificationsOverrideCheckbox().shouldBe(disabled);
-    inheritance.policyNotificationsOverrideCheckbox().label().shouldHave(
-        text("Allow notification overrides at repository manager and repository level")
-    );
+    inheritance.policyNotificationsOverrideCheckbox()
+        .label()
+        .shouldHave(
+            text("Allow notification overrides at repository manager and repository level"));
 
     eyesWatcher.eyesCheck("Policy Editor Inheritance section at repository level for repo container policy");
   }
@@ -125,13 +129,15 @@ public class RepositoryPolicyEditorTest
     inheritance.associationEditor().shouldBe(hidden);
 
     inheritance.policyActionsOverrideCheckbox().shouldBe(disabled);
-    inheritance.policyActionsOverrideCheckbox().label().shouldHave(
-        text("Allow action overrides at repository level")
-    );
+    inheritance.policyActionsOverrideCheckbox()
+        .label()
+        .shouldHave(
+            text("Allow action overrides at repository level"));
     inheritance.policyNotificationsOverrideCheckbox().shouldBe(disabled);
-    inheritance.policyNotificationsOverrideCheckbox().label().shouldHave(
-        text("Allow notification overrides at repository level")
-    );
+    inheritance.policyNotificationsOverrideCheckbox()
+        .label()
+        .shouldHave(
+            text("Allow notification overrides at repository level"));
 
     eyesWatcher.eyesCheck("Policy Editor Inheritance section at repository level for repo manager policy");
   }

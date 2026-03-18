@@ -41,8 +41,7 @@ public class TenantConfigurationResource
   @Produces(MediaType.APPLICATION_JSON)
   public Map<String, Object> getConfiguration(
       @PathParam("tenantSlug") String tenantSlug,
-      @QueryParam("property") Set<String> properties
-  )
+      @QueryParam("property") Set<String> properties)
   {
     return tenantConfigurationService.getPropertiesConfiguration(tenantSlug, properties);
   }
@@ -61,8 +60,7 @@ public class TenantConfigurationResource
   @Audited(AuditEvent.DELETE_TENANT_CONFIGURATION)
   public void deleteConfiguration(
       @PathParam("tenantSlug") String tenantSlug,
-      @QueryParam("property") Set<String> properties
-  )
+      @QueryParam("property") Set<String> properties)
   {
     tenantConfigurationService.deletePropertiesConfiguration(tenantSlug, properties);
   }

@@ -10,7 +10,7 @@ import java.util.List;
 
 /**
  * DTO describing the security and license data (raw data) in an application composition report.
- * 
+ *
  * @since 1.13.0
  */
 public class ApiReportRawDataDTOV2

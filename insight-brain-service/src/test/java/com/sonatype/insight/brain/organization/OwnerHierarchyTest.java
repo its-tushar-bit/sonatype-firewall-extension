@@ -32,7 +32,8 @@ import static com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHie
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class OwnerHierarchyTest extends AbstractComponentTest
+public class OwnerHierarchyTest
+    extends AbstractComponentTest
 {
   @Inject
   private OrganizationService organizationService;
@@ -162,8 +163,7 @@ public class OwnerHierarchyTest extends AbstractComponentTest
     assertThat(repositoryContainer.id).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     assertThat(repositoryContainer.repositoryManagerIds).containsExactlyInAnyOrder(
         repositoryManagerOne.getId(),
-        repositoryManagerTwo.getId()
-    );
+        repositoryManagerTwo.getId());
 
     OwnerHierarchyRepositoryManagerDTO repositoryManagerOneDTO =
         hierarchy.getRepositoryManagerById(repositoryManagerOne.getId());
@@ -180,8 +180,7 @@ public class OwnerHierarchyTest extends AbstractComponentTest
     assertThat(repositoryManagerTwoDTO.id).isEqualTo(repositoryManagerTwo.getId());
     assertThat(repositoryManagerTwoDTO.getChildIds()).containsExactlyInAnyOrder(
         repositoryTwo.getId(),
-        repositoryThree.getId()
-    );
+        repositoryThree.getId());
     assertThat(repositoryManagerTwoDTO.getParentId()).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     assertThat(repositoryManagerTwoDTO.name).isEqualTo(repositoryManagerTwo.getName());
     assertThat(repositoryManagerTwoDTO.instanceId).isEqualTo(repositoryManagerTwo.getInstanceId());
@@ -307,11 +306,9 @@ public class OwnerHierarchyTest extends AbstractComponentTest
 
     OwnerHierarchyOrganizationDTO orgOneDTO = (OwnerHierarchyOrganizationDTO) ownersMap.get(orgOne.getId());
     assertThat(orgOneDTO.organizationIds).isEqualTo(
-        Arrays.asList(orgSix.getId(), orgFour.getId(), orgThree.getId(), orgFive.getId(), orgTwo.getId())
-    );
+        Arrays.asList(orgSix.getId(), orgFour.getId(), orgThree.getId(), orgFive.getId(), orgTwo.getId()));
     assertThat(orgOneDTO.applicationIds).isEqualTo(
-        Arrays.asList(appOne.getPublicId(), appTwo.getPublicId(), appThree.getPublicId())
-    );
+        Arrays.asList(appOne.getPublicId(), appTwo.getPublicId(), appThree.getPublicId()));
 
     OwnerHierarchyEntityDTO repositoryManagerOneDTO = ownersMap.get(repositoryManagerOne.getId());
     assertThat(repositoryManagerOneDTO.getChildIds()).containsExactlyInAnyOrder(repositoryOne.getId());
@@ -320,8 +317,7 @@ public class OwnerHierarchyTest extends AbstractComponentTest
     OwnerHierarchyEntityDTO repositoryManagerTwoDTO = ownersMap.get(repositoryManagerTwo.getId());
     assertThat(repositoryManagerTwoDTO.getChildIds()).containsExactlyInAnyOrder(
         repositoryTwo.getId(),
-        repositoryThree.getId()
-    );
+        repositoryThree.getId());
     assertThat(repositoryManagerTwoDTO.getParentId()).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
   }
 

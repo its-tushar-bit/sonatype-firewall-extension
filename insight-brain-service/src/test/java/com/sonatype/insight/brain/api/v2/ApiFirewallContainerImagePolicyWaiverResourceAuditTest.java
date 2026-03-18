@@ -163,9 +163,11 @@ public class ApiFirewallContainerImagePolicyWaiverResourceAuditTest
 
     auditDTOs = auditDTOs.stream().filter(audit -> audit.data != null).toList();
     assertThat(
-        auditDTOs.stream().filter(auditDTO -> auditDTO.data.get("isForContainerImageComponent").equals(Boolean.TRUE))
+        auditDTOs.stream()
+            .filter(auditDTO -> auditDTO.data.get("isForContainerImageComponent").equals(Boolean.TRUE))
             .toList()).hasSize(1);
-    assertThat(auditDTOs.stream().filter(auditDTO -> auditDTO.data.get("isForContainerImage").equals(Boolean.TRUE))
+    assertThat(auditDTOs.stream()
+        .filter(auditDTO -> auditDTO.data.get("isForContainerImage").equals(Boolean.TRUE))
         .toList()).hasSize(1);
   }
 

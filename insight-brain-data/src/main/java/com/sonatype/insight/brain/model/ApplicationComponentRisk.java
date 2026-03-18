@@ -15,5 +15,6 @@ public record ApplicationComponentRisk(
     int scoreCritical,
     int scoreSevere,
     int scoreModerate,
-    int scoreLow
-) { }
+    int scoreLow)
+{
+}

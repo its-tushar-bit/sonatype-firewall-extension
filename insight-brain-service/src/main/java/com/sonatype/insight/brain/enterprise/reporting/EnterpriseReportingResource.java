@@ -61,8 +61,9 @@ public class EnterpriseReportingResource
   private final EnterpriseReportingFilterService enterpriseReportingFilterService;
 
   @Inject
-  public EnterpriseReportingResource(final EnterpriseReportingService enterpriseReportingService,
-                                     final EnterpriseReportingFilterService enterpriseReportingFilterService)
+  public EnterpriseReportingResource(
+      final EnterpriseReportingService enterpriseReportingService,
+      final EnterpriseReportingFilterService enterpriseReportingFilterService)
   {
     this.enterpriseReportingService = enterpriseReportingService;
     this.enterpriseReportingFilterService = enterpriseReportingFilterService;
@@ -96,8 +97,7 @@ public class EnterpriseReportingResource
   public EmbedCookielessSessionAcquire acquireEmbedSession(
       @HeaderParam(USER_AGENT) String clientUserAgent,
       @QueryParam("dashboardId") String dashboardId,
-      @QueryParam("embedDomain") String encodedEmbedDomain
-  )
+      @QueryParam("embedDomain") String encodedEmbedDomain)
   {
     return enterpriseReportingService.acquireEmbedSession(dashboardId, encodedEmbedDomain, clientUserAgent);
   }
@@ -108,8 +108,7 @@ public class EnterpriseReportingResource
   @Consumes(MediaType.APPLICATION_JSON)
   public EmbedCookielessSessionGenerateTokensResponse generateEmbedTokens(
       @HeaderParam(USER_AGENT) String clientUserAgent,
-      EmbedCookielessSessionGenerateTokens embedCookielessSessionGenerateTokens
-  )
+      EmbedCookielessSessionGenerateTokens embedCookielessSessionGenerateTokens)
   {
     return enterpriseReportingService.generateEmbedTokens(embedCookielessSessionGenerateTokens, clientUserAgent);
   }

@@ -45,8 +45,11 @@ public class H2DiskDatabaseConfigProvider
 
     DatabaseConfig databaseConfig = new DatabaseConfig();
     databaseConfig.setDriverClassName("org.h2.Driver");
-    StringBuilder urlBuilder = new StringBuilder().append("jdbc:h2:").append(databaseDir.getAbsolutePath()).append('/')
-        .append(databaseName).append(";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=60000;MV_STORE=FALSE");
+    StringBuilder urlBuilder = new StringBuilder().append("jdbc:h2:")
+        .append(databaseDir.getAbsolutePath())
+        .append('/')
+        .append(databaseName)
+        .append(";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=60000;MV_STORE=FALSE");
     if (databaseName == DatabaseName.ods) {
       // NOTE: H2 uses previous setting if not set in URL, so be explicit about the default size
       long dbCacheSizeInBytes = 16L * 1024 * 1024;

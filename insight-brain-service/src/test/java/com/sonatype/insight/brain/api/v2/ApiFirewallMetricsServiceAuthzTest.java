@@ -76,8 +76,7 @@ public class ApiFirewallMetricsServiceAuthzTest
         30,
         15,
         BigDecimal.valueOf(800),
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
     grantConfigureSystemPermission();
     grantPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID, Permission.READ);
     firewallMetricsService.getRoiFirewallMetrics(CurrencyTypes.USD);

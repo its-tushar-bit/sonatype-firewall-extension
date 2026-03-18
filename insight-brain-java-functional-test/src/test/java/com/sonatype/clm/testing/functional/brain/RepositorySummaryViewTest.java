@@ -144,9 +144,9 @@ public class RepositorySummaryViewTest
     waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(repository.getId()));
 
     RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
-    
+
     String repostioryFormatTypeString = " (" + repository.getFormat() + " : " + repository.getRepositoryType() + ")";
-    
+
     summaryTile.name().shouldBe(visible).shouldHave(text(repository.getName()));
     summaryTile.repositoryFormatType().shouldBe(visible).shouldHave(text(repostioryFormatTypeString));
 
@@ -188,7 +188,7 @@ public class RepositorySummaryViewTest
 
     eyesWatcher.eyesCheck("repository policy view page");
   }
-  
+
   @Test
   public void testRepositorySummaryView_veryLongRepositoryPublicIdTooltip() {
     RepositoryManager repositoryManager = tempEntity
@@ -271,7 +271,7 @@ public class RepositorySummaryViewTest
     breadcrumb.listItems().shouldHave(size(4));
     breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
     assertThat(breadcrumb.listItems().get(1).lastChild().attr("class"))
-            .isEqualTo("nx-dropdown nx-icon-dropdown");
+        .isEqualTo("nx-dropdown nx-icon-dropdown");
     breadcrumb.listItems().get(2).shouldHave(text("npm-proxy"));
     breadcrumb.listItems().get(3).shouldHave(text("Repository Policy"));
     PolicyEditorPage.title().shouldHave(text("New Policy"));
@@ -282,7 +282,7 @@ public class RepositorySummaryViewTest
   @Test
   public void testRepositorySummaryView_accessTile() {
     RepositoryManager repositoryManager = tempEntity
-            .newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
+        .newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
     Repository repository = tempEntity.newProxyRepository(repositoryManager, "npm-proxy", "npm", true, true);
 
     testRepositorySummaryViewAccessTile(repositoryManager, repository);
@@ -291,8 +291,7 @@ public class RepositorySummaryViewTest
   @Test
   public void testRepositorySummaryView_accessTileForHostedRepositories() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(
-        "5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE"
-    );
+        "5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
     Repository repository = tempEntity.newHostedRepository(repositoryManager, "npm-proxy", "npm", true);
 
     testRepositorySummaryViewAccessTile(repositoryManager, repository);
@@ -319,11 +318,9 @@ public class RepositorySummaryViewTest
     tempEntity
         .newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, rootOrgReadRole.getId(), "Group", MemberType.GROUP);
     tempEntity.newMembershipMapping(
-        RepositoryContainer.REPOSITORY_CONTAINER_ID, repoContainerWriteRole.getId(), testUser.getUsername()
-    );
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, repoContainerWriteRole.getId(), testUser.getUsername());
     tempEntity.newMembershipMapping(
-        RepositoryContainer.REPOSITORY_CONTAINER_ID, repoContainerReadRole.getId(), "Group", MemberType.GROUP
-    );
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, repoContainerReadRole.getId(), "Group", MemberType.GROUP);
 
     refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(repository.getId()));
     waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(repository.getId()));
@@ -356,7 +353,8 @@ public class RepositorySummaryViewTest
 
     InheritedAccessList repoManagerAccessList = accessTile.inheritedAccessList(repositoryManager.getId());
 
-    accessTile.accessListSubheader(0).shouldBe(visible)
+    accessTile.accessListSubheader(0)
+        .shouldBe(visible)
         .shouldHave(AccessTile.inheritedText(repositoryManager.getName()));
     repoManagerAccessList.elements().shouldHave(size(2));
 
@@ -443,7 +441,8 @@ public class RepositorySummaryViewTest
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHave(size(1));
 
-    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0)
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells()
+        .get(0)
         .shouldHave(text(namePattern.getNamespacePattern()));
     namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().isEmpty();
     namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().isEmpty();
@@ -487,16 +486,20 @@ public class RepositorySummaryViewTest
 
     namespaceConfusionProtectionTile.enabledHeaderSortBtn().click();
 
-    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0)
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells()
+        .get(0)
         .shouldHave(text(namePattern2.getNamespacePattern()));
     namespaceConfusionProtectionTile.enabledToggleIndicators().get(0).shouldBe(enabled).shouldNotBe(selected);
-    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1)
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells()
+        .get(1)
         .shouldHave(text(namePattern4.getNamespacePattern()));
     namespaceConfusionProtectionTile.enabledToggleIndicators().get(1).shouldBe(enabled).shouldNotBe(selected);
-    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2)
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells()
+        .get(2)
         .shouldHave(text(namePattern1.getNamespacePattern()));
     namespaceConfusionProtectionTile.enabledToggleIndicators().get(2).shouldBe(enabled, selected);
-    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(3)
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells()
+        .get(3)
         .shouldHave(text(namePattern3.getNamespacePattern()));
     namespaceConfusionProtectionTile.enabledToggleIndicators().get(3).shouldBe(enabled, selected);
 
@@ -517,11 +520,13 @@ public class RepositorySummaryViewTest
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHave(size(2));
 
-    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0)
-            .shouldHave(text(namePattern2.getNamespacePattern()));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells()
+        .get(0)
+        .shouldHave(text(namePattern2.getNamespacePattern()));
     namespaceConfusionProtectionTile.enabledToggleIndicators().get(0).shouldBe(enabled).shouldNotBe(selected);
-    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1)
-            .shouldHave(text(namePattern1.getNamespacePattern()));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells()
+        .get(1)
+        .shouldHave(text(namePattern1.getNamespacePattern()));
     namespaceConfusionProtectionTile.enabledToggleIndicators().get(1).shouldBe(enabled, selected);
 
     eyesWatcher.eyesCheck("hosted repository manager namespace confusion protection tile sorted by enable column");
@@ -553,9 +558,9 @@ public class RepositorySummaryViewTest
   public void testRepositorySummaryView_checkTilesForProxyAndHostedRepositories() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager("instanceId");
     Repository proxyRepo = tempEntity.newRepository(repoManager, "maven-central", RepositoryType.proxy,
-            ComponentIdentifier.FORMAT_MAVEN);
+        ComponentIdentifier.FORMAT_MAVEN);
     Repository hostedRepo = tempEntity.newRepository(repoManager, "maven-hosted", RepositoryType.hosted,
-            ComponentIdentifier.FORMAT_MAVEN);
+        ComponentIdentifier.FORMAT_MAVEN);
 
     refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(proxyRepo.getId()));
     waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(proxyRepo.getId()));
@@ -601,7 +606,7 @@ public class RepositorySummaryViewTest
   public void testRepositorySummaryView_actionMenuForHostedRepository() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager("instanceId");
     Repository repo = tempEntity.newRepository(repoManager, "npm-hosted", RepositoryType.hosted,
-            "npm");
+        "npm");
 
     refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(repo.getId()));
     waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(repo.getId()));
@@ -614,21 +619,24 @@ public class RepositorySummaryViewTest
 
   public void checkDefaultSortForNamespaceConfusionTile(
       NamespaceConfusionProtectionTile namespaceConfusionProtectionTile,
-      List<ProprietaryComponentNamePattern> namePatterns
-  )
+      List<ProprietaryComponentNamePattern> namePatterns)
   {
     namespaceConfusionProtectionTile.tableBodyRows().shouldHave(size(4));
 
-    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0)
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells()
+        .get(0)
         .shouldHave(text(namePatterns.get(0).getNamespacePattern()));
     namespaceConfusionProtectionTile.enabledToggleIndicators().get(0).shouldBe(enabled, selected);
-    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1)
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells()
+        .get(1)
         .shouldHave(text(namePatterns.get(1).getNamespacePattern()));
     namespaceConfusionProtectionTile.enabledToggleIndicators().get(1).shouldBe(enabled).shouldNotBe(selected);
-    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2)
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells()
+        .get(2)
         .shouldHave(text(namePatterns.get(2).getNamespacePattern()));
     namespaceConfusionProtectionTile.enabledToggleIndicators().get(2).shouldBe(enabled, selected);
-    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(3)
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells()
+        .get(3)
         .shouldHave(text(namePatterns.get(3).getNamespacePattern()));
     namespaceConfusionProtectionTile.enabledToggleIndicators().get(3).shouldBe(enabled).shouldNotBe(selected);
   }

@@ -28,8 +28,9 @@ public class LicenseResourceTest
     assertResponseStatus(200, response);
 
     License[] licenses = response.getBody(License[].class);
-    assertThat(licenses).extracting(License::getId).contains(License.NO_SOURCE_LICENSE_ID, License.NOT_DECLARED_ID,
-        License.NO_SOURCES_ID, License.NOT_SUPPORTED_ID);
+    assertThat(licenses).extracting(License::getId)
+        .contains(License.NO_SOURCE_LICENSE_ID, License.NOT_DECLARED_ID,
+            License.NO_SOURCES_ID, License.NOT_SUPPORTED_ID);
   }
 
   @Test
@@ -38,7 +39,9 @@ public class LicenseResourceTest
     assertResponseStatus(200, response);
 
     License[] licenses = response.getBody(License[].class);
-    assertThat(licenses).extracting(License::getId).isNotEmpty().doesNotContain(License.NO_SOURCE_LICENSE_ID,
-        License.NOT_DECLARED_ID, License.NO_SOURCES_ID, License.NOT_SUPPORTED_ID);
+    assertThat(licenses).extracting(License::getId)
+        .isNotEmpty()
+        .doesNotContain(License.NO_SOURCE_LICENSE_ID,
+            License.NOT_DECLARED_ID, License.NO_SOURCES_ID, License.NOT_SUPPORTED_ID);
   }
 }

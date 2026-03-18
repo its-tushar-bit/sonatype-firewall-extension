@@ -90,7 +90,7 @@ public class FirewallMetricsDAOTest
   public void getMostRecentLastUpdatedAtDateByName() {
     initTestData();
     Date mostRecentDate = dao.getMostRecentLastUpdatedAtDateByName(
-         FirewallMetricsName.COMPONENTS_QUARANTINED);
+        FirewallMetricsName.COMPONENTS_QUARANTINED);
     assertThat(mostRecentDate)
         .hasYear(2022)
         .hasMonth(2)
@@ -101,13 +101,13 @@ public class FirewallMetricsDAOTest
   }
 
   private void initTestDates() {
-    Date date2019 = new GregorianCalendar(2019, Calendar.JANUARY, 1, 8, 3, 12 ).getTime();
+    Date date2019 = new GregorianCalendar(2019, Calendar.JANUARY, 1, 8, 3, 12).getTime();
     Date date2022 = new GregorianCalendar(2022, Calendar.FEBRUARY, 2, 18,
-        4, 13 ).getTime();
+        4, 13).getTime();
     Date date2015 = new GregorianCalendar(2015, Calendar.MARCH, 3, 9,
-        15, 14 ).getTime();
+        15, 14).getTime();
     Date date2017 = new GregorianCalendar(2017, Calendar.APRIL, 4, 22,
-        23, 15 ).getTime();
+        23, 15).getTime();
     testLastUpdateDates.add(date2019);
     testLastUpdateDates.add(date2022);
     testLastUpdateDates.add(date2015);
@@ -119,8 +119,7 @@ public class FirewallMetricsDAOTest
         FirewallMetricsName.COMPONENTS_QUARANTINED,
         testLastUpdateDates.indexOf(date) + 1,
         date,
-        toLocalDate(date)
-    ));
+        toLocalDate(date)));
   }
 
   @Test
@@ -223,7 +222,7 @@ public class FirewallMetricsDAOTest
 
     FirewallMetrics newFirewallMetrics = new FirewallMetrics(testDate, COMPONENTS_QUARANTINED, 5);
 
-    FirewallMetrics resFirewallMetrics =  dao.insertUpdateFirewallMetrics(newFirewallMetrics);
+    FirewallMetrics resFirewallMetrics = dao.insertUpdateFirewallMetrics(newFirewallMetrics);
     assertThat(resFirewallMetrics.getMetricsValue()).isEqualTo(6);
     assertThat(resFirewallMetrics.getMetricsName()).isEqualTo(COMPONENTS_QUARANTINED);
   }
@@ -238,7 +237,7 @@ public class FirewallMetricsDAOTest
     dao.insert(firewallMetrics2);
     dao.insert(firewallMetrics3);
 
-    String firewallMetricsId =  dao.insertUpdateFirewallMetrics(firewallMetrics1).getId();
+    String firewallMetricsId = dao.insertUpdateFirewallMetrics(firewallMetrics1).getId();
     FirewallMetrics res = dao.getById(firewallMetricsId);
     assertThat(res).isNotNull();
     assertThat(res.getMetricsName()).isEqualTo(firewallMetrics1.getMetricsName());

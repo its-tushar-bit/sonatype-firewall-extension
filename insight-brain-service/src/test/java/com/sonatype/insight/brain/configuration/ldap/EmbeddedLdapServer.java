@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Embedded LDAP server meant to facilitate unit testing of LDAP integration. For convenience, use the
  * TestLdapServer subclass in tests.
- * 
+ *
  * @since 1.7
  */
 public class EmbeddedLdapServer
@@ -108,7 +108,7 @@ public class EmbeddedLdapServer
 
     // an example that shows how to create and configure embedded apacheds instance
     // http://svn.apache.org/repos/asf/directory/apacheds/trunk/core-annotations/
-    //   src/main/java/org/apache/directory/server/core/factory/DefaultDirectoryServiceFactory.java
+    // src/main/java/org/apache/directory/server/core/factory/DefaultDirectoryServiceFactory.java
 
     directoryService = new DefaultDirectoryService();
     directoryService.setShutdownHookEnabled(false); // avoid memory leak
@@ -139,10 +139,10 @@ public class EmbeddedLdapServer
     Authenticator[] authenticators;
     switch (authLevel) {
       case SIMPLE:
-        authenticators = new Authenticator[] { new SimpleAuthenticator() };
+        authenticators = new Authenticator[]{new SimpleAuthenticator()};
         break;
       case STRONG:
-        authenticators = new Authenticator[] { new StrongAuthenticator() };
+        authenticators = new Authenticator[]{new StrongAuthenticator()};
         ldapServer.setSaslMechanismHandlers(saslHandlers);
         ldapServer.setSaslHost(LOCALHOST);
         ldapServer.setSaslRealms(Collections.singletonList(getSaslRealm()));
@@ -151,7 +151,7 @@ public class EmbeddedLdapServer
       case NONE:
       default:
         directoryService.setAllowAnonymousAccess(true);
-        authenticators = new Authenticator[] { new AnonymousAuthenticator(), new SimpleAuthenticator() };
+        authenticators = new Authenticator[]{new AnonymousAuthenticator(), new SimpleAuthenticator()};
         break;
     }
     AuthenticationInterceptor auth = (AuthenticationInterceptor) directoryService

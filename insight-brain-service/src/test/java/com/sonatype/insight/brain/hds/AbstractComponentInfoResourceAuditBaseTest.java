@@ -92,6 +92,7 @@ public abstract class AbstractComponentInfoResourceAuditBaseTest
 
   private HttpRequest detailsRequest(String applicationId, ComponentIdentifier componentIdentifier, String hash) {
     return resourceRequest().parameter(applicationId)
-        .query("componentIdentifier", componentIdentifier).query("hash", hash);
+        .query("componentIdentifier", componentIdentifier)
+        .query("hash", hash);
   }
 }

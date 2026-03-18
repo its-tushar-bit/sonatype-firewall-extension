@@ -223,8 +223,9 @@ public class UserService
 
     // validate the old password first
     try {
-      SecurityUtils.getSecurityManager().authenticate(
-          new UsernamePasswordToken(user.getUsername(), password.oldPassword));
+      SecurityUtils.getSecurityManager()
+          .authenticate(
+              new UsernamePasswordToken(user.getUsername(), password.oldPassword));
     }
     catch (AuthenticationException e) {
       throw new BadRequestException("Current password is wrong.");
@@ -330,7 +331,8 @@ public class UserService
       apiUserListDTO.users = ssoUserService.getAll().stream().map(this::convert).collect(Collectors.toList());
     }
     else {
-      apiUserListDTO.users = userDAO.getAll().stream()
+      apiUserListDTO.users = userDAO.getAll()
+          .stream()
           .map(user -> convert(user))
           .collect(Collectors.toList());
     }

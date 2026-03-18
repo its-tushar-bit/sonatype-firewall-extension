@@ -237,34 +237,34 @@ public class SupportServiceTest
     supportService.addAllDbData(filesToZip, workDir);
 
     final String[] basenames = new String[]{
-        "repositoryManager",
-        "repository",
-        "organization",
-        "application",
-        "proprietaryConfig",
-        "user",
-        "role",
-        "rolePermission",
-        "membershipMapping",
-        "webhook",
-        "systemNotice",
-        "label",
-        "componentLabel",
-        "tag",
-        "applicationTag",
-        "policyTag",
-        "securityVulnerabilityOverride",
-        "licenseThreatGroup",
-        "multiLicense",
-        "license",
-        "licenseThreatGroupLicense",
-        "policy",
-        "policyMonitoring",
-        "sourceControl",
-        "reverseProxyAuthenticationConfiguration",
-        "innerSourceRepositoryConnection",
-        "cpeMatchingConfiguration",
-        "ciIntegrationsConfig"
+      "repositoryManager",
+      "repository",
+      "organization",
+      "application",
+      "proprietaryConfig",
+      "user",
+      "role",
+      "rolePermission",
+      "membershipMapping",
+      "webhook",
+      "systemNotice",
+      "label",
+      "componentLabel",
+      "tag",
+      "applicationTag",
+      "policyTag",
+      "securityVulnerabilityOverride",
+      "licenseThreatGroup",
+      "multiLicense",
+      "license",
+      "licenseThreatGroupLicense",
+      "policy",
+      "policyMonitoring",
+      "sourceControl",
+      "reverseProxyAuthenticationConfiguration",
+      "innerSourceRepositoryConnection",
+      "cpeMatchingConfiguration",
+      "ciIntegrationsConfig"
     };
     final File[] expectedFiles = createExpectedFiles(workDir, basenames);
     assertThat(workDir.listFiles()).containsExactlyInAnyOrder(expectedFiles);
@@ -502,9 +502,11 @@ public class SupportServiceTest
   }
 
   private ZipEntry getZipEntryNotNull(File supportZip, List<? extends ZipEntry> entries, SupportFile supportFile) {
-    ZipEntry entry = entries.stream().filter(e -> e.getName().equals(
-            getZipFileBasename(supportZip) + "/" + supportFile.supportFileType.getDirName() + "/" +
-                supportFile.file.getName()))
+    ZipEntry entry = entries.stream()
+        .filter(e -> e.getName()
+            .equals(
+                getZipFileBasename(supportZip) + "/" + supportFile.supportFileType.getDirName() + "/" +
+                    supportFile.file.getName()))
         .findFirst()
         .orElse(null);
     assertThat(entry).isNotNull();

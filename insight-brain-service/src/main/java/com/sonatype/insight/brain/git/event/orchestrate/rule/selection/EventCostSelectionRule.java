@@ -42,7 +42,7 @@ public class EventCostSelectionRule
 
   /**
    * event point costs are arbitrary but at the same time are based on an analysis of the number of SCM interactions
-   * that event type creates or the expected duration of that type of event.  The points are relative to one another
+   * that event type creates or the expected duration of that type of event. The points are relative to one another
    * with the status update event being the reference value since status update is a single, simple API call.
    *
    * Here's the thought that went into selecting the event points:
@@ -70,8 +70,8 @@ public class EventCostSelectionRule
   public static final int REMEDIATION_PR_EVENT_POINTS = EVENT_COST_POINTS.get(REMEDIATION_PULL_REQUEST_EVENT);
 
   public EventCostSelectionRule(SourceControlProvider sourceControlProvider) {
-    maxInProgressEventPoints = GITHUB == sourceControlProvider ?
-        GITHUB_MAX_IN_PROGRESS_EVENT_POINTS : DEFAULT_MAX_IN_PROGRESS_EVENT_POINTS;
+    maxInProgressEventPoints =
+        GITHUB == sourceControlProvider ? GITHUB_MAX_IN_PROGRESS_EVENT_POINTS : DEFAULT_MAX_IN_PROGRESS_EVENT_POINTS;
   }
 
   /**

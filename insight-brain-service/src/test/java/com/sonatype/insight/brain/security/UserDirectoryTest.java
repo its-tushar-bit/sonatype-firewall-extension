@@ -76,7 +76,8 @@ public class UserDirectoryTest
 
   @Rule
   public RuleChain ruleChain = RuleChain.outerRule(tempDir) //
-      .around(testLdapServer1).around(testLdapServer2);
+      .around(testLdapServer1)
+      .around(testLdapServer2);
 
   @Inject
   private UserDAO userDao;
@@ -105,9 +106,7 @@ public class UserDirectoryTest
     testLdapServer2.setWorkingDirectory(tempDir).setLdifResourceName("/UserDirectoryTest/ldap_users2.ldif");
   }
 
-  private void configureAndStartNewLdapServer(TestLdapServer testLdapServer, String ldapServerName)
-      throws Exception
-  {
+  private void configureAndStartNewLdapServer(TestLdapServer testLdapServer, String ldapServerName) throws Exception {
     testLdapServer.start();
 
     LdapServer ldapServer = tempEntity.newLdapServer(ldapServerName);
@@ -133,7 +132,8 @@ public class UserDirectoryTest
     // Get both groups and users.
     members = userDirectory
         .getMembersByNames(Sets.newHashSet(createUser("clmbob"), createUser("testuser1"), createGroup("Alpha1"),
-            createGroup("Alpha2"))).get();
+            createGroup("Alpha2")))
+        .get();
 
     assertThat(members).hasSize(4).extracting(Member::getInternalName).containsExactlyInAnyOrderElementsOf(names);
 
@@ -141,16 +141,21 @@ public class UserDirectoryTest
     names = Sets.newHashSet("CLMBOB", "TESTUSER1", "ALPHA1", "ALPHA2");
     members = userDirectory.getUsersByNames(names).get();
 
-    assertThat(members).hasSize(2).extracting(Member::getInternalName)
-        .usingElementComparator(String.CASE_INSENSITIVE_ORDER).isSubsetOf(names);
+    assertThat(members).hasSize(2)
+        .extracting(Member::getInternalName)
+        .usingElementComparator(String.CASE_INSENSITIVE_ORDER)
+        .isSubsetOf(names);
 
     // Get users and groups, case insensitive.
     members = userDirectory
         .getMembersByNames(Sets.newHashSet(createUser("CLMBOB"), createUser("TESTUSER1"), createGroup("ALPHA1"),
-            createGroup("ALPHA2"))).get();
+            createGroup("ALPHA2")))
+        .get();
 
-    assertThat(members).hasSize(4).extracting(Member::getInternalName)
-        .usingElementComparator(String.CASE_INSENSITIVE_ORDER).containsExactlyInAnyOrderElementsOf(names);
+    assertThat(members).hasSize(4)
+        .extracting(Member::getInternalName)
+        .usingElementComparator(String.CASE_INSENSITIVE_ORDER)
+        .containsExactlyInAnyOrderElementsOf(names);
 
     assertThat(members.get(0).getDn()).isNull();
     assertThat(members.get(1).getDn()).matches("uid=testuser1,ou=users,dc=company,dc=com");
@@ -171,7 +176,7 @@ public class UserDirectoryTest
     ldapUserMapping.setDynamicGroupSearchEnabled(false);
     ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
     ldapUserMappingDAO.update(ldapUserMapping);
-    
+
     assertThat(ldapService.isGroupSearchEnabled(ldapServer)).isFalse();
 
     QueryResult result = userDirectory.getMembersByQuery("testUsers", true);
@@ -346,8 +351,9 @@ public class UserDirectoryTest
     members = userDirectory.getMembersByQuery("John Doe", true).get();
 
     assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("testuser1", "testuser2");
-    assertThat(members).extracting(Member::getDn).containsExactlyInAnyOrder("uid=testuser1,ou=users,dc=company,dc=com",
-        "uid=testuser2,ou=users,dc=company,dc=com");
+    assertThat(members).extracting(Member::getDn)
+        .containsExactlyInAnyOrder("uid=testuser1,ou=users,dc=company,dc=com",
+            "uid=testuser2,ou=users,dc=company,dc=com");
 
     // Get users, case insensitive.
     members = userDirectory.getMembersByQuery("JOHN DOE", true).get();
@@ -359,8 +365,9 @@ public class UserDirectoryTest
     // Get both groups and users, case insensitive.
     members = userDirectory.getMembersByQuery("ALPHA*", true).get();
 
-    assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("alphabob", "Alpha", "Alpha1",
-        "Alpha2");
+    assertThat(members).extracting(Member::getInternalName)
+        .containsExactlyInAnyOrder("alphabob", "Alpha", "Alpha1",
+            "Alpha2");
     assertThat(members).extracting(Member::getDn)
         .containsExactlyInAnyOrder(null, "cn=Alpha,ou=groups,dc=company,dc=com",
             "cn=Alpha1,ou=groups,dc=company,dc=com", "cn=Alpha2,ou=groups,dc=company,dc=com");
@@ -429,7 +436,7 @@ public class UserDirectoryTest
 
     UserDirectory underTest =
         new UserDirectory(userDao, ldapServerDAO, ssoUserService, mockLdapService, crowdClientFactory);
-    
+
     UserDirectory.QueryResult result = underTest.getMembersByQuery("Alpha", true);
     List<Member> members = result.get();
 
@@ -496,8 +503,9 @@ public class UserDirectoryTest
         .thenThrow(exception);
     // Second LDAP server throws a NamingException
     Throwable namingException = new NamingException("NamingException!");
-    doThrow(namingException).when(mockLdapService).findUsersByName(argThat(new SameId(ldapServer2)), any(String.class),
-        anyLong());
+    doThrow(namingException).when(mockLdapService)
+        .findUsersByName(argThat(new SameId(ldapServer2)), any(String.class),
+            anyLong());
     // Third LDAP server returns a user
     LdapUser ldapUser = new LdapUser();
     ldapUser.setServerId(ldapServer3.getId());
@@ -535,8 +543,9 @@ public class UserDirectoryTest
     // Second LDAP server throws a NamingException
     doReturn(true).when(mockLdapService).isGroupSearchEnabled(argThat(new SameId(ldapServer2)));
     Throwable namingException = new NamingException("NamingException!");
-    doThrow(namingException).when(mockLdapService).findGroupsByName(argThat(new SameId(ldapServer2)), any(String.class),
-        anyLong());
+    doThrow(namingException).when(mockLdapService)
+        .findGroupsByName(argThat(new SameId(ldapServer2)), any(String.class),
+            anyLong());
     // Third LDAP server returns a group
     LdapGroup ldapGroup = new LdapGroup();
     ldapGroup.setGroupname("testldapgroup");
@@ -546,7 +555,7 @@ public class UserDirectoryTest
 
     UserDirectory underTest =
         new UserDirectory(userDao, ldapServerDAO, ssoUserService, mockLdapService, crowdClientFactory);
-    
+
     UserDirectory.QueryResult result = underTest.getMembersByQuery("any", true);
     List<Member> members = result.get();
 
@@ -558,9 +567,7 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testGetUsersByRealNames_MatchesAgainstInternalUsersAndAllConfiguredLDAPServersCombiningResults()
-      throws Exception
-  {
+  public void testGetUsersByRealNames_MatchesAgainstInternalUsersAndAllConfiguredLDAPServersCombiningResults() throws Exception {
     configureAndStartNewLdapServer(testLdapServer1, "LDAP1");
     configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
 
@@ -576,15 +583,15 @@ public class UserDirectoryTest
         "internal users-1",
         "John Doe", // ldap1 user
         "Jannet Ray", // ldap2 user
-        "Nobody Here"
-    ));
+        "Nobody Here"));
 
     // should return a list of any users that matched internally or in ldap and exclude any users that did not match
-    assertThat(members).extracting(Member::getInternalName).containsExactly(
-        "internal-user-1", "internal-user-2", "testuser1", "testuser3");
-    assertThat(members).extracting(Member::getRealm).containsExactly(
-        "IQ Server", "IQ Server", "LDAP1", "LDAP2"
-    );
+    assertThat(members).extracting(Member::getInternalName)
+        .containsExactly(
+            "internal-user-1", "internal-user-2", "testuser1", "testuser3");
+    assertThat(members).extracting(Member::getRealm)
+        .containsExactly(
+            "IQ Server", "IQ Server", "LDAP1", "LDAP2");
   }
 
   @Test
@@ -605,11 +612,10 @@ public class UserDirectoryTest
         "internal users-2",
         "internal users-1",
         "Sam Jenkins",
-        "Jim Varney"
-    ));
+        "Jim Varney"));
 
     // these are the arguments that didn't already match to an internal user vis userDao
-    final String[] expectedLdapArguments = { "Jim Varney", "Sam Jenkins" };
+    final String[] expectedLdapArguments = {"Jim Varney", "Sam Jenkins"};
 
     // should only have tried to find ldap users if they were not found as internal users
     verify(mockLdapService).getUsersByRealName(any(LdapServer.class), eq(expectedLdapArguments));
@@ -625,9 +631,7 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testGetUsersByEmails_MatchesAgainstAllConfiguredRealms_CombiningResults_OAuth2()
-      throws Exception
-  {
+  public void testGetUsersByEmails_MatchesAgainstAllConfiguredRealms_CombiningResults_OAuth2() throws Exception {
     enableSsoWithOAuth2();
     OAuth2User ssoUser = tempEntity.newOAuth2User("oauth2user", null, null, "oauth2user@example.com", null);
     testGetUsersByEmails_MatchesAgainstAllConfiguredRealms_CombiningResults(ssoUser);
@@ -640,8 +644,8 @@ public class UserDirectoryTest
     testGetUsersByEmails_MatchesAgainstAllConfiguredRealms_CombiningResults(ssoUser);
   }
 
-  private void testGetUsersByEmails_MatchesAgainstAllConfiguredRealms_CombiningResults(AbstractSsoUser ssoUser)
-      throws Exception
+  private void testGetUsersByEmails_MatchesAgainstAllConfiguredRealms_CombiningResults(
+      AbstractSsoUser ssoUser) throws Exception
   {
     configureAndStartNewLdapServer(testLdapServer1, "LDAP1");
     configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
@@ -659,15 +663,15 @@ public class UserDirectoryTest
         "test.user@company.com", // ldap1 user
         "test.user2@company.com", // ldap2 user
         ssoUser.getEmail(),
-        "not-in-any-user-provider@example.com"
-    ));
+        "not-in-any-user-provider@example.com"));
 
     // should return a list of any users that matched internally or in ldap and exclude any users that did not match
-    assertThat(members).extracting(Member::getInternalName).containsExactly(
-        "internal-user-1", "internal-user-2", "testuser1", "testuser2", ssoUser.getUsername());
-    assertThat(members).extracting(Member::getRealm).containsExactly(
-        "IQ Server", "IQ Server", "LDAP1", "LDAP2", ssoUser.getRealmId()
-    );
+    assertThat(members).extracting(Member::getInternalName)
+        .containsExactly(
+            "internal-user-1", "internal-user-2", "testuser1", "testuser2", ssoUser.getUsername());
+    assertThat(members).extracting(Member::getRealm)
+        .containsExactly(
+            "IQ Server", "IQ Server", "LDAP1", "LDAP2", ssoUser.getRealmId());
   }
 
   @Test
@@ -688,11 +692,10 @@ public class UserDirectoryTest
         "internal-user2@example.com",
         "internal-user1@example.com",
         "ldap1@gmail.com",
-        "ldap2@gmail.com"
-    ));
+        "ldap2@gmail.com"));
 
     // these are the arguments that didn't already match to an internal user via userDao
-    final String[] expectedLdapArguments = { "ldap1@gmail.com", "ldap2@gmail.com" };
+    final String[] expectedLdapArguments = {"ldap1@gmail.com", "ldap2@gmail.com"};
 
     // should only have tried to find ldap users if they were not found as internal users
     verify(mockLdapService).getUsersByEmail(any(LdapServer.class), eq(expectedLdapArguments));
@@ -712,7 +715,7 @@ public class UserDirectoryTest
     LdapService mockLdapService = mockEnabledLdapService("Test Server");
 
     List<LdapUser> emptyLdapUsers = new ArrayList<>();
-    String[] expectedArgument = new String[] { "Alpha", "CLMBOB" };
+    String[] expectedArgument = new String[]{"Alpha", "CLMBOB"};
     when(mockLdapService.getUsersByName(any(LdapServer.class), eq(expectedArgument)))
         .thenReturn(emptyLdapUsers);
 
@@ -899,7 +902,8 @@ public class UserDirectoryTest
 
     // With wild card and special regex chars - should not throw an exception because the regex pattern is incorrect.
     members = userDirectory
-        .getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME.substring(0, 5) + "(*", true).get();
+        .getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME.substring(0, 5) + "(*", true)
+        .get();
     assertThat(members).isEmpty();
 
     // Case insensitive
@@ -960,7 +964,7 @@ public class UserDirectoryTest
     assertThat(members.get(0).getDisplayName()).isEqualTo("Beta User");
     assertThat(members.get(0).getRealm()).isEqualTo("LDAP1");
     assertThat(members.get(0).getDn()).isEqualTo("uid=Beta,ou=users,dc=company,dc=com");
-  
+
     // Add a new IQ user. Should get back only the IQ user.
     tempEntity.newUser("beta", "Beta", "User", "betauser@example.com");
     members = userDirectory.getMembersByQuery("Beta User", false).get();
@@ -991,8 +995,9 @@ public class UserDirectoryTest
     QueryResult result = userDirectory.getUsersByNames(Sets.newHashSet("admin"));
 
     assertThat(result).isNotNull();
-    assertThat(result.get()).usingRecursiveFieldByFieldElementComparator().containsExactly(
-        new Member(MemberType.USER, "admin", "Admin BuiltIn", "admin@localhost",
+    assertThat(result.get()).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(
+            new Member(MemberType.USER, "admin", "Admin BuiltIn", "admin@localhost",
                 InternalRealm.DISPLAY_NAME, adminUser.getId()));
     assertThat(result.hasException()).isFalse();
     assertThat(result.getException()).isNull();
@@ -1056,8 +1061,7 @@ public class UserDirectoryTest
     CrowdClient mockCrowdClient = mock(CrowdClient.class);
     List<Member> members = Arrays.asList(
         new Member(MemberType.USER, "username1", "displayName1", "email1", CrowdRealm.ID, null),
-        new Member(MemberType.USER, "username2", "displayName2", "email2", CrowdRealm.ID, null)
-    );
+        new Member(MemberType.USER, "username2", "displayName2", "email2", CrowdRealm.ID, null));
     Set<String> queriedUsernames = new LinkedHashSet<>();
     when(mockCrowdClient.searchUsersByUsernames(any())).thenAnswer(invocationOnMock -> {
       queriedUsernames.addAll(invocationOnMock.getArgument(0));
@@ -1329,7 +1333,7 @@ public class UserDirectoryTest
     UserDirectory userDirectory =
         new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, mockCrowdClientFactory);
     configureAndStartNewLdapServer(testLdapServer1, "LDAP");
-    
+
     QueryResult result = userDirectory.getMembersByNames(Sets.newHashSet(createGroup("Alpha1")));
 
     assertThat(result).isNotNull();
@@ -1346,8 +1350,7 @@ public class UserDirectoryTest
     Set<Member> members = new LinkedHashSet<>(Arrays.asList(
         new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
         new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID),
-        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)
-    ));
+        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)));
 
     QueryResult result = userDirectory.getMembersByNames(members);
 
@@ -1369,8 +1372,7 @@ public class UserDirectoryTest
     Set<Member> members = new LinkedHashSet<>(Arrays.asList(
         new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
         new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID),
-        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)
-    ));
+        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)));
 
     QueryResult result = userDirectory.getMembersByNames(members);
 
@@ -1391,8 +1393,7 @@ public class UserDirectoryTest
     Set<Member> members = new LinkedHashSet<>(Arrays.asList(
         new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
         new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID),
-        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)
-    ));
+        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)));
 
     QueryResult result = userDirectory.getMembersByNames(members);
 
@@ -1403,7 +1404,7 @@ public class UserDirectoryTest
     assertThat(result.hasException()).isFalse();
     assertThat(result.getException()).isNull();
   }
-  
+
   @Test
   public void testGetMembersByNames_Crowd() throws Exception {
     CrowdClientFactory mockCrowdClientFactory = mock(CrowdClientFactory.class);
@@ -1412,8 +1413,7 @@ public class UserDirectoryTest
     CrowdClient mockCrowdClient = mock(CrowdClient.class);
     List<Member> expectedMembers = Arrays.asList(
         new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
-        new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID)
-    );
+        new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID));
     Set<String> queriedGroupNames = new LinkedHashSet<>();
     when(mockCrowdClient.searchGroupsByGroupNames(any())).thenAnswer(invocationOnMock -> {
       queriedGroupNames.addAll(invocationOnMock.getArgument(0));
@@ -1423,8 +1423,7 @@ public class UserDirectoryTest
     Set<Member> members = new LinkedHashSet<>(Arrays.asList(
         new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
         new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID),
-        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)
-    ));
+        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)));
 
     QueryResult result = userDirectory.getMembersByNames(members);
 
@@ -1447,8 +1446,7 @@ public class UserDirectoryTest
     CrowdClient mockCrowdClient = mock(CrowdClient.class);
     List<Member> expectedMembers = Arrays.asList(
         new Member(MemberType.USER, "username1", "displayName1", "email1", CrowdRealm.ID, null),
-        new Member(MemberType.USER, "username2", "displayName2", "email2", CrowdRealm.ID, null)
-    );
+        new Member(MemberType.USER, "username2", "displayName2", "email2", CrowdRealm.ID, null));
     when(mockCrowdClient.searchUsersByDisplayName(eq("displayName*"))).thenReturn(new LinkedHashSet<>(expectedMembers));
     when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
 
@@ -1469,8 +1467,7 @@ public class UserDirectoryTest
     when(mockCrowdClient.searchUsersByDisplayName(any())).thenReturn(Collections.emptySet());
     List<Member> expectedMembers = Arrays.asList(
         new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
-        new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID)
-    );
+        new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID));
     when(mockCrowdClient.searchGroupsByGroupNames(eq(Collections.singleton("group*")))).thenReturn(
         new LinkedHashSet<>(expectedMembers));
     when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
@@ -1527,11 +1524,12 @@ public class UserDirectoryTest
 
     result = userDirectory.getUsersByEmails(userEmails);
 
-    assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        new Member(MemberType.USER, samlUser1.getUsername(), samlUser1.calculateDisplayName(), samlUser1.getEmail(),
-            SamlRealm.ID, samlUser1.getId()),
-        new Member(MemberType.USER, samlUser2.getUsername(), samlUser2.calculateDisplayName(), samlUser2.getEmail(),
-            SamlRealm.ID, samlUser2.getId()));
+    assertThat(result).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            new Member(MemberType.USER, samlUser1.getUsername(), samlUser1.calculateDisplayName(), samlUser1.getEmail(),
+                SamlRealm.ID, samlUser1.getId()),
+            new Member(MemberType.USER, samlUser2.getUsername(), samlUser2.calculateDisplayName(), samlUser2.getEmail(),
+                SamlRealm.ID, samlUser2.getId()));
   }
 
   @Test
@@ -1552,11 +1550,12 @@ public class UserDirectoryTest
 
     result = userDirectory.getUsersByRealNames(userRealNames);
 
-    assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        new Member(MemberType.USER, oAuth2User1.getUsername(), oAuth2User1.calculateDisplayName(),
-            oAuth2User1.getEmail(), OAuth2Realm.ID, oAuth2User1.getId()),
-        new Member(MemberType.USER, oAuth2User2.getUsername(), oAuth2User2.calculateDisplayName(),
-            oAuth2User2.getEmail(), OAuth2Realm.ID, oAuth2User2.getId()));
+    assertThat(result).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            new Member(MemberType.USER, oAuth2User1.getUsername(), oAuth2User1.calculateDisplayName(),
+                oAuth2User1.getEmail(), OAuth2Realm.ID, oAuth2User1.getId()),
+            new Member(MemberType.USER, oAuth2User2.getUsername(), oAuth2User2.calculateDisplayName(),
+                oAuth2User2.getEmail(), OAuth2Realm.ID, oAuth2User2.getId()));
   }
 
   @Test
@@ -1577,11 +1576,12 @@ public class UserDirectoryTest
 
     result = userDirectory.getUsersByRealNames(userRealNames);
 
-    assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        new Member(MemberType.USER, samlUser1.getUsername(), samlUser1.calculateDisplayName(), samlUser1.getEmail(),
-            SamlRealm.ID, samlUser1.getId()),
-        new Member(MemberType.USER, samlUser2.getUsername(), samlUser2.calculateDisplayName(), samlUser2.getEmail(),
-            SamlRealm.ID, samlUser2.getId()));
+    assertThat(result).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            new Member(MemberType.USER, samlUser1.getUsername(), samlUser1.calculateDisplayName(), samlUser1.getEmail(),
+                SamlRealm.ID, samlUser1.getId()),
+            new Member(MemberType.USER, samlUser2.getUsername(), samlUser2.calculateDisplayName(), samlUser2.getEmail(),
+                SamlRealm.ID, samlUser2.getId()));
   }
 
   @Test
@@ -1602,11 +1602,12 @@ public class UserDirectoryTest
 
     result = userDirectory.getUsersByEmails(userEmails);
 
-    assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        new Member(MemberType.USER, oAuth2User1.getUsername(), oAuth2User1.calculateDisplayName(),
-            oAuth2User1.getEmail(), OAuth2Realm.ID, oAuth2User1.getId()),
-        new Member(MemberType.USER, oAuth2User2.getUsername(), oAuth2User2.calculateDisplayName(),
-            oAuth2User2.getEmail(), OAuth2Realm.ID, oAuth2User2.getId()));
+    assertThat(result).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            new Member(MemberType.USER, oAuth2User1.getUsername(), oAuth2User1.calculateDisplayName(),
+                oAuth2User1.getEmail(), OAuth2Realm.ID, oAuth2User1.getId()),
+            new Member(MemberType.USER, oAuth2User2.getUsername(), oAuth2User2.calculateDisplayName(),
+                oAuth2User2.getEmail(), OAuth2Realm.ID, oAuth2User2.getId()));
   }
 
   private void assertGroupSearchDisabled(boolean dynamicGroupSearchDisabled, boolean expectedDisabled) {

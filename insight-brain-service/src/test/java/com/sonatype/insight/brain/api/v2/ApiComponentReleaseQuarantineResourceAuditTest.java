@@ -143,7 +143,8 @@ public class ApiComponentReleaseQuarantineResourceAuditTest
 
   private HttpRequest releaseQuarantineRequest(String quarantineId) {
     return restRequest().path(PublicApiPaths.COMPONENT_QUARANTINE_RELEASE_PATH_V2)
-        .parameter(quarantineId).body("waiver comment", MediaType.TEXT_PLAIN);
+        .parameter(quarantineId)
+        .body("waiver comment", MediaType.TEXT_PLAIN);
   }
 
   private void assertUnquarantineData(AuditDTO auditDTO, RepositoryComponent repositoryComponent) {

@@ -22,8 +22,8 @@ import static com.sonatype.insight.brain.security.AuthorizationPermissionEntityF
  * <p>
  * Runs all AuthorizationCheckerTest cases with different combinations of:
  * <ul>
- *   <li>AuthorizationPermissionEntityFilterStrategy (SEQUENTIAL, PARALLEL, EXECUTOR_FIXED, AUTO)</li>
- *   <li>AuthorizationMembershipQueryStrategy (DIRECT_CONTEXT_ID, FULL_MEMBERSHIP_MAPPING_CONTEXT_ID)</li>
+ * <li>AuthorizationPermissionEntityFilterStrategy (SEQUENTIAL, PARALLEL, EXECUTOR_FIXED, AUTO)</li>
+ * <li>AuthorizationMembershipQueryStrategy (DIRECT_CONTEXT_ID, FULL_MEMBERSHIP_MAPPING_CONTEXT_ID)</li>
  * </ul>
  * <p>
  * This ensures that authorization logic works correctly across all strategy combinations.
@@ -37,14 +37,13 @@ public class AuthorizationCheckerStrategyTest
 
   @Parameters(name = "filterStrategy={0}, queryStrategy={1}")
   public static Collection<Object[]> data() {
-    Object[][] combinations = new Object[
-        AuthorizationPermissionEntityFilterStrategy.values().length *
-            AuthorizationMembershipQueryStrategy.values().length
-        ][];
+    Object[][] combinations = new Object[AuthorizationPermissionEntityFilterStrategy.values().length *
+        AuthorizationMembershipQueryStrategy.values().length][];
 
     int index = 0;
-    for (AuthorizationPermissionEntityFilterStrategy filterStrategy :
-        AuthorizationPermissionEntityFilterStrategy.values()) {
+    for (AuthorizationPermissionEntityFilterStrategy filterStrategy : AuthorizationPermissionEntityFilterStrategy
+        .values())
+    {
       for (AuthorizationMembershipQueryStrategy queryStrategy : AuthorizationMembershipQueryStrategy.values()) {
         combinations[index++] = new Object[]{filterStrategy, queryStrategy};
       }

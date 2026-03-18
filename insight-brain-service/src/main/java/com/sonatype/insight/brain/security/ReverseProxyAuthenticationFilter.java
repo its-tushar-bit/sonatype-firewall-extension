@@ -94,8 +94,10 @@ public class ReverseProxyAuthenticationFilter
   }
 
   @Override
-  protected boolean onAccessDenied(ServletRequest request, ServletResponse response, Object mappedValue)
-      throws Exception
+  protected boolean onAccessDenied(
+      ServletRequest request,
+      ServletResponse response,
+      Object mappedValue) throws Exception
   {
     // not yet authenticated (e.g. via session) but if the remote-user header is present, time for a login
     if (isLoginRequest(request, response)) {

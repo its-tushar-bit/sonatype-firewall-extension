@@ -31,7 +31,7 @@ public class ADFNode
    * Required: for the root node; otherwise not applicable
    */
   @JsonInclude(Include.NON_NULL)
-  private Integer version ;
+  private Integer version;
 
   /**
    * An list containing inline and block nodes that define the content of a section of the document.
@@ -139,14 +139,39 @@ public class ADFNode
 
   enum Type
   {
-    //The top-level block nodes include:
-    doc, blockquote, bulletList, codeBlock, heading, mediaGroup, mediaSingle,
-    orderedList, panel, paragraph, rule, table,
-    //The child block nodes include:
-    listItem, media, tableCell, tableHeader, tableRow,
-    //The inline nodes include:
-    emoji, hardBreak, inlineCard, mention, text,
+    // The top-level block nodes include:
+    doc,
+    blockquote,
+    bulletList,
+    codeBlock,
+    heading,
+    mediaGroup,
+    mediaSingle,
+    orderedList,
+    panel,
+    paragraph,
+    rule,
+    table,
+    // The child block nodes include:
+    listItem,
+    media,
+    tableCell,
+    tableHeader,
+    tableRow,
+    // The inline nodes include:
+    emoji,
+    hardBreak,
+    inlineCard,
+    mention,
+    text,
     // Mark types:
-    code, em, link, strike, strong, subsup, textColor, underline
+    code,
+    em,
+    link,
+    strike,
+    strong,
+    subsup,
+    textColor,
+    underline
   }
 }

@@ -44,10 +44,10 @@ public class ApiPageTest
   @Parameters
   public static Iterable<Object[]> data() {
     return Arrays.asList(new Object[][]{
-        {ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT, ApiPage.developerUrl()},
-        {ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ApiPage.lifecycleUrl()},
-        {ProductLicenseDetails.PRODUCT_FIREWALL_V2, ApiPage.firewallUrl()},
-        {ProductLicenseDetails.PRODUCT_SBOM_MANAGER, ApiPage.sbomManagerUrl()}
+      {ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT, ApiPage.developerUrl()},
+      {ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ApiPage.lifecycleUrl()},
+      {ProductLicenseDetails.PRODUCT_FIREWALL_V2, ApiPage.firewallUrl()},
+      {ProductLicenseDetails.PRODUCT_SBOM_MANAGER, ApiPage.sbomManagerUrl()}
     });
   }
 
@@ -117,8 +117,7 @@ public class ApiPageTest
     refreshOrOpen(url);
     WebDriver driver = WebDriverRunner.getWebDriver();
     long sessionExpirationBeforeExecute = Long.parseLong(
-        driver.manage().getCookieNamed(SessionExpirationCookieFilter.EXPIRATION_COOKIE_NAME).getValue()
-    );
+        driver.manage().getCookieNamed(SessionExpirationCookieFilter.EXPIRATION_COOKIE_NAME).getValue());
     Thread.sleep(100); // Tiny delay to ensure we do refresh the session expiration
 
     SelenideElement getApplicationsDiv = apiPage.swaggerUi().find("#operations-Applications-getApplications");
@@ -130,8 +129,7 @@ public class ApiPageTest
     SelenideElement responseDiv = getApplicationsDiv.find(".response-col_description .microlight");
     responseDiv.shouldBe(visible).shouldHave(text(application.getId()));
     long sessionExpirationAfterExecute = Long.parseLong(
-        driver.manage().getCookieNamed(SessionExpirationCookieFilter.EXPIRATION_COOKIE_NAME).getValue()
-    );
+        driver.manage().getCookieNamed(SessionExpirationCookieFilter.EXPIRATION_COOKIE_NAME).getValue());
     assertThat(sessionExpirationAfterExecute).isGreaterThan(sessionExpirationBeforeExecute);
   }
 }

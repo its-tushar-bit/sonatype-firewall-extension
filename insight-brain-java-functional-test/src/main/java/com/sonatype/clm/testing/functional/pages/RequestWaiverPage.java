@@ -16,7 +16,7 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Selenide.$;
 
 public class RequestWaiverPage
-        extends BasicElement<RequestWaiverPage>
+    extends BasicElement<RequestWaiverPage>
 {
   private static final String ROOT_SELECTOR = "#request-waiver-page";
 
@@ -26,11 +26,10 @@ public class RequestWaiverPage
 
   public static String urlWithQueryParams(String violationId, String type, String sidebarReference) {
     return BaseUrl.resolvePageUrl(
-            "/requestWaiver/{id}?type={type}&sidebarReference={sidebarReference}",
-            violationId,
-            type,
-            sidebarReference
-    );
+        "/requestWaiver/{id}?type={type}&sidebarReference={sidebarReference}",
+        violationId,
+        type,
+        sidebarReference);
   }
 
   public SelenideElement root() {

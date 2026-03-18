@@ -12,49 +12,52 @@ import io.dropwizard.validation.ValidationMethod;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CspHeaderFactory extends HeaderFactory {
-    private static final String CONTENT_SECURITY_POLICY = "Content-Security-Policy";
-    private static final String CONTENT_SECURITY_POLICY_REPORT_ONLY = "Content-Security-Policy-Report-Only";
+public class CspHeaderFactory
+    extends HeaderFactory
+{
+  private static final String CONTENT_SECURITY_POLICY = "Content-Security-Policy";
 
-    @JsonProperty
-    private String policy;
+  private static final String CONTENT_SECURITY_POLICY_REPORT_ONLY = "Content-Security-Policy-Report-Only";
 
-    @JsonProperty
-    private String reportOnlyPolicy;
+  @JsonProperty
+  private String policy;
 
-    @ValidationMethod(message = "either 'policy' or 'reportOnlyPolicy' must be defined")
-    @JsonIgnore
-    private boolean isPolicyDefined() {
-        return (policy != null && !policy.isEmpty()) || (reportOnlyPolicy != null && !reportOnlyPolicy.isEmpty());
+  @JsonProperty
+  private String reportOnlyPolicy;
+
+  @ValidationMethod(message = "either 'policy' or 'reportOnlyPolicy' must be defined")
+  @JsonIgnore
+  private boolean isPolicyDefined() {
+    return (policy != null && !policy.isEmpty()) || (reportOnlyPolicy != null && !reportOnlyPolicy.isEmpty());
+  }
+
+  public String getPolicy() {
+    return policy;
+  }
+
+  public void setPolicy(String policy) {
+    this.policy = policy;
+  }
+
+  public String getReportOnlyPolicy() {
+    return reportOnlyPolicy;
+  }
+
+  public void setReportOnlyPolicy(String reportOnlyPolicy) {
+    this.reportOnlyPolicy = reportOnlyPolicy;
+  }
+
+  @Override
+  protected Map<String, String> buildHeaders() {
+    final Map<String, String> headers = new HashMap<>();
+    if (policy != null) {
+      headers.put(CONTENT_SECURITY_POLICY, policy);
     }
 
-    public String getPolicy() {
-        return policy;
+    if (reportOnlyPolicy != null) {
+      headers.put(CONTENT_SECURITY_POLICY_REPORT_ONLY, reportOnlyPolicy);
     }
 
-    public void setPolicy(String policy) {
-        this.policy = policy;
-    }
-
-    public String getReportOnlyPolicy() {
-        return reportOnlyPolicy;
-    }
-
-    public void setReportOnlyPolicy(String reportOnlyPolicy) {
-        this.reportOnlyPolicy = reportOnlyPolicy;
-    }
-
-    @Override
-    protected Map<String, String> buildHeaders() {
-        final Map<String, String> headers = new HashMap<>();
-        if (policy != null) {
-            headers.put(CONTENT_SECURITY_POLICY, policy);
-        }
-
-        if (reportOnlyPolicy != null) {
-            headers.put(CONTENT_SECURITY_POLICY_REPORT_ONLY, reportOnlyPolicy);
-        }
-
-        return headers;
-    }
+    return headers;
+  }
 }

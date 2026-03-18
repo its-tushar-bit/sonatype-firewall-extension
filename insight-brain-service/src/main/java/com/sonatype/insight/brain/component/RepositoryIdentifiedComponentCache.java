@@ -88,7 +88,9 @@ public class RepositoryIdentifiedComponentCache
 
   public int removeByComponentIdentifier(ComponentIdentifier componentIdentifier) {
     LoadingCache<String, ComponentIdentifier> loadingCache = getLoadingCache();
-    Set<String> toRemove = loadingCache.asMap().entrySet().stream()
+    Set<String> toRemove = loadingCache.asMap()
+        .entrySet()
+        .stream()
         .filter(e -> e.getValue().equals(componentIdentifier))
         .map(Entry::getKey)
         .collect(Collectors.toSet());

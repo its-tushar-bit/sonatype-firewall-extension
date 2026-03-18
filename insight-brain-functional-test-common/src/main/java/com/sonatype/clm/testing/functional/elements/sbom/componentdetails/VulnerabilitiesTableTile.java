@@ -17,8 +17,7 @@ public class VulnerabilitiesTableTile
   static final String ROOT_SELECTOR = "#sbom-manager-cdp-vulnerabilities-tile";
 
   public VulnerabilitiesTableTile(String rootIdSelector) {
-    super(StringUtils.isNullOrEmpty(rootIdSelector) ? ROOT_SELECTOR :
-        ROOT_SELECTOR + "__" + rootIdSelector);
+    super(StringUtils.isNullOrEmpty(rootIdSelector) ? ROOT_SELECTOR : ROOT_SELECTOR + "__" + rootIdSelector);
   }
 
   public SelenideElement header() {

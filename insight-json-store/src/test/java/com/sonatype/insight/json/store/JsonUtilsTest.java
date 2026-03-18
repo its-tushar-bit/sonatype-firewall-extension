@@ -187,7 +187,9 @@ public class JsonUtilsTest
   @Test
   public void testAsType() {
     String jsonInput = "{\"name\":\"John\"}";
-    Map<String, String> type = JsonUtils.asType(jsonInput, new TypeReference<Map<String, String>>() { });
+    Map<String, String> type = JsonUtils.asType(jsonInput, new TypeReference<Map<String, String>>()
+    {
+    });
     assertThat(type.get("name")).isEqualTo("John");
   }
 
@@ -195,13 +197,17 @@ public class JsonUtilsTest
   public void testAsType_MalformedJson() {
     String jsonInput = "{\"name\":\"John";
     assertThatExceptionOfType(UncheckedIOException.class)
-        .isThrownBy(() -> JsonUtils.asType(jsonInput, new TypeReference<Map<String, String>>() { }));
+        .isThrownBy(() -> JsonUtils.asType(jsonInput, new TypeReference<Map<String, String>>()
+        {
+        }));
   }
 
   @Test
   public void testJsonMapper_UnknownProperties() {
     String json = "{\"a\":\"a\", \"b\":\"b\", \"c\":\"c\"}"; // attribute c is unknown in class Pair
-    Pair pair = JsonUtils.asType(json, new TypeReference<Pair>() { });
+    Pair pair = JsonUtils.asType(json, new TypeReference<Pair>()
+    {
+    });
     assertThat(pair.a).isEqualTo("a");
     assertThat(pair.b).isEqualTo("b");
   }

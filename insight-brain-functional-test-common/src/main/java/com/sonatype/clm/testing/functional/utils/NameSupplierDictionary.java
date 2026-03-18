@@ -11,7 +11,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class NameSupplierDictionary implements Function<String,String>
+public class NameSupplierDictionary
+    implements Function<String, String>
 {
   private final Map<String, Supplier<String>> prefixDictionary;
 
@@ -33,7 +34,8 @@ public class NameSupplierDictionary implements Function<String,String>
   }
 }
 
-class NameSupplier implements Supplier<String>
+class NameSupplier
+    implements Supplier<String>
 {
   private final AtomicInteger numOfElements;
 

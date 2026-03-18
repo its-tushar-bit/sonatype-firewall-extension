@@ -801,7 +801,8 @@ public class PolicyWaiverDAOTest
     Policy policy = tempEntity.newPolicy(application);
     PolicyWaiver policyWaiver = tempEntity.newWaiver("ababababab", policy.getId(), application.getId());
     tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setPolicyId(policy.getId())
-        .setOwnerId(application.getId()).setPolicyWaiverId(policyWaiver.getId())
+        .setOwnerId(application.getId())
+        .setPolicyWaiverId(policyWaiver.getId())
         .setPolicyViolationId("policyViolationId"));
 
     // sanity check
@@ -1023,8 +1024,8 @@ public class PolicyWaiverDAOTest
   public void testGetByIdAndOwnerIdNotNull_throwsNotFound_whenNoWaiver() {
     assertThatThrownBy(
         () -> dao.getByIdAndOwnerIdNotNull("fake id", application.getId()))
-        .isInstanceOf(NotFoundException.class)
-        .hasMessage("Cannot find a waiver with ID fake id for owner " + application.getId() + ".");
+            .isInstanceOf(NotFoundException.class)
+            .hasMessage("Cannot find a waiver with ID fake id for owner " + application.getId() + ".");
   }
 
   @Test

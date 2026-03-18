@@ -29,8 +29,7 @@ public class OwnerImpl
       final String parentOwnerId,
       final boolean haveChildren,
       final OwnerType type,
-      final String id
-  )
+      final String id)
   {
     this.publicId = publicId;
     this.name = name;

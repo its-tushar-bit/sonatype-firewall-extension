@@ -19,7 +19,8 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AuditingTest extends AbstractDbDAOTest
+public class AuditingTest
+    extends AbstractDbDAOTest
 {
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();

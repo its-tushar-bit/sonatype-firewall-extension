@@ -81,8 +81,7 @@ public class DocumentBuilderHelperTest
     when(reportServiceMock.getReport(anyString(), anyString())).thenReturn(mockApplicationReport);
 
     assertThat(documentBuilderHelper.buildApplicationStageSVDocs(
-        indexingContextMock, org, app, StageTypes.BUILD, Collections.emptyList()
-    )).isEmpty();
+        indexingContextMock, org, app, StageTypes.BUILD, Collections.emptyList())).isEmpty();
   }
 
   @Test
@@ -97,8 +96,7 @@ public class DocumentBuilderHelperTest
         .thenThrow(new NotFoundException("Not found"));
 
     assertThat(documentBuilderHelper.buildApplicationStageSVDocs(
-        indexingContextMock, org, app, StageTypes.BUILD, Collections.emptyList()
-    )).isEmpty();
+        indexingContextMock, org, app, StageTypes.BUILD, Collections.emptyList())).isEmpty();
   }
 
   @Test
@@ -113,8 +111,7 @@ public class DocumentBuilderHelperTest
         .thenThrow(new UncheckedIOException(new IOException("IO error")));
 
     assertThat(documentBuilderHelper.buildApplicationStageSVDocs(
-        indexingContextMock, org, app, StageTypes.BUILD, Collections.emptyList()
-    )).isEmpty();
+        indexingContextMock, org, app, StageTypes.BUILD, Collections.emptyList())).isEmpty();
   }
 
   @Test
@@ -129,8 +126,7 @@ public class DocumentBuilderHelperTest
         .thenThrow(new RuntimeException("Wrapped", new IOException("IO error")));
 
     assertThat(documentBuilderHelper.buildApplicationStageSVDocs(
-        indexingContextMock, org, app, StageTypes.BUILD, Collections.emptyList()
-    )).isEmpty();
+        indexingContextMock, org, app, StageTypes.BUILD, Collections.emptyList())).isEmpty();
   }
 
   @Test
@@ -145,8 +141,7 @@ public class DocumentBuilderHelperTest
         .thenThrow(new RuntimeException("Wrapped", new NotFoundException("Not found")));
 
     assertThat(documentBuilderHelper.buildApplicationStageSVDocs(
-        indexingContextMock, org, app, StageTypes.BUILD, Collections.emptyList()
-    )).isEmpty();
+        indexingContextMock, org, app, StageTypes.BUILD, Collections.emptyList())).isEmpty();
   }
 
   @Test
@@ -162,8 +157,7 @@ public class DocumentBuilderHelperTest
 
     assertThatExceptionOfType(IllegalStateException.class)
         .isThrownBy(() -> documentBuilderHelper.buildApplicationStageSVDocs(
-            indexingContextMock, org, app, StageTypes.BUILD, Collections.emptyList()
-        ))
+            indexingContextMock, org, app, StageTypes.BUILD, Collections.emptyList()))
         .withMessage("Unexpected error");
   }
 
@@ -294,7 +288,7 @@ public class DocumentBuilderHelperTest
         mock(ThirdPartyFileCoordinate.class))).isEmpty();
     assertThat(
         documentBuilderHelper.buildSbomFileCoordinateSVDocs(organization, application, sbomMetadata, parentOrgs, null))
-        .isEmpty();
+            .isEmpty();
   }
 
   @Test
@@ -311,7 +305,7 @@ public class DocumentBuilderHelperTest
         mock(Component.class))).isNull();
     assertThat(
         documentBuilderHelper.buildDocument(organization, parentOrgs, application, StageTypes.BUILD, "scan-id", null))
-        .isNull();
+            .isNull();
   }
 
   @Test

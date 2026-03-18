@@ -44,7 +44,8 @@ public class TenantConfigurationResourceTest
     dao.set(SystemConfigurationProperty.BASE_URL, expectedValue);
 
     HttpResponse response = callConfigurationEndpoint(tenantSlug)
-        .query("property", expectedProperty).get();
+        .query("property", expectedProperty)
+        .get();
 
     assertResponseStatus(200, response);
     Map<String, Object> result = response.getBody(Map.class);
@@ -62,7 +63,8 @@ public class TenantConfigurationResourceTest
     });
 
     HttpResponse response = callConfigurationEndpoint("global")
-        .query("property", expectedProperty).get();
+        .query("property", expectedProperty)
+        .get();
 
     assertResponseStatus(200, response);
     Map<String, Object> result = response.getBody(Map.class);
@@ -72,7 +74,8 @@ public class TenantConfigurationResourceTest
   @Test
   public void shouldSend404_getPropertiesConfiguration_whenTenantDoesntExist() throws Exception {
     HttpResponse response = callConfigurationEndpoint("non-existent")
-        .query("property", "baseUrl").get();
+        .query("property", "baseUrl")
+        .get();
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Tenant does not exist");
@@ -83,7 +86,8 @@ public class TenantConfigurationResourceTest
     String tenantSlug = getTestTenant().tenantSlug;
 
     HttpResponse response = callConfigurationEndpoint(tenantSlug)
-        .query("property", "forceBaseUrl").get();
+        .query("property", "forceBaseUrl")
+        .get();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Property forceBaseUrl is not configurable.");
@@ -96,7 +100,8 @@ public class TenantConfigurationResourceTest
     Map<String, Object> propertyConfiguration = Collections.singletonMap("baseUrl", "http://127.0.0.1:8070");
 
     HttpResponse response = callConfigurationEndpoint(tenantSlug)
-        .body(propertyConfiguration).put();
+        .body(propertyConfiguration)
+        .put();
 
     assertResponseStatus(204, response);
   }
@@ -106,7 +111,8 @@ public class TenantConfigurationResourceTest
     Map<String, Object> propertyConfiguration = Collections.singletonMap("baseUrl", "http://127.0.0.1:8070");
 
     HttpResponse response = callConfigurationEndpoint("global")
-        .body(propertyConfiguration).put();
+        .body(propertyConfiguration)
+        .put();
 
     assertResponseStatus(204, response);
   }
@@ -129,7 +135,8 @@ public class TenantConfigurationResourceTest
     Map<String, Object> propertyConfiguration = Collections.emptyMap();
 
     HttpResponse response = callConfigurationEndpoint(tenantSlug)
-        .body(propertyConfiguration).put();
+        .body(propertyConfiguration)
+        .put();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("No configuration was specified.");
@@ -145,7 +152,8 @@ public class TenantConfigurationResourceTest
     Map<String, Object> propertyConfiguration = Collections.singletonMap("forceBaseUrl", true);
 
     HttpResponse response = callConfigurationEndpoint(tenantSlug)
-        .body(propertyConfiguration).put();
+        .body(propertyConfiguration)
+        .put();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Property forceBaseUrl is not configurable.");
@@ -161,7 +169,8 @@ public class TenantConfigurationResourceTest
     Map<String, Object> propertyConfiguration = Collections.singletonMap("baseUrl", true);
 
     HttpResponse response = callConfigurationEndpoint(tenantSlug)
-        .body(propertyConfiguration).put();
+        .body(propertyConfiguration)
+        .put();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo(
@@ -173,7 +182,8 @@ public class TenantConfigurationResourceTest
     String tenantSlug = getTestTenant().tenantSlug;
 
     HttpResponse response = callConfigurationEndpoint("global")
-        .query("property", "baseUrl").get();
+        .query("property", "baseUrl")
+        .get();
 
     assertResponseStatus(200, response);
     Map<String, Object> result = response.getBody(Map.class);
@@ -182,7 +192,8 @@ public class TenantConfigurationResourceTest
     dao.set(SystemConfigurationProperty.BASE_URL, "http://baseUrl/");
 
     response = callConfigurationEndpoint(tenantSlug)
-        .query("property", "baseUrl").delete();
+        .query("property", "baseUrl")
+        .delete();
 
     assertResponseStatus(204, response);
     assertThat(dao.getByName(SystemConfigurationProperty.BASE_URL).getValue()).isEqualTo(globalTenantBaseUrl);
@@ -195,7 +206,8 @@ public class TenantConfigurationResourceTest
     });
 
     HttpResponse response = callConfigurationEndpoint("global")
-        .query("property", "baseUrl").delete();
+        .query("property", "baseUrl")
+        .delete();
 
     assertResponseStatus(204, response);
     testAsGlobal(global -> {
@@ -206,7 +218,8 @@ public class TenantConfigurationResourceTest
   @Test
   public void shouldSend404_deletePropertiesConfiguration_whenTenantDoesntExist() throws Exception {
     HttpResponse response = callConfigurationEndpoint("non-existent")
-        .query("property", "baseUrl").delete();
+        .query("property", "baseUrl")
+        .delete();
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Tenant does not exist");
@@ -217,7 +230,8 @@ public class TenantConfigurationResourceTest
     String tenantSlug = getTestTenant().tenantSlug;
 
     HttpResponse response = callConfigurationEndpoint(tenantSlug)
-        .query("property", "forceBaseUrl").delete();
+        .query("property", "forceBaseUrl")
+        .delete();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Property forceBaseUrl is not configurable.");

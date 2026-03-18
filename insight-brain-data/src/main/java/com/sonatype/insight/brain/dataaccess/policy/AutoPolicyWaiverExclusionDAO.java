@@ -77,8 +77,7 @@ public class AutoPolicyWaiverExclusionDAO
   public AutoPolicyWaiverExclusion getByOwnerIdAndAutoPolicyWaiverIdAndHash(
       String ownerId,
       String autoPolicyWaiverId,
-      String hash
-  )
+      String hash)
   {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerIdAndAutoPolicyWaiverIdAndHash(tx, ownerId, autoPolicyWaiverId, hash);
@@ -89,8 +88,7 @@ public class AutoPolicyWaiverExclusionDAO
       TransactionContext tx,
       String ownerId,
       String autoPolicyWaiverId,
-      String hash
-  )
+      String hash)
   {
     String sQuery = "SELECT entity FROM AutoPolicyWaiverExclusion entity" +
         " WHERE entity.ownerId=?1 AND entity.autoPolicyWaiverId=?2 AND entity.hash=?3";

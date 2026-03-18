@@ -80,9 +80,7 @@ public class NewInstancePopulatorTest
 
   @Test
   @ManualIqServerInit
-  public void testPopulateIfNewInstance_NoOrgsOrPolicies_SampleDataEnabled_CreatesSampleData()
-      throws Exception
-  {
+  public void testPopulateIfNewInstance_NoOrgsOrPolicies_SampleDataEnabled_CreatesSampleData() throws Exception {
     initServer(true, false);
     assertSampleDataCreated(true);
   }
@@ -96,9 +94,7 @@ public class NewInstancePopulatorTest
 
   @Test
   @ManualIqServerInit
-  public void testPopulateIfNewInstance_IRFeatureEnabled_SampleDataEnabled_CreatesSampleData()
-      throws Exception
-  {
+  public void testPopulateIfNewInstance_IRFeatureEnabled_SampleDataEnabled_CreatesSampleData() throws Exception {
     enableIntegrityRatingLicenseConfigFlag();
     initServer(true, false);
     assertSampleDataCreated(true);
@@ -106,9 +102,7 @@ public class NewInstancePopulatorTest
 
   @Test
   @ManualIqServerInit
-  public void testPopulateIfNewInstance_IRFeatureEnabled_SampleDataDisabled_SampleDataNotCreated()
-      throws Exception
-  {
+  public void testPopulateIfNewInstance_IRFeatureEnabled_SampleDataDisabled_SampleDataNotCreated() throws Exception {
     enableIntegrityRatingLicenseConfigFlag();
     initServer(false, false);
     assertSampleDataCreated(false);
@@ -134,27 +128,21 @@ public class NewInstancePopulatorTest
 
   @Test
   @ManualIqServerInit
-  public void testPopulateIfNewInstance_NoOrgsOrPolicies_PolicyImportEnabled_ImportsReferencePolicies()
-      throws Exception
-  {
+  public void testPopulateIfNewInstance_NoOrgsOrPolicies_PolicyImportEnabled_ImportsReferencePolicies() throws Exception {
     initServer(false, true);
     assertReferencePoliciesImported(true);
   }
 
   @Test
   @ManualIqServerInit
-  public void testPopulateIfNewInstance_NoOrgsOrPolicies_PolicyImportDisabled_ReferencePoliciesNotImported()
-      throws Exception
-  {
+  public void testPopulateIfNewInstance_NoOrgsOrPolicies_PolicyImportDisabled_ReferencePoliciesNotImported() throws Exception {
     initServer(false, false);
     assertReferencePoliciesImported(false);
   }
 
   @Test
   @ManualIqServerInit
-  public void testPopulateIfNewInstance_IRFeatureEnabled_PolicyImportEnabled_ImportsReferencePolicies()
-      throws Exception
-  {
+  public void testPopulateIfNewInstance_IRFeatureEnabled_PolicyImportEnabled_ImportsReferencePolicies() throws Exception {
     enableIntegrityRatingLicenseConfigFlag();
     initServer(false, true);
     assertReferencePoliciesImported(true);
@@ -162,9 +150,7 @@ public class NewInstancePopulatorTest
 
   @Test
   @ManualIqServerInit
-  public void testPopulateIfNewInstance_IRFeatureEnabled_PolicyImportDisabled_ReferencePoliciesNotImported()
-      throws Exception
-  {
+  public void testPopulateIfNewInstance_IRFeatureEnabled_PolicyImportDisabled_ReferencePoliciesNotImported() throws Exception {
     enableIntegrityRatingLicenseConfigFlag();
     initServer(false, false);
     assertReferencePoliciesImported(false);
@@ -172,9 +158,7 @@ public class NewInstancePopulatorTest
 
   @Test
   @ManualIqServerInit
-  public void testPopulateIfNewInstance_ExistingPolicy_PolicyImportEnabled_ReferencePoliciesNotImported()
-      throws Exception
-  {
+  public void testPopulateIfNewInstance_ExistingPolicy_PolicyImportEnabled_ReferencePoliciesNotImported() throws Exception {
     tempEntity.newPolicy();
 
     initServer(false, true);
@@ -183,9 +167,7 @@ public class NewInstancePopulatorTest
 
   @Test
   @ManualIqServerInit
-  public void testPopulateIfNewInstance_ExistingOrg_PolicyImportEnabled_ReferencePoliciesNotImported()
-      throws Exception
-  {
+  public void testPopulateIfNewInstance_ExistingOrg_PolicyImportEnabled_ReferencePoliciesNotImported() throws Exception {
     tempEntity.newOrganization();
 
     initServer(false, true);

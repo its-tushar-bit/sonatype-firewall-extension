@@ -44,20 +44,18 @@ public class VersionScoringServiceTest
     ComponentIdentifier component0 = new ComponentIdentifier("maven", Map.of(
         "artifactId", "Artifact1",
         "groupId", "Group1",
-        "version", "1.2.3"
-    ));
+        "version", "1.2.3"));
     List<ComponentIdentifier> fromVersions = List.of(component0);
     Map<String, ToVersionData> versionMap = Map.of(
         "1.2.4", new ToVersionData(1, 1, 1, 0, 20),
         "1.2.5", new ToVersionData(1, 1, 1, 0, 50),
-        "1.2.6", new ToVersionData(1, 1, 1, 0, 30)
-    );
-    VersionScoringDTO[] responsePayload = new VersionScoringDTO[] {
+        "1.2.6", new ToVersionData(1, 1, 1, 0, 30));
+    VersionScoringDTO[] responsePayload = new VersionScoringDTO[]{
       new VersionScoringDTO(component0, 1, 1, 10, versionMap)
     };
     when(mockHdsClient.post(eq(VersionScoringDTO[].class), eq(HDS_BULK_SCORE_VERSIONING_PATH), eq(fromVersions),
         eq(Map.of("stableVersionsOnly", "true"))))
-        .thenReturn(responsePayload);
+            .thenReturn(responsePayload);
 
     Map<ComponentIdentifier, List<String>> sortedNonBreakingVersions =
         versionScoringService.getSortedNonBreakingVersionsNoAuth(fromVersions);
@@ -71,31 +69,27 @@ public class VersionScoringServiceTest
     ComponentIdentifier component0 = new ComponentIdentifier("maven", Map.of(
         "artifactId", "Artifact1",
         "groupId", "Group1",
-        "version", "1.2.3"
-    ));
+        "version", "1.2.3"));
     ComponentIdentifier component1 = new ComponentIdentifier("maven", Map.of(
         "artifactId", "Artifact2",
         "groupId", "Group2",
-        "version", "4.1.15"
-    ));
+        "version", "4.1.15"));
     List<ComponentIdentifier> fromVersions = List.of(component0, component1);
     Map<String, ToVersionData> versionMap0 = Map.of(
         "1.2.4", new ToVersionData(1, 1, 1, 0, 20),
         "1.2.5", new ToVersionData(1, 1, 1, 0, 50),
-        "1.2.6", new ToVersionData(1, 1, 1, 0, 30)
-    );
+        "1.2.6", new ToVersionData(1, 1, 1, 0, 30));
     Map<String, ToVersionData> versionMap1 = Map.of(
         "4.1.25", new ToVersionData(1, 1, 1, 0, 100),
         "4.2.0", new ToVersionData(1, 1, 1, 0, 200),
-        "4.3.10", new ToVersionData(1, 1, 1, 0, 300)
-    );
-    VersionScoringDTO[] responsePayload = new VersionScoringDTO[] {
-        new VersionScoringDTO(component0, 1, 1, 10, versionMap0),
-        new VersionScoringDTO(component1, 1, 1, 10, versionMap1)
+        "4.3.10", new ToVersionData(1, 1, 1, 0, 300));
+    VersionScoringDTO[] responsePayload = new VersionScoringDTO[]{
+      new VersionScoringDTO(component0, 1, 1, 10, versionMap0),
+      new VersionScoringDTO(component1, 1, 1, 10, versionMap1)
     };
     when(mockHdsClient.post(eq(VersionScoringDTO[].class), eq(HDS_BULK_SCORE_VERSIONING_PATH), eq(fromVersions),
         eq(Map.of("stableVersionsOnly", "true"))))
-        .thenReturn(responsePayload);
+            .thenReturn(responsePayload);
 
     Map<ComponentIdentifier, List<String>> sortedNonBreakingVersions =
         versionScoringService.getSortedNonBreakingVersionsNoAuth(fromVersions);

@@ -70,8 +70,8 @@ public class InnerSourceApplicationDAOTest
 
     InnerSourceApplication innerSourceApplication1 =
         tempEntity.newInnerSourceApplication("pkg:maven/inner/source1", application);
-    InnerSourceApplication
-        innerSourceApplication2 = tempEntity.newInnerSourceApplication("pkg:maven/inner/source2", application);
+    InnerSourceApplication innerSourceApplication2 =
+        tempEntity.newInnerSourceApplication("pkg:maven/inner/source2", application);
     tempEntity.newInnerSourceApplication("pkg:maven/inner/source3", application2);
 
     List<InnerSourceApplication> innerSourceApplications = dao.getByApplicationId(application.getId());
@@ -84,8 +84,8 @@ public class InnerSourceApplicationDAOTest
   public void testGetByPurl() {
     PackageUrlIdentifier purl = new PackageUrlIdentifier("pkg:maven/inner/source1");
 
-    InnerSourceApplication
-        innerSourceApplication1 = tempEntity.newInnerSourceApplication(purl.getPackageUrl(), application);
+    InnerSourceApplication innerSourceApplication1 =
+        tempEntity.newInnerSourceApplication(purl.getPackageUrl(), application);
     tempEntity.newInnerSourceApplication("pkg:maven/inner/source", application);
 
     InnerSourceApplication innerSourceApplication = dao.getByPackageUrl(purl);
@@ -123,10 +123,10 @@ public class InnerSourceApplicationDAOTest
     PackageUrlIdentifier purl1 = new PackageUrlIdentifier("pkg:maven/inner/source1");
     PackageUrlIdentifier purl2 = new PackageUrlIdentifier("pkg:maven/inner/source2");
 
-    InnerSourceApplication
-        innerSourceApplication1 = tempEntity.newInnerSourceApplication(purl1.getPackageUrl(), application);
-    InnerSourceApplication
-        innerSourceApplication2 = tempEntity.newInnerSourceApplication(purl2.getPackageUrl(), application);
+    InnerSourceApplication innerSourceApplication1 =
+        tempEntity.newInnerSourceApplication(purl1.getPackageUrl(), application);
+    InnerSourceApplication innerSourceApplication2 =
+        tempEntity.newInnerSourceApplication(purl2.getPackageUrl(), application);
 
     tempEntity.newInnerSourceApplication("pkg:maven/inner/source3 ", application);
 

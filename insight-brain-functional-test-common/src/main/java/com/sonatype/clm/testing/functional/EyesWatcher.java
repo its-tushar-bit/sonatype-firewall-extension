@@ -104,8 +104,9 @@ public class EyesWatcher
    *
    * @param tag or step name of the validation
    * @param shouldUnsetCursorAndFocus If true, prior to taking the screenshot the cursor will be moved to the top left
-   * corner of the viewport and the focused elements will be unfocused. After the screenshot, focus will be restored
-   * (the mouse will not be moved back however)
+   *          corner of the viewport and the focused elements will be unfocused. After the screenshot, focus will be
+   *          restored
+   *          (the mouse will not be moved back however)
    */
   public void eyesCheck(String tag, boolean ignoreDisplacements, boolean shouldUnsetCursorAndFocus) {
     if (EyesWatcherShared.isDisabled()) {
@@ -133,8 +134,7 @@ public class EyesWatcher
 
     Iterable<By> ignoreRegions = Arrays.asList(
         By.className("visual-testing-ignore"),
-        By.className("nx-global-sidebar__release")
-    );
+        By.className("nx-global-sidebar__release"));
     SeleniumCheckSettings settings = Target.window();
     for (By ignoreRegion : ignoreRegions) {
       settings = ignoreBySelector(ignoreRegion, remoteDriver, settings);

@@ -58,13 +58,15 @@ public class ProductLicenseDAOTest
     dao.insert(createProductLicense());
 
     assertThatExceptionOfType(PersistenceException.class)
-        .isThrownBy(() -> dao.insert(createProductLicense())).withCauseInstanceOf(EntityExistsException.class);
+        .isThrownBy(() -> dao.insert(createProductLicense()))
+        .withCauseInstanceOf(EntityExistsException.class);
 
     ProductLicense productLicense = createProductLicense();
     productLicense.setId("not-" + ProductLicenseDAO.SINGLETON_ENTITY_ID);
 
     assertThatExceptionOfType(PersistenceException.class)
-        .isThrownBy(() -> dao.insert(productLicense)).withCauseInstanceOf(EntityExistsException.class);
+        .isThrownBy(() -> dao.insert(productLicense))
+        .withCauseInstanceOf(EntityExistsException.class);
   }
 
   @Test

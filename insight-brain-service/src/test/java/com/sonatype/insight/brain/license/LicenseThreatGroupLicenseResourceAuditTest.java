@@ -23,8 +23,9 @@ public class LicenseThreatGroupLicenseResourceAuditTest
     extends AbstractAuditTest
 {
   private HttpRequest restRequest(Owner owner, String ltgId) {
-    return restRequest().path(LicenseThreatGroupLicenseResource.RESOURCE_PATH).parameter(owner.getType(),
-        owner.getPublicId(), ltgId);
+    return restRequest().path(LicenseThreatGroupLicenseResource.RESOURCE_PATH)
+        .parameter(owner.getType(),
+            owner.getPublicId(), ltgId);
   }
 
   private void assertLicenseData(AuditDTO auditDTO, LicenseThreatGroup ltg, String... licenseNames) {
@@ -60,7 +61,9 @@ public class LicenseThreatGroupLicenseResourceAuditTest
     Organization organization = tempEntity.newOrganization();
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(organization.getId());
     restRequest(organization, ltg.getId())
-        .with(unauthorizedUser()).body(Collections.singletonList("Not-Declared")).put();
+        .with(unauthorizedUser())
+        .body(Collections.singletonList("Not-Declared"))
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_LICENSE_THREAT_GROUP_LICENSES, "unauthorized");
     assertOrganizationData(auditDTO, organization);

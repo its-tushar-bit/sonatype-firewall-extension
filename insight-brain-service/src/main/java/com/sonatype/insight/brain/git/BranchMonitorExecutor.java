@@ -51,8 +51,8 @@ public abstract class BranchMonitorExecutor
     Date scanLimitDate =
         Date.from(LocalDateTime.now().minusMinutes(intervalInMinutes).atZone(ZoneId.systemDefault()).toInstant());
 
-    List<SourceControl> sourceControlList
-        = sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(scanLimitDate);
+    List<SourceControl> sourceControlList =
+        sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(scanLimitDate);
 
     for (SourceControl sourceControl : sourceControlList) {
       initiateDefaultBranchSourceScans(sourceControl);

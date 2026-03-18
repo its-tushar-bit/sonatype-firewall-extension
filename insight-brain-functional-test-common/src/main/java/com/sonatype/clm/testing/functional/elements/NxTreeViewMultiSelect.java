@@ -34,7 +34,7 @@ public class NxTreeViewMultiSelect
 
   public NxCheckbox checkboxItem(int index) {
     return new NxCheckbox(child(".nx-collapsible-items__children .nx-collapsible-items__child.nx-checkbox",
-            nthChild(index)));
+        nthChild(index)));
   }
 
   public NxCheckbox checkboxItem(String elementText) {

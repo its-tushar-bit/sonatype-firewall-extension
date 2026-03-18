@@ -16,7 +16,8 @@ public class LegacyDatabaseMigratorTest
 {
   @Override
   protected DatabaseMigrator createDatabaseMigratorForTest() {
-    return new LegacyDatabaseMigrator(databaseRule) {
+    return new LegacyDatabaseMigrator(databaseRule)
+    {
       @Override
       protected DataStoreMigrator createDataStoreMigrator(final DataStore dataStore) {
         return createMockDataStoreMigrator();

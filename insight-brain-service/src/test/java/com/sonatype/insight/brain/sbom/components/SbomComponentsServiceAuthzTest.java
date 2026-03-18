@@ -32,7 +32,8 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SbomComponentsServiceAuthzTest extends AbstractServiceAuthzTest
+public class SbomComponentsServiceAuthzTest
+    extends AbstractServiceAuthzTest
 {
   @Inject
   private SbomComponentsService sbomComponentsService;
@@ -64,7 +65,7 @@ public class SbomComponentsServiceAuthzTest extends AbstractServiceAuthzTest
     ThirdPartyCoordinateSecurity vulnerability =
         tempEntity.newThirdPartyCoordinateSecurity(component, "cve", "d1", "l1", 9, "d1", "f1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerability, "cve", "resolved",
-            "code_not_reachable", "response", "details");
+        "code_not_reachable", "response", "details");
     File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
     FileUtils.copyURLToFile(ReportHelper
         .zipReport("/SbomComponentsServiceTest", tempDir), reportFile);

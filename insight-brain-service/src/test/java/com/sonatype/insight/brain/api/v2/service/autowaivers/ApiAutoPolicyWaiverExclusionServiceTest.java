@@ -94,8 +94,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
 
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         identifier,
-        violation
-    );
+        violation);
 
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
@@ -128,8 +127,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
 
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         identifier,
-        violation
-    );
+        violation);
 
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
@@ -158,9 +156,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
   @Test
   public void testAddAutoPolicyWaiverExclusion_InvalidOwnerType() {
     ApiAutoPolicyWaiverExclusionRequestDTO dto = new ApiAutoPolicyWaiverExclusionRequestDTO();
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.REPOSITORY, "ownerId", dto)
-    ).isInstanceOf(BadRequestException.class).hasMessage("Unknown owner type: repository");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.REPOSITORY, "ownerId", dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Unknown owner type: repository");
   }
 
   @Test
@@ -175,10 +174,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.autoPolicyWaiverId = "fakeWaiverId";
     dto.matchStrategy = EXACT_COMPONENT;
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Auto policy waiver with ID fakeWaiverId not found for application with ID " + app.getId());
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Auto policy waiver with ID fakeWaiverId not found for application with ID " + app.getId());
   }
 
   @Test
@@ -194,9 +193,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.autoPolicyWaiverId = waiver.getId();
     dto.matchStrategy = EXACT_COMPONENT;
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class).hasMessage("scanId is required");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("scanId is required");
   }
 
   @Test
@@ -210,9 +210,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.policyViolationId = "violationId";
     dto.autoPolicyWaiverId = waiver.getId();
     dto.matchStrategy = EXACT_COMPONENT;
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class).hasMessage("ownerId is required");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("ownerId is required");
   }
 
   @Test
@@ -234,8 +235,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
 
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         identifier,
-        violation
-    );
+        violation);
 
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
@@ -294,10 +294,9 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
 
   @Test
   public void testDeleteAutoPolicyWaiverExclusion_InvalidOwnerType() {
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.deleteAutoPolicyWaiverExclusion(OwnerType.REPOSITORY, "ownerId",
-            "exclusionId")
-    ).isInstanceOf(BadRequestException.class).hasMessage("Unknown owner type: repository");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.deleteAutoPolicyWaiverExclusion(OwnerType.REPOSITORY, "ownerId",
+            "exclusionId")).isInstanceOf(BadRequestException.class).hasMessage("Unknown owner type: repository");
     verifyNoInteractions(telemetrySender);
   }
 
@@ -306,12 +305,12 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
     AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.deleteAutoPolicyWaiverExclusion(OwnerType.APPLICATION, "invalid",
-            exclusion.getId())
-    ).isInstanceOf(NotFoundException.class).hasMessage(
-        "Cannot find an auto policy waiver exclusion with ID " +
-            exclusion.getId() + " for application with ID invalid");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.deleteAutoPolicyWaiverExclusion(OwnerType.APPLICATION, "invalid",
+            exclusion.getId())).isInstanceOf(NotFoundException.class)
+                .hasMessage(
+                    "Cannot find an auto policy waiver exclusion with ID " +
+                        exclusion.getId() + " for application with ID invalid");
     verifyNoInteractions(telemetrySender);
   }
 
@@ -320,12 +319,11 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
     tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.deleteAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(),
-            "invalid")
-    ).isInstanceOf(NotFoundException.class).hasMessage(
-        "AutoPolicyWaiverExclusion with ID invalid does not exist."
-    );
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.deleteAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(),
+            "invalid")).isInstanceOf(NotFoundException.class)
+                .hasMessage(
+                    "AutoPolicyWaiverExclusion with ID invalid does not exist.");
     verifyNoInteractions(telemetrySender);
   }
 
@@ -334,14 +332,12 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
     AutoPolicyWaiverExclusion exclusion = tempEntity.newAutoPolicyWaiverExclusion(app.getId(), waiver.getId());
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.deleteAutoPolicyWaiverExclusion(OwnerType.APPLICATION,
-            app.getOrganizationId(),
-            exclusion.getId())
-    ).isInstanceOf(NotFoundException.class).hasMessage(
-        "Cannot find an auto policy waiver exclusion with ID " +
-            exclusion.getId() + " for application with ID " + app.getOrganizationId()
-    );
+    assertThatThrownBy(() -> apiAutoPolicyWaiverExclusionService.deleteAutoPolicyWaiverExclusion(OwnerType.APPLICATION,
+        app.getOrganizationId(),
+        exclusion.getId())).isInstanceOf(NotFoundException.class)
+            .hasMessage(
+                "Cannot find an auto policy waiver exclusion with ID " +
+                    exclusion.getId() + " for application with ID " + app.getOrganizationId());
     verifyNoInteractions(telemetrySender);
   }
 
@@ -364,8 +360,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
 
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         identifier,
-        policyViolation
-    );
+        policyViolation);
 
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
@@ -398,9 +393,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
   @Test
   public void testAddAutoPolicyWaiverExclusion_POLICY_VIOLATION_invalidOwnerType() {
     ApiAutoPolicyWaiverExclusionRequestDTO dto = new ApiAutoPolicyWaiverExclusionRequestDTO();
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.REPOSITORY, "ownerId", dto)
-    ).isInstanceOf(BadRequestException.class).hasMessage("Unknown owner type: repository");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.REPOSITORY, "ownerId", dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Unknown owner type: repository");
     verifyNoInteractions(telemetrySender);
   }
 
@@ -421,9 +417,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.autoPolicyWaiverId = waiver.getId();
     dto.matchStrategy = POLICY_VIOLATION;
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class).hasMessage("ownerId exceeds maximum length of 50 characters");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("ownerId exceeds maximum length of 50 characters");
     verifyNoInteractions(telemetrySender);
   }
 
@@ -444,9 +441,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.autoPolicyWaiverId = waiver.getId();
     dto.matchStrategy = POLICY_VIOLATION;
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class).hasMessage("scanId is required");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("scanId is required");
     verifyNoInteractions(telemetrySender);
   }
 
@@ -467,9 +465,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.autoPolicyWaiverId = waiver.getId();
     dto.matchStrategy = POLICY_VIOLATION;
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class).hasMessage("scanId exceeds maximum length of 50 characters");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("scanId exceeds maximum length of 50 characters");
     verifyNoInteractions(telemetrySender);
   }
 
@@ -490,10 +489,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.autoPolicyWaiverId = waiver.getId();
     dto.matchStrategy = POLICY_VIOLATION;
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Unable to load report file for provided application public ID & scan ID");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Unable to load report file for provided application public ID & scan ID");
     verifyNoInteractions(telemetrySender);
   }
 
@@ -514,9 +513,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.autoPolicyWaiverId = waiver.getId();
     dto.matchStrategy = POLICY_VIOLATION;
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class).hasMessage("policyViolationId is required");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("policyViolationId is required");
     verifyNoInteractions(telemetrySender);
   }
 
@@ -537,9 +537,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.autoPolicyWaiverId = waiver.getId();
     dto.matchStrategy = POLICY_VIOLATION;
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class).hasMessage("policyViolationId exceeds maximum length of 50 characters");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("policyViolationId exceeds maximum length of 50 characters");
     verifyNoInteractions(telemetrySender);
   }
 
@@ -559,9 +560,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.autoPolicyWaiverId = null;
     dto.matchStrategy = POLICY_VIOLATION;
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class).hasMessage("autoPolicyWaiverId is required");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("autoPolicyWaiverId is required");
     verifyNoInteractions(telemetrySender);
   }
 
@@ -582,9 +584,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.autoPolicyWaiverId = "autoPolicyWaiverId".repeat(50);
     dto.matchStrategy = POLICY_VIOLATION;
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class).hasMessage("autoPolicyWaiverId exceeds maximum length of 50 characters");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("autoPolicyWaiverId exceeds maximum length of 50 characters");
     verifyNoInteractions(telemetrySender);
   }
 
@@ -604,11 +607,12 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.autoPolicyWaiverId = "invalidAutoPolicyWaiverId";
     dto.matchStrategy = POLICY_VIOLATION;
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage(
-            "Auto policy waiver with ID invalidAutoPolicyWaiverId not found for application with ID " + app.getId());
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage(
+                "Auto policy waiver with ID invalidAutoPolicyWaiverId not found for application with ID "
+                    + app.getId());
     verifyNoInteractions(telemetrySender);
   }
 
@@ -629,9 +633,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.autoPolicyWaiverId = waiver.getId();
     dto.matchStrategy = null;
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class).hasMessage("matchStrategy is required");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("matchStrategy is required");
     verifyNoInteractions(telemetrySender);
   }
 
@@ -891,8 +896,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
 
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         identifier,
-        policyViolation
-    );
+        policyViolation);
 
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
@@ -906,9 +910,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.matchStrategy = EXACT_COMPONENT;
 
     apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto);
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class).hasMessage("Exclusion already exists for this policy violation");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Exclusion already exists for this policy violation");
 
     ArgumentCaptor<List<TelemetryData>> captor = ArgumentCaptor.forClass(List.class);
     verify(telemetrySender).send(captor.capture());
@@ -929,8 +934,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
 
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         identifier,
-        policyViolation
-    );
+        policyViolation);
 
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
@@ -944,10 +948,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.matchStrategy = ALL_VERSIONS;
 
     apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto);
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Exclusion already exists for this policy violation");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Exclusion already exists for this policy violation");
 
     ArgumentCaptor<List<TelemetryData>> captor = ArgumentCaptor.forClass(List.class);
     verify(telemetrySender).send(captor.capture());
@@ -969,8 +973,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
 
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         identifier,
-        policyViolation
-    );
+        policyViolation);
 
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
@@ -984,9 +987,10 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
     dto.matchStrategy = POLICY_VIOLATION;
 
     apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto);
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto)
-    ).isInstanceOf(BadRequestException.class).hasMessage("Exclusion already exists for this policy violation");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverExclusionService.addAutoPolicyWaiverExclusion(OwnerType.APPLICATION, app.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Exclusion already exists for this policy violation");
 
     ArgumentCaptor<List<TelemetryData>> captor = ArgumentCaptor.forClass(List.class);
     verify(telemetrySender).send(captor.capture());
@@ -1027,8 +1031,7 @@ public class ApiAutoPolicyWaiverExclusionServiceTest
 
   private PolicyThreats.Component createPolicyThreatsComponents(
       ComponentIdentifier componentIdentifier,
-      PolicyViolation violation
-  )
+      PolicyViolation violation)
   {
     PolicyThreats.PolicyViolation policyViolation = new PolicyThreats.PolicyViolation();
     policyViolation.policyThreatLevel = violation.getThreatLevel();

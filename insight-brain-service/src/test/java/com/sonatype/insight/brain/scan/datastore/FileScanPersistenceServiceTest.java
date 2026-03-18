@@ -46,22 +46,21 @@ public class FileScanPersistenceServiceTest
 
   @Test
   public void testGetScanLocation() {
-    String suffix = FileSystems.getDefault().getSeparator().equals("\\") ?
-        "\\scan\\" + APPLICATION_ID + "\\scan-" + SCAN_ID + ".xml.gz" :
-        "/scan/" + APPLICATION_ID + "/scan-" + SCAN_ID + ".xml.gz";
+    String suffix = FileSystems.getDefault().getSeparator().equals("\\")
+        ? "\\scan\\" + APPLICATION_ID + "\\scan-" + SCAN_ID + ".xml.gz"
+        : "/scan/" + APPLICATION_ID + "/scan-" + SCAN_ID + ".xml.gz";
 
     var scanEntity = service.getScan(APPLICATION_ID, SCAN_ID);
     assertThat(scanEntity.getLocation()).isEqualTo(
-        insightConfig.getClusterDirectory().toString() + suffix
-    );
+        insightConfig.getClusterDirectory().toString() + suffix);
   }
 
   @Test
   @Override
   public void testScanEntity_getLocation() {
-    String suffix = FileSystems.getDefault().getSeparator().equals("\\") ?
-        "\\scan\\" + APPLICATION_ID + "\\scan-" + SCAN_ID + ".xml.gz" :
-        "/scan/" + APPLICATION_ID + "/scan-" + SCAN_ID + ".xml.gz";
+    String suffix = FileSystems.getDefault().getSeparator().equals("\\")
+        ? "\\scan\\" + APPLICATION_ID + "\\scan-" + SCAN_ID + ".xml.gz"
+        : "/scan/" + APPLICATION_ID + "/scan-" + SCAN_ID + ".xml.gz";
 
     var scanEntity = service.getScan(APPLICATION_ID, SCAN_ID);
     String expectedLocation = insightConfig.getClusterDirectory().toString() + suffix;

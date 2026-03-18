@@ -70,8 +70,7 @@ public class ApiSourceControlResourceTest
 
   private static final String TOKEN = new String(
       new PasswordHandler(new TestEncryptionKeyStore())
-          .encryptPassword("token".toCharArray())
-  );
+          .encryptPassword("token".toCharArray()));
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -152,7 +151,9 @@ public class ApiSourceControlResourceTest
   @Test
   public void testAddSourceControlByOwner_ByOrganization() throws Exception {
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(org.getId()).setToken("token").setCommitStatusEnabled(false)
+        new SourceControl.Builder().setOwnerId(org.getId())
+            .setToken("token")
+            .setCommitStatusEnabled(false)
             .setManualPullRequestsEnabled(false)
             .setInnerSourceAutomatedUpdatesEnabled(false)
             .build());
@@ -178,7 +179,9 @@ public class ApiSourceControlResourceTest
   public void testAddSourceControlByOwner_ByApplication_HttpsUrl() throws Exception {
     String repoUrl = String.format("%s/organization/project", gitService.baseUrl());
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(repoUrl).setToken("token")
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setRepositoryUrl(repoUrl)
+            .setToken("token")
             .setCommitStatusEnabled(false)
             .setManualPullRequestsEnabled(false)
             .setInnerSourceAutomatedUpdatesEnabled(false)
@@ -186,7 +189,8 @@ public class ApiSourceControlResourceTest
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
-        .body(sourceControl).post();
+        .body(sourceControl)
+        .post();
     assertResponseStatus(200, response);
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
 
@@ -248,9 +252,7 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
-  public void testAddSourceControlByOwner_InvalidSourceControlProvider()
-      throws Exception
-  {
+  public void testAddSourceControlByOwner_InvalidSourceControlProvider() throws Exception {
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
         tempEntity.newSourceControl(org.getId(), null, "token", null));
 
@@ -269,9 +271,7 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
-  public void testUpdateSourceControlByOwner_InvalidSourceControlProvider()
-      throws Exception
-  {
+  public void testUpdateSourceControlByOwner_InvalidSourceControlProvider() throws Exception {
     ApiSourceControlDTO sourceControl =
         apiSourceControlAdapter.convertToDTO(tempEntity.newSourceControl(org.getId(), null, "token", null));
 
@@ -281,7 +281,8 @@ public class ApiSourceControlResourceTest
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
-        .body(node).put();
+        .body(node)
+        .put();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo(
         "SourceControl provider value 'invalid_scm' is invalid,"
@@ -405,9 +406,7 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
-  public void testAddUserMappingByOrg_NoExistingMapping()
-      throws Exception
-  {
+  public void testAddUserMappingByOrg_NoExistingMapping() throws Exception {
     List<UserMapping> userMappings =
         Arrays.asList(new UserMapping(FromMappingEnum.GITLOG_EMAIL, ToMappingEnum.IQ_EMAIL));
     SCMUserMappingsDTO scmUserMappingsDTO = new SCMUserMappingsDTO("developer", userMappings);
@@ -420,14 +419,12 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
-  public void testAddUserMappingByOrg_ExistingMapping()
-      throws Exception
-  {
+  public void testAddUserMappingByOrg_ExistingMapping() throws Exception {
     List<UserMapping> userMappings =
         Arrays.asList(new UserMapping(FromMappingEnum.GITLOG_EMAIL, ToMappingEnum.IQ_EMAIL));
     SCMUserMappingsDTO scmUserMappingsDTO = new SCMUserMappingsDTO(null, userMappings);
-    List<Entry<String, String>>
-        userMappingsAsEntries = SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
+    List<Entry<String, String>> userMappingsAsEntries =
+        SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
     tempEntity.createScmUserMappings(org.getId(), userMappingsAsEntries);
 
     List<UserMapping> newUserMappings =
@@ -442,9 +439,7 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
-  public void testAddUserMappingByOrg_ErrorForDuplicatedMapping()
-      throws Exception
-  {
+  public void testAddUserMappingByOrg_ErrorForDuplicatedMapping() throws Exception {
     List<UserMapping> userMappings =
         Arrays.asList(new UserMapping(FromMappingEnum.GITLOG_EMAIL, ToMappingEnum.IQ_EMAIL),
             new UserMapping(FromMappingEnum.GITLOG_EMAIL, ToMappingEnum.IQ_EMAIL));
@@ -460,14 +455,12 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
-  public void testDeleteUserMapping()
-      throws Exception
-  {
+  public void testDeleteUserMapping() throws Exception {
     List<UserMapping> userMappings =
         Arrays.asList(new UserMapping(FromMappingEnum.GITLOG_EMAIL, ToMappingEnum.IQ_EMAIL));
     SCMUserMappingsDTO scmUserMappingsDTO = new SCMUserMappingsDTO(null, userMappings);
-    List<Entry<String, String>>
-        userMappingsAsEntries = SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
+    List<Entry<String, String>> userMappingsAsEntries =
+        SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
     tempEntity.createScmUserMappings(org.getId(), userMappingsAsEntries);
 
     HttpResponse response = restRequest()
@@ -478,9 +471,7 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
-  public void testDeleteUserMapping_NoExistingMapping()
-      throws Exception
-  {
+  public void testDeleteUserMapping_NoExistingMapping() throws Exception {
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.USER_MAPPING_PER_ORGANIZATION_PATH)
         .parameter(org.getId())
@@ -489,9 +480,7 @@ public class ApiSourceControlResourceTest
   }
 
   @Test
-  public void testDeleteUserMapping_InvalidOrgId()
-      throws Exception
-  {
+  public void testDeleteUserMapping_InvalidOrgId() throws Exception {
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.USER_MAPPING_PER_ORGANIZATION_PATH)
         .parameter("invalid")
@@ -511,7 +500,9 @@ public class ApiSourceControlResourceTest
     apiSourceControlDTO.enableStatusChecks = false;
 
     HttpResponse response = restRequest().path(ApiSourceControlResource.BY_OWNER)
-        .parameter(OwnerType.ORGANIZATION, org.getId()).body(apiSourceControlDTO).post();
+        .parameter(OwnerType.ORGANIZATION, org.getId())
+        .body(apiSourceControlDTO)
+        .post();
     assertResponseStatus(200, response);
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
 
@@ -539,7 +530,9 @@ public class ApiSourceControlResourceTest
     apiSourceControlDTO.enableStatusChecks = true;
 
     HttpResponse response = restRequest().path(ApiSourceControlResource.BY_OWNER)
-        .parameter(OwnerType.ORGANIZATION, org.getId()).body(apiSourceControlDTO).post();
+        .parameter(OwnerType.ORGANIZATION, org.getId())
+        .body(apiSourceControlDTO)
+        .post();
     assertResponseStatus(200, response);
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
 
@@ -567,7 +560,9 @@ public class ApiSourceControlResourceTest
 
     SourceControl sourceControl = tempEntity.newSourceControl(org.getId(), null, "token", null);
     HttpResponse response = restRequest().path(ApiSourceControlResource.BY_OWNER)
-        .parameter(OwnerType.ORGANIZATION, org.getId()).body(apiSourceControlDTO).put();
+        .parameter(OwnerType.ORGANIZATION, org.getId())
+        .body(apiSourceControlDTO)
+        .put();
     assertResponseStatus(200, response);
 
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
@@ -595,7 +590,9 @@ public class ApiSourceControlResourceTest
 
     SourceControl sourceControl = tempEntity.newSourceControl(org.getId(), null, "token", null);
     HttpResponse response = restRequest().path(ApiSourceControlResource.BY_OWNER)
-        .parameter(OwnerType.ORGANIZATION, org.getId()).body(apiSourceControlDTO).put();
+        .parameter(OwnerType.ORGANIZATION, org.getId())
+        .body(apiSourceControlDTO)
+        .put();
     assertResponseStatus(200, response);
 
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
@@ -615,7 +612,8 @@ public class ApiSourceControlResourceTest
     Organization organization = tempEntity.newOrganization();
 
     HttpResponse response = restRequest().path(ApiSourceControlResource.USER_MAPPINGS_BY_OWNER_PATH)
-        .parameter(OwnerType.ORGANIZATION, organization.getId()).get();
+        .parameter(OwnerType.ORGANIZATION, organization.getId())
+        .get();
 
     assertResponseStatus(204, response);
   }
@@ -625,7 +623,8 @@ public class ApiSourceControlResourceTest
     Repository repository = tempEntity.newRepository();
 
     HttpResponse response = restRequest().path(ApiSourceControlResource.USER_MAPPINGS_BY_OWNER_PATH)
-        .parameter(OwnerType.REPOSITORY, repository.getId()).get();
+        .parameter(OwnerType.REPOSITORY, repository.getId())
+        .get();
 
     assertResponseStatus(404, response);
   }
@@ -642,7 +641,8 @@ public class ApiSourceControlResourceTest
         organization1.getId(), getRandomMappings());
 
     HttpResponse response = restRequest().path(ApiSourceControlResource.USER_MAPPINGS_BY_OWNER_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId()).get();
+        .parameter(OwnerType.APPLICATION, application.getId())
+        .get();
 
     List<UserMapping> existingMappings = existingScmUserMappings.getMappings().stream().map(UserMapping::new).toList();
 
@@ -673,8 +673,7 @@ public class ApiSourceControlResourceTest
 
     final SCMUserMappingsDTO givenScmUserMappingsDTO = new SCMUserMappingsDTO(
         "developer",
-        Lists.newArrayList(new UserMapping(SCM_USERNAME, IQ_USERNAME))
-    );
+        Lists.newArrayList(new UserMapping(SCM_USERNAME, IQ_USERNAME)));
 
     // === Then ===
     HttpResponse response = restRequest().path(AUTOMATIC_ROLE_ASSIGNMENT_PATH)
@@ -686,16 +685,14 @@ public class ApiSourceControlResourceTest
     final SCMUserMatchingResultDTO scmUserMatchingResultDTO = response.getBody(SCMUserMatchingResultDTO.class);
     assertThat(scmUserMatchingResultDTO).isEqualTo(new SCMUserMatchingResultDTO(
         new UserMapping(SCM_USERNAME, IQ_USERNAME),
-        Sets.newHashSet("user1", "user2")
-    ));
+        Sets.newHashSet("user1", "user2")));
   }
 
   @Test
   public void testAutomaticRoleAssignment_ReturnsUnauthorizedWhenUserIsNotLoggedIn() throws Exception {
     final SCMUserMappingsDTO givenScmUserMappingsDTO = new SCMUserMappingsDTO(
         "developer",
-        Lists.newArrayList(new UserMapping(SCM_USERNAME, IQ_USERNAME))
-    );
+        Lists.newArrayList(new UserMapping(SCM_USERNAME, IQ_USERNAME)));
 
     HttpResponse response = restRequest().path(AUTOMATIC_ROLE_ASSIGNMENT_PATH)
         .parameter("any-id")
@@ -724,7 +721,7 @@ public class ApiSourceControlResourceTest
   @Test
   public void testUpdateSourceControlByOwner_AuthTypeChange_GitHubAppToPat() throws Exception {
     SourceControl sourceControl = tempEntity.newSourceControl(
-            app.getId(), VALID_URL, null, SourceControlProvider.GITHUB);
+        app.getId(), VALID_URL, null, SourceControlProvider.GITHUB);
     sourceControl.setAuthenticationType(SourceControl.AuthenticationType.GITHUB_APP);
 
     ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
@@ -732,10 +729,10 @@ public class ApiSourceControlResourceTest
     updateDTO.token = "new-pat-token";
 
     HttpResponse response = restRequest()
-            .path(ApiSourceControlResource.BY_OWNER)
-            .parameter(OwnerType.APPLICATION, app.getId())
-            .body(updateDTO)
-            .put();
+        .path(ApiSourceControlResource.BY_OWNER)
+        .parameter(OwnerType.APPLICATION, app.getId())
+        .body(updateDTO)
+        .put();
 
     assertResponseStatus(200, response);
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
@@ -748,7 +745,7 @@ public class ApiSourceControlResourceTest
   @Test
   public void testUpdateSourceControlByOwner_AuthTypeChange_PatToGitHubApp() throws Exception {
     SourceControl sourceControl = tempEntity.newSourceControl(
-            app.getId(), VALID_URL, "encrypted-token", SourceControlProvider.GITHUB);
+        app.getId(), VALID_URL, "encrypted-token", SourceControlProvider.GITHUB);
     sourceControl.setAuthenticationType(SourceControl.AuthenticationType.PAT);
 
     ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
@@ -756,10 +753,10 @@ public class ApiSourceControlResourceTest
     updateDTO.token = SourceControl.FAKE_SECRET_KEY;
 
     HttpResponse response = restRequest()
-            .path(ApiSourceControlResource.BY_OWNER)
-            .parameter(OwnerType.APPLICATION, app.getId())
-            .body(updateDTO)
-            .put();
+        .path(ApiSourceControlResource.BY_OWNER)
+        .parameter(OwnerType.APPLICATION, app.getId())
+        .body(updateDTO)
+        .put();
 
     assertResponseStatus(200, response);
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);

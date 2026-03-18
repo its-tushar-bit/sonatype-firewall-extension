@@ -44,7 +44,8 @@ public class SamlUserGroupDAOTest
     // Read
     SamlUserGroup storedSamlUserGroup = samlUserGroupDAO.getById(samlUserGroup.getId());
     assertThat(storedSamlUserGroup).isNotNull();
-    assertThat(storedSamlUserGroup).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(storedSamlUserGroup).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(samlUserGroup);
 
     // Update
@@ -54,7 +55,8 @@ public class SamlUserGroupDAOTest
     samlUserGroup.setSamlGroupId(samlGroup2.getId());
     samlUserGroupDAO.update(samlUserGroup);
     storedSamlUserGroup = samlUserGroupDAO.getById(storedSamlUserGroup.getId());
-    assertThat(storedSamlUserGroup).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(storedSamlUserGroup).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(samlUserGroup);
 
     // Delete
@@ -136,7 +138,8 @@ public class SamlUserGroupDAOTest
 
     assertThat(samlUserGroup.getId()).isNotNull();
     assertThat(samlUserGroupDAO.getById(samlUserGroup.getId())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(samlUserGroup);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(samlUserGroup);
   }
 
   @Test
@@ -150,7 +153,8 @@ public class SamlUserGroupDAOTest
 
     assertThat(samlUserGroup.getId()).isNotNull();
     assertThat(samlUserGroupDAO.getById(samlUserGroup.getId())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(samlUserGroup);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(samlUserGroup);
   }
 
   @Test

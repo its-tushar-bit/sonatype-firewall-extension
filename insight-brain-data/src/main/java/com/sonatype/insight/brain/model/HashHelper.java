@@ -12,7 +12,7 @@ public class HashHelper
   /**
    * We use only the first 10 bytes of the hashes, so we have to truncate to the first 20 chars in the string
    * representation of a hash.
-   * 
+   *
    * @param hash a hash that may need truncation
    * @return a new hash truncated to the correct length, or the original hash if no truncation is needed
    */

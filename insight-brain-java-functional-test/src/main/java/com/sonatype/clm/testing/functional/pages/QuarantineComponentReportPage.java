@@ -20,8 +20,10 @@ public class QuarantineComponentReportPage
   public static final String QUARANTINE_COMPONENT_REPORT_SELECTOR = "#quarantined-component-report";
 
   public static String url(String quarantineComponentReportId) {
-    return BaseUrl.rootUriBuilder().fragment("/firewall/repositories/quarantinedComponent/" +
-        quarantineComponentReportId).toString();
+    return BaseUrl.rootUriBuilder()
+        .fragment("/firewall/repositories/quarantinedComponent/" +
+            quarantineComponentReportId)
+        .toString();
   }
 
   public RiskRemediationTile getRiskRemediationTile() {

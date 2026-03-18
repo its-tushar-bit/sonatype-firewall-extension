@@ -54,8 +54,7 @@ public class ApiRoleResourceTest
             Role.COMPONENT_EVALUATOR_ROLE_ID,
             Role.DEVELOPER_ROLE_ID,
             Role.LEGAL_REVIEWER_ROLE_ID,
-            Role.OWNER_ROLE_ID
-        );
+            Role.OWNER_ROLE_ID);
   }
 
   @Test

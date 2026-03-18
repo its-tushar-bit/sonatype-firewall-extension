@@ -117,8 +117,7 @@ public class PullRequestPolicyEvaluationResolverTest
     assertThatLogMessagesEqual(
         debug("0 base branch commits to process for application '" + application.getId() + "'"),
         warn("no policy evaluation for base branch, skipping PR commenting for application '" + application.getId() +
-            "' pull request '2'")
-    );
+            "' pull request '2'"));
   }
 
   @Test
@@ -143,8 +142,7 @@ public class PullRequestPolicyEvaluationResolverTest
     verify(mockPullRequestInfoClient, times(1)).getCommitInfoFromScm(gitRepositoryInfo, "commit123");
     verify(mockGitCommitHistoryService, times(1)).updateCommitHistoryForCommits(any(), any());
     assertThatLogMessagesEqual(
-        debug("0 base branch commits to process for application '" + application.getId() + "'")
-    );
+        debug("0 base branch commits to process for application '" + application.getId() + "'"));
   }
 
   @Test
@@ -176,8 +174,7 @@ public class PullRequestPolicyEvaluationResolverTest
     assertThat(dto.getTargetPolicyEvaluationId()).isEqualTo(defaultBranchPolicyEvaluationId);
     assertThat(dto.getFeatureBranchPolicyEvaluationId()).isEqualTo(featureBranchPolicyEvaluationId);
     assertThatLogMessagesEqual(
-        debug("0 base branch commits to process for application '" + application.getId() + "'")
-    );
+        debug("0 base branch commits to process for application '" + application.getId() + "'"));
   }
 
   @Test
@@ -212,8 +209,7 @@ public class PullRequestPolicyEvaluationResolverTest
     assertThat(dto.getTargetPolicyEvaluationId()).isEqualTo(policyEvaluationIdForCommit);
     assertThat(dto.getFeatureBranchPolicyEvaluationId()).isEqualTo(featureBranchPolicyEvaluationId);
     assertThatLogMessagesEqual(
-        debug("0 base branch commits to process for application '" + application.getId() + "'")
-    );
+        debug("0 base branch commits to process for application '" + application.getId() + "'"));
   }
 
   @Test
@@ -236,8 +232,7 @@ public class PullRequestPolicyEvaluationResolverTest
     assertThat(policyEvaluationsDTO).isNull();
     assertThatLogMessagesEqual(
         debug("Cannot comment - missing feature branch policy evaluation for application " + application.getPublicId() +
-            " repository https://gitlab.com/test/project1")
-    );
+            " repository https://gitlab.com/test/project1"));
   }
 
   @Test
@@ -276,7 +271,7 @@ public class PullRequestPolicyEvaluationResolverTest
 
     PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver = new TestablePolicyEvaluationResolver()
         // with an externally triggered default branch policy eval
-        .withDefaultBranchPolicyEvaluation(application.getId(), defaultBranchPolicyEvaluationId,false)
+        .withDefaultBranchPolicyEvaluation(application.getId(), defaultBranchPolicyEvaluationId, false)
         // with an internally triggered feature branch policy eval
         .withFeatureBranchPolicyEvaluationForCommit(application.getId(), featureBranchPolicyEvaluationId, featureCommit,
             true)
@@ -292,8 +287,7 @@ public class PullRequestPolicyEvaluationResolverTest
     assertThat(policyEvaluationsDTO).isNull();
     assertThatLogMessagesEqual(
         debug("Cannot comment - internal/external policy evaluation mismatch for application " +
-            application.getPublicId() + " repository https://gitlab.com/test/project1")
-    );
+            application.getPublicId() + " repository https://gitlab.com/test/project1"));
   }
 
   @Test
@@ -307,7 +301,7 @@ public class PullRequestPolicyEvaluationResolverTest
 
     PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver = new TestablePolicyEvaluationResolver()
         // with an internally triggered default branch policy eval
-        .withDefaultBranchPolicyEvaluation(application.getId(), defaultBranchPolicyEvaluationId,true)
+        .withDefaultBranchPolicyEvaluation(application.getId(), defaultBranchPolicyEvaluationId, true)
         // with an externally triggered feature branch policy eval
         .withFeatureBranchPolicyEvaluationForCommit(application.getId(), featureBranchPolicyEvaluationId, featureCommit,
             false)
@@ -323,8 +317,7 @@ public class PullRequestPolicyEvaluationResolverTest
     assertThat(policyEvaluationsDTO).isNull();
     assertThatLogMessagesEqual(
         debug("Cannot comment - internal/external policy evaluation mismatch for application " +
-            application.getPublicId() + " repository https://gitlab.com/test/project1")
-    );
+            application.getPublicId() + " repository https://gitlab.com/test/project1"));
   }
 
   @Test
@@ -373,7 +366,8 @@ public class PullRequestPolicyEvaluationResolverTest
             baseFeatureCommit, true)
         .withFeatureBranchPolicyEvaluationForCommit(application.getId(), childFeatureBranchPolicyEvaluationId,
             childFeatureCommit, true)
-        .withPullRequest(2, childFeatureBranchName, childFeatureCommit, true).build();
+        .withPullRequest(2, childFeatureBranchName, childFeatureCommit, true)
+        .build();
 
     // when: resolve policy evaluations
     PullRequestPolicyEvaluationsDTO policyEvaluationsDTO =
@@ -424,9 +418,7 @@ public class PullRequestPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testResolveForPullRequest_deleteCheckoutDirectoryOnInvalidArgumentException()
-      throws GitException, IOException
-  {
+  public void testResolveForPullRequest_deleteCheckoutDirectoryOnInvalidArgumentException() throws GitException, IOException {
     // given: default and feature branch policy evals
     final String message = "Error on SCM";
     final String baseCommit = "badBaseCommit";
@@ -439,23 +431,20 @@ public class PullRequestPolicyEvaluationResolverTest
         .build();
 
     // when: resolve policy evaluations
-    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() ->
-        pullRequestPolicyEvaluationResolver
-            .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4,
-                featureBranchName, "main", featureCommit, baseCommit)
-    ).withMessage(String.format(
-        "Cannot comment - unable to resolve policy evaluations for application %s repository %s " +
-            "pull request %s - reason: %s",
-        application.getPublicId(), gitRepositoryInfo.getRepositoryUrl(), 4, message));
+    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() -> pullRequestPolicyEvaluationResolver
+        .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4,
+            featureBranchName, "main", featureCommit, baseCommit))
+        .withMessage(String.format(
+            "Cannot comment - unable to resolve policy evaluations for application %s repository %s " +
+                "pull request %s - reason: %s",
+            application.getPublicId(), gitRepositoryInfo.getRepositoryUrl(), 4, message));
 
     // and: source control folder is deleted
     verify(sourceControlUtils, times(1)).deleteCheckoutDirectory(any(Application.class));
   }
 
   @Test
-  public void testResolveForPullRequest_deleteCheckoutDirectoryOnGitException()
-      throws GitException, IOException
-  {
+  public void testResolveForPullRequest_deleteCheckoutDirectoryOnGitException() throws GitException, IOException {
     // given: default and feature branch policy evals
     final String message = "Error on SCM";
     final String baseCommit = "badBaseCommit";
@@ -468,23 +457,20 @@ public class PullRequestPolicyEvaluationResolverTest
         .build();
 
     // when: resolve policy evaluations
-    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() ->
-        pullRequestPolicyEvaluationResolver
-            .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4,
-                featureBranchName, "main", featureCommit, baseCommit)
-    ).withMessage(String.format(
-        "Cannot comment - unable to resolve policy evaluations for application %s repository %s " +
-            "pull request %s - reason: %s",
-        application.getPublicId(), gitRepositoryInfo.getRepositoryUrl(), 4, message));
+    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() -> pullRequestPolicyEvaluationResolver
+        .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4,
+            featureBranchName, "main", featureCommit, baseCommit))
+        .withMessage(String.format(
+            "Cannot comment - unable to resolve policy evaluations for application %s repository %s " +
+                "pull request %s - reason: %s",
+            application.getPublicId(), gitRepositoryInfo.getRepositoryUrl(), 4, message));
 
     // and: source control folder is deleted
     verify(sourceControlUtils, times(1)).deleteCheckoutDirectory(any(Application.class));
   }
 
   @Test
-  public void testResolveForPullRequest_doNotDeleteCheckoutDirectoryOnRuntimeException()
-      throws GitException, IOException
-  {
+  public void testResolveForPullRequest_doNotDeleteCheckoutDirectoryOnRuntimeException() throws GitException, IOException {
     // given: default and feature branch policy evals
     final String message = "Error on SCM";
     final String baseCommit = "badBaseCommit";
@@ -497,14 +483,13 @@ public class PullRequestPolicyEvaluationResolverTest
         .build();
 
     // when: resolve policy evaluations
-    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() ->
-        pullRequestPolicyEvaluationResolver
-            .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4,
-                featureBranchName, "main", featureCommit, baseCommit)
-    ).withMessage(String.format(
-        "Cannot comment - unable to resolve policy evaluations for application %s repository %s " +
-            "pull request %s - reason: %s",
-        application.getPublicId(), gitRepositoryInfo.getRepositoryUrl(), 4, message));
+    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() -> pullRequestPolicyEvaluationResolver
+        .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4,
+            featureBranchName, "main", featureCommit, baseCommit))
+        .withMessage(String.format(
+            "Cannot comment - unable to resolve policy evaluations for application %s repository %s " +
+                "pull request %s - reason: %s",
+            application.getPublicId(), gitRepositoryInfo.getRepositoryUrl(), 4, message));
 
     // and: source control folder is NOT deleted
     verify(sourceControlUtils, never()).deleteCheckoutDirectory(any(Application.class));
@@ -512,7 +497,7 @@ public class PullRequestPolicyEvaluationResolverTest
 
   private GitRepositoryInfo createDefaultGitRepositoryInfo() {
     return new GitRepositoryInfo("https://gitlab.com/test/project1", null, "user", "token",
-        SourceControlProvider.GITLAB, "main", true, true, true,true, true, true, false, null);
+        SourceControlProvider.GITLAB, "main", true, true, true, true, true, true, false, null);
   }
 
   private class TestablePolicyEvaluationResolver

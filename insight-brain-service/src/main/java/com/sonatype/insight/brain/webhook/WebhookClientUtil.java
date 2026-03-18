@@ -97,7 +97,7 @@ public class WebhookClientUtil
     catch (IOException | RuntimeException ex) {
       log.error("Unable to perform HTTP request for Webhook {} with delivery ID {}", webhookId, deliveryId, ex);
       if (ex instanceof RuntimeException) {
-        throw (RuntimeException)ex;
+        throw (RuntimeException) ex;
       }
       AuditData.get().setException(ex);
     }
@@ -125,11 +125,12 @@ public class WebhookClientUtil
 
     private final String hmacAlgorithm;
 
-    private WebhookClient(final Configuration config,
-                            final String deliveryId,
-                            final Webhook decryptedWebhook,
-                            final String webhookId,
-                            final WebhookPayload payload) throws JsonProcessingException
+    private WebhookClient(
+        final Configuration config,
+        final String deliveryId,
+        final Webhook decryptedWebhook,
+        final String webhookId,
+        final WebhookPayload payload) throws JsonProcessingException
     {
       super(config);
 
@@ -171,8 +172,9 @@ public class WebhookClientUtil
     /**
      * Generate HMAC signature (HEX encoded) of given body using secret as key.
      */
-    private String sign(final String json, final String secretKey) throws NoSuchAlgorithmException,
-                                                                          InvalidKeyException
+    private String sign(
+        final String json,
+        final String secretKey) throws NoSuchAlgorithmException, InvalidKeyException
     {
       SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), hmacAlgorithm);
       Mac mac = Mac.getInstance(hmacAlgorithm);

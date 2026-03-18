@@ -139,26 +139,25 @@ public class ProprietaryConfigResourceAuditTest
     assertOrganizationData(auditDTO, org);
   }
 
-  private void addFilePathRegex(Consumer<HttpRequest> user, Owner owner, FilePathRegex filePathRegex)
-      throws Exception
-  {
+  private void addFilePathRegex(Consumer<HttpRequest> user, Owner owner, FilePathRegex filePathRegex) throws Exception {
     restRequest(user, owner).path(ProprietaryConfigResource.ADD_FILE_PATH_REGEX).body(filePathRegex).post();
   }
 
-  private void upsert(Consumer<HttpRequest> user, Owner owner, ProprietaryConfig proprietaryConfig)
-      throws Exception
-  {
+  private void upsert(Consumer<HttpRequest> user, Owner owner, ProprietaryConfig proprietaryConfig) throws Exception {
     restRequest(user, owner).body(proprietaryConfig).put();
   }
 
   private HttpRequest restRequest(Consumer<HttpRequest> user, Owner owner) {
-    return restRequest().with(user).path(ProprietaryConfigResource.RESOURCE_PATH).parameter(owner.getType(),
-        owner.getPublicId());
+    return restRequest().with(user)
+        .path(ProprietaryConfigResource.RESOURCE_PATH)
+        .parameter(owner.getType(),
+            owner.getPublicId());
   }
 
-  private void assertProprietaryConfigCustomData(final AuditDTO auditDTO,
-                                                 final List<String> packageMatchers,
-                                                 final List<String> regexMatchers)
+  private void assertProprietaryConfigCustomData(
+      final AuditDTO auditDTO,
+      final List<String> packageMatchers,
+      final List<String> regexMatchers)
   {
     assertCustomData(auditDTO, "packageMatchers", packageMatchers);
     assertCustomData(auditDTO, "regexMatchers", regexMatchers);

@@ -32,9 +32,8 @@ import java.util.List;
 @Named
 @Timed
 @Tag(name = "Developer Priorities",
-        description =
-                "Use this REST API to export Sonatype Developer component priorities data, " +
-                    "including security reachability data.")
+    description = "Use this REST API to export Sonatype Developer component priorities data, " +
+        "including security reachability data.")
 public class ApiDeveloperPrioritiesResourceV2
 {
   public static final String PRIORITIES_PATH = "/priorities/{applicationId}/{scanId}";
@@ -59,40 +58,36 @@ public class ApiDeveloperPrioritiesResourceV2
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(description = """
       Use this method to retrieve all priorities by providing the application ID and scan ID.
-      
+
       Permissions required: View IQ Elements""",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = """
-                  The response field `priorities` returns prioritized components for the specified
-                  application ID and scan ID. Each result has relevant component information, reachability
-                  information, policy information, and a priority number, sorted by priority in descending order.
-                  Pagination is supported, and the default page size is 10.
-                  The parameter `includeRemediation` is required for the paginated result to
-                  include remediation information.""",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = """
+                The response field `priorities` returns prioritized components for the specified
+                application ID and scan ID. Each result has relevant component information, reachability
+                information, policy information, and a priority number, sorted by priority in descending order.
+                Pagination is supported, and the default page size is 10.
+                The parameter `includeRemediation` is required for the paginated result to
+                include remediation information.""",
+            useReturnTypeSchema = true)
+      })
   public DevelopmentPrioritizationResults getPriorities(
-      @Parameter(description = "Enter the applicationId.")
-      @PathParam("applicationId") final String applicationId,
-      @Parameter(description = "Enter the scanId.")
-      @PathParam("scanId") final String scanId,
-      @Parameter(description = "Whether to include remediation type and version for the component or not")
-      @DefaultValue("false") @QueryParam("includeRemediation") boolean includeRemediation,
-      @Parameter(description = "Current page number.")
-      @DefaultValue(DEFAULT_PAGE) @QueryParam("page") final int page,
-      @Parameter(description = "Enter the no. of results that should be visible per page.")
-      @DefaultValue(DEFAULT_PAGE_SIZE) @QueryParam("pageSize") final int pageSize,
-      @Parameter(description = "Component name to filter by")
-      @QueryParam("componentNameFilter") final String componentNameFilter,
-      @Parameter(description = "Whether to enable Fail/Warn policy action filter or not")
-      @QueryParam("filterOnPolicyActions") @DefaultValue("true") final boolean filterOnPolicyActions)
+      @Parameter(description = "Enter the applicationId.") @PathParam("applicationId") final String applicationId,
+      @Parameter(description = "Enter the scanId.") @PathParam("scanId") final String scanId,
+      @Parameter(
+          description = "Whether to include remediation type and version for the component or not") @DefaultValue("false") @QueryParam("includeRemediation") boolean includeRemediation,
+      @Parameter(description = "Current page number.") @DefaultValue(DEFAULT_PAGE) @QueryParam("page") final int page,
+      @Parameter(
+          description = "Enter the no. of results that should be visible per page.") @DefaultValue(DEFAULT_PAGE_SIZE) @QueryParam("pageSize") final int pageSize,
+      @Parameter(
+          description = "Component name to filter by") @QueryParam("componentNameFilter") final String componentNameFilter,
+      @Parameter(
+          description = "Whether to enable Fail/Warn policy action filter or not") @QueryParam("filterOnPolicyActions") @DefaultValue("true") final boolean filterOnPolicyActions)
   {
     return developmentPrioritiesService
-            .getPrioritizedFindings(applicationId, scanId, page, pageSize,
-                componentNameFilter, includeRemediation, filterOnPolicyActions);
+        .getPrioritizedFindings(applicationId, scanId, page, pageSize,
+            componentNameFilter, includeRemediation, filterOnPolicyActions);
   }
 
   @GET
@@ -100,22 +95,19 @@ public class ApiDeveloperPrioritiesResourceV2
   @Produces("text/csv")
   @Operation(description = """
       Use this method to retrieve the priorities, by providing the applicationId and scanId.
-      
+
       Permissions required: View IQ Elements""",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = """
-                  The response is a CSV that contains all the prioritized components for the specified
-                  applicationId and scanId. Each line has all relevant component information, reachability
-                  information, policy information, and the priority assigned to it.""")
-      }
-  )
+        @ApiResponse(responseCode = "200",
+            description = """
+                The response is a CSV that contains all the prioritized components for the specified
+                applicationId and scanId. Each line has all relevant component information, reachability
+                information, policy information, and the priority assigned to it.""")
+      })
   @Audited(AuditEvent.EXPORT_DEVELOPER_PRIORITIES)
   public Response getPrioritiesExport(
-      @Parameter(description = "Enter the applicationId.")
-      @PathParam("applicationId") final String applicationId,
-      @Parameter(description = "Enter the scanId.")
-      @PathParam("scanId") final String scanId)
+      @Parameter(description = "Enter the applicationId.") @PathParam("applicationId") final String applicationId,
+      @Parameter(description = "Enter the scanId.") @PathParam("scanId") final String scanId)
   {
     List<PrioritizedComponent> results =
         developmentPrioritiesService.getAllPrioritizedFindings(applicationId, scanId, null, null);

@@ -14,7 +14,7 @@ public class LdapServerDTO
   public String ldapServerName;
 
   public LdapServerDTO() {
-    //for jackson
+    // for jackson
   }
 
   public LdapServerDTO(final LdapServer ldapServer) {

@@ -49,9 +49,9 @@ import static com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.isPostg
  * <p>
  * The test fixtures encapsulated are:
  * <ul>
- *   <li>the {@link DatabaseFixture} itself </li>
- *   <li>the {@link DatabaseType} (i.e. H2 in-memory (default), H2 disk, or Postgres)</li>
- *   <li>the four {@link DataStore} objects</li>
+ * <li>the {@link DatabaseFixture} itself</li>
+ * <li>the {@link DatabaseType} (i.e. H2 in-memory (default), H2 disk, or Postgres)</li>
+ * <li>the four {@link DataStore} objects</li>
  * </ul>
  * <p>
  * For each test it will manage if a new database needs to be provisioned and the supporting {@link DataStore} classes
@@ -60,6 +60,7 @@ import static com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.isPostg
  *
  * <p>
  * Example:
+ *
  * <pre>
  * {@code
  * @Rule(order = 1)
@@ -71,16 +72,16 @@ import static com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.isPostg
  * <p>
  * Notes:
  * <ul>
- *   <li>The 'order' <strong>MUST</strong> be 1. i.e. The database must come before anything that needs a database.</li>
- *   <li>The default database is an h2 in-memory database.</li>
- *   <li>Use the {@link H2DiskTest} annotation for an H2 disk database. Passed to {@link H2DiskDatabaseFixture}.</li>
- *   <li>Use the {@link PostgresTest} annotation for a Postgres database. Passed to {@link PostgresDatabaseFixture}.</li>
- *   <li>Use the @{@link H2InMemoryTest} annotation for a custom H2 in-memory database.</li>
- *   <li>Each annotation has some common options as well as some custom ones. Common options:</li>
- *   <ul>
- *     <li>Use the `suppressMigrations` value on the annotations to prevent automatic db migration</li>
- *     <li>Use the `cleanDatabase` value on the annotations to force a new clean database to be provisioned</li>
- *   </ul>
+ * <li>The 'order' <strong>MUST</strong> be 1. i.e. The database must come before anything that needs a database.</li>
+ * <li>The default database is an h2 in-memory database.</li>
+ * <li>Use the {@link H2DiskTest} annotation for an H2 disk database. Passed to {@link H2DiskDatabaseFixture}.</li>
+ * <li>Use the {@link PostgresTest} annotation for a Postgres database. Passed to {@link PostgresDatabaseFixture}.</li>
+ * <li>Use the @{@link H2InMemoryTest} annotation for a custom H2 in-memory database.</li>
+ * <li>Each annotation has some common options as well as some custom ones. Common options:</li>
+ * <ul>
+ * <li>Use the `suppressMigrations` value on the annotations to prevent automatic db migration</li>
+ * <li>Use the `cleanDatabase` value on the annotations to force a new clean database to be provisioned</li>
+ * </ul>
  * </ul>
  * </p>
  */
@@ -110,9 +111,9 @@ public class DatabaseRule
    * Return the singleton {@link DatabaseRule}
    *
    * @param baseTestClassType Any class that uses this rule to manage a database, should pass in its class type here.
-   *                          The value is tracked between subsequent tests and when the value changes it is considered
-   *                          as making the currently active database NOT reusable and therefore a fresh database will
-   *                          be automatically be re-provisioned
+   *          The value is tracked between subsequent tests and when the value changes it is considered
+   *          as making the currently active database NOT reusable and therefore a fresh database will
+   *          be automatically be re-provisioned
    */
   public static DatabaseRule getInstance(Class<?> baseTestClassType) {
     if (currentTestClassType != baseTestClassType) {
@@ -279,6 +280,8 @@ public class DatabaseRule
 
   public enum DatabaseType
   {
-    H2_IN_MEMORY_DB, H2_DISK_DB, POSTGRES_DB
+    H2_IN_MEMORY_DB,
+    H2_DISK_DB,
+    POSTGRES_DB
   }
 }

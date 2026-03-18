@@ -92,9 +92,9 @@ public class ComponentIdentifierAdapter
 
   private static PackageUrlIdentifier getPackageUrlIdentifierFromPathnames(JsonNode pathnames) {
     if (pathnames != null && !pathnames.isEmpty()) {
-      //From CLM-19649, in case the CI in the bom.json does not have a purl/CI we use the pathname,
-      //Pathname with purl usually have the form dependency:/path/pkg:type\name@version
-      //We need to replace \ by / so it can be parsed correctly
+      // From CLM-19649, in case the CI in the bom.json does not have a purl/CI we use the pathname,
+      // Pathname with purl usually have the form dependency:/path/pkg:type\name@version
+      // We need to replace \ by / so it can be parsed correctly
       return parsePathToId(pathnames.get(0).asText().replace("\\", "/"));
     }
     return null;
@@ -136,7 +136,7 @@ public class ComponentIdentifierAdapter
 
   /**
    * Serializes a ComponentIdentifier to unformatted json string.
-   * 
+   *
    * @since 1.13.0
    */
   public static String toJson(ComponentIdentifier componentIdentifier) {
@@ -145,7 +145,7 @@ public class ComponentIdentifierAdapter
 
   /**
    * Serializes a map of component identifier coordinates to unformatted json string.
-   * 
+   *
    * @since 1.13.0
    */
   public static String toJson(Map<String, String> coordinates) {
@@ -197,7 +197,10 @@ public class ComponentIdentifierAdapter
   {
     try {
       final PackageURL packageURL = PackageURLBuilder.aPackageURL()
-          .withType(format).withName(name).withVersion(version).build();
+          .withType(format)
+          .withName(name)
+          .withVersion(version)
+          .build();
       return toComponentIdentifier(packageURL.canonicalize());
     }
     catch (MalformedPackageURLException e) {

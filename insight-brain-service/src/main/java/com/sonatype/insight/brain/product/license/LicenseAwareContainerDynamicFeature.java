@@ -87,7 +87,8 @@ public class LicenseAwareContainerDynamicFeature
     Method resourceMethod = resourceInfo.getResourceMethod();
     if (resourceMethod.isAnnotationPresent(UnlicensedPath.class) ||
         (resourceClass.isAnnotationPresent(UnlicensedPath.class) &&
-            !resourceMethod.isAnnotationPresent(ProductLicenseEnforcementPoint.class))) {
+            !resourceMethod.isAnnotationPresent(ProductLicenseEnforcementPoint.class)))
+    {
       return;
     }
 

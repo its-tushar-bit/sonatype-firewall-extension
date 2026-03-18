@@ -81,7 +81,7 @@ public class ApiComponentReleaseQuarantineService
 
   private final RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
 
-  private final PolicyDAO policyDAO ;
+  private final PolicyDAO policyDAO;
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
@@ -172,7 +172,8 @@ public class ApiComponentReleaseQuarantineService
 
       log.debug(
           "releaseQuarantineWithoutReEval: Released component with quarantineId {} from quarantine and waived {} " +
-              "repository policy violations.", quarantineId, repositoryPolicyViolations.size());
+              "repository policy violations.",
+          quarantineId, repositoryPolicyViolations.size());
       tx.commit();
       policyViolationLogger.log();
       AuditData.get().setData("componentPathname", repositoryComponent.getPathname());
@@ -195,7 +196,8 @@ public class ApiComponentReleaseQuarantineService
       TransactionContext tx,
       RepositoryPolicyViolation repositoryPolicyViolation,
       Date now,
-      String comment, Repository repository)
+      String comment,
+      Repository repository)
   {
     String componentPurl = PackageUrlIdentifier.toPackageUrl(repositoryPolicyViolation.getComponentIdentifier());
     PolicyWaiver policyWaiver =
@@ -229,10 +231,14 @@ public class ApiComponentReleaseQuarantineService
     ApiRepositoryComponentPolicyViolationDTO repositoryComponentPolicyViolationDTO =
         new ApiRepositoryComponentPolicyViolationDTO();
     repositoryComponentPolicyViolationDTO.component = buildRepositoryComponentDTO(repositoryComponent);
-    repositoryComponentPolicyViolationDTO.waivedPolicyViolations = repositoryPolicyViolations.stream().map(
-        policyViolation -> buildWaivedPolicyViolationDTO(policyViolation,
-            policyWaivers.stream().filter(waiver -> waiver.getHash().equals(policyViolation.getHash())).findFirst()
-                .get())).collect(Collectors.toList());
+    repositoryComponentPolicyViolationDTO.waivedPolicyViolations = repositoryPolicyViolations.stream()
+        .map(
+            policyViolation -> buildWaivedPolicyViolationDTO(policyViolation,
+                policyWaivers.stream()
+                    .filter(waiver -> waiver.getHash().equals(policyViolation.getHash()))
+                    .findFirst()
+                    .get()))
+        .collect(Collectors.toList());
 
     return repositoryComponentPolicyViolationDTO;
   }
@@ -288,14 +294,16 @@ public class ApiComponentReleaseQuarantineService
   }
 
   private void auditPolicyWaiver(PolicyWaiver policyWaiver, Repository repository) {
-    AuditData.get().setRepository(repository)
+    AuditData.get()
+        .setRepository(repository)
         .setData("policyWaiverId", policyWaiver.getId())
         .setPolicy(policyDAO.getByIdNotNull(policyWaiver.getPolicyId()))
         .setComment(policyWaiver.getComment())
         .setComponentHash(policyWaiver.getHash());
     if (policyWaiver.getConstraintFacts() != null) {
-      AuditData.get().setData("policyConstraints",
-          policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
+      AuditData.get()
+          .setData("policyConstraints",
+              policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
     }
   }
 }

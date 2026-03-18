@@ -9,7 +9,7 @@ import org.apache.shiro.aop.AnnotationHandler;
 
 /**
  * Supports {@link AuthzFilterMethodInterceptor} and only fulfills demands of the Shiro API.
- * 
+ *
  * @since 1.7
  */
 class AuthzFilterAnnotationHandler

@@ -969,9 +969,8 @@ public class ApplicationCloneServiceTest
     testProductLicense.setMaxApplications(2);
 
     appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName1", "clonedAppPublicId1");
-    assertThatExceptionOfType(PaymentRequiredException.class).isThrownBy(() ->
-        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName2", "clonedAppPublicId2")
-    );
+    assertThatExceptionOfType(PaymentRequiredException.class)
+        .isThrownBy(() -> appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName2", "clonedAppPublicId2"));
 
     assertThat(applicationDAO.getByPublicId("clonedAppPublicId1")).isNotNull();
     assertThat(applicationDAO.getByPublicId("clonedAppPublicId2")).isNull();

@@ -330,7 +330,7 @@ public class SastPullRequestCommentingService
       final URL baseUrlFormat = new URL(baseUrlString);
       return new URL(baseUrlFormat,
           String.format("assets/index.html#/application/%s/sastScan/%s", application.getPublicId(), sastScan.getId()))
-          .toString();
+              .toString();
     }
     catch (final MalformedURLException e) {
       // This should theoretically never be thrown because IQ does not allow you to set an invalid base URL

@@ -119,9 +119,10 @@ public class ApiAutoPolicyWaiverServiceTest
   @Test
   public void testAddAutoPolicyWaiver_InvalidOwnerType() {
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.REPOSITORY, "fakeRepoId", dto)).isInstanceOf(
-        IllegalStateException.class).hasMessage("Unknown owner type: repository");
+    assertThatThrownBy(() -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.REPOSITORY, "fakeRepoId", dto))
+        .isInstanceOf(
+            IllegalStateException.class)
+        .hasMessage("Unknown owner type: repository");
 
     verifyNoInteractions(telemetrySender);
   }
@@ -138,10 +139,11 @@ public class ApiAutoPolicyWaiverServiceTest
     dto.creatorName = "creatorName";
     dto.createTime = new Date();
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto)).isInstanceOf(
-            BadRequestException.class)
-        .hasMessage("Invalid threat level: " + dto.threatLevel + ". Value must be between 1 and 10.");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto))
+            .isInstanceOf(
+                BadRequestException.class)
+            .hasMessage("Invalid threat level: " + dto.threatLevel + ". Value must be between 1 and 10.");
 
     verifyNoInteractions(telemetrySender);
   }
@@ -158,10 +160,11 @@ public class ApiAutoPolicyWaiverServiceTest
     dto.creatorName = "creatorName";
     dto.createTime = new Date();
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto)).isInstanceOf(
-            BadRequestException.class)
-        .hasMessage("Invalid threat level: " + dto.threatLevel + ". Value must be between 1 and 10.");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto))
+            .isInstanceOf(
+                BadRequestException.class)
+            .hasMessage("Invalid threat level: " + dto.threatLevel + ". Value must be between 1 and 10.");
 
     verifyNoInteractions(telemetrySender);
   }
@@ -178,10 +181,11 @@ public class ApiAutoPolicyWaiverServiceTest
     dto.creatorName = "creatorName";
     dto.createTime = new Date();
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto)).isInstanceOf(
-            BadRequestException.class)
-        .hasMessage("Path forward and reachability cannot both be false");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto))
+            .isInstanceOf(
+                BadRequestException.class)
+            .hasMessage("Path forward and reachability cannot both be false");
 
     verifyNoInteractions(telemetrySender);
   }
@@ -198,10 +202,11 @@ public class ApiAutoPolicyWaiverServiceTest
     dto.creatorName = "creatorName";
     dto.createTime = new Date();
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto)).isInstanceOf(
-            BadRequestException.class)
-        .hasMessage("Path forward and reachability cannot both be false");
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto))
+            .isInstanceOf(
+                BadRequestException.class)
+            .hasMessage("Path forward and reachability cannot both be false");
 
     verifyNoInteractions(telemetrySender);
   }
@@ -266,9 +271,8 @@ public class ApiAutoPolicyWaiverServiceTest
 
   @Test
   public void testGetAutoPolicyWaiver_InvalidOwnerType() {
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.getAutoPolicyWaiver(OwnerType.REPOSITORY, "fakeRepoId",
-            "fakeWaiverId")).isInstanceOf(IllegalStateException.class).hasMessage("Unknown owner type: repository");
+    assertThatThrownBy(() -> apiAutoPolicyWaiverService.getAutoPolicyWaiver(OwnerType.REPOSITORY, "fakeRepoId",
+        "fakeWaiverId")).isInstanceOf(IllegalStateException.class).hasMessage("Unknown owner type: repository");
 
     verifyNoInteractions(telemetrySender);
   }
@@ -307,9 +311,8 @@ public class ApiAutoPolicyWaiverServiceTest
 
   @Test
   public void testDeleteAutoPolicyWaiver_InvalidOwnerType() {
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.deleteAutoPolicyWaiver(OwnerType.REPOSITORY, "fakeRepoId",
-            "fakeWaiverId")).isInstanceOf(IllegalStateException.class).hasMessage("Unknown owner type: repository");
+    assertThatThrownBy(() -> apiAutoPolicyWaiverService.deleteAutoPolicyWaiver(OwnerType.REPOSITORY, "fakeRepoId",
+        "fakeWaiverId")).isInstanceOf(IllegalStateException.class).hasMessage("Unknown owner type: repository");
 
     verifyNoInteractions(telemetrySender);
   }
@@ -323,9 +326,11 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThatThrownBy(
         () -> apiAutoPolicyWaiverService.deleteAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
             autoPolicyWaiver.getId())).isInstanceOf(
-        NotFoundException.class).hasMessage(
-        "Cannot find an auto policy waiver with ID " + autoPolicyWaiver.getId() + " for " + OwnerType.APPLICATION
-            + " with ID " + application.getId());
+                NotFoundException.class)
+                .hasMessage(
+                    "Cannot find an auto policy waiver with ID " + autoPolicyWaiver.getId() + " for "
+                        + OwnerType.APPLICATION
+                        + " with ID " + application.getId());
 
     verifyNoInteractions(telemetrySender);
   }
@@ -393,9 +398,10 @@ public class ApiAutoPolicyWaiverServiceTest
 
   @Test
   public void testGetAutoPolicyWaivers_InvalidOwnerType() {
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.REPOSITORY, "fakeRepoId")).isInstanceOf(
-        IllegalStateException.class).hasMessage("Unknown owner type: repository");
+    assertThatThrownBy(() -> apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.REPOSITORY, "fakeRepoId"))
+        .isInstanceOf(
+            IllegalStateException.class)
+        .hasMessage("Unknown owner type: repository");
 
     verifyNoInteractions(telemetrySender);
   }
@@ -453,10 +459,10 @@ public class ApiAutoPolicyWaiverServiceTest
     Organization organization = tempEntity.newOrganization();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(organization.getId());
     ApiAutoPolicyWaiverDTO dto = ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.REPOSITORY, "fakeRepoId", dto.autoPolicyWaiverId,
-            dto)).isInstanceOf(
-        IllegalStateException.class).hasMessage("Unknown owner type: repository");
+    assertThatThrownBy(() -> apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.REPOSITORY, "fakeRepoId",
+        dto.autoPolicyWaiverId,
+        dto)).isInstanceOf(
+            IllegalStateException.class).hasMessage("Unknown owner type: repository");
 
     verifyNoInteractions(telemetrySender);
   }
@@ -467,11 +473,11 @@ public class ApiAutoPolicyWaiverServiceTest
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
     ApiAutoPolicyWaiverDTO dto = ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
     dto.threatLevel = -10;
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
             dto.autoPolicyWaiverId, dto)).isInstanceOf(
-            BadRequestException.class)
-        .hasMessage("Invalid threat level: " + dto.threatLevel + ". Value must be between 1 and 10.");
+                BadRequestException.class)
+                .hasMessage("Invalid threat level: " + dto.threatLevel + ". Value must be between 1 and 10.");
 
     verifyNoInteractions(telemetrySender);
   }
@@ -482,11 +488,11 @@ public class ApiAutoPolicyWaiverServiceTest
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
     ApiAutoPolicyWaiverDTO dto = ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
     dto.threatLevel = 80;
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
             dto.autoPolicyWaiverId, dto)).isInstanceOf(
-            BadRequestException.class)
-        .hasMessage("Invalid threat level: " + dto.threatLevel + ". Value must be between 1 and 10.");
+                BadRequestException.class)
+                .hasMessage("Invalid threat level: " + dto.threatLevel + ". Value must be between 1 and 10.");
 
     verifyNoInteractions(telemetrySender);
   }
@@ -496,10 +502,10 @@ public class ApiAutoPolicyWaiverServiceTest
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
     ApiAutoPolicyWaiverDTO autoPolicyWaiverDTO = ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
             autoPolicyWaiverDTO.autoPolicyWaiverId, autoPolicyWaiverDTO)).isInstanceOf(BadRequestException.class)
-        .hasMessage("No changes made to auto policy waiver configuration");
+                .hasMessage("No changes made to auto policy waiver configuration");
 
     verifyNoInteractions(telemetrySender);
   }
@@ -509,10 +515,10 @@ public class ApiAutoPolicyWaiverServiceTest
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
     ApiAutoPolicyWaiverDTO autoPolicyWaiverDTO = ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
             "mismatchedId", autoPolicyWaiverDTO)).isInstanceOf(BadRequestException.class)
-        .hasMessage("Auto policy waiver ID in request path does not match request body");
+                .hasMessage("Auto policy waiver ID in request path does not match request body");
 
     verifyNoInteractions(telemetrySender);
   }
@@ -558,10 +564,10 @@ public class ApiAutoPolicyWaiverServiceTest
     dto.pathForward = autoPolicyWaiver.hasPathForward();
 
     assertThatThrownBy(
-        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(), dto)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Only one auto policy waiver is allowed for a given owner and scope " +
-            "(not reachable/no path forward combination)");
+        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Only one auto policy waiver is allowed for a given owner and scope " +
+                "(not reachable/no path forward combination)");
 
     assertThat(apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.APPLICATION, application.getId()))
         .hasSize(1);
@@ -570,10 +576,10 @@ public class ApiAutoPolicyWaiverServiceTest
     dto.threatLevel = 5;
 
     assertThatThrownBy(
-        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(), dto)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Only one auto policy waiver is allowed for a given owner and scope " +
-            "(not reachable/no path forward combination)");
+        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Only one auto policy waiver is allowed for a given owner and scope " +
+                "(not reachable/no path forward combination)");
 
     assertThat(apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.APPLICATION, application.getId()))
         .hasSize(1);
@@ -619,10 +625,10 @@ public class ApiAutoPolicyWaiverServiceTest
     dto.pathForward = autoPolicyWaiver.hasPathForward();
 
     assertThatThrownBy(
-        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Only one auto policy waiver is allowed for a given owner and scope " +
-            "(not reachable/no path forward combination)");
+        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Only one auto policy waiver is allowed for a given owner and scope " +
+                "(not reachable/no path forward combination)");
 
     assertThat(apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.ORGANIZATION, organization.getId()))
         .hasSize(1);
@@ -631,10 +637,10 @@ public class ApiAutoPolicyWaiverServiceTest
     dto.threatLevel = 5;
 
     assertThatThrownBy(
-        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Only one auto policy waiver is allowed for a given owner and scope " +
-            "(not reachable/no path forward combination)");
+        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Only one auto policy waiver is allowed for a given owner and scope " +
+                "(not reachable/no path forward combination)");
 
     assertThat(apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.ORGANIZATION, organization.getId()))
         .hasSize(1);
@@ -672,9 +678,10 @@ public class ApiAutoPolicyWaiverServiceTest
 
   @Test
   public void testGetAutoPolicyWaiverStatus_InvalidOwnerType() {
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.getAutoPolicyWaiverStatus(OwnerType.REPOSITORY, "fakeRepoId")).isInstanceOf(
-        IllegalStateException.class).hasMessage("Unknown owner type: repository");
+    assertThatThrownBy(() -> apiAutoPolicyWaiverService.getAutoPolicyWaiverStatus(OwnerType.REPOSITORY, "fakeRepoId"))
+        .isInstanceOf(
+            IllegalStateException.class)
+        .hasMessage("Unknown owner type: repository");
 
     verifyNoInteractions(telemetrySender);
   }
@@ -818,7 +825,7 @@ public class ApiAutoPolicyWaiverServiceTest
     violation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
 
     policyViolationDAO.update(violation);
-    //add exclusion with policy violation Id
+    // add exclusion with policy violation Id
     tempEntity.newAutoPolicyWaiverExclusion(
         ownerId,
         "creatorId",
@@ -835,8 +842,7 @@ public class ApiAutoPolicyWaiverServiceTest
         null,
         policy.getId(),
         identifier,
-        violation.getConstraintFacts()
-    );
+        violation.getConstraintFacts());
 
     ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
 
@@ -854,13 +860,13 @@ public class ApiAutoPolicyWaiverServiceTest
         ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
     String ownerId = newApp.getId();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(ownerId);
-    //different "hash" in the exclusion
+    // different "hash" in the exclusion
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "Diffhash");
     violation.setConstraintFacts(constraintFacts);
     violation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
 
     policyViolationDAO.update(violation);
-    //add exclusion with diff hash not, and violation id null
+    // add exclusion with diff hash not, and violation id null
     tempEntity.newAutoPolicyWaiverExclusion(
         ownerId,
         "creatorId",
@@ -877,8 +883,7 @@ public class ApiAutoPolicyWaiverServiceTest
         null,
         policy.getId(),
         identifier,
-        violation.getConstraintFacts()
-    );
+        violation.getConstraintFacts());
 
     ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
 
@@ -901,13 +906,13 @@ public class ApiAutoPolicyWaiverServiceTest
         ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
     String ownerId = newApp.getId();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(ownerId);
-    //same "hash" in the exclusion
+    // same "hash" in the exclusion
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "fakeHash");
     violation.setConstraintFacts(constraintFacts);
     violation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
 
     policyViolationDAO.update(violation);
-    //add exclusion with policy violation
+    // add exclusion with policy violation
     tempEntity.newAutoPolicyWaiverExclusion(
         ownerId,
         "creatorId",
@@ -924,15 +929,14 @@ public class ApiAutoPolicyWaiverServiceTest
         null,
         policy.getId(),
         identifier,
-        violation.getConstraintFacts()
-    );
+        violation.getConstraintFacts());
 
     ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
 
     assertThat(result).isNull();
   }
 
-  //DEFAULT
+  // DEFAULT
   @Test
   public void testGetApplicableAutoPolicyWaiver_DEFAULT() {
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
@@ -944,13 +948,13 @@ public class ApiAutoPolicyWaiverServiceTest
         ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
     String ownerId = newApp.getId();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(ownerId);
-    //same "hash" in the exclusion
+    // same "hash" in the exclusion
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "fakeHash");
     violation.setConstraintFacts(constraintFacts);
     violation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
 
     policyViolationDAO.update(violation);
-    //add exclusion with policy violation
+    // add exclusion with policy violation
     tempEntity.newAutoPolicyWaiverExclusion(
         ownerId,
         "creatorId",
@@ -967,14 +971,13 @@ public class ApiAutoPolicyWaiverServiceTest
         null,
         policy.getId(),
         identifier,
-        violation.getConstraintFacts()
-    );
+        violation.getConstraintFacts());
     ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
 
     assertThat(result).isNull();
   }
 
-  //ALL_VERSIONS AND EXACT With NO Violation
+  // ALL_VERSIONS AND EXACT With NO Violation
   @Test
   public void testGetApplicableAutoPolicyWaiver_NoViolationIdInExclusion() {
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
@@ -986,13 +989,13 @@ public class ApiAutoPolicyWaiverServiceTest
         ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
     String ownerId = newApp.getId();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(ownerId);
-    //same "hash" in the exclusion
+    // same "hash" in the exclusion
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "fakeHash");
     violation.setConstraintFacts(constraintFacts);
     violation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
 
     policyViolationDAO.update(violation);
-    //add exclusion with different version and NO policy violation
+    // add exclusion with different version and NO policy violation
     ComponentIdentifier diffVersionIdentifier =
         ComponentIdentifier.createMavenCoordinates("group", "artifact", "2.0", "c1", "jar");
     tempEntity.newAutoPolicyWaiverExclusion(
@@ -1011,8 +1014,7 @@ public class ApiAutoPolicyWaiverServiceTest
         null,
         policy.getId(),
         diffVersionIdentifier,
-        violation.getConstraintFacts()
-    );
+        violation.getConstraintFacts());
 
     ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
 
@@ -1023,7 +1025,7 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(result.creatorId).isEqualTo("fakeCreatorId");
     assertThat(result.creatorName).isEqualTo("fakeCreatorName");
 
-    //add exclusion with ALL VERSIONS and NO policy violation
+    // add exclusion with ALL VERSIONS and NO policy violation
     tempEntity.newAutoPolicyWaiverExclusion(
         ownerId,
         "creatorId",
@@ -1040,8 +1042,7 @@ public class ApiAutoPolicyWaiverServiceTest
         null,
         policy.getId(),
         diffVersionIdentifier,
-        violation.getConstraintFacts()
-    );
+        violation.getConstraintFacts());
 
     result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
 
@@ -1058,38 +1059,42 @@ public class ApiAutoPolicyWaiverServiceTest
     ApiAutoPolicyWaiverDTO dto = ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
 
     final String disabledAutoWaiversMessage = "Auto Policy Waivers feature is not enabled";
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(), dto)).isInstanceOf(
-        UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(), dto))
+            .isInstanceOf(
+                UnauthorizedException.class)
+            .hasMessage(disabledAutoWaiversMessage);
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.getAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
+    assertThatThrownBy(() -> apiAutoPolicyWaiverService.getAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
+        autoPolicyWaiver.getId())).isInstanceOf(UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
+
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.deleteAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
             autoPolicyWaiver.getId())).isInstanceOf(UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.deleteAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
-            autoPolicyWaiver.getId())).isInstanceOf(UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.APPLICATION, application.getId())).isInstanceOf(
+            UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.APPLICATION, application.getId())).isInstanceOf(
-        UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
-
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
             dto.autoPolicyWaiverId, dto))
-          .isInstanceOf(UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessage(disabledAutoWaiversMessage);
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.getAutoPolicyWaiverStatus(OwnerType.APPLICATION, application.getId())).isInstanceOf(
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.getAutoPolicyWaiverStatus(OwnerType.APPLICATION, application.getId()))
+            .isInstanceOf(
+                UnauthorizedException.class)
+            .hasMessage(disabledAutoWaiversMessage);
+
+    assertThatThrownBy(() -> apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver("fakeViolationId")).isInstanceOf(
         UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
 
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver("fakeViolationId")).isInstanceOf(
-        UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
-
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.APPLICATION, application.getId()))
-        .isInstanceOf(UnauthorizedException.class).hasMessage(disabledAutoWaiversMessage);
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.APPLICATION, application.getId()))
+            .isInstanceOf(UnauthorizedException.class)
+            .hasMessage(disabledAutoWaiversMessage);
 
     verifyNoInteractions(telemetrySender);
   }
@@ -1257,9 +1262,10 @@ public class ApiAutoPolicyWaiverServiceTest
 
   @Test
   public void testGetApplicableAutoWaivers_InvalidOwnerType() {
-    assertThatThrownBy(() ->
-        apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.REPOSITORY, "fakeRepoId")).isInstanceOf(
-        IllegalStateException.class).hasMessage("Unknown owner type: repository");
+    assertThatThrownBy(() -> apiAutoPolicyWaiverService.getApplicableAutoWaivers(OwnerType.REPOSITORY, "fakeRepoId"))
+        .isInstanceOf(
+            IllegalStateException.class)
+        .hasMessage("Unknown owner type: repository");
 
     verifyNoInteractions(telemetrySender);
   }

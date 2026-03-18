@@ -43,20 +43,20 @@ public class ActivePolicyViolationsWithActionFailServiceTest
     Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation =
-            tempEntity.newPolicyEvaluation(application.getId(), STAGE_ID, "scan-1");
+        tempEntity.newPolicyEvaluation(application.getId(), STAGE_ID, "scan-1");
 
     PolicyViolation openViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
     openViolation.setActionTypeId(Action.ID_FAIL);
     policyViolationDAO.update(openViolation);
 
     tempEntity.newWaivedPolicyViolation(policyEvaluation, policy,
-            tempEntity.newWaiver(policy.getId(), application.getId()));
+        tempEntity.newWaiver(policy.getId(), application.getId()));
 
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
     List<PolicyViolationWithoutConstraintFactsDTO> result =
-            activePolicyViolationsWithActionFailService.getActiveViolationsWithActionFail(
-                    application.getPublicId(), STAGE_ID);
+        activePolicyViolationsWithActionFailService.getActiveViolationsWithActionFail(
+            application.getPublicId(), STAGE_ID);
 
     assertThat(result).isNotNull();
     assertThat(result).hasSize(1);
@@ -68,7 +68,7 @@ public class ActivePolicyViolationsWithActionFailServiceTest
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       activePolicyViolationsWithActionFailService.getActiveViolationsWithActionFail(
-              "non-existent-application-id", STAGE_ID);
+          "non-existent-application-id", STAGE_ID);
     }).withMessage("Could not find an application with public ID non-existent-application-id.");
   }
 }

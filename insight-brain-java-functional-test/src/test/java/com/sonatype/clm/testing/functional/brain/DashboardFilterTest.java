@@ -158,14 +158,14 @@ public class DashboardFilterTest
     DateTime now = DateTime.now();
     Instant seeDate = Instant.now();
 
-    //first evaluation dated a week ago
+    // first evaluation dated a week ago
     PolicyEvaluation firstPolicyEvaluation = tempEntity
         .newPolicyEvaluation(firstApp.getId(), BuildStageType.ID, "DashboardTestFirstEvaluation",
             now.minusDays(7).toDate());
     tempEntity.newPolicyViolation(firstPolicyEvaluation, policy, 5, PolicyThreatCategory.LICENSE, "Group1", "Artifact1",
         "Version1", "hash", FailActionType.ID);
 
-    //same policy as first evaluation, but a different stage and earlier
+    // same policy as first evaluation, but a different stage and earlier
     PolicyEvaluation firstPolicyEvaluationSecondStage = tempEntity.newPolicyEvaluation(firstApp.getId(),
         StageReleaseStageType.ID, "DashboardTestFirstEvaluationSecondStage", now.minusDays(14).toDate());
     tempEntity.newPolicyViolation(firstPolicyEvaluationSecondStage, policy, 5, PolicyThreatCategory.LICENSE, "Group1",
@@ -183,7 +183,7 @@ public class DashboardFilterTest
     tempEntity.newPolicyViolation(forthPolicyEvaluation, policy, 1, PolicyThreatCategory.OTHER, "Group1",
         "Artifact1", "Version1");
 
-    //most recent evaluation
+    // most recent evaluation
     PolicyEvaluation secondPolicyEvaluation = tempEntity
         .newPolicyEvaluation(secondApp.getId(), ReleaseStageType.ID,
             "DashboardTestSecondEvaluation", now.minusDays(1).toDate());
@@ -261,8 +261,10 @@ public class DashboardFilterTest
     DashboardPage.waitUntilSpinnersGone();
     ageFilter.shouldBe(visible).shouldHave(text("past 30 days"));
     ageFilter.twisty().click();
-    ageFilter.singleSelectList().shouldHave(size(6)).shouldHave(
-        texts("past 24 hours", "past 7 days", "past 30 days", "past 90 days", "past 12 months", "all time"));
+    ageFilter.singleSelectList()
+        .shouldHave(size(6))
+        .shouldHave(
+            texts("past 24 hours", "past 7 days", "past 30 days", "past 90 days", "past 12 months", "all time"));
     ageFilter.past30days().shouldBe(selected);
     ageFilter.past90days().shouldNotBe(selected).click();
     ageFilter.past90days().shouldBe(selected);
@@ -402,8 +404,10 @@ public class DashboardFilterTest
     DashboardPage.waitUntilSpinnersGone();
     expirationDateFilter.shouldBe(visible).shouldHave(text("all"));
     expirationDateFilter.twisty().click();
-    expirationDateFilter.singleSelectList().shouldHave(size(8)).shouldHave(
-        texts("all", "auto", "in 24 hours", "in 7 days", "in 30 days", "in 90 days", "in over 90 days", "never"));
+    expirationDateFilter.singleSelectList()
+        .shouldHave(size(8))
+        .shouldHave(
+            texts("all", "auto", "in 24 hours", "in 7 days", "in 30 days", "in 90 days", "in over 90 days", "never"));
     expirationDateFilter.all().shouldBe(selected);
     expirationDateFilter.in24hours().shouldNotBe(selected).click();
     expirationDateFilter.in24hours().shouldBe(selected);
@@ -498,7 +502,7 @@ public class DashboardFilterTest
     DashboardPage.violationsView().results().mask().shouldBe(visible);
     DashboardPage.violationsView().results().lastViolation().shouldBe(visible);
 
-    // Ideally we would check here that the violation is not clickable.  There doesn't appear to be a way to do
+    // Ideally we would check here that the violation is not clickable. There doesn't appear to be a way to do
     // that however, at least not one that works in PhantomJS
 
     DashboardPage.componentsTab().click();
@@ -700,7 +704,10 @@ public class DashboardFilterTest
 
     DashboardPage.violationsTab().click();
     DashboardPage.violationsView().results().violations().shouldHave(size(1));
-    DashboardPage.violationsView().results().firstViolation().component()
+    DashboardPage.violationsView()
+        .results()
+        .firstViolation()
+        .component()
         .shouldHave(text("Group1 : Artifact1 : Version1"));
 
     DashboardPage.componentsTab().click();
@@ -820,7 +827,10 @@ public class DashboardFilterTest
     // verify no violations row shown
     DashboardPage.violationsView().results().violations().shouldHave(size(0));
     // verify no data message
-    DashboardPage.violationsView().results().noDataMessage().shouldBe(visible)
+    DashboardPage.violationsView()
+        .results()
+        .noDataMessage()
+        .shouldBe(visible)
         .shouldHave(text("No data available in the last 30 days given the applied filters and permissions."));
   }
 
@@ -1025,7 +1035,8 @@ public class DashboardFilterTest
     // delete filter button shouldn't close the filters dropdown
     manage.dropdownMenu().shouldBe(visible);
     eyesWatcher.eyesCheck();
-    deleteFilterDialog.shouldBe(visible).confirmation()
+    deleteFilterDialog.shouldBe(visible)
+        .confirmation()
         .shouldHave(exactText("You are about to delete \"Delete\" filter. This action can not be undone."));
     // document click while delete dialog is open shouldn't close the filters dropdown
     // Issue in ManageFiltersDropdown: dropdown closes when clicking Delete modal. See CLM-34681
@@ -1104,17 +1115,20 @@ public class DashboardFilterTest
 
     ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
     manage.selectedFilterLabel().shouldHave(exactText("Default"));
-    DashboardPage.needsAcknowledgementMessage().shouldBe(visible)
+    DashboardPage.needsAcknowledgementMessage()
+        .shouldBe(visible)
         .shouldHave(text(DashboardPage.NEEDS_ACKNOWLEDGEMENT_MESSAGE));
     DashboardPage.violationsView().results().violations().shouldHave(size(0));
 
     DashboardPage.componentsTab().click();
-    DashboardPage.needsAcknowledgementMessage().shouldBe(visible)
+    DashboardPage.needsAcknowledgementMessage()
+        .shouldBe(visible)
         .shouldHave(text(DashboardPage.NEEDS_ACKNOWLEDGEMENT_MESSAGE));
     DashboardPage.componentsView().results().components().shouldHave(size(0));
 
     DashboardPage.applicationsTab().click();
-    DashboardPage.needsAcknowledgementMessage().shouldBe(visible)
+    DashboardPage.needsAcknowledgementMessage()
+        .shouldBe(visible)
         .shouldHave(text(DashboardPage.NEEDS_ACKNOWLEDGEMENT_MESSAGE));
     DashboardPage.applicationsView().results().applications().shouldHave(size(0));
 
@@ -1208,30 +1222,30 @@ public class DashboardFilterTest
 
     assertThat(
         containsWaiverWithScope(allWaivers, firstApp))
-        .isTrue();
+            .isTrue();
 
     assertThat(
         containsWaiverWithScope(allWaivers, secondApp))
-        .as("When filtering waives for first application," +
-            "It should not contain waivers on second application.")
-        .isFalse();
+            .as("When filtering waives for first application," +
+                "It should not contain waivers on second application.")
+            .isFalse();
 
     // check for a different application
     DashboardFilters.applicationFilter().checkboxItem(2).click();
     DashboardFilters.applicationFilter().checkboxItem(3).click();
     DashboardFilters.apply();
     DashboardPage.waiversView().results().waivers().shouldHave(size(4));
-    
+
     assertThat(
         containsWaiverWithScope(allWaivers, secondApp))
-        .as("It should contain waivers on second application.")
-        .isTrue();
+            .as("It should contain waivers on second application.")
+            .isTrue();
 
     assertThat(
         containsWaiverWithScope(allWaivers, firstApp))
-        .as("When filtering waivers for second application, " +
-            "it should not contain waivers on first application.")
-        .isFalse();
+            .as("When filtering waivers for second application, " +
+                "it should not contain waivers on first application.")
+            .isFalse();
   }
 
   @Test
@@ -1289,8 +1303,8 @@ public class DashboardFilterTest
     List<WaiverTile> allWaivers = DashboardPage.waiversView().results().allWaivers();
     assertThat(
         containsWaiverWithScope(allWaivers, firstApp))
-        .as("It should not contain first app as it has been tagged")
-        .isFalse();
+            .as("It should not contain first app as it has been tagged")
+            .isFalse();
 
     assertThat(containsWaiverWithScope(allWaivers, secondApp))
         .as("It should contain second app as it has not been tagged")
@@ -1317,18 +1331,18 @@ public class DashboardFilterTest
     List<WaiverTile> allWaivers = DashboardPage.waiversView().results().allWaivers();
     assertThat(
         containsWaiverWithScope(allWaivers, firstApp))
-        .as("It should contain first app as it has been tagged by selected category")
-        .isTrue();
+            .as("It should contain first app as it has been tagged by selected category")
+            .isTrue();
 
     assertThat(
         containsWaiverWithScope(allWaivers, rootOrg))
-        .as("It should contain root org as it is the parent")
-        .isTrue();
+            .as("It should contain root org as it is the parent")
+            .isTrue();
 
     assertThat(
         containsWaiverWithScope(allWaivers, org))
-        .as("It should contain org as it is the parent")
-        .isTrue();
+            .as("It should contain org as it is the parent")
+            .isTrue();
 
     assertThat(containsWaiverWithScope(allWaivers, secondApp))
         .as("It should not contain second app as it has not been tagged by selected category")
@@ -1627,8 +1641,10 @@ public class DashboardFilterTest
       if (useVisualTesting) {
         eyesWatcher.eyesCheck("Save filter confirmation");
       }
-      saveDialog.confirmation().shouldBe(visible).shouldHave(text("\"" + filterName + "\" is already in use."
-          + " Continuing will permanently overwrite \"" + filterName + "\". This action cannot be undone."));
+      saveDialog.confirmation()
+          .shouldBe(visible)
+          .shouldHave(text("\"" + filterName + "\" is already in use."
+              + " Continuing will permanently overwrite \"" + filterName + "\". This action cannot be undone."));
 
       // test cancel
       saveDialog.cancelButton().shouldHave(text("Cancel")).click();
@@ -1671,8 +1687,10 @@ public class DashboardFilterTest
     saveDialog.saveButton().shouldNotBe(DISABLED).click();
 
     saveDialog.header().shouldHave(text("Overwrite Filter"));
-    saveDialog.confirmation().shouldBe(visible).shouldHave(
-        text("You are about to permanently overwrite " + currentFilterName + ". This action cannot be undone."));
+    saveDialog.confirmation()
+        .shouldBe(visible)
+        .shouldHave(
+            text("You are about to permanently overwrite " + currentFilterName + ". This action cannot be undone."));
 
     // test cancel
     saveDialog.cancelButton().shouldHave(text("Cancel")).click();
@@ -1820,7 +1838,9 @@ public class DashboardFilterTest
   }
 
   private void assertNewCounterState() {
-    DashboardFilters.applicationFilter().counter().shouldHave(cssClass("nx-counter--active"))
+    DashboardFilters.applicationFilter()
+        .counter()
+        .shouldHave(cssClass("nx-counter--active"))
         .shouldHave(text("1 of 7"));
     DashboardFilters.applicationCategoryFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 3"));
     DashboardFilters.stageFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 5"));

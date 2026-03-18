@@ -127,12 +127,16 @@ public class PolicyWaiverComponentPurlMigrator
     }
 
     if (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) || (OwnerType.ORGANIZATION.equals(ownerType) &&
-        Organization.ROOT_ORGANIZATION_ID.equals(policyWaiver.getOwnerId()))) {
+        Organization.ROOT_ORGANIZATION_ID.equals(policyWaiver.getOwnerId())))
+    {
       Function<Owner, ComponentIdentifier> findPossibleRepositoryComponentForRepositoryOrNull =
           owner -> getRepositoryComponentIdentifierForOwner(policyWaiver, owner.getId());
-      ComponentIdentifier repositoryComponentIdentifier = repositoryDAO.getAll().stream()
+      ComponentIdentifier repositoryComponentIdentifier = repositoryDAO.getAll()
+          .stream()
           .map(findPossibleRepositoryComponentForRepositoryOrNull)
-          .filter(Objects::nonNull).findAny().orElse(null);
+          .filter(Objects::nonNull)
+          .findAny()
+          .orElse(null);
       return PackageUrlIdentifier.toPackageUrl(repositoryComponentIdentifier);
     }
 
@@ -143,7 +147,11 @@ public class PolicyWaiverComponentPurlMigrator
       final PolicyWaiver policyWaiver,
       final String ownerId)
   {
-    return repositoryComponentDAO.getByRepositoryIdAndHash(ownerId, policyWaiver.getHash()).stream()
-        .map(HasComponentId::getComponentIdentifier).filter(Objects::nonNull).findAny().orElse(null);
+    return repositoryComponentDAO.getByRepositoryIdAndHash(ownerId, policyWaiver.getHash())
+        .stream()
+        .map(HasComponentId::getComponentIdentifier)
+        .filter(Objects::nonNull)
+        .findAny()
+        .orElse(null);
   }
 }

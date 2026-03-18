@@ -94,8 +94,15 @@ public class LabelConditionTypeTest
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LabelConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
 
     assertThat(actualReason).isEqualTo("Found label 'Good'");
   }
@@ -142,12 +149,26 @@ public class LabelConditionTypeTest
     assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, LabelConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason1 = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason1 = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason1).isEqualTo("Did not find label 'Good'");
 
-    String actualReason2 = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason2 = policyAlerts.get(1)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason2).isEqualTo("Did not find label 'Good'");
   }
 
@@ -190,8 +211,15 @@ public class LabelConditionTypeTest
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LabelConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
 
     assertThat(actualReason).isEqualTo("Found label 'Good'");
   }
@@ -200,7 +228,8 @@ public class LabelConditionTypeTest
   public void testValidateCondition_InvalidLabelId() {
     Condition condition = new Condition(LabelConditionType.ID, "is", "abc");
     assertThatThrownBy(() -> ConditionTypes.LabelConditionType.validateCondition(null, condition, applicationId))
-        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Invalid label id: abc");
+        .isInstanceOf(InvalidConditionException.class)
+        .hasMessageEndingWith("Invalid label id: abc");
   }
 
   @Test
@@ -252,8 +281,15 @@ public class LabelConditionTypeTest
     assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, LabelConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
 
     assertThat(actualReason).isEqualTo("Found label 'Good'");
   }

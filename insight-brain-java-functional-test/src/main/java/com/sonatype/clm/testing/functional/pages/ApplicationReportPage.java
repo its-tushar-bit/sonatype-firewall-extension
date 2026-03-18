@@ -150,13 +150,13 @@ public class ApplicationReportPage
   }
 
   public ElementsCollection rowsWithDependencyInfo() {
-    return children(ROW_SELECTOR).filter(new WebElementCondition("hasDependencyIndicator") {
+    return children(ROW_SELECTOR).filter(new WebElementCondition("hasDependencyIndicator")
+    {
       @Override
       public CheckResult check(Driver driver, WebElement webElement) {
         return new CheckResult(
             !webElement.findElements(By.cssSelector(DEPENDENCY_INDICATOR_SELECTOR)).isEmpty(),
-            webElement
-        );
+            webElement);
       }
     });
   }

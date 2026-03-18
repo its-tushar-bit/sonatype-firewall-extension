@@ -50,14 +50,18 @@ public class PersistedUserSessionDAOTest
 
     // Read
     assertThat(persistedUserSessionDAO.getById(persistedUserSession.getId())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).ignoringCollectionOrder().isEqualTo(persistedUserSession);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .ignoringCollectionOrder()
+        .isEqualTo(persistedUserSession);
 
     // Update
     session.setAttribute("key3", "value3");
     persistedUserSession.setSession(session);
     persistedUserSessionDAO.update(persistedUserSession);
     assertThat(persistedUserSessionDAO.getById(persistedUserSession.getId())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).ignoringCollectionOrder().isEqualTo(persistedUserSession);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .ignoringCollectionOrder()
+        .isEqualTo(persistedUserSession);
 
     // Delete
     persistedUserSessionDAO.delete(persistedUserSession);

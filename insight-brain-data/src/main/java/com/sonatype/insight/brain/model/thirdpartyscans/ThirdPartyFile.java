@@ -20,7 +20,7 @@ public class ThirdPartyFile
     implements HasStringId
 {
   public ThirdPartyFile() {
-    //noop
+    // noop
   }
 
   public ThirdPartyFile(String filename, Date created) {

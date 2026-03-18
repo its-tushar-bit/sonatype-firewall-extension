@@ -70,16 +70,17 @@ public class TagService
   private final IdUtils idUtils;
 
   @Inject
-  public TagService(ApplicationService applicationService,
-                    ApplicationTagDAO applicationTagDAO,
-                    TagDAO tagDAO,
-                    OwnerDAO ownerDAO,
-                    PolicyTagDAO policyTagDAO,
-                    ApplicationDAO applicationDAO,
-                    OrganizationDAO organizationDAO,
-                    PolicyDAO policyDAO,
-                    ManagementEventService managementEventService,
-                    final IdUtils idUtils)
+  public TagService(
+      ApplicationService applicationService,
+      ApplicationTagDAO applicationTagDAO,
+      TagDAO tagDAO,
+      OwnerDAO ownerDAO,
+      PolicyTagDAO policyTagDAO,
+      ApplicationDAO applicationDAO,
+      OrganizationDAO organizationDAO,
+      PolicyDAO policyDAO,
+      ManagementEventService managementEventService,
+      final IdUtils idUtils)
   {
     this.applicationService = applicationService;
     this.applicationTagDAO = applicationTagDAO;
@@ -94,8 +95,11 @@ public class TagService
   }
 
   public List<ApiApplicationCategoryDTO> getTagsUsedByApplications() {
-    List<String> applicationIds = applicationService.getApplications().stream().map(Application::getId).collect(
-        Collectors.toList());
+    List<String> applicationIds = applicationService.getApplications()
+        .stream()
+        .map(Application::getId)
+        .collect(
+            Collectors.toList());
     List<Tag> tags = tagDAO.getByApplicationIds(applicationIds);
     return tags.stream().map(TagService::toDTO).collect(Collectors.toList());
   }
@@ -226,9 +230,10 @@ public class TagService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<Tag> getPolicyTags(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-                                 @AuthzContext(AuthzContext.Key.ID) String ownerId,
-                                 String policyId)
+  public List<Tag> getPolicyTags(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      String policyId)
   {
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     assertInHierarchy(internalOwnerId, policyDAO.getById(policyId));
@@ -237,10 +242,11 @@ public class TagService
   }
 
   @Authorize(permission = Permission.WRITE)
-  List<Tag> updatePolicyTags(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-                             @AuthzContext(AuthzContext.Key.ID) String ownerId,
-                             String policyId,
-                             final List<Tag> newTags)
+  List<Tag> updatePolicyTags(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      String policyId,
+      final List<Tag> newTags)
   {
     String internalId = idUtils.getInternalOwnerId(ownerType, ownerId);
     Policy policy = policyDAO.getByIdNotNull(policyId);
@@ -323,7 +329,9 @@ public class TagService
   }
 
   private void auditApplicationCategory(Tag tag) {
-    AuditData.get().setData("applicationCategoryId", tag.getId()).setData("applicationCategoryName", tag.getName())
+    AuditData.get()
+        .setData("applicationCategoryId", tag.getId())
+        .setData("applicationCategoryName", tag.getName())
         .setData("applicationCategoryDescription", tag.getDescription())
         .setEnum("applicationCategoryColor", tag.getColor());
   }

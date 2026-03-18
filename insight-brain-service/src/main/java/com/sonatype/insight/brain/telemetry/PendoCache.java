@@ -28,10 +28,12 @@ import org.slf4j.LoggerFactory;
 /**
  * @since 1.50
  *
- * Caches frontend telemetry files so that they do not need to be re-fetched on every page load. This cache
- * is local to the node as there isn't really a need for it to be perfectly synchronized across nodes, and putting
- * it on the filesystem contributes to performance problems as well as defeating the point of caching, when the FS
- * is a networked FS mount as it would be in a clustered environment.
+ *        Caches frontend telemetry files so that they do not need to be re-fetched on every page load. This cache
+ *        is local to the node as there isn't really a need for it to be perfectly synchronized across nodes, and
+ *        putting
+ *        it on the filesystem contributes to performance problems as well as defeating the point of caching, when the
+ *        FS
+ *        is a networked FS mount as it would be in a clustered environment.
  */
 @Named
 @Singleton

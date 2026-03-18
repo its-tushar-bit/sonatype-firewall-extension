@@ -78,7 +78,9 @@ public abstract class AbstractLTGEditorTest
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(currentOwner.getId(), "original name", 1);
     refresh();
 
-    OwnerSummaryPage.licenseThreatGroupSummaryTile().getLocalLTGSection().getSectionContentRows()
+    OwnerSummaryPage.licenseThreatGroupSummaryTile()
+        .getLocalLTGSection()
+        .getSectionContentRows()
         .shouldHave(size(1));
     OwnerSummaryPage.licenseThreatGroupSummaryTile().getLocalLTGSection().getLTG(ltg.getName()).click();
 
@@ -139,7 +141,9 @@ public abstract class AbstractLTGEditorTest
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(currentOwner.getId(), "original name", 1);
     refresh();
 
-    OwnerSummaryPage.licenseThreatGroupSummaryTile().getLocalLTGSection().getSectionContentRows()
+    OwnerSummaryPage.licenseThreatGroupSummaryTile()
+        .getLocalLTGSection()
+        .getSectionContentRows()
         .shouldHave(size(1));
     OwnerSummaryPage.licenseThreatGroupSummaryTile().getLocalLTGSection().getLTG(ltg.getName()).click();
 
@@ -175,8 +179,9 @@ public abstract class AbstractLTGEditorTest
 
     deleteModal.shouldBe(visible);
     deleteModal.header().shouldHave(text("Delete License Threat Group"));
-    deleteModal.alertContent().shouldHave(text("You are about to permanently remove " + ltg.getName() +
-        ". This action cannot be undone."));
+    deleteModal.alertContent()
+        .shouldHave(text("You are about to permanently remove " + ltg.getName() +
+            ". This action cannot be undone."));
 
     deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();

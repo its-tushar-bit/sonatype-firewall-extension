@@ -99,7 +99,8 @@ public class ApiApplicationService
 
     List<String> applicationIds = applications.stream().map(Application::getId).collect(Collectors.toList());
     Map<String, List<ApplicationTag>> applicationTagsByAppId = applicationTagDAO.getByApplicationIds(applicationIds)
-        .stream().collect(Collectors.groupingBy(ApplicationTag::getApplicationId));
+        .stream()
+        .collect(Collectors.groupingBy(ApplicationTag::getApplicationId));
 
     for (Application application : applications) {
       ApiApplicationDTO apiApplicationDTO =
@@ -122,7 +123,8 @@ public class ApiApplicationService
     List<Application> applications = applicationDAO.getByOrganizationId(organizationId);
     List<String> applicationIds = applications.stream().map(Application::getId).collect(Collectors.toList());
     Map<String, List<ApplicationTag>> applicationTagsByAppId = applicationTagDAO.getByApplicationIds(applicationIds)
-        .stream().collect(Collectors.groupingBy(ApplicationTag::getApplicationId));
+        .stream()
+        .collect(Collectors.groupingBy(ApplicationTag::getApplicationId));
     apiApplicationListDTO.applications = applications.stream()
         .map(app -> ApiApplicationAdapter.convertToDTO(app, applicationTagsByAppId.get(app.getId())))
         .collect(Collectors.toList());
@@ -169,22 +171,24 @@ public class ApiApplicationService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void deleteApplication(@AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId)
-      throws IOException
+  public void deleteApplication(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId) throws IOException
   {
     applicationHelper.deleteApplicationById(applicationId);
   }
 
   @Authorize(permission = Permission.ADD_APPLICATION)
-  Application addApplication(final TransactionContext tx,
-                             @AuthzContext(AuthzContext.Key.APPLICATION_OWNER) final Application application)
+  Application addApplication(
+      final TransactionContext tx,
+      @AuthzContext(AuthzContext.Key.APPLICATION_OWNER) final Application application)
   {
     return applicationHelper.addApplication(tx, application);
   }
 
   @Authorize(permission = Permission.WRITE)
-  Application updateApplication(final TransactionContext tx,
-                                @AuthzContext(AuthzContext.Key.APPLICATION) final Application application)
+  Application updateApplication(
+      final TransactionContext tx,
+      @AuthzContext(AuthzContext.Key.APPLICATION) final Application application)
   {
     applicationDAO.update(tx, application);
     ownerMaintenanceTelemetryCreator.sendOwnerMaintenanceTelemetry(application,
@@ -212,9 +216,10 @@ public class ApiApplicationService
     return applications;
   }
 
-  private void addTags(final TransactionContext tx,
-                       final List<ApplicationTag> applicationTags,
-                       Application application)
+  private void addTags(
+      final TransactionContext tx,
+      final List<ApplicationTag> applicationTags,
+      Application application)
   {
     List<Tag> tags = new ArrayList<>();
     for (ApplicationTag applicationTag : applicationTags) {
@@ -227,22 +232,26 @@ public class ApiApplicationService
     auditConfigureApplicationCategory(tags, application, false);
   }
 
-  private void auditConfigureApplicationCategory(final List<Tag> tags,
-                                                 final Application application,
-                                                 final boolean auditEmptyCategories)
+  private void auditConfigureApplicationCategory(
+      final List<Tag> tags,
+      final Application application,
+      final boolean auditEmptyCategories)
   {
     if (auditEmptyCategories || !tags.isEmpty()) {
       try (AuditSession auditSession = AuditData.get()
-          .recordSubEvent(AuditEvent.CONFIGURE_APPLICATION_CATEGORY, false)) {
-        AuditData.get().setApplication(application)
+          .recordSubEvent(AuditEvent.CONFIGURE_APPLICATION_CATEGORY, false))
+      {
+        AuditData.get()
+            .setApplication(application)
             .setApplicationCategories(ApplicationCategoryAuditDTO.transcribe(tags));
       }
     }
   }
 
-  private void updateTags(final TransactionContext tx,
-                          final Application application,
-                          final List<ApplicationTag> applicationTags)
+  private void updateTags(
+      final TransactionContext tx,
+      final Application application,
+      final List<ApplicationTag> applicationTags)
   {
     // Delete existing tags
     for (ApplicationTag applicationTag : applicationTagDAO.getByApplicationId(tx, application.getId())) {
@@ -266,7 +275,7 @@ public class ApiApplicationService
     List<Application> applications = getApplicationsWithReadPermission(publicIdsFilter);
     List<String> applicationIds = applications.stream().map(Application::getId).collect(Collectors.toList());
     List<ApplicationTag> appTags = applicationTagDAO.getByApplicationIds(applicationIds);
-    Map<String, List<ApplicationTag>> applicationTagsByAppId = 
+    Map<String, List<ApplicationTag>> applicationTagsByAppId =
         appTags.stream().collect(Collectors.groupingBy(ApplicationTag::getApplicationId));
     List<Tag> tags =
         tagDAO.getByIds(appTags.stream().map(ApplicationTag::getTagId).distinct().collect(Collectors.toList()));

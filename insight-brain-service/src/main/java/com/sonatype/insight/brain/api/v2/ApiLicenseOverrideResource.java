@@ -70,41 +70,36 @@ public class ApiLicenseOverrideResource
       "\n" +
       "Permissions required: Change Licenses",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains the same license override information that was" +
-                  " added.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains the same license override information that was" +
+                " added.",
+            useReturnTypeSchema = true)
+      })
   public ApiLicenseOverrideDTO addLicenseOverride(
       @Parameter(description = "Select the `ownerType` scope for which you want to add or " +
           "update a license override",
-          required =
-              true)
-      @PathParam("ownerType") final OwnerType ownerType,
-      @Parameter(description = "Enter the id of the application, organization or the repository.", required = true)
-      @PathParam("ownerId") final String ownerId,
+          required = true) @PathParam("ownerType") final OwnerType ownerType,
+      @Parameter(description = "Enter the id of the application, organization or the repository.",
+          required = true) @PathParam("ownerId") final String ownerId,
       @QueryParam("where") String where,
       @RequestBody(
-          description =
-              "Enter the license override details to add or update a license override for a " +
-                  "component." +
-                  "\n" +
-                  "The request body should contain the following fields:" +
-                  "\n" +
-                  " - `ownerId`: Enter the id of the application, organization or the repository." +
-                  "\n" +
-                  " - `comment`: Enter a comment for the license override." +
-                  "\n" +
-                  " - `licenseIds`: Enter the license ids for the license override." +
-                  "\n" +
-                  " - `componentIdentifier`: Enter the componentIdentifier consisting of format and " +
-                  "coordinates." +
-                  "\n" +
-                  " - `status`: Enter the status of the license override. The possible values are " +
-                  "`OPEN`, `ACKNOWLEDGED`, `OVERRIDDEN`, `SELECTED`, and `CONFIRMED`.",
+          description = "Enter the license override details to add or update a license override for a " +
+              "component." +
+              "\n" +
+              "The request body should contain the following fields:" +
+              "\n" +
+              " - `ownerId`: Enter the id of the application, organization or the repository." +
+              "\n" +
+              " - `comment`: Enter a comment for the license override." +
+              "\n" +
+              " - `licenseIds`: Enter the license ids for the license override." +
+              "\n" +
+              " - `componentIdentifier`: Enter the componentIdentifier consisting of format and " +
+              "coordinates." +
+              "\n" +
+              " - `status`: Enter the status of the license override. The possible values are " +
+              "`OPEN`, `ACKNOWLEDGED`, `OVERRIDDEN`, `SELECTED`, and `CONFIRMED`.",
           required = true) final ApiLicenseOverrideDTO licenseOverrideDTO,
       @Context final HttpServletRequest request) throws IOException
   {
@@ -123,22 +118,18 @@ public class ApiLicenseOverrideResource
       "\n" +
       "Permissions required: Change Licenses",
       responses = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "The license override was deleted successfully."
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "204",
+            description = "The license override was deleted successfully.")
+      })
   public void deleteLicenseOverride(
       @Parameter(description = "Select the `ownerType` scope for which you want to delete license" +
           " override",
-          required = true)
-      @PathParam("ownerType") final OwnerType ownerType,
-      @Parameter(description = "Enter the id of the application, organization or the repository.", required = true)
-      @PathParam("ownerId") final String ownerId,
+          required = true) @PathParam("ownerType") final OwnerType ownerType,
+      @Parameter(description = "Enter the id of the application, organization or the repository.",
+          required = true) @PathParam("ownerId") final String ownerId,
       @Parameter(description = "Enter the id of the license override you want to delete.",
-          required = true)
-      @PathParam("licenseOverrideId") final String licenseOverrideId,
+          required = true) @PathParam("licenseOverrideId") final String licenseOverrideId,
       @QueryParam("where") String where,
       @Context final HttpServletRequest request) throws IOException
   {
@@ -155,24 +146,19 @@ public class ApiLicenseOverrideResource
           "\n" +
           "Permissions required: Review Legal Obligations For Components Licenses",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Successfully retrieved the applied license overrides.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successfully retrieved the applied license overrides.",
+            useReturnTypeSchema = true)
+      })
   public ApiAppliedLicenseOverridesDTO getAppliedLicenseOverridesForLegalReviewer(
       @Parameter(description = "Select the `ownerType` for which you want to retrieve the applied " +
           "license overrides.",
-          required = true)
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the id of the owner.", required = true)
-      @PathParam("ownerId") String ownerId,
+          required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the id of the owner.", required = true) @PathParam("ownerId") String ownerId,
       @Parameter(name = "componentIdentifier",
           description = "Enter the component format and coordinates.",
-          required = true)
-      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
+          required = true) @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
     return licenseOverrideService.getAppliedLicenseOverridesForLegalReviewer(ownerType, ownerId,
         componentIdentifier).toDto();
@@ -186,26 +172,22 @@ public class ApiLicenseOverrideResource
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains the license overrides for the component.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains the license overrides for the component.",
+            useReturnTypeSchema = true)
+      })
   public ApiAppliedLicenseOverridesDTO getAppliedLicenseOverrides(
       @Parameter(description = "Select the `ownerType` for which you want to retrieve the applied " +
           "license overrides.",
-          required = true)
-      @PathParam("ownerType") final OwnerType ownerType,
-      @Parameter(description = "Enter the id of the application, organization or the repository.", required = true)
-      @PathParam("ownerId") final String ownerId,
+          required = true) @PathParam("ownerType") final OwnerType ownerType,
+      @Parameter(description = "Enter the id of the application, organization or the repository.",
+          required = true) @PathParam("ownerId") final String ownerId,
       @Parameter(name = "componentIdentifier",
           description = "Enter the componentIdentifier consisting of format and " +
               "coordinates as a JSON " +
               "e.g., `?componentIdentifier={\"format\":\"maven\",\"coordinates\":\"{...}}\"}",
-          required = true)
-      @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier)
+          required = true) @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier)
   {
     return licenseOverrideService.getAppliedLicenseOverridesForRead(ownerType, ownerId,
         componentIdentifier).toDto();

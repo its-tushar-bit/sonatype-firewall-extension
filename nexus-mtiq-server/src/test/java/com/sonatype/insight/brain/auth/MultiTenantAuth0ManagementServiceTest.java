@@ -163,8 +163,8 @@ public class MultiTenantAuth0ManagementServiceTest
     assertThatThrownBy(
         () -> underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME,
             APPLICATION_ID, CONNECTION_ID, ORGANIZATION_ID))
-        .isInstanceOf(RuntimeException.class)
-        .hasMessageContaining("Password reset failed");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Password reset failed");
 
     verify(authApi).requestToken(any());
     verify(managementApi).createOrGetUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME);

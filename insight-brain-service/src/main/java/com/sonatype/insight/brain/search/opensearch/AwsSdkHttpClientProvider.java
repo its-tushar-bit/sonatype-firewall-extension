@@ -35,9 +35,9 @@ import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
  * <p>
  * The HTTP client is configured with connection pool settings from the {@link AwsHttpOpenSearchConfig}:
  * <ul>
- *   <li>maxConcurrency - Maximum concurrent requests (default: 50)</li>
- *   <li>connectionTimeout - Connection timeout duration (default: 30 seconds)</li>
- *   <li>connectionAcquisitionTimeout - Timeout for acquiring connection from pool (default: 10 seconds)</li>
+ * <li>maxConcurrency - Maximum concurrent requests (default: 50)</li>
+ * <li>connectionTimeout - Connection timeout duration (default: 30 seconds)</li>
+ * <li>connectionAcquisitionTimeout - Timeout for acquiring connection from pool (default: 10 seconds)</li>
  * </ul>
  * <p>
  * Note: This provider is explicitly bound by SearchModule and should not be auto-discovered by Sisu.

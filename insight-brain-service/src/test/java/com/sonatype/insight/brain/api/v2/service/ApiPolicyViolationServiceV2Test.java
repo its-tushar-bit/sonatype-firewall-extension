@@ -104,16 +104,16 @@ public class ApiPolicyViolationServiceV2Test
   @Test
   public void testGetPolicyViolations_MalformedAfterDate() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> apiPolicyViolationService.getPolicyViolations(Collections.emptySet(), "invalid-date", null,
-                Collections.emptySet()))
+        () -> apiPolicyViolationService.getPolicyViolations(Collections.emptySet(), "invalid-date", null,
+            Collections.emptySet()))
         .withMessageContaining("Provided value for openTimeAfter is not a valid date.");
   }
 
   @Test
   public void testGetPolicyViolations_MalformedBeforeDate() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> apiPolicyViolationService.getPolicyViolations(Collections.emptySet(), null, "invalid-date",
-                Collections.emptySet()))
+        () -> apiPolicyViolationService.getPolicyViolations(Collections.emptySet(), null, "invalid-date",
+            Collections.emptySet()))
         .withMessageContaining("Provided value for openTimeBefore is not a valid date.");
   }
 
@@ -302,8 +302,9 @@ public class ApiPolicyViolationServiceV2Test
     ApiPolicyViolationServiceV2 spyService = spy(apiPolicyViolationService);
     ArgumentCaptor<List<PolicyEvaluation>> captor = ArgumentCaptor.forClass(List.class);
 
-    doReturn(null).when(spyService).getTransitivePolicyViolationsByComponent(eq(BuildStageType.ID), eq(component),
-        eq(packageUrl), eq("hash"), captor.capture());
+    doReturn(null).when(spyService)
+        .getTransitivePolicyViolationsByComponent(eq(BuildStageType.ID), eq(component),
+            eq(packageUrl), eq("hash"), captor.capture());
 
     spyService.getTransitivePolicyViolationsForLastEvaluation(application.getId(), scanId, component, packageUrl,
         "hash");
@@ -414,7 +415,7 @@ public class ApiPolicyViolationServiceV2Test
             null, "pkg:maven/g/other@v?type=e", null))
         .withMessageContaining("scanId can only be specified for an application.");
   }
-  
+
   @Test
   public void testGetTransitivePolicyViolationsByAppScanComponent_Application_ScanId_NotFound() {
     Application app = tempEntity.newApplicationWithParent();
@@ -428,7 +429,7 @@ public class ApiPolicyViolationServiceV2Test
   @Test
   public void testGetTransitivePolicyViolationsByAppScanComponent_Application() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
-    
+
     String oldScanId = "oldScanId";
     PolicyEvaluation oldPolicyEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, oldScanId);
@@ -474,11 +475,12 @@ public class ApiPolicyViolationServiceV2Test
     Component expectedTransitiveComponent22 = new Component();
     expectedTransitiveComponent22.setHash("hash222");
     expectedTransitiveComponent22.setDisplayName("g : transitive22 : v");
-    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator().containsExactly(
-        ApiStagePolicyViolationComponentDTO
-            .fromPolicyViolationAndComponent(Pair.of(transitive2PolicyViolation, expectedTransitiveComponent2)),
-        ApiStagePolicyViolationComponentDTO
-            .fromPolicyViolationAndComponent(Pair.of(transitive22PolicyViolation, expectedTransitiveComponent22)));
+    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(
+            ApiStagePolicyViolationComponentDTO
+                .fromPolicyViolationAndComponent(Pair.of(transitive2PolicyViolation, expectedTransitiveComponent2)),
+            ApiStagePolicyViolationComponentDTO
+                .fromPolicyViolationAndComponent(Pair.of(transitive22PolicyViolation, expectedTransitiveComponent22)));
 
     result = apiPolicyViolationService.getTransitivePolicyViolationsByAppScanComponent(OwnerType.APPLICATION,
         application.getId(), newScanId, null, null, "hash2");
@@ -492,9 +494,10 @@ public class ApiPolicyViolationServiceV2Test
     Component expectedTransitiveComponent1 = new Component();
     expectedTransitiveComponent1.setHash("hash21");
     expectedTransitiveComponent1.setDisplayName("g : transitive1 : v");
-    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator().containsExactly(
-        ApiStagePolicyViolationComponentDTO
-            .fromPolicyViolationAndComponent(Pair.of(transitive1PolicyViolation, expectedTransitiveComponent1)));
+    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(
+            ApiStagePolicyViolationComponentDTO
+                .fromPolicyViolationAndComponent(Pair.of(transitive1PolicyViolation, expectedTransitiveComponent1)));
   }
 
   @Test
@@ -611,9 +614,7 @@ public class ApiPolicyViolationServiceV2Test
   }
 
   @Test
-  public void testGetTransitivePolicyViolationsByComponent_ByComponentIdentifierAndPackageUrlAndHash()
-      throws Exception
-  {
+  public void testGetTransitivePolicyViolationsByComponent_ByComponentIdentifierAndPackageUrlAndHash() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
 
     testGetTransitivePolicyViolationsByComponent(application,
@@ -658,11 +659,12 @@ public class ApiPolicyViolationServiceV2Test
     Component expectedTransitiveComponent22 = new Component();
     expectedTransitiveComponent22.setHash("hash222");
     expectedTransitiveComponent22.setDisplayName("g : transitive22 : v");
-    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator().containsExactly(
-        ApiStagePolicyViolationComponentDTO
-            .fromPolicyViolationAndComponent(Pair.of(transitive2PolicyViolation, expectedTransitiveComponent2)),
-        ApiStagePolicyViolationComponentDTO
-            .fromPolicyViolationAndComponent(Pair.of(transitive22PolicyViolation, expectedTransitiveComponent22)));
+    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(
+            ApiStagePolicyViolationComponentDTO
+                .fromPolicyViolationAndComponent(Pair.of(transitive2PolicyViolation, expectedTransitiveComponent2)),
+            ApiStagePolicyViolationComponentDTO
+                .fromPolicyViolationAndComponent(Pair.of(transitive22PolicyViolation, expectedTransitiveComponent22)));
   }
 
   private void testGetTransitivePolicyViolationsByComponent(
@@ -757,12 +759,12 @@ public class ApiPolicyViolationServiceV2Test
     Component expectedTransitiveComponent1 = new Component();
     expectedTransitiveComponent1.setHash("hash21");
     expectedTransitiveComponent1.setDisplayName("g : transitive1 : v");
-    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator().containsExactly(
-        ApiStagePolicyViolationComponentDTO
-            .fromPolicyViolationAndComponent(Pair.of(transitive1PolicyViolation1, expectedTransitiveComponent1)),
-        ApiStagePolicyViolationComponentDTO
-            .fromPolicyViolationAndComponent(Pair.of(transitive1PolicyViolation2, expectedTransitiveComponent1))
-    );
+    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(
+            ApiStagePolicyViolationComponentDTO
+                .fromPolicyViolationAndComponent(Pair.of(transitive1PolicyViolation1, expectedTransitiveComponent1)),
+            ApiStagePolicyViolationComponentDTO
+                .fromPolicyViolationAndComponent(Pair.of(transitive1PolicyViolation2, expectedTransitiveComponent1)));
   }
 
   @Test
@@ -805,12 +807,12 @@ public class ApiPolicyViolationServiceV2Test
     Component expectedTransitiveComponent1 = new Component();
     expectedTransitiveComponent1.setHash("hash21");
     expectedTransitiveComponent1.setDisplayName("g : transitive1 : v");
-    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator().containsExactly(
-        ApiStagePolicyViolationComponentDTO
-            .fromPolicyViolationAndComponent(Pair.of(transitive1PolicyViolation1, expectedTransitiveComponent1)),
-        ApiStagePolicyViolationComponentDTO
-            .fromPolicyViolationAndComponent(Pair.of(transitive1PolicyViolation2, expectedTransitiveComponent1))
-    );
+    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(
+            ApiStagePolicyViolationComponentDTO
+                .fromPolicyViolationAndComponent(Pair.of(transitive1PolicyViolation1, expectedTransitiveComponent1)),
+            ApiStagePolicyViolationComponentDTO
+                .fromPolicyViolationAndComponent(Pair.of(transitive1PolicyViolation2, expectedTransitiveComponent1)));
   }
 
   @Test
@@ -875,7 +877,7 @@ public class ApiPolicyViolationServiceV2Test
     ApiComponentTransitivePolicyViolationsDTO result = apiPolicyViolationService
         .getTransitivePolicyViolations(BuildStageType.ID, null, null, "81399f9f3278d8615a7c",
             Collections.singletonList(policyEvaluation));
-    
+
     assertThat(result).isNotNull();
     assertThat(result.componentIdentifier).isNull();
     assertThat(result.packageUrl).isNull();
@@ -971,8 +973,8 @@ public class ApiPolicyViolationServiceV2Test
   @Test
   public void testGetTransitiveComponentsByAppScanComponent_ReportNotFound() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-        () -> apiPolicyViolationService.getTransitiveComponentsByAppScanComponent("appId", "scanId", null, null, null)
-    ).withMessageContaining("Component not found.");
+        () -> apiPolicyViolationService.getTransitiveComponentsByAppScanComponent("appId", "scanId", null, null, null))
+        .withMessageContaining("Component not found.");
   }
 
   @Test
@@ -985,8 +987,8 @@ public class ApiPolicyViolationServiceV2Test
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
         () -> apiPolicyViolationService.getTransitiveComponentsByAppScanComponent(app.getId(), scanId, null, null,
-            "hash3")
-    ).withMessageContaining("Component not found.");
+            "hash3"))
+        .withMessageContaining("Component not found.");
   }
 
   @Test
@@ -1004,25 +1006,19 @@ public class ApiPolicyViolationServiceV2Test
   }
 
   @Test
-  public void testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents_ByComponentIdentifier()
-      throws Exception
-  {
+  public void testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents_ByComponentIdentifier() throws Exception {
     testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents(
         ComponentIdentifier.createMavenCoordinates("g", "direct2", "v", "", "e"), null, null);
   }
 
   @Test
-  public void testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents_ByPackageUrl()
-      throws Exception
-  {
+  public void testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents_ByPackageUrl() throws Exception {
     testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents(
         null, "pkg:maven/g/direct2@v?type=e", null);
   }
 
   @Test
-  public void testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents_ByHash()
-      throws Exception
-  {
+  public void testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents_ByHash() throws Exception {
     testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents(
         null, null, "hash2");
   }
@@ -1094,13 +1090,13 @@ public class ApiPolicyViolationServiceV2Test
 
     PolicyViolation activeViolation = tempEntity.newPolicyViolation(pe, orgPolicy, "g1", "a1", "v1", "h1", "r1");
 
-    PolicyWaiver policyWaiver  = tempEntity.newWaiver(orgPolicy.getId(), org.getId());
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(orgPolicy.getId(), org.getId());
     PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(pe, orgPolicy,
         policyWaiver);
 
     PolicyViolation legacyViolation = tempEntity.newLegacyPolicyViolation(pe, orgPolicy);
 
-    //default
+    // default
     ApiApplicationViolationListDTOV2 result = apiPolicyViolationService
         .getPolicyViolations(Collections.singleton(orgPolicy.getId()), null, null,
             EnumSet.of(PolicyViolationType.ACTIVE));
@@ -1111,7 +1107,7 @@ public class ApiPolicyViolationServiceV2Test
         .extracting(v -> v.policyViolationId, v -> v.isWaived, v -> v.isLegacy)
         .containsExactly(tuple(activeViolation.getId(), false, false));
 
-    //Only waived
+    // Only waived
     result = apiPolicyViolationService.getPolicyViolations(
         Collections.singleton(orgPolicy.getId()),
         null,
@@ -1124,7 +1120,7 @@ public class ApiPolicyViolationServiceV2Test
         .extracting(v -> v.policyViolationId, v -> v.isWaived, v -> v.isLegacy)
         .containsExactly(tuple(waivedViolation.getId(), true, false));
 
-    //Only legacy
+    // Only legacy
     result = apiPolicyViolationService.getPolicyViolations(
         Collections.singleton(orgPolicy.getId()),
         null,
@@ -1137,7 +1133,7 @@ public class ApiPolicyViolationServiceV2Test
         .extracting(v -> v.policyViolationId, v -> v.isWaived, v -> v.isLegacy)
         .containsExactly(tuple(legacyViolation.getId(), false, true));
 
-    //waived and legacy
+    // waived and legacy
     PolicyViolation waivedAndLegacyViolation =
         tempEntity.newLegacyAndWaivedPolicyViolation(pe, orgPolicy, policyWaiver);
 
@@ -1154,10 +1150,9 @@ public class ApiPolicyViolationServiceV2Test
         .containsExactlyInAnyOrder(
             tuple(waivedViolation.getId(), true, false),
             tuple(legacyViolation.getId(), false, true),
-            tuple(waivedAndLegacyViolation.getId(), true, true)
-        );
+            tuple(waivedAndLegacyViolation.getId(), true, true));
 
-    //All types
+    // All types
     result = apiPolicyViolationService.getPolicyViolations(
         Collections.singleton(orgPolicy.getId()),
         null,
@@ -1172,8 +1167,7 @@ public class ApiPolicyViolationServiceV2Test
             tuple(activeViolation.getId(), false, false),
             tuple(waivedViolation.getId(), true, false),
             tuple(legacyViolation.getId(), false, true),
-            tuple(waivedAndLegacyViolation.getId(), true, true)
-        );
+            tuple(waivedAndLegacyViolation.getId(), true, true));
   }
 
   @Test
@@ -1200,7 +1194,7 @@ public class ApiPolicyViolationServiceV2Test
     String openTimeAfter = LocalDate.now().minusDays(1).toString();
     String openTimeBefore = LocalDate.now().plusDays(1).toString();
 
-    //All types within date range
+    // All types within date range
     ApiApplicationViolationListDTOV2 result = apiPolicyViolationService
         .getPolicyViolations(Collections.singleton(orgPolicy.getId()),
             openTimeAfter,
@@ -1214,10 +1208,9 @@ public class ApiPolicyViolationServiceV2Test
         .containsExactlyInAnyOrder(
             tuple(activeInRange.getId(), false, false),
             tuple(waivedInRange.getId(), true, false),
-            tuple(legacyInRange.getId(), false, true)
-        );
+            tuple(legacyInRange.getId(), false, true));
 
-    //Out of range should be empty
+    // Out of range should be empty
     result = apiPolicyViolationService
         .getPolicyViolations(Collections.singleton(orgPolicy.getId()),
             LocalDate.now().plusDays(5).toString(),
@@ -1267,7 +1260,8 @@ public class ApiPolicyViolationServiceV2Test
 
   private void assertPolicyViolation(
       ApiApplicationViolationDTOV2 apiApplicationViolationDTO,
-      PolicyData appPolicyData, String packagerUrl)
+      PolicyData appPolicyData,
+      String packagerUrl)
   {
     assertThat(apiApplicationViolationDTO.application).isNotNull();
     assertThat(apiApplicationViolationDTO.application.id).isEqualTo(appPolicyData.application.getId());

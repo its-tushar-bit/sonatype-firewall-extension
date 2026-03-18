@@ -190,8 +190,8 @@ public class PolicyEvaluationDiffService
     return null;
   }
 
-  private Set<ComponentIdentifierAndHashComparable> loadComponentsFromReport(ApplicationReport applicationReport)
-      throws IOException
+  private Set<ComponentIdentifierAndHashComparable> loadComponentsFromReport(
+      ApplicationReport applicationReport) throws IOException
   {
     ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON.getName());
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(null);

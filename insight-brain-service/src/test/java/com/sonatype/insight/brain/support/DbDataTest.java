@@ -52,7 +52,8 @@ public class DbDataTest
   private DbData dbData;
 
   private Webhook getWebhook() {
-    @SuppressWarnings("unchecked") final List<Webhook> webhooks = (List<Webhook>) dbData.getWebhook().getValue();
+    @SuppressWarnings("unchecked")
+    final List<Webhook> webhooks = (List<Webhook>) dbData.getWebhook().getValue();
     assertThat(webhooks).hasSize(1);
     return webhooks.get(0);
   }
@@ -126,41 +127,44 @@ public class DbDataTest
     @SuppressWarnings({"unchecked"})
     List<SourceControl> sourceControls = (List<SourceControl>) dbData.getSourceControl().getValue();
 
-    assertThat(sourceControls).extracting(SourceControl::getRepositoryUrl).filteredOn(Objects::nonNull)
-        .containsOnly("https://example.com/scm/project/repo.git");  //.git is preserved as well
+    assertThat(sourceControls).extracting(SourceControl::getRepositoryUrl)
+        .filteredOn(Objects::nonNull)
+        .containsOnly("https://example.com/scm/project/repo.git"); // .git is preserved as well
   }
 
   @Test
   public void testGetSourceControl_repositoryUrlContainsCredentials() {
-    //given: a stored url with embedded credentials
+    // given: a stored url with embedded credentials
     Application application = tempEntity.newApplicationWithParent();
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, null, BITBUCKET, true, true, "master", new Date());
     tempEntity.newSourceControl(application.getId(), "https://foo:bar@example.com/scm/project/repo",
         "admin", "admin", null, true, true, "base_branch", new Date());
 
-    //when: querying SourceControl records
+    // when: querying SourceControl records
     @SuppressWarnings({"unchecked"})
     List<SourceControl> sourceControls = (List<SourceControl>) dbData.getSourceControl().getValue();
 
-    //then: embedded credentials are stripped from the value included in support information
-    assertThat(sourceControls).extracting(SourceControl::getRepositoryUrl).filteredOn(Objects::nonNull)
+    // then: embedded credentials are stripped from the value included in support information
+    assertThat(sourceControls).extracting(SourceControl::getRepositoryUrl)
+        .filteredOn(Objects::nonNull)
         .containsOnly("https://****:****@example.com/scm/project/repo");
   }
 
   @Test
   public void testGetSourceControl_repositoryUrlContainsUsername() {
-    //given: a stored url with embedded username
+    // given: a stored url with embedded username
     Application application = tempEntity.newApplicationWithParent();
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, null, BITBUCKET, true, true, "master", new Date());
     tempEntity.newSourceControl(application.getId(), "https://foo@example.com/scm/project/repo",
         "admin", "admin", null, true, true, "base_branch", new Date());
 
-    //when: querying SourceControl records
+    // when: querying SourceControl records
     @SuppressWarnings({"unchecked"})
     List<SourceControl> sourceControls = (List<SourceControl>) dbData.getSourceControl().getValue();
 
-    //then: embedded username is stripped from the value included in support information
-    assertThat(sourceControls).extracting(SourceControl::getRepositoryUrl).filteredOn(Objects::nonNull)
+    // then: embedded username is stripped from the value included in support information
+    assertThat(sourceControls).extracting(SourceControl::getRepositoryUrl)
+        .filteredOn(Objects::nonNull)
         .containsOnly("https://****:****@example.com/scm/project/repo");
   }
 
@@ -168,8 +172,8 @@ public class DbDataTest
   public void testGetReverseProxyAuthenticationConfiguration() {
     tempEntity.newReverseProxyAuthenticationConfiguration(true, "header", true, "logoutUrl");
 
-    ReverseProxyAuthenticationConfiguration configuration
-        = (ReverseProxyAuthenticationConfiguration) dbData.getReverseProxyAuthenticationConfiguration().getValue();
+    ReverseProxyAuthenticationConfiguration configuration =
+        (ReverseProxyAuthenticationConfiguration) dbData.getReverseProxyAuthenticationConfiguration().getValue();
 
     assertThat(configuration.isEnabled()).isTrue();
     assertThat(configuration.getUsernameHeader()).isEqualTo("header");

@@ -39,8 +39,9 @@ public class ProprietaryConfigResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public ProprietaryConfig get(@QueryParam(GOAL_PARAM) Goal goal,
-                               @QueryParam(APPLICATION_PARAM) String applicationPublicId)
+  public ProprietaryConfig get(
+      @QueryParam(GOAL_PARAM) Goal goal,
+      @QueryParam(APPLICATION_PARAM) String applicationPublicId)
   {
     return proprietaryConfigService.getProprietaryConfig(goal, applicationPublicId);
   }

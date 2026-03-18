@@ -80,22 +80,27 @@ public class ComponentInfoResourceTest
     assertThat(configurationService.isALPObservedLicenseDetectionEnabled()).isTrue();
   }
 
-  protected HttpRequest vulnerabilitiesRequest(final OwnerType ownerType,
-                                               final String ownerId,
-                                               final String hash,
-                                               final ComponentIdentifier componentIdentifier,
-                                               final String identificationSource,
-                                               final String scanId)
+  protected HttpRequest vulnerabilitiesRequest(
+      final OwnerType ownerType,
+      final String ownerId,
+      final String hash,
+      final ComponentIdentifier componentIdentifier,
+      final String identificationSource,
+      final String scanId)
   {
-    return restRequest().path(ComponentInfoResource.VULNERABILITIES_PATH).parameter(ownerType, ownerId)
-        .query("hash", hash).query("componentIdentifier", componentIdentifier)
-        .query("identificationSource", identificationSource).query("scanId", scanId);
+    return restRequest().path(ComponentInfoResource.VULNERABILITIES_PATH)
+        .parameter(ownerType, ownerId)
+        .query("hash", hash)
+        .query("componentIdentifier", componentIdentifier)
+        .query("identificationSource", identificationSource)
+        .query("scanId", scanId);
   }
 
-  protected HttpRequest vulnerabilitiesRequest(final OwnerType ownerType,
-                                               final String ownerId,
-                                               final String hash,
-                                               final ComponentIdentifier componentIdentifier)
+  protected HttpRequest vulnerabilitiesRequest(
+      final OwnerType ownerType,
+      final String ownerId,
+      final String hash,
+      final ComponentIdentifier componentIdentifier)
   {
     return vulnerabilitiesRequest(ownerType, ownerId, hash, componentIdentifier, null, null);
   }
@@ -105,8 +110,10 @@ public class ComponentInfoResourceTest
       String identificationSource,
       String scanId)
   {
-    return restRequest().path(ComponentInfoResource.LICENSES_PATH).parameter(getOwner().getType(), getOwnerId())
-        .query("componentIdentifier", componentIdentifier).query("identificationSource", identificationSource)
+    return restRequest().path(ComponentInfoResource.LICENSES_PATH)
+        .parameter(getOwner().getType(), getOwnerId())
+        .query("componentIdentifier", componentIdentifier)
+        .query("identificationSource", identificationSource)
         .query("scanId", scanId);
   }
 
@@ -116,8 +123,10 @@ public class ComponentInfoResourceTest
       String scanId,
       String path)
   {
-    return restRequest().path(path).parameter(getOwner().getType(), getOwnerId())
-        .query("componentIdentifier", componentIdentifier).query("identificationSource", identificationSource)
+    return restRequest().path(path)
+        .parameter(getOwner().getType(), getOwnerId())
+        .query("componentIdentifier", componentIdentifier)
+        .query("identificationSource", identificationSource)
         .query("scanId", scanId);
   }
 
@@ -172,7 +181,7 @@ public class ComponentInfoResourceTest
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     HttpRequest requestMock = listRequest(getOwnerId(), identifier);
     hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(requestMock.getUrl()));
-    hdsRespondWith(new VersionScoringService[] {}).atUri(HDS_BULK_SCORE_VERSIONING_PATH);
+    hdsRespondWith(new VersionScoringService[]{}).atUri(HDS_BULK_SCORE_VERSIONING_PATH);
 
     HttpRequest request = allVersionsRequest(app.getPublicId(), identifier)
         .query("dependencyType", DependencyType.INNER_SOURCE.getId())

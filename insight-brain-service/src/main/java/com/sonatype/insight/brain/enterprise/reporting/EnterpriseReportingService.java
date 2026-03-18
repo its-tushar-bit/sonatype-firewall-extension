@@ -86,7 +86,7 @@ public class EnterpriseReportingService
   private static final Logger log = LoggerFactory.getLogger(EnterpriseReportingService.class);
 
   public static final String ENTERPRISE_REPORTING_BASE_PATH = "rest/enterpriseReporting";
-  
+
   public static final String ENTERPRISE_REPORTING_CONFIG_PATH = ENTERPRISE_REPORTING_BASE_PATH + "/config";
 
   public static final String ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH =
@@ -109,8 +109,7 @@ public class EnterpriseReportingService
   // Visible for testing
   public final ResettableExpiringMemoizingSupplier<Integer> currentDashboardsVersionSupplier;
 
-  private final TenantReference<ResettableExpiringMemoizingSupplier<String>>
-      enterpriseReportingConfigDTOBaseUrlSupplier;
+  private final TenantReference<ResettableExpiringMemoizingSupplier<String>> enterpriseReportingConfigDTOBaseUrlSupplier;
 
   private final MostRecentMemoizingFunction<Integer, DashboardMetadataListDTO> dashboardMetadataGetter =
       new MostRecentMemoizingFunction<>(version -> getDashboardMetadataListDTOFromHds());
@@ -155,16 +154,16 @@ public class EnterpriseReportingService
 
   @Inject
   public EnterpriseReportingService(
-          final HdsClient hdsClient,
-          final CurrentUser currentUser,
-          final UserDAO userDAO,
-          final SsoUserService ssoUserService,
-          final MembershipMappingService membershipMappingService,
-          final ApplicationService applicationService,
-          final InsightWork insightWork,
-          final TaskScheduler taskScheduler,
-          final Configuration configuration,
-          final SolutionResolver solutionResolver)
+      final HdsClient hdsClient,
+      final CurrentUser currentUser,
+      final UserDAO userDAO,
+      final SsoUserService ssoUserService,
+      final MembershipMappingService membershipMappingService,
+      final ApplicationService applicationService,
+      final InsightWork insightWork,
+      final TaskScheduler taskScheduler,
+      final Configuration configuration,
+      final SolutionResolver solutionResolver)
   {
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
@@ -186,8 +185,7 @@ public class EnterpriseReportingService
         () -> getDashboardsVersionDTOFromHds().version,
         Duration.ofMinutes(configuration.getEnterpriseReportingVersionCacheExpirationInMinutes()),
         value -> taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this,
-            Collections.singletonMap(TASK_PARAM_CURRENT_VERSION, String.valueOf(value)))
-    );
+            Collections.singletonMap(TASK_PARAM_CURRENT_VERSION, String.valueOf(value))));
   }
 
   private ResettableExpiringMemoizingSupplier<String> createEnterpriseReportingConfigDTOBaseUrlSupplier() {
@@ -200,14 +198,12 @@ public class EnterpriseReportingService
         dashboardMetadataGetter.apply(currentDashboardsVersionSupplier.get());
 
     List<DashboardMetadataDTO> authorizedDashboards = filterByLicenseAndFeatureFlags(
-        allDashboards.dashboardMetadata
-    );
+        allDashboards.dashboardMetadata);
 
     return new DashboardMetadataListDTO(
         allDashboards.version,
         authorizedDashboards,
-        allDashboards.dashboardGroupMetadata
-    );
+        allDashboards.dashboardGroupMetadata);
   }
 
   public EmbedCookielessSessionAcquire acquireEmbedSession(
@@ -303,8 +299,10 @@ public class EnterpriseReportingService
     String requestId = UUID.randomUUID().toString().replace("-", "");
     String usernameAndRealm = getUsernameAndRealm(userPrincipal);
     Set<String> userPermissions = membershipMappingService.getPermissionsForUserPrincipal(username, membership);
-    Set<String> applicationIds = obfuscateApplicationIds(applicationService.getApplications().stream()
-        .map(Application::getId).collect(Collectors.toSet()));
+    Set<String> applicationIds = obfuscateApplicationIds(applicationService.getApplications()
+        .stream()
+        .map(Application::getId)
+        .collect(Collectors.toSet()));
 
     return new SSOEmbedUrlRequest(
         requestId,
@@ -314,8 +312,7 @@ public class EnterpriseReportingService
         lookerDashboard,
         userPermissions,
         applicationIds,
-        embedDomain
-    );
+        embedDomain);
   }
 
   private String getUsernameAndRealm(final UserPrincipal userPrincipal) {
@@ -384,7 +381,7 @@ public class EnterpriseReportingService
   private Map<String, Supplier<byte[]>> extractIconFiles(final InputStream iconsZipInputStream) {
     Map<String, Supplier<byte[]>> iconDataSupplierByIconName = new HashMap<>();
     try (ZipInputStream zipInputStream = new ZipInputStream(iconsZipInputStream)) {
-      for (ZipEntry zipEntry; (zipEntry = zipInputStream.getNextEntry()) != null; ) {
+      for (ZipEntry zipEntry; (zipEntry = zipInputStream.getNextEntry()) != null;) {
         File iconsDirectory = insightWork.getIerDashboardIconsDirectory();
         String iconName = zipEntry.getName();
         Path iconPath = iconsDirectory.toPath().resolve(iconName).normalize();
@@ -474,7 +471,7 @@ public class EnterpriseReportingService
 
       default:
         log.warn("Unknown dashboard category '{}' for dashboard '{}', denying access",
-                 category, dashboard.dashboardId);
+            category, dashboard.dashboardId);
         return false;
     }
   }
@@ -490,7 +487,8 @@ public class EnterpriseReportingService
 
   private Set<String> obfuscateApplicationIds(Set<String> applicationIds) {
     return applicationIds.stream()
-        .map(applicationId -> HashUtils.hash(applicationId, HashUtils.SHA1)).collect(Collectors.toSet());
+        .map(applicationId -> HashUtils.hash(applicationId, HashUtils.SHA1))
+        .collect(Collectors.toSet());
   }
 
   @Override
@@ -511,7 +509,8 @@ public class EnterpriseReportingService
 
   void clearEnterpriseReportingConfigDTOBaseUrlSupplierForTests() {
     if (enterpriseReportingConfigDTOBaseUrlSupplier != null &&
-        enterpriseReportingConfigDTOBaseUrlSupplier.get() != null) {
+        enterpriseReportingConfigDTOBaseUrlSupplier.get() != null)
+    {
       enterpriseReportingConfigDTOBaseUrlSupplier.get().reset();
     }
   }

@@ -173,7 +173,7 @@ public class MailConfigurationDAOTest
     MailConfiguration config = newValidConfiguration();
     config.setSystemEmail("simpleaddress");
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.insert(config))
-            .withMessageContaining("system email address is malformed");
+        .withMessageContaining("system email address is malformed");
   }
 
   @Test
@@ -272,7 +272,8 @@ public class MailConfigurationDAOTest
     config.setId("not-singleton-id");
     dao.update(config);
     assertThat(dao.createQuery("SELECT entity FROM MailConfiguration entity").getList())
-        .extracting(MailConfiguration::getId).containsExactly(MailConfigurationDAO.SINGLETON_ENTITY_ID);
+        .extracting(MailConfiguration::getId)
+        .containsExactly(MailConfigurationDAO.SINGLETON_ENTITY_ID);
   }
 
   @Test

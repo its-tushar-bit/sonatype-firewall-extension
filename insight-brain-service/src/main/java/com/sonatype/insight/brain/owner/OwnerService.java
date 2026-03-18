@@ -51,7 +51,7 @@ public class OwnerService
   private final OwnerDAO ownerDAO;
 
   private final IdUtils idUtils;
-  
+
   private final OrganizationDAO organizationDAO;
 
   private final ApplicationService applicationService;
@@ -132,20 +132,17 @@ public class OwnerService
       final Set<String> repositoryIds)
   {
     Map<String, Owner> owners = new HashMap<>();
-    BooleanSupplier isOwnerFilterEmpty = () ->
-        CollectionUtils.isEmpty(organizationIds)
-            && CollectionUtils.isEmpty(applicationIds)
-            && CollectionUtils.isEmpty(tagIds)
-            && CollectionUtils.isEmpty(repositoryIds);
-    Predicate<List<Repository>> reposAreNotEmptyOrIsOnlyRepoContainer = repos ->
-        !repos.isEmpty() || (CollectionUtils.isNotEmpty(repositoryIds)
+    BooleanSupplier isOwnerFilterEmpty = () -> CollectionUtils.isEmpty(organizationIds)
+        && CollectionUtils.isEmpty(applicationIds)
+        && CollectionUtils.isEmpty(tagIds)
+        && CollectionUtils.isEmpty(repositoryIds);
+    Predicate<List<Repository>> reposAreNotEmptyOrIsOnlyRepoContainer =
+        repos -> !repos.isEmpty() || (CollectionUtils.isNotEmpty(repositoryIds)
             && repositoryIds.contains(RepositoryContainer.REPOSITORY_CONTAINER_ID));
-    BooleanSupplier filtersAreEmptyAndRepoContainerReadPermission = () ->
-        isOwnerFilterEmpty.getAsBoolean()
-            && repositoryService.checkReadPermissionRepositoryContainer();
-    Predicate<List<Repository>> shouldAddRepoContainer = repos ->
-        reposAreNotEmptyOrIsOnlyRepoContainer.test(repos)
-            || filtersAreEmptyAndRepoContainerReadPermission.getAsBoolean();
+    BooleanSupplier filtersAreEmptyAndRepoContainerReadPermission = () -> isOwnerFilterEmpty.getAsBoolean()
+        && repositoryService.checkReadPermissionRepositoryContainer();
+    Predicate<List<Repository>> shouldAddRepoContainer = repos -> reposAreNotEmptyOrIsOnlyRepoContainer.test(repos)
+        || filtersAreEmptyAndRepoContainerReadPermission.getAsBoolean();
 
     List<Application> applications = getApplications(applicationIds, tagIds, isOwnerFilterEmpty);
     Map<String, Organization> appsParentOrgs = organizationService.getAllParentOrgsNoAuthz(applications);
@@ -176,7 +173,8 @@ public class OwnerService
     List<Application> applications = Collections.emptyList();
     if (isOwnerFilterEmpty.getAsBoolean()
         || (CollectionUtils.isNotEmpty(applicationIds)
-        || CollectionUtils.isNotEmpty(tagIds))) {
+            || CollectionUtils.isNotEmpty(tagIds)))
+    {
       applications = applicationService.getOwnerApplicationsByIdsOrTagIds(applicationIds, tagIds);
     }
     return applications;

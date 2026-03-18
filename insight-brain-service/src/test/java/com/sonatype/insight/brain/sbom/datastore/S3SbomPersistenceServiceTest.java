@@ -78,8 +78,7 @@ public class S3SbomPersistenceServiceTest
         .credentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create(
                 localstack.getContainer().getAccessKey(),
-                localstack.getContainer().getSecretKey()
-            )))
+                localstack.getContainer().getSecretKey())))
         .build();
   }
 
@@ -88,7 +87,9 @@ public class S3SbomPersistenceServiceTest
     s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
         .contents()
         .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
-            .bucket(BUCKET_NAME).key(obj.key()).build()));
+            .bucket(BUCKET_NAME)
+            .key(obj.key())
+            .build()));
   }
 
   @Inject
@@ -107,8 +108,7 @@ public class S3SbomPersistenceServiceTest
         null,
         "",
         "valid-prefix/with/path/",
-        "valid-prefix/with/path/ends-with-slash/"
-    );
+        "valid-prefix/with/path/ends-with-slash/");
   }
 
   public S3SbomPersistenceServiceTest(String configuredPrefix) {
@@ -137,8 +137,7 @@ public class S3SbomPersistenceServiceTest
     super.configure(binder);
     AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
         localstack.getContainer().getAccessKey(),
-        localstack.getContainer().getSecretKey()
-    ));
+        localstack.getContainer().getSecretKey()));
     binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }
 
@@ -204,8 +203,7 @@ public class S3SbomPersistenceServiceTest
     assertThat(entity.getName()).isNotEqualTo(FILE_NAME);
     assertThat(entity.getName()).startsWith("sbom-");
     assertThat(entity.getLocation()).isEqualTo(
-        "s3://" + BUCKET_NAME + "/" + (prefix == null ? "" : prefix) + "sboms/temp/transient/" + entity.getName()
-    );
+        "s3://" + BUCKET_NAME + "/" + (prefix == null ? "" : prefix) + "sboms/temp/transient/" + entity.getName());
   }
 
   @Test

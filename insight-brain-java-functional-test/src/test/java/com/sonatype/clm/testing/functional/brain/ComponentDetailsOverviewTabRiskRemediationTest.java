@@ -153,7 +153,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   @Test
   public void testRiskRemediationTile_Version_Graph_Explorer() {
     mockHdsResponseForFirstComponent();
-    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0,FIRST_COMPONENT_HASH);
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0, FIRST_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
 
@@ -170,7 +170,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   @Test
   public void testRiskRemediationTile_RecommendedVersions_Multiple_Remediation() {
     mockHdsResponseForFirstComponent();
-    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0,FIRST_COMPONENT_HASH);
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0, FIRST_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
 
@@ -188,8 +188,9 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
     recommendation.shouldBe(visible);
     recommendation.text().shouldHave(text("Upgrade to 31.52"));
-    recommendation.subText().shouldHave(
-        text("Next version with no policy violations for this component and its dependencies"));
+    recommendation.subText()
+        .shouldHave(
+            text("Next version with no policy violations for this component and its dependencies"));
     recommendation.actions().shouldHave(size(2));
 
     recommendation = recommendedVersionsSection.getRecommendation(1);
@@ -199,7 +200,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   @Test
   public void testRiskRemediationTile_RecommendedVersions_NoRecommendation() {
     mockHdsResponseForSecondComponent();
-    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(1,SECOND_COMPONENT_HASH);
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(1, SECOND_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
 
@@ -216,20 +217,21 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
     recommendation.shouldBe(visible);
-    recommendation.text().shouldHave(
-        text("There are no suggested versions for this component"));
+    recommendation.text()
+        .shouldHave(
+            text("There are no suggested versions for this component"));
   }
 
   @Test
   public void testRiskRemediationTile_DependencyInformation_DirectDependency() {
     mockHdsResponseForFirstComponent();
-    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0,FIRST_COMPONENT_HASH);
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0, FIRST_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
 
     RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
     riskRemediation.shouldBe(visible);
-    riskRemediation.getLoadingSpinner().shouldNotBe(visible);  // wait until loading complete
+    riskRemediation.getLoadingSpinner().shouldNotBe(visible); // wait until loading complete
     ScrollUtil.scrollIntoView(riskRemediation.getTitle());
     riskRemediation.getTitle().shouldHave(text("Version Explorer"));
 
@@ -267,8 +269,12 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         tempEntity.newRepositoryConnection(app.getId(), nxrm3MockSever.baseUrl(), null, null);
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(10, "cefa389a797ca9d030ef");
     componentDetailsPage.overviewTab().shouldBe(visible);
-    componentDetailsPage.overviewTabContent().riskRemediationTile().versionExplorerSection().repositorySource()
-        .shouldBe(visible).shouldHave(text("Repository Source: " + repositoryConnection.getBaseUrl()));
+    componentDetailsPage.overviewTabContent()
+        .riskRemediationTile()
+        .versionExplorerSection()
+        .repositorySource()
+        .shouldBe(visible)
+        .shouldHave(text("Repository Source: " + repositoryConnection.getBaseUrl()));
   }
 
   @Test
@@ -288,8 +294,9 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     InnerSourceRepositorySourceAlert repositorySourceAlert = new InnerSourceRepositorySourceAlert();
     repositorySourceAlert.content().shouldBe(visible);
-    repositorySourceAlert.content().shouldHave(
-        exactText("Could not retrieve data from InnerSource repository. Check your repository configuration."));
+    repositorySourceAlert.content()
+        .shouldHave(
+            exactText("Could not retrieve data from InnerSource repository. Check your repository configuration."));
 
     eyesWatcher.eyesCheck("component details overview tab InnerSource repository source alert");
   }
@@ -299,7 +306,10 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     mockHdsResponseForFirstComponent();
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0, FIRST_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
-    componentDetailsPage.overviewTabContent().riskRemediationTile().versionExplorerSection().repositorySource()
+    componentDetailsPage.overviewTabContent()
+        .riskRemediationTile()
+        .versionExplorerSection()
+        .repositorySource()
         .shouldNotBe(visible);
   }
 
@@ -309,14 +319,17 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     testCLMServer.getHdsServer().respondWith(new ComponentDetailsList()).atUri("/componentDetails/list");
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(10, "cefa389a797ca9d030ef");
     componentDetailsPage.overviewTab().shouldBe(visible);
-    componentDetailsPage.overviewTabContent().riskRemediationTile().versionExplorerSection().repositorySource()
+    componentDetailsPage.overviewTabContent()
+        .riskRemediationTile()
+        .versionExplorerSection()
+        .repositorySource()
         .shouldNotBe(visible);
   }
 
   @Test
   public void testRiskRemediationTile_RecommendedRemediation_showMore() {
     mockHdsResponseForSecondComponent();
-    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(1,SECOND_COMPONENT_HASH);
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(1, SECOND_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
 
@@ -328,10 +341,10 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     recommendedRemediationSection.shouldBe(visible);
     ScrollUtil.scrollIntoView(recommendedRemediationSection.content());
     recommendedRemediationSection.getTitle().shouldHave(text("Recommended Remediation"));
-    recommendedRemediationSection.contentParagraph().shouldHave(
-        text("The direct dependencies that brought in this component are listed below. Clicking on a component" +
-            " will take you to its Component Details Page.")
-    );
+    recommendedRemediationSection.contentParagraph()
+        .shouldHave(
+            text("The direct dependencies that brought in this component are listed below. Clicking on a component" +
+                " will take you to its Component Details Page."));
 
     ElementsCollection ancestors = recommendedRemediationSection.contentAncestorsList();
     ancestors.shouldHave(size(3));
@@ -351,7 +364,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   @Test
   public void testRiskRemediationTile_RecommendedRemediation_showLess() {
     mockHdsResponseForSecondComponent();
-    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(1,SECOND_COMPONENT_HASH);
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(1, SECOND_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
 
@@ -363,10 +376,10 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     recommendedRemediationSection.shouldBe(visible);
     ScrollUtil.scrollIntoView(recommendedRemediationSection.content());
     recommendedRemediationSection.getTitle().shouldHave(text("Recommended Remediation"));
-    recommendedRemediationSection.contentParagraph().shouldHave(
-        text("The direct dependencies that brought in this component are listed below. Clicking on a component" +
-            " will take you to its Component Details Page.")
-    );
+    recommendedRemediationSection.contentParagraph()
+        .shouldHave(
+            text("The direct dependencies that brought in this component are listed below. Clicking on a component" +
+                " will take you to its Component Details Page."));
 
     ElementsCollection ancestors = recommendedRemediationSection.contentAncestorsList();
     ancestors.shouldHave(size(3));
@@ -422,10 +435,10 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     recommendedRemediationSection.shouldBe(visible);
     ScrollUtil.scrollIntoView(recommendedRemediationSection.content());
     recommendedRemediationSection.getTitle().shouldHave(text("Recommended Remediation"));
-    recommendedRemediationSection.contentParagraph().shouldHave(
+    recommendedRemediationSection.contentParagraph()
+        .shouldHave(
             text("The direct dependencies that brought in this component are listed below. Clicking on a component" +
-                    " will take you to its Component Details Page.")
-    );
+                " will take you to its Component Details Page."));
 
     ElementsCollection ancestors = recommendedRemediationSection.contentAncestorsList();
     ancestors.shouldHave(size(3));
@@ -445,7 +458,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   @Test
   public void testCompareVersionsTable() {
     mockHdsResponseForFirstComponent();
-    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0,FIRST_COMPONENT_HASH);
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0, FIRST_COMPONENT_HASH);
     RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
     riskRemediation.compareVersionsTitle().shouldBe(visible).shouldHave(text("Compare Versions"));
     ScrollUtil.scrollIntoView(riskRemediation.compareVersionsTitle());
@@ -478,7 +491,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   @Test
   public void testCompareVersionsTable_Selected() {
     mockHdsResponseForFirstComponent();
-    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0,FIRST_COMPONENT_HASH);
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0, FIRST_COMPONENT_HASH);
     RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
 
     VersionGraph versionGraph = new VersionGraph();
@@ -522,7 +535,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   @Test
   public void testRiskRemediationTile_Compare() {
     mockHdsResponseForFirstComponent();
-    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0,FIRST_COMPONENT_HASH);
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0, FIRST_COMPONENT_HASH);
     RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
 
     riskRemediation.shouldBe(visible);
@@ -585,8 +598,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         app.getId(),
         repositoryURL,
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     lookup(SourceControlDAO.class).update(sourceControl);
 
@@ -623,8 +635,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         app.getId(),
         repositoryURL,
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -636,8 +647,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         "user",
         branchName,
         SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT,
-        SourceControlEvent.EVENT_STATUS_IN_PROGRESS
-    );
+        SourceControlEvent.EVENT_STATUS_IN_PROGRESS);
     sourceControlEventDAO.update(event);
 
     mockHdsResponseForFirstComponent();
@@ -650,13 +660,13 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
     recommendation.loadingSpinner().shouldBe(visible);
     recommendation.loadingSpinner().shouldHave(text("Creating PR…"));
-    
-    //verify that refreshing the page, will still show the spinner because of polling
+
+    // verify that refreshing the page, will still show the spinner because of polling
     refreshOrOpen(ComponentDetailsPage.urlToOverview(app, SCAN_ID, FIRST_COMPONENT_HASH));
     recommendation.loadingSpinner().shouldBe(visible);
     recommendation.loadingSpinner().shouldHave(text("Creating PR…"));
 
-    //verify that the spinner is not shown when the event is complete
+    // verify that the spinner is not shown when the event is complete
     event.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
     event.setEventStatusDetails("http://test.github.com/org/repo/pull/123");
     event.setPullRequestNumber(123);
@@ -685,8 +695,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         app.getId(),
         repositoryURL,
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -698,8 +707,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         "user",
         branchName,
         SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT,
-        SourceControlEvent.EVENT_STATUS_ERROR
-    );
+        SourceControlEvent.EVENT_STATUS_ERROR);
     sourceControlEventDAO.update(sourceControlEvent);
 
     mockHdsResponseForFirstComponentWithRecommendedVersion();
@@ -749,8 +757,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         app.getId(),
         repositoryURL,
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -762,8 +769,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         "user",
         branchName,
         SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT,
-        SourceControlEvent.EVENT_STATUS_COMPLETE
-    );
+        SourceControlEvent.EVENT_STATUS_COMPLETE);
     sourceControlEvent.setEventStatusDetails(prUrl);
     sourceControlEvent.setPullRequestNumber(123);
     sourceControlEventDAO.update(sourceControlEvent);
@@ -789,12 +795,13 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     return new ComponentDetailsPage();
   }
 
-  private Policy createPolicy(String ownerId,
-                              int threatLevel,
-                              String name,
-                              String conditionType,
-                              String operator,
-                              String value)
+  private Policy createPolicy(
+      String ownerId,
+      int threatLevel,
+      String name,
+      String conditionType,
+      String operator,
+      String value)
   {
     Policy p = new Policy(null, name);
     p.setThreatLevel(threatLevel);

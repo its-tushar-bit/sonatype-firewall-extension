@@ -238,7 +238,8 @@ public class MultiTenantInsightBrainService
       String... urlPatterns)
   {
     Filter filter = getInstance(filterType);
-    env.admin().addFilter(filterType.getSimpleName(), filter)
+    env.admin()
+        .addFilter(filterType.getSimpleName(), filter)
         .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, urlPatterns);
   }
 
@@ -312,7 +313,8 @@ public class MultiTenantInsightBrainService
         bind(DataStoreProvider.class).toInstance(databaseContainer);
         // Bind ClusterLockManagerProvider so it can be injected, then use it as a provider
         bind(ClusterLockManagerProvider.class);
-        bind(ClusterLockManager.class).toProvider(new com.google.inject.Provider<ClusterLockManager>() {
+        bind(ClusterLockManager.class).toProvider(new com.google.inject.Provider<ClusterLockManager>()
+        {
           @Inject
           ClusterLockManagerProvider provider;
 

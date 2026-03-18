@@ -135,7 +135,7 @@ public class SastFindingDAOTest
         .isInstanceOf(UnsupportedOperationException.class)
         .hasMessage("The SastFinding table does not support update operations");
 
-    //Cascade delete via DeleteBysastScanId
+    // Cascade delete via DeleteBysastScanId
     sastFindingDAO.deleteBySastScanId(sastScan.getId());
     assertThat(sastRemediationDAO.getById(sastRemediation.getId())).isNull();
     assertThat(sastFindingDAO.getById(result.getId())).isNull();
@@ -205,7 +205,7 @@ public class SastFindingDAOTest
     sastFindingDAO.insert(sastFinding1);
     sastFindingDAO.insert(sastFinding2);
 
-    // When  getBySastScanIdOrderBySeverityDesc is called
+    // When getBySastScanIdOrderBySeverityDesc is called
     final List<SastFinding> results = sastFindingDAO.getBySastScanIdOrderBySeverityDesc(sastScan.getId());
 
     // Then the findings should be sorted by descending severity

@@ -44,14 +44,18 @@ public class DependencyTreeParserTest
     assertThat(dependencyTreeParser.getDependencyTreeMap().isEmpty()).isFalse();
     assertThat(dependencyTreeParser.getDependencyTypeMap().isEmpty()).isFalse();
     assertThat(dependencyTreeParser
-        .getDependencyType("pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0").get()).isEqualTo("T");
+        .getDependencyType("pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0")
+        .get()).isEqualTo("T");
     assertThat(dependencyTreeParser
-        .getDependencyType("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1").get()).isEqualTo("T");
+        .getDependencyType("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1")
+        .get()).isEqualTo("T");
     assertThat(dependencyTreeParser
-        .getComponentDependencies("pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0").get())
-        .containsExactly("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1");
+        .getComponentDependencies("pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0")
+        .get())
+            .containsExactly("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1");
     assertThat(dependencyTreeParser
-        .getComponentDependencies("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1").get()).isEmpty();
+        .getComponentDependencies("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1")
+        .get()).isEmpty();
 
   }
 
@@ -64,20 +68,25 @@ public class DependencyTreeParserTest
     assertThat(dependencyTreeParser.getDependencyTreeMap().isEmpty()).isFalse();
     assertThat(dependencyTreeParser.getDependencyTypeMap().isEmpty()).isFalse();
     assertThat(dependencyTreeParser
-        .getDependencyType("pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0").get()).isEqualTo("D");
+        .getDependencyType("pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0")
+        .get()).isEqualTo("D");
     assertThat(dependencyTreeParser
-        .getDependencyType("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1").get()).isEqualTo("D");
+        .getDependencyType("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1")
+        .get()).isEqualTo("D");
     assertThat(dependencyTreeParser
-        .getComponentDependencies("pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0").get())
-        .containsExactly("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1");
+        .getComponentDependencies("pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0")
+        .get())
+            .containsExactly("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1");
     assertThat(dependencyTreeParser
-        .getComponentDependencies("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1").get()).isEmpty();
+        .getComponentDependencies("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1")
+        .get()).isEmpty();
 
   }
 
   private ContainerNode<?> getDependenciesJson(String fileName) throws IOException {
     try (InputStream inputStream =
-             getClass().getResourceAsStream("/HdsComponentDependencyInformationTest/" + fileName)) {
+        getClass().getResourceAsStream("/HdsComponentDependencyInformationTest/" + fileName))
+    {
       byte[] buffer = inputStream.readAllBytes();
       return JsonUtils.parse(buffer);
     }

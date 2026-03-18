@@ -272,12 +272,14 @@ public abstract class AbstractSearchIndexClient
         return POLICY_NAME;
       case SECURITY_VULNERABILITY:
         if (Stream.of(VULNERABILITY_ID, VULNERABILITY_DESCRIPTION, VULNERABILITY_SEVERITY, VULNERABILITY_STATUS)
-            .anyMatch(field -> fieldNames.contains(field.label))) {
+            .anyMatch(field -> fieldNames.contains(field.label)))
+        {
           return VULNERABILITY_ID;
         }
         if (Stream.of(COMPONENT_FORMAT, COMPONENT_HASH, COMPONENT_NAME)
             .anyMatch(field -> fieldNames.contains(field.label))
-            || fieldNames.stream().anyMatch(fieldName -> fieldName.startsWith(COMPONENT_COORDINATE.label))) {
+            || fieldNames.stream().anyMatch(fieldName -> fieldName.startsWith(COMPONENT_COORDINATE.label)))
+        {
           return COMPONENT_NAME;
         }
         return APPLICATION_NAME;
@@ -295,7 +297,9 @@ public abstract class AbstractSearchIndexClient
     }
     else {
       identifier = Arrays.stream(FieldIdentifier.values())
-          .filter(fieldIdentifier -> fieldIdentifier.label.equals(fieldName)).findAny().orElse(null);
+          .filter(fieldIdentifier -> fieldIdentifier.label.equals(fieldName))
+          .findAny()
+          .orElse(null);
     }
     return identifier;
   }
@@ -319,7 +323,8 @@ public abstract class AbstractSearchIndexClient
       throw new InvalidLicenseException("The SBOM Manager feature is not supported by your license.");
     }
     if (!isSbomManagerMode && productLicense.hasFeature(LicensedFeature.SBOM_MANAGER) &&
-        !hasProductSupportingDefaultMode()) {
+        !hasProductSupportingDefaultMode())
+    {
       log.error("License does not support anything other than SBOM Manager mode.");
       throw new InvalidLicenseException("Only SBOM Manager mode is supported by your license.");
     }
@@ -327,7 +332,7 @@ public abstract class AbstractSearchIndexClient
 
   // TODO possibly add a LicensedFeature.ADVANCED_SEARCH to replace this
   private boolean hasProductSupportingDefaultMode() {
-    //     Auditor
+    // Auditor
     return productLicense.hasProduct(ProductLicenseDetails.PRODUCT_RISK)
         || productLicense.hasProduct(ProductLicenseDetails.PRODUCT_AUDITOR_SAAS)
         // Lifecycle
@@ -380,8 +385,7 @@ public abstract class AbstractSearchIndexClient
   private void updateIndexForPolicyEvaluation(
       final String applicationId,
       final String stageTypeId,
-      final IndexingContext indexingContext)
-      throws IOException
+      final IndexingContext indexingContext) throws IOException
   {
     String queryForObsoleteDocs = "(" +
         indexingContext.newQuery(FieldIdentifier.APPLICATION_ID, applicationId) +
@@ -410,8 +414,7 @@ public abstract class AbstractSearchIndexClient
   private void updateIndexForSbom(
       final String applicationId,
       final String applicationVersion,
-      final IndexingContext indexingContext)
-      throws IOException
+      final IndexingContext indexingContext) throws IOException
   {
     String queryForObsoleteDocs = "(" +
         indexingContext.newQuery(FieldIdentifier.APPLICATION_ID, applicationId) +
@@ -453,9 +456,7 @@ public abstract class AbstractSearchIndexClient
     indexingContext.addNonNullDocuments(docsToAdd);
   }
 
-  private void updateIndexForLabel(final String labelId, final IndexingContext indexingContext)
-      throws IOException
-  {
+  private void updateIndexForLabel(final String labelId, final IndexingContext indexingContext) throws IOException {
     String queryForObsoleteDocs = indexingContext.newQuery(FieldIdentifier.COMPONENT_LABEL_ID, labelId);
     indexingContext.deleteDocuments(queryForObsoleteDocs);
     Label label = labelDAO.getById(labelId);
@@ -468,9 +469,7 @@ public abstract class AbstractSearchIndexClient
         Collections.singletonList(documentBuilderHelper.buildDocument(indexingContext, label)));
   }
 
-  private void updateIndexForPolicy(final String policyId, final IndexingContext indexingContext)
-      throws IOException
-  {
+  private void updateIndexForPolicy(final String policyId, final IndexingContext indexingContext) throws IOException {
     String queryForObsoleteDocs = indexingContext.newQuery(FieldIdentifier.POLICY_ID, policyId);
     indexingContext.deleteDocuments(queryForObsoleteDocs);
     Policy policy = policyDAO.getById(policyId);
@@ -483,8 +482,9 @@ public abstract class AbstractSearchIndexClient
         Collections.singletonList(documentBuilderHelper.buildDocument(indexingContext, policy)));
   }
 
-  private void updateIndexForApplicationCategory(final String tagId, final IndexingContext indexingContext)
-      throws IOException
+  private void updateIndexForApplicationCategory(
+      final String tagId,
+      final IndexingContext indexingContext) throws IOException
   {
     String queryForObsoleteDocs = indexingContext.newQuery(FieldIdentifier.APPLICATION_CATEGORY_ID, tagId);
     indexingContext.deleteDocuments(queryForObsoleteDocs);
@@ -498,8 +498,9 @@ public abstract class AbstractSearchIndexClient
         Collections.singletonList(documentBuilderHelper.buildDocument(indexingContext, tag)));
   }
 
-  private void updateIndexForApplication(final String applicationId, final IndexingContext indexingContext)
-      throws IOException
+  private void updateIndexForApplication(
+      final String applicationId,
+      final IndexingContext indexingContext) throws IOException
   {
     String queryForObsoleteDocs = indexingContext.newQuery(FieldIdentifier.APPLICATION_ID, applicationId);
     indexingContext.deleteDocuments(queryForObsoleteDocs);
@@ -523,12 +524,16 @@ public abstract class AbstractSearchIndexClient
     indexingContext.addNonNullDocuments(
         Collections.singletonList(documentBuilderHelper.buildDocument(indexingContext, application)));
     // Index the app labels
-    List<Document> appLabelDocs = labelDAO.getByOwnerId(application.getId()).stream()
-        .map(label -> documentBuilderHelper.buildDocument(indexingContext, label)).toList();
+    List<Document> appLabelDocs = labelDAO.getByOwnerId(application.getId())
+        .stream()
+        .map(label -> documentBuilderHelper.buildDocument(indexingContext, label))
+        .toList();
     indexingContext.addNonNullDocuments(appLabelDocs);
     // Index the app policies
-    List<Document> appPolicyDocs = policyDAO.getByOwnerId(application.getId()).stream()
-        .map(policy -> documentBuilderHelper.buildDocument(indexingContext, policy)).toList();
+    List<Document> appPolicyDocs = policyDAO.getByOwnerId(application.getId())
+        .stream()
+        .map(policy -> documentBuilderHelper.buildDocument(indexingContext, policy))
+        .toList();
     indexingContext.addNonNullDocuments(appPolicyDocs);
     // Index the app SVs
     indexingContext.addNonNullDocuments(
@@ -536,8 +541,9 @@ public abstract class AbstractSearchIndexClient
             ImmutableMap.of(organization, parentOrganizations)));
   }
 
-  private void updateIndexForOrganization(final String organizationId, final IndexingContext indexingContext)
-      throws IOException
+  private void updateIndexForOrganization(
+      final String organizationId,
+      final IndexingContext indexingContext) throws IOException
   {
     Organization org = organizationDAO.getById(organizationId);
     if (org == null) {
@@ -548,8 +554,9 @@ public abstract class AbstractSearchIndexClient
     updateIndexForOrganization(org, indexingContext);
   }
 
-  private void updateIndexForOrganization(final Organization org, final IndexingContext indexingContext)
-      throws IOException
+  private void updateIndexForOrganization(
+      final Organization org,
+      final IndexingContext indexingContext) throws IOException
   {
     String queryForObsoleteDocs = indexingContext.newQuery(FieldIdentifier.ORGANIZATION_ID, org.getId());
     indexingContext.deleteDocuments(queryForObsoleteDocs);
@@ -568,19 +575,26 @@ public abstract class AbstractSearchIndexClient
         Collections.singletonList(documentBuilderHelper.buildDocument(indexingContext, org)));
     // Index the org apps
     List<Document> orgAppDocs = applications.stream()
-        .map(app -> documentBuilderHelper.buildDocument(indexingContext, app)).toList();
+        .map(app -> documentBuilderHelper.buildDocument(indexingContext, app))
+        .toList();
     indexingContext.addNonNullDocuments(orgAppDocs);
     // Index the org app categories
-    List<Document> orgAppCategoryDocs = tagDAO.getByOrganizationId(org.getId()).stream()
-        .map(appCategory -> documentBuilderHelper.buildDocument(indexingContext, appCategory)).toList();
+    List<Document> orgAppCategoryDocs = tagDAO.getByOrganizationId(org.getId())
+        .stream()
+        .map(appCategory -> documentBuilderHelper.buildDocument(indexingContext, appCategory))
+        .toList();
     indexingContext.addNonNullDocuments(orgAppCategoryDocs);
     // Index the org labels
-    List<Document> orgLabelDocs = labelDAO.getByOwnerId(org.getId()).stream()
-        .map(label -> documentBuilderHelper.buildDocument(indexingContext, label)).toList();
+    List<Document> orgLabelDocs = labelDAO.getByOwnerId(org.getId())
+        .stream()
+        .map(label -> documentBuilderHelper.buildDocument(indexingContext, label))
+        .toList();
     indexingContext.addNonNullDocuments(orgLabelDocs);
     // Index the org policies
-    List<Document> orgPolicyDocs = policyDAO.getByOwnerId(org.getId()).stream()
-        .map(policy -> documentBuilderHelper.buildDocument(indexingContext, policy)).toList();
+    List<Document> orgPolicyDocs = policyDAO.getByOwnerId(org.getId())
+        .stream()
+        .map(policy -> documentBuilderHelper.buildDocument(indexingContext, policy))
+        .toList();
     indexingContext.addNonNullDocuments(orgPolicyDocs);
 
     // Index the security vulnerability data
@@ -599,8 +613,8 @@ public abstract class AbstractSearchIndexClient
     if (StringUtils.isBlank(searchQuery)) {
       throw new BadRequestException("The search query is empty");
     }
-    String finalSearchQuery = allComponents ? searchQuery :
-        searchQuery + " -" + ITEM_TYPE.label + ":" + NON_VULNERABLE_COMPONENT.name();
+    String finalSearchQuery =
+        allComponents ? searchQuery : searchQuery + " -" + ITEM_TYPE.label + ":" + NON_VULNERABLE_COMPONENT.name();
 
     // parentOrganizationName and parentOrganizationId support searching the hierarchy
     // including the organization itself
@@ -659,7 +673,8 @@ public abstract class AbstractSearchIndexClient
         permissionService.getContextIdsForUserWithPermission(currentUser.getUserPrincipal(), Permission.READ);
 
     if (contextIdsWithReadPermission.contains(MembershipMapping.GLOBAL_CONTEXT_ID) ||
-        contextIdsWithReadPermission.contains(Organization.ROOT_ORGANIZATION_ID)) {
+        contextIdsWithReadPermission.contains(Organization.ROOT_ORGANIZATION_ID))
+    {
       return query;
     }
 
@@ -686,19 +701,21 @@ public abstract class AbstractSearchIndexClient
   }
 
   /**
-   * When the REST API is called in: <br/><br/> SBOM Manager mode
+   * When the REST API is called in: <br/>
+   * <br/>
+   * SBOM Manager mode
    * <ul>
-   *   <li>Components without an applicationVersion MUST NOT be returned</li>
-   *   <li>Vulnerabilities without an applicationVersion MUST NOT be returned</li>
-   *   <li>Application categories MUST NOT be returned</li>
-   *   <li>Component labels MUST NOT be returned</li>
-   *   <li>Policies MUST NOT be returned</li>
+   * <li>Components without an applicationVersion MUST NOT be returned</li>
+   * <li>Vulnerabilities without an applicationVersion MUST NOT be returned</li>
+   * <li>Application categories MUST NOT be returned</li>
+   * <li>Component labels MUST NOT be returned</li>
+   * <li>Policies MUST NOT be returned</li>
    * </ul>
    * Default Mode
    * </ul>
-   *   <li>Components with an applicationVersion MUST NOT be returned</li>
-   *   <li>Vulnerabilities with an applicationVersion MUST NOT be returned</li>
-   *   <li>SBOM metadata MUST NOT be returned</li>
+   * <li>Components with an applicationVersion MUST NOT be returned</li>
+   * <li>Vulnerabilities with an applicationVersion MUST NOT be returned</li>
+   * <li>SBOM metadata MUST NOT be returned</li>
    * </ul>
    */
   private String appendSbomFilteringToQuery(final String originalQuery, final boolean isSbomManagerMode) {
@@ -787,8 +804,7 @@ public abstract class AbstractSearchIndexClient
           INDEX_THREADS_MIN,
           INDEX_THREADS_MAX,
           INDEX_THREADS_DEFAULT,
-          ADVANCED_SEARCH_CREATE_SEARCH_INDEX
-      );
+          ADVANCED_SEARCH_CREATE_SEARCH_INDEX);
       TenantThreadPoolExecutor tenantThreadPoolExecutor = new TenantThreadPoolExecutor(
           threadCount,
           threadCount,
@@ -798,8 +814,7 @@ public abstract class AbstractSearchIndexClient
           new ThreadFactoryBuilder().setNameFormat(getClass().getSimpleName() + "-%d").build(),
           new AbortPolicy(),
           "advanced_search_index",
-          getClass().getSimpleName()
-      );
+          getClass().getSimpleName());
       tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
       shutdownHandler.add(tenantThreadPoolExecutor);
       return tenantThreadPoolExecutor;
@@ -822,13 +837,13 @@ public abstract class AbstractSearchIndexClient
     AtomicInteger consecutiveFailures = new AtomicInteger(0);
 
     CompletableFuture<Void> orgDocs = CompletableFuture.supplyAsync(
-            () -> documentBuilderHelper.buildOrganizationDocs(indexingContext, organizations),
-            getIndexingExecutor())
+        () -> documentBuilderHelper.buildOrganizationDocs(indexingContext, organizations),
+        getIndexingExecutor())
         .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     CompletableFuture<Void> appDocs = CompletableFuture.supplyAsync(
-            () -> documentBuilderHelper.buildApplicationDocs(indexingContext, applications),
-            getIndexingExecutor())
+        () -> documentBuilderHelper.buildApplicationDocs(indexingContext, applications),
+        getIndexingExecutor())
         .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     Function<Application, CompletableFuture<Void>> processSVDocsForApplication =
@@ -836,7 +851,8 @@ public abstract class AbstractSearchIndexClient
             .supplyAsync(
                 () -> documentBuilderHelper.buildApplicationSVDocs(indexingContext,
                     organizationById.get(application.getOrganizationId()),
-                    application, parentsByOrganization), getIndexingExecutor())
+                    application, parentsByOrganization),
+                getIndexingExecutor())
             .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     List<CompletableFuture<Void>> appSVDocs = applications
@@ -846,30 +862,31 @@ public abstract class AbstractSearchIndexClient
 
     CompletableFuture<Void> tagDocs =
         CompletableFuture.supplyAsync(
-                () -> documentBuilderHelper.buildTagDocs(indexingContext), getIndexingExecutor())
+            () -> documentBuilderHelper.buildTagDocs(indexingContext), getIndexingExecutor())
             .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     CompletableFuture<Void> labelDocs =
         CompletableFuture.supplyAsync(
-                () -> documentBuilderHelper.buildLabelDocs(indexingContext),
-                getIndexingExecutor())
+            () -> documentBuilderHelper.buildLabelDocs(indexingContext),
+            getIndexingExecutor())
             .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     CompletableFuture<Void> policyDocs =
         CompletableFuture.supplyAsync(
-                () -> documentBuilderHelper.buildPolicyDocs(indexingContext),
-                getIndexingExecutor())
+            () -> documentBuilderHelper.buildPolicyDocs(indexingContext),
+            getIndexingExecutor())
             .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     CompletableFuture<Void> sbomDocs = CompletableFuture.supplyAsync(
-        () -> documentBuilderHelper.buildSbomDocs(indexingContext), getIndexingExecutor()
-    ).thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
+        () -> documentBuilderHelper.buildSbomDocs(indexingContext), getIndexingExecutor())
+        .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     Function<Application, CompletableFuture<Void>> processSbomSVDocsForApplication =
         application -> CompletableFuture
             .supplyAsync(
                 () -> documentBuilderHelper.buildSbomSVDocs(organizationById.get(application.getOrganizationId()),
-                    application, parentsByOrganization), getIndexingExecutor())
+                    application, parentsByOrganization),
+                getIndexingExecutor())
             .thenAccept(docs -> addDocumentsWithResilience(indexingContext, docs, consecutiveFailures));
 
     List<CompletableFuture<Void>> sbomSVDocs = applications
@@ -943,8 +960,7 @@ public abstract class AbstractSearchIndexClient
   protected void processSearchIndexChanges(
       final List<SearchIndexChange> searchIndexChanges,
       final IndexingContext indexingContext,
-      final Consumer<SearchIndexChange> deletionCallback)
-      throws IOException
+      final Consumer<SearchIndexChange> deletionCallback) throws IOException
   {
     log.debug("Updating search index with {} changes", searchIndexChanges.size());
     Set<String> alreadyApplied = new HashSet<>();
@@ -1030,9 +1046,9 @@ public abstract class AbstractSearchIndexClient
    * <p>
    * Common change-specific errors:
    * <ul>
-   *   <li>ParseException - Query parsing errors</li>
-   *   <li>IllegalArgumentException - Invalid field values</li>
-   *   <li>NullPointerException - Null field values</li>
+   * <li>ParseException - Query parsing errors</li>
+   * <li>IllegalArgumentException - Invalid field values</li>
+   * <li>NullPointerException - Null field values</li>
    * </ul>
    *
    * @param e the exception to check
@@ -1048,7 +1064,7 @@ public abstract class AbstractSearchIndexClient
    * <p>
    * Common systemic errors:
    * <ul>
-   *   <li>TimeoutException - Generic timeout</li>
+   * <li>TimeoutException - Generic timeout</li>
    * </ul>
    *
    * @param e the exception to check

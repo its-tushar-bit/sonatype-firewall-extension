@@ -24,18 +24,18 @@ public class RecentlyImportedSBOMsTile
   public RecentlyImportedSBOMsTile() {
     super(ROOT);
   }
-  
+
   public SbomTable sbomTable() {
     return new SbomTable();
   }
-  
+
   public class SbomTable
       extends BasicElement<SbomTable>
   {
     SbomTable() {
       super(ROOT, ".sbom-manager-recently-imported-sboms-tile-table");
     }
-  
+
     public NxSortingHeader applicationNameTableHeader() {
       return new NxSortingHeader(childSelector(createSelector(".nx-cell--header", nthChild(1))));
     }
@@ -43,11 +43,11 @@ public class RecentlyImportedSBOMsTile
     public NxSortingHeader tableHeader(int index) {
       return new NxSortingHeader(childSelector(createSelector(".nx-cell--header", nthChild(index + 1))));
     }
-      
+
     public ElementsCollection allTableRows() {
       return children(".nx-table-row");
     }
-      
+
     public TableRow tableRow(int index) {
       return new TableRow(childSelector(createSelector(".nx-table-row", nthChild(index + 1))));
     }
@@ -56,54 +56,54 @@ public class RecentlyImportedSBOMsTile
       return new TableRow(childSelector(".nx-table-row:first-child"));
     }
   }
-  
+
   public class TableRow
       extends BasicElement<TableRow>
   {
     public TableRow(String selector) {
       super(selector);
     }
-    
+
     public SelenideElement applicationName() {
       return child(".sbom-manager-recently-imported-sboms-tile-table__application-name");
     }
-    
+
     public SelenideElement sbomVersion() {
       return child(".sbom-manager-recently-imported-sboms-tile-table__sbom-version");
     }
-    
+
     public SelenideElement bomFormat() {
       return child("td:nth-child(3)");
     }
-    
+
     public SelenideElement importDate() {
       return child("td:nth-child(4)");
     }
-    
+
     public ThreatCounters threatCounters() {
       return new ThreatCounters();
     }
   }
-  
+
   public class ThreatCounters
       extends BasicElement<ThreatCounters>
   {
     public ThreatCounters() {
       super(TABLE);
     }
-    
+
     public SelenideElement criticalThreatCounter() {
       return child(".nx-small-threat-counter.nx-small-threat-counter--critical");
     }
-    
+
     public SelenideElement severeThreatCounter() {
       return child(".nx-small-threat-counter.nx-small-threat-counter--severe");
     }
-    
+
     public SelenideElement moderateThreatCounter() {
       return child(".nx-small-threat-counter.nx-small-threat-counter--moderate");
     }
-    
+
     public SelenideElement lowThreatCounter() {
       return child(".nx-small-threat-counter.nx-small-threat-counter--low");
     }

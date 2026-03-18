@@ -54,8 +54,7 @@ public class ComponentReachabilityService
         for (PolicyViolation activeViolation : policyThreatsComponent.activeViolations) {
           boolean reachabilitySupported = PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(
               policyThreatsComponent.componentIdentifier,
-              activeViolation
-          );
+              activeViolation);
           if (reachabilitySupported && !activeViolation.legacyViolation) {
             reachabilityStatuses.add(activeViolation.reachabilityStatus);
           }

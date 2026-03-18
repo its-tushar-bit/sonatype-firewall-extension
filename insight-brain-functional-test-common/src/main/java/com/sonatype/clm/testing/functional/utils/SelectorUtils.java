@@ -10,7 +10,7 @@ public class SelectorUtils
   public static String nthChild(int num) {
     return ":nth-child(" + num + ")";
   }
-  
+
   public static String nthOfType(int num) {
     return ":nth-of-type(" + num + ")";
   }
@@ -24,7 +24,8 @@ public class SelectorUtils
     StringBuilder sb = new StringBuilder();
     for (String selector : selectors) {
       if (sb.length() > 0
-          && !(selector.startsWith(":") || selector.startsWith("[") || sb.charAt(sb.length() - 1) == '.')) {
+          && !(selector.startsWith(":") || selector.startsWith("[") || sb.charAt(sb.length() - 1) == '.'))
+      {
         sb.append(' ');
       }
       sb.append(selector);

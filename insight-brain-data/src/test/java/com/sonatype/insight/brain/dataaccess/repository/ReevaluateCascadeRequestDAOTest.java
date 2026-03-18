@@ -144,8 +144,7 @@ public class ReevaluateCascadeRequestDAOTest
           "old_completed", "old_pending", "old_in_progress", "old_failed", "exactly_cutoff");
 
       // Verify all found requests are at or before cutoff
-      assertThat(found).allMatch(request ->
-          request.getCreatedAt().getTime() <= cutoffDate.getTime());
+      assertThat(found).allMatch(request -> request.getCreatedAt().getTime() <= cutoffDate.getTime());
     }
   }
 

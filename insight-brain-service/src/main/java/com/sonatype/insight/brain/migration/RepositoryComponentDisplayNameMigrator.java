@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Fills in the repository_component.display_name db column.
- * 
+ *
  * @since 1.152
  */
 @Named
@@ -60,7 +60,8 @@ public class RepositoryComponentDisplayNameMigrator
     int componentCount = 0;
     for (Repository repository : repositoryDAO.getAll()) {
       for (RepositoryComponent repositoryComponent : repositoryComponentDAO
-          .getByRepositoryIdAndDisplayName(repository.getId(), null)) {
+          .getByRepositoryIdAndDisplayName(repository.getId(), null))
+      {
         repositoryComponentDAO.update(repositoryComponent);
         componentCount++;
       }

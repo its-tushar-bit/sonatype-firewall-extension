@@ -70,7 +70,7 @@ public class ApiComponentsInQuarantineReportingResourceAuditTest
     createRepositoryComponent(repo2, "pathname6", false, false);
 
     // component released from quarantine
-    createRepositoryComponent(repo2,  "pathname7", true, true);
+    createRepositoryComponent(repo2, "pathname7", true, true);
 
     restRequest().get();
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_QUARANTINED_COMPONENTS, null);
@@ -87,7 +87,8 @@ public class ApiComponentsInQuarantineReportingResourceAuditTest
     assertCustomData(auditDTO, "numberOfQuarantinedComponents", 0);
   }
 
-  private void createRepositoryComponent(Repository repo,
+  private void createRepositoryComponent(
+      Repository repo,
       String pathname,
       boolean isQuarantined,
       boolean isReleasedFromQuarantine)

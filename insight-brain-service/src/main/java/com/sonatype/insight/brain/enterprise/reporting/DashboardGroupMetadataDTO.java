@@ -28,17 +28,18 @@ public class DashboardGroupMetadataDTO
   public String title;
 
   public DashboardGroupMetadataDTO() {
-    //for jackson;
+    // for jackson;
   }
 
-  public DashboardGroupMetadataDTO(final String groupId,
-                              final String description,
-                              final List<String> features,
-                              final String previewImageIcon,
-                              final boolean spotlight,
-                              final String spotlightColor,
-                              final String spotlightText,
-                              final String title)
+  public DashboardGroupMetadataDTO(
+      final String groupId,
+      final String description,
+      final List<String> features,
+      final String previewImageIcon,
+      final boolean spotlight,
+      final String spotlightColor,
+      final String spotlightText,
+      final String title)
   {
     this.groupId = groupId;
     this.description = description;

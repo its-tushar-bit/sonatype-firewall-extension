@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -34,8 +35,9 @@ public class ComponentCategoryDAOTest
   @Test
   public void test_getAll() {
     List<ComponentCategory> componentCategories = componentCategoryDAO.getAll();
-    assertThat(componentCategories).isNotEmpty().isSortedAccordingTo(
-        Comparator.comparing(ComponentCategory::getPath, String.CASE_INSENSITIVE_ORDER));
+    assertThat(componentCategories).isNotEmpty()
+        .isSortedAccordingTo(
+            Comparator.comparing(ComponentCategory::getPath, String.CASE_INSENSITIVE_ORDER));
   }
 
   @Test

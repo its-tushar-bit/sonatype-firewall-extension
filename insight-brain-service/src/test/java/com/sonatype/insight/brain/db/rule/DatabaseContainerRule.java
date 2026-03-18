@@ -20,6 +20,7 @@ import com.sonatype.insight.db.DatabaseEngine;
  *
  * <p>
  * Example:
+ *
  * <pre>
  * {@code
  * @Rule(order = 1)
@@ -48,8 +49,8 @@ public class DatabaseContainerRule
    * Return the singleton {@link DatabaseContainer}
    *
    * @param baseTestClassType you should pass in the BASE test class type here. The value is tracked between subsequent
-   *                          tests and when the value changes it is considered as making the currently active database
-   *                          NOT reusable and therefore a fresh database will be automatically be re-provisioned
+   *          tests and when the value changes it is considered as making the currently active database
+   *          NOT reusable and therefore a fresh database will be automatically be re-provisioned
    */
   public static DatabaseContainerRule getInstance(Class<?> baseTestClassType) {
     if (currentTestClassType != baseTestClassType) {
@@ -79,7 +80,8 @@ public class DatabaseContainerRule
   }
 
   public DatabaseConfigProvider getDatabaseConfigProvider() {
-    return new DatabaseConfigProvider() {
+    return new DatabaseConfigProvider()
+    {
       @Override
       public DatabaseConfig getDatabaseConfig(final DatabaseName databaseName) {
         return DatabaseContainerRule.this.getDatabaseConfig(databaseName.name());

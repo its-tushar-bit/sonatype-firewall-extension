@@ -333,14 +333,28 @@ public class DashboardWaiverRequestsTest
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "1.2.3", "", "jar");
     String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
-    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash1").setPolicyId(policy.getId())
-        .setOwnerId(organization.getId()).setAssociatedPackageUrl(purl).setComponentMatchStrategy(EXACT_COMPONENT)
-        .setComment("comment org").setRequestTime(twoDaysAgo).setExpiryTime(threeDaysFromNow)
-        .setRequesterId("testuser1").setRequesterName("Test User 1").setComponentUpgradeAvailable(true));
-    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash2").setPolicyId(policy.getId())
-        .setOwnerId(organization.getId()).setAssociatedPackageUrl(purl).setComponentMatchStrategy(EXACT_COMPONENT)
-        .setComment("comment org").setRequestTime(twoDaysAgo).setExpiryTime(threeDaysFromNow)
-        .setRequesterId("testuser2").setRequesterName("Test User 2").setComponentUpgradeAvailable(true));
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash1")
+        .setPolicyId(policy.getId())
+        .setOwnerId(organization.getId())
+        .setAssociatedPackageUrl(purl)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("comment org")
+        .setRequestTime(twoDaysAgo)
+        .setExpiryTime(threeDaysFromNow)
+        .setRequesterId("testuser1")
+        .setRequesterName("Test User 1")
+        .setComponentUpgradeAvailable(true));
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash2")
+        .setPolicyId(policy.getId())
+        .setOwnerId(organization.getId())
+        .setAssociatedPackageUrl(purl)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("comment org")
+        .setRequestTime(twoDaysAgo)
+        .setExpiryTime(threeDaysFromNow)
+        .setRequesterId("testuser2")
+        .setRequesterName("Test User 2")
+        .setComponentUpgradeAvailable(true));
 
     refresh();
     DashboardPage.waitUntilSpinnersGone();
@@ -373,16 +387,30 @@ public class DashboardWaiverRequestsTest
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "1.2.3", "", "jar");
     String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
-    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash1").setPolicyId(policy.getId())
-        .setOwnerId(organization.getId()).setAssociatedPackageUrl(purl).setComponentMatchStrategy(EXACT_COMPONENT)
-        .setComment("comment org").setRequestTime(twoDaysAgo).setExpiryTime(threeDaysFromNow).setRequesterId("testuser")
-        .setRequesterName("Test User").setComponentUpgradeAvailable(true).setStatus(PolicyWaiverRequestStatus.REQUESTED)
-    );
-    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash2").setPolicyId(policy.getId())
-        .setOwnerId(organization.getId()).setAssociatedPackageUrl(purl).setComponentMatchStrategy(EXACT_COMPONENT)
-        .setComment("comment org").setRequestTime(twoDaysAgo).setExpiryTime(threeDaysFromNow).setRequesterId("testuser")
-        .setRequesterName("Test User").setComponentUpgradeAvailable(true).setStatus(PolicyWaiverRequestStatus.APPROVED)
-    );
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash1")
+        .setPolicyId(policy.getId())
+        .setOwnerId(organization.getId())
+        .setAssociatedPackageUrl(purl)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("comment org")
+        .setRequestTime(twoDaysAgo)
+        .setExpiryTime(threeDaysFromNow)
+        .setRequesterId("testuser")
+        .setRequesterName("Test User")
+        .setComponentUpgradeAvailable(true)
+        .setStatus(PolicyWaiverRequestStatus.REQUESTED));
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash2")
+        .setPolicyId(policy.getId())
+        .setOwnerId(organization.getId())
+        .setAssociatedPackageUrl(purl)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("comment org")
+        .setRequestTime(twoDaysAgo)
+        .setExpiryTime(threeDaysFromNow)
+        .setRequesterId("testuser")
+        .setRequesterName("Test User")
+        .setComponentUpgradeAvailable(true)
+        .setStatus(PolicyWaiverRequestStatus.APPROVED));
 
     refresh();
     DashboardPage.waitUntilSpinnersGone();
@@ -491,20 +519,36 @@ public class DashboardWaiverRequestsTest
 
       Date expiration = DateUtils.addDays(now, i);
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + app.getId())
-          .setPolicyId(policy.getId()).setOwnerId(app.getId()).setConstraintFacts(policyViolation.getConstraintFacts())
-          .setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment").setRequestTime(fiveDaysAgo)
+          .setPolicyId(policy.getId())
+          .setOwnerId(app.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(fiveDaysAgo)
           .setExpiryTime(expiration));
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + app2.getId())
-          .setPolicyId(policy.getId()).setOwnerId(app2.getId()).setConstraintFacts(policyViolation.getConstraintFacts())
-          .setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment").setRequestTime(fiveDaysAgo)
+          .setPolicyId(policy.getId())
+          .setOwnerId(app2.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(fiveDaysAgo)
           .setExpiryTime(expiration));
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + organization.getId())
-          .setPolicyId(policy.getId()).setOwnerId(organization.getId())
-          .setConstraintFacts(policyViolation.getConstraintFacts()).setComponentMatchStrategy(EXACT_COMPONENT)
-          .setComment("comment").setRequestTime(fiveDaysAgo).setExpiryTime(expiration));
+          .setPolicyId(policy.getId())
+          .setOwnerId(organization.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(fiveDaysAgo)
+          .setExpiryTime(expiration));
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + policy.getId())
-          .setPolicyId(policy.getId()).setOwnerId(app.getId()).setConstraintFacts(policyViolation.getConstraintFacts())
-          .setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment").setRequestTime(fiveDaysAgo)
+          .setPolicyId(policy.getId())
+          .setOwnerId(app.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(fiveDaysAgo)
           .setExpiryTime(expiration));
     }
 
@@ -564,20 +608,36 @@ public class DashboardWaiverRequestsTest
 
       Date expiration = DateUtils.addDays(now, i);
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + app.getId())
-          .setPolicyId(policy.getId()).setOwnerId(app.getId()).setConstraintFacts(policyViolation.getConstraintFacts())
-          .setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment").setRequestTime(twoDaysAgo)
+          .setPolicyId(policy.getId())
+          .setOwnerId(app.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(twoDaysAgo)
           .setExpiryTime(expiration));
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + app2.getId())
-          .setPolicyId(policy.getId()).setOwnerId(app2.getId()).setConstraintFacts(policyViolation.getConstraintFacts())
-          .setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment").setRequestTime(threeDaysAgo)
+          .setPolicyId(policy.getId())
+          .setOwnerId(app2.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(threeDaysAgo)
           .setExpiryTime(expiration));
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + organization.getId())
-          .setPolicyId(policy.getId()).setOwnerId(organization.getId())
-          .setConstraintFacts(policyViolation.getConstraintFacts()).setComponentMatchStrategy(EXACT_COMPONENT)
-          .setComment("comment").setRequestTime(fiveDaysAgo).setExpiryTime(expiration));
+          .setPolicyId(policy.getId())
+          .setOwnerId(organization.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(fiveDaysAgo)
+          .setExpiryTime(expiration));
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + policy.getId())
-          .setPolicyId(policy.getId()).setOwnerId(app.getId()).setConstraintFacts(policyViolation.getConstraintFacts())
-          .setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment").setRequestTime(fiveDaysAgo)
+          .setPolicyId(policy.getId())
+          .setOwnerId(app.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(fiveDaysAgo)
           .setExpiryTime(expiration));
     }
 
@@ -613,12 +673,18 @@ public class DashboardWaiverRequestsTest
 
     // create 100+ waivers
     for (int i = 0; i <= 50; i++) {
-      tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i).setPolicyId(policy.getId())
-          .setOwnerId(application.getId()).setComponentMatchStrategy(EXACT_COMPONENT).setExpiryTime(expiration)
+      tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i)
+          .setPolicyId(policy.getId())
+          .setOwnerId(application.getId())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setExpiryTime(expiration)
           .setStatus(PolicyWaiverRequestStatus.REQUESTED));
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + (i + 100))
-          .setPolicyId(policy.getId()).setOwnerId(application.getId()).setComponentMatchStrategy(EXACT_COMPONENT)
-          .setExpiryTime(expiration).setStatus(PolicyWaiverRequestStatus.APPROVED));
+          .setPolicyId(policy.getId())
+          .setOwnerId(application.getId())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setExpiryTime(expiration)
+          .setStatus(PolicyWaiverRequestStatus.APPROVED));
     }
 
     refresh();
@@ -650,12 +716,20 @@ public class DashboardWaiverRequestsTest
 
     // create 100+ waivers
     for (int i = 0; i <= 50; i++) {
-      tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i).setPolicyId(policy.getId())
-          .setOwnerId(application.getId()).setComponentMatchStrategy(EXACT_COMPONENT).setExpiryTime(expiration)
-          .setRequesterId("testuser1").setRequesterName("Test User 1"));
+      tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i)
+          .setPolicyId(policy.getId())
+          .setOwnerId(application.getId())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setExpiryTime(expiration)
+          .setRequesterId("testuser1")
+          .setRequesterName("Test User 1"));
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + (i + 100))
-          .setPolicyId(policy.getId()).setOwnerId(application.getId()).setComponentMatchStrategy(EXACT_COMPONENT)
-          .setExpiryTime(expiration).setRequesterId("testuser2").setRequesterName("Test User 2"));
+          .setPolicyId(policy.getId())
+          .setOwnerId(application.getId())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setExpiryTime(expiration)
+          .setRequesterId("testuser2")
+          .setRequesterName("Test User 2"));
     }
 
     refresh();
@@ -695,20 +769,36 @@ public class DashboardWaiverRequestsTest
 
       Date expiration = DateUtils.addDays(now, i);
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + app.getId())
-          .setPolicyId(policy.getId()).setOwnerId(app.getId()).setConstraintFacts(policyViolation.getConstraintFacts())
-          .setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment").setRequestTime(fiveDaysAgo)
+          .setPolicyId(policy.getId())
+          .setOwnerId(app.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(fiveDaysAgo)
           .setExpiryTime(expiration));
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + app2.getId())
-          .setPolicyId(policy.getId()).setOwnerId(app2.getId()).setConstraintFacts(policyViolation.getConstraintFacts())
-          .setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment").setRequestTime(fiveDaysAgo)
+          .setPolicyId(policy.getId())
+          .setOwnerId(app2.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(fiveDaysAgo)
           .setExpiryTime(expiration));
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + organization.getId())
-          .setPolicyId(policy.getId()).setOwnerId(organization.getId())
-          .setConstraintFacts(policyViolation.getConstraintFacts()).setComponentMatchStrategy(EXACT_COMPONENT)
-          .setComment("comment").setRequestTime(fiveDaysAgo).setExpiryTime(expiration));
+          .setPolicyId(policy.getId())
+          .setOwnerId(organization.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(fiveDaysAgo)
+          .setExpiryTime(expiration));
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + policy.getId())
-          .setPolicyId(policy.getId()).setOwnerId(app.getId()).setConstraintFacts(policyViolation.getConstraintFacts())
-          .setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment").setRequestTime(fiveDaysAgo)
+          .setPolicyId(policy.getId())
+          .setOwnerId(app.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(fiveDaysAgo)
           .setExpiryTime(expiration));
     }
 
@@ -774,20 +864,36 @@ public class DashboardWaiverRequestsTest
 
       Date expiration = DateUtils.addDays(now, i);
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + app.getId())
-          .setPolicyId(policy.getId()).setOwnerId(app.getId()).setConstraintFacts(policyViolation.getConstraintFacts())
-          .setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment").setRequestTime(fiveDaysAgo)
+          .setPolicyId(policy.getId())
+          .setOwnerId(app.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(fiveDaysAgo)
           .setExpiryTime(expiration));
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + app2.getId())
-          .setPolicyId(policy.getId()).setOwnerId(app2.getId()).setConstraintFacts(policyViolation.getConstraintFacts())
-          .setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment").setRequestTime(fiveDaysAgo)
+          .setPolicyId(policy.getId())
+          .setOwnerId(app2.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(fiveDaysAgo)
           .setExpiryTime(expiration));
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + organization.getId())
-          .setPolicyId(policy.getId()).setOwnerId(organization.getId())
-          .setConstraintFacts(policyViolation.getConstraintFacts()).setComponentMatchStrategy(EXACT_COMPONENT)
-          .setComment("comment").setRequestTime(fiveDaysAgo).setExpiryTime(expiration));
+          .setPolicyId(policy.getId())
+          .setOwnerId(organization.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(fiveDaysAgo)
+          .setExpiryTime(expiration));
       tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash" + i + policy.getId())
-          .setPolicyId(policy.getId()).setOwnerId(app.getId()).setConstraintFacts(policyViolation.getConstraintFacts())
-          .setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment").setRequestTime(fiveDaysAgo)
+          .setPolicyId(policy.getId())
+          .setOwnerId(app.getId())
+          .setConstraintFacts(policyViolation.getConstraintFacts())
+          .setComponentMatchStrategy(EXACT_COMPONENT)
+          .setComment("comment")
+          .setRequestTime(fiveDaysAgo)
           .setExpiryTime(expiration));
     }
 
@@ -870,57 +976,115 @@ public class DashboardWaiverRequestsTest
 
     // Default sorting: closer to expire at the top
     PolicyWaiverRequest policyWaiverRequest1 = tempEntity.newPolicyWaiverRequest(
-        new PolicyWaiverRequest().setHash("hash1").setPolicyId(securityPolicies.get(0).getId())
-            .setOwnerId(organization.getId()).setAssociatedPackageUrl(purl).setComponentMatchStrategy(EXACT_COMPONENT)
-            .setComment("comment org").setRequestTime(twoDaysAgo).setExpiryTime(threeDaysFromNow)
-            .setRequesterId("testuser").setRequesterName("Test User").setComponentUpgradeAvailable(true));
+        new PolicyWaiverRequest().setHash("hash1")
+            .setPolicyId(securityPolicies.get(0).getId())
+            .setOwnerId(organization.getId())
+            .setAssociatedPackageUrl(purl)
+            .setComponentMatchStrategy(EXACT_COMPONENT)
+            .setComment("comment org")
+            .setRequestTime(twoDaysAgo)
+            .setExpiryTime(threeDaysFromNow)
+            .setRequesterId("testuser")
+            .setRequesterName("Test User")
+            .setComponentUpgradeAvailable(true));
 
     PolicyWaiverRequest policyWaiverRequest2 = tempEntity.newPolicyWaiverRequest(
-        new PolicyWaiverRequest().setHash("hash2").setPolicyId(securityPolicies.get(2).getId())
-            .setOwnerId(application2.getId()).setAssociatedPackageUrl(purl).setComponentMatchStrategy(EXACT_COMPONENT)
-            .setComment("comment app 2").setRequestTime(threeDaysAgo).setExpiryTime(fiveDaysFromNow)
-            .setRequesterId("testuser").setRequesterName("Test User").setComponentUpgradeAvailable(true));
+        new PolicyWaiverRequest().setHash("hash2")
+            .setPolicyId(securityPolicies.get(2).getId())
+            .setOwnerId(application2.getId())
+            .setAssociatedPackageUrl(purl)
+            .setComponentMatchStrategy(EXACT_COMPONENT)
+            .setComment("comment app 2")
+            .setRequestTime(threeDaysAgo)
+            .setExpiryTime(fiveDaysFromNow)
+            .setRequesterId("testuser")
+            .setRequesterName("Test User")
+            .setComponentUpgradeAvailable(true));
 
     PolicyWaiverRequest policyWaiverRequest3 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
-        .setHash("hash3").setPolicyId(securityPolicies.get(2).getId()).setOwnerId(application.getId())
-        .setAssociatedPackageUrl(purl).setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment app 1")
-        .setRequestTime(fiveDaysAgo).setRequesterId("testuser").setRequesterName("Test User"));
+        .setHash("hash3")
+        .setPolicyId(securityPolicies.get(2).getId())
+        .setOwnerId(application.getId())
+        .setAssociatedPackageUrl(purl)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("comment app 1")
+        .setRequestTime(fiveDaysAgo)
+        .setRequesterId("testuser")
+        .setRequesterName("Test User"));
 
     PolicyWaiverRequest policyWaiverRequest4 =
         tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash4")
-            .setPolicyId(securityPolicies.get(1).getId()).setOwnerId(organization.getId()).setAssociatedPackageUrl(purl)
-            .setComponentMatchStrategy(ALL_COMPONENTS).setComment("org all components").setRequestTime(sixDaysAgo)
-            .setExpiryTime(sixDaysFromNow).setRequesterId("testuser").setRequesterName("Test User"));
+            .setPolicyId(securityPolicies.get(1).getId())
+            .setOwnerId(organization.getId())
+            .setAssociatedPackageUrl(purl)
+            .setComponentMatchStrategy(ALL_COMPONENTS)
+            .setComment("org all components")
+            .setRequestTime(sixDaysAgo)
+            .setExpiryTime(sixDaysFromNow)
+            .setRequesterId("testuser")
+            .setRequesterName("Test User"));
 
     PolicyWaiverRequest policyWaiverRequest5 = tempEntity.newPolicyWaiverRequest(
-        new PolicyWaiverRequest().setHash("hash5").setPolicyId(securityPolicies.get(1).getId())
-            .setOwnerId(application.getId()).setAssociatedPackageUrl(purl).setComponentMatchStrategy(ALL_VERSIONS)
-            .setComment("app all versions").setRequestTime(sevenDaysAgo).setExpiryTime(sevenDaysFromNow)
-            .setRequesterId("testuser").setRequesterName("Test User").setComponentUpgradeAvailable(true));
+        new PolicyWaiverRequest().setHash("hash5")
+            .setPolicyId(securityPolicies.get(1).getId())
+            .setOwnerId(application.getId())
+            .setAssociatedPackageUrl(purl)
+            .setComponentMatchStrategy(ALL_VERSIONS)
+            .setComment("app all versions")
+            .setRequestTime(sevenDaysAgo)
+            .setExpiryTime(sevenDaysFromNow)
+            .setRequesterId("testuser")
+            .setRequesterName("Test User")
+            .setComponentUpgradeAvailable(true));
 
     PolicyWaiverRequest policyWaiverRequest6 =
         tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash6")
-            .setPolicyId(securityPolicies.get(3).getId()).setOwnerId(rootOrg.getId()).setAssociatedPackageUrl(purl)
-            .setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment root org").setRequestTime(eightDaysAgo)
-            .setExpiryTime(eightDaysFromNow).setRequesterId("testuser").setRequesterName("Test User"));
+            .setPolicyId(securityPolicies.get(3).getId())
+            .setOwnerId(rootOrg.getId())
+            .setAssociatedPackageUrl(purl)
+            .setComponentMatchStrategy(EXACT_COMPONENT)
+            .setComment("comment root org")
+            .setRequestTime(eightDaysAgo)
+            .setExpiryTime(eightDaysFromNow)
+            .setRequesterId("testuser")
+            .setRequesterName("Test User"));
 
     PolicyWaiverRequest policyWaiverRequest7 = tempEntity.newPolicyWaiverRequest(
-        new PolicyWaiverRequest().setHash("hash7").setPolicyId(securityPolicies.get(0).getId())
-            .setOwnerId(repository1.getId()).setAssociatedPackageUrl(purl).setComponentMatchStrategy(EXACT_COMPONENT)
-            .setComment("comment repo").setRequestTime(nineDaysAgo).setExpiryTime(nineDaysFromNow)
-            .setRequesterId("testuser").setRequesterName("Test User").setComponentUpgradeAvailable(true));
+        new PolicyWaiverRequest().setHash("hash7")
+            .setPolicyId(securityPolicies.get(0).getId())
+            .setOwnerId(repository1.getId())
+            .setAssociatedPackageUrl(purl)
+            .setComponentMatchStrategy(EXACT_COMPONENT)
+            .setComment("comment repo")
+            .setRequestTime(nineDaysAgo)
+            .setExpiryTime(nineDaysFromNow)
+            .setRequesterId("testuser")
+            .setRequesterName("Test User")
+            .setComponentUpgradeAvailable(true));
 
     PolicyWaiverRequest policyWaiverRequest8 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
-        .setHash("hash8").setPolicyId(securityPolicies.get(1).getId())
-        .setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID).setAssociatedPackageUrl(purl)
-        .setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment repo container").setRequestTime(fourteenDaysAgo)
-        .setExpiryTime(fourteenDaysFromNow).setRequesterId("testuser").setRequesterName("Test User"));
+        .setHash("hash8")
+        .setPolicyId(securityPolicies.get(1).getId())
+        .setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID)
+        .setAssociatedPackageUrl(purl)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("comment repo container")
+        .setRequestTime(fourteenDaysAgo)
+        .setExpiryTime(fourteenDaysFromNow)
+        .setRequesterId("testuser")
+        .setRequesterName("Test User"));
 
     PolicyWaiverRequest policyWaiverRequest9 = tempEntity.newPolicyWaiverRequest(
-        new PolicyWaiverRequest().setHash("hash9").setPolicyId(securityPolicies.get(1).getId())
-            .setOwnerId(parentOrganization.getId()).setAssociatedPackageUrl(purl)
-            .setComponentMatchStrategy(EXACT_COMPONENT).setComment("comment parent org").setRequestTime(thirtyDaysAgo)
-            .setExpiryTime(thirtyDaysFromNow).setRequesterId("testuser").setRequesterName("Test User"));
+        new PolicyWaiverRequest().setHash("hash9")
+            .setPolicyId(securityPolicies.get(1).getId())
+            .setOwnerId(parentOrganization.getId())
+            .setAssociatedPackageUrl(purl)
+            .setComponentMatchStrategy(EXACT_COMPONENT)
+            .setComment("comment parent org")
+            .setRequestTime(thirtyDaysAgo)
+            .setExpiryTime(thirtyDaysFromNow)
+            .setRequesterId("testuser")
+            .setRequesterName("Test User"));
 
     return new ArrayList<>(Arrays.asList(policyWaiverRequest1, policyWaiverRequest2, policyWaiverRequest3,
         policyWaiverRequest4, policyWaiverRequest5, policyWaiverRequest6, policyWaiverRequest7, policyWaiverRequest8,
@@ -1095,7 +1259,8 @@ public class DashboardWaiverRequestsTest
   }
 
   private void newFluentWait() {
-    new FluentWait<>(getWebDriver()).withTimeout(Duration.ofSeconds(10)).pollingEvery(Duration.ofSeconds(1))
+    new FluentWait<>(getWebDriver()).withTimeout(Duration.ofSeconds(10))
+        .pollingEvery(Duration.ofSeconds(1))
         .ignoring(NoSuchElementException.class)
         .until(ExpectedConditions.visibilityOf(table.firstWaiverRequest().policy()));
   }
@@ -1120,10 +1285,17 @@ public class DashboardWaiverRequestsTest
 
     for (int i = 0; i < 150; i++) {
       tempEntity.newPolicyWaiverRequest(
-          new PolicyWaiverRequest().setHash("hash1" + i).setPolicyId(securityPolicy.getId())
-              .setOwnerId(organization.getId()).setAssociatedPackageUrl(purl).setComponentMatchStrategy(EXACT_COMPONENT)
-              .setComment("comment org").setRequestTime(twoDaysAgo).setExpiryTime(threeDaysFromNow)
-              .setRequesterId("testuser1").setRequesterName("Test User1").setComponentUpgradeAvailable(true));
+          new PolicyWaiverRequest().setHash("hash1" + i)
+              .setPolicyId(securityPolicy.getId())
+              .setOwnerId(organization.getId())
+              .setAssociatedPackageUrl(purl)
+              .setComponentMatchStrategy(EXACT_COMPONENT)
+              .setComment("comment org")
+              .setRequestTime(twoDaysAgo)
+              .setExpiryTime(threeDaysFromNow)
+              .setRequesterId("testuser1")
+              .setRequesterName("Test User1")
+              .setComponentUpgradeAvailable(true));
     }
   }
 }

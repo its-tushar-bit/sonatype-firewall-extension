@@ -143,8 +143,7 @@ public class PolicyWaiverService
   private DashboardResultsDTO<DashboardPolicyWaiverDTO> getDashboardPolicyWaivers(
       final RisksFilterDTO risksFilterDTO,
       final boolean includeDetails,
-      final boolean includeAutoWaivers
-  )
+      final boolean includeAutoWaivers)
   {
     dashboardUtils.validateDashboardLicensedAndEnabled();
 
@@ -180,15 +179,15 @@ public class PolicyWaiverService
 
     List<DashboardPolicyWaiverDTO> filteredWaiverDTOs = new ArrayList<>();
     for (Policy policy : filteredPoliciesById.values()) {
-      List<PolicyWaiver> policyWaivers = expirationDate.equals(ALL) ?
-          policyWaiverDAO.getByPolicyId(policy.getId())
+      List<PolicyWaiver> policyWaivers = expirationDate.equals(ALL)
+          ? policyWaiverDAO.getByPolicyId(policy.getId())
           : policyWaiverDAO.getActiveByPolicyId(policy.getId());
       List<DashboardPolicyWaiverDTO> partialDTOs =
           filterPolicyWaiversAndBuildDTOs(policyWaivers, filteringPredicate, dtoAdapter, waiverReasonIdToWaiverReason);
       filteredWaiverDTOs.addAll(partialDTOs);
     }
 
-    //auto waiver
+    // auto waiver
     if (includeAutoWaivers && dashboardUtils.isAutoWaiverFeatureFlagEnabled()) {
       Predicate<AutoPolicyWaiver> autoPolicyWaiverPredicate = getFilteringPredicateForAutoPolicyWaivers(owners.keySet())
           .and(getFilteringPredicateForAutoWaiverThreatLevel(policyThreatLevelRange))
@@ -227,11 +226,10 @@ public class PolicyWaiverService
   {
     final Map<String, Owner> owners = new HashMap<>();
 
-    final BooleanSupplier isOwnerFilterEmpty = () ->
-        CollectionUtils.isEmpty(organizationIds)
-            && CollectionUtils.isEmpty(applicationIds)
-            && CollectionUtils.isEmpty(tagIds)
-            && CollectionUtils.isEmpty(repositoryIds);
+    final BooleanSupplier isOwnerFilterEmpty = () -> CollectionUtils.isEmpty(organizationIds)
+        && CollectionUtils.isEmpty(applicationIds)
+        && CollectionUtils.isEmpty(tagIds)
+        && CollectionUtils.isEmpty(repositoryIds);
 
     final Map<String, ? extends Owner> lifeCycleOwners =
         getApplicationsAndOrgs(applicationIds, tagIds, organizationIds, isOwnerFilterEmpty);
@@ -330,8 +328,9 @@ public class PolicyWaiverService
       final DashboardPolicyWaiverDTOAdapter dtoAdapter,
       final Map<String, PolicyWaiverReason> waiverReasonIdToWaiverReason)
   {
-    return policyWaivers.stream().filter(filter)
-        .map((policyWaiver) ->  {
+    return policyWaivers.stream()
+        .filter(filter)
+        .map((policyWaiver) -> {
           return dtoAdapter.toDto(
               policyWaiver,
               waiverReasonIdToWaiverReason.get(policyWaiver.getWaiverReasonId()));
@@ -391,8 +390,7 @@ public class PolicyWaiverService
         applicationIds,
         tagIds,
         organizationIds,
-        isOwnerFilterEmpty
-    );
+        isOwnerFilterEmpty);
 
     // the parent orgs are not filtered by permissions because we need access to parents of any org the app the user
     // does have permission to
@@ -463,8 +461,7 @@ public class PolicyWaiverService
   {
 
     // When all filters are empty, including repositories we get all orgs
-    if (isOwnerFilterEmpty.getAsBoolean())
-    {
+    if (isOwnerFilterEmpty.getAsBoolean()) {
       return ownerDAO.getAllAppsAndOrgs();
     }
     else {
@@ -494,15 +491,13 @@ public class PolicyWaiverService
       final Set<String> repositoryIds,
       final BooleanSupplier isOwnerFilterEmpty)
   {
-    final Predicate<List<Repository>> reposAreNotEmptyOrIsOnlyRepoContainer = repos ->
-        !repos.isEmpty() ||
-            (CollectionUtils.isNotEmpty(repositoryIds) &&
-                repositoryIds.contains(RepositoryContainer.REPOSITORY_CONTAINER_ID));
-    final BooleanSupplier filtersAreEmptyAndRepoContainerReadPermission = () ->
-        isOwnerFilterEmpty.getAsBoolean() && repositoryService.checkReadPermissionRepositoryContainer();
+    final Predicate<List<Repository>> reposAreNotEmptyOrIsOnlyRepoContainer = repos -> !repos.isEmpty() ||
+        (CollectionUtils.isNotEmpty(repositoryIds) &&
+            repositoryIds.contains(RepositoryContainer.REPOSITORY_CONTAINER_ID));
+    final BooleanSupplier filtersAreEmptyAndRepoContainerReadPermission =
+        () -> isOwnerFilterEmpty.getAsBoolean() && repositoryService.checkReadPermissionRepositoryContainer();
 
-    return repos ->
-        reposAreNotEmptyOrIsOnlyRepoContainer.test(repos) ||
-            filtersAreEmptyAndRepoContainerReadPermission.getAsBoolean();
+    return repos -> reposAreNotEmptyOrIsOnlyRepoContainer.test(repos) ||
+        filtersAreEmptyAndRepoContainerReadPermission.getAsBoolean();
   }
 }

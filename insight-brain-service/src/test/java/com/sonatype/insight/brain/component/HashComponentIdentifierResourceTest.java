@@ -88,11 +88,12 @@ public class HashComponentIdentifierResourceTest
     assertResponseStatus(404, response);
   }
 
-  private void assertHashComponentIdentifierDTO(String hash,
-                                                ComponentIdentifier componentIdentifier,
-                                                String comment,
-                                                Date createTime,
-                                                HashComponentIdentifierDTO hashComponentIdentifier)
+  private void assertHashComponentIdentifierDTO(
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      String comment,
+      Date createTime,
+      HashComponentIdentifierDTO hashComponentIdentifier)
   {
     assertThat(hashComponentIdentifier.hash).isEqualTo(hash);
     assertThat(hashComponentIdentifier.componentIdentifier).isEqualTo(componentIdentifier);

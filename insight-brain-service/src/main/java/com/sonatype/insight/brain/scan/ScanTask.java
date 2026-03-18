@@ -44,10 +44,14 @@ public class ScanTask
 {
   public enum State
   {
-    PENDING("Queued"), SCANNING_COMPONENTS("Fingerprinting components"),
+    PENDING("Queued"),
+    SCANNING_COMPONENTS("Fingerprinting components"),
     // Treat uploading and waiting as the same state for user display
-    UPLOADING_SCAN("Analyzing components"), WAITING_FOR_REPORT("Analyzing components"), EVALUATING_POLICY(
-      "Evaluating policy"), DONE("Done");
+    UPLOADING_SCAN("Analyzing components"),
+    WAITING_FOR_REPORT("Analyzing components"),
+    EVALUATING_POLICY(
+        "Evaluating policy"),
+    DONE("Done");
 
     private final String displayText;
 
@@ -224,7 +228,8 @@ public class ScanTask
           scanResult.getClientScanType(),
           userAgent,
           telemetryUtils.buildThirdPartyScanTelemetryData(app.getId(), stage, scanType, null /* scanTriggerType */,
-              userAgent), null, isWebUIRequest);
+              userAgent),
+          null, isWebUIRequest);
 
       if (StringUtils.isNotBlank(scanReceipt.getScanId())) {
         scanPersistenceService.moveTempScan(scanResult.getScanEntity(), app.getId(), scanReceipt.getScanId());

@@ -107,7 +107,8 @@ public class ComponentCopyrightDAO
   @Override
   public void insert(TransactionContext tx, ComponentCopyright componentCopyright) {
     if (getByOwnerIdAndComponentIdentifier(tx, componentCopyright.getOwnerId(),
-        componentCopyright.getComponentIdentifier()) != null) {
+        componentCopyright.getComponentIdentifier()) != null)
+    {
       throw new BadRequestException(
           "Component copyright already exists for owner with id " + componentCopyright.getOwnerId() +
               " and component " + componentCopyright.getComponentIdentifier() + ".");
@@ -133,7 +134,8 @@ public class ComponentCopyrightDAO
     // Cascade to copyright overrides
     CopyrightOverrideDAO copyrightOverrideDAO = copyrightOverrideDAOProvider.get();
     for (CopyrightOverride copyrightOverride : copyrightOverrideDAO
-        .getByComponentCopyrightId(tx, componentCopyright.getId())) {
+        .getByComponentCopyrightId(tx, componentCopyright.getId()))
+    {
       copyrightOverrideDAO.delete(tx, copyrightOverride);
     }
     super.delete(tx, componentCopyright);

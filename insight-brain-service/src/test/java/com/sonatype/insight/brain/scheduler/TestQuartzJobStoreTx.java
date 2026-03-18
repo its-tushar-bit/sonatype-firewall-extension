@@ -31,8 +31,7 @@ public class TestQuartzJobStoreTx
   public TestQuartzJobStoreTx(
       ProductLicense productLicense,
       InsightConfig insightConfig,
-      OperationalDataStore operationalDataStore)
-      throws InvalidConfigurationException
+      OperationalDataStore operationalDataStore) throws InvalidConfigurationException
   {
     super(productLicense, insightConfig, operationalDataStore);
   }

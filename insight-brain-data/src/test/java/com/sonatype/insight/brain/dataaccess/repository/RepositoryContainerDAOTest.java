@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class RepositoryContainerDAOTest
-        extends AbstractDbDAOTest
+    extends AbstractDbDAOTest
 {
   private RepositoryContainerDAO dao;
 

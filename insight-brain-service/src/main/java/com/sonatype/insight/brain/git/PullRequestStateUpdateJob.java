@@ -25,7 +25,8 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 @DisallowConcurrentExecution
-public class PullRequestStateUpdateJob implements InsightJob
+public class PullRequestStateUpdateJob
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestStateUpdateJob.class);
 
@@ -44,8 +45,7 @@ public class PullRequestStateUpdateJob implements InsightJob
   @Inject
   public PullRequestStateUpdateJob(
       TaskScheduler taskScheduler,
-      PullRequestStateService pullRequestStateService
-  )
+      PullRequestStateService pullRequestStateService)
   {
     this.taskScheduler = taskScheduler;
     this.pullRequestStateService = pullRequestStateService;

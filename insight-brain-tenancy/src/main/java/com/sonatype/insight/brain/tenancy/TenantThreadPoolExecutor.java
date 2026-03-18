@@ -57,8 +57,8 @@ public class TenantThreadPoolExecutor
   }
 
   @Override
-  public <T> List<Future<T>> invokeAll(@NotNull final Collection<? extends Callable<T>> tasks)
-      throws InterruptedException
+  public <T> List<Future<T>> invokeAll(
+      @NotNull final Collection<? extends Callable<T>> tasks) throws InterruptedException
   {
     List<TenantAwareOneTimeCallable<T>> wrappedTasks = tasks.stream()
         .map(TenantAwareOneTimeCallable::new)

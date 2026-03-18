@@ -56,8 +56,7 @@ public class PlatformContextFilter
     else {
       log.warn(
           "Unrecognized server factory type: {}. Assuming default application context path '/'",
-          insightConfiguration.getServerFactory().getClass().getName()
-      );
+          insightConfiguration.getServerFactory().getClass().getName());
       applicationContextPath = "/";
     }
   }

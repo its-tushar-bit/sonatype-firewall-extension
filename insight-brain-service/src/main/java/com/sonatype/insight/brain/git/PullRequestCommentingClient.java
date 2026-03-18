@@ -48,8 +48,7 @@ public class PullRequestCommentingClient
       int pullRequestNumber,
       String commentText,
       SourceControlPullRequestComment existingPullRequestComment,
-      PullRequestCommentTelemetry telemetry)
-      throws IOException
+      PullRequestCommentTelemetry telemetry) throws IOException
   {
     Optional<CommentResponse> response;
 

@@ -305,8 +305,9 @@ public class ApplicationSummaryService
   {
     // TODO CLM-29876 maybe this should use the OwnerMaintenanceTelemetryCreator class with some refactoring
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION);
-    telemetryData.getAttributes().put(APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR,
-        String.valueOf(appCreatedAutomatically));
+    telemetryData.getAttributes()
+        .put(APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR,
+            String.valueOf(appCreatedAutomatically));
 
     String applicationId = telemetryUtils.obfuscateIfAdvancedReportingDisabled(application.getId());
     String applicationName = telemetryUtils.obfuscateIfAdvancedReportingDisabled(application.getName());
@@ -319,8 +320,7 @@ public class ApplicationSummaryService
             applicationName,
             parentOwnerId,
             ownerType,
-            OwnerMaintenanceTelemetry.TYPE_ADD
-        );
+            OwnerMaintenanceTelemetry.TYPE_ADD);
     telemetryData.getAttributes().put(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY, ownerMaintenanceTelemetry);
 
     telemetrySender.send(telemetryData, clientUserAgent);

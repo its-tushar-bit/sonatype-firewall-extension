@@ -57,7 +57,7 @@ public class ApplicationAttributionReportTest
   public static final String SPRING_SECURITY_PURL =
       "pkg\\:maven\\/org\\.springframework\\.security\\/spring-security-web\\@3\\.2\\.4\\.RELEASE\\?type\\=jar";
 
-  //The box.json contains 2 invalid component identifiers, so there are 62 valid only.
+  // The box.json contains 2 invalid component identifiers, so there are 62 valid only.
   public static final int EXPECTED_COUNT_OF_COMPONENTS = 63;
 
   private final ApplicationAttributionReportPage reportPage = new ApplicationAttributionReportPage();
@@ -77,7 +77,7 @@ public class ApplicationAttributionReportTest
     testCLMServer.getHdsServer()
         .respondWith(IOUtils
             .toString(Objects.requireNonNull(
-                    this.getClass().getResourceAsStream("/legal/legalLicenseMetadataHdsResponse.json")),
+                this.getClass().getResourceAsStream("/legal/legalLicenseMetadataHdsResponse.json")),
                 StandardCharsets.UTF_8))
         .atUri("/rest/license/metadata");
     testCLMServer.getHdsServer()
@@ -89,13 +89,13 @@ public class ApplicationAttributionReportTest
     testCLMServer.getHdsServer()
         .respondWith(IOUtils
             .toString(Objects.requireNonNull(this.getClass()
-                    .getResourceAsStream("/legal/ApplicationAttributionReportTest-legalFileHdsResponse.json")),
+                .getResourceAsStream("/legal/ApplicationAttributionReportTest-legalFileHdsResponse.json")),
                 StandardCharsets.UTF_8))
         .atUri("/rest/legal/file");
     testCLMServer.getHdsServer()
         .respondWith(IOUtils
             .toString(Objects.requireNonNull(this.getClass()
-                    .getResourceAsStream("/legal/legalSourceLinkHdsResponse.json")),
+                .getResourceAsStream("/legal/legalSourceLinkHdsResponse.json")),
                 StandardCharsets.UTF_8))
         .atUri("/rest/legal/source-link");
 

@@ -35,8 +35,7 @@ public class ActivePolicyViolationsWithActionFailResource
 
   @Inject
   public ActivePolicyViolationsWithActionFailResource(
-          ActivePolicyViolationsWithActionFailService activePolicyViolationsWithActionFailService
-  )
+      ActivePolicyViolationsWithActionFailService activePolicyViolationsWithActionFailService)
   {
     this.activePolicyViolationsWithActionFailService = activePolicyViolationsWithActionFailService;
   }
@@ -45,18 +44,15 @@ public class ActivePolicyViolationsWithActionFailResource
   @Produces(MediaType.APPLICATION_JSON)
   public List<PolicyViolationWithoutConstraintFactsDTO> getActiveViolationsWithActionFail(
       @PathParam("applicationPublicId") String applicationPublicId,
-      @PathParam("stageId") String stageId
-  )
+      @PathParam("stageId") String stageId)
   {
     log.debug(
         "Received request to get all active policy violations with action fail for {} id {}",
-        applicationPublicId, stageId
-    );
+        applicationPublicId, stageId);
 
     List<PolicyViolationWithoutConstraintFactsDTO> policyViolations =
-            activePolicyViolationsWithActionFailService.getActiveViolationsWithActionFail(
-              applicationPublicId, stageId
-            );
+        activePolicyViolationsWithActionFailService.getActiveViolationsWithActionFail(
+            applicationPublicId, stageId);
 
     return policyViolations;
   }

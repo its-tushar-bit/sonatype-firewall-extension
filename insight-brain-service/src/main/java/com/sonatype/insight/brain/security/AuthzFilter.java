@@ -20,11 +20,11 @@ import com.sonatype.insight.brain.model.security.Permission;
 /**
  * Marks a method whose return value is a collection with entities that should be filtered depending on the caller's
  * permissions.
- * 
+ *
  * @since 1.7
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.METHOD })
+@Target({ElementType.METHOD})
 public @interface AuthzFilter
 {
   enum Context

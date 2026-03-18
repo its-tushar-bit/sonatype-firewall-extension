@@ -117,7 +117,8 @@ public class GitCommitHistoryService
     for (Commit commit : commits) {
       // is the current commit more recent than the latest one we have with a policy eval?
       if (null == mostRecentHistoryWithPolicyEval ||
-          commit.getCommittedDate().after(mostRecentHistoryWithPolicyEval.getCommitTime())) {
+          commit.getCommittedDate().after(mostRecentHistoryWithPolicyEval.getCommitTime()))
+      {
 
         SourceControlDefaultBranchCommitHistory moreRecentHistoryWithPolicyEval =
             updateCommitHistoryForCommit(applicationId, commit);
@@ -133,7 +134,7 @@ public class GitCommitHistoryService
    * update the commit history for the given single commit
    *
    * @return the created or updated SourceControlDefaultBranchCommitHistory object, if there was one, AND iff the given
-   * commit has a related policy evaluation, null otherwise
+   *         commit has a related policy evaluation, null otherwise
    */
   private SourceControlDefaultBranchCommitHistory updateCommitHistoryForCommit(String applicationId, Commit commit) {
     SourceControlDefaultBranchCommitHistory moreRecentCommitHistory = null;

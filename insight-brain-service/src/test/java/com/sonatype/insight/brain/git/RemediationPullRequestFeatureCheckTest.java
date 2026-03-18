@@ -87,8 +87,9 @@ public class RemediationPullRequestFeatureCheckTest
         new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), newGitHubRepositoryInfo(), false);
 
     assertThat(result).isFalse();
-    assertThat(logOutput).atDebugLevel().contains(
-        "Remediation pull request feature is not supported for this license");
+    assertThat(logOutput).atDebugLevel()
+        .contains(
+            "Remediation pull request feature is not supported for this license");
   }
 
   @Test
@@ -191,9 +192,10 @@ public class RemediationPullRequestFeatureCheckTest
             app, gitRepositoryInfo, false);
 
     assertThat(result).isFalse();
-    assertThat(logOutput).atDebugLevel().contains(String.format(
-        "Pull requests are not supported for application '%s' and repository '%s'",
-        APP_ID, REPO_URL));
+    assertThat(logOutput).atDebugLevel()
+        .contains(String.format(
+            "Pull requests are not supported for application '%s' and repository '%s'",
+            APP_ID, REPO_URL));
   }
 
   @Test

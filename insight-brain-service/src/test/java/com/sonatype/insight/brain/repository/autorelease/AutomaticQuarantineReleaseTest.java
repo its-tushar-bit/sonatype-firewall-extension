@@ -73,7 +73,7 @@ public class AutomaticQuarantineReleaseTest
     RepositoryComponent component = tempEntity
         .newRepositoryComponent(repository.getId(), "pathname", new Date(), null, new Date());
     tempEntity.newRepositoryPolicyViolation(repository, policy, component.getPathname(),
-            component.getComponentIdentifier(), component.getHash());
+        component.getComponentIdentifier(), component.getHash());
     tempEntity.newPolicyMonitoring(repository.getId(), ProxyStageType.ID);
     tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
     Date firstCompEvalTime = component.getLastEvaluationTime();
@@ -100,8 +100,10 @@ public class AutomaticQuarantineReleaseTest
 
     Repository repository = tempEntity.newRepository();
     Date quarantineTime = Date.from(
-        LocalDateTime.now().minusDays(AutomaticQuarantineRelease.MAX_REEVALUATION_DAYS_FOR_AUTO_RELEASED + 1)
-            .atZone(ZoneId.systemDefault()).toInstant());
+        LocalDateTime.now()
+            .minusDays(AutomaticQuarantineRelease.MAX_REEVALUATION_DAYS_FOR_AUTO_RELEASED + 1)
+            .atZone(ZoneId.systemDefault())
+            .toInstant());
     RepositoryComponent component = tempEntity
         .newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1", "hash1",
             ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), new Date(), quarantineTime);
@@ -448,7 +450,7 @@ public class AutomaticQuarantineReleaseTest
             constraint.getOperator().toString());
         constraintFact.addConditionFact(
             new ConditionFact(condition.getConditionTypeId(), 0, "", "random for condition "
-            + condition.getConditionTypeId()));
+                + condition.getConditionTypeId()));
         constraintFacts.add(constraintFact);
       }
     }

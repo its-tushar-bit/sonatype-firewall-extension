@@ -35,7 +35,8 @@ public class IdeResourceAuthzTest
     hdsRespondWith("{}").atUri("rest/ide/scan/enhanced/" + hash);
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
 
-    HttpRequest request = restRequest().path("scan/enhanced/{appPublicId}/{hash}").parameter(app.getPublicId(), hash)
+    HttpRequest request = restRequest().path("scan/enhanced/{appPublicId}/{hash}")
+        .parameter(app.getPublicId(), hash)
         .body("{}");
     testAuthzPost(request);
   }

@@ -103,9 +103,12 @@ public class PostgresDashboardViolationRiskService
     }
     Set<String> policyThreatCategoryNames = null;
     if (policyThreatCategoryFilter != null && policyThreatCategoryFilter.getPolicyThreatCategories() != null
-        && policyThreatCategoryFilter.getPolicyThreatCategories().size() != PolicyThreatCategory.values().length) {
-      policyThreatCategoryNames = policyThreatCategoryFilter.getPolicyThreatCategories().stream()
-          .map(PolicyThreatCategory::name).collect(Collectors.toSet());
+        && policyThreatCategoryFilter.getPolicyThreatCategories().size() != PolicyThreatCategory.values().length)
+    {
+      policyThreatCategoryNames = policyThreatCategoryFilter.getPolicyThreatCategories()
+          .stream()
+          .map(PolicyThreatCategory::name)
+          .collect(Collectors.toSet());
     }
 
     Boolean violationStateOpen = null;
@@ -127,7 +130,7 @@ public class PostgresDashboardViolationRiskService
         pageSize);
     if (DashboardUtils.shouldOnlyShowWaivedViolations(policyViolationStateFilter)) {
       rows = rows.stream()
-          .filter(dto ->  !dashboardUtils.hasExistingAutoWaiverExclusion(dto.applicationId, dto.autoPolicyWaiverId,
+          .filter(dto -> !dashboardUtils.hasExistingAutoWaiverExclusion(dto.applicationId, dto.autoPolicyWaiverId,
               dto.policyViolationId))
           .toList();
     }
@@ -143,8 +146,10 @@ public class PostgresDashboardViolationRiskService
       result.hasNextPage = true;
     }
     result.dashboardResults =
-        rows.stream().limit(pageSize)
-            .map(row -> toDashboardViolationRiskDTO(row, constraintFactsById.get(row.constraintFactsId))).toList();
+        rows.stream()
+            .limit(pageSize)
+            .map(row -> toDashboardViolationRiskDTO(row, constraintFactsById.get(row.constraintFactsId)))
+            .toList();
 
     return result;
   }
@@ -153,8 +158,9 @@ public class PostgresDashboardViolationRiskService
       List<InternalDashboardViolationRiskDTO> rows)
   {
     Set<String> constraintFactsIds = rows.stream().map(row -> row.constraintFactsId).collect(Collectors.toSet());
-    return policyViolationConstraintFactsDAO.getByIds(constraintFactsIds).stream()
-            .collect(Collectors.toMap(PolicyViolationConstraintFacts::getId, Function.identity()));
+    return policyViolationConstraintFactsDAO.getByIds(constraintFactsIds)
+        .stream()
+        .collect(Collectors.toMap(PolicyViolationConstraintFacts::getId, Function.identity()));
   }
 
   private DashboardViolationRiskDTO toDashboardViolationRiskDTO(
@@ -187,7 +193,8 @@ public class PostgresDashboardViolationRiskService
 
     try {
       for (ConstraintFact constraintFact : JsonUtils.parse(constraintFacts.getConstraintFactsJson(),
-          ConstraintFact[].class)) {
+          ConstraintFact[].class))
+      {
         for (ConditionFact fact : constraintFact.getConditionFacts()) {
           TriggerReference reference = fact.getReference();
           if (reference != null && Type.SECURITY_VULNERABILITY_REFID.equals(reference.getType())) {

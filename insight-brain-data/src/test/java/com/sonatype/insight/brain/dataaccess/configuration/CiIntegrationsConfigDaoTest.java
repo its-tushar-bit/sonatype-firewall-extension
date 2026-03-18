@@ -87,8 +87,7 @@ public class CiIntegrationsConfigDaoTest
     CiIntegrationsConfig config = new CiIntegrationsConfig(
         owner.getId(),
         "ORGANIZATION",
-        "{\"parameterPriority\":\"CI\",\"failBuildOnScanningErrors\":true}"
-    );
+        "{\"parameterPriority\":\"CI\",\"failBuildOnScanningErrors\":true}");
 
     dao.save(config);
     assertThat(dao.findByOwner("ORGANIZATION", owner.getId())).isNotEmpty();
@@ -110,22 +109,19 @@ public class CiIntegrationsConfigDaoTest
     CiIntegrationsConfig config1 = new CiIntegrationsConfig(
         org1.getId(),
         "ORGANIZATION",
-        "{\"parameterPriority\":\"CI\",\"scanPatterns\":[\"*.jar\",\"*.war\"]}"
-    );
+        "{\"parameterPriority\":\"CI\",\"scanPatterns\":[\"*.jar\",\"*.war\"]}");
     dao.save(config1);
 
     CiIntegrationsConfig config2 = new CiIntegrationsConfig(
         org2.getId(),
         "ORGANIZATION",
-        "{\"parameterPriority\":\"API\",\"moduleExcludes\":[\"test/**\",\"**/node_modules/**\"]}"
-    );
+        "{\"parameterPriority\":\"API\",\"moduleExcludes\":[\"test/**\",\"**/node_modules/**\"]}");
     dao.save(config2);
 
     CiIntegrationsConfig config3 = new CiIntegrationsConfig(
         app.getId(),
         "APPLICATION",
-        "{\"parameterPriority\":\"CI\",\"advancedProperties\":[\"key1=value1\",\"key2=value2\"]}"
-    );
+        "{\"parameterPriority\":\"CI\",\"advancedProperties\":[\"key1=value1\",\"key2=value2\"]}");
     dao.save(config3);
 
     // Search by hierarchy

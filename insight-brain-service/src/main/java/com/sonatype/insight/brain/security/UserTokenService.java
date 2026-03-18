@@ -238,7 +238,8 @@ public class UserTokenService
       }
       catch (NameNotFoundException e) {
         try (AuditSession auditSession =
-                 AuditData.get().recordSubEvent(AuditEvent.DELETE_USER_TOKEN, true /* independent */)) {
+            AuditData.get().recordSubEvent(AuditEvent.DELETE_USER_TOKEN, true /* independent */))
+        {
           deleteAndAuditUserToken(userToken);
         }
         log.info("The '{}' user token was created for the '{}' LDAP user, which doesn't exist anymore."

@@ -68,13 +68,14 @@ public class LabelService
   private final IdUtils idUtils;
 
   @Inject
-  public LabelService(final PermissionService permissionService,
-                      final LabelDAO labelDAO,
-                      final OwnerDAO ownerDAO,
-                      final PolicyDAO policyDAO,
-                      final ApplicationDAO applicationDAO,
-                      final ManagementEventService managementEventService,
-                      final IdUtils idUtils)
+  public LabelService(
+      final PermissionService permissionService,
+      final LabelDAO labelDAO,
+      final OwnerDAO ownerDAO,
+      final PolicyDAO policyDAO,
+      final ApplicationDAO applicationDAO,
+      final ManagementEventService managementEventService,
+      final IdUtils idUtils)
   {
     this.permissionService = permissionService;
     this.labelDAO = labelDAO;
@@ -177,7 +178,8 @@ public class LabelService
     ApplicableContext context = null;
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       if (!permissionService.validatePermission(SecurityUtils.getSubject(), owner.getType(), owner.getId(),
-          Collections.singleton(Permission.WRITE)).contains(Permission.WRITE)) {
+          Collections.singleton(Permission.WRITE)).contains(Permission.WRITE))
+      {
         break;
       }
 
@@ -256,7 +258,7 @@ public class LabelService
 
   public void deleteLabel(OwnerType ownerType, String ownerId, String labelId) {
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
-    deleteLabelWithAuthzCheck(ownerType, internalOwnerId ,labelId);
+    deleteLabelWithAuthzCheck(ownerType, internalOwnerId, labelId);
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -319,7 +321,9 @@ public class LabelService
   }
 
   private void setAuditLogLabelData(Label label) {
-    AuditData.get().setLabel(label).setData("labelDescription", label.getDescription())
+    AuditData.get()
+        .setLabel(label)
+        .setData("labelDescription", label.getDescription())
         .setEnum("labelColor", label.getColor());
   }
 

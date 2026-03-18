@@ -43,7 +43,8 @@ public class ApiReverseProxyAuthenticationConfigurationResourceTest
 
     assertResponseStatus(200, response);
     assertThat(response.getBody(ApiReverseProxyAuthenticationConfigurationDTO.class)).usingRecursiveComparison()
-        .ignoringExpectedNullFields().isEqualTo(config);
+        .ignoringExpectedNullFields()
+        .isEqualTo(config);
   }
 
   @Test
@@ -65,7 +66,9 @@ public class ApiReverseProxyAuthenticationConfigurationResourceTest
     HttpResponse response = restRequest().body(dto).put();
 
     assertResponseStatus(204, response);
-    assertThat(dao.get()).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).ignoringFields("id")
+    assertThat(dao.get()).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .ignoringFields("id")
         .isEqualTo(dto);
   }
 

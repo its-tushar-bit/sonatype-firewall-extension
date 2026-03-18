@@ -82,12 +82,12 @@ public class PullRequestPolicyEvaluationResolver
 
   /**
    * given a policy evaluation for an application this method determines if there are any open, internal/private pull
-   * requests for the commit associated with that policy evaluation;  if there are, this method then tries to determine
-   * the policy evaluations to associate with each one, if able;  in some cases, we can/will initiate those policy
+   * requests for the commit associated with that policy evaluation; if there are, this method then tries to determine
+   * the policy evaluations to associate with each one, if able; in some cases, we can/will initiate those policy
    * evaluations;
    *
    * @return list of zero or more {@link PullRequestPolicyEvaluationsDTO} objects that represent any pull requests that
-   * successfully resolved
+   *         successfully resolved
    */
   public List<PullRequestPolicyEvaluationsDTO> resolveForPolicyEvaluation(
       String applicationId,
@@ -102,7 +102,8 @@ public class PullRequestPolicyEvaluationResolver
     PolicyEvaluation possibleFeatureBranchPolicyEvaluation = policyEvaluationDAO.getById(policyEvaluationId);
     // we don't process pull requests for internally triggered policy evaluations - we let polling take care of that
     if (null == possibleFeatureBranchPolicyEvaluation
-        || possibleFeatureBranchPolicyEvaluation.wasInternallyTriggered()) {
+        || possibleFeatureBranchPolicyEvaluation.wasInternallyTriggered())
+    {
       return pullRequestPolicyEvaluationsResults;
     }
 
@@ -114,7 +115,8 @@ public class PullRequestPolicyEvaluationResolver
 
     for (PullRequest pullRequest : commitInfo.getPullRequests()) {
       if (pullRequestEligibilityValidator.isPullRequestEligibleForCommenting(applicationId, pullRequest,
-          gitRepositoryInfo, possibleFeatureBranchPolicyEvaluation)) {
+          gitRepositoryInfo, possibleFeatureBranchPolicyEvaluation))
+      {
 
         PolicyEvaluation targetPolicyEvaluation = null;
 
@@ -129,7 +131,8 @@ public class PullRequestPolicyEvaluationResolver
             log.error(
                 String.format(
                     "Encountered a problem locating a policy evaluation for application %s and base branch %s",
-                    applicationId, pullRequest.getBase()), e);
+                    applicationId, pullRequest.getBase()),
+                e);
           }
         }
 
@@ -203,8 +206,9 @@ public class PullRequestPolicyEvaluationResolver
                 targetPolicyEvaluation.wasInternallyTriggered());
 
         if (null != featureBranchPolicyEvaluation) {
-          if (targetPolicyEvaluation.wasInternallyTriggered()
-              == featureBranchPolicyEvaluation.wasInternallyTriggered()) {
+          if (targetPolicyEvaluation.wasInternallyTriggered() == featureBranchPolicyEvaluation
+              .wasInternallyTriggered())
+          {
             pullRequestPolicyEvaluationsDTO = new PullRequestPolicyEvaluationsDTO()
                 .setApplicationId(applicationId)
                 .setFeatureBranchName(featureBranchName)

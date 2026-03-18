@@ -170,7 +170,8 @@ public final class CiConfigurationValidator
         !entrypointStrategy.equals("PUBLIC_CONCRETE") &&
         !entrypointStrategy.equals("ACCESSIBLE_CONCRETE") &&
         !entrypointStrategy.equals("ALL") &&
-        !entrypointStrategy.equals("JAVA_MAIN")) {
+        !entrypointStrategy.equals("JAVA_MAIN"))
+    {
       throw new BadRequestException(
           "reachability.javaAnalysis.entrypointStrategy must be one of: " +
               "CONCRETE, PUBLIC_CONCRETE, ACCESSIBLE_CONCRETE, ALL, JAVA_MAIN");

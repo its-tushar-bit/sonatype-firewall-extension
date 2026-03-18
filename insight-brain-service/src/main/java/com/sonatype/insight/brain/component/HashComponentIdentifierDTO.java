@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
  * Enhances {@link HashComponentIdentifier} with additional details required by the UI.
  * This keeps the implementation details of how the {@link ComponentIdentifier} should be rendered out of the client
  * code.
- * 
+ *
  * @since 1.13.0
  */
 public class HashComponentIdentifierDTO

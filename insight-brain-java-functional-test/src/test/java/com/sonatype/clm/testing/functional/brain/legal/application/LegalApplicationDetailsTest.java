@@ -103,12 +103,14 @@ public class LegalApplicationDetailsTest
     final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
     componentTable.rows().shouldHave(size(3));
 
-    componentTable.componentNames().shouldHave(textsInAnyOrder(
-        "org.package : component1 : 1.0", "org.package : component2 : 2.0",
-        "com.package : component1 : 3.0"));
+    componentTable.componentNames()
+        .shouldHave(textsInAnyOrder(
+            "org.package : component1 : 1.0", "org.package : component2 : 2.0",
+            "com.package : component1 : 3.0"));
 
-    componentTable.licenses().shouldHave(textsInAnyOrder(
-        "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause"));
+    componentTable.licenses()
+        .shouldHave(textsInAnyOrder(
+            "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause"));
   }
 
   @Test
@@ -116,23 +118,27 @@ public class LegalApplicationDetailsTest
     final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
 
     componentTable.componentNameFilter().setValue("org.");
-    componentTable.componentNames().shouldHave(textsInAnyOrder(
-        "org.package : component1 : 1.0", "org.package : component2 : 2.0"));
+    componentTable.componentNames()
+        .shouldHave(textsInAnyOrder(
+            "org.package : component1 : 1.0", "org.package : component2 : 2.0"));
     componentTable.licenses().shouldHave(textsInAnyOrder("Apache-2.0", "BSD-3-Clause"));
 
     componentTable.componentNameFilter().setValue("component1");
-    componentTable.componentNames().shouldHave(textsInAnyOrder(
-        "org.package : component1 : 1.0", "com.package : component1 : 3.0"));
+    componentTable.componentNames()
+        .shouldHave(textsInAnyOrder(
+            "org.package : component1 : 1.0", "com.package : component1 : 3.0"));
     componentTable.licenses().shouldHave(textsInAnyOrder("Apache-2.0", "BSD-2-Clause"));
 
     // setting value to empty doesn't trigger onChange event, so sending a wall of backspaces instead
     componentTable.componentNameFilter().sendKeys("\b\b\b\b\b\b\b\b\b");
-    componentTable.componentNames().shouldHave(textsInAnyOrder(
-        "org.package : component1 : 1.0", "org.package : component2 : 2.0",
-        "com.package : component1 : 3.0"));
+    componentTable.componentNames()
+        .shouldHave(textsInAnyOrder(
+            "org.package : component1 : 1.0", "org.package : component2 : 2.0",
+            "com.package : component1 : 3.0"));
 
-    componentTable.licenses().shouldHave(textsInAnyOrder(
-        "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause"));
+    componentTable.licenses()
+        .shouldHave(textsInAnyOrder(
+            "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause"));
   }
 
   @Test
@@ -144,17 +150,20 @@ public class LegalApplicationDetailsTest
     componentTable.licenses().shouldHave(textsInAnyOrder("Apache-2.0"));
 
     componentTable.licenseFilter().setValue("BSD");
-    componentTable.componentNames().shouldHave(textsInAnyOrder(
-        "com.package : component1 : 3.0", "org.package : component2 : 2.0"));
+    componentTable.componentNames()
+        .shouldHave(textsInAnyOrder(
+            "com.package : component1 : 3.0", "org.package : component2 : 2.0"));
     componentTable.licenses().shouldHave(textsInAnyOrder("BSD-2-Clause", "BSD-3-Clause"));
 
     componentTable.licenseFilter().sendKeys("\b\b\b\b");
-    componentTable.componentNames().shouldHave(textsInAnyOrder(
-        "org.package : component1 : 1.0", "org.package : component2 : 2.0",
-        "com.package : component1 : 3.0"));
+    componentTable.componentNames()
+        .shouldHave(textsInAnyOrder(
+            "org.package : component1 : 1.0", "org.package : component2 : 2.0",
+            "com.package : component1 : 3.0"));
 
-    componentTable.licenses().shouldHave(textsInAnyOrder(
-        "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause"));
+    componentTable.licenses()
+        .shouldHave(textsInAnyOrder(
+            "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause"));
   }
 
   @Test

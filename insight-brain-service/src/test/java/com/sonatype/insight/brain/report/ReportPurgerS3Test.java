@@ -65,8 +65,7 @@ public class ReportPurgerS3Test
         .credentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create(
                 localstack.getContainer().getAccessKey(),
-                localstack.getContainer().getSecretKey()
-            )))
+                localstack.getContainer().getSecretKey())))
         .build();
   }
 
@@ -75,7 +74,9 @@ public class ReportPurgerS3Test
     s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
         .contents()
         .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
-            .bucket(BUCKET_NAME).key(obj.key()).build()));
+            .bucket(BUCKET_NAME)
+            .key(obj.key())
+            .build()));
   }
 
   @Override
@@ -94,8 +95,7 @@ public class ReportPurgerS3Test
     super.configure(binder);
     AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
         localstack.getContainer().getAccessKey(),
-        localstack.getContainer().getSecretKey()
-    ));
+        localstack.getContainer().getSecretKey()));
     binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }
 

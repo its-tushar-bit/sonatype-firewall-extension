@@ -132,8 +132,7 @@ public class AutoPolicyWaiverExclusion
       String autoPolicyWaiverId,
       String scanId,
       String hash,
-      ComponentMatcherStrategyForExclusion componentMatchStrategy
-  )
+      ComponentMatcherStrategyForExclusion componentMatchStrategy)
   {
     this(ownerId, creatorId, creatorName, createTime, autoPolicyWaiverId, scanId, hash);
     setComponentMatchStrategy(componentMatchStrategy);
@@ -349,4 +348,3 @@ public class AutoPolicyWaiverExclusion
     }
   }
 }
-  

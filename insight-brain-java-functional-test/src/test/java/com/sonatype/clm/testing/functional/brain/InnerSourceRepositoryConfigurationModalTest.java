@@ -116,8 +116,7 @@ public class InnerSourceRepositoryConfigurationModalTest
     RepositoryConnection repositoryConnection = tempEntity.newRepositoryConnection(
         org.getId(),
         nxrm3MockSever.baseUrl(),
-        "username", passwordHandler.encryptPassword("password".toCharArray())
-      );
+        "username", passwordHandler.encryptPassword("password".toCharArray()));
 
     InnerSourceRepositoryBaseConfigurationsPage page = visitPage();
 
@@ -200,8 +199,10 @@ public class InnerSourceRepositoryConfigurationModalTest
     assertThat(repositoryConnection.getFormat()).isEqualTo(expectedFormat);
     assertThat(repositoryConnection.getBaseUrl()).isEqualTo(expectedBaseUrl);
     assertThat(repositoryConnection.getUsername()).isEqualTo(expectedUsername);
-    assertThat(repositoryConnection.getPassword() == null ? null : String.valueOf(
-        passwordHandler.decryptPassword(repositoryConnection.getPassword()))).isEqualTo(expectedPassword);
+    assertThat(repositoryConnection.getPassword() == null
+        ? null
+        : String.valueOf(
+            passwordHandler.decryptPassword(repositoryConnection.getPassword()))).isEqualTo(expectedPassword);
   }
 
   @Test
@@ -235,11 +236,17 @@ public class InnerSourceRepositoryConfigurationModalTest
         repositoryConnectionDAO.getByOwnerId(org.getId());
     assertThat(repositoryConnections).hasSize(3);
     RepositoryConnection generic = repositoryConnections.stream()
-        .filter(r -> r.getFormat().equals(RepositoryFormat.GENERIC)).findFirst().orElse(null);
+        .filter(r -> r.getFormat().equals(RepositoryFormat.GENERIC))
+        .findFirst()
+        .orElse(null);
     RepositoryConnection maven = repositoryConnections.stream()
-        .filter(r -> r.getFormat().equals(RepositoryFormat.MAVEN)).findFirst().orElse(null);
+        .filter(r -> r.getFormat().equals(RepositoryFormat.MAVEN))
+        .findFirst()
+        .orElse(null);
     RepositoryConnection npm = repositoryConnections.stream()
-        .filter(r -> r.getFormat().equals(RepositoryFormat.NPM)).findFirst().orElse(null);
+        .filter(r -> r.getFormat().equals(RepositoryFormat.NPM))
+        .findFirst()
+        .orElse(null);
     assertRepositoryConnection(generic, RepositoryFormat.GENERIC, nxrm3MockSever.baseUrl(), null, null);
     assertRepositoryConnection(maven, RepositoryFormat.MAVEN, nxrm3MockSever.baseUrl(), null, null);
     assertRepositoryConnection(npm, RepositoryFormat.NPM, nxrm3MockSever.baseUrl(), null, null);
@@ -259,12 +266,13 @@ public class InnerSourceRepositoryConfigurationModalTest
         org.getId(),
         nxrm3MockSever.baseUrl(),
         "username",
-        passwordHandler.encryptPassword("password".toCharArray())
-    );
+        passwordHandler.encryptPassword("password".toCharArray()));
 
     modal.save().shouldBe(Condition.enabled).click();
 
-    modal.getElement().find(".nx-alert--error").shouldBe(visible)
+    modal.getElement()
+        .find(".nx-alert--error")
+        .shouldBe(visible)
         .shouldHave(Condition.text("An error occurred saving data."));
   }
 
@@ -284,7 +292,9 @@ public class InnerSourceRepositoryConfigurationModalTest
 
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--success").shouldBe(visible)
+    modal.getElement()
+        .find(".nx-alert--success")
+        .shouldBe(visible)
         .shouldHave(Condition.text("Repository configuration test successful."));
   }
 
@@ -303,7 +313,9 @@ public class InnerSourceRepositoryConfigurationModalTest
 
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--error").shouldBe(visible)
+    modal.getElement()
+        .find(".nx-alert--error")
+        .shouldBe(visible)
         .shouldHave(Condition.text("Unable to connect to the configured repository. 404 Not Found"));
   }
 
@@ -313,8 +325,7 @@ public class InnerSourceRepositoryConfigurationModalTest
         org.getId(),
         nxrm3MockSever.baseUrl(),
         "username",
-        passwordHandler.encryptPassword("password".toCharArray())
-    );
+        passwordHandler.encryptPassword("password".toCharArray()));
 
     InnerSourceRepositoryBaseConfigurationsPage page = visitPage();
 
@@ -329,7 +340,9 @@ public class InnerSourceRepositoryConfigurationModalTest
             NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(200)));
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--success").shouldBe(visible)
+    modal.getElement()
+        .find(".nx-alert--success")
+        .shouldBe(visible)
         .shouldHave(Condition.text("Repository configuration test successful."));
   }
 
@@ -339,8 +352,7 @@ public class InnerSourceRepositoryConfigurationModalTest
         org.getId(),
         nxrm3MockSever.baseUrl(),
         "username",
-        passwordHandler.encryptPassword("password".toCharArray())
-    );
+        passwordHandler.encryptPassword("password".toCharArray()));
 
     InnerSourceRepositoryBaseConfigurationsPage page = visitPage();
 
@@ -356,7 +368,9 @@ public class InnerSourceRepositoryConfigurationModalTest
 
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--error").shouldBe(visible)
+    modal.getElement()
+        .find(".nx-alert--error")
+        .shouldBe(visible)
         .shouldHave(Condition.text("Unable to connect to the configured repository. 404 Not Found"));
   }
 
@@ -366,8 +380,7 @@ public class InnerSourceRepositoryConfigurationModalTest
         org.getId(),
         nxrm3MockSever.baseUrl(),
         "username",
-        passwordHandler.encryptPassword("password".toCharArray())
-    );
+        passwordHandler.encryptPassword("password".toCharArray()));
 
     InnerSourceRepositoryBaseConfigurationsPage page = visitPage();
 
@@ -396,8 +409,7 @@ public class InnerSourceRepositoryConfigurationModalTest
         org.getId(),
         nxrm3MockSever.baseUrl(),
         "username",
-        passwordHandler.encryptPassword("password".toCharArray())
-    );
+        passwordHandler.encryptPassword("password".toCharArray()));
 
     InnerSourceRepositoryBaseConfigurationsPage page = visitPage();
 

@@ -42,16 +42,13 @@ public class ReferenceIdParserTest
     final PolicyViolation policyViolation = generatePV(
         PV_ID, TEST_COMPONENT_IDENTIFIER,
         generateConstraintFact(
-          generateConditionFact(SecurityVulnerabilitySeverityConditionType.ID, REF_IDS[0]),
-          generateConditionFact(SecurityVulnerabilityStatusConditionType.ID, REF_IDS[1]),
-          generateConditionFact(UUID.randomUUID().toString(), REF_IDS[2])
-        ),
+            generateConditionFact(SecurityVulnerabilitySeverityConditionType.ID, REF_IDS[0]),
+            generateConditionFact(SecurityVulnerabilityStatusConditionType.ID, REF_IDS[1]),
+            generateConditionFact(UUID.randomUUID().toString(), REF_IDS[2])),
         generateConstraintFact(
-          generateConditionFact(SecurityVulnerabilitySeverityConditionType.ID, REF_IDS[3]),
-          generateConditionFact(SecurityVulnerabilityStatusConditionType.ID, REF_IDS[4]),
-          generateConditionFact(UUID.randomUUID().toString(), REF_IDS[5])
-        )
-    );
+            generateConditionFact(SecurityVulnerabilitySeverityConditionType.ID, REF_IDS[3]),
+            generateConditionFact(SecurityVulnerabilityStatusConditionType.ID, REF_IDS[4]),
+            generateConditionFact(UUID.randomUUID().toString(), REF_IDS[5])));
     final Set<String> actualRefIds = parseReferenceIds(policyViolation);
     final Set<String> expectedRefIds = ImmutableSet.of(REF_IDS[0], REF_IDS[1], REF_IDS[3], REF_IDS[4]);
     assertThat(actualRefIds).isEqualTo(expectedRefIds);

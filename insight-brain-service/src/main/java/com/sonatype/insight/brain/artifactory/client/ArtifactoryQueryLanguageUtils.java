@@ -43,7 +43,8 @@ public class ArtifactoryQueryLanguageUtils
               : "")
           .append(").include(\"")
           .append(String.join("\",\"", Arrays.asList(checksumTypeNameLowercase, FIELD_REPO, FIELD_PATH, FIELD_NAME)))
-          .append("\")").toString();
+          .append("\")")
+          .toString();
     }
     catch (JsonProcessingException e) {
       throw new UncheckedIOException(e.getMessage(), e);

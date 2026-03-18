@@ -7,7 +7,8 @@ package com.sonatype.insight.brain.security;
 
 import org.apache.shiro.authc.AuthenticationException;
 
-public class ExpiredUserTokenException extends AuthenticationException
+public class ExpiredUserTokenException
+    extends AuthenticationException
 {
   public ExpiredUserTokenException() {
     super("User token has expired. Please generate a new token.");

@@ -104,7 +104,8 @@ public class InternalRealmTest
   public void testDoGetAuthenticationInfo_NullUserName() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(null /* username */, (char[]) null);
     assertThatExceptionOfType(AuthenticationException.class)
-        .isThrownBy(() -> realm.doGetAuthenticationInfo(usernamePasswordToken)).withMessage("The username is required");
+        .isThrownBy(() -> realm.doGetAuthenticationInfo(usernamePasswordToken))
+        .withMessage("The username is required");
   }
 
   /**
@@ -115,7 +116,8 @@ public class InternalRealmTest
   public void testDoGetAuthenticationInfo_EmptyUserName() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(" " /* username */, (char[]) null);
     assertThatExceptionOfType(AuthenticationException.class)
-        .isThrownBy(() -> realm.doGetAuthenticationInfo(usernamePasswordToken)).withMessage("The username is required");
+        .isThrownBy(() -> realm.doGetAuthenticationInfo(usernamePasswordToken))
+        .withMessage("The username is required");
   }
 
   /**

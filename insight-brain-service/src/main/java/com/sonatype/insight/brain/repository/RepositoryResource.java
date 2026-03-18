@@ -116,9 +116,10 @@ public class RepositoryResource
   @POST
   @Path(UNQUARANTINE_PATH)
   @Audited(AuditEvent.RELEASE_QUARANTINE)
-  public void unquarantineComponent(@PathParam("repositoryId") final String repositoryId,
-                                    @PathParam("pathname") final String pathname,
-                                    @Context final HttpServletRequest request)
+  public void unquarantineComponent(
+      @PathParam("repositoryId") final String repositoryId,
+      @PathParam("pathname") final String pathname,
+      @Context final HttpServletRequest request)
   {
     repositoryService.unquarantineComponent(repositoryId, pathname, HdsClient.getClientUserAgent(request));
   }
@@ -159,9 +160,10 @@ public class RepositoryResource
   @POST
   @Path(EVALUATE_COMPONENT_PATH)
   @Audited(AuditEvent.EVALUATE_REPOSITORY)
-  public void reevaluateComponent(@PathParam("repositoryId") String repositoryId,
-                                  @PathParam("hash") String componentHash,
-                                  @Context final HttpServletRequest request)
+  public void reevaluateComponent(
+      @PathParam("repositoryId") String repositoryId,
+      @PathParam("hash") String componentHash,
+      @Context final HttpServletRequest request)
   {
     repositoryService.reevaluateComponent(repositoryId, componentHash, HdsClient.getClientUserAgent(request));
   }
@@ -169,7 +171,7 @@ public class RepositoryResource
   /**
    * Used by the web UI to display various timestamps related to policy evaluations.
    * The UI calls this method for component versions for which it only has a component identifier (no hash or pathname).
-   * 
+   *
    * @since 1.139
    */
   @GET
@@ -280,8 +282,8 @@ public class RepositoryResource
   @Path(UPDATE_REPOSITORY_MANAGER_NAME_PATH)
   @Audited(AuditEvent.UPDATE_REPOSITORY_MANAGER)
   public void updateName(
-          @PathParam("repositoryManagerId") String repositoryManagerId,
-          @PathParam("name") String name)
+      @PathParam("repositoryManagerId") String repositoryManagerId,
+      @PathParam("name") String name)
   {
     repositoryService.updateName(repositoryManagerId, name);
   }
@@ -321,8 +323,7 @@ public class RepositoryResource
   @Produces("image/png")
   @Authorize(permission = Permission.READ)
   public Response getIcon(
-      @AuthzContext(Key.REPOSITORY_MANAGER_ID) @PathParam("repositoryManagerId")
-          String repositoryManagerId) throws IOException
+      @AuthzContext(Key.REPOSITORY_MANAGER_ID) @PathParam("repositoryManagerId") String repositoryManagerId) throws IOException
   {
     return super.getIcon(repositoryManagerId, work.getRepositoryManagerIconDir());
   }

@@ -79,25 +79,21 @@ public class ArtifactoryConnectionResource
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the details of the added Artifactory connection.",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the details of the added Artifactory connection.",
+            useReturnTypeSchema = true)
+      })
   @Path(BY_OWNER)
   public ApiArtifactoryConnectionDTO addArtifactoryConnection(
-      @Parameter(description = "Select the owner type.")
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the internal ID of the owner.")
-      @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(description = "Select the owner type.") @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(
+          description = "Enter the internal ID of the owner.") @PathParam("internalOwnerId") String internalOwnerId,
       @RequestBody(description = "Enter values for the new Artifactory connection." +
           "<ul>" +
           "<li>`isAnonymous` indicates if the connection is anonymous.</li>" +
           "<li>`baseUrl` is the baseURL of the Artifactory instance.</li>" +
           "<li>`username` and `password` to authenticate the Artifactory connection.</li>" +
-          "</ul>", required = true, useParameterTypeSchema = true
-      )
-      ApiArtifactoryConnectionDTO artifactoryConnection)
+          "</ul>", required = true, useParameterTypeSchema = true) ApiArtifactoryConnectionDTO artifactoryConnection)
   {
     checkArtifactoryIntegrationEnabled();
     return artifactoryConnectionService.addArtifactoryConnection(ownerType, internalOwnerId, artifactoryConnection);
@@ -112,26 +108,23 @@ public class ArtifactoryConnectionResource
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the updated Artifactory connection details.",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the updated Artifactory connection details.",
+            useReturnTypeSchema = true)
+      })
   @Path(BY_ARTIFACTORY)
   public ApiArtifactoryConnectionDTO updateArtifactoryConnection(
-      @Parameter(description = "Specify the owner type.")
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the internal ID of the owner.")
-      @PathParam("internalOwnerId") String internalOwnerId,
-      @Parameter(description = "Enter the Artifactory connection ID.")
-      @PathParam("artifactoryConnectionId") String artifactoryConnectionId,
+      @Parameter(description = "Specify the owner type.") @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(
+          description = "Enter the internal ID of the owner.") @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(
+          description = "Enter the Artifactory connection ID.") @PathParam("artifactoryConnectionId") String artifactoryConnectionId,
       @RequestBody(description = "Enter values for the new Artifactory connection." +
           "<ul>" +
           "<li>`isAnonymous` indicates if the connection is anonymous.</li>" +
           "<li>`baseUrl` is the baseURL of the Artifactory instance.</li>" +
           "<li>`username` and `password` to authenticate the Artifactory connection.</li>" +
-          "</ul>", required = true, useParameterTypeSchema = true)
-      ApiArtifactoryConnectionDTO artifactoryConnection)
+          "</ul>", required = true, useParameterTypeSchema = true) ApiArtifactoryConnectionDTO artifactoryConnection)
   {
     checkArtifactoryIntegrationEnabled();
     return artifactoryConnectionService.updateArtifactoryConnection(ownerType,
@@ -148,16 +141,15 @@ public class ArtifactoryConnectionResource
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "Artifactory connection deleted successfully.")
+        @ApiResponse(responseCode = "204",
+            description = "Artifactory connection deleted successfully.")
       })
   public void deleteArtifactoryConnection(
-      @Parameter(description = "Select the owner type.")
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the internal ID of the owner.")
-      @PathParam("internalOwnerId") String internalOwnerId,
-      @Parameter(description = "Enter the Artifactory connection ID.")
-      @PathParam("artifactoryConnectionId") String artifactoryConnectionId)
+      @Parameter(description = "Select the owner type.") @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(
+          description = "Enter the internal ID of the owner.") @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(
+          description = "Enter the Artifactory connection ID.") @PathParam("artifactoryConnectionId") String artifactoryConnectionId)
   {
     checkArtifactoryIntegrationEnabled();
     artifactoryConnectionService.deleteArtifactoryConnection(ownerType, internalOwnerId, artifactoryConnectionId);
@@ -171,17 +163,16 @@ public class ArtifactoryConnectionResource
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the details of the requested Artifactory connection.",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the details of the requested Artifactory connection.",
+            useReturnTypeSchema = true)
       })
   public ApiArtifactoryConnectionDTO getArtifactoryConnection(
-      @Parameter(description = "Select the owner type.")
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the internal ID of the owner.")
-      @PathParam("internalOwnerId") String internalOwnerId,
-      @Parameter(description = "Enter the Artifactory connection ID.")
-      @PathParam("artifactoryConnectionId") String artifactoryConnectionId)
+      @Parameter(description = "Select the owner type.") @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(
+          description = "Enter the internal ID of the owner.") @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(
+          description = "Enter the Artifactory connection ID.") @PathParam("artifactoryConnectionId") String artifactoryConnectionId)
   {
     checkArtifactoryIntegrationEnabled();
     return artifactoryConnectionService.getArtifactoryConnection(ownerType,
@@ -198,17 +189,16 @@ public class ArtifactoryConnectionResource
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the details of the Artifactory connection.",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the details of the Artifactory connection.",
+            useReturnTypeSchema = true)
       })
   public ApiOwnerArtifactoryConnectionDTO getOwnerArtifactoryConnection(
-      @Parameter(description = "Select the owner type.")
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the internal ID of the owner.")
-      @PathParam("internalOwnerId") String internalOwnerId,
-      @Parameter(description = "Specify whether to include details from an inherited Artifactory connection.")
-      @QueryParam("inherit") @DefaultValue("false") boolean inherit)
+      @Parameter(description = "Select the owner type.") @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(
+          description = "Enter the internal ID of the owner.") @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(
+          description = "Specify whether to include details from an inherited Artifactory connection.") @QueryParam("inherit") @DefaultValue("false") boolean inherit)
   {
     checkArtifactoryIntegrationEnabled();
     return artifactoryConnectionService.getOwnerArtifactoryConnection(ownerType, internalOwnerId, inherit);
@@ -222,22 +212,19 @@ public class ArtifactoryConnectionResource
       "\n" +
       "Permissons required: View IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "The response contains the `code` and `message` indicating the status of the connection.",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "204",
+            description = "The response contains the `code` and `message` indicating the status of the connection.",
+            useReturnTypeSchema = true)
       })
   public ApiStatusDTO testArtifactoryConnection(
-      @Parameter(description = "Select the owner type.")
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the internal ID of the owner.")
-      @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(description = "Select the owner type.") @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(
+          description = "Enter the internal ID of the owner.") @PathParam("internalOwnerId") String internalOwnerId,
       @RequestBody(description = "Enter values for the Artifactory connection." +
           "<ul>" +
           "<li>`baseUrl` is the baseURL of the Artifactory instance.</li>" +
           "<li>`username` and `password` to authenticate the Artifactory connection.</li>" +
-          "</ul>", required = true, useParameterTypeSchema = true
-      )
-      ApiArtifactoryConnectionDTO artifactoryConnectionDTO)
+          "</ul>", required = true, useParameterTypeSchema = true) ApiArtifactoryConnectionDTO artifactoryConnectionDTO)
   {
     checkArtifactoryIntegrationEnabled();
     StatusType status =
@@ -252,17 +239,16 @@ public class ArtifactoryConnectionResource
   @Path(BY_ARTIFACTORY_TEST_PATH)
   @Operation(description = "Use this method to test an existing Artifactory connection using the connection ID.",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the `code` and `message` indicating the status of the connection.",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the `code` and `message` indicating the status of the connection.",
+            useReturnTypeSchema = true)
       })
   public ApiStatusDTO testArtifactoryConnection(
-      @Parameter(description = "Enter the owner type.")
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the internal ID of the owner.")
-      @PathParam("internalOwnerId") String internalOwnerId,
-      @Parameter(description = "Enter the Artifactory connection ID.")
-      @PathParam("artifactoryConnectionId") String artifactoryConnectionId)
+      @Parameter(description = "Enter the owner type.") @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(
+          description = "Enter the internal ID of the owner.") @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(
+          description = "Enter the Artifactory connection ID.") @PathParam("artifactoryConnectionId") String artifactoryConnectionId)
   {
     checkArtifactoryIntegrationEnabled();
     StatusType status =
@@ -290,17 +276,16 @@ public class ArtifactoryConnectionResource
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "Artifactory connection status successfully updated.")
+        @ApiResponse(responseCode = "204",
+            description = "Artifactory connection status successfully updated.")
       })
   public void updateOwnerArtifactoryConnectionStatus(
-      @Parameter(description = "Select the owner type.")
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the internal ID of the owner.")
-      @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(description = "Select the owner type.") @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(
+          description = "Enter the internal ID of the owner.") @PathParam("internalOwnerId") String internalOwnerId,
       @RequestBody(description = "Set values for the connection properties `enabled` and `allowOverride`.",
-          required = true, useParameterTypeSchema = true)
-      ApiArtifactoryConnectionStatusRequestDTO artifactoryConnectionStatusDTO)
+          required = true,
+          useParameterTypeSchema = true) ApiArtifactoryConnectionStatusRequestDTO artifactoryConnectionStatusDTO)
   {
     checkArtifactoryIntegrationEnabled();
     artifactoryConnectionService

@@ -35,7 +35,7 @@ public class FirewallOnboardingPage
   public static String url() {
     return BaseUrl.resolvePageUrl("/firewallOnboarding");
   }
-  
+
   public SelenideElement helpButton() {
     return child("#help-button");
   }
@@ -47,7 +47,7 @@ public class FirewallOnboardingPage
   public Button getStartedButton() {
     return new Button(childSelector("#get-started-button"));
   }
-  
+
   public SelenideElement welcomeTitle() {
     return child(".welcome-screen-content .nx-h1");
   }
@@ -94,8 +94,8 @@ public class FirewallOnboardingPage
 
     for (int i = 0; i < repositoriesByFormatElements.size(); i++) {
       repositoriesFormatList
-              .add(new FirewallRepositoryList("."
-                      + repositoriesByFormatElements.get(i).attr("class") + nthChild(i + 1)));
+          .add(new FirewallRepositoryList("."
+              + repositoriesByFormatElements.get(i).attr("class") + nthChild(i + 1)));
     }
 
     return repositoriesFormatList;

@@ -12,7 +12,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.utils.CsvWritable;
 
-public class PrioritizedComponent implements CsvWritable
+public class PrioritizedComponent
+    implements CsvWritable
 {
   public static final String DEPENDENCY_TYPE_DIRECT = "Direct";
 
@@ -89,8 +90,7 @@ public class PrioritizedComponent implements CsvWritable
       final boolean isAllViolationsWaived,
       final String waiverExpirationDetails,
       final int waivedViolationsCount,
-      final boolean hasAutoWaiver
-  )
+      final boolean hasAutoWaiver)
   {
     this.displayName = displayName;
     this.componentIdentifier = componentIdentifier;
@@ -213,7 +213,7 @@ public class PrioritizedComponent implements CsvWritable
         securityReachable == that.securityReachable &&
         Objects.equals(displayName, that.displayName) &&
         Objects.equals(componentIdentifier, that.componentIdentifier) &&
-        Objects.equals(componentHash,that.componentHash) &&
+        Objects.equals(componentHash, that.componentHash) &&
         Objects.equals(dependencyType, that.dependencyType) &&
         Objects.equals(hasFailActionOnComponent, that.hasFailActionOnComponent) &&
         Objects.equals(highestThreatPolicyName, that.highestThreatPolicyName) &&
@@ -225,7 +225,7 @@ public class PrioritizedComponent implements CsvWritable
         Objects.equals(hasSameViolationsOnMain, that.hasSameViolationsOnMain) &&
         Objects.equals(hasExpiredWaiver, that.hasExpiredWaiver) &&
         Objects.equals(hasSoonToExpireWaiver, that.hasSoonToExpireWaiver) &&
-        Objects.equals(isAllViolationsWaived, that.isAllViolationsWaived ) &&
+        Objects.equals(isAllViolationsWaived, that.isAllViolationsWaived) &&
         Objects.equals(waiverExpirationDetails, that.waiverExpirationDetails) &&
         Objects.equals(waivedViolationsCount, that.waivedViolationsCount) &&
         Objects.equals(hasAutoWaiver, that.hasAutoWaiver);
@@ -254,8 +254,7 @@ public class PrioritizedComponent implements CsvWritable
         isAllViolationsWaived,
         waiverExpirationDetails,
         waivedViolationsCount,
-        hasAutoWaiver
-        );
+        hasAutoWaiver);
   }
 
   @Override
@@ -288,15 +287,16 @@ public class PrioritizedComponent implements CsvWritable
   public static String getCsvHeader() {
     // this is the dto involved in the export
     return "Display Name,Component Identifier,Component Hash,Dependency Type,Has Fail Action On Component,Action," +
-            "Highest Threat,Highest Threat Policy Name,Highest Threat Policy Constraint Name,Security Reachable," +
-            "Priority,Remediation Type,Remediation Version,Highest Reachable Threat,Has Same Violations On Main," +
-            "Has Expired Waiver,Has Soon To Expire Waiver,Is All Violations Waived,Waiver Expiration Details," +
-            "Waived Violations Count,Has Auto Waiver";
+        "Highest Threat,Highest Threat Policy Name,Highest Threat Policy Constraint Name,Security Reachable," +
+        "Priority,Remediation Type,Remediation Version,Highest Reachable Threat,Has Same Violations On Main," +
+        "Has Expired Waiver,Has Soon To Expire Waiver,Is All Violations Waived,Waiver Expiration Details," +
+        "Waived Violations Count,Has Auto Waiver";
   }
 
   @Override
   public String toCsvLine() {
-    return joiner.useForNull("").join(displayName, componentIdentifier, componentHash, dependencyType,
+    return joiner.useForNull("")
+        .join(displayName, componentIdentifier, componentHash, dependencyType,
             hasFailActionOnComponent, action, highestThreat, highestThreatPolicyName, highestThreatPolicyConstraintName,
             securityReachable, priority, remediationType, remediationVersion, highestReachableThreat,
             hasSameViolationsOnMain, hasExpiredWaiver, hasSoonToExpireWaiver, isAllViolationsWaived,

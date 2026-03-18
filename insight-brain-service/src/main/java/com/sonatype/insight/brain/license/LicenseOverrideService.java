@@ -72,14 +72,15 @@ public class LicenseOverrideService
   private final IdUtils idUtils;
 
   @Inject
-  public LicenseOverrideService(final InsightWork work,
-                                final OwnerDAO ownerDAO,
-                                final CurrentUser currentUser,
-                                final LicenseOverrideDAO licenseOverrideDAO,
-                                final LicenseDAO licenseDAO,
-                                final LicenseOverrideEventService licenseOverrideEventService,
-                                final ClusterLockManager clusterLockManager,
-                                final IdUtils idUtils)
+  public LicenseOverrideService(
+      final InsightWork work,
+      final OwnerDAO ownerDAO,
+      final CurrentUser currentUser,
+      final LicenseOverrideDAO licenseOverrideDAO,
+      final LicenseDAO licenseDAO,
+      final LicenseOverrideEventService licenseOverrideEventService,
+      final ClusterLockManager clusterLockManager,
+      final IdUtils idUtils)
   {
     this.work = work;
     this.currentUser = currentUser;
@@ -92,11 +93,12 @@ public class LicenseOverrideService
   }
 
   @Authorize(permission = Permission.CHANGE_LICENSES)
-  public LicenseOverride addLicenseOverride(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                            @AuthzContext(AuthzContext.Key.ID) final String ownerId,
-                                            final LicenseOverride licenseOverride,
-                                            final String where,
-                                            final HttpServletRequest request) throws IOException
+  public LicenseOverride addLicenseOverride(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      final LicenseOverride licenseOverride,
+      final String where,
+      final HttpServletRequest request) throws IOException
   {
     if (licenseOverride == null) {
       throw new BadRequestException("The license override cannot be null. Validate the body of " +
@@ -140,8 +142,11 @@ public class LicenseOverrideService
     else {
       AuditData.get().setEnum("status", licenseOverride.getStatus()).setComment(licenseOverride.getComment());
 
-      List<String> selectedOverriddenLicenseNames = licenseOverride.getLicenseIds().stream().map(licenseDAO::getById)
-          .map(License::getShortDisplayName).collect(Collectors.toList());
+      List<String> selectedOverriddenLicenseNames = licenseOverride.getLicenseIds()
+          .stream()
+          .map(licenseDAO::getById)
+          .map(License::getShortDisplayName)
+          .collect(Collectors.toList());
       if (!selectedOverriddenLicenseNames.isEmpty()) {
         AuditData.get().setData("licenseNames", selectedOverriddenLicenseNames);
       }
@@ -150,12 +155,13 @@ public class LicenseOverrideService
     AuditData.get().setComponentIdentifier(licenseOverride.getComponentIdentifier());
   }
 
-  private void auditLicenseOverride(String ownerId,
-                                    LicenseOverride licenseOverride,
-                                    String user,
-                                    String where,
-                                    String ipAddress,
-                                    boolean isDelete) throws IOException
+  private void auditLicenseOverride(
+      String ownerId,
+      LicenseOverride licenseOverride,
+      String user,
+      String where,
+      String ipAddress,
+      boolean isDelete) throws IOException
   {
     JsonStore store = new JsonFileStore(work.getAuditDir(ownerId), ownerId, clusterLockManager);
 
@@ -168,11 +174,12 @@ public class LicenseOverrideService
   }
 
   @Authorize(permission = Permission.CHANGE_LICENSES)
-  public void deleteLicenseOverride(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                    @AuthzContext(AuthzContext.Key.ID) final String ownerId,
-                                    final String licenseOverrideId,
-                                    final String where,
-                                    final HttpServletRequest request) throws IOException
+  public void deleteLicenseOverride(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      final String licenseOverrideId,
+      final String where,
+      final HttpServletRequest request) throws IOException
   {
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 

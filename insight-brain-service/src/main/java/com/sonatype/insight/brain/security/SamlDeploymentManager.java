@@ -150,12 +150,18 @@ public class SamlDeploymentManager
     defaultSamlDeployment.setDecryptionKey(samlConfiguration.getDecryptionKey());
 
     IDPSSODescriptorType idpDescriptor =
-        entityDescriptor.getChoiceType().stream().flatMap(choiceType -> choiceType.getDescriptors().stream())
-            .map(EDTDescriptorChoiceType::getIdpDescriptor).filter(Objects::nonNull).findFirst().get();
+        entityDescriptor.getChoiceType()
+            .stream()
+            .flatMap(choiceType -> choiceType.getDescriptors().stream())
+            .map(EDTDescriptorChoiceType::getIdpDescriptor)
+            .filter(Objects::nonNull)
+            .findFirst()
+            .get();
     DefaultIDP idp = new DefaultIDP();
     defaultSamlDeployment.setIdp(idp);
     idp.setEntityID(entityDescriptor.getEntityID());
-    List<KeyDescriptorType> keyDescriptorsForSigning = idpDescriptor.getKeyDescriptor().stream()
+    List<KeyDescriptorType> keyDescriptorsForSigning = idpDescriptor.getKeyDescriptor()
+        .stream()
         .filter(keyDescriptor -> keyDescriptor.getUse() == null || KeyTypes.SIGNING.equals(keyDescriptor.getUse()))
         .collect(toList());
     for (KeyDescriptorType keyDescriptor : keyDescriptorsForSigning) {
@@ -178,7 +184,8 @@ public class SamlDeploymentManager
     }
     boolean hasSigningKey = !keyDescriptorsForSigning.isEmpty();
     if (!hasSigningKey && (Boolean.TRUE.equals(samlConfiguration.getValidateResponseSignature())
-        || Boolean.TRUE.equals(samlConfiguration.getValidateAssertionSignature()))) {
+        || Boolean.TRUE.equals(samlConfiguration.getValidateAssertionSignature())))
+    {
       throw new IllegalArgumentException(
           "SAML metadata for identity provider misses signing key to perform the requested signature validation");
     }

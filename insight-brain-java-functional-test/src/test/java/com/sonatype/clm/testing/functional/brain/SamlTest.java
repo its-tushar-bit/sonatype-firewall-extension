@@ -185,7 +185,7 @@ public class SamlTest
     String userId = keycloak.createUser("John", "Doe", username, "john@doe.com", password, null);
     keycloak.assignUserToGroup(userId, groupId);
 
-    // Load the page.  Redirection to SSO login should happen automatically
+    // Load the page. Redirection to SSO login should happen automatically
     refreshOrOpen(IndexPage.url());
     KeycloakLoginPage.login(username, password);
 

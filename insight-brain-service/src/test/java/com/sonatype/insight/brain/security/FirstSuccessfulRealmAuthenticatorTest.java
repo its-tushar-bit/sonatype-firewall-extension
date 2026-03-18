@@ -44,7 +44,8 @@ public class FirstSuccessfulRealmAuthenticatorTest
     final Collection<Realm> realms = Collections.singletonList(realm);
 
     assertThatExceptionOfType(RuntimeException.class)
-        .isThrownBy(() -> firstSuccessfulRealmAuthenticator.doMultiRealmAuthentication(realms, token)).isEqualTo(cause);
+        .isThrownBy(() -> firstSuccessfulRealmAuthenticator.doMultiRealmAuthentication(realms, token))
+        .isEqualTo(cause);
   }
 
   @Test

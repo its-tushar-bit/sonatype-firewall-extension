@@ -96,20 +96,18 @@ public class MultiTenantTaskSchedulerTest
     when(mockTenantManager.areTenantsPreRegistered()).thenReturn(true);
     spyTenantUtil = spy(new TenantUtil());
     spyUnderTest = spy(new MultiTenantTaskScheduler(
-            mockMultiTenantQuartzJobStoreTX,
-            mockMultiTenantBatchModeJobStoreTX,
-            mockJobFactory,
-            testName.getMethodName(),
-            mockQuartzTriggerListener,
-            mockQuartzConcurrencyListener,
-            () -> mockTenantContextJobListener,
-            mockSystemConfigurationPropertyDAO,
-            () -> mockTenantManager,
-            spyTenantUtil,
-            mockShutdownHandler,
-            mockQuartzJobSchedulingService
-        )
-    );
+        mockMultiTenantQuartzJobStoreTX,
+        mockMultiTenantBatchModeJobStoreTX,
+        mockJobFactory,
+        testName.getMethodName(),
+        mockQuartzTriggerListener,
+        mockQuartzConcurrencyListener,
+        () -> mockTenantContextJobListener,
+        mockSystemConfigurationPropertyDAO,
+        () -> mockTenantManager,
+        spyTenantUtil,
+        mockShutdownHandler,
+        mockQuartzJobSchedulingService));
   }
 
   @Test

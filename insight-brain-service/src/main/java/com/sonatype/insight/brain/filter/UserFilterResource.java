@@ -39,7 +39,7 @@ public class UserFilterResource
   public static final String NAMED_FILTERS_PATH = "named";
 
   private final UserFilterService userFilterService;
-  
+
   @Inject
   public UserFilterResource(UserFilterService userFilterService) {
     this.userFilterService = userFilterService;

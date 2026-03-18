@@ -76,8 +76,11 @@ public class CrowdConfigurationDAO
   public void validate(CrowdConfiguration crowdConfiguration) {
     validateField(crowdConfiguration.getServerUrl(), "server url", MAX_SERVER_URL_SIZE);
     validateField(crowdConfiguration.getApplicationName(), "application name", MAX_APPLICATION_NAME_SIZE);
-    validateField(crowdConfiguration.getApplicationPassword() == null ? null : CharBuffer.wrap(
-        crowdConfiguration.getApplicationPassword()), "application password", MAX_APPLICATION_PASSWORD_SIZE);
+    validateField(crowdConfiguration.getApplicationPassword() == null
+        ? null
+        : CharBuffer.wrap(
+            crowdConfiguration.getApplicationPassword()),
+        "application password", MAX_APPLICATION_PASSWORD_SIZE);
   }
 
   private void validateField(CharSequence value, String name, int maxLength) {

@@ -52,7 +52,8 @@ import static com.sonatype.clm.testing.functional.elements.DashboardViolations.S
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 
-public class  WaiverDetailsTest extends AbstractFunctionalTest
+public class WaiverDetailsTest
+    extends AbstractFunctionalTest
 {
   private Organization organization;
 
@@ -94,13 +95,16 @@ public class  WaiverDetailsTest extends AbstractFunctionalTest
         "docker", true, true);
     application2 = tempEntity.newApplication("App 2", "app2", org2.getId());
 
-    securityPolicies = new ArrayList<>() {{
+    securityPolicies = new ArrayList<>()
+    {
+      {
         this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7));
         this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 2", 9));
         this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 3", 3));
         this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 4", 8));
         this.add(tempEntity.newPolicy(application2.getId(), "Policy 5", 7));
-      }};
+      }
+    };
 
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application.getId(),
         StageTypes.BUILD.getId(), "scan1", false, false, Date.from(twoDaysAgo));
@@ -108,16 +112,21 @@ public class  WaiverDetailsTest extends AbstractFunctionalTest
     PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), ProxyStageType.ID,
         "scanId1App2");
 
-    TreeMap<String, String> coordinatesForContainerImage = new TreeMap<>() {{
+    TreeMap<String, String> coordinatesForContainerImage = new TreeMap<>()
+    {
+      {
         this.put("name", "apk-tools");
         this.put("namespace", "alpine:3.6.5");
         this.put("version", "2.7.6-r0");
-      }};
+      }
+    };
 
     ComponentIdentifier componentIdentifierForContainerImage = new ComponentIdentifier("container",
         coordinatesForContainerImage);
 
-    policyViolations = new ArrayList<>() {{
+    policyViolations = new ArrayList<>()
+    {
+      {
         this.add(tempEntity.newPolicyViolation(policyEvaluation1, securityPolicies.get(0), "Group1",
             "Artifact1", "Version1", "hash1", "sonatype-2017-0507"));
         this.add(tempEntity.newPolicyViolation(policyEvaluation1, securityPolicies.get(1), "Group2",
@@ -128,14 +137,18 @@ public class  WaiverDetailsTest extends AbstractFunctionalTest
             "Artifact4", "Version4", "hash4", "sonatype-2017-7859"));
         this.add(tempEntity.newPolicyViolation(policyEvaluation2, securityPolicies.get(4),
             componentIdentifierForContainerImage, "hash5", FailActionType.ID));
-      }};
+      }
+    };
 
     // Component identifier for waivers
-    TreeMap<String, String> coordinates = new TreeMap<>() {{
+    TreeMap<String, String> coordinates = new TreeMap<>()
+    {
+      {
         this.put("artifactId", "Artifact1");
         this.put("groupId", "Group1");
         this.put("version", "1.2.3");
-      }};
+      }
+    };
 
     ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
     String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
@@ -145,7 +158,7 @@ public class  WaiverDetailsTest extends AbstractFunctionalTest
         .setPolicyId(securityPolicies.get(0).getId())
         .setOwnerId(application.getId())
         .setAssociatedPackageUrl(purl)
-            .setConstraintFacts(policyViolations.get(0).getConstraintFacts())
+        .setConstraintFacts(policyViolations.get(0).getConstraintFacts())
         .setComponentMatchStrategy(EXACT_COMPONENT)
         .setComment("comment")
         .setCreateTime(Date.from(twoDaysAgo))
@@ -202,13 +215,16 @@ public class  WaiverDetailsTest extends AbstractFunctionalTest
         .setForContainerImage(true)
         .setForContainerImageComponent(false));
 
-    policyWaivers = new ArrayList<>() {{
+    policyWaivers = new ArrayList<>()
+    {
+      {
         add(policyWaiver1);
         add(policyWaiver2);
         add(policyWaiver3);
         add(policyWaiver4);
         add(policyWaiver5);
-      }};
+      }
+    };
 
     refreshOrOpen(WaiverDetailsPage.url("ownerTypeId", "ownerId", "waiverId"));
   }
@@ -396,9 +412,11 @@ public class  WaiverDetailsTest extends AbstractFunctionalTest
 
     waiverDetailsPage.detailsTileHeader().shouldHave(text("Waiver Detail View"));
     waiverDetailsPage.detailsPolicy().shouldHave(text("Policy 5"));
-    waiverDetailsPage.detailsInfoAlert().shouldHave(text("Details of all the specific policies waived aren\'t " +
-        "displayed on this page. To review the individual policies and components affected by this waiver, please " +
-        "refer to the Container Image Report."));
+    waiverDetailsPage.detailsInfoAlert()
+        .shouldHave(text("Details of all the specific policies waived aren\'t " +
+            "displayed on this page. To review the individual policies and components affected by this waiver, please "
+            +
+            "refer to the Container Image Report."));
     waiverDetailsPage.detailsConstraint().shouldHave(text("Test Constraint is in violation for:"));
     waiverDetailsPage.detailsConditions().shouldHave(text("fail"));
     waiverDetailsPage.detailsScope().shouldHave(text("App 2"));

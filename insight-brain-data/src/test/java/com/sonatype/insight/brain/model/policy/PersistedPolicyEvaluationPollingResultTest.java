@@ -39,8 +39,8 @@ public class PersistedPolicyEvaluationPollingResultTest
 
   @Test
   public void testGetAndSetPolicyEvaluationPollingResult() {
-    PersistedPolicyEvaluationPollingResult
-        persistedPolicyEvaluationPollingResult = new PersistedPolicyEvaluationPollingResult(null, null, null);
+    PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
+        new PersistedPolicyEvaluationPollingResult(null, null, null);
 
     assertThat(persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult()).isNull();
 

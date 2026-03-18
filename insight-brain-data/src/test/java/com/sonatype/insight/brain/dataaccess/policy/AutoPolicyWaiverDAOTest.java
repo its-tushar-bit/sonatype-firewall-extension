@@ -44,8 +44,7 @@ public class AutoPolicyWaiverDAOTest
         true,
         "creatorId",
         "creatorName",
-        new Date()
-    );
+        new Date());
 
     // Create
     dao.insert(autoPolicyWaiverInstance);
@@ -77,7 +76,7 @@ public class AutoPolicyWaiverDAOTest
   @Test
   public void testGetByIdAndOwnerIdNotNull_null() {
     assertThatThrownBy(() -> dao.getByIdAndOwnerIdNotNull("fakeId", "fakeOwnerId")).isInstanceOf(
-            NotFoundException.class)
+        NotFoundException.class)
         .hasMessage("Cannot find a waiver with ID fakeId for owner fakeOwnerId.");
   }
 
@@ -90,8 +89,7 @@ public class AutoPolicyWaiverDAOTest
         true,
         "creatorId",
         "creatorName",
-        new Date()
-    );
+        new Date());
     dao.insert(autoPolicyWaiverInstance);
 
     AutoPolicyWaiver queryResult =
@@ -116,8 +114,7 @@ public class AutoPolicyWaiverDAOTest
         true,
         "creatorId",
         "creatorName",
-        new Date()
-    );
+        new Date());
     dao.insert(autoPolicyWaiverInstanceOne);
 
     AutoPolicyWaiver autoPolicyWaiverInstanceTwo = new AutoPolicyWaiver(
@@ -127,8 +124,7 @@ public class AutoPolicyWaiverDAOTest
         false,
         "creator",
         "creator",
-        new Date()
-    );
+        new Date());
     dao.insert(autoPolicyWaiverInstanceTwo);
 
     AutoPolicyWaiverExclusion exclusionOne = new AutoPolicyWaiverExclusion(
@@ -139,8 +135,7 @@ public class AutoPolicyWaiverDAOTest
         autoPolicyWaiverInstanceOne.getId(),
         "fakeScanId",
         "fakeHash",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
     autoPolicyWaiverExclusionDAO.insert(exclusionOne);
 
     AutoPolicyWaiverExclusion exclusionTwo = new AutoPolicyWaiverExclusion(
@@ -151,8 +146,7 @@ public class AutoPolicyWaiverDAOTest
         autoPolicyWaiverInstanceTwo.getId(),
         "otherScanId",
         "otherHash",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
     autoPolicyWaiverExclusionDAO.insert(exclusionTwo);
 
     dao.delete(autoPolicyWaiverInstanceOne);

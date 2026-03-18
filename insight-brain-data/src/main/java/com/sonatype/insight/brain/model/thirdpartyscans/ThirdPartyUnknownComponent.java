@@ -18,7 +18,7 @@ public class ThirdPartyUnknownComponent
     implements HasStringId
 {
   public ThirdPartyUnknownComponent() {
-    //noop
+    // noop
   }
 
   @Id

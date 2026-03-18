@@ -256,7 +256,8 @@ public class OwnerHierarchy
   }
 
   private void addRepositories(List<RepositoryManager> repositoryManagers, List<Repository> repositories) {
-    List<String> repositoryManagersIds = repositoryManagers.stream().map(RepositoryManager::getId)
+    List<String> repositoryManagersIds = repositoryManagers.stream()
+        .map(RepositoryManager::getId)
         .collect(Collectors.toList());
     for (Repository repository : repositories) {
       // If user has permission over repo manager, continue
@@ -288,7 +289,7 @@ public class OwnerHierarchy
     repositoryManagers = sortOwners(repositoryManagers);
     convertToMapAndUpdateParents(repositoryManagers, transformToRepositoryManagerDTO,
         repoManager -> getRepositoryContainer())
-        .forEach(repositoryManager -> repositoryManagerMap.put(repositoryManager.id, repositoryManager));
+            .forEach(repositoryManager -> repositoryManagerMap.put(repositoryManager.id, repositoryManager));
   }
 
   private <T, R extends OwnerHierarchyEntityDTO> Stream<R> convertToMapAndUpdateParents(
@@ -304,7 +305,8 @@ public class OwnerHierarchy
   private static <R extends OwnerHierarchyEntityDTO> Consumer<R> addEntityToItsParent(
       final Function<String, OwnerHierarchyEntityDTO> getParent)
   {
-    return entity -> getParent.andThen(Optional::ofNullable).apply(entity.getParentId())
+    return entity -> getParent.andThen(Optional::ofNullable)
+        .apply(entity.getParentId())
         .ifPresent(parentEntity -> parentEntity.addChild(entity));
   }
 
@@ -386,8 +388,7 @@ public class OwnerHierarchy
         getOrganizationById(Organization.ROOT_ORGANIZATION_ID),
         initialMatchCount,
         targetIds,
-        ancestors
-    );
+        ancestors);
 
     // the first organization to contain all occurrences of matching ids will be inserted first
     // following ancestors can be ignored as they're added during the process of backtracking to the root.

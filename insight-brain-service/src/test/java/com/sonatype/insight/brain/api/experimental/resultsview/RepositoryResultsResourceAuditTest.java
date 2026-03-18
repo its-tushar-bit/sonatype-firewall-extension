@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.experimental.resultsview;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -39,7 +40,9 @@ public class RepositoryResultsResourceAuditTest
   @Test
   public void testGetDetails_RepositoryContainer() throws Exception {
     restRequest().path(RepositoryResultsResource.RESOURCE_PATH, RepositoryResultsResource.DETAILS_BY_OWNER_PATH)
-        .parameter("repository_container", RepositoryContainer.REPOSITORY_CONTAINER_ID).body(detailsRequest).post();
+        .parameter("repository_container", RepositoryContainer.REPOSITORY_CONTAINER_ID)
+        .body(detailsRequest)
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_REPOSITORY_RESULTS, null);
     assertRepositoryContainerData(auditDTO);
@@ -48,7 +51,9 @@ public class RepositoryResultsResourceAuditTest
   @Test
   public void testGetDetails_RepositoryManager() throws Exception {
     restRequest().path(RepositoryResultsResource.RESOURCE_PATH, RepositoryResultsResource.DETAILS_BY_OWNER_PATH)
-        .parameter("repository_manager", repositoryManager.getId()).body(detailsRequest).post();
+        .parameter("repository_manager", repositoryManager.getId())
+        .body(detailsRequest)
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_REPOSITORY_RESULTS, null);
     assertRepositoryManagerData(auditDTO, repositoryManager);
@@ -57,7 +62,9 @@ public class RepositoryResultsResourceAuditTest
   @Test
   public void testGetDetails_Repository() throws Exception {
     restRequest().path(RepositoryResultsResource.RESOURCE_PATH, RepositoryResultsResource.DETAILS_BY_OWNER_PATH)
-        .parameter("repository", repository.getId()).body(detailsRequest).post();
+        .parameter("repository", repository.getId())
+        .body(detailsRequest)
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_REPOSITORY_RESULTS, null);
     assertRepositoryData(auditDTO, repository);

@@ -73,8 +73,7 @@ public class FeaturesService
       features.addAll(
           Arrays.stream(SystemConfigurationPropertyFeature.values())
               .filter(SystemConfigurationPropertyFeature::isEnabled)
-              .collect(Collectors.toSet())
-      );
+              .collect(Collectors.toSet()));
 
       if (developerEnablementService.shouldEnableDeveloperProduct()) {
         features.add(LicensedFeature.DEVELOPER_DASHBOARD);

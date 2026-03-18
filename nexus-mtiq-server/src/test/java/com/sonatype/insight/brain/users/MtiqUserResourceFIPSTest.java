@@ -19,7 +19,8 @@ import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastl
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 
 @Category(SlowTest.class)
-public class MtiqUserResourceFIPSTest extends MtiqUserResourceTest
+public class MtiqUserResourceFIPSTest
+    extends MtiqUserResourceTest
 {
   @Rule
   public EnvironmentVariables environmentVariables;

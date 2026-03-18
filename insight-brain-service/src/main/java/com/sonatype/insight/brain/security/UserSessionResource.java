@@ -86,9 +86,11 @@ public class UserSessionResource
         configuration.getReverseProxyAuthenticationConfiguration();
     if (reverseProxyAuthenticationConfiguration != null &&
         reverseProxyAuthenticationConfiguration.isEnabled() &&
-        reverseProxyAuthenticationConfiguration.getLogoutUrl() != null) {
+        reverseProxyAuthenticationConfiguration.getLogoutUrl() != null)
+    {
       return Response.status(Status.NO_CONTENT)
-          .location(URI.create(reverseProxyAuthenticationConfiguration.getLogoutUrl())).build();
+          .location(URI.create(reverseProxyAuthenticationConfiguration.getLogoutUrl()))
+          .build();
     }
 
     URI idpLogoutURI = idPLogoutUrlBuilder.buildIdPLogoutUrl();

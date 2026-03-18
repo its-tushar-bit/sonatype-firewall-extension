@@ -18,7 +18,7 @@ public class ApplicationOwnerDetailsEditingTest
 
   @Before
   public void init() {
-    //note the ȧ being used to force a character to be encoded
+    // note the ȧ being used to force a character to be encoded
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION);
     super.init(application);
   }

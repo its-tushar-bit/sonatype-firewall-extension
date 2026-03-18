@@ -142,7 +142,7 @@ public class MultiLicenseDAO
       List<MultiLicense> multiLicenses = getList(sQuery);
 
       sQuery = "SELECT license FROM MultiLicenseLicenseInternal license";
-      @SuppressWarnings({ "unchecked", "rawtypes" })
+      @SuppressWarnings({"unchecked", "rawtypes"})
       List<MultiLicenseLicenseInternal> mappings = (List) getList(sQuery);
 
       Map<String, Set<License>> newLicenseSetsById = new LinkedHashMap<>();

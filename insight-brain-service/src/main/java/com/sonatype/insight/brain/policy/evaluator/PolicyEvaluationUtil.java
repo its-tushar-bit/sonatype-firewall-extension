@@ -46,19 +46,17 @@ public class PolicyEvaluationUtil
   }
 
   public void validateEvaluationTypeAndFeature(IntegrationType integrationType, Stage stage) {
-    final boolean hasContainerImagesEvaluationFeature = (
-        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled() &&
-        productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
-    );
+    final boolean hasContainerImagesEvaluationFeature =
+        (SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled() &&
+            productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION));
 
     if (integrationType.equals(IntegrationType.CLI)) {
       if (!hasContainerImagesEvaluationFeature) {
         productLicense.validateFeature(LicensedFeature.CLI_INTEGRATION);
-        
+
         if (stage.getStageTypeId().equals(Stage.ID_PROXY)) {
           throw new InvalidLicenseException(
-              "Application evaluation using the proxy stage is not supported by your license."
-          );
+              "Application evaluation using the proxy stage is not supported by your license.");
         }
       }
     }

@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.security.UserDirectory;
  * objects.
  * For performance reasons, it caches data in between calls, so instances of this class should have a short life span.
  * See https://issues.sonatype.org/browse/CLM-15996 for performance details.
- * 
+ *
  * WARNING: This class is not thread-safe.
  *
  * @since 1.8
@@ -111,7 +111,8 @@ public class ApplicationAdapter
           organizationCacheById.computeIfAbsent(application.getOrganizationId(), organizationDAO::getByIdNotNull);
 
       if (nameFilter != null && !application.getName().toLowerCase(Locale.ENGLISH).contains(nameFilter)
-          && !organization.getName().toLowerCase(Locale.ENGLISH).contains(nameFilter)) {
+          && !organization.getName().toLowerCase(Locale.ENGLISH).contains(nameFilter))
+      {
         continue;
       }
 

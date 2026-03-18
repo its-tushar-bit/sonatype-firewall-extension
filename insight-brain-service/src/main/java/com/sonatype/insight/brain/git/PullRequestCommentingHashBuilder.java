@@ -27,22 +27,22 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
 
 /**
- * Utility class that generates a hash from a policy violation diff and a remediation map, which are used in 
+ * Utility class that generates a hash from a policy violation diff and a remediation map, which are used in
  * PR comments content creation. Only relevant information for PR commenting contributes to the hash.
  * <p>
- * The resulting hash is used to determine if a an existing PR comment needs to be updated or not 
- * (i.e. on update, if the current computed hash is equal to the previous one, the update is skipped). 
+ * The resulting hash is used to determine if a an existing PR comment needs to be updated or not
+ * (i.e. on update, if the current computed hash is equal to the previous one, the update is skipped).
  */
 public class PullRequestCommentingHashBuilder
 {
   private static final BaseEncoding encoder = BaseEncoding.base16().lowerCase();
-  
+
   private PolicyViolationDiff<PolicyViolation> policyViolationDiff;
-  
+
   private SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap;
 
   public PullRequestCommentingHashBuilder withPolicyViolationDiff(
-      PolicyViolationDiff<PolicyViolation> policyViolationDiff) 
+      PolicyViolationDiff<PolicyViolation> policyViolationDiff)
   {
     this.policyViolationDiff = policyViolationDiff;
     return this;
@@ -54,7 +54,7 @@ public class PullRequestCommentingHashBuilder
     this.remediationVersionMap = remediationVersionMap;
     return this;
   }
-  
+
   public String generateHash() throws NoSuchAlgorithmException {
     Preconditions.checkNotNull(policyViolationDiff, "Policy Violation Diff is required and cannot be null");
     Preconditions.checkNotNull(remediationVersionMap, "Remediation Version Map is required and cannot be null");
@@ -62,9 +62,10 @@ public class PullRequestCommentingHashBuilder
     StringBuilder stringBuilder = new StringBuilder(4000);
     collectRelevantDataFromDiff(stringBuilder, policyViolationDiff);
     collectRelevantDataFromRemediations(stringBuilder, remediationVersionMap);
-    
-    byte[] digest = MessageDigest.getInstance("SHA-1").digest(
-        stringBuilder.toString().getBytes(StandardCharsets.UTF_8));
+
+    byte[] digest = MessageDigest.getInstance("SHA-1")
+        .digest(
+            stringBuilder.toString().getBytes(StandardCharsets.UTF_8));
     return encoder.encode(digest);
   }
 
@@ -95,7 +96,7 @@ public class PullRequestCommentingHashBuilder
       final StringBuilder stringBuilder,
       final List<PolicyViolation> list)
   {
-    //Policy violations need to be grouped by component
+    // Policy violations need to be grouped by component
     final SortedMap<String, List<PolicyViolation>> componentPolicyViolationsMap = list
         .stream()
         .collect(Collectors.groupingBy(x -> {
@@ -106,10 +107,10 @@ public class PullRequestCommentingHashBuilder
             return x.getHash();
           }
         }, TreeMap::new, Collectors.toList()));
-    
-    // Ensure the policy violation order is always the same 
+
+    // Ensure the policy violation order is always the same
     ensureConsistentOrdering(componentPolicyViolationsMap.values());
-    
+
     // collect relevant information
     collectRelevantDataFromComponentViolations(stringBuilder, componentPolicyViolationsMap);
   }
@@ -117,10 +118,10 @@ public class PullRequestCommentingHashBuilder
   /**
    * Only relevant information contributes to the content to be hashed:
    * <ul>
-   *   <li>For each {@link ComponentIdentifier} - its string representation (toString())
-   *   <li>For each {@link PolicyViolation} - policy name and threat level
-   *   <li>For each {@link ConstraintFact} - constraint name
-   *   <li>For each {@link ConditionFact} - reason and reference's value field
+   * <li>For each {@link ComponentIdentifier} - its string representation (toString())
+   * <li>For each {@link PolicyViolation} - policy name and threat level
+   * <li>For each {@link ConstraintFact} - constraint name
+   * <li>For each {@link ConditionFact} - reason and reference's value field
    * </ul>
    */
   private void collectRelevantDataFromComponentViolations(

@@ -17,12 +17,12 @@ public record AutoPolicyWaiverExclusionTelemetry(
     String ownerId,
     Integer threadLevel,
     String autoPolicyWaiverId,
-    AutoPolicyWaiverExclusionAction action
-)
+    AutoPolicyWaiverExclusionAction action)
 {
   public AutoPolicyWaiverExclusionTelemetry(
       AutoPolicyWaiverExclusion autoPolicyWaiverExclusion,
-      OwnerType ownerType, AutoPolicyWaiverExclusionAction action)
+      OwnerType ownerType,
+      AutoPolicyWaiverExclusionAction action)
   {
     this(
         autoPolicyWaiverExclusion.getId(),

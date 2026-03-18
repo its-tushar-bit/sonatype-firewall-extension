@@ -222,7 +222,7 @@ public class ScannerTest
     assertThat(item.getContentType()).isNull();
     assertThat(item.getHasError()).isTrue();
   }
-  
+
   @Test
   public void testScan_SourceControl() throws Exception {
     // given: setup and configs what would be used by a client for a source control scan
@@ -329,7 +329,7 @@ public class ScannerTest
     assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE_THIRD_PARTY);
 
     Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).path().toFile());
-    //noinspection unchecked
+    // noinspection unchecked
     List<ScanItem> scanItems = (List<ScanItem>) scan.getItems().get(0).getItems();
     assertThat(scanItems).hasSize(1);
     ScanItem scanItem = scanItems.get(0);
@@ -370,8 +370,10 @@ public class ScannerTest
     }
   }
 
-  private void testFilenamePatterns(String zipFilename, String unzippedFilename, ItemContentType itemContentType)
-      throws IOException
+  private void testFilenamePatterns(
+      String zipFilename,
+      String unzippedFilename,
+      ItemContentType itemContentType) throws IOException
   {
     ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
     proprietaryConfig.setPackages(Collections.singletonList("com.sonatype"));

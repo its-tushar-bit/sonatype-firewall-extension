@@ -104,14 +104,14 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
     // given : several commit history entries with and without associated policy violations
     String policyEvaluationId1 =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan1", "commit1")
-        .getId();
+            .getId();
     SourceControlDefaultBranchCommitHistory oldestCommitWithEval =
         tempEntity.newSourceControlDefaultBranchCommitHistory(
             application.getId(), "commit1", createTime(-60), policyEvaluationId1);
 
     String policyEvaluationId2 =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan2", "commit2")
-        .getId();
+            .getId();
     SourceControlDefaultBranchCommitHistory newestCommitWithEval =
         tempEntity.newSourceControlDefaultBranchCommitHistory(
             application.getId(), "commit2", createTime(-30), policyEvaluationId2);
@@ -137,7 +137,7 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
     // when : update the middle entry to have a policy eval and refetch
     String policyEvaluationId3 =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan3", "commit3")
-        .getId();
+            .getId();
     middleCommitNoEval.setPolicyEvaluationId(policyEvaluationId3);
     defaultBranchCommitHistoryDAO.update(middleCommitNoEval);
     fetchedCommitHistory = defaultBranchCommitHistoryDAO.getByApplicationIdForLatestCommitWithPolicyEvaluation(
@@ -152,14 +152,14 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
     // given : several commit history entries with and without associated policy violations
     String policyEvaluationId1 =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan1", "commit1")
-        .getId();
+            .getId();
     SourceControlDefaultBranchCommitHistory oldestCommitWithEval =
         tempEntity.newSourceControlDefaultBranchCommitHistory(
             application.getId(), "commit1", createTime(-60), policyEvaluationId1);
 
     String policyEvaluationId2 =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan2", false, false, false, new Date(),
-                "commit2", ScanTriggerType.SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING)
+            "commit2", ScanTriggerType.SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING)
             .getId();
     SourceControlDefaultBranchCommitHistory newestCommitWithEval =
         tempEntity.newSourceControlDefaultBranchCommitHistory(
@@ -239,7 +239,7 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
   @Test
   public void testDeleteByApplicationId() {
     // given : a set of commit history entries, some linked to a policy evaluation, some not, and some for a different
-    //         application
+    // application
     String policyEvaluationId =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan", "commit1")
             .getId();
@@ -279,7 +279,7 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
   @Test
   public void testGetLatestCommitForApplicationId() {
     // given : a set of commit history entries, some linked to a policy evaluation, some not, and some for a different
-    //         application
+    // application
     String policyEvaluationId =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan", "commit1")
             .getId();
@@ -317,8 +317,7 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
     LocalDateTime dateTime = LocalDateTime.now();
     return toDate(offsetInMinutes < 0
         ? dateTime.minusMinutes(Math.abs(offsetInMinutes))
-        : dateTime.plusMinutes(offsetInMinutes)
-    );
+        : dateTime.plusMinutes(offsetInMinutes));
   }
 
   private Date toDate(LocalDateTime localDateTime) {

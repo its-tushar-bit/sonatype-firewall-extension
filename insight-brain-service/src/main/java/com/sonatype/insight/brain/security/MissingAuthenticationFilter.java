@@ -84,8 +84,8 @@ class MissingAuthenticationFilter
 
         // Note: We don't set X-SAML-IdP header here for the following reason:
         // The current React-based LoginModal doesn't use this header - it was only used in the
-        //    legacy AngularJS login modal (pre-CLM-20634) to display text like
-        //    "Single sign-on via {IdP name} by clicking the Single Sign-On button"
+        // legacy AngularJS login modal (pre-CLM-20634) to display text like
+        // "Single sign-on via {IdP name} by clicking the Single Sign-On button"
         // but it was removed with migration to React (CLM-20152)
       }
     }

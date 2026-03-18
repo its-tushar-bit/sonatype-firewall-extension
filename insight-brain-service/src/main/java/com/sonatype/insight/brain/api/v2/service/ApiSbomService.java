@@ -227,11 +227,13 @@ public class ApiSbomService
     ExportSpecification exportSpec = ExportSpecification.getSpecificationForRequest(targetSpecification);
 
     if (thirdPartySbomMetadata.getSpec().equals(SbomSpecification.CYCLONEDX.toString()) &&
-        exportSpec.getSpecification().equals(SbomSpecification.CYCLONEDX)) {
+        exportSpec.getSpecification().equals(SbomSpecification.CYCLONEDX))
+    {
       validateCycloneDxAllowedForwardSpecVersionsOnly(thirdPartySbomMetadata, exportSpec);
     }
     else if (thirdPartySbomMetadata.getSpec().equals(SbomSpecification.SPDX.toString()) &&
-        exportSpec.getSpecification().equals(SbomSpecification.SPDX)) {
+        exportSpec.getSpecification().equals(SbomSpecification.SPDX))
+    {
       validateSpdxAllowedForwardSpecVersionsOnly(thirdPartySbomMetadata, exportSpec);
     }
 
@@ -254,16 +256,14 @@ public class ApiSbomService
         applicationId,
         sbomVersion,
         sbomExportParams.getExportSpecification(),
-        sbomExportParams.getTargetFormat()
-    );
+        sbomExportParams.getTargetFormat());
     content = content != null ? content : "";
     String fileName = getExportFileName(
         applicationId,
         sbomVersion,
         sbomExportParams.getTargetFormat().toString(),
         sbomExportParams.getExportSpecification().getSpecification(),
-        null
-    );
+        null);
     return Response.ok(content.getBytes(StandardCharsets.UTF_8), type)
         .header(SBOM_VALIDATED_HEADER, String.valueOf(validity))
         .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(fileName))
@@ -319,7 +319,8 @@ public class ApiSbomService
   }
 
   private Double parseSpdxVersionOrThrow(String version, Supplier<? extends RuntimeException> exceptionSupplier) {
-    return ThirdPartyUtils.SPDX_ACCEPTED_VERSIONS.values().stream()
+    return ThirdPartyUtils.SPDX_ACCEPTED_VERSIONS.values()
+        .stream()
         .filter(v -> v.equalsIgnoreCase(version))
         .findFirst()
         .map(Double::parseDouble)
@@ -331,7 +332,8 @@ public class ApiSbomService
       String content,
       final String applicationId,
       final String version,
-      ExportSpecification exportSpec, SbomFormat sbomFormat)
+      ExportSpecification exportSpec,
+      SbomFormat sbomFormat)
   {
     try {
       if (SbomSpecification.CYCLONEDX.equals(exportSpec.getSpecification())) {
@@ -406,8 +408,7 @@ public class ApiSbomService
         version,
         dtFormatter.format((importDate != null ? importDate : new Date()).toInstant()),
         (SbomSpecification.SPDX.equals(exportSpecification) ? "spdx" : "cdx"),
-        targetFormat
-    );
+        targetFormat);
   }
 
   @NotNull
@@ -500,7 +501,7 @@ public class ApiSbomService
         sbomComponentDTO.getPackageUrl());
     if (CollectionUtils.isNotEmpty(licenses)) {
       licenses = licenses.stream().map(rl -> {
-        //update with license short display name,if available
+        // update with license short display name,if available
         License license = licenseDAO.getById(rl.licenseId());
         return new ResolvedLicenseDTO(rl.licenseId(),
             license != null ? license.getShortDisplayName() : rl.licenseId(),
@@ -557,8 +558,7 @@ public class ApiSbomService
             fileName,
             applicationId,
             applicationVersion,
-            sbomDetectionResult
-        ).getLeft();
+            sbomDetectionResult).getLeft();
 
         return scanAndEvaluateSbomFile(sbomMetadata, clientUserAgent);
       }
@@ -571,8 +571,7 @@ public class ApiSbomService
               fileName,
               applicationId,
               applicationVersion,
-              sbomDetectionResult
-          );
+              sbomDetectionResult);
 
           return scanAndEvaluateBinaryFile(entities.getLeft(), entities.getRight(), clientUserAgent);
         }
@@ -601,7 +600,7 @@ public class ApiSbomService
 
   /**
    * @return true if an SBOM was detected and either is valid or has ignorable validation errors which the caller has
-   * opted to ignore.
+   *         opted to ignore.
    */
   private boolean isSaveableSbom(SbomDetectionResult sbomDetectionResult, boolean ignoreValidationError) {
     boolean isSbom = sbomDetectionResult.isSbom;
@@ -624,7 +623,8 @@ public class ApiSbomService
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public ApiSbomStatusDTO getImportStatus(
-      @AuthzContext(Key.APPLICATION_ID) String applicationId, String importRequestId)
+      @AuthzContext(Key.APPLICATION_ID) String applicationId,
+      String importRequestId)
   {
     PolicyEvaluationPollingResultDTO dto =
         policyEvaluateService.pollEvaluationResult(applicationDAO.getById(applicationId).getPublicId(),
@@ -664,14 +664,16 @@ public class ApiSbomService
         .fromResource(ApiSbomResource.class)
         .path(ApiSbomResource.SBOM_VERSION_PATH)
         .queryParam(STATE_PARAM, SBOM_STATE_ORIGINAL)
-        .build(applicationId, sbomVersion).toString();
+        .build(applicationId, sbomVersion)
+        .toString();
   }
 
   @Authorize(permission = Permission.READ)
   public List<String> getActiveSbomVersionListByApplication(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId)
   {
-    return dao.getActiveByApplicationId(applicationId).stream()
+    return dao.getActiveByApplicationId(applicationId)
+        .stream()
         .map(ThirdPartySbomMetadata::getSbomVersion)
         .collect(Collectors.toList());
   }
@@ -680,8 +682,7 @@ public class ApiSbomService
     ApiThirdPartyScanTicketDTO scanTicketDTO = sbomScanEvaluator.evaluateSbom(
         sbomMetadata,
         ScanTriggerType.SBOM_API,
-        clientUserAgent
-    );
+        clientUserAgent);
 
     return Response.ok(Status.ACCEPTED).entity(scanTicketDTO).build();
   }
@@ -697,8 +698,7 @@ public class ApiSbomService
           sbomMetadata,
           thirdPartyFile,
           ScanTriggerType.SBOM_API,
-          clientUserAgent
-      );
+          clientUserAgent);
     }
     finally {
       try {

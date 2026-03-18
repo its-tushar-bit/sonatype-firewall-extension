@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.service.githubapp;
+
 import java.io.IOException;
 import java.util.Base64;
 import java.util.Date;
@@ -72,7 +73,7 @@ public class ApiGitHubAppService
   private static final int STATE_TOKEN_LENGTH = 32;
 
   private static final String MANIFEST_DESCRIPTION = "GitHub App for Sonatype IQ Server integration - " +
-        "provides source control management, pull request automation, and security policy enforcement";
+      "provides source control management, pull request automation, and security policy enforcement";
 
   private static final int RANDOM_SUFFIX_GENERATOR_LENGTH = 8;
 
@@ -116,7 +117,7 @@ public class ApiGitHubAppService
       final GitHubManifestService gitHubManifestService,
       final GitHubAppAuthStrategyCache authStrategyCache,
       final GitHubAppDeletionService gitHubAppDeletionService,
-          final BaseUrl baseUrl)
+      final BaseUrl baseUrl)
   {
     this(gitHubAppDAO, installationStateDAO, registrationStateDAO, sourceControlDAO, ownerDAO,
         passwordHandler, insightProxy, gitHubManifestService, authStrategyCache, gitHubAppDeletionService,
@@ -131,12 +132,12 @@ public class ApiGitHubAppService
       final OwnerDAO ownerDAO,
       final PasswordHandler passwordHandler,
       final InsightProxy insightProxy,
-          final GitHubManifestService gitHubManifestService,
-          final GitHubAppAuthStrategyCache authStrategyCache,
+      final GitHubManifestService gitHubManifestService,
+      final GitHubAppAuthStrategyCache authStrategyCache,
       final GitHubAppDeletionService gitHubAppDeletionService,
       final String githubApiBaseUrl,
       final String githubOAuthTokenUrl,
-          final BaseUrl baseUrl)
+      final BaseUrl baseUrl)
   {
     this.gitHubAppDAO = gitHubAppDAO;
     this.installationStateDAO = installationStateDAO;
@@ -224,20 +225,18 @@ public class ApiGitHubAppService
     log.debug("Generated manifest for app '{}' with redirect URL including state token", appName);
 
     return new ApiGitHubAppManifestDTO(
-            stateToken,
-            new Manifest(
-                    appName,
-                    baseUrlForManifest,
-                    redirectUrl,
-                    setupUrl,
-                    callbackUrls,
-                    true,
-                    MANIFEST_DESCRIPTION,
-                    false,
-                    permissions,
-                    true
-            )
-    );
+        stateToken,
+        new Manifest(
+            appName,
+            baseUrlForManifest,
+            redirectUrl,
+            setupUrl,
+            callbackUrls,
+            true,
+            MANIFEST_DESCRIPTION,
+            false,
+            permissions,
+            true));
   }
 
   /**
@@ -304,7 +303,8 @@ public class ApiGitHubAppService
 
     boolean hasAccess = installations != null
         && installations.getInstallations() != null
-        && installations.getInstallations().stream()
+        && installations.getInstallations()
+            .stream()
             .anyMatch(installation -> installationId.equals(installation.getId()));
 
     if (!hasAccess) {
@@ -312,7 +312,8 @@ public class ApiGitHubAppService
       throw new BadRequestException("User does not have permission to install this GitHub App");
     }
 
-    String accountName = installations.getInstallations().stream()
+    String accountName = installations.getInstallations()
+        .stream()
         .filter(installation -> installationId.equals(installation.getId()))
         .findFirst()
         .map(installation -> installation.getAccount().getLogin())
@@ -366,16 +367,16 @@ public class ApiGitHubAppService
     final ApiGitHubAppDTO gitHubApp = createGitHubAppFromManifest(code, registrationState);
 
     GitHubAppInstallationState installationState =
-            initiateInstallation(gitHubApp.ownerId());
+        initiateInstallation(gitHubApp.ownerId());
 
     return UriBuilder.fromUri("https://github.com")
-            .path("apps")
-            .path(gitHubApp.slug())
-            .path("installations")
-            .path("new")
-            .queryParam("state", installationState.getStateToken())
-            .build()
-            .toString();
+        .path("apps")
+        .path(gitHubApp.slug())
+        .path("installations")
+        .path("new")
+        .queryParam("state", installationState.getStateToken())
+        .build()
+        .toString();
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -389,7 +390,7 @@ public class ApiGitHubAppService
     GitHubAppManagementClient client = createGitHubAppManagementClient(githubApiBaseUrl);
 
     final GitHubAppCredentials githubResponse =
-            gitHubManifestService.convertManifestCode(code, client);
+        gitHubManifestService.convertManifestCode(code, client);
 
     validateGitHubManifestResponse(githubResponse);
     gitHubAppDeletionService.delete(registrationState.getOwnerId());
@@ -413,15 +414,15 @@ public class ApiGitHubAppService
 
     if (stateToken == null || stateToken.isExpired()) {
       log.warn("GitHub App OAuth callback received invalid or expired state token - " +
-              "possible replay attack or expired session: {}", state);
+          "possible replay attack or expired session: {}", state);
       throw new BadRequestException("Invalid or expired state parameter");
     }
     return stateToken;
   }
 
-  private GitHubApp createGitHubAppFromManifestResponse(final GitHubAppCredentials response,
-                                                        final GitHubAppRegistrationState registrationState)
-          throws Exception
+  private GitHubApp createGitHubAppFromManifestResponse(
+      final GitHubAppCredentials response,
+      final GitHubAppRegistrationState registrationState) throws Exception
   {
     final String encryptedClientSecret = passwordHandler.encryptPassword(response.getClientSecret());
     final String encryptedPrivateKey = processAndEncryptPrivateKey(response.getPem());
@@ -454,7 +455,7 @@ public class ApiGitHubAppService
 
   private PrivateKey parsePemPrivateKey(final String pemKey) throws Exception {
     try (StringReader stringReader = new StringReader(pemKey);
-         PEMParser pemParser = new PEMParser(stringReader))
+        PEMParser pemParser = new PEMParser(stringReader))
     {
       final Object pemObject = pemParser.readObject();
 
@@ -468,20 +469,19 @@ public class ApiGitHubAppService
       }
       else {
         throw new IllegalArgumentException("Unsupported PEM object type: " +
-                (pemObject != null ? pemObject.getClass().getName() : "null"));
+            (pemObject != null ? pemObject.getClass().getName() : "null"));
       }
     }
   }
 
   private ApiGitHubAppDTO toGitHubAppDTO(final GitHubApp gitHubApp) {
     return new ApiGitHubAppDTO(
-            gitHubApp.getId(),
-            gitHubApp.getAppId(),
-            gitHubApp.getSlug(),
-            gitHubApp.getClientId(),
-            gitHubApp.getInstallationId(),
-            gitHubApp.getOwnerId()
-    );
+        gitHubApp.getId(),
+        gitHubApp.getAppId(),
+        gitHubApp.getSlug(),
+        gitHubApp.getClientId(),
+        gitHubApp.getInstallationId(),
+        gitHubApp.getOwnerId());
   }
 
   private void validateGitHubManifestResponse(final GitHubAppCredentials response) {
@@ -559,13 +559,12 @@ public class ApiGitHubAppService
 
   private Map<String, String> createDefaultPermissions() {
     return Map.of(
-            "contents", "write",
-            "pull_requests", "write",
-            "administration", "read",
-            "statuses", "write",
-            "deployments", "read",
-            "metadata", "read"
-    );
+        "contents", "write",
+        "pull_requests", "write",
+        "administration", "read",
+        "statuses", "write",
+        "deployments", "read",
+        "metadata", "read");
   }
 
   private String generateRandomSuffix(final int length) {

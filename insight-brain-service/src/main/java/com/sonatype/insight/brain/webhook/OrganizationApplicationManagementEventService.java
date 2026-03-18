@@ -70,7 +70,8 @@ public class OrganizationApplicationManagementEventService
   private List<OrganizationSummary> createOrganizationSummaries() {
     return organizationDAO.getAll()
         // We only want to send customer organizations, so remove the root org built-in if it exists
-        .stream().filter(org -> !org.getId().equals(Organization.ROOT_ORGANIZATION_ID))
+        .stream()
+        .filter(org -> !org.getId().equals(Organization.ROOT_ORGANIZATION_ID))
         .sorted(Comparator.comparing(orgSummary -> orgSummary.getName().toLowerCase(Locale.ROOT)))
         .map(OrganizationSummary::new)
         .collect(Collectors.toList());

@@ -114,9 +114,10 @@ public class ProductNotificationResourceTest
     return notifications;
   }
 
-  private void assertNotification(final ProductNotificationDTO notificationDTO,
-                                  final ProductNotification notification,
-                                  final boolean viewed)
+  private void assertNotification(
+      final ProductNotificationDTO notificationDTO,
+      final ProductNotification notification,
+      final boolean viewed)
   {
     assertThat(notificationDTO).usingRecursiveComparison().ignoringFields("viewed").isEqualTo(notification);
     assertThat(notificationDTO.viewed).isEqualTo(viewed);

@@ -75,7 +75,7 @@ public class AbstractPolicyViolationDAO<T extends AbstractPolicyViolation>
    * about optimizing db round trips :).
    * In order to reduce memory consumption, it is important to call this method only when constraint facts are actually
    * needed and only for the policy violations for which constraint facts are needed.
-   * 
+   *
    * For ex, a REST endpoint that loads a large number of policy violations and returns a smaller number of policy
    * violations can load the constraint facts only for the result set (if constraint facts are not needed for the
    * internal processing).
@@ -97,7 +97,8 @@ public class AbstractPolicyViolationDAO<T extends AbstractPolicyViolation>
     }
 
     Map<String, PolicyViolationConstraintFacts> constraintFactsById =
-        policyViolationConstraintFactsDAO.getByIds(constraintFactsIds).stream()
+        policyViolationConstraintFactsDAO.getByIds(constraintFactsIds)
+            .stream()
             .collect(Collectors.toMap(PolicyViolationConstraintFacts::getId, Function.identity()));
     policyViolationsToLoad.forEach(policyViolation -> {
       try {

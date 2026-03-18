@@ -36,13 +36,13 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  *
  * <h3>Processing Strategies</h3>
  * <ul>
- *   <li><strong>SEQUENTIAL</strong> - Single-threaded processing with small cache (256 entries).
- *       Optimal for small datasets (&lt;10k entities)</li>
- *   <li><strong>PARALLEL</strong> - Parallel stream processing with large concurrent cache.
- *       Optimal for medium datasets (10k-1M entities)</li>
- *   <li><strong>EXECUTOR_FIXED</strong> - Custom thread pool with batch processing and thread-local caches.
- *       Optimal for very large datasets (&gt;1M entities)</li>
- *   <li><strong>AUTO</strong> - Automatically selects optimal strategy based on dataset size thresholds</li>
+ * <li><strong>SEQUENTIAL</strong> - Single-threaded processing with small cache (256 entries).
+ * Optimal for small datasets (&lt;10k entities)</li>
+ * <li><strong>PARALLEL</strong> - Parallel stream processing with large concurrent cache.
+ * Optimal for medium datasets (10k-1M entities)</li>
+ * <li><strong>EXECUTOR_FIXED</strong> - Custom thread pool with batch processing and thread-local caches.
+ * Optimal for very large datasets (&gt;1M entities)</li>
+ * <li><strong>AUTO</strong> - Automatically selects optimal strategy based on dataset size thresholds</li>
  * </ul>
  *
  * <h3>Configuration</h3>
@@ -73,7 +73,7 @@ public class AuthorizationPermissionEntityFilter
   // EXECUTOR_FIXED strategy
   private static final int THREAD_LOCAL_CACHE_SIZE = 256;
 
-  private static final double ESTIMATED_PASS_RATE = 0.5;  // Assumes 50% of entities pass filtering
+  private static final double ESTIMATED_PASS_RATE = 0.5; // Assumes 50% of entities pass filtering
 
   private static final int MIN_BATCH_RESULT_SIZE = 8;
 
@@ -92,24 +92,24 @@ public class AuthorizationPermissionEntityFilter
    * <p>
    * <strong>Processing Logic:</strong>
    * <ol>
-   *   <li>Creates output collection matching input type (Set → LinkedHashSet, List → ArrayList)</li>
-   *   <li>For non-List collections, falls back to SEQUENTIAL strategy</li>
-   *   <li>For List collections, applies the configured strategy (AUTO, PARALLEL, EXECUTOR_FIXED, or SEQUENTIAL)</li>
-   *   <li>Each entity is checked against user's authorized context IDs through the resolver</li>
+   * <li>Creates output collection matching input type (Set → LinkedHashSet, List → ArrayList)</li>
+   * <li>For non-List collections, falls back to SEQUENTIAL strategy</li>
+   * <li>For List collections, applies the configured strategy (AUTO, PARALLEL, EXECUTOR_FIXED, or SEQUENTIAL)</li>
+   * <li>Each entity is checked against user's authorized context IDs through the resolver</li>
    * </ol>
    * <p>
    * <strong>Performance Notes:</strong>
    * <ul>
-   *   <li>Hierarchical context inheritance is leveraged (parent permissions apply to children)</li>
-   *   <li>Strategy selection is optimized for different dataset sizes</li>
+   * <li>Hierarchical context inheritance is leveraged (parent permissions apply to children)</li>
+   * <li>Strategy selection is optimized for different dataset sizes</li>
    * </ul>
    *
-   * @param entities       the entities to filter (must not be null)
-   * @param resolver       context ID resolver for mapping entities to authorization contexts (must not be null)
+   * @param entities the entities to filter (must not be null)
+   * @param resolver context ID resolver for mapping entities to authorization contexts (must not be null)
    * @param userContextIds set of context IDs the user has access to (must not be null)
-   * @param <T>            the type of entities being filtered
+   * @param <T> the type of entities being filtered
    * @return filtered collection containing only entities the user has permission to access, preserving the input he
-   * input collection type semantics
+   *         input collection type semantics
    * @throws RuntimeException if parallel processing fails during strategy execution
    */
   <T> Collection<T> filterWithPermissionCheck(
@@ -143,7 +143,7 @@ public class AuthorizationPermissionEntityFilter
    * the input is a List (maintaining order), the filtered result is also a List.
    *
    * @param prototype the prototype object used to determine the collection type
-   * @param <T>       the type of elements in the collection
+   * @param <T> the type of elements in the collection
    * @return a new LinkedHashSet if the prototype is a Set, otherwise a new ArrayList
    */
   public static <T> Collection<T> newCollection(Object prototype) {
@@ -163,19 +163,19 @@ public class AuthorizationPermissionEntityFilter
    * <p>
    * <strong>Strategy Selection Thresholds:</strong>
    * <ul>
-   *   <li><strong>&lt; 10,000 entities</strong> → SEQUENTIAL (single-threaded, minimal overhead)</li>
-   *   <li><strong>10,000 - 1,000,000 entities</strong> → PARALLEL (parallel streams, good CPU utilization)</li>
-   *   <li><strong>&gt; 1,000,000 entities</strong> → EXECUTOR_FIXED (custom thread pool, batch processing)</li>
+   * <li><strong>&lt; 10,000 entities</strong> → SEQUENTIAL (single-threaded, minimal overhead)</li>
+   * <li><strong>10,000 - 1,000,000 entities</strong> → PARALLEL (parallel streams, good CPU utilization)</li>
+   * <li><strong>&gt; 1,000,000 entities</strong> → EXECUTOR_FIXED (custom thread pool, batch processing)</li>
    * </ul>
    * <p>
    * The selection is based on {@code filtered.size()} rather than {@code entities.size()} to account
    * for collections that may have been pre-filtered or partially processed.
    *
-   * @param entities       the entities to filter
-   * @param resolver       context ID resolver for entities
+   * @param entities the entities to filter
+   * @param resolver context ID resolver for entities
    * @param userContextIds set of context IDs the user has access to
-   * @param filtered       output collection for filtered results
-   * @param <T>            the type of entities being filtered
+   * @param filtered output collection for filtered results
+   * @param <T> the type of entities being filtered
    */
   private <T> void autoFilter(
       final List<T> entities,
@@ -208,30 +208,29 @@ public class AuthorizationPermissionEntityFilter
    * <p>
    * <strong>Implementation Details:</strong>
    * <ul>
-   *   <li><strong>Concurrent Cache</strong> - Uses {@code ConcurrentHashMap} sized at 2x entity count (min 1024)</li>
-   *   <li><strong>Parallel Streams</strong> - Automatically utilizes {@code ForkJoinPool.commonPool()}</li>
-   *   <li><strong>Thread Safety</strong> - All operations are thread-safe with minimal contention</li>
+   * <li><strong>Concurrent Cache</strong> - Uses {@code ConcurrentHashMap} sized at 2x entity count (min 1024)</li>
+   * <li><strong>Parallel Streams</strong> - Automatically utilizes {@code ForkJoinPool.commonPool()}</li>
+   * <li><strong>Thread Safety</strong> - All operations are thread-safe with minimal contention</li>
    * </ul>
    * <p>
    * <strong>Performance Characteristics:</strong>
    * <ul>
-   *   <li>Optimal for CPU-intensive permission checks with moderate concurrency</li>
-   *   <li>Lower thread management overhead compared to EXECUTOR_FIXED strategy</li>
-   *   <li>Cache size pre-allocated to minimize hash table resizing</li>
+   * <li>Optimal for CPU-intensive permission checks with moderate concurrency</li>
+   * <li>Lower thread management overhead compared to EXECUTOR_FIXED strategy</li>
+   * <li>Cache size pre-allocated to minimize hash table resizing</li>
    * </ul>
    *
-   * @param entities       the entities to filter
-   * @param resolver       context ID resolver for entities
+   * @param entities the entities to filter
+   * @param resolver context ID resolver for entities
    * @param userContextIds set of context IDs the user has access to
-   * @param filtered       output collection for filtered results
-   * @param <T>            the type of entities being filtered
+   * @param filtered output collection for filtered results
+   * @param <T> the type of entities being filtered
    */
   private <T> void parallelFilter(
       final List<T> entities,
       final ContextIdResolver<? super T> resolver,
       final Set<String> userContextIds,
-      final Collection<T> filtered
-  )
+      final Collection<T> filtered)
   {
     Map<String, Boolean> permitsByContextId = new ConcurrentHashMap<>(
         Math.max(PARALLEL_CACHE_MIN_SIZE, entities.size() * PARALLEL_CACHE_MULTIPLIER));
@@ -243,10 +242,9 @@ public class AuthorizationPermissionEntityFilter
         .filter(entity -> isUserHavingAnyRoleInAnyContextPooled(
             userContextIds,
             resolver.resolveContextIds(entity),
-            permitsByContextId
-        ))
+            permitsByContextId))
         .toList();
-    
+
     // Add all results to the output collection (thread-safe since single-threaded here)
     filtered.addAll(results);
   }
@@ -254,21 +252,23 @@ public class AuthorizationPermissionEntityFilter
   /**
    * Filters entities using a custom ExecutorService with fixed thread pool and batch processing.
    *
-   * <p>This strategy is optimal for very large datasets (>1M entities) where thread contention
+   * <p>
+   * This strategy is optimal for very large datasets (>1M entities) where thread contention
    * becomes a bottleneck with parallelStream(). Uses manual batching to control granularity and thread-local caches to
    * minimize synchronization overhead.
    *
-   * <p>Performance characteristics:
+   * <p>
+   * Performance characteristics:
    * <ul>
-   *   <li>Batch size: entities.size() / availableProcessors</li>
-   *   <li>Thread-local permission caches reduce map contention</li>
-   *   <li>Pre-allocated result collections minimize GC pressure</li>
+   * <li>Batch size: entities.size() / availableProcessors</li>
+   * <li>Thread-local permission caches reduce map contention</li>
+   * <li>Pre-allocated result collections minimize GC pressure</li>
    * </ul>
    *
-   * @param entities       the entities to filter
-   * @param resolver       resolves context IDs for each entity
+   * @param entities the entities to filter
+   * @param resolver resolves context IDs for each entity
    * @param userContextIds set of context IDs the user has access to
-   * @param filtered       output collection for entities that pass permission check
+   * @param filtered output collection for entities that pass permission check
    */
   private <T> void executorFixedFilter(
       final List<T> entities,
@@ -310,8 +310,8 @@ public class AuthorizationPermissionEntityFilter
       final int batchStart = i;
       final int batchEnd = Math.min(i + batchSize, entities.size());
 
-      Future<List<T>> future = executor.submit(() ->
-          processBatch(entities, resolver, userContextIds, batchStart, batchEnd));
+      Future<List<T>> future =
+          executor.submit(() -> processBatch(entities, resolver, userContextIds, batchStart, batchEnd));
 
       futures.add(future);
     }
@@ -437,7 +437,7 @@ public class AuthorizationPermissionEntityFilter
       if (e instanceof InterruptedException) {
         Thread.currentThread().interrupt();
       }
-      
+
       log.error("Executor termination failed: {}", e.getMessage());
 
       // Always force shutdown regardless of exception type for proper cleanup
@@ -454,33 +454,32 @@ public class AuthorizationPermissionEntityFilter
    * <p>
    * <strong>Implementation Details:</strong>
    * <ul>
-   *   <li><strong>Sequential Processing</strong> - Single-threaded iteration with no synchronization overhead</li>
-   *   <li><strong>Compact Cache</strong> - Uses {@code HashMap} with 256-entry initial capacity</li>
-   *   <li>
-   *     <strong>Hierarchical Optimization</strong> - Leverages context inheritance for efficient permission propagation
-   *   </li>
+   * <li><strong>Sequential Processing</strong> - Single-threaded iteration with no synchronization overhead</li>
+   * <li><strong>Compact Cache</strong> - Uses {@code HashMap} with 256-entry initial capacity</li>
+   * <li>
+   * <strong>Hierarchical Optimization</strong> - Leverages context inheritance for efficient permission propagation
+   * </li>
    * </ul>
    * <p>
    * <strong>Performance Characteristics:</strong>
    * <ul>
-   *   <li>Minimal memory footprint and CPU overhead</li>
-   *   <li>Optimal for datasets under 10,000 entities</li>
-   *   <li>No thread contention or synchronization costs</li>
-   *   <li>Predictable, linear performance scaling</li>
+   * <li>Minimal memory footprint and CPU overhead</li>
+   * <li>Optimal for datasets under 10,000 entities</li>
+   * <li>No thread contention or synchronization costs</li>
+   * <li>Predictable, linear performance scaling</li>
    * </ul>
    *
-   * @param entities       the entities to filter
-   * @param resolver       context ID resolver for entities
+   * @param entities the entities to filter
+   * @param resolver context ID resolver for entities
    * @param userContextIds set of context IDs the user has access to
-   * @param filtered       output collection for filtered results
-   * @param <T>            the type of entities being filtered
+   * @param filtered output collection for filtered results
+   * @param <T> the type of entities being filtered
    */
   private <T> void sequentiallyFilter(
       final Iterable<T> entities,
       final ContextIdResolver<? super T> resolver,
       final Set<String> userContextIds,
-      final Collection<T> filtered
-  )
+      final Collection<T> filtered)
   {
     Map<String, Boolean> permitsByContextId = new HashMap<>(SEQUENTIAL_CACHE_SIZE);
 
@@ -497,25 +496,25 @@ public class AuthorizationPermissionEntityFilter
    * <p>
    * This method implements the core authorization logic with two key optimizations:
    * <ol>
-   *   <li><strong>Permission Caching</strong> - Caches results to avoid redundant permission checks</li>
-   *   <li><strong>Hierarchical Inheritance</strong> - Parent context permissions automatically apply to child contexts
-   *   </li>
+   * <li><strong>Permission Caching</strong> - Caches results to avoid redundant permission checks</li>
+   * <li><strong>Hierarchical Inheritance</strong> - Parent context permissions automatically apply to child contexts
+   * </li>
    * </ol>
    * <p>
    * <strong>Algorithm:</strong>
    * <ol>
-   *   <li><strong>Cache Consultation (Ascending)</strong> - Walks up the context hierarchy checking cache</li>
-   *   <li><strong>Early Success</strong> - Returns true immediately if any cached parent has permission</li>
-   *   <li><strong>Database Query (Descending)</strong> - Queries uncached contexts from most specific to least specific
-   *   </li>
-   *   <li><strong>Inheritance Propagation</strong> - When permission found, marks all child contexts as permitted</li>
+   * <li><strong>Cache Consultation (Ascending)</strong> - Walks up the context hierarchy checking cache</li>
+   * <li><strong>Early Success</strong> - Returns true immediately if any cached parent has permission</li>
+   * <li><strong>Database Query (Descending)</strong> - Queries uncached contexts from most specific to least specific
+   * </li>
+   * <li><strong>Inheritance Propagation</strong> - When permission found, marks all child contexts as permitted</li>
    * </ol>
    * <p>
    * The hierarchical approach means that if a user has permission on a parent context (e.g., organization),
    * they automatically have permission on all child contexts (e.g., applications within that organization).
    *
-   * @param userContextIds     set of context IDs the user has explicit access to
-   * @param contextIds         context IDs to check for the current entity (ordered from child to parent)
+   * @param userContextIds set of context IDs the user has explicit access to
+   * @param contextIds context IDs to check for the current entity (ordered from child to parent)
    * @param permitsByContextId cache of previously computed permission results
    * @return true if the user has permission for any of the contexts, false otherwise
    */

@@ -54,8 +54,7 @@ public abstract class AbstractOidcConfigurationService
     OidcConfiguration currentOidcConfiguration = oidcConfigurationDAO.get();
     OidcConfiguration updatedOidcConfiguration = buildOidcConfiguration(
         ssoConfigurationDTO.getOidcConfiguration(),
-        currentOidcConfiguration
-    );
+        currentOidcConfiguration);
 
     if (currentOidcConfiguration != null) {
       oidcConfigurationDAO.update(updatedOidcConfiguration);

@@ -77,8 +77,7 @@ public class ScmUserMappingService
   {
     checkLicense();
     HashSet<UserMapping> uniqueItems = new HashSet<>();
-    Optional<UserMapping>
-        duplicatedItem =
+    Optional<UserMapping> duplicatedItem =
         scmUserMappingsDTO.mappings().stream().filter(mapping -> !uniqueItems.add(mapping)).findFirst();
     if (duplicatedItem.isPresent()) {
       UserMapping duplicateItemValue = duplicatedItem.get();
@@ -90,8 +89,8 @@ public class ScmUserMappingService
     ScmUserMappings scmUserMappings = new ScmUserMappings();
     scmUserMappings.setRoleId(role != null ? role.getId() : Role.DEVELOPER_ROLE_ID);
     scmUserMappings.setOrganizationId(organizationId);
-    List<Entry<String, String>>
-        userMappingsAsEntries = SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
+    List<Entry<String, String>> userMappingsAsEntries =
+        SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
     scmUserMappings.setMappingsJson(userMappingsAsEntries);
     scmUserMappingsDAO.addOrUpdate(scmUserMappings);
 
@@ -134,7 +133,8 @@ public class ScmUserMappingService
     }
 
     String role = roleDAO.getById(scmUserMappings.getRoleId()).getNameLowercaseNoWhitespace();
-    List<UserMapping> userMappings = scmUserMappings.getMappings().stream()
+    List<UserMapping> userMappings = scmUserMappings.getMappings()
+        .stream()
         .map(UserMapping::new)
         .toList();
 

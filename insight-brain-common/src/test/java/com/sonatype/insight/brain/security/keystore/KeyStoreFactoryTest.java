@@ -154,7 +154,7 @@ public class KeyStoreFactoryTest
   @Test
   public void testGetDefaultEncryptionKeyStoreKey() throws Exception {
     File tempDir = temporaryFolder.newFolder("sonatype-work");
-    
+
     // Test non-FIPS mode
     assertThat(KeyStoreFactory.getDefaultEncryptionKeyStoreKey(tempDir)).isEqualTo("CMMDwoV");
 

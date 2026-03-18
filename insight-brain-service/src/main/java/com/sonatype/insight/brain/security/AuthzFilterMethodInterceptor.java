@@ -13,7 +13,7 @@ import org.apache.shiro.aop.MethodInvocation;
 
 /**
  * AOP-based method interceptor to evaluate {@link AuthzFilter} annotations.
- * 
+ *
  * @since 1.7
  */
 class AuthzFilterMethodInterceptor

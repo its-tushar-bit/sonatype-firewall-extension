@@ -170,8 +170,7 @@ public class ZScalerUpdater
     List<String> urls = switch (format) {
       case MAVEN -> List.of(
           "repo1.maven.org/maven2/org/sonatype/maven-policy-demo/1.1.0/maven-policy-demo-1.1.0.jar",
-          "repo.maven.apache.org/maven2/org/sonatype/maven-policy-demo/1.1.0/maven-policy-demo-1.1.0.jar"
-      );
+          "repo.maven.apache.org/maven2/org/sonatype/maven-policy-demo/1.1.0/maven-policy-demo-1.1.0.jar");
       case NPM -> List.of("registry.npmjs.org/@sonatype/policy-demo/-/policy-demo-2.1.0.tgz");
       case PYPI -> List.of(
           "files.pythonhosted.org/packages/a2/95/d68eb18b5f334265097fc2872446c5dd4589bce3751035ab855bfe3e1e8a/" +
@@ -203,8 +202,10 @@ public class ZScalerUpdater
 
     try {
       ActiveUrls activeUrls = MAPPER.readValue(inputStream, ActiveUrls.class);
-      return activeUrls.getActiveThreatUrls() == null ? Collections.emptyList() : convertActiveUrls(
-          activeUrls.getActiveThreatUrls());
+      return activeUrls.getActiveThreatUrls() == null
+          ? Collections.emptyList()
+          : convertActiveUrls(
+              activeUrls.getActiveThreatUrls());
     }
     catch (IOException e) {
       return Collections.emptyList();

@@ -86,7 +86,8 @@ public class IdeResourceAuditTest
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates(
         "tomcat", "tomcat-util", "5.5.23", "", "jar");
     HttpRequest request = restRequest().path(IdeResource.RESOURCE_PATH)
-        .path(IdeResource.COORDINATES_SCAN_PATH).parameter(app.getPublicId())
+        .path(IdeResource.COORDINATES_SCAN_PATH)
+        .parameter(app.getPublicId())
         .query("componentIdentifier", identifier);
 
     String hdsUrl = request.getUrl().replaceFirst("(.*/)(rest/ide/scan/coordinates)(/[^?]+)(.*)", "$2$4");

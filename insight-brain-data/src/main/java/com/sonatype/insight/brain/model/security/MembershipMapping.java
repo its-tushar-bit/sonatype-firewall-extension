@@ -18,7 +18,7 @@ import com.sonatype.insight.model.HasStringId;
 /**
  * An association between a context (global/application/organization), a role and a member (user/group). Each such
  * association denotes that the member possesses the role when acting in the given context.
- * 
+ *
  * @since 1.7
  */
 @Entity

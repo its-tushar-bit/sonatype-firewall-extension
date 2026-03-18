@@ -40,7 +40,8 @@ public class ErrorResponseGeneratorTest
     final ErrorResponse errorResponse = generator.mapExceptionAndLog(new Exception());
     assertThat(errorResponse.getStatusCode()).isEqualTo(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     assertThat(errorResponse.getMessageBody())
-        .startsWith(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase() + ID_PREFIX).endsWith(")");
+        .startsWith(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase() + ID_PREFIX)
+        .endsWith(")");
   }
 
   @Test

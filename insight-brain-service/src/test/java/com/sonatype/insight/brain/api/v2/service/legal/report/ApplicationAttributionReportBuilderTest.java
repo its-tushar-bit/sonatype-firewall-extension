@@ -104,7 +104,7 @@ public class ApplicationAttributionReportBuilderTest
     String bodyContent = doc.select("body").first().toString();
 
     String expectedContent = IOUtils.toString(Objects.requireNonNull(getClass().getClassLoader()
-            .getResource("ApplicationAttributionReportTest/expectedApplicationAttributionReport.html")),
+        .getResource("ApplicationAttributionReportTest/expectedApplicationAttributionReport.html")),
         StandardCharsets.UTF_8);
 
     assertThat(bodyContent).isEqualToIgnoringWhitespace(expectedContent);
@@ -116,7 +116,7 @@ public class ApplicationAttributionReportBuilderTest
     assertThat(doc.select("#footer")).isEmpty();
     assertThat(doc.select("#additional-notices")).isEmpty();
 
-    //Ensures that the appendix contains this license
+    // Ensures that the appendix contains this license
     assertThat(doc.select("#standard-LicenseOne")).isNotEmpty();
   }
 
@@ -138,8 +138,9 @@ public class ApplicationAttributionReportBuilderTest
         .getByPublicIdsNoAuthz(new HashSet<>(Arrays.asList(application.getPublicId(), application2.getPublicId()))))
             .thenReturn(Arrays.asList(application, application2));
     LegalCustomReportParameters reportParameters =
-        LegalCustomReportParameters.builder().buildMultiApplicationWithDefaults(
-            new LinkedHashSet<>(Arrays.asList(application.getPublicId(), application2.getPublicId())));
+        LegalCustomReportParameters.builder()
+            .buildMultiApplicationWithDefaults(
+                new LinkedHashSet<>(Arrays.asList(application.getPublicId(), application2.getPublicId())));
     String content =
         reportBuilder.generateCustomLegalMultiApplicationAttributionReport(applicationsAndStages, reportParameters);
     Document doc = Jsoup.parse(content);
@@ -160,7 +161,7 @@ public class ApplicationAttributionReportBuilderTest
     // Ensures that the appendix contains this license
     assertThat(doc.select("#standard-LicenseOne")).isNotEmpty();
   }
-  
+
   @Test
   public void testDefaultSuccessfulReportFromActiveFilter() throws IOException {
     String filterName = "test filter";
@@ -261,7 +262,7 @@ public class ApplicationAttributionReportBuilderTest
     assertThat(doc.select("#footer")).isEmpty();
     assertThat(doc.select("#additional-notices")).isEmpty();
 
-    //Ensures that the appendix contains this license
+    // Ensures that the appendix contains this license
     assertThat(doc.select("#standard-LicenseOne")).isNotEmpty();
   }
 
@@ -286,7 +287,7 @@ public class ApplicationAttributionReportBuilderTest
     assertThat(doc.select("#footer")).isEmpty();
     assertThat(doc.select("#additional-notices")).isEmpty();
 
-    //Ensures that the appendix doesn't contain this license
+    // Ensures that the appendix doesn't contain this license
     assertThat(doc.select("#standard-LicenseOne")).isEmpty();
   }
 
@@ -310,14 +311,14 @@ public class ApplicationAttributionReportBuilderTest
     assertThat(doc.select("#footer")).isEmpty();
     assertThat(doc.select("#additional-notices")).isEmpty();
 
-    //Ensures that the appendix doesn't contain this license
+    // Ensures that the appendix doesn't contain this license
     assertThat(doc.select("#standard-LicenseOne")).isEmpty();
 
     // component 1 contains LicenseOne but has license files, therefore no license text
     assertThat(doc.select("#purl1-license-files")).isNotEmpty();
     assertThat(doc.select("#purl1-standard-LicenseOne")).isEmpty();
 
-    //Component 3 contains LicenseOne with no License files, therefore we should show Standard License Text in the
+    // Component 3 contains LicenseOne with no License files, therefore we should show Standard License Text in the
     // component box
     assertThat(doc.select("#purl3-standard-LicenseOne")).isNotEmpty();
     assertThat(doc.select("#purl3-license-files")).isEmpty();
@@ -409,8 +410,7 @@ public class ApplicationAttributionReportBuilderTest
             .withTitle("My Report")
             .withNoticeFiles(Lists.newArrayList(
                 "First Notice File Content",
-                "Second Notice File Content"
-            ))
+                "Second Notice File Content"))
             .build());
 
     Document doc = Jsoup.parse(content);
@@ -430,7 +430,7 @@ public class ApplicationAttributionReportBuilderTest
 
     ApiLicenseLegalApplicationReportDTO reportDTO = new ApiLicenseLegalApplicationReportDTO();
 
-    //First Component
+    // First Component
     ApiComponentDTOV2 component1 = new ApiComponentDTOV2();
     component1.displayName = "component 1";
     component1.packageUrl = "purl1";
@@ -465,7 +465,7 @@ public class ApplicationAttributionReportBuilderTest
     reportDTO.components = new ArrayList<>();
     reportDTO.components.add(new ApiLicenseLegalComponentDTO(component1, licenseLegalData1, null));
 
-    //Second Component
+    // Second Component
     ApiComponentDTOV2 component2 = new ApiComponentDTOV2();
     component2.displayName = "component 2";
     component2.packageUrl = "purl2";
@@ -494,7 +494,7 @@ public class ApplicationAttributionReportBuilderTest
     sourceLinkDTOS.add(linkDTOShortLink);
     licenseLegalData2.sourceLinks = sourceLinkDTOS;
 
-    //Third Component - only contains standard license text
+    // Third Component - only contains standard license text
     ApiComponentDTOV2 component3 = new ApiComponentDTOV2();
     component3.displayName = "component 3";
     component3.packageUrl = "purl3";
@@ -510,7 +510,7 @@ public class ApplicationAttributionReportBuilderTest
     sourceLinkDTOSLongLink.add(linkDTOLongLink);
     licenseLegalData3.sourceLinks = sourceLinkDTOSLongLink;
 
-    //Fourth Component - only contains standard license text
+    // Fourth Component - only contains standard license text
     ApiComponentDTOV2 component4 = new ApiComponentDTOV2();
     component4.displayName = "component 4";
     component4.packageUrl = "purl4";
@@ -533,7 +533,7 @@ public class ApplicationAttributionReportBuilderTest
     sourceLinkDTOSMultiShortLink.add(linkDTOMultiShortLink2);
     licenseLegalData4.sourceLinks = sourceLinkDTOSMultiShortLink;
 
-    //Fifth Component - only contains standard license text
+    // Fifth Component - only contains standard license text
     ApiComponentDTOV2 component5 = new ApiComponentDTOV2();
     component5.displayName = "component 5";
     component5.packageUrl = "purl5";
@@ -585,13 +585,15 @@ public class ApplicationAttributionReportBuilderTest
       boolean addStandardLicenseTextToMetadata)
   {
     Set<Optional<ApiLicenseLegalApplicationReportDTO>> reportDTOs =
-        applications.stream().map(app -> Optional.of(generateMockReportData(addStandardLicenseTextToMetadata)))
+        applications.stream()
+            .map(app -> Optional.of(generateMockReportData(addStandardLicenseTextToMetadata)))
             .collect(Collectors.toSet());
-    doReturn(reportDTOs).when(mockApiLicenseLegalService).getLicenseLegalMultiApplicationReport(
-        argThat(matcher -> matcher.containsAll(applications)),
-        argThat(matcher -> matcher.containsAll(Collections.nCopies(applications.size(), BuildStageType.ID))),
-        booleanThat(matcher -> !matcher),
-        booleanThat(matcher -> !matcher));
+    doReturn(reportDTOs).when(mockApiLicenseLegalService)
+        .getLicenseLegalMultiApplicationReport(
+            argThat(matcher -> matcher.containsAll(applications)),
+            argThat(matcher -> matcher.containsAll(Collections.nCopies(applications.size(), BuildStageType.ID))),
+            booleanThat(matcher -> !matcher),
+            booleanThat(matcher -> !matcher));
   }
 
   @Test
@@ -604,7 +606,7 @@ public class ApplicationAttributionReportBuilderTest
 
     assertThat(reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
         LegalCustomReportParameters.builder().buildWithDefaults(application.getPublicId())))
-        .isNotNull();
+            .isNotNull();
   }
 
   @Test
@@ -652,10 +654,10 @@ public class ApplicationAttributionReportBuilderTest
 
     String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
         LegalCustomReportParameters
-        .builder()
-        .withTitle("test")
-        .withIncludeInnerSource(true)
-        .build());
+            .builder()
+            .withTitle("test")
+            .withIncludeInnerSource(true)
+            .build());
 
     Document doc = Jsoup.parse(content);
     assertThat(doc.select(".componentBox h2").first().toString()).contains(component.displayName);
@@ -677,10 +679,10 @@ public class ApplicationAttributionReportBuilderTest
         .createNpmCoordinates("p1", "v1")).toString();
 
     ApiLicenseLegalDataDTO licenseLegalData1 = new ApiLicenseLegalDataDTO();
-    licenseLegalData1.effectiveLicenses = Collections.singletonList( UNSPECIFIED_ID );
+    licenseLegalData1.effectiveLicenses = Collections.singletonList(UNSPECIFIED_ID);
 
     ApiLicenseLegalDataDTO licenseLegalData2 = new ApiLicenseLegalDataDTO();
-    licenseLegalData2.effectiveLicenses = Collections.singletonList( "MIT" );
+    licenseLegalData2.effectiveLicenses = Collections.singletonList("MIT");
 
     ApiLicenseLegalApplicationReportDTO reportDTO = new ApiLicenseLegalApplicationReportDTO();
     reportDTO.components = Arrays.asList(new ApiLicenseLegalComponentDTO(component1, licenseLegalData1, null),

@@ -143,7 +143,7 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
   @Test
   public void testOverviewTab_DependencyTreeTile_InitialState() {
     refreshOrOpen(
-            ComponentDetailsPage.urlToOverview(app, SCAN_ID, "ae81d32288bf8419181f"));
+        ComponentDetailsPage.urlToOverview(app, SCAN_ID, "ae81d32288bf8419181f"));
     waitUntilUrl(
         ComponentDetailsPage.urlToOverview(app, SCAN_ID, "ae81d32288bf8419181f"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
@@ -187,7 +187,7 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
   @Test
   public void testOverviewTab_DependencyTreeTileInitialStateDirectDependency() {
     refreshOrOpen(
-            ComponentDetailsPage.urlToOverview(app, SCAN_ID, "ad19001bd021002377c2"));
+        ComponentDetailsPage.urlToOverview(app, SCAN_ID, "ad19001bd021002377c2"));
     waitUntilUrl(
         ComponentDetailsPage.urlToOverview(app, SCAN_ID, "ad19001bd021002377c2"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();

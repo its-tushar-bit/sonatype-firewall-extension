@@ -91,7 +91,8 @@ public class ApiDataRetentionPolicyResourceTest
   @Test
   public void testGetParentDataRetentionPolicies_BadRequest() throws Exception {
     HttpResponse response = restRequest().path(PublicApiPaths.DATA_RETENTION_POLICY_RESOURCE_PATH,
-            ApiDataRetentionPolicyResource.PARENT_ORGANIZATION_PATH).parameter(Organization.ROOT_ORGANIZATION_ID)
+        ApiDataRetentionPolicyResource.PARENT_ORGANIZATION_PATH)
+        .parameter(Organization.ROOT_ORGANIZATION_ID)
         .get();
 
     assertResponseStatus(400, response);

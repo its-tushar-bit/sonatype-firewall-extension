@@ -144,8 +144,7 @@ public class PdfGeneratorService
         getBaseUrl(),
         versionService.getShortVersion(),
         apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId, false),
-        augmentEmptyLicensesAsNotProvided(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId, true))
-    );
+        augmentEmptyLicensesAsNotProvided(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId, true)));
     return generateReport(app, scanId, pdfData, false, Context.LIFECYCLE);
   }
 
@@ -157,7 +156,8 @@ public class PdfGeneratorService
   }
 
   private SbomExportParams getSbomExportParams(
-      Application app, String sbomVersion,
+      Application app,
+      String sbomVersion,
       final ApiReportRawDataDTOV2 reportRawData)
   {
     ThirdPartySbomMetadata sbomMetadata =
@@ -169,7 +169,8 @@ public class PdfGeneratorService
 
   private Response buildPdfResponse(ReportPdfEntity reportPdf, Date lastModified, String filename) throws IOException {
     ResponseBuilder responseBuilder = Response.ok()
-        .lastModified(lastModified).expires(new Date())
+        .lastModified(lastModified)
+        .expires(new Date())
         .type("application/pdf; charset=UTF-8")
         .header(HttpHeaders.CONTENT_LENGTH, reportPdf.length())
         .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(filename))
@@ -179,8 +180,11 @@ public class PdfGeneratorService
   }
 
   public ReportPdfEntity generateReport(
-      Application app, String scanId, PdfData pdfData,
-      boolean overwrite, Context productContext) throws IOException
+      Application app,
+      String scanId,
+      PdfData pdfData,
+      boolean overwrite,
+      Context productContext) throws IOException
   {
     ReportPdfEntity reportPdf = reportDataStore.getReportPdf(app.getId(), scanId);
 
@@ -221,7 +225,8 @@ public class PdfGeneratorService
         continue;
       }
       if (component.licenseData.effectiveLicenses.isEmpty() && component.licenseData.declaredLicenses.isEmpty() &&
-          component.licenseData.observedLicenses.isEmpty()) {
+          component.licenseData.observedLicenses.isEmpty())
+      {
         ApiLicenseDTO license = new ApiLicenseDTO();
         license.licenseName = "Not Provided";
         component.licenseData.effectiveLicenses.add(license);

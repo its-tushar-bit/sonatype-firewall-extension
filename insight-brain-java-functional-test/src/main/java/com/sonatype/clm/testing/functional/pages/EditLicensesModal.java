@@ -53,7 +53,7 @@ public class EditLicensesModal
     return $("#edit-license-status-option-Confirmed");
   }
 
-  public NxCheckbox getCheckboxAt(int i ) {
+  public NxCheckbox getCheckboxAt(int i) {
     return new NxCheckbox(child(".nx-checkbox", nthChild(i + 1)));
   }
 

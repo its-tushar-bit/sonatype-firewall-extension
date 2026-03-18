@@ -88,9 +88,9 @@ public class AbstractUserService
   protected void auditUser(String realmId, String username, String firstName, String lastName, String email) {
     AuditData.get() //
         .setData("username", username) //
-        .setData("firstName", firstName).setData("lastName", lastName) //
+        .setData("firstName", firstName)
+        .setData("lastName", lastName) //
         .setData("emailAddress", email)
         .setData("realm", realmId);
   }
 }
-

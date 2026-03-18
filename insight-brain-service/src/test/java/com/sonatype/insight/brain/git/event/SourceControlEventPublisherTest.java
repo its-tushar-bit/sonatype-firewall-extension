@@ -112,7 +112,7 @@ public class SourceControlEventPublisherTest
 
   @Test
   public void testClearEventsForApplicationAndPublishEvent() {
-    //when: clear existing and publish an event
+    // when: clear existing and publish an event
     final String appId = "xyz-012";
     SourceControlEvent event = new SourceControlEvent().setApplicationId(appId);
     sourceControlEventPublisher.clearEventsForApplicationAndPublishEvent(event);

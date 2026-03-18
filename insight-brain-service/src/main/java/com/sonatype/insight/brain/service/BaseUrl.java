@@ -31,7 +31,7 @@ public class BaseUrl
 
   public static final String ERR_MSG_BASE_URL_NOT_CONFIGURED = "The server base URL (baseUrl) is not configured. "
       + "More information at https://links.sonatype.com/products/nxiq/doc/configuring-base-url";
-      
+
   private final Configuration configuration;
 
   private final ThreadLocal<HttpServletRequest> currentHttpRequest = new ThreadLocal<>();

@@ -93,8 +93,7 @@ abstract class AbstractSbomExporterTest
   protected SbomExportParams withExportParams(
       ThirdPartySbomMetadata sbomMetadata,
       ExportSpecification specification,
-      SbomFormat targetFormat
-  )
+      SbomFormat targetFormat)
   {
     return SbomExportParams.newSbomExporterParams(sbomMetadata)
         .withExportOptions(ExportOption.NO_VULNERABILITIES)
@@ -120,7 +119,6 @@ abstract class AbstractSbomExporterTest
         thirdPartySbomMetadataDAO,
         thirdPartyFileDAO,
         thirdPartyScanDAO,
-        new FileSbomPersistenceService(mockInsightWork, fileCleaner)
-    );
+        new FileSbomPersistenceService(mockInsightWork, fileCleaner));
   }
 }

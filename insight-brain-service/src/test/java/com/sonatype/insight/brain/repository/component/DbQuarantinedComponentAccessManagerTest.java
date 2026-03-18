@@ -67,7 +67,8 @@ public class DbQuarantinedComponentAccessManagerTest
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final QuarantinedComponentAccess quarantinedComponentAccess =
         tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
-    final String encodedToken = Base64.getUrlEncoder().withoutPadding()
+    final String encodedToken = Base64.getUrlEncoder()
+        .withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
     QuarantinedComponentAccess result =
@@ -80,7 +81,8 @@ public class DbQuarantinedComponentAccessManagerTest
 
   @Test
   public void testGetQuarantinedComponentAccessFromToken_tokenDoesNotExist() {
-    final String encodedToken = Base64.getUrlEncoder().withoutPadding()
+    final String encodedToken = Base64.getUrlEncoder()
+        .withoutPadding()
         .encodeToString("fakeToken".getBytes(StandardCharsets.UTF_8));
 
     assertThatThrownBy(() -> quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(encodedToken))
@@ -97,7 +99,8 @@ public class DbQuarantinedComponentAccessManagerTest
     final QuarantinedComponentAccess quarantinedComponentAccess =
         tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(),
             DateUtils.addHours(new Date(), -13));
-    final String encodedToken = Base64.getUrlEncoder().withoutPadding()
+    final String encodedToken = Base64.getUrlEncoder()
+        .withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
     assertThatThrownBy(() -> quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(encodedToken))

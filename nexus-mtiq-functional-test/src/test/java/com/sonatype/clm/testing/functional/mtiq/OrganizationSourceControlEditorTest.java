@@ -62,23 +62,23 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.sshEnabledFieldset().shouldBe(hidden);
 
     assertSourceControl(currentOwner.getId(), null, "secret_key", GITHUB, PR_COMMENTING_OFF,
-            REMEDIATION_PR_OFF, SOURCE_EVALS_OFF, COMMIT_STATUS_OFF);
+        REMEDIATION_PR_OFF, SOURCE_EVALS_OFF, COMMIT_STATUS_OFF);
   }
 
   @Test
   public void testSourceControlEditorReset() {
     tempEntity
-            .newSourceControl(currentOwner.getId(), GITHUB, TOKEN, null, "main",
-                    PR_COMMENTING_ON, REMEDIATION_PR_ON, SOURCE_EVALS_ON, COMMIT_STATUS_ON);
+        .newSourceControl(currentOwner.getId(), GITHUB, TOKEN, null, "main",
+            PR_COMMENTING_ON, REMEDIATION_PR_ON, SOURCE_EVALS_ON, COMMIT_STATUS_ON);
 
     navigateToSourceControlEditorPage(false);
 
-    SourceControlEditorPage.providerFieldset().radioInputs().get(1).shouldBe(enabled,selected);
+    SourceControlEditorPage.providerFieldset().radioInputs().get(1).shouldBe(enabled, selected);
     SourceControlEditorPage.token().shouldBe(enabled);
-    SourceControlEditorPage.baseBranchFieldset().radioInputs().get(1).shouldBe(enabled,selected);
-    SourceControlEditorPage.pullRequestCommentingFieldset().radioInputs().get(1).shouldBe(enabled,selected);
-    SourceControlEditorPage.automatedCommitFeedbackFieldset().radioInputs().get(1).shouldBe(enabled,selected);
-    SourceControlEditorPage.sourceControlEvaluationsFieldset().radioInputs().get(1).shouldBe(enabled,selected);
+    SourceControlEditorPage.baseBranchFieldset().radioInputs().get(1).shouldBe(enabled, selected);
+    SourceControlEditorPage.pullRequestCommentingFieldset().radioInputs().get(1).shouldBe(enabled, selected);
+    SourceControlEditorPage.automatedCommitFeedbackFieldset().radioInputs().get(1).shouldBe(enabled, selected);
+    SourceControlEditorPage.sourceControlEvaluationsFieldset().radioInputs().get(1).shouldBe(enabled, selected);
     // SSH not enabled in MTIQ, only in IQ
     SourceControlEditorPage.sshEnabledFieldset().shouldBe(hidden);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"));
@@ -93,38 +93,44 @@ public class OrganizationSourceControlEditorTest
 
   private void validateInitialFormState() {
     SourceControlEditorPage.providerFieldset().labels().get(0).shouldHave(text("Inherit (Not Configured)"));
-    SourceControlEditorPage.providerFieldset().radioInputs().get(0).shouldBe(enabled,selected);
+    SourceControlEditorPage.providerFieldset().radioInputs().get(0).shouldBe(enabled, selected);
     SourceControlEditorPage.providerFieldset().labels().get(1).shouldHave(text("Override"));
 
     SourceControlEditorPage.credentialsFieldset().labels().get(0).shouldHave(text("Inherit (Not Configured)"));
-    SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldBe(disabled,selected);
+    SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldBe(disabled, selected);
     SourceControlEditorPage.credentialsFieldset().labels().get(1).shouldHave(text("Override"));
 
     SourceControlEditorPage.baseBranchFieldset().labels().get(0).shouldHave(text("Inherit (Not Configured)"));
-    SourceControlEditorPage.baseBranchFieldset().radioInputs().get(0).shouldBe(disabled,selected);
+    SourceControlEditorPage.baseBranchFieldset().radioInputs().get(0).shouldBe(disabled, selected);
     SourceControlEditorPage.baseBranchFieldset().labels().get(1).shouldHave(text("Override"));
 
-    SourceControlEditorPage.pullRequestCommentingFieldset().labels().get(0)
+    SourceControlEditorPage.pullRequestCommentingFieldset()
+        .labels()
+        .get(0)
         .shouldHave(text("Inherit (Not Configured)"));
     SourceControlEditorPage.pullRequestCommentingFieldset().radioInputs().get(0).shouldBe(disabled);
     SourceControlEditorPage.pullRequestCommentingFieldset().labels().get(1).shouldHave(text("Enabled"));
-    SourceControlEditorPage.pullRequestCommentingFieldset().radioInputs().get(1).shouldBe(disabled,selected);
+    SourceControlEditorPage.pullRequestCommentingFieldset().radioInputs().get(1).shouldBe(disabled, selected);
     SourceControlEditorPage.pullRequestCommentingFieldset().labels().get(2).shouldHave(text("Disabled"));
     SourceControlEditorPage.pullRequestCommentingFieldset().radioInputs().get(2).shouldBe(disabled);
 
-    SourceControlEditorPage.sourceControlEvaluationsFieldset().labels().get(0)
+    SourceControlEditorPage.sourceControlEvaluationsFieldset()
+        .labels()
+        .get(0)
         .shouldHave(text("Inherit (Not Configured)"));
     SourceControlEditorPage.sourceControlEvaluationsFieldset().radioInputs().get(0).shouldBe(disabled);
     SourceControlEditorPage.sourceControlEvaluationsFieldset().labels().get(1).shouldHave(text("Enabled"));
-    SourceControlEditorPage.sourceControlEvaluationsFieldset().radioInputs().get(1).shouldBe(disabled,selected);
+    SourceControlEditorPage.sourceControlEvaluationsFieldset().radioInputs().get(1).shouldBe(disabled, selected);
     SourceControlEditorPage.sourceControlEvaluationsFieldset().labels().get(2).shouldHave(text("Disabled"));
     SourceControlEditorPage.sourceControlEvaluationsFieldset().radioInputs().get(2).shouldBe(disabled);
 
-    SourceControlEditorPage.automatedCommitFeedbackFieldset().labels().get(0)
+    SourceControlEditorPage.automatedCommitFeedbackFieldset()
+        .labels()
+        .get(0)
         .shouldHave(text("Inherit (Not Configured)"));
     SourceControlEditorPage.automatedCommitFeedbackFieldset().radioInputs().get(0).shouldBe(disabled);
     SourceControlEditorPage.automatedCommitFeedbackFieldset().labels().get(1).shouldHave(text("Enabled"));
-    SourceControlEditorPage.automatedCommitFeedbackFieldset().radioInputs().get(1).shouldBe(disabled,selected);
+    SourceControlEditorPage.automatedCommitFeedbackFieldset().radioInputs().get(1).shouldBe(disabled, selected);
     SourceControlEditorPage.automatedCommitFeedbackFieldset().labels().get(2).shouldHave(text("Disabled"));
     SourceControlEditorPage.automatedCommitFeedbackFieldset().radioInputs().get(2).shouldBe(disabled);
 

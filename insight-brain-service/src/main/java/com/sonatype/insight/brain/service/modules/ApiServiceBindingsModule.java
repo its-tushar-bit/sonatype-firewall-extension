@@ -111,6 +111,7 @@ import com.google.inject.AbstractModule;
 
 /**
  * Guice module providing explicit bindings for API Service components. These are services that are injected into JAX-RS
+ *
  * @Path resource classes. This replaces implicit JIT bindings now that requireExplicitBindings is enabled.
  */
 public class ApiServiceBindingsModule

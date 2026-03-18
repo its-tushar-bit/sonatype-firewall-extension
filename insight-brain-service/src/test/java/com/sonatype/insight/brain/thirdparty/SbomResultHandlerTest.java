@@ -197,7 +197,7 @@ public class SbomResultHandlerTest
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).allSatisfy(coord -> assertThat(coord.getSource())
-            .isEqualTo(StringUtils.truncate(identificationSource, THIRD_PARTY_IDENTIFICATION_SOURCE_MAX_LENGTH)))
+        .isEqualTo(StringUtils.truncate(identificationSource, THIRD_PARTY_IDENTIFICATION_SOURCE_MAX_LENGTH)))
         .allSatisfy(coord -> assertThat(coord.getIdentificationSources()).isEqualTo(
             SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE));
   }
@@ -288,13 +288,14 @@ public class SbomResultHandlerTest
         .containsOnly("9.0.14", "1.2.3", "2.11.2", "2.12.2", "2.9.9", "2.1.0");
 
     // 4 purls were collected: 2 original purls, 2 from cpe
-    assertThat(components).extracting(Component::getPurl).containsExactlyInAnyOrder(
-        "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar",
-        "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library",
-        "pkg:generic/apache/log4j@2.11.2?part=a&update=rc3",
-        "pkg:generic/apache/log4j@2.12.2?language=en&part=a&update=rc1",
-        "pkg:generic/django@1.2.3?sbom_type=library",
-        "pkg:generic/joda-time/joda-time@2.1.0?sbom_type=library");
+    assertThat(components).extracting(Component::getPurl)
+        .containsExactlyInAnyOrder(
+            "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar",
+            "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library",
+            "pkg:generic/apache/log4j@2.11.2?part=a&update=rc3",
+            "pkg:generic/apache/log4j@2.12.2?language=en&part=a&update=rc1",
+            "pkg:generic/django@1.2.3?sbom_type=library",
+            "pkg:generic/joda-time/joda-time@2.1.0?sbom_type=library");
     assertThat(components).extracting("properties.size")
         .containsOnly(3, 3, 2, 2, 1, 2);
     assertThat(components.get(1).getProperties())
@@ -322,13 +323,14 @@ public class SbomResultHandlerTest
         .containsOnly("9.0.14", "1.2.3", "2.11.2", "2.9.9", "2.1.0");
 
     // 4 purls were collected: 2 original purls, 2 from cpe
-    assertThat(components).extracting(Component::getPurl).containsExactlyInAnyOrder(
-        "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar",
-        "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library",
-        "pkg:swid/Apache%20Log4J@2.11.2?tag_creator_name=Acme%2C%20Inc.&tag_creator_regid=example.com&" +
-            "tag_id=swidgen-242eb18a-503e-ca37-393b-cf156ef09691_2.11.2",
-        "pkg:generic/joda-time/joda-time@2.1.0?sbom_type=library",
-        "pkg:generic/django@1.2.3?sbom_type=library");
+    assertThat(components).extracting(Component::getPurl)
+        .containsExactlyInAnyOrder(
+            "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar",
+            "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library",
+            "pkg:swid/Apache%20Log4J@2.11.2?tag_creator_name=Acme%2C%20Inc.&tag_creator_regid=example.com&" +
+                "tag_id=swidgen-242eb18a-503e-ca37-393b-cf156ef09691_2.11.2",
+            "pkg:generic/joda-time/joda-time@2.1.0?sbom_type=library",
+            "pkg:generic/django@1.2.3?sbom_type=library");
     assertThat(components).extracting("properties.size")
         .containsOnly(3, 3, 2, 1, 2);
     assertThat(components.get(1).getProperties())
@@ -405,7 +407,7 @@ public class SbomResultHandlerTest
     assertThat(actualVuln).hasSize(5);
     assertThat(
         actualVuln.stream().map(ThirdPartyCoordinateSecurity::getFileCoordinateId)).containsExactlyInAnyOrderElementsOf(
-        coordinates.stream().map(ThirdPartyFileCoordinate::getId).toList());
+            coordinates.stream().map(ThirdPartyFileCoordinate::getId).toList());
     assertThat(actualVuln).allSatisfy(vuln -> assertThat(vuln.getRefId()).isEqualTo("CVE-2018-7489"));
   }
 
@@ -896,8 +898,7 @@ public class SbomResultHandlerTest
         "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/js-lib/jquery-ui-1.10.3/jquery-1.9.1.js",
         "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/js-lib/jquery-ui-1.10.3/tests/jquery-1.9.1.js",
         "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/js-lib/jquery/jquery-migrate-1.2.1.js",
-        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/rest/js/vendor/jquery-1.9.1.min.js"
-    );
+        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/rest/js/vendor/jquery-1.9.1.min.js");
   }
 
   @Test
@@ -920,8 +921,7 @@ public class SbomResultHandlerTest
         "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/js-lib/jquery-ui-1.10.3/jquery-1.9.1.js",
         "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/js-lib/jquery-ui-1.10.3/tests/jquery-1.9.1.js",
         "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/js-lib/jquery/jquery-migrate-1.2.1.js",
-        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/rest/js/vendor/jquery-1.9.1.min.js"
-    );
+        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/rest/js/vendor/jquery-1.9.1.min.js");
   }
 
   @Test
@@ -947,8 +947,11 @@ public class SbomResultHandlerTest
         "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/rest/js/vendor/jquery-1.9.1.min.js");
   }
 
-  private void testHandleFilterContents(String sbomContent, String path, SbomFormat sbomFormat, String researchType)
-      throws Exception
+  private void testHandleFilterContents(
+      String sbomContent,
+      String path,
+      SbomFormat sbomFormat,
+      String researchType) throws Exception
   {
     ThirdPartyScanContent content = new ThirdPartyScanContent(path, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -1271,10 +1274,10 @@ public class SbomResultHandlerTest
     List<Component> components = bom.getComponents();
     assertThat(components).hasSize(2);
     assertThat(components).extracting(Component::getType).containsExactlyInAnyOrder(Type.LIBRARY, Type.CONTAINER);
-    assertThat(components).extracting(Component::getPurl).containsExactlyInAnyOrder(
-        "pkg:generic/com.google.guava/guava@30.1-jre?sbom_type=library",
-        "pkg:generic/annotation-api@1.1.6?sbom_type=container"
-    );
+    assertThat(components).extracting(Component::getPurl)
+        .containsExactlyInAnyOrder(
+            "pkg:generic/com.google.guava/guava@30.1-jre?sbom_type=library",
+            "pkg:generic/annotation-api@1.1.6?sbom_type=container");
   }
 
   @Test
@@ -1619,7 +1622,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testProcessDependencyGraph_UnsortedGraph() {
-    //given
+    // given
     Bom sourceBom = new Bom();
     Bom targetBom = new Bom();
     targetBom.addComponent(new Component());
@@ -1637,11 +1640,11 @@ public class SbomResultHandlerTest
     sourceBom.setDependencies(Arrays.asList(root, d2, d2t1));
     List<ProjectScanItem> result = new ArrayList<>();
 
-    //when
+    // when
     sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
         new ThirdPartyFile("test-bom.xml", new Date()));
 
-    //then
+    // then
     assertThat(result).hasSize(1).allSatisfy(projectItem -> {
       assertThat(projectItem.getKind()).isEqualTo("sbom");
       assertThat(projectItem.getId()).isEqualTo("pkg:npm/root@1.0");
@@ -1656,7 +1659,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testProcessDependencyGraph_componentsWithNoPurls() {
-    //given
+    // given
     Bom sourceBom = new Bom();
 
     Component c1 = new Component();
@@ -1689,11 +1692,11 @@ public class SbomResultHandlerTest
     sourceBom.setDependencies(Arrays.asList(root, d1, d2, d2t1));
     List<ProjectScanItem> result = new ArrayList<>();
 
-    //when
+    // when
     sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
         new ThirdPartyFile("test-bom.xml", new Date()));
 
-    //then
+    // then
     assertThat(result).hasSize(1).allSatisfy(projectItem -> {
       assertThat(projectItem.getKind()).isEqualTo("sbom");
       assertThat(projectItem.getId()).isEqualTo("pkg:npm/root@1.0");
@@ -1710,7 +1713,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testProcessDependencyGraph_dependenciesWithNoComponents() {
-    //given
+    // given
     Bom sourceBom = new Bom();
     Bom targetBom = new Bom();
     targetBom.addComponent(new Component());
@@ -1728,11 +1731,11 @@ public class SbomResultHandlerTest
     sourceBom.setDependencies(Arrays.asList(root, d2, d2t1));
     List<ProjectScanItem> result = new ArrayList<>();
 
-    //when
+    // when
     sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
         new ThirdPartyFile("test-bom.xml", new Date()));
 
-    //then
+    // then
     assertThat(result).hasSize(1).allSatisfy(projectItem -> {
       assertThat(projectItem.getKind()).isEqualTo("sbom");
       assertThat(projectItem.getId()).isEqualTo("pkg:npm/root@1.0");
@@ -1959,19 +1962,19 @@ public class SbomResultHandlerTest
     ThirdPartyFileCoordinate cp =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "source", "pypi", "numpy", "1.19.0",
             "c68bdc4f6f12b754bf3e", "pkg:pypi/numpy@1.19.0?extension=zip", "c68bdc4f6f12b754bf3e6ccdb8ab284c6a13c021");
-    //duplicate vulnerability, that exists in the database and also in the ingested sbom
+    // duplicate vulnerability, that exists in the database and also in the ingested sbom
     ThirdPartyCoordinateSecurity coordSecurity =
         tempEntity.newThirdPartyCoordinateSecurity(cp, "CVE-22024-123456", metadata.getId(), "desc", "link", 5.0d,
             "sevDesc", "1.0.1");
     when(thirdPartyScanContext.isValid()).thenReturn(true);
     when(thirdPartyScanContext.getSbomMetadataId()).thenReturn(metadata.getId());
 
-    //before - no existing vex
+    // before - no existing vex
     assertThat(thirdPartyVexDAO.getByCoordinateSecurityIdAndRefId(coordSecurity.getId(), "CVE-22024-123456")).isNull();
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
-    //after - vex merged from sbom
+    // after - vex merged from sbom
     ThirdPartyVulnerabilityExploitabilityExchange savedVex =
         thirdPartyVexDAO.getByCoordinateSecurityIdAndRefId(coordSecurity.getId(), "CVE-22024-123456");
     assertThat(savedVex).isNotNull();
@@ -2000,8 +2003,7 @@ public class SbomResultHandlerTest
       final String content,
       final int expectedComponentCount,
       final boolean optional,
-      final List<Boolean> hasHashes)
-      throws Exception
+      final List<Boolean> hasHashes) throws Exception
   {
     assertThat(content).isNotNull();
     Bom bom = SbomTestHelper.parseToCycloneDxBom(content);
@@ -2033,10 +2035,12 @@ public class SbomResultHandlerTest
       assertThat(component.getExtensibleTypes()).isNull();
       assertThat(component.getExtensions()).isNull();
 
-      assertThat(component.getProperties().stream()
-          .filter(p -> p.getName().equals(SbomCycloneDxUtils.PROPERTY_COMPONENT_REF)).findFirst())
-          .isNotEmpty()
-          .satisfies(opt -> assertThat(opt.get().getValue()).isNotBlank());
+      assertThat(component.getProperties()
+          .stream()
+          .filter(p -> p.getName().equals(SbomCycloneDxUtils.PROPERTY_COMPONENT_REF))
+          .findFirst())
+              .isNotEmpty()
+              .satisfies(opt -> assertThat(opt.get().getValue()).isNotBlank());
       componentIndex += 1;
     }
     assertThat(bom.getCompositions()).isNull();
@@ -2077,7 +2081,8 @@ public class SbomResultHandlerTest
     assertThat(bomV14json.getSpecVersion()).isEqualTo("1.4");
 
     assertThat(bomV11.getComponents()).hasSameElementsAs(bomV12.getComponents())
-        .hasSameElementsAs(bomV13.getComponents()).hasSameElementsAs(bomV14.getComponents())
+        .hasSameElementsAs(bomV13.getComponents())
+        .hasSameElementsAs(bomV14.getComponents())
         .hasSameElementsAs(bomV14json.getComponents());
   }
 
@@ -2499,8 +2504,7 @@ public class SbomResultHandlerTest
         thirdPartyVexDAO,
         telemetryUtils,
         telemetrySender,
-        null
-    );
+        null);
     ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
         getSbomXmlFile("sbom-v1_4-invalid-bom.xml"));
     assertThatExceptionOfType(SbomProcessingException.class)
@@ -2519,8 +2523,7 @@ public class SbomResultHandlerTest
         thirdPartyVexDAO,
         telemetryUtils,
         telemetrySender,
-        null
-    );
+        null);
     SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
     ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
         getSbomXmlFile("sbom-v1_4-invalid-bom.xml"));
@@ -2549,7 +2552,8 @@ public class SbomResultHandlerTest
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
-    assertThat(coordinates).hasSize(1).extracting(ThirdPartyFileCoordinate::getPackageUrl)
+    assertThat(coordinates).hasSize(1)
+        .extracting(ThirdPartyFileCoordinate::getPackageUrl)
         .containsExactlyInAnyOrder("pkg:generic/red_inc./fonts-filesystem@2.0.5?part=a");
 
     assertDebugLogOutput("Invalid Component Identifier for provided purl pkg:rpm/fonts-filesystem@2.0.5");
@@ -2648,9 +2652,7 @@ public class SbomResultHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_invalidSbom_skipSbomValidationFeatureEnabled_telemetryData()
-      throws Exception
-  {
+  public void testHandleAndFilterContents_invalidSbom_skipSbomValidationFeatureEnabled_telemetryData() throws Exception {
     SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
     when(thirdPartyScanContext.isValid()).thenReturn(false);
 
@@ -2767,7 +2769,8 @@ public class SbomResultHandlerTest
     assertFilteredSbomFile(filteredContent, 4);
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     // Check original filename property in ingested sbom metadata
-    assertThat(sbomMetadata).isNotNull().extracting(ThirdPartySbomMetadata::getOriginalBinaryFileName)
+    assertThat(sbomMetadata).isNotNull()
+        .extracting(ThirdPartySbomMetadata::getOriginalBinaryFileName)
         .isEqualTo("binary.temp");
   }
 
@@ -2800,7 +2803,8 @@ public class SbomResultHandlerTest
     assertFilteredSbomFile(filteredContent, 1, false, hasHashes);
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     // Check original filename property in ingested sbom metadata
-    assertThat(sbomMetadata).isNotNull().extracting(ThirdPartySbomMetadata::getOriginalBinaryFileName)
+    assertThat(sbomMetadata).isNotNull()
+        .extracting(ThirdPartySbomMetadata::getOriginalBinaryFileName)
         .isEqualTo("binary.temp");
   }
 
@@ -2817,15 +2821,13 @@ public class SbomResultHandlerTest
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).allSatisfy(coord -> assertThat(coord.getSource())
-            .isEqualTo(identificationSource))
+        .isEqualTo(identificationSource))
         .allSatisfy(coord -> assertThat(coord.getIdentificationSources()).isEqualTo(
             SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE));
   }
 
   @Test
-  public void testHandlerAndFilterContent_LifecycleSbomsWithDuplicateComponentsHavingDifferentSonatypeSha1s()
-      throws Exception
-  {
+  public void testHandlerAndFilterContent_LifecycleSbomsWithDuplicateComponentsHavingDifferentSonatypeSha1s() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-duplicate-components-with-diff-sonatype-sha1.xml");
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("lc-bom.xml", null, null, null, sbomContent);
@@ -2870,9 +2872,8 @@ public class SbomResultHandlerTest
       assertThat(vulnerability.getAdvisories()).hasSize(4);
       assertThat(vulnerability.getRecommendations()).hasSize(1);
     };
-    assertThat(vulnerabilityExtension.getExtensions()).allSatisfy(extensibleType ->
-        assertThat(extensibleType).isInstanceOfSatisfying(Vulnerability10.class, vulnerabilitiesRequirement)
-    );
+    assertThat(vulnerabilityExtension.getExtensions()).allSatisfy(extensibleType -> assertThat(extensibleType)
+        .isInstanceOfSatisfying(Vulnerability10.class, vulnerabilitiesRequirement));
   }
 
   private void assertVulnerability(
@@ -2930,17 +2931,17 @@ public class SbomResultHandlerTest
     assertThat(vulnerability.getId()).isEqualTo("CVE-2018-7489");
     assertThat(vulnerability.getBomRef()).isNull();
 
-    //Cwes
+    // Cwes
     assertThat(vulnerability.getCwes()).hasSize(2);
     assertThat(vulnerability.getCwes().get(0)).isEqualTo(184);
     assertThat(vulnerability.getCwes().get(1)).isEqualTo(502);
 
-    //Source
+    // Source
     assertThat(vulnerability.getSource()).isNotNull();
     assertThat(vulnerability.getSource().getName()).isNotNull();
     assertThat(vulnerability.getSource().getUrl()).isNotNull();
 
-    //Rating
+    // Rating
     assertThat(vulnerability.getRatings()).hasSize(1);
     Vulnerability.Rating rating = vulnerability.getRatings().get(0);
     assertThat(rating.getMethod()).isEqualTo(Method.CVSSV3);
@@ -2962,7 +2963,7 @@ public class SbomResultHandlerTest
     assertThat(vulnerability.getPublished()).isNull();
     assertThat(vulnerability.getUpdated()).isNull();
 
-    //Affects
+    // Affects
     assertThat(vulnerability.getAffects()).hasSize(1);
     assertThat(vulnerability.getAffects().get(0).getRef()).isEqualTo(
         "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar");
@@ -3034,8 +3035,13 @@ public class SbomResultHandlerTest
 
     if (extensionVulnerability) {
       assertExtensionVulnerability(coordinateSecurity,
-          (Vulnerability10) expectedBom.getComponents().get(0).getExtensions().get("vulnerabilities").getExtensions()
-              .get(0), coordinateId, optionalValuesPresent, sbomMetadataId);
+          (Vulnerability10) expectedBom.getComponents()
+              .get(0)
+              .getExtensions()
+              .get("vulnerabilities")
+              .getExtensions()
+              .get(0),
+          coordinateId, optionalValuesPresent, sbomMetadataId);
     }
     else {
       assertVulnerability(coordinateSecurity, expectedBom.getVulnerabilities().get(0), coordinateId,
@@ -3134,12 +3140,13 @@ public class SbomResultHandlerTest
         .orElseThrow();
 
     assertThat(tomcatComponent.getProperties()).isNotNull();
-    assertThat(tomcatComponent.getProperties().stream()
+    assertThat(tomcatComponent.getProperties()
+        .stream()
         .filter(p -> p.getName().equals(SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME))
         .findFirst())
-        .isPresent()
-        .hasValueSatisfying(property ->
-            assertThat(property.getValue()).isEqualTo("pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar"));
+            .isPresent()
+            .hasValueSatisfying(property -> assertThat(property.getValue())
+                .isEqualTo("pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar"));
   }
 
   @Test
@@ -3160,12 +3167,12 @@ public class SbomResultHandlerTest
         .orElseThrow();
 
     assertThat(djangoComponent.getProperties()).isNotNull();
-    assertThat(djangoComponent.getProperties().stream()
+    assertThat(djangoComponent.getProperties()
+        .stream()
         .filter(p -> p.getName().equals(SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME))
         .findFirst())
-        .isPresent()
-        .hasValueSatisfying(property ->
-            assertThat(property.getValue()).isEqualTo("pkg:pypi"));
+            .isPresent()
+            .hasValueSatisfying(property -> assertThat(property.getValue()).isEqualTo("pkg:pypi"));
   }
 
   @Test
@@ -3186,10 +3193,11 @@ public class SbomResultHandlerTest
         .orElseThrow();
 
     assertThat(django.getProperties()).isNotNull();
-    assertThat(django.getProperties().stream()
+    assertThat(django.getProperties()
+        .stream()
         .filter(p -> p.getName().equals(SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME))
         .findFirst())
-        .isPresent();
+            .isPresent();
   }
 
   @Test
@@ -3229,10 +3237,11 @@ public class SbomResultHandlerTest
     // Components without purls should NOT have the originalPurl property
     for (Component component : components) {
       if (component.getProperties() != null) {
-        assertThat(component.getProperties().stream()
+        assertThat(component.getProperties()
+            .stream()
             .filter(p -> p.getName().equals(SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME))
             .findFirst())
-            .isEmpty();
+                .isEmpty();
       }
     }
   }
@@ -3256,12 +3265,12 @@ public class SbomResultHandlerTest
 
     assertThat(jacksonComponent.getPurl()).isNotNull();
     assertThat(jacksonComponent.getProperties()).isNotNull();
-    assertThat(jacksonComponent.getProperties().stream()
+    assertThat(jacksonComponent.getProperties()
+        .stream()
         .filter(p -> p.getName().equals(SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME))
         .findFirst())
-        .isPresent()
-        .hasValueSatisfying(property ->
-            assertThat(property.getValue()).isEqualTo(
+            .isPresent()
+            .hasValueSatisfying(property -> assertThat(property.getValue()).isEqualTo(
                 "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"));
   }
 
@@ -3269,8 +3278,9 @@ public class SbomResultHandlerTest
     assertThat(logOutput.getDebugMessages(loggerName)).contains(message);
   }
 
-  private Bom parseBom(final ThirdPartyScanContent thirdPartyScanContent, final boolean expectedIsValid)
-      throws Exception
+  private Bom parseBom(
+      final ThirdPartyScanContent thirdPartyScanContent,
+      final boolean expectedIsValid) throws Exception
   {
     Pair<Bom, Boolean> result = sbomResultHandler.parseBom(thirdPartyScanContent);
     assertThat(result).isNotNull();

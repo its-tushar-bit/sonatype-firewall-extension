@@ -68,7 +68,7 @@ public class CompositeComparableVersion
    *
    * @param other the version to be compared.
    * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than the
-   * specified version.
+   *         specified version.
    */
   @Override
   public int compareTo(@NotNull final CompositeComparableVersion other) {

@@ -25,7 +25,7 @@ import org.apache.shiro.realm.ldap.LdapContextFactory;
 
 /**
  * Shiro realm that uses {@link LdapService} for authentication.
- * 
+ *
  * @since 1.7
  */
 @Named
@@ -62,8 +62,9 @@ public class LdapRealm
   }
 
   @Override
-  protected AuthenticationInfo queryForAuthenticationInfo(AuthenticationToken token, LdapContextFactory contextFactory)
-      throws NamingException
+  protected AuthenticationInfo queryForAuthenticationInfo(
+      AuthenticationToken token,
+      LdapContextFactory contextFactory) throws NamingException
   {
     String username = ((UsernamePasswordToken) token).getUsername();
     char[] password = ((UsernamePasswordToken) token).getPassword();

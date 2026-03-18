@@ -28,8 +28,8 @@ public class ActivePolicyViolationsWithActionFailService
 
   @Inject
   public ActivePolicyViolationsWithActionFailService(
-          ApplicationDAO applicationDAO,
-          PolicyViolationDAO policyViolationDAO)
+      ApplicationDAO applicationDAO,
+      PolicyViolationDAO policyViolationDAO)
   {
     this.applicationDAO = applicationDAO;
     this.policyViolationDAO = policyViolationDAO;
@@ -37,24 +37,22 @@ public class ActivePolicyViolationsWithActionFailService
 
   @Authorize(permission = Permission.READ)
   public List<PolicyViolationWithoutConstraintFactsDTO> getActiveViolationsWithActionFail(
-          @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-          String stageId)
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+      String stageId)
   {
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
-    List<PolicyViolation> policyViolations
-            = policyViolationDAO.getActiveByApplicationIdAndStageIdAndActionId(
-              app.getId(), stageId, Action.ID_FAIL);
+    List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByApplicationIdAndStageIdAndActionId(
+        app.getId(), stageId, Action.ID_FAIL);
 
     return policyViolations.stream()
-      .map(policyViolation -> createPolicyViolationWithoutConstraintFactsDTO(app, policyViolation))
-      .toList();
+        .map(policyViolation -> createPolicyViolationWithoutConstraintFactsDTO(app, policyViolation))
+        .toList();
   }
 
   private PolicyViolationWithoutConstraintFactsDTO createPolicyViolationWithoutConstraintFactsDTO(
-          Application application,
-          PolicyViolation policyViolation
-  )
+      Application application,
+      PolicyViolation policyViolation)
   {
     PolicyViolationWithoutConstraintFactsDTO dto = new PolicyViolationWithoutConstraintFactsDTO();
     dto.applicationId = application.getId();

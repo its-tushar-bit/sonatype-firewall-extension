@@ -45,4 +45,3 @@ public class PullRequestLineCommentCreationResult
     return !exceptionList.isEmpty();
   }
 }
-

@@ -71,26 +71,28 @@ public class PolicyViolation
   public PolicyViolation() {
   }
 
-  public PolicyViolation(PolicyEvaluation evaluation,
-                         Policy policy,
-                         String hash,
-                         ComponentIdentifier componentIdentifier,
-                         List<ConstraintFact> constraintFacts,
-                         String filename)
+  public PolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      List<ConstraintFact> constraintFacts,
+      String filename)
   {
     this(evaluation, policy.getId(), policy.getName(), policy.getThreatLevel(), policy.getThreatCategory(), hash,
         componentIdentifier, constraintFacts, filename);
   }
 
-  public PolicyViolation(PolicyEvaluation evaluation,
-                         String policyId,
-                         String policyName,
-                         int threatLevel,
-                         PolicyThreatCategory threatCategory,
-                         String hash,
-                         ComponentIdentifier componentIdentifier,
-                         List<ConstraintFact> constraintFacts,
-                         String filename)
+  public PolicyViolation(
+      PolicyEvaluation evaluation,
+      String policyId,
+      String policyName,
+      int threatLevel,
+      PolicyThreatCategory threatCategory,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      List<ConstraintFact> constraintFacts,
+      String filename)
   {
     super(policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFacts);
     applicationId = evaluation.getApplicationId();

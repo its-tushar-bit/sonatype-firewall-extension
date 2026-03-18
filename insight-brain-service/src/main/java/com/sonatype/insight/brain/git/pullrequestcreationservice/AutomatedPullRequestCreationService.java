@@ -87,7 +87,8 @@ public class AutomatedPullRequestCreationService
     boolean isInnerSourceComponent = innerSourceService.isInnerSourceComponent(componentIdentifier);
 
     if (!eligibilityService.isEligibleForAutoPullRequest(app, stage, componentIdentifier, isInnerSourceComponent,
-        isDirectDependency)) {
+        isDirectDependency))
+    {
       log.debug("Component '{}' in application '{}' is not eligible for automated PR", componentIdentifier,
           app.getPublicId());
       scmOperationMetrics.recordPrCreationIneligible(NOT_ELIGIBLE);

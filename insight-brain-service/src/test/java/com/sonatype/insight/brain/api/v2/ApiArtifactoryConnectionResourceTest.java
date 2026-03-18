@@ -80,7 +80,7 @@ public class ApiArtifactoryConnectionResourceTest
     artifactoryMockServer.stubFor(options(urlEqualTo("/"))
         .willReturn(aResponse().withStatus(200)));
   }
-  
+
   private void feature(boolean enable) {
     SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(enable);
   }
@@ -494,7 +494,7 @@ public class ApiArtifactoryConnectionResourceTest
     dao.update(artifactoryConnection);
 
     artifactoryMockServer.stubFor(get(urlPathMatching(ArtifactoryClient.CHECKSUM_SEARCH_PATH))
-            .withQueryParam("sha256", equalTo(TEST_SHA256))
+        .withQueryParam("sha256", equalTo(TEST_SHA256))
         .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
             ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE).withStatus(200)));
 

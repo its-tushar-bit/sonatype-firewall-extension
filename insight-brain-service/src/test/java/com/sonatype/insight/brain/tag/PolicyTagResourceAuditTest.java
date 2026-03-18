@@ -83,11 +83,16 @@ public class PolicyTagResourceAuditTest
     return auditDTO;
   }
 
-  private void updatePolicyTags(Consumer<HttpRequest> user, Policy policy, Owner owner, List<Tag> newTags)
-      throws Exception
+  private void updatePolicyTags(
+      Consumer<HttpRequest> user,
+      Policy policy,
+      Owner owner,
+      List<Tag> newTags) throws Exception
   {
-    restRequest().with(user).path(PolicyTagResource.RESOURCE_PATH)
+    restRequest().with(user)
+        .path(PolicyTagResource.RESOURCE_PATH)
         .parameter(policy.getId(), owner.getType(), owner.getPublicId())
-        .body(newTags).put();
+        .body(newTags)
+        .put();
   }
 }

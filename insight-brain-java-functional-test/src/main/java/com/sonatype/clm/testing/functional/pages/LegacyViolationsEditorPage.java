@@ -51,8 +51,8 @@ public class LegacyViolationsEditorPage
 
   public static SelenideElement legacyViolationInherited(Boolean legacyViolations) {
     String statusMessage = "Inherit from parent (" +
-            (Boolean.TRUE.equals(legacyViolations) ? "Enabled" : "Disabled") +
-            ")";
+        (Boolean.TRUE.equals(legacyViolations) ? "Enabled" : "Disabled") +
+        ")";
     return policyRadioButton(statusMessage);
   }
 

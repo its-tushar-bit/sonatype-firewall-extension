@@ -39,7 +39,8 @@ public class H2DatabaseEngine
     try (
         PreparedStatement statement =
             connection.prepareStatement("SELECT NAME, VALUE FROM INFORMATION_SCHEMA.SETTINGS");
-        ResultSet result = statement.executeQuery()) {
+        ResultSet result = statement.executeQuery())
+    {
       while (result.next()) {
         String name = result.getString(1);
         String value = result.getString(2);

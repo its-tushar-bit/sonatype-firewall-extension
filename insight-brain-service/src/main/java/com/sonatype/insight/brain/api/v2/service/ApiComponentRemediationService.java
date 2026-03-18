@@ -254,7 +254,8 @@ public class ApiComponentRemediationService
     return hdsClient.get(ComponentSummary.class, "rest/component/summary", queryParams);
   }
 
-  /** Using a list of component identifiers, and a map of package identifiers to a list of
+  /**
+   * Using a list of component identifiers, and a map of package identifiers to a list of
    * details for versions of this package, produce a map from the identifier itself to the
    * details.
    *

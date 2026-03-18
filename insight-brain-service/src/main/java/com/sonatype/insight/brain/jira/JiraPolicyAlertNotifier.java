@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Creates JIRA issues for policy alert notifications.
  * This class is only for internal Jira integration. Jira Cloud uses Webhooks.
+ *
  * @since 1.21.0
  */
 @Named
@@ -138,8 +139,9 @@ public class JiraPolicyAlertNotifier
 
       ContactDTO appContact =
           ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName());
-      for (final Entry<JiraNotification, List<PolicyFact>> policyFactsByJiraNotification :
-          policyFactsByJiraNotifications.entrySet()) {
+      for (final Entry<JiraNotification, List<PolicyFact>> policyFactsByJiraNotification : policyFactsByJiraNotifications
+          .entrySet())
+      {
         try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.CREATE_JIRA_ISSUE)) {
           JiraNotification jiraNotification = policyFactsByJiraNotification.getKey();
           List<PolicyFact> policyFacts = policyFactsByJiraNotification.getValue();
@@ -158,7 +160,8 @@ public class JiraPolicyAlertNotifier
 
             final PolicyAlertCounts counts = new PolicyAlertCounts(policyFacts);
 
-            AuditData.get().setData("jiraProjectKey", jiraNotification.getProjectKey())
+            AuditData.get()
+                .setData("jiraProjectKey", jiraNotification.getProjectKey())
                 .setData("jiraIssueTypeId", jiraNotification.getIssueTypeId())
                 .setData("totalPolicyViolationCount", counts.getTotal());
 
@@ -179,7 +182,8 @@ public class JiraPolicyAlertNotifier
             log.error(
                 "Failed to create notification for Internal JIRA project key " + jiraNotification.getProjectKey() +
                     " and issue type id " + jiraNotification.getIssueTypeId() + ". Failed for application " +
-                        appId + " and scan " + scanId + " in stage " + stage.getStageTypeId() + ".", e);
+                    appId + " and scan " + scanId + " in stage " + stage.getStageTypeId() + ".",
+                e);
           }
         }
       }
@@ -292,8 +296,9 @@ public class JiraPolicyAlertNotifier
 
       public void add(final PolicyFact fact) {
         for (ComponentFact componentFact : fact.getComponentFacts()) {
-          String text = componentFact.getDisplayName() == null ?
-              "Hash: " + componentFact.getHash() : componentFact.getDisplayName().toString();
+          String text = componentFact.getDisplayName() == null
+              ? "Hash: " + componentFact.getHash()
+              : componentFact.getDisplayName().toString();
           componentViolationCountMap.compute(text, (k, v) -> (v == null) ? 1 : v + 1);
         }
       }

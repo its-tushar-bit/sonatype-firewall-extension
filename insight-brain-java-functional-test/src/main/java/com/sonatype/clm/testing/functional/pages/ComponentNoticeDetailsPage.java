@@ -36,14 +36,14 @@ public final class ComponentNoticeDetailsPage
   }
 
   public static String urlToApplicationScopeByComponentIdentifier(
-          String publicAppId,
-          ComponentIdentifier componentIdentifier,
-          int noticeIndex) throws UnsupportedEncodingException
+      String publicAppId,
+      ComponentIdentifier componentIdentifier,
+      int noticeIndex) throws UnsupportedEncodingException
   {
     String componentIdentifierString =
-            URLEncoder.encode(ComponentIdentifierAdapter.toJson(componentIdentifier), StandardCharsets.UTF_8.name());
+        URLEncoder.encode(ComponentIdentifierAdapter.toJson(componentIdentifier), StandardCharsets.UTF_8.name());
     return BaseUrl.resolvePageUrl(String.format("/legal/application/%s/componentIdentifier/%s/notices/%d",
-            publicAppId, componentIdentifierString, noticeIndex));
+        publicAppId, componentIdentifierString, noticeIndex));
   }
 
   public static NoticeOverview noticeOverview() {

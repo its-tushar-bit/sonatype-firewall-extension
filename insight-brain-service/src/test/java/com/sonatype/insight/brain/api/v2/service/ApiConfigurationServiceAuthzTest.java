@@ -40,7 +40,8 @@ public class ApiConfigurationServiceAuthzTest
   public void testGetConfiguration_Unauthorized() {
     login();
     Set<String> allPropertiesThatRequireConfigureSystemPermission =
-        Arrays.stream(ConfigurationProperty.PROPERTIES).map(property -> property.getName())
+        Arrays.stream(ConfigurationProperty.PROPERTIES)
+            .map(property -> property.getName())
             .filter(property -> !PUBLIC_PROPERTIES.contains(property))
             .collect(Collectors.toSet());
     for (String property : allPropertiesThatRequireConfigureSystemPermission) {
@@ -55,7 +56,8 @@ public class ApiConfigurationServiceAuthzTest
     grantConfigureSystemPermission();
     Set<String> allPropertiesThatRequireConfigureSystemPermission =
         Arrays.stream(ConfigurationProperty.PROPERTIES)
-            .map(x -> x.getName()).collect(Collectors.toSet());
+            .map(x -> x.getName())
+            .collect(Collectors.toSet());
     assertNotNull(service.getConfiguration(allPropertiesThatRequireConfigureSystemPermission));
   }
 
@@ -70,7 +72,8 @@ public class ApiConfigurationServiceAuthzTest
   public void testGetConfiguration_WithEvaluateComponentPermission_NotAuthorized() {
     grantEvaluateComponentPermission(Organization.ROOT_ORGANIZATION_ID);
     Set<String> allPropertiesThatRequireConfigureSystemPermission =
-        Arrays.stream(ConfigurationProperty.PROPERTIES).map(property -> property.getName())
+        Arrays.stream(ConfigurationProperty.PROPERTIES)
+            .map(property -> property.getName())
             .filter(property -> !property.equals(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE))
             .filter(property -> !PUBLIC_PROPERTIES.contains(property))
             .collect(Collectors.toSet());
@@ -85,8 +88,7 @@ public class ApiConfigurationServiceAuthzTest
   public void testGetConfiguration_PublicProperties_Authorized() {
     login();
     assertThat(PUBLIC_PROPERTIES)
-        .allSatisfy(property ->
-            assertThat(service.getConfiguration(Collections.singleton(property))).isNotNull());
+        .allSatisfy(property -> assertThat(service.getConfiguration(Collections.singleton(property))).isNotNull());
   }
 
   @Test(expected = BadRequestException.class)

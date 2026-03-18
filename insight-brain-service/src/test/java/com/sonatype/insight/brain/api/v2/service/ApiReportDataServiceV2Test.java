@@ -112,7 +112,7 @@ public class ApiReportDataServiceV2Test
       applicationReportPersistenceService.saveReportFile(app.getId(), scanId, POLICY_THREATS.getName(), stream);
     }
   }
-  
+
   private void populateDependencies(String resource, String dependenciesFile) throws IOException {
     String policyThreatsPath = "/ApiReportDataServiceTest/" + resource + "/" + dependenciesFile;
     try (var stream = getClass().getResourceAsStream(policyThreatsPath)) {
@@ -146,13 +146,14 @@ public class ApiReportDataServiceV2Test
     }
   }
 
-  private void assertSv(ApiSecurityIssueDTO sv,
-                        String status,
-                        String source,
-                        String ref,
-                        Float severity,
-                        String url,
-                        String threatCategory)
+  private void assertSv(
+      ApiSecurityIssueDTO sv,
+      String status,
+      String source,
+      String ref,
+      Float severity,
+      String url,
+      String threatCategory)
   {
     assertThat(sv.status).isEqualTo(status);
     assertThat(sv.source).isEqualTo(source);
@@ -259,8 +260,7 @@ public class ApiReportDataServiceV2Test
     assertThat(data.components.get(0).dependencyData).isNotNull();
     assertThat(data.components.get(0).dependencyData.parentComponentPurls).containsExactlyInAnyOrder(
         "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.8?type=jar",
-        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
-    );
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar");
   }
 
   @Test
@@ -677,13 +677,14 @@ public class ApiReportDataServiceV2Test
       }
     }
   }
-  
+
   private int size(List<ApiDependencyTreeNodeDTO> children) {
     if (children == null || children.isEmpty()) {
       return 0;
     }
     return children.stream()
-      .mapToInt(node -> size(node.getChildren())).sum() + children.size();
+        .mapToInt(node -> size(node.getChildren()))
+        .sum() + children.size();
   }
 
   @Test

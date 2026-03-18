@@ -54,8 +54,9 @@ public class PolicyAlertNotifier
    * Sends notifications in case of a difference between the current and previous policy violations for a given
    * application and stage.
    */
-  public void sendNotifications(final Application app,
-                                final ScanPolicyEvaluatorResults results)
+  public void sendNotifications(
+      final Application app,
+      final ScanPolicyEvaluatorResults results)
   {
     if (!results.notifiableViolations.isEmpty()) {
       List<PolicyNotification> policyNotifications = policyNotificationUtil
@@ -103,7 +104,7 @@ public class PolicyAlertNotifier
     }
     else {
       log.debug("Not sending notifications for application {} and scan {} in stage {}, " +
-              "no new policy violations for policies configured to send notifications since last evaluation.",
+          "no new policy violations for policies configured to send notifications since last evaluation.",
           app.getPublicId(), results.evaluation.getScanId(), results.evaluation.getStageTypeId());
     }
   }

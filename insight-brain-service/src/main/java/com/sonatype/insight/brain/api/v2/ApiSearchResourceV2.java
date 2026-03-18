@@ -70,26 +70,24 @@ public class ApiSearchResourceV2
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains (a) criteria (the search criteria in the request), and " +
-                  "(b) results (list of applications with the component specified)." +
-                  "\n" +
-                  "\n" +
-                  "Each result includes applicationId and application name containing the component, the relative " +
-                  "and absoluteURLs of the report, component " +
-                  "metadata, threat level, and dependency data indicating if the component is a " +
-                  "direct/transitive/InnerSource dependency.",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains (a) criteria (the search criteria in the request), and " +
+                "(b) results (list of applications with the component specified)." +
+                "\n" +
+                "\n" +
+                "Each result includes applicationId and application name containing the component, the relative " +
+                "and absoluteURLs of the report, component " +
+                "metadata, threat level, and dependency data indicating if the component is a " +
+                "direct/transitive/InnerSource dependency.",
+            useReturnTypeSchema = true)
       })
   public ApiSearchResultsDTOV2 searchComponent(
-      @Parameter(description = "Specify the evaluation report stage.", required = true)
-      @QueryParam("stageId") String stageId,
-      @Parameter(description = "Enter the component hash.")
-      @QueryParam("hash") String hash,
-      @Parameter(description = "Specify the componentIdentifier object containing the format and coordinates.")
-      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
-      @Parameter(description = "Enter the packageUrl.")
-      @QueryParam("packageUrl") String packageUrl)
+      @Parameter(description = "Specify the evaluation report stage.",
+          required = true) @QueryParam("stageId") String stageId,
+      @Parameter(description = "Enter the component hash.") @QueryParam("hash") String hash,
+      @Parameter(
+          description = "Specify the componentIdentifier object containing the format and coordinates.") @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @Parameter(description = "Enter the packageUrl.") @QueryParam("packageUrl") String packageUrl)
   {
     return searchService.searchComponent(stageId, hash, componentIdentifier, packageUrl);
   }

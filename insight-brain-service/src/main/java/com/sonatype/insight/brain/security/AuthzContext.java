@@ -19,12 +19,12 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
  * Marks method parameters which denote the context for the authorization check. If no parameters are annotated, the
  * global context applies for the authorization check. Warning: Some parts of Jersey bail if this annotation isn't
  * properly ordered among other parameter annotations (e.g. FormDataParam), putting it first seems to work.
- * 
+ *
  * @since 1.7
  * @see ContextResolver#resolveContextIds(java.util.Map)
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.PARAMETER })
+@Target({ElementType.PARAMETER})
 public @interface AuthzContext
 {
   enum Key
@@ -100,7 +100,7 @@ public @interface AuthzContext
      * The ID of an existing repository manager.
      */
     REPOSITORY_MANAGER_ID,
-    
+
     /**
      * An {@link Owner} entity.
      */

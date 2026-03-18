@@ -61,37 +61,36 @@ public class ApiLegalAttributionReportTemplateResourceV2
       "\n" +
       "Permissions required: Review Legal Obligations For Components Licenses for the root organization.",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the stored template corresponding to the `id` provided:" +
-                  "<ul>" +
-                  "<li>`id` is the template id.</li>" +
-                  "<li>`templateName` indicates the name of the stored template.</li>" +
-                  "<li>`documentTitle` is the title that is displayed at the top of the report.</li>" +
-                  "<li>`header` is the text that will be displayed above the `documentTitle`.</li>" +
-                  "<li>`footer` is the text that will be displayed at the bottom of the report.<li>" +
-                  "<li>`includeTableOfContents` is `true` if a table of contents containing links to the " +
-                  "components and their licenses will be added to the report." +
-                  "<li>`includeAppendix` is `true` if standard license text will be grouped in the report " +
-                  "appendix.</li>" +
-                  "<li>`includeStandardLicenseTexts` is `true` if the standard license text will be displayed " +
-                  "for components with no license files.</li>" +
-                  "<li>`includeSonatypeSpecialLicenses` is `true` if Sonatype Special Licenses (e.g. " +
-                  "Generic-Copyleft-Clause, Generic-Liberal-Clause, See-License-Clause, Identity-Clause etc.) " +
-                  "will be included in the report.</li>" +
-                  "<li>`lastUpdatedAt` indicates the time the template was last updated.</li>" +
-                  "<li>`includeInnerSource` is `true` if InnerSource components will be included in the " +
-                  "report.</li>" +
-                  "</ul>",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the stored template corresponding to the `id` provided:" +
+                "<ul>" +
+                "<li>`id` is the template id.</li>" +
+                "<li>`templateName` indicates the name of the stored template.</li>" +
+                "<li>`documentTitle` is the title that is displayed at the top of the report.</li>" +
+                "<li>`header` is the text that will be displayed above the `documentTitle`.</li>" +
+                "<li>`footer` is the text that will be displayed at the bottom of the report.<li>" +
+                "<li>`includeTableOfContents` is `true` if a table of contents containing links to the " +
+                "components and their licenses will be added to the report." +
+                "<li>`includeAppendix` is `true` if standard license text will be grouped in the report " +
+                "appendix.</li>" +
+                "<li>`includeStandardLicenseTexts` is `true` if the standard license text will be displayed " +
+                "for components with no license files.</li>" +
+                "<li>`includeSonatypeSpecialLicenses` is `true` if Sonatype Special Licenses (e.g. " +
+                "Generic-Copyleft-Clause, Generic-Liberal-Clause, See-License-Clause, Identity-Clause etc.) " +
+                "will be included in the report.</li>" +
+                "<li>`lastUpdatedAt` indicates the time the template was last updated.</li>" +
+                "<li>`includeInnerSource` is `true` if InnerSource components will be included in the " +
+                "report.</li>" +
+                "</ul>",
+            useReturnTypeSchema = true)
       })
   public AttributionReportTemplateDTO getAttributionReportTemplateById(
-      @Parameter(description = "Enter the templateId for the report.", required = true)
-      @PathParam("id") String reportId)
+      @Parameter(description = "Enter the templateId for the report.",
+          required = true) @PathParam("id") String reportId)
   {
-    return attributionReportService.getAttributionReportTemplateById(reportId).orElseThrow(
-        () -> new NotFoundException("No report with id " + reportId)
-    );
+    return attributionReportService.getAttributionReportTemplateById(reportId)
+        .orElseThrow(
+            () -> new NotFoundException("No report with id " + reportId));
   }
 
   @GET
@@ -102,31 +101,30 @@ public class ApiLegalAttributionReportTemplateResourceV2
       "\n" +
       "Permissions required: Review Legal Obligations For Components Licenses for the root organization",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the stored template details for all reports. " +
-                  "For each template:" +
-                  "<ul>" +
-                  "<li>`id` is the template id.</li>" +
-                  "<li>`templateName` indicates the name of the stored template.</li>" +
-                  "<li>`documentTitle` is the title that is displayed at the top of the report.</li>" +
-                  "<li>`header` is the text that will be displayed above the `documentTitle`.</li>" +
-                  "<li>`footer` is the text that will be displayed at the bottom of the report.<li>" +
-                  "<li>`includeTableOfContents` is `true` if a table of contents containing links to the components " +
-                  "and their licenses will be added to the report." +
-                  "<li>`includeAppendix` is `true` if standard license text will be grouped in the report " +
-                  "appendix.</li>" +
-                  "<li>`includeStandardLicenseTexts` is `true` if the standard license text will be displayed " +
-                  "for components with no license files.</li>" +
-                  "<li>`includeSonatypeSpecialLicenses` is `true` if Sonatype Special Licenses (e.g. " +
-                  "Generic-Copyleft-Clause, Generic-Liberal-Clause, See-License-Clause, Identity-Clause etc.) " +
-                  "will be included in the report.</li>" +
-                  "<li>`lastUpdatedAt` indicates the time the template was last updated.</li>" +
-                  "<li>`includeInnerSource` is `true` if InnerSource components will be included in the " +
-                  "report.</li>" +
-                  "</ul>",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the stored template details for all reports. " +
+                "For each template:" +
+                "<ul>" +
+                "<li>`id` is the template id.</li>" +
+                "<li>`templateName` indicates the name of the stored template.</li>" +
+                "<li>`documentTitle` is the title that is displayed at the top of the report.</li>" +
+                "<li>`header` is the text that will be displayed above the `documentTitle`.</li>" +
+                "<li>`footer` is the text that will be displayed at the bottom of the report.<li>" +
+                "<li>`includeTableOfContents` is `true` if a table of contents containing links to the components " +
+                "and their licenses will be added to the report." +
+                "<li>`includeAppendix` is `true` if standard license text will be grouped in the report " +
+                "appendix.</li>" +
+                "<li>`includeStandardLicenseTexts` is `true` if the standard license text will be displayed " +
+                "for components with no license files.</li>" +
+                "<li>`includeSonatypeSpecialLicenses` is `true` if Sonatype Special Licenses (e.g. " +
+                "Generic-Copyleft-Clause, Generic-Liberal-Clause, See-License-Clause, Identity-Clause etc.) " +
+                "will be included in the report.</li>" +
+                "<li>`lastUpdatedAt` indicates the time the template was last updated.</li>" +
+                "<li>`includeInnerSource` is `true` if InnerSource components will be included in the " +
+                "report.</li>" +
+                "</ul>",
+            useReturnTypeSchema = true)
+      })
   public List<AttributionReportTemplateDTO> getAllAttributionReportTemplates() {
     return attributionReportService.getAllAttributionReportTemplates();
   }
@@ -140,9 +138,9 @@ public class ApiLegalAttributionReportTemplateResourceV2
       "\n" +
       "Permissions required: Review Legal Obligations For Components Licenses for the root organization",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the details of the template created or updated.",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the details of the template created or updated.",
+            useReturnTypeSchema = true)
       })
   public AttributionReportTemplateDTO saveAttributionReportTemplate(
       @RequestBody(description = "Specify the details for the template as:" +
@@ -162,8 +160,7 @@ public class ApiLegalAttributionReportTemplateResourceV2
           "included in the report.</li>" +
           "<li>`includeInnerSource` is `true` if InnerSource components will be included in the " +
           "report.</li>" +
-          "</ul>")
-      AttributionReportTemplateDTO reportTemplateDTO)
+          "</ul>") AttributionReportTemplateDTO reportTemplateDTO)
   {
     if (reportTemplateDTO == null) {
       throw new BadRequestException("No report template provided");
@@ -197,12 +194,11 @@ public class ApiLegalAttributionReportTemplateResourceV2
       "\n" +
       "Permissions required: Review Legal Obligations For Components Licenses for the root organization",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "Template deleted successfully.")
+        @ApiResponse(responseCode = "204",
+            description = "Template deleted successfully.")
       })
   public void deleteAttributionReportTemplate(
-      @Parameter(description = "Enter the template id for the template to be deleted.")
-      @PathParam("id") String id)
+      @Parameter(description = "Enter the template id for the template to be deleted.") @PathParam("id") String id)
   {
     if (attributionReportService.getAttributionReportTemplateById_NoAuthz(id).isPresent()) {
       attributionReportService.deleteAttributionReportTemplateById(id);

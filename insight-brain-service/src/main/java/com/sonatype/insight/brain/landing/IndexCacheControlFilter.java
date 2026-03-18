@@ -20,7 +20,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 /**
  * Adds cache control headers to the response to ensure web browsers always fetch a fresh copy of the index page (assets
  * referenced by the index page use versioned URIs to bust caching when needed).
- * 
+ *
  * @since 1.11
  */
 @Named
@@ -38,8 +38,10 @@ public class IndexCacheControlFilter
   }
 
   @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
-      ServletException
+  public void doFilter(
+      ServletRequest request,
+      ServletResponse response,
+      FilterChain chain) throws IOException, ServletException
   {
     HttpServletResponse resp = (HttpServletResponse) response;
     resp.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, max-age=0, must-revalidate");

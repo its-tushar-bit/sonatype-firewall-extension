@@ -18,8 +18,9 @@ public class OnboardingOrganization
 
   public final ApiCompositeSourceControlDTO sourceControl;
 
-  public OnboardingOrganization(final Organization organization,
-                                final ApiCompositeSourceControlDTO compositeSourceControl)
+  public OnboardingOrganization(
+      final Organization organization,
+      final ApiCompositeSourceControlDTO compositeSourceControl)
   {
     this.organization = organization;
     this.sourceControl = compositeSourceControl;

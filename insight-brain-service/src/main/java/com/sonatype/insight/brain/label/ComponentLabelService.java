@@ -36,10 +36,11 @@ public class ComponentLabelService
   private final IdUtils idUtils;
 
   @Inject
-  public ComponentLabelService(final LabelDAO labelDAO,
-                               final ComponentLabelDAO componentLabelDAO,
-                               final OwnerDAO ownerDAO,
-                               final IdUtils idUtils)
+  public ComponentLabelService(
+      final LabelDAO labelDAO,
+      final ComponentLabelDAO componentLabelDAO,
+      final OwnerDAO ownerDAO,
+      final IdUtils idUtils)
   {
     this.labelDAO = labelDAO;
     this.componentLabelDAO = componentLabelDAO;
@@ -52,9 +53,10 @@ public class ComponentLabelService
    * entities and public IDs as opposed to internal IDs to facilitate follow-up REST requests like deletion.
    */
   @Authorize(permission = Permission.READ)
-  public AppliedLabels getComponentLabels(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                          @AuthzContext(AuthzContext.Key.ID) String ownerId,
-                                          final String hash)
+  public AppliedLabels getComponentLabels(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      final String hash)
   {
     return getComponentLabelsNoAuth(ownerType, ownerId, hash);
   }
@@ -77,10 +79,11 @@ public class ComponentLabelService
    * Assigns an existing label to a component identified by hash in a given context (org/app).
    */
   @Authorize(permission = Permission.WRITE)
-  public void setComponentLabel(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                @AuthzContext(AuthzContext.Key.ID) final String ownerId,
-                                final String hash,
-                                Label label)
+  public void setComponentLabel(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      final String hash,
+      Label label)
   {
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     label = labelDAO.getByIdNotNull(label.getId());
@@ -93,10 +96,11 @@ public class ComponentLabelService
    * Deletes the component label given by the owning context and label id.
    */
   @Authorize(permission = Permission.WRITE)
-  public void deleteComponentLabel(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                   @AuthzContext(AuthzContext.Key.ID) final String ownerId,
-                                   final String hash,
-                                   final String labelId)
+  public void deleteComponentLabel(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      final String hash,
+      final String labelId)
   {
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     Label label = labelDAO.getByIdNotNull(labelId);

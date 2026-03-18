@@ -530,7 +530,7 @@ public class RepositoryMatcher
     summaryJson.put(FIELD_KNOWN_ARTIFACT_COUNT, knownArtifactCount);
   }
 
-  //visible for testing
+  // visible for testing
   Map<ComponentIdentifier, ObjectNode> identify(final ArtifactoryConnection connection, final JsonNode bomJson) {
     Map<ComponentIdentifier, ObjectNode> identifiedComponents = new HashMap<>();
     if (connection != null) {
@@ -539,7 +539,7 @@ public class RepositoryMatcher
 
         Set<String> nodesToRemove = matchWithRepository(identifiedComponents, connection, filteredNodes);
 
-        //Remove nodes that only have sha256 (not coordinates) and were not matched by BFS
+        // Remove nodes that only have sha256 (not coordinates) and were not matched by BFS
         removeUnknownComponentsWithSha256(bomJson, nodesToRemove);
       }
     }
@@ -684,7 +684,8 @@ public class RepositoryMatcher
     Integer aqlBatchSize = configuration.getBfsArtifactoryAqlBatchSize();
 
     for (Entry<String, ArtifactoryChecksumSearchResults> entry : artifactoryClient.searchByChecksumsUsingAQL(
-        ChecksumType.SHA256, sha256s, repositories, aqlBatchSize).entrySet()) {
+        ChecksumType.SHA256, sha256s, repositories, aqlBatchSize).entrySet())
+    {
       ComponentIdentifier componentIdentifier = resolveComponentIdentifier(entry.getValue());
       if (componentIdentifier != null) {
         result.put(entry.getKey(), componentIdentifier);
@@ -731,7 +732,7 @@ public class RepositoryMatcher
     return null;
   }
 
-  //visible for testing
+  // visible for testing
   static ComponentIdentifier resolveComponentIdentifierFromUri(final String uriString) {
     if (StringUtils.isBlank(uriString)) {
       return null;
@@ -794,7 +795,8 @@ public class RepositoryMatcher
       if (hasSha256(bomObjectNode) &&
           notProprietary(bomObjectNode) &&
           (hasMatchableStatus(bomObjectNode) &&
-              isOfMatchableFileType(bomObjectNode) || isSbomComponentWithoutSupportedCoordinates(bomObjectNode))) {
+              isOfMatchableFileType(bomObjectNode) || isSbomComponentWithoutSupportedCoordinates(bomObjectNode)))
+      {
         filteredNodes.add(bomObjectNode);
       }
     }

@@ -67,13 +67,15 @@ public class DuplicateAwareThirdPartyFileCoordinatePersister
   /**
    * Persists the given component. If a component with the same hash and componentRef already exists, it merges or
    * overrides depending on the dependency type of the component to save (picks the higher dependency type).
+   *
    * @param tx
    * @param componentToSave
    * @return the persisted component that was saved (either the existing one or the new one after the merge)
    */
   public ThirdPartyFileCoordinate persist(TransactionContext tx, ThirdPartyFileCoordinate componentToSave) {
     if (componentToSave == null || componentToSave.getHash() == null ||
-        componentToSave.getComponentRef() == null) {
+        componentToSave.getComponentRef() == null)
+    {
       throw new IllegalArgumentException("Cannot persist null or incomplete ThirdPartyFileCoordinate");
     }
 
@@ -84,11 +86,11 @@ public class DuplicateAwareThirdPartyFileCoordinatePersister
       ThirdPartyFileCoordinate existingComponent = existing.get(0);
       if (existing.size() > 1) {
         log.debug("Multiple ThirdPartyFileCoordinates found for thirdPartyFileId {}, hash {}, and componentRef {}. " +
-                "Merging with the first one having id {}",
+            "Merging with the first one having id {}",
             componentToSave.getThirdPartyFileId(), componentToSave.getHash(),
             componentToSave.getComponentRef(), existingComponent.getId());
       }
-      //merge with existing component
+      // merge with existing component
       merge(componentToSave, existingComponent);
       thirdPartyFileCoordinateDao.update(tx, existingComponent);
       return existingComponent;
@@ -113,11 +115,11 @@ public class DuplicateAwareThirdPartyFileCoordinatePersister
       final ThirdPartyFileCoordinate existing)
   {
     if (shouldOverrideBasedOnDependencyType(toSave, existing)) {
-      //replace existing with toSave
+      // replace existing with toSave
       existing.override(toSave);
     }
     else {
-      //keep existing and merge
+      // keep existing and merge
       existing.merge(toSave);
     }
   }
@@ -137,9 +139,9 @@ public class DuplicateAwareThirdPartyFileCoordinatePersister
   }
 
   /*
-  * Given a list of "componentRefs", this method will consolidate all component, license and vulnerability data
-  * under a single third party file coordinate and then delete any duplicate components and associated data
-  */
+   * Given a list of "componentRefs", this method will consolidate all component, license and vulnerability data
+   * under a single third party file coordinate and then delete any duplicate components and associated data
+   */
   public Optional<String> consolidate(final List<String> componentRefs, final String thirdPartyFileId) {
     Optional<String> result = Optional.empty();
     try (TransactionContext tx = thirdPartyFileCoordinateDao.createTransactionContext()) {
@@ -150,7 +152,7 @@ public class DuplicateAwareThirdPartyFileCoordinatePersister
         log.debug("No file coordinate records were found which had component-refs {}", componentRefs);
       }
       else if (CollectionUtils.size(byComponentRefs) == 1) {
-        //nothing to do. there's only 1 record in database
+        // nothing to do. there's only 1 record in database
         result = Optional.of(byComponentRefs.get(0).getComponentRef());
       }
       else {
@@ -176,11 +178,12 @@ public class DuplicateAwareThirdPartyFileCoordinatePersister
       ThirdPartyFileCoordinate toKeep)
   {
     Map<String, ThirdPartyCoordinateSecurity> keepVulns =
-        thirdPartyCoordinateSecurityDao.getByFileCoordinateId(tx, toKeep.getId()).stream()
+        thirdPartyCoordinateSecurityDao.getByFileCoordinateId(tx, toKeep.getId())
+            .stream()
             .collect(Collectors.toMap(ThirdPartyCoordinateSecurity::getRefId, v -> v));
     thirdPartyCoordinateSecurityDao.getByFileCoordinateId(tx, toMerge.getId()).forEach(vMerge -> {
       if (!keepVulns.containsKey(vMerge.getRefId())) {
-        //this should merge the vulnerability along with any associated vex records
+        // this should merge the vulnerability along with any associated vex records
         vMerge.setFileCoordinateId(toKeep.getId());
         thirdPartyCoordinateSecurityDao.update(tx, vMerge);
       }
@@ -194,7 +197,7 @@ public class DuplicateAwareThirdPartyFileCoordinatePersister
               thirdPartyVulnerabilityExploitabilityExchangeDao.getByCoordinateSecurityIdAndRefId(tx, vMerge.getId(),
                   vMerge.getRefId());
           if (vexMerge != null) {
-            //we only merge the vex record if the keep record doesn't have one and the merge record does
+            // we only merge the vex record if the keep record doesn't have one and the merge record does
             vexMerge.setCoordinateSecurityId(vKeep.getId());
             thirdPartyVulnerabilityExploitabilityExchangeDao.update(tx, vexMerge);
           }
@@ -205,8 +208,10 @@ public class DuplicateAwareThirdPartyFileCoordinatePersister
 
   private void mergeLicenses(TransactionContext tx, ThirdPartyFileCoordinate toMerge, ThirdPartyFileCoordinate toKeep) {
     Map<String, ThirdPartyCoordinateLicense> keepLicenses =
-        thirdPartyCoordinateLicenseDao.getByFileCoordinateId(tx, toKeep.getId()).stream().collect(Collectors.toMap(
-            ThirdPartyCoordinateLicense::getLicenseId, l -> l));
+        thirdPartyCoordinateLicenseDao.getByFileCoordinateId(tx, toKeep.getId())
+            .stream()
+            .collect(Collectors.toMap(
+                ThirdPartyCoordinateLicense::getLicenseId, l -> l));
     thirdPartyCoordinateLicenseDao.getByFileCoordinateId(tx, toMerge.getId()).forEach(mergeLicense -> {
       if (!keepLicenses.containsKey(mergeLicense.getLicenseId())) {
         mergeLicense.setFileCoordinateId(toKeep.getId());

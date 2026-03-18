@@ -43,20 +43,22 @@ public class LicenseOverride
     setId(internal.getId());
   }
 
-  public LicenseOverride(String ownerId,
-                         ComponentIdentifier componentIdentifier,
-                         LicenseOverrideStatus status,
-                         String licenseId,
-                         String comment)
+  public LicenseOverride(
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      LicenseOverrideStatus status,
+      String licenseId,
+      String comment)
   {
     this(ownerId, componentIdentifier, status, licenseId != null ? Collections.singleton(licenseId) : null, comment);
   }
 
-  public LicenseOverride(String ownerId,
-                         ComponentIdentifier componentIdentifier,
-                         LicenseOverrideStatus status,
-                         Set<String> licenseIds,
-                         String comment)
+  public LicenseOverride(
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      LicenseOverrideStatus status,
+      Set<String> licenseIds,
+      String comment)
   {
     this.ownerId = ownerId;
     this.componentIdentifier = componentIdentifier;

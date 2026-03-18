@@ -19,7 +19,7 @@ import com.sonatype.insight.model.HasStringId;
 
 /**
  * Details about a component in a repository.
- * 
+ *
  * @since 1.17
  */
 @Entity
@@ -74,14 +74,15 @@ public class RepositoryComponent
   public RepositoryComponent() {
   }
 
-  public RepositoryComponent(String repositoryId,
-                             String pathname,
-                             Date time,
-                             String hash,
-                             ComponentIdentifier componentIdentifier,
-                             String matchStateId,
-                             String identificationSourceId,
-                             Date lastEvaluationTime)
+  public RepositoryComponent(
+      String repositoryId,
+      String pathname,
+      Date time,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      String matchStateId,
+      String identificationSourceId,
+      Date lastEvaluationTime)
   {
     this.repositoryId = repositoryId;
     this.pathname = pathname;

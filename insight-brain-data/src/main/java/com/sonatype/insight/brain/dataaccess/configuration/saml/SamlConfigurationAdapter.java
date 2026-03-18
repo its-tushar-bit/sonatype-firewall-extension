@@ -59,8 +59,9 @@ public class SamlConfigurationAdapter
       return null;
     }
 
-    if (samlConfiguration.getIdentityProviderName().length() >
-        SamlConfiguration.IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH) {
+    if (samlConfiguration.getIdentityProviderName()
+        .length() > SamlConfiguration.IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH)
+    {
       throw new InvalidNameException(
           "Identity provider name must be " + SamlConfiguration.IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH +
               " characters or less.");
@@ -78,7 +79,8 @@ public class SamlConfigurationAdapter
       final SamlConfiguration samlConfiguration)
   {
     try (ByteArrayInputStream keystoreInputStream = new ByteArrayInputStream(
-        samlConfigurationInternal.getKeyStoreBytes())) {
+        samlConfigurationInternal.getKeyStoreBytes()))
+    {
       KeyStore keyStore = KeyStoreFactory.createKeyStore();
       char[] keyStorePassword =
           samlPasswordFactory.decryptPassword(samlConfigurationInternal.getKeyStorePasswordObfuscated());

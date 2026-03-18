@@ -42,4 +42,3 @@ public class ChangeApplicationIdDialog
     return child(FOOTER_SELECTOR, ".nx-btn.nx-btn--primary");
   }
 }
-

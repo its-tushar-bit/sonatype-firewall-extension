@@ -65,8 +65,7 @@ public class DatabaseMigrationsTest
   @Test
   @H2DiskTest(
       suppressMigrations = true,
-      copyExistingDatabase = "DatabaseMigrationsTest/testMigrate_ByEnvironmentVariable"
-  )
+      copyExistingDatabase = "DatabaseMigrationsTest/testMigrate_ByEnvironmentVariable")
   @Category(SlowTest.class)
   public void testMigrate_MigrationDisabled_ByEnvironmentVariable() throws Exception {
     environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "false");
@@ -81,8 +80,7 @@ public class DatabaseMigrationsTest
   @Test
   @H2DiskTest(
       suppressMigrations = true,
-      copyExistingDatabase = "DatabaseMigrationsTest/testMigrate_ByEnvironmentVariable"
-  )
+      copyExistingDatabase = "DatabaseMigrationsTest/testMigrate_ByEnvironmentVariable")
   @Category(SlowTest.class)
   public void testMigrate_ForceEnableMigration_OverridesEnvironmentVariable() {
     try {
@@ -104,8 +102,7 @@ public class DatabaseMigrationsTest
   @Test
   @H2DiskTest(
       suppressMigrations = true,
-      copyExistingDatabase = "DatabaseMigrationsTest/testMigrate_ByEnvironmentVariable"
-  )
+      copyExistingDatabase = "DatabaseMigrationsTest/testMigrate_ByEnvironmentVariable")
   @Category(SlowTest.class)
   public void testMigrate_MigrationEnabled_ByEnvironmentVariable() {
     environmentVariables.set(DatabaseMigrations.NXIQ_SCHEMA_MIGRATION, "true");
@@ -122,8 +119,7 @@ public class DatabaseMigrationsTest
   @H2DiskTest(
       suppressMigrations = true,
       copyExistingDatabase = "DatabaseMigrationsTest/" +
-          "testMigrate_MigrationDisabled_BySystemConfigurationProperty"
-  )
+          "testMigrate_MigrationDisabled_BySystemConfigurationProperty")
   @Category(SlowTest.class)
   public void testMigrate_MigrationDisabled_BySystemConfigurationProperty() throws Exception {
     assertThat(
@@ -143,8 +139,7 @@ public class DatabaseMigrationsTest
   @H2DiskTest(
       suppressMigrations = true,
       copyExistingDatabase = "DatabaseMigrationsTest/" +
-          "testMigrate_MigrationDisabled_BySystemConfigurationProperty"
-  )
+          "testMigrate_MigrationDisabled_BySystemConfigurationProperty")
   @Category(SlowTest.class)
   public void testMigrate_ForceEnableMigration_OverridesSystemConfigurationProperty() {
     try {
@@ -170,8 +165,7 @@ public class DatabaseMigrationsTest
   @H2DiskTest(
       suppressMigrations = true,
       copyExistingDatabase = "DatabaseMigrationsTest/" +
-          "testMigrate_MigrationEnabled_BySystemConfigurationProperty"
-  )
+          "testMigrate_MigrationEnabled_BySystemConfigurationProperty")
   @Category(SlowTest.class)
   public void testMigrate_MigrationEnabled_BySystemConfigurationProperty() {
     DataSource dataSource = databaseRule.getOperationalDataStore().getDataSource();
@@ -203,8 +197,7 @@ public class DatabaseMigrationsTest
   @H2DiskTest(
       suppressMigrations = true,
       // re-use this simple test database that needs migrations
-      copyExistingDatabase = "DatabaseMigrationsTest/testMigrate_ByEnvironmentVariable"
-  )
+      copyExistingDatabase = "DatabaseMigrationsTest/testMigrate_ByEnvironmentVariable")
   @Category(SlowTest.class)
   public void testDesiredSchemaVersionUnmet() {
     DatabaseMigrations databaseMigrations = new DatabaseMigrations(databaseRule);
@@ -220,8 +213,7 @@ public class DatabaseMigrationsTest
 
   @Test
   @H2DiskTest(
-      suppressMigrations = true
-  )
+      suppressMigrations = true)
   @Category(SlowTest.class)
   public void testDesiredSchemaVersionNoSchema() {
     DatabaseMigrations databaseMigrations = new DatabaseMigrations(databaseRule);

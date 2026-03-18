@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.filter;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -77,7 +78,8 @@ public class UserFilterServiceAuthzTest
   }
 
   private void assertAdvancedLegalApplicationFilters(
-      final UserFilterDTO userFilterDTO, final String... applicationIds)
+      final UserFilterDTO userFilterDTO,
+      final String... applicationIds)
   {
     AdvancedLegalPackDashboardFilter userALPDashboardFilter =
         (AdvancedLegalPackDashboardFilter) userFilterDTO.getFilter();

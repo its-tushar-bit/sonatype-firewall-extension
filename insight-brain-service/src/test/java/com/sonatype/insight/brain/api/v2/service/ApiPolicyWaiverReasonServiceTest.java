@@ -39,7 +39,6 @@ public class ApiPolicyWaiverReasonServiceTest
         new ApiPolicyWaiverReasonDTO("19bbf1a7d591497698ab3172461d971a", "system", "Not reachable"),
         new ApiPolicyWaiverReasonDTO("3446e70e60e04676a90131f3dea9bdb5", "system", "Researching"),
         new ApiPolicyWaiverReasonDTO("c991ef95866d4903ad0c6c217ac47c07", "system", "Other"),
-        ApiPolicyWaiverReasonDTO.fromPolicyWaiverReason(additionalWaiverReason)
-    );
+        ApiPolicyWaiverReasonDTO.fromPolicyWaiverReason(additionalWaiverReason));
   }
 }

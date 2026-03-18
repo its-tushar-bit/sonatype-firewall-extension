@@ -81,16 +81,16 @@ public class UserTokenAuthcTest
   @Parameterized.Parameters(name = "setupLdap={0}, isLdapUser={1}, isInternalUser={2}, isSamlUser={3}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-        {false, false, false, false, false}, // totally unknown user, no LDAP configured
-        {true, false, false, false, false}, // totally unknown user, LDAP configured
-        {false, false, true, false, false}, // user only present in local db, no LDAP configured
-        {true, false, true, false, false}, // user only present in local db, LDAP configured
-        {true, true, false, false, false}, // user only present in LDAP
-        {true, true, true, false, false}, // user present in local db and LDAP
-        {false, false, false, true, false}, // user only present in SAML
-        {false, false, true, true, false}, // user present in local db and SAML
-        {false, false, true, false, true}, // user only present in OAuth2
-        {false, false, true, false, true} // user present in local db and OAuth2
+      {false, false, false, false, false}, // totally unknown user, no LDAP configured
+      {true, false, false, false, false}, // totally unknown user, LDAP configured
+      {false, false, true, false, false}, // user only present in local db, no LDAP configured
+      {true, false, true, false, false}, // user only present in local db, LDAP configured
+      {true, true, false, false, false}, // user only present in LDAP
+      {true, true, true, false, false}, // user present in local db and LDAP
+      {false, false, false, true, false}, // user only present in SAML
+      {false, false, true, true, false}, // user present in local db and SAML
+      {false, false, true, false, true}, // user only present in OAuth2
+      {false, false, true, false, true} // user present in local db and OAuth2
     });
   }
 

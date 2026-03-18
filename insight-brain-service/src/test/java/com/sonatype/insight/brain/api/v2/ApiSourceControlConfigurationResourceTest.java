@@ -42,8 +42,10 @@ public class ApiSourceControlConfigurationResourceTest
 
     assertResponseStatus(200, response);
     ApiSourceControlConfigurationDTO dto = response.getBody(ApiSourceControlConfigurationDTO.class);
-    assertThat(dto).usingRecursiveComparison().ignoringExpectedNullFields()
-        .ignoringFields("defaultBranchMonitoringStartTime").isEqualTo(config);
+    assertThat(dto).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
+        .ignoringFields("defaultBranchMonitoringStartTime")
+        .isEqualTo(config);
     assertThat(dto.defaultBranchMonitoringStartTime).isEqualTo(config.getDefaultBranchMonitoringStartTimeString());
   }
 
@@ -77,8 +79,10 @@ public class ApiSourceControlConfigurationResourceTest
 
     assertResponseStatus(204, response);
     SourceControlConfiguration sourceControlConfiguration = dao.get();
-    assertThat(sourceControlConfiguration).usingRecursiveComparison().ignoringExpectedNullFields()
-        .ignoringFields("defaultBranchMonitoringStartTime", "gpgPassphrase").isEqualTo(dto);
+    assertThat(sourceControlConfiguration).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
+        .ignoringFields("defaultBranchMonitoringStartTime", "gpgPassphrase")
+        .isEqualTo(dto);
     assertThat(sourceControlConfiguration.getDefaultBranchMonitoringStartTimeString()).isEqualTo(
         dto.defaultBranchMonitoringStartTime);
     assertThat(sourceControlConfiguration.getGpgPassphrase()).isNotEqualTo("some-passphrase").hasSize(46);

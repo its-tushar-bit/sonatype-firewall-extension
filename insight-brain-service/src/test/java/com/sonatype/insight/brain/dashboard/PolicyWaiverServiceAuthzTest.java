@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dashboard;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -51,7 +52,8 @@ public class PolicyWaiverServiceAuthzTest
     tempEntity.newWaiver(policy.getId(), ROOT_ORGANIZATION_ID);
 
     risksFilterDTOBuilder = new RisksFilterDTOBuilder().withApplicationIds(Collections.emptySet())
-        .withOrganizationIds(Collections.emptySet()).withPageSize(10);
+        .withOrganizationIds(Collections.emptySet())
+        .withPageSize(10);
   }
 
   @Test
@@ -103,9 +105,10 @@ public class PolicyWaiverServiceAuthzTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
     assertThat(dashboardPolicyWaivers.hasNextPage).isFalse();
-    assertThat(dashboardPolicyWaivers.dashboardResults).extracting(dto -> dto.ownerId).containsExactlyInAnyOrder(
-        app.getId(), org.getId(), parentOrg.getId(), ROOT_ORGANIZATION_ID, REPOSITORY_CONTAINER_ID,
-        repository.getId());
+    assertThat(dashboardPolicyWaivers.dashboardResults).extracting(dto -> dto.ownerId)
+        .containsExactlyInAnyOrder(
+            app.getId(), org.getId(), parentOrg.getId(), ROOT_ORGANIZATION_ID, REPOSITORY_CONTAINER_ID,
+            repository.getId());
   }
 
   @Test
@@ -178,8 +181,9 @@ public class PolicyWaiverServiceAuthzTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
     assertThat(dashboardPolicyWaivers.hasNextPage).isFalse();
-    assertThat(dashboardPolicyWaivers.dashboardResults).extracting(dto -> dto.ownerId).containsExactlyInAnyOrder(
-        repository.getId(), REPOSITORY_CONTAINER_ID, ROOT_ORGANIZATION_ID);
+    assertThat(dashboardPolicyWaivers.dashboardResults).extracting(dto -> dto.ownerId)
+        .containsExactlyInAnyOrder(
+            repository.getId(), REPOSITORY_CONTAINER_ID, ROOT_ORGANIZATION_ID);
   }
 
   @Test
@@ -261,7 +265,7 @@ public class PolicyWaiverServiceAuthzTest
    * User with partial Repository Manager permissions sees only authorized RM waivers. This verifies the
    *
    * @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY_MANAGER) annotation correctly filters
-   * repository manager waivers based on specific RM permissions.
+   *                         repository manager waivers based on specific RM permissions.
    */
   @Test
   public void testGetDashboardPolicyWaivers_PartialRepositoryManagerPermissions() {

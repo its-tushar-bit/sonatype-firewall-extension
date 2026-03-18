@@ -63,8 +63,11 @@ public class CrowdMockServerRule
 
   public void mockGetUser(UserEntity userEntity) throws Exception {
     crowdMockServer.stubFor(get(urlPathMatching("/crowd/rest/usermanagement/1/user")).withQueryParam("username",
-        equalTo(userEntity.getName())).willReturn(
-        aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody(marshall(userEntity)).withStatus(200)));
+        equalTo(userEntity.getName()))
+        .willReturn(
+            aResponse().withHeader("X-Embedded-Crowd-Version", "version")
+                .withBody(marshall(userEntity))
+                .withStatus(200)));
   }
 
   public void mockGetUserError(String username, int status) {
@@ -84,15 +87,16 @@ public class CrowdMockServerRule
   public void mockAuthenticateUser(UserEntity userEntity) throws Exception {
     crowdMockServer.stubFor(
         post(urlPathMatching("/crowd/rest/usermanagement/1/authentication")).withQueryParam("username",
-                equalTo(userEntity.getName()))
+            equalTo(userEntity.getName()))
             .willReturn(aResponse().withHeader("X-Embedded-Crowd-Version", "version")
-                .withBody(marshall(userEntity)).withStatus(200)));
+                .withBody(marshall(userEntity))
+                .withStatus(200)));
   }
 
   public void mockAuthenticateUserError(String username, int status) {
     crowdMockServer.stubFor(
         post(urlPathMatching("/crowd/rest/usermanagement/1/authentication")).withQueryParam("username",
-                equalTo(username))
+            equalTo(username))
             .willReturn(
                 aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody("Error").withStatus(status)));
   }
@@ -109,17 +113,24 @@ public class CrowdMockServerRule
     GroupEntityList groupEntityList = new GroupEntityList(Arrays.asList(groupEntities));
     crowdMockServer.stubFor(
         get(urlPathMatching("/crowd/rest/usermanagement/1/user/group/nested")).withQueryParam("username",
-                equalTo(username)).withQueryParam("start-index", equalTo("0"))
-            .withQueryParam("max-results", equalTo("-1")).withQueryParam("expand", equalTo("group")).willReturn(
-                aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody(marshall(groupEntityList))
+            equalTo(username))
+            .withQueryParam("start-index", equalTo("0"))
+            .withQueryParam("max-results", equalTo("-1"))
+            .withQueryParam("expand", equalTo("group"))
+            .willReturn(
+                aResponse().withHeader("X-Embedded-Crowd-Version", "version")
+                    .withBody(marshall(groupEntityList))
                     .withStatus(200)));
   }
 
   public void mockGetGroupsForNestedUserError(String username, int status) {
     crowdMockServer.stubFor(
         get(urlPathMatching("/crowd/rest/usermanagement/1/user/group/nested")).withQueryParam("username",
-                equalTo(username)).withQueryParam("start-index", equalTo("0"))
-            .withQueryParam("max-results", equalTo("-1")).withQueryParam("expand", equalTo("group")).willReturn(
+            equalTo(username))
+            .withQueryParam("start-index", equalTo("0"))
+            .withQueryParam("max-results", equalTo("-1"))
+            .withQueryParam("expand", equalTo("group"))
+            .willReturn(
                 aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody("Error").withStatus(status)));
   }
 
@@ -127,17 +138,24 @@ public class CrowdMockServerRule
     UserEntityList userEntityList = new UserEntityList(Collections.emptyList());
     crowdMockServer.stubFor(
         post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type",
-                equalTo("user")).withQueryParam("start-index", equalTo("0"))
-            .withQueryParam("max-results", equalTo("1")).withQueryParam("expand", equalTo("user")).willReturn(
-                aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody(marshall(userEntityList))
+            equalTo("user"))
+            .withQueryParam("start-index", equalTo("0"))
+            .withQueryParam("max-results", equalTo("1"))
+            .withQueryParam("expand", equalTo("user"))
+            .willReturn(
+                aResponse().withHeader("X-Embedded-Crowd-Version", "version")
+                    .withBody(marshall(userEntityList))
                     .withStatus(200)));
   }
 
   public void mockTestConnectionError(int status) {
     crowdMockServer.stubFor(
         post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type",
-                equalTo("user")).withQueryParam("start-index", equalTo("0"))
-            .withQueryParam("max-results", equalTo("1")).withQueryParam("expand", equalTo("user")).willReturn(
+            equalTo("user"))
+            .withQueryParam("start-index", equalTo("0"))
+            .withQueryParam("max-results", equalTo("1"))
+            .withQueryParam("expand", equalTo("user"))
+            .willReturn(
                 aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody("Error").withStatus(status)));
   }
 
@@ -154,7 +172,8 @@ public class CrowdMockServerRule
     UserEntityList userEntityList = new UserEntityList(Arrays.asList(userEntities));
     crowdMockServer.stubFor(
         post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type", equalTo("user"))
-            .withQueryParam("start-index", equalTo("0")).withQueryParam("max-results", equalTo("-1"))
+            .withQueryParam("start-index", equalTo("0"))
+            .withQueryParam("max-results", equalTo("-1"))
             .withQueryParam("expand", equalTo("user"))
             .willReturn(
                 aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody(marshall(userEntityList))));
@@ -163,7 +182,8 @@ public class CrowdMockServerRule
   public void mockSearchUsersError(SearchRestriction searchRestriction, int status) throws Exception {
     crowdMockServer.stubFor(
         post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type", equalTo("user"))
-            .withQueryParam("start-index", equalTo("0")).withQueryParam("max-results", equalTo("-1"))
+            .withQueryParam("start-index", equalTo("0"))
+            .withQueryParam("max-results", equalTo("-1"))
             .withQueryParam("expand", equalTo("user"))
             .willReturn(
                 aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody("Error").withStatus(status)));
@@ -181,7 +201,8 @@ public class CrowdMockServerRule
     GroupEntityList groupEntityList = new GroupEntityList(Arrays.asList(groupEntities));
     crowdMockServer.stubFor(
         post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type", equalTo("group"))
-            .withQueryParam("start-index", equalTo("0")).withQueryParam("max-results", equalTo("-1"))
+            .withQueryParam("start-index", equalTo("0"))
+            .withQueryParam("max-results", equalTo("-1"))
             .withQueryParam("expand", equalTo("group"))
             .willReturn(
                 aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody(marshall(groupEntityList))));
@@ -190,7 +211,8 @@ public class CrowdMockServerRule
   public void mockSearchGroupsError(SearchRestriction searchRestriction, int status) throws Exception {
     crowdMockServer.stubFor(
         post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type", equalTo("group"))
-            .withQueryParam("start-index", equalTo("0")).withQueryParam("max-results", equalTo("-1"))
+            .withQueryParam("start-index", equalTo("0"))
+            .withQueryParam("max-results", equalTo("-1"))
             .withQueryParam("expand", equalTo("group"))
             .willReturn(
                 aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody("Error").withStatus(status)));
@@ -216,7 +238,8 @@ public class CrowdMockServerRule
             .withQueryParam("max-results", equalTo("-1"))
             .withQueryParam("expand", equalTo("user"))
             .willReturn(aResponse().withHeader("X-Embedded-Crowd-Version", "version")
-                .withBody("Error").withStatus(status)));
+                .withBody("Error")
+                .withStatus(status)));
   }
 
   @SuppressWarnings("unchecked")

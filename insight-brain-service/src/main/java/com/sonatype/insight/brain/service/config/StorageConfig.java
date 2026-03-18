@@ -92,7 +92,7 @@ public class StorageConfig
     public void setTypes(final LinkedHashSet<DataStoreType> types) {
       this.types = types;
     }
- 
+
     public void validate(final Consumer<DataStoreType> dataStoreTypeValidator) {
       if (types == null || types.size() < 2) {
         throw new ValidationException("Property 'types' must be provided and at least have 2 elements.");
@@ -183,7 +183,8 @@ public class StorageConfig
             "Property 'objectKeyPrefix' does not match the expected regex pattern " + S3_KEY_PREFIX);
       }
       if (serverSideEncryption != null &&
-          ServerSideEncryption.UNKNOWN_TO_SDK_VERSION == ServerSideEncryption.fromValue(serverSideEncryption)) {
+          ServerSideEncryption.UNKNOWN_TO_SDK_VERSION == ServerSideEncryption.fromValue(serverSideEncryption))
+      {
         throw new ValidationException(("Property 'serverSideEncryption' with value '%s' " +
             "does not correspond to a known server side encryption algorithm.").formatted(serverSideEncryption));
       }

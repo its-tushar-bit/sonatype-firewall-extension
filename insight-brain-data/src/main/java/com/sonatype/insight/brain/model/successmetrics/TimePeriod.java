@@ -11,7 +11,8 @@ import org.joda.time.Period;
 
 public enum TimePeriod
 {
-  WEEK, MONTH;
+  WEEK,
+  MONTH;
 
   private DurationFieldType getDurationFieldType() {
     if (this == WEEK) {

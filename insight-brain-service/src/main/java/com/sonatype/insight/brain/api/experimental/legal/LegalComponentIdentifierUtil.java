@@ -42,7 +42,8 @@ public class LegalComponentIdentifierUtil
   }
 
   public static ApiReportComponentDTOV2 toApiReportComponentDTOV2(
-      Component component, ApiLicenseDataDTOV2 licenseDataDTOV2)
+      Component component,
+      ApiLicenseDataDTOV2 licenseDataDTOV2)
   {
     ApiReportComponentDTOV2 componentDTO = new ApiReportComponentDTOV2();
     ComponentIdentifier componentIdentifier = component.getComponentIdentifier();

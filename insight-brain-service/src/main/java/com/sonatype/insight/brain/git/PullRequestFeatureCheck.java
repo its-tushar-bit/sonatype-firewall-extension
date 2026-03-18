@@ -44,7 +44,8 @@ public abstract class PullRequestFeatureCheck
       missingFields.add("Repository URL");
     }
     if (gitRepositoryInfo.provider != null && gitRepositoryInfo.provider.requiresUsername() &&
-        isBlank(gitRepositoryInfo.username)) {
+        isBlank(gitRepositoryInfo.username))
+    {
       missingFields.add("Username");
     }
     // Check authentication based on type - for backward compatibility, null/unknown types check token

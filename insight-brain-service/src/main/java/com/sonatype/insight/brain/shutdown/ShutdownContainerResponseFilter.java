@@ -38,8 +38,7 @@ public class ShutdownContainerResponseFilter
   @Override
   public void filter(
       final ContainerRequestContext containerRequestContext,
-      final ContainerResponseContext containerResponseContext)
-      throws IOException
+      final ContainerResponseContext containerResponseContext) throws IOException
   {
     if (shutdownHandler.isTriggered()) {
       // Override HTTP/1.1 default `keep-alive`, telling client to make new connection, which can route to new pods.

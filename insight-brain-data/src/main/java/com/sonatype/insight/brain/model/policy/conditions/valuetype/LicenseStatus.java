@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
  * We could use the @JsonFormat(shape = JsonFormat.Shape.OBJECT) annotation on the enumeration to get the same json
  * serialization, but that does not allow json de-serialization and the @JsonCreator annotation does not work with
  * enumerations.
- * 
+ *
  * @since 1.6
  */
 public class LicenseStatus

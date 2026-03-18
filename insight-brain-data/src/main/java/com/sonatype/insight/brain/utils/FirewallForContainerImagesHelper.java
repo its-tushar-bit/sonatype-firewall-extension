@@ -51,7 +51,8 @@ public class FirewallForContainerImagesHelper
         Repository relatedRepository = repositoryDAO.getById(organization.getRelatedRepositoryId());
 
         if (relatedRepository.getRepositoryType() == RepositoryType.proxy
-            && "docker".equals(relatedRepository.getFormat())) {
+            && "docker".equals(relatedRepository.getFormat()))
+        {
           return ownerDAO.getOwnerIds(relatedRepository);
         }
       }

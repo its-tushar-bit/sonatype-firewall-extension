@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.model.policy.conditions.valuetype;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -13,7 +14,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
 /**
  * Specifies the component formats supported for policy condition types.
- * 
+ *
  * It is serialized into json as key-value pairs (like: {"id":"maven","name":"maven"}), as expected by the policy UI.
  */
 public class ComponentFormat

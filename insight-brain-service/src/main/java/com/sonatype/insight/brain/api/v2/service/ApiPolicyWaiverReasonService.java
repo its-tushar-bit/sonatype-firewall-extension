@@ -21,8 +21,7 @@ public class ApiPolicyWaiverReasonService
 
   @Inject
   public ApiPolicyWaiverReasonService(
-      final PolicyWaiverReasonDAO policyWaiverReasonDAO
-  )
+      final PolicyWaiverReasonDAO policyWaiverReasonDAO)
   {
     this.policyWaiverReasonDAO = policyWaiverReasonDAO;
   }

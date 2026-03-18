@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 
 /**
  * Verifies that the process can access the databases. Actual checks are implemented in sub-classes.
- * 
+ *
  * Usage: curl -u admin:admin123 http://localhost:8071/healthcheck?pretty=true
  */
 abstract class AbstractDbOperationalCheck

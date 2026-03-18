@@ -84,4 +84,3 @@ public class ApiSuggestedVersionChangeOptionDTO
     this.isGolden = isGolden;
   }
 }
-

@@ -33,7 +33,8 @@ import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class WaivedComponentsMetricsConsolidatorTest extends AbstractComponentTest
+public class WaivedComponentsMetricsConsolidatorTest
+    extends AbstractComponentTest
 {
   @Inject
   private FirewallMetricsDAO firewallMetricsDAOTest;
@@ -58,11 +59,10 @@ public class WaivedComponentsMetricsConsolidatorTest extends AbstractComponentTe
     List<FirewallMetrics> allMetrics = firewallMetricsDAOTest.getAll();
     // Check initial data length
     assertThat(allMetrics).hasSize(5);
-    // Check a record that is  at least 1 year old
+    // Check a record that is at least 1 year old
     LocalDate overAYearOldDateStr = LocalDate.of(2019, 12, 30);
     assertThat(findMetricByDate(overAYearOldDateStr,
-        allMetrics).getMetricsDate()
-    ).isEqualTo(overAYearOldDateStr);
+        allMetrics).getMetricsDate()).isEqualTo(overAYearOldDateStr);
 
     consolidator.consolidate();
 
@@ -123,7 +123,7 @@ public class WaivedComponentsMetricsConsolidatorTest extends AbstractComponentTe
     tempEntity.newWaiver("hash4", policy1.getId(), repository1.getId(), emptyList(), "+1-year-ago-waived",
         threeDaysAgo);
 
-    LocalDate today =  LocalDate.now();
+    LocalDate today = LocalDate.now();
     FirewallMetrics metric = new FirewallMetrics(today, WAIVED_COMPONENTS, 2);
     metric.setMetricsLastUpdatedAt(tenDaysAgo);
     firewallMetricsDAOTest.insert(metric);
@@ -142,24 +142,25 @@ public class WaivedComponentsMetricsConsolidatorTest extends AbstractComponentTe
   }
 
   private FirewallMetrics findMetricByDate(
-      LocalDate needle, List<FirewallMetrics> haystack)
+      LocalDate needle,
+      List<FirewallMetrics> haystack)
   {
     List<FirewallMetrics> found = haystack.stream()
-        .filter( fm -> fm.getMetricsDate().isEqual(needle))
+        .filter(fm -> fm.getMetricsDate().isEqual(needle))
         .collect(Collectors.toList());
     return !found.isEmpty() ? found.get(0) : null;
   }
 
   private void initTestDates() {
-    Date today =  DateUtil.now();
+    Date today = DateUtil.now();
     Date lastYearFromToday = DateUtils.addMonths(today, -12);
 
     Date date2019 = new GregorianCalendar(2019, Calendar.DECEMBER, 30, 18,
-        23, 12 ).getTime();
+        23, 12).getTime();
     Date date2015 = new GregorianCalendar(2015, Calendar.DECEMBER, 30, 18,
-        23, 12 ).getTime();
+        23, 12).getTime();
     Date date2017 = new GregorianCalendar(2017, Calendar.DECEMBER, 30, 18,
-        23, 12 ).getTime();
+        23, 12).getTime();
     testLastUpdateDates.add(date2019);
     testLastUpdateDates.add(today);
     testLastUpdateDates.add(lastYearFromToday);
@@ -168,12 +169,11 @@ public class WaivedComponentsMetricsConsolidatorTest extends AbstractComponentTe
   }
 
   private void initTestData() {
-    testLastUpdateDates.forEach( date -> tempEntity.newFirewallMetrics(
+    testLastUpdateDates.forEach(date -> tempEntity.newFirewallMetrics(
         WAIVED_COMPONENTS,
-        testLastUpdateDates.indexOf(date) + 1 ,
+        testLastUpdateDates.indexOf(date) + 1,
         date,
-        toLocalDate(date)
-    ));
+        toLocalDate(date)));
   }
 
   private void createRepositories() {

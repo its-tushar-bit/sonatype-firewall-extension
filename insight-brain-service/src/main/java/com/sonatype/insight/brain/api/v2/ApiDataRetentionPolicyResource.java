@@ -43,8 +43,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
     description = "Set policies for automatic purging of obsolete application " +
         "and Success Metrics reports. " +
         "<p>" +
-        "Note that IQ Server has a preset limit of purging 5000 reports in one execution of its report purging job."
-)
+        "Note that IQ Server has a preset limit of purging 5000 reports in one execution of its report purging job.")
 @ProductLicenseEnforcementPoint(LicensedFeature.DATA_RETENTION)
 public class ApiDataRetentionPolicyResource
 {
@@ -70,24 +69,22 @@ public class ApiDataRetentionPolicyResource
           "<p>" +
           "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description =
-                  "The response JSON contains the policy settings for both applicationReports and successMetrics. " +
-                      "Policy settings for application reports are shown for each stage of development. " +
-                      "<ul>" +
-                      "<li>inheritPolicy IS a boolean flag indicating whether the policy is inherited from a " +
-                      "parent organization.</li>" +
-                      "<li>enablePurging IS a boolean flag indicating if automatic purging is enabled or disabled.</li>"
-                      + "<li>maxCount IS the maximum no. of reports to retain.</li>" +
-                      "<li>maxAge IS the maximum age that a report is allowed to reach before it is purged. " +
-                      "Possible values are days, weeks, months, years.</li>" +
-                      "</ul>" +
-                      "The latest application report is always retained, regardless of its age.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response JSON contains the policy settings for both applicationReports and successMetrics. "
+                +
+                "Policy settings for application reports are shown for each stage of development. " +
+                "<ul>" +
+                "<li>inheritPolicy IS a boolean flag indicating whether the policy is inherited from a " +
+                "parent organization.</li>" +
+                "<li>enablePurging IS a boolean flag indicating if automatic purging is enabled or disabled.</li>"
+                + "<li>maxCount IS the maximum no. of reports to retain.</li>" +
+                "<li>maxAge IS the maximum age that a report is allowed to reach before it is purged. " +
+                "Possible values are days, weeks, months, years.</li>" +
+                "</ul>" +
+                "The latest application report is always retained, regardless of its age.",
+            useReturnTypeSchema = true)
+      })
   public ApiDataRetentionPoliciesDTO getDataRetentionPolicies(
       @Parameter(description = "The organizationId assigned by IQ Server. Use the organization REST API to " +
           "retrieve the organizationId.", required = true) @PathParam("organizationId") String organizationId)
@@ -107,24 +104,22 @@ public class ApiDataRetentionPolicyResource
           "<p>" +
           "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description =
-                  "The response JSON contains the policy settings for both applicationReports and successMetrics. " +
-                      "Policy settings for application reports are shown for each stage of development. " +
-                      "<ul>" +
-                      "<li>inheritPolicy IS a boolean flag indicating whether the policy is inherited from a " +
-                      "parent organization.</li>" +
-                      "<li>enablePurging IS a boolean flag indicating if automatic purging is enabled or disabled.</li>"
-                      + "<li>maxCount IS the maximum no. of reports to retain.</li>" +
-                      "<li>maxAge IS the maximum age that a report is allowed to reach before it is purged. " +
-                      "Possible values are days, weeks, months, years.</li>" +
-                      "</ul>" +
-                      "The latest application report is always retained, regardless of its age.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response JSON contains the policy settings for both applicationReports and successMetrics. "
+                +
+                "Policy settings for application reports are shown for each stage of development. " +
+                "<ul>" +
+                "<li>inheritPolicy IS a boolean flag indicating whether the policy is inherited from a " +
+                "parent organization.</li>" +
+                "<li>enablePurging IS a boolean flag indicating if automatic purging is enabled or disabled.</li>"
+                + "<li>maxCount IS the maximum no. of reports to retain.</li>" +
+                "<li>maxAge IS the maximum age that a report is allowed to reach before it is purged. " +
+                "Possible values are days, weeks, months, years.</li>" +
+                "</ul>" +
+                "The latest application report is always retained, regardless of its age.",
+            useReturnTypeSchema = true)
+      })
   public ApiDataRetentionPoliciesDTO getParentDataRetentionPolicies(
       @Parameter(description = "The organizationId assigned by IQ Server. Use the organization REST API to " +
           "retrieve the parent organizationId",
@@ -145,41 +140,40 @@ public class ApiDataRetentionPolicyResource
           "<p>" +
           "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The data retention policy has been set successfully.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The data retention policy has been set successfully.",
+            useReturnTypeSchema = true)
+      })
   public void setDataRetentionPolicies(
-      @Parameter(description =
-          "The organizationId for the organization you want to set the data retention policy. Use the " +
+      @Parameter(
+          description = "The organizationId for the organization you want to set the data retention policy. Use the " +
               "organization REST API to " +
-              "retrieve the organizationId.", required = true) @PathParam("organizationId") String organizationId,
+              "retrieve the organizationId.",
+          required = true) @PathParam("organizationId") String organizationId,
       @RequestBody(
-          description =
-              "The request JSON should include the retention policy settings for both application reports and" +
-                  " success metrics." +
-                  "\n" +
-                  "\n" +
-                  "Policy settings for application reports can be specified for each stage of " +
-                  "development represented " +
-                  "in the example below by additionalProp1. " +
-                  "\n" +
-                  "Example values for additionalProp1 are develop, build, stage-release, release, operate &" +
-                  " continuous monitoring. " +
-                  "For application reports created during continuous monitoring use the key continuous-monitoring " +
-                  "instead of the stage name. " +
-                  "<ul>" +
-                  "<li>inheritPolicy IS a boolean flag indicating whether the policy is inherited from a " +
-                  "parent organization.</li>" +
-                  "<li>enablePurging IS a boolean flag indicating enabled or disabled status for " +
-                  "automatic purging. </li>" +
-                  "<li>maxCount IS the maximum no. of reports to retain.</li>" +
-                  "<li>maxAge IS the maximum age that a report is allowed to reach before it is purged. " +
-                  "Possible values are days, weeks, months, years.</li>" +
-                  "</ul>",
+          description = "The request JSON should include the retention policy settings for both application reports and"
+              +
+              " success metrics." +
+              "\n" +
+              "\n" +
+              "Policy settings for application reports can be specified for each stage of " +
+              "development represented " +
+              "in the example below by additionalProp1. " +
+              "\n" +
+              "Example values for additionalProp1 are develop, build, stage-release, release, operate &" +
+              " continuous monitoring. " +
+              "For application reports created during continuous monitoring use the key continuous-monitoring " +
+              "instead of the stage name. " +
+              "<ul>" +
+              "<li>inheritPolicy IS a boolean flag indicating whether the policy is inherited from a " +
+              "parent organization.</li>" +
+              "<li>enablePurging IS a boolean flag indicating enabled or disabled status for " +
+              "automatic purging. </li>" +
+              "<li>maxCount IS the maximum no. of reports to retain.</li>" +
+              "<li>maxAge IS the maximum age that a report is allowed to reach before it is purged. " +
+              "Possible values are days, weeks, months, years.</li>" +
+              "</ul>",
           required = true) ApiDataRetentionPoliciesDTO dto)
   {
     AuditData.get().setData("dataRetentionPolicies", dto);

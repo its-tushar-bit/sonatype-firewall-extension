@@ -19,7 +19,8 @@ import com.sonatype.insight.brain.testing.AbstractBaseIntegrationTest;
  * </p>
  *
  * <p>
- * Background: In late 2023 the database layer received a large overhaul (<a href="https://sonatype.atlassian.net/browse/CLM-26741">see CLM-26741</a>)
+ * Background: In late 2023 the database layer received a large overhaul
+ * (<a href="https://sonatype.atlassian.net/browse/CLM-26741">see CLM-26741</a>)
  * with the goal to make the database classes easier to use and extend for the future. Two of the primary goals were to
  * get the DAO classes managed by Guice, and to remove some of the heavy use of statics in the code (statics are by
  * their nature not easily extensible). As part of the effort to remove statics some areas usage was quite extensive

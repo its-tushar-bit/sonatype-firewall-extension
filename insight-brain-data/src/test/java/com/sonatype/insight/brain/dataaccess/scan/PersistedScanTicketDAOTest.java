@@ -57,7 +57,8 @@ public class PersistedScanTicketDAOTest
     dao.insert(persistedScanTicket2);
 
     assertThat(dao.getAll()).extracting(PersistedScanTicket::getId)
-        .doesNotContainNull().containsExactlyInAnyOrder(persistedScanTicket1.getId(), persistedScanTicket2.getId());
+        .doesNotContainNull()
+        .containsExactlyInAnyOrder(persistedScanTicket1.getId(), persistedScanTicket2.getId());
   }
 
   @Test

@@ -60,7 +60,7 @@ public class TelemetryIdMultiTenantTest
   @Test
   public void testGetClusterId_storedPerTenant() {
     // given: different DB configs for different tenants (which isn't realistic in our saas env, but we're simply
-    //        trying to prove they are stored independently, regardless)
+    // trying to prove they are stored independently, regardless)
     final var dbConfig1 = createDatabaseConfig("host1", 5432, "db1");
     final var dbConfig2 = createDatabaseConfig("host2", 9092, "db2");
     when(config.getDatabase()).thenReturn(dbConfig1, dbConfig2);

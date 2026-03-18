@@ -50,7 +50,7 @@ public class ReverseProxyAuthenticationConfigurationDAO
 
   // Visible for testing
   static final String INVALID_LOGOUT_URL_ERROR_MSG = "The logout URL is invalid.";
-  
+
   public static final String NOT_FOUND_ERROR_MSG = "Reverse proxy authentication not configured.";
 
   @Inject

@@ -22,17 +22,18 @@ import com.sonatype.insight.model.HasStringId;
 
 /**
  * Class used only for persistence of policies to the SQL database.
- * 
+ *
  * It provides conversions from/to {@link Policy}. The Policy class is not mapped directly to the database because its
  * structure does not match the database table structure. The Policy class has fields for policy constraints, actions,
  * notifications, while PolicyInternal stores all that in one content field in json format (mapped to CLOB in the
  * database).
- * 
+ *
  * @since 1.9
  */
 @Entity
 @Table(name = "policy")
-public class PolicyInternal extends Nameable
+public class PolicyInternal
+    extends Nameable
     implements HasStringId
 {
   @Id

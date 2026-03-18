@@ -44,13 +44,13 @@ public class PullRequestDefaultBranchPolicyEvaluationResolver
   }
 
   /**
-   * Finds the most recent policy evaluation (with respect to commit history) for the given application.  If there are
-   * multiple evaluations for the same commit we prefer a build stage policy eval, if one is available.  Next we'd
-   * consider a source stage policy eval.  If neither exists we will perform a scan and a policy evaluation against
+   * Finds the most recent policy evaluation (with respect to commit history) for the given application. If there are
+   * multiple evaluations for the same commit we prefer a build stage policy eval, if one is available. Next we'd
+   * consider a source stage policy eval. If neither exists we will perform a scan and a policy evaluation against
    * the source stage (IFF the most recent eval was not externally triggered).
    *
    * One hiccup that currently exists is that we don't currently distinguish between stages with respect to the
-   * default branch commit history.  This means we have a little extra work to do to sort out which policy evaluation
+   * default branch commit history. This means we have a little extra work to do to sort out which policy evaluation
    * to use for the default branch.
    */
   public PolicyEvaluation getOrPerformDefaultBranchPolicyEvaluation(

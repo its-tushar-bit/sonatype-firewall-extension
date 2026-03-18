@@ -49,13 +49,14 @@ public class CSVMessageBodyWriter
   }
 
   @Override
-  public void writeTo(Object obj,
-                      Class<?> type,
-                      Type genericType,
-                      Annotation[] annotations,
-                      MediaType mediaType,
-                      MultivaluedMap<String,Object> httpHeaders,
-                      OutputStream entityStream) throws IOException
+  public void writeTo(
+      Object obj,
+      Class<?> type,
+      Type genericType,
+      Annotation[] annotations,
+      MediaType mediaType,
+      MultivaluedMap<String, Object> httpHeaders,
+      OutputStream entityStream) throws IOException
   {
     JavaType javaType = csvMapper.getTypeFactory().constructType(genericType);
 

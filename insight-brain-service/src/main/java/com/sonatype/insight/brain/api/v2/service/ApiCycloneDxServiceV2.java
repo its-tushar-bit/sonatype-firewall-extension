@@ -209,8 +209,8 @@ public class ApiCycloneDxServiceV2
 
       Map<String, Map<String, String>> components = createBomComponents(version, data.components, bom);
 
-      //New vulnerability information is available from CycloneDx 1.4
-      if (CollectionUtils.isNotEmpty(bom.getComponents()) &&  version.compareTo(Version.VERSION_14) >= 0) {
+      // New vulnerability information is available from CycloneDx 1.4
+      if (CollectionUtils.isNotEmpty(bom.getComponents()) && version.compareTo(Version.VERSION_14) >= 0) {
         bom.setVulnerabilities(getVulnerabilityInformation(data.components, components, version));
       }
 
@@ -244,8 +244,7 @@ public class ApiCycloneDxServiceV2
       final Version version,
       final Application application,
       final String acceptType,
-      final Bom bom)
-      throws IOException, GeneratorException
+      final Bom bom) throws IOException, GeneratorException
   {
     Parser parser;
     String content;
@@ -318,7 +317,7 @@ public class ApiCycloneDxServiceV2
         if (parentPurl != null) {
           String parentBomRef = createNewBomRef();
           Component parentComponent = createComponent(parentPurl, Type.APPLICATION, parentBomRef);
-          //Including metadata component also in the components list to generate the dependency tree correctly.
+          // Including metadata component also in the components list to generate the dependency tree correctly.
           // the fake hash below is not used anywhere, but just to complete the Map.
           components.put(parentPurl, ImmutableMap.of("fake-meta-component-hash", parentBomRef));
           metadata.setComponent(parentComponent);
@@ -350,10 +349,13 @@ public class ApiCycloneDxServiceV2
     // Note that we do want not persist this parent purl back in the dependencies.json because
     // it is done here only to get the sbom dependency tree.
     try {
-      String purl = PackageURLBuilder.aPackageURL().withType(StandardTypes.GENERIC)
+      String purl = PackageURLBuilder.aPackageURL()
+          .withType(StandardTypes.GENERIC)
           .withNamespace(SONATYPE_NAMESPACE)
           .withName(IQ_APP_PREFIX + applicationName)
-          .withVersion(scanId).build().canonicalize();
+          .withVersion(scanId)
+          .build()
+          .canonicalize();
       dependenciesData.setPackageUrl(purl);
       return purl;
     }
@@ -409,7 +411,7 @@ public class ApiCycloneDxServiceV2
     return hashToRefs.entrySet().iterator().next().getValue();
   }
 
-  //Visible for testing
+  // Visible for testing
   List<Vulnerability> getVulnerabilityInformation(
       final List<ApiReportComponentDTOV2> componentInfo,
       final Map<String, Map<String, String>> componentIdentity,
@@ -419,7 +421,8 @@ public class ApiCycloneDxServiceV2
     for (ApiReportComponentDTOV2 component : componentInfo) {
       if (component.securityData != null &&
           !MatchState.UNKNOWN.getId().equals(component.matchState) &&
-          CollectionUtils.isNotEmpty(component.securityData.securityIssues)) {
+          CollectionUtils.isNotEmpty(component.securityData.securityIssues))
+      {
 
         String purl = component.packageUrl;
 
@@ -582,7 +585,7 @@ public class ApiCycloneDxServiceV2
       final List<ApiReportComponentDTOV2> reportComponents,
       final Bom bom)
   {
-    //Map that has the purls and hashes and bom ref for each component
+    // Map that has the purls and hashes and bom ref for each component
     Map<String, Map<String, String>> components = new HashMap<>();
     for (ApiReportComponentDTOV2 reportComponent : reportComponents) {
       if (!MatchState.UNKNOWN.getId().equals(reportComponent.matchState)) {
@@ -604,15 +607,18 @@ public class ApiCycloneDxServiceV2
   }
 
   private static Set<License> convert(ApiLicenseDTO apiLicense) {
-    return multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(apiLicense.licenseId).stream()
-        .map(l -> createLicense(l.getId(), l.getShortDisplayName())).collect(Collectors.toSet());
+    return multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(apiLicense.licenseId)
+        .stream()
+        .map(l -> createLicense(l.getId(), l.getShortDisplayName()))
+        .collect(Collectors.toSet());
   }
 
   private static License createLicense(String id, String name) {
     License license = new License();
     LicenseChoice licenseChoice = LicenseResolver.resolve(id);
     if (licenseChoice == null || CollectionUtils.isEmpty(licenseChoice.getLicenses()) ||
-        licenseChoice.getLicenses().get(0) == null) {
+        licenseChoice.getLicenses().get(0) == null)
+    {
       // The given id cannot be resolved to an SPDX license, so instead we have to use the name
       license.setName(name);
     }
@@ -647,7 +653,7 @@ public class ApiCycloneDxServiceV2
         components.put(purl, componentInfo);
       }
       else {
-        //A component with the same coordinates already exists
+        // A component with the same coordinates already exists
         String componentHash = reportComponent.hash;
 
         // If the component has a different hash, it's a different component
@@ -655,7 +661,7 @@ public class ApiCycloneDxServiceV2
           componentInfo.put(componentHash, bomRef);
         }
         else {
-          //Component has same hash and same coordinates, it's the same component
+          // Component has same hash and same coordinates, it's the same component
           return null;
         }
       }
@@ -672,7 +678,8 @@ public class ApiCycloneDxServiceV2
 
         if (version.compareTo(Version.VERSION_15) >= 0) {
           List<Occurrence> occurrences = reportComponent.pathnames
-              .stream().map( p -> {
+              .stream()
+              .map(p -> {
                 Occurrence o = new Occurrence();
                 o.setLocation(p);
                 return o;
@@ -738,13 +745,16 @@ public class ApiCycloneDxServiceV2
     if (reportComponent.licenseData != null) {
       Set<License> licenses = new HashSet<>();
       if (CollectionUtils.isNotEmpty(reportComponent.licenseData.overriddenLicenses)) {
-        reportComponent.licenseData.overriddenLicenses.stream().map(ApiCycloneDxServiceV2::convert)
+        reportComponent.licenseData.overriddenLicenses.stream()
+            .map(ApiCycloneDxServiceV2::convert)
             .forEach(licenses::addAll);
       }
       else if (CollectionUtils.isNotEmpty(reportComponent.licenseData.declaredLicenses)) {
-        reportComponent.licenseData.declaredLicenses.stream().map(ApiCycloneDxServiceV2::convert)
+        reportComponent.licenseData.declaredLicenses.stream()
+            .map(ApiCycloneDxServiceV2::convert)
             .forEach(licenses::addAll);
-        reportComponent.licenseData.observedLicenses.stream().map(ApiCycloneDxServiceV2::convert)
+        reportComponent.licenseData.observedLicenses.stream()
+            .map(ApiCycloneDxServiceV2::convert)
             .forEach(licenses::addAll);
       }
       if (!licenses.isEmpty()) {

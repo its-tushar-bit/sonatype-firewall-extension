@@ -41,22 +41,22 @@ public class RepositoryConnectionDAOTest
 
   @Test
   public void testCRUD() {
-    //Create
+    // Create
     RepositoryConnection connection =
         new RepositoryConnection("appId", "url", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
     dao.insert(connection);
     assertThat(connection.getId()).isNotNull();
 
-    //Delete
+    // Delete
     dao.delete(connection);
     assertThat(dao.getById(connection.getId())).isNull();
 
-    //Read
+    // Read
     connection = tempEntity.newRepositoryConnection();
     connection = dao.getById(connection.getId());
     assertRepositoryConnection(connection, "ownerId", "baseUrl", RepositoryFormat.GENERIC, "username", "password");
 
-    //Update
+    // Update
     connection.setOwnerId("updatedAppId");
     connection.setBaseUrl("updatedUrl");
     connection.setFormat(RepositoryFormat.MAVEN);
@@ -76,7 +76,8 @@ public class RepositoryConnectionDAOTest
     tempEntity.newRepositoryConnection("anotherOwnerId", "url3", "u3", "p3".toCharArray());
 
     List<RepositoryConnection> connections = dao.getByOwnerId(conn1.getOwnerId());
-    assertThat(connections).hasSize(2).extracting(RepositoryConnection::getBaseUrl)
+    assertThat(connections).hasSize(2)
+        .extracting(RepositoryConnection::getBaseUrl)
         .containsExactlyInAnyOrder("url1", "url2");
   }
 

@@ -108,8 +108,7 @@ public class SbomManagerOwnerSummaryPageTest
   public void testNavigateToOrganizations_sbomAndFirewallRepositoryLicense_RepositoryNotVisible() {
     setLicensedProducts(
         ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS, ProductLicenseDetails.PRODUCT_FOUNDATION,
-        ProductLicenseDetails.PRODUCT_REPOSITORY_FIREWALL_SAAS
-    );
+        ProductLicenseDetails.PRODUCT_REPOSITORY_FIREWALL_SAAS);
     refreshOrOpen(SbomManagerDashboardPage.url());
     SidebarNavigation.sbomManagerOrganizationsNavigationButton().click();
 

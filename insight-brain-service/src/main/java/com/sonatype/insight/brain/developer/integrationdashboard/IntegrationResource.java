@@ -68,8 +68,7 @@ public class IntegrationResource
       final IntegrationService integrationService,
       final CIEvaluationStatService ciEvaluationStatService,
       final ScmStatService scmStatService,
-      final ApplicationCountHistoryService applicationCountHistoryService
-  )
+      final ApplicationCountHistoryService applicationCountHistoryService)
   {
     this.integrationService = integrationService;
     this.ciEvaluationStatService = ciEvaluationStatService;
@@ -87,8 +86,7 @@ public class IntegrationResource
       @QueryParam("optionalOrderBy") final String optionalOrderBy,
       @QueryParam("optionalFilterApplicationNamesBy") final String optionalFilterApplicationNamesBy,
       @QueryParam("optionalFilterScmIsIntegrated") final Boolean optionalFilterAppsByScmIntegration,
-      @QueryParam("optionalFilterCiCdIsIntegrated") final Boolean optionalFilterAppsByCiCdIntegration
-  )
+      @QueryParam("optionalFilterCiCdIsIntegrated") final Boolean optionalFilterAppsByCiCdIntegration)
   {
     final ApiPageResult<IntegrationStatusDTO> results =
         integrationService.getIntegrationStatuses(page, pageSize, optionalOrderBy,
@@ -103,17 +101,9 @@ public class IntegrationResource
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApiIntegrationsCiCdStatIncrementDto> getCiCdUsageStatIncrementsOverTime(
       // one week default, maximum internal size of 5 years
-      @DefaultValue(DEFAULT_ONE_WEEK_IN_MS)
-      @Min(1)
-      @Max(FIVE_YEARS_IN_MS)
-      @QueryParam("incrementSizeMillis")
-      long incrementSizeMillis,
+      @DefaultValue(DEFAULT_ONE_WEEK_IN_MS) @Min(1) @Max(FIVE_YEARS_IN_MS) @QueryParam("incrementSizeMillis") long incrementSizeMillis,
       // 3 months default
-      @DefaultValue(DEFAULT_NUMBER_OF_INCREMENTS)
-      @Min(1)
-      @Max(52)
-      @QueryParam("numberOfIncrements") int numberOfIncrements
-  )
+      @DefaultValue(DEFAULT_NUMBER_OF_INCREMENTS) @Min(1) @Max(52) @QueryParam("numberOfIncrements") int numberOfIncrements)
   {
     return ciEvaluationStatService.getCiCdUsageStatsOverTime(incrementSizeMillis, numberOfIncrements);
   }
@@ -123,16 +113,10 @@ public class IntegrationResource
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApiIntegrationsScmFeedbackStatIncrementDto> getScmFeedbackUsageStatIncrementsOverTime(
       // one week default
-      @DefaultValue(DEFAULT_ONE_WEEK_IN_MS)
-      @Min(1)
-      @QueryParam("incrementSizeMillis") long incrementSizeMillis,
+      @DefaultValue(DEFAULT_ONE_WEEK_IN_MS) @Min(1) @QueryParam("incrementSizeMillis") long incrementSizeMillis,
 
       // 3 months default
-      @DefaultValue(DEFAULT_NUMBER_OF_INCREMENTS)
-      @Min(1)
-      @Max(52)
-      @QueryParam("numberOfIncrements") int numberOfIncrements
-  )
+      @DefaultValue(DEFAULT_NUMBER_OF_INCREMENTS) @Min(1) @Max(52) @QueryParam("numberOfIncrements") int numberOfIncrements)
   {
     return scmStatService.getScmFeedbackUsageStatsOverTime(incrementSizeMillis, numberOfIncrements);
   }
@@ -142,16 +126,10 @@ public class IntegrationResource
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApiUsageIncrementDto> getApplicationCountHistoryOverTime(
       // one week default
-      @DefaultValue(DEFAULT_ONE_WEEK_IN_MS)
-      @Min(1)
-      @QueryParam("incrementSizeMillis") long incrementSizeMillis,
+      @DefaultValue(DEFAULT_ONE_WEEK_IN_MS) @Min(1) @QueryParam("incrementSizeMillis") long incrementSizeMillis,
 
       // 3 months default
-      @DefaultValue(DEFAULT_NUMBER_OF_INCREMENTS)
-      @Min(1)
-      @Max(52)
-      @QueryParam("numberOfIncrements") int numberOfIncrements
-  )
+      @DefaultValue(DEFAULT_NUMBER_OF_INCREMENTS) @Min(1) @Max(52) @QueryParam("numberOfIncrements") int numberOfIncrements)
   {
     return applicationCountHistoryService.getUsageOverTime(incrementSizeMillis, numberOfIncrements);
   }

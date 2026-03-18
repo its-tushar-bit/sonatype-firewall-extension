@@ -44,7 +44,8 @@ public class OAuth2UserGroupDAOTest
     // Read
     OAuth2UserGroup storedOAuth2UserGroup = oAuth2UserGroupDAO.getById(oAuth2UserGroup.getId());
     assertThat(storedOAuth2UserGroup).isNotNull();
-    assertThat(storedOAuth2UserGroup).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(storedOAuth2UserGroup).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(oAuth2UserGroup);
 
     // Update
@@ -54,7 +55,8 @@ public class OAuth2UserGroupDAOTest
     oAuth2UserGroup.setOAuth2GroupId(oAuth2Group2.getId());
     oAuth2UserGroupDAO.update(oAuth2UserGroup);
     storedOAuth2UserGroup = oAuth2UserGroupDAO.getById(storedOAuth2UserGroup.getId());
-    assertThat(storedOAuth2UserGroup).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(storedOAuth2UserGroup).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(oAuth2UserGroup);
 
     // Delete
@@ -124,7 +126,7 @@ public class OAuth2UserGroupDAOTest
 
     assertThat(
         oAuth2UserGroupDAO.getByOAuth2GroupId(oAuth2Group3.getId())).usingRecursiveFieldByFieldElementComparator()
-        .containsExactlyInAnyOrder(oAuth2UserGroup13, oAuth2UserGroup23);
+            .containsExactlyInAnyOrder(oAuth2UserGroup13, oAuth2UserGroup23);
   }
 
   @Test
@@ -137,7 +139,8 @@ public class OAuth2UserGroupDAOTest
 
     assertThat(oAuth2UserGroup.getId()).isNotNull();
     assertThat(oAuth2UserGroupDAO.getById(oAuth2UserGroup.getId())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(oAuth2UserGroup);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(oAuth2UserGroup);
   }
 
   @Test
@@ -151,7 +154,8 @@ public class OAuth2UserGroupDAOTest
 
     assertThat(oAuth2UserGroup.getId()).isNotNull();
     assertThat(oAuth2UserGroupDAO.getById(oAuth2UserGroup.getId())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(oAuth2UserGroup);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(oAuth2UserGroup);
   }
 
   @Test

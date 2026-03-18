@@ -94,9 +94,10 @@ public class ApiComponentEvaluationServiceV2Test
   }
 
   private void mockHdsRequest(ComponentEvaluationDataRequestList hdsRequest, ComponentEvaluationDataList hdsResult) {
-    doReturn(hdsResult).when(client).post(eq(ComponentEvaluationDataList.class),
-        eq(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest),
-        eq(ApiComponentDetailsServiceV2.PURPOSE_EVALUATION));
+    doReturn(hdsResult).when(client)
+        .post(eq(ComponentEvaluationDataList.class),
+            eq(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest),
+            eq(ApiComponentDetailsServiceV2.PURPOSE_EVALUATION));
   }
 
   @Test

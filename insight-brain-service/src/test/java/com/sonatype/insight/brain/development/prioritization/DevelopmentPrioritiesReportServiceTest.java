@@ -5,6 +5,7 @@
  */
 
 package com.sonatype.insight.brain.development.prioritization;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -49,10 +50,10 @@ public class DevelopmentPrioritiesReportServiceTest
     when(apiReportDataServiceV2.getDataNoAuthWithDependencyData(anyString(), anyString())).thenThrow(new IOException());
 
     final String expectedErrorMessage = "Could not find the requested report for prioritization.";
-    assertThatThrownBy(() ->
-        developmentPrioritiesReportService.getDependencyInformation(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID))
-        .withFailMessage(expectedErrorMessage)
-        .isInstanceOf(NotFoundException.class);
+    assertThatThrownBy(
+        () -> developmentPrioritiesReportService.getDependencyInformation(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID))
+            .withFailMessage(expectedErrorMessage)
+            .isInstanceOf(NotFoundException.class);
 
     verify(apiReportDataServiceV2).getDataNoAuthWithDependencyData(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID);
   }

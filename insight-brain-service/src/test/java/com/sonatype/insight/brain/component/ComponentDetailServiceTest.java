@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.component;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -333,11 +334,12 @@ public class ComponentDetailServiceTest
     assertThat(appComponentDetailsDTO.application.getContact()).isNull();
   }
 
-  private void assertStageDetails(StageDetailDTO stageDetailDTO,
-                                  StageType stageType,
-                                  String actionType,
-                                  String scanId,
-                                  Long time)
+  private void assertStageDetails(
+      StageDetailDTO stageDetailDTO,
+      StageType stageType,
+      String actionType,
+      String scanId,
+      Long time)
   {
     assertThat(stageDetailDTO.stageTypeId).isEqualTo(stageType.getId());
     assertThat(stageDetailDTO.stageTypeName).isEqualTo(stageType.getName());
@@ -397,8 +399,9 @@ public class ComponentDetailServiceTest
     assertThat(componentDetailService.getComponentNameByHash(hash)).isNull();
   }
 
-  private PolicyViolationSummaryDTO getPolicyViolationSummaryDTO(String policyId,
-                                                                 List<PolicyViolationSummaryDTO> policyViolations)
+  private PolicyViolationSummaryDTO getPolicyViolationSummaryDTO(
+      String policyId,
+      List<PolicyViolationSummaryDTO> policyViolations)
   {
     for (PolicyViolationSummaryDTO policyViolation : policyViolations) {
       if (policyViolation.policyId.equals(policyId)) {

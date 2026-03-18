@@ -146,8 +146,7 @@ public class ApiReportDataServiceV2
   public ApiReportPolicyDataDTOV2 getPolicyViolationsDataNoAuth(
       String applicationPublicId,
       String scanId,
-      boolean includeViolationTimes)
-      throws IOException
+      boolean includeViolationTimes) throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
@@ -155,8 +154,7 @@ public class ApiReportDataServiceV2
     Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
         BOM_JSON.getName(),
         DATA_JSON.getName(),
-        POLICY_THREATS.getName()
-    ));
+        POLICY_THREATS.getName()));
     ReportEntry bomEntry = entries.get(BOM_JSON.getName());
     ReportEntry countsEntry = entries.get(DATA_JSON.getName());
     ReportEntry policyThreatsEntry = entries.get(POLICY_THREATS.getName());
@@ -197,8 +195,9 @@ public class ApiReportDataServiceV2
     return new ApiDependencyTreeResponseDTO(getDependencyTreeNoAuth(applicationPublicId, scanId));
   }
 
-  public ApiDependencyTreeNodeDTO getDependencyTreeNoAuth(String applicationPublicId, String scanId)
-      throws IOException
+  public ApiDependencyTreeNodeDTO getDependencyTreeNoAuth(
+      String applicationPublicId,
+      String scanId) throws IOException
   {
     ApiDependencyTreeNodeDTO dependencyTree = new ApiDependencyTreeNodeDTO();
     Application application = appDAO.getByPublicIdNotNull(applicationPublicId);
@@ -207,8 +206,7 @@ public class ApiReportDataServiceV2
     ApplicationReport applicationReport = reportService.getReport(appId, scanId);
     Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
         DEPENDENCIES_JSON.getName(),
-        BOM_JSON.getName()
-    ));
+        BOM_JSON.getName()));
     ReportEntry dependenciesEntry = entries.get(DEPENDENCIES_JSON.getName());
     ReportEntry bomEntry = entries.get(BOM_JSON.getName());
     if (dependenciesEntry != null && bomEntry != null) {
@@ -218,9 +216,9 @@ public class ApiReportDataServiceV2
         JsonNode dependencyTreeNode = dependenciesNode.get("dependencyTree");
         JsonNode aaDataNode = bomNode.get("aaData");
         if (dependencyTreeNode != null && !dependencyTreeNode.isNull() && !dependencyTreeNode.isEmpty()) {
-          ObjectNode  dependencyTreeObject = (ObjectNode) dependencyTreeNode;
+          ObjectNode dependencyTreeObject = (ObjectNode) dependencyTreeNode;
           dependencyTreeObject.remove("componentIdentifier");
-          Map<String,BillOfMaterialsRowDTO> componentsIndex = indexBom(aaDataNode);
+          Map<String, BillOfMaterialsRowDTO> componentsIndex = indexBom(aaDataNode);
           dependencyTree = JsonUtils.asPojo(dependencyTreeObject, ApiDependencyTreeNodeDTO.class);
           dependencyTree.setChildren(correlateDependencyTreeWithComponentIndex(dependencyTree, componentsIndex));
 
@@ -234,8 +232,7 @@ public class ApiReportDataServiceV2
 
   private List<ApiDependencyTreeNodeDTO> correlateDependencyTreeWithComponentIndex(
       ApiDependencyTreeNodeDTO root,
-      Map<String,BillOfMaterialsRowDTO> componentsIndex
-  )
+      Map<String, BillOfMaterialsRowDTO> componentsIndex)
   {
     List<ApiDependencyTreeNodeDTO> children = root.getChildren();
     if (children == null || children.isEmpty()) {
@@ -253,7 +250,7 @@ public class ApiReportDataServiceV2
         key = PackageUrlIdentifier.fromComponentIdentifier(identifier).getPackageUrl();
       }
       if (componentsIndex.containsKey(key)) {
-        child.setChildren(correlateDependencyTreeWithComponentIndex(child,componentsIndex));
+        child.setChildren(correlateDependencyTreeWithComponentIndex(child, componentsIndex));
         child.setPackageUrl(key);
         updatedChildren.add(child);
       }
@@ -262,8 +259,8 @@ public class ApiReportDataServiceV2
     return updatedChildren;
   }
 
-  private Map<String,BillOfMaterialsRowDTO> indexBom(JsonNode aaDataNode) throws IOException {
-    Map<String,BillOfMaterialsRowDTO> components = new HashMap<>();
+  private Map<String, BillOfMaterialsRowDTO> indexBom(JsonNode aaDataNode) throws IOException {
+    Map<String, BillOfMaterialsRowDTO> components = new HashMap<>();
     if (aaDataNode == null || aaDataNode.isNull() || aaDataNode.isEmpty()) {
       return components;
     }
@@ -278,8 +275,9 @@ public class ApiReportDataServiceV2
     return components;
   }
 
-  private List<ApiReportComponentPolicyViolationsDTOV2> getComponents(byte[] bomData, PolicyThreats policyThreats)
-      throws IOException
+  private List<ApiReportComponentPolicyViolationsDTOV2> getComponents(
+      byte[] bomData,
+      PolicyThreats policyThreats) throws IOException
   {
     List<ApiReportComponentPolicyViolationsDTOV2> components = new ArrayList<>();
 
@@ -364,8 +362,9 @@ public class ApiReportDataServiceV2
   }
 
   private Map<String, List<ApiReportPolicyViolationDTOV2>> getPolicyViolationsByHash(PolicyThreats policyThreats) {
-    return policyThreats.aaData.stream().collect(
-        Collectors.toMap(o -> o.hash, policyThreats.version < 3 ? this::getLegacyViolations : this::getViolations));
+    return policyThreats.aaData.stream()
+        .collect(
+            Collectors.toMap(o -> o.hash, policyThreats.version < 3 ? this::getLegacyViolations : this::getViolations));
   }
 
   private List<ApiReportPolicyViolationDTOV2> getViolations(PolicyThreats.Component component) {
@@ -453,8 +452,7 @@ public class ApiReportDataServiceV2
         SECURITY_JSON.getName(),
         LICENSES_JSON.getName(),
         DATA_JSON.getName(),
-        DEPENDENCIES_JSON.getName()
-    ));
+        DEPENDENCIES_JSON.getName()));
     ReportEntry bomEntry = entries.get(BOM_JSON.getName());
     ReportEntry securityEntry = entries.get(SECURITY_JSON.getName());
     ReportEntry licenseEntry = entries.get(LICENSES_JSON.getName());
@@ -462,13 +460,15 @@ public class ApiReportDataServiceV2
     ReportEntry dependenciesReportEntry = entries.get(DEPENDENCIES_JSON.getName());
 
     if (bomEntry == null || securityEntry == null || licenseEntry == null || dataEntry == null ||
-        dependenciesReportEntry == null) {
+        dependenciesReportEntry == null)
+    {
       throw new BadRequestException("The report with ID " + scanId + " contains no component data.");
     }
 
     List<Component> components =
-        componentLoaderFactory.createComponentLoader(app).getAll(licenseEntry.buf, useLicensesJsonOverriddenLicenses,
-            securityEntry.buf, bomEntry.buf, dependenciesReportEntry.buf);
+        componentLoaderFactory.createComponentLoader(app)
+            .getAll(licenseEntry.buf, useLicensesJsonOverriddenLicenses,
+                securityEntry.buf, bomEntry.buf, dependenciesReportEntry.buf);
 
     Map<String, ThirdPartyReportComponentDTO> tpComponentsByHash = thirdPartyComponentDAO.getData(applicationReport);
 
@@ -579,8 +579,10 @@ public class ApiReportDataServiceV2
         .collect(Collectors.toSet());
 
     Map<String, com.sonatype.insight.brain.model.policy.PolicyViolation> policyViolationById =
-        policyViolationDAO.getByIds(policyViolationIds).stream().collect(
-            Collectors.toMap(com.sonatype.insight.brain.model.policy.PolicyViolation::getId, Function.identity()));
+        policyViolationDAO.getByIds(policyViolationIds)
+            .stream()
+            .collect(
+                Collectors.toMap(com.sonatype.insight.brain.model.policy.PolicyViolation::getId, Function.identity()));
 
     for (ApiReportPolicyViolationDTOV2 policyViolation : policyViolations) {
       com.sonatype.insight.brain.model.policy.PolicyViolation policyViolationFromDb =

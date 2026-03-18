@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.METHOD })
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Inherited
 public @interface ProductLicenseEnforcementPoint
 {

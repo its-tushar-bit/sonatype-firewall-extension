@@ -85,8 +85,9 @@ public class PolicyWaiverTest
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
     policyWaiver.setConstraintFacts(constraintFacts);
-    assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(constraintFactsJson).doesNotContain("\n", "\r", "\\n",
-        "\\r");
+    assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(constraintFactsJson)
+        .doesNotContain("\n", "\r", "\\n",
+            "\\r");
     assertConstraintFacts(policyWaiver.getConstraintFacts(), constraintFacts);
   }
 
@@ -117,8 +118,9 @@ public class PolicyWaiverTest
 
     PolicyWaiver policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", constraintFacts, "comment");
 
-    assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(constraintFactsJson).doesNotContain("\n", "\r", "\\n",
-        "\\r");
+    assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(constraintFactsJson)
+        .doesNotContain("\n", "\r", "\\n",
+            "\\r");
     assertConstraintFacts(policyWaiver.getConstraintFacts(), constraintFacts);
   }
 
@@ -239,13 +241,16 @@ public class PolicyWaiverTest
 
     assertThat(componentIdentifier).isInstanceOf(ComponentIdentifier.class);
     assertThat(componentIdentifier.getFormat()).isEqualTo("maven");
-    assertThat(componentIdentifier.getCoordinates()).hasSize(5).isEqualTo(new TreeMap<String, String>() {{
+    assertThat(componentIdentifier.getCoordinates()).hasSize(5).isEqualTo(new TreeMap<String, String>()
+    {
+      {
         this.put("artifactId", "artifact");
         this.put("classifier", "c1");
         this.put("extension", "jar");
         this.put("groupId", "group");
         this.put("version", "1.0");
-      }});
+      }
+    });
 
     policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", null, DEFAULT, "comment");
 
@@ -274,7 +279,8 @@ public class PolicyWaiverTest
       assertThat(actualConstraintFact.getConstraintName()).isEqualTo(expectedConstraintFact.getConstraintName());
       assertThat(actualConstraintFact.getOperatorName()).isEqualTo(expectedConstraintFact.getOperatorName());
       for (int conditionFactIndex = 0; conditionFactIndex < expectedConstraintFact.getConditionFacts()
-          .size(); conditionFactIndex++) {
+          .size(); conditionFactIndex++)
+      {
         ConditionFact expectedConditionFact = expectedConstraintFact.getConditionFacts().get(conditionFactIndex);
         ConditionFact actualConditionFact = actualConstraintFact.getConditionFacts().get(conditionFactIndex);
         assertThat(actualConditionFact.getConditionTypeId()).isEqualTo(expectedConditionFact.getConditionTypeId());

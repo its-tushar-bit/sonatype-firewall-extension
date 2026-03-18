@@ -64,8 +64,7 @@ public class ApiComponentChangeDetectionServiceTest
         new ComponentChangeDetectionConfiguration("1.0", "purl3", null, null, nowPlusSeconds(2)),
         new ComponentChangeDetectionConfiguration("1.0", "purl4", null, null, nowPlusSeconds(3)),
         new ComponentChangeDetectionConfiguration("1.0", "purl5", null, null, nowPlusSeconds(4)),
-        new ComponentChangeDetectionConfiguration("1.0", "purl6", null, null, nowPlusSeconds(5))
-    );
+        new ComponentChangeDetectionConfiguration("1.0", "purl6", null, null, nowPlusSeconds(5)));
     when(configuration.getComponentChangeDetectionMaxComponents()).thenReturn(10);
     underTest.addItemsToConfiguration(actual);
 
@@ -84,8 +83,7 @@ public class ApiComponentChangeDetectionServiceTest
     List<ComponentChangeDetectionConfiguration> actual = Arrays.asList(
         new ComponentChangeDetectionConfiguration("1.0", "purl1", null, null, new Date()),
         new ComponentChangeDetectionConfiguration("1.0", "purl2", null, null, nowPlusSeconds(1)),
-        new ComponentChangeDetectionConfiguration("1.0", "purl3", null, null, nowPlusSeconds(2))
-    );
+        new ComponentChangeDetectionConfiguration("1.0", "purl3", null, null, nowPlusSeconds(2)));
     underTest.addItemsToConfiguration(actual);
 
     underTest.updateHashForComponent("purl1", "newHash");

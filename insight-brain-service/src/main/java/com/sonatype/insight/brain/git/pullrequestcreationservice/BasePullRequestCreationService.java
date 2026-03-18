@@ -62,7 +62,9 @@ public abstract class BasePullRequestCreationService
    * Create source control event for PR creation (both automated and manual)
    */
   protected SourceControlEvent createPullRequestEvent(
-      final PullRequestRemediationDetails prDetails, boolean isManual, boolean isGolden)
+      final PullRequestRemediationDetails prDetails,
+      boolean isManual,
+      boolean isGolden)
   {
     SourceControlEvent event = new SourceControlEvent()
         .withComponentIdentifier(prDetails.getToBeRemediated())

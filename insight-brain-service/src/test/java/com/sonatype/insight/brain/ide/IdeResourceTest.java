@@ -102,7 +102,8 @@ public class IdeResourceTest
 
   private HttpRequest coordinatesScanRequest(String appId, ComponentIdentifier identifier) {
     return restRequest()
-        .path(IdeResource.COORDINATES_SCAN_PATH).parameter(appId)
+        .path(IdeResource.COORDINATES_SCAN_PATH)
+        .parameter(appId)
         .query("componentIdentifier", identifier);
   }
 
@@ -199,7 +200,9 @@ public class IdeResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     List<IdeMatchedComponent> results =
-        JsonUtils.parse(response.getBodyText(), new TypeReference<List<IdeMatchedComponent>>() { });
+        JsonUtils.parse(response.getBodyText(), new TypeReference<List<IdeMatchedComponent>>()
+        {
+        });
     assertThat(results).hasSize(1);
 
     IdeMatchedComponent ideMatchedComponent = results.get(0);
@@ -228,7 +231,9 @@ public class IdeResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     List<IdeMatchedComponent> results =
-        JsonUtils.parse(response.getBodyText(), new TypeReference<List<IdeMatchedComponent>>() { });
+        JsonUtils.parse(response.getBodyText(), new TypeReference<List<IdeMatchedComponent>>()
+        {
+        });
     assertThat(results).hasSize(1);
 
     IdeMatchedComponent ideMatchedComponent = results.get(0);
@@ -724,7 +729,8 @@ public class IdeResourceTest
       IdeMatchedComponent result = response.getBody(IdeMatchedComponent.class);
 
       assertThat(result).isNotNull();
-      assertThat(result.getAlerts()).extracting(PolicyAlert::getTrigger).extracting(PolicyFact::getPolicyName)
+      assertThat(result.getAlerts()).extracting(PolicyAlert::getTrigger)
+          .extracting(PolicyFact::getPolicyName)
           .containsExactly(policy.getName());
     }
     finally {
@@ -795,8 +801,7 @@ public class IdeResourceTest
         instanceId,
         userAgent,
         mavenComponents,
-        npmComponents
-    );
+        npmComponents);
 
     // Assert Result
     assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, mavenComponents, npmComponents);
@@ -818,8 +823,7 @@ public class IdeResourceTest
         null,
         userAgent,
         mavenComponents,
-        npmComponents
-    );
+        npmComponents);
 
     // Assert Result
     assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, mavenComponents, npmComponents);
@@ -841,8 +845,7 @@ public class IdeResourceTest
         instanceId,
         null,
         mavenComponents,
-        npmComponents
-    );
+        npmComponents);
 
     // Assert Result
     assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, mavenComponents, npmComponents);
@@ -865,8 +868,7 @@ public class IdeResourceTest
         instanceId,
         userAgent,
         mavenComponents,
-        npmComponents
-    );
+        npmComponents);
 
     // Assert Result
     assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, mavenComponents, npmComponents);
@@ -887,8 +889,7 @@ public class IdeResourceTest
         null,
         null,
         mavenComponents,
-        npmComponents
-    );
+        npmComponents);
 
     // Assert Result
     assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, mavenComponents, npmComponents);
@@ -909,8 +910,7 @@ public class IdeResourceTest
         null,
         null,
         mavenComponents,
-        npmComponents
-    );
+        npmComponents);
 
     // Assert Result
     assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, mavenComponents, npmComponents);
@@ -937,8 +937,7 @@ public class IdeResourceTest
         mavenComponents,
         npmComponents,
         attribute,
-        attributeValue
-    );
+        attributeValue);
 
     // Assert Result
     assertThat(telemetryAttributes).containsEntry("ide_theme", "dark");
@@ -964,8 +963,7 @@ public class IdeResourceTest
         mavenComponents,
         npmComponents,
         null,
-        null
-    );
+        null);
 
     // Assert Result
     assertThat(telemetryAttributes).doesNotContainEntry("ide_theme", "dark");
@@ -979,8 +977,7 @@ public class IdeResourceTest
       final String instanceId,
       final String userAgent,
       final Integer mavenComponents,
-      final Integer npmComponents
-  ) throws Exception
+      final Integer npmComponents) throws Exception
   {
     // Setup telemetry data collection
     final Map<ByteArrayDataSource, Integer> responses = getHdsTelemetryDataCollection();
@@ -1004,8 +1001,7 @@ public class IdeResourceTest
       final Integer mavenComponents,
       final Integer npmComponents,
       final String attribute,
-      final String attributeValue
-  ) throws Exception
+      final String attributeValue) throws Exception
   {
     // Setup telemetry data collection
     final Map<ByteArrayDataSource, Integer> responses = getHdsTelemetryDataCollection();
@@ -1102,8 +1098,7 @@ public class IdeResourceTest
   private void assertApplicationEvaluationComponentTelemetryData(
       final Map<String, Object> telemetryAttributes,
       Integer mavenComponents,
-      Integer npmComponents
-  )
+      Integer npmComponents)
   {
     assertThat(telemetryAttributes).containsEntry("application_id", HdsClientAnalytics.obfuscate(app.getId()));
     assertThat(telemetryAttributes).containsEntry("real_application_id", app.getId());
@@ -1152,8 +1147,7 @@ public class IdeResourceTest
   }
 
   private Map<TelemetryPurpose, List<TelemetryItem>> getTelemetryItemsByPurpose(
-      final Map<ByteArrayDataSource, Integer> responses)
-      throws MessagingException, IOException
+      final Map<ByteArrayDataSource, Integer> responses) throws MessagingException, IOException
   {
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(responses).isNotEmpty());
     return getTelemetryItems(responses).stream()

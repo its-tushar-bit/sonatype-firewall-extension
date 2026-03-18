@@ -111,4 +111,3 @@ public class PullRequestLineCommentDTO
     return hash;
   }
 }
-

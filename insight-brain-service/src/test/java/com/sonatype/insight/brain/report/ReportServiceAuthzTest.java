@@ -49,8 +49,8 @@ public class ReportServiceAuthzTest
     grantReadPermission(app.getId());
     String scanId = "12345678";
     when(
-        reportDataStore.getApplicationReport(argThat(arg -> arg != null && arg.getId().equals(app.getId())), eq(scanId))
-    ).thenReturn(mock(ApplicationReport.class));
+        reportDataStore.getApplicationReport(argThat(arg -> arg != null && arg.getId().equals(app.getId())),
+            eq(scanId))).thenReturn(mock(ApplicationReport.class));
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> reportService.getReportMetadata(app.getPublicId(), scanId))
         .withMessage("Could not find a report with ID 12345678");
@@ -72,8 +72,8 @@ public class ReportServiceAuthzTest
     grantReadPermission(app.getId());
     String scanId = "12345678";
     when(
-        reportDataStore.getApplicationReport(argThat(arg -> arg != null && arg.getId().equals(app.getId())), eq(scanId))
-    ).thenReturn(mock(ApplicationReport.class));
+        reportDataStore.getApplicationReport(argThat(arg -> arg != null && arg.getId().equals(app.getId())),
+            eq(scanId))).thenReturn(mock(ApplicationReport.class));
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> reportService.processBrowseReport(app.getId(), scanId, "path"))

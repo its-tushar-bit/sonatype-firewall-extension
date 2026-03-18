@@ -115,14 +115,12 @@ public class ZScalerPermissionValidator
         throw new BadRequestException(
             "Insufficient ZScaler permissions. The user has CUSTOM_URL_CAT permission (create succeeded) " +
                 "but lacks OVERRIDE_EXISTING_CAT permission (update failed). " +
-                "The user account must have both permissions with READ_WRITE access."
-        );
+                "The user account must have both permissions with READ_WRITE access.");
       }
       else {
         throw new BadRequestException(
             "Insufficient ZScaler permissions for " + permissionTested + ". The user account must have both " +
-                "CUSTOM_URL_CAT and OVERRIDE_EXISTING_CAT permissions with READ_WRITE access."
-        );
+                "CUSTOM_URL_CAT and OVERRIDE_EXISTING_CAT permissions with READ_WRITE access.");
       }
     }
 
@@ -131,14 +129,12 @@ public class ZScalerPermissionValidator
         throw new BadRequestException(
             "ZScaler quota is full. Unable to " + permissionTested.getOperation() + " test " +
                 permissionTested.getTestElement() + ". " +
-                "Please free up quota in ZScaler and try the test again."
-        );
+                "Please free up quota in ZScaler and try the test again.");
       }
 
       throw new BadRequestException(
           "Failed to validate ZScaler permission " + permissionTested + ". " +
-              "ZScaler rejected the request: " + result.getMessage()
-      );
+              "ZScaler rejected the request: " + result.getMessage());
     }
 
     throw new BadRequestException(
@@ -160,8 +156,7 @@ public class ZScalerPermissionValidator
               " so it will have to be manually deleted. " +
               "Provided credentials can create and update categories but cannot delete them. " +
               "This indicates a misconfigured role in ZScaler. " +
-              "The role should have CUSTOM_URL_CAT with full READ_WRITE access."
-      );
+              "The role should have CUSTOM_URL_CAT with full READ_WRITE access.");
     }
 
     log.info("Successfully deleted test category");

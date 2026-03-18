@@ -80,7 +80,9 @@ public class ScmUserMappings
   public List<Entry<String, String>> getMappings() {
     if (this.mappings == null) {
       try {
-        this.mappings = JsonUtils.parse(this.mappingsJson, new TypeReference<List<Entry<String, String>>>(){});
+        this.mappings = JsonUtils.parse(this.mappingsJson, new TypeReference<List<Entry<String, String>>>()
+        {
+        });
       }
       catch (IOException e) {
         throw new UncheckedIOException("Failed to read user mappings " + id, e);

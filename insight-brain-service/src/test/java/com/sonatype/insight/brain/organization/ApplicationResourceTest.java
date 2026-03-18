@@ -43,7 +43,9 @@ public class ApplicationResourceTest
   }
 
   private HttpRequest evalRequest(String appId, String scanId, Stage stage) {
-    return super.restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId).parameter(appId)
+    return super.restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .query("scanId", scanId)
+        .parameter(appId)
         .body(stage);
   }
 
@@ -99,27 +101,35 @@ public class ApplicationResourceTest
 
     // Test Add Invalid Icon
     byte[] defaultIconByteArray = IconUtils.loadInvalidIcon();
-    response = restRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(application.getId())
-        .part("hasRobotSource", "false").part("file", "defaulticon_application.png", defaultIconByteArray).post();
+    response = restRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH)
+        .parameter(application.getId())
+        .part("hasRobotSource", "false")
+        .part("file", "defaulticon_application.png", defaultIconByteArray)
+        .post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("defaulticon_application.png is not a valid image."
         + " Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.");
 
     // Test Get Icon (default icon)
     HttpResponse iconResponse = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH)
-        .parameter(applicationPublicId).get();
+        .parameter(applicationPublicId)
+        .get();
     assertResponseStatus(307, iconResponse);
     assertThat(iconResponse.getHeader("Location"))
         .isEqualTo(getRestBaseUrl() + "assets/img/defaulticon_application.png");
 
     // Test Add Application Icon
     defaultIconByteArray = loadDefaultIcon();
-    response = restRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(application.getId())
-        .part("hasRobotSource", "false").part("file", "defaulticon_application.png", defaultIconByteArray).post();
+    response = restRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH)
+        .parameter(application.getId())
+        .part("hasRobotSource", "false")
+        .part("file", "defaulticon_application.png", defaultIconByteArray)
+        .post();
     assertResponseStatus(200, response);
 
     // Test Get Icon (from added application)
-    iconResponse = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH).parameter(applicationPublicId)
+    iconResponse = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH)
+        .parameter(applicationPublicId)
         .get();
     testValidIconResponse(iconResponse);
 
@@ -133,8 +143,10 @@ public class ApplicationResourceTest
     assertThat(applicationResult.getName()).isEqualTo(applicationName + "updated");
 
     // Test icon update
-    response = restRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(application.getId())
-        .part("hasRobotSource", "false").post();
+    response = restRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH)
+        .parameter(application.getId())
+        .part("hasRobotSource", "false")
+        .post();
     assertResponseStatus(200, response);
 
     // Verify invalid name fails
@@ -149,7 +161,8 @@ public class ApplicationResourceTest
     assertResponseStatus(204, response);
     application = applicationDAO.getByPublicId(applicationPublicId);
     assertThat(application).isNull();
-    iconResponse = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH).parameter(applicationPublicId)
+    iconResponse = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH)
+        .parameter(applicationPublicId)
         .get();
     assertResponseStatus(404, iconResponse);
   }
@@ -229,10 +242,11 @@ public class ApplicationResourceTest
     assertThat(applications).extracting(ApplicationDTO::getId).containsExactly(application.getId());
   }
 
-  private void assertApplicationManagementSummaryDTO(ApplicationManagementSummaryDTO actual,
-                                                     Application app,
-                                                     Organization org,
-                                                     int policyEvaluationCount)
+  private void assertApplicationManagementSummaryDTO(
+      ApplicationManagementSummaryDTO actual,
+      Application app,
+      Organization org,
+      int policyEvaluationCount)
   {
     assertThat(actual.getId()).isEqualTo(app.getId());
     assertThat(actual.getPublicId()).isEqualTo(app.getPublicId());
@@ -275,8 +289,10 @@ public class ApplicationResourceTest
     response = evalRequest(applicationPublicId, scanId2, new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
 
-    response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES).query("page", "1")
-        .query("pageSize", "50").get();
+    response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES)
+        .query("page", "1")
+        .query("pageSize", "50")
+        .get();
     assertResponseStatus(200, response);
 
     ApplicationManagementSummaryDTO[] applications = response.getBody(ApplicationManagementSummaryDTO[].class);
@@ -314,8 +330,10 @@ public class ApplicationResourceTest
     // Scans count
     makeScanReceipt();
 
-    response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES).query("page", "1")
-        .query("pageSize", "50").get();
+    response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES)
+        .query("page", "1")
+        .query("pageSize", "50")
+        .get();
     assertResponseStatus(200, response);
 
     applications = response.getBody(ApplicationManagementSummaryDTO[].class);
@@ -323,7 +341,8 @@ public class ApplicationResourceTest
 
     // Test GetApplication
     response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARY)
-        .parameter(applicationPublicId).get();
+        .parameter(applicationPublicId)
+        .get();
     assertResponseStatus(200, response);
 
     ApplicationManagementSummaryDTO applicationSummary = response.getBody(ApplicationManagementSummaryDTO.class);
@@ -354,7 +373,9 @@ public class ApplicationResourceTest
 
     // Uses default params for name filter and order
     HttpResponse response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES)
-        .query("page", "1").query("pageSize", "2").get();
+        .query("page", "1")
+        .query("pageSize", "2")
+        .get();
     assertResponseStatus(200, response);
     ApplicationManagementSummaryDTO[] dtos = response.getBody(ApplicationManagementSummaryDTO[].class);
     assertThat(dtos).extracting(ApplicationManagementSummaryDTO::getName)
@@ -362,14 +383,20 @@ public class ApplicationResourceTest
 
     // Uses given name filter
     response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES)
-        .query("nameFilter", "app2").query("page", "1").query("pageSize", "2").get();
+        .query("nameFilter", "app2")
+        .query("page", "1")
+        .query("pageSize", "2")
+        .get();
     assertResponseStatus(200, response);
     dtos = response.getBody(ApplicationManagementSummaryDTO[].class);
     assertThat(dtos).extracting(ApplicationManagementSummaryDTO::getName).containsExactly(app2.getName());
 
     // Uses given order
     response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES)
-        .query("order", "APP_NAME_DESC").query("page", "1").query("pageSize", "2").get();
+        .query("order", "APP_NAME_DESC")
+        .query("page", "1")
+        .query("pageSize", "2")
+        .get();
     assertResponseStatus(200, response);
     dtos = response.getBody(ApplicationManagementSummaryDTO[].class);
     assertThat(dtos).extracting(ApplicationManagementSummaryDTO::getName)
@@ -379,14 +406,18 @@ public class ApplicationResourceTest
 
     // Uses given page
     response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES)
-        .query("page", "2").query("pageSize", "2").get();
+        .query("page", "2")
+        .query("pageSize", "2")
+        .get();
     assertResponseStatus(200, response);
     dtos = response.getBody(ApplicationManagementSummaryDTO[].class);
     assertThat(dtos).extracting(ApplicationManagementSummaryDTO::getName).containsExactly(app3.getName());
 
     // Uses given page size
     response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES)
-        .query("page", "1").query("pageSize", "3").get();
+        .query("page", "1")
+        .query("pageSize", "3")
+        .get();
     assertResponseStatus(200, response);
     dtos = response.getBody(ApplicationManagementSummaryDTO[].class);
     assertThat(dtos).extracting(ApplicationManagementSummaryDTO::getName)

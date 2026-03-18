@@ -83,7 +83,7 @@ public class FirewallMetricsDAO
 
       return ((Stream<Object[]>) query.getResultStream()) //
           .collect(toMap(row -> getFirewallMetricsName(row[0].toString()),
-              row -> getTotalFirewallMetricsValueAndLatestUpdatedTime(((Number)row[1]).intValue(), (Date)row[2])));
+              row -> getTotalFirewallMetricsValueAndLatestUpdatedTime(((Number) row[1]).intValue(), (Date) row[2])));
     }
   }
 

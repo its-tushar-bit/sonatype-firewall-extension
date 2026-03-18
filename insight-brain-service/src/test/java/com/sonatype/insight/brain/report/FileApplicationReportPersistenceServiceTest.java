@@ -33,7 +33,7 @@ public class FileApplicationReportPersistenceServiceTest
   @Before
   public void setCluster() throws Exception {
     // set a distinct cluster dir so that we test that reports are saved there and not in the non-clustered
-    // sonatype-work.  Without this setting, those are the same location so the distinction doesn't get tested.
+    // sonatype-work. Without this setting, those are the same location so the distinction doesn't get tested.
     insightConfig.setClusterDirectory(tempDir.newFolder().getAbsolutePath());
   }
 
@@ -54,13 +54,11 @@ public class FileApplicationReportPersistenceServiceTest
   @Category(SlowTest.class)
   public void testGetReportLocation() {
     // The output of this API will differ by OS depending on the path separator character
-    String suffix = FileSystems.getDefault().getSeparator().equals("\\") ?
-         "\\report\\app1\\scan1" :
-         "/report/app1/scan1";
+    String suffix =
+        FileSystems.getDefault().getSeparator().equals("\\") ? "\\report\\app1\\scan1" : "/report/app1/scan1";
 
     assertThat(service.getReportLocation(APPLICATION_ID, SCAN_ID)).isEqualTo(
-        insightConfig.getClusterDirectory().toString() + suffix
-    );
+        insightConfig.getClusterDirectory().toString() + suffix);
   }
 
   @Override

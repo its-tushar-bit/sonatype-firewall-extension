@@ -12,7 +12,7 @@ public class ContainerImagePolicyViolationSummaryDTO
   private long severePolicyViolationsCount;
 
   private long criticalPolicyViolationsCount;
-  
+
   private long affectedContainerImagesCount;
 
   private long quarantinedContainerImagesCount;

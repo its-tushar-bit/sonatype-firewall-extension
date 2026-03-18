@@ -49,10 +49,11 @@ public class LicenseOverrideInternal
   public LicenseOverrideInternal() {
   }
 
-  public LicenseOverrideInternal(String ownerId,
-                                 ComponentIdentifier componentIdentifier,
-                                 LicenseOverrideStatus status,
-                                 String comment)
+  public LicenseOverrideInternal(
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      LicenseOverrideStatus status,
+      String comment)
   {
     this.ownerId = ownerId;
     this.status = status;

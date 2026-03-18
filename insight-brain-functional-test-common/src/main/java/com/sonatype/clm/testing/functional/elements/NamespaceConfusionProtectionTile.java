@@ -16,7 +16,7 @@ public class NamespaceConfusionProtectionTile
     extends BasicElement<NamespaceConfusionProtectionTile>
 {
   private static final String CONFIGURATION_TILE_SELECTOR = "#namespace-confusion-protection-pill-configuration";
-  
+
   private static final String ROW_SELECTOR = ".nx-table tbody .nx-table-row";
 
   public NamespaceConfusionProtectionTile() {

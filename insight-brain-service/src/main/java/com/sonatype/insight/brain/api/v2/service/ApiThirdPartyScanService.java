@@ -146,8 +146,8 @@ public class ApiThirdPartyScanService
       if (format == SbomFormat.XML && (sbom.contains("<spdxVersion>") || sbom.contains("<SPDXID>")) &&
           !sbom.contains("<bom") ||
           format == SbomFormat.JSON && (sbom.contains("\"spdxVersion\"") || sbom.contains("\"SPDXID\"")) &&
-              !sbom.contains("\"bomFormat\"")
-      ) {
+              !sbom.contains("\"bomFormat\""))
+      {
         ThirdPartyUtils.parseAndValidateSpdx(sbom, format);
         return ItemContentType.SPDX;
       }
@@ -283,15 +283,18 @@ public class ApiThirdPartyScanService
   }
 
   public IdeUsersOverviewDTO getIdeUsersOverview(final Long sinceUtcTimestamp) {
-    long count = sinceUtcTimestamp == null ? userIdePolicyEvaluationDao.getCount() :
-        userIdePolicyEvaluationDao.getCountSince(new Date(sinceUtcTimestamp));
+    long count = sinceUtcTimestamp == null
+        ? userIdePolicyEvaluationDao.getCount()
+        : userIdePolicyEvaluationDao.getCountSince(new Date(sinceUtcTimestamp));
     return new IdeUsersOverviewDTO(count);
   }
 
   @VisibleForTesting
   enum ApiPolicyAction
   {
-    NONE, WARN, FAIL;
+    NONE,
+    WARN,
+    FAIL;
 
     @Override
     public String toString() {

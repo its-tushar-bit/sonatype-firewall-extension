@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2.service;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -80,12 +81,15 @@ public class SourceControlUserActivityServiceTest
 
     assertThat(
         sourceControlUserDAO.getAll().stream().map(SourceControlUser::getEmail).collect(Collectors.toList())).hasSize(1)
-        .containsOnly(testData.defaultUser.getEmail());
+            .containsOnly(testData.defaultUser.getEmail());
     assertThat(
-        sourceControlUserActivityDAO.getAll().stream().map(SourceControlUserActivity::getSourceControlUserId)
+        sourceControlUserActivityDAO.getAll()
+            .stream()
+            .map(SourceControlUserActivity::getSourceControlUserId)
             .collect(Collectors.toList())).hasSize(2)
-        .containsOnly(testData.commitActivity.stream().map(SourceControlUserActivity::getSourceControlUserId)
-            .toArray(String[]::new));
+                .containsOnly(testData.commitActivity.stream()
+                    .map(SourceControlUserActivity::getSourceControlUserId)
+                    .toArray(String[]::new));
   }
 
   @Test
@@ -94,7 +98,7 @@ public class SourceControlUserActivityServiceTest
     final LocalDate expectedNewCommitActivity = YearMonth.of(2023, 10).atDay(2);
 
     Map<String, Collection<Instant>> activityToSave = new HashMap<>();
-    activityToSave.put(expectedNewEmail, Collections.singletonList(expectedNewCommitActivity.atTime(10,5,56)
+    activityToSave.put(expectedNewEmail, Collections.singletonList(expectedNewCommitActivity.atTime(10, 5, 56)
         .toInstant(ZoneOffset.UTC)));
 
     sourceControlUserActivityService.saveRepoUserList(testData.application.getPublicId(), activityToSave);
@@ -117,7 +121,8 @@ public class SourceControlUserActivityServiceTest
 
     Map<String, Collection<Instant>> activityToSave = new HashMap<>();
     activityToSave.put(testData.defaultUser.getEmail(), Collections.singletonList(expectedNewCommitActivity
-        .atTime(0,0,0).toInstant(ZoneOffset.UTC)));
+        .atTime(0, 0, 0)
+        .toInstant(ZoneOffset.UTC)));
     sourceControlUserActivityService.saveRepoUserList(testData.application.getPublicId(), activityToSave);
 
     assertThat(getEmailsFromUsers(sourceControlUserDAO.getAll())).hasSize(1)
@@ -133,7 +138,9 @@ public class SourceControlUserActivityServiceTest
 
   @Test
   public void testSaveRepoUserList_existingActivityForExistingUser() {
-    final Instant expectedNewCommitActivity = testData.commitActivity.get(0).getCommitYearMonth().atTime(0,0,0)
+    final Instant expectedNewCommitActivity = testData.commitActivity.get(0)
+        .getCommitYearMonth()
+        .atTime(0, 0, 0)
         .toInstant(ZoneOffset.UTC);
 
     Map<String, Collection<Instant>> activityToSave = new HashMap<>();
@@ -162,8 +169,10 @@ public class SourceControlUserActivityServiceTest
   }
 
   private SourceControlUser getSourceControlUserByEmail(final String emailToFind) {
-    return sourceControlUserDAO.getAll().stream()
-        .filter(sourceControlUser -> sourceControlUser.getEmail().equals(emailToFind)).findFirst()
+    return sourceControlUserDAO.getAll()
+        .stream()
+        .filter(sourceControlUser -> sourceControlUser.getEmail().equals(emailToFind))
+        .findFirst()
         .get();
   }
 

@@ -253,8 +253,9 @@ public class ApiMetricsReportingServiceV2AuthzTest
     return service.getMetrics(makeQueryDTO(organizationIds, applicationIds));
   }
 
-  private List<ApiMetricsReportingFlattenedDTOV2> getFlattenedMetrics(Set<String> organizationIds,
-                                                                      Set<String> applicationIds)
+  private List<ApiMetricsReportingFlattenedDTOV2> getFlattenedMetrics(
+      Set<String> organizationIds,
+      Set<String> applicationIds)
   {
     return service.getFlattenedMetrics(makeQueryDTO(organizationIds, applicationIds));
   }

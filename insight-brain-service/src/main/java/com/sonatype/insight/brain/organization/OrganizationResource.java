@@ -58,7 +58,7 @@ public class OrganizationResource
   public static final String DELETE_ORGANIZATION_PATH = "{organizationId}";
 
   public static final String MOVE_ORGANIZATION_ERRORS_EXPORT_PATH =
-          "{organizationId}/move/destination/{destinationId}/export";
+      "{organizationId}/move/destination/{destinationId}/export";
 
   private final OrganizationService organizationService;
 
@@ -67,12 +67,13 @@ public class OrganizationResource
   private final InsightWork work;
 
   @Inject
-  public OrganizationResource(final InsightWork work,
-                              final RobotImageService robotImageService,
-                              final BaseUrl baseUrl,
-                              final OrganizationService organizationService,
-                              final NgUploadResponseGenerator ngUploadResponseGenerator,
-                              final MoveOrganizationService moveOrganizationService)
+  public OrganizationResource(
+      final InsightWork work,
+      final RobotImageService robotImageService,
+      final BaseUrl baseUrl,
+      final OrganizationService organizationService,
+      final NgUploadResponseGenerator ngUploadResponseGenerator,
+      final MoveOrganizationService moveOrganizationService)
   {
     super(baseUrl, ngUploadResponseGenerator, robotImageService);
     this.work = work;
@@ -120,8 +121,9 @@ public class OrganizationResource
 
   @Override
   protected String getDefaultIconFilename(String ownerId) {
-    return Organization.ROOT_ORGANIZATION_ID.equals(ownerId) ?
-        "defaulticon_root_org.png" : "defaulticon_organization.png";
+    return Organization.ROOT_ORGANIZATION_ID.equals(ownerId)
+        ? "defaulticon_root_org.png"
+        : "defaulticon_organization.png";
   }
 
   /**
@@ -160,14 +162,15 @@ public class OrganizationResource
   @Path(ORGANIZATION_ICON_PATH)
   @Authorize(permission = Permission.WRITE)
   @Audited(AuditEvent.CONFIGURE_ORGANIZATION_ICON)
-  public Response setIcon(@FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
-                          @Context HttpHeaders headers,
-                          @AuthzContext(Key.ORGANIZATION_ID) @PathParam("organizationId") String organizationId,
-                          @FormDataParam("hasRobotSource") boolean hasRobotSource,
-                          @FormDataParam("hashcode") String hashcode,
-                          @FormDataParam("file") InputStream uploadedInputStream,
-                          @FormDataParam("file") FormDataContentDisposition fileDetail,
-                          @QueryParam("noFormData") boolean noFormData) throws Exception
+  public Response setIcon(
+      @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
+      @Context HttpHeaders headers,
+      @AuthzContext(Key.ORGANIZATION_ID) @PathParam("organizationId") String organizationId,
+      @FormDataParam("hasRobotSource") boolean hasRobotSource,
+      @FormDataParam("hashcode") String hashcode,
+      @FormDataParam("file") InputStream uploadedInputStream,
+      @FormDataParam("file") FormDataContentDisposition fileDetail,
+      @QueryParam("noFormData") boolean noFormData) throws Exception
   {
     return super.setIcon(organizationId, work.getOrganizationIconDir(), hasRobotSource, hashcode, uploadedInputStream,
         fileDetail, csrfToken, headers, noFormData);
@@ -187,10 +190,10 @@ public class OrganizationResource
   }
 
   /**
-  * Move an organization under a new parent.
-  *
-  * @since 1.159
-  * */
+   * Move an organization under a new parent.
+   *
+   * @since 1.159
+   */
 
   @GET
   @Consumes(MediaType.APPLICATION_JSON)
@@ -199,15 +202,14 @@ public class OrganizationResource
   @Audited(AuditEvent.EXPORT_MOVE_ORGANIZATION_ERRORS_LIST)
   public Response moveOrganizationErrorsExport(
       @PathParam("organizationId") final String orgId,
-      @PathParam("destinationId") final String newParentOrgId
-  )
+      @PathParam("destinationId") final String newParentOrgId)
   {
     List<ValidationError> validationErrors =
         moveOrganizationService.getMoveOrganizationErrors(orgId, newParentOrgId);
 
     final String fileName = "move_organization_errors";
     return Csv.generate(Response.ok(), fileName, MoveOrganizationResponseDTO.ValidationError.getCsvHeader(),
-            validationErrors)
+        validationErrors)
         .build();
   }
 }

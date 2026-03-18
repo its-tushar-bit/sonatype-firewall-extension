@@ -72,19 +72,19 @@ public class ApiRepositoryIdentifiedComponentServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> repositoryIdentifiedComponentService.deleteRepositoryIdentifiedComponent("hash",
-                componentIdentifier, PackageUrlIdentifier.toPackageUrl(componentIdentifier)))
+            componentIdentifier, PackageUrlIdentifier.toPackageUrl(componentIdentifier)))
         .withMessageContaining("Only one of either hash or componentIdentifier or packageUrl must be specified.");
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> repositoryIdentifiedComponentService.deleteRepositoryIdentifiedComponent("hash",
-                componentIdentifier, null))
+            componentIdentifier, null))
         .withMessageContaining("Only one of either hash or componentIdentifier or packageUrl must be specified.");
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> repositoryIdentifiedComponentService.deleteRepositoryIdentifiedComponent(null,
-                componentIdentifier, PackageUrlIdentifier.toPackageUrl(componentIdentifier)))
+            componentIdentifier, PackageUrlIdentifier.toPackageUrl(componentIdentifier)))
         .withMessageContaining("Only one of either hash or componentIdentifier or packageUrl must be specified.");
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> repositoryIdentifiedComponentService.deleteRepositoryIdentifiedComponent("hash",
-                null, PackageUrlIdentifier.toPackageUrl(componentIdentifier)))
+            null, PackageUrlIdentifier.toPackageUrl(componentIdentifier)))
         .withMessageContaining("Only one of either hash or componentIdentifier or packageUrl must be specified.");
   }
 
@@ -110,9 +110,11 @@ public class ApiRepositoryIdentifiedComponentServiceTest
 
   @Test
   public void testDeleteRepositoryIdentifiedComponent_Hash_OnlyInMemory() {
-    repositoryIdentifiedComponentCache.getLoadingCache().asMap()
+    repositoryIdentifiedComponentCache.getLoadingCache()
+        .asMap()
         .put("hash1", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
-    repositoryIdentifiedComponentCache.getLoadingCache().asMap()
+    repositoryIdentifiedComponentCache.getLoadingCache()
+        .asMap()
         .put("hash2", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2"));
 
     repositoryIdentifiedComponentService.deleteRepositoryIdentifiedComponent("hash1", null, null);
@@ -257,9 +259,11 @@ public class ApiRepositoryIdentifiedComponentServiceTest
 
   @Test
   public void testClearAllCache_OnlyInMemory() {
-    repositoryIdentifiedComponentCache.getLoadingCache().asMap()
+    repositoryIdentifiedComponentCache.getLoadingCache()
+        .asMap()
         .put("hash1", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
-    repositoryIdentifiedComponentCache.getLoadingCache().asMap()
+    repositoryIdentifiedComponentCache.getLoadingCache()
+        .asMap()
         .put("hash2", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2"));
 
     repositoryIdentifiedComponentService.deleteAllRepositoryIdentifiedComponents();
@@ -270,15 +274,18 @@ public class ApiRepositoryIdentifiedComponentServiceTest
 
   @Test
   public void testDisallowConcurrentExecution() {
-    assertThat(JobBuilder.newJob(ApiRepositoryIdentifiedComponentService.class).build()
+    assertThat(JobBuilder.newJob(ApiRepositoryIdentifiedComponentService.class)
+        .build()
         .isConcurrentExectionDisallowed()).isFalse();
   }
 
   @Test
   public void testExecute_Hash() throws Exception {
-    repositoryIdentifiedComponentCache.getLoadingCache().asMap()
+    repositoryIdentifiedComponentCache.getLoadingCache()
+        .asMap()
         .put("hash1", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
-    repositoryIdentifiedComponentCache.getLoadingCache().asMap()
+    repositoryIdentifiedComponentCache.getLoadingCache()
+        .asMap()
         .put("hash2", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2"));
     ApiRepositoryIdentifiedComponentService spyRepositoryIdentifiedComponentService =
         spy(repositoryIdentifiedComponentService);
@@ -303,9 +310,11 @@ public class ApiRepositoryIdentifiedComponentServiceTest
   @Test
   public void testExecute_ComponentIdentifier() throws Exception {
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
-    repositoryIdentifiedComponentCache.getLoadingCache().asMap()
+    repositoryIdentifiedComponentCache.getLoadingCache()
+        .asMap()
         .put("hash1", componentIdentifier1);
-    repositoryIdentifiedComponentCache.getLoadingCache().asMap()
+    repositoryIdentifiedComponentCache.getLoadingCache()
+        .asMap()
         .put("hash2", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2"));
     ApiRepositoryIdentifiedComponentService spyRepositoryIdentifiedComponentService =
         spy(repositoryIdentifiedComponentService);

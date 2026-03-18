@@ -9,7 +9,8 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class NxToast extends BasicElement<NxToast>
+public class NxToast
+    extends BasicElement<NxToast>
 {
   private static final String ROOT = ".nx-toast-container";
 

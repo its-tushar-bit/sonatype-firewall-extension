@@ -10,7 +10,7 @@ public class DashboardsVersionDTO
   public int version;
 
   public DashboardsVersionDTO() {
-    //for jackson;
+    // for jackson;
   }
 
   public DashboardsVersionDTO(final int version) {

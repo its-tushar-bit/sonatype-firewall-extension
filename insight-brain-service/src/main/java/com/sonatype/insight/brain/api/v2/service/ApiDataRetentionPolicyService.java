@@ -141,7 +141,8 @@ public class ApiDataRetentionPolicyService
       ApiDataRetentionPoliciesDTO dto)
   {
     if (dto == null || ((dto.applicationReports == null || dto.applicationReports.stages == null
-        || dto.applicationReports.stages.isEmpty()) && dto.successMetrics == null)) {
+        || dto.applicationReports.stages.isEmpty()) && dto.successMetrics == null))
+    {
       throw new BadRequestException("The request does not specify any retention policies to configure");
     }
     try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {

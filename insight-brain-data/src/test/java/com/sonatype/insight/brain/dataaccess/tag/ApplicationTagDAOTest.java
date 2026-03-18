@@ -125,8 +125,7 @@ public class ApplicationTagDAOTest
             tag2.getName(),
             tag3.getName(),
             tag4.getName(),
-            tag5.getName()
-        )
+            tag5.getName())
         .hasSize(6);
 
     assertThat(allItems)

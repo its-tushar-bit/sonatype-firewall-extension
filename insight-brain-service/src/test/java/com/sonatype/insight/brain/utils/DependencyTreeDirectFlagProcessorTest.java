@@ -88,13 +88,13 @@ public class DependencyTreeDirectFlagProcessorTest
   @Test
   public void testPopulateDirectFlags_ComplexTreeStructure() {
     // Build a complex tree structure:
-    //   root
-    //   ├── direct-1
-    //   │   ├── transitive-1a
-    //   │   └── transitive-1b
-    //   │       └── transitive-1b-child
-    //   └── direct-2
-    //       └── transitive-2a
+    // root
+    // ├── direct-1
+    // │ ├── transitive-1a
+    // │ └── transitive-1b
+    // │ └── transitive-1b-child
+    // └── direct-2
+    // └── transitive-2a
     ApiDependencyTreeNodeDTO transitive1bChild = createNode("transitive-1b-child");
     ApiDependencyTreeNodeDTO transitive1b = createNode("transitive-1b", transitive1bChild);
     ApiDependencyTreeNodeDTO transitive1a = createNode("transitive-1a");

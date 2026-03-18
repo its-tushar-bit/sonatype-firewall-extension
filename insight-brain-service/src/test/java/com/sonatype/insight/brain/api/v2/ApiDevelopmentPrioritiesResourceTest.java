@@ -38,16 +38,16 @@ public class ApiDevelopmentPrioritiesResourceTest
   public void setup() throws IOException {
     final Organization organization = tempEntity.newOrganizationWithSpecificId(GIVEN_ORG_ID);
     application = tempEntity.newApplicationWithParent(GIVEN_APP_ID, "some-app-name",
-            organization.getId());
+        organization.getId());
 
     tempDir.newFile();
     createReportFile(application.getId(), GIVEN_SCAN_ID,
-            "/DevelopmentPrioritiesApiResourceTest/sample-report");
+        "/DevelopmentPrioritiesApiResourceTest/sample-report");
     createScanFile(application.getId(), GIVEN_SCAN_ID);
   }
 
   private static final String GET_PRIORITIES_PATH =
-      "api/v2/developer/priorities/" + GIVEN_APP_ID +  "/" + GIVEN_SCAN_ID;
+      "api/v2/developer/priorities/" + GIVEN_APP_ID + "/" + GIVEN_SCAN_ID;
 
   @Test
   public void testGetPriorities_returnsCorrectErrorWithoutAuthentication() throws Exception {
@@ -129,12 +129,12 @@ public class ApiDevelopmentPrioritiesResourceTest
   @Test
   public void testGetPrioritiesExport_returnsSuccessWhenCorrectPermissions() throws Exception {
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
-            GIVEN_SCAN_ID, new Date(System.currentTimeMillis()));
+        GIVEN_SCAN_ID, new Date(System.currentTimeMillis()));
 
     final HttpResponse response = restRequest()
-            .auth()
-            .path(GET_PRIORITIES_PATH + "/export")
-            .get();
+        .auth()
+        .path(GET_PRIORITIES_PATH + "/export")
+        .get();
 
     assertResponseStatus(200, response);
 

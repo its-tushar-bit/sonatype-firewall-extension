@@ -40,7 +40,8 @@ public class CSVMessageBodyWriterTest
    * Aides in the construction of a Type object for ArrayList<DTO>
    */
   @SuppressWarnings("serial")
-  private static class DTOArrayListTypeHelper extends ArrayList<DTO>
+  private static class DTOArrayListTypeHelper
+      extends ArrayList<DTO>
   {
   }
 

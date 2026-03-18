@@ -236,7 +236,7 @@ public class ScanTaskTest
     FileScanEntity scanBinaryEntity = new FileScanEntity(scanBinary.toPath());
     ScanReceipt receipt = mock(ScanReceipt.class);
     when(uploadService.upload(scanBinaryEntity, app, stage.getStageTypeId(), ClientScanType.SONATYPE_THIRD_PARTY,
-        null, null, null, false )).thenReturn(scanReceipt);
+        null, null, null, false)).thenReturn(scanReceipt);
 
     task.init(app, scanBinary, bundleFilename, stage, false, "agent", "ui", false);
     when(scanner.scan(any(File.class), any(String.class), any(String.class), eq(null)))

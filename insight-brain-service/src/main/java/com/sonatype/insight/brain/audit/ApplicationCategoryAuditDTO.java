@@ -23,7 +23,7 @@ public class ApplicationCategoryAuditDTO
   public String applicationCategoryName;
 
   public ApplicationCategoryAuditDTO() {
-    //for jackson
+    // for jackson
   }
 
   public ApplicationCategoryAuditDTO(Tag tag) {

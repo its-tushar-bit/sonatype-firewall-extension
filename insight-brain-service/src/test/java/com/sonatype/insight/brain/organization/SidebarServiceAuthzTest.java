@@ -76,16 +76,14 @@ public class SidebarServiceAuthzTest
         repository1.getId());
 
     OwnerHierarchyOrganizationDTO rootOrganizationDTO = (OwnerHierarchyOrganizationDTO) ownerHierarchyDTO.ownersMap.get(
-        ownerHierarchyDTO.topParentOrganizationId
-    );
+        ownerHierarchyDTO.topParentOrganizationId);
     assertThat(rootOrganizationDTO.id).isEqualTo(organization1.getId());
     assertThat(rootOrganizationDTO.organizationIds).containsExactly(organizationChildOrg.getId());
     assertThat(rootOrganizationDTO.synthetic).isTrue();
     assertThat(rootOrganizationDTO.applicationIds).containsExactly(application1.getPublicId());
 
     OwnerHierarchyApplicationDTO applicationDTO = (OwnerHierarchyApplicationDTO) ownerHierarchyDTO.ownersMap.get(
-        rootOrganizationDTO.applicationIds.get(0)
-    );
+        rootOrganizationDTO.applicationIds.get(0));
     assertThat(applicationDTO.id).isEqualTo(application1.getId());
 
     OwnerHierarchyRepositoryContainerDTO repositoryContainerDTO =

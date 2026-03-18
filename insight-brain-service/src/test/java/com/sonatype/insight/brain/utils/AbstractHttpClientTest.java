@@ -45,7 +45,8 @@ public abstract class AbstractHttpClientTest
 
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
     context.setContextPath("/");
-    context.addServlet(new ServletHolder(new HttpServlet() {
+    context.addServlet(new ServletHolder(new HttpServlet()
+    {
       @Override
       protected void service(HttpServletRequest request, HttpServletResponse response) {
         proxyServerUsed.set(true);
@@ -89,7 +90,8 @@ public abstract class AbstractHttpClientTest
 
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
     context.setContextPath("/");
-    context.addServlet(new ServletHolder(new HttpServlet() {
+    context.addServlet(new ServletHolder(new HttpServlet()
+    {
       @Override
       protected void service(HttpServletRequest request, HttpServletResponse response) {
         proxyServerBypassed.set(true);

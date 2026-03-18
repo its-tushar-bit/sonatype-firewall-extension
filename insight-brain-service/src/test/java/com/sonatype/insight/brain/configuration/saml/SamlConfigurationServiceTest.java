@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.configuration.saml;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -84,7 +85,8 @@ public class SamlConfigurationServiceTest
     samlConfigurationService.insert(tempEntity.newSamlConfiguration());
 
     assertThatThrownBy(() -> samlConfigurationService.insert(new SamlConfiguration()))
-        .isInstanceOf(BadRequestException.class).hasMessage("A SAML configuration already exists.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("A SAML configuration already exists.");
   }
 
   @Test
@@ -94,8 +96,9 @@ public class SamlConfigurationServiceTest
             "<xml></xml>", "ent-id", "name-first", "name-last", "mail-e", "name-user", "teamz", null, null);
 
     assertThatExceptionOfType(InvalidNameException.class).isThrownBy(
-            () -> samlConfigurationService.insert(samlConfiguration))
-        .withMessageContaining("Identity provider name").withMessageContaining("characters or less");
+        () -> samlConfigurationService.insert(samlConfiguration))
+        .withMessageContaining("Identity provider name")
+        .withMessageContaining("characters or less");
   }
 
   @Test
@@ -108,7 +111,8 @@ public class SamlConfigurationServiceTest
 
     assertThatExceptionOfType(InvalidNameException.class)
         .isThrownBy(() -> samlConfigurationService.update(samlConfiguration))
-        .withMessageContaining("Identity provider name").withMessageContaining("characters or less");
+        .withMessageContaining("Identity provider name")
+        .withMessageContaining("characters or less");
   }
 
   @Test

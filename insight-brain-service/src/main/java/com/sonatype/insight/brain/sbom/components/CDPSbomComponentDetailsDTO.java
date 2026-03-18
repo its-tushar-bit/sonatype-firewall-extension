@@ -43,7 +43,7 @@ public class CDPSbomComponentDetailsDTO
   {
     super(new String[]{hash, packageUrl, name, version, format, displayName});
     setComponentRef(componentRef);
-    //Deprecated: for old sbom versions
+    // Deprecated: for old sbom versions
     if (componentRef == null) {
       setFileCoordinateId(fileCoordinateId);
     }

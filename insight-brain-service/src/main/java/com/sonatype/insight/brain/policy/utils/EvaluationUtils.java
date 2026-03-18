@@ -37,7 +37,8 @@ public class EvaluationUtils
    * @param oldPolicyViolation the policy violation that was fixed
    * @return true if the fix was due to a version change, false otherwise
    */
-  public static boolean isRemediatedByVersionChange(List<Component> foundComponents,
+  public static boolean isRemediatedByVersionChange(
+      List<Component> foundComponents,
       PolicyViolation oldPolicyViolation)
   {
     if (foundComponents == null || foundComponents.isEmpty()) {

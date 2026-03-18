@@ -16,7 +16,7 @@ public class ScanResult
   private ScanEntity scanEntity;
 
   public ScanResult() {
-    //noop
+    // noop
   }
 
   @Deprecated

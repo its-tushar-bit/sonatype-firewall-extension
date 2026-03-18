@@ -206,12 +206,10 @@ public class ApiComponentsInQuarantineReportingServiceTest
   private void sortApiComponentsInQuarantineDTO(ApiComponentsInQuarantineDTO componentsInQuarantineDTO) {
     componentsInQuarantineDTO.componentsInQuarantine.sort(Comparator.comparing(rciq -> rciq.repository.publicId));
 
-    for (ApiRepositoryComponentsInQuarantineDTO repositoryComponentsInQuarantineDTO :
-        componentsInQuarantineDTO.componentsInQuarantine) {
+    for (ApiRepositoryComponentsInQuarantineDTO repositoryComponentsInQuarantineDTO : componentsInQuarantineDTO.componentsInQuarantine) {
       repositoryComponentsInQuarantineDTO.components.sort(Comparator.comparing(rcpv -> rcpv.component.hash));
 
-      for (ApiRepositoryComponentPolicyViolationDTO repositoryComponentPolicyViolationDTO :
-          repositoryComponentsInQuarantineDTO.components) {
+      for (ApiRepositoryComponentPolicyViolationDTO repositoryComponentPolicyViolationDTO : repositoryComponentsInQuarantineDTO.components) {
         repositoryComponentPolicyViolationDTO.policyViolations.sort(Comparator.comparing(
             policyViolationDTOV2 -> policyViolationDTOV2.policyName));
       }

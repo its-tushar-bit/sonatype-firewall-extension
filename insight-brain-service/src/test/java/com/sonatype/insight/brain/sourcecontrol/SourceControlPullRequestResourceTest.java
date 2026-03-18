@@ -155,7 +155,7 @@ public class SourceControlPullRequestResourceTest
     ComponentIdentifier mavenComponentIdentifier =
         ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-classic", "1.3.14", "", "jar");
 
-    //only same version available
+    // only same version available
     ComponentDetails details = createComponentDetailsForSecurityViolation(mavenComponentIdentifier);
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     componentDetailsList.setList(Collections.singletonList(details));
@@ -189,7 +189,7 @@ public class SourceControlPullRequestResourceTest
     ComponentIdentifier mavenComponentIdentifier =
         ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-classic", "1.3.14", "", "jar");
 
-    //request a targetVersion not in the applicable version change list
+    // request a targetVersion not in the applicable version change list
     PullRequestSubmissionDTO submission =
         new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.3.15", "Sonatype",
             true);

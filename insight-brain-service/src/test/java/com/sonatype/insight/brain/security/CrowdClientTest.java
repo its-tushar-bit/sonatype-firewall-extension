@@ -237,11 +237,11 @@ public class CrowdClientTest
 
     Set<Member> members = crowdClient.searchUsersByUsernames(new LinkedHashSet<>(usernames));
 
-    assertThat(members).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        new Member(MemberType.USER, "username1", "username1DisplayName", "username1Email", CrowdRealm.ID),
-        new Member(MemberType.USER, "username2", "username2DisplayName", "username2Email", CrowdRealm.ID),
-        new Member(MemberType.USER, "username3", "username3DisplayName", "username3Email", CrowdRealm.ID)
-    );
+    assertThat(members).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            new Member(MemberType.USER, "username1", "username1DisplayName", "username1Email", CrowdRealm.ID),
+            new Member(MemberType.USER, "username2", "username2DisplayName", "username2Email", CrowdRealm.ID),
+            new Member(MemberType.USER, "username3", "username3DisplayName", "username3Email", CrowdRealm.ID));
   }
 
   @Test
@@ -250,7 +250,8 @@ public class CrowdClientTest
     crowdMockServer.mockSearchUsersError(crowdClient.anyNameMatchesAndActive(new LinkedHashSet<>(usernames)), 400);
 
     assertThatExceptionOfType(OperationFailedException.class).isThrownBy(
-        () -> crowdClient.searchUsersByUsernames(new LinkedHashSet<>(usernames))).withMessageContaining("Bad Request")
+        () -> crowdClient.searchUsersByUsernames(new LinkedHashSet<>(usernames)))
+        .withMessageContaining("Bad Request")
         .withStackTraceContaining("Error");
   }
 
@@ -262,11 +263,11 @@ public class CrowdClientTest
 
     Set<Member> members = crowdClient.searchGroupsByGroupNames(new LinkedHashSet<>(groupNames));
 
-    assertThat(members).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
-        new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID),
-        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)
-    );
+    assertThat(members).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
+            new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID),
+            new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID));
   }
 
   @Test
@@ -276,7 +277,8 @@ public class CrowdClientTest
 
     assertThatExceptionOfType(OperationFailedException.class).isThrownBy(
         () -> crowdClient.searchGroupsByGroupNames(new LinkedHashSet<>(groupNames)))
-        .withMessageContaining("Bad Request").withStackTraceContaining("Error");
+        .withMessageContaining("Bad Request")
+        .withStackTraceContaining("Error");
   }
 
   @Test
@@ -324,10 +326,10 @@ public class CrowdClientTest
 
     Set<Member> usersByGroup = crowdClient.getUsersByGroupName(groupName);
 
-    assertThat(usersByGroup).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        new Member(MemberType.USER, "username1", "displayName1", "email1", CrowdRealm.ID),
-        new Member(MemberType.USER, "username2", "displayName2", "email2", CrowdRealm.ID)
-    );
+    assertThat(usersByGroup).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            new Member(MemberType.USER, "username1", "displayName1", "email1", CrowdRealm.ID),
+            new Member(MemberType.USER, "username2", "displayName2", "email2", CrowdRealm.ID));
   }
 
   @Test
@@ -336,7 +338,8 @@ public class CrowdClientTest
     crowdMockServer.mockGetNestedUsersOfGroupError(groupName, 400);
 
     assertThatExceptionOfType(OperationFailedException.class).isThrownBy(
-        () -> crowdClient.getUsersByGroupName(groupName)).withMessageContaining("Bad Request")
+        () -> crowdClient.getUsersByGroupName(groupName))
+        .withMessageContaining("Bad Request")
         .withStackTraceContaining("Error");
   }
 
@@ -386,11 +389,11 @@ public class CrowdClientTest
 
     Set<Member> members = crowdClient.searchUsersByDisplayName(displayName);
 
-    assertThat(members).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        new Member(MemberType.USER, "username1", "username1DisplayName", "username1Email", CrowdRealm.ID),
-        new Member(MemberType.USER, "username2", "username2DisplayName", "username2Email", CrowdRealm.ID),
-        new Member(MemberType.USER, "username3", "username3DisplayName", "username3Email", CrowdRealm.ID)
-    );
+    assertThat(members).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            new Member(MemberType.USER, "username1", "username1DisplayName", "username1Email", CrowdRealm.ID),
+            new Member(MemberType.USER, "username2", "username2DisplayName", "username2Email", CrowdRealm.ID),
+            new Member(MemberType.USER, "username3", "username3DisplayName", "username3Email", CrowdRealm.ID));
   }
 
   @Test
@@ -399,7 +402,8 @@ public class CrowdClientTest
     crowdMockServer.mockSearchUsersError(crowdClient.displayNameMatchesAndActive(displayName), 400);
 
     assertThatExceptionOfType(OperationFailedException.class).isThrownBy(
-        () -> crowdClient.searchUsersByDisplayName(displayName)).withMessageContaining("Bad Request")
+        () -> crowdClient.searchUsersByDisplayName(displayName))
+        .withMessageContaining("Bad Request")
         .withStackTraceContaining("Error");
   }
 

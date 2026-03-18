@@ -64,7 +64,8 @@ public class SourceControlConfigurationMigrator
     Integer pullRequestMonitoringIntervalSeconds = insightConfig.getPullRequestMonitoringIntervalInSeconds();
 
     if (sourceControlConfig != null || defaultBranchMonitoring != null ||
-        pullRequestMonitoringIntervalSeconds != null) {
+        pullRequestMonitoringIntervalSeconds != null)
+    {
       log.warn(OBSOLETE_CONFIG_MESSAGE);
     }
 
@@ -77,7 +78,8 @@ public class SourceControlConfigurationMigrator
     try (TransactionContext tx = migrationTrackerDAO.createTransactionContext()) {
       tx.begin();
       if (sourceControlConfig != null || defaultBranchMonitoring != null ||
-          pullRequestMonitoringIntervalSeconds != null) {
+          pullRequestMonitoringIntervalSeconds != null)
+      {
         try {
           ObjectNode objectNode = new ObjectMapper().createObjectNode();
           if (sourceControlConfig != null) {

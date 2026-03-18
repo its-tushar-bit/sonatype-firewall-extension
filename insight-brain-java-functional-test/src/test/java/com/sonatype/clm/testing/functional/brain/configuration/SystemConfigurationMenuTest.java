@@ -172,7 +172,8 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.productLicense().shouldBe(visible);
     systemConfigMenu.ldap().shouldBe(visible);
     systemConfigMenu.webhooks().shouldBe(visible, DISABLED).hover();
-    Tooltip.get().shouldBe(visible)
+    Tooltip.get()
+        .shouldBe(visible)
         .shouldHave(text("Webhooks feature is not supported by your license"));
     systemConfigMenu.systemNotice().shouldBe(visible);
     systemConfigMenu.successMetrics().shouldBe(visible);

@@ -13,7 +13,7 @@ import com.codeborne.selenide.SelenideElement;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class FirewallRepositoryList
-        extends BasicElement<FirewallRepositoryList>
+    extends BasicElement<FirewallRepositoryList>
 {
   public FirewallRepositoryList(String... selectors) {
     super(selectors);
@@ -25,9 +25,9 @@ public class FirewallRepositoryList
 
   public FirewallRepositoryListItem row(int i) {
     return new FirewallRepositoryListItem(
-            selector,
-            ".nx-table .firewall-repositories-entries .nx-table-row",
-            nthChild(i + 1));
+        selector,
+        ".nx-table .firewall-repositories-entries .nx-table-row",
+        nthChild(i + 1));
   }
 
   public SelenideElement title() {
@@ -35,7 +35,7 @@ public class FirewallRepositoryList
   }
 
   public static class FirewallRepositoryListItem
-          extends BasicElement<FirewallRepositoryListItem>
+      extends BasicElement<FirewallRepositoryListItem>
   {
     public FirewallRepositoryListItem(String... selectors) {
       super(selectors);

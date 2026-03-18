@@ -185,9 +185,7 @@ public class PolicyResource
   @GET
   @Path("withProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode")
   @Produces(MediaType.APPLICATION_JSON)
-  public ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies
-      getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode()
-  {
+  public ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode() {
     checkReadPermission(RepositoryContainer.SINGLETON);
     List<Policy> proprietaryNameConflictPolicies = new ArrayList<>();
     List<Policy> securityVulnerabilityCategoryMaliciousCodePolicies = new ArrayList<>();
@@ -203,23 +201,23 @@ public class PolicyResource
     for (Policy policy : policies) {
       boolean hasSecurityVulnerabilityCategoryMaliciousCode = false;
       boolean hasProprietaryNameConflict = false;
-      for (Iterator<Constraint> iterator = policy.getConstraints().iterator();
-          !hasSecurityVulnerabilityCategoryMaliciousCode && !hasProprietaryNameConflict && iterator.hasNext();)
+      for (Iterator<Constraint> iterator =
+          policy.getConstraints().iterator(); !hasSecurityVulnerabilityCategoryMaliciousCode
+              && !hasProprietaryNameConflict && iterator.hasNext();)
       {
         Constraint constraint = iterator.next();
         for (Condition condition : constraint.getConditions()) {
-          if (
-              condition.getConditionTypeId().equals(ProprietaryNameConflictConditionType.ID)
-              && condition.getOperator().equals(ProprietaryNameConflictConditionType.OP_IS_PRESENT)
-          ) {
+          if (condition.getConditionTypeId().equals(ProprietaryNameConflictConditionType.ID)
+              && condition.getOperator().equals(ProprietaryNameConflictConditionType.OP_IS_PRESENT))
+          {
             hasProprietaryNameConflict = true;
           }
-          else if (
-              condition.getConditionTypeId().equals(SecurityVulnerabilityCategoryConditionType.ID)
-              && condition.getOperator().equals(
-                  ConditionTypes.SecurityVulnerabilityCategoryConditionType.getSupportedOperators().get(0))
-              && condition.getValue().equals(SecurityVulnerabilityCategory.MALICIOUS_CODE.getId())
-          ) {
+          else if (condition.getConditionTypeId().equals(SecurityVulnerabilityCategoryConditionType.ID)
+              && condition.getOperator()
+                  .equals(
+                      ConditionTypes.SecurityVulnerabilityCategoryConditionType.getSupportedOperators().get(0))
+              && condition.getValue().equals(SecurityVulnerabilityCategory.MALICIOUS_CODE.getId()))
+          {
             hasSecurityVulnerabilityCategoryMaliciousCode = true;
           }
           if (hasProprietaryNameConflict && hasSecurityVulnerabilityCategoryMaliciousCode) {
@@ -235,14 +233,13 @@ public class PolicyResource
       }
     }
 
-    ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies result
-        = new ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies();
+    ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies result =
+        new ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies();
     result.proprietaryNameConflictPolicies = new ArrayList<>();
     result.proprietaryNameConflictPolicies.addAll(proprietaryNameConflictPolicies);
     result.securityVulnerabilityCategoryMaliciousCodePolicies = new ArrayList<>();
     result.securityVulnerabilityCategoryMaliciousCodePolicies.addAll(
-        securityVulnerabilityCategoryMaliciousCodePolicies
-    );
+        securityVulnerabilityCategoryMaliciousCodePolicies);
     return result;
   }
 
@@ -297,9 +294,10 @@ public class PolicyResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
   @Audited(AuditEvent.CREATE_POLICY)
-  public Policy addPolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
-                          @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
-                          final Policy policy)
+  public Policy addPolicy(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
+      final Policy policy)
   {
     log.debug("Received request to add {} policy for ownerId {}", ownerType, ownerId);
 
@@ -317,9 +315,10 @@ public class PolicyResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
   @Audited(AuditEvent.UPDATE_POLICY)
-  public Policy updatePolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
-                             @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
-                             final Policy policy)
+  public Policy updatePolicy(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
+      final Policy policy)
   {
     log.debug("Received request to update {} policy for ownerId {}, policyId {}", ownerType, ownerId, policy.getId());
 
@@ -453,9 +452,10 @@ public class PolicyResource
   @Path("{policyId}")
   @Authorize(permission = Permission.WRITE)
   @Audited(AuditEvent.DELETE_POLICY)
-  public void deletePolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
-                           @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
-                           @PathParam("policyId") final String policyId)
+  public void deletePolicy(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
+      @PathParam("policyId") final String policyId)
   {
     log.debug("Received request to delete {} policy for ownerId {}, policyId {}", ownerType, ownerId, policyId);
 
@@ -475,8 +475,9 @@ public class PolicyResource
   @GET
   @Path("export")
   @Produces(MediaType.APPLICATION_JSON)
-  public PolicyExportResult exportPolicies(@PathParam("ownerType") final OwnerType ownerType,
-                                           @PathParam("ownerId") String ownerId)
+  public PolicyExportResult exportPolicies(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") String ownerId)
   {
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -493,12 +494,13 @@ public class PolicyResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
   @Audited(AuditEvent.IMPORT)
-  public Response importPolicies(@PathParam("ownerType") final OwnerType ownerType,
-                                 @PathParam("ownerId") final String ownerId,
-                                 @FormDataParam("file") final InputStream is,
-                                 @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
-                                 @Context HttpHeaders headers,
-                                 @QueryParam("noFormData") boolean noFormData) throws Exception
+  public Response importPolicies(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId,
+      @FormDataParam("file") final InputStream is,
+      @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
+      @Context HttpHeaders headers,
+      @QueryParam("noFormData") boolean noFormData) throws Exception
   {
     return ngUploadResponseGenerator.run(csrfToken, headers, noFormData, new Callable<PolicyImportResult>()
     {
@@ -534,13 +536,13 @@ public class PolicyResource
     catch (IOException e) {
       log.error("Policy file import failure, unable to marshal from json", e);
       throw new BadRequestException("The file you selected failed to upload correctly, are you certain it is a properly"
-        + " formatted policy import json file?");
+          + " formatted policy import json file?");
     }
     // Any random json file can be uploaded and result in an empty PolicyImportResult. It does not make sense to import
     // policies from a file without policies.
     if (CollectionUtils.isEmpty(policyExportResult.policies)) {
       throw new BadRequestException("The file you selected failed to upload correctly, the policy file needs to have at"
-        + " least one policy defined.");
+          + " least one policy defined.");
     }
 
     // Ensure that tags are not null. The importer expects non-null fields

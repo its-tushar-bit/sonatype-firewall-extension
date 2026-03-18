@@ -95,11 +95,13 @@ public class DashboardPolicyWaiverDTOComparatorTest
     DashboardPolicyWaiverDTO laterComponentNameDto = new DashboardPolicyWaiverDTOBuilder()
         .withComponentIdentifier(componentIdentifiers.get(0))
         .withExpiryTime(Date.from(seed.plus(Duration.ofDays(3))))
-        .withComponentMatchStrategy(EXACT_COMPONENT).getBuiltDTO();
+        .withComponentMatchStrategy(EXACT_COMPONENT)
+        .getBuiltDTO();
     DashboardPolicyWaiverDTO earlierComponentNameDto = new DashboardPolicyWaiverDTOBuilder()
         .withComponentIdentifier(componentIdentifiers.get(0))
         .withExpiryTime(Date.from(seed.plus(Duration.ofDays(1))))
-        .withComponentMatchStrategy(EXACT_COMPONENT).getBuiltDTO();
+        .withComponentMatchStrategy(EXACT_COMPONENT)
+        .getBuiltDTO();
     assertThat(comparator.compare(laterComponentNameDto, earlierComponentNameDto)).isGreaterThan(0);
 
     DashboardPolicyWaiverDTO earlierDto = new DashboardPolicyWaiverDTOBuilder().withCreateTime(Date.from(seed.minus(
@@ -129,9 +131,11 @@ public class DashboardPolicyWaiverDTOComparatorTest
   public void testCompare_COMPONENT_SCOPE_ASC_ExactComponentsFirst() {
     DashboardPolicyWaiverDTO exactDto = new DashboardPolicyWaiverDTOBuilder()
         .withComponentIdentifier(componentIdentifiers.get(0))
-        .withComponentMatchStrategy(EXACT_COMPONENT).getBuiltDTO();
+        .withComponentMatchStrategy(EXACT_COMPONENT)
+        .getBuiltDTO();
     DashboardPolicyWaiverDTO allComponentsDto = new DashboardPolicyWaiverDTOBuilder()
-        .withComponentMatchStrategy(ALL_COMPONENTS).getBuiltDTO();
+        .withComponentMatchStrategy(ALL_COMPONENTS)
+        .getBuiltDTO();
 
     DashboardPolicyWaiverDTOComparator comparator = new DashboardPolicyWaiverDTOComparator(
         DashboardPolicyWaiverOrderByEnum.COMPONENT_SCOPE.toString());
@@ -143,9 +147,11 @@ public class DashboardPolicyWaiverDTOComparatorTest
   public void testCompare_COMPONENT_SCOPE_DESC_ExactComponentsFirst() {
     DashboardPolicyWaiverDTO exactDto = new DashboardPolicyWaiverDTOBuilder()
         .withComponentIdentifier(componentIdentifiers.get(0))
-        .withComponentMatchStrategy(EXACT_COMPONENT).getBuiltDTO();
+        .withComponentMatchStrategy(EXACT_COMPONENT)
+        .getBuiltDTO();
     DashboardPolicyWaiverDTO allComponentsDto = new DashboardPolicyWaiverDTOBuilder()
-        .withComponentMatchStrategy(ALL_COMPONENTS).getBuiltDTO();
+        .withComponentMatchStrategy(ALL_COMPONENTS)
+        .getBuiltDTO();
 
     DashboardPolicyWaiverDTOComparator comparator = new DashboardPolicyWaiverDTOComparator(
         ORDER_WAIVER_BY_DESC + DashboardPolicyWaiverOrderByEnum.COMPONENT_SCOPE);
@@ -156,9 +162,11 @@ public class DashboardPolicyWaiverDTOComparatorTest
   @Test
   public void testCompare_COMPONENT_SCOPE_ASC_AllComponentsFirst() {
     DashboardPolicyWaiverDTO unknownDto = new DashboardPolicyWaiverDTOBuilder()
-        .withComponentMatchStrategy(EXACT_COMPONENT).getBuiltDTO();
+        .withComponentMatchStrategy(EXACT_COMPONENT)
+        .getBuiltDTO();
     DashboardPolicyWaiverDTO allComponentsDto = new DashboardPolicyWaiverDTOBuilder()
-        .withComponentMatchStrategy(ALL_COMPONENTS).getBuiltDTO();
+        .withComponentMatchStrategy(ALL_COMPONENTS)
+        .getBuiltDTO();
 
     DashboardPolicyWaiverDTOComparator comparator = new DashboardPolicyWaiverDTOComparator(
         DashboardPolicyWaiverOrderByEnum.COMPONENT_SCOPE.toString());
@@ -169,9 +177,11 @@ public class DashboardPolicyWaiverDTOComparatorTest
   @Test
   public void testCompare_COMPONENT_SCOPE_DESC_AllComponentsFirst() {
     DashboardPolicyWaiverDTO unknownDto = new DashboardPolicyWaiverDTOBuilder()
-        .withComponentMatchStrategy(EXACT_COMPONENT).getBuiltDTO();
+        .withComponentMatchStrategy(EXACT_COMPONENT)
+        .getBuiltDTO();
     DashboardPolicyWaiverDTO allComponentsDto = new DashboardPolicyWaiverDTOBuilder()
-        .withComponentMatchStrategy(ALL_COMPONENTS).getBuiltDTO();
+        .withComponentMatchStrategy(ALL_COMPONENTS)
+        .getBuiltDTO();
 
     DashboardPolicyWaiverDTOComparator comparator = new DashboardPolicyWaiverDTOComparator(
         ORDER_WAIVER_BY_DESC + DashboardPolicyWaiverOrderByEnum.COMPONENT_SCOPE);
@@ -183,9 +193,11 @@ public class DashboardPolicyWaiverDTOComparatorTest
   public void testCompare_COMPONENT_SCOPE_ASC_UnknownLast() {
     DashboardPolicyWaiverDTO exactDto = new DashboardPolicyWaiverDTOBuilder()
         .withComponentIdentifier(componentIdentifiers.get(0))
-        .withComponentMatchStrategy(ALL_VERSIONS).getBuiltDTO();
+        .withComponentMatchStrategy(ALL_VERSIONS)
+        .getBuiltDTO();
     DashboardPolicyWaiverDTO unknownDto = new DashboardPolicyWaiverDTOBuilder()
-        .withComponentMatchStrategy(EXACT_COMPONENT).getBuiltDTO();
+        .withComponentMatchStrategy(EXACT_COMPONENT)
+        .getBuiltDTO();
 
     DashboardPolicyWaiverDTOComparator comparator = new DashboardPolicyWaiverDTOComparator(
         DashboardPolicyWaiverOrderByEnum.COMPONENT_SCOPE.toString());
@@ -197,9 +209,11 @@ public class DashboardPolicyWaiverDTOComparatorTest
   public void testCompare_COMPONENT_SCOPE_DESC_UnknownLast() {
     DashboardPolicyWaiverDTO exactDto = new DashboardPolicyWaiverDTOBuilder()
         .withComponentIdentifier(componentIdentifiers.get(0))
-        .withComponentMatchStrategy(ALL_VERSIONS).getBuiltDTO();
+        .withComponentMatchStrategy(ALL_VERSIONS)
+        .getBuiltDTO();
     DashboardPolicyWaiverDTO unknownDto = new DashboardPolicyWaiverDTOBuilder()
-        .withComponentMatchStrategy(EXACT_COMPONENT).getBuiltDTO();
+        .withComponentMatchStrategy(EXACT_COMPONENT)
+        .getBuiltDTO();
 
     DashboardPolicyWaiverDTOComparator comparator = new DashboardPolicyWaiverDTOComparator(
         ORDER_WAIVER_BY_DESC + DashboardPolicyWaiverOrderByEnum.COMPONENT_SCOPE);
@@ -231,11 +245,13 @@ public class DashboardPolicyWaiverDTOComparatorTest
     DashboardPolicyWaiverDTO earlierDto = new DashboardPolicyWaiverDTOBuilder()
         .withComponentIdentifier(componentIdentifiers.get(0))
         .withExpiryTime(Date.from(seed.plus(Duration.ofDays(1))))
-        .withComponentMatchStrategy(EXACT_COMPONENT).getBuiltDTO();
+        .withComponentMatchStrategy(EXACT_COMPONENT)
+        .getBuiltDTO();
     DashboardPolicyWaiverDTO laterDto = new DashboardPolicyWaiverDTOBuilder()
         .withComponentIdentifier(componentIdentifiers.get(0))
         .withExpiryTime(Date.from(seed.plus(Duration.ofDays(3))))
-        .withComponentMatchStrategy(EXACT_COMPONENT).getBuiltDTO();
+        .withComponentMatchStrategy(EXACT_COMPONENT)
+        .getBuiltDTO();
 
     DashboardPolicyWaiverDTOComparator comparator = new DashboardPolicyWaiverDTOComparator(
         DashboardPolicyWaiverOrderByEnum.COMPONENT_SCOPE.toString());
@@ -248,10 +264,12 @@ public class DashboardPolicyWaiverDTOComparatorTest
     Instant seed = Instant.now();
     DashboardPolicyWaiverDTO earlierDto = new DashboardPolicyWaiverDTOBuilder()
         .withExpiryTime(Date.from(seed.plus(Duration.ofDays(1))))
-        .withComponentMatchStrategy(ALL_COMPONENTS).getBuiltDTO();
+        .withComponentMatchStrategy(ALL_COMPONENTS)
+        .getBuiltDTO();
     DashboardPolicyWaiverDTO laterDto = new DashboardPolicyWaiverDTOBuilder()
         .withExpiryTime(Date.from(seed.plus(Duration.ofDays(3))))
-        .withComponentMatchStrategy(ALL_COMPONENTS).getBuiltDTO();
+        .withComponentMatchStrategy(ALL_COMPONENTS)
+        .getBuiltDTO();
 
     DashboardPolicyWaiverDTOComparator comparator = new DashboardPolicyWaiverDTOComparator(
         DashboardPolicyWaiverOrderByEnum.COMPONENT_SCOPE.toString());
@@ -264,10 +282,12 @@ public class DashboardPolicyWaiverDTOComparatorTest
     Instant seed = Instant.now();
     DashboardPolicyWaiverDTO earlierDto = new DashboardPolicyWaiverDTOBuilder()
         .withExpiryTime(Date.from(seed.plus(Duration.ofDays(1))))
-        .withComponentMatchStrategy(EXACT_COMPONENT).getBuiltDTO();
+        .withComponentMatchStrategy(EXACT_COMPONENT)
+        .getBuiltDTO();
     DashboardPolicyWaiverDTO laterDto = new DashboardPolicyWaiverDTOBuilder()
         .withExpiryTime(Date.from(seed.plus(Duration.ofDays(3))))
-        .withComponentMatchStrategy(ALL_VERSIONS).getBuiltDTO();
+        .withComponentMatchStrategy(ALL_VERSIONS)
+        .getBuiltDTO();
 
     DashboardPolicyWaiverDTOComparator comparator = new DashboardPolicyWaiverDTOComparator(
         DashboardPolicyWaiverOrderByEnum.COMPONENT_SCOPE.toString());
@@ -601,15 +621,15 @@ public class DashboardPolicyWaiverDTOComparatorTest
       ComponentIdentifier componentIdentifier = componentIdentifiers.get(i);
       return new DashboardPolicyWaiverDTOBuilder()
           .withComponentIdentifier(componentIdentifier)
-          .withComponentMatchStrategy(type).getBuiltDTO();
+          .withComponentMatchStrategy(type)
+          .getBuiltDTO();
     }).collect(Collectors.toList());
   }
 
   private void assertAndCompareWaiverDtos(
       List<DashboardPolicyWaiverDTO> dtos,
       DashboardPolicyWaiverDTOComparator comparator,
-      boolean greater
-  )
+      boolean greater)
   {
     for (int i = 0; i < dtos.size() - 1; i++) {
       DashboardPolicyWaiverDTO current = dtos.get(i);
@@ -666,8 +686,7 @@ public class DashboardPolicyWaiverDTOComparatorTest
     }
 
     DashboardPolicyWaiverDTOBuilder withComponentMatchStrategy(
-        ComponentMatcherStrategyForWaiver componentMatchStrategy
-    )
+        ComponentMatcherStrategyForWaiver componentMatchStrategy)
     {
       dto.componentMatchStrategy = componentMatchStrategy;
       return this;

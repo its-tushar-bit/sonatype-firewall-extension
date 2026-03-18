@@ -80,8 +80,7 @@ public class TelemetryReceiptService
 
       for (TelemetryReceipt receipt : telemetryReceipts.get()) {
         var submitTime = LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(receipt.submitTimeMs), zone
-        );
+            Instant.ofEpochMilli(receipt.submitTimeMs), zone);
 
         var queueTimeMs = receipt.sentTimeMs > 0 ? receipt.sentTimeMs - receipt.submitTimeMs : -1;
         var httpTimeMs = receipt.completeTimeMs > 0 ? receipt.completeTimeMs - receipt.sentTimeMs : -1;
@@ -94,12 +93,10 @@ public class TelemetryReceiptService
             .collect(Collectors.groupingBy(
                 TelemetryData::getPurpose,
                 () -> new TreeMap<>(Comparator.comparing(TelemetryPurpose::name)),
-                Collectors.toList()
-            ));
+                Collectors.toList()));
 
         receiptDTOS.add(new TelemetryReceiptDTO(
-            submitTime, queueTimeMs, httpTimeMs, errorMessage, telemetryDataByPurpose
-        ));
+            submitTime, queueTimeMs, httpTimeMs, errorMessage, telemetryDataByPurpose));
       }
     }
 
@@ -109,8 +106,7 @@ public class TelemetryReceiptService
         isUsingProdHds(),
         isForLocalhost(),
         detailPurposes,
-        receiptDTOS
-    );
+        receiptDTOS);
   }
 
   public TelemetryReceipt onTelemetrySubmitted(List<TelemetryData> telemetryData) {
@@ -177,20 +173,22 @@ public class TelemetryReceiptService
     telemetryReceipts.get().clear();
   }
 
-  public record TelemetryReceiptsDTO(LocalDateTime captureStartTime,
-                                     LocalDateTime captureExpirationTime,
-                                     boolean isUsingProdHds,
-                                     boolean isLocalEnv,
-                                     Set<TelemetryPurpose> detailPurposes,
-                                     List<TelemetryReceiptDTO> telemetryReceipts)
+  public record TelemetryReceiptsDTO(
+      LocalDateTime captureStartTime,
+      LocalDateTime captureExpirationTime,
+      boolean isUsingProdHds,
+      boolean isLocalEnv,
+      Set<TelemetryPurpose> detailPurposes,
+      List<TelemetryReceiptDTO> telemetryReceipts)
   {
   }
 
-  public record TelemetryReceiptDTO(LocalDateTime submitTime,
-                                    long queueTimeMs,
-                                    long httpTimeMs,
-                                    String errorMessage,
-                                    Map<TelemetryPurpose, List<TelemetryData>> dataByPurpose)
+  public record TelemetryReceiptDTO(
+      LocalDateTime submitTime,
+      long queueTimeMs,
+      long httpTimeMs,
+      String errorMessage,
+      Map<TelemetryPurpose, List<TelemetryData>> dataByPurpose)
   {
   }
 

@@ -44,7 +44,8 @@ public class SourceControlRateLimitTelemetryCollectorTest
     telemetryDataList.forEach(data -> {
       Map attributeMap = data.getAttributes();
       SourceControlRateLimitTelemetry rateLimitTelemetry =
-          (SourceControlRateLimitTelemetry)attributeMap.get(SourceControlRateLimitTelemetry.SOURCE_CONTROL_RATE_LIMITS);
+          (SourceControlRateLimitTelemetry) attributeMap
+              .get(SourceControlRateLimitTelemetry.SOURCE_CONTROL_RATE_LIMITS);
 
       switch (rateLimitTelemetry.minRemaining) {
         case 123:

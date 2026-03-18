@@ -21,7 +21,11 @@ public class SbomCreationDetails
 
   public enum CreatorType
   {
-    Author, Manufacturer, Supplier, Person, Organization;
+    Author,
+    Manufacturer,
+    Supplier,
+    Person,
+    Organization;
 
     public static CreatorType parseCreatorType(String type) {
       return Arrays.stream(CreatorType.values())

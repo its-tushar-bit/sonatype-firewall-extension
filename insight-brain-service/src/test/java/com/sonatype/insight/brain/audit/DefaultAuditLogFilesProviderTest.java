@@ -83,7 +83,8 @@ public class DefaultAuditLogFilesProviderTest
         new DefaultAuditLogFilesProvider(buildAuditConfig(AuditRecorder.BASE_LOGGER_NAME, appendersWithConsole));
 
     assertThatThrownBy(() -> defaultAuditLogFilesProviderWithConsole.getAuditLogFiles(LocalDate.MIN, LocalDate.MAX))
-        .isInstanceOf(BadRequestException.class).hasMessage("Cannot get the audit log path.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Cannot get the audit log path.");
   }
 
   @Test
@@ -107,7 +108,8 @@ public class DefaultAuditLogFilesProviderTest
 
     assertThatThrownBy(
         () -> defaultAuditLogFilesProviderWithoutLoggerNameInsightAudit.getAuditLogFiles(LocalDate.MIN, LocalDate.MAX))
-            .isInstanceOf(BadRequestException.class).hasMessage("Cannot get the audit log path.");
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Cannot get the audit log path.");
   }
 
   private String getCurrentLogFilename() {

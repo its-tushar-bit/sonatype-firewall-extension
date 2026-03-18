@@ -98,16 +98,14 @@ public class AutoPolicyWaiverUtil
               "Equal Auto Policy Waiver found for reachability: '%s' and pathForward '%s' " +
                   "but are not allowed to be both false.",
               apiAutoPolicyWaiver2.reachability,
-              apiAutoPolicyWaiver2.pathForward
-          ));
+              apiAutoPolicyWaiver2.pathForward));
         }
 
         if (allScopesEnabled(apiAutoPolicyWaiver1, apiAutoPolicyWaiver2)) {
           log.debug(
               "Equal Auto Policy Waiver found for reachability: '{}' and pathForward '{}'",
               apiAutoPolicyWaiver2.reachability,
-              apiAutoPolicyWaiver2.pathForward
-          );
+              apiAutoPolicyWaiver2.pathForward);
           return true;
         }
 
@@ -130,11 +128,11 @@ public class AutoPolicyWaiverUtil
    * Check if any of the given {@link ApiAutoPolicyWaiverDTO}s in the {@link List} are equal by owner and scope compared
    * to the given {@link AutoPolicyWaiver} {@link List}.
    *
-   * @param ownerId              - {@link String}
+   * @param ownerId - {@link String}
    * @param apiAutoPolicyWaivers - List of {@link ApiAutoPolicyWaiverDTO}
-   * @param autoPolicyWaivers    - List of {@link AutoPolicyWaiver}
+   * @param autoPolicyWaivers - List of {@link AutoPolicyWaiver}
    * @return true if any of the {@link ApiAutoPolicyWaiverDTO}s are equal by owner and scope, compared to the given
-   * {@link AutoPolicyWaiver}, false otherwise.
+   *         {@link AutoPolicyWaiver}, false otherwise.
    */
   public static boolean anyEqualByOwnerAndScope(
       final String ownerId,
@@ -158,8 +156,7 @@ public class AutoPolicyWaiverUtil
                 autoPolicyWaiver.getId(),
                 ownerId,
                 apiAutoPolicyWaiver.reachability,
-                apiAutoPolicyWaiver.pathForward
-            ));
+                apiAutoPolicyWaiver.pathForward));
           }
 
           if (allScopesEnabled(apiAutoPolicyWaiver, autoPolicyWaiver)) {
@@ -168,8 +165,7 @@ public class AutoPolicyWaiverUtil
                 autoPolicyWaiver.getId(),
                 ownerId,
                 apiAutoPolicyWaiver.reachability,
-                apiAutoPolicyWaiver.pathForward
-            );
+                apiAutoPolicyWaiver.pathForward);
             return true;
           }
 

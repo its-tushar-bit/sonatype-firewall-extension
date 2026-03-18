@@ -19,7 +19,8 @@ import org.apache.openjpa.persistence.DataCache;
 @Cacheable
 @Entity
 @Table(name = "organization")
-public class Organization extends Nameable
+public class Organization
+    extends Nameable
     implements HasStringId, Owner
 {
   public static final String ROOT_ORGANIZATION_ID = "ROOT_ORGANIZATION_ID";
@@ -30,7 +31,6 @@ public class Organization extends Nameable
 
   @Column(name = "parent_organization_id")
   private String parentOrganizationId;
-
 
   /**
    * @since 1.168

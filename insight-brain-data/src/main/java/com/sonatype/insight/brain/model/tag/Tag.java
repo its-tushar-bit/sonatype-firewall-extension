@@ -21,7 +21,8 @@ import com.sonatype.insight.model.HasStringId;
  */
 @Entity
 @Table(name = "tag")
-public class Tag extends Nameable
+public class Tag
+    extends Nameable
     implements HasStringId
 {
   @Id

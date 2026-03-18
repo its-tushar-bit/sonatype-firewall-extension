@@ -65,10 +65,10 @@ public class RevokeLegacyViolationTest
     RevokeLegacyViolationModal modal = new RevokeLegacyViolationModal();
     modal.shouldBe(visible);
     modal.header().shouldHave(text("Revoke Legacy Violation Status"));
-    modal.body().shouldHave(text(
-        "Subsequent scans and re-evaluations will treat applicable policy violations "
-        + "as active and trigger configured actions."
-    ));
+    modal.body()
+        .shouldHave(text(
+            "Subsequent scans and re-evaluations will treat applicable policy violations "
+                + "as active and trigger configured actions."));
     modal.revokeButton().shouldBe(visible);
     modal.retryButton().shouldBe(hidden);
     modal.cancelButton().shouldBe(visible);
@@ -83,7 +83,8 @@ public class RevokeLegacyViolationTest
 
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.revokeLegacyViolation().shouldBe(visible).shouldBe(DISABLED).hover();
-    Tooltip.get().shouldBe(visible)
+    Tooltip.get()
+        .shouldBe(visible)
         .shouldHave(text("Legacy Violations are not supported by your license"));
     ActionDropDown.legacyViolation().click();
     RevokeLegacyViolationModal modal = new RevokeLegacyViolationModal();

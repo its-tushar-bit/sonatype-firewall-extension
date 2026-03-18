@@ -21,7 +21,7 @@ public class LegalSourceLinkDTO
   public ComponentLegalPartStatus status;
 
   public LegalSourceLinkDTO() {
-    //for jackson
+    // for jackson
   }
 
   public LegalSourceLinkDTO(

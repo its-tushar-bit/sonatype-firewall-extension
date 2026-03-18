@@ -12,7 +12,9 @@ import java.util.Locale;
  */
 public enum IntegrationType
 {
-  CI, CLI, RM;
+  CI,
+  CLI,
+  RM;
 
   @Override
   public String toString() {

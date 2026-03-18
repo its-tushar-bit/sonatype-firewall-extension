@@ -67,14 +67,12 @@ public class ADFBuilder
         .addContent(new ADFNode().setType(tableCell)
             .addAttribute("background", getColorByThreatLevel(section.getThreatLevel()))
             .addAttribute("colspan", 2)
-            .addAttribute("colwidth", new Integer[] { 0, 80 })
+            .addAttribute("colwidth", new Integer[]{0, 80})
             .addContent(new ADFNode().setType(paragraph)
                 .addContent(new ADFNode().setType(text)
                     .setText(section.getThreatLevel() + " - " + section.getPolicyName())
                     .addMarks(new ADFNode().setType(textColor).addAttribute("color", "#ffffff"))
-                    .addMarks(new ADFNode().setType(strong))
-                )
-            )));
+                    .addMarks(new ADFNode().setType(strong))))));
     tableNode.addContent(createTableRow("Component", "Violations", true));
     for (Entry<String, Integer> entry : section.getComponentViolationCountMap().entrySet()) {
       tableNode.addContent(createTableRow(entry.getKey(), String.valueOf(entry.getValue()), false));
@@ -88,16 +86,12 @@ public class ADFBuilder
             .addContent(new ADFNode().setType(paragraph)
                 .addContent(new ADFNode().setType(text)
                     .setText(cell1)
-                    .addMarks(isBold ? new ADFNode().setType(strong) : null)
-                )
-            ))
+                    .addMarks(isBold ? new ADFNode().setType(strong) : null))))
         .addContent(new ADFNode().setType(tableCell)
             .addContent(new ADFNode().setType(paragraph)
                 .addContent(new ADFNode().setType(text)
                     .setText(cell2)
-                    .addMarks(isBold ? new ADFNode().setType(strong) : null)
-                )
-            ));
+                    .addMarks(isBold ? new ADFNode().setType(strong) : null))));
   }
 
   private String getColorByThreatLevel(int threatLevel) {
@@ -131,14 +125,11 @@ public class ADFBuilder
             .addContent(new ADFNode().setType(paragraph)
                 .addContent(new ADFNode().setType(text)
                     .setText("Application")
-                    .addMarks(new ADFNode().setType(strong))
-                )
-            )
-            .addAttribute("colwidth", new Integer[] { 90 }))
+                    .addMarks(new ADFNode().setType(strong))))
+            .addAttribute("colwidth", new Integer[]{90}))
         .addContent(new ADFNode().setType(tableCell)
             .addContent(new ADFNode().setType(paragraph)
-                .addContent(new ADFNode().setType(text).setText(appName))
-            ));
+                .addContent(new ADFNode().setType(text).setText(appName))));
     tableNode.addContent(tr);
 
     tr = new ADFNode().setType(tableRow)
@@ -146,17 +137,13 @@ public class ADFBuilder
             .addContent(new ADFNode().setType(paragraph)
                 .addContent(new ADFNode().setType(text)
                     .setText("Scan")
-                    .addMarks(new ADFNode().setType(strong))
-                )
-            ))
+                    .addMarks(new ADFNode().setType(strong)))))
         .addContent(new ADFNode().setType(tableCell)
             .addContent(new ADFNode().setType(paragraph)
                 .addContent(new ADFNode().setType(text).setText(scanId + "; "))
                 .addContent(new ADFNode().setType(text)
                     .setText("View detailed report")
-                    .addMarks(new ADFNode().setType(link).addAttribute("href", reportUrl))
-                )
-            ));
+                    .addMarks(new ADFNode().setType(link).addAttribute("href", reportUrl)))));
     tableNode.addContent(tr);
 
     tr = new ADFNode().setType(tableRow)
@@ -164,13 +151,10 @@ public class ADFBuilder
             .addContent(new ADFNode().setType(paragraph)
                 .addContent(new ADFNode().setType(text)
                     .setText("Stage")
-                    .addMarks(new ADFNode().setType(strong))
-                )
-            ))
+                    .addMarks(new ADFNode().setType(strong)))))
         .addContent(new ADFNode().setType(tableCell)
             .addContent(new ADFNode().setType(paragraph)
-                .addContent(new ADFNode().setType(text).setText(stageName))
-            ));
+                .addContent(new ADFNode().setType(text).setText(stageName))));
     tableNode.addContent(tr);
 
     if (contact != null) {
@@ -179,16 +163,12 @@ public class ADFBuilder
               .addContent(new ADFNode().setType(paragraph)
                   .addContent(new ADFNode().setType(text)
                       .setText("Contact")
-                      .addMarks(new ADFNode().setType(strong))
-                  )
-              ))
+                      .addMarks(new ADFNode().setType(strong)))))
           .addContent(new ADFNode().setType(tableCell)
               .addContent(new ADFNode().setType(paragraph)
                   .addContent(new ADFNode().setType(text)
                       .setText(contact.getDisplayName())
-                      .addMarks(new ADFNode().setType(link).addAttribute("href", "mailto:" + contact.getEmail()))
-                  )
-              ));
+                      .addMarks(new ADFNode().setType(link).addAttribute("href", "mailto:" + contact.getEmail())))));
       tableNode.addContent(tr);
     }
     return tableNode;
@@ -206,18 +186,19 @@ public class ADFBuilder
   }
 
   private ADFNode createChiclet(final int count, final String color) {
-    return new ADFNode().setType(tableCell).addAttribute("background", color)
-        .addContent(new ADFNode().setType(heading).addAttribute("level", 2)
+    return new ADFNode().setType(tableCell)
+        .addAttribute("background", color)
+        .addContent(new ADFNode().setType(heading)
+            .addAttribute("level", 2)
             .addContent(new ADFNode().setType(text)
                 .setText(String.valueOf(count))
                 .addMarks(new ADFNode().setType(textColor).addAttribute("color", "#ffffff"))
-                .addMarks(new ADFNode().setType(strong))
-            )
-        );
+                .addMarks(new ADFNode().setType(strong))));
   }
 
   private ADFNode createHeading(final int level, final String content) {
-    return new ADFNode().setType(heading).addAttribute("level", level)
+    return new ADFNode().setType(heading)
+        .addAttribute("level", level)
         .addContent(new ADFNode().setType(text).setText(content));
   }
 

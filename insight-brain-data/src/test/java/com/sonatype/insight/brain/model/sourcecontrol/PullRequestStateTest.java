@@ -27,6 +27,7 @@ public class PullRequestStateTest
     assertThat(PullRequestState.fromSCMState(com.sonatype.nexus.scm.api.model.PullRequestState.OPEN))
         .isEqualTo(PullRequestState.OPEN);
     assertThatNoException().isThrownBy(() -> Arrays.stream(com.sonatype.nexus.scm.api.model.PullRequestState.values())
-        .map(PullRequestState::fromSCMState).toList());
+        .map(PullRequestState::fromSCMState)
+        .toList());
   }
 }

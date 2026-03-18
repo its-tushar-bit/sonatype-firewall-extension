@@ -202,8 +202,7 @@ public abstract class AbstractPolicyEditorTest
         LicensedFeature.DASHBOARD,
         LicensedFeature.POLICY_MANAGEMENT,
         LicensedFeature.POLICY_READ_ONLY,
-        LicensedFeature.COMPONENT_LABELS
-    );
+        LicensedFeature.COMPONENT_LABELS);
 
     tempEntity.newLicenseThreatGroup(ROOT_ORGANIZATION_ID, "Banned", 10);
     tempEntity.newLicenseThreatGroup(ROOT_ORGANIZATION_ID, "Liberal", 0);
@@ -431,7 +430,10 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.actionsSection().headers().get(0).shouldNotHave(text(COMPLIANCE));
     PolicyEditorPage.actionsSection().table().shouldBe(visible);
 
-    PolicyEditorPage.notificationsSection().headers().get(0).shouldBe(visible)
+    PolicyEditorPage.notificationsSection()
+        .headers()
+        .get(0)
+        .shouldBe(visible)
         .shouldNotHave(text(COMPLIANCE));
     PolicyEditorPage.deleteButton().shouldBe(visible);
     OwnerDetailSidebar.policyGroup().shouldBe(visible);
@@ -458,7 +460,9 @@ public abstract class AbstractPolicyEditorTest
     addNotification.notificationType().chooseOption("JIRA");
     addNotification.addButton().shouldBe(disabled);
 
-    addNotification.issueType().shouldBe(visible).shouldBe(disabled)
+    addNotification.issueType()
+        .shouldBe(visible)
+        .shouldBe(disabled)
         .shouldHave(AddNotificationItem.ISSUE_TYPE_NEEDS_PROJECT);
     addNotification.project().shouldBe(visible).selectedItem().click();
     addNotification.project().listItems().findBy(text(jiraProject.getName())).click();
@@ -469,13 +473,15 @@ public abstract class AbstractPolicyEditorTest
     addNotification.addButton().shouldNotBe(disabled).click();
     addNotification.addButton().shouldBe(disabled);
     addNotification.project().shouldBe(visible);
-    addNotification.issueType().shouldBe(visible).shouldBe(disabled)
+    addNotification.issueType()
+        .shouldBe(visible)
+        .shouldBe(disabled)
         .shouldHave(AddNotificationItem.ISSUE_TYPE_NEEDS_PROJECT);
 
     addNotification.project().shouldHave(text("No applicable projects available."));
 
     // Uncomment when fixing CLM-18677
-    //NotificationsSection.notifications().shouldHave(texts("Project One (Bug)"));
+    // NotificationsSection.notifications().shouldHave(texts("Project One (Bug)"));
     PolicyEditorPage.savePolicy();
 
     // verify persisted policy
@@ -488,10 +494,13 @@ public abstract class AbstractPolicyEditorTest
     refreshOrOpen(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
 
     NotificationsSection.notificationFor("Project One (Bug)").proxy().hover();
-    Tooltip.get().shouldBe(visible)
+    Tooltip.get()
+        .shouldBe(visible)
         .shouldHave(text("Jira notifications are not available for policy violations at Proxy stage."));
     NotificationsSection.notificationFor("Project One (Bug)").deleteButton().click();
-    NotificationsSection.notifications().shouldHave(size(1)).get(0)
+    NotificationsSection.notifications()
+        .shouldHave(size(1))
+        .get(0)
         .shouldHave(text("No notifications configured"));
 
     PolicyEditorPage.savePolicy();
@@ -517,15 +526,17 @@ public abstract class AbstractPolicyEditorTest
 
     ConstraintEditSection constraintEditor = PolicyEditorPage.constraintSection().constraintEditor(0);
 
-    //make sure certain fields are making the editor dirty
+    // make sure certain fields are making the editor dirty
     ScrollUtil.scrollIntoView(PolicyEditorPage.constraintSection().header());
     constraintEditor.addConditionButton().click();
     handleUnsavedChangesDialog(unsavedModal, editorUrl);
     constraintEditor.condition(1).deleteConditionButton().click();
-    constraintEditor.condition(0).type()
+    constraintEditor.condition(0)
+        .type()
         .chooseOptionWithHidden(conditionTypesOptionMap.get(CoordinatesConditionType.class));
     handleUnsavedChangesDialog(unsavedModal, editorUrl);
-    constraintEditor.condition(0).type()
+    constraintEditor.condition(0)
+        .type()
         .chooseOptionWithHidden(conditionTypesOptionMap.get(AgeInDaysConditionType.class));
 
     // Assert no Modal appears when the editor is clean
@@ -591,8 +602,9 @@ public abstract class AbstractPolicyEditorTest
 
     policy.setAction(Stage.ID_DEVELOP, Action.ID_WARN);
     policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
-    policy.getNotifications().add(
-        new UserNotification("test@foo.com", Stage.ID_BUILD, Notification.CONTINUOUS_MONITORING));
+    policy.getNotifications()
+        .add(
+            new UserNotification("test@foo.com", Stage.ID_BUILD, Notification.CONTINUOUS_MONITORING));
     String roleName = "Developer";
     policy.getNotifications().add(new RoleNotification(roleDAO.getByName(roleName).getId(), roleName, Stage.ID_BUILD));
 
@@ -715,15 +727,19 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.savePolicy();
     ScrollUtil.scrollIntoView(constraintSection.header());
 
-    Condition updatedAgeCondition = policyDAO.getById(policy.getId()).getConstraints().get(0)
-        .getConditions().get(0);
+    Condition updatedAgeCondition = policyDAO.getById(policy.getId())
+        .getConstraints()
+        .get(0)
+        .getConditions()
+        .get(0);
     assertThat(updatedAgeCondition.getConditionTypeId()).isEqualTo(AgeInDaysConditionType.ID);
     assertThat(updatedAgeCondition.getValue()).isEqualTo(Integer.toString(3 * 30));
     assertThat(updatedAgeCondition.getOperator()).isEqualTo("younger than");
 
     constraintEdit.addConditionButton().shouldBe(visible, enabled).click();
     constraintEdit.conditions().shouldHave(size(2));
-    constraintEdit.condition(1).type()
+    constraintEdit.condition(1)
+        .type()
         .chooseOptionWithHidden(conditionTypesOptionMap.get(LicenseThreatGroupConditionType.class));
     constraintEdit.dropdownCondition(1).operator().shouldHave(text("is")).click();
     constraintEdit.dropdownCondition(1).operator().listItem(1).shouldHave(text("is not")).click();
@@ -762,7 +778,8 @@ public abstract class AbstractPolicyEditorTest
     assertThat(coordinatesCondition.getValue()).isEqualTo("maven:com.eclipse.*:*:*:*:*");
     assertThat(coordinatesCondition.getOperator()).isEqualTo("do not match");
 
-    constraintEdit.condition(2).type()
+    constraintEdit.condition(2)
+        .type()
         .chooseOptionWithHidden(conditionTypesOptionMap.get(SecurityVulnerabilitySeverityConditionType.class));
     constraintEdit.condition(2).operator().shouldHave(text("=")).click();
     constraintEdit.condition(2).operator().listItem(1).shouldHave(text("<"));
@@ -818,8 +835,7 @@ public abstract class AbstractPolicyEditorTest
 
     testDisabledPolicy_constraintSectionConditions_summaries(policy,
         new String[]{"Hygiene Rating is Exemplar", "Hygiene Rating is Laggard"},
-        "Hygiene Rating condition is not supported by your license. Please revise the constraint."
-    );
+        "Hygiene Rating condition is not supported by your license. Please revise the constraint.");
     testDisabledPolicy_constraintSectionConditions_editors(policy,
         new String[]{"Hygiene Rating", "Hygiene Rating"},
         "Hygiene Rating condition is not supported by your license. Please revise the constraint.",
@@ -838,8 +854,7 @@ public abstract class AbstractPolicyEditorTest
 
     testDisabledPolicy_constraintSectionConditions_summaries(policy,
         new String[]{"Integrity Rating is Suspicious", "Integrity Rating is Normal"},
-        "Integrity Rating condition is not supported by your license. Please revise the constraint."
-    );
+        "Integrity Rating condition is not supported by your license. Please revise the constraint.");
     testDisabledPolicy_constraintSectionConditions_editors(policy,
         new String[]{"Integrity Rating", "Integrity Rating"},
         "Integrity Rating condition is not supported by your license. Please revise the constraint.",
@@ -999,7 +1014,7 @@ public abstract class AbstractPolicyEditorTest
     // should be last
     NotificationsSection.notifications().shouldHave(size(3));
     // Uncomment when fixing CLM-18677
-    //NotificationsSection.notifications().get(2).shouldHave(text("aaa@sonatype.com"));
+    // NotificationsSection.notifications().get(2).shouldHave(text("aaa@sonatype.com"));
 
     // duplicate email validation
     addNotification.email().val("aaa@sonatype.com").shouldHave(attribute("aria-invalid", "true"));
@@ -1015,11 +1030,11 @@ public abstract class AbstractPolicyEditorTest
     addNotification.role().listItems().findBy(text("Application Evaluator")).shouldNot(exist);
     // should be last
     // Uncomment when fixing CLM-18677
-    //NotificationsSection.notifications().get(3).shouldHave(text("Application Evaluator"));
+    // NotificationsSection.notifications().get(3).shouldHave(text("Application Evaluator"));
 
     // Uncomment when fixing CLM-18677
-    //NotificationsSection.notifications()
-    //.shouldHave(texts("Developer", "test@foo.com", "aaa@sonatype.com", "Application Evaluator"));
+    // NotificationsSection.notifications()
+    // .shouldHave(texts("Developer", "test@foo.com", "aaa@sonatype.com", "Application Evaluator"));
 
     // switch from Role to Email notification type - email input should be empty
     addNotification.role().shouldBe(visible).chooseOption("Owner");
@@ -1034,9 +1049,9 @@ public abstract class AbstractPolicyEditorTest
     NotificationsSection.notifications().shouldHave(size(3));
     // Uncomment when fixing CLM-18677
     // "aaa@sonatype.com" should be first after save
-    //NotificationsSection.notifications().get(0).shouldHave(text("aaa@sonatype.com"));
+    // NotificationsSection.notifications().get(0).shouldHave(text("aaa@sonatype.com"));
     // "Application Evaluator" should be second after save
-    //NotificationsSection.notifications().get(1).shouldHave(text("Application Evaluator"));
+    // NotificationsSection.notifications().get(1).shouldHave(text("Application Evaluator"));
 
     policy = policyDAO.getById(policy.getId());
     assertThat(policy.getNotifications().getRoleNotifications()).hasSize(2);
@@ -1597,23 +1612,27 @@ public abstract class AbstractPolicyEditorTest
 
     // Uncomment after fixing CLM-18677. The notification recipient column is currently completely
     // squeezed out of the visible layout causing these checks to fail
-    //NotificationsSection.notifications().get(0).shouldHave(text("Application Evaluator"));
-    //NotificationsSection.notifications().get(1).shouldHave(text("aaa@sonatype.com"));
-    //NotificationsSection.notifications().get(2).shouldHave(text("Webhook: http://localhost"));
-    //NotificationsSection.notifications().get(3).shouldHave(text("Webhook: description"));
+    // NotificationsSection.notifications().get(0).shouldHave(text("Application Evaluator"));
+    // NotificationsSection.notifications().get(1).shouldHave(text("aaa@sonatype.com"));
+    // NotificationsSection.notifications().get(2).shouldHave(text("Webhook: http://localhost"));
+    // NotificationsSection.notifications().get(3).shouldHave(text("Webhook: description"));
 
     // check stages
     NotificationsSection.notificationFor("aaa@sonatype.com").build().click();
     NotificationsSection.notificationFor("Application Evaluator").continuousMonitoring().click();
     NotificationsSection.notificationFor("Webhook: http://localhost").stageRelease().click();
-    NotificationsSection.notificationFor("Webhook: http://localhost").proxy().input()
+    NotificationsSection.notificationFor("Webhook: http://localhost")
+        .proxy()
+        .input()
         .shouldHave(attribute("disabled", "true"));
     NotificationsSection.notificationFor("Webhook: http://localhost").proxy().hover();
-    Tooltip.get().shouldBe(visible)
+    Tooltip.get()
+        .shouldBe(visible)
         .shouldHave(text("Webhooks are not available for policy violations at Proxy stage."));
     NotificationsSection.notificationFor("Webhook: description").proxy().input().shouldHave(attribute("disabled"));
     NotificationsSection.notificationFor("Webhook: description").proxy().hover();
-    Tooltip.get().shouldBe(visible)
+    Tooltip.get()
+        .shouldBe(visible)
         .shouldHave(text("Webhooks are not available for policy violations at Proxy stage."));
   }
 
@@ -1656,7 +1675,8 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.constraintSection().getInputValidationElement(constraintName).shouldNotBe(visible);
 
     constraintName.val(" ");
-    PolicyEditorPage.constraintSection().getInputValidationElement(constraintName)
+    PolicyEditorPage.constraintSection()
+        .getInputValidationElement(constraintName)
         .shouldHave(text("Must be non-empty"));
 
     InputUtils.clearInput(constraintName);
@@ -1776,9 +1796,9 @@ public abstract class AbstractPolicyEditorTest
     actionsTable.stageRelease().noActionRadio().input().shouldBe(selected);
 
     if (actionsReadOnly) {
-      String expectedText = !proxyActionReadOnly ?
-          "Only Proxy Actions are supported with your Firewall product license." :
-          "Actions are not supported by your product license.";
+      String expectedText = !proxyActionReadOnly
+          ? "Only Proxy Actions are supported with your Firewall product license."
+          : "Actions are not supported by your product license.";
       PolicyEditorPage.disabledActionsMessage().shouldBe(text(expectedText));
     }
     else {
@@ -1809,11 +1829,13 @@ public abstract class AbstractPolicyEditorTest
         isReadOnly || notificationsReadOnly ? disabled : enabled;
 
     // Uncomment when fixing CLM-18677
-    //NotificationsSection.notifications().shouldHave(size(2)
+    // NotificationsSection.notifications().shouldHave(size(2)
     // .shouldHave(texts("Developer", "test@foo.com"));
     NotificationsSection.notificationFor("Developer").build().input().shouldBe(selected, disabledOrEnabled);
     NotificationsSection.notificationFor("test@foo.com").build().input().shouldBe(selected, disabledOrEnabled);
-    NotificationsSection.notificationFor("test@foo.com").continuousMonitoring().input()
+    NotificationsSection.notificationFor("test@foo.com")
+        .continuousMonitoring()
+        .input()
         .shouldBe(selected, disabledOrEnabled);
 
     // check the tooltip on just one of the checkboxes
@@ -1828,12 +1850,16 @@ public abstract class AbstractPolicyEditorTest
     // For firewall with foundation proxy should be enabled
     disabledOrEnabled = isReadOnly || proxyActionReadOnly ? disabled : enabled;
     NotificationsSection.notificationFor("Developer").proxy().input().shouldNotBe(selected).shouldBe(disabledOrEnabled);
-    NotificationsSection.notificationFor("test@foo.com").proxy().input().shouldNotBe(selected)
+    NotificationsSection.notificationFor("test@foo.com")
+        .proxy()
+        .input()
+        .shouldNotBe(selected)
         .shouldBe(disabledOrEnabled);
 
     if (notificationsReadOnly) {
       String expectedText =
-          !proxyActionReadOnly ? "Only Proxy Notifications are supported with your Firewall product license."
+          !proxyActionReadOnly
+              ? "Only Proxy Notifications are supported with your Firewall product license."
               : "Notifications are not supported by your product license.";
       PolicyEditorPage.disabledNotificationsMessage().shouldHave(text(expectedText));
     }
@@ -1859,7 +1885,8 @@ public abstract class AbstractPolicyEditorTest
         ThreatDropdownSelector.threatLevelListItem(i).shouldBe(visible).shouldHave(text(Integer.toString(10 - i)));
       }
 
-      ThreatDropdownSelector.selectedThreatLabel().shouldBe(visible, text(Integer.toString(selectedThreatLevel)))
+      ThreatDropdownSelector.selectedThreatLabel()
+          .shouldBe(visible, text(Integer.toString(selectedThreatLevel)))
           .click();
     }
   }
@@ -1901,7 +1928,8 @@ public abstract class AbstractPolicyEditorTest
   protected abstract void testEditPolicy_inheritanceSection();
 
   protected abstract void assertEditPolicyStateIsCorrect_inheritanceSection(
-      Tag category1, Tag category2,
+      Tag category1,
+      Tag category2,
       boolean isReadOnly);
 
   private HashMap<Class<? extends ConditionType>, Option> conditionsToOptionMap() {

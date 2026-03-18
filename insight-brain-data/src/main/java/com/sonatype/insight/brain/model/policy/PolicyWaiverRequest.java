@@ -128,36 +128,39 @@ public class PolicyWaiverRequest
     setHash(hash);
   }
 
-  public PolicyWaiverRequest(String hash,
-                      String policyId,
-                      String ownerId,
-                      List<ConstraintFact> constraintFacts,
-                      String comment)
+  public PolicyWaiverRequest(
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      String comment)
   {
     this(policyId, ownerId, comment);
     setHash(hash);
     setConstraintFacts(constraintFacts);
   }
 
-  public PolicyWaiverRequest(String hash,
-                      String policyId,
-                      String ownerId,
-                      List<ConstraintFact> constraintFacts,
-                      String associatedPackageUrl,
-                      ComponentMatcherStrategyForWaiver componentMatchStrategy,
-                      String comment)
+  public PolicyWaiverRequest(
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      String associatedPackageUrl,
+      ComponentMatcherStrategyForWaiver componentMatchStrategy,
+      String comment)
   {
     this(hash, policyId, ownerId, constraintFacts, comment);
     setAssociatedPackageUrl(associatedPackageUrl);
     setComponentMatchStrategy(componentMatchStrategy);
   }
 
-  public PolicyWaiverRequest(String hash,
-                      String policyId,
-                      String ownerId,
-                      String associatedPackageUrl,
-                      ComponentMatcherStrategyForWaiver componentMatchStrategy,
-                      String comment)
+  public PolicyWaiverRequest(
+      String hash,
+      String policyId,
+      String ownerId,
+      String associatedPackageUrl,
+      ComponentMatcherStrategyForWaiver componentMatchStrategy,
+      String comment)
   {
     this(hash, policyId, ownerId, null, associatedPackageUrl, componentMatchStrategy, comment);
   }

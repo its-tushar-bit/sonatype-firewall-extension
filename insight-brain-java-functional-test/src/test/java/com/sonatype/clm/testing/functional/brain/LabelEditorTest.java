@@ -87,7 +87,7 @@ public class LabelEditorTest
   }
 
   @Test
- public void testLabelEdit() {
+  public void testLabelEdit() {
     // given
     Label label = tempEntity.newLabel(app.getOrganizationId(), "original name", "original description", light_green);
     refreshOrOpen(OwnerSummaryPage.url(OwnerType.ORGANIZATION, app.getOrganizationId()));
@@ -174,8 +174,9 @@ public class LabelEditorTest
     // when invalid description - too long
     LabelEditorPage.description().val(StringUtils.repeat("a", 256));
     // then error on description and disabled save
-    LabelEditorPage.descriptionInvalidMessage().shouldBe(visible)
-            .shouldHave(text("Please enter less than 255 characters"));
+    LabelEditorPage.descriptionInvalidMessage()
+        .shouldBe(visible)
+        .shouldHave(text("Please enter less than 255 characters"));
     // when valid description
     LabelEditorPage.description().val("Description");
     LabelEditorPage.descriptionInvalidMessage().shouldNotBe(visible);

@@ -215,7 +215,7 @@ public class ApiStaleWaiverServiceTest
       ConstraintFact constraintFact)
   {
     assertStalePolicyWaiver(staleWaiver, policyWaiver, policy, ownerName, ownerType, hasConstraintFacts,
-            constraintFact, null);
+        constraintFact, null);
   }
 
   private void assertStalePolicyWaiver(
@@ -523,7 +523,7 @@ public class ApiStaleWaiverServiceTest
       final String expectedOwnerName)
   {
     assertStaleWaiver(staleWaiverDTO, expectedPolicy, expectedWaiver, expectedOwnerType, expectedOwnerId,
-            expectedOwnerName, null);
+        expectedOwnerName, null);
   }
 
   private void assertStaleWaiver(
@@ -593,7 +593,7 @@ public class ApiStaleWaiverServiceTest
     // unapplied waiver
     PolicyWaiver unappliedWaiverWithoutConstraintFacts =
         tempEntity.newWaiverWithReason("h4", policy.getId(), app.getId(), null, "Some comments here",
-                "system", "Some reason");
+            "system", "Some reason");
 
     List<ApiStaleWaiverDTO> staleWaivers = apiStaleWaiverService.getStaleWaivers();
 

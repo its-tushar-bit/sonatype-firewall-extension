@@ -17,9 +17,10 @@ public class ReleaseStatusDTO
     // for Jackson
   }
 
-  public ReleaseStatusDTO(long releaseReadyCount,
-                          long partiallyReadyCount,
-                          long needsAttentionCount)
+  public ReleaseStatusDTO(
+      long releaseReadyCount,
+      long partiallyReadyCount,
+      long needsAttentionCount)
   {
     this.releaseReadyCount = releaseReadyCount;
     this.partiallyReadyCount = partiallyReadyCount;

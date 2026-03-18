@@ -113,8 +113,7 @@ public final class TelemetryUtils
         scanTriggerType,
         clientUserAgent,
         clientInstanceId,
-        requestedAttributes
-    );
+        requestedAttributes);
   }
 
   public TelemetryData buildApplicationEvaluationTelemetryData(
@@ -134,8 +133,7 @@ public final class TelemetryUtils
         scanTriggerType,
         clientUserAgent,
         clientInstanceId,
-        requestedAttributes
-    );
+        requestedAttributes);
   }
 
   @SuppressWarnings("unchecked")
@@ -231,7 +229,10 @@ public final class TelemetryUtils
     if (componentCounts == null) {
       return 0L;
     }
-    return componentCounts.values().stream().map(Number::longValue).reduce(Long::sum)
+    return componentCounts.values()
+        .stream()
+        .map(Number::longValue)
+        .reduce(Long::sum)
         .orElse(0L);
   }
 

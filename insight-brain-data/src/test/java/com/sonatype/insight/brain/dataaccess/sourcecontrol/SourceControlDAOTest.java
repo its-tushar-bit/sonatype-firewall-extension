@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.sql.SQLException;
@@ -107,7 +108,7 @@ public class SourceControlDAOTest
   @Test
   public void testInitializePullRequestPollTimes_appWithOlderPolicyEvaluationAndNeedingPollTime() {
     // given: several policy evaluations at different times and a related source control without a poll time;
-    //        the oldest policy eval is older than the polling offset
+    // the oldest policy eval is older than the polling offset
     final long pollingOffset = PULL_REQUEST_POLLING_INITIAL_OFFSET_MS / (1000L * 60 * 60);
     LocalDateTime now = LocalDateTime.now();
     Date scanTime = toDate(now.minusHours(pollingOffset + 2));
@@ -137,7 +138,7 @@ public class SourceControlDAOTest
   @Test
   public void testInitializePullRequestPollTimes_appWithNewerPolicyEvaluationAndNeedingPollTime() {
     // given: several policy evaluations at different times and a related source control without a poll time;
-    //        the oldest policy eval is newer than the polling offset
+    // the oldest policy eval is newer than the polling offset
     final long pollingOffset = PULL_REQUEST_POLLING_INITIAL_OFFSET_MS / (1000L * 60 * 60);
     LocalDateTime now = LocalDateTime.now();
     final Date defaultPollingTime = toDate(now.minusHours(pollingOffset));
@@ -321,7 +322,8 @@ public class SourceControlDAOTest
   @Test
   public void testInsert_MissingOwnerId() {
     assertThatThrownBy(() -> sourceControlDAO.insert(new SourceControl.Builder().build()))
-        .isInstanceOf(BadRequestException.class).hasMessage("SourceControl owner id is required");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("SourceControl owner id is required");
   }
 
   @Test
@@ -329,10 +331,9 @@ public class SourceControlDAOTest
     createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(org.getId()).setRepositoryUrl(VALID_URL).setToken("token").build();
-    assertThatThrownBy(() ->
-        sourceControlDAO.insert(sourceControl)
-    ).isInstanceOf(BadRequestException.class).hasMessage(
-        "SourceControl repositoryUrl is not allowed for organization");
+    assertThatThrownBy(() -> sourceControlDAO.insert(sourceControl)).isInstanceOf(BadRequestException.class)
+        .hasMessage(
+            "SourceControl repositoryUrl is not allowed for organization");
   }
 
   @Test
@@ -370,17 +371,18 @@ public class SourceControlDAOTest
   public void testInsert_MissingRepositoryUrlForApplication() {
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setToken("token").build();
-    assertThatThrownBy(() ->
-        sourceControlDAO.insert(sourceControl)
-    ).isInstanceOf(BadRequestException.class).hasMessage(
-        "SourceControl repositoryUrl is required for application");
+    assertThatThrownBy(() -> sourceControlDAO.insert(sourceControl)).isInstanceOf(BadRequestException.class)
+        .hasMessage(
+            "SourceControl repositoryUrl is required for application");
   }
 
   @Test
   public void testInsert_InvalidUrl() {
     createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl("https://not valid").setToken("token")
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setRepositoryUrl("https://not valid")
+            .setToken("token")
             .build();
     assertThatThrownBy(() -> sourceControlDAO.insert(sourceControl)).isInstanceOf(BadRequestException.class)
         .hasMessageContaining("repositoryUrl is invalid");
@@ -389,8 +391,10 @@ public class SourceControlDAOTest
   @Test
   public void testInsert_CannotValidateUrl() {
     SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(app.getId()).setProvider(SourceControlProvider.GITHUB)
-            .setRepositoryUrl("https://not valid").build();
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setProvider(SourceControlProvider.GITHUB)
+            .setRepositoryUrl("https://not valid")
+            .build();
     assertThatThrownBy(() -> sourceControlDAO.insert(sourceControl)).isInstanceOf(BadRequestException.class)
         .hasMessageContaining("SourceControl repositoryUrl is invalid");
   }
@@ -398,7 +402,9 @@ public class SourceControlDAOTest
   @Test
   public void testInsert_AppPublicIdDoesNotExist() {
     SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId("baz").setRepositoryUrl(VALID_URL).setToken("bar")
+        new SourceControl.Builder().setOwnerId("baz")
+            .setRepositoryUrl(VALID_URL)
+            .setToken("bar")
             .build();
     assertThatThrownBy(() -> sourceControlDAO.insert(sourceControl)).isInstanceOf(BadRequestException.class)
         .hasMessageContaining("SourceControl ownerId 'baz' cannot be found");
@@ -406,8 +412,11 @@ public class SourceControlDAOTest
 
   @Test
   public void testInsert_InvalidBaseBranchName() {
-    SourceControl sourceControl = new SourceControl.Builder().setOwnerId("baz").setRepositoryUrl(VALID_URL)
-        .setToken("bar").setBaseBranch("/testBaseBranch").build();
+    SourceControl sourceControl = new SourceControl.Builder().setOwnerId("baz")
+        .setRepositoryUrl(VALID_URL)
+        .setToken("bar")
+        .setBaseBranch("/testBaseBranch")
+        .build();
     assertThatThrownBy(() -> {
       sourceControlDAO.insert(sourceControl);
     }).isInstanceOf(BadRequestException.class)
@@ -417,8 +426,11 @@ public class SourceControlDAOTest
   @Test
   public void testInsert_NullBaseBranchName() {
     createRootOrgWithGitHubProvider();
-    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL)
-        .setToken("bar").setBaseBranch(null).build();
+    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(app.getId())
+        .setRepositoryUrl(VALID_URL)
+        .setToken("bar")
+        .setBaseBranch(null)
+        .build();
     tempEntity.newSourceControl(sourceControl);
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
@@ -428,8 +440,11 @@ public class SourceControlDAOTest
   @Test
   public void testInsert_EmptyBaseBranchName() {
     createRootOrgWithGitHubProvider();
-    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL)
-        .setToken("bar").setBaseBranch("").build();
+    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(app.getId())
+        .setRepositoryUrl(VALID_URL)
+        .setToken("bar")
+        .setBaseBranch("")
+        .build();
     tempEntity.newSourceControl(sourceControl);
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
@@ -442,7 +457,9 @@ public class SourceControlDAOTest
     Application baz = tempEntity.newApplicationWithParent("baz");
     tempEntity.newSourceControl(baz.getId(), VALID_URL, "bar", null);
     sourceControlDAO
-        .insert(new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("bar")
+        .insert(new SourceControl.Builder().setOwnerId(app.getId())
+            .setRepositoryUrl(VALID_URL)
+            .setToken("bar")
             .build());
   }
 
@@ -470,8 +487,11 @@ public class SourceControlDAOTest
   @Test
   public void testUpdate_NullBaseBranchName() {
     createRootOrgWithGitHubProvider();
-    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL)
-        .setToken("bar").setBaseBranch("testBranchName").build();
+    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(app.getId())
+        .setRepositoryUrl(VALID_URL)
+        .setToken("bar")
+        .setBaseBranch("testBranchName")
+        .build();
     tempEntity.newSourceControl(sourceControl);
     sourceControl.setBaseBranch(null);
     sourceControlDAO.update(sourceControl);
@@ -483,8 +503,11 @@ public class SourceControlDAOTest
   @Test
   public void testUpdate_EmptyBaseBranchName() {
     createRootOrgWithGitHubProvider();
-    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL)
-        .setToken("bar").setBaseBranch("testBranchName").build();
+    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(app.getId())
+        .setRepositoryUrl(VALID_URL)
+        .setToken("bar")
+        .setBaseBranch("testBranchName")
+        .build();
     tempEntity.newSourceControl(sourceControl);
     sourceControl.setBaseBranch("");
     sourceControlDAO.update(sourceControl);
@@ -499,9 +522,8 @@ public class SourceControlDAOTest
     SourceControl sourceControl = tempEntity.newSourceControl(
         app.getId(), VALID_URL, "bar", null);
     sourceControl.setRepositoryUrl(null);
-    assertThatThrownBy(() ->
-        sourceControlDAO.update(sourceControl)
-    ).isInstanceOf(BadRequestException.class).hasMessage("SourceControl repositoryUrl is required for application");
+    assertThatThrownBy(() -> sourceControlDAO.update(sourceControl)).isInstanceOf(BadRequestException.class)
+        .hasMessage("SourceControl repositoryUrl is required for application");
   }
 
   @Test
@@ -510,9 +532,8 @@ public class SourceControlDAOTest
     SourceControl sourceControl = tempEntity.newSourceControl(
         org.getId(), null, "bar", null);
     sourceControl.setRepositoryUrl(VALID_URL);
-    assertThatThrownBy(() ->
-        sourceControlDAO.update(sourceControl)
-    ).isInstanceOf(BadRequestException.class).hasMessage("SourceControl repositoryUrl is not allowed for organization");
+    assertThatThrownBy(() -> sourceControlDAO.update(sourceControl)).isInstanceOf(BadRequestException.class)
+        .hasMessage("SourceControl repositoryUrl is not allowed for organization");
   }
 
   @Test
@@ -529,8 +550,11 @@ public class SourceControlDAOTest
   public void testInsert_sshValidatorCalled() {
     sourceControlDAO = daoFactory.createSourceControlDAO(sourceControlSshValidator);
     SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(app.getId()).setProvider(SourceControlProvider.GITHUB)
-            .setRepositoryUrl(VALID_URL).setSshEnabled(true).build();
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setProvider(SourceControlProvider.GITHUB)
+            .setRepositoryUrl(VALID_URL)
+            .setSshEnabled(true)
+            .build();
 
     sourceControlDAO.insert(sourceControl);
 
@@ -542,8 +566,11 @@ public class SourceControlDAOTest
   public void testUpdate_sshValidatorCalled() {
     sourceControlDAO = daoFactory.createSourceControlDAO(sourceControlSshValidator);
     SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(app.getId()).setProvider(SourceControlProvider.GITHUB)
-            .setRepositoryUrl(VALID_URL).setSshEnabled(true).build();
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setProvider(SourceControlProvider.GITHUB)
+            .setRepositoryUrl(VALID_URL)
+            .setSshEnabled(true)
+            .build();
 
     sourceControlDAO.insert(sourceControl);
     sourceControl.setSshEnabled(false);
@@ -571,9 +598,13 @@ public class SourceControlDAOTest
 
     createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL)
-            .setToken("bar").setBaseBranch("base/branch").setRemediationPullRequestsEnabled(true)
-            .setStatusChecksEnabled(true).build();
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setRepositoryUrl(VALID_URL)
+            .setToken("bar")
+            .setBaseBranch("base/branch")
+            .setRemediationPullRequestsEnabled(true)
+            .setStatusChecksEnabled(true)
+            .build();
 
     assertThat(sourceControl.getId()).isNull();
     tempEntity.newSourceControl(sourceControl);
@@ -611,9 +642,12 @@ public class SourceControlDAOTest
     createRootOrgWithGitHubProvider();
 
     SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(org.getId()).setToken("bar")
-            .setRemediationPullRequestsEnabled(true).setStatusChecksEnabled(true)
-            .setBaseBranch("base/branch").build();
+        new SourceControl.Builder().setOwnerId(org.getId())
+            .setToken("bar")
+            .setRemediationPullRequestsEnabled(true)
+            .setStatusChecksEnabled(true)
+            .setBaseBranch("base/branch")
+            .build();
 
     assertThat(sourceControl.getId()).isNull();
     tempEntity.newSourceControl(sourceControl);
@@ -648,7 +682,9 @@ public class SourceControlDAOTest
   public void testInsert_PullRequestConfigsCanBeNull() {
     createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("bar")
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setRepositoryUrl(VALID_URL)
+            .setToken("bar")
             .build();
 
     assertThat(sourceControl.getId()).isNull();
@@ -703,8 +739,8 @@ public class SourceControlDAOTest
     assertThatThrownBy(
         () -> sourceControlDAO.insert(
             new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).build()))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessageContaining("Cannot validate SourceControl repositoryUrl");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Cannot validate SourceControl repositoryUrl");
   }
 
   @Test
@@ -722,7 +758,9 @@ public class SourceControlDAOTest
   public void testUpdate_ProviderNotAvailable() {
     SourceControl root = createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("TOKEN")
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setRepositoryUrl(VALID_URL)
+            .setToken("TOKEN")
             .build();
     tempEntity.newSourceControl(sourceControl);
     sourceControl.setProvider(null);
@@ -749,9 +787,9 @@ public class SourceControlDAOTest
     sourceControl.setProvider(BITBUCKET);
     assertThatThrownBy(
         () -> sourceControlDAO.update(sourceControl))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessageContaining(
-            "Expecting a valid Bitbucket server clone url in the form https://<domain>/scm/<project>/<repo>");
+            .isInstanceOf(BadRequestException.class)
+            .hasMessageContaining(
+                "Expecting a valid Bitbucket server clone url in the form https://<domain>/scm/<project>/<repo>");
   }
 
   @Test
@@ -766,7 +804,8 @@ public class SourceControlDAOTest
     buildOrgSourceControl(org.getId(), null);
 
     assertThat(sourceControlDAO.getByApplication())
-        .hasSize(3).extracting(SourceControl::getId)
+        .hasSize(3)
+        .extracting(SourceControl::getId)
         .containsExactlyInAnyOrder(scApp1.getId(), scApp2.getId(), scApp3.getId());
   }
 
@@ -802,9 +841,10 @@ public class SourceControlDAOTest
 
     Collection<SourceControl> enabledApplications =
         sourceControlDAO.getApplicationsWithRemediationPullRequestsEnabled();
-    assertThat(enabledApplications).extracting(SourceControl::getId).containsExactlyInAnyOrder(
-        scExplicitlyEnabled.getId(), scDefault.getId(), scEnabledAtAppDisabledAtOrg.getId(),
-        scDefaultAppDefaultOrg.getId());
+    assertThat(enabledApplications).extracting(SourceControl::getId)
+        .containsExactlyInAnyOrder(
+            scExplicitlyEnabled.getId(), scDefault.getId(), scEnabledAtAppDisabledAtOrg.getId(),
+            scDefaultAppDefaultOrg.getId());
   }
 
   @Test
@@ -888,8 +928,8 @@ public class SourceControlDAOTest
   public void testInsert_RootOrgWithoutProvider() {
     assertThatThrownBy(
         () -> sourceControlDAO.insert(new SourceControl.Builder().setOwnerId(ROOT_ORGANIZATION_ID).build()))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessageContaining("SourceControl provider is required for the root organization");
+            .isInstanceOf(BadRequestException.class)
+            .hasMessageContaining("SourceControl provider is required for the root organization");
   }
 
   @Test
@@ -985,8 +1025,10 @@ public class SourceControlDAOTest
   @Test
   public void testInsert_ApplicationWithProvider() {
     tempEntity.newSourceControl(
-        new SourceControl.Builder().setOwnerId(app.getId()).setProvider(SourceControlProvider.GITHUB)
-            .setRepositoryUrl("http://localhost:1234/org/repo").build());
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setProvider(SourceControlProvider.GITHUB)
+            .setRepositoryUrl("http://localhost:1234/org/repo")
+            .build());
     assertThat(sourceControlDAO.getByOwnerId(app.getId()).getProvider()).isEqualTo(GITHUB);
   }
 
@@ -1308,13 +1350,11 @@ public class SourceControlDAOTest
         .build();
 
     SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
-        testableHierarchy.getApplication("appComposite").getId()
-    );
+        testableHierarchy.getApplication("appComposite").getId());
 
     assertSourceControl(
         appSourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(appSourceControl.getOwnerId())
-    );
+        testableHierarchy.getExpectedCompositeSourceControl(appSourceControl.getOwnerId()));
   }
 
   @Test
@@ -1329,8 +1369,7 @@ public class SourceControlDAOTest
         .build();
 
     SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
-        testableHierarchy.getApplication("appComposite").getId()
-    );
+        testableHierarchy.getApplication("appComposite").getId());
 
     assertThat(appSourceControl.getCommitStatusEnabled()).isNull();
   }
@@ -1357,13 +1396,11 @@ public class SourceControlDAOTest
         .build();
 
     SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
-        testableHierarchy.getApplication("appComposite").getId()
-    );
+        testableHierarchy.getApplication("appComposite").getId());
 
     assertSourceControl(
         appSourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(appSourceControl.getOwnerId())
-    );
+        testableHierarchy.getExpectedCompositeSourceControl(appSourceControl.getOwnerId()));
   }
 
   @Test
@@ -1388,8 +1425,7 @@ public class SourceControlDAOTest
 
     assertSourceControl(
         org3SourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl("org3")
-    );
+        testableHierarchy.getExpectedCompositeSourceControl("org3"));
   }
 
   @Test
@@ -1411,13 +1447,11 @@ public class SourceControlDAOTest
         .build();
 
     SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
-        testableHierarchy.getApplication("appComposite").getId()
-    );
+        testableHierarchy.getApplication("appComposite").getId());
 
     assertSourceControl(
         appSourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(appSourceControl.getOwnerId())
-    );
+        testableHierarchy.getExpectedCompositeSourceControl(appSourceControl.getOwnerId()));
   }
 
   @Test
@@ -1439,13 +1473,11 @@ public class SourceControlDAOTest
         .build();
 
     SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
-        testableHierarchy.getApplication("appComposite").getId()
-    );
+        testableHierarchy.getApplication("appComposite").getId());
 
     assertSourceControl(
         appSourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(appSourceControl.getOwnerId())
-    );
+        testableHierarchy.getExpectedCompositeSourceControl(appSourceControl.getOwnerId()));
   }
 
   @Test
@@ -1538,14 +1570,12 @@ public class SourceControlDAOTest
 
     // when: build the composite source control for appOne
     SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
-        testableHierarchy.getApplication("appOne").getId()
-    );
+        testableHierarchy.getApplication("appOne").getId());
 
     // then: composite source control is built successfully
     assertSourceControl(
         sourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
-    );
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId()));
   }
 
   @Test
@@ -1568,14 +1598,12 @@ public class SourceControlDAOTest
 
     // when: build the composite source control for appOne
     SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
-        testableHierarchy.getApplication("appOne").getId()
-    );
+        testableHierarchy.getApplication("appOne").getId());
 
     // then: composite source control is built successfully
     assertSourceControl(
         sourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
-    );
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId()));
   }
 
   @Test
@@ -1594,8 +1622,7 @@ public class SourceControlDAOTest
 
     // when: build the composite source control for appOne
     SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
-        testableHierarchy.getApplication("appOne").getId()
-    );
+        testableHierarchy.getApplication("appOne").getId());
 
     // then: composite source control is built, with commitStatusEnabled having a null value
     assertThat(sourceControl.getCommitStatusEnabled()).isNull();
@@ -1614,8 +1641,7 @@ public class SourceControlDAOTest
 
     // when: build the composite source control for appOne
     SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
-        testableHierarchy.getApplication("appOne").getId()
-    );
+        testableHierarchy.getApplication("appOne").getId());
 
     // then: composite source control is built, with commitStatusEnabled having a null value
     assertThat(sourceControl.getCommitStatusEnabled()).isNull();
@@ -1646,14 +1672,12 @@ public class SourceControlDAOTest
 
     // when: build the composite source control for appOne
     SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
-        testableHierarchy.getApplication("appOne").getId()
-    );
+        testableHierarchy.getApplication("appOne").getId());
 
     // then: source control is built correctly
     assertSourceControl(
         sourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
-    );
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId()));
   }
 
   @Test
@@ -1679,14 +1703,12 @@ public class SourceControlDAOTest
 
     // when: build the composite source control for appOne
     SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
-        testableHierarchy.getApplication("appOne").getId()
-    );
+        testableHierarchy.getApplication("appOne").getId());
 
     // then: source control is built correctly
     assertSourceControl(
         sourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
-    );
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId()));
   }
 
   @Test
@@ -1711,14 +1733,12 @@ public class SourceControlDAOTest
 
     // when: build the composite source control for appOne
     SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
-        testableHierarchy.getApplication("appOne").getId()
-    );
+        testableHierarchy.getApplication("appOne").getId());
 
     // then: source control is built correctly
     assertSourceControl(
         sourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
-    );
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId()));
   }
 
   @Test
@@ -1741,14 +1761,12 @@ public class SourceControlDAOTest
 
     // when: build the composite source control for appOne
     SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
-        testableHierarchy.getApplication("appOne").getId()
-    );
+        testableHierarchy.getApplication("appOne").getId());
 
     // then: source control is built correctly
     assertSourceControl(
         sourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
-    );
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId()));
   }
 
   @Test
@@ -1773,14 +1791,12 @@ public class SourceControlDAOTest
 
     // when: build the composite source control for appOne
     SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
-        testableHierarchy.getApplication("appOne").getId()
-    );
+        testableHierarchy.getApplication("appOne").getId());
 
     // then: source control is built correctly
     assertSourceControl(
         sourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
-    );
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId()));
   }
 
   @Test
@@ -1803,14 +1819,12 @@ public class SourceControlDAOTest
 
     // when: build the composite source control for appOne
     SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlForApplicationId(
-        testableHierarchy.getApplication("appOne").getId()
-    );
+        testableHierarchy.getApplication("appOne").getId());
 
     // then: source control is built correctly
     assertSourceControl(
         sourceControl,
-        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId())
-    );
+        testableHierarchy.getExpectedCompositeSourceControl(sourceControl.getOwnerId()));
   }
 
   private void testGetCompositeSourceControlForOutdatedSourceScans(
@@ -1831,7 +1845,8 @@ public class SourceControlDAOTest
       // then: source control is retrieved only for some trigger types
       if (scanTriggerType == ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING
           || scanTriggerType == ScanTriggerType.SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING
-          || scanTriggerType == ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST) {
+          || scanTriggerType == ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST)
+      {
         assertThat(sourceControlList).withFailMessage("Expected 1 result for scanTriggerType=%s", scanTriggerType)
             .hasSize(1);
         assertSourceControl(sourceControlList.get(0), expectedSourceControl);
@@ -2135,8 +2150,7 @@ public class SourceControlDAOTest
         .build();
 
     SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
-        testableHierarchy.getApplication("appComposite").getId()
-    );
+        testableHierarchy.getApplication("appComposite").getId());
 
     assertThat(appSourceControl.getManualPullRequestsEnabled()).isNull();
   }

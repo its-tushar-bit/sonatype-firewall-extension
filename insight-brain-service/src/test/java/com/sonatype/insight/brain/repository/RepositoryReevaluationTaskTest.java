@@ -207,12 +207,13 @@ public class RepositoryReevaluationTaskTest
         newIdentifier, true);
   }
 
-  private static void assertHasViolation(List<RepositoryPolicyViolation> violations,
-                                         String pathname,
-                                         String policyName,
-                                         int threatLevel,
-                                         ComponentIdentifier componentIdentifier,
-                                         boolean waived)
+  private static void assertHasViolation(
+      List<RepositoryPolicyViolation> violations,
+      String pathname,
+      String policyName,
+      int threatLevel,
+      ComponentIdentifier componentIdentifier,
+      boolean waived)
   {
     for (RepositoryPolicyViolation violation : violations) {
       if (violation.getPathname().equals(pathname) && violation.getPolicyName().equals(policyName)) {
@@ -225,13 +226,14 @@ public class RepositoryReevaluationTaskTest
     fail("Failed to locate component " + pathname);
   }
 
-  private static void assertHasComponent(List<RepositoryComponent> components,
-                                         String pathname,
-                                         MatchState matchState,
-                                         String identificationSource,
-                                         ComponentIdentifier componentIdentifier,
-                                         boolean quarantined,
-                                         Date timeBeforeReevaluation)
+  private static void assertHasComponent(
+      List<RepositoryComponent> components,
+      String pathname,
+      MatchState matchState,
+      String identificationSource,
+      ComponentIdentifier componentIdentifier,
+      boolean quarantined,
+      Date timeBeforeReevaluation)
   {
     for (RepositoryComponent component : components) {
       if (component.getPathname().equals(pathname)) {
@@ -258,10 +260,11 @@ public class RepositoryReevaluationTaskTest
         any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
   }
 
-  private ComponentEvaluationData createComponentResponse(String hash,
-                                                          ComponentIdentifier identifier,
-                                                          String matchState,
-                                                          int index)
+  private ComponentEvaluationData createComponentResponse(
+      String hash,
+      ComponentIdentifier identifier,
+      String matchState,
+      int index)
   {
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
 

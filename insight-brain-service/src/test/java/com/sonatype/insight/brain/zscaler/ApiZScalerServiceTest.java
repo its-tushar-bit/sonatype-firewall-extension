@@ -294,8 +294,8 @@ public class ApiZScalerServiceTest
     zscalerFormats = new ArrayList<>();
     zscalerFormats.add(new ZscalerFormat("maven", false));
     zscalerFormats.add(new ZscalerFormat("npm", false));
-    zscalerFormats.add(new ZscalerFormat("pypi",false));
-    zscalerFormats.add(new ZscalerFormat("nuget",false));
+    zscalerFormats.add(new ZscalerFormat("pypi", false));
+    zscalerFormats.add(new ZscalerFormat("nuget", false));
     when(zscalerFormatDAO.getAll()).thenReturn(zscalerFormats);
     when(configurationDAO.get()).thenReturn(config);
 
@@ -309,8 +309,8 @@ public class ApiZScalerServiceTest
     zscalerFormats = new ArrayList<>();
     zscalerFormats.add(new ZscalerFormat("maven", false));
     zscalerFormats.add(new ZscalerFormat("npm", true));
-    zscalerFormats.add(new ZscalerFormat("pypi",true));
-    zscalerFormats.add(new ZscalerFormat("nuget",false));
+    zscalerFormats.add(new ZscalerFormat("pypi", true));
+    zscalerFormats.add(new ZscalerFormat("nuget", false));
     when(zscalerFormatDAO.getAll()).thenReturn(zscalerFormats);
     when(configurationDAO.get()).thenReturn(config);
 

@@ -19,7 +19,8 @@ import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runForAllTena
  * runs it should loop through, and run, for all tenants. Jobs that loop through all tenants should only be run on a
  * Mtiq Batch instance, to prevent any data leakage during a request.
  */
-public interface AllTenantsJob extends Job, TenantManaged, MtiqBatchJob, GlobalTenantJob
+public interface AllTenantsJob
+    extends Job, TenantManaged, MtiqBatchJob, GlobalTenantJob
 {
   Logger log = LoggerFactory.getLogger(AllTenantsJob.class);
 

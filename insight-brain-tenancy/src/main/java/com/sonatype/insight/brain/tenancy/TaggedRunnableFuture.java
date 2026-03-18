@@ -51,8 +51,9 @@ public class TaggedRunnableFuture<V>
   }
 
   @Override
-  public V get(final long timeout, @NotNull final TimeUnit unit)
-      throws InterruptedException, ExecutionException, TimeoutException
+  public V get(
+      final long timeout,
+      @NotNull final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException
   {
     return runnableFuture.get(timeout, unit);
   }

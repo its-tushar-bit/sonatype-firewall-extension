@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.artifactory;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -174,8 +175,7 @@ public class DefaultArtifactoryClientTest
         password,
         ChecksumType.SHA256,
         Collections.singleton(ArtifactoryClient.TEST_SHA256),
-        Collections.emptySet()
-    );
+        Collections.emptySet());
 
     StatusType status = artifactoryClient.getServerStatusViaAQL();
 
@@ -230,10 +230,11 @@ public class DefaultArtifactoryClientTest
   }
 
   private void testGetServerStatus_MissingHeader_ViaQueryParam(ArtifactoryClient artifactoryClient) throws Exception {
-    artifactoryMockServer.getWireMockServer().stubFor(get(urlPathMatching(
-        artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))).withQueryParam(
-            ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), equalTo(ArtifactoryClient.TEST_SHA256))
-        .willReturn(aResponse().withStatus(200)));
+    artifactoryMockServer.getWireMockServer()
+        .stubFor(get(urlPathMatching(
+            artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))).withQueryParam(
+                ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), equalTo(ArtifactoryClient.TEST_SHA256))
+                .willReturn(aResponse().withStatus(200)));
 
     StatusType status = artifactoryClient.getServerStatusViaQueryParam();
 
@@ -246,16 +247,17 @@ public class DefaultArtifactoryClientTest
   }
 
   private void testGetServerStatus_MissingHeader_ViaAQL(ArtifactoryClient artifactoryClient) throws Exception {
-    artifactoryMockServer.getWireMockServer().stubFor(post(urlPathMatching(
-        artifactoryMockServer.getRelativePath(ArtifactoryClient.AQL_SEARCH_PATH)))
-        .withBasicAuth("admin", String.valueOf("admin123".toCharArray()))
-        .withRequestBody(
-            equalTo(
-                ArtifactoryQueryLanguageUtils.createChecksumSearch(
-                    ChecksumType.SHA256,
-                    Collections.singleton(ArtifactoryClient.TEST_SHA256),
-                    new HashSet<>(Arrays.asList("repo1", "repo2")))))
-        .willReturn(aResponse().withStatus(200)));
+    artifactoryMockServer.getWireMockServer()
+        .stubFor(post(urlPathMatching(
+            artifactoryMockServer.getRelativePath(ArtifactoryClient.AQL_SEARCH_PATH)))
+                .withBasicAuth("admin", String.valueOf("admin123".toCharArray()))
+                .withRequestBody(
+                    equalTo(
+                        ArtifactoryQueryLanguageUtils.createChecksumSearch(
+                            ChecksumType.SHA256,
+                            Collections.singleton(ArtifactoryClient.TEST_SHA256),
+                            new HashSet<>(Arrays.asList("repo1", "repo2")))))
+                .willReturn(aResponse().withStatus(200)));
     StatusType status = artifactoryClient.getServerStatusViaAQL();
 
     assertThat(status).isNotNull();
@@ -278,13 +280,14 @@ public class DefaultArtifactoryClientTest
 
   }
 
-  private void testGetServerStatus_MissingHeaderValue_ViaQueryParam(ArtifactoryClient artifactoryClient)
-      throws Exception
+  private void testGetServerStatus_MissingHeaderValue_ViaQueryParam(
+      ArtifactoryClient artifactoryClient) throws Exception
   {
-    artifactoryMockServer.getWireMockServer().stubFor(get(urlPathMatching(
-        artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))).withQueryParam(
-            ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), equalTo(ArtifactoryClient.TEST_SHA256))
-        .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME, "").withStatus(200)));
+    artifactoryMockServer.getWireMockServer()
+        .stubFor(get(urlPathMatching(
+            artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))).withQueryParam(
+                ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), equalTo(ArtifactoryClient.TEST_SHA256))
+                .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME, "").withStatus(200)));
 
     StatusType status = artifactoryClient.getServerStatusViaQueryParam();
 
@@ -297,16 +300,17 @@ public class DefaultArtifactoryClientTest
   }
 
   private void testGetServerStatus_MissingHeaderValue_ViaAQL(ArtifactoryClient artifactoryClient) throws Exception {
-    artifactoryMockServer.getWireMockServer().stubFor(post(urlPathMatching(
-        artifactoryMockServer.getRelativePath(ArtifactoryClient.AQL_SEARCH_PATH)))
-        .withBasicAuth("admin", String.valueOf("admin123".toCharArray()))
-        .withRequestBody(
-            equalTo(
-                ArtifactoryQueryLanguageUtils.createChecksumSearch(
-                    ChecksumType.SHA256,
-                    Collections.singleton(ArtifactoryClient.TEST_SHA256),
-                    new HashSet<>(Arrays.asList("repo1", "repo2")))))
-        .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME, "").withStatus(200)));
+    artifactoryMockServer.getWireMockServer()
+        .stubFor(post(urlPathMatching(
+            artifactoryMockServer.getRelativePath(ArtifactoryClient.AQL_SEARCH_PATH)))
+                .withBasicAuth("admin", String.valueOf("admin123".toCharArray()))
+                .withRequestBody(
+                    equalTo(
+                        ArtifactoryQueryLanguageUtils.createChecksumSearch(
+                            ChecksumType.SHA256,
+                            Collections.singleton(ArtifactoryClient.TEST_SHA256),
+                            new HashSet<>(Arrays.asList("repo1", "repo2")))))
+                .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME, "").withStatus(200)));
 
     StatusType status = artifactoryClient.getServerStatusViaAQL();
 
@@ -372,8 +376,7 @@ public class DefaultArtifactoryClientTest
     Set<String> checksums = new LinkedHashSet<>(Arrays.asList(
         "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941",
         "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f942",
-        "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f943"
-    ));
+        "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f943"));
     Set<String> repos = new HashSet<>(Arrays.asList("repo1", "repo2"));
 
     String checksumSearch = ArtifactoryQueryLanguageUtils.createChecksumSearch(checksumType, checksums, repos);
@@ -412,20 +415,20 @@ public class DefaultArtifactoryClientTest
     ArtifactoryClient artifactoryClient =
         artifactoryClientFactory.create().forArtifactory(artifactoryMockServer.getUrl(), username, password);
     JsonNode[] nodes = new JsonNode[]{
-        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256,
-            "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941", "repo1a", "path1a", "name1a"),
-        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256,
-            "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941", "repo1b", "path1b", "name1b"),
-        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256,
-            "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f942", "repo2", "path2", "name2"),
-        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256,
-            "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f943", "", "path3", "name3"),
-        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256,
-            "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f943", "repo3", "", "name3"),
-        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256,
-            "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f943", "repo3", "path3", ""),
-        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, "", "repo3", "path3", "name3"),
-        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, "unexpected", "repo4", "path4", "name4")
+      ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256,
+          "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941", "repo1a", "path1a", "name1a"),
+      ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256,
+          "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941", "repo1b", "path1b", "name1b"),
+      ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256,
+          "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f942", "repo2", "path2", "name2"),
+      ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256,
+          "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f943", "", "path3", "name3"),
+      ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256,
+          "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f943", "repo3", "", "name3"),
+      ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256,
+          "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f943", "repo3", "path3", ""),
+      ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, "", "repo3", "path3", "name3"),
+      ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, "unexpected", "repo4", "path4", "name4")
     };
     List<String> sha256s = Arrays.stream(nodes)
         .map(n -> n.get(ChecksumType.SHA256.name().toLowerCase(Locale.ROOT)).asText())
@@ -445,16 +448,19 @@ public class DefaultArtifactoryClientTest
 
     String expectedUriPrefix = artifactoryMockServer.getUrl() + RepositoryMatcher.API_STORAGE_PREFIX;
     assertThat(results).containsOnlyKeys(sha256s.get(0), sha256s.get(1));
-    assertThat(results.get(sha256s.get(0))).usingRecursiveComparison().isEqualTo(
-        ArtifactoryChecksumSearchResults.create(expectedUriPrefix + "repo1a/path1a/name1a",
-            expectedUriPrefix + "repo1b/path1b/name1b"));
-    assertThat(results.get(sha256s.get(1))).usingRecursiveComparison().isEqualTo(
-        ArtifactoryChecksumSearchResults.create(expectedUriPrefix + "repo2/path2/name2"));
-    assertThat(logOutput).atDebugLevel().contains("Artifactory AQL query checksum search: " +
-        "items.find({\"$or\":[{\"sha256\":\"eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941\"}," +
-        "{\"sha256\":\"eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f942\"}]}," +
-        "{\"$or\":[{\"repo\":\"repo2\"},{\"repo\":\"repo3\"},{\"repo\":\"repo1a\"}," +
-        "{\"repo\":\"repo1b\"}]}).include(\"sha256\",\"repo\",\"path\",\"name\") with batch size: 2");
+    assertThat(results.get(sha256s.get(0))).usingRecursiveComparison()
+        .isEqualTo(
+            ArtifactoryChecksumSearchResults.create(expectedUriPrefix + "repo1a/path1a/name1a",
+                expectedUriPrefix + "repo1b/path1b/name1b"));
+    assertThat(results.get(sha256s.get(1))).usingRecursiveComparison()
+        .isEqualTo(
+            ArtifactoryChecksumSearchResults.create(expectedUriPrefix + "repo2/path2/name2"));
+    assertThat(logOutput).atDebugLevel()
+        .contains("Artifactory AQL query checksum search: " +
+            "items.find({\"$or\":[{\"sha256\":\"eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941\"}," +
+            "{\"sha256\":\"eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f942\"}]}," +
+            "{\"$or\":[{\"repo\":\"repo2\"},{\"repo\":\"repo3\"},{\"repo\":\"repo1a\"}," +
+            "{\"repo\":\"repo1b\"}]}).include(\"sha256\",\"repo\",\"path\",\"name\") with batch size: 2");
     assertThat(logOutput).atDebugLevel().contains("Artifactory AQL checksums search response status: HTTP/1.1 200 OK");
   }
 
@@ -476,10 +482,12 @@ public class DefaultArtifactoryClientTest
         artifactoryClient.searchByChecksumsUsingAQL(ChecksumType.SHA256, sha256sSet, repos, 2);
 
     assertThat(results).isEmpty();
-    assertThat(logOutput).atDebugLevel().contains("Artifactory AQL query checksum search: " +
-        "items.find({\"$or\":[{\"sha256\":\"eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941\"}]}," +
-        "{\"$or\":[{\"repo\":\"repo2\"},{\"repo\":\"repo3\"},{\"repo\":\"repo1a\"},{\"repo\":\"repo1b\"}]})" +
-        ".include(\"sha256\",\"repo\",\"path\",\"name\") with batch size: 1");
+    assertThat(logOutput).atDebugLevel()
+        .contains("Artifactory AQL query checksum search: " +
+            "items.find({\"$or\":[{\"sha256\":\"eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941\"}]},"
+            +
+            "{\"$or\":[{\"repo\":\"repo2\"},{\"repo\":\"repo3\"},{\"repo\":\"repo1a\"},{\"repo\":\"repo1b\"}]})" +
+            ".include(\"sha256\",\"repo\",\"path\",\"name\") with batch size: 1");
     assertThat(logOutput).atDebugLevel().contains("Artifactory AQL checksums search response status: HTTP/1.1 200 OK");
   }
 
@@ -493,8 +501,7 @@ public class DefaultArtifactoryClientTest
     Set<String> checksums = new HashSet<>(Arrays.asList(
         "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941",
         "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f942",
-        "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f943"
-        ));
+        "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f943"));
 
     artifactoryMockServer.mockSearchByChecksumsUsingAQLError(
         username, password, ChecksumType.SHA256, checksums, 401, "error");
@@ -514,11 +521,10 @@ public class DefaultArtifactoryClientTest
     Set<String> checksums = new HashSet<>(Arrays.asList(
         "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941",
         "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f942",
-        "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f943"
-    ));
+        "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f943"));
 
     artifactoryMockServer.mockSearchByChecksumsUsingAQLError(
-        username, password, ChecksumType.SHA256, checksums, 500,"error");
+        username, password, ChecksumType.SHA256, checksums, 500, "error");
 
     assertThatExceptionOfType(BadGatewayException.class)
         .isThrownBy(() -> artifactoryClient.searchByChecksumsUsingAQL(

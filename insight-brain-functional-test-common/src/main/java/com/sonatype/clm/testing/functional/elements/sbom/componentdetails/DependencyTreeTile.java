@@ -9,7 +9,8 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class DependencyTreeTile extends BasicElement<DependencyTreeTile>
+public class DependencyTreeTile
+    extends BasicElement<DependencyTreeTile>
 {
   static final String ROOT_SELECTOR = ".sbom-component-details-dependency-tree-tile";
 

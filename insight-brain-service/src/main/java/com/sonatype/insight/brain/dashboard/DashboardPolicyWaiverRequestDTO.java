@@ -71,7 +71,8 @@ public class DashboardPolicyWaiverRequestDTO
   @JsonProperty(access = Access.READ_ONLY)
   public ComponentDisplayName getDisplayName() {
     return this.componentIdentifier == null
-        ? null : ComponentDisplayNameUtil.fromIdentifier(this.componentIdentifier.toComponentIdentifier());
+        ? null
+        : ComponentDisplayNameUtil.fromIdentifier(this.componentIdentifier.toComponentIdentifier());
   }
 
   static String getCsvHeader() {

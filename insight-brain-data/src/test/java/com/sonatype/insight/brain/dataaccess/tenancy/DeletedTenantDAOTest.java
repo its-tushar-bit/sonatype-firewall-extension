@@ -75,8 +75,7 @@ public class DeletedTenantDAOTest
     List<String> tenantIds = Arrays.asList(
         "t_1_" + name.getMethodName(),
         "t_2_" + name.getMethodName(),
-        "t_3_" + name.getMethodName()
-    );
+        "t_3_" + name.getMethodName());
     tenantIds.forEach(tempEntity::newDeletedTenant);
 
     List<DeletedTenant> tenants = dao.getAllTenantDeletions();
@@ -90,8 +89,7 @@ public class DeletedTenantDAOTest
     List<String> tenantIds = Arrays.asList(
         "t_1_" + name.getMethodName(),
         "t_2_" + name.getMethodName(),
-        "t_3_" + name.getMethodName()
-    );
+        "t_3_" + name.getMethodName());
     tenantIds.forEach(tempEntity::newDeletedTenant);
     tempEntity.newDeletedTenantWithDeleteCompleted("t_4_" + name.getMethodName());
 
@@ -155,7 +153,7 @@ public class DeletedTenantDAOTest
   public void testAttemptingToDeleteGlobalTenantThrowsException() {
     assertThatThrownBy(
         () -> dao.insert(new DeletedTenant(GLOBAL_TENANT.tenantSlug)))
-        .isExactlyInstanceOf(IllegalArgumentException.class)
-        .hasMessage("Scheduling the global tenant for deletion is not allowed");
+            .isExactlyInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Scheduling the global tenant for deletion is not allowed");
   }
 }

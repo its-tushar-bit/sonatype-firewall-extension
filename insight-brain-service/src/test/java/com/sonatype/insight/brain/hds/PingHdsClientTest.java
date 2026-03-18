@@ -61,9 +61,7 @@ public class PingHdsClientTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
           Thread.sleep(PingHdsClient.SOCKET_TIMEOUT + 1000);
         }

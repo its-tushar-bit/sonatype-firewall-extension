@@ -36,14 +36,14 @@ public class SecurityIssueComparatorTest
 
   @Test
   public void testCompare_threatLevelEQ_cvssLT() {
-    runCompareTest(true,9, 6.7f, 9, 7.4f, 1);
+    runCompareTest(true, 9, 6.7f, 9, 7.4f, 1);
     runCompareTest(false, 9, 6.7f, 9, 7.4f, -1);
   }
 
   @Test
   public void testCompare_threatLevelEQ_cvssEQ() {
     runCompareTest(true, 9, 6.7f, 9, 6.7f, 0);
-    runCompareTest(false,9, 6.7f, 9, 6.7f, 0);
+    runCompareTest(false, 9, 6.7f, 9, 6.7f, 0);
   }
 
   private void runCompareTest(

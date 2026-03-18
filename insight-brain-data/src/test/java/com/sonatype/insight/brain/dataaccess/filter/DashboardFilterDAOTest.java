@@ -20,7 +20,8 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class DashboardFilterDAOTest extends NameableDAOTest<DashboardFilter>
+public class DashboardFilterDAOTest
+    extends NameableDAOTest<DashboardFilter>
 {
   private DashboardFilterDAO dashboardFilterDAO;
 
@@ -35,7 +36,7 @@ public class DashboardFilterDAOTest extends NameableDAOTest<DashboardFilter>
   protected DashboardFilter createNameable(String a) {
     DashboardFilter dashboardFilter =
         tempEntity.newDashboardFilter("test123", "testRealmId", a, "testFilterString 1111");
-  
+
     return dashboardFilter;
   }
 
@@ -48,7 +49,7 @@ public class DashboardFilterDAOTest extends NameableDAOTest<DashboardFilter>
   protected int getMaxNameLength() {
     return NameHelper.MAX_NAME_LENGTH;
   }
-  
+
   @Override
   protected DashboardFilter getEntityByName(String name) {
     return dashboardFilterDAO.getByUsernameAndRealmIdAndName("test123", "testRealmId", name);
@@ -168,7 +169,7 @@ public class DashboardFilterDAOTest extends NameableDAOTest<DashboardFilter>
     tempEntity.newDashboardFilterLegacy(username, "Filter12345", "testFilterString 1111");
     assertThatThrownBy(() -> tempEntity.newDashboardFilter(username, "testRealmId", "FILTER 12345",
         "testFilterString 1111")).isInstanceOf(InvalidNameException.class)
-        .hasMessage("FILTER 12345 is already used as a name.");
+            .hasMessage("FILTER 12345 is already used as a name.");
   }
 
   @Test

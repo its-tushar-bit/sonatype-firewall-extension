@@ -148,25 +148,25 @@ public abstract class AbstractRepositoryService
 
   @Inject
   public AbstractRepositoryService(
-          RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-          ProprietaryComponentNameDetector proprietaryComponentNameDetector,
-          ProductLicense productLicense,
-          PolicyViolationLoggerFactory policyViolationLoggerFactory,
-          LicensedFeature requiredFeature,
-          RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
-          DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
-          FirewallQuarantineHdsClient quarantineHdsClient,
-          ApplicationDAO applicationDAO,
-          ApplicationService applicationService,
-          TelemetrySender telemetrySender,
-          RepositoryManagerDAO repositoryManagerDAO,
-          RepositoryDAO repositoryDAO,
-          RepositoryComponentDAO repositoryComponentDAO,
-          RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
-          FirewallIgnorePatternService firewallIgnorePatternService,
-          RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService,
-          RepositoryService repositoryService,
-          ContainerImageReportService containerImageReportService)
+      RepositoryPolicyEvaluator repositoryPolicyEvaluator,
+      ProprietaryComponentNameDetector proprietaryComponentNameDetector,
+      ProductLicense productLicense,
+      PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      LicensedFeature requiredFeature,
+      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+      DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
+      FirewallQuarantineHdsClient quarantineHdsClient,
+      ApplicationDAO applicationDAO,
+      ApplicationService applicationService,
+      TelemetrySender telemetrySender,
+      RepositoryManagerDAO repositoryManagerDAO,
+      RepositoryDAO repositoryDAO,
+      RepositoryComponentDAO repositoryComponentDAO,
+      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      FirewallIgnorePatternService firewallIgnorePatternService,
+      RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService,
+      RepositoryService repositoryService,
+      ContainerImageReportService containerImageReportService)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.proprietaryComponentNameDetector = proprietaryComponentNameDetector;
@@ -221,7 +221,9 @@ public abstract class AbstractRepositoryService
   }
 
   private Repository getRepository(
-      final String repositoryManagerInstanceId, final String repositoryPublicId, final String clientUserAgent)
+      final String repositoryManagerInstanceId,
+      final String repositoryPublicId,
+      final String clientUserAgent)
   {
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
         repositoryManagerInstanceId, repositoryPublicId);
@@ -253,7 +255,8 @@ public abstract class AbstractRepositoryService
       boolean auditEnabled,
       final String clientUserAgent)
   {
-    AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId)
+    AuditData.get()
+        .setRepositoryManagerInstanceId(repositoryManagerInstanceId)
         .setRepositoryPublicId(repositoryPublicId);
     checkLicenseFeature();
 
@@ -373,12 +376,12 @@ public abstract class AbstractRepositoryService
    * Evaluates policies on variants of the same component.
    * The specified componentEvaluationDataRequestList must contain only variants of the same component
    * Only the npm and pypi formats are supported.
-   * 
+   *
    * It is very important for performance to minimize the number of round trips between:
    * - IQ and HDS
    * - IQ and the IQ ODS db
    * - HDS and HDS dm db
-   * 
+   *
    * How it works:
    * - NXRM sends a list of hash+pathname pairs (all for the same component name) to IQ for policy evaluation.
    * - IQ picks up one hash+pathname pair and sends it to HDS.
@@ -386,7 +389,7 @@ public abstract class AbstractRepositoryService
    * retrieves all variants for the component name and all the data associated with the variants (licenses, SVs, etc).
    * - IQ matches the data from HDS to the data from NXRM by hash+filename, runs policy evaluation for all variants,
    * determines which components would be quarantined and returns the results to NXRM.
-   * 
+   *
    * @since 1.133
    */
   RepositoryComponentEvaluationDataList evaluateComponentMetadata(
@@ -411,12 +414,12 @@ public abstract class AbstractRepositoryService
    * Evaluates policies on variants of the same component.
    * The specified componentEvaluationDataRequestList must contain only variants of the same component
    * Only the npm and pypi formats are supported.
-   * 
+   *
    * It is very important for performance to minimize the number of round trips between:
    * - IQ and HDS
    * - IQ and the IQ ODS db
    * - HDS and HDS dm db
-   * 
+   *
    * How it works:
    * - NXRM sends a list of hash+pathname pairs (all for the same component name) to IQ for policy evaluation.
    * - IQ picks up one hash+pathname pair and sends it to HDS.
@@ -424,7 +427,7 @@ public abstract class AbstractRepositoryService
    * retrieves all variants for the component name and all the data associated with the variants (licenses, SVs, etc).
    * - IQ matches the data from HDS to the data from NXRM by hash+filename, runs policy evaluation for all variants,
    * determines which components would be quarantined and returns the results to NXRM.
-   * 
+   *
    * @since 1.133
    */
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -463,9 +466,9 @@ public abstract class AbstractRepositoryService
     String hash = componentEvaluationDataRequestList.components.get(0).hash;
     ComponentEvaluationDataList componentDetailsFromHds =
         getComponentMetadataFromHds(repository.getFormat(), pathname, hash, clientUserAgent);
-    //for (ComponentEvaluationData c : componentDetailsFromHds.components) {
-    //  System.err.println("From HDS: " + c.componentIdentifier + ", " + c.hash + ", " + c.filename);
-    //}
+    // for (ComponentEvaluationData c : componentDetailsFromHds.components) {
+    // System.err.println("From HDS: " + c.componentIdentifier + ", " + c.hash + ", " + c.filename);
+    // }
     componentDetailsFromHds = matchHdsComponentDetailsToRequestListByHashAndFilename(componentDetailsFromHds,
         componentEvaluationDataRequestList);
     RepositoryComponentEvaluationDataList result =
@@ -494,7 +497,7 @@ public abstract class AbstractRepositoryService
 
     return result;
   }
-  
+
   private ComponentEvaluationDataList matchHdsComponentDetailsToRequestListByHashAndFilename(
       ComponentEvaluationDataList componentDetailsFromHdsList,
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
@@ -509,14 +512,15 @@ public abstract class AbstractRepositoryService
     BinaryOperator<ComponentEvaluationData> mapMergeDeduplicator =
         (componentEvaluationData1, componentEvaluationData2) -> {
           return componentEvaluationData1.componentIdentifier
-              .compareTo(componentEvaluationData2.componentIdentifier) <= 0 ? componentEvaluationData1
+              .compareTo(componentEvaluationData2.componentIdentifier) <= 0
+                  ? componentEvaluationData1
                   : componentEvaluationData2;
         };
     Map<String, ComponentEvaluationData> componentDetailsFromHdsByHashAndFilename =
         componentDetailsFromHdsList.components.stream()
             .collect(toMap(componentEvaluationData -> toHashFilenameKey(componentEvaluationData), Function.identity(),
                 mapMergeDeduplicator));
-    
+
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest =
           componentEvaluationDataRequestList.components.get(requestIndex);
@@ -543,7 +547,8 @@ public abstract class AbstractRepositoryService
   }
 
   private static String toHashFilenameKey(ComponentEvaluationData componentEvaluationData) {
-    String hash = ComponentIdentifier.FORMAT_PYPI.equals(componentEvaluationData.componentIdentifier.getFormat()) ? null
+    String hash = ComponentIdentifier.FORMAT_PYPI.equals(componentEvaluationData.componentIdentifier.getFormat())
+        ? null
         : componentEvaluationData.hash;
     return hash + "|" + componentEvaluationData.filename;
   }
@@ -571,8 +576,9 @@ public abstract class AbstractRepositoryService
 
   protected void auditRepoComponentEvalList(RepositoryComponentEvaluationDataRequestList repoComponentEvalList) {
     if (repoComponentEvalList != null) {
-      AuditData.get().setData("componentCount",
-          repoComponentEvalList.components == null ? 0 : repoComponentEvalList.components.size());
+      AuditData.get()
+          .setData("componentCount",
+              repoComponentEvalList.components == null ? 0 : repoComponentEvalList.components.size());
       if (repoComponentEvalList.cause != null) {
         AuditData.get().setData("evaluationCause", repoComponentEvalList.cause.replace('_', '-'));
       }
@@ -607,7 +613,7 @@ public abstract class AbstractRepositoryService
     // Replace the list reference instead of modifying in place to avoid UnsupportedOperationException
     componentEvalRequestList.components = validComponents;
   }
-  
+
   private void validateComponentMetadataEvaluateRequest(
       RepositoryComponentEvaluationDataRequestList componentEvalRequestList)
   {
@@ -637,7 +643,8 @@ public abstract class AbstractRepositoryService
       throw new BadRequestException("The format cannot be null or empty.");
     }
     if (!allowNullHash
-        && StringUtils.isBlank(componentEvaluationDataRequest.hash)) {
+        && StringUtils.isBlank(componentEvaluationDataRequest.hash))
+    {
       throw new BadRequestException("The hash cannot be null or empty.");
     }
   }
@@ -664,7 +671,7 @@ public abstract class AbstractRepositoryService
 
   private void logInvalidPathname(final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest) {
     log.info("Skipping component evaluation due to validation failure. " +
-            "Hash: {}, Format: {}, Pathname: {}, Reason: pathname is null or empty",
+        "Hash: {}, Format: {}, Pathname: {}, Reason: pathname is null or empty",
         componentEvaluationDataRequest != null ? componentEvaluationDataRequest.hash : "null",
         componentEvaluationDataRequest != null ? componentEvaluationDataRequest.format : "null",
         componentEvaluationDataRequest != null ? componentEvaluationDataRequest.pathname : "null");
@@ -685,7 +692,8 @@ public abstract class AbstractRepositoryService
 
     String format = null;
     if (componentEvaluationDataRequestList != null && componentEvaluationDataRequestList.components != null
-        && !componentEvaluationDataRequestList.components.isEmpty()) {
+        && !componentEvaluationDataRequestList.components.isEmpty())
+    {
       format = componentEvaluationDataRequestList.components.get(0).format;
     }
 
@@ -724,7 +732,8 @@ public abstract class AbstractRepositoryService
     boolean needToUpdateRepository = false;
 
     if (!repository.isAuditEnabled() || (withQuarantine && !repository.isQuarantineEnabled())
-        || repository.getFormat() == null) {
+        || repository.getFormat() == null)
+    {
       if (!repository.isAuditEnabled() && persistEvaluationResults) {
         log.info("Enabled audit for repository {}:{} ({})", repository.getRepositoryManagerId(),
             repository.getPublicId(), repository.getId());
@@ -749,7 +758,7 @@ public abstract class AbstractRepositoryService
         repository.setFormat(format);
         needToUpdateRepository = true;
       }
-      
+
       if (needToUpdateRepository) {
         if (tx != null) {
           repositoryDAO.update(tx, repository);
@@ -766,7 +775,7 @@ public abstract class AbstractRepositoryService
       final Repository repository,
       final String repositoryManagerInstanceId)
   {
-    RepositoryManager repositoryManager  = repositoryManagerDAO.getByIdNotNull(repository.getRepositoryManagerId());
+    RepositoryManager repositoryManager = repositoryManagerDAO.getByIdNotNull(repository.getRepositoryManagerId());
     if (!repositoryManagerInstanceId.equals(repositoryManager.getInstanceId())) {
       throw new BadRequestException(
           String.format("Repository '%s' and Repository Manager '%s' not found", repository.getId(),
@@ -843,14 +852,15 @@ public abstract class AbstractRepositoryService
     }
 
     if (repository.getFormat() != null && repository.getFormat().equals("docker") &&
-        repository.getRepositoryType().equals(RepositoryType.proxy)) {
+        repository.getRepositoryType().equals(RepositoryType.proxy))
+    {
       Application application = applicationDAO.getByPublicId(pathname);
       if (application == null) {
         // do nothing, the container image was already deleted
         return;
       }
       String applicationOrganizationId = application.getOrganizationId();
-      //do nothing if the relationship between the organization and the repository is not found
+      // do nothing if the relationship between the organization and the repository is not found
       if (!repository.getRelatedOrganizationId().equals(applicationOrganizationId)) {
         return;
       }
@@ -927,8 +937,9 @@ public abstract class AbstractRepositoryService
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  UnquarantinedComponentList getUnquarantinedComponents(@AuthzContext(Key.REPOSITORY) Repository repository,
-                                                        long sinceUtcTimestamp)
+  UnquarantinedComponentList getUnquarantinedComponents(
+      @AuthzContext(Key.REPOSITORY) Repository repository,
+      long sinceUtcTimestamp)
   {
     long start = System.currentTimeMillis();
 
@@ -1030,7 +1041,8 @@ public abstract class AbstractRepositoryService
       ProprietaryComponentNames proprietaryComponentNames)
   {
     if (proprietaryComponentNames == null || (CollectionUtils.isEmpty(proprietaryComponentNames.namespaces) &&
-        CollectionUtils.isEmpty(proprietaryComponentNames.names))) {
+        CollectionUtils.isEmpty(proprietaryComponentNames.names)))
+    {
       throw new BadRequestException("No component name patterns specified");
     }
 
@@ -1218,12 +1230,13 @@ public abstract class AbstractRepositoryService
 
     if (!configureRepositoriesRequest.repositoryManagerProductName.equals(repositoryManager.getProductName())
         || !configureRepositoriesRequest.repositoryManagerProductVersion
-            .equals(repositoryManager.getProductVersion())) {
+            .equals(repositoryManager.getProductVersion()))
+    {
       repositoryManager.setProductName(configureRepositoriesRequest.repositoryManagerProductName);
       repositoryManager.setProductVersion(configureRepositoriesRequest.repositoryManagerProductVersion);
       repositoryManagerDAO.update(repositoryManager);
     }
-    
+
     List<RepositoryDTO> repositoryDTOs = configureRepositoriesRequest.repositories;
     if (repositoryDTOs == null) {
       repositoryDTOs = Collections.emptyList();
@@ -1231,7 +1244,7 @@ public abstract class AbstractRepositoryService
 
     log.debug("Configuring {} repositories for repository manager instance ID:{} ({})", repositoryDTOs.size(),
         repositoryManagerInstanceId, repositoryManager.getId());
-    
+
     updateUserAgent(clientUserAgent, repositoryManager);
 
     configureRepositoriesNoAuthz(repositoryManager, repositoryDTOs, false);
@@ -1297,7 +1310,8 @@ public abstract class AbstractRepositoryService
             updated = true;
           }
           if (repositoryDTO.policyCompliantComponentSelectionEnabled != repository
-              .isPolicyCompliantComponentSelectionEnabled()) {
+              .isPolicyCompliantComponentSelectionEnabled())
+          {
             repository
                 .setPolicyCompliantComponentSelectionEnabled(repositoryDTO.policyCompliantComponentSelectionEnabled);
             updated = true;

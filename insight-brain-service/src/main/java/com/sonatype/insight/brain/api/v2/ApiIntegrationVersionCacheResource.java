@@ -54,17 +54,17 @@ public class ApiIntegrationVersionCacheResource
 
           Permissions required: Edit System Configuration and Users""",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Cache cleared successfully. Returns the number of entries that were invalidated.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Cache cleared successfully. Returns the number of entries that were invalidated.",
+            useReturnTypeSchema = true)
+      })
   public CacheInvalidationResponse invalidateCache() {
     long entriesInvalidated = integrationVersionCache.invalidateAll();
     return new CacheInvalidationResponse(entriesInvalidated);
   }
 
-  public record CacheInvalidationResponse(long entriesInvalidated) {}
+  public record CacheInvalidationResponse(long entriesInvalidated)
+  {
+  }
 }

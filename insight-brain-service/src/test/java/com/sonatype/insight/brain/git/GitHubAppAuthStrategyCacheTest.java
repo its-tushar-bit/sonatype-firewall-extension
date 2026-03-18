@@ -70,15 +70,13 @@ public class GitHubAppAuthStrategyCacheTest
     Provider<PasswordHandler> passwordHandlerProvider = binder.getProvider(PasswordHandler.class);
 
     // Create provider that uses WireMock URL
-    binder.bind(GitHubAppAuthStrategyCache.class).toProvider(() ->
-        new GitHubAppAuthStrategyCache(
+    binder.bind(GitHubAppAuthStrategyCache.class)
+        .toProvider(() -> new GitHubAppAuthStrategyCache(
             githubAppDAOProvider.get(),
             insightProxyProvider.get(),
             gitApiClientFactoryProvider.get(),
             passwordHandlerProvider.get(),
-            "http://localhost:" + WIREMOCK_PORT
-        )
-    );
+            "http://localhost:" + WIREMOCK_PORT));
     super.configure(binder);
   }
 
@@ -103,9 +101,7 @@ public class GitHubAppAuthStrategyCacheTest
                 .withBody("{" +
                     "\"token\":\"" + uniqueToken + "\"," +
                     "\"expires_at\":\"2099-01-01T00:00:00Z\"" +
-                    "}")
-            )
-    );
+                    "}")));
   }
 
   /**
@@ -122,9 +118,7 @@ public class GitHubAppAuthStrategyCacheTest
                 .withBody("{" +
                     "\"token\":\"" + uniqueToken + "\"," +
                     "\"expires_at\":\"2099-01-01T00:00:00Z\"" +
-                    "}")
-            )
-    );
+                    "}")));
   }
 
   /**
@@ -134,31 +128,31 @@ public class GitHubAppAuthStrategyCacheTest
    */
   private static final String VALID_BASE64_PKCS8 =
       "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCVsrVrXls0IWh5" +
-      "ck+58RCytTi1nByt+YiOgsRQ9kB+Iy4OmTiQq8UjIUQJW/sxC2M9FMucWNmK9btQ" +
-      "NqoLOay/JvOp5zIrBCjv9MwOyJOvx0QY5Jq2Gq9clA8eY3pOB+b/LdbtMypzi7bq" +
-      "O5ncq5Wf4f8+8q3qEWj9FADgJTvV0jvItP6eIoZfl12SNWBHGjo0gnaltHr/WI98" +
-      "KIlMCqYmTTmg1ncoZlN1RnDAJh0C1+QEL40vqTD1m6iEzURA3HG8QQhD4n+z+ofb" +
-      "rSxfYe+LNpBfngRPzjR+aECYhZZ1W0nMGDv1uYe5G19+nw1x9ZXbjkkKFZ27L4j/" +
-      "G+TA9R3DAgMBAAECggEAAs285dFTKIkTErM4PVNIyDShQiDsqJV8+4m8A4grcZ8N" +
-      "6TODJyA1BZEgyaeD7yTuUAaM0tVgT/MX9d00zYWXAhjtO+zRuEo98OUiiK19lp00" +
-      "y5TX7F7qbnO8Anf6fdujdZ92KVH8AGlteCfhCdWRbGZM48xaDFzLryiXm5sW6qf3" +
-      "JfSoBR6W9ivd3BliCK7jfnk2y/trzX/1hgBnymgIXHXSk7bNU8EGxCLOdTG+7TKJ" +
-      "K1ugFkrjrdgSj4FkOo9ckApRs+jNkZkCH9/VxUZsB/HqvJzzi3ytTebrqoNXHLuQ" +
-      "UKDjGErnL3rLFfMTeW2Gv6p8jMIj2t5DRhYKDRk8AQKBgQDFin0MsAyMCNrM/1r5" +
-      "goe8r5w52bkbAmdOIDsYOeMmUfO2a75F3awrxGaMUxRMxC1QdO6z2Sr5a0AuNCBq" +
-      "dHRX5YDyjBOGoWOqX4mtw7EpNkOET02rAm2tOVEIhOOqhwz1VVBKm9Wk4AuhbO+a" +
-      "wH6njGOoaeplwvpVJO8Wyst0IQKBgQDB/7CAVoopfqsJ6Bsl+rnm8sFiU9yr1U4P" +
-      "94hcOUhK7f6oyU5SXiOzP1Mx5K850iUyRVCT0CbNyx/Nl1v7iWS1YAqRFPY7jSpZ" +
-      "fK7zSvcOqFO9O/+/8czRVs09BYm/Go9NoW9zAxFIm6DYnFF5nqnnRGvGNLPo+xpq" +
-      "uMTZs7CVYwKBgQCShRAPsxz7WS4BU35FB15qw86a0jUMJZI+ToXGiFlFeQ/NxMjS" +
-      "xYMIy5pMhurNrcz2mmTbHT9U1Qo7uwo4K7yH3YDxZpitCVQFcOuL6VSkfs1BfBjd" +
-      "uOVk0Nib+wVq3NTtu6PcUw36RvwZddWa8SCAYg8hQb5MUHyhXs3AGBckQQKBgCOz" +
-      "BavYQPx5zse36qcGiIczTNrnS8hjLEZL6s/typvfR+mPgdYudKtbj9eymXwua6Hg" +
-      "l39b4ogkROn0XHzhP6MQ1WD1VoqG47Ar/ZXPyb7swtwj2mBcArDTJFmCV2LPZGeI" +
-      "uZWUju2plePGgEe9Js7kDGEg+ap56taQwci+BFS5AoGBALD//nynCo8oBGqVOBCp" +
-      "e6X36qLcHE8YkM//FplnhsKPrzqdSXiP2T+BNrzj/rcHdPrA4Js5mggEtXk47/Vk" +
-      "LoPyDbBvEvkkOnmTjwfmKtFkVykt4q1etctaUyKkzGz6ICKxC73ET/hFlN9r0LXM" +
-      "JYwq8nvsGtyZSCMRwEVmvb+h";
+          "ck+58RCytTi1nByt+YiOgsRQ9kB+Iy4OmTiQq8UjIUQJW/sxC2M9FMucWNmK9btQ" +
+          "NqoLOay/JvOp5zIrBCjv9MwOyJOvx0QY5Jq2Gq9clA8eY3pOB+b/LdbtMypzi7bq" +
+          "O5ncq5Wf4f8+8q3qEWj9FADgJTvV0jvItP6eIoZfl12SNWBHGjo0gnaltHr/WI98" +
+          "KIlMCqYmTTmg1ncoZlN1RnDAJh0C1+QEL40vqTD1m6iEzURA3HG8QQhD4n+z+ofb" +
+          "rSxfYe+LNpBfngRPzjR+aECYhZZ1W0nMGDv1uYe5G19+nw1x9ZXbjkkKFZ27L4j/" +
+          "G+TA9R3DAgMBAAECggEAAs285dFTKIkTErM4PVNIyDShQiDsqJV8+4m8A4grcZ8N" +
+          "6TODJyA1BZEgyaeD7yTuUAaM0tVgT/MX9d00zYWXAhjtO+zRuEo98OUiiK19lp00" +
+          "y5TX7F7qbnO8Anf6fdujdZ92KVH8AGlteCfhCdWRbGZM48xaDFzLryiXm5sW6qf3" +
+          "JfSoBR6W9ivd3BliCK7jfnk2y/trzX/1hgBnymgIXHXSk7bNU8EGxCLOdTG+7TKJ" +
+          "K1ugFkrjrdgSj4FkOo9ckApRs+jNkZkCH9/VxUZsB/HqvJzzi3ytTebrqoNXHLuQ" +
+          "UKDjGErnL3rLFfMTeW2Gv6p8jMIj2t5DRhYKDRk8AQKBgQDFin0MsAyMCNrM/1r5" +
+          "goe8r5w52bkbAmdOIDsYOeMmUfO2a75F3awrxGaMUxRMxC1QdO6z2Sr5a0AuNCBq" +
+          "dHRX5YDyjBOGoWOqX4mtw7EpNkOET02rAm2tOVEIhOOqhwz1VVBKm9Wk4AuhbO+a" +
+          "wH6njGOoaeplwvpVJO8Wyst0IQKBgQDB/7CAVoopfqsJ6Bsl+rnm8sFiU9yr1U4P" +
+          "94hcOUhK7f6oyU5SXiOzP1Mx5K850iUyRVCT0CbNyx/Nl1v7iWS1YAqRFPY7jSpZ" +
+          "fK7zSvcOqFO9O/+/8czRVs09BYm/Go9NoW9zAxFIm6DYnFF5nqnnRGvGNLPo+xpq" +
+          "uMTZs7CVYwKBgQCShRAPsxz7WS4BU35FB15qw86a0jUMJZI+ToXGiFlFeQ/NxMjS" +
+          "xYMIy5pMhurNrcz2mmTbHT9U1Qo7uwo4K7yH3YDxZpitCVQFcOuL6VSkfs1BfBjd" +
+          "uOVk0Nib+wVq3NTtu6PcUw36RvwZddWa8SCAYg8hQb5MUHyhXs3AGBckQQKBgCOz" +
+          "BavYQPx5zse36qcGiIczTNrnS8hjLEZL6s/typvfR+mPgdYudKtbj9eymXwua6Hg" +
+          "l39b4ogkROn0XHzhP6MQ1WD1VoqG47Ar/ZXPyb7swtwj2mBcArDTJFmCV2LPZGeI" +
+          "uZWUju2plePGgEe9Js7kDGEg+ap56taQwci+BFS5AoGBALD//nynCo8oBGqVOBCp" +
+          "e6X36qLcHE8YkM//FplnhsKPrzqdSXiP2T+BNrzj/rcHdPrA4Js5mggEtXk47/Vk" +
+          "LoPyDbBvEvkkOnmTjwfmKtFkVykt4q1etctaUyKkzGz6ICKxC73ET/hFlN9r0LXM" +
+          "JYwq8nvsGtyZSCMRwEVmvb+h";
 
   @Test
   public void testGetOrCreate_CreatesNewStrategy() {
@@ -238,8 +232,7 @@ public class GitHubAppAuthStrategyCacheTest
                 .withStatus(201)
                 .withHeader("Content-Type", "application/json")
                 .withBody("{\"token\":\"" + token1Value + "\",\"expires_at\":\"2099-01-01T00:00:00Z\"}"))
-            .willSetStateTo("second-call")
-    );
+            .willSetStateTo("second-call"));
 
     githubMockServer.stubFor(
         post(urlPathMatching("/app/installations/" + app.getInstallationId() + "/access_tokens"))
@@ -248,8 +241,7 @@ public class GitHubAppAuthStrategyCacheTest
             .willReturn(aResponse()
                 .withStatus(201)
                 .withHeader("Content-Type", "application/json")
-                .withBody("{\"token\":\"" + token2Value + "\",\"expires_at\":\"2099-01-01T00:00:00Z\"}"))
-    );
+                .withBody("{\"token\":\"" + token2Value + "\",\"expires_at\":\"2099-01-01T00:00:00Z\"}")));
 
     // Create both strategies
     AuthenticationStrategy strategy1 = cache.getOrCreate(TEST_OWNER_ID);

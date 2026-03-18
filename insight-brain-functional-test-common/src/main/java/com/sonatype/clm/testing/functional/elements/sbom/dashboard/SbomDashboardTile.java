@@ -16,15 +16,15 @@ public class SbomDashboardTile
   public SbomDashboardTile(String rootSelector) {
     super(rootSelector);
   }
-  
+
   public SelenideElement header() {
     return child(".nx-tile-header__title");
   }
-  
+
   public SelenideElement infoIcon() {
     return child(".fa-circle-info");
   }
-  
+
   public ElementsCollection allInfoIcons() {
     return children(".fa-circle-info");
   }

@@ -21,7 +21,11 @@ public class MoveOrganizationResponseDTO
   {
     public enum MoveOrganizationValidationErrorType
     {
-      TAG, POLICY, LICENSE_THREAT_GROUP, LABEL, PARENT_HIERARCHY
+      TAG,
+      POLICY,
+      LICENSE_THREAT_GROUP,
+      LABEL,
+      PARENT_HIERARCHY
     }
 
     public String message;
@@ -92,7 +96,9 @@ public class MoveOrganizationResponseDTO
 
     public enum MoveOrganizationValidationWarningType
     {
-      LICENSE_OVERRIDE, POLICY_MONITORING, POLICY_WAIVER
+      LICENSE_OVERRIDE,
+      POLICY_MONITORING,
+      POLICY_WAIVER
     }
 
     public String message;

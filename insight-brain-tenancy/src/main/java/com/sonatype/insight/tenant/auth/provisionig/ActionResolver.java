@@ -11,7 +11,7 @@ public class ActionResolver
 
   private final Auth0ProvisioningService auth0ProvisioningService;
 
-  //visible for testing
+  // visible for testing
   public ActionResolver() {
     this(new Auth0ProvisioningService());
   }

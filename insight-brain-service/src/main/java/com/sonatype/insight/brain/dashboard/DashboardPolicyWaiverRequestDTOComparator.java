@@ -116,6 +116,11 @@ public class DashboardPolicyWaiverRequestDTOComparator
   // Test visible enumeration
   enum DashboardPolicyWaiverRequestOrderByEnum
   {
-    REQUESTER_NAME, REQUEST_TIME, OWNER_SCOPE, POLICY_NAME, THREAT_LEVEL, STATUS
+    REQUESTER_NAME,
+    REQUEST_TIME,
+    OWNER_SCOPE,
+    POLICY_NAME,
+    THREAT_LEVEL,
+    STATUS
   }
 }

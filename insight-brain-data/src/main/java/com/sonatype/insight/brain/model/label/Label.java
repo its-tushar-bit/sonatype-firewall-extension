@@ -131,7 +131,7 @@ public class Label
    * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
    * labelLowercase field. If this method is not defined, jackson will set/access the labelLowercase field directly
    * via reflection, possibly setting it to an incorrect value.
-   * 
+   *
    * @deprecated This method should not be used explicitly.
    */
   @Deprecated

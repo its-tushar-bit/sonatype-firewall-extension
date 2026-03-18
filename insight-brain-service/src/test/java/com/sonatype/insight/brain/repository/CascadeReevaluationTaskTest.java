@@ -55,7 +55,8 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
-public class CascadeReevaluationTaskTest extends AbstractComponentTest
+public class CascadeReevaluationTaskTest
+    extends AbstractComponentTest
 {
   private CascadeReevaluationTask task;
 
@@ -150,7 +151,7 @@ public class CascadeReevaluationTaskTest extends AbstractComponentTest
   public void setup() throws Exception {
     // Generate unique cascade request ID for this test execution
     cascadeRequestId = "main_cascade_test_" + System.currentTimeMillis();
-    
+
     // Create repositories
     repository1 = tempEntity.newRepository("test-repo-1");
     repository2 = tempEntity.newRepository("test-repo-2");
@@ -222,9 +223,9 @@ public class CascadeReevaluationTaskTest extends AbstractComponentTest
       boolean quarantineComponent1InRepo2)
   {
     lenient().when(mockRepositoryPolicyEvaluator.evaluate(any(Repository.class),
-            any(RepositoryComponentEvaluationDataRequestList.class),
-            anyBoolean(),
-            any()))
+        any(RepositoryComponentEvaluationDataRequestList.class),
+        anyBoolean(),
+        any()))
         .thenAnswer(invocation -> {
           RepositoryComponentEvaluationDataRequestList request = invocation.getArgument(1);
 
@@ -260,8 +261,10 @@ public class CascadeReevaluationTaskTest extends AbstractComponentTest
   }
 
   private ComponentEvaluationData createComponentResponse(
-      String hash, ComponentIdentifier identifier,
-      String matchState, int index)
+      String hash,
+      ComponentIdentifier identifier,
+      String matchState,
+      int index)
   {
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.requestIndex = index;
@@ -292,9 +295,9 @@ public class CascadeReevaluationTaskTest extends AbstractComponentTest
   public void testCascadeReevaluationTask_Success() {
     // Setup dynamic mock that returns appropriate results based on request size (like WithQuarantinedComponent test)
     lenient().when(mockRepositoryPolicyEvaluator.evaluate(any(Repository.class),
-            any(RepositoryComponentEvaluationDataRequestList.class),
-            anyBoolean(),
-            any()))
+        any(RepositoryComponentEvaluationDataRequestList.class),
+        anyBoolean(),
+        any()))
         .thenAnswer(invocation -> {
           RepositoryComponentEvaluationDataRequestList request = invocation.getArgument(1);
 
@@ -395,9 +398,9 @@ public class CascadeReevaluationTaskTest extends AbstractComponentTest
 
     // Setup EXTREMELY permissive mock to catch ANY call to evaluate method
     lenient().when(mockRepositoryPolicyEvaluator.evaluate(any(Repository.class),
-            any(RepositoryComponentEvaluationDataRequestList.class),
-            anyBoolean(),
-            any()))
+        any(RepositoryComponentEvaluationDataRequestList.class),
+        anyBoolean(),
+        any()))
         .thenReturn(repo1Results);
 
     // Arrange - Set one component as quarantined (this tests the end-to-end flow)
@@ -458,7 +461,7 @@ public class CascadeReevaluationTaskTest extends AbstractComponentTest
     List<ReevaluateCascadeProgress> otherProgress = cascadeProgressDAO.getByRequestId(otherCascadeRequestId);
 
     assertThat(originalProgress).hasSize(3); // 2 in repo1 + 1 in repo2
-    assertThat(otherProgress).hasSize(3);    // 2 in repo1 + 1 in repo2
+    assertThat(otherProgress).hasSize(3); // 2 in repo1 + 1 in repo2
 
     // Verify request IDs are correct
     for (ReevaluateCascadeProgress progress : originalProgress) {

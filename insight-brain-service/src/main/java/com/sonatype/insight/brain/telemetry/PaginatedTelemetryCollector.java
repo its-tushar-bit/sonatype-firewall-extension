@@ -7,7 +7,8 @@ package com.sonatype.insight.brain.telemetry;
 
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
-public interface PaginatedTelemetryCollector extends TelemetryCollector
+public interface PaginatedTelemetryCollector
+    extends TelemetryCollector
 {
   TelemetryData firstPage();
 

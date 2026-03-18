@@ -72,12 +72,13 @@ class RequestData
     return null;
   }
 
-  private RequestData(String method,
-                      String uri,
-                      String remoteIpAddress,
-                      String forwarded,
-                      String userAgent,
-                      String sessionId)
+  private RequestData(
+      String method,
+      String uri,
+      String remoteIpAddress,
+      String forwarded,
+      String userAgent,
+      String sessionId)
   {
     this.method = method;
     this.uri = uri;

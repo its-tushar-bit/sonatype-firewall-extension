@@ -22,8 +22,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = HttpOpenSearchConfig.class, name = "http"),
-    @JsonSubTypes.Type(value = AwsHttpOpenSearchConfig.class, name = "aws"),
+  @JsonSubTypes.Type(value = HttpOpenSearchConfig.class, name = "http"),
+  @JsonSubTypes.Type(value = AwsHttpOpenSearchConfig.class, name = "aws"),
 })
 public interface SearchConfig
 {
@@ -201,8 +201,9 @@ public interface SearchConfig
     }
 
     public Duration getConnectionAcquisitionTimeout() {
-      return
-          connectionAcquisitionTimeout != null ? connectionAcquisitionTimeout : DEFAULT_CONNECTION_ACQUISITION_TIMEOUT;
+      return connectionAcquisitionTimeout != null
+          ? connectionAcquisitionTimeout
+          : DEFAULT_CONNECTION_ACQUISITION_TIMEOUT;
     }
 
     public void setConnectionAcquisitionTimeout(final Duration connectionAcquisitionTimeout) {

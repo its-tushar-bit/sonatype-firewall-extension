@@ -9,7 +9,8 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class NxAlert extends
+public class NxAlert
+    extends
     BasicElement<NxAlert>
 {
   public NxAlert(String... selector) {

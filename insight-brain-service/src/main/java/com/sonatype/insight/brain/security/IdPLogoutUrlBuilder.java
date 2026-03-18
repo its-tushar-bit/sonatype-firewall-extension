@@ -52,7 +52,8 @@ public class IdPLogoutUrlBuilder
       OidcConfiguration oidcConfiguration = oidcConfigurationDAO.get();
 
       if (SystemConfigurationPropertyFeature.OAUTH2_ENABLED.isEnabled() && oidcConfiguration != null &&
-          StringUtils.isNotBlank(oidcConfiguration.getClientId())) {
+          StringUtils.isNotBlank(oidcConfiguration.getClientId()))
+      {
         return buildAuth0LogoutURIFromOidcConfiguration(oidcConfiguration);
       }
 

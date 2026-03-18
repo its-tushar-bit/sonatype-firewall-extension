@@ -69,7 +69,7 @@ public class DashboardPolicyWaiverDTOAdapterTest
         testPolicyWaiver,
         new PolicyWaiverReason("system", "Other"));
 
-    assertPolicyWaiverWithoutDetails(dto,testPolicyWaiver);
+    assertPolicyWaiverWithoutDetails(dto, testPolicyWaiver);
     assertThat(dto.comment).isNull();
     assertThat(dto.constraintFacts).isNull();
     assertThat(dto.creatorId).isNull();
@@ -86,7 +86,7 @@ public class DashboardPolicyWaiverDTOAdapterTest
         testPolicyWaiver,
         policyWaiverReason);
 
-    assertPolicyWaiverWithoutDetails(dto,testPolicyWaiver);
+    assertPolicyWaiverWithoutDetails(dto, testPolicyWaiver);
     assertThat(dto.comment).isEqualTo(testPolicyWaiver.getComment());
     assertThat(dto.constraintFacts).isEqualTo(testPolicyWaiver.getConstraintFacts());
     assertThat(dto.creatorId).isEqualTo(testPolicyWaiver.getCreatorId());
@@ -103,8 +103,7 @@ public class DashboardPolicyWaiverDTOAdapterTest
         true,
         "creator",
         "Creator Name",
-        new Date()
-    );
+        new Date());
     dtoAdapter = new DashboardPolicyWaiverDTOAdapter(policiesById, ownersById, false);
     DashboardPolicyWaiverDTO dto = dtoAdapter.toDto(autoPolicyWaiver);
 
@@ -124,8 +123,7 @@ public class DashboardPolicyWaiverDTOAdapterTest
         true,
         "creator",
         "Creator Name",
-        new Date()
-    );
+        new Date());
     dtoAdapter = new DashboardPolicyWaiverDTOAdapter(policiesById, ownersById, true);
     DashboardPolicyWaiverDTO dto = dtoAdapter.toDto(autoPolicyWaiver);
 
@@ -181,13 +179,16 @@ public class DashboardPolicyWaiverDTOAdapterTest
     ConditionFact conditionFact =
         new ConditionFact(ConditionTypes.SecurityVulnerabilityStatusConditionType.getId(), 0, "summary", "reason",
             triggerReference);
-    TreeMap<String, String> coordinates = new TreeMap<>() {{
+    TreeMap<String, String> coordinates = new TreeMap<>()
+    {
+      {
         this.put("artifactId", "a1");
         this.put("groupId", "g1");
         this.put("version", "v1");
         this.put("classifier", "c1");
         this.put("extension", "jar");
-      }};
+      }
+    };
     ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
     String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
     ConstraintFact constraintFact = new ConstraintFact("constraint id", "constraint name", "operator", conditionFact);

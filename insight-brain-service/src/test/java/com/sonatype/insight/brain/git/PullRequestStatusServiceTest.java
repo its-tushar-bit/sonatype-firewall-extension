@@ -137,9 +137,8 @@ public class PullRequestStatusServiceTest
     // and: proper log is created
     assertThatLogMessagesEqual(
         info(String.format("Pull request status sent for repository: %s," +
-                " pull request: %s state: %s, response: %s", DEFAULT_REPO_URL,
-            PR_ID, SUCCEED_STATUS, STATUS_RESPONSE))
-    );
+            " pull request: %s state: %s, response: %s", DEFAULT_REPO_URL,
+            PR_ID, SUCCEED_STATUS, STATUS_RESPONSE)));
   }
 
   @Test
@@ -154,11 +153,11 @@ public class PullRequestStatusServiceTest
     PullRequestPolicyEvaluationsDTO dto = buildPullRequestPolicyEvaluationsDTO(provider);
 
     // expect:
-    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() ->
-        pullRequestStatusService.doCreatePullRequestStatus(dto)
-    ).withMessage(String.format("Failed to update pull request status for repository: %s, " +
+    assertThatExceptionOfType(SourceControlException.class)
+        .isThrownBy(() -> pullRequestStatusService.doCreatePullRequestStatus(dto))
+        .withMessage(String.format("Failed to update pull request status for repository: %s, " +
             "pull request Id: %s reason: %s", DEFAULT_REPO_URL,
-        PR_ID, exception.getMessage()));
+            PR_ID, exception.getMessage()));
 
     // then : pull request status creation was triggered
     verifyPullRequestStatusCreationTriggered(dto.getGitRepositoryInfo());

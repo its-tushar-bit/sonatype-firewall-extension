@@ -107,7 +107,7 @@ public class TransitiveViolationsTest
     organization = tempEntity.newOrganization("Test Org 0af5aa00a2424db19b115f70b6f873d9");
     application = tempEntity.newApplication("Test App 56770d0ec3da47b0aa8eab53d874efdb",
         "56770d0ec3da47b0aa8eab53d874efdb", organization.getId());
-    //Setting the evaluation date to 10 months ago, so the value displayed in the UI does not change
+    // Setting the evaluation date to 10 months ago, so the value displayed in the UI does not change
     Date date = Date.from(LocalDateTime.now().minusMonths(10).atZone(ZoneId.systemDefault()).toInstant());
     policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scanId", date);
     PolicyViolation aPolicyViolation = tempEntity
@@ -129,9 +129,9 @@ public class TransitiveViolationsTest
         testCLMServer.getCLMServer().getInstance(InsightWork.class),
         application.getId(),
         policyEvaluation.getScanId(),
-        policyViolations
-    );
-    ApplicationReport applicationReport = testCLMServer.getCLMServer().getInstance(ReportService.class)
+        policyViolations);
+    ApplicationReport applicationReport = testCLMServer.getCLMServer()
+        .getInstance(ReportService.class)
         .getReport(application.getId(), policyEvaluation.getScanId());
     ReportEntry reportEntry = applicationReport.getEntry(BOM_JSON.getName());
     components = lookup(ComponentLoaderFactory.class).createComponentLoader(application)
@@ -148,8 +148,9 @@ public class TransitiveViolationsTest
     reportInformationElements.shouldHave(size(3));
     reportInformationElements.get(0).shouldHave(Condition.text(organization.getName()));
     reportInformationElements.get(1).shouldHave(Condition.text(application.getName()));
-    reportInformationElements.get(2).shouldHave(Condition
-        .text(policyEvaluation.getStageTypeId() + " Report " + getExpectedDateTime(policyEvaluation.getTime())));
+    reportInformationElements.get(2)
+        .shouldHave(Condition
+            .text(policyEvaluation.getStageTypeId() + " Report " + getExpectedDateTime(policyEvaluation.getTime())));
     componentDetailsHeader.getElement().$(".component-details-header__tags").should(Condition.exist);
     componentDetailsHeader.tags().shouldHave(size(1));
     componentDetailsHeader.tags().get(0).shouldHave(Condition.text("InnerSource"));
@@ -289,16 +290,20 @@ public class TransitiveViolationsTest
     counts.severe().count().shouldHave(Condition.text("1"));
     counts.none().shouldHave(Condition.text("None"));
     counts.none().shouldHave(Condition.text("1"));
-    requestWaiveTransitiveViolationsPopover.applicationPublicIdContainer().content()
+    requestWaiveTransitiveViolationsPopover.applicationPublicIdContainer()
+        .content()
         .shouldHave(Condition.text(application.getPublicId()));
-    requestWaiveTransitiveViolationsPopover.reportIdContainer().content()
+    requestWaiveTransitiveViolationsPopover.reportIdContainer()
+        .content()
         .shouldHave(Condition.text(policyEvaluation.getScanId()));
-    requestWaiveTransitiveViolationsPopover.componentHashContainer().content()
+    requestWaiveTransitiveViolationsPopover.componentHashContainer()
+        .content()
         .shouldHave(Condition.text(component.getHash()));
     String expectedCurlCommand =
         "curl -u admin:admin123 -X POST " + Configuration.baseUrl + "api/v2/policyWaivers/transitive/application/" +
             application.getPublicId() + "/" + policyEvaluation.getScanId() + "?hash=" + component.getHash();
-    requestWaiveTransitiveViolationsPopover.curlExampleContainer().content()
+    requestWaiveTransitiveViolationsPopover.curlExampleContainer()
+        .content()
         .shouldHave(Condition.text(expectedCurlCommand));
     eyesWatcher.eyesCheck();
     ScrollUtil.scrollIntoView(requestWaiveTransitiveViolationsPopover.curlExampleContainer().content());
@@ -325,8 +330,9 @@ public class TransitiveViolationsTest
     counts.severe().count().shouldHave(Condition.text("1"));
     counts.none().shouldHave(Condition.text("None"));
     counts.none().shouldHave(Condition.text("1"));
-    waiveTransitiveViolationsPopover.scope().shouldHave(
-        Condition.text(StringUtils.capitalize(application.getType().toString()) + " - " + application.getName()));
+    waiveTransitiveViolationsPopover.scope()
+        .shouldHave(
+            Condition.text(StringUtils.capitalize(application.getType().toString()) + " - " + application.getName()));
     waiveTransitiveViolationsPopover.expiryTimesSelect().getSelectedOption().shouldHave(text("Never"));
     waiveTransitiveViolationsPopover.expiryTimesOptions().shouldHave(size(8));
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(0).shouldHave(text("Never"));
@@ -439,7 +445,8 @@ public class TransitiveViolationsTest
   @Test
   public void testWaiveTransitiveViolations_SubmitError() throws Exception {
     WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = visitWaivePopover();
-    File reportFile = testCLMServer.getCLMServer().getInstance(InsightWork.class)
+    File reportFile = testCLMServer.getCLMServer()
+        .getInstance(InsightWork.class)
         .getReportFile(application.getId(), policyEvaluation.getScanId());
     new FileCleaner().delete(reportFile.getParentFile());
     waiveTransitiveViolationsPopover.saveButton().click();
@@ -455,8 +462,7 @@ public class TransitiveViolationsTest
         testCLMServer.getCLMServer().getInstance(InsightWork.class),
         application.getId(),
         policyEvaluation.getScanId(),
-        policyViolations
-    );
+        policyViolations);
     waiveTransitiveViolationsPopover.retryButton().click();
     waiveTransitiveViolationsPopover.shouldNotBe(Condition.visible);
     new TransitiveViolationsPage().waiveTransitiveViolations().click();
@@ -489,52 +495,67 @@ public class TransitiveViolationsTest
     componentWaiversPopover = visitViewWaiversPopover();
     componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHave(size(3));
 
-    ElementsCollection appPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
-        .find(Condition.text(application.getName())).findAll("td").shouldHave(size(3));
-    appPolicyWaiverCells.get(0).shouldHave(Condition.text("Created\n" +
-        dateString + "\n" +
-        "Expiration\n" +
-        "Does not expire"));
-    appPolicyWaiverCells.get(1).shouldHave(Condition.text("Scope\n" +
-        application.getType().name() + " - " + application.getName() + "\n" +
-        "Component\n" +
-        "g : atransitivey : v\n" +
-        "Reason\n" +
-        "—\n" +
-        "Comment\n" +
-        appPolicyWaiver.getComment() + "\n" +
-        "Author\n" +
-        appPolicyWaiver.getCreatorName()));
+    ElementsCollection appPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable()
+        .getRows()
+        .find(Condition.text(application.getName()))
+        .findAll("td")
+        .shouldHave(size(3));
+    appPolicyWaiverCells.get(0)
+        .shouldHave(Condition.text("Created\n" +
+            dateString + "\n" +
+            "Expiration\n" +
+            "Does not expire"));
+    appPolicyWaiverCells.get(1)
+        .shouldHave(Condition.text("Scope\n" +
+            application.getType().name() + " - " + application.getName() + "\n" +
+            "Component\n" +
+            "g : atransitivey : v\n" +
+            "Reason\n" +
+            "—\n" +
+            "Comment\n" +
+            appPolicyWaiver.getComment() + "\n" +
+            "Author\n" +
+            appPolicyWaiver.getCreatorName()));
 
-    ElementsCollection orgPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
-        .find(Condition.text(organization.getName())).findAll("td").shouldHave(size(3));
-    orgPolicyWaiverCells.get(0).shouldHave(Condition.text("Created\n" +
-        dateString + "\n" +
-        "Expiration\n" +
-        "Does not expire"));
-    orgPolicyWaiverCells.get(1).shouldHave(Condition.text("Scope\n" +
-        organization.getType().name() + " - " + organization.getName() + "\n" +
-        "Component\n" +
-        "g : ZtransitiveY : v\n" +
-        "Reason\n" +
-        "—\n" +
-        "Author\n" +
-        orgPolicyWaiver.getCreatorName()));
+    ElementsCollection orgPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable()
+        .getRows()
+        .find(Condition.text(organization.getName()))
+        .findAll("td")
+        .shouldHave(size(3));
+    orgPolicyWaiverCells.get(0)
+        .shouldHave(Condition.text("Created\n" +
+            dateString + "\n" +
+            "Expiration\n" +
+            "Does not expire"));
+    orgPolicyWaiverCells.get(1)
+        .shouldHave(Condition.text("Scope\n" +
+            organization.getType().name() + " - " + organization.getName() + "\n" +
+            "Component\n" +
+            "g : ZtransitiveY : v\n" +
+            "Reason\n" +
+            "—\n" +
+            "Author\n" +
+            orgPolicyWaiver.getCreatorName()));
 
-    ElementsCollection rootOrgPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
-        .find(Condition.text(rootOrganization.getName())).findAll("td").shouldHave(size(3));
-    rootOrgPolicyWaiverCells.get(0).shouldHave(Condition.text("Created\n" +
-        dateString + "\n" +
-        "Expiration\n" +
-        "Does not expire"));
-    rootOrgPolicyWaiverCells.get(1).shouldHave(Condition.text("Scope\n" +
-        rootOrganization.getName() + "\n" +
-        "Component\n" +
-        "All\n" +
-        "Reason\n" +
-        "—\n" +
-        "Author\n" +
-        rootOrgPolicyWaiver.getCreatorName()));
+    ElementsCollection rootOrgPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable()
+        .getRows()
+        .find(Condition.text(rootOrganization.getName()))
+        .findAll("td")
+        .shouldHave(size(3));
+    rootOrgPolicyWaiverCells.get(0)
+        .shouldHave(Condition.text("Created\n" +
+            dateString + "\n" +
+            "Expiration\n" +
+            "Does not expire"));
+    rootOrgPolicyWaiverCells.get(1)
+        .shouldHave(Condition.text("Scope\n" +
+            rootOrganization.getName() + "\n" +
+            "Component\n" +
+            "All\n" +
+            "Reason\n" +
+            "—\n" +
+            "Author\n" +
+            rootOrgPolicyWaiver.getCreatorName()));
 
     eyesWatcher.eyesCheck();
 
@@ -542,16 +563,21 @@ public class TransitiveViolationsTest
     DeleteWaiverModal deleteWaiverModal = new DeleteWaiverModal();
     deleteWaiverModal.yesButton().click();
     componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHave(size(2));
-    componentWaiversPopover.componentWaiversPopoverTable().getRows().find(Condition.text(application.getName()))
+    componentWaiversPopover.componentWaiversPopoverTable()
+        .getRows()
+        .find(Condition.text(application.getName()))
         .shouldBe(visible);
-    componentWaiversPopover.componentWaiversPopoverTable().getRows().find(Condition.text(rootOrganization.getName()))
+    componentWaiversPopover.componentWaiversPopoverTable()
+        .getRows()
+        .find(Condition.text(rootOrganization.getName()))
         .shouldBe(visible);
   }
 
   private List<ConstraintFact> getConstraintFacts(Policy policy) {
-    return policy.getConstraints().stream()
-        .map(constraint ->
-            new ConstraintFact(constraint.getId(), constraint.getName(), constraint.getOperator().name()))
+    return policy.getConstraints()
+        .stream()
+        .map(
+            constraint -> new ConstraintFact(constraint.getId(), constraint.getName(), constraint.getOperator().name()))
         .collect(Collectors.toList());
   }
 
@@ -609,9 +635,11 @@ public class TransitiveViolationsTest
       String componentNameFilter)
   {
     List<PolicyViolation> result = policyViolations.stream()
-        .filter(p -> policyNameFilter == null || p.getPolicyName().toLowerCase(Locale.ROOT)
+        .filter(p -> policyNameFilter == null || p.getPolicyName()
+            .toLowerCase(Locale.ROOT)
             .contains(policyNameFilter.toLowerCase(Locale.ROOT)))
-        .filter(p -> componentNameFilter == null || findComponent(p).getDisplayName().toLowerCase(Locale.ROOT)
+        .filter(p -> componentNameFilter == null || findComponent(p).getDisplayName()
+            .toLowerCase(Locale.ROOT)
             .contains(componentNameFilter.toLowerCase(Locale.ROOT)))
         .collect(Collectors.toList());
     switch (sortField == null ? "-threatLevel" : sortField) {
@@ -670,7 +698,9 @@ public class TransitiveViolationsTest
   }
 
   private Component findComponent(PolicyViolation policyViolation) {
-    return components.stream().filter(c -> c.getHash().equals(policyViolation.getHash())).findFirst()
+    return components.stream()
+        .filter(c -> c.getHash().equals(policyViolation.getHash()))
+        .findFirst()
         .orElseThrow(() -> new RuntimeException("Component not found"));
   }
 
@@ -686,7 +716,12 @@ public class TransitiveViolationsTest
 
   private Date getExpectedExpiryDate(int daysFromNow) {
     ZoneOffset offset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
-    return Date.from(LocalDateTime.now().plusDays(daysFromNow).withHour(23).withMinute(59).withSecond(59)
-        .with(ChronoField.MILLI_OF_SECOND, 999).toInstant(offset));
+    return Date.from(LocalDateTime.now()
+        .plusDays(daysFromNow)
+        .withHour(23)
+        .withMinute(59)
+        .withSecond(59)
+        .with(ChronoField.MILLI_OF_SECOND, 999)
+        .toInstant(offset));
   }
 }

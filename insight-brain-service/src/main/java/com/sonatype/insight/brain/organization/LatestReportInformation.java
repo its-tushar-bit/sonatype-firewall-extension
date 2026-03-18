@@ -6,4 +6,6 @@
 
 package com.sonatype.insight.brain.organization;
 
-public record LatestReportInformation(String id, boolean exists) {}
+public record LatestReportInformation(String id, boolean exists)
+{
+}

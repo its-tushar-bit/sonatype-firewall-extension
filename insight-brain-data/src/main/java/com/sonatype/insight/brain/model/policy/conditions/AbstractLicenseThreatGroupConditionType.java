@@ -12,7 +12,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * Condition types reasoning about a specific license threat group found on a component.
- * 
+ *
  * @param <T> The type of the condition value.
  */
 public abstract class AbstractLicenseThreatGroupConditionType<T>

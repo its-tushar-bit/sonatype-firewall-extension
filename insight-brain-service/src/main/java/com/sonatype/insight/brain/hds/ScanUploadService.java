@@ -88,8 +88,7 @@ public class ScanUploadService
         thirdPartyScanTelemetryData,
         scanRequestId,
         null,
-        isWebUIRequest
-    );
+        isWebUIRequest);
   }
 
   public ScanReceipt upload(
@@ -129,7 +128,7 @@ public class ScanUploadService
     return scanReceipt;
   }
 
-  //visible for testing
+  // visible for testing
   ScanReceipt filterAndUpload(
       ScanEntity scanEntity,
       Application app,
@@ -137,8 +136,7 @@ public class ScanUploadService
       String clientUserAgent,
       ThirdPartyScanContext thirdPartyScanContext,
       TelemetryData thirdPartyScanTelemetryData,
-      boolean isWebUIRequest)
-      throws IOException
+      boolean isWebUIRequest) throws IOException
   {
     ScanEntity tempScanEntity = scanPersistenceService.createTempScan(app.getId());
 
@@ -173,12 +171,12 @@ public class ScanUploadService
     }
   }
 
-  //visible for testing
+  // visible for testing
   void saveFilteredScanFileIfNeeded(final ThirdPartyScanContext scanContext, final ScanEntity filteredScanEntity) {
     if (scanContext == null) {
       return;
     }
-    //we need to save the filtered scan files only in the case of SBOM binary scans or if at least one sbom is saved
+    // we need to save the filtered scan files only in the case of SBOM binary scans or if at least one sbom is saved
     // During the SBOM manager import
     // For Binary scans the filtered scan file is saved at the merge time with HDS results
     if (scanContext.isSbomSavedForScan() && !SbomScanType.BINARY.equals(scanContext.getScanType())) {

@@ -130,22 +130,25 @@ public class ApiConfigurationServiceTest
   @Test
   public void testGetConfiguration_Null() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.getConfiguration(null)).withMessageContaining(
-        ApiConfigurationService.NO_PROPERTIES_ERROR_MSG);
+        () -> service.getConfiguration(null))
+        .withMessageContaining(
+            ApiConfigurationService.NO_PROPERTIES_ERROR_MSG);
   }
 
   @Test
   public void testGetConfiguration_Empty() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.getConfiguration(Collections.emptySet())).withMessageContaining(
-        ApiConfigurationService.NO_PROPERTIES_ERROR_MSG);
+        () -> service.getConfiguration(Collections.emptySet()))
+        .withMessageContaining(
+            ApiConfigurationService.NO_PROPERTIES_ERROR_MSG);
   }
 
   @Test
   public void testGetConfiguration_InvalidPropertyName() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.getConfiguration(SetUtils.hashSet("invalidPropertyName"))).withMessageContaining(
-        String.format(ApiConfigurationService.INVALID_PROPERTY_NAME_ERROR_MSG, "invalidPropertyName"));
+        () -> service.getConfiguration(SetUtils.hashSet("invalidPropertyName")))
+        .withMessageContaining(
+            String.format(ApiConfigurationService.INVALID_PROPERTY_NAME_ERROR_MSG, "invalidPropertyName"));
   }
 
   @Test
@@ -156,22 +159,25 @@ public class ApiConfigurationServiceTest
     Map<String, Object> configuration = service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL));
 
-    assertThat(configuration).hasSize(2).containsEntry(SystemConfigurationProperty.BASE_URL, "http://baseUrl/")
+    assertThat(configuration).hasSize(2)
+        .containsEntry(SystemConfigurationProperty.BASE_URL, "http://baseUrl/")
         .containsEntry(SystemConfigurationProperty.FORCE_BASE_URL, true);
   }
 
   @Test
   public void testSetConfiguration_Null() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.setConfiguration(null)).withMessageContaining(
-        ApiConfigurationService.NO_PROPERTIES_ERROR_MSG);
+        () -> service.setConfiguration(null))
+        .withMessageContaining(
+            ApiConfigurationService.NO_PROPERTIES_ERROR_MSG);
   }
 
   @Test
   public void testSetConfiguration_Empty() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.setConfiguration(Collections.emptyMap())).withMessageContaining(
-        ApiConfigurationService.NO_PROPERTIES_ERROR_MSG);
+        () -> service.setConfiguration(Collections.emptyMap()))
+        .withMessageContaining(
+            ApiConfigurationService.NO_PROPERTIES_ERROR_MSG);
   }
 
   @Test
@@ -180,8 +186,9 @@ public class ApiConfigurationServiceTest
     payload.put("invalidPropertyName", null);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.setConfiguration(payload)).withMessageContaining(
-        String.format(ApiConfigurationService.INVALID_PROPERTY_NAME_ERROR_MSG, "invalidPropertyName"));
+        () -> service.setConfiguration(payload))
+        .withMessageContaining(
+            String.format(ApiConfigurationService.INVALID_PROPERTY_NAME_ERROR_MSG, "invalidPropertyName"));
   }
 
   @Test
@@ -190,9 +197,10 @@ public class ApiConfigurationServiceTest
     payload.put(SystemConfigurationProperty.BASE_URL, true);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.setConfiguration(payload)).withMessageContaining(
-        String.format(ApiConfigurationService.INVALID_PROPERTY_VALUE_TYPE_ERROR_MSG,
-            SystemConfigurationProperty.BASE_URL, String.class, Boolean.class));
+        () -> service.setConfiguration(payload))
+        .withMessageContaining(
+            String.format(ApiConfigurationService.INVALID_PROPERTY_VALUE_TYPE_ERROR_MSG,
+                SystemConfigurationProperty.BASE_URL, String.class, Boolean.class));
   }
 
   @Test
@@ -231,22 +239,25 @@ public class ApiConfigurationServiceTest
   @Test
   public void testDeleteConfiguration_Null() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.deleteConfiguration(null)).withMessageContaining(
-        ApiConfigurationService.NO_PROPERTIES_ERROR_MSG);
+        () -> service.deleteConfiguration(null))
+        .withMessageContaining(
+            ApiConfigurationService.NO_PROPERTIES_ERROR_MSG);
   }
 
   @Test
   public void testDeleteConfiguration_Empty() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.deleteConfiguration(Collections.emptySet())).withMessageContaining(
-        ApiConfigurationService.NO_PROPERTIES_ERROR_MSG);
+        () -> service.deleteConfiguration(Collections.emptySet()))
+        .withMessageContaining(
+            ApiConfigurationService.NO_PROPERTIES_ERROR_MSG);
   }
 
   @Test
   public void testDeleteConfiguration_InvalidPropertyName() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.deleteConfiguration(SetUtils.hashSet("invalidPropertyName"))).withMessageContaining(
-        String.format(ApiConfigurationService.INVALID_PROPERTY_NAME_ERROR_MSG, "invalidPropertyName"));
+        () -> service.deleteConfiguration(SetUtils.hashSet("invalidPropertyName")))
+        .withMessageContaining(
+            String.format(ApiConfigurationService.INVALID_PROPERTY_NAME_ERROR_MSG, "invalidPropertyName"));
   }
 
   @Test
@@ -309,7 +320,7 @@ public class ApiConfigurationServiceTest
   public void testGetConfiguration_ForceBaseUrlNotSet_ReturnsDefault() {
     assertThat(
         service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.FORCE_BASE_URL))).containsEntry(
-        SystemConfigurationProperty.FORCE_BASE_URL, false);
+            SystemConfigurationProperty.FORCE_BASE_URL, false);
   }
 
   @Test
@@ -331,7 +342,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES))).containsEntry(
-        SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 31457280L);
+                SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 31457280L);
   }
 
   @Test
@@ -373,21 +384,21 @@ public class ApiConfigurationServiceTest
   public void testGetConfiguration_EventBusMaxThreadPoolSizeNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE))).containsEntry(
-        SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE, AsyncEventBus.DEFAULT_MAX_POOL_SIZE);
+            SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE, AsyncEventBus.DEFAULT_MAX_POOL_SIZE);
   }
 
   @Test
   public void testGetConfiguration_CsrfProtectionNotSet_ReturnsDefault() {
     assertThat(
         service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.CSRF_PROTECTION))).containsEntry(
-        SystemConfigurationProperty.CSRF_PROTECTION, true);
+            SystemConfigurationProperty.CSRF_PROTECTION, true);
   }
 
   @Test
   public void testGetConfiguration_CspEnabledNotSet_ReturnsDefault() {
     assertThat(
         service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.CSP_ENABLED))).containsEntry(
-        SystemConfigurationProperty.CSP_ENABLED, true);
+            SystemConfigurationProperty.CSP_ENABLED, true);
   }
 
   @Test
@@ -395,7 +406,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH))).containsEntry(
-        SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH, true);
+                SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH, true);
   }
 
   @Test
@@ -403,7 +414,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH))).containsEntry(
-        SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, true);
+                SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, true);
   }
 
   @Test
@@ -411,7 +422,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH))).containsEntry(
-        SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, false);
+                SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, false);
   }
 
   @Test
@@ -419,7 +430,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE))).containsEntry(
-        SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE, 1000);
+                SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE, 1000);
   }
 
   @Test
@@ -427,7 +438,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT))).containsEntry(
-        SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT, 50);
+                SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT, 50);
   }
 
   @Test
@@ -435,7 +446,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD))).containsEntry(
-        SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD, 0);
+                SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD, 0);
   }
 
   @Test
@@ -443,7 +454,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT))).containsEntry(
-        SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 2048);
+                SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 2048);
   }
 
   @Test
@@ -451,56 +462,56 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER))).containsEntry(
-        SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, ",");
+                SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, ",");
   }
 
   @Test
   public void testGetConfiguration_ConnectTimeoutInSecondsNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS))).containsEntry(
-        SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, 20);
+            SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, 20);
   }
 
   @Test
   public void testGetConfiguration_SocketTimeoutInSecondsNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS))).containsEntry(
-        SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS, 3 * 60);
+            SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS, 3 * 60);
   }
 
   @Test
   public void testGetConfiguration_ReportTimeoutInSecondsNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS))).containsEntry(
-        SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, 35 * 60);
+            SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, 35 * 60);
   }
 
   @Test
   public void testGetConfiguration_NeedsAcknowledgementOfInitialDashboardFilterNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER))).containsEntry(
-        SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER, false);
+            SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER, false);
   }
 
   @Test
   public void testGetConfiguration_EnableDefaultPasswordWarningNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING))).containsEntry(
-        SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING, true);
+            SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING, true);
   }
 
   @Test
   public void testGetConfiguration_PolicyMonitoringHourNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.POLICY_MONITORING_HOUR))).containsEntry(
-        SystemConfigurationProperty.POLICY_MONITORING_HOUR, 0);
+            SystemConfigurationProperty.POLICY_MONITORING_HOUR, 0);
   }
 
   @Test
   public void testGetConfiguration_HistoricalPolicyViolationTelemetryHour_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR))).containsEntry(
-        SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, null);
+            SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, null);
   }
 
   @Test
@@ -515,14 +526,14 @@ public class ApiConfigurationServiceTest
   public void testGetConfiguration_WebhookSecretPassphraseNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE))).containsEntry(
-        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, "^d1swM!FF&qQ");
+            SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, "^d1swM!FF&qQ");
   }
 
   @Test
   public void testGetConfiguration_WebhookSecretPassphraseFipsNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS))).containsEntry(
-        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, "^d1swM!FF&qQ$%0/");
+            SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, "^d1swM!FF&qQ$%0/");
   }
 
   @Test
@@ -530,14 +541,14 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED))).containsEntry(
-        SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, true);
+                SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, true);
   }
 
   @Test
   public void testGetConfiguration_MatcherConfiguration_DisableConanNamespaceMatchingNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING))).containsEntry(
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, false);
+            SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, false);
   }
 
   @Test
@@ -545,7 +556,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX))).containsEntry(
-        SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, "(?i)(?s).*token[\\s\\w:]+expired.*");
+                SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, "(?i)(?s).*token[\\s\\w:]+expired.*");
   }
 
   @Test
@@ -553,7 +564,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL))).containsEntry(
-        SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, null);
+                SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, null);
   }
 
   @Test
@@ -561,7 +572,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT)))
-        .containsEntry(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, null);
+                .containsEntry(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, null);
   }
 
   @Test
@@ -569,7 +580,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE)))
-        .containsEntry(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE, 1000);
+                .containsEntry(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE, 1000);
   }
 
   @Test
@@ -579,7 +590,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE)))
-        .containsEntry(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE, 1000);
+            .containsEntry(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE, 1000);
   }
 
   @Test
@@ -598,7 +609,7 @@ public class ApiConfigurationServiceTest
     var exception = assertThrows(
         BadRequestException.class,
         () -> service.setConfigurationNoAuthz(
-        Maps.newHashMap(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID, StageTypes.BUILD.getId())));
+            Maps.newHashMap(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID, StageTypes.BUILD.getId())));
 
     assertThat(exception.getMessage()).isEqualTo(
         "Invalid value 'build' provided for successMetricsStageId. " +
@@ -614,7 +625,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE)).isEqualTo(batchSize.toString());
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE)))
-        .containsEntry(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE, batchSize);
+            .containsEntry(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE, batchSize);
     assertMinAndMax(SystemConfigurationProperty.BFS_ARTIFACTORY_AQL_BATCH_SIZE, 0, 1000);
   }
 
@@ -623,7 +634,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.BFS_REPOSITORIES)))
-        .containsEntry(SystemConfigurationProperty.BFS_REPOSITORIES, null);
+                .containsEntry(SystemConfigurationProperty.BFS_REPOSITORIES, null);
   }
 
   @Test
@@ -631,7 +642,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.ACCESS_ALLOWLIST)))
-        .containsEntry(SystemConfigurationProperty.ACCESS_ALLOWLIST, null);
+                .containsEntry(SystemConfigurationProperty.ACCESS_ALLOWLIST, null);
   }
 
   @Test
@@ -639,14 +650,14 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST)))
-        .containsEntry(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST, null);
+                .containsEntry(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST, null);
   }
 
   @Test
   public void testGetConfiguration_SchemaMigrationEnabled_NullDb_NullEnv() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
-        SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, true);
+            SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, true);
   }
 
   @Test
@@ -655,7 +666,7 @@ public class ApiConfigurationServiceTest
 
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
-        SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, false);
+            SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, false);
   }
 
   @Test
@@ -664,7 +675,7 @@ public class ApiConfigurationServiceTest
 
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
-        SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, false);
+            SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, false);
   }
 
   @Test
@@ -674,48 +685,48 @@ public class ApiConfigurationServiceTest
 
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
-        SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, false);
+            SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, false);
   }
 
   @Test
   public void testGetConfiguration_waivedComponentUpgradeInspectionHour_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR))).containsEntry(
-        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 1);
+            SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 1);
   }
 
   @Test
   public void testGetConfiguration_waivedComponentUpgradeMonitoringEnabled_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED))).containsEntry(
-        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, false);
+            SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, false);
   }
 
   @Test
   public void testGetQuarantinedComponentReportExpirationTimeInHours_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
         SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS)))
-        .containsEntry(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS, 12);
+            .containsEntry(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS, 12);
   }
 
   @Test
   public void testGetSuccessMetricsStageId_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
         SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID)))
-        .containsEntry(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID, null);
+            .containsEntry(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID, null);
   }
 
   @Test
   public void testGetEnterpriseReportingVersionCacheExpirationInMinutes_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
         SystemConfigurationProperty.ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES)))
-        .containsEntry(SystemConfigurationProperty.ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES, 10);
+            .containsEntry(SystemConfigurationProperty.ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES, 10);
   }
 
   @Test
   public void testGetConfiguration_advancedReportingInsightsEnabled_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
-            SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED)))
+        SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED)))
             .containsEntry(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, true);
   }
 
@@ -794,8 +805,8 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.FORCE_BASE_URL)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL)))
-        .containsEntry(SystemConfigurationProperty.BASE_URL, null)
-        .containsEntry(SystemConfigurationProperty.FORCE_BASE_URL, false);
+            .containsEntry(SystemConfigurationProperty.BASE_URL, null)
+            .containsEntry(SystemConfigurationProperty.FORCE_BASE_URL, false);
     logOutput.assertThat().atErrorLevel().doesNotContain("DEPRECATION NOTICE");
   }
 
@@ -811,8 +822,8 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.FORCE_BASE_URL)).isEqualTo("true");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL)))
-        .containsEntry(SystemConfigurationProperty.BASE_URL, "http://my-base-url/")
-        .containsEntry(SystemConfigurationProperty.FORCE_BASE_URL, true);
+            .containsEntry(SystemConfigurationProperty.BASE_URL, "http://my-base-url/")
+            .containsEntry(SystemConfigurationProperty.FORCE_BASE_URL, true);
     logOutput.assertThat().atErrorLevel().contains("http://my-base-url/");
   }
 
@@ -871,7 +882,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.CDN_URL))).containsEntry(
-        SystemConfigurationProperty.CDN_URL, "https://cdn.sonatype.com/");
+                SystemConfigurationProperty.CDN_URL, "https://cdn.sonatype.com/");
   }
 
   @Test
@@ -882,7 +893,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.CDN_URL))).containsEntry(
-        SystemConfigurationProperty.CDN_URL, "http://my-cdn-url/");
+                SystemConfigurationProperty.CDN_URL, "http://my-cdn-url/");
   }
 
   @Test
@@ -893,7 +904,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES))).containsEntry(
-        SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 31457280L);
+                SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 31457280L);
   }
 
   @Test
@@ -904,7 +915,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES))).containsEntry(
-        SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 10L);
+                SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 10L);
   }
 
   @Test
@@ -937,7 +948,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE))).containsEntry(
-        SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE, AsyncEventBus.DEFAULT_MAX_POOL_SIZE);
+                SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE, AsyncEventBus.DEFAULT_MAX_POOL_SIZE);
   }
 
   @Test
@@ -948,7 +959,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE))).containsEntry(
-        SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE, 10);
+                SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE, 10);
   }
 
   @Test
@@ -958,7 +969,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.CSRF_PROTECTION)).isNull();
     assertThat(
         service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.CSRF_PROTECTION))).containsEntry(
-        SystemConfigurationProperty.CSRF_PROTECTION, true);
+            SystemConfigurationProperty.CSRF_PROTECTION, true);
   }
 
   @Test
@@ -968,7 +979,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.CSRF_PROTECTION)).isEqualTo("false");
     assertThat(
         service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.CSRF_PROTECTION))).containsEntry(
-        SystemConfigurationProperty.CSRF_PROTECTION, false);
+            SystemConfigurationProperty.CSRF_PROTECTION, false);
   }
 
   @Test
@@ -978,7 +989,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.USER_AGENT_SUFFIX)).isNull();
     assertThat(
         service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.USER_AGENT_SUFFIX))).containsEntry(
-        SystemConfigurationProperty.USER_AGENT_SUFFIX, null);
+            SystemConfigurationProperty.USER_AGENT_SUFFIX, null);
   }
 
   @Test
@@ -988,7 +999,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.USER_AGENT_SUFFIX)).isEqualTo("test");
     assertThat(
         service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.USER_AGENT_SUFFIX))).containsEntry(
-        SystemConfigurationProperty.USER_AGENT_SUFFIX, "test");
+            SystemConfigurationProperty.USER_AGENT_SUFFIX, "test");
   }
 
   @Test
@@ -998,7 +1009,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.CSP_ENABLED)).isNull();
     assertThat(
         service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.CSP_ENABLED))).containsEntry(
-        SystemConfigurationProperty.CSP_ENABLED, true);
+            SystemConfigurationProperty.CSP_ENABLED, true);
   }
 
   @Test
@@ -1008,7 +1019,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.CSP_ENABLED)).isEqualTo("false");
     assertThat(
         service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.CSP_ENABLED))).containsEntry(
-        SystemConfigurationProperty.CSP_ENABLED, false);
+            SystemConfigurationProperty.CSP_ENABLED, false);
   }
 
   @Test
@@ -1018,7 +1029,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.ACCESS_ALLOWLIST)).isNull();
     assertThat(
         service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.ACCESS_ALLOWLIST))).containsEntry(
-        SystemConfigurationProperty.ACCESS_ALLOWLIST, null);
+            SystemConfigurationProperty.ACCESS_ALLOWLIST, null);
   }
 
   @Test
@@ -1034,7 +1045,7 @@ public class ApiConfigurationServiceTest
         .isEqualTo("[{\"ipAddress\":\"192.168.33.10\",\"description\":\"Test IPv4 address\"}]");
 
     List<AllowedIp> allowlistIPs = (List<AllowedIp>) service.getConfigurationNoAuthz(
-            SetUtils.hashSet(SystemConfigurationProperty.ACCESS_ALLOWLIST))
+        SetUtils.hashSet(SystemConfigurationProperty.ACCESS_ALLOWLIST))
         .get(SystemConfigurationProperty.ACCESS_ALLOWLIST);
 
     assertThat(allowlistIPs).extracting(AllowedIp::getIpAddress)
@@ -1053,8 +1064,8 @@ public class ApiConfigurationServiceTest
     // Remove the PRODUCT_LIFECYCLE_CLOUD feature flag LicensedFeature.IP_ALLOWLIST
     testProductLicense.setFeatures(LicensedFeature.DASHBOARD);
 
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-            service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.ACCESS_ALLOWLIST, allowlist)))
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
+        () -> service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.ACCESS_ALLOWLIST, allowlist)))
         .withMessageContaining(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
@@ -1066,7 +1077,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST))).containsEntry(
-        SystemConfigurationProperty.API_ACCESS_ALLOW_LIST, null);
+                SystemConfigurationProperty.API_ACCESS_ALLOW_LIST, null);
   }
 
   @Test
@@ -1079,7 +1090,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST))).containsEntry(
-        SystemConfigurationProperty.API_ACCESS_ALLOW_LIST, null);
+                SystemConfigurationProperty.API_ACCESS_ALLOW_LIST, null);
   }
 
   @Test
@@ -1093,7 +1104,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST)).isEqualTo("[\"user1\",\"user2\"]");
 
     List<String> allowList2 = (List<String>) service.getConfigurationNoAuthz(
-            SetUtils.hashSet(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST))
+        SetUtils.hashSet(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST))
         .get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST);
 
     assertThat(allowList2).containsExactlyInAnyOrder("user1", "user2");
@@ -1110,7 +1121,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST)).isEqualTo("[\"user1\"]");
 
     List<String> allowList2 = (List<String>) service.getConfigurationNoAuthz(
-            SetUtils.hashSet(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST))
+        SetUtils.hashSet(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST))
         .get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST);
 
     assertThat(allowList2).containsExactlyInAnyOrder("user1");
@@ -1124,7 +1135,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH))).containsEntry(
-        SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH, true);
+                SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH, true);
   }
 
   @Test
@@ -1135,7 +1146,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH))).containsEntry(
-        SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH, false);
+                SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH, false);
   }
 
   @Test
@@ -1146,7 +1157,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH))).containsEntry(
-        SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, true);
+                SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, true);
   }
 
   @Test
@@ -1157,7 +1168,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH))).containsEntry(
-        SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, false);
+                SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, false);
   }
 
   @Test
@@ -1168,7 +1179,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH))).containsEntry(
-        SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, false);
+                SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, false);
   }
 
   @Test
@@ -1179,7 +1190,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH))).containsEntry(
-        SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, true);
+                SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, true);
   }
 
   @Test
@@ -1190,7 +1201,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE))).containsEntry(
-        SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE, 1000);
+                SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE, 1000);
   }
 
   @Test
@@ -1201,7 +1212,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE))).containsEntry(
-        SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE, 10);
+                SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE, 10);
   }
 
   @Test
@@ -1212,7 +1223,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT))).containsEntry(
-        SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT, 50);
+                SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT, 50);
   }
 
   @Test
@@ -1223,7 +1234,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT))).containsEntry(
-        SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT, 10);
+                SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT, 10);
   }
 
   @Test
@@ -1235,7 +1246,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD))).containsEntry(
-        SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD, 0);
+                SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD, 0);
   }
 
   @Test
@@ -1247,7 +1258,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD))).containsEntry(
-        SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD, 10);
+                SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD, 10);
   }
 
   @Test
@@ -1259,7 +1270,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT))).containsEntry(
-        SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 2048);
+                SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 2048);
   }
 
   @Test
@@ -1270,7 +1281,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT))).containsEntry(
-        SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 10);
+                SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 10);
   }
 
   @Test
@@ -1282,7 +1293,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER))).containsEntry(
-        SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, ",");
+                SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, ",");
   }
 
   @Test
@@ -1294,7 +1305,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER))).containsEntry(
-        SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, ";");
+                SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, ";");
   }
 
   @Test
@@ -1304,7 +1315,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS))).containsEntry(
-        SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, 20);
+            SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, 20);
   }
 
   @Test
@@ -1315,7 +1326,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS)).isEqualTo("10");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS))).containsEntry(
-        SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, 10);
+            SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, 10);
     assertMinAndMax(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, 5, 60 * 60);
   }
 
@@ -1326,7 +1337,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS))).containsEntry(
-        SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS, 3 * 60);
+            SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS, 3 * 60);
   }
 
   @Test
@@ -1337,7 +1348,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS)).isEqualTo("10");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS))).containsEntry(
-        SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS, 10);
+            SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS, 10);
     assertMinAndMax(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS, 5, 60 * 60);
   }
 
@@ -1348,7 +1359,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS))).containsEntry(
-        SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, 35 * 60);
+            SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, 35 * 60);
   }
 
   @Test
@@ -1359,7 +1370,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS)).isEqualTo("35");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS))).containsEntry(
-        SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, 35);
+            SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, 35);
     assertMinAndMax(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, 30, 60 * 300);
   }
 
@@ -1371,7 +1382,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER))).containsEntry(
-        SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER, false);
+            SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER, false);
   }
 
   @Test
@@ -1383,7 +1394,7 @@ public class ApiConfigurationServiceTest
         "true");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER))).containsEntry(
-        SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER, true);
+            SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER, true);
   }
 
   @Test
@@ -1393,7 +1404,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING))).containsEntry(
-        SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING, true);
+            SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING, true);
   }
 
   @Test
@@ -1404,7 +1415,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING)).isEqualTo("false");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING))).containsEntry(
-        SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING, false);
+            SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING, false);
   }
 
   @Test
@@ -1414,7 +1425,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.POLICY_MONITORING_HOUR)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.POLICY_MONITORING_HOUR))).containsEntry(
-        SystemConfigurationProperty.POLICY_MONITORING_HOUR, 0);
+            SystemConfigurationProperty.POLICY_MONITORING_HOUR, 0);
   }
 
   @Test
@@ -1425,7 +1436,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.POLICY_MONITORING_HOUR)).isEqualTo("22");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.POLICY_MONITORING_HOUR))).containsEntry(
-        SystemConfigurationProperty.POLICY_MONITORING_HOUR, 22);
+            SystemConfigurationProperty.POLICY_MONITORING_HOUR, 22);
     assertMinAndMax(SystemConfigurationProperty.POLICY_MONITORING_HOUR, 0, 23);
   }
 
@@ -1437,7 +1448,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR))).containsEntry(
-        SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, null);
+            SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, null);
   }
 
   @Test
@@ -1448,7 +1459,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR)).isEqualTo("22");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR))).containsEntry(
-        SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, 22);
+            SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, 22);
     assertMinAndMax(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, 0, 23);
   }
 
@@ -1459,8 +1470,8 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.DB_BACKUP_DIR)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
-          SystemConfigurationProperty.DB_BACKUP_DIR,
-          new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
+            SystemConfigurationProperty.DB_BACKUP_DIR,
+            new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
   }
 
   @Test
@@ -1471,14 +1482,14 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.DB_BACKUP_DIR)).isEqualTo(dbBackupDir);
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
-          SystemConfigurationProperty.DB_BACKUP_DIR,
-          new File(insightConfig.getSonatypeWork(), dbBackupDir).getAbsolutePath());
+            SystemConfigurationProperty.DB_BACKUP_DIR,
+            new File(insightConfig.getSonatypeWork(), dbBackupDir).getAbsolutePath());
 
     String absolutePath = tempDir.newFolder().getAbsolutePath();
     service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.DB_BACKUP_DIR, absolutePath));
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
-        SystemConfigurationProperty.DB_BACKUP_DIR, absolutePath);
+            SystemConfigurationProperty.DB_BACKUP_DIR, absolutePath);
   }
 
   @Test
@@ -1488,7 +1499,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE))).containsEntry(
-        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, "^d1swM!FF&qQ");
+            SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, "^d1swM!FF&qQ");
   }
 
   @Test
@@ -1498,7 +1509,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS))).containsEntry(
-        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, "^d1swM!FF&qQ$%0/");
+            SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, "^d1swM!FF&qQ$%0/");
   }
 
   @Test
@@ -1509,7 +1520,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE)).isEqualTo("custom");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE))).containsEntry(
-        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, "custom");
+            SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, "custom");
   }
 
   @Test
@@ -1520,7 +1531,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS)).isEqualTo("custom");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS))).containsEntry(
-        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, "custom");
+            SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, "custom");
   }
 
   @Test
@@ -1531,7 +1542,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED))).containsEntry(
-        SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, true);
+                SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, true);
   }
 
   @Test
@@ -1542,7 +1553,7 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED))).containsEntry(
-        SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, false);
+                SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, false);
   }
 
   @Test
@@ -1553,7 +1564,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING)).isNull();
     assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING))).containsEntry(
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, false);
+            SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, false);
   }
 
   @Test
@@ -1565,7 +1576,7 @@ public class ApiConfigurationServiceTest
         "true");
     assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING))).containsEntry(
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, true);
+            SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, true);
   }
 
   @Test
@@ -1575,7 +1586,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
-        SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, true);
+            SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, true);
   }
 
   @Test
@@ -1585,7 +1596,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED)).isEqualTo("false");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
-        SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, false);
+            SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, false);
   }
 
   @Test
@@ -1596,7 +1607,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX))).containsEntry(
-        SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, "(?i)(?s).*token[\\s\\w:]+expired.*");
+            SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, "(?i)(?s).*token[\\s\\w:]+expired.*");
   }
 
   @Test
@@ -1608,7 +1619,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX)).isEqualTo(regex);
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX))).containsEntry(
-        SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, regex);
+            SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, regex);
   }
 
   @Test
@@ -1619,7 +1630,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL))).containsEntry(
-        SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, null);
+            SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, null);
   }
 
   @Test
@@ -1631,7 +1642,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL)).isEqualTo(email);
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL))).containsEntry(
-        SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, email);
+            SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, email);
   }
 
   @Test
@@ -1641,7 +1652,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT)))
-        .containsEntry(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, null);
+            .containsEntry(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, null);
   }
 
   @Test
@@ -1653,7 +1664,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT)).isEqualTo(limit.toString());
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT)))
-        .containsEntry(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, limit);
+            .containsEntry(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, limit);
     assertMinAndMax(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, 0, Integer.MAX_VALUE);
   }
 
@@ -1664,7 +1675,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.BFS_REPOSITORIES)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BFS_REPOSITORIES)))
-        .containsEntry(SystemConfigurationProperty.BFS_REPOSITORIES, null);
+            .containsEntry(SystemConfigurationProperty.BFS_REPOSITORIES, null);
   }
 
   @Test
@@ -1675,7 +1686,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.BFS_REPOSITORIES)).isEqualTo(repos);
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BFS_REPOSITORIES)))
-        .containsEntry(SystemConfigurationProperty.BFS_REPOSITORIES, repos);
+            .containsEntry(SystemConfigurationProperty.BFS_REPOSITORIES, repos);
   }
 
   @Test
@@ -1686,7 +1697,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR)).isEqualTo("14");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR))).containsEntry(
-        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 14);
+            SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 14);
     assertMinAndMax(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 0, 23);
   }
 
@@ -1699,7 +1710,7 @@ public class ApiConfigurationServiceTest
         .isEqualTo("true");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED))).containsEntry(
-        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, true);
+            SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, true);
   }
 
   @Test
@@ -1712,7 +1723,7 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(
             SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES))).containsEntry(
-        SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 35);
+                SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 35);
     assertMinAndMax(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 30,
         Integer.MAX_VALUE);
   }
@@ -1726,7 +1737,7 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(
             SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES))).containsEntry(
-        SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 60);
+                SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 60);
   }
 
   @Test
@@ -1738,7 +1749,7 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(
             SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE))).containsEntry(
-        SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, "Test Message");
+                SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, "Test Message");
   }
 
   @Test
@@ -1750,18 +1761,18 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(
             SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE))).containsEntry(
-        SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, null);
+                SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, null);
   }
 
   @Test
   public void testSetConfiguration_advancedReportingInsightsEnabled() {
     service.setConfigurationNoAuthz(
-            Maps.newHashMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false));
+        Maps.newHashMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false));
 
     assertThat(dao.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED))
-            .isEqualTo("false");
+        .isEqualTo("false");
     assertThat(service.getConfigurationNoAuthz(
-            SetUtils.hashSet(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED))).containsEntry(
+        SetUtils.hashSet(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED))).containsEntry(
             SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
   }
 
@@ -1770,7 +1781,7 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(
             SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES))).containsEntry(
-        SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 60);
+                SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 60);
   }
 
   @Test
@@ -1801,7 +1812,7 @@ public class ApiConfigurationServiceTest
   public void testGetConfiguration_MalwareApiMaxComponentNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS))).containsEntry(
-        SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS, 100);
+            SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS, 100);
   }
 
   @Test
@@ -1812,7 +1823,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS))).containsEntry(
-        SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS, 100);
+            SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS, 100);
   }
 
   @Test
@@ -1824,14 +1835,14 @@ public class ApiConfigurationServiceTest
         .isEqualTo("10");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS))).containsEntry(
-        SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS, 10);
+            SystemConfigurationProperty.MALWARE_DEFENSE_API_MAX_COMPONENTS, 10);
   }
 
   @Test
   public void testGetConfiguration_ComponentChangeDetectionMaxComponentsNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS))).containsEntry(
-        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS, 1_500_000);
+            SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS, 1_500_000);
   }
 
   @Test
@@ -1842,7 +1853,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS))).containsEntry(
-        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS, 1_500_000);
+            SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS, 1_500_000);
   }
 
   @Test
@@ -1854,7 +1865,7 @@ public class ApiConfigurationServiceTest
         .isEqualTo("1234");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS))).containsEntry(
-        SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS, 1234);
+            SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS, 1234);
   }
 
   @Test
@@ -1976,8 +1987,9 @@ public class ApiConfigurationServiceTest
   public void testSetConfiguration_CopyStorageConfig_InvalidValues() {
     CopyStorageConfig copyStorageConfig = new CopyStorageConfig(0, 3);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
-            service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.COPY_STORAGE_CONFIG,
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.COPY_STORAGE_CONFIG,
                 JsonUtils.convertValue(copyStorageConfig, Map.class))))
         .withMessageContaining("'maxTenantThreads' must be at least 1");
   }
@@ -1988,8 +2000,8 @@ public class ApiConfigurationServiceTest
         new CopyStorageConfig(CopyStorageService.MAX_TENANT_THREAD_POOL_THREADS + 1, 1);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.setConfigurationNoAuthz(
-            Maps.newHashMap(SystemConfigurationProperty.COPY_STORAGE_CONFIG,
-                JsonUtils.convertValue(copyStorageConfig, Map.class))))
+        Maps.newHashMap(SystemConfigurationProperty.COPY_STORAGE_CONFIG,
+            JsonUtils.convertValue(copyStorageConfig, Map.class))))
         .withMessageContaining("Configuration could result in too many threads");
   }
 
@@ -1997,7 +2009,7 @@ public class ApiConfigurationServiceTest
   public void testGetConfiguration_UserTokenDefaultExpirationDaysNotSet_ReturnsNull() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS))).containsEntry(
-        SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, null);
+            SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, null);
   }
 
   @Test
@@ -2008,7 +2020,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS))).containsEntry(
-        SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, null);
+            SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, null);
   }
 
   @Test
@@ -2019,7 +2031,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS)).isEqualTo("30");
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS))).containsEntry(
-        SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, 30);
+            SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, 30);
     assertMinAndMax(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, 1, 365);
   }
 
@@ -2036,7 +2048,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS))).containsEntry(
-        SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, null);
+            SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, null);
   }
 
   private void assertMinAndMax(String name, int min, int max) {

@@ -79,22 +79,22 @@ public class SbomResultsMatcher
       ComponentIdentifier resultId = identityResult.getKey();
       JsonNode resultNode = identityResult.getValue();
       PackageURL resultPurl = getNodePackageUrlSafely(resultNode);
-      //perform purl match
+      // perform purl match
       float purlScore = calculateMatchScoreFromPurls(sbomPurl, resultPurl, resultId);
       matchScore += purlScore;
 
-      //perform hash match
+      // perform hash match
       String nodeIdentificationSource = getNodeFieldSafely(resultNode, "identificationSource");
       float hashScore = calculateMatchScoreFromHash(sbomHash, nodeIdentificationSource, resultNode);
       matchScore += hashScore;
 
-      //perform format name and version match
+      // perform format name and version match
       PackageURL resultComponentId =
           constructPackageURLSafely(PackageUrlIdentifier.toPackageUrl(resultId), "result component identifier");
       float coordScore = calcualteMatchScoreFromCoords(sbomFormat, sbomName, sbomVersion, resultComponentId);
       matchScore += coordScore;
 
-      //replace best match if this has a better score
+      // replace best match if this has a better score
       if (matchScore > bestMatch.getValue()) {
         if (bestMatch.getKey() != null) {
           log.debug("replacing {} having score {} with {} having {}", bestMatch.getKey().getKey(), bestMatch.getValue(),
@@ -121,7 +121,8 @@ public class SbomResultsMatcher
     if (ObjectUtils.allNotNull(sbomFormat, sbomName, sbomVersion, resultComponentId)) {
       if (sbomFormat.equals(resultComponentId.getType()) &&
           sbomName.equals(resultComponentId.getName()) &&
-          sbomVersion.equals(resultComponentId.getVersion())) {
+          sbomVersion.equals(resultComponentId.getVersion()))
+      {
         return WEIGHT_FORMAT_NAME_VERSION;
       }
     }
@@ -135,9 +136,10 @@ public class SbomResultsMatcher
   {
     float hashScore = 0f;
     if (sbomHash != null) {
-      //hash match only makes sense if it is a real hash (Sonatype identified component)
+      // hash match only makes sense if it is a real hash (Sonatype identified component)
       if (StringUtils.equals(IdentificationSource.SONATYPE.getId(), nodeIdentificationSource) &&
-          StringUtils.equals(getNodeFieldSafely(resultNode, "hash"), sbomHash)) {
+          StringUtils.equals(getNodeFieldSafely(resultNode, "hash"), sbomHash))
+      {
         hashScore += WEIGHT_HASH;
       }
     }
@@ -168,15 +170,17 @@ public class SbomResultsMatcher
 
   private static float calculateMatchScoreFromPurls(PackageURL sbomPurl, PackageURL resultPurl) {
     float score = 0.0f;
-    //purl comparison is meaningful only if both base coordinates (type, name, version) exists and are equal
+    // purl comparison is meaningful only if both base coordinates (type, name, version) exists and are equal
     if (ObjectUtils.allNotNull(
         sbomPurl.getType(), resultPurl.getType(),
         sbomPurl.getName(), resultPurl.getName(),
-        sbomPurl.getVersion(), resultPurl.getVersion())) {
+        sbomPurl.getVersion(), resultPurl.getVersion()))
+    {
       if (sbomPurl.getType().equals(resultPurl.getType()) &&
           sbomPurl.getName().equals(resultPurl.getName()) &&
-          sbomPurl.getVersion().equals(resultPurl.getVersion())) {
-        //matching these 3 coords should have the maximum weight (equal to format, name, version).
+          sbomPurl.getVersion().equals(resultPurl.getVersion()))
+      {
+        // matching these 3 coords should have the maximum weight (equal to format, name, version).
         // There shouldn't be a chance for any other coordinates to override/influence the match score of these coords
         score += WEIGHT_PERCENT_FOR_PURL_MANDATORY_COORDS * WEIGHT_PURL;
       }
@@ -188,7 +192,7 @@ public class SbomResultsMatcher
       Map<String, String> sbomPurlQs = sbomPurl.getQualifiers();
       Map<String, String> resultPurlQs = resultPurl.getQualifiers();
       if (MapUtils.isNotEmpty(sbomPurlQs) && MapUtils.isNotEmpty(resultPurlQs)) {
-        //calculate the weight for each qualifier match. The total of all purl parts match should always be
+        // calculate the weight for each qualifier match. The total of all purl parts match should always be
         // less than or equal to WEIGHT_PURL (equal can only happen if all parts of the sbom purl matches
         // fully with result purls)
         float weightPerQ = (WEIGHT_PURL -
@@ -196,7 +200,8 @@ public class SbomResultsMatcher
             / sbomPurlQs.size();
         for (Entry<String, String> entry : sbomPurlQs.entrySet()) {
           if (resultPurlQs.containsKey(entry.getKey()) &&
-              StringUtils.equals(resultPurlQs.get(entry.getKey()), entry.getValue())) {
+              StringUtils.equals(resultPurlQs.get(entry.getKey()), entry.getValue()))
+          {
             score += weightPerQ;
           }
         }

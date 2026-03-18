@@ -30,7 +30,8 @@ public class UserTelemetryResourceAuthzTest
   public void testGetJavascript() throws Exception {
     getHdsServer().respondWith("function foo() {}").atUri("user-telemetry.js");
     HttpResponse response = restRequest()
-        .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH).get();
+        .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH)
+        .get();
     assertResponseStatus(200, response);
   }
 

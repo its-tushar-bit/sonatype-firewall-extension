@@ -29,8 +29,7 @@ import static com.sonatype.insight.brain.api.PublicApiPaths.POLICY_WAIVER_REASON
 @Path(POLICY_WAIVER_REASONS_PATH)
 @Tag(
     name = "Policy Waiver Reasons",
-    description = "Use this rest API to fetch available policy waiver reasons"
-)
+    description = "Use this rest API to fetch available policy waiver reasons")
 @Produces(MediaType.APPLICATION_JSON)
 public class ApiPolicyWaiverReasonResource
 {
@@ -38,8 +37,7 @@ public class ApiPolicyWaiverReasonResource
 
   @Inject
   public ApiPolicyWaiverReasonResource(
-      final ApiPolicyWaiverReasonService apiPolicyWaiverReasonService
-  )
+      final ApiPolicyWaiverReasonService apiPolicyWaiverReasonService)
   {
     this.apiPolicyWaiverReasonService = apiPolicyWaiverReasonService;
   }

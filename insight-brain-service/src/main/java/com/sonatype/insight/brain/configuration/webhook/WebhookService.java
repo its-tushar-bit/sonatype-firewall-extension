@@ -90,7 +90,8 @@ public class WebhookService
 
   Long getWaiverRequestWebhooksCountNoAuthz() {
     return getAll_Unauthorized().stream()
-        .filter(webhook -> webhook.getEventTypes().contains(WebhookEventType.WAIVER_REQUEST)).count();
+        .filter(webhook -> webhook.getEventTypes().contains(WebhookEventType.WAIVER_REQUEST))
+        .count();
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -126,7 +127,8 @@ public class WebhookService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public Webhook addWebhook(Webhook webhook) {
     if (!productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS) &&
-        !productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES)) {
+        !productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES))
+    {
       log.debug("Not adding Webhook, license does not support Webhooks.");
       throw new InvalidLicenseException();
     }
@@ -144,7 +146,8 @@ public class WebhookService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public Webhook updateWebhook(Webhook webhook) {
     if (!productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS) &&
-        !productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES)) {
+        !productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES))
+    {
       log.debug("Not updating Webhook, license does not support Webhooks.");
       throw new InvalidLicenseException();
     }
@@ -164,7 +167,8 @@ public class WebhookService
     if (!CollectionUtils.isEmpty(preUpdateEventTypes) &&
         !preUpdateEventTypes.contains(WebhookEventType.ORG_APP_MANAGEMENT) &&
         !CollectionUtils.isEmpty(eventTypes) &&
-        eventTypes.contains(WebhookEventType.ORG_APP_MANAGEMENT)) {
+        eventTypes.contains(WebhookEventType.ORG_APP_MANAGEMENT))
+    {
       organizationApplicationManagementEventService.postEvent();
     }
     auditWebhook(webhook);
@@ -176,7 +180,8 @@ public class WebhookService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteWebhook(String webhookId) {
     if (!productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS) &&
-        !productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES)) {
+        !productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES))
+    {
       log.debug("Not deleting Webhook, license does not support Webhooks.");
       throw new InvalidLicenseException();
     }
@@ -187,10 +192,16 @@ public class WebhookService
 
   protected void auditWebhook(Webhook webhook) {
     List<String> webhookEventTypes =
-        webhook.getEventTypes() == null ? new ArrayList<>() : webhook.getEventTypes().stream()
-            .map(webhookEventType -> webhookEventType.name().toLowerCase(Locale.ROOT).replace('_', '-')).sorted()
-            .collect(Collectors.toList());
-    AuditData.get().setData("webhookId", webhook.getId()).setData("webhookUrl", webhook.getUrl())
+        webhook.getEventTypes() == null
+            ? new ArrayList<>()
+            : webhook.getEventTypes()
+                .stream()
+                .map(webhookEventType -> webhookEventType.name().toLowerCase(Locale.ROOT).replace('_', '-'))
+                .sorted()
+                .collect(Collectors.toList());
+    AuditData.get()
+        .setData("webhookId", webhook.getId())
+        .setData("webhookUrl", webhook.getUrl())
         .setData("webhookTriggerEvents", webhookEventTypes);
   }
 

@@ -121,8 +121,9 @@ public class InsightConfigTest
 
     config.setConsentToUpgradeToVersion_1_45(true);
 
-    assertThat(logOutput).atWarnLevel().contains("The consentToUpgradeToVersion_1_45 configuration option is " +
-        "obsolete and can be removed from the config yml file.");
+    assertThat(logOutput).atWarnLevel()
+        .contains("The consentToUpgradeToVersion_1_45 configuration option is " +
+            "obsolete and can be removed from the config yml file.");
   }
 
   @Test
@@ -368,9 +369,10 @@ public class InsightConfigTest
 
     // Should be invalid
     assertThat(config.isValidStorageConfig()).isFalse();
-    assertThat(logOutput).atErrorLevel().contains(
-        "Invalid storage configuration: Property 'objectKeyPrefix' does not match the expected regex pattern "
-            + S3DataStoreConfig.S3_KEY_PREFIX);
+    assertThat(logOutput).atErrorLevel()
+        .contains(
+            "Invalid storage configuration: Property 'objectKeyPrefix' does not match the expected regex pattern "
+                + S3DataStoreConfig.S3_KEY_PREFIX);
   }
 
   @Test
@@ -388,8 +390,9 @@ public class InsightConfigTest
     insightConfig.setStorage(storageConfig);
 
     assertThat(insightConfig.isValidStorageConfig()).isFalse();
-    assertThat(logOutput).atErrorLevel().contains("Invalid storage configuration: Property 'serverSideEncryption' " +
-        "with value 'doesNotExist' does not correspond to a known server side encryption algorithm.");
+    assertThat(logOutput).atErrorLevel()
+        .contains("Invalid storage configuration: Property 'serverSideEncryption' " +
+            "with value 'doesNotExist' does not correspond to a known server side encryption algorithm.");
   }
 
   @Test

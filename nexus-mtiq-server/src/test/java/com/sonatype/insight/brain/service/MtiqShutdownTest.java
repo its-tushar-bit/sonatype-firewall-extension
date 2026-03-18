@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.service;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -34,7 +35,8 @@ public class MtiqShutdownTest
     List<Module> modules = new ArrayList<>(super.getBrainModules());
 
     // Add a module that registers our test TenantManaged bean using Multibinder
-    modules.add(new AbstractModule() {
+    modules.add(new AbstractModule()
+    {
       @Override
       protected void configure() {
         // Explicit binding required for TempTenantManaged

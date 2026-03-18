@@ -217,7 +217,8 @@ public class ApiAutoPolicyWaiverService
   {
     AutoPolicyWaiverUtil.validateAutoWaiversFeatureEnabled();
     if (apiAutoPolicyWaiverDTO.autoPolicyWaiverId == null ||
-        !autoPolicyWaiverId.equals(apiAutoPolicyWaiverDTO.autoPolicyWaiverId)) {
+        !autoPolicyWaiverId.equals(apiAutoPolicyWaiverDTO.autoPolicyWaiverId))
+    {
       throw new BadRequestException("Auto policy waiver ID in request path does not match request" +
           " body");
     }
@@ -333,8 +334,7 @@ public class ApiAutoPolicyWaiverService
       List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions =
           autoPolicyWaiverExclusionDAO.getByOwnerIdAndAutoPolicyWaiverId(
               autoPolicyWaiverOwnerId,
-              autoPolicyWaiver.getId()
-          );
+              autoPolicyWaiver.getId());
 
       boolean allExclusionsInvalid = true;
       for (AutoPolicyWaiverExclusion exclusion : autoPolicyWaiverExclusions) {
@@ -342,7 +342,8 @@ public class ApiAutoPolicyWaiverService
             .matchesViolation(policyViolation);
 
         if (matches || (exclusion.getPolicyViolationId() != null &&
-            exclusion.getPolicyViolationId().equals(violationId))) {
+            exclusion.getPolicyViolationId().equals(violationId)))
+        {
           allExclusionsInvalid = false;
           break;
         }
@@ -381,8 +382,8 @@ public class ApiAutoPolicyWaiverService
     final List<AutoPolicyWaiver> applicableAutoWaivers =
         AutoPolicyWaiverUtil.getApplicableAutoPolicyWaivers(autoPolicyWaivers);
 
-    applicableAutoWaivers.forEach(autoPolicyWaiver ->
-        autoPolicyWaiverStatuses.add(buildApiAutoPolicyWaiverStatusDTO(autoPolicyWaiver, ownerType, ownerId)));
+    applicableAutoWaivers.forEach(autoPolicyWaiver -> autoPolicyWaiverStatuses
+        .add(buildApiAutoPolicyWaiverStatusDTO(autoPolicyWaiver, ownerType, ownerId)));
     return autoPolicyWaiverStatuses;
   }
 
@@ -441,8 +442,8 @@ public class ApiAutoPolicyWaiverService
     }
   }
 
-  private void validateApiAutoPolicyWaivers(final List<ApiAutoPolicyWaiverDTO> apiAutoPolicyWaivers)
-      throws BadRequestException
+  private void validateApiAutoPolicyWaivers(
+      final List<ApiAutoPolicyWaiverDTO> apiAutoPolicyWaivers) throws BadRequestException
   {
     if (apiAutoPolicyWaivers == null || apiAutoPolicyWaivers.isEmpty()) {
       throw new BadRequestException("No auto policy waiver configurations provided");
@@ -457,7 +458,8 @@ public class ApiAutoPolicyWaiverService
           "Invalid threat level: " + dto.threatLevel + ". Value must be between 1 and 10.");
     }
     if (AutoPolicyWaiverUtil.checkSettingDisabled(dto.pathForward)
-        && AutoPolicyWaiverUtil.checkSettingDisabled(dto.reachability)) {
+        && AutoPolicyWaiverUtil.checkSettingDisabled(dto.reachability))
+    {
       throw new BadRequestException("Path forward and reachability cannot both be false");
     }
   }
@@ -469,7 +471,8 @@ public class ApiAutoPolicyWaiverService
     if (apiAutoPolicyWaiverDTO.threatLevel == autoPolicyWaiver.getThreatLevel() &&
         apiAutoPolicyWaiverDTO.reachability == autoPolicyWaiver.hasReachability() &&
         apiAutoPolicyWaiverDTO.pathForward == autoPolicyWaiver.hasPathForward() &&
-        apiAutoPolicyWaiverDTO.scopesOperatorAny == autoPolicyWaiver.getScopesOperatorAny()) {
+        apiAutoPolicyWaiverDTO.scopesOperatorAny == autoPolicyWaiver.getScopesOperatorAny())
+    {
       throw new BadRequestException("No changes made to auto policy waiver configuration");
     }
   }

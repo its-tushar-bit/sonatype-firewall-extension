@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2.service;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -210,12 +211,10 @@ public class RequestPolicyWaiverEventServiceTest
           String.format("http://localhost:1234/ui/links/policyViolation/%s", policyViolation.getId());
       String expectedAddWaiverLink = String.format(
           "http://localhost:1234/ui/links/addWaiver/%s?comments=%s&reasonId=%s",
-          policyViolation.getId(), comment.replace(" ", "+"), reasonId
-      );
+          policyViolation.getId(), comment.replace(" ", "+"), reasonId);
       String expectedReviewWaiverRequestLink = String.format(
           "http://localhost:1234/ui/links/requestWaiverReview/%s/%s/%s",
-          OwnerType.APPLICATION, application.getId(), policyWaiverRequestId
-      );
+          OwnerType.APPLICATION, application.getId(), policyWaiverRequestId);
 
       requestPolicyWaiverEventService.postPolicyWaiverRequestEvent(
           policyViolation.getId(), comment, reasonId, OwnerType.APPLICATION.toString(), application.getId(),
@@ -241,10 +240,10 @@ public class RequestPolicyWaiverEventServiceTest
   @Test
   public void testPostPolicyWaiverRequestEvent_requiresValidPolicyViolationId() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-            () -> requestPolicyWaiverEventService.postPolicyWaiverRequestEvent(
-                "invalidPolicyViolationId", "comment", "policyViolationLink", "addWaiverLink",
-                "reviewWaiverRequestLink",
-                "reasonId"))
+        () -> requestPolicyWaiverEventService.postPolicyWaiverRequestEvent(
+            "invalidPolicyViolationId", "comment", "policyViolationLink", "addWaiverLink",
+            "reviewWaiverRequestLink",
+            "reasonId"))
         .withMessage("Could not find associated policy violation");
   }
 
@@ -269,7 +268,7 @@ public class RequestPolicyWaiverEventServiceTest
 
   @Test
   public void testPostPolicyWaiverRequestEvent_commentWithExactly1000Characters() throws InterruptedException {
-    TestEventHandler<WaiverRequestEvent> handler = 
+    TestEventHandler<WaiverRequestEvent> handler =
         new TestEventHandler<>(new CountDownLatch(1), WaiverRequestEvent.class);
     asyncEventBus.register(handler);
     try {
@@ -300,7 +299,7 @@ public class RequestPolicyWaiverEventServiceTest
 
   @Test
   public void testPostPolicyWaiverRequestEvent_commentIsNull() throws InterruptedException {
-    TestEventHandler<WaiverRequestEvent> handler = 
+    TestEventHandler<WaiverRequestEvent> handler =
         new TestEventHandler<>(new CountDownLatch(1), WaiverRequestEvent.class);
     asyncEventBus.register(handler);
     try {
@@ -318,12 +317,10 @@ public class RequestPolicyWaiverEventServiceTest
           String.format("http://localhost:1234/ui/links/policyViolation/%s", policyViolation.getId());
       String expectedAddWaiverLink = String.format(
           "http://localhost:1234/ui/links/addWaiver/%s?reasonId=%s",
-          policyViolation.getId(), reasonId
-      );
+          policyViolation.getId(), reasonId);
       String expectedReviewWaiverRequestLink = String.format(
           "http://localhost:1234/ui/links/requestWaiverReview/%s/%s/%s",
-          OwnerType.APPLICATION, application.getId(), policyWaiverRequestId
-      );
+          OwnerType.APPLICATION, application.getId(), policyWaiverRequestId);
 
       requestPolicyWaiverEventService.postPolicyWaiverRequestEvent(
           policyViolation.getId(), comment, reasonId, OwnerType.APPLICATION.toString(), application.getId(),
@@ -348,7 +345,7 @@ public class RequestPolicyWaiverEventServiceTest
 
   @Test
   public void testPostPolicyWaiverRequestEvent_reasonIdIsNull() throws InterruptedException {
-    TestEventHandler<WaiverRequestEvent> handler = 
+    TestEventHandler<WaiverRequestEvent> handler =
         new TestEventHandler<>(new CountDownLatch(1), WaiverRequestEvent.class);
     asyncEventBus.register(handler);
     try {
@@ -366,12 +363,10 @@ public class RequestPolicyWaiverEventServiceTest
           String.format("http://localhost:1234/ui/links/policyViolation/%s", policyViolation.getId());
       String expectedAddWaiverLink = String.format(
           "http://localhost:1234/ui/links/addWaiver/%s?comments=%s",
-          policyViolation.getId(), comment.replace(" ", "+")
-      );
+          policyViolation.getId(), comment.replace(" ", "+"));
       String expectedReviewWaiverRequestLink = String.format(
           "http://localhost:1234/ui/links/requestWaiverReview/%s/%s/%s",
-          OwnerType.APPLICATION, application.getId(), policyWaiverRequestId
-      );
+          OwnerType.APPLICATION, application.getId(), policyWaiverRequestId);
 
       requestPolicyWaiverEventService.postPolicyWaiverRequestEvent(
           policyViolation.getId(), comment, reasonId, OwnerType.APPLICATION.toString(), application.getId(),

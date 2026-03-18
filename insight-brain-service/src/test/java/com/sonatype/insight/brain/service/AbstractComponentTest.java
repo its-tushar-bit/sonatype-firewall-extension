@@ -335,21 +335,23 @@ public class AbstractComponentTest
   }
 
   public void testCallable_DisallowConcurrentExecution(
-      Callable<Void> callable, Consumer<Answer<Void>> answerConsumer,
-      final boolean callRealMethod)
-      throws Exception
+      Callable<Void> callable,
+      Consumer<Answer<Void>> answerConsumer,
+      final boolean callRealMethod) throws Exception
   {
     testCallable_ConcurrentExecution(callable, answerConsumer, false, callRealMethod);
   }
 
-  public void testCallable_DisallowConcurrentExecution(Callable<Void> callable, Consumer<Answer<Void>> answerConsumer)
-      throws Exception
+  public void testCallable_DisallowConcurrentExecution(
+      Callable<Void> callable,
+      Consumer<Answer<Void>> answerConsumer) throws Exception
   {
     testCallable_ConcurrentExecution(callable, answerConsumer, false, false);
   }
 
-  public void testCallable_AllowConcurrentExecution(Callable<Void> callable, Consumer<Answer<Void>> answerConsumer)
-      throws Exception
+  public void testCallable_AllowConcurrentExecution(
+      Callable<Void> callable,
+      Consumer<Answer<Void>> answerConsumer) throws Exception
   {
     testCallable_ConcurrentExecution(callable, answerConsumer, true, false);
   }
@@ -358,8 +360,7 @@ public class AbstractComponentTest
       Callable<Void> callable,
       Consumer<Answer<Void>> answerConsumer,
       boolean isAllowed,
-      boolean callRealMethod)
-      throws Exception
+      boolean callRealMethod) throws Exception
   {
     CountDownLatch started = new CountDownLatch(2);
     CountDownLatch block = new CountDownLatch(1);
@@ -473,8 +474,7 @@ public class AbstractComponentTest
   public void createReport(
       final ApplicationReportPersistenceService service,
       final PolicyEvaluation eval,
-      final int contentSizeInBytes)
-      throws Exception
+      final int contentSizeInBytes) throws Exception
   {
     createReport(service, eval, null, contentSizeInBytes, null);
   }
@@ -484,8 +484,7 @@ public class AbstractComponentTest
       final PolicyEvaluation eval,
       final String prefix,
       final int contentSizeInBytes,
-      final String suffix)
-      throws Exception
+      final String suffix) throws Exception
   {
     String reportZipName = "report.zip";
     Path zipPath = tempDir.getRoot().toPath().resolve(reportZipName);
@@ -503,7 +502,8 @@ public class AbstractComponentTest
     for (ReportFile reportFile : ReportFile.values()) {
       // Create report.cache
       if (reportFile.getLocationTypes().contains(ReportFileLocationType.ORIGINAL) ||
-          reportFile.getLocationTypes().contains(ReportFileLocationType.CACHE)) {
+          reportFile.getLocationTypes().contains(ReportFileLocationType.CACHE))
+      {
         try (InputStream content = createRandomInputStream(prefix, contentSizeInBytes, suffix)) {
           service.saveReportFile(eval.getApplicationId(), eval.getScanId(), reportFile.getName(), content);
         }
@@ -517,8 +517,9 @@ public class AbstractComponentTest
     }
     // Create report.pdf
     try (InputStream inputStream = createRandomInputStream(prefix, contentSizeInBytes, suffix);
-         OutputStream outputStream = service.getPdfEntity(eval.getApplicationId(), eval.getScanId())
-             .getOutputStream()) {
+        OutputStream outputStream = service.getPdfEntity(eval.getApplicationId(), eval.getScanId())
+            .getOutputStream())
+    {
       inputStream.transferTo(outputStream);
     }
   }

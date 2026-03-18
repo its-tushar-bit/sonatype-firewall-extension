@@ -141,8 +141,10 @@ public class ApiComponentRemediationServiceTest
     binder.bind(HdsClient.class).toInstance(hdsClientMock);
     binder.bind(ProductLicense.class).toInstance(productLicense);
     binder.bind(ThirdPartyComponentDAO.class).toInstance(thirdPartyComponentDAO);
-    lenient().doReturn(ComponentSummary.create(true)).when(hdsClientMock).get(eq(ComponentSummary.class),
-        eq("rest/component/summary"), anyMap());
+    lenient().doReturn(ComponentSummary.create(true))
+        .when(hdsClientMock)
+        .get(eq(ComponentSummary.class),
+            eq("rest/component/summary"), anyMap());
     super.configure(binder);
   }
 
@@ -158,8 +160,10 @@ public class ApiComponentRemediationServiceTest
     componentDto.componentIdentifier = ApiComponentIdentifierDTOV2
         .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "t1", "", "", "jar"));
 
-    lenient().doReturn(ComponentSummary.create(false)).when(hdsClientMock).get(eq(ComponentSummary.class),
-        eq("rest/component/summary"), anyMap());
+    lenient().doReturn(ComponentSummary.create(false))
+        .when(hdsClientMock)
+        .get(eq(ComponentSummary.class),
+            eq("rest/component/summary"), anyMap());
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.getSuggestedRemediationForComponent(componentDto, OwnerType.APPLICATION, app.getId(),
             DevelopStageType.ID, null /* identificationSource */, null /* scanId */, null))
@@ -171,8 +175,10 @@ public class ApiComponentRemediationServiceTest
     ApiComponentDTOV2 componentDto = new ApiComponentDTOV2();
     componentDto.packageUrl = "pkg:maven/g1/a1@abcfeg?type=jar";
 
-    lenient().doReturn(ComponentSummary.create(false)).when(hdsClientMock).get(eq(ComponentSummary.class),
-        eq("rest/component/summary"), anyMap());
+    lenient().doReturn(ComponentSummary.create(false))
+        .when(hdsClientMock)
+        .get(eq(ComponentSummary.class),
+            eq("rest/component/summary"), anyMap());
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.getSuggestedRemediationForComponent(componentDto, OwnerType.APPLICATION, app.getId(),
             DevelopStageType.ID, null /* identificationSource */, null /* scanId */, null))
@@ -245,8 +251,9 @@ public class ApiComponentRemediationServiceTest
     testGetSuggestedRemediationForComponent_BadOwnerId(OwnerType.ORGANIZATION, "Organization with ID ");
   }
 
-  private void testGetSuggestedRemediationForComponent_BadOwnerId(final OwnerType ownerType,
-                                                                  final String expectedErrMsgPrefix)
+  private void testGetSuggestedRemediationForComponent_BadOwnerId(
+      final OwnerType ownerType,
+      final String expectedErrMsgPrefix)
   {
     ApiComponentDTOV2 dto = new ApiComponentDTOV2();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_V1);
@@ -403,8 +410,9 @@ public class ApiComponentRemediationServiceTest
     componentDetailsDTO.policyAlerts = Collections.singletonList(failAlert);
     doReturn(ComponentSummary.create(true)).when(thirdPartyComponentDAO)
         .getComponentSummary(componentIdentifier, app.getId(), scanId);
-    doReturn(new ApiComponentRemediationValueDTO()).when(thirdPartyComponentDAO).getSuggestedRemmediation(app.getId(),
-        componentIdentifier, scanId);
+    doReturn(new ApiComponentRemediationValueDTO()).when(thirdPartyComponentDAO)
+        .getSuggestedRemmediation(app.getId(),
+            componentIdentifier, scanId);
     doReturn(Pair.of(Collections.singletonList(componentDetailsDTO), null)).when(componentInfoServiceMock)
         .getComponentDetailsForAllVersionsNoAuth(any(), eq(componentIdentifier), eq(DevelopStageType.ID),
             eq(identificationSource), eq(scanId), isNull(), any(), anyBoolean());
@@ -715,10 +723,11 @@ public class ApiComponentRemediationServiceTest
         .withMessage("The scan ID is not allowed for repositories.");
   }
 
-  private void assertTelemetry(final String ownerType,
-                               final String ownerId,
-                               final ComponentIdentifier componentIdentifier,
-                               final String... expectedTrueAttributes)
+  private void assertTelemetry(
+      final String ownerType,
+      final String ownerId,
+      final ComponentIdentifier componentIdentifier,
+      final String... expectedTrueAttributes)
   {
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
@@ -742,8 +751,10 @@ public class ApiComponentRemediationServiceTest
   }
 
   private void mockHdsGetComponentDetailsList(List<ComponentDetailsDTO> list, ComponentIdentifier componentIdentifier) {
-    lenient().doReturn(Pair.of(list, null)).when(componentInfoServiceMock).getComponentDetailsForAllVersionsNoAuth(
-        any(), eq(componentIdentifier), any(), any(), any(), isNull(), any(), anyBoolean());
+    lenient().doReturn(Pair.of(list, null))
+        .when(componentInfoServiceMock)
+        .getComponentDetailsForAllVersionsNoAuth(
+            any(), eq(componentIdentifier), any(), any(), any(), isNull(), any(), anyBoolean());
   }
 
   private void mockHdsGetComponentDependencies(ComponentDependenciesDTO dependenciesDto) {
@@ -753,8 +764,8 @@ public class ApiComponentRemediationServiceTest
 
   private void mockHdsGetVersionScoringData() {
     lenient().when(hdsClientMock.post(eq(VersionScoringDTO[].class), eq(HDS_BULK_SCORE_VERSIONING_PATH), anyList(),
-            eq(Map.of("stableVersionsOnly", "true"))))
-        .thenReturn(new VersionScoringDTO[] {});
+        eq(Map.of("stableVersionsOnly", "true"))))
+        .thenReturn(new VersionScoringDTO[]{});
   }
 
   private void mockLicenseFeature(boolean includeAdvancedStrategies) {
@@ -768,9 +779,10 @@ public class ApiComponentRemediationServiceTest
     assertThat(apiComponentRemediationValueDTO.versionChanges).hasSize(0);
   }
 
-  private void assertNoViolations(ApiComponentRemediationValueDTO apiComponentRemediationValueDTO,
-                                  ComponentIdentifier expectedComponentIdentifier,
-                                  String expectedPackageUrl)
+  private void assertNoViolations(
+      ApiComponentRemediationValueDTO apiComponentRemediationValueDTO,
+      ComponentIdentifier expectedComponentIdentifier,
+      String expectedPackageUrl)
   {
     assertThat(apiComponentRemediationValueDTO.componentOverrides).hasSize(0);
     assertThat(apiComponentRemediationValueDTO.policyWaivers).hasSize(0);
@@ -790,9 +802,10 @@ public class ApiComponentRemediationServiceTest
     assertThat(noViolationsDto.proprietary).isNull();
   }
 
-  private void assertNonFailing(ApiComponentRemediationValueDTO apiComponentRemediationValueDTO,
-                                ComponentIdentifier expectedComponentIdentifier,
-                                String expectedPackageUrl)
+  private void assertNonFailing(
+      ApiComponentRemediationValueDTO apiComponentRemediationValueDTO,
+      ComponentIdentifier expectedComponentIdentifier,
+      String expectedPackageUrl)
   {
     assertThat(apiComponentRemediationValueDTO.componentOverrides).hasSize(0);
     assertThat(apiComponentRemediationValueDTO.policyWaivers).hasSize(0);

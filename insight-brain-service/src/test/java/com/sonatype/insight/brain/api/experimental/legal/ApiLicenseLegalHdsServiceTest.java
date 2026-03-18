@@ -130,7 +130,7 @@ public class ApiLicenseLegalHdsServiceTest
 
     when(mockHdsClient
         .post(eq(ComponentLegalCommentDTO[].class), eq(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL), eq(components)))
-        .thenReturn(expectedLegalComments.toArray(new ComponentLegalCommentDTO[2]));
+            .thenReturn(expectedLegalComments.toArray(new ComponentLegalCommentDTO[2]));
 
     Set<ComponentLegalCommentDTO> results = apiLicenseLegalHdsService.getComponentLegalComments(components);
 
@@ -147,8 +147,7 @@ public class ApiLicenseLegalHdsServiceTest
             ImmutableList.of("11111111111111111111", "22222222222222222222")),
         new AnameAggregateFileGroup(
             componentId2,
-            ImmutableList.of("11111111111111111111", "33333333333333333333"))
-    );
+            ImmutableList.of("11111111111111111111", "33333333333333333333")));
 
     final LegalCommentDTO legalComment1 = new LegalCommentDTO();
     legalComment1.setContent("Content 1");
@@ -166,23 +165,19 @@ public class ApiLicenseLegalHdsServiceTest
     final ComponentLegalCommentDTO componentLegalComment1 = createComponentCommentsDTO(
         componentId1,
         "11111111111111111111",
-        legalComment1
-    );
+        legalComment1);
     final ComponentLegalCommentDTO componentLegalComment2 = createComponentCommentsDTO(
         componentId1,
         "22222222222222222222",
-        legalComment2
-    );
+        legalComment2);
     final ComponentLegalCommentDTO componentLegalComment3 = createComponentCommentsDTO(
         componentId2,
         "11111111111111111111",
-        legalComment1
-    );
+        legalComment1);
     final ComponentLegalCommentDTO componentLegalComment4 = createComponentCommentsDTO(
         componentId2,
         "33333333333333333333",
-        legalComment3
-    );
+        legalComment3);
 
     final Set<ComponentLegalCommentDTO> expectedLegalComments =
         new LinkedHashSet<>(Arrays.asList(
@@ -192,7 +187,7 @@ public class ApiLicenseLegalHdsServiceTest
             componentLegalComment4));
 
     doReturn(new ComponentLegalCommentDTO[]{
-        componentLegalComment1, componentLegalComment2, componentLegalComment3, componentLegalComment4
+      componentLegalComment1, componentLegalComment2, componentLegalComment3, componentLegalComment4
     })
         .when(mockHdsClient)
         .post(ComponentLegalCommentDTO[].class,
@@ -200,8 +195,7 @@ public class ApiLicenseLegalHdsServiceTest
             aggregageFileGroups);
 
     final Set<ComponentLegalCommentDTO> results = apiLicenseLegalHdsService.getAnameRawComponentLegalComments(
-        ImmutableSet.copyOf(aggregageFileGroups)
-    );
+        ImmutableSet.copyOf(aggregageFileGroups));
 
     assertThat(results).isEqualTo(expectedLegalComments);
   }
@@ -216,8 +210,7 @@ public class ApiLicenseLegalHdsServiceTest
             ImmutableList.of("11111111111111111111", "22222222222222222222")),
         new AnameAggregateFileGroup(
             componentId2,
-            ImmutableList.of("11111111111111111111", "33333333333333333333"))
-    );
+            ImmutableList.of("11111111111111111111", "33333333333333333333")));
 
     final LegalCommentDTO legalComment1 = new LegalCommentDTO();
     legalComment1.setContent("Content 1");
@@ -235,40 +228,34 @@ public class ApiLicenseLegalHdsServiceTest
     final ComponentLegalCommentDTO componentLegalComment1 = createComponentCommentsDTO(
         componentId1,
         "11111111111111111111",
-        legalComment1
-    );
+        legalComment1);
     final ComponentLegalCommentDTO componentLegalComment2 = createComponentCommentsDTO(
         componentId1,
         "22222222222222222222",
-        legalComment2
-    );
+        legalComment2);
     final ComponentLegalCommentDTO componentLegalComment3 = createComponentCommentsDTO(
         componentId2,
         "11111111111111111111",
-        legalComment1
-    );
+        legalComment1);
     final ComponentLegalCommentDTO componentLegalComment4 = createComponentCommentsDTO(
         componentId2,
         "33333333333333333333",
-        legalComment3
-    );
+        legalComment3);
 
     final ComponentLegalCommentDTO expectedLegalComments1 = createComponentCommentsDTO(
         componentId1,
         "component_1_hash",
-        legalComment1, legalComment2
-    );
+        legalComment1, legalComment2);
     final ComponentLegalCommentDTO expectedLegalComments2 = createComponentCommentsDTO(
         componentId2,
         "component_2_hash",
-        legalComment1, legalComment3
-    );
+        legalComment1, legalComment3);
 
     final Set<ComponentLegalCommentDTO> expectedLegalComments =
         new LinkedHashSet<>(Arrays.asList(expectedLegalComments1, expectedLegalComments2));
 
     doReturn(new ComponentLegalCommentDTO[]{
-        componentLegalComment1, componentLegalComment2, componentLegalComment3, componentLegalComment4
+      componentLegalComment1, componentLegalComment2, componentLegalComment3, componentLegalComment4
     })
         .when(mockHdsClient)
         .post(ComponentLegalCommentDTO[].class,
@@ -279,8 +266,7 @@ public class ApiLicenseLegalHdsServiceTest
         ImmutableSet.copyOf(aggregageFileGroups),
         ImmutableMap.of(
             componentId1, "component_1_hash",
-            componentId2, "component_2_hash")
-    );
+            componentId2, "component_2_hash"));
 
     assertThat(results).isEqualTo(expectedLegalComments);
   }
@@ -289,8 +275,7 @@ public class ApiLicenseLegalHdsServiceTest
   public void testGetANameComponentLegalComments_EmptyAggregateHash() {
     final ComponentIdentifier componentId1 = ComponentIdentifier.createAnameCoordinates("groupId1", "", "version1");
     final List<AnameAggregateFileGroup> aggregageFileGroups = ImmutableList.of(
-        new AnameAggregateFileGroup(componentId1, ImmutableList.of())
-    );
+        new AnameAggregateFileGroup(componentId1, ImmutableList.of()));
 
     apiLicenseLegalHdsService.getAnameComponentLegalComments(
         ImmutableSet.copyOf(aggregageFileGroups),
@@ -321,7 +306,7 @@ public class ApiLicenseLegalHdsServiceTest
 
     when(mockHdsClient
         .post(eq(ComponentLegalCommentDTO[].class), eq(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL), eq(components)))
-        .thenReturn(new ComponentLegalCommentDTO[0]);
+            .thenReturn(new ComponentLegalCommentDTO[0]);
 
     Set<ComponentLegalCommentDTO> results = apiLicenseLegalHdsService.getComponentLegalComments(components);
     assertThat(results).isEmpty();
@@ -358,7 +343,7 @@ public class ApiLicenseLegalHdsServiceTest
 
     when(mockHdsClient
         .post(eq(ComponentLegalFileDTO[].class), eq(ApiLicenseLegalHdsService.LEGAL_FILE_URL), eq(components)))
-        .thenReturn(expectedLegalFiles.toArray(new ComponentLegalFileDTO[2]));
+            .thenReturn(expectedLegalFiles.toArray(new ComponentLegalFileDTO[2]));
 
     Set<ComponentLegalFileDTO> results = apiLicenseLegalHdsService.getComponentLegalFiles(components);
 
@@ -372,7 +357,7 @@ public class ApiLicenseLegalHdsServiceTest
 
     when(mockHdsClient
         .post(eq(ComponentLegalFileDTO[].class), eq(ApiLicenseLegalHdsService.LEGAL_FILE_URL), eq(components)))
-        .thenReturn(new ComponentLegalFileDTO[0]);
+            .thenReturn(new ComponentLegalFileDTO[0]);
 
     Set<ComponentLegalFileDTO> results = apiLicenseLegalHdsService.getComponentLegalFiles(components);
     assertThat(results).isEmpty();
@@ -402,14 +387,14 @@ public class ApiLicenseLegalHdsServiceTest
         .post(ComponentLegalCommentFilePathsDTO[].class,
             ApiLicenseLegalHdsService.LEGAL_COMMENT_FILE_PATHS_URL,
             ImmutableList.of(component1)))
-        .thenReturn(expectedLegalComments.toArray(new ComponentLegalCommentFilePathsDTO[1]));
+                .thenReturn(expectedLegalComments.toArray(new ComponentLegalCommentFilePathsDTO[1]));
 
     Collection<ComponentLegalCommentFilePathsDTO> results = apiLicenseLegalHdsService
         .getComponentLegalCommentFilePaths(component1);
 
     assertThat(results).isEqualTo(expectedLegalComments);
   }
-  
+
   @Test
   public void testGetSourceLinksFromComponentIdentifierSet() {
     SourceLinkOverride source1 = new SourceLinkOverride("www.sltest.net", ComponentLegalPartStatus.ENABLED, "slId1");
@@ -422,7 +407,7 @@ public class ApiLicenseLegalHdsServiceTest
 
     when(mockHdsClient.post(ComponentSourceLinkDTO[].class, ApiLicenseLegalHdsService.SOURCE_LINK_URL,
         Collections.singletonList(component1)))
-        .thenReturn(expectedComponentSourceLinkDTO.toArray(new ComponentSourceLinkDTO[1]));
+            .thenReturn(expectedComponentSourceLinkDTO.toArray(new ComponentSourceLinkDTO[1]));
 
     Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> results =
         apiLicenseLegalHdsService.getSourceLinksFromComponentIdentifierSet(Sets.newHashSet(component1));

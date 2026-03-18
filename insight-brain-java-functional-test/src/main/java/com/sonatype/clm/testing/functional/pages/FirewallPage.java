@@ -35,7 +35,7 @@ public class FirewallPage
   public static String url() {
     return BaseUrl.resolvePageUrl("/firewall/dashboard");
   }
-  
+
   public static String roiTabUrl() {
     return BaseUrl.resolvePageUrl("/firewall/dashboard?roiEnabled=true");
   }
@@ -87,11 +87,11 @@ public class FirewallPage
   public FirewallWaiversTable firewallWaiversTable() {
     return new FirewallWaiversTable(ROOT);
   }
-  
+
   public RoiFirewallMetricsTab roiFirewallMetricsTab() {
     return new RoiFirewallMetricsTab(ROOT);
   }
-  
+
   public RoiFirewallMetrics roiFirewallMetrics() {
     return new RoiFirewallMetrics(ROOT);
   }

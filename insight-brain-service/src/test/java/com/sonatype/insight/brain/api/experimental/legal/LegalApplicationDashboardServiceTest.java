@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.experimental.legal;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -420,7 +421,7 @@ public class LegalApplicationDashboardServiceTest
     assertApiLicenseLegalApplicationComponentDTO(result.get(0), componentIdentifier1, licenses, 0, 0,
         LicenseObligationReviewStatus.COMPLETED);
 
-    //Filter by LTG which is within a multi license
+    // Filter by LTG which is within a multi license
     groupTest = new ApiLicenseThreatDTOV2();
     groupTest.licenseThreatGroupName = "Group 5";
     licenses =
@@ -494,8 +495,7 @@ public class LegalApplicationDashboardServiceTest
         ComponentIdentifier.CONAN_CHANNEL, "",
         ComponentIdentifier.CONAN_OWNER, "",
         ComponentIdentifier.CONAN_NAME, "bzip2",
-        ComponentIdentifier.VERSION, "1.0.8"
-    ));
+        ComponentIdentifier.VERSION, "1.0.8"));
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createConanCoordinates("bzip2", "1.0.8", null, null);
     List<String> licenseIds = Collections.singletonList("MIT");
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
@@ -561,10 +561,14 @@ public class LegalApplicationDashboardServiceTest
     assertThat(dto.licenses.stream().map(license -> license.licenseId).collect(Collectors.toSet()))
         .containsExactlyInAnyOrderElementsOf(
             licenses.stream().map(license -> license.licenseId).collect(Collectors.toSet()));
-    assertThat(dto.licenses.stream().flatMap(license -> license.licenseThreatGroups.stream())
-        .map(group -> group.licenseThreatGroupName).collect(Collectors.toList())).containsExactlyInAnyOrderElementsOf(
-        licenses.stream().flatMap(license -> license.licenseThreatGroups.stream())
-            .map(group -> group.licenseThreatGroupName).collect(Collectors.toList()));
+    assertThat(dto.licenses.stream()
+        .flatMap(license -> license.licenseThreatGroups.stream())
+        .map(group -> group.licenseThreatGroupName)
+        .collect(Collectors.toList())).containsExactlyInAnyOrderElementsOf(
+            licenses.stream()
+                .flatMap(license -> license.licenseThreatGroups.stream())
+                .map(group -> group.licenseThreatGroupName)
+                .collect(Collectors.toList()));
     assertThat(dto.reviewCompletedCount).isEqualTo(reviewCompletedCount);
     assertThat(dto.reviewTotalCount).isEqualTo(reviewTotalCount);
     assertThat(dto.reviewStatus).isEqualTo(reviewStatus);
@@ -617,7 +621,8 @@ public class LegalApplicationDashboardServiceTest
 
     for (String licenseId : licenseIds) {
       List<ApiLicenseThreatDTOV2> groups =
-          licenseThreatGroupDAO.getByOwnerIdAndLicenseId(Organization.ROOT_ORGANIZATION_ID, licenseId).stream()
+          licenseThreatGroupDAO.getByOwnerIdAndLicenseId(Organization.ROOT_ORGANIZATION_ID, licenseId)
+              .stream()
               .map(licenseDataAdapter::convert)
               .collect(Collectors.toList());
 

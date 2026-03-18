@@ -143,11 +143,15 @@ public class ClientIPAddressFilterTest
     // CIDR b712:f3e3:7cc5:957c:e444:8773:157f:0000/124 has a range of b712:f3e3:7cc5:957c:e444:8773:157f:0000 to
     // b712:f3e3:7cc5:957c:e444:8773:157f:000f
     HttpResponse response = restRequest()
-        .header(CurrentUser.XFF_HEADER, "b712:f3e3:7cc5:957c:e444:8773:157f:0000").auth().put();
+        .header(CurrentUser.XFF_HEADER, "b712:f3e3:7cc5:957c:e444:8773:157f:0000")
+        .auth()
+        .put();
     assertAccessIsAllowed(response);
 
     response = restRequest()
-        .header(CurrentUser.XFF_HEADER, "b712:f3e3:7cc5:957c:e444:8773:157f:000f").auth().put();
+        .header(CurrentUser.XFF_HEADER, "b712:f3e3:7cc5:957c:e444:8773:157f:000f")
+        .auth()
+        .put();
     assertAccessIsAllowed(response);
   }
 
@@ -160,11 +164,15 @@ public class ClientIPAddressFilterTest
     String lowOutOfRangeIp = "b712:f3e3:7cc5:957c:e444:8773:157e:ffff";
     String upperOutOfRangeIp = "b712:f3e3:7cc5:957c:e444:8773:1580:0000";
     HttpResponse response = restRequest()
-        .header(CurrentUser.XFF_HEADER, lowOutOfRangeIp).auth().put();
+        .header(CurrentUser.XFF_HEADER, lowOutOfRangeIp)
+        .auth()
+        .put();
     assertAccessIsDenied(response, lowOutOfRangeIp);
 
     response = restRequest()
-        .header(CurrentUser.XFF_HEADER, upperOutOfRangeIp).auth().put();
+        .header(CurrentUser.XFF_HEADER, upperOutOfRangeIp)
+        .auth()
+        .put();
     assertAccessIsDenied(response, upperOutOfRangeIp);
   }
 
@@ -225,13 +233,14 @@ public class ClientIPAddressFilterTest
     when(mockHttpServletResponse.getWriter()).thenReturn(mockPrintWriter);
 
     getCLMServer().getInstance(ClientIPAddressFilter.class)
-          .doFilter(mockHttpServletRequest, mockHttpServletResponse, mockFilterChain);
+        .doFilter(mockHttpServletRequest, mockHttpServletResponse, mockFilterChain);
 
     verify(mockHttpServletResponse).setStatus(HttpServletResponse.SC_FORBIDDEN);
     verify(mockHttpServletResponse).setContentType(MediaType.TEXT_PLAIN);
     verify(mockPrintWriter).print(ClientIPAddressFilter.ACCESS_DENIED_MSG);
-    assertThat(logOutput).atWarnLevel().containsPattern(
-        String.format("Rejecting request from %s as the IP was not found in the configured allowlist", DENY_IPV4));
+    assertThat(logOutput).atWarnLevel()
+        .containsPattern(
+            String.format("Rejecting request from %s as the IP was not found in the configured allowlist", DENY_IPV4));
     verify(mockFilterChain, never()).doFilter(mockHttpServletRequest, mockHttpServletResponse);
   }
 
@@ -271,8 +280,9 @@ public class ClientIPAddressFilterTest
     verify(mockHttpServletResponse).setStatus(HttpServletResponse.SC_FORBIDDEN);
     verify(mockHttpServletResponse).setContentType(MediaType.TEXT_PLAIN);
     verify(mockPrintWriter).print(ClientIPAddressFilter.ACCESS_DENIED_MSG);
-    assertThat(logOutput).atWarnLevel().containsPattern(
-        String.format("Rejecting request from %s as the IP was not found in the configured allowlist", DENY_IPV6));
+    assertThat(logOutput).atWarnLevel()
+        .containsPattern(
+            String.format("Rejecting request from %s as the IP was not found in the configured allowlist", DENY_IPV6));
     verify(mockFilterChain, never()).doFilter(mockHttpServletRequest, mockHttpServletResponse);
   }
 
@@ -327,7 +337,9 @@ public class ClientIPAddressFilterTest
   }
 
   private void setAllowlist(List<AllowedIp> allowlist) {
-    List<Map<String, String>> map = JSON.convertValue(allowlist, new TypeReference<List<Map<String, String>>>() { });
+    List<Map<String, String>> map = JSON.convertValue(allowlist, new TypeReference<List<Map<String, String>>>()
+    {
+    });
     setAccessAllowlist(map);
   }
 
@@ -347,8 +359,9 @@ public class ClientIPAddressFilterTest
     assertThat(response.getBodyText()).isEqualTo(ClientIPAddressFilter.ACCESS_DENIED_MSG);
     assertResponseStatus(HttpServletResponse.SC_FORBIDDEN, response);
 
-    assertThat(logOutput).atWarnLevel().containsPattern(
-        String.format("Rejecting request from %s as the IP was not found in the configured allowlist", rejectedIp));
+    assertThat(logOutput).atWarnLevel()
+        .containsPattern(
+            String.format("Rejecting request from %s as the IP was not found in the configured allowlist", rejectedIp));
   }
 
   @Override

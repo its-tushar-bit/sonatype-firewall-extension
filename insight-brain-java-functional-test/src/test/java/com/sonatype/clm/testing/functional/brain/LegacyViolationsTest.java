@@ -109,7 +109,8 @@ public class LegacyViolationsTest
 
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.legacyViolation().shouldBe(visible).shouldBe(DISABLED).hover();
-    Tooltip.get().shouldBe(visible)
+    Tooltip.get()
+        .shouldBe(visible)
         .shouldHave(text("Legacy Violations are not supported by your license"));
     ActionDropDown.legacyViolation().click();
     LegacyViolationModal modal = new LegacyViolationModal();

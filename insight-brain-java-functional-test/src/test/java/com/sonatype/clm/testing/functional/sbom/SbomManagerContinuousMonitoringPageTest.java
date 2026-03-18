@@ -49,40 +49,43 @@ public class SbomManagerContinuousMonitoringPageTest
 
   @Test
   public void testSbomManagerContinuousMonitoring_EditorPage() {
-    //Root Organization level
+    // Root Organization level
     refreshOrOpen(SbomManagerContinuousMonitoringPage.url("ROOT_ORGANIZATION_ID", true));
     continuousMonitoringPage.container().shouldBe(visible);
     continuousMonitoringPage.title().shouldHave(text("Continuous Monitoring"));
     continuousMonitoringPage.errorAlert().shouldNotBe(visible);
     continuousMonitoringPage.submitButton().shouldHave(text("Update"));
-    continuousMonitoringPage.stageStatusLabel().shouldHave(text(
-        "Enable continuous monitoring for SBOM Manager"));
+    continuousMonitoringPage.stageStatusLabel()
+        .shouldHave(text(
+            "Enable continuous monitoring for SBOM Manager"));
     continuousMonitoringPage.toggleInput().shouldNotBe(checked);
     continuousMonitoringPage.toggleInput().shouldBe(enabled);
     continuousMonitoringPage.toggleButton().shouldHave(text("Disabled"));
 
-    //Sub Organization level
+    // Sub Organization level
     refreshOrOpen(SbomManagerContinuousMonitoringPage.url(organization.getId(), true));
     continuousMonitoringPage.container().shouldBe(visible);
     continuousMonitoringPage.title().shouldHave(text("Continuous Monitoring"));
     continuousMonitoringPage.errorAlert().shouldNotBe(visible);
     continuousMonitoringPage.submitButton().shouldHave(text("Update"));
-    continuousMonitoringPage.stageStatusLabel().shouldHave(text(
-        "Continuous Monitoring is currently disabled at the root organization. " +
-            "Would you like to enable it for this organization and all its dependents?"));
+    continuousMonitoringPage.stageStatusLabel()
+        .shouldHave(text(
+            "Continuous Monitoring is currently disabled at the root organization. " +
+                "Would you like to enable it for this organization and all its dependents?"));
     continuousMonitoringPage.toggleInput().shouldNotBe(checked);
     continuousMonitoringPage.toggleInput().shouldBe(enabled);
     continuousMonitoringPage.toggleButton().shouldHave(text("Disabled"));
 
-    //Application level
+    // Application level
     refreshOrOpen(SbomManagerContinuousMonitoringPage.url(application.getPublicId(), false));
     continuousMonitoringPage.container().shouldBe(visible);
     continuousMonitoringPage.title().shouldHave(text("Continuous Monitoring"));
     continuousMonitoringPage.errorAlert().shouldNotBe(visible);
     continuousMonitoringPage.submitButton().shouldHave(text("Update"));
-    continuousMonitoringPage.stageStatusLabel().shouldHave(text(
-        "Continuous Monitoring is currently disabled at the root organization. " +
-            "Would you like to enable it for this application?"));
+    continuousMonitoringPage.stageStatusLabel()
+        .shouldHave(text(
+            "Continuous Monitoring is currently disabled at the root organization. " +
+                "Would you like to enable it for this application?"));
     continuousMonitoringPage.toggleInput().shouldNotBe(checked);
     continuousMonitoringPage.toggleInput().shouldBe(enabled);
     continuousMonitoringPage.toggleButton().shouldHave(text("Disabled"));
@@ -90,7 +93,7 @@ public class SbomManagerContinuousMonitoringPageTest
 
   @Test
   public void testSbomManagerContinuousMonitoring_EditorPage_With_Error() {
-    //Organization level
+    // Organization level
     refreshOrOpen(SbomManagerContinuousMonitoringPage.url(organization.getId(), true));
     continuousMonitoringPage.submitButton().shouldHave(text("Update"));
     continuousMonitoringPage.submitButton().click();
@@ -100,7 +103,7 @@ public class SbomManagerContinuousMonitoringPageTest
 
   @Test
   public void testSbomManagerContinuousMonitoring_EditorPage_Sub_Organization_Enabled() {
-    //Sub Organization level
+    // Sub Organization level
     refreshOrOpen(SbomManagerContinuousMonitoringPage.url(organization.getId(), true));
     continuousMonitoringPage.toggleButton().click();
     continuousMonitoringPage.toggleInput().shouldBe(checked);
@@ -110,26 +113,28 @@ public class SbomManagerContinuousMonitoringPageTest
     continuousMonitoringPage.errorAlert().shouldNotBe(visible);
     continuousMonitoringPage.stageStatusLabel().shouldHave(text("Disable continuous monitoring for SBOM Manager"));
 
-    //Application level
+    // Application level
     refreshOrOpen(SbomManagerContinuousMonitoringPage.url(application.getPublicId(), false));
-    continuousMonitoringPage.stageStatusLabel().shouldHave(text(
-        "Continuous Monitoring is up and running at " + organization.getName() +
-            ", so this means it's active for this application."));
+    continuousMonitoringPage.stageStatusLabel()
+        .shouldHave(text(
+            "Continuous Monitoring is up and running at " + organization.getName() +
+                ", so this means it's active for this application."));
     continuousMonitoringPage.toggleInput().shouldBe(checked);
     continuousMonitoringPage.toggleInput().shouldBe(disabled);
     continuousMonitoringPage.toggleButton().shouldBe(text("Enabled"));
 
-    //Root Organization level
+    // Root Organization level
     refreshOrOpen(SbomManagerContinuousMonitoringPage.url("ROOT_ORGANIZATION_ID", true));
     continuousMonitoringPage.toggleInput().shouldNotBe(checked);
     continuousMonitoringPage.toggleInput().shouldBe(enabled);
-    continuousMonitoringPage.stageStatusLabel().shouldHave(text(
-        "Enable continuous monitoring for SBOM Manager"));
+    continuousMonitoringPage.stageStatusLabel()
+        .shouldHave(text(
+            "Enable continuous monitoring for SBOM Manager"));
   }
 
   @Test
   public void testSbomManagerContinuousMonitoring_EditorPage_Root_Organization_Enabled() {
-    //Root Organization level
+    // Root Organization level
     refreshOrOpen(SbomManagerContinuousMonitoringPage.url("ROOT_ORGANIZATION_ID", true));
     continuousMonitoringPage.toggleInput().shouldNotBe(checked);
     continuousMonitoringPage.toggleInput().shouldBe(enabled);
@@ -142,20 +147,22 @@ public class SbomManagerContinuousMonitoringPageTest
     continuousMonitoringPage.errorAlert().shouldNotBe(visible);
     continuousMonitoringPage.stageStatusLabel().shouldHave(text("Disable continuous monitoring for SBOM Manager"));
 
-    //Sub Organization level
+    // Sub Organization level
     refreshOrOpen(SbomManagerContinuousMonitoringPage.url(organization.getId(), true));
     continuousMonitoringPage.toggleInput().shouldBe(checked);
     continuousMonitoringPage.toggleInput().shouldBe(disabled);
     continuousMonitoringPage.toggleButton().shouldBe(text("Enabled"));
-    continuousMonitoringPage.stageStatusLabel().shouldHave(text(
-        "Continuous Monitoring is up and running at Root Organization, " +
-            "so this means it's active for this organization and all its dependents."));
+    continuousMonitoringPage.stageStatusLabel()
+        .shouldHave(text(
+            "Continuous Monitoring is up and running at Root Organization, " +
+                "so this means it's active for this organization and all its dependents."));
 
-    //Application level
+    // Application level
     refreshOrOpen(SbomManagerContinuousMonitoringPage.url(application.getPublicId(), false));
-    continuousMonitoringPage.stageStatusLabel().shouldHave(text(
-        "Continuous Monitoring is up and running at Root Organization, " +
-            "so this means it's active for this application."));
+    continuousMonitoringPage.stageStatusLabel()
+        .shouldHave(text(
+            "Continuous Monitoring is up and running at Root Organization, " +
+                "so this means it's active for this application."));
     continuousMonitoringPage.toggleInput().shouldBe(checked);
     continuousMonitoringPage.toggleInput().shouldBe(disabled);
     continuousMonitoringPage.toggleButton().shouldBe(text("Enabled"));

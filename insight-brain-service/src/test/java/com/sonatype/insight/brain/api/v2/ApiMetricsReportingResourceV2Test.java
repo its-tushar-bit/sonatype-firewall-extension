@@ -79,7 +79,10 @@ public class ApiMetricsReportingResourceV2Test
   @Test
   public void testJsonApi_NullQuery() throws Exception {
     HttpResponse httpResponse = restRequest().path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2)
-        .path(ApiMetricsReportingResourceV2.PATH).header("Accept", "application/json").body(null).post();
+        .path(ApiMetricsReportingResourceV2.PATH)
+        .header("Accept", "application/json")
+        .body(null)
+        .post();
 
     assertResponseStatus(400, httpResponse);
     assertThat(httpResponse.getBodyText()).isEqualTo("Request parameters must be defined");
@@ -91,7 +94,10 @@ public class ApiMetricsReportingResourceV2Test
         Collections.emptySet(), Collections.emptySet());
 
     HttpResponse httpResponse = restRequest().path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2)
-        .path(ApiMetricsReportingResourceV2.PATH).header("Accept", "application/json").body(queryDTO).post();
+        .path(ApiMetricsReportingResourceV2.PATH)
+        .header("Accept", "application/json")
+        .body(queryDTO)
+        .post();
 
     assertResponseStatus(400, httpResponse);
     assertThat(httpResponse.getBodyText()).isEqualTo("timePeriod must be defined");
@@ -103,7 +109,10 @@ public class ApiMetricsReportingResourceV2Test
         Collections.emptySet(), Collections.emptySet());
 
     HttpResponse httpResponse = restRequest().path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2)
-        .path(ApiMetricsReportingResourceV2.PATH).header("Accept", "application/json").body(queryDTO).post();
+        .path(ApiMetricsReportingResourceV2.PATH)
+        .header("Accept", "application/json")
+        .body(queryDTO)
+        .post();
 
     assertResponseStatus(400, httpResponse);
     assertThat(httpResponse.getBodyText()).isEqualTo("firstTimePeriod must be defined");
@@ -115,7 +124,10 @@ public class ApiMetricsReportingResourceV2Test
         Collections.emptySet(), Collections.emptySet());
 
     HttpResponse httpResponse = restRequest().path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2)
-        .path(ApiMetricsReportingResourceV2.PATH).header("Accept", "application/json").body(queryDTO).post();
+        .path(ApiMetricsReportingResourceV2.PATH)
+        .header("Accept", "application/json")
+        .body(queryDTO)
+        .post();
 
     assertResponseStatus(400, httpResponse);
     assertThat(httpResponse.getBodyText()).isEqualTo("lastTimePeriod must not be before firstTimePeriod");
@@ -124,7 +136,10 @@ public class ApiMetricsReportingResourceV2Test
   @Test
   public void testCsvApi_NullQuery() throws Exception {
     HttpResponse httpResponse = restRequest().path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2)
-        .path(ApiMetricsReportingResourceV2.PATH).header("Accept", "text/csv").body(null).post();
+        .path(ApiMetricsReportingResourceV2.PATH)
+        .header("Accept", "text/csv")
+        .body(null)
+        .post();
 
     assertResponseStatus(400, httpResponse);
     assertThat(httpResponse.getBodyText()).isEqualTo("Request parameters must be defined");
@@ -136,7 +151,10 @@ public class ApiMetricsReportingResourceV2Test
         Collections.emptySet(), Collections.emptySet());
 
     HttpResponse httpResponse = restRequest().path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2)
-        .path(ApiMetricsReportingResourceV2.PATH).header("Accept", "text/csv").body(queryDTO).post();
+        .path(ApiMetricsReportingResourceV2.PATH)
+        .header("Accept", "text/csv")
+        .body(queryDTO)
+        .post();
 
     assertResponseStatus(400, httpResponse);
     assertThat(httpResponse.getBodyText()).isEqualTo("timePeriod must be defined");
@@ -148,7 +166,10 @@ public class ApiMetricsReportingResourceV2Test
         Collections.emptySet(), Collections.emptySet());
 
     HttpResponse httpResponse = restRequest().path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2)
-        .path(ApiMetricsReportingResourceV2.PATH).header("Accept", "text/csv").body(queryDTO).post();
+        .path(ApiMetricsReportingResourceV2.PATH)
+        .header("Accept", "text/csv")
+        .body(queryDTO)
+        .post();
 
     assertResponseStatus(400, httpResponse);
     assertThat(httpResponse.getBodyText()).isEqualTo("firstTimePeriod must be defined");
@@ -160,7 +181,10 @@ public class ApiMetricsReportingResourceV2Test
         Collections.emptySet(), Collections.emptySet());
 
     HttpResponse httpResponse = restRequest().path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2)
-        .path(ApiMetricsReportingResourceV2.PATH).header("Accept", "text/csv").body(queryDTO).post();
+        .path(ApiMetricsReportingResourceV2.PATH)
+        .header("Accept", "text/csv")
+        .body(queryDTO)
+        .post();
 
     assertResponseStatus(400, httpResponse);
     assertThat(httpResponse.getBodyText()).isEqualTo("lastTimePeriod must not be before firstTimePeriod");
@@ -174,7 +198,10 @@ public class ApiMetricsReportingResourceV2Test
 
     ApiMetricsReportingResourceV2.chunkSize = 1;
     HttpResponse response = restRequest().path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2)
-        .path(ApiMetricsReportingResourceV2.PATH).header("Accept", "application/json").body(queryDto).post();
+        .path(ApiMetricsReportingResourceV2.PATH)
+        .header("Accept", "application/json")
+        .body(queryDto)
+        .post();
 
     List<Map<String, Object>> results = response.getBodyList();
     assertThat(results).hasSize(2);
@@ -202,7 +229,10 @@ public class ApiMetricsReportingResourceV2Test
 
     ApiMetricsReportingResourceV2.chunkSize = 1;
     HttpResponse response = restRequest().path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2)
-        .path(ApiMetricsReportingResourceV2.PATH).header("Accept", "text/csv").body(queryDto).post();
+        .path(ApiMetricsReportingResourceV2.PATH)
+        .header("Accept", "text/csv")
+        .body(queryDto)
+        .post();
 
     String responseText = response.getBodyText();
     String expectedCsv = IOUtils.toString(getClass()

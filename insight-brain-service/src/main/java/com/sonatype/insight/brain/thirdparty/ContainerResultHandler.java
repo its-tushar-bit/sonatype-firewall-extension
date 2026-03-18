@@ -89,7 +89,7 @@ public class ContainerResultHandler
       final ProductLicense productLicense)
   {
     super(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
-        thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,  telemetryUtils,
+        thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils,
         telemetrySender, thirdPartyScanContext);
     this.componentInfoTelemetry = new SbomComponentInfoTelemetry();
     this.productLicense = productLicense;
@@ -175,15 +175,14 @@ public class ContainerResultHandler
       if (thirdPartyScanContext != null
           && thirdPartyScanContext.getContainerItemContentType() == ItemContentType.CONTAINER_URI_SONATYPE
           && SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()
-          && productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
-      )
+          && productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION))
       {
         componentIdentifier = getCorrespondingComponentIdentifier(module, resourceId);
         packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
       }
       else {
         componentIdentifier = ComponentIdentifier.createContainerCoordinates(
-                module.getSource(), resourceId, module.getVersion());
+            module.getSource(), resourceId, module.getVersion());
         packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
       }
 
@@ -290,15 +289,14 @@ public class ContainerResultHandler
         String vendor = parts[1];
         String name = parts[2];
         return ComponentIdentifier.createComposerCoordinates(
-                vendor, name, module.getVersion());
+            vendor, name, module.getVersion());
       }
       case "Wordpress":
         return ComponentIdentifier.createCpeCoordinates(
-                "wordpress", "wordpress", module.getVersion());
+            "wordpress", "wordpress", module.getVersion());
       default:
         return ComponentIdentifier.createContainerCoordinates(
-                module.getSource(), resourceId, module.getVersion()
-        );
+            module.getSource(), resourceId, module.getVersion());
     }
   }
 

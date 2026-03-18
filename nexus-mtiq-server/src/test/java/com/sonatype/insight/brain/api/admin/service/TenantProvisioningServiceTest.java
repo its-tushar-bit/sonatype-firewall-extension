@@ -134,14 +134,14 @@ public class TenantProvisioningServiceTest
     testAsNewTenant(tenant -> {
       DeletedTenant deletedTenant = new DeletedTenant(tenant.tenantSlug);
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
-      //Tenant being provisioned was marked for deletion
+      // Tenant being provisioned was marked for deletion
       when(deletedTenantDAO.getTenantBySlug(tenant.tenantSlug)).thenReturn(deletedTenant);
       config.setSearchConfig(new HttpOpenSearchConfig());
 
       underTest.provisionTenant(tenant.tenantSlug);
 
       verify(deletedTenantDAO).delete(deletedTenant);
-      //The provisioning process continues
+      // The provisioning process continues
       verify(databaseProvisioner).initializeDatabaseWithMigration();
       verify(indexService).createSearchIndex();
     });

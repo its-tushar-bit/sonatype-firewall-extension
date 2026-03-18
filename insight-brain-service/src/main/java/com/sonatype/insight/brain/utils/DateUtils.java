@@ -38,13 +38,13 @@ public class DateUtils
    * dates) this method calculates the closest future date in the repeating interval from the given 'from' time.
    *
    * For example, if the interval start date is 6/21 at 1200, the interval is 4 hours and the from time is 0700 on 6/21
-   * this method would calculate the closest future date as 0800 on 6/21.  And, if the 'from' time was 1300 this method
+   * this method would calculate the closest future date as 0800 on 6/21. And, if the 'from' time was 1300 this method
    * would calculate a closest future date of 1600 on 6/21.
    *
-   * @param fromDateTime      the datetime to which the next closest interval time should be found
+   * @param fromDateTime the datetime to which the next closest interval time should be found
    * @param intervalStartTime the datetime that is the focal point for the interval
-   * @param intervalHours     number of hours offset from the intervalStartTime, forwards and backwards, to form a
-   *                          repeating series of datetime values
+   * @param intervalHours number of hours offset from the intervalStartTime, forwards and backwards, to form a
+   *          repeating series of datetime values
    * @return closest future datetime value in the interval datetime series
    */
   public static LocalDateTime getClosestFutureDateTime(
@@ -72,7 +72,7 @@ public class DateUtils
   }
 
   /**
-   * Converts a string in hours and minutes to a LocalTime object.  The supported formats for the string are
+   * Converts a string in hours and minutes to a LocalTime object. The supported formats for the string are
    * 'HH:mm' and 'HHmm'
    *
    * @return the string converted to LocalTime or the current time if the given string is blank
@@ -88,6 +88,7 @@ public class DateUtils
 
   /**
    * returns the maximum date between two dates; null values are treated as earlier dates
+   *
    * @return greater of two dates if both are non-null; the non-null date if only one is null; null if both are null
    */
   public static Date max(Date date1, Date date2) {

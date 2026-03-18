@@ -71,5 +71,3 @@ public abstract class AbstractPublicDataSourcesEditorTest
         cfgRequest);
   }
 }
-
-

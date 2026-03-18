@@ -84,7 +84,7 @@ public class ProprietaryMatchersTest
 
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
     waitUntilUrl(ComponentDetailsPage.url(app, SCAN_ID, "289cba71ada5a0811e57"));
-    //test AddProprietaryButton is not visible if all pathNames are maven coordinates
+    // test AddProprietaryButton is not visible if all pathNames are maven coordinates
     componentDetailsPage.unknownComponentAlert().shouldBe(visible);
     componentDetailsPage.addProprietarypComponentMatchersBtn().shouldBe(hidden);
     componentDetailsPage.backButton().shouldBe(visible).click();

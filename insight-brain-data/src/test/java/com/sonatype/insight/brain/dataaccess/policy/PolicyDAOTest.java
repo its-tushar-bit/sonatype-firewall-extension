@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess.policy;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Arrays;
@@ -168,9 +169,9 @@ public class PolicyDAOTest
     // Add a policy with a case-/whitespace-equivalent name
     assertThatThrownBy(
         () -> tempEntity.newPolicy(ownerId, policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH)))
-        .isInstanceOf(InvalidPolicyException.class)
-        .hasMessage("A policy with the same name already exists for " + expectedOwner.getType() + " '" +
-            expectedOwner.getName() + "'");
+            .isInstanceOf(InvalidPolicyException.class)
+            .hasMessage("A policy with the same name already exists for " + expectedOwner.getType() + " '" +
+                expectedOwner.getName() + "'");
   }
 
   private void assertUpdatePolicyWithDuplicateName(Owner owner, String policyName, Owner expectedOwner) {
@@ -516,8 +517,9 @@ public class PolicyDAOTest
 
     // For orgs, must retrieve all org policies, regardless of the tags associated with them
     policies = policyDAO.getApplicableByOwnerIdWithHierarchy(organization.getId());
-    assertThat(policies).extracting(Policy::getName).containsExactlyInAnyOrder("policyOrg1", "policyOrg2",
-        "policyRootOrg1", "policyRootOrg2");
+    assertThat(policies).extracting(Policy::getName)
+        .containsExactlyInAnyOrder("policyOrg1", "policyOrg2",
+            "policyRootOrg1", "policyRootOrg2");
   }
 
   @Test
@@ -542,7 +544,8 @@ public class PolicyDAOTest
   public void testDelete_CascadesToPolicyWaiverRequests() {
     Policy policy = tempEntity.newPolicy(application.getId());
 
-    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setPolicyId(policy.getId()).setOwnerId("ownerId")
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setPolicyId(policy.getId())
+        .setOwnerId("ownerId")
         .setPolicyViolationId("policyViolationId"));
     List<PolicyWaiverRequest> policyWaiverRequests = policyWaiverRequestDAO.getByPolicyId(policy.getId());
     assertThat(policyWaiverRequests).hasSize(1);
@@ -587,7 +590,8 @@ public class PolicyDAOTest
     assertThat(policyDAO.getByIds(Collections.emptySet())).isEmpty();
 
     assertThat(policyDAO.getByIds(Arrays.asList(policy1.getId(), policy2.getId(), "non-existent")))
-        .extracting(Policy::getId).containsExactlyInAnyOrder(policy1.getId(), policy2.getId());
+        .extracting(Policy::getId)
+        .containsExactlyInAnyOrder(policy1.getId(), policy2.getId());
   }
 
   @Test

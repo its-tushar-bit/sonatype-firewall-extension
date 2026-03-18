@@ -107,8 +107,7 @@ public class SourceControlMetricsTelemetryCollectorTest
             entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MERGED, 0),
             entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MERGED, 0),
             entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MISSING, 0),
-            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MISSING, 0)
-        );
+            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MISSING, 0));
   }
 
   @Test
@@ -119,17 +118,14 @@ public class SourceControlMetricsTelemetryCollectorTest
     when(sourceControlDAO.getApplicationsWithRemediationPullRequestsEnabled())
         .thenReturn(Arrays.asList(
             new SourceControl.Builder().build(),
-            new SourceControl.Builder().build()
-        ));
+            new SourceControl.Builder().build()));
     when(sourceControlDAO.getByApplication())
         .thenReturn(Arrays.asList(
             new SourceControl.Builder().build(),
             new SourceControl.Builder().build(),
-            new SourceControl.Builder().build()
-        ));
+            new SourceControl.Builder().build()));
     when(applicationDAO.getAll()).thenReturn(Arrays.asList(
-        new Application(), new Application(), new Application(), new Application()
-    ));
+        new Application(), new Application(), new Application(), new Application()));
     when(metrics.computeStatsAndReset())
         .thenReturn(new AggregatedPRStats(Collections.singletonList(new ApplicationPRStats("foo", 1, 2, 3, 1,
             5, 6))));
@@ -171,8 +167,7 @@ public class SourceControlMetricsTelemetryCollectorTest
             entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MERGED, 0),
             entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MERGED, 0),
             entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MISSING, 0),
-            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MISSING, 0)
-        );
+            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MISSING, 0));
   }
 
   @Test
@@ -287,14 +282,14 @@ public class SourceControlMetricsTelemetryCollectorTest
 
     // 1 MANUAL OPEN PR
     createSourceControlPullRequest(5, PullRequestState.OPEN, PullRequestSource.MANUAL, now);
-    
+
     // 1 MANUAL_INNER_SOURCE OPEN PR
     createSourceControlPullRequest(6, PullRequestState.OPEN, PullRequestSource.MANUAL_INNER_SOURCE, now);
 
     // Create non-OPEN PRs
     // 1 AUTOMATIC CLOSED PR
     createSourceControlPullRequest(7, PullRequestState.CLOSED, PullRequestSource.AUTOMATIC, now);
-    
+
     // 1 AUTOMATIC AUTO CLOSED PR
     createSourceControlPullRequest(27, PullRequestState.AUTO_CLOSED, PullRequestSource.AUTOMATIC, now);
 
@@ -307,7 +302,7 @@ public class SourceControlMetricsTelemetryCollectorTest
     // 2 MANUAL CLOSED PRs
     createSourceControlPullRequest(9, PullRequestState.CLOSED, PullRequestSource.MANUAL, now);
     createSourceControlPullRequest(10, PullRequestState.CLOSED, PullRequestSource.MANUAL, now);
-    
+
     // 2 MANUAL_INNER_SOURCE CLOSED PRs
     createSourceControlPullRequest(11, PullRequestState.CLOSED, PullRequestSource.MANUAL_INNER_SOURCE, now);
     createSourceControlPullRequest(12, PullRequestState.CLOSED, PullRequestSource.MANUAL_INNER_SOURCE, now);
@@ -315,20 +310,20 @@ public class SourceControlMetricsTelemetryCollectorTest
     // 2 AUTOMATIC MERGED PRs
     createSourceControlPullRequest(13, PullRequestState.MERGED, PullRequestSource.AUTOMATIC, now);
     createSourceControlPullRequest(14, PullRequestState.MERGED, PullRequestSource.AUTOMATIC, now);
-    
+
     // 2 AUTOMATIC_INNER_SOURCE MERGED PRs
     createSourceControlPullRequest(15, PullRequestState.MERGED, PullRequestSource.AUTOMATIC_INNER_SOURCE, now);
     createSourceControlPullRequest(16, PullRequestState.MERGED, PullRequestSource.AUTOMATIC_INNER_SOURCE, now);
 
     // 1 MANUAL MERGED PR
     createSourceControlPullRequest(17, PullRequestState.MERGED, PullRequestSource.MANUAL, now);
-    
+
     // 1 MANUAL_INNER_SOURCE MERGED PR
     createSourceControlPullRequest(18, PullRequestState.MERGED, PullRequestSource.MANUAL_INNER_SOURCE, now);
 
     // 1 AUTOMATIC MISSING PR
     createSourceControlPullRequest(19, PullRequestState.MISSING, PullRequestSource.AUTOMATIC, now);
-    
+
     // 1 AUTOMATIC_INNER_SOURCE MISSING PR
     createSourceControlPullRequest(20, PullRequestState.MISSING, PullRequestSource.AUTOMATIC_INNER_SOURCE, now);
 
@@ -363,8 +358,7 @@ public class SourceControlMetricsTelemetryCollectorTest
         new Date(),
         new Date(),
         state,
-        source
-    );
+        source);
   }
 
   private void setupPrBranchTestData() {

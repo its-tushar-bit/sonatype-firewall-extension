@@ -181,7 +181,8 @@ public class ComponentObligationDAO
               .computeIfAbsent(componentObligation.getComponentIdentifier(), key -> new HashSet<>());
           if (obligationNames.add(componentObligation.getObligationName())
               && (componentObligation.getStatus() == ObligationStatus.FULFILLED
-              || componentObligation.getStatus() == ObligationStatus.IGNORED)) {
+                  || componentObligation.getStatus() == ObligationStatus.IGNORED))
+          {
             // The obligation was not saved in the scope of the previous owner and has been addressed in the current one
             Set<String> obligationNamesAddressed = componentObligationsAddressed
                 .computeIfAbsent(componentObligation.getComponentIdentifier(), key -> new HashSet<>());
@@ -197,7 +198,8 @@ public class ComponentObligationDAO
   @Override
   public void insert(TransactionContext tx, ComponentObligation componentObligation) {
     if (getByOwnerIdAndComponentIdentifierAndObligationName(tx, componentObligation.getOwnerId(),
-        componentObligation.getComponentIdentifier(), componentObligation.getObligationName()) != null) {
+        componentObligation.getComponentIdentifier(), componentObligation.getObligationName()) != null)
+    {
       throw new BadRequestException(
           "Component obligation already exists for owner with id " + componentObligation.getOwnerId() +
               " and component " + componentObligation.getComponentIdentifier() + " and obligation name " +

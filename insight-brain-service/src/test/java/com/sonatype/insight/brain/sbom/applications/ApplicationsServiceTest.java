@@ -238,8 +238,8 @@ public class ApplicationsServiceTest
         CvssV3Severity.CRITICAL.getDisplayName(), "fix3");
     insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity3);
 
-    PolicyEvaluation
-        policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, "scanId1App1");
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, "scanId1App1");
     tempEntity.newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
 
     SbomApplicationListSummaryDTO resultDtoList = service.getApplications("appName",
@@ -345,8 +345,8 @@ public class ApplicationsServiceTest
         CvssV3Severity.CRITICAL.getDisplayName(), "fix3");
     insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity3);
 
-    PolicyEvaluation
-        policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, "scanId1App1");
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, "scanId1App1");
     tempEntity.newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
 
     SbomApplicationListSummaryDTO resultDtoList = service.getApplications(null,

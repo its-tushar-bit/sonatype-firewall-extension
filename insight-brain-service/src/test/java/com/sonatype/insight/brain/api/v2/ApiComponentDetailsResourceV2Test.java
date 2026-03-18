@@ -65,7 +65,7 @@ public class ApiComponentDetailsResourceV2Test
     assertGetComponentDetails(packageURLIdentifier.toComponentIdentifier(), component,
         packageURLIdentifier.getPackageUrl());
   }
-  
+
   private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier, String hash) {
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.hash = hash;
@@ -83,15 +83,15 @@ public class ApiComponentDetailsResourceV2Test
     hdsRespondWith(componentEvaluationDataList).atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
         .replace("{purpose: evaluation|integration}", ApiComponentDetailsServiceV2.PURPOSE_INTEGRATION));
   }
-   
+
   private void assertGetComponentDetails(
       final ComponentIdentifier componentIdentifier,
       final ApiComponentDTOV2 component,
       final String expectedPackageUrl) throws Exception
   {
-    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();  
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     request.components.add(component);
-    
+
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     hdsResult.components = new ArrayList<>();
     ComponentEvaluationData componentData = createComponentEvaluationData(componentIdentifier, "h1");

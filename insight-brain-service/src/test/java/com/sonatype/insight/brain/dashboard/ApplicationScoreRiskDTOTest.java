@@ -16,7 +16,7 @@ public class ApplicationScoreRiskDTOTest
     assertThat(ApplicationRiskScoreDTO.getCsvHeader())
         .isEqualTo("Organization Name,Application Name,Total Risk,Critical,Severe,Moderate,Low");
   }
-  
+
   @Test
   public void testToCsvLine() {
     ApplicationRiskScoreDTO risk = new ApplicationRiskScoreDTO("orgName", "orgId", "appName", "appId", "id");

@@ -33,7 +33,7 @@ public class PublicApiPaths
   public static final String POLICY_VIOLATION_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "policyViolations";
 
   public static final String AUTO_POLICY_WAIVER_PATH = API_VERSION_PATH_V2 + "autoPolicyWaivers";
-  
+
   public static final String AUTO_POLICY_WAIVER_EXCLUSION_PATH = API_VERSION_PATH_V2 +
       "autoPolicyWaiverExclusions";
 
@@ -216,8 +216,8 @@ public class PublicApiPaths
 
   public static final String DEVELOPER_PATH = API_VERSION_PATH_V2 + "developer";
 
-  public static final String
-      COMPONENT_CHANGE_DETECTION_RESOURCE_PATH = API_VERSION_PATH_V2 + "component-change-detection";
+  public static final String COMPONENT_CHANGE_DETECTION_RESOURCE_PATH =
+      API_VERSION_PATH_V2 + "component-change-detection";
 
   public static final String CPE_MATCHING_CONFIGURATION_RESOURCE_PATH = API_VERSION_PATH_V2 +
       "{ownerType: application|organization}/{internalOwnerId}/configuration/publicSource/cpe";

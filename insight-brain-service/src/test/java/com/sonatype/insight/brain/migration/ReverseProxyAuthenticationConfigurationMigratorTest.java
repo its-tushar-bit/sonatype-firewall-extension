@@ -56,7 +56,8 @@ public class ReverseProxyAuthenticationConfigurationMigratorTest
   public void configure(Binder binder) {
     // Add the mock listener to the multibinder set
     Multibinder.newSetBinder(binder, ReverseProxyAuthenticationConfigurationListener.class)
-        .addBinding().toInstance(mockReverseProxyAuthenticationConfigurationListener);
+        .addBinding()
+        .toInstance(mockReverseProxyAuthenticationConfigurationListener);
     super.configure(binder);
   }
 
@@ -157,8 +158,10 @@ public class ReverseProxyAuthenticationConfigurationMigratorTest
     assertThat(reverseProxyAuthenticationConfiguration.isCsrfProtectionDisabled()).isEqualTo(
         reverseProxyAuthenticationConfig.isCsrfProtectionDisabled());
     assertThat(reverseProxyAuthenticationConfiguration.getLogoutUrl()).isEqualTo(
-        reverseProxyAuthenticationConfig.getLogoutUrl() == null ? null : reverseProxyAuthenticationConfig.getLogoutUrl()
-            .toString());
+        reverseProxyAuthenticationConfig.getLogoutUrl() == null
+            ? null
+            : reverseProxyAuthenticationConfig.getLogoutUrl()
+                .toString());
     verify(mockReverseProxyAuthenticationConfigurationListener).reverseProxyAuthenticationConfigurationChanged();
     assertThat(logOutput).atWarnLevel()
         .contains(ReverseProxyAuthenticationConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
@@ -173,7 +176,8 @@ public class ReverseProxyAuthenticationConfigurationMigratorTest
     reverseProxyAuthenticationConfigurationMigrator.migrate();
 
     assertThat(reverseProxyAuthenticationConfigurationDAO.get()).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(reverseProxyAuthenticationConfiguration);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(reverseProxyAuthenticationConfiguration);
     assertThat(logOutput).doesNotContain(ReverseProxyAuthenticationConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
   }
 
@@ -192,7 +196,8 @@ public class ReverseProxyAuthenticationConfigurationMigratorTest
     reverseProxyAuthenticationConfigurationMigrator.migrate();
 
     assertThat(reverseProxyAuthenticationConfigurationDAO.get()).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(reverseProxyAuthenticationConfiguration);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(reverseProxyAuthenticationConfiguration);
     assertThat(logOutput).atWarnLevel()
         .contains(ReverseProxyAuthenticationConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
   }

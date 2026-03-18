@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.model.OwnerType;
  * Some objects (policy waivers, license overrides, etc) can be applied in the context of an application or an
  * organization. This class contains the hierarchy of organizations and applications for which such objects can be
  * applied.
- * 
+ *
  * @since 1.6
  */
 public class ApplicableContext
@@ -66,7 +66,8 @@ public class ApplicableContext
   public void setType(OwnerType type) {
     if (!OwnerType.APPLICATION.equals(type) && !(OwnerType.ORGANIZATION.equals(type))
         && !OwnerType.REPOSITORY_MANAGER.equals(type) && !OwnerType.REPOSITORY.equals(type)
-        && !OwnerType.REPOSITORY_CONTAINER.equals(type)) {
+        && !OwnerType.REPOSITORY_CONTAINER.equals(type))
+    {
       throw new IllegalArgumentException("Unknown context type: " + type);
     }
     this.type = type;

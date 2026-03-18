@@ -86,8 +86,7 @@ public class MtiqApiComponentChangeDetectionResourceTest
     assertThat(components).hasSize(1);
     assertThat(components.get(0)).contains(
         entry("hash", "a13168d8f7c3b9c9a899"),
-        entry("packageUrl", "pkg:maven/org.sonatype/maven-policy-demo@1.1.0?type=jar")
-    );
+        entry("packageUrl", "pkg:maven/org.sonatype/maven-policy-demo@1.1.0?type=jar"));
   }
 
   @Test
@@ -109,7 +108,9 @@ public class MtiqApiComponentChangeDetectionResourceTest
 
     HttpResponse response = componentChangeDetectionEventRequest().get();
     List<ComponentChangeDetectionEvent> responseList = getBodyByTypeReference(response.getBodyBytes(),
-        new TypeReference<List<ComponentChangeDetectionEvent>>() { });
+        new TypeReference<List<ComponentChangeDetectionEvent>>()
+        {
+        });
 
     assertResponseStatus(200, response);
     assertThat(responseList).hasSize(3);
@@ -123,7 +124,9 @@ public class MtiqApiComponentChangeDetectionResourceTest
 
     assertResponseStatus(200, response);
     responseList = getBodyByTypeReference(response.getBodyBytes(),
-        new TypeReference<List<ComponentChangeDetectionEvent>>() { });
+        new TypeReference<List<ComponentChangeDetectionEvent>>()
+        {
+        });
     assertThat(responseList).hasSize(2);
     assertThat(getPurls(responseList)).doesNotContain("purl1");
     assertThat(getPurls(responseList)).contains("purl2", "purl3");
@@ -136,7 +139,9 @@ public class MtiqApiComponentChangeDetectionResourceTest
 
     assertResponseStatus(200, response);
     responseList = getBodyByTypeReference(response.getBodyBytes(),
-        new TypeReference<List<ComponentChangeDetectionEvent>>() { });
+        new TypeReference<List<ComponentChangeDetectionEvent>>()
+        {
+        });
     assertThat(responseList).isEmpty();
   }
 
@@ -175,8 +180,7 @@ public class MtiqApiComponentChangeDetectionResourceTest
         new ApiMalwareComponentEvaluationRequest("b24568d8f7c3b0n9a666",
             "invalidPurl"),
         new ApiMalwareComponentEvaluationRequest("b24568d8f7c3b0n9a667",
-            "pkg:pypi/aiobotocore@2.4.0")
-    );
+            "pkg:pypi/aiobotocore@2.4.0"));
 
     HttpResponse response =
         restRequest().path(COMPONENT_CHANGE_CONFIGURATION_PATH).body(components, MediaType.APPLICATION_JSON).post();
@@ -211,8 +215,7 @@ public class MtiqApiComponentChangeDetectionResourceTest
         new ApiMalwareComponentEvaluationRequest("a13168d8f7c3b9c9a899",
             "pkg:maven/org.sonatype/maven-policy-demo@1.1.0?type=jar"),
         new ApiMalwareComponentEvaluationRequest("b24568d8f7c3b0n9a8n3",
-            "pkg:maven/org.sonatype/maven-policy-demo@2.2.0?type=jar")
-    );
+            "pkg:maven/org.sonatype/maven-policy-demo@2.2.0?type=jar"));
     return restRequest()
         .path(COMPONENT_CHANGE_CONFIGURATION_PATH)
         .body(components, MediaType.APPLICATION_JSON);

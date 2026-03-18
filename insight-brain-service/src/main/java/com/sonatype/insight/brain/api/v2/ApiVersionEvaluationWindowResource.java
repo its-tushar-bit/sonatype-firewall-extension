@@ -41,8 +41,7 @@ import jakarta.ws.rs.core.MediaType;
 @Hidden // Temporarily hidden until CLM-38616 is ready
 @Tag(name = "Version Evaluation Window",
     description = "Manage version evaluation window configurations. " +
-        "A version evaluation window determines which application versions are monitored."
-)
+        "A version evaluation window determines which application versions are monitored.")
 public class ApiVersionEvaluationWindowResource
 {
   static final String OWNER_PATH = "{ownerType: organization|application}/{ownerId}";
@@ -68,18 +67,15 @@ public class ApiVersionEvaluationWindowResource
           "<p>" +
           "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The version evaluation window configurations.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The version evaluation window configurations.",
+            useReturnTypeSchema = true)
+      })
   public ApiVersionEvaluationWindowsDTO getVersionEvaluationWindows(
-      @Parameter(description = "The owner type.", required = true)
-      @PathParam("ownerType") final OwnerType ownerType,
-      @Parameter(description = "The internal or public owner id.", required = true)
-      @PathParam("ownerId") final String ownerId)
+      @Parameter(description = "The owner type.", required = true) @PathParam("ownerType") final OwnerType ownerType,
+      @Parameter(description = "The internal or public owner id.",
+          required = true) @PathParam("ownerId") final String ownerId)
   {
     return service.getVersionEvaluationWindows(idUtils.getOwnerNotNull(ownerType, ownerId));
   }
@@ -93,19 +89,16 @@ public class ApiVersionEvaluationWindowResource
           "<p>" +
           "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The version evaluation window configuration has been set successfully."
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The version evaluation window configuration has been set successfully.")
+      })
   public void setVersionEvaluationWindow(
-      @Parameter(description = "The owner type.", required = true)
-      @PathParam("ownerType") final OwnerType ownerType,
-      @Parameter(description = "The internal or public owner id.", required = true)
-      @PathParam("ownerId") final String ownerId,
-      @RequestBody(description = "The version evaluation window configuration.", required = true)
-      ApiVersionEvaluationWindowDTO dto)
+      @Parameter(description = "The owner type.", required = true) @PathParam("ownerType") final OwnerType ownerType,
+      @Parameter(description = "The internal or public owner id.",
+          required = true) @PathParam("ownerId") final String ownerId,
+      @RequestBody(description = "The version evaluation window configuration.",
+          required = true) ApiVersionEvaluationWindowDTO dto)
   {
     service.setVersionEvaluationWindow(idUtils.getOwnerNotNull(ownerType, ownerId), dto);
   }
@@ -118,20 +111,16 @@ public class ApiVersionEvaluationWindowResource
           "<p>" +
           "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The version evaluation window configuration has been deleted successfully."
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The version evaluation window configuration has been deleted successfully.")
+      })
   public void deleteVersionEvaluationWindows(
-      @Parameter(description = "The owner type.", required = true)
-      @PathParam("ownerType") final OwnerType ownerType,
-      @Parameter(description = "The internal or public owner id.", required = true)
-      @PathParam("ownerId") final String ownerId,
+      @Parameter(description = "The owner type.", required = true) @PathParam("ownerType") final OwnerType ownerType,
+      @Parameter(description = "The internal or public owner id.",
+          required = true) @PathParam("ownerId") final String ownerId,
       @Parameter(description = "The context id for which to delete the version evaluation window. " +
-          "If omitted, all version evaluation windows will be deleted for the given owner.")
-      @QueryParam("contextId") final String contextId)
+          "If omitted, all version evaluation windows will be deleted for the given owner.") @QueryParam("contextId") final String contextId)
   {
     service.deleteVersionEvaluationWindows(idUtils.getOwnerNotNull(ownerType, ownerId), contextId);
   }

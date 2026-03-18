@@ -82,7 +82,7 @@ public interface BaseReportEntity
   Optional<Metadata> getMetadata(MetadataAttribute... metadataAttributes) throws IOException;
 
   /**
-   * @param source             the source of metadata to use
+   * @param source the source of metadata to use
    * @param metadataAttributes the minimal metadata attributes to retrieve
    * @return at least the requested metadata for the report entity or empty if it does not exist
    * @throws IOException if there is an error reading the file's metadata
@@ -90,8 +90,9 @@ public interface BaseReportEntity
    *           fresh metadata from the underlying storage (equivalent to {@link MetadataSource#FETCH}).
    *           Implementations that support caching should override this method.
    */
-  default Optional<Metadata> getMetadata(MetadataSource source, MetadataAttribute... metadataAttributes)
-      throws IOException
+  default Optional<Metadata> getMetadata(
+      MetadataSource source,
+      MetadataAttribute... metadataAttributes) throws IOException
   {
     return getMetadata(metadataAttributes);
   }
@@ -109,13 +110,13 @@ public interface BaseReportEntity
 
   /**
    * @return an OutputStream that can be used to write to the file. If the file already exists, it will be overwritten.
-   * If it doesn't already exist, it will be created.
+   *         If it doesn't already exist, it will be created.
    */
   OutputStream getOutputStream() throws IOException;
 
   /**
    * @return an InputStream that can be used to read from the file. If the file does not exist, an IOException will be
-   * thrown.
+   *         thrown.
    */
   InputStream getInputStream() throws IOException;
 

@@ -31,7 +31,8 @@ public class IqShutdownTest
     List<Module> modules = new ArrayList<>(super.getBrainModules());
 
     // Add a module that registers our test TenantManaged bean using Multibinder
-    modules.add(new AbstractModule() {
+    modules.add(new AbstractModule()
+    {
       @Override
       protected void configure() {
         // Explicit binding required for IqShutdownTestTenantManaged

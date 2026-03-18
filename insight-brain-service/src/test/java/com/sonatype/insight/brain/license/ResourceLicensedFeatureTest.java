@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.license;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -190,52 +191,43 @@ public class ResourceLicensedFeatureTest
       map.put(ApiEvaluationResourceV2.class.getDeclaredMethod(
           "evaluateComponents",
           String.class,
-          ApiComponentEvaluationRequestDTOV2.class
-      ), LicensedFeature.COMPONENT_EVALUATION);
+          ApiComponentEvaluationRequestDTOV2.class), LicensedFeature.COMPONENT_EVALUATION);
       map.put(ApiEvaluationResourceV2.class.getDeclaredMethod(
           "getComponentEvaluation",
           String.class,
-          String.class
-      ), LicensedFeature.COMPONENT_EVALUATION);
+          String.class), LicensedFeature.COMPONENT_EVALUATION);
       map.put(ApiEvaluationResourceV2.class.getDeclaredMethod(
           "promoteScan",
           String.class,
           ApiPromoteScanRequestDTOV2.class,
-          HttpServletRequest.class
-      ), LicensedFeature.APPLICATION_EVALUATION);
+          HttpServletRequest.class), LicensedFeature.APPLICATION_EVALUATION);
       map.put(ApiEvaluationResourceV2.class.getDeclaredMethod(
           "evaluateSourceControl",
           String.class,
           ApiSourceControlEvaluationRequestDTO.class,
-          HttpServletRequest.class
-      ), LicensedFeature.SOURCE_CONTROL);
+          HttpServletRequest.class), LicensedFeature.SOURCE_CONTROL);
       map.put(ApiEvaluationResourceV2.class.getDeclaredMethod(
           "getApplicationEvaluationStatus",
           String.class,
-          String.class
-      ), LicensedFeature.APPLICATION_EVALUATION);
+          String.class), LicensedFeature.APPLICATION_EVALUATION);
 
       map.put(ApiReportDataResourceV2.class.getDeclaredMethod(
           "getData",
           String.class,
-          String.class
-      ), LicensedFeature.APPLICATION_REPORTS);
+          String.class), LicensedFeature.APPLICATION_REPORTS);
       map.put(ApiReportDataResourceV2.class.getDeclaredMethod(
           "getRawData",
           String.class,
-          String.class
-      ), LicensedFeature.APPLICATION_REPORTS);
+          String.class), LicensedFeature.APPLICATION_REPORTS);
       map.put(ApiReportDataResourceV2.class.getDeclaredMethod(
           "getPolicyViolations",
           String.class,
           String.class,
-          boolean.class
-      ), LicensedFeature.POLICY_VIOLATIONS);
+          boolean.class), LicensedFeature.POLICY_VIOLATIONS);
       map.put(ApiReportDataResourceV2.class.getDeclaredMethod(
           "getDependencyTree",
           String.class,
-          String.class
-      ), LicensedFeature.APPLICATION_REPORTS);
+          String.class), LicensedFeature.APPLICATION_REPORTS);
       map.put(ApiReportDataResourceV2.class.getDeclaredMethod(
           "getPolicyViolationDiff",
           String.class,
@@ -243,51 +235,43 @@ public class ResourceLicensedFeatureTest
           String.class,
           String.class,
           String.class,
-          boolean.class
-      ), LicensedFeature.POLICY_VIOLATIONS);
+          boolean.class), LicensedFeature.POLICY_VIOLATIONS);
 
       map.put(ComponentDetailResource.class.getDeclaredMethod(
           "getApplicationDetailsByHash",
-          String.class
-      ), LicensedFeature.APPLICATION_REPORTS);
+          String.class), LicensedFeature.APPLICATION_REPORTS);
 
       map.put(ReportResource.class.getDeclaredMethod(
           "browseReport",
           String.class,
           String.class,
           String.class,
-          HttpServletRequest.class
-      ), LicensedFeature.APPLICATION_REPORTS);
+          HttpServletRequest.class), LicensedFeature.APPLICATION_REPORTS);
       map.put(ReportResource.class.getDeclaredMethod(
           "getReportMetadata",
           String.class,
-          String.class
-      ), LicensedFeature.APPLICATION_REPORTS);
+          String.class), LicensedFeature.APPLICATION_REPORTS);
       map.put(ReportResource.class.getDeclaredMethod(
           "reevaluatePolicy",
           String.class,
           String.class,
           Boolean.class,
-          HttpServletRequest.class
-      ), LicensedFeature.APPLICATION_EVALUATION);
+          HttpServletRequest.class), LicensedFeature.APPLICATION_EVALUATION);
       map.put(ReportResource.class.getDeclaredMethod(
           "printReport",
           String.class,
-          String.class
-      ), LicensedFeature.APPLICATION_REPORTS);
+          String.class), LicensedFeature.APPLICATION_REPORTS);
       map.put(ReportResource.class.getDeclaredMethod(
           "downloadBundle",
           String.class,
-          String.class
-      ), LicensedFeature.APPLICATION_REPORTS);
+          String.class), LicensedFeature.APPLICATION_REPORTS);
 
       map.put(SecurityVulnerabilityOverrideResource.class.getDeclaredMethod(
           "applyOverride",
           OwnerType.class,
           String.class,
           SecurityVulnerabilityOverride.class,
-          HttpServletRequest.class
-      ), LicensedFeature.POLICY_MANAGEMENT);
+          HttpServletRequest.class), LicensedFeature.POLICY_MANAGEMENT);
     }
     catch (NoSuchMethodException e) {
       throw new RuntimeException(e);
@@ -307,7 +291,8 @@ public class ResourceLicensedFeatureTest
               + ProductLicenseEnforcementPoint.class.getSimpleName()
               + "(" + LicensedFeature.class.getSimpleName() + "." + entry.getValue().name() + ")")
           .isNotNull()
-          .extracting(ProductLicenseEnforcementPoint::value).isEqualTo(entry.getValue());
+          .extracting(ProductLicenseEnforcementPoint::value)
+          .isEqualTo(entry.getValue());
     }
   }
 
@@ -324,7 +309,8 @@ public class ResourceLicensedFeatureTest
               + ProductLicenseEnforcementPoint.class.getSimpleName()
               + "(" + LicensedFeature.class.getSimpleName() + "." + entry.getValue().name() + ")")
           .isNotNull()
-          .extracting(ProductLicenseEnforcementPoint::value).isEqualTo(entry.getValue());
+          .extracting(ProductLicenseEnforcementPoint::value)
+          .isEqualTo(entry.getValue());
     }
   }
 

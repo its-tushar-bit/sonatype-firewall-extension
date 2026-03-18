@@ -96,7 +96,8 @@ public class ApiPolicyWaiverRequestDTO
   @JsonProperty(access = Access.READ_ONLY)
   public ComponentDisplayName getDisplayName() {
     return this.componentIdentifier == null
-        ? null : ComponentDisplayNameUtil.fromIdentifier(this.componentIdentifier.toComponentIdentifier());
+        ? null
+        : ComponentDisplayNameUtil.fromIdentifier(this.componentIdentifier.toComponentIdentifier());
   }
 
   @JsonInclude(Include.NON_NULL)

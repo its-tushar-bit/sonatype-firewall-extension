@@ -60,8 +60,9 @@ public class PolicyViolationAggregationDAO
     return getList(sQuery, timePeriod);
   }
 
-  public PolicyViolationAggregation getMostRecentByApplicationIdAndTimePeriod(String applicationId,
-                                                                              TimePeriod timePeriod)
+  public PolicyViolationAggregation getMostRecentByApplicationIdAndTimePeriod(
+      String applicationId,
+      TimePeriod timePeriod)
   {
     String sQuery = "SELECT entity FROM PolicyViolationAggregation entity" + //
         " WHERE entity.applicationId = ?1" + //
@@ -92,15 +93,16 @@ public class PolicyViolationAggregationDAO
 
     public final int resolvedCountCriticalThreat;
 
-    MttrMonth(Date monthStart,
-              Long mttrLowThreat,
-              Long mttrModerateThreat,
-              Long mttrSevereThreat,
-              Long mttrCriticalThreat,
-              int resolvedCountLowThreat,
-              int resolvedCountModerateThreat,
-              int resolvedCountSevereThreat,
-              int resolvedCountCriticalThreat)
+    MttrMonth(
+        Date monthStart,
+        Long mttrLowThreat,
+        Long mttrModerateThreat,
+        Long mttrSevereThreat,
+        Long mttrCriticalThreat,
+        int resolvedCountLowThreat,
+        int resolvedCountModerateThreat,
+        int resolvedCountSevereThreat,
+        int resolvedCountCriticalThreat)
     {
       this.monthStart = monthStart;
 
@@ -130,12 +132,13 @@ public class PolicyViolationAggregationDAO
 
     public final int evaluationCount;
 
-    public AverageMonth(Date timePeriodStart,
-                        AverageThreatCategoryMonth security,
-                        AverageThreatCategoryMonth license,
-                        AverageThreatCategoryMonth quality,
-                        AverageThreatCategoryMonth other,
-                        int evaluationCount)
+    public AverageMonth(
+        Date timePeriodStart,
+        AverageThreatCategoryMonth security,
+        AverageThreatCategoryMonth license,
+        AverageThreatCategoryMonth quality,
+        AverageThreatCategoryMonth other,
+        int evaluationCount)
     {
       this.timePeriodStart = timePeriodStart;
       this.security = security;
@@ -157,10 +160,11 @@ public class PolicyViolationAggregationDAO
 
     public final double averageDiscoveredCriticalThreat;
 
-    public AverageThreatCategoryMonth(double averageDiscoveredLowThreat,
-                                      double averageDiscoveredModerateThreat,
-                                      double averageDiscoveredSevereThreat,
-                                      double averageDiscoveredCriticalThreat)
+    public AverageThreatCategoryMonth(
+        double averageDiscoveredLowThreat,
+        double averageDiscoveredModerateThreat,
+        double averageDiscoveredSevereThreat,
+        double averageDiscoveredCriticalThreat)
     {
       this.averageDiscoveredLowThreat = averageDiscoveredLowThreat;
       this.averageDiscoveredModerateThreat = averageDiscoveredModerateThreat;
@@ -184,10 +188,11 @@ public class PolicyViolationAggregationDAO
 
     public final Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> waivedCounts;
 
-    public ViolationCountPeriod(Date periodStart,
-                                Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> discoveredCounts,
-                                Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> fixedCounts,
-                                Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> waivedCounts)
+    public ViolationCountPeriod(
+        Date periodStart,
+        Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> discoveredCounts,
+        Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> fixedCounts,
+        Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> waivedCounts)
     {
       this.periodStart = periodStart;
       this.discoveredCounts = discoveredCounts;
@@ -381,8 +386,9 @@ public class PolicyViolationAggregationDAO
     public int countOtherCriticalThreat;
   }
 
-  public ApplicationCountsByThreat getApplicationCountsByThreatByApplicationIds(Set<String> applicationIds,
-                                                                                boolean includeLatestData)
+  public ApplicationCountsByThreat getApplicationCountsByThreatByApplicationIds(
+      Set<String> applicationIds,
+      boolean includeLatestData)
   {
     // query that returns the summed discovered violation counts across the past
     // year for a given app in each row
@@ -485,7 +491,8 @@ public class PolicyViolationAggregationDAO
   }
 
   private Date getAggregationQueryStartDate(TimePeriod timePeriod) {
-    return new LocalDate().withField(timePeriod.getDateTimeFieldType(), 1).minus(timePeriod.getPeriod(NUM_PERIODS))
+    return new LocalDate().withField(timePeriod.getDateTimeFieldType(), 1)
+        .minus(timePeriod.getPeriod(NUM_PERIODS))
         .toDate();
   }
 
@@ -514,8 +521,9 @@ public class PolicyViolationAggregationDAO
     return getList(tx, sQuery, applicationId);
   }
 
-  public List<ViolationCountPeriod> getViolationCountsByApplicationIds(Set<String> applicationIds,
-                                                                       boolean includeLatestData)
+  public List<ViolationCountPeriod> getViolationCountsByApplicationIds(
+      Set<String> applicationIds,
+      boolean includeLatestData)
   {
     String sQuery = "SELECT" + //
         "  SUM(agg.discoveredCountSecurityLowThreat)," + //
@@ -578,7 +586,8 @@ public class PolicyViolationAggregationDAO
     LinkedList<ViolationCountPeriod> countPeriods = new LinkedList<>();
 
     List<Object[]> periods = new Query<Object[]>(sQuery, applicationIds, getAggregationQueryStartDate(WEEK), WEEK)
-        .setMaxResults(NUM_PERIODS).getList();
+        .setMaxResults(NUM_PERIODS)
+        .getList();
 
     for (Object[] period : periods) {
       ViolationCountPeriod countPeriod = new ViolationCountPeriod((Date) period[48], getDiscoveredCounts(period),
@@ -625,8 +634,9 @@ public class PolicyViolationAggregationDAO
     return result;
   }
 
-  public LinkedList<OpenViolationCountsWeek> getOpenViolationsCountsByApplicationIds(Set<String> applicationIds,
-                                                                                     boolean includeLatestData)
+  public LinkedList<OpenViolationCountsWeek> getOpenViolationsCountsByApplicationIds(
+      Set<String> applicationIds,
+      boolean includeLatestData)
   {
     String sQuery = "SELECT" + //
         "  SUM(agg.openCountSecurityLowThreat) + SUM(agg.openCountSecurityModerateThreat) + " + //
@@ -649,7 +659,8 @@ public class PolicyViolationAggregationDAO
     final LinkedList<OpenViolationCountsWeek> openViolationCountsWeeks = new LinkedList<>();
 
     List<Object[]> periods = new Query<Object[]>(sQuery, applicationIds, getAggregationQueryStartDate(WEEK), WEEK)
-        .setMaxResults(NUM_PERIODS).getList();
+        .setMaxResults(NUM_PERIODS)
+        .getList();
 
     for (Object[] period : periods) {
       Map<PolicyThreatCategory, Integer> violationTotalsWeek = new EnumMap<>(PolicyThreatCategory.class);
@@ -670,13 +681,14 @@ public class PolicyViolationAggregationDAO
    * @param applicationIds The ids of the applications to look up
    * @param timePeriod the TimePeriod (e.g. WEEKLY or MONTHLY)
    * @param startDate the earliest timePeriodStart value to look up
-   * @param endDate the latest timePeriodStart to look up (exclusive).  If null, all aggregations after startDate,
-   * including the current partial aggregation, are included
+   * @param endDate the latest timePeriodStart to look up (exclusive). If null, all aggregations after startDate,
+   *          including the current partial aggregation, are included
    */
-  public List<PolicyViolationAggregation> getByApplicationIdsAndTimePeriodBounds(Set<String> applicationIds,
-                                                                                 TimePeriod timePeriod,
-                                                                                 Date startDate,
-                                                                                 Date endDate)
+  public List<PolicyViolationAggregation> getByApplicationIdsAndTimePeriodBounds(
+      Set<String> applicationIds,
+      TimePeriod timePeriod,
+      Date startDate,
+      Date endDate)
   {
     String sQuery = "SELECT entity FROM PolicyViolationAggregation entity" +
         " WHERE entity.applicationId IN (?1)" +

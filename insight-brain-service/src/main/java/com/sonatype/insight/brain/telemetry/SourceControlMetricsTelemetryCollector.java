@@ -216,8 +216,7 @@ public class SourceControlMetricsTelemetryCollector
     // last time
     var nonOpenPRs = sourceControlPullRequestDAO.getByStatesAndSources(
         EnumSet.of(AUTO_CLOSED, CLOSED, MERGED, MISSING),
-        EnumSet.of(AUTOMATIC, AUTOMATIC_INNER_SOURCE, MANUAL, MANUAL_INNER_SOURCE)
-    );
+        EnumSet.of(AUTOMATIC, AUTOMATIC_INNER_SOURCE, MANUAL, MANUAL_INNER_SOURCE));
 
     var openPRsBySource = openPRsSinceLastCollection.stream()
         .collect(Collectors.groupingBy(SourceControlPullRequest::getSource));
@@ -231,14 +230,11 @@ public class SourceControlMetricsTelemetryCollector
             (l1, l2) -> Stream.concat(l1.stream(), l2.stream()).toList(),
             () -> ArrayTable.create(
                 EnumSet.allOf(PullRequestSource.class),
-                EnumSet.allOf(PullRequestState.class)
-            )
-        ));
+                EnumSet.allOf(PullRequestState.class))));
 
     BiFunction<PullRequestSource, PullRequestState, Integer> getCount = (source, state) -> {
-      var list = state == PullRequestState.OPEN ?
-          openPRsBySource.get(source) :
-          nonOpenPRsBySourceAndState.get(source, state);
+      var list =
+          state == PullRequestState.OPEN ? openPRsBySource.get(source) : nonOpenPRsBySourceAndState.get(source, state);
 
       return list == null ? 0 : list.size();
     };
@@ -267,8 +263,7 @@ public class SourceControlMetricsTelemetryCollector
     attributes.put(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CLOSED, getCount.apply(AUTOMATIC_INNER_SOURCE, CLOSED));
     attributes.put(
         TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_AUTO_CLOSED,
-        getCount.apply(AUTOMATIC_INNER_SOURCE, AUTO_CLOSED)
-    );
+        getCount.apply(AUTOMATIC_INNER_SOURCE, AUTO_CLOSED));
     attributes.put(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CLOSED, getCount.apply(MANUAL_INNER_SOURCE, CLOSED));
     attributes.put(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MERGED, getCount.apply(AUTOMATIC_INNER_SOURCE, MERGED));
     attributes.put(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MERGED, getCount.apply(MANUAL_INNER_SOURCE, MERGED));
@@ -276,10 +271,11 @@ public class SourceControlMetricsTelemetryCollector
     attributes.put(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MISSING, getCount.apply(MANUAL_INNER_SOURCE, MISSING));
 
     // delete all non-open PRs that were recorded in telemetry
-    nonOpenPRsBySourceAndState.values().stream()
-      .filter(Objects::nonNull)
-      .flatMap(List::stream)
-      .forEach(sourceControlPullRequestDAO::delete);
+    nonOpenPRsBySourceAndState.values()
+        .stream()
+        .filter(Objects::nonNull)
+        .flatMap(List::stream)
+        .forEach(sourceControlPullRequestDAO::delete);
   }
 
   private Date getPastDate(int type, int delta, Date origin) {

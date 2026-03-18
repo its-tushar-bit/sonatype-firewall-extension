@@ -37,7 +37,7 @@ public class SourceControlConfigurationInfo
     entries.put("gitTimeoutSeconds", sourceControlConfig.getGitTimeoutSeconds());
     entries.put("commitUsername", sourceControlConfig.getCommitUsername());
     entries.put("commitEmail", sourceControlConfig.getCommitEmail());
-    entries.put("useUsernameInRepositoryCloneUrl",sourceControlConfig.isUseUsernameInRepositoryCloneUrl());
+    entries.put("useUsernameInRepositoryCloneUrl", sourceControlConfig.isUseUsernameInRepositoryCloneUrl());
     entries.put("defaultBranchMonitoringStartTime", sourceControlConfig.getDefaultBranchMonitoringStartTimeString());
     entries.put("defaultBranchMonitoringIntervalHours", sourceControlConfig.getDefaultBranchMonitoringIntervalHours());
     entries.put("pullRequestMonitoringIntervalSeconds", sourceControlConfig.getPullRequestMonitoringIntervalSeconds());

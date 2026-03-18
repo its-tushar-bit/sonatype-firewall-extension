@@ -12,27 +12,23 @@ public class TenantParameters
   @Parameter(
       names = {"-t", "--tenantSubdomain"},
       description = "tenant specific subdomain part in the SaaS public URL",
-      required = true
-  )
+      required = true)
   private String subdomain;
 
   @Parameter(
       names = {"-a", "--action"},
       required = true,
-      description = "valid actions => [provision]"
-  )
+      description = "valid actions => [provision]")
   private String action;
 
   @Parameter(
       names = {"-d", "--description"},
-      description = "text describing tenant (must be less than 140 characters)"
-  )
+      description = "text describing tenant (must be less than 140 characters)")
   private String description;
 
   @Parameter(
       names = {"-l", "--logo-url"},
-      description = "url to the tenant specific logo.  auth0 logo will be used if not provided"
-  )
+      description = "url to the tenant specific logo.  auth0 logo will be used if not provided")
   private String logoUrl;
 
   public String getSubdomain() {

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.configuration;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -48,7 +49,8 @@ public class AutomaticApplicationsConfigurationResourceAuditTest
   @Test
   public void testUpdate_Unauthorized() throws Exception {
     automaticApplicationsConfigurationRequest().body(new AutomaticApplicationsConfiguration(true, organization.getId()))
-        .with(unauthorizedUser()).put();
+        .with(unauthorizedUser())
+        .put();
 
     assertAuditLog(AuditEvent.CONFIGURE_AUTOMATIC_APPLICATIONS, "unauthorized");
   }

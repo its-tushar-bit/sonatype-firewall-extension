@@ -95,8 +95,11 @@ public class ApiComponentDetailsAdapter
     componentDetailsDTO.component.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
 
     componentDetailsDTO.component.proprietary = component.isProprietary();
-    componentDetailsDTO.matchState = component.getMatchState() == null ? MatchState.UNKNOWN.getId() : component
-        .getMatchState().getId();
+    componentDetailsDTO.matchState = component.getMatchState() == null
+        ? MatchState.UNKNOWN.getId()
+        : component
+            .getMatchState()
+            .getId();
 
     if (component.getCatalogDate() != null) {
       componentDetailsDTO.catalogDate = new Date(component.getCatalogDate());
@@ -161,8 +164,7 @@ public class ApiComponentDetailsAdapter
   {
     RepositoryComponentEvaluationDataRequestList requestList = new RepositoryComponentEvaluationDataRequestList();
 
-    for (ApiRepositoryComponentEvaluationRequest componentRequest :
-        apiRepositoryComponentEvaluationRequestList.components) {
+    for (ApiRepositoryComponentEvaluationRequest componentRequest : apiRepositoryComponentEvaluationRequestList.components) {
       String pathname = componentRequest.pathname;
       String hash = componentRequest.hash;
 
@@ -174,7 +176,8 @@ public class ApiComponentDetailsAdapter
         // The synthetic hash satisfies HDS validation while the actual lookup is done by coordinates (NEXUS-49174).
         // For hash-based formats (maven, npm, pypi, etc.), hash must be provided by the caller.
         if (hash == null &&
-            ComponentFormatConstants.isCoordinateBasedFormat(apiRepositoryComponentEvaluationRequestList.format)) {
+            ComponentFormatConstants.isCoordinateBasedFormat(apiRepositoryComponentEvaluationRequestList.format))
+        {
           hash = generateSyntheticHash(componentRequest.packageUrl);
         }
       }
@@ -189,11 +192,13 @@ public class ApiComponentDetailsAdapter
   /**
    * Generates a synthetic SHA1 hash for coordinate-based formats when packageUrl is provided without hash.
    *
-   * <p>Coordinate-based formats (golang, conan, cargo, cocoapods, cran, conda, composer, hf-model) identify
+   * <p>
+   * Coordinate-based formats (golang, conan, cargo, cocoapods, cran, conda, composer, hf-model) identify
    * components by their coordinates (name + version) rather than file content hash. Unlike hash-based formats
    * (maven, npm, pypi), these formats do not have a single canonical file to hash.
    *
-   * <p>This synthetic hash:
+   * <p>
+   * This synthetic hash:
    * <ul>
    * <li>Satisfies HDS validation requirements that expect a hash field</li>
    * <li>Is generated deterministically from the packageUrl for consistency</li>
@@ -201,8 +206,10 @@ public class ApiComponentDetailsAdapter
    * <li>Allows the API to make hash optional for coordinate-based formats</li>
    * </ul>
    *
-   * <p><b>Edge Case - Hash Collisions:</b>
-   * <br>While theoretically possible, synthetic hash collisions with real component hashes are extremely unlikely
+   * <p>
+   * <b>Edge Case - Hash Collisions:</b>
+   * <br>
+   * While theoretically possible, synthetic hash collisions with real component hashes are extremely unlikely
    * due to SHA-1's cryptographic properties. Even if a collision occurred, it would not impact correctness because:
    * <ul>
    * <li>Coordinate-based formats use coordinates (name+version) for component lookup, not hash</li>
@@ -244,8 +251,7 @@ public class ApiComponentDetailsAdapter
     resultDTO.repositoryId = repository.getId();
     resultDTO.repositoryPublicId = repository.getPublicId();
     resultDTO.repositoryType = repository.getRepositoryType().name();
-    for (RepositoryComponentEvaluationData repositoryComponentEvaluationData :
-        repositoryComponentEvaluationDataList.componentEvalResults) {
+    for (RepositoryComponentEvaluationData repositoryComponentEvaluationData : repositoryComponentEvaluationDataList.componentEvalResults) {
       ApiRepositoryComponentEvaluationResult componentEvaluationResult =
           new ApiRepositoryComponentEvaluationResult();
 

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.security;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -308,7 +309,8 @@ public class SamlAuthcTest
     assertResponseStatus(200, response);
     assertThat(response.getBodyText()).contains("<INPUT TYPE=\"HIDDEN\" NAME=\"SAMLRequest\"");
     assertThat(logOutput).atInfoLevel().containsPattern("Assertion .* expired");
-    assertThat(logOutput).atDebugLevel().containsPattern(
-        "Conditions of Assertion .* notBefore=2019-10-17T14:17:08\\.098Z.*notOnOrAfter=2019-10-18T14:18:08\\.123Z");
+    assertThat(logOutput).atDebugLevel()
+        .containsPattern(
+            "Conditions of Assertion .* notBefore=2019-10-17T14:17:08\\.098Z.*notOnOrAfter=2019-10-18T14:18:08\\.123Z");
   }
 }

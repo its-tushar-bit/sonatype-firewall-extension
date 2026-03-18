@@ -15,5 +15,6 @@ import java.util.List;
  */
 public record ApiBulkWaiversDTO(
     List<String> violationIds,
-    ApiWaiverOptionsDTO apiWaiverOptionsDTO
-) {}
+    ApiWaiverOptionsDTO apiWaiverOptionsDTO)
+{
+}

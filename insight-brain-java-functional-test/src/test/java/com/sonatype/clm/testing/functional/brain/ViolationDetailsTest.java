@@ -150,19 +150,19 @@ public class ViolationDetailsTest
   }
 
   private Policy createPolicy(
-          String ownerId,
-          int threatLevel,
-          String name,
-          String conditionType,
-          String operator,
-          String value)
+      String ownerId,
+      int threatLevel,
+      String name,
+      String conditionType,
+      String operator,
+      String value)
   {
     Policy policy = new Policy(null, name);
     policy.setThreatLevel(threatLevel);
     policy.setOwnerId(ownerId);
     Constraint constraint = new Constraint(null, name + " constraint", LogicalOperator.AND);
     com.sonatype.insight.brain.model.policy.Condition condition = new com.sonatype.insight.brain.model.policy.Condition(
-            conditionType, operator, value);
+        conditionType, operator, value);
     constraint.setConditions(Collections.singletonList(condition));
     policy.setConstraints(Collections.singletonList(constraint));
     policy.setAction(ProxyStageType.ID, FailActionType.ID);
@@ -208,9 +208,9 @@ public class ViolationDetailsTest
     tile.stage(3).shouldNotBe(ViolationDetailsPage.ViolationDetailsStage.unused());
 
     // Uncomment after fixing CLM-18676
-    //tile.stage(4).shouldHave(text("Operate 1d"));
-    //tile.stage(4).icon().should(exist);
-    //tile.stage(4).shouldNotBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+    // tile.stage(4).shouldHave(text("Operate 1d"));
+    // tile.stage(4).icon().should(exist);
+    // tile.stage(4).shouldNotBe(ViolationDetailsPage.ViolationDetailsStage.unused());
   }
 
   @Test
@@ -262,12 +262,14 @@ public class ViolationDetailsTest
         violationDetailsPage.securityVulnerabilityDetailsTile();
 
     constraintInfo.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint"));
-    constraintInfo.subheaderTitle().shouldBe(visible)
+    constraintInfo.subheaderTitle()
+        .shouldBe(visible)
         .shouldHave(exactText("Test Constraint is in violation for the following reason(s):"));
     constraintInfo.reasons().shouldHave(size(1));
     constraintInfo.reason(0).shouldHave(exactText("sonatype-2017-0507"));
 
-    securityDetailsInfoTile.vulnerabilityDetailsHeader().shouldBe(visible)
+    securityDetailsInfoTile.vulnerabilityDetailsHeader()
+        .shouldBe(visible)
         .shouldHave(exactText("sonatype-2017-0507"));
   }
 
@@ -280,8 +282,7 @@ public class ViolationDetailsTest
     String orgId = application.getParentOwnerId();
 
     tempEntity.newWaiver(
-            securityPolicyViolation.getHash(), policyId, orgId, constraintFacts, "A waiver comment"
-    );
+        securityPolicyViolation.getHash(), policyId, orgId, constraintFacts, "A waiver comment");
 
     refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
@@ -290,12 +291,11 @@ public class ViolationDetailsTest
     PolicyViolationApplicableWaiversTab waiversTab = violationDetailsPage.applicableWaiversTab();
     SelenideElement similarWaiversTab = violationDetailsPage.similarWaiversTab();
 
-    PolicyViolationSecurityDetailsInfoTile securityDetailsInfoTile
-        = violationDetailsPage.securityVulnerabilityDetailsTile();
-    PolicyViolationApplicableWaiversInfoTile applicableWaiversInfoTile
-        = violationDetailsPage.applicableWaiversInfoTile();
-    PolicyViolationSimilarWaiversInfoTile similarWaiversInfoTile
-        = violationDetailsPage.similarWaiversInfoTile();
+    PolicyViolationSecurityDetailsInfoTile securityDetailsInfoTile =
+        violationDetailsPage.securityVulnerabilityDetailsTile();
+    PolicyViolationApplicableWaiversInfoTile applicableWaiversInfoTile =
+        violationDetailsPage.applicableWaiversInfoTile();
+    PolicyViolationSimilarWaiversInfoTile similarWaiversInfoTile = violationDetailsPage.similarWaiversInfoTile();
 
     // Check tabs presence
     vulnerabilityTab.shouldBe(visible).shouldHave(exactText("Vulnerability Details"));
@@ -303,7 +303,8 @@ public class ViolationDetailsTest
     similarWaiversTab.shouldBe(visible).shouldHave(textCaseSensitive("Similar Waivers"));
 
     // Check that default tab (security vulnerability) is displayed and that info is correct.
-    securityDetailsInfoTile.vulnerabilityDetailsHeader().shouldBe(visible)
+    securityDetailsInfoTile.vulnerabilityDetailsHeader()
+        .shouldBe(visible)
         .shouldHave(exactText("sonatype-2017-0507"));
     applicableWaiversInfoTile.shouldNotBe(visible);
     similarWaiversInfoTile.shouldNotBe(visible);
@@ -313,7 +314,8 @@ public class ViolationDetailsTest
     securityDetailsInfoTile.shouldNotBe(visible);
     applicableWaiversInfoTile.shouldBe(visible);
     similarWaiversInfoTile.shouldNotBe(visible);
-    applicableWaiversInfoTile.waiverListHeader().shouldBe(visible)
+    applicableWaiversInfoTile.waiverListHeader()
+        .shouldBe(visible)
         .shouldHave(exactText("Waivers applicable to this violation of " + policyName));
     applicableWaiversInfoTile.getApplicableWaiversTable().shouldBe(visible);
 
@@ -322,9 +324,11 @@ public class ViolationDetailsTest
     similarWaiversInfoTile.shouldBe(visible);
     securityDetailsInfoTile.shouldNotBe(visible);
     applicableWaiversInfoTile.shouldNotBe(visible);
-    similarWaiversInfoTile.waiverListHeader().shouldBe(visible)
+    similarWaiversInfoTile.waiverListHeader()
+        .shouldBe(visible)
         .shouldHave(exactText("Waivers for similar violations of " + policyName));
-    similarWaiversInfoTile.waiverListSubtitle().shouldBe(visible)
+    similarWaiversInfoTile.waiverListSubtitle()
+        .shouldBe(visible)
         .shouldHave(exactText("Across all component versions implicated by sonatype-2017-0507"));
 
     // Switch tabs again
@@ -342,8 +346,7 @@ public class ViolationDetailsTest
     String orgId = application.getParentOwnerId();
 
     tempEntity.newWaiver(
-            nonSecurityPolicyViolation.getHash(), policyId, orgId, constraintFacts, "A waiver comment"
-    );
+        nonSecurityPolicyViolation.getHash(), policyId, orgId, constraintFacts, "A waiver comment");
 
     refreshOrOpen(ViolationDetailsPage.url(nonSecurityPolicyViolation.getId()));
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
@@ -358,21 +361,23 @@ public class ViolationDetailsTest
 
     PolicyViolationApplicableWaiversInfoTile applicableWaiversTile =
         violationDetailsPage.applicableWaiversInfoTile();
-    PolicyViolationSimilarWaiversInfoTile similarWaiversInfoTile
-        = violationDetailsPage.similarWaiversInfoTile();
+    PolicyViolationSimilarWaiversInfoTile similarWaiversInfoTile = violationDetailsPage.similarWaiversInfoTile();
 
     applicableWaiversTile.shouldBe(visible);
     similarWaiversInfoTile.shouldNotBe(visible);
-    applicableWaiversTile.waiverListHeader().shouldBe(visible)
+    applicableWaiversTile.waiverListHeader()
+        .shouldBe(visible)
         .shouldHave(exactText("Waivers applicable to this violation of " + policyName));
 
     // Switch tabs, check visibility
     similarWaiversTab.click();
     similarWaiversInfoTile.shouldBe(visible);
     applicableWaiversTile.shouldNotBe(visible);
-    similarWaiversInfoTile.waiverListHeader().shouldBe(visible)
+    similarWaiversInfoTile.waiverListHeader()
+        .shouldBe(visible)
         .shouldHave(exactText("Waivers for similar violations of " + policyName));
-    similarWaiversInfoTile.waiverListSubtitle().shouldBe(visible)
+    similarWaiversInfoTile.waiverListSubtitle()
+        .shouldBe(visible)
         .shouldHave(exactText("Across all component versions"));
   }
 
@@ -385,7 +390,8 @@ public class ViolationDetailsTest
         violationDetailsPage.securityVulnerabilityDetailsTile();
 
     constraintInfo.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint"));
-    constraintInfo.subheaderTitle().shouldBe(visible)
+    constraintInfo.subheaderTitle()
+        .shouldBe(visible)
         .shouldHave(exactText("Test Constraint is in violation for the following reason(s):"));
     constraintInfo.reasons().shouldHave(size(1));
     constraintInfo.reason(0).shouldHave(exactText("reason"));
@@ -583,8 +589,7 @@ public class ViolationDetailsTest
       tempEntity.newMembershipMapping(
           Organization.ROOT_ORGANIZATION_ID,
           Role.DEVELOPER_ROLE_ID,
-          developerUser.getUsername()
-      );
+          developerUser.getUsername());
       refreshOrOpen(DashboardPage.url());
       logout();
       login(developerUser.getUsername(), developerUser.getPassword());
@@ -667,8 +672,9 @@ public class ViolationDetailsTest
     applicableWaiversTable.headerRow().duration().shouldHave(text("DURATION"));
     applicableWaiversTable.headerRow().waiverDetails().shouldHave(text("WAIVER DETAILS"));
     applicableWaiversTable.noWaiversMessage().shouldBe(visible);
-    applicableWaiversTable.noWaiversMessage().shouldHave(
-        text("You don't have any waivers: to learn more about waivers you can check our help documentation."));
+    applicableWaiversTable.noWaiversMessage()
+        .shouldHave(
+            text("You don't have any waivers: to learn more about waivers you can check our help documentation."));
 
     violationDetailsPage.detailsTile().addWaiverButton().click();
     waitUntilUrl(AddWaiverPage.url(securityPolicyViolation.getId()));
@@ -752,12 +758,12 @@ public class ViolationDetailsTest
 
   @Test
   public void testAutoWaiverWithRegularWaivers() {
-    //auto waiver
+    // auto waiver
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
     securityPolicyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
     policyViolationDAO.update(securityPolicyViolation);
 
-    //manual waiver
+    // manual waiver
     List<ConstraintFact> constraintFacts = securityPolicyViolation.getConstraintFacts();
     String policyId = securityPolicyViolation.getPolicyId();
     String orgId = application.getParentOwnerId();
@@ -766,8 +772,7 @@ public class ViolationDetailsTest
         policyId,
         orgId,
         constraintFacts,
-        "Regular waiver comment"
-    );
+        "Regular waiver comment");
 
     refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
     waitUntilUrl(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
@@ -807,26 +812,30 @@ public class ViolationDetailsTest
 
     requestWaiverPage.requestWaiverScope().shouldHave(text("Scope"));
     requestWaiverPage.requestWaiverScopeOptions().shouldHave(size(3));
-    requestWaiverPage.requestWaiverScopeOptions().shouldHave(
-        exactTexts("Application - App 1", "Organization - Org 1", "Organization - Root Organization"));
+    requestWaiverPage.requestWaiverScopeOptions()
+        .shouldHave(
+            exactTexts("Application - App 1", "Organization - Org 1", "Organization - Root Organization"));
     requestWaiverPage.requestWaiverScopeOptions().get(0).shouldBe(selected);
 
     requestWaiverPage.requestWaiverComponents().shouldHave(text("Components"));
     requestWaiverPage.requestWaiverComponentsOptions().shouldHave(size(3));
-    requestWaiverPage.requestWaiverComponentsOptions().shouldHave(
-        exactTexts("Group1 : Artifact1 : Version1", "Group1 : Artifact1 (all versions)", "All Components"));
+    requestWaiverPage.requestWaiverComponentsOptions()
+        .shouldHave(
+            exactTexts("Group1 : Artifact1 : Version1", "Group1 : Artifact1 (all versions)", "All Components"));
     requestWaiverPage.requestWaiverComponentsRadios().get(0).shouldBe(checked);
 
     requestWaiverPage.requestWaiverExpiryTime().shouldHave(text("Waiver Expiration"));
     requestWaiverPage.requestWaiverExpiryTimeOptions().shouldHave(size(8));
-    requestWaiverPage.requestWaiverExpiryTimeOptions().shouldHave(exactTexts("Never", "7 Days", "14 Days", "30 Days",
-        "60 Days", "90 Days", "120 Days", "Custom"));
+    requestWaiverPage.requestWaiverExpiryTimeOptions()
+        .shouldHave(exactTexts("Never", "7 Days", "14 Days", "30 Days",
+            "60 Days", "90 Days", "120 Days", "Custom"));
     requestWaiverPage.requestWaiverExpiryTimeOptions().get(0).shouldBe(selected);
 
     requestWaiverPage.requestWaiverReason().shouldHave(text("Reason"));
-    requestWaiverPage.requestWaiverReasonOptions().shouldHave(
-        exactTexts("Select a reason", "Acknowledged violation", "Evaluating component", "Mitigated externally",
-            "No upgrade path", "Not exploitable", "Not reachable", "Researching", "Other"));
+    requestWaiverPage.requestWaiverReasonOptions()
+        .shouldHave(
+            exactTexts("Select a reason", "Acknowledged violation", "Evaluating component", "Mitigated externally",
+                "No upgrade path", "Not exploitable", "Not reachable", "Researching", "Other"));
     requestWaiverPage.requestWaiverReasonOptions().get(0).shouldBe(selected);
 
     requestWaiverPage.requestWaiverComments().shouldBe(empty);

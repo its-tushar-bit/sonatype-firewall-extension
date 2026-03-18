@@ -40,10 +40,10 @@ public record S3ScanEntity(
     String objectKey,
     String serverSideEncryption,
     String appId,
-    String scanName
-)
+    String scanName)
     implements ScanEntity
 {
+
   private static final Logger log = LoggerFactory.getLogger(S3ScanEntity.class);
 
   public S3ScanEntity {

@@ -79,7 +79,8 @@ public class ApplicationLicenseThreatGroupResourceTest
     assertLicenseThreatGroupsByOwner(parentOrg.getId(), parentOrg.getName(), OwnerType.ORGANIZATION,
         LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT + 1, altgs.licenseThreatGroupsByOwner.get(2));
     assertThat(altgs.licenseThreatGroupsByOwner.get(1).licenseThreatGroups)
-        .filteredOn(ltgwl -> ltgwl.name.startsWith("LTG-")).allSatisfy(ltgwl -> assertThat(ltgwl.licenses).hasSize(2));
+        .filteredOn(ltgwl -> ltgwl.name.startsWith("LTG-"))
+        .allSatisfy(ltgwl -> assertThat(ltgwl.licenses).hasSize(2));
   }
 
   @Test

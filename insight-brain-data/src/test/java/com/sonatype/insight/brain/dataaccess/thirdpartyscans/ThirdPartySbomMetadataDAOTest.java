@@ -413,24 +413,35 @@ public class ThirdPartySbomMetadataDAOTest
     Date oneWeekAgo = DateUtils.addWeeks(now, -1);
     Date yesterday = DateUtils.addDays(now, -1);
 
-    //count just one time
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(now).withStatus(activeState)
-        .withApplicationId(application.getId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneYearAgo).withStatus(activeState)
-        .withApplicationId(application.getId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo).withStatus(activeState)
-        .withApplicationId(application.getId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneMonthAgo).withStatus(activeState)
-        .withApplicationId(application.getId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(sixMonthsAgo).withStatus(activeState)
-        .withApplicationId(application.getId()).build();
+    // count just one time
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(now)
+        .withStatus(activeState)
+        .withApplicationId(application.getId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneYearAgo)
+        .withStatus(activeState)
+        .withApplicationId(application.getId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo)
+        .withStatus(activeState)
+        .withApplicationId(application.getId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneMonthAgo)
+        .withStatus(activeState)
+        .withApplicationId(application.getId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(sixMonthsAgo)
+        .withStatus(activeState)
+        .withApplicationId(application.getId())
+        .build();
 
     newSbomMetadataBuilder(daoFactory).withCreatedAt(sixMonthsAgo).withStatus(activeState).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(twoMonthsAgo).withStatus(activeState).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo).withStatus(activeState).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus(activeState).build();
     newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday)
-        .withStatus(PENDING).build();
+        .withStatus(PENDING)
+        .build();
 
     ApiSbomApplicationsHistoryMetricDTO result = dao.getSbomsHistoryMetrics();
     assertThat(result).isNotNull();
@@ -452,7 +463,7 @@ public class ThirdPartySbomMetadataDAOTest
 
     PolicyEvaluation policyEvaluationOlder = tempEntity.newPolicyEvaluation(application.getId(),
         ComplianceStageType.ID, "scanId1AppOlder");
-    Policy policyOlder = tempEntity.newPolicy(application,8);
+    Policy policyOlder = tempEntity.newPolicy(application, 8);
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluationOlder, policyOlder, "g1",
         "a1", "v1", "h1", "r1");
 
@@ -494,7 +505,7 @@ public class ThirdPartySbomMetadataDAOTest
 
     insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity2);
 
-    //fixed first policy violation
+    // fixed first policy violation
     policyViolation.setFixTime(new Date());
     tempEntity.updatePolicyViolation(policyViolation);
 
@@ -509,8 +520,7 @@ public class ThirdPartySbomMetadataDAOTest
         SbomApplicationsSortableField.IMPORT_DATE,
         false,
         1,
-        3
-    );
+        3);
 
     assertThat(resultDtoList.getApplications()).hasSize(1);
     assertThat(resultDtoList.getTotalCount()).isEqualTo(1);
@@ -635,8 +645,8 @@ public class ThirdPartySbomMetadataDAOTest
     insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity3);
 
     Policy policy = tempEntity.newPolicy(application);
-    PolicyEvaluation
-        policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), ComplianceStageType.ID, "scanId1App1");
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), ComplianceStageType.ID, "scanId1App1");
     tempEntity.newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
 
     SbomApplicationListSummaryDTO resultDtoList = dao.getSbomApplicationsWithRecentlyImportedSbomVersion(
@@ -650,8 +660,7 @@ public class ThirdPartySbomMetadataDAOTest
             SbomApplicationSummaryDTO::getReleaseStatusPercentage)
         .containsExactlyInAnyOrder(
             tuple(application1.getId(), 100.0),
-            tuple(application3.getId(), 100.0)
-        );
+            tuple(application3.getId(), 100.0));
 
     SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO3 = resultDtoList.getApplications().get(2);
     assertThat(applicationPageApplicationSummaryDTO3.getApplicationInternalId()).isEqualTo(application.getId());
@@ -682,8 +691,7 @@ public class ThirdPartySbomMetadataDAOTest
         SbomApplicationsSortableField.IMPORT_DATE,
         false,
         1,
-        3
-    );
+        3);
 
     assertThat(resultDtoList.getApplications()).hasSize(1);
     assertThat(resultDtoList.getTotalCount()).isEqualTo(1);
@@ -710,7 +718,8 @@ public class ThirdPartySbomMetadataDAOTest
     newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus(PENDING).build();
 
     ThirdPartySbomMetadata sbomMetadata = newSbomMetadataBuilder(daoFactory).withCreatedAt(twoYearAgo)
-        .withStatus(activeState).build();
+        .withStatus(activeState)
+        .build();
     ThirdPartyFileCoordinate coordinate = tempEntity.newThirdPartyFileCoordinate(
         sbomMetadata.getThirdPartyFileId(), "s4", "f4", "n4", "v4", "", "");
 
@@ -721,7 +730,8 @@ public class ThirdPartySbomMetadataDAOTest
         "state", "justification", "response", "detail", now, now);
 
     ThirdPartySbomMetadata sbomMetadata2 = newSbomMetadataBuilder(daoFactory).withCreatedAt(twoYearAgo)
-        .withStatus(activeState).build();
+        .withStatus(activeState)
+        .build();
     ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(
         sbomMetadata2.getThirdPartyFileId(), "s4", "f4", "n4", "v4", "", "");
 
@@ -759,34 +769,41 @@ public class ThirdPartySbomMetadataDAOTest
 
     ThirdPartySbomMetadata twoDaysAgoUploadedMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withStatus(UPLOADED)
-        .withCreatedAt(twoDaysAgo).build();
+        .withCreatedAt(twoDaysAgo)
+        .build();
     assertThat(twoDaysAgoUploadedMetadata.getId()).isNotNull();
     ThirdPartySbomMetadata twoDaysAgoPendingMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withStatus(PENDING)
-        .withCreatedAt(twoDaysAgo).build();
+        .withCreatedAt(twoDaysAgo)
+        .build();
     assertThat(twoDaysAgoPendingMetadata.getId()).isNotNull();
 
     ThirdPartySbomMetadata twentyFourHoursAgoUploadedMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withStatus(UPLOADED)
-        .withCreatedAt(twentyFourHoursAgo).build();
+        .withCreatedAt(twentyFourHoursAgo)
+        .build();
     assertThat(twentyFourHoursAgoUploadedMetadata.getId()).isNotNull();
     ThirdPartySbomMetadata twentyFourHoursAgoPendingMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withStatus(PENDING)
-        .withCreatedAt(twentyFourHoursAgo).build();
+        .withCreatedAt(twentyFourHoursAgo)
+        .build();
     assertThat(twentyFourHoursAgoPendingMetadata.getId()).isNotNull();
 
     ThirdPartySbomMetadata twoMonthsAgoActiveMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withStatus(ACTIVE)
-        .withCreatedAt(twoMonthsAgo).build();
+        .withCreatedAt(twoMonthsAgo)
+        .build();
     assertThat(twoMonthsAgoActiveMetadata.getId()).isNotNull();
 
     ThirdPartySbomMetadata threeHoursAgoUploadedMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withStatus(UPLOADED)
-        .withCreatedAt(threeHoursAgo).build();
+        .withCreatedAt(threeHoursAgo)
+        .build();
     assertThat(threeHoursAgoUploadedMetadata.getId()).isNotNull();
     ThirdPartySbomMetadata threeHoursAgoPendingMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withStatus(PENDING)
-        .withCreatedAt(threeHoursAgo).build();
+        .withCreatedAt(threeHoursAgo)
+        .build();
     assertThat(threeHoursAgoPendingMetadata.getId()).isNotNull();
 
     assertThat(dao.getAll()).isNotNull()
@@ -801,8 +818,7 @@ public class ThirdPartySbomMetadataDAOTest
             twoDaysAgoUploadedMetadata.getId(),
             twoDaysAgoPendingMetadata.getId(),
             twentyFourHoursAgoUploadedMetadata.getId(),
-            twentyFourHoursAgoPendingMetadata.getId()
-        );
+            twentyFourHoursAgoPendingMetadata.getId());
   }
 
   @Test
@@ -813,17 +829,20 @@ public class ThirdPartySbomMetadataDAOTest
     Date threeHoursAgo = DateUtils.addHours(now, -3);
     ThirdPartySbomMetadata twoDaysAgoActiveMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withStatus(ACTIVE)
-        .withCreatedAt(twoDaysAgo).build();
+        .withCreatedAt(twoDaysAgo)
+        .build();
     assertThat(twoDaysAgoActiveMetadata.getId()).isNotNull();
 
     ThirdPartySbomMetadata twoMonthsAgoActiveMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withStatus(ACTIVE)
-        .withCreatedAt(twoMonthsAgo).build();
+        .withCreatedAt(twoMonthsAgo)
+        .build();
     assertThat(twoMonthsAgoActiveMetadata.getId()).isNotNull();
 
     ThirdPartySbomMetadata threeHoursAgoActiveMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withStatus(ACTIVE)
-        .withCreatedAt(threeHoursAgo).build();
+        .withCreatedAt(threeHoursAgo)
+        .build();
     assertThat(threeHoursAgoActiveMetadata.getId()).isNotNull();
 
     assertThat(dao.getAll())
@@ -993,26 +1012,26 @@ public class ThirdPartySbomMetadataDAOTest
     ThirdPartyFileCoordinate c3 = tempEntity.newThirdPartyFileCoordinate(file3, "s3", "f3", "n3", "v3");
     ThirdPartyFileCoordinate c4 = tempEntity.newThirdPartyFileCoordinate(file4, "s4", "f4", "n4", "v4");
 
-    tempEntity.newThirdPartyCoordinateSecurity(c1, "r1", sbom1.getId(), "d1", "l1", 3.5F, "sd1", "f1"); //low
+    tempEntity.newThirdPartyCoordinateSecurity(c1, "r1", sbom1.getId(), "d1", "l1", 3.5F, "sd1", "f1"); // low
     tempEntity.newThirdPartyCoordinateSecurity(c1, "r2", sbom1.getId(), "d2", "l2", 7.5F, "sd2", "f2"); // high
     ThirdPartyCoordinateSecurity cs3 =
-        tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", sbom2.getId(), "d3", "l3", 1.5F, "sd3", "f3"); //low
+        tempEntity.newThirdPartyCoordinateSecurity(c2, "r3", sbom2.getId(), "d3", "l3", 1.5F, "sd3", "f3"); // low
     ThirdPartyCoordinateSecurity cs4 =
-        tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", sbom2.getId(), "d4", "l4", 0.5F, "sd4", "f4"); //low
+        tempEntity.newThirdPartyCoordinateSecurity(c2, "r4", sbom2.getId(), "d4", "l4", 0.5F, "sd4", "f4"); // low
     ThirdPartyCoordinateSecurity cs5 =
-        tempEntity.newThirdPartyCoordinateSecurity(c2, "r5", sbom2.getId(), "d3", "l3", 6.9F, "sd3", "f3");//medium
+        tempEntity.newThirdPartyCoordinateSecurity(c2, "r5", sbom2.getId(), "d3", "l3", 6.9F, "sd3", "f3");// medium
     ThirdPartyCoordinateSecurity cs6 =
-        tempEntity.newThirdPartyCoordinateSecurity(c2, "r6", sbom2.getId(), "d4", "l4", 7.0F, "sd4", "f4"); //high
+        tempEntity.newThirdPartyCoordinateSecurity(c2, "r6", sbom2.getId(), "d4", "l4", 7.0F, "sd4", "f4"); // high
     ThirdPartyCoordinateSecurity cs7 =
-        tempEntity.newThirdPartyCoordinateSecurity(c2, "r7", sbom2.getId(), "d3", "l3", 9.0F, "sd3", "f3"); //critical
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r8", sbom2.getId(), "d4", "l4", 7.0F, "sd4", "f4"); //high
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r9", sbom2.getId(), "d5", "l5", 4.7F, "sd5", "f5"); //medium
-    tempEntity.newThirdPartyCoordinateSecurity(c2, "r10", sbom2.getId(), "d6", "l6", 0F, "sd6", "f6"); //none
-    tempEntity.newThirdPartyCoordinateSecurity(c3, "r7", sbom3.getId(), "d7", "l7", 1F, "sd7", "f7"); //low
+        tempEntity.newThirdPartyCoordinateSecurity(c2, "r7", sbom2.getId(), "d3", "l3", 9.0F, "sd3", "f3"); // critical
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r8", sbom2.getId(), "d4", "l4", 7.0F, "sd4", "f4"); // high
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r9", sbom2.getId(), "d5", "l5", 4.7F, "sd5", "f5"); // medium
+    tempEntity.newThirdPartyCoordinateSecurity(c2, "r10", sbom2.getId(), "d6", "l6", 0F, "sd6", "f6"); // none
+    tempEntity.newThirdPartyCoordinateSecurity(c3, "r7", sbom3.getId(), "d7", "l7", 1F, "sd7", "f7"); // low
     ThirdPartyCoordinateSecurity cs8 =
-        tempEntity.newThirdPartyCoordinateSecurity(c4, "r1", sbom4.getId(), "d1", "l1", 3.5F, "sd1", "f1"); //low
+        tempEntity.newThirdPartyCoordinateSecurity(c4, "r1", sbom4.getId(), "d1", "l1", 3.5F, "sd1", "f1"); // low
     ThirdPartyCoordinateSecurity cs9 =
-        tempEntity.newThirdPartyCoordinateSecurity(c4, "r2", sbom4.getId(), "d1", "l1", 6.9F, "sd1", "f1"); //medium
+        tempEntity.newThirdPartyCoordinateSecurity(c4, "r2", sbom4.getId(), "d1", "l1", 6.9F, "sd1", "f1"); // medium
 
     insertVEXToThirdPartyCoordinateSecurity(cs3);
     insertVEXToThirdPartyCoordinateSecurity(cs4);
@@ -1056,7 +1075,8 @@ public class ThirdPartySbomMetadataDAOTest
         dao.getSbomApplicationVulnerabilities(application.getId(), 5, 1,
             SbomVersionsApplicationSortableField.VULNERABILITY, false);
     result.getResults()
-        .sort(Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getCritical).reversed()
+        .sort(Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getCritical)
+            .reversed()
             .thenComparing(Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getHigh).reversed())
             .thenComparing(Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getMedium).reversed())
             .thenComparing(Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getLow).reversed())

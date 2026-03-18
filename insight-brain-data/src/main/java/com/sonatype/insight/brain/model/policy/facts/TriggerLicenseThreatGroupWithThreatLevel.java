@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
  * Instances of this class are serialized in JSON format in policy violations in the database and
  * they are compared in policy violation comparison.
  * Any change to this class structure or to its JSON serialization may break policy violation comparison.
- * 
+ *
  * @since 1.50
  */
 public class TriggerLicenseThreatGroupWithThreatLevel

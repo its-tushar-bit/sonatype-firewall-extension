@@ -99,7 +99,8 @@ public class AntiCsrfFilter
       return true;
     }
     if (pathConfig.explicitAuthAllowed && !getSubject(request, response).isAuthenticated()
-        && !isReverseProxyAuthenticationWithCsrf(httpRequest)) {
+        && !isReverseProxyAuthenticationWithCsrf(httpRequest))
+    {
       return true;
     }
 

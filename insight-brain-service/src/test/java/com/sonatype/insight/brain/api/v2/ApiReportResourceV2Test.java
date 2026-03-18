@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -34,7 +35,7 @@ public class ApiReportResourceV2Test
 {
   @Test
   public void testGetReportHistoryForApplication() throws Exception {
-    //setup
+    // setup
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newPolicy(app);
     final String scanId1 = "ScanId1";
@@ -55,13 +56,14 @@ public class ApiReportResourceV2Test
     response = evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
 
-    //when fetching reports
+    // when fetching reports
     response =
         restRequest()
             .path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2, ApiReportResourceV2.PATH, "{applicationId}/history")
-            .parameter(app.getId()).get();
+            .parameter(app.getId())
+            .get();
 
-    //then assert application with the 3 correct reports are returned
+    // then assert application with the 3 correct reports are returned
     assertResponseStatus(200, response);
     ApiReportHistoryDTO evaluations = response.getBody(ApiReportHistoryDTO.class);
     assertThat(evaluations.applicationId).isEqualTo(app.getId());
@@ -150,7 +152,9 @@ public class ApiReportResourceV2Test
   }
 
   private HttpRequest evalRequest(String appId, String scanId, Stage stage) {
-    return super.restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId).parameter(appId)
+    return super.restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .query("scanId", scanId)
+        .parameter(appId)
         .body(stage);
   }
 

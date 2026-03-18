@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dashboard;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -51,7 +52,8 @@ public class DashboardPolicyWaiverRequestServiceAuthzTest
     createPolicyWaiverRequest(policy.getId(), ROOT_ORGANIZATION_ID);
 
     risksFilterDTOBuilder = new RisksFilterDTOBuilder().withApplicationIds(Collections.emptySet())
-        .withOrganizationIds(Collections.emptySet()).withPageSize(10);
+        .withOrganizationIds(Collections.emptySet())
+        .withPageSize(10);
   }
 
   private PolicyWaiverRequest createPolicyWaiverRequest(String policyId, String ownerId) {
@@ -114,9 +116,10 @@ public class DashboardPolicyWaiverRequestServiceAuthzTest
     grantReadPermission(ROOT_ORGANIZATION_ID);
     dashboardPolicyWaiverRequests =
         dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(dto -> dto.ownerId).containsExactlyInAnyOrder(
-        app.getId(), org.getId(), parentOrg.getId(), ROOT_ORGANIZATION_ID, repository.getId(),
-        repositoryManager.getId(), REPOSITORY_CONTAINER_ID);
+    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(dto -> dto.ownerId)
+        .containsExactlyInAnyOrder(
+            app.getId(), org.getId(), parentOrg.getId(), ROOT_ORGANIZATION_ID, repository.getId(),
+            repositoryManager.getId(), REPOSITORY_CONTAINER_ID);
   }
 
   @Test
@@ -180,8 +183,9 @@ public class DashboardPolicyWaiverRequestServiceAuthzTest
     risksFilterDTOBuilder.withRepositoryIds(Collections.singleton(repository.getId()));
     DashboardResultsDTO<DashboardPolicyWaiverRequestDTO> dashboardPolicyWaiverRequests =
         dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(dto -> dto.ownerId).containsExactlyInAnyOrder(
-        ROOT_ORGANIZATION_ID, repository.getId(), repositoryManager.getId(), REPOSITORY_CONTAINER_ID);
+    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(dto -> dto.ownerId)
+        .containsExactlyInAnyOrder(
+            ROOT_ORGANIZATION_ID, repository.getId(), repositoryManager.getId(), REPOSITORY_CONTAINER_ID);
   }
 
   @Test

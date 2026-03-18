@@ -119,13 +119,11 @@ abstract class AbstractPdfExporterTest
 
   protected void setupTestComponents() {
     ThirdPartyFileCoordinate fc1 = setupFileCoordinateEntity("log4j", "1.2.8", "3640dd71069d7986c9a1",
-        "pkg:maven/log4j/log4j@1.2.8?type=jar", "pkg:maven/log4j/log4j@1.2.8?type=jar:3640dd71069d7986c9a1"
-    );
+        "pkg:maven/log4j/log4j@1.2.8?type=jar", "pkg:maven/log4j/log4j@1.2.8?type=jar:3640dd71069d7986c9a1");
     ThirdPartyFileCoordinate fc2 =
         setupFileCoordinateEntity("jackson-databind", "2.9.9", "43482bee60d253ab70b6",
             "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar",
-            "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
-        );
+            "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar");
 
     setupCoordinateSecurityEntity(fc1, "CVE-2022-23307", "name=CVE-2022-23307", "HIGH", "502", "CVSSV3",
         "NVD", 8.8d, "exploitable");
@@ -155,8 +153,7 @@ abstract class AbstractPdfExporterTest
   protected void setupTestComponentsForDuplicateComponentsTest() {
     ThirdPartyFileCoordinate fc1 = setupFileCoordinateEntity("Microsoft.Extensions.ApiDescription.Server", "3.0.0",
         "85e25187b46727232561", "pkg:nuget/Microsoft.Extensions.ApiDescription.Server@3.0.0",
-        "pkg:nuget/Microsoft.Extensions.ApiDescription.Server@3.0.0"
-    );
+        "pkg:nuget/Microsoft.Extensions.ApiDescription.Server@3.0.0");
     setupCoordinateSecurityEntity(fc1, "sonatype-2021-0713", "link=sonatype-2021-0713", "HIGH", "400", "OTHER",
         "SONATYPE", 7.5d, null);
     setupCoordinateSecurityEntity(fc1, "sonatype-2022-5998", null, "HIGH", "755", "OTHER", "SONATYPE",
@@ -167,9 +164,15 @@ abstract class AbstractPdfExporterTest
   }
 
   protected void setupCoordinateSecurityEntity(
-      ThirdPartyFileCoordinate fc1, String refId, String link,
-      String severityDesc, String cwes,
-      String ratingMethod, String vulnSource, double severity, String analysisState)
+      ThirdPartyFileCoordinate fc1,
+      String refId,
+      String link,
+      String severityDesc,
+      String cwes,
+      String ratingMethod,
+      String vulnSource,
+      double severity,
+      String analysisState)
   {
     ThirdPartyCoordinateSecurity cs1 = tempEntity.newThirdPartyCoordinateSecurity(fc1, refId, null,
         link, severity, null, vulnSource, "CVSS:3.1", severityDesc, cwes,
@@ -182,7 +185,11 @@ abstract class AbstractPdfExporterTest
   }
 
   protected ThirdPartyFileCoordinate setupFileCoordinateEntity(
-      String name, String version, String hash, String purl, String filenames)
+      String name,
+      String version,
+      String hash,
+      String purl,
+      String filenames)
   {
     return tempEntity.newThirdPartyFileCoordinateWithMatchState(thirdPartyFile,
         "SBOM", "maven", name, version, hash, purl, filenames, "exact");
@@ -213,7 +220,7 @@ abstract class AbstractPdfExporterTest
   }
 
   protected void assertPdfData(PdfData pdfData, SbomExportParams.ExportSpecification spec, int componentsSize) {
-    //Then
+    // Then
     assertThat(pdfData.title).isEqualTo(app.getName() + REPORT_NAME);
     assertThat(pdfData.createdDate).isNotNull();
     assertThat(pdfData.analyzedDate).isNotNull();
@@ -255,7 +262,7 @@ abstract class AbstractPdfExporterTest
     assertThat(c2.securityIssues.stream().map(s -> s.reference)).containsExactlyInAnyOrder("CVE-2022-42003",
         "CVE-2019-12384");
 
-    //LTGs
+    // LTGs
     assertThat(c1.effectiveLicenseThreats).hasSize(1);
     assertThat(c1.effectiveLicenseThreats.get(0).licenseThreatGroupLevel).isEqualTo(5);
     assertThat(c2.effectiveLicenseThreats).hasSize(1);

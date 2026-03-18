@@ -38,6 +38,7 @@ public class RisksFilterDTO
   /**
    * The maximum age of risks that pass the filter, in days. When null, no age-based filtering is applied. Note that it
    * is not null by default however, so a null value must be set explicitly if desired.
+   *
    * @since 1.27.0
    */
   public Integer maxDaysOld = DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD;

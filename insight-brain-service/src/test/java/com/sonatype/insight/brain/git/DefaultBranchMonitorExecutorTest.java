@@ -136,7 +136,8 @@ public class DefaultBranchMonitorExecutorTest
         .thenReturn(Arrays.asList(sc1, sc2));
 
     doNothing().doThrow(new IllegalArgumentException("simulated exception"))
-        .when(mockSourceControlEventPublisher).publishEvent(any());
+        .when(mockSourceControlEventPublisher)
+        .publishEvent(any());
 
     // when: detecting and updating default branch with 2 outdated source scans
     underTest.performScan(any());

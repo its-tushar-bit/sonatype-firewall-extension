@@ -26,7 +26,7 @@ public class PolicyEvaluationHelper
 
   /**
    * Wait for the policy evaluation linked to appId+statusId to finish successfully.
-   * 
+   *
    * @param appId The ID of the application for which the policy evaluation was started
    * @param statusId The status ID for the requested policy evaluation (from the associated
    *          PersistedPolicyEvaluationPollingResult)
@@ -37,7 +37,7 @@ public class PolicyEvaluationHelper
 
   /**
    * Wait for the policy evaluation linked to appId+statusId to finish successfully.
-   * 
+   *
    * @param appId The ID of the application for which the policy evaluation was started
    * @param statusId The status ID for the requested policy evaluation (from the associated
    *          PersistedPolicyEvaluationPollingResult)
@@ -55,7 +55,7 @@ public class PolicyEvaluationHelper
 
   /**
    * Wait for the policy evaluation linked to appId+statusId to fail.
-   * 
+   *
    * @param appId The ID of the application for which the policy evaluation was started
    * @param statusId The status ID for the requested policy evaluation (from the associated
    *          PersistedPolicyEvaluationPollingResult)
@@ -66,7 +66,7 @@ public class PolicyEvaluationHelper
 
   /**
    * Wait for the policy evaluation linked to appId+statusId to fail.
-   * 
+   *
    * @param appId The ID of the application for which the policy evaluation was started
    * @param statusId The status ID for the requested policy evaluation (from the associated
    *          PersistedPolicyEvaluationPollingResult)
@@ -99,7 +99,7 @@ public class PolicyEvaluationHelper
 
   /**
    * Wait for the policy evaluation linked to appId+statusId to finish (success or failure).
-   * 
+   *
    * @param appId The ID of the application for which the policy evaluation was started
    * @param statusId The status ID for the requested policy evaluation (from the associated
    *          PersistedPolicyEvaluationPollingResult)
@@ -110,7 +110,7 @@ public class PolicyEvaluationHelper
 
   /**
    * Wait for the policy evaluation linked to appId+statusId to finish (success or failure).
-   * 
+   *
    * @param appId The ID of the application for which the policy evaluation was started
    * @param statusId The status ID for the requested policy evaluation (from the associated
    *          PersistedPolicyEvaluationPollingResult)
@@ -126,7 +126,9 @@ public class PolicyEvaluationHelper
     // Waiting on not-pending ensures we don't wait too long in case the evaluation finished with an unexpected status.
     await().atMost(timeout, timeUnit)
         .until(() -> !PolicyEvaluationStatus.PENDING.equals(persistedPolicyEvaluationPollingResultDAO
-            .getByApplicationIdAndStatusId(appId, statusId).getPolicyEvaluationPollingResult().getStatus()));
+            .getByApplicationIdAndStatusId(appId, statusId)
+            .getPolicyEvaluationPollingResult()
+            .getStatus()));
 
     return persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(appId, statusId)
         .getPolicyEvaluationPollingResult();
@@ -136,7 +138,7 @@ public class PolicyEvaluationHelper
    * Wait for the component analysis process linked to appId and statusId to complete.
    *
    * @param appId The ID of the application for which the component analysis was started
-   * @param statusId    The status ID for the component analysis process (from the associated
+   * @param statusId The status ID for the component analysis process (from the associated
    *          PersistedPolicyEvaluationPollingResult)
    */
   public void awaitComponentAnalysisCompleted(final String appId, final String statusId) {
@@ -144,14 +146,15 @@ public class PolicyEvaluationHelper
         .until(() -> PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE
             .equals(persistedPolicyEvaluationPollingResultDAO
                 .getByApplicationIdAndStatusId(appId, statusId)
-                .getPolicyEvaluationPollingResult().getSubStatus()));
+                .getPolicyEvaluationPollingResult()
+                .getSubStatus()));
   }
 
   /**
    * Wait for the component analysis process linked to appId and statusId to fail.
    *
    * @param appId The ID of the application for which the component analysis was started
-   * @param statusId    The status ID for the component analysis process (from the associated
+   * @param statusId The status ID for the component analysis process (from the associated
    *          PersistedPolicyEvaluationPollingResult)
    */
   public void awaitComponentAnalysisFailed(final String appId, final String statusId) {

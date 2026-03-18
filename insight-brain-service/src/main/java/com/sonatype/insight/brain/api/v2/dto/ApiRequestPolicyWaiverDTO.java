@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.v2.dto;
 /**
  * @since 1.164
  * @deprecated since 1.192
- * Kept only for the legacy endpoint "/waiverRequests/{policyViolationId}"
+ *             Kept only for the legacy endpoint "/waiverRequests/{policyViolationId}"
  */
 @Deprecated
 public class ApiRequestPolicyWaiverDTO

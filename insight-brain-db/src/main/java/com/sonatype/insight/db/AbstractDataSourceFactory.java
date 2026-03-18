@@ -43,10 +43,10 @@ public abstract class AbstractDataSourceFactory
   /**
    * Create a new {@link DataSource} from the given config, data store id, and database schema.
    *
-   * @param databaseConfig         configuration for the database
-   * @param dataStoreId            the ID of the Insight data store, e.g. ods, data mart, etc...
-   * @param databaseSchema         the literal database schema. For most setups the data store ID and schema are the
-   *                               same value. Multi-tenant IQ is a known implementation where the values will differ.
+   * @param databaseConfig configuration for the database
+   * @param dataStoreId the ID of the Insight data store, e.g. ods, data mart, etc...
+   * @param databaseSchema the literal database schema. For most setups the data store ID and schema are the
+   *          same value. Multi-tenant IQ is a known implementation where the values will differ.
    * @param liquibaseChangelogPath For liquibase configurations, the path to the change log
    * @return the configured {@link DataSource}
    */
@@ -146,11 +146,11 @@ public abstract class AbstractDataSourceFactory
       String databaseSchema,
       String liquibaseChangelogPath)
   {
-    //if (liquibaseChangelogPath != null && !liquibaseChangelogPath.isEmpty()) {
-    //  databasePopulator =
-    //      new LiquibaseDatabaseSchemaPopulator(dataSource, databaseEngine, databaseSchema, liquibaseChangelogPath);
-    //}
-    //else {
+    // if (liquibaseChangelogPath != null && !liquibaseChangelogPath.isEmpty()) {
+    // databasePopulator =
+    // new LiquibaseDatabaseSchemaPopulator(dataSource, databaseEngine, databaseSchema, liquibaseChangelogPath);
+    // }
+    // else {
     AbstractDatabaseSchemaPopulator databasePopulator =
         createDatabaseSchemaPopulator(dataSource, databaseEngine, dataStoreId, databaseSchema);
     return databasePopulator.populate();

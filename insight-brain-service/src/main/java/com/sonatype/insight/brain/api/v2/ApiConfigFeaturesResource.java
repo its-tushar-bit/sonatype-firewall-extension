@@ -47,15 +47,13 @@ public class ApiConfigFeaturesResource
       "Permissions required: Edit System Configuration and Users")
   @ApiResponse(
       responseCode = "204",
-      description = "The specified feature has been enabled successfully."
-  )
+      description = "The specified feature has been enabled successfully.")
   @ApiResponse(
       responseCode = "400",
-      description = "Bad request, check for invalid feature name."
-  )
+      description = "Bad request, check for invalid feature name.")
   public void enabledFeature(
-      @Parameter(description = "Enter the name of the feature to be enabled.", required = true)
-      @PathParam("feature") String feature)
+      @Parameter(description = "Enter the name of the feature to be enabled.",
+          required = true) @PathParam("feature") String feature)
   {
     apiConfigFeaturesService.enableFeature(feature);
   }
@@ -69,15 +67,13 @@ public class ApiConfigFeaturesResource
       "Permissions required: Edit System Configuration and Users")
   @ApiResponse(
       responseCode = "204",
-      description = "The IQ Server feature has been successfully disabled."
-  )
+      description = "The IQ Server feature has been successfully disabled.")
   @ApiResponse(
       responseCode = "400",
-      description = "Bad request, check for invalid feature name."
-  )
+      description = "Bad request, check for invalid feature name.")
   public void disableFeature(
-      @Parameter(description = "Enter the name of the IQ Server feature to be disabled.", required = true)
-      @PathParam("feature") String feature)
+      @Parameter(description = "Enter the name of the IQ Server feature to be disabled.",
+          required = true) @PathParam("feature") String feature)
   {
     apiConfigFeaturesService.disableFeature(feature);
   }

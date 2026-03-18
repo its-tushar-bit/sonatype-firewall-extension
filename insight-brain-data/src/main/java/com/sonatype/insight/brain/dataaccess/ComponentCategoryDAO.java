@@ -85,7 +85,8 @@ public class ComponentCategoryDAO
     }
 
     return Collections.unmodifiableList(
-        componentCategoriesById.values().stream()
+        componentCategoriesById.values()
+            .stream()
             .filter(category -> category.getPath().startsWith(componentCategory.getPath() + "/"))
             .collect(Collectors.toList()));
   }

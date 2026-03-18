@@ -56,9 +56,11 @@ public class ApiComponentTransitivePolicyViolationsDTOTest
         Arrays.asList(Pair.of(policyViolation1, new Component()), Pair.of(policyViolation2, new Component())));
 
     assertThat(result).isNotNull();
-    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator().containsExactly(
-        ApiStagePolicyViolationComponentDTO.fromPolicyViolationAndComponent(Pair.of(policyViolation1, new Component())),
-        ApiStagePolicyViolationComponentDTO.fromPolicyViolationAndComponent(Pair.of(policyViolation2, new Component()))
-    );
+    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(
+            ApiStagePolicyViolationComponentDTO
+                .fromPolicyViolationAndComponent(Pair.of(policyViolation1, new Component())),
+            ApiStagePolicyViolationComponentDTO
+                .fromPolicyViolationAndComponent(Pair.of(policyViolation2, new Component())));
   }
 }

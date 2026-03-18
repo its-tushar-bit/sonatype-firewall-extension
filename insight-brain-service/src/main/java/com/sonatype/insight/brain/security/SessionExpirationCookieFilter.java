@@ -35,8 +35,10 @@ public class SessionExpirationCookieFilter
   public static final String EXPIRATION_COOKIE_NAME = "IQ-SESSION-EXPIRATION-TIMESTAMP";
 
   @Override
-  protected void doFilterInternal(ServletRequest request, ServletResponse response, FilterChain chain)
-      throws IOException, ServletException
+  protected void doFilterInternal(
+      ServletRequest request,
+      ServletResponse response,
+      FilterChain chain) throws IOException, ServletException
   {
     Session session = SecurityUtils.getSubject().getSession(false);
 

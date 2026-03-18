@@ -19,7 +19,8 @@ import com.sonatype.insight.model.HasStringId;
  */
 @Entity
 @Table(name = "dashboard_filter")
-public class DashboardFilter extends Nameable
+public class DashboardFilter
+    extends Nameable
     implements HasStringId
 {
   @Id
@@ -50,7 +51,7 @@ public class DashboardFilter extends Nameable
   /**
    * If true, the filter was acknowledged by the user while the needsAcknowledgementOfInitialDashboardFilter config
    * option is enabled.
-   * 
+   *
    * @since 1.29
    */
   @Column(name = "acknowledged")
@@ -116,7 +117,7 @@ public class DashboardFilter extends Nameable
    * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
    * usernameLowercase field. If this method is not defined, jackson will set/access the
    * usernameLowercase field directly via reflection, possibly setting it to an incorrect value.
-   * 
+   *
    * @deprecated This method should not be used explicitly.
    */
   @Deprecated

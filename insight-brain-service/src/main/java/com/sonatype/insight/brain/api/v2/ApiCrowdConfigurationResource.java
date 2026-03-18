@@ -57,11 +57,10 @@ public class ApiCrowdConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description =
-                  "The response contains the `serverUrl` and `applicationName` provided " +
-                      "at the time of setting up the Crowd Server.",
-              useReturnTypeSchema = true),
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the `serverUrl` and `applicationName` provided " +
+                "at the time of setting up the Crowd Server.",
+            useReturnTypeSchema = true),
       })
   public ApiCrowdConfigurationDTO getCrowdConfiguration() {
     checkCrowdEnabled();
@@ -77,8 +76,8 @@ public class ApiCrowdConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "Update or create successful")
+        @ApiResponse(responseCode = "204",
+            description = "Update or create successful")
       })
   public void insertOrUpdateCrowdConfiguration(
       @RequestBody(description = "The request JSON should include the `serverUrl`, `applicationName`, " +
@@ -86,8 +85,7 @@ public class ApiCrowdConfigurationResource
           "used for authentication against the Atlassian Crowd Server." +
           "\n" +
           "\n" +
-          "If updating the `serverUrl`, the `applicationPassword` field is required.")
-      ApiCrowdConfigurationDTO crowdConfiguration)
+          "If updating the `serverUrl`, the `applicationPassword` field is required.") ApiCrowdConfigurationDTO crowdConfiguration)
   {
     checkCrowdEnabled();
     apiCrowdConfigurationService.insertOrUpdateCrowdConfiguration(crowdConfiguration);
@@ -100,8 +98,8 @@ public class ApiCrowdConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "The Atlassian Crowd Server configuration has been deleted.")
+        @ApiResponse(responseCode = "204",
+            description = "The Atlassian Crowd Server configuration has been deleted.")
       })
   public void deleteCrowdConfiguration() {
     checkCrowdEnabled();
@@ -113,9 +111,9 @@ public class ApiCrowdConfigurationResource
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(description = "Use this method to test a new or an existing Atlassian Crowd Server configuration.",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "Test performed, results will be in the response message string.",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "Test performed, results will be in the response message string.",
+            useReturnTypeSchema = true)
       })
   @Path(TEST_PATH)
   public ApiStatusDTO testCrowdConfiguration(
@@ -123,8 +121,7 @@ public class ApiCrowdConfigurationResource
           "\n" +
           "\n" +
           "To test a new configuration, provide the `serverURl`, `applicationName`, and `applicationPassword` for " +
-          "the configuration.")
-      ApiCrowdConfigurationDTO dto)
+          "the configuration.") ApiCrowdConfigurationDTO dto)
   {
     checkCrowdEnabled();
     return apiCrowdConfigurationService.testCrowdConfiguration(dto);

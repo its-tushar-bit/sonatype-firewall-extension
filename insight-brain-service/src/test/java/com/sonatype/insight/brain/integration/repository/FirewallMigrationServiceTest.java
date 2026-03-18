@@ -193,24 +193,29 @@ public class FirewallMigrationServiceTest
     testMigrateRepositoryHistory(repository, previousRunData, sourceRepository, data);
   }
 
-  private void testMigrateRepositoryHistory(Repository targetRepository,
-                                            GeneratedRepositoryData previousRunData,
-                                            Repository sourceRepository,
-                                            GeneratedRepositoryData sourceData)
+  private void testMigrateRepositoryHistory(
+      Repository targetRepository,
+      GeneratedRepositoryData previousRunData,
+      Repository sourceRepository,
+      GeneratedRepositoryData sourceData)
   {
     migrationService.migrateRepositoryHistory(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID, SOURCE_REPOSITORY_PUBLIC_ID,
         TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID);
 
     // Wait for migration to complete
-    await().atMost(1, TimeUnit.MINUTES).untilAsserted(() -> assertThat(migrationService
-        .getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID).getState())
-            .isEqualTo(MigrationState.COMPLETED));
+    await().atMost(1, TimeUnit.MINUTES)
+        .untilAsserted(() -> assertThat(migrationService
+            .getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID)
+            .getState())
+                .isEqualTo(MigrationState.COMPLETED));
 
     // Assert source untouched
     assertThat(repositoryComponentDAO.getByRepositoryId(sourceRepository.getId()))
-        .usingElementComparator(componentComparator).containsExactlyInAnyOrderElementsOf(sourceData.components);
+        .usingElementComparator(componentComparator)
+        .containsExactlyInAnyOrderElementsOf(sourceData.components);
     assertThat(repositoryPolicyViolationDAO.getByRepositoryId(sourceRepository.getId()))
-        .usingElementComparator(violationComparator).containsExactlyInAnyOrderElementsOf(sourceData.violations);
+        .usingElementComparator(violationComparator)
+        .containsExactlyInAnyOrderElementsOf(sourceData.violations);
     assertThat(licenseOverrideDAO.getByOwnerId(sourceRepository.getId()))
         .usingElementComparator(licenseOverrideComparator)
         .containsExactlyInAnyOrderElementsOf(sourceData.licenseOverrides);

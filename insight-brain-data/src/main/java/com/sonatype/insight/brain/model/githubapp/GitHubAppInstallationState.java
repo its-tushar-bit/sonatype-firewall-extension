@@ -23,7 +23,8 @@ import com.sonatype.insight.model.HasStringId;
  */
 @Entity
 @Table(name = "github_app_installation_state")
-public class GitHubAppInstallationState implements HasStringId
+public class GitHubAppInstallationState
+    implements HasStringId
 {
   @Id
   @Column(name = "github_app_installation_state_id")

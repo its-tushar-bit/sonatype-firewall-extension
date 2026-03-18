@@ -73,57 +73,51 @@ public class CveAffectedComponentSearchServiceAuthzTest
         "vulnerable-lib",
         "1.0.0",
         "",
-        "jar"
-    );
+        "jar");
 
     componentId2 = ComponentIdentifier.createMavenCoordinates(
         "com.example",
         "another-lib",
         "2.0.0",
         "",
-        "jar"
-    );
+        "jar");
 
     // Setup evaluations and components for app1
     tempEntity.newPolicyEvaluation(
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "scan-app1",
-        new Date()
-    );
+        new Date());
 
     tempEntity.newApplicationComponent(
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "hash-app1",
         componentId1,
-        "pkg:maven/com.example/vulnerable-lib@1.0.0?type=jar"
-    );
+        "pkg:maven/com.example/vulnerable-lib@1.0.0?type=jar");
 
     // Setup evaluations and components for app2
     tempEntity.newPolicyEvaluation(
         app2.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "scan-app2",
-        new Date()
-    );
+        new Date());
 
     tempEntity.newApplicationComponent(
         app2.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "hash-app2",
         componentId2,
-        "pkg:maven/com.example/another-lib@2.0.0?type=jar"
-    );
+        "pkg:maven/com.example/another-lib@2.0.0?type=jar");
   }
 
   private void setupHdsMocks() {
     List<AffectedComponentDTO> affectedComponents = List.of(
         new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0", null),
-        new AffectedComponentDTO("maven", "com.example", "another-lib", "2.0.0", null)
-    );
+        new AffectedComponentDTO("maven", "com.example", "another-lib", "2.0.0", null));
     hdsMockServer.respondWith(new AffectedComponentList(affectedComponents, null, null))
-        .atUri("/rest/vulnerability/affected?refId=" + CVE_ID).withoutLicense();
+        .atUri("/rest/vulnerability/affected?refId=" + CVE_ID)
+        .withoutLicense();
 
     String vulnDataJson = """
         {
@@ -313,8 +307,7 @@ public class CveAffectedComponentSearchServiceAuthzTest
         "non-violating-lib",
         "1.5.0",
         "",
-        "jar"
-    );
+        "jar");
 
     // Add this component to the app (without creating a policy violation)
     tempEntity.newApplicationComponent(
@@ -322,16 +315,15 @@ public class CveAffectedComponentSearchServiceAuthzTest
         StageTypes.STAGE_RELEASE.getId(),
         "hash-non-violating",
         nonViolatingComponent,
-        "pkg:maven/com.example/non-violating-lib@1.5.0?type=jar"
-    );
+        "pkg:maven/com.example/non-violating-lib@1.5.0?type=jar");
 
     // Update HDS mock to include this component as affected
     List<AffectedComponentDTO> affectedComponents = List.of(
         new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0", null),
-        new AffectedComponentDTO("maven", "com.example", "non-violating-lib", "1.5.0", null)
-    );
+        new AffectedComponentDTO("maven", "com.example", "non-violating-lib", "1.5.0", null));
     hdsMockServer.respondWith(new AffectedComponentList(affectedComponents, null, null))
-        .atUri("/rest/vulnerability/affected?refId=" + CVE_ID).withoutLicense();
+        .atUri("/rest/vulnerability/affected?refId=" + CVE_ID)
+        .withoutLicense();
 
     List<ApplicationComponentMatchDTO> results = cveAffectedComponentSearchService
         .searchCveAffectedComponentsStreaming(CVE_IDS)
@@ -362,8 +354,7 @@ public class CveAffectedComponentSearchServiceAuthzTest
         "violating-lib",
         "2.0.0",
         "",
-        "jar"
-    );
+        "jar");
 
     // Get the existing policy evaluation for the app
     com.sonatype.insight.brain.model.policy.PolicyEvaluation evaluation =
@@ -371,8 +362,7 @@ public class CveAffectedComponentSearchServiceAuthzTest
             app.getId(),
             StageTypes.STAGE_RELEASE.getId(),
             "scan-violating",
-            new Date()
-        );
+            new Date());
 
     // Add component to app
     tempEntity.newApplicationComponent(
@@ -380,8 +370,7 @@ public class CveAffectedComponentSearchServiceAuthzTest
         StageTypes.STAGE_RELEASE.getId(),
         "hash-violating",
         violatingComponent,
-        "pkg:maven/com.example/violating-lib@2.0.0?type=jar"
-    );
+        "pkg:maven/com.example/violating-lib@2.0.0?type=jar");
 
     // Create a policy and violation for this component related to the CVE
     com.sonatype.insight.brain.model.policy.Policy policy =
@@ -393,29 +382,25 @@ public class CveAffectedComponentSearchServiceAuthzTest
             policy,
             violatingComponent,
             "hash-violating",
-            "Security vulnerability detected"
-        );
+            "Security vulnerability detected");
 
     // Add CVE reference to the violation's constraint facts
     com.sonatype.clm.dto.model.policy.TriggerReference cveRef =
         new com.sonatype.clm.dto.model.policy.TriggerReference(
             com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID,
-            CVE_ID
-        );
+            CVE_ID);
     com.sonatype.clm.dto.model.policy.ConditionFact conditionFact =
         new com.sonatype.clm.dto.model.policy.ConditionFact(
             com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType.ID,
             0,
             "Security vulnerability",
             "Contains " + CVE_ID,
-            cveRef
-        );
+            cveRef);
     com.sonatype.clm.dto.model.policy.ConstraintFact constraintFact =
         new com.sonatype.clm.dto.model.policy.ConstraintFact(
             "security-constraint",
             "Security Constraint",
-            "AND"
-        );
+            "AND");
     constraintFact.addConditionFact(conditionFact);
     violation.setConstraintFacts(List.of(constraintFact));
 
@@ -425,10 +410,10 @@ public class CveAffectedComponentSearchServiceAuthzTest
     // Update HDS mock to include this component as affected
     List<AffectedComponentDTO> affectedComponents = List.of(
         new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0", null),
-        new AffectedComponentDTO("maven", "com.example", "violating-lib", "2.0.0", null)
-    );
+        new AffectedComponentDTO("maven", "com.example", "violating-lib", "2.0.0", null));
     hdsMockServer.respondWith(new AffectedComponentList(affectedComponents, null, null))
-        .atUri("/rest/vulnerability/affected?refId=" + CVE_ID).withoutLicense();
+        .atUri("/rest/vulnerability/affected?refId=" + CVE_ID)
+        .withoutLicense();
 
     List<ApplicationComponentMatchDTO> results = cveAffectedComponentSearchService
         .searchCveAffectedComponentsStreaming(CVE_IDS)

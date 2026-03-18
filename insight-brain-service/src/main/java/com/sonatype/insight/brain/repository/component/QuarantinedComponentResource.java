@@ -102,8 +102,7 @@ public class QuarantinedComponentResource
   @Produces(MediaType.APPLICATION_JSON)
   public NamedComponentDetails getQuarantinedComponentVersionDetails(
       @PathParam("token") String token,
-      @QueryParam("version") String version)
-      throws IOException
+      @QueryParam("version") String version) throws IOException
   {
     return quarantinedComponentService.getQuarantinedComponentVersionDetails(token, httpRequest, version);
   }

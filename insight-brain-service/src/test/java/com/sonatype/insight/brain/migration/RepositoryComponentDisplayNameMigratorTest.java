@@ -78,7 +78,8 @@ public class RepositoryComponentDisplayNameMigratorTest
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
         PreparedStatement updateStmt =
             connection.prepareStatement("UPDATE " + operationalDataStore.getDatabaseSchema()
-                + ".repository_component" + " SET display_name = NULL")) {
+                + ".repository_component" + " SET display_name = NULL"))
+    {
       updateStmt.execute();
     }
   }

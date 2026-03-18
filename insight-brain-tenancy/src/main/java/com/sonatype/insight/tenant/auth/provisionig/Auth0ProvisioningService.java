@@ -43,8 +43,7 @@ public class Auth0ProvisioningService
         tenantUrl,
         parameters.getDescription(),
         parameters.getLogoUrl(),
-        null
-    );
+        null);
     log.info(String.format("Created new auth0 account for tenant=%s, clientId=%s", subdomain,
         tenant.getClientId()));
 
@@ -57,13 +56,13 @@ public class Auth0ProvisioningService
 
     log.info(String.format("Downloaded saml metadata file for tenant=%s, file=%s", subdomain,
         samlMetaDataFile.getAbsolutePath()));
-    //TODO remaining provisioning steps
+    // TODO remaining provisioning steps
     // - create/associate connections
     // - upload saml metadata file in IQ and configure auth attributes
     // - role-mapping ?
   }
 
-  //visible for testing
+  // visible for testing
   Auth0ManagementAPI getManagementAPI() {
     return new Auth0ManagementAPI(resolveAuth0Domain(), resolveAuth0ApiToken());
   }
@@ -88,7 +87,7 @@ public class Auth0ProvisioningService
     return apiToken;
   }
 
-  //visible for testing
+  // visible for testing
   String resolveAuth0Domain() {
     String auth0DomainEnv = System.getenv(AUTH0_DOMAIN);
     if (StringUtils.isNotBlank(auth0DomainEnv) && isURL(auth0DomainEnv)) {

@@ -114,7 +114,8 @@ public class PolicyWaiverMatcherWrapperTest
   public void testMatcherWrapper_MatchesComponent_DEFAULT() {
     String hash = "hash";
     PolicyWaiver policyWaiver =
-        new PolicyWaiver().setHash(hash).setComponentMatchStrategy(DEFAULT)
+        new PolicyWaiver().setHash(hash)
+            .setComponentMatchStrategy(DEFAULT)
             .setAssociatedPackageUrl(associatedPackagedUrl);
     ComponentFact componentFact = new ComponentFact(policyWaiver.getComponentIdentifier(), hash);
     PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
@@ -126,7 +127,8 @@ public class PolicyWaiverMatcherWrapperTest
   public void testMatcherWrapper_MatchesComponent_EXACT_COMPONENT() {
     String hash = "hash";
     PolicyWaiver policyWaiver =
-        new PolicyWaiver().setHash(hash).setComponentMatchStrategy(EXACT_COMPONENT)
+        new PolicyWaiver().setHash(hash)
+            .setComponentMatchStrategy(EXACT_COMPONENT)
             .setAssociatedPackageUrl(associatedPackagedUrl);
     ComponentFact componentFact = new ComponentFact(policyWaiver.getComponentIdentifier(), hash);
     PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
@@ -152,11 +154,14 @@ public class PolicyWaiverMatcherWrapperTest
         new PolicyWaiver().setComponentMatchStrategy(EXACT_COMPONENT)
             .setAssociatedPackageUrl(associatedPackagedUrl);
 
-    ComponentIdentifier componentIdentifier = new ComponentIdentifier(FORMAT_PYPI, new TreeMap<String, String>() {{
+    ComponentIdentifier componentIdentifier = new ComponentIdentifier(FORMAT_PYPI, new TreeMap<String, String>()
+    {
+      {
         this.put("name", "name");
         this.put("extension", "e");
         this.put("qualifier", "q");
-      }});
+      }
+    });
 
     ComponentFact componentFact = new ComponentFact(componentIdentifier, null);
     PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
@@ -167,7 +172,8 @@ public class PolicyWaiverMatcherWrapperTest
   @Test
   public void testMatcherWrapper_MatchesComponent_ALL_COMPONENTS() {
     PolicyWaiver policyWaiver =
-        new PolicyWaiver().setHash(null).setComponentMatchStrategy(ALL_COMPONENTS)
+        new PolicyWaiver().setHash(null)
+            .setComponentMatchStrategy(ALL_COMPONENTS)
             .setAssociatedPackageUrl(associatedPackagedUrl);
     PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
 
@@ -194,7 +200,8 @@ public class PolicyWaiverMatcherWrapperTest
     String hash = "hash";
     String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@2.0?type=jar";
     PolicyWaiver policyWaiver =
-        new PolicyWaiver().setHash(hash).setComponentMatchStrategy(ALL_VERSIONS)
+        new PolicyWaiver().setHash(hash)
+            .setComponentMatchStrategy(ALL_VERSIONS)
             .setAssociatedPackageUrl(associatedPackagedUrlAllVersions);
 
     ComponentFact componentFact = new ComponentFact(null, "otherHash");
@@ -210,12 +217,15 @@ public class PolicyWaiverMatcherWrapperTest
         new PolicyWaiver().setComponentMatchStrategy(ALL_VERSIONS)
             .setAssociatedPackageUrl(associatedPackagedUrlAllVersions);
 
-    ComponentIdentifier componentIdentifier = new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>() {{
+    ComponentIdentifier componentIdentifier = new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>()
+    {
+      {
         this.put("artifactId", "artifact");
         this.put("groupId", "group");
         this.put("version", "1.0");
         this.put("classifier", "");
-      }});
+      }
+    });
     ComponentFact componentFact = new ComponentFact(componentIdentifier, "otherHash");
     PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
 
@@ -258,18 +268,24 @@ public class PolicyWaiverMatcherWrapperTest
   public void testMatcherWrapper_CompareWhenMissingRequiredCoordinates() {
     // compareWhenMissingRequiredCoordinates method expects the coordinates already have the version as a wildcard (*)
     ComponentIdentifier componentIdentifierSame =
-        new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>() {{
+        new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>()
+        {
+          {
             this.put("artifactId", "artifact");
             this.put("groupId", "group");
             this.put("version", "*");
-          }});
+          }
+        });
 
     ComponentIdentifier componentIdentifierOther =
-        new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>() {{
+        new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>()
+        {
+          {
             this.put("artifactId", "otherArtifact");
             this.put("groupId", "group");
             this.put("version", "*");
-          }});
+          }
+        });
 
     String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@*?type=jar&classifier=";
 
@@ -331,33 +347,30 @@ public class PolicyWaiverMatcherWrapperTest
   @Test
   public void testMatcherWrapper_matchesComponentOrAnyVersionOfComponent_ALL_COMPONENTS() {
     PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper =
-            new PolicyWaiverMatcherWrapper(
-                    new PolicyWaiver().setComponentMatchStrategy(ALL_COMPONENTS)
-        );
+        new PolicyWaiverMatcherWrapper(
+            new PolicyWaiver().setComponentMatchStrategy(ALL_COMPONENTS));
     assertThat(policyWaiverMatcherWrapper.matchesComponentOrAnyVersionOfComponent(new ComponentFact()))
-            .isTrue();
+        .isTrue();
   }
 
   @Test
   public void testMatcherWrapper_matchesComponentOrAnyVersionOfComponent_EXACT_COMPONENT() {
     PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper =
-            new PolicyWaiverMatcherWrapper(
-                    new PolicyWaiver()
-                            .setHash("My hash")
-                            .setComponentMatchStrategy(EXACT_COMPONENT)
-        );
+        new PolicyWaiverMatcherWrapper(
+            new PolicyWaiver()
+                .setHash("My hash")
+                .setComponentMatchStrategy(EXACT_COMPONENT));
     assertThat(policyWaiverMatcherWrapper.matchesComponentOrAnyVersionOfComponent(new ComponentFact(null, "My hash")))
-            .isTrue();
+        .isTrue();
   }
 
   @Test
   public void testMatcherWrapper_matchesComponentOrAnyVersionOfComponent_matchesAllVersionsOfComponent() {
     PolicyWaiver policyWaiver = new PolicyWaiver()
-        .setAssociatedPackageUrl(associatedPackagedUrl)
-    ;
+        .setAssociatedPackageUrl(associatedPackagedUrl);
     PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
     assertThat(policyWaiverMatcherWrapper.matchesComponentOrAnyVersionOfComponent(
-            new ComponentFact(policyWaiver.getComponentIdentifier(), null)))
+        new ComponentFact(policyWaiver.getComponentIdentifier(), null)))
             .isTrue();
   }
 

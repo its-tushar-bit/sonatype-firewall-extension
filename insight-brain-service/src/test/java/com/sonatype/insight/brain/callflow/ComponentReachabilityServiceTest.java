@@ -5,6 +5,7 @@
  */
 
 package com.sonatype.insight.brain.callflow;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -112,8 +113,7 @@ public class ComponentReachabilityServiceTest
         null,
         null,
         null,
-        COMPONENT_HASH
-    );
+        COMPONENT_HASH);
     policyViolation1.setReachabilityStatus(REACHABLE);
     policyViolationDAO.update(policyViolation1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(
@@ -124,8 +124,7 @@ public class ComponentReachabilityServiceTest
         null,
         null,
         null,
-        COMPONENT_HASH
-    );
+        COMPONENT_HASH);
     PolicyThreats policyThreats =
         createPolicyThreats(createPolicyThreatViolations(List.of(policyViolation1, policyViolation2)));
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(policyThreats);
@@ -147,8 +146,7 @@ public class ComponentReachabilityServiceTest
     final List<PolicyViolation> policyViolations1 = List.of(
         createSecurityPolicyViolation(policy, policyEvaluation1, REACHABLE),
         createSecurityPolicyViolation(policy, policyEvaluation1, NON_REACHABLE),
-        createSecurityPolicyViolation(policy, policyEvaluation1, UNKNOWN)
-    );
+        createSecurityPolicyViolation(policy, policyEvaluation1, UNKNOWN));
     final List<PolicyThreats.PolicyViolation> policyThreatViolations1 = createPolicyThreatViolations(policyViolations1);
     final PolicyThreats policyThreats1 = createPolicyThreats(policyThreatViolations1);
 
@@ -159,13 +157,13 @@ public class ComponentReachabilityServiceTest
     final List<PolicyViolation> policyViolations2 = List.of(
         createSecurityPolicyViolation(policy, policyEvaluation2, NON_REACHABLE),
         createSecurityPolicyViolation(policy, policyEvaluation2, NON_REACHABLE),
-        createSecurityPolicyViolation(policy, policyEvaluation2, NON_REACHABLE)
-    );
+        createSecurityPolicyViolation(policy, policyEvaluation2, NON_REACHABLE));
     final List<PolicyThreats.PolicyViolation> policyThreatViolations2 = createPolicyThreatViolations(policyViolations2);
     final PolicyThreats policyThreats2 = createPolicyThreats(policyThreatViolations2);
 
     when(reportService.getPolicyThreats(anyString(), anyString()))
-        .thenReturn(policyThreats1).thenReturn(policyThreats2);
+        .thenReturn(policyThreats1)
+        .thenReturn(policyThreats2);
 
     // Scan 1 had 1 reachable
     final ReachabilityStatus isComponentReachable1 =

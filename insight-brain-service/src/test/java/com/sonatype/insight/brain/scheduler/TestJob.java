@@ -38,7 +38,7 @@ public class TestJob
     if (durations != null) {
       int duration = durations.applyAsInt(execution);
       if (duration > 0) {
-        for (long start = System.currentTimeMillis(); System.currentTimeMillis() - start < duration; ) {
+        for (long start = System.currentTimeMillis(); System.currentTimeMillis() - start < duration;) {
           Thread.yield();
         }
       }

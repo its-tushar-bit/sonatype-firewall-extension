@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractComponentRiskService
-        implements DashboardComponentRiskService
+    implements DashboardComponentRiskService
 {
   private static final Logger log = LoggerFactory.getLogger(AbstractComponentRiskService.class);
 
@@ -59,13 +59,14 @@ public abstract class AbstractComponentRiskService
 
     List<Application> applications = getApplications(organizationIds, applicationIds, tagIds);
 
-    AuditData.get().setData("selectedOrganizations", auditService.getSelectedOrganizationsById(organizationIds))
-            .setData("selectedApplications", auditService.getSelectedApplicationsById(applicationIds, organizationIds))
-            .setSelectedApplicationCategories(auditService.getSelectedApplicationCategoriesById(tagIds))
-            .setData("inspectedApplicationCount", applications.size());
+    AuditData.get()
+        .setData("selectedOrganizations", auditService.getSelectedOrganizationsById(organizationIds))
+        .setData("selectedApplications", auditService.getSelectedApplicationsById(applicationIds, organizationIds))
+        .setSelectedApplicationCategories(auditService.getSelectedApplicationCategoriesById(tagIds))
+        .setData("inspectedApplicationCount", applications.size());
 
     DashboardResultsDTO<ComponentRiskDTO> result = load(applications, stageIds, policyThreatCategoryFilter,
-            policyThreatLevelFilter, policyViolationStateFilter, orderBy, page, pageSize);
+        policyThreatLevelFilter, policyViolationStateFilter, orderBy, page, pageSize);
 
     log.debug("getComponentRisks finished in {} ms", System.currentTimeMillis() - start);
 
@@ -85,8 +86,7 @@ public abstract class AbstractComponentRiskService
   protected List<Application> getApplications(
       Set<String> organizationIds,
       Set<String> applicationIds,
-      Set<String> tagIds
-  )
+      Set<String> tagIds)
   {
     return applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds);
   }

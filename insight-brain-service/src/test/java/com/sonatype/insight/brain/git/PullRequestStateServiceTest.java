@@ -59,16 +59,14 @@ public class PullRequestStateServiceTest
         applicationWithBatchSupport.getId(),
         REPO_URL_WITH_BATCH_SUPPORT,
         "token",
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
 
     // For this test, we'll use BITBUCKET as a provider that doesn't support batch fetch
     tempEntity.newSourceControl(
         applicationWithoutBatchSupport.getId(),
         REPO_URL_WITHOUT_BATCH_SUPPORT,
         "token",
-        SourceControlProvider.BITBUCKET
-    );
+        SourceControlProvider.BITBUCKET);
   }
 
   @Test
@@ -98,10 +96,10 @@ public class PullRequestStateServiceTest
   public void testDispatchPullRequestStateUpdateEvents_BatchCountLimit() {
     // Create several pull requests for the application with batch support
     PullRequestSource[] sources = {
-        PullRequestSource.AUTOMATIC,
-        PullRequestSource.AUTOMATIC_INNER_SOURCE,
-        PullRequestSource.MANUAL,
-        PullRequestSource.MANUAL_INNER_SOURCE
+      PullRequestSource.AUTOMATIC,
+      PullRequestSource.AUTOMATIC_INNER_SOURCE,
+      PullRequestSource.MANUAL,
+      PullRequestSource.MANUAL_INNER_SOURCE
     };
     for (int i = 1; i <= 105; i++) {
       // Alternate between AUTOMATIC, AUTOMATIC_INNER_SOURCE, MANUAL, and MANUAL_INNER_SOURCE (all should be processed)
@@ -157,15 +155,18 @@ public class PullRequestStateServiceTest
       assertThat(event.getEventStatus()).isEqualTo(SourceControlEvent.EVENT_STATUS_NEW);
     });
 
-    assertThat(events).filteredOn(e -> e.getPullRequestNumber() == 1).first()
+    assertThat(events).filteredOn(e -> e.getPullRequestNumber() == 1)
+        .first()
         .extracting(SourceControlEvent::getBranchName, SourceControlEvent::getBaseBranchName)
         .containsExactly("branch1", "baseBranch1");
 
-    assertThat(events).filteredOn(e -> e.getPullRequestNumber() == 2).first()
+    assertThat(events).filteredOn(e -> e.getPullRequestNumber() == 2)
+        .first()
         .extracting(SourceControlEvent::getBranchName, SourceControlEvent::getBaseBranchName)
         .containsExactly("branch2", "baseBranch2");
 
-    assertThat(events).filteredOn(e -> e.getPullRequestNumber() == 3).first()
+    assertThat(events).filteredOn(e -> e.getPullRequestNumber() == 3)
+        .first()
         .extracting(SourceControlEvent::getBranchName, SourceControlEvent::getBaseBranchName)
         .containsExactly("branch3", "baseBranch3");
   }
@@ -288,8 +289,7 @@ public class PullRequestStateServiceTest
         e2 -> {
           assertThat(e2.getEventType()).isEqualTo(SourceControlEvent.BATCH_PR_STATE_UPDATE_EVENT);
           assertThat(parseDetails(e2)).containsExactlyInAnyOrder(6, 7);
-        }
-    );
+        });
   }
 
   @Test
@@ -344,7 +344,7 @@ public class PullRequestStateServiceTest
     // Get all events
     List<SourceControlEvent> allEvents = sourceControlEventDAO.getAll();
 
-    // Verify events were created only for 
+    // Verify events were created only for
     // AUTOMATIC, AUTOMATIC_INNER_SOURCE, MANUAL, and MANUAL_INNER_SOURCE pull requests
     assertThat(allEvents).filteredOn(e -> e.getEventType().equals(SourceControlEvent.PR_STATE_UPDATE_EVENT))
         .hasSize(4)

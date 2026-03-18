@@ -57,43 +57,43 @@ public class UserActivityServiceTest
   // Common audit record constants
   private static final String JOHN_LOGIN =
       "{\"timestamp\":\"2024-03-13T14:30:45.123Z\",\"username\":\"john.doe\"," +
-      "\"type\":\"login\",\"domain\":\"authentication\",\"requestMethod\":\"POST\"," +
-      "\"requestUri\":\"/api/v2/auth/login\",\"remoteIpAddress\":\"192.168.1.100\"}";
+          "\"type\":\"login\",\"domain\":\"authentication\",\"requestMethod\":\"POST\"," +
+          "\"requestUri\":\"/api/v2/auth/login\",\"remoteIpAddress\":\"192.168.1.100\"}";
 
   private static final String JANE_LOGIN =
       "{\"timestamp\":\"2024-03-13T16:30:45.123Z\",\"username\":\"jane.smith\"," +
-      "\"type\":\"login\",\"domain\":\"authentication\",\"requestMethod\":\"POST\"," +
-      "\"requestUri\":\"/api/v2/auth/login\",\"remoteIpAddress\":\"192.168.1.101\"}";
+          "\"type\":\"login\",\"domain\":\"authentication\",\"requestMethod\":\"POST\"," +
+          "\"requestUri\":\"/api/v2/auth/login\",\"remoteIpAddress\":\"192.168.1.101\"}";
 
   private static final String JOHN_REPORT_VIEW =
       "{\"timestamp\":\"2024-03-13T15:30:45.123Z\",\"username\":\"john.doe\"," +
-      "\"type\":\"view\",\"domain\":\"reporting\",\"requestMethod\":\"GET\"," +
-      "\"requestUri\":\"/api/v2/reports\",\"remoteIpAddress\":\"192.168.1.100\"}";
+          "\"type\":\"view\",\"domain\":\"reporting\",\"requestMethod\":\"GET\"," +
+          "\"requestUri\":\"/api/v2/reports\",\"remoteIpAddress\":\"192.168.1.100\"}";
 
   private static final String JOHN_CREATE_APP =
       "{\"timestamp\":\"2024-03-13T16:30:45.123Z\",\"username\":\"john.doe\"," +
-      "\"type\":\"create\",\"domain\":\"governance\",\"requestMethod\":\"POST\"," +
-      "\"requestUri\":\"/api/v2/applications\",\"remoteIpAddress\":\"192.168.1.100\"}";
+          "\"type\":\"create\",\"domain\":\"governance\",\"requestMethod\":\"POST\"," +
+          "\"requestUri\":\"/api/v2/applications\",\"remoteIpAddress\":\"192.168.1.100\"}";
 
   private static final String JANE_EVALUATE_APP =
       "{\"timestamp\":\"2024-03-13T15:30:45.123Z\",\"username\":\"jane.smith\"," +
-      "\"type\":\"EVALUATE_APPLICATION\",\"requestMethod\":\"GET\"," +
-      "\"requestUri\":\"/api/v2/applications/123/reports\",\"remoteIpAddress\":\"192.168.1.101\"}";
+          "\"type\":\"EVALUATE_APPLICATION\",\"requestMethod\":\"GET\"," +
+          "\"requestUri\":\"/api/v2/applications/123/reports\",\"remoteIpAddress\":\"192.168.1.101\"}";
 
   private static final String SYSTEM_USER_ACTIVITY =
       "{\"timestamp\":\"2024-03-13T15:30:45.123Z\",\"username\":\"*SYSTEM\"," +
-      "\"type\":\"EVALUATE_APPLICATION\",\"requestMethod\":\"GET\"," +
-      "\"requestUri\":\"/api/v2/applications/123/reports\",\"remoteIpAddress\":\"192.168.1.101\"}";
+          "\"type\":\"EVALUATE_APPLICATION\",\"requestMethod\":\"GET\"," +
+          "\"requestUri\":\"/api/v2/applications/123/reports\",\"remoteIpAddress\":\"192.168.1.101\"}";
 
   private static final String UNKNOWN_USER_ACTIVITY =
       "{\"timestamp\":\"2024-03-13T16:30:45.123Z\",\"username\":\"*UNKNOWN\"," +
-      "\"type\":\"VIEW_COMPONENT_INFORMATION\",\"requestMethod\":\"GET\"," +
-      "\"requestUri\":\"/api/v2/components/abc\",\"remoteIpAddress\":\"192.168.1.102\"}";
+          "\"type\":\"VIEW_COMPONENT_INFORMATION\",\"requestMethod\":\"GET\"," +
+          "\"requestUri\":\"/api/v2/components/abc\",\"remoteIpAddress\":\"192.168.1.102\"}";
 
   private static final String TEST_USER_LOGIN =
       "{\"timestamp\":\"2024-03-13T14:30:45.123Z\",\"username\":\"test.user\"," +
-      "\"type\":\"login\",\"requestMethod\":\"POST\",\"requestUri\":\"/api/v2/auth/login\"," +
-      "\"remoteIpAddress\":\"192.168.1.100\"}";
+          "\"type\":\"login\",\"requestMethod\":\"POST\",\"requestUri\":\"/api/v2/auth/login\"," +
+          "\"remoteIpAddress\":\"192.168.1.100\"}";
 
   private UserActivityService userActivityService;
 
@@ -120,9 +120,9 @@ public class UserActivityServiceTest
 
   private File createFilteringScenario() throws IOException {
     return createAuditLogFile("audit.log",
-        JOHN_LOGIN,  // authentication domain
-        JOHN_REPORT_VIEW,  // reporting domain
-        JOHN_CREATE_APP  // governance domain
+        JOHN_LOGIN, // authentication domain
+        JOHN_REPORT_VIEW, // reporting domain
+        JOHN_CREATE_APP // governance domain
     );
   }
 
@@ -151,8 +151,7 @@ public class UserActivityServiceTest
             "\"requestMethod\":\"GET\",\"requestUri\":\"/api/v2/reports\",\"remoteIpAddress\":\"192.168.1.100\"}",
         "{\"timestamp\":\"2024-03-13T17:30:45.123Z\",\"username\":\"john.doe\"," +
             "\"type\":\"configure\",\"domain\":\"security.ldap.server\"," +
-            "\"requestMethod\":\"POST\",\"requestUri\":\"/api/v2/security/ldap\",\"remoteIpAddress\":\"192.168.1.100\"}"
-    );
+            "\"requestMethod\":\"POST\",\"requestUri\":\"/api/v2/security/ldap\",\"remoteIpAddress\":\"192.168.1.100\"}");
   }
 
   // Helper for creating dynamic user scenarios (pagination tests)
@@ -252,8 +251,7 @@ public class UserActivityServiceTest
         "{\"timestamp\":\"2024-03-13T15:30:45.123Z\",\"username\":\"john.doe\"," +
             "\"type\":\"EVALUATE_APPLICATION\",\"requestMethod\":\"GET\"," +
             "\"requestUri\":\"/api/v2/applications/123/reports\"," +
-            "\"remoteIpAddress\":\"192.168.1.100\",\"userAgent\":\"Mozilla/5.0\"}"
-    );
+            "\"remoteIpAddress\":\"192.168.1.100\",\"userAgent\":\"Mozilla/5.0\"}");
 
     when(mockAuditLogFilesProvider.getAuditLogFiles(any(LocalDate.class), any(LocalDate.class)))
         .thenReturn(List.of(auditFile));
@@ -393,8 +391,7 @@ public class UserActivityServiceTest
         "{ corrupted json line without proper format",
         "not even close to json",
         JANE_LOGIN,
-        "{ \"incomplete\": json"
-    );
+        "{ \"incomplete\": json");
     setupMockAuditFiles(auditFile);
 
     // When
@@ -454,7 +451,8 @@ public class UserActivityServiceTest
     // Given - Create audit file with more users than limit, including target user at end
     StringBuilder auditData = new StringBuilder();
     for (int i = 1; i <= 7; i++) { // 7 other users, exceeds limit of 5
-      auditData.append("{\"timestamp\":\"2024-03-13T14:30:45.123Z\",\"username\":\"user").append(i)
+      auditData.append("{\"timestamp\":\"2024-03-13T14:30:45.123Z\",\"username\":\"user")
+          .append(i)
           .append("\",\"type\":\"login\",\"requestMethod\":\"POST\"," +
               "\"requestUri\":\"/api/v2/auth/login\",\"remoteIpAddress\":\"192.168.1.100\"}\n");
     }
@@ -484,7 +482,8 @@ public class UserActivityServiceTest
     // Given - Create audit file with fewer users than limit
     StringBuilder auditData = new StringBuilder();
     for (int i = 1; i <= 3; i++) { // 3 users, below limit of 5
-      auditData.append("{\"timestamp\":\"2024-03-13T14:30:45.123Z\",\"username\":\"user").append(i)
+      auditData.append("{\"timestamp\":\"2024-03-13T14:30:45.123Z\",\"username\":\"user")
+          .append(i)
           .append("\",\"type\":\"login\",\"requestMethod\":\"POST\"," +
               "\"requestUri\":\"/api/v2/auth/login\",\"remoteIpAddress\":\"192.168.1.100\"}\n");
     }
@@ -513,8 +512,7 @@ public class UserActivityServiceTest
             "\"remoteIpAddress\":\"192.168.1.100\"}",
         "{\"timestamp\":\"2024-03-13T15:30:45.123Z\",\"username\":\"user2\"," +
             "\"type\":\"login\",\"requestMethod\":\"POST\",\"requestUri\":\"/api/v2/auth/login\"," +
-            "\"remoteIpAddress\":\"192.168.1.101\"}"
-    );
+            "\"remoteIpAddress\":\"192.168.1.101\"}");
 
     when(mockAuditLogFilesProvider.getAuditLogFiles(any(LocalDate.class), any(LocalDate.class)))
         .thenReturn(List.of(auditFile));
@@ -568,8 +566,7 @@ public class UserActivityServiceTest
         "{\"timestamp\":\"2024-03-13T16:30:45.123Z\",\"username\":\"john.doe\"," +
             "\"type\":\"create\",\"domain\":\"governance\",\"requestMethod\":\"POST\"," +
             "\"requestUri\":\"/api/v2/applications\",\"remoteIpAddress\":\"192.168.1.100\"," +
-            "\"error\":\"Validation failed\"}"
-    );
+            "\"error\":\"Validation failed\"}");
 
     when(mockAuditLogFilesProvider.getAuditLogFiles(any(LocalDate.class), any(LocalDate.class)))
         .thenReturn(List.of(auditFile));
@@ -634,8 +631,7 @@ public class UserActivityServiceTest
         "{\"timestamp\":\"2024-03-13T18:30:45.123Z\",\"username\":\"john.doe\"," +
             "\"type\":\"update\",\"domain\":\"governance\",\"requestMethod\":\"PUT\"," +
             "\"requestUri\":\"/api/v2/applications/456\",\"remoteIpAddress\":\"192.168.1.100\"," +
-            "\"error\":\"Not found\"}"
-    );
+            "\"error\":\"Not found\"}");
     when(mockAuditLogFilesProvider.getAuditLogFiles(any(LocalDate.class), any(LocalDate.class)))
         .thenReturn(List.of(auditFile));
 
@@ -773,8 +769,8 @@ public class UserActivityServiceTest
     // Then - Verify governance filter matches both governance events
     assertThat(governanceResult).isNotNull();
     assertThat(governanceResult.activities).hasSize(2);
-    assertThat(governanceResult.activities).allSatisfy(activity ->
-        assertThat(activity.domain).startsWith("governance"));
+    assertThat(governanceResult.activities)
+        .allSatisfy(activity -> assertThat(activity.domain).startsWith("governance"));
 
     // Then - Verify reporting filter matches reporting event
     assertThat(reportingResult).isNotNull();
@@ -784,11 +780,9 @@ public class UserActivityServiceTest
     // Then - Verify multiple domain filter works correctly
     assertThat(multipleResult).isNotNull();
     assertThat(multipleResult.activities).hasSize(3); // 2 governance + 1 security
-    assertThat(multipleResult.activities).allSatisfy(activity ->
-        assertThat(activity.domain).satisfiesAnyOf(
-            domain -> assertThat(domain).startsWith("governance"),
-            domain -> assertThat(domain).startsWith("security")
-        ));
+    assertThat(multipleResult.activities).allSatisfy(activity -> assertThat(activity.domain).satisfiesAnyOf(
+        domain -> assertThat(domain).startsWith("governance"),
+        domain -> assertThat(domain).startsWith("security")));
   }
 
   @Test
@@ -799,8 +793,7 @@ public class UserActivityServiceTest
             "\"requestUri\":\"/api/v2/auth/login\",\"remoteIpAddress\":\"192.168.1.100\"}",
         "{\"timestamp\":\"2024-03-13T15:30:45.123Z\",\"username\":\"jane.smith\"," +
             "\"type\":\"view\",\"domain\":\"reporting\",\"requestMethod\":\"GET\"," +
-            "\"requestUri\":\"/api/v2/reports\",\"remoteIpAddress\":\"192.168.1.101\"}"
-    );
+            "\"requestUri\":\"/api/v2/reports\",\"remoteIpAddress\":\"192.168.1.101\"}");
 
     when(mockAuditLogFilesProvider.getAuditLogFiles(any(LocalDate.class), any(LocalDate.class)))
         .thenReturn(List.of(auditFile));
@@ -823,9 +816,7 @@ public class UserActivityServiceTest
   }
 
   @Test
-  public void testGetAllUserActivitiesForExport_withSpecificUser_returnsFilteredActivitiesWithUsername()
-      throws IOException
-  {
+  public void testGetAllUserActivitiesForExport_withSpecificUser_returnsFilteredActivitiesWithUsername() throws IOException {
     File auditFile = createAuditLogFile("audit.log",
         "{\"timestamp\":\"2024-03-13T14:30:45.123Z\",\"username\":\"john.doe\"," +
             "\"type\":\"login\",\"domain\":\"authentication\",\"requestMethod\":\"POST\"," +
@@ -835,8 +826,7 @@ public class UserActivityServiceTest
             "\"requestUri\":\"/api/v2/reports\",\"remoteIpAddress\":\"192.168.1.101\"}",
         "{\"timestamp\":\"2024-03-13T16:30:45.123Z\",\"username\":\"john.doe\"," +
             "\"type\":\"create\",\"domain\":\"governance\",\"requestMethod\":\"POST\"," +
-            "\"requestUri\":\"/api/v2/applications\",\"remoteIpAddress\":\"192.168.1.100\"}"
-    );
+            "\"requestUri\":\"/api/v2/applications\",\"remoteIpAddress\":\"192.168.1.100\"}");
 
     when(mockAuditLogFilesProvider.getAuditLogFiles(any(LocalDate.class), any(LocalDate.class)))
         .thenReturn(List.of(auditFile));
@@ -893,8 +883,7 @@ public class UserActivityServiceTest
         "{\"timestamp\":\"2024-03-13T14:30:45.123Z\",\"username\":\"test.user\"," +
             "\"type\":\"login\",\"domain\":\"authentication\",\"requestMethod\":\"POST\"," +
             "\"requestUri\":\"/api/v2/auth/login\",\"remoteIpAddress\":\"192.168.1.100\"," +
-            "\"userAgent\":\"Mozilla/5.0\",\"error\":null}"
-    );
+            "\"userAgent\":\"Mozilla/5.0\",\"error\":null}");
 
     when(mockAuditLogFilesProvider.getAuditLogFiles(any(LocalDate.class), any(LocalDate.class)))
         .thenReturn(List.of(auditFile));

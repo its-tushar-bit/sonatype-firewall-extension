@@ -104,8 +104,7 @@ public class ApplicationCleanerTest
             app.getName(),
             app.getParentOwnerId(),
             app.getType().toString(),
-            OwnerMaintenanceTelemetry.TYPE_DELETE
-        );
+            OwnerMaintenanceTelemetry.TYPE_DELETE);
     final Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY, ownerMaintenanceTelemetry);
 

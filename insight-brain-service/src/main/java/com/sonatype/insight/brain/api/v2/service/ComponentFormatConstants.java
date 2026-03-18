@@ -10,12 +10,13 @@ import java.util.Set;
 /**
  * Constants for component format types and their identification characteristics.
  *
- * <p>Package formats are categorized into two types based on how components are identified:
+ * <p>
+ * Package formats are categorized into two types based on how components are identified:
  * <ul>
  * <li><b>Coordinate-based formats</b>: Identify components by coordinates (name+version) rather than file hash.
- *     These formats can have synthetic hash generated when hash is not provided.</li>
+ * These formats can have synthetic hash generated when hash is not provided.</li>
  * <li><b>Hash-based formats</b>: Identify components by file content hash. These formats require actual file
- *     hashes for proper identification and cannot use synthetic hashes.</li>
+ * hashes for proper identification and cannot use synthetic hashes.</li>
  * </ul>
  *
  * @see <a href="https://sonatype.atlassian.net/browse/NEXUS-49174">NEXUS-49174</a>
@@ -26,7 +27,8 @@ public final class ComponentFormatConstants
    * Coordinate-based package formats that identify components by coordinates (name+version)
    * rather than file hash. These formats can have synthetic hash generated when hash is not provided.
    *
-   * <p>For these formats:
+   * <p>
+   * For these formats:
    * <ul>
    * <li>Components are identified by their coordinates (name + version)</li>
    * <li>Hash is optional when using packageUrl in Firewall Evaluate API</li>
@@ -34,7 +36,8 @@ public final class ComponentFormatConstants
    * <li>The synthetic hash satisfies validation but is not used for component lookup</li>
    * </ul>
    *
-   * <p>Hash-based formats (maven, npm, pypi, nuget, docker, rubygems) are NOT in this set
+   * <p>
+   * Hash-based formats (maven, npm, pypi, nuget, docker, rubygems) are NOT in this set
    * because they require actual file hashes for proper identification.
    */
   public static final Set<String> COORDINATE_BASED_FORMATS = Set.of(
@@ -45,8 +48,7 @@ public final class ComponentFormatConstants
       "cran",
       "conda",
       "composer",
-      "hf-model"
-  );
+      "hf-model");
 
   /**
    * Checks if the given format is a coordinate-based format that identifies components

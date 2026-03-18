@@ -55,7 +55,7 @@ public class MultiTenantWebhookServiceTest
       webhook.setSecretKey(secretKey);
       webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
 
-      //Throws bad request exception
+      // Throws bad request exception
       assertThatExceptionOfType(BadRequestException.class)
           .isThrownBy(() -> webhookService.addWebhookNoAuthz(webhook));
     });

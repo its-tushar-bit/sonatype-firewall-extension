@@ -50,8 +50,7 @@ public class FirewallMetricsComponentQuarantinedConsolidatorCronJob
   @Inject
   public FirewallMetricsComponentQuarantinedConsolidatorCronJob(
       TaskScheduler taskScheduler,
-      QuarantinedComponentMetricsConsolidator consolidator
-  )
+      QuarantinedComponentMetricsConsolidator consolidator)
   {
     this.taskScheduler = taskScheduler;
     this.consolidator = consolidator;

@@ -101,15 +101,13 @@ public class GitClientFactoryTest
     Provider<PasswordHandler> passwordHandlerProvider = binder.getProvider(PasswordHandler.class);
 
     // Create provider that uses WireMock URL
-    binder.bind(GitHubAppAuthStrategyCache.class).toProvider(() ->
-        new GitHubAppAuthStrategyCache(
+    binder.bind(GitHubAppAuthStrategyCache.class)
+        .toProvider(() -> new GitHubAppAuthStrategyCache(
             githubAppDAOProvider.get(),
             insightProxyProvider.get(),
             gitApiClientFactoryProvider.get(),
             passwordHandlerProvider.get(),
-            "http://localhost:" + WIREMOCK_PORT
-        )
-    );
+            "http://localhost:" + WIREMOCK_PORT));
     super.configure(binder);
   }
 
@@ -120,8 +118,10 @@ public class GitClientFactoryTest
 
     spyGitClientFactory = spy(gitClientFactory);
     mockGitApiClientUtils = mock(GitApiClientUtils.class);
-    lenient().doReturn(mockGitApiClientUtils).when(spyGitClientFactory).getClientUtils(eq(GITHUB),
-        any(Configuration.class));
+    lenient().doReturn(mockGitApiClientUtils)
+        .when(spyGitClientFactory)
+        .getClientUtils(eq(GITHUB),
+            any(Configuration.class));
   }
 
   @After
@@ -197,11 +197,9 @@ public class GitClientFactoryTest
     GitRepositoryInfo repoInfo1 = createRepoInfo(githubEnterpriseUrl1, GITHUB);
     GitRepositoryInfo repoInfo2 = createRepoInfo(githubEnterpriseUrl2, GITHUB);
 
-    Tenant tenant1 = testAsNewTenant("tenant1", t1 ->
-        gitClientFactory.addApiUrlMapping(githubEnterpriseUrl1, apiUrl1));
+    Tenant tenant1 = testAsNewTenant("tenant1", t1 -> gitClientFactory.addApiUrlMapping(githubEnterpriseUrl1, apiUrl1));
 
-    Tenant tenant2 = testAsNewTenant("tenant2", t2 ->
-        gitClientFactory.addApiUrlMapping(githubEnterpriseUrl2, apiUrl2));
+    Tenant tenant2 = testAsNewTenant("tenant2", t2 -> gitClientFactory.addApiUrlMapping(githubEnterpriseUrl2, apiUrl2));
 
     testAsTenant(tenant1, t1 -> {
       Configuration config = new Configuration();
@@ -209,7 +207,7 @@ public class GitClientFactoryTest
       String retrievedUrl2 = gitClientFactory.getApiUrl(repoInfo2, config);
 
       assertThat(retrievedUrl2).describedAs(
-              "Tenant1 should not have access to tenant2's cached URL")
+          "Tenant1 should not have access to tenant2's cached URL")
           .isNotEqualTo(apiUrl2);
       assertThat(retrievedUrl1).isEqualTo(apiUrl1);
     });
@@ -221,7 +219,7 @@ public class GitClientFactoryTest
 
       String retrievedUrl1 = gitClientFactory.getApiUrl(repoInfo1, config);
       assertThat(retrievedUrl1).describedAs(
-              "Tenant2 should not have access to tenant1's cached URL")
+          "Tenant2 should not have access to tenant1's cached URL")
           .isNotEqualTo(apiUrl1);
     });
   }
@@ -236,11 +234,11 @@ public class GitClientFactoryTest
     GitRepositoryInfo repoInfo1 = createRepoInfo(githubEnterpriseUrl1, GITHUB);
     GitRepositoryInfo repoInfo2 = createRepoInfo(githubEnterpriseUrl2, GITHUB);
 
-    Tenant tenant1 = testAsNewTenant("tenant1", t1 ->
-        gitClientFactory.addPullRequestInfoClientUrlMapping(githubEnterpriseUrl1, prInfoUrl1));
+    Tenant tenant1 = testAsNewTenant("tenant1",
+        t1 -> gitClientFactory.addPullRequestInfoClientUrlMapping(githubEnterpriseUrl1, prInfoUrl1));
 
-    Tenant tenant2 = testAsNewTenant("tenant2", t2 ->
-        gitClientFactory.addPullRequestInfoClientUrlMapping(githubEnterpriseUrl2, prInfoUrl2));
+    Tenant tenant2 = testAsNewTenant("tenant2",
+        t2 -> gitClientFactory.addPullRequestInfoClientUrlMapping(githubEnterpriseUrl2, prInfoUrl2));
 
     testAsTenant(tenant1, t1 -> {
       Configuration config = new Configuration();
@@ -273,11 +271,11 @@ public class GitClientFactoryTest
     GitRepositoryInfo repoInfo = createRepoInfo(identicalRepoUrl, GITHUB);
     Configuration config = new Configuration();
 
-    Tenant tenant1 = testAsNewTenant("tenant1", t1 ->
-        gitClientFactory.addPullRequestInfoClientUrlMapping(identicalRepoUrl, identicalPrInfoUrl));
+    Tenant tenant1 = testAsNewTenant("tenant1",
+        t1 -> gitClientFactory.addPullRequestInfoClientUrlMapping(identicalRepoUrl, identicalPrInfoUrl));
 
-    Tenant tenant2 = testAsNewTenant("tenant2", t2 ->
-        gitClientFactory.addPullRequestInfoClientUrlMapping(identicalRepoUrl, identicalPrInfoUrl));
+    Tenant tenant2 = testAsNewTenant("tenant2",
+        t2 -> gitClientFactory.addPullRequestInfoClientUrlMapping(identicalRepoUrl, identicalPrInfoUrl));
 
     testAsTenant(tenant1, t1 -> {
       String retrievedUrl = gitClientFactory.getPullRequestInfoClientUrl(repoInfo, config);
@@ -429,7 +427,7 @@ public class GitClientFactoryTest
     GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/org/repo", GITHUB);
     repoInfo.authenticationType =
         com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType.GITHUB_APP;
-    repoInfo.authOwnerId = null;  // Missing ownerId - should NOT fallback to PAT
+    repoInfo.authOwnerId = null; // Missing ownerId - should NOT fallback to PAT
 
     // When/Then: Creating API client should throw IllegalStateException (fail fast)
     assertThatThrownBy(() -> gitClientFactory.createApiClient(repoInfo))
@@ -444,7 +442,7 @@ public class GitClientFactoryTest
     GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/org/repo", GITHUB);
     repoInfo.authenticationType =
         com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType.GITHUB_APP;
-    repoInfo.authOwnerId = null;  // Missing ownerId - should NOT fallback to PAT
+    repoInfo.authOwnerId = null; // Missing ownerId - should NOT fallback to PAT
 
     // When/Then: Creating PR info client should throw IllegalStateException (fail fast)
     assertThatThrownBy(() -> gitClientFactory.createPullRequestInfoClient(repoInfo))
@@ -459,7 +457,7 @@ public class GitClientFactoryTest
     GitRepositoryInfo repoInfo = createRepoInfo("https://github.com/org/repo", GITHUB);
     repoInfo.authenticationType =
         com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType.GITHUB_APP;
-    repoInfo.authOwnerId = null;  // Missing ownerId - should NOT fallback to PAT
+    repoInfo.authOwnerId = null; // Missing ownerId - should NOT fallback to PAT
 
     // When/Then: Creating contributor info provider should throw IllegalStateException (fail fast)
     assertThatThrownBy(() -> gitClientFactory.createContributorInfoProvider(repoInfo))
@@ -477,9 +475,7 @@ public class GitClientFactoryTest
                 .withStatus(201)
                 .withHeader("Content-Type", "application/json")
                 .withBody("{\"token\":\"" + GITHUB_INSTALLATION_TOKEN + "\"," +
-                    "\"expires_at\":\"2099-01-01T00:00:00Z\"}")
-            )
-    );
+                    "\"expires_at\":\"2099-01-01T00:00:00Z\"}")));
 
     // Mock GraphQL endpoint
     githubMockServer.stubFor(
@@ -487,9 +483,7 @@ public class GitClientFactoryTest
             .willReturn(aResponse()
                 .withStatus(200)
                 .withHeader("Content-Type", "application/json")
-                .withBody("{\"data\":{\"search\":{\"edges\":[],\"pageInfo\":{\"hasNextPage\":false}}}}")
-            )
-    );
+                .withBody("{\"data\":{\"search\":{\"edges\":[],\"pageInfo\":{\"hasNextPage\":false}}}}")));
 
     // Create test application and GitHub App
     Organization org = tempEntity.newOrganization("test-org");
@@ -512,8 +506,7 @@ public class GitClientFactoryTest
     // Verify GraphQL endpoint was called with GitHub App authentication
     githubMockServer.verify(
         postRequestedFor(urlPathEqualTo("/api/graphql"))
-            .withHeader("Authorization", containing(GITHUB_INSTALLATION_TOKEN))
-    );
+            .withHeader("Authorization", containing(GITHUB_INSTALLATION_TOKEN)));
   }
 
   @Test
@@ -547,9 +540,7 @@ public class GitClientFactoryTest
                 .withStatus(201)
                 .withHeader("Content-Type", "application/json")
                 .withBody("{\"token\":\"" + GITHUB_INSTALLATION_TOKEN + "\"," +
-                    "\"expires_at\":\"2099-01-01T00:00:00Z\"}")
-            )
-    );
+                    "\"expires_at\":\"2099-01-01T00:00:00Z\"}")));
 
     // Mock GraphQL endpoint for API calls
     githubMockServer.stubFor(
@@ -557,9 +548,7 @@ public class GitClientFactoryTest
             .willReturn(aResponse()
                 .withStatus(200)
                 .withHeader("Content-Type", "application/json")
-                .withBody("{\"data\":{\"search\":{\"edges\":[],\"pageInfo\":{\"hasNextPage\":false}}}}")
-            )
-    );
+                .withBody("{\"data\":{\"search\":{\"edges\":[],\"pageInfo\":{\"hasNextPage\":false}}}}")));
 
     // Create test application and GitHub App
     Organization org = tempEntity.newOrganization("test-org");
@@ -667,8 +656,7 @@ public class GitClientFactoryTest
     GeneralSCMApiClient apiClient = gitClientFactory.createGeneralApiClient(
         GITHUB,
         "https://github.com",
-        githubApp
-    );
+        githubApp);
 
     // Then: Client is created successfully
     assertThat(apiClient).isNotNull();
@@ -681,16 +669,12 @@ public class GitClientFactoryTest
     GitHubApp githubApp = createTestGitHubApp(org.getId());
 
     // When/Then: GitLab provider should throw exception
-    assertThatThrownBy(() ->
-        gitClientFactory.createGeneralApiClient(GITLAB, "https://gitlab.com", githubApp)
-    )
+    assertThatThrownBy(() -> gitClientFactory.createGeneralApiClient(GITLAB, "https://gitlab.com", githubApp))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("GitHub App authentication only supports GitHub provider");
 
     // When/Then: Bitbucket provider should throw exception
-    assertThatThrownBy(() ->
-        gitClientFactory.createGeneralApiClient(BITBUCKET, "https://bitbucket.org", githubApp)
-    )
+    assertThatThrownBy(() -> gitClientFactory.createGeneralApiClient(BITBUCKET, "https://bitbucket.org", githubApp))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("GitHub App authentication only supports GitHub provider");
   }
@@ -703,9 +687,7 @@ public class GitClientFactoryTest
     githubApp.setInstallationId(null);
 
     // When/Then: Should throw exception
-    assertThatThrownBy(() ->
-        gitClientFactory.createGeneralApiClient(GITHUB, "https://github.com", githubApp)
-    )
+    assertThatThrownBy(() -> gitClientFactory.createGeneralApiClient(GITHUB, "https://github.com", githubApp))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("GitHub App installation ID is required");
   }
@@ -722,8 +704,7 @@ public class GitClientFactoryTest
     GeneralSCMApiClient apiClient = gitClientFactory.createGeneralApiClient(
         GITHUB,
         enterpriseUrl,
-        githubApp
-    );
+        githubApp);
 
     // Then: Client is created successfully
     assertThat(apiClient).isNotNull();
@@ -745,8 +726,7 @@ public class GitClientFactoryTest
       apiClient = gitClientFactory.createGeneralApiClient(
           SourceControlProvider.GITHUB,
           "https://github.com",
-          githubApp
-      );
+          githubApp);
     }
     catch (IOException e) {
       throw new RuntimeException(e);
@@ -765,9 +745,7 @@ public class GitClientFactoryTest
     tempEntity.newGitHubApp(githubApp);
 
     // When/Then: Should throw exception during key decryption/parsing
-    assertThatThrownBy(() ->
-        gitClientFactory.createGeneralApiClient(GITHUB, "https://github.com", githubApp)
-    )
+    assertThatThrownBy(() -> gitClientFactory.createGeneralApiClient(GITHUB, "https://github.com", githubApp))
         .isInstanceOf(RuntimeException.class);
   }
 

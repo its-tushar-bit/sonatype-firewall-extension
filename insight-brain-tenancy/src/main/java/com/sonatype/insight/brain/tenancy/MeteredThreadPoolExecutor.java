@@ -126,9 +126,7 @@ public class MeteredThreadPoolExecutor
               queueRemainingForTasksGauge.getId(),
               executorPoolSize.getId(),
               executorPoolCore.getId(),
-              executorPoolMax.getId()
-          )
-      );
+              executorPoolMax.getId()));
     }
   }
 
@@ -237,8 +235,7 @@ public class MeteredThreadPoolExecutor
             idleTaskTimer.getId(),
             runningTaskTimer.getId(),
             failedTaskCounter.getId(),
-            completedTaskCounter.getId()
-        ));
+            completedTaskCounter.getId()));
       }
     }
 

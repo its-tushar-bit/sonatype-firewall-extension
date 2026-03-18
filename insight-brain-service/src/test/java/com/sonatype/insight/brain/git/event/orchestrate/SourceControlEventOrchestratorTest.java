@@ -102,14 +102,18 @@ public class SourceControlEventOrchestratorTest
     when(mockSourceControlLoadBalancer.reserveEvent(any())).thenReturn(true);
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo("https://gitlab.org/organization/project", null, "user", "token", GITLAB,
-            "base-branch", true, true, true, true,true, true, false, null);
+            "base-branch", true, true, true, true, true, true, false, null);
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     SourceControlEvent user1Event =
-        new SourceControlEvent().forRemediationPullRequest().withId("user1Event").setScmUsername("user1")
+        new SourceControlEvent().forRemediationPullRequest()
+            .withId("user1Event")
+            .setScmUsername("user1")
             .setApplicationId("user1App");
     SourceControlEvent user2Event =
-        new SourceControlEvent().forRemediationPullRequest().withId("user2Event").setScmUsername("user2")
+        new SourceControlEvent().forRemediationPullRequest()
+            .withId("user2Event")
+            .setScmUsername("user2")
             .setApplicationId("user2App");
 
     // when: process the events and capture the callback references
@@ -139,14 +143,18 @@ public class SourceControlEventOrchestratorTest
     when(mockSourceControlLoadBalancer.reserveEvent(any())).thenReturn(true);
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo("https://bitbucket.org/organization/project", null, "user", "token", BITBUCKET,
-            "base-branch", true, true, true, true,true, true, false, null);
+            "base-branch", true, true, true, true, true, true, false, null);
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     SourceControlEvent user1Event1 =
-        new SourceControlEvent().forRemediationPullRequest().withId("user1Event1").setScmUsername("user1")
+        new SourceControlEvent().forRemediationPullRequest()
+            .withId("user1Event1")
+            .setScmUsername("user1")
             .setApplicationId("user1App1");
     SourceControlEvent user1Event2 =
-        new SourceControlEvent().forStatusUpdate().withId("user1Event2").setScmUsername("user1")
+        new SourceControlEvent().forStatusUpdate()
+            .withId("user1Event2")
+            .setScmUsername("user1")
             .setApplicationId("user1App2");
 
     // when: process both events and capture the callback references
@@ -194,7 +202,7 @@ public class SourceControlEventOrchestratorTest
 
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo("https://azure.org/organization/project", null, "user", "token", AZURE,
-            "base-branch", true, true, true,true, true, true, false, null);
+            "base-branch", true, true, true, true, true, true, false, null);
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(

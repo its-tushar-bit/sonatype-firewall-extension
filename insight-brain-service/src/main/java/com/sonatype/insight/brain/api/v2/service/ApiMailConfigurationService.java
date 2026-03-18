@@ -115,7 +115,8 @@ public class ApiMailConfigurationService
       // - The next email notification sends a request to the fake server and the password is stolen
       if (!configurationDTO.passwordIsIncluded) {
         if (!mailConfiguration.getHostname().equals(configurationDTO.hostname)
-            || mailConfiguration.getPort() != configurationDTO.port) {
+            || mailConfiguration.getPort() != configurationDTO.port)
+        {
           clearPassword(configurationDTO);
           throw new BadRequestException("The password must be provided when the hostname or port are updated");
         }

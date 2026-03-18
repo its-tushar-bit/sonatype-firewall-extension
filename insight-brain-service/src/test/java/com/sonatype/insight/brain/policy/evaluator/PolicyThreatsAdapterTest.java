@@ -46,7 +46,7 @@ public class PolicyThreatsAdapterTest
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
     Map<String, Owner> policyIdPolicyOwnerIdMap = new HashMap<>();
-    Application app = new Application("ROOT_ORGANIZATION_ID","ROOT_ORGANIZATION","ROOT_ORGANIZATION_ID");
+    Application app = new Application("ROOT_ORGANIZATION_ID", "ROOT_ORGANIZATION", "ROOT_ORGANIZATION_ID");
     policyIdPolicyOwnerIdMap.put("policy1", app);
 
     PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations, "compliance",
@@ -235,7 +235,7 @@ public class PolicyThreatsAdapterTest
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation);
     Map policyIdPolicyOwnerMap = new HashMap<String, Owner>();
-    Application app = new Application("ROOT_ORGANIZATION_ID","ROOT_ORGANIZATION","ROOT_ORGANIZATION_ID");
+    Application app = new Application("ROOT_ORGANIZATION_ID", "ROOT_ORGANIZATION", "ROOT_ORGANIZATION_ID");
     policyIdPolicyOwnerMap.put("policy1", app);
 
     PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations, null, policyIdPolicyOwnerMap);
@@ -266,7 +266,7 @@ public class PolicyThreatsAdapterTest
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
     Map policyIdPolicyOwnerMap = new HashMap<String, Owner>();
-    Application app = new Application("ROOT_ORGANIZATION_ID","ROOT_ORGANIZATION","ROOT_ORGANIZATION_ID");
+    Application app = new Application("ROOT_ORGANIZATION_ID", "ROOT_ORGANIZATION", "ROOT_ORGANIZATION_ID");
     policyIdPolicyOwnerMap.put("policy1", app);
 
     PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations, null, policyIdPolicyOwnerMap);
@@ -324,13 +324,14 @@ public class PolicyThreatsAdapterTest
     assertThat(resultFour).isFalse();
   }
 
-  private PolicyViolation buildPolicyViolation(String policyId,
-                                               String hash,
-                                               int threatLevel,
-                                               ComponentIdentifier componentIdentifier,
-                                               boolean waived,
-                                               boolean legacyViolation,
-                                               String actionType)
+  private PolicyViolation buildPolicyViolation(
+      String policyId,
+      String hash,
+      int threatLevel,
+      ComponentIdentifier componentIdentifier,
+      boolean waived,
+      boolean legacyViolation,
+      String actionType)
   {
     PolicyEvaluation evaluation =
         new PolicyEvaluation("applicationId1", "stageId1", "scanId1", CurrentUser.SYSTEM, ScanTriggerType.CLI);
@@ -407,20 +408,23 @@ public class PolicyThreatsAdapterTest
     }
   }
 
-  private void assertPolicyThreatsPolicyViolations(List<PolicyThreats.PolicyViolation> policyViolations,
-                                                   List<PolicyViolation> violations)
+  private void assertPolicyThreatsPolicyViolations(
+      List<PolicyThreats.PolicyViolation> policyViolations,
+      List<PolicyViolation> violations)
   {
     for (PolicyThreats.PolicyViolation policyViolation : policyViolations) {
       assertPolicyThreatsPolicyViolations(policyViolation, violations);
     }
   }
 
-  private void assertPolicyThreatsPolicyViolations(PolicyThreats.PolicyViolation policyViolation,
-                                                   List<PolicyViolation> violations)
+  private void assertPolicyThreatsPolicyViolations(
+      PolicyThreats.PolicyViolation policyViolation,
+      List<PolicyViolation> violations)
   {
     for (PolicyViolation violation : violations) {
       if (policyViolation.policyId.equals(violation.getPolicyId())
-          && policyViolation.constraintFactsJson.equals(violation.getConstraintFactsJson())) {
+          && policyViolation.constraintFactsJson.equals(violation.getConstraintFactsJson()))
+      {
         assertPolicyThreatsPolicyViolations(policyViolation, violation);
         return;
       }
@@ -429,8 +433,9 @@ public class PolicyThreatsAdapterTest
     fail("Unable to find matching violation for policy threats violation " + policyViolation.toString() + ".");
   }
 
-  private void assertPolicyThreatsPolicyViolations(PolicyThreats.PolicyViolation policyViolation,
-                                                   PolicyViolation violation)
+  private void assertPolicyThreatsPolicyViolations(
+      PolicyThreats.PolicyViolation policyViolation,
+      PolicyViolation violation)
   {
     assertThat(policyViolation.policyId).isEqualTo(violation.getPolicyId());
     assertThat(policyViolation.policyViolationId).isEqualTo(violation.getId());
@@ -451,16 +456,18 @@ public class PolicyThreatsAdapterTest
     assertPolicyThreatsPolicyConstraints(policyViolation.constraints, violation.getConstraintFacts());
   }
 
-  private void assertPolicyThreatsPolicyConstraints(List<PolicyThreats.PolicyConstraint> policyConstraints,
-                                                    List<ConstraintFact> facts)
+  private void assertPolicyThreatsPolicyConstraints(
+      List<PolicyThreats.PolicyConstraint> policyConstraints,
+      List<ConstraintFact> facts)
   {
     for (PolicyThreats.PolicyConstraint policyConstraint : policyConstraints) {
       assertPolicyThreatsPolicyConstraints(policyConstraint, facts);
     }
   }
 
-  private void assertPolicyThreatsPolicyConstraints(PolicyThreats.PolicyConstraint constraint,
-                                                    List<ConstraintFact> facts)
+  private void assertPolicyThreatsPolicyConstraints(
+      PolicyThreats.PolicyConstraint constraint,
+      List<ConstraintFact> facts)
   {
     for (ConstraintFact fact : facts) {
       if (constraint.constraintId.equals(fact.getConstraintId())) {
@@ -480,23 +487,26 @@ public class PolicyThreatsAdapterTest
     assertPolicyThreatsPolicyConditions(constraint.conditions, fact.getConditionFacts());
   }
 
-  private void assertPolicyThreatsPolicyConditions(List<PolicyThreats.PolicyCondition> conditions,
-                                                   List<ConditionFact> conditionFacts)
+  private void assertPolicyThreatsPolicyConditions(
+      List<PolicyThreats.PolicyCondition> conditions,
+      List<ConditionFact> conditionFacts)
   {
     for (PolicyThreats.PolicyCondition condition : conditions) {
       assertPolicyThreatsPolicyConditions(condition, conditionFacts);
     }
   }
 
-  private void assertPolicyThreatsPolicyConditions(PolicyThreats.PolicyCondition condition,
-                                                   List<ConditionFact> conditionFacts)
+  private void assertPolicyThreatsPolicyConditions(
+      PolicyThreats.PolicyCondition condition,
+      List<ConditionFact> conditionFacts)
   {
     for (ConditionFact fact : conditionFacts) {
       assertPolicyConditionTriggerReference(condition.conditionTriggerReference, fact.getReference());
 
       if (fact.getConditionTypeId().equals(condition.conditionType)
           && fact.getReason().equals(condition.conditionReason)
-          && fact.getSummary().equals(condition.conditionSummary)) {
+          && fact.getSummary().equals(condition.conditionSummary))
+      {
         return;
       }
     }

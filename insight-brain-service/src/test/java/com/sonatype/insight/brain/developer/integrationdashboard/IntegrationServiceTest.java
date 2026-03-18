@@ -5,6 +5,7 @@
  */
 
 package com.sonatype.insight.brain.developer.integrationdashboard;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Date;
@@ -663,8 +664,7 @@ public class IntegrationServiceTest
         ROOT_ORGANIZATION_ID,
         null,
         new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     // Explicitly set SCM Integration Status to false for app 1
     tempEntity.newSourceControl(
         app1.getId(),
@@ -683,8 +683,7 @@ public class IntegrationServiceTest
         true,
         false,
         false,
-        false
-    );
+        false);
     // Explicitly set SCM Integration Status to true for app 2
     tempEntity.newSourceControl(
         app2.getId(),
@@ -703,8 +702,7 @@ public class IntegrationServiceTest
         true,
         true,
         true,
-        true
-    );
+        true);
     // Explicitly set SCM Integration Status to true for app 4
     tempEntity.newSourceControl(
         app4.getId(),
@@ -723,8 +721,7 @@ public class IntegrationServiceTest
         true,
         true,
         true,
-        true
-    );
+        true);
     // Explicitly set CI Integration Status to true for app 1
     tempEntity.newPolicyEvaluation(
         app1.getId(),
@@ -735,8 +732,7 @@ public class IntegrationServiceTest
         false,
         new Date(),
         "hash-1",
-        ScanTriggerType.CONTINUOUS_INTEGRATION
-    );
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
     // Explicitly set CI Integration Status to true for app 2
     tempEntity.newPolicyEvaluation(
         app2.getId(),
@@ -747,8 +743,7 @@ public class IntegrationServiceTest
         false,
         new Date(),
         "hash-2",
-        ScanTriggerType.CONTINUOUS_INTEGRATION
-    );
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
 
     // Scenario 1: both CI and SCM filter parameters are null
     final ApiPageResult<IntegrationStatusDTO> resultOne =
@@ -816,14 +811,14 @@ public class IntegrationServiceTest
   }
 
   @Test
-  public void testGetIntegrationSummaries_FilterOnScmIntegrationStatus_h2()  throws Exception {
+  public void testGetIntegrationSummaries_FilterOnScmIntegrationStatus_h2() throws Exception {
     setUpAppsWithBuildStageRisk();
     final String repoUrl = "https://example.com/organization/project";
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"),
         SourceControlProvider.GITHUB);
     // Explicitly set SCM Integration Status to false for app 1
     tempEntity.newSourceControl(app1.getId(), repoUrl, null, null, null, null, false,
-            null, null, null, true, true, "/target/*", true, false, false, false);
+        null, null, null, true, true, "/target/*", true, false, false, false);
     // Explicitly set SCM Integration Status to true for app 2
     tempEntity.newSourceControl(app2.getId(), repoUrl, null, null, null, null, false,
         null, null, null, true, true, "/target/*", true, true, true, true);
@@ -856,7 +851,7 @@ public class IntegrationServiceTest
   @Test
   @Category(PostgresTestCategory.class)
   @PostgresTest
-  public void testGetIntegrationSummaries_FilterOnScmIntegrationStatus_postgres()  throws Exception {
+  public void testGetIntegrationSummaries_FilterOnScmIntegrationStatus_postgres() throws Exception {
     setUpAppsWithBuildStageRisk();
     final String repoUrl = "https://example.com/organization/project";
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"),
@@ -1585,8 +1580,7 @@ public class IntegrationServiceTest
         false,
         false,
         false,
-        IntegrationStatusOrderByEnum.NAME.name()
-    ));
+        IntegrationStatusOrderByEnum.NAME.name()));
   }
 
   @Test
@@ -1606,8 +1600,7 @@ public class IntegrationServiceTest
         true,
         false,
         false,
-        IntegrationStatusOrderByEnum.COMMIT.name()
-    ));
+        IntegrationStatusOrderByEnum.COMMIT.name()));
   }
 
   @Test
@@ -1627,8 +1620,7 @@ public class IntegrationServiceTest
         true,
         true,
         false,
-        IntegrationStatusOrderByEnum.TOTAL_RISK.name()
-    ));
+        IntegrationStatusOrderByEnum.TOTAL_RISK.name()));
   }
 
   @Test
@@ -1648,19 +1640,17 @@ public class IntegrationServiceTest
         true,
         true,
         true,
-        IntegrationStatusOrderByEnum.EVALUATION.name()
-    ));
+        IntegrationStatusOrderByEnum.EVALUATION.name()));
   }
 
   private TelemetryData buildAppIntegrationFilterTelemetry(
       final boolean includesAppNameSearch,
       final boolean includesScmIntegrationFilter,
       final boolean includesCiCdIntegrationFilter,
-      final String orderBy
-  )
+      final String orderBy)
   {
     final TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.DEVELOPER_INTEGRATIONS_DASHBOARD);
-    final Map<String , Object> attributes = new HashMap<>();
+    final Map<String, Object> attributes = new HashMap<>();
     attributes.put("includes_app_name_search", includesAppNameSearch);
     attributes.put("includes_scm_integration_filter", includesScmIntegrationFilter);
     attributes.put("includes_ci_cd_integration_filter", includesCiCdIntegrationFilter);

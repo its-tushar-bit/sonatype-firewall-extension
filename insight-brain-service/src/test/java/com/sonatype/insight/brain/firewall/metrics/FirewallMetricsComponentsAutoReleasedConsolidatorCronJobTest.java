@@ -28,8 +28,7 @@ public class FirewallMetricsComponentsAutoReleasedConsolidatorCronJobTest
     extends AbstractComponentTest
 {
   @Inject
-  private FirewallMetricsComponentsAutoReleasedConsolidatorCronJob
-      firewallMetricsComponentsAutoReleasedConsolidatorCronJob;
+  private FirewallMetricsComponentsAutoReleasedConsolidatorCronJob firewallMetricsComponentsAutoReleasedConsolidatorCronJob;
 
   @Mock
   private TaskScheduler taskSchedulerMock;
@@ -40,15 +39,17 @@ public class FirewallMetricsComponentsAutoReleasedConsolidatorCronJobTest
   @Override
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    binder.bind(ComponentsAutoReleasedMetricsConsolidator.class).toInstance(
-        componentsAutoReleasedMetricsConsolidatorMock);
+    binder.bind(ComponentsAutoReleasedMetricsConsolidator.class)
+        .toInstance(
+            componentsAutoReleasedMetricsConsolidatorMock);
     super.configure(binder);
   }
 
   @Test
   public void testDisallowConcurrentExecution() {
-    assertThat(JobBuilder.newJob(FirewallMetricsComponentsAutoReleasedConsolidatorCronJob.class).build()
-      .isConcurrentExectionDisallowed()).isTrue();
+    assertThat(JobBuilder.newJob(FirewallMetricsComponentsAutoReleasedConsolidatorCronJob.class)
+        .build()
+        .isConcurrentExectionDisallowed()).isTrue();
   }
 
   @Test

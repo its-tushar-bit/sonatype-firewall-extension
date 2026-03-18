@@ -9,7 +9,8 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class DeleteAnnotationModal extends BasicElement<DeleteAnnotationModal>
+public class DeleteAnnotationModal
+    extends BasicElement<DeleteAnnotationModal>
 {
   static final String ROOT_SELECTOR = "#delete-vex-annotation-modal";
 

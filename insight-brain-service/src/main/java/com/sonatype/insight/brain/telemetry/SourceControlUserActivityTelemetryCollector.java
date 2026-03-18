@@ -58,8 +58,7 @@ public class SourceControlUserActivityTelemetryCollector
   }
 
   private TelemetryData addTelemetry(
-      final Map<String, Map<String, List<String>>> sourceControlUserActivityTelemetry
-  )
+      final Map<String, Map<String, List<String>>> sourceControlUserActivityTelemetry)
   {
     TelemetryData telemetryData = null;
     if (!CollectionUtils.isEmpty(sourceControlUserActivityTelemetry)) {

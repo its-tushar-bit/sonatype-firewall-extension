@@ -92,23 +92,20 @@ public class ApiPolicyWaiverResource
           "\n" +
           "Permissions required: Waive Policy Violations",
       responses = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "No content. Indicates that the waiver has been created successfully."
-          )
+        @ApiResponse(
+            responseCode = "204",
+            description = "No content. Indicates that the waiver has been created successfully.")
       }
 
   )
   public void addPolicyWaiverByPolicyViolationId(
       @Parameter(description = "Indicates the scope of the waiver. Possible values are application, " +
-          "organization, repository, repository_manager, repository_container.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
+          "organization, repository, repository_manager, repository_container.",
+          required = true) @PathParam("ownerType") OwnerType ownerType,
       @Parameter(description = "Enter the id for the ownerType provided above. E.g. applicationId if the " +
-          "ownerType is application.", required = true)
-      @PathParam("ownerId") String ownerId,
+          "ownerType is application.", required = true) @PathParam("ownerId") String ownerId,
       @Parameter(description = "Enter the policyViolationId for the policy on which you want to create a waiver. " +
-          "Use the Policy Violation REST API or Reports REST API to obtain the policyViolationId.")
-      @PathParam("policyViolationId") String policyViolationId,
+          "Use the Policy Violation REST API or Reports REST API to obtain the policyViolationId.") @PathParam("policyViolationId") String policyViolationId,
       @RequestBody(
           description = "The request JSON can include the fields" +
               "<ol>" +
@@ -121,9 +118,7 @@ public class ApiPolicyWaiverResource
               "ALL_VERSIONS. DEFAULT will match all components if no hash is provided.</li>" +
               "<li>expiryTime (default null) to set the datetime when the waiver expires.</li>" +
               "</ol>",
-          required = true
-      )
-      ApiWaiverOptionsDTO waiverOptionsDTO)
+          required = true) ApiWaiverOptionsDTO waiverOptionsDTO)
   {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(ownerType, ownerId, policyViolationId, waiverOptionsDTO);
   }
@@ -138,19 +133,16 @@ public class ApiPolicyWaiverResource
           "\n" +
           "Permissions required: Waive Policy Violations",
       responses = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "No content. Indicates that the waivers have been created successfully."
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "204",
+            description = "No content. Indicates that the waivers have been created successfully.")
+      })
   public void addBulkPolicyWaivers(
       @Parameter(description = "Indicates the scope of the waiver. Possible values are application, " +
-          "organization, repository, repository_manager, repository_container.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
+          "organization, repository, repository_manager, repository_container.",
+          required = true) @PathParam("ownerType") OwnerType ownerType,
       @Parameter(description = "Enter the id for the ownerType provided above. E.g. applicationId if the " +
-          "ownerType is application.", required = true)
-      @PathParam("ownerId") String ownerId,
+          "ownerType is application.", required = true) @PathParam("ownerId") String ownerId,
       @RequestBody(
           description = "The request JSON should include:" +
               "<ol>" +
@@ -166,9 +158,7 @@ public class ApiPolicyWaiverResource
               "is available, can only be applied to Exact Components.</li>" +
               "</ul></li>" +
               "</ol>",
-          required = true
-      )
-      ApiBulkWaiversDTO bulkWaiversDTO)
+          required = true) ApiBulkWaiversDTO bulkWaiversDTO)
   {
     apiPolicyWaiverService.addBulkPolicyWaivers(ownerType, ownerId, bulkWaiversDTO);
   }
@@ -182,23 +172,21 @@ public class ApiPolicyWaiverResource
       "\n" +
       "Permissions required: Waive Policy Violations",
       responses = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "The policy waiver was updated successfully."
-          )
+        @ApiResponse(
+            responseCode = "204",
+            description = "The policy waiver was updated successfully.")
       })
   public void updatePolicyWaiver(
       @Parameter(description = "Indicates the scope of the policy waiver. Possible values are application," +
-          " organization, repository, repository_manager, and repository_container.", required = true)
-      @PathParam("ownerType") final OwnerType ownerType,
+          " organization, repository, repository_manager, and repository_container.",
+          required = true) @PathParam("ownerType") final OwnerType ownerType,
       @Parameter(description = "Enter the id for the `ownerType` provided above. E.g. `applicationId` if the" +
-          " `ownerType` is application.", required = true)
-      @PathParam("ownerId") final String ownerId,
-      @Parameter(description = "Enter the id for the policy waiver.", required = true)
-      @PathParam("policyWaiverId") final String policyWaiverId,
+          " `ownerType` is application.", required = true) @PathParam("ownerId") final String ownerId,
+      @Parameter(description = "Enter the id for the policy waiver.",
+          required = true) @PathParam("policyWaiverId") final String policyWaiverId,
       @RequestBody(description = "Enter the policy waiver details to update." +
-          " Note that updating `matcherStrategy` is currently unsupported.", required = true)
-      final ApiWaiverOptionsDTO dto)
+          " Note that updating `matcherStrategy` is currently unsupported.",
+          required = true) final ApiWaiverOptionsDTO dto)
   {
     apiPolicyWaiverService.updatePolicyWaiver(ownerType, ownerId, policyWaiverId, dto);
   }
@@ -215,21 +203,18 @@ public class ApiPolicyWaiverResource
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains waiver details corresponding to the policy waiverId specified.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains waiver details corresponding to the policy waiverId specified.",
+            useReturnTypeSchema = true)
       })
   public ApiPolicyWaiverDTO getPolicyWaiver(
       @Parameter(description = "Enter the ownerType to specify the scope. The response will contain the details " +
-          "for waivers within the scope.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
-      @PathParam("ownerId") String ownerId,
+          "for waivers within the scope.", required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the corresponding id for the ownerType specified above.",
+          required = true) @PathParam("ownerId") String ownerId,
       @Parameter(description = "Enter the policyWaiverId for which you want to retrieve the waiver details.",
-          required = true)
-      @PathParam("policyWaiverId") String policyWaiverId)
+          required = true) @PathParam("policyWaiverId") String policyWaiverId)
   {
     return apiPolicyWaiverService.getPolicyWaiver(ownerType, ownerId, policyWaiverId);
   }
@@ -242,19 +227,18 @@ public class ApiPolicyWaiverResource
       "\n" +
       "Permissions required: Waive Policy Violations",
       responses = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "Waiver has been deleted successfully."
-          )
+        @ApiResponse(
+            responseCode = "204",
+            description = "Waiver has been deleted successfully.")
       })
   public void deletePolicyWaiver(
       @Parameter(description = "Enter the ownerType to specify the scope. A waiver corresponding to the " +
-          "policyWaiverId provided and within the scope specified will be deleted.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
-      @PathParam("ownerId") String ownerId,
-      @Parameter(description = "Enter the policyWaiverId to be deleted.")
-      @PathParam("policyWaiverId") String policyWaiverId)
+          "policyWaiverId provided and within the scope specified will be deleted.",
+          required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the corresponding id for the ownerType specified above.",
+          required = true) @PathParam("ownerId") String ownerId,
+      @Parameter(
+          description = "Enter the policyWaiverId to be deleted.") @PathParam("policyWaiverId") String policyWaiverId)
   {
     apiPolicyWaiverService.deletePolicyWaiver(ownerType, ownerId, policyWaiverId);
   }
@@ -269,27 +253,25 @@ public class ApiPolicyWaiverResource
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains waiver details for the specified ownerType and the corresponding " +
-                  "ownerId, grouped by the policyWaiverId. The response field 'matcherStrategy' indicates whether " +
-                  "the waiver " +
-                  "applies to a specific component, or all components that exist at that level of hierarchy" +
-                  " (root org, org " +
-                  "application), or all versions of the component (past, present, and future). " +
-                  "The response fields " +
-                  "associatedPackageUrl, displayName, and componentIdentifier are null for waivers on all " +
-                  "components and " +
-                  "unknown components.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains waiver details for the specified ownerType and the corresponding " +
+                "ownerId, grouped by the policyWaiverId. The response field 'matcherStrategy' indicates whether " +
+                "the waiver " +
+                "applies to a specific component, or all components that exist at that level of hierarchy" +
+                " (root org, org " +
+                "application), or all versions of the component (past, present, and future). " +
+                "The response fields " +
+                "associatedPackageUrl, displayName, and componentIdentifier are null for waivers on all " +
+                "components and " +
+                "unknown components.",
+            useReturnTypeSchema = true)
       })
   public List<ApiPolicyWaiverDTO> getPolicyWaivers(
       @Parameter(description = "Enter the ownerType to specify the scope. The response will contain " +
-          "waivers that are within the scope specified.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
-      @PathParam("ownerId") String ownerId)
+          "waivers that are within the scope specified.", required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the corresponding id for the ownerType specified above.",
+          required = true) @PathParam("ownerId") String ownerId)
   {
     return apiPolicyWaiverService.getPolicyWaivers(ownerType, ownerId);
   }
@@ -305,27 +287,22 @@ public class ApiPolicyWaiverResource
       "\n" +
       "Permissions required: Waive Policy Violations",
       responses = {
-          @ApiResponse
-              (responseCode = "204",
-                  description = "No content. Indicates that the waiver has been created successfully.")
+        @ApiResponse(responseCode = "204",
+            description = "No content. Indicates that the waiver has been created successfully.")
       })
   public void addWaiverToTransitivePolicyViolationsByAppScanComponent(
-      @Parameter(description = "Indicates the scope of the waiver that will be created.", required = true)
-      @PathParam("ownerType") final OwnerType ownerType,
-      @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
-      @PathParam("ownerId") final String ownerId,
+      @Parameter(description = "Indicates the scope of the waiver that will be created.",
+          required = true) @PathParam("ownerType") final OwnerType ownerType,
+      @Parameter(description = "Enter the corresponding id for the ownerType specified above.",
+          required = true) @PathParam("ownerId") final String ownerId,
       @Parameter(description = "Enter the scanId (reportId) of the evaluation report that shows the transitive " +
-          "component.", required = true)
-      @PathParam("scanId") final String scanId,
+          "component.", required = true) @PathParam("scanId") final String scanId,
       @Parameter(description = "Enter the component identifier of the transitive component on which you want to " +
-          "create a policy waiver.")
-      @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier,
+          "create a policy waiver.") @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier,
       @Parameter(description = "Enter the package URL of the transitive component on which you want to create " +
-          "a policy waiver.")
-      @QueryParam("packageUrl") final String packageUrl,
+          "a policy waiver.") @QueryParam("packageUrl") final String packageUrl,
       @Parameter(description = "Enter the hash of the transitive component on which you want to create a policy " +
-          "waiver.")
-      @QueryParam("hash") final String hash,
+          "waiver.") @QueryParam("hash") final String hash,
       @RequestBody(description = "The request JSON can include the fields" +
           "<ol>" +
           "<li>comment (optional, to indicate the reason of " +
@@ -336,9 +313,7 @@ public class ApiPolicyWaiverResource
           "<li>matcherStrategy (enumeration, required) can have values DEFAULT, EXACT_COMPONENT, ALL_COMPONENTS, " +
           "ALL_VERSIONS. DEFAULT will match all components if no hash is provided.</li>" +
           "<li>expiryTime (default null) to set the datetime when the waiver expires.</li>" +
-          "</ol>"
-      )
-      ApiWaiverOptionsDTO apiWaiverOptionsDTO)
+          "</ol>") ApiWaiverOptionsDTO apiWaiverOptionsDTO)
   {
     apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByAppScanComponent(ownerType, ownerId, scanId,
         componentIdentifier, packageUrl, hash, apiWaiverOptionsDTO);
@@ -354,32 +329,26 @@ public class ApiPolicyWaiverResource
       "\n" +
       "Permissions required: Waive Policy Violations",
       responses = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "Waiver created successfully."
-          )
+        @ApiResponse(
+            responseCode = "204",
+            description = "Waiver created successfully.")
       })
   public void addWaiverToTransitivePolicyViolationsByOwnerStageComponent(
-      @Parameter(description = "Indicates the scope of the waiver that will be created.", required = true)
-      @PathParam("ownerType") final OwnerType ownerType,
+      @Parameter(description = "Indicates the scope of the waiver that will be created.",
+          required = true) @PathParam("ownerType") final OwnerType ownerType,
       @Parameter(description = "Enter the corresponding id for the ownerType specified above. " +
           "E.g. applicationId for ownerType 'application' or organizationId for ownerType 'organization'.",
-          required = true)
-      @PathParam("ownerId") final String ownerId,
+          required = true) @PathParam("ownerId") final String ownerId,
       @Parameter(description = "Enter the stageId corresponding to the evaluation stage at which you want to " +
           "create a waiver. " +
           "Possible values are 'develop', 'source', 'build', 'stage-release', 'release' and 'operate'.",
-          required = true)
-      @PathParam("stageId") final String stageId,
+          required = true) @PathParam("stageId") final String stageId,
       @Parameter(description = "Enter the component identifier and coordinates of the component for which you want " +
-          "to waive the transitive violations.")
-      @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier,
+          "to waive the transitive violations.") @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier,
       @Parameter(description = "Enter the package URL of the component for which you want to waive the transitive " +
-          "violations.")
-      @QueryParam("packageUrl") final String packageUrl,
+          "violations.") @QueryParam("packageUrl") final String packageUrl,
       @Parameter(description = "Enter the hash for the component for which you want to waive the transitive " +
-          "violations ")
-      @QueryParam("hash") final String hash,
+          "violations ") @QueryParam("hash") final String hash,
       @RequestBody(description = "<ol>" +
           "<li>comment (optional, to indicate the reason of " +
           "the waiver) default value is null</li>" +
@@ -390,8 +359,7 @@ public class ApiPolicyWaiverResource
           "ALL_VERSIONS. DEFAULT will match all components if no hash is provided.</li>" +
           "<li>expiryTime (default null) to set the datetime when the waiver expires.</li>" +
           "</ol>",
-          required = true)
-      ApiWaiverOptionsDTO apiWaiverOptionsDTO)
+          required = true) ApiWaiverOptionsDTO apiWaiverOptionsDTO)
   {
     apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(ownerType, ownerId, stageId,
         componentIdentifier, packageUrl, hash, apiWaiverOptionsDTO);
@@ -408,35 +376,26 @@ public class ApiPolicyWaiverResource
       "\n" +
       "\n" +
       "Permissions required: View IQ Elements",
-      responses =
-          {
-              @ApiResponse
-                  (
-                      responseCode = "200",
-                      description =
-                          "The response contains a list of waivers on transitive policy violations for the " +
-                              "dependencies of the component specified, for the given scanId.",
-                      useReturnTypeSchema = true
-                  )
-          })
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains a list of waivers on transitive policy violations for the " +
+                "dependencies of the component specified, for the given scanId.",
+            useReturnTypeSchema = true)
+      })
   public ApiComponentPolicyWaiversDTO getTransitivePolicyWaiversByAppScanComponent(
       @Parameter(description = "Enter the ownerType to specify the scope. The response will contain the " +
-          "policy violations that are within the scope specified.")
-      @PathParam("ownerType") final OwnerType ownerType,
-      @Parameter(description = "Enter the corresponding id for the ownerType specified above.")
-      @PathParam("ownerId") final String ownerId,
+          "policy violations that are within the scope specified.") @PathParam("ownerType") final OwnerType ownerType,
+      @Parameter(
+          description = "Enter the corresponding id for the ownerType specified above.") @PathParam("ownerId") final String ownerId,
       @Parameter(description = "Enter the scanId (reportId) of the scan for which you want to retrieve the " +
-          "waivers on transitive policy violations occurring due the dependencies of a component.")
-      @PathParam("scanId") final String scanId,
+          "waivers on transitive policy violations occurring due the dependencies of a component.") @PathParam("scanId") final String scanId,
       @Parameter(description = "Enter the component identifier for the component for which you want to retrieve the " +
-          "waivers on transitive policy violations, for the specified scanId.")
-      @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier,
+          "waivers on transitive policy violations, for the specified scanId.") @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier,
       @Parameter(description = "Enter the package URL for the component for which you want to retrieve the " +
-          "waivers on transitive policy violations, for the specified scanId.")
-      @QueryParam("packageUrl") final String packageUrl,
+          "waivers on transitive policy violations, for the specified scanId.") @QueryParam("packageUrl") final String packageUrl,
       @Parameter(description = "Enter the hash for the component for which you want to retrieve the " +
-          "waivers on transitive policy violations, for the specified scanId.")
-      @QueryParam("hash") final String hash)
+          "waivers on transitive policy violations, for the specified scanId.") @QueryParam("hash") final String hash)
   {
     return apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(ownerType, ownerId, scanId,
         componentIdentifier, packageUrl, hash);
@@ -445,8 +404,8 @@ public class ApiPolicyWaiverResource
   /**
    * @since 1.164
    * @deprecated since 1.192
-   * Workflow changed. Waiver reviewers now review existing waiver requests instead of creating new waivers.
-   * Please use {@link ApiPolicyWaiverRequestResource#addPolicyWaiverRequestByPolicyViolationId}
+   *             Workflow changed. Waiver reviewers now review existing waiver requests instead of creating new waivers.
+   *             Please use {@link ApiPolicyWaiverRequestResource#addPolicyWaiverRequestByPolicyViolationId}
    */
   @Deprecated(since = "1.192")
   @POST
@@ -457,24 +416,19 @@ public class ApiPolicyWaiverResource
           "Deprecated because the webhook event is now integrated into the policy waiver request process. " +
           "Please use `api/v2/policyWaiverRequests{ownerType}/policyViolation/{policyViolationId}` instead. " +
           "Scheduled for removal in December 2025.",
-      responses =
-          {
-              @ApiResponse
-                  (responseCode = "204",
-                      description = "Waiver request webhook triggered successfully")
-          }
-  )
+      responses = {
+        @ApiResponse(responseCode = "204",
+            description = "Waiver request webhook triggered successfully")
+      })
   public void requestPolicyWaiver(
       @Parameter(description = "Enter the policyViolationId for which you want to trigger the waiver request event.",
-          required = true)
-      @PathParam("policyViolationId") final String policyViolationId,
+          required = true) @PathParam("policyViolationId") final String policyViolationId,
       @RequestBody(description = "The request JSON should contain" +
           "<ol>" +
           "<li>comment (optional, default null) to indicate the waiver request reason</li>" +
           "<li>policyViolationLink (link to the policy violation page in the Lifecycle UI)</li>" +
           "<li>addWaiverLink (link to the Add Waiver page in the Lifecycle UI)</li>" +
-          "</ol>")
-      ApiRequestPolicyWaiverDTO requestWaiverDTO)
+          "</ol>") ApiRequestPolicyWaiverDTO requestWaiverDTO)
   {
     requestPolicyWaiverEventService.postRequestPolicyWaiverEvent(policyViolationId, requestWaiverDTO);
   }

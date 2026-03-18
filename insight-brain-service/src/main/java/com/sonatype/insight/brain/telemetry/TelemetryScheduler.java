@@ -23,8 +23,10 @@ public abstract class TelemetryScheduler
       TelemetryCollectorsProvider telemetryCollectorsProvider,
       TelemetrySender telemetrySender)
   {
-    this.telemetryCollectors = telemetryCollectorsProvider.getTelemetryCollectors().stream()
-        .filter(telemetryCollector -> !telemetryCollector.isClusterTelemetry()).collect(Collectors.toList());
+    this.telemetryCollectors = telemetryCollectorsProvider.getTelemetryCollectors()
+        .stream()
+        .filter(telemetryCollector -> !telemetryCollector.isClusterTelemetry())
+        .collect(Collectors.toList());
     this.telemetrySender = telemetrySender;
   }
 

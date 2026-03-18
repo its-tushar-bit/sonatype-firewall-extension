@@ -80,7 +80,8 @@ public class RepositoryResourceTest
     Repository repo = tempEntity.newRepository();
     String path = "dir/path";
     HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNQUARANTINE_PATH)
-        .parameter(repo.getId(), path).post();
+        .parameter(repo.getId(), path)
+        .post();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
         .isEqualTo("Cannot find a component with path " + path + " in repository with ID " + repo.getId() + ".");
@@ -107,7 +108,8 @@ public class RepositoryResourceTest
     Repository repo = tempEntity.newRepository();
 
     HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_PATH)
-        .parameter(repo.getId()).get();
+        .parameter(repo.getId())
+        .get();
     assertResponseStatus(200, response);
     RepositoryDTO actual = response.getBody(RepositoryDTO.class);
 
@@ -123,7 +125,8 @@ public class RepositoryResourceTest
     Repository repo = tempEntity.newRepository();
 
     HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.EVALUATE_PATH)
-        .parameter(repo.getId()).post();
+        .parameter(repo.getId())
+        .post();
     assertResponseStatus(204, response);
   }
 
@@ -132,7 +135,9 @@ public class RepositoryResourceTest
     Repository repo = tempEntity.newRepository();
 
     HttpResponse deleteResponse = restRequest()
-        .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_PATH).parameter(repo.getId()).delete();
+        .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_PATH)
+        .parameter(repo.getId())
+        .delete();
     assertResponseStatus(204, deleteResponse);
     assertThat(repositoryDAO.getById(repo.getId())).isNull();
   }
@@ -155,7 +160,8 @@ public class RepositoryResourceTest
 
     HttpResponse response = restRequest()
         .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.EVALUATE_COMPONENT_PATH)
-        .parameter(repo.getId(), component.getHash()).post();
+        .parameter(repo.getId(), component.getHash())
+        .post();
     assertResponseStatus(204, response);
   }
 
@@ -171,7 +177,9 @@ public class RepositoryResourceTest
 
     HttpResponse response =
         restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.POLICY_EVALUATION_TIMESTAMPS_PATH)
-            .parameter(repo.getId()).query("componentIdentifier", componentIdentifier).get();
+            .parameter(repo.getId())
+            .query("componentIdentifier", componentIdentifier)
+            .get();
     assertResponseStatus(200, response);
     PolicyEvaluationTimestampsDTO policyEvaluationTimestampsDTO = response.getBody(PolicyEvaluationTimestampsDTO.class);
 
@@ -193,7 +201,8 @@ public class RepositoryResourceTest
 
     HttpResponse response =
         restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.POLICY_VIOLATIONS_PATH)
-            .parameter(repo.getId(), repositoryComponent.getPathname()).get();
+            .parameter(repo.getId(), repositoryComponent.getPathname())
+            .get();
 
     assertResponseStatus(200, response);
     RepositoryPolicyViolationDTO[] repositoryPolicyViolationDTOs =
@@ -234,7 +243,8 @@ public class RepositoryResourceTest
 
     HttpResponse response =
         restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.POLICY_VIOLATION_PATH)
-            .parameter(repo.getId(), repositoryPolicyViolation.getId()).get();
+            .parameter(repo.getId(), repositoryPolicyViolation.getId())
+            .get();
 
     assertResponseStatus(200, response);
     RepositoryPolicyViolationDTO repositoryPolicyViolationDTO = response.getBody(RepositoryPolicyViolationDTO.class);
@@ -278,7 +288,8 @@ public class RepositoryResourceTest
     HttpResponse response =
         restRequest()
             .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.PROPRIETARY_COMPONENT_NAME_PATTERN_UPDATE_PATH)
-            .body(proprietaryComponentNamePatternDTO).post();
+            .body(proprietaryComponentNamePatternDTO)
+            .post();
 
     assertResponseStatus(204, response);
     assertThat(proprietaryComponentNamePatternDAO.getById(pattern.getId()).isEnabled()).isFalse();
@@ -302,7 +313,8 @@ public class RepositoryResourceTest
     repositoryManagerDAO.update(unconfiguredRepoManager);
 
     HttpResponse response = restRequest()
-        .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNCONFIGURED_REPOSITORY_MANAGERS_PATH).get();
+        .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNCONFIGURED_REPOSITORY_MANAGERS_PATH)
+        .get();
 
     assertResponseStatus(200, response);
 
@@ -320,7 +332,8 @@ public class RepositoryResourceTest
 
     HttpResponse response =
         restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORIES_PATH)
-            .parameter(repositoryManager.getId()).get();
+            .parameter(repositoryManager.getId())
+            .get();
 
     assertResponseStatus(200, response);
     RepositoriesDTO result = response.getBody(RepositoriesDTO.class);
@@ -340,7 +353,8 @@ public class RepositoryResourceTest
     HttpResponse response =
         restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.CONFIGURE_REPOSITORIES_PATH)
             .parameter(repositoryManager.getId())
-            .body(Collections.singletonList(repository)).put();
+            .body(Collections.singletonList(repository))
+            .put();
     Date afterConfig = new Date();
 
     assertResponseStatus(204, response);
@@ -375,7 +389,8 @@ public class RepositoryResourceTest
 
     HttpResponse response =
         restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.CONFIGURE_FIREWALL_ONBOARDING_PATH)
-            .body(firewallOnboardingOptionsDTO).put();
+            .body(firewallOnboardingOptionsDTO)
+            .put();
     assertResponseStatus(204, response);
 
     Policy foundPolicy = policyDAO.getById(securityMaliciousPolicy.getId());
@@ -393,9 +408,9 @@ public class RepositoryResourceTest
   public void testUpdateName() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH,
-                    RepositoryResource.UPDATE_REPOSITORY_MANAGER_NAME_PATH)
-            .parameter(repositoryManager.getId(), "name2")
-            .put();
+        RepositoryResource.UPDATE_REPOSITORY_MANAGER_NAME_PATH)
+        .parameter(repositoryManager.getId(), "name2")
+        .put();
 
     assertResponseStatus(204, response);
 
@@ -432,9 +447,10 @@ public class RepositoryResourceTest
     // Rest request at Repository Level, response must include only patterns of repo1
     HttpResponse response =
         restRequest().path(RepositoryResource.RESOURCE_PATH,
-                RepositoryResource.PROPRIETARY_COMPONENT_NAME_PATTERN_BY_OWNER_PATH)
+            RepositoryResource.PROPRIETARY_COMPONENT_NAME_PATTERN_BY_OWNER_PATH)
             .parameter(OwnerType.REPOSITORY, repo1.getId())
-            .body(request).post();
+            .body(request)
+            .post();
 
     assertResponseStatus(200, response);
     ProprietaryComponentNamePatternsPage proprietaryComponentNamePatternsPage =
@@ -454,9 +470,10 @@ public class RepositoryResourceTest
     // Rest request at Repository Manager Level, response must include only patterns of repos in repoManager2
     response =
         restRequest().path(RepositoryResource.RESOURCE_PATH,
-                RepositoryResource.PROPRIETARY_COMPONENT_NAME_PATTERN_BY_OWNER_PATH)
+            RepositoryResource.PROPRIETARY_COMPONENT_NAME_PATTERN_BY_OWNER_PATH)
             .parameter(OwnerType.REPOSITORY_MANAGER, repoManager2.getId())
-            .body(request).post();
+            .body(request)
+            .post();
 
     assertResponseStatus(200, response);
     proprietaryComponentNamePatternsPage = response.getBody(ProprietaryComponentNamePatternsPage.class);
@@ -476,9 +493,10 @@ public class RepositoryResourceTest
     request.pageSize = 2;
     response =
         restRequest().path(RepositoryResource.RESOURCE_PATH,
-                RepositoryResource.PROPRIETARY_COMPONENT_NAME_PATTERN_BY_OWNER_PATH)
+            RepositoryResource.PROPRIETARY_COMPONENT_NAME_PATTERN_BY_OWNER_PATH)
             .parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID)
-            .body(request).post();
+            .body(request)
+            .post();
 
     assertResponseStatus(200, response);
     proprietaryComponentNamePatternsPage = response.getBody(ProprietaryComponentNamePatternsPage.class);
@@ -514,7 +532,8 @@ public class RepositoryResourceTest
     HttpResponse response =
         restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
             .parameter(repoManager.getId())
-            .part("hasRobotSource", "false").part("file", "defaulticon_repository_manager.png", defaultIconByteArray)
+            .part("hasRobotSource", "false")
+            .part("file", "defaulticon_repository_manager.png", defaultIconByteArray)
             .post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("defaulticon_repository_manager.png is not a valid image."
@@ -523,7 +542,8 @@ public class RepositoryResourceTest
     // Get icon (default icon)
     HttpResponse iconResponse =
         restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
-            .parameter(repoManager.getId()).get();
+            .parameter(repoManager.getId())
+            .get();
     assertResponseStatus(307, iconResponse);
     assertThat(iconResponse.getHeader("Location"))
         .isEqualTo(getRestBaseUrl() + "assets/img/defaulticon_repository_manager.png");
@@ -532,14 +552,16 @@ public class RepositoryResourceTest
     defaultIconByteArray = IconUtils.loadIconFromProductAssets("defaulticon_repository_manager.png");
     response = restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
         .parameter(repoManager.getId())
-        .part("hasRobotSource", "false").part("file", "defaulticon_repository_manager.png", defaultIconByteArray)
+        .part("hasRobotSource", "false")
+        .part("file", "defaulticon_repository_manager.png", defaultIconByteArray)
         .post();
     assertResponseStatus(200, response);
 
     // Get icon
     iconResponse =
         restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
-            .parameter(repoManager.getId()).get();
+            .parameter(repoManager.getId())
+            .get();
     assertResponseStatus(200, iconResponse);
     BufferedImage icon;
     try (InputStream iconStream = iconResponse.getBodyStream()) {
@@ -552,7 +574,8 @@ public class RepositoryResourceTest
     // Update icon
     response = restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
         .parameter(repoManager.getId())
-        .part("hasRobotSource", "false").post();
+        .part("hasRobotSource", "false")
+        .post();
     assertResponseStatus(200, response);
 
     // Get icon when repo manager does not exist
@@ -561,14 +584,16 @@ public class RepositoryResourceTest
 
     iconResponse =
         restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
-            .parameter(repoManager.getId()).get();
+            .parameter(repoManager.getId())
+            .get();
     assertResponseStatus(404, iconResponse);
   }
 
   @Test
   public void testGenerateIcon() throws Exception {
     HttpResponse response =
-        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.GENERATE_ICON_PATH).parameter("hash")
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.GENERATE_ICON_PATH)
+            .parameter("hash")
             .get();
     assertResponseStatus(200, response);
     assertThat(response.getBodyBytes()).isNotNull();

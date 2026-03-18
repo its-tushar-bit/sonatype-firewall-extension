@@ -31,8 +31,7 @@ public class ScmStatService
   @Inject
   ScmStatService(
       final ApplicationCountHistoryService applicationCountHistoryService,
-      final DateTimeService dateTimeService
-  )
+      final DateTimeService dateTimeService)
   {
     this.applicationCountHistoryService = applicationCountHistoryService;
     this.dateTimeService = dateTimeService;
@@ -40,8 +39,7 @@ public class ScmStatService
 
   public List<ApiIntegrationsScmFeedbackStatIncrementDto> getScmFeedbackUsageStatsOverTime(
       final long incrementSizeMillis,
-      final int numberOfIncrements
-  )
+      final int numberOfIncrements)
   {
     checkReadPermission(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
 

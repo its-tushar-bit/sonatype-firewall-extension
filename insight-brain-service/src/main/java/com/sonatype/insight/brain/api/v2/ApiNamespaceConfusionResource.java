@@ -60,21 +60,16 @@ public class ApiNamespaceConfusionResource
           "\n" +
           "Permissions required: Evaluate Individual Components",
       responses = {
-          @ApiResponse(responseCode = "204", description = "Namespaces successfully added."),
-      }
-  )
+        @ApiResponse(responseCode = "204", description = "Namespaces successfully added."),
+      })
   public void addProprietaryComponentNames(
       @Parameter(
           description = "Format for which the proprietary namespaces are being added.",
           required = true,
-          example = "maven"
-      )
-      @PathParam("format") String format,
+          example = "maven") @PathParam("format") String format,
       @Parameter(
           description = "List of namespaces to register as proprietary for this format.",
-          required = true
-      )
-      List<String> namespaces)
+          required = true) List<String> namespaces)
   {
     repositoryService.addProprietaryNamespaceNames(NAMESPACE_CONFUSION_ROOT,
         NAMESPACE_CONFUSION_PREFIX + format, format, namespaces);
@@ -88,16 +83,13 @@ public class ApiNamespaceConfusionResource
           "\n" +
           "Permissions required: Evaluate Individual Components",
       responses = {
-          @ApiResponse(responseCode = "204", description = "Namespaces successfully removed."),
-      }
-  )
+        @ApiResponse(responseCode = "204", description = "Namespaces successfully removed."),
+      })
   public void removeProprietaryComponentNames(
       @Parameter(
           description = "Format for which the proprietary namespaces are being removed.",
           required = true,
-          example = "maven"
-      )
-      @PathParam("format") String format)
+          example = "maven") @PathParam("format") String format)
   {
     repositoryService.removeProprietaryNamespaceNames(NAMESPACE_CONFUSION_ROOT,
         NAMESPACE_CONFUSION_PREFIX + format);

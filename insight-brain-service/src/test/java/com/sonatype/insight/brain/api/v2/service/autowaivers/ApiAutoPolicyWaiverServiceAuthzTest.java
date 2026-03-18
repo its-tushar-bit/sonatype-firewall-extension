@@ -111,8 +111,7 @@ public class ApiAutoPolicyWaiverServiceAuthzTest
     apiAutoPolicyWaiverService.addAutoPolicyWaivers(
         OwnerType.APPLICATION,
         application.getId(),
-        List.of(new ApiAutoPolicyWaiverDTO(), new ApiAutoPolicyWaiverDTO())
-    );
+        List.of(new ApiAutoPolicyWaiverDTO(), new ApiAutoPolicyWaiverDTO()));
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -122,8 +121,7 @@ public class ApiAutoPolicyWaiverServiceAuthzTest
     apiAutoPolicyWaiverService.addAutoPolicyWaivers(
         OwnerType.APPLICATION,
         application.getId(),
-        List.of(new ApiAutoPolicyWaiverDTO(), new ApiAutoPolicyWaiverDTO())
-    );
+        List.of(new ApiAutoPolicyWaiverDTO(), new ApiAutoPolicyWaiverDTO()));
   }
 
   @Test
@@ -141,8 +139,7 @@ public class ApiAutoPolicyWaiverServiceAuthzTest
     apiAutoPolicyWaiverService.addAutoPolicyWaivers(
         OwnerType.APPLICATION,
         application.getId(),
-        List.of(apiAutoPolicyWaiver1, apiAutoPolicyWaiver2)
-    );
+        List.of(apiAutoPolicyWaiver1, apiAutoPolicyWaiver2));
   }
 
   @Test(expected = UnauthenticatedException.class)

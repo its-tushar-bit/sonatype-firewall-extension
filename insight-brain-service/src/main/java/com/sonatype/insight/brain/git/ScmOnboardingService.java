@@ -222,7 +222,7 @@ public class ScmOnboardingService
 
   @Override
   public void start() throws Exception {
-    //no-op
+    // no-op
   }
 
   @Override
@@ -247,9 +247,9 @@ public class ScmOnboardingService
     ApiCompositeSourceControlDTO sourceControlDTO =
         apiCompositeSourceControlService.getCompositeSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, orgId);
 
-    String providerString = StringUtils.isNotBlank(sourceControlDTO.provider.value) ?
-        sourceControlDTO.provider.value :
-        sourceControlDTO.provider.parentValue;
+    String providerString = StringUtils.isNotBlank(sourceControlDTO.provider.value)
+        ? sourceControlDTO.provider.value
+        : sourceControlDTO.provider.parentValue;
 
     if (StringUtils.isEmpty(providerString)) {
       throw new BadRequestException("No provider configured");
@@ -257,9 +257,9 @@ public class ScmOnboardingService
 
     SourceControlProvider provider = SourceControlProvider.fromString(providerString);
 
-    String authenticationType = sourceControlDTO.authenticationType.value != null ?
-            sourceControlDTO.authenticationType.value :
-            sourceControlDTO.authenticationType.parentValue;
+    String authenticationType = sourceControlDTO.authenticationType.value != null
+        ? sourceControlDTO.authenticationType.value
+        : sourceControlDTO.authenticationType.parentValue;
 
     log.debug("Loading repositories for org {} using authentication type: {} using host url: {}",
         orgId, authenticationType, hostUrl);
@@ -270,12 +270,12 @@ public class ScmOnboardingService
       generalClient = createGitHubAppClient(orgId, provider, hostUrl);
     }
     else {
-      String username = StringUtils.isNotBlank(sourceControlDTO.username.value) ?
-          sourceControlDTO.username.value :
-          sourceControlDTO.username.parentValue;
-      String token = StringUtils.isNotBlank(sourceControlDTO.token.value) ?
-              sourceControlDTO.token.value :
-              sourceControlDTO.token.parentValue;
+      String username = StringUtils.isNotBlank(sourceControlDTO.username.value)
+          ? sourceControlDTO.username.value
+          : sourceControlDTO.username.parentValue;
+      String token = StringUtils.isNotBlank(sourceControlDTO.token.value)
+          ? sourceControlDTO.token.value
+          : sourceControlDTO.token.parentValue;
       log.debug("Attempting to retrieve repositories using given host url: {}", hostUrl);
       generalClient = gitClientFactory.createGeneralApiClient(provider, hostUrl, username, token);
     }
@@ -341,7 +341,8 @@ public class ScmOnboardingService
     return sourceControls.stream()
         .map(SourceControl::getRepositoryUrl)
         .collect(Collectors.groupingBy(repoUrl -> getBaseUrl(repoUrl, provider), counting()))
-        .entrySet().stream()
+        .entrySet()
+        .stream()
         .max(Entry.comparingByValue())
         .map(Entry::getKey)
         .orElse("");
@@ -371,7 +372,8 @@ public class ScmOnboardingService
    */
   private List<SCMRepository> trimAlreadyConfigured(final List<SCMRepository> allRepositories) {
     List<String> existing =
-        sourceControlDAO.getAll().stream()
+        sourceControlDAO.getAll()
+            .stream()
             .map(SourceControl::getNormalizedRepositoryUrl)
             .filter(Objects::nonNull)
             .map(String::toLowerCase)
@@ -401,6 +403,7 @@ public class ScmOnboardingService
 
   /**
    * Import the selected repositories into the given organization
+   *
    * @param orgId the org in which to import the repos
    * @param importReposRequest the repositories to import with associated telemetry data
    * @return list of all imported repositories
@@ -444,7 +447,7 @@ public class ScmOnboardingService
         failedRepos.add(new ImportFailure(scmRepository, e.getMessage()));
         failureCounter.add(1);
       }
-      //periodically update the event in the case of a large SCM import
+      // periodically update the event in the case of a large SCM import
       updateImportEventIntermediateState(importEvent, successCounter, failureCounter);
     }
     if (importEvent != null && (successCounter.getValue() > 0 || failureCounter.getValue() > 0)) {
@@ -460,7 +463,8 @@ public class ScmOnboardingService
       final MutableInt failureCount)
   {
     if (importEvent != null &&
-        (successCount.getValue() + failureCount.getValue()) >= importEventStatusUpdateThreshold) {
+        (successCount.getValue() + failureCount.getValue()) >= importEventStatusUpdateThreshold)
+    {
       updateImportEventIntermediateState(importEvent, successCount.getValue(), failureCount.getValue());
       successCount.setValue(0);
       failureCount.setValue(0);
@@ -565,7 +569,7 @@ public class ScmOnboardingService
     return scmRepository;
   }
 
-  //visible for testing
+  // visible for testing
   Application createNewApplication(final String orgId, final String publicId, final String name) {
     log.debug("Creating Application entry, name: [{}], publicId: [{}]", name, publicId);
     Application app = new Application(publicId, name, orgId);
@@ -573,7 +577,7 @@ public class ScmOnboardingService
       applicationHelper.addApplication(app);
     }
     catch (InvalidNameException e) {
-      //closely named repos potentially results in duplicate names in `name_lowercase_no_whitespace` column causing
+      // closely named repos potentially results in duplicate names in `name_lowercase_no_whitespace` column causing
       // a duplicate name exception (due to normalization and stripping off special characters, etc.)
       // Adding a randomization to improve uniqueness (just once)
       log.debug("Resulted app name {} conflicts with an existing app. Randomizing name and retrying", name);
@@ -601,12 +605,11 @@ public class ScmOnboardingService
           log.info("{} user(s) imported from SCM for app {}", results.matchedUsers().size(), app.getPublicId());
           log.info("The successful mapping strategy was {}", results.successfulMapping());
         }
-        else
-        {
+        else {
           log.info("no users imported for {}", app.getPublicId());
         }
       }
-      catch (RuntimeException  ex) {
+      catch (RuntimeException ex) {
         log.warn("Could not import users for app {}: {}", app.getPublicId(), ex.getMessage());
       }
     }
@@ -644,7 +647,7 @@ public class ScmOnboardingService
     }
     catch (IOException e) {
       // not need to stop the process. Making default branch not defined
-      log.debug("Error getting default branch found for: {}", scmRepository.getHttpCloneUrl(),  e);
+      log.debug("Error getting default branch found for: {}", scmRepository.getHttpCloneUrl(), e);
     }
 
     return normalizeDefaultBranch(defaultBranch);
@@ -731,7 +734,8 @@ public class ScmOnboardingService
 
   // Delegate auth checks to the organizationService and apiCompositeSourceControlService
   public List<OnboardingOrganization> getOrgsForOnboarding() {
-    return organizationService.getAll().stream()
+    return organizationService.getAll()
+        .stream()
         .map(organization -> new OnboardingOrganization(organization, apiCompositeSourceControlService
             .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, organization.getId())))
         .collect(Collectors.toList());
@@ -812,10 +816,8 @@ public class ScmOnboardingService
     return () -> doScmOrganizationImport(event);
   }
 
-  //visible for testing
-  void doScmOrganizationImport(final SourceControlOrganizationImportEvent event)
-      throws RuntimeException
-  {
+  // visible for testing
+  void doScmOrganizationImport(final SourceControlOrganizationImportEvent event) throws RuntimeException {
     String limit = event.getImportLimit() > 0 ? String.valueOf(event.getImportLimit()) : "all";
     log.debug("Onboarding {} scm repositories for org {} and hostUrl {}",
         limit,
@@ -856,32 +858,35 @@ public class ScmOnboardingService
     completeImportEventWithResults(event, results);
   }
 
-  private void doSequentialImport(final SourceControlOrganizationImportEvent event,
-                                   final SCMRepositories scmRepositories,
-                                   final int numberOfReposToImport)
+  private void doSequentialImport(
+      final SourceControlOrganizationImportEvent event,
+      final SCMRepositories scmRepositories,
+      final int numberOfReposToImport)
   {
-    List<SCMRepository>  selectedRepos = scmRepositories.getAvailableRepositories()
+    List<SCMRepository> selectedRepos = scmRepositories.getAvailableRepositories()
         .stream()
         .limit(numberOfReposToImport)
         .collect(Collectors.toList());
-    ImportResults results = event.getDesiredSubOrganizationCount() == 0 ?
-        importRepositoriesWithoutSubOrganizations(event, scmRepositories, selectedRepos) :
-        importRepositoriesWithNewSubOrganizations(event, selectedRepos);
+    ImportResults results = event.getDesiredSubOrganizationCount() == 0
+        ? importRepositoriesWithoutSubOrganizations(event, scmRepositories, selectedRepos)
+        : importRepositoriesWithNewSubOrganizations(event, selectedRepos);
     completeImportEventWithResults(event, results);
   }
 
-  private ImportResults importRepositoriesWithoutSubOrganizations(final SourceControlOrganizationImportEvent event,
-                                                                  final SCMRepositories scmRepositories,
-                                                                  final List<SCMRepository> selectedReposToImport)
+  private ImportResults importRepositoriesWithoutSubOrganizations(
+      final SourceControlOrganizationImportEvent event,
+      final SCMRepositories scmRepositories,
+      final List<SCMRepository> selectedReposToImport)
   {
     ImportRepositoriesRequest importRepoRequest =
         new ImportRepositoriesRequest(selectedReposToImport, scmRepositories.totalRepositories, 0);
     return doImportRepositories(event.getOrganizationId(), importRepoRequest, event);
   }
 
-  private void doParallelImport(final SourceControlOrganizationImportEvent event,
-                                            final SCMRepositories scmRepositories,
-                                            final int numberOfReposToImport)
+  private void doParallelImport(
+      final SourceControlOrganizationImportEvent event,
+      final SCMRepositories scmRepositories,
+      final int numberOfReposToImport)
   {
     List<SCMRepository> selectedReposToImport = scmRepositories.getAvailableRepositories()
         .stream()
@@ -889,17 +894,16 @@ public class ScmOnboardingService
         .collect(Collectors.toList());
     boolean subOrganizationsDesired = event.getDesiredSubOrganizationCount() > 0;
     int numberOfBatches =
-        subOrganizationsDesired ?
-            event.getDesiredSubOrganizationCount() :
-            determineRequiredNumberOfBatches(selectedReposToImport.size(), SCM_IMPORT_BATCH_SIZE);
+        subOrganizationsDesired
+            ? event.getDesiredSubOrganizationCount()
+            : determineRequiredNumberOfBatches(selectedReposToImport.size(), SCM_IMPORT_BATCH_SIZE);
     log.debug("Creating {} batches for import event {}", numberOfBatches, event.getId());
     List<List<SCMRepository>> batches = partition(selectedReposToImport, numberOfBatches);
     List<ImportFailure> importFailures = Collections.synchronizedList(new ArrayList<>());
     List<CompletableFuture<Void>> taskList = new ArrayList<>(batches.size());
     for (List<SCMRepository> repositories : batches) {
-      String organizationId = subOrganizationsDesired ?
-          newChildOrganization(event.getOrganizationId()).getId() :
-          event.getOrganizationId();
+      String organizationId =
+          subOrganizationsDesired ? newChildOrganization(event.getOrganizationId()).getId() : event.getOrganizationId();
       if (repositories.size() > scmParallelImportMaxRepositoriesPerBatch) {
         int numberOfSubBatches = repositories.size() / scmParallelImportMaxRepositoriesPerBatch;
         List<List<SCMRepository>> partitionedBatches = partition(repositories, numberOfSubBatches);
@@ -918,11 +922,12 @@ public class ScmOnboardingService
     finalizeParallelImport(event, importFailures);
   }
 
-  private void submitBatch(final SourceControlOrganizationImportEvent event,
-                           final List<SCMRepository> batch,
-                           final List<ImportFailure> importFailures,
-                           String organizationId,
-                           List<CompletableFuture<Void>> taskList)
+  private void submitBatch(
+      final SourceControlOrganizationImportEvent event,
+      final List<SCMRepository> batch,
+      final List<ImportFailure> importFailures,
+      String organizationId,
+      List<CompletableFuture<Void>> taskList)
   {
     RepositoryBatchImportTask importTask = new RepositoryBatchImportTask(event,
         batch,
@@ -1018,7 +1023,8 @@ public class ScmOnboardingService
   }
 
   private <T> List<List<T>> partition(List<T> items, final int noOfChunks) {
-    return new ArrayList<>(IntStream.range(0, items.size()).boxed()
+    return new ArrayList<>(IntStream.range(0, items.size())
+        .boxed()
         .collect(Collectors.groupingBy(e -> e % noOfChunks, Collectors.mapping(items::get, Collectors.toList())))
         .values());
   }
@@ -1089,9 +1095,9 @@ public class ScmOnboardingService
   }
 
   private GeneralSCMApiClient createGitHubAppClient(
-          final String orgId,
-          final SourceControlProvider provider,
-          final String hostUrl) throws IOException
+      final String orgId,
+      final SourceControlProvider provider,
+      final String hostUrl) throws IOException
   {
     GitHubApp gitHubApp = gitHubAppDAO.getNearestGitHubApp(orgId);
 

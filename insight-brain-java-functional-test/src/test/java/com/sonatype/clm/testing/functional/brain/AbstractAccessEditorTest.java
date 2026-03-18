@@ -138,7 +138,7 @@ public abstract class AbstractAccessEditorTest
 
     addMembersForm.searchResults().shouldHave(size(4));
     addMembersForm.searchResults()
-            .shouldHave(texts("Admin BuiltIn", "John Doe", "John Doe", "Authenticated Users (Group)"));
+        .shouldHave(texts("Admin BuiltIn", "John Doe", "John Doe", "Authenticated Users (Group)"));
 
     addMembersForm.searchResults().get(0).shouldHave(text("Admin BuiltIn"));
     addMembersForm.searchResults().get(0).click();
@@ -158,7 +158,7 @@ public abstract class AbstractAccessEditorTest
 
     addMembersForm.addedItems().shouldHave(size(4));
     addMembersForm.addedItems()
-            .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "John Doe", "John Doe"));
+        .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "John Doe", "John Doe"));
 
     addMembersForm.saveButton().shouldNotHave(cssClass("disabled")).click();
     FormMask.seeAndWaitForDismissal();
@@ -197,7 +197,7 @@ public abstract class AbstractAccessEditorTest
 
     addMembersForm.addedItems().shouldHave(size(4));
     addMembersForm.addedItems()
-            .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "John Doe", "John Doe"));
+        .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "John Doe", "John Doe"));
 
     addMembersForm.saveButton().shouldNotHave(cssClass("disabled")).click();
     FormMask.seeAndWaitForDismissal();
@@ -220,7 +220,9 @@ public abstract class AbstractAccessEditorTest
     addMembersForm.addedItems().get(0).click();
     addMembersForm.saveButton().shouldNotHave(cssClass("disabled")).click();
     NxDeleteModal deleteModal = addMembersForm.getDeleteModal();
-    deleteModal.alertContent().shouldBe(visible).shouldHave(
+    deleteModal.alertContent()
+        .shouldBe(visible)
+        .shouldHave(
             text(addMembersForm.confirmRemovalThroughUpdateText(role.getName(), currentOwner.getType())));
     deleteModal.header().shouldHave(AccessEditorPage.CONFIRM_REMOVAL_HEADER_TEXT);
     deleteModal.submitButton().click();
@@ -248,7 +250,7 @@ public abstract class AbstractAccessEditorTest
     NxDeleteModal deleteModal = addMembersForm.getDeleteModal();
     deleteModal.shouldBe(visible);
     deleteModal.alertContent()
-            .shouldHave(text(addMembersForm.confirmRemovalText(role.getName(), currentOwner.getType())));
+        .shouldHave(text(addMembersForm.confirmRemovalText(role.getName(), currentOwner.getType())));
     deleteModal.header().shouldHave(AccessEditorPage.CONFIRM_REMOVAL_HEADER_TEXT);
     deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();
@@ -284,16 +286,18 @@ public abstract class AbstractAccessEditorTest
     AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
     addMembersForm.searchBox().shouldBe(visible);
 
-    addMembersForm.disabledGroupSearchWarning().shouldBe(visible)
-      .shouldHave(text(DISABLED_GROUP_SEARCH_WARNING));
+    addMembersForm.disabledGroupSearchWarning()
+        .shouldBe(visible)
+        .shouldHave(text(DISABLED_GROUP_SEARCH_WARNING));
 
     // enable group search for one
     ldapUserMapping1.setDynamicGroupSearchEnabled(true);
     ldapUserMappingDAO.update(ldapUserMapping1);
     refresh();
 
-    addMembersForm.disabledGroupSearchWarning().shouldBe(visible)
-      .shouldHave(text(DISABLED_GROUP_SEARCH_WARNING));
+    addMembersForm.disabledGroupSearchWarning()
+        .shouldBe(visible)
+        .shouldHave(text(DISABLED_GROUP_SEARCH_WARNING));
 
     // ... and then the other one, too
     ldapUserMapping2.setDynamicGroupSearchEnabled(true);
@@ -304,7 +308,8 @@ public abstract class AbstractAccessEditorTest
   }
 
   private void assertThatRoleNotAvailableInDropdown(
-          final String roleName, AccessEditorPage.AddMembersForm addMembersForm)
+      final String roleName,
+      AccessEditorPage.AddMembersForm addMembersForm)
   {
     addMembersForm.roleSelect().click();
     List<String> roleNames = addMembersForm.roleSelect().listItems().texts();
@@ -312,7 +317,8 @@ public abstract class AbstractAccessEditorTest
   }
 
   private void assertAddRoleInitialStateIsCorrect(
-          int numAvailableRoles, AccessEditorPage accessEditorPage)
+      int numAvailableRoles,
+      AccessEditorPage accessEditorPage)
   {
     OwnerDetailSidebar.accessGroup().item(0).shouldBe(CLM.SELECTED);
     accessEditorPage.title().shouldHave(AccessEditorPage.NEW_TITLE_TEXT);

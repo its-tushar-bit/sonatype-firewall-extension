@@ -173,7 +173,7 @@ public class PolicyAlertEmailerTest
 
   @Inject
   ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
-  
+
   @Inject
   OrganizationDAO organizationDAO;
 
@@ -197,19 +197,19 @@ public class PolicyAlertEmailerTest
     String ownerName = "ownerName";
     assertThat(
         policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(1, 2, 3, 4, 5), ownerName, StageTypes.BUILD))
-        .isEqualTo("Policy Alert for ownerName at stage Build: 1 critical violation out of 15");
+            .isEqualTo("Policy Alert for ownerName at stage Build: 1 critical violation out of 15");
     assertThat(
         policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 2, 3, 4, 5), ownerName, StageTypes.BUILD))
-        .isEqualTo("Policy Alert for ownerName at stage Build: 2 severe violations out of 14");
+            .isEqualTo("Policy Alert for ownerName at stage Build: 2 severe violations out of 14");
     assertThat(
         policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 3, 4, 5), ownerName, StageTypes.BUILD))
-        .isEqualTo("Policy Alert for ownerName at stage Build: 3 moderate violations out of 12");
+            .isEqualTo("Policy Alert for ownerName at stage Build: 3 moderate violations out of 12");
     assertThat(
         policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 4, 5), ownerName, StageTypes.BUILD))
-        .isEqualTo("Policy Alert for ownerName at stage Build: 9 neutral violations out of 9");
+            .isEqualTo("Policy Alert for ownerName at stage Build: 9 neutral violations out of 9");
     assertThat(
         policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 0, 5), ownerName, StageTypes.RELEASE))
-        .isEqualTo("Policy Alert for ownerName at stage Release: 5 neutral violations out of 5");
+            .isEqualTo("Policy Alert for ownerName at stage Release: 5 neutral violations out of 5");
   }
 
   @Test
@@ -226,11 +226,13 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
 
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atDebugLevel().contains(
-        "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
-            + " in stage " + eval.getStageTypeId()
-            + ". There are either no recipients configured, or no new policy violations "
-            + "for policies configured to send notifications"));
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT)
+        .untilAsserted(() -> assertThat(logOutput).atDebugLevel()
+            .contains(
+                "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
+                    + " in stage " + eval.getStageTypeId()
+                    + ". There are either no recipients configured, or no new policy violations "
+                    + "for policies configured to send notifications"));
     verify(mockShutdownHandler).add(threadArgumentCaptor.capture(), eq(ShutdownPriority.NOTIFICATIONS));
     assertThat(threadArgumentCaptor.getValue().getName()).startsWith("PolicyAlertEmailNotifierForScan");
   }
@@ -253,9 +255,10 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
 
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atDebugLevel()
-        .contains("Sending notification email via " + mailer.getServer() + " to " + email + " for application "
-            + app.getPublicId() + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId()));
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT)
+        .untilAsserted(() -> assertThat(logOutput).atDebugLevel()
+            .contains("Sending notification email via " + mailer.getServer() + " to " + email + " for application "
+                + app.getPublicId() + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId()));
   }
 
   @Test
@@ -278,9 +281,10 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
 
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atErrorLevel()
-        .contains("Unable to send notification email to " + email + " for application " + app.getPublicId()
-            + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(), ex));
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT)
+        .untilAsserted(() -> assertThat(logOutput).atErrorLevel()
+            .contains("Unable to send notification email to " + email + " for application " + app.getPublicId()
+                + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(), ex));
   }
 
   @Test
@@ -547,8 +551,7 @@ public class PolicyAlertEmailerTest
         ssoUserService,
         membershipMappingDAO,
         ldapServerDAO,
-        mockCrowdClientFactory
-    );
+        mockCrowdClientFactory);
     PolicyAlertEmailer undertest = new PolicyAlertEmailer(
         mailer,
         lookup(BaseUrl.class),
@@ -558,14 +561,14 @@ public class PolicyAlertEmailerTest
         testProductLicense,
         mockShutdownHandler,
         thirdPartySbomMetadataDAO,
-        organizationDAO
-    );
+        organizationDAO);
 
     undertest.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
     // make sure emails from server 2 still go out
     assertEmailAddresses("test.user1_2@company.com", "test.user2_2@company.com", "test.user3_2@company.com");
-    assertThat(logOutput).atErrorLevel().contains("Cannot send notifications to members of group " + groupName
-        + " using ldap server " + ldapServers.get(0).getName(), expectedException);
+    assertThat(logOutput).atErrorLevel()
+        .contains("Cannot send notifications to members of group " + groupName
+            + " using ldap server " + ldapServers.get(0).getName(), expectedException);
   }
 
   @Test
@@ -622,11 +625,13 @@ public class PolicyAlertEmailerTest
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
 
     // No email should be sent out with only Jira Notification
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atDebugLevel().contains(
-        "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
-            + " in stage " + eval.getStageTypeId()
-            + ". There are either no recipients configured, or no new policy violations "
-            + "for policies configured to send notifications"));
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT)
+        .untilAsserted(() -> assertThat(logOutput).atDebugLevel()
+            .contains(
+                "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
+                    + " in stage " + eval.getStageTypeId()
+                    + ". There are either no recipients configured, or no new policy violations "
+                    + "for policies configured to send notifications"));
   }
 
   @Test
@@ -658,16 +663,14 @@ public class PolicyAlertEmailerTest
         new Member(MemberType.USER, "username1", "displayName1", "email1", CrowdRealm.ID),
         new Member(MemberType.USER, "username2", "displayName2", null, CrowdRealm.ID),
         new Member(MemberType.USER, "username3", "displayName3", "", CrowdRealm.ID),
-        new Member(MemberType.USER, "username4", "displayName4", " ", CrowdRealm.ID)
-    );
+        new Member(MemberType.USER, "username4", "displayName4", " ", CrowdRealm.ID));
     when(mockCrowdClient.getUsersByGroupName("group1")).thenReturn(new LinkedHashSet<>(members1));
     List<Member> members2 =
         Collections.singletonList(new Member(MemberType.USER, "username5", "displayName5", "email5", CrowdRealm.ID));
     when(mockCrowdClient.searchGroupsByGroupNames(any())).thenReturn(new LinkedHashSet<>(Arrays.asList(
         new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
         new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID),
-        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)
-    )));
+        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID))));
     when(mockCrowdClient.getUsersByGroupName("group2")).thenReturn(new LinkedHashSet<>(members2));
     when(mockCrowdClient.getUsersByGroupName("group3")).thenThrow(new OperationFailedException());
     when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
@@ -675,8 +678,9 @@ public class PolicyAlertEmailerTest
     sendRoleNotifications("group1", "group2", "group3");
 
     assertEmailAddresses("email1", "email5");
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atErrorLevel()
-        .contains("Cannot send notifications to members of group group3 using Crowd server."));
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT)
+        .untilAsserted(() -> assertThat(logOutput).atErrorLevel()
+            .contains("Cannot send notifications to members of group group3 using Crowd server."));
   }
 
   @Test
@@ -857,13 +861,14 @@ public class PolicyAlertEmailerTest
         .contains(StageTypes.STAGE_RELEASE.getName()) //
         .contains(ComponentDisplayNameUtil.fromIdentifier(componentIdentifierMaven).toString(),
             ComponentDisplayNameUtil.fromIdentifier(componentIdentifierAname).toString().replace("&", "&amp;"))
-        .doesNotContain(hashMaven, hashAname).contains(hashUnknown.replace("&", "&amp;")) //
+        .doesNotContain(hashMaven, hashAname)
+        .contains(hashUnknown.replace("&", "&amp;")) //
         .contains(policy.getName()) //
         .contains("Failed &amp; Constraint Name 1", "Failed Constraint Name 2")
         .contains("Failed Condition &lt;Reason&gt; 1", "Failed Condition Reason 2") //
         .contains("7 Legacy Violations");
   }
-  
+
   @Test
   public void testNotificationEmailBody_ContainerImageEvaluation() throws Exception {
     // Create an organization with a related repository ID to simulate container image evaluation
@@ -933,7 +938,8 @@ public class PolicyAlertEmailerTest
         .contains(StageTypes.COMPLIANCE.getName()) //
         .contains(ComponentDisplayNameUtil.fromIdentifier(componentIdentifierMaven).toString(),
             ComponentDisplayNameUtil.fromIdentifier(componentIdentifierAname).toString().replace("&", "&amp;"))
-        .doesNotContain(hashMaven, hashAname).contains(hashUnknown.replace("&", "&amp;")) //
+        .doesNotContain(hashMaven, hashAname)
+        .contains(hashUnknown.replace("&", "&amp;")) //
         .contains(policy.getName()) //
         .contains("Failed &amp; Constraint Name 1", "Failed Constraint Name 2")
         .contains("Failed Condition &lt;Reason&gt; 1", "Failed Condition Reason 2");
@@ -953,7 +959,7 @@ public class PolicyAlertEmailerTest
     assertThatThrownBy(
         () -> policyAlertEmailer.createPolicyMailModel(app, null /* appContact */, "scanId",
             0, Collections.emptyMap())).isInstanceOf(IllegalStateException.class)
-        .hasMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+                .hasMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   private PolicyFact newPolicyFact(Policy policy, ComponentIdentifier componentIdentifier, String hash) {

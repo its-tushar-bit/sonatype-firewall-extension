@@ -196,8 +196,10 @@ public class UserTokenRealmTest
     Object principal = principalIterator.next();
     Set<String> expectedGroups = new LinkedHashSet<>(samlUser.getGroups());
     expectedGroups.add(Group.AUTHENTICATED_USERS_GROUP_ID);
-    assertThat(principal).usingRecursiveComparison().isEqualTo(
-        new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), UserTokenRealm.ID, expectedGroups));
+    assertThat(principal).usingRecursiveComparison()
+        .isEqualTo(
+            new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), UserTokenRealm.ID,
+                expectedGroups));
     assertThat(principalIterator.hasNext()).isFalse();
     assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
     assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
@@ -237,8 +239,10 @@ public class UserTokenRealmTest
     Object principal = principalIterator.next();
     Set<String> expectedGroups = new LinkedHashSet<>(samlUser.getGroups());
     expectedGroups.add(Group.AUTHENTICATED_USERS_GROUP_ID);
-    assertThat(principal).usingRecursiveComparison().isEqualTo(
-        new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), UserTokenRealm.ID, expectedGroups));
+    assertThat(principal).usingRecursiveComparison()
+        .isEqualTo(
+            new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), UserTokenRealm.ID,
+                expectedGroups));
     assertThat(principalIterator.hasNext()).isFalse();
     assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
     assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
@@ -262,8 +266,10 @@ public class UserTokenRealmTest
     Object principal = principalIterator.next();
     Set<String> expectedGroups = new LinkedHashSet<>(samlUser.getGroups());
     expectedGroups.add(Group.AUTHENTICATED_USERS_GROUP_ID);
-    assertThat(principal).usingRecursiveComparison().isEqualTo(
-        new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), UserTokenRealm.ID, expectedGroups));
+    assertThat(principal).usingRecursiveComparison()
+        .isEqualTo(
+            new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), UserTokenRealm.ID,
+                expectedGroups));
     assertThat(principalIterator.hasNext()).isFalse();
     assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
     assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
@@ -288,9 +294,10 @@ public class UserTokenRealmTest
     Object principal = principalIterator.next();
     Set<String> expectedGroups = new LinkedHashSet<>(oauth2User.getGroups());
     expectedGroups.add(Group.AUTHENTICATED_USERS_GROUP_ID);
-    assertThat(principal).usingRecursiveComparison().isEqualTo(
-        new UserPrincipal(oauth2User.getUsername(), oauth2User.calculateDisplayName(), UserTokenRealm.ID,
-            expectedGroups));
+    assertThat(principal).usingRecursiveComparison()
+        .isEqualTo(
+            new UserPrincipal(oauth2User.getUsername(), oauth2User.calculateDisplayName(), UserTokenRealm.ID,
+                expectedGroups));
     assertThat(principalIterator.hasNext()).isFalse();
     assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
     assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
@@ -330,9 +337,10 @@ public class UserTokenRealmTest
     Object principal = principalIterator.next();
     Set<String> expectedGroups = new LinkedHashSet<>(oauth2User.getGroups());
     expectedGroups.add(Group.AUTHENTICATED_USERS_GROUP_ID);
-    assertThat(principal).usingRecursiveComparison().isEqualTo(
-        new UserPrincipal(oauth2User.getUsername(), oauth2User.calculateDisplayName(), UserTokenRealm.ID,
-            expectedGroups));
+    assertThat(principal).usingRecursiveComparison()
+        .isEqualTo(
+            new UserPrincipal(oauth2User.getUsername(), oauth2User.calculateDisplayName(), UserTokenRealm.ID,
+                expectedGroups));
     assertThat(principalIterator.hasNext()).isFalse();
     assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
     assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
@@ -356,9 +364,10 @@ public class UserTokenRealmTest
     Object principal = principalIterator.next();
     Set<String> expectedGroups = new LinkedHashSet<>(oauth2User.getGroups());
     expectedGroups.add(Group.AUTHENTICATED_USERS_GROUP_ID);
-    assertThat(principal).usingRecursiveComparison().isEqualTo(
-        new UserPrincipal(oauth2User.getUsername(), oauth2User.calculateDisplayName(), UserTokenRealm.ID,
-            expectedGroups));
+    assertThat(principal).usingRecursiveComparison()
+        .isEqualTo(
+            new UserPrincipal(oauth2User.getUsername(), oauth2User.calculateDisplayName(), UserTokenRealm.ID,
+                expectedGroups));
     assertThat(principalIterator.hasNext()).isFalse();
     assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
     assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
@@ -394,7 +403,8 @@ public class UserTokenRealmTest
     verify(mockCrowdClientFactory).createCrowdClient();
     ArgumentCaptor<UserToken> userTokenArgumentCaptor = ArgumentCaptor.forClass(UserToken.class);
     verify(mockCrowdClient).getUser(userTokenArgumentCaptor.capture());
-    assertThat(userTokenArgumentCaptor.getValue()).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(userTokenArgumentCaptor.getValue()).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(userToken);
   }
 
@@ -413,7 +423,7 @@ public class UserTokenRealmTest
         () -> realm.doGetAuthenticationInfo(usernamePasswordToken)).withMessageContaining("Invalid user token.");
     assertThat(userTokenDAO.getById(userToken.getId())).isNull();
   }
-  
+
   @Test
   public void testDoGetCrowdRealmAuthenticationInfo_Crowd_Error() throws Exception {
     String userTokenPassword = "TestPassword";
@@ -425,9 +435,12 @@ public class UserTokenRealmTest
     when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
 
     assertThatExceptionOfType(AuthenticationException.class).isThrownBy(
-        () -> realm.doGetAuthenticationInfo(usernamePasswordToken)).withMessageContaining(
-        String.format("Could not authenticate the '%s' Crowd user with their '%s' user token.", userToken.getUsername(),
-            userToken.getUserCode())).withStackTraceContaining("SomeError");
+        () -> realm.doGetAuthenticationInfo(usernamePasswordToken))
+        .withMessageContaining(
+            String.format("Could not authenticate the '%s' Crowd user with their '%s' user token.",
+                userToken.getUsername(),
+                userToken.getUserCode()))
+        .withStackTraceContaining("SomeError");
   }
 
   @Test

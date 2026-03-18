@@ -166,7 +166,7 @@ public class ManualPullRequestCreationService
     log.debug("Attempt to create manual PR for application '{}' component '{}'",
         app.getPublicId(), componentIdentifier);
 
-    //given component version info
+    // given component version info
     ComponentVersionInfoDTO componentVersionInfoDTO = componentInfoService.getComponentVersionInfoNoAuth(
         app.getType(),
         app.getPublicId(),
@@ -176,8 +176,7 @@ public class ManualPullRequestCreationService
         scanId,
         DependencyType.DIRECT,
         SourceEndpoint.MANUAL_PULL_REQUEST,
-        true
-    );
+        true);
 
     Optional<RemediationVersionDTO> applicableVersionChange = getApplicableVersionChange(componentVersionInfoDTO);
 
@@ -203,8 +202,7 @@ public class ManualPullRequestCreationService
           componentVersionInfoDTO,
           targetVersion,
           componentIdentifier,
-          policyEvaluation
-      );
+          policyEvaluation);
 
       // Get policy violations for current component
       List<PolicyViolation> policyViolations = policyViolationDAO.getByApplicationId(app.getId());
@@ -213,7 +211,7 @@ public class ManualPullRequestCreationService
           .toList();
       policyViolationDAO.loadConstraintFacts(componentPolicyViolations);
 
-      //get the diff of policy violations
+      // get the diff of policy violations
       PolicyViolationDiff<PolicyViolation> policyViolationDiff =
           PolicyViolationDigester.digestPolicyViolations(componentPolicyViolations, remediationPolicyViolations);
 
@@ -221,8 +219,7 @@ public class ManualPullRequestCreationService
           app,
           policyViolationDiff.getCleared(),
           stage.getStageTypeId(),
-          policyEvaluation.isForMonitoring()
-      );
+          policyEvaluation.isForMonitoring());
     }
     else {
       log.debug("InnerSource component detected, skipping policy violations for component '{}'", componentIdentifier);
@@ -259,21 +256,18 @@ public class ManualPullRequestCreationService
   }
 
   private Optional<RemediationVersionDTO> getApplicableVersionChange(
-      final ComponentVersionInfoDTO componentVersionInfoDTO
-  )
+      final ComponentVersionInfoDTO componentVersionInfoDTO)
   {
     Optional<ApiVersionChangeOptionDTO> versionChange =
         componentRemediationService.getApplicableVersionChangeFromAllType(
             componentVersionInfoDTO.remediation.suggestedVersionChange,
-            componentVersionInfoDTO.remediation.versionChanges
-        );
+            componentVersionInfoDTO.remediation.versionChanges);
 
     return versionChange.map(change -> new RemediationVersionDTO(
         change.getData().getComponent().componentIdentifier.getCoordinates()
             .get(ComponentIdentifier.VERSION),
         change.getType(),
-        change.getData().getComponent().breakingChangesCount
-    ));
+        change.getData().getComponent().breakingChangesCount));
   }
 
   /**
@@ -293,7 +287,6 @@ public class ManualPullRequestCreationService
             "Expected remediated component version not found: " + remediationComponentIdentifier));
     return PolicyAlertUtil.getPolicyViolationsFromAlertsAndEvaluation(
         policyEvaluation,
-        remediatedComponentDetailsDTO.policyAlerts
-    );
+        remediatedComponentDetailsDTO.policyAlerts);
   }
 }

@@ -99,7 +99,8 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
         policyViolationLogDTO.stagePolicyAction =
             policyViolation.getActionTypeId() == null ? "none" : policyViolation.getActionTypeId();
       }
-      policyViolationLogDTO.policyConditionTriggers = policyViolation.getConstraintFacts().stream()
+      policyViolationLogDTO.policyConditionTriggers = policyViolation.getConstraintFacts()
+          .stream()
           .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
           .map(ConditionFact::getReason)
           .distinct()
@@ -120,8 +121,9 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
     return policyConditionTriggerDTO;
   }
 
-  protected boolean shouldIncludeStagePolicyAction(PolicyViolationLogEvent policyViolationLogEvent,
-                                                   @SuppressWarnings("unused") T policyViolation)
+  protected boolean shouldIncludeStagePolicyAction(
+      PolicyViolationLogEvent policyViolationLogEvent,
+      @SuppressWarnings("unused") T policyViolation)
   {
     return PolicyViolationLogEvent.CREATE.equals(policyViolationLogEvent);
   }
@@ -132,8 +134,9 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
 
     public final T policyViolation;
 
-    public PolicyViolationData(PolicyViolationLogEvent policyViolationLogEvent,
-                               T policyViolation)
+    public PolicyViolationData(
+        PolicyViolationLogEvent policyViolationLogEvent,
+        T policyViolation)
     {
       this.policyViolationLogEvent = policyViolationLogEvent;
       this.policyViolation = policyViolation;

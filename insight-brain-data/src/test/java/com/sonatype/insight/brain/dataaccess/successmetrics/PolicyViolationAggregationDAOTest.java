@@ -210,18 +210,18 @@ public class PolicyViolationAggregationDAOTest
     List<MttrMonth> results = dao.getMttrMonthlyAverages(applicationIds, false);
 
     MttrMonth[] expectedResults = {
-        new MttrMonth(toDate(beginningOfMonthLastYear), 1000L, 3000L, 2000L, 2000L, 1, 1, 2, 1),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 1)), 2500L, 2500L, null, null, 2, 1, 0, 0),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 2)), null, null, null, null, 0, 0, 0, 0),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 3)), 1000L, 1000L, null, null, 5, 3, 0, 0),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 4)), null, null, null, null, 0, 0, 0, 0),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 5)), 5000L, null, null, 5000L, 2, 0, 0, 1),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 6)), 16000L, 16000L, 16000L, 16000L, 3, 1, 2, 52),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 7)), null, null, null, null, 0, 0, 0, 0),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 8)), 5000L, 10000L, 15000L, 20000L, 1, 1, 1, 3),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 9)), 50000L, 25000L, null, null, 3, 3, 0, 0),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 10)), null, null, 5000L, null, 0, 0, 1, 0),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 11)), 7000L, 8000L, 9000L, 10000L, 4, 4, 4, 4)
+      new MttrMonth(toDate(beginningOfMonthLastYear), 1000L, 3000L, 2000L, 2000L, 1, 1, 2, 1),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 1)), 2500L, 2500L, null, null, 2, 1, 0, 0),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 2)), null, null, null, null, 0, 0, 0, 0),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 3)), 1000L, 1000L, null, null, 5, 3, 0, 0),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 4)), null, null, null, null, 0, 0, 0, 0),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 5)), 5000L, null, null, 5000L, 2, 0, 0, 1),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 6)), 16000L, 16000L, 16000L, 16000L, 3, 1, 2, 52),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 7)), null, null, null, null, 0, 0, 0, 0),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 8)), 5000L, 10000L, 15000L, 20000L, 1, 1, 1, 3),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 9)), 50000L, 25000L, null, null, 3, 3, 0, 0),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 10)), null, null, 5000L, null, 0, 0, 1, 0),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 11)), 7000L, 8000L, 9000L, 10000L, 4, 4, 4, 4)
     };
 
     // check that only the most recent 12 months are included
@@ -241,18 +241,18 @@ public class PolicyViolationAggregationDAOTest
     List<MttrMonth> results = dao.getMttrMonthlyAverages(applicationIds, true);
 
     MttrMonth[] expectedResults = {
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 1)), 2500L, 2500L, null, null, 2, 1, 0, 0),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 2)), null, null, null, null, 0, 0, 0, 0),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 3)), 1000L, 1000L, null, null, 5, 3, 0, 0),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 4)), null, null, null, null, 0, 0, 0, 0),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 5)), 5000L, null, null, 5000L, 2, 0, 0, 1),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 6)), 16000L, 16000L, 16000L, 16000L, 3, 1, 2, 52),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 7)), null, null, null, null, 0, 0, 0, 0),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 8)), 5000L, 10000L, 15000L, 20000L, 1, 1, 1, 3),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 9)), 50000L, 25000L, null, null, 3, 3, 0, 0),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 10)), null, null, 5000L, null, 0, 0, 1, 0),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 11)), 7000L, 8000L, 9000L, 10000L, 4, 4, 4, 4),
-        new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 12)), 4000L, 5000L, 6000L, 7000L, 2, 2, 2, 2)
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 1)), 2500L, 2500L, null, null, 2, 1, 0, 0),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 2)), null, null, null, null, 0, 0, 0, 0),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 3)), 1000L, 1000L, null, null, 5, 3, 0, 0),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 4)), null, null, null, null, 0, 0, 0, 0),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 5)), 5000L, null, null, 5000L, 2, 0, 0, 1),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 6)), 16000L, 16000L, 16000L, 16000L, 3, 1, 2, 52),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 7)), null, null, null, null, 0, 0, 0, 0),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 8)), 5000L, 10000L, 15000L, 20000L, 1, 1, 1, 3),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 9)), 50000L, 25000L, null, null, 3, 3, 0, 0),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 10)), null, null, 5000L, null, 0, 0, 1, 0),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 11)), 7000L, 8000L, 9000L, 10000L, 4, 4, 4, 4),
+      new MttrMonth(toDate(plusMonths(beginningOfMonthLastYear, 12)), 4000L, 5000L, 6000L, 7000L, 2, 2, 2, 2)
     };
 
     // check that only the most recent 12 months are included, including current month
@@ -606,8 +606,7 @@ public class PolicyViolationAggregationDAOTest
         new ViolationCountPeriod(toDate(beginningOfWeek12WeeksAgo.plusWeeks(11)),
             discovered().security(0, 0, 8, 0).license(0, 0, 0, 4).quality(3, 0, 1, 4).other(0, 0, 0, 12).asMap(),
             fixed().security(1, 1, 0, 0).license(0, 0, 0, 0).quality(2, 2, 1, 1).other(0, 0, 0, 0).asMap(),
-            waived().security(0, 0, 2, 2).license(0, 0, 0, 0).quality(1, 1, 1, 1).other(0, 0, 0, 0).asMap())
-    );
+            waived().security(0, 0, 2, 2).license(0, 0, 0, 0).quality(1, 1, 1, 1).other(0, 0, 0, 0).asMap()));
 
     assertViolationCountHistory(expectedList, actualList);
   }
@@ -668,8 +667,7 @@ public class PolicyViolationAggregationDAOTest
         new ViolationCountPeriod(toDate(beginningOfWeek11WeeksAgo.plusWeeks(11)),
             discovered().security(4, 6, 8, 10).license(4, 6, 8, 10).quality(4, 6, 8, 10).other(4, 6, 8, 10).asMap(),
             fixed().security(2, 2, 0, 0).license(0, 0, 0, 0).quality(0, 0, 0, 0).other(0, 0, 0, 0).asMap(),
-            waived().security(0, 0, 2, 2).license(0, 0, 0, 0).quality(0, 0, 0, 0).other(0, 0, 0, 0).asMap())
-    );
+            waived().security(0, 0, 2, 2).license(0, 0, 0, 0).quality(0, 0, 0, 0).other(0, 0, 0, 0).asMap()));
 
     assertViolationCountHistory(expectedList, actualList);
   }
@@ -703,8 +701,7 @@ public class PolicyViolationAggregationDAOTest
         new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(8)), categoryCounts(12, 24, 20, 20)),
         new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(9)), categoryCounts(12, 24, 20, 20)),
         new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(10)), categoryCounts(12, 24, 20, 20)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(11)), categoryCounts(12, 24, 20, 20))
-    );
+        new OpenViolationCountsWeek(toDate(beginningOfWeek12WeeksAgo.plusWeeks(11)), categoryCounts(12, 24, 20, 20)));
 
     assertOpenViolationCountsWeekHistory(actualList, expectedList);
   }
@@ -729,8 +726,7 @@ public class PolicyViolationAggregationDAOTest
         new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(8)), categoryCounts(12, 24, 20, 20)),
         new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(9)), categoryCounts(12, 24, 20, 20)),
         new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(10)), categoryCounts(12, 24, 20, 20)),
-        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(11)), categoryCounts(6, 12, 10, 10))
-    );
+        new OpenViolationCountsWeek(toDate(beginningOfWeek11WeeksAgo.plusWeeks(11)), categoryCounts(6, 12, 10, 10)));
 
     assertOpenViolationCountsWeekHistory(actualList, expectedList);
   }
@@ -886,15 +882,15 @@ public class PolicyViolationAggregationDAOTest
   /**
    * Helper method to assert that a series of aggregations match the expected parameters
    *
-   * @param aggregationIter           the Iterator to draw the aggregations from
-   * @param applicationId             the application id to expect on all checked aggregations
-   * @param timePeriod                the TimePeriod to expect on all checked aggregations
-   * @param startingDate              the timePeriodStart to expect on the first aggregation.  Successive aggregations
-   *                                  are expected to have dates chronologically increasing from this one at
-   *                                  `timePeriod` intervals
+   * @param aggregationIter the Iterator to draw the aggregations from
+   * @param applicationId the application id to expect on all checked aggregations
+   * @param timePeriod the TimePeriod to expect on all checked aggregations
+   * @param startingDate the timePeriodStart to expect on the first aggregation. Successive aggregations
+   *          are expected to have dates chronologically increasing from this one at
+   *          `timePeriod` intervals
    * @param expectedAggregationsCount The number of aggregations to pull from the iterator and check
-   * @param expectTimePeriodEnd       Whether to expect the last checked aggregation to have a non-null timePeriodEnd
-   *                                  value
+   * @param expectTimePeriodEnd Whether to expect the last checked aggregation to have a non-null timePeriodEnd
+   *          value
    */
   private void assertAggregations(
       Iterator<PolicyViolationAggregation> aggregationIter,

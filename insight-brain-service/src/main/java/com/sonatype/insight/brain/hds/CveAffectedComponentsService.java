@@ -47,7 +47,8 @@ public class CveAffectedComponentsService
   /**
    * Retrieves affected component coordinates for multiple CVE IDs.
    *
-   * <p>First attempts batch query with all CVEs (?refId=CVE-A&refId=CVE-B).
+   * <p>
+   * First attempts batch query with all CVEs (?refId=CVE-A&refId=CVE-B).
    * If HDS returns 400 "Only one RefId is allowed", falls back to individual queries.
    *
    * @param cveIds set of CVE identifiers
@@ -93,8 +94,7 @@ public class CveAffectedComponentsService
         })
         .collect(Collectors.groupingBy(
             Map.Entry::getKey,
-            Collectors.mapping(Map.Entry::getValue, Collectors.toSet())
-        ));
+            Collectors.mapping(Map.Entry::getValue, Collectors.toSet())));
 
     cveIds.forEach(cveId -> results.putIfAbsent(cveId, new HashSet<>()));
 
@@ -150,7 +150,8 @@ public class CveAffectedComponentsService
         }
 
         if (result.getHasMore() != null && result.getHasMore() &&
-            result.getNextCursor() != null && !result.getNextCursor().isEmpty()) {
+            result.getNextCursor() != null && !result.getNextCursor().isEmpty())
+        {
           cursor = result.getNextCursor();
         }
         else {

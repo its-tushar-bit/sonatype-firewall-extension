@@ -74,21 +74,19 @@ public class ApiFirewallContainerImagePolicyWaiverResource
       "\n" +
       "Permissions required: Waive Policy Violations",
       responses = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "Waiver has been created successfully.")
+        @ApiResponse(
+            responseCode = "204",
+            description = "Waiver has been created successfully.")
       })
   public void addWaiver(
-      @Parameter(description = "Enter the container image id.", required = true)
-      @PathParam("containerImageId") final String containerImageId,
+      @Parameter(description = "Enter the container image id.",
+          required = true) @PathParam("containerImageId") final String containerImageId,
       @RequestBody(description = "The request JSON can include the fields" +
           "<ol>" +
           "<li>expiryTime (default null): Sets the datetime when the waiver expires.</li>" +
           "<li>waiverReasonId (default null): Sets the specific reason chosen for the waiver.</li>" +
           "<li>comment (default null): Further explanation about the waiver.</li>" +
-          "</ol>"
-      )
-      ApiContainerImageWaiverDTO waiverDTO)
+          "</ol>") ApiContainerImageWaiverDTO waiverDTO)
   {
     apiPolicyWaiverService.addContainerImageWaiver(containerImageId, waiverDTO);
   }
@@ -101,15 +99,14 @@ public class ApiFirewallContainerImagePolicyWaiverResource
       "\n" +
       "Permissions required: Waive Policy Violations",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Waiver has been deleted successfully.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Waiver has been deleted successfully.",
+            useReturnTypeSchema = true)
       })
   public void deleteContainerImagePolicyWaiver(
-      @Parameter(description = "Enter the container id.", required = true)
-      @PathParam("containerImageId") String containerImageId)
+      @Parameter(description = "Enter the container id.",
+          required = true) @PathParam("containerImageId") String containerImageId)
   {
     apiPolicyWaiverService.deleteContainerImageWaiver(containerImageId);
   }
@@ -127,29 +124,26 @@ public class ApiFirewallContainerImagePolicyWaiverResource
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Policy waivers for container images.",
-              content = @Content(
-                  mediaType = MediaType.APPLICATION_JSON,
-                  schema = @Schema(implementation = PolicyContainerWaiverDataResult.class)
-              ),
-              headers = {
-                  @Header(name = "Link",
-                      description = "Pagination links (first, last, next, prev)",
-                      schema = @Schema(type = "string"))
-              }
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Policy waivers for container images.",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON,
+                schema = @Schema(implementation = PolicyContainerWaiverDataResult.class)),
+            headers = {
+              @Header(name = "Link",
+                  description = "Pagination links (first, last, next, prev)",
+                  schema = @Schema(type = "string"))
+            })
       })
   public Response getWaivers(
       @Context UriInfo uriInfo,
       @QueryParam("page") @Min(1) int page,
-      @QueryParam("pageSize") @Min(1) @Max(100) int pageSize
-  )
+      @QueryParam("pageSize") @Min(1) @Max(100) int pageSize)
   {
     return new PaginationResponseBuilder<>(uriInfo.getAbsolutePath().getPath(), page, pageSize,
         apiPolicyWaiverService.getAllPolicyContainerWaivers(page, pageSize))
-        .queryParameters(uriInfo.getQueryParameters())
-        .build();
+            .queryParameters(uriInfo.getQueryParameters())
+            .build();
   }
 }

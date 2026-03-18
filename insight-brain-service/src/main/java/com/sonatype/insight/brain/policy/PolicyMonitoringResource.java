@@ -84,8 +84,9 @@ public class PolicyMonitoringResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  public List<PolicyMonitoring> get(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-                              @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
+  public List<PolicyMonitoring> get(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     return policyMonitoringDAO.getByOwnerId(internalOwnerId);
@@ -122,9 +123,10 @@ public class PolicyMonitoringResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
   @Audited(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING)
-  public PolicyMonitoring set(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-                              @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
-                              PolicyMonitoring policyMonitoring)
+  public PolicyMonitoring set(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+      PolicyMonitoring policyMonitoring)
   {
     Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();
     ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
@@ -171,9 +173,10 @@ public class PolicyMonitoringResource
   @DELETE
   @Authorize(permission = Permission.WRITE)
   @Audited(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING)
-  public void delete(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-                     @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
-                     @QueryParam("stageTypeId") final String stageTypeId)
+  public void delete(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+      @QueryParam("stageTypeId") final String stageTypeId)
   {
     ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 

@@ -98,8 +98,7 @@ public class PolicyResourceTest
     telemetryUtils = lookup(TelemetryUtils.class);
     reset(telemetrySender, telemetryUtils);
 
-    when(telemetryUtils.obfuscate(anyString())).thenAnswer(invocation ->
-        "obfuscated-" + invocation.getArgument(0));
+    when(telemetryUtils.obfuscate(anyString())).thenAnswer(invocation -> "obfuscated-" + invocation.getArgument(0));
   }
 
   private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
@@ -118,7 +117,8 @@ public class PolicyResourceTest
     String orgId = "OrgDoesNotExist";
 
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, orgId).path("import")
-        .part("file", "file", createImportBody()).post();
+        .part("file", "file", createImportBody())
+        .post();
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Organization with ID " + orgId + " does not exist.");
@@ -239,7 +239,9 @@ public class PolicyResourceTest
 
     String[] ignoredFields = ArrayUtils.addAll(JPA.IGNORE_FIELDS, "droolsCode", "policyNotificationsOverrideAllowed",
         "policyNotificationsOverrides", "notifications");
-    assertThat(result).usingRecursiveComparison().ignoringFields(ignoredFields).ignoringCollectionOrder()
+    assertThat(result).usingRecursiveComparison()
+        .ignoringFields(ignoredFields)
+        .ignoringCollectionOrder()
         .isEqualTo(originalPolicy);
 
     assertThat(result.isPolicyActionsOverrideAllowed()).isEqualTo(policy.isPolicyActionsOverrideAllowed());
@@ -321,8 +323,9 @@ public class PolicyResourceTest
         .isEqualTo(PolicyMaintenanceTelemetry.getActionsList(Collections.singletonList(policy.getActions())));
     assertThat(attributes.get("policy_actions_overrides"))
         .usingRecursiveComparison()
-        .isEqualTo(policy.getPolicyActionsOverrides() != null ?
-            PolicyMaintenanceTelemetry.getActionsList(policy.getPolicyActionsOverrides().values()) : List.of());
+        .isEqualTo(policy.getPolicyActionsOverrides() != null
+            ? PolicyMaintenanceTelemetry.getActionsList(policy.getPolicyActionsOverrides().values())
+            : List.of());
     assertThat(attributes.get("policy_notifications"))
         .usingRecursiveComparison()
         .isEqualTo(
@@ -330,9 +333,10 @@ public class PolicyResourceTest
     assertThat(attributes.get("policy_notifications_overrides"))
         .usingRecursiveComparison()
         .isEqualTo(
-            policy.getPolicyNotificationsOverrides() != null ?
-                PolicyMaintenanceTelemetry.getNotificationTypes(
-                    policy.getPolicyNotificationsOverrides().values()) : Set.of());
+            policy.getPolicyNotificationsOverrides() != null
+                ? PolicyMaintenanceTelemetry.getNotificationTypes(
+                    policy.getPolicyNotificationsOverrides().values())
+                : Set.of());
   }
 
   @Test
@@ -545,8 +549,8 @@ public class PolicyResourceTest
 
     HttpResponse response =
         restRequest(OwnerType.APPLICATION, application.getPublicId())
-        .path(policy.getId(), "overrides")
-        .put();
+            .path(policy.getId(), "overrides")
+            .put();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("A policy overrides configuration must be specified.");
@@ -847,8 +851,10 @@ public class PolicyResourceTest
     assertTelemetry(telemetryCaptor.getValue(), "UPDATE", ownerId, updatedPolicy);
   }
 
-  private void testUpdatePolicy_InvalidPolicy(OwnerType ownerType, String ownerId, String publicOwnerid)
-      throws Exception
+  private void testUpdatePolicy_InvalidPolicy(
+      OwnerType ownerType,
+      String ownerId,
+      String publicOwnerid) throws Exception
   {
     // Create a valid policy
     Policy policy = new Policy();
@@ -870,11 +876,12 @@ public class PolicyResourceTest
     verify(telemetrySender, never()).send(telemetryCaptor.capture());
   }
 
-  private void assertPoliciesByOwner(String ownerId,
-                                     String ownerName,
-                                     OwnerType ownerType,
-                                     int policyCount,
-                                     PoliciesByOwner actual)
+  private void assertPoliciesByOwner(
+      String ownerId,
+      String ownerName,
+      OwnerType ownerType,
+      int policyCount,
+      PoliciesByOwner actual)
   {
     assertThat(actual.ownerId).isEqualTo(ownerId);
     assertThat(actual.ownerName).isEqualTo(ownerName);
@@ -883,9 +890,7 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testGetPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode()
-      throws Exception
-  {
+  public void testGetPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager);
 
@@ -911,10 +916,11 @@ public class PolicyResourceTest
 
     // when the policies are retrieved
     HttpResponse response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID)
-        .path("withProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode").get();
+        .path("withProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode")
+        .get();
     assertResponseStatus(200, response);
-    ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies result
-        = response.getBody(ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies.class);
+    ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies result =
+        response.getBody(ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies.class);
 
     assertThat(result.proprietaryNameConflictPolicies).hasSize(6);
     assertThat(result.securityVulnerabilityCategoryMaliciousCodePolicies).hasSize(6);
@@ -1086,7 +1092,8 @@ public class PolicyResourceTest
 
     // Verify the applicable policies for the repository container
     HttpResponse response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID)
-        .path("applicable").get();
+        .path("applicable")
+        .get();
     assertResponseStatus(200, response);
     ApplicablePolicies applicablePolicies = response.getBody(ApplicablePolicies.class);
     assertThat(applicablePolicies.policiesByOwner).hasSize(2);
@@ -1100,7 +1107,8 @@ public class PolicyResourceTest
 
     // Verify the applicable policies for the repository container
     response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID)
-        .path("applicable").get();
+        .path("applicable")
+        .get();
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
     assertThat(applicablePolicies.policiesByOwner).hasSize(2);
@@ -1116,7 +1124,8 @@ public class PolicyResourceTest
 
     // Verify the applicable policies for the repository container
     response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID)
-        .path("applicable").get();
+        .path("applicable")
+        .get();
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
     assertThat(applicablePolicies.policiesByOwner).hasSize(2);
@@ -1349,7 +1358,8 @@ public class PolicyResourceTest
   public void testImportPolicies_NonJsonPolicyFile() throws Exception {
     Organization org = tempEntity.newOrganization();
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, org.getId()).path("import")
-        .part("file", "garbage.png", "garbage").post();
+        .part("file", "garbage.png", "garbage")
+        .post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("The file you selected failed to upload correctly, are you certain "
         + "it is a properly formatted policy import json file?");
@@ -1359,7 +1369,8 @@ public class PolicyResourceTest
   public void testImportPolicies_JsonFileIncorrectFormat() throws Exception {
     Organization org = tempEntity.newOrganization();
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, org.getId()).path("import")
-        .part("file", "badPolicy.json", "{\"badJson\":\"noClosingBraces\"").post();
+        .part("file", "badPolicy.json", "{\"badJson\":\"noClosingBraces\"")
+        .post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("The file you selected failed to upload correctly, are you certain "
         + "it is a properly formatted policy import json file?");
@@ -1398,7 +1409,8 @@ public class PolicyResourceTest
     // Import
     Organization toOrg = tempEntity.newOrganization();
     response = restRequest(OwnerType.ORGANIZATION, toOrg.getId()).path("import")
-        .part("file", "policyExportResult.json", policyExportResult).post();
+        .part("file", "policyExportResult.json", policyExportResult)
+        .post();
     assertResponseStatus(200, response);
     PolicyImportResult policyImportResult = response.getBody(PolicyImportResult.class);
     assertThat(policyImportResult).isNotNull();
@@ -1412,7 +1424,8 @@ public class PolicyResourceTest
   @Test
   public void testImportPolicies_AppImportNotSupported() throws Exception {
     HttpResponse response = restRequest(OwnerType.APPLICATION, "foo").path("import")
-        .part("file", "file", createImportBody()).post();
+        .part("file", "file", createImportBody())
+        .post();
 
     // policy import to applications is no longer supported
     assertResponseStatus(400, response);
@@ -1424,7 +1437,8 @@ public class PolicyResourceTest
     PolicyExportResult policyExportResult = new PolicyExportResult();
 
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, tempEntity.newOrganization().getId()).path("import")
-        .part("file", "file", policyExportResult).post();
+        .part("file", "file", policyExportResult)
+        .post();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
@@ -1437,7 +1451,9 @@ public class PolicyResourceTest
     PolicyExportResult emptyPolicyExport = new PolicyExportResult();
 
     HttpResponse response = restRequest(OwnerType.APPLICATION, tempEntity.newApplicationWithParent().getId())
-        .path("import").part("file", "file", emptyPolicyExport).post();
+        .path("import")
+        .part("file", "file", emptyPolicyExport)
+        .post();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Importing policies into an application is no longer supported.");

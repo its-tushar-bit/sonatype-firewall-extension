@@ -152,7 +152,8 @@ public class ApiJiraConfigurationService
       if (jsonNode.has("url")) {
         if (!jsonNode.has("password") &&
             existingJiraConfiguration.getPassword() != null &&
-            !existingJiraConfiguration.getUrl().equals(jiraConfiguration.getUrl())) {
+            !existingJiraConfiguration.getUrl().equals(jiraConfiguration.getUrl()))
+        {
           throw new BadRequestException(NO_PASSWORD_ERROR_MSG);
         }
         existingJiraConfiguration.setUrl(jiraConfiguration.getUrl());
@@ -169,7 +170,8 @@ public class ApiJiraConfigurationService
       result = existingJiraConfiguration;
     }
     if ((result.getUsername() != null && result.getPassword() == null) ||
-        (result.getUsername() == null && result.getPassword() != null)) {
+        (result.getUsername() == null && result.getPassword() != null))
+    {
       throw new BadRequestException(NO_USERNAME_PASSWORD_PAIR);
     }
     return result;

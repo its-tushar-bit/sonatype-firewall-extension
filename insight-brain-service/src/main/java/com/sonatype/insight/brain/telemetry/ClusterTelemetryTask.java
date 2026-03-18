@@ -47,8 +47,10 @@ public class ClusterTelemetryTask
       TaskScheduler taskScheduler,
       TelemetrySender telemetrySender)
   {
-    this.clusterTelemetryCollectors = telemetryCollectorsProvider.getTelemetryCollectors().stream()
-        .filter(TelemetryCollector::isClusterTelemetry).collect(Collectors.toSet());
+    this.clusterTelemetryCollectors = telemetryCollectorsProvider.getTelemetryCollectors()
+        .stream()
+        .filter(TelemetryCollector::isClusterTelemetry)
+        .collect(Collectors.toSet());
     this.taskScheduler = taskScheduler;
     this.telemetrySender = telemetrySender;
   }

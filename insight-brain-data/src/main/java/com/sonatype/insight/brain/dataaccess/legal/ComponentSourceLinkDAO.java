@@ -64,7 +64,8 @@ public class ComponentSourceLinkDAO
   @Override
   public void insert(TransactionContext tx, ComponentSourceLink componentSourceLink) {
     if (getByOwnerIdAndComponentIdentifier(tx, componentSourceLink.getOwnerId(),
-        componentSourceLink.getComponentIdentifier()) != null) {
+        componentSourceLink.getComponentIdentifier()) != null)
+    {
       throw new BadRequestException(
           "Component source link already exists for owner with id " + componentSourceLink.getOwnerId()
               + " and component " + componentSourceLink.getComponentIdentifier() + ".");
@@ -90,7 +91,8 @@ public class ComponentSourceLinkDAO
     // Cascade to Source Link overrides
     SourceLinkOverrideDAO sourceLinkOverrideDAO = sourceLinkOverrideDAOProvider.get();
     for (SourceLinkOverride sourceLinkOverride : sourceLinkOverrideDAO
-        .getByComponentSourceLinkId(tx, componentSourceLink.getId())) {
+        .getByComponentSourceLinkId(tx, componentSourceLink.getId()))
+    {
       sourceLinkOverrideDAO.delete(tx, sourceLinkOverride);
     }
     super.delete(tx, componentSourceLink);

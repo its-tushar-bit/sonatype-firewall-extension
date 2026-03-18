@@ -88,8 +88,10 @@ public class ApiReportDataResourceV2Test
 
   @Test
   public void testGetData_Redirect() throws Exception {
-    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(SCAN_PATH)
-        .parameter("testAppPublicId", "testScanId").get();
+    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .parameter("testAppPublicId", "testScanId")
+        .get();
 
     assertResponseStatus(307, response);
     assertThat(response.getHeader("Location"))
@@ -108,8 +110,11 @@ public class ApiReportDataResourceV2Test
     final String scanId = "ScanId";
     createReport(appPublicId, scanId, "report");
 
-    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(SCAN_PATH)
-        .path(ApiReportDataResourceV2.RAW_DATA_PATH).parameter(appPublicId, scanId).get();
+    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.RAW_DATA_PATH)
+        .parameter(appPublicId, scanId)
+        .get();
 
     assertResponseStatus(200, response);
     ApiReportRawDataDTOV2 dto = response.getBody(ApiReportRawDataDTOV2.class);
@@ -122,8 +127,11 @@ public class ApiReportDataResourceV2Test
     final String scanId = "ScanId";
     createReport(appPublicId, scanId, "report");
 
-    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(SCAN_PATH)
-        .path(ApiReportDataResourceV2.POLICY_DATA_PATH).parameter(appPublicId, scanId).get();
+    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.POLICY_DATA_PATH)
+        .parameter(appPublicId, scanId)
+        .get();
 
     assertResponseStatus(200, response);
     ApiReportPolicyDataDTOV2 dto = response.getBody(ApiReportPolicyDataDTOV2.class);
@@ -140,8 +148,11 @@ public class ApiReportDataResourceV2Test
     final String scanId = "ScanId";
     createReport(appPublicId, scanId, "report-no-counts");
 
-    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(SCAN_PATH)
-        .path(ApiReportDataResourceV2.POLICY_DATA_PATH).parameter(appPublicId, scanId).get();
+    HttpResponse response = restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.POLICY_DATA_PATH)
+        .parameter(appPublicId, scanId)
+        .get();
 
     assertResponseStatus(200, response);
     ApiReportPolicyDataDTOV2 dto = response.getBody(ApiReportPolicyDataDTOV2.class);
@@ -204,8 +215,9 @@ public class ApiReportDataResourceV2Test
     assertThat(dto.components.get(0).violations.get(0).openTime).isNotNull().isEqualTo(policyViolation.getOpenTime());
     assertThat(dto.components.get(0).violations.get(0).waiveTime).isNotNull().isEqualTo(policyViolation.getWaiveTime());
     assertThat(dto.components.get(0).violations.get(0).fixTime).isNotNull().isEqualTo(policyViolation.getFixTime());
-    assertThat(dto.components.get(0).violations.get(0).legacyViolationTime).isNotNull().isEqualTo(
-        policyViolation.getLegacyViolationTime());
+    assertThat(dto.components.get(0).violations.get(0).legacyViolationTime).isNotNull()
+        .isEqualTo(
+            policyViolation.getLegacyViolationTime());
 
     // We only inserted a record for the first policy violation
     assertThat(dto.components.get(0).violations.get(1).openTime).isNull();
@@ -350,7 +362,7 @@ public class ApiReportDataResourceV2Test
 
   @Test
   public void testGetPolicyViolationDiff_FromCommitNoReport() throws Exception {
-    //setup evaluations
+    // setup evaluations
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID, false, false, false,
         date, FROM_COMMIT_HASH);
     tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID, false, false, false,
@@ -368,7 +380,7 @@ public class ApiReportDataResourceV2Test
 
   @Test
   public void testGetPolicyViolationDiff_FromCommitMissingAlerts() throws Exception {
-    //setup reports
+    // setup reports
     ReportTestUtils.createReportFile(app.getId(), FROM_SCAN_ID,
         zipReportDir("/" + getClass().getSimpleName() + "/report-missing-policyalerts", tempDir), insightWork);
     ReportTestUtils
@@ -376,7 +388,7 @@ public class ApiReportDataResourceV2Test
             zipReportDir("/" + getClass().getSimpleName() + "/to-report", tempDir),
             insightWork);
 
-    //setup evaluations
+    // setup evaluations
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID, false, false, false,
         date, FROM_COMMIT_HASH);
     tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID, false, false, false,
@@ -399,7 +411,7 @@ public class ApiReportDataResourceV2Test
   }
 
   private void setupValidReportsAndEvaluations() throws IOException, URISyntaxException {
-    //setup reports
+    // setup reports
     ReportTestUtils.createReportFile(app.getId(), FROM_SCAN_ID,
         zipReportDir("/" + getClass().getSimpleName() + "/from-report", tempDir), insightWork);
     ReportTestUtils
@@ -407,7 +419,7 @@ public class ApiReportDataResourceV2Test
             zipReportDir("/" + getClass().getSimpleName() + "/to-report", tempDir),
             insightWork);
 
-    //setup evaluations
+    // setup evaluations
     fromEvalId = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID, false, false, false,
         date, FROM_COMMIT_HASH).getId();
     toEvalId = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID, false, false, false,
@@ -416,31 +428,31 @@ public class ApiReportDataResourceV2Test
 
   @Test
   public void testGetPolicyViolationDiff_FromEvaluations() throws Exception {
-    //setup
+    // setup
     setupValidReportsAndEvaluations();
 
-    //when fetching diff with evaluation ids
+    // when fetching diff with evaluation ids
     final HttpResponse response = restRequest()
         .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s", fromEvalId, toEvalId))
         .get();
 
-    //then assert success response status and verify correct results
+    // then assert success response status and verify correct results
     assertResponseStatus(200, response);
     assertValidDiffResults(response);
   }
 
   @Test
   public void testGetPolicyViolationDiff_NoFromEvaluationSpecified() throws Exception {
-    //when fetching diff without from eval specified
+    // when fetching diff without from eval specified
     final HttpResponse response = restRequest()
         .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("toPolicyEvaluationId=%s", toEvalId))
         .get();
 
-    //then verify bad request response
+    // then verify bad request response
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
         .isEqualTo("The commit identifier or policy evaluation id for the `from` evaluation needs to be specified");
@@ -448,14 +460,14 @@ public class ApiReportDataResourceV2Test
 
   @Test
   public void testGetPolicyViolationDiff_NoToEvaluationSpecified() throws Exception {
-    //when fetching diff without to eval specified
+    // when fetching diff without to eval specified
     final HttpResponse response = restRequest()
         .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromPolicyEvaluationId=%s", fromEvalId))
         .get();
 
-    //then verify bad request response
+    // then verify bad request response
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
         .isEqualTo("The commit identifier or policy evaluation id for the `to` evaluation needs to be specified");
@@ -463,28 +475,28 @@ public class ApiReportDataResourceV2Test
 
   @Test
   public void testGetPolicyViolationDiff_SameEvaluationSpecified() throws Exception {
-    //when fetching diff with same from and to evals
+    // when fetching diff with same from and to evals
     final HttpResponse response = restRequest()
         .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s", fromEvalId, fromEvalId))
         .get();
 
-    //then verify bad request response
+    // then verify bad request response
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("The specified commits or evaluation ids cannot be identical.");
   }
 
   @Test
   public void testGetPolicyViolationDiff_FromEvaluationNotFound() throws Exception {
-    //when fetching diff with non existing from eval id
+    // when fetching diff with non existing from eval id
     final HttpResponse response = restRequest()
         .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
         .get();
 
-    //then verify not found response
+    // then verify not found response
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
         .isEqualTo(CANT_CALCULATE_DIFF_MESSAGE);
@@ -492,20 +504,20 @@ public class ApiReportDataResourceV2Test
 
   @Test
   public void testGetPolicyViolationDiff_ToEvaluationNotFound() throws Exception {
-    //setup
+    // setup
     final Date date = new Date();
     tempEntity
         .newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan1", false, false, false,
             date, FROM_COMMIT_HASH);
 
-    //when fetching diff with non existing to eval id
+    // when fetching diff with non existing to eval id
     final HttpResponse response = restRequest()
         .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
         .query(String.format("fromPolicyEvaluationId=%s&toPolicyEvaluationId=%s", FROM_COMMIT_HASH, TO_COMMIT_HASH))
         .get();
 
-    //then verify not found response
+    // then verify not found response
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
         .isEqualTo(CANT_CALCULATE_DIFF_MESSAGE);
@@ -513,7 +525,7 @@ public class ApiReportDataResourceV2Test
 
   @Test
   public void testGetPolicyViolationDiff_FromEvaluationAndCommitSpecified() throws Exception {
-    //when fetching diff with from commit and eval id specified
+    // when fetching diff with from commit and eval id specified
     final HttpResponse response = restRequest()
         .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
@@ -522,7 +534,7 @@ public class ApiReportDataResourceV2Test
                 FROM_COMMIT_HASH))
         .get();
 
-    //then verify bad request response
+    // then verify bad request response
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
         .isEqualTo("Cannot specify both commit identifier and evaluation id for `from` evaluation.");
@@ -530,7 +542,7 @@ public class ApiReportDataResourceV2Test
 
   @Test
   public void testGetPolicyViolationDiff_ToEvaluationAndCommitSpecified() throws Exception {
-    //when fetching diff with to commit and eval id specified
+    // when fetching diff with to commit and eval id specified
     final HttpResponse response = restRequest()
         .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2, ApiReportDataResourceV2.VIOLATION_DIFF_PATH)
         .parameter(app.getPublicId())
@@ -539,7 +551,7 @@ public class ApiReportDataResourceV2Test
                 TO_COMMIT_HASH))
         .get();
 
-    //then verify bad request response
+    // then verify bad request response
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
         .isEqualTo("Cannot specify both commit identifier and evaluation id for `to` evaluation.");
@@ -645,7 +657,7 @@ public class ApiReportDataResourceV2Test
     assertThat(children.size()).isEqualTo(1);
     ApiDependencyTreeNodeDTO node = children.get(0);
     assertThat(node.getPackageUrl()).isNotNull();
-    
+
   }
 
   @Test
@@ -666,16 +678,16 @@ public class ApiReportDataResourceV2Test
     assertThat(dto).isNotNull();
     assertThat(dto.getDependencyTree()).isNotNull();
     assertThat(dto.getDependencyTree().getComponentIdentifier()).isNull();
-    
+
     List<ApiDependencyTreeNodeDTO> children = dto.getDependencyTree().getChildren();
     assertThat(children).isNotEmpty();
     assertThat(children.size()).isEqualTo(2);
-    
+
     children.forEach(node -> {
       assertThat(node.getPackageUrl()).isNotNull();
       assertThat(node.getComponentIdentifier()).isNotNull();
     });
-    
+
   }
 
   @Test
@@ -694,18 +706,18 @@ public class ApiReportDataResourceV2Test
     assertResponseStatus(404, response);
   }
 
-  private void assertValidDiffResults(final HttpResponse response) throws URISyntaxException, JSONException,
-                                                                          IOException
+  private void assertValidDiffResults(
+      final HttpResponse response) throws URISyntaxException, JSONException, IOException
   {
     final String result = response.getBodyText();
 
     final String expectedResult = new String(Files.readAllBytes(Paths
         .get(ApiReportDataResourceV2Test.class
             .getResource("/" + getClass().getSimpleName() + "/diff-result/diffResult.json")
-            .toURI())), StandardCharsets.UTF_8);
+            .toURI())),
+        StandardCharsets.UTF_8);
     JSONAssert.assertEquals(expectedResult, result, new CustomComparator(JSONCompareMode.NON_EXTENSIBLE,
         new Customization("diffTime", (o1, o2) -> true),
-        new Customization("*Commit.scanTime", (o1, o2) -> true)
-    ));
+        new Customization("*Commit.scanTime", (o1, o2) -> true)));
   }
 }

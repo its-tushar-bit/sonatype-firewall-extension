@@ -118,7 +118,8 @@ public class WaivedComponentUpgradeInspector
         if (waiverContainsUpgradeableComponent(waiver)) {
           waiver.setComponentUpgradeAvailable(true);
           if (SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.isEnabled() &&
-              waiver.isExpireWhenRemediationAvailable()) {
+              waiver.isExpireWhenRemediationAvailable())
+          {
             // Set expiry time to now in order to trigger auto expiry
             waiver.setExpiryTime(new Date());
           }
@@ -136,7 +137,8 @@ public class WaivedComponentUpgradeInspector
         policyWaiver -> policyWaiver.isComponentUpgradeAvailable() == null ||
             !policyWaiver.isComponentUpgradeAvailable();
 
-    return policyWaiverDAO.getActiveByPolicyId(policy.getId()).stream()
+    return policyWaiverDAO.getActiveByPolicyId(policy.getId())
+        .stream()
         .filter(componentUpgradeAvailableNotSet)
         .filter(policyWaiver -> ComponentMatcherStrategyForWaiver.EXACT_COMPONENT.equals(
             policyWaiver.getComponentMatchStrategy()))

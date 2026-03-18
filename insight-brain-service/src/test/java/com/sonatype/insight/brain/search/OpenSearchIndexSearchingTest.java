@@ -52,8 +52,9 @@ public class OpenSearchIndexSearchingTest
 
     binder.bind(SearchIndexClient.class).to(OpenSearchSearchIndexClient.class);
     // Use test utility to create isolated transport - prevents "Connection pool shut down" errors
-    binder.bind(OpenSearchTransport.class).toInstance(
-        TestOpenSearchTransportFactory.createIsolatedForTest(searchConfig));
+    binder.bind(OpenSearchTransport.class)
+        .toInstance(
+            TestOpenSearchTransportFactory.createIsolatedForTest(searchConfig));
     binder.bind(IndexConfigProvider.class).to(SingleTenantIndexConfigProvider.class);
     super.configure(binder);
   }

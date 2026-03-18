@@ -50,14 +50,13 @@ public class ApiComponentDetailsResourceV2
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(description = "Use this method to retrieve data related to a component.",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description =
-                  "The response contains a detailed description of the component. The hash value returned here " +
-                      "is truncated and not intended to be used as a checksum. It can be used as an identifier " +
-                      "to pass to other REST API calls.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains a detailed description of the component. The hash value returned here "
+                +
+                "is truncated and not intended to be used as a checksum. It can be used as an identifier " +
+                "to pass to other REST API calls.",
+            useReturnTypeSchema = true)
       })
   public ApiComponentDetailsResultDTOV2 getComponentDetails(
       @Parameter(description = "You can retrieve component data in any one of the 3 ways via:\n" +

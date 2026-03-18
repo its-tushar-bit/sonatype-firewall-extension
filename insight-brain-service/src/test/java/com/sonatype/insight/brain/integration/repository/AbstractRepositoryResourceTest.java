@@ -150,7 +150,8 @@ public abstract class AbstractRepositoryResourceTest
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
 
     HttpResponse response = quarantineRequest()
-        .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), true).post();
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), true)
+        .post();
     assertResponseStatus(204, response);
 
     repository = repositoryDAO.getById(repository.getId());
@@ -332,7 +333,8 @@ public abstract class AbstractRepositoryResourceTest
     ComponentEvaluationDataRequestList componentEvaluationDataRequestList = new ComponentEvaluationDataRequestList();
 
     HttpResponse response = evaluateComponentsRequest()
-        .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).body(componentEvaluationDataRequestList)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+        .body(componentEvaluationDataRequestList)
         .post();
 
     RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
@@ -350,7 +352,8 @@ public abstract class AbstractRepositoryResourceTest
     ComponentEvaluationDataRequestList componentEvaluationDataRequestList = new ComponentEvaluationDataRequestList();
 
     HttpResponse response = evaluateComponentsRequest()
-        .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).body(componentEvaluationDataRequestList)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+        .body(componentEvaluationDataRequestList)
         .header(HttpHeaders.USER_AGENT, userAgent)
         .post();
 
@@ -366,7 +369,8 @@ public abstract class AbstractRepositoryResourceTest
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
 
     HttpResponse response = componentsRequest()
-        .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), "somepath/subpath").delete();
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), "somepath/subpath")
+        .delete();
 
     RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
 
@@ -382,7 +386,8 @@ public abstract class AbstractRepositoryResourceTest
 
     HttpResponse response = componentsRequest()
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), "somepath/subpath")
-        .header(HttpHeaders.USER_AGENT, userAgent).delete();
+        .header(HttpHeaders.USER_AGENT, userAgent)
+        .delete();
 
     RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
 
@@ -400,7 +405,8 @@ public abstract class AbstractRepositoryResourceTest
 
     HttpResponse response = unquarantinedComponentsRequest()
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
-        .query("sinceUtcTimestamp=" + (now.getTime())).get();
+        .query("sinceUtcTimestamp=" + (now.getTime()))
+        .get();
     assertResponseStatus(200, response);
     UnquarantinedComponentList result = response.getBody(UnquarantinedComponentList.class);
 
@@ -421,7 +427,8 @@ public abstract class AbstractRepositoryResourceTest
 
     HttpResponse response = unquarantinedComponentsRequest()
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
-        .query("sinceUtcTimestamp=" + (now.getTime())).header(HttpHeaders.USER_AGENT, userAgent)
+        .query("sinceUtcTimestamp=" + (now.getTime()))
+        .header(HttpHeaders.USER_AGENT, userAgent)
         .get();
     assertResponseStatus(200, response);
     UnquarantinedComponentList result = response.getBody(UnquarantinedComponentList.class);
@@ -440,7 +447,8 @@ public abstract class AbstractRepositoryResourceTest
 
     HttpResponse response =
         proprietaryNamesRequest().parameter(repoManager.getInstanceId(), repo.getPublicId())
-        .body(proprietaryComponentNames).post();
+            .body(proprietaryComponentNames)
+            .post();
     assertResponseStatus(204, response);
 
     List<ProprietaryComponentNamePattern> patterns = proprietaryComponentNamePatternDAO.getByFormat("npm");
@@ -458,7 +466,8 @@ public abstract class AbstractRepositoryResourceTest
     tempEntity.newRepositoryComponent(repository.getId());
 
     HttpResponse response = quarantinedComponentReportUrlRequest()
-        .parameter(repoManager.getInstanceId(), repository.getPublicId(), "path").get();
+        .parameter(repoManager.getInstanceId(), repository.getPublicId(), "path")
+        .get();
     assertResponseStatus(200, response);
 
     assertThat(response.getBody(QuarantinedComponentReport.class).getReportUrl())
@@ -473,7 +482,8 @@ public abstract class AbstractRepositoryResourceTest
     ComponentEvaluationDataRequestList componentEvaluationDataRequestList = new ComponentEvaluationDataRequestList();
 
     HttpResponse response = restRequest().path(AbstractRepositoryResource.EVALUATE_COMPONENT_METADATA_PATH)
-        .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).body(componentEvaluationDataRequestList)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+        .body(componentEvaluationDataRequestList)
         .post();
     assertResponseStatus(200, response);
   }
@@ -493,7 +503,9 @@ public abstract class AbstractRepositoryResourceTest
     ConfigureRepositoriesRequest configureRepositoriesRequest = createConfigureRepositoriesRequest(repositoryDTO);
 
     HttpResponse response = configureRepositoriesRequest().parameter(repositoryManager.getInstanceId())
-        .header(HttpHeaders.USER_AGENT, clientUserAgent).body(configureRepositoriesRequest).post();
+        .header(HttpHeaders.USER_AGENT, clientUserAgent)
+        .body(configureRepositoriesRequest)
+        .post();
     assertResponseStatus(204, response);
 
     repositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
@@ -523,7 +535,8 @@ public abstract class AbstractRepositoryResourceTest
 
     HttpResponse response =
         restRequest().path(RepositoryResource.REPOSITORY_PATH)
-            .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).delete();
+            .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+            .delete();
 
     assertResponseStatus(204, response);
 

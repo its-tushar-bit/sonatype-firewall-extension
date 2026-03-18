@@ -168,7 +168,8 @@ public class FirewallPageTest
   }
 
   private Wait<WebDriver> getWebDriverAwait() {
-    return new FluentWait<>(getWebDriver()).withTimeout(Duration.ofSeconds(240)).pollingEvery(Duration.ofSeconds(2))
+    return new FluentWait<>(getWebDriver()).withTimeout(Duration.ofSeconds(240))
+        .pollingEvery(Duration.ofSeconds(2))
         .ignoring(NoSuchElementException.class);
   }
 
@@ -222,7 +223,8 @@ public class FirewallPageTest
     page.shouldBe(visible);
     page.firewallStatus().shouldBe(visible);
     page.firewallStatus().statusFullyProtected().shouldNotBe(visible);
-    page.firewallStatus().statusPartiallyProtected()
+    page.firewallStatus()
+        .statusPartiallyProtected()
         .shouldBe(Condition.text("0 of 1 repositories protected"))
         .shouldBe(visible);
     page.firewallStatus().componentsMonitored().shouldBe(Condition.text("4 Components Monitored")).shouldBe(visible);
@@ -252,7 +254,8 @@ public class FirewallPageTest
     page.shouldBe(visible);
     page.firewallStatus().shouldBe(visible);
     page.firewallStatus().statusPartiallyProtected().shouldNotBe(visible);
-    page.firewallStatus().statusFullyProtected()
+    page.firewallStatus()
+        .statusFullyProtected()
         .shouldBe(Condition.text("1 of 1 repositories protected"))
         .shouldBe(visible);
     page.firewallStatus().componentsMonitored().shouldBe(Condition.text("2 Components Monitored")).shouldBe(visible);
@@ -363,8 +366,8 @@ public class FirewallPageTest
     FirewallMetrics firewallMetrics2 = new FirewallMetrics(toLocalDate(testDate), NAMESPACE_ATTACKS_BLOCKED, 2);
     FirewallMetrics firewallMetrics3 = new FirewallMetrics(toLocalDate(testDate), COMPONENTS_QUARANTINED, 4);
     FirewallMetrics firewallMetrics4 = new FirewallMetrics(toLocalDate(testDate), COMPONENTS_AUTO_RELEASED, 10);
-    FirewallMetrics firewallMetrics5
-        = new FirewallMetrics(toLocalDate(testDate), SAFE_VERSIONS_SELECTED_AUTOMATICALLY, 20);
+    FirewallMetrics firewallMetrics5 =
+        new FirewallMetrics(toLocalDate(testDate), SAFE_VERSIONS_SELECTED_AUTOMATICALLY, 20);
     FirewallMetrics firewallMetrics6 = new FirewallMetrics(toLocalDate(testDate), WAIVED_COMPONENTS, 30);
 
     firewallMetricsDAO.insert(firewallMetrics1);
@@ -379,8 +382,8 @@ public class FirewallPageTest
     page.shouldBe(visible);
     page.firewallMetrics().shouldBe(visible);
 
-    FirewallMetricsContent supplyChainAttacksBlocked
-        = page.firewallMetricsContent("#firewall-metrics-content-supply-chain-attacks-blocked");
+    FirewallMetricsContent supplyChainAttacksBlocked =
+        page.firewallMetricsContent("#firewall-metrics-content-supply-chain-attacks-blocked");
     supplyChainAttacksBlocked.shouldBe(visible);
     supplyChainAttacksBlocked.value().shouldHave(text("1(all time)"));
     supplyChainAttacksBlocked.link().click();
@@ -388,8 +391,8 @@ public class FirewallPageTest
     page.firewallQuarantineTable().tableBodyRows().shouldHave(size(1));
     page.firewallQuarantineTable().tableBodyRows().shouldHave(texts("maliciousCode"));
 
-    FirewallMetricsContent namespaceAttacksBlocked
-        = page.firewallMetricsContent("#firewall-metrics-content-namespace-attacks-blocked");
+    FirewallMetricsContent namespaceAttacksBlocked =
+        page.firewallMetricsContent("#firewall-metrics-content-namespace-attacks-blocked");
     namespaceAttacksBlocked.shouldBe(visible);
     namespaceAttacksBlocked.value().shouldHave(text("2(all time)"));
     namespaceAttacksBlocked.link().click();
@@ -397,23 +400,23 @@ public class FirewallPageTest
     page.firewallQuarantineTable().tableBodyRows().shouldHave(size(2));
     page.firewallQuarantineTable().tableBodyRows().shouldHave(texts("namespaceConflict", "namespaceConflict"));
 
-    FirewallMetricsContent componentsQuarantined
-        = page.firewallMetricsContent("#firewall-metrics-content-components-quarantined");
+    FirewallMetricsContent componentsQuarantined =
+        page.firewallMetricsContent("#firewall-metrics-content-components-quarantined");
     componentsQuarantined.shouldBe(visible);
     componentsQuarantined.value().shouldHave(text("4Last 12 months"));
     componentsQuarantined.link().click();
     page.firewallQuarantineTable().tableBodyRows().shouldHave(size(4));
 
-    FirewallMetricsContent componentsAutoReleased
-        = page.firewallMetricsContent("#firewall-metrics-content-components-auto-released");
+    FirewallMetricsContent componentsAutoReleased =
+        page.firewallMetricsContent("#firewall-metrics-content-components-auto-released");
     componentsAutoReleased.shouldBe(visible);
     componentsAutoReleased.value().shouldHave(text("10Last 12 months"));
     componentsAutoReleased.link().click();
     autoUnquarantinePage.title().shouldHave(text("Auto Release from Quarantine"));
     autoUnquarantinePage.backToFirewallButton().click();
 
-    FirewallMetricsContent componentsAutoSelected
-        = page.firewallMetricsContent("#firewall-metrics-content-safe-components-auto-selected");
+    FirewallMetricsContent componentsAutoSelected =
+        page.firewallMetricsContent("#firewall-metrics-content-safe-components-auto-selected");
     componentsAutoSelected.shouldBe(visible);
     componentsAutoSelected.value().shouldHave(text("20Last 12 months"));
     componentsAutoSelected.link().click();
@@ -423,15 +426,15 @@ public class FirewallPageTest
   @Test
   public void testFirewallQuarantineTable() {
     /*
-    This test data covers all below scenarios.
-    1. sort by quarantine time (default desc)
-    2. sort by threat level for same quarantine times
-    3. sort by component name for same threat level & quarantine times
-    4. sort by quarantine time asc
-    5. excluding waived violations, 'warn' action policies and unquarantined components
-    6. selecting the valid highest threat level and policy name combination for a quarantined component
-    7. policy id and component name filters
-    */
+     * This test data covers all below scenarios.
+     * 1. sort by quarantine time (default desc)
+     * 2. sort by threat level for same quarantine times
+     * 3. sort by component name for same threat level & quarantine times
+     * 4. sort by quarantine time asc
+     * 5. excluding waived violations, 'warn' action policies and unquarantined components
+     * 6. selecting the valid highest threat level and policy name combination for a quarantined component
+     * 7. policy id and component name filters
+     */
     Date jan1st2024hour12 = Date.from(LocalDateTime.of(2024, 1, 1, 12, 10, 5).toInstant(ZoneOffset.UTC));
     Date jan1st2024hour14 = Date.from(LocalDateTime.of(2024, 1, 1, 14, 0).toInstant(ZoneOffset.UTC));
     Date jan2nd2024hour12 = Date.from(LocalDateTime.of(2024, 1, 2, 12, 0).toInstant(ZoneOffset.UTC));
@@ -477,19 +480,25 @@ public class FirewallPageTest
     FirewallPage firewallPage = new FirewallPage();
     NxTableHeader quarantineTimeHeader = firewallPage.firewallQuarantineTable().quarantineTimeHeader();
 
-    quarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Quarantine Time descending"));
+    quarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Quarantine Time descending"));
 
     firewallPage.firewallQuarantineTable().tableBodyRows().shouldHave(size(5));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(0)
         .shouldHave(texts("10", "policy2", "2024-01-02 14:00:00", "g : a : v", "repo1"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(1)
         .shouldHave(texts("7", "policy3", "2024-01-02 14:00:00", "g : a : v", "repo2"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(2)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(2)
         .shouldHave(texts("10", "policy1", "2024-01-02 12:00:00", "g : a : v", "repo1"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(3)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(3)
         .shouldHave(texts("7", "policy3", "2024-01-01 12:10:05", "g1 : a1 : v1", "repo2"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(4)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(4)
         .shouldHave(texts("7", "policy3", "2024-01-01 12:10:05", "g : a : v", "repo1"));
 
     eyesWatcher.eyesCheck("Firewall Quarantine table visible with data");
@@ -497,19 +506,25 @@ public class FirewallPageTest
     quarantineTimeHeader.click();
     waitUntilFirewallPageSpinnersGone();
 
-    quarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Quarantine Time ascending"));
+    quarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Quarantine Time ascending"));
 
     firewallPage.firewallQuarantineTable().tableBodyRows().shouldHave(size(5));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(0)
         .shouldHave(texts("7", "policy3", "2024-01-01 12:10:05", "g1 : a1 : v1", "repo2"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(1)
         .shouldHave(texts("7", "policy3", "2024-01-01 12:10:05", "g : a : v", "repo1"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(2)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(2)
         .shouldHave(texts("10", "policy1", "2024-01-02 12:00:00", "g : a : v", "repo1"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(3)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(3)
         .shouldHave(texts("10", "policy2", "2024-01-02 14:00:00", "g : a : v", "repo1"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(4)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(4)
         .shouldHave(texts("7", "policy3", "2024-01-02 14:00:00", "g : a : v", "repo2"));
   }
 
@@ -529,7 +544,8 @@ public class FirewallPageTest
   public void testFirewallQuarantineTable_Filtering() {
     setupData();
 
-    Long time = repositoryComponentDAO.getAllQuarantinedComponent().stream()
+    Long time = repositoryComponentDAO.getAllQuarantinedComponent()
+        .stream()
         .map(RepositoryComponent::getQuarantineTime)
         .map(Date::getTime)
         .max(Comparator.naturalOrder())
@@ -549,8 +565,7 @@ public class FirewallPageTest
     tempEntity.newRepositoryPolicyViolation(
         repositoryComponent.getRepositoryId(), 5, repositoryComponent.getPathname(),
         false, FailActionType.ID, anotherPolicy.getId(), anotherPolicy.getName(),
-        repositoryComponent.getComponentIdentifier()
-    );
+        repositoryComponent.getComponentIdentifier());
 
     refreshOrOpen(FirewallPage.url());
 
@@ -584,16 +599,19 @@ public class FirewallPageTest
 
     NxTableHeader quarantineTimeHeader = page.firewallQuarantineTable().quarantineTimeHeader();
 
-    quarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Quarantine Time descending"));
+    quarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Quarantine Time descending"));
     quarantineTimeHeader.click();
 
-    quarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Quarantine Time ascending"));
+    quarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Quarantine Time ascending"));
     quarantineTimeHeader.click();
 
-    quarantineTimeHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Quarantine Time descending"));
+    quarantineTimeHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Quarantine Time descending"));
     quarantineTimeHeader.click();
   }
 
@@ -621,29 +639,38 @@ public class FirewallPageTest
 
     firewallPage.firewallQuarantineTable().tableBodyRows().shouldHave(size(2));
 
-    policyNameHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Policy Name unsorted"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+    policyNameHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Policy Name unsorted"));
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(0)
         .shouldHave(texts("10", "policy1", "2024-01-01 14:00:00", "g : a : v", "repo"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(1)
         .shouldHave(texts("10", "policy2", "2024-01-01 12:00:00", "g : a : v", "repo"));
 
     policyNameHeader.click();
 
-    policyNameHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Policy Name descending"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+    policyNameHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Policy Name descending"));
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(0)
         .shouldHave(texts("10", "policy2", "2024-01-01 12:00:00", "g : a : v", "repo"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(1)
         .shouldHave(texts("10", "policy1", "2024-01-01 14:00:00", "g : a : v", "repo"));
 
     policyNameHeader.click();
 
-    policyNameHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Policy Name ascending"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+    policyNameHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Policy Name ascending"));
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(0)
         .shouldHave(texts("10", "policy1", "2024-01-01 14:00:00", "g : a : v", "repo"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(1)
         .shouldHave(texts("10", "policy2", "2024-01-01 12:00:00", "g : a : v", "repo"));
   }
 
@@ -671,29 +698,38 @@ public class FirewallPageTest
 
     firewallPage.firewallQuarantineTable().tableBodyRows().shouldHave(size(2));
 
-    componentHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Component unsorted"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+    componentHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Component unsorted"));
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(0)
         .shouldHave(texts("10", "policy", "2024-01-01 14:00:00", "g1 : a1 : v1", "repo"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(1)
         .shouldHave(texts("10", "policy", "2024-01-01 12:00:00", "g2 : a2 : v2", "repo"));
 
     componentHeader.click();
 
-    componentHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Component descending"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+    componentHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Component descending"));
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(0)
         .shouldHave(texts("10", "policy", "2024-01-01 12:00:00", "g2 : a2 : v2", "repo"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(1)
         .shouldHave(texts("10", "policy", "2024-01-01 14:00:00", "g1 : a1 : v1", "repo"));
 
     componentHeader.click();
 
-    componentHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Component ascending"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+    componentHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Component ascending"));
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(0)
         .shouldHave(texts("10", "policy", "2024-01-01 14:00:00", "g1 : a1 : v1", "repo"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(1)
         .shouldHave(texts("10", "policy", "2024-01-01 12:00:00", "g2 : a2 : v2", "repo"));
   }
 
@@ -718,36 +754,46 @@ public class FirewallPageTest
     FirewallPage firewallPage = new FirewallPage();
     NxTableHeader repositoryHeader = page.firewallQuarantineTable().repositoryHeader();
 
-    repositoryHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Repository unsorted"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+    repositoryHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Repository unsorted"));
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(0)
         .shouldHave(texts("10", "policy", "2024-01-01 14:00:00", "g : a : v", "repo1"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(1)
         .shouldHave(texts("10", "policy", "2024-01-01 12:00:00", "g : a : v", "repo2"));
 
     repositoryHeader.click();
 
-    repositoryHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Repository descending"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+    repositoryHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Repository descending"));
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(0)
         .shouldHave(texts("10", "policy", "2024-01-01 12:00:00", "g : a : v", "repo2"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(1)
         .shouldHave(texts("10", "policy", "2024-01-01 14:00:00", "g : a : v", "repo1"));
 
     repositoryHeader.click();
 
-    repositoryHeader.sortBtn().shouldHave(
-        attribute("aria-label", "Repository ascending"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0)
+    repositoryHeader.sortBtn()
+        .shouldHave(
+            attribute("aria-label", "Repository ascending"));
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(0)
         .shouldHave(texts("10", "policy", "2024-01-01 14:00:00", "g : a : v", "repo1"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(1)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(1)
         .shouldHave(texts("10", "policy", "2024-01-01 12:00:00", "g : a : v", "repo2"));
   }
 
   @Test
   public void testFirewallQuarantineTable_ComponentNameSearch() {
     setupData();
-    Long time = repositoryComponentDAO.getAllQuarantinedComponent().stream()
+    Long time = repositoryComponentDAO.getAllQuarantinedComponent()
+        .stream()
         .map(RepositoryComponent::getQuarantineTime)
         .map(Date::getTime)
         .max(Comparator.naturalOrder())
@@ -891,7 +937,10 @@ public class FirewallPageTest
     setupData();
     refreshOrOpen(FirewallPage.url());
 
-    page.firewallQuarantineTable().tableBodyRows().get(0).find("#iq-firewall-quarantine-table--component-details-page")
+    page.firewallQuarantineTable()
+        .tableBodyRows()
+        .get(0)
+        .find("#iq-firewall-quarantine-table--component-details-page")
         .click();
 
     waitUntilComponentDetailsPageSpinnersGone();
@@ -910,7 +959,8 @@ public class FirewallPageTest
 
     page.shouldBe(visible);
     page.firewallStatus().shouldBe(visible);
-    page.firewallStatus().statusPartiallyProtected()
+    page.firewallStatus()
+        .statusPartiallyProtected()
         .shouldBe(Condition.text("1 of 2 repositories protected"))
         .shouldBe(visible);
 
@@ -922,26 +972,23 @@ public class FirewallPageTest
     refreshOrOpen(FirewallPage.url());
 
     String quarantinedComponentsMetricId = "#firewall-metrics-content-components-quarantined";
-    FirewallMetricsContent componentsQuarantinedMetric
-        = page.firewallMetricsContent(quarantinedComponentsMetricId);
+    FirewallMetricsContent componentsQuarantinedMetric = page.firewallMetricsContent(quarantinedComponentsMetricId);
     componentsQuarantinedMetric.link().click();
     page.firewallQuarantineTable().shouldBe(visible);
 
     String namespaceAttacksBlockedMetricId = "#firewall-metrics-content-namespace-attacks-blocked";
-    FirewallMetricsContent namespaceAttacksBlockedMetric
-        = page.firewallMetricsContent(namespaceAttacksBlockedMetricId);
+    FirewallMetricsContent namespaceAttacksBlockedMetric = page.firewallMetricsContent(namespaceAttacksBlockedMetricId);
     namespaceAttacksBlockedMetric.link().click();
     page.firewallQuarantineTable().shouldBe(visible);
 
     String supplyChainAttacksBlockedMetricId = "#firewall-metrics-content-supply-chain-attacks-blocked";
-    FirewallMetricsContent supplyChainAttacksBlockedMetric
-        = page.firewallMetricsContent(supplyChainAttacksBlockedMetricId);
+    FirewallMetricsContent supplyChainAttacksBlockedMetric =
+        page.firewallMetricsContent(supplyChainAttacksBlockedMetricId);
     supplyChainAttacksBlockedMetric.link().click();
     page.firewallQuarantineTable().shouldBe(visible);
 
     String componentsWaivedMetricId = "#firewall-metrics-content-components-waived";
-    FirewallMetricsContent componentsWaivedMetric
-        = page.firewallMetricsContent(componentsWaivedMetricId);
+    FirewallMetricsContent componentsWaivedMetric = page.firewallMetricsContent(componentsWaivedMetricId);
     componentsWaivedMetric.link().click();
     page.firewallWaiversTable().shouldBe(visible);
   }
@@ -966,15 +1013,18 @@ public class FirewallPageTest
         .shouldHave(text("Safe Components Auto-selected"));
 
     roiFirewallMetrics.contentHeaderTooltipIcon(malwareAttackPreventedSelector).hover();
-    Tooltip.get().shouldBe(visible)
+    Tooltip.get()
+        .shouldBe(visible)
         .shouldHave(text(
             "Determined based on the number of Malware attacks prevented and the ROI value configured per attack."));
     roiFirewallMetrics.contentHeaderTooltipIcon(namespaceAttacksPreventedSelector).hover();
-    Tooltip.get().shouldBe(visible)
+    Tooltip.get()
+        .shouldBe(visible)
         .shouldHave(text(
             "Determined based on the number of namespace attacks protected and the ROI value configured per attack."));
     roiFirewallMetrics.contentHeaderTooltipIcon(safeComponentsAutoSelectedSelector).hover();
-    Tooltip.get().shouldBe(visible)
+    Tooltip.get()
+        .shouldBe(visible)
         .shouldHave(text("Determined based on the number of safe components auto-selected " +
             "and the ROI value configured per attack."));
 
@@ -1143,7 +1193,8 @@ public class FirewallPageTest
         "test-hash", FailActionType.ID);
 
     refresh();
-    page.firewallContainerQuarantineTabContent().quarantineTableTitle()
+    page.firewallContainerQuarantineTabContent()
+        .quarantineTableTitle()
         .shouldHave(text("Containers Actively in Quarantine"));
     page.firewallContainerQuarantineTabContent().refreshButton().shouldBe(visible);
     page.firewallContainerQuarantineTabContent().quarantineTable().shouldBe(visible);
@@ -1179,7 +1230,8 @@ public class FirewallPageTest
     }
 
     refresh();
-    page.firewallContainerQuarantineTabContent().quarantineTableTitle()
+    page.firewallContainerQuarantineTabContent()
+        .quarantineTableTitle()
         .shouldHave(text("Containers Actively in Quarantine"));
     page.firewallContainerQuarantineTabContent().quarantineTable().shouldBe(visible);
     page.firewallContainerQuarantineTabContent().quarantinedContainers().shouldHave(size(12));
@@ -1360,7 +1412,7 @@ public class FirewallPageTest
     PolicyWaiver rmWaiver = tempEntity.newWaiver(new PolicyWaiver()
         .setHash("hash1")
         .setPolicyId(policy.getId())
-        .setOwnerId(repositoryManager.getId())  // Repository Manager ID
+        .setOwnerId(repositoryManager.getId()) // Repository Manager ID
         .setAssociatedPackageUrl(purl)
         .setComponentMatchStrategy(EXACT_COMPONENT)
         .setComment("repository manager waiver")
@@ -1488,7 +1540,7 @@ public class FirewallPageTest
 
     // Component identifier for the waiver
     String purl = PackageUrlIdentifier.fromComponentIdentifier(
-            ComponentIdentifier.createMavenCoordinates("com.example", "multi-repo-component", "1.5.0", "", "jar"))
+        ComponentIdentifier.createMavenCoordinates("com.example", "multi-repo-component", "1.5.0", "", "jar"))
         .getPackageUrl();
 
     // Dates for the waiver
@@ -1499,7 +1551,7 @@ public class FirewallPageTest
     PolicyWaiver rmWaiver = tempEntity.newWaiver(new PolicyWaiver()
         .setHash("hash-multi-repo")
         .setPolicyId(policy.getId())
-        .setOwnerId(repositoryManager.getId())  // Scoped to repository manager, not individual repos
+        .setOwnerId(repositoryManager.getId()) // Scoped to repository manager, not individual repos
         .setAssociatedPackageUrl(purl)
         .setComponentMatchStrategy(EXACT_COMPONENT)
         .setComment("waiver for repository manager with multiple repositories")
@@ -1650,4 +1702,3 @@ public class FirewallPageTest
         .setForContainerImageComponent(false));
   }
 }
-

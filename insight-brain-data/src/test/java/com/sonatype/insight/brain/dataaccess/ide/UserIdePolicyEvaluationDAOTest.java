@@ -15,7 +15,8 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class UserIdePolicyEvaluationDAOTest extends AbstractDbDAOTest
+public class UserIdePolicyEvaluationDAOTest
+    extends AbstractDbDAOTest
 {
   private UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO;
 

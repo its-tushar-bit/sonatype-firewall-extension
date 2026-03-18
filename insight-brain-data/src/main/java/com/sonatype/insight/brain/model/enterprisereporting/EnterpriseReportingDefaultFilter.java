@@ -14,7 +14,8 @@ import com.sonatype.insight.model.HasStringId;
 
 @Entity
 @Table(name = "enterprise_reporting_default_filter")
-public class EnterpriseReportingDefaultFilter implements HasStringId
+public class EnterpriseReportingDefaultFilter
+    implements HasStringId
 {
   @Id
   @Column(name = "user_id")

@@ -7,4 +7,6 @@ package com.sonatype.insight.brain.metrics;
 
 import io.micrometer.core.instrument.Timer;
 
-public record ScmTimerContext(Timer.Sample sample, ScmCommentOperation operation, String provider) { }
+public record ScmTimerContext(Timer.Sample sample, ScmCommentOperation operation, String provider)
+{
+}

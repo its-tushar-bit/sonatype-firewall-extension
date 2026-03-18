@@ -93,14 +93,15 @@ public class WebhookDispatcher
   private final TelemetrySender telemetrySender;
 
   @Inject
-  public WebhookDispatcher(final AsyncEventBus asyncEventBus,
-                           final WebhookService webhookService,
-                           final WebhookClientUtil webhookClientUtil,
-                           final OwnerDTOUtil ownerDTOUtil,
-                           final AuditRecorder auditRecorder,
-                           final ProductLicense productLicense,
-                           final RepositoryDAO repositoryDAO,
-                           final TelemetrySender telemetrySender)
+  public WebhookDispatcher(
+      final AsyncEventBus asyncEventBus,
+      final WebhookService webhookService,
+      final WebhookClientUtil webhookClientUtil,
+      final OwnerDTOUtil ownerDTOUtil,
+      final AuditRecorder auditRecorder,
+      final ProductLicense productLicense,
+      final RepositoryDAO repositoryDAO,
+      final TelemetrySender telemetrySender)
   {
     this.webhookService = webhookService;
     this.webhookClientUtil = webhookClientUtil;
@@ -132,8 +133,9 @@ public class WebhookDispatcher
       return;
     }
     for (Webhook webhook : getWebhooksOfEventType(webhookEventType)) {
-      PolicyManagementType type = ownerEvent.owner.getType() ==
-          OwnerType.ORGANIZATION ? PolicyManagementType.ORGANIZATION : PolicyManagementType.APPLICATION;
+      PolicyManagementType type = ownerEvent.owner.getType() == OwnerType.ORGANIZATION
+          ? PolicyManagementType.ORGANIZATION
+          : PolicyManagementType.APPLICATION;
       invokeWithAudit(webhook, webhookEventType,
           () -> sendPolicyManagementPayload(webhookService.getDecrypted(webhook.getId()), type,
               ownerEvent.owner.getId(),
@@ -280,7 +282,8 @@ public class WebhookDispatcher
   private void invokeWithAudit(Webhook webhook, WebhookEventType webhookEventType, Runnable invocation) {
     try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.INVOKE_WEBHOOK)) {
       try {
-        AuditData.get().setData("webhookdId", webhook.getId())
+        AuditData.get()
+            .setData("webhookdId", webhook.getId())
             .setData("webhookUrl", webhook.getUrl())
             .setEnum("webhookTriggerEvent", webhookEventType);
         invocation.run();
@@ -293,8 +296,10 @@ public class WebhookDispatcher
   }
 
   private Iterable<Webhook> getWebhooksOfEventType(final WebhookEventType webhookEventType) {
-    return webhookService.getAll_Unauthorized().stream()
-        .filter(webhook -> webhook.getEventTypes().contains(webhookEventType)).collect(Collectors.toList());
+    return webhookService.getAll_Unauthorized()
+        .stream()
+        .filter(webhook -> webhook.getEventTypes().contains(webhookEventType))
+        .collect(Collectors.toList());
   }
 
   private void sendLicenseOverridePayload(final Webhook webhook, final LicenseOverrideEvent event) {
@@ -397,8 +402,9 @@ public class WebhookDispatcher
     webhookClientUtil.post(webhook, WebhookEventType.APPLICATION_EVALUATION.getId(), payload);
   }
 
-  private void sendSecurityVulnerabilityOverridePayload(final Webhook webhook,
-                                                        final SecurityVulnerabilityOverrideEvent event)
+  private void sendSecurityVulnerabilityOverridePayload(
+      final Webhook webhook,
+      final SecurityVulnerabilityOverrideEvent event)
   {
     SecurityVulnerabilityOverrideDTO securityVulnerabilityOverrideDTO = new SecurityVulnerabilityOverrideDTO();
     securityVulnerabilityOverrideDTO.id = event.override.getId();
@@ -419,10 +425,11 @@ public class WebhookDispatcher
     webhookClientUtil.post(webhook, WebhookEventType.SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT.getId(), payload);
   }
 
-  private void sendPolicyManagementPayload(final Webhook webhook,
-                                           final PolicyManagementType type,
-                                           final String id,
-                                           final ManagementEvent event)
+  private void sendPolicyManagementPayload(
+      final Webhook webhook,
+      final PolicyManagementType type,
+      final String id,
+      final ManagementEvent event)
   {
     PolicyManagementPayload payload = new PolicyManagementPayload();
     payload.timestamp = new Date();

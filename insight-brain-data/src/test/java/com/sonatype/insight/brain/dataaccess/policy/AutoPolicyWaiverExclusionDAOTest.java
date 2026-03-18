@@ -98,8 +98,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverOne.getId(),
         "fakeScan",
         "fakeHash",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
 
     AutoPolicyWaiverExclusion exclusionTwo = new AutoPolicyWaiverExclusion(
         app.getOrganizationId(),
@@ -109,8 +108,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverTwo.getId(),
         "fakeScan",
         "fakeHash",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
 
     AutoPolicyWaiverExclusion exclusionThree = new AutoPolicyWaiverExclusion(
         app.getOrganizationId(),
@@ -120,8 +118,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverTwo.getId(),
         "fakeScan",
         "fakeHash",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
 
     AutoPolicyWaiverExclusion exclusionFour = new AutoPolicyWaiverExclusion(
         otherOrg.getId(),
@@ -131,8 +128,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverThree.getId(),
         "fakeScan",
         "fakeHash",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
 
     dao.insert(exclusionOne);
     dao.insert(exclusionTwo);
@@ -174,8 +170,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverOne.getId(),
         "fakeScan",
         "fakeHashOne",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
 
     AutoPolicyWaiverExclusion exclusionTwo = new AutoPolicyWaiverExclusion(
         app.getOrganizationId(),
@@ -185,8 +180,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverTwo.getId(),
         "fakeScan",
         "fakeHashTwo",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
 
     AutoPolicyWaiverExclusion exclusionThree = new AutoPolicyWaiverExclusion(
         app.getOrganizationId(),
@@ -196,8 +190,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverTwo.getId(),
         "fakeScan",
         "fakeHashThree",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
 
     AutoPolicyWaiverExclusion exclusionFour = new AutoPolicyWaiverExclusion(
         otherOrg.getId(),
@@ -207,8 +200,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverThree.getId(),
         "fakeScan",
         "fakeHashTwo",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
 
     dao.insert(exclusionOne);
     dao.insert(exclusionTwo);
@@ -260,8 +252,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverForApp.getId(),
         "scanId",
         "hash",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
     dao.insert(exclusion);
 
     List<AutoPolicyWaiverExclusion> exclusionsTwo =
@@ -290,8 +281,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverForApp.getId(),
         "scanId",
         "hash",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
     dao.insert(exclusion);
 
     AutoPolicyWaiverExclusion exclusionTwo =
@@ -304,8 +294,7 @@ public class AutoPolicyWaiverExclusionDAOTest
     AutoPolicyWaiverExclusion exclusionThree = dao.getByOwnerIdAndAutoPolicyWaiverIdAndHash(
         app.getOrganizationId(),
         autoPolicyWaiverForApp.getId(),
-        "hash"
-    );
+        "hash");
     assertThat(exclusionThree).isNull();
   }
 
@@ -323,8 +312,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         waiver.getOwnerId(),
         waiver.getId(),
         1,
-        3
-    );
+        3);
 
     assertThat(resultOne).hasSize(3);
 
@@ -332,8 +320,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         waiver.getOwnerId(),
         waiver.getId(),
         2,
-        3
-    );
+        3);
     assertThat(resultTwo).hasSize(2);
   }
 
@@ -359,8 +346,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         waiverOne.getOwnerId(),
         waiverOne.getId(),
         1,
-        3
-    );
+        3);
 
     assertThat(resultOne).hasSize(3).allSatisfy(waiverExclusion -> {
       assertThat(waiverExclusion.getOwnerId()).isEqualTo(waiverOne.getOwnerId());
@@ -371,8 +357,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         waiverOne.getOwnerId(),
         waiverOne.getId(),
         2,
-        3
-    );
+        3);
 
     assertThat(resultTwo).hasSize(2).allSatisfy(waiverExclusion -> {
       assertThat(waiverExclusion.getOwnerId()).isEqualTo(waiverOne.getOwnerId());
@@ -383,8 +368,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         waiverTwo.getOwnerId(),
         waiverTwo.getId(),
         1,
-        3
-    );
+        3);
 
     assertThat(resultThree).hasSize(3).allSatisfy(waiverExclusion -> {
       assertThat(waiverExclusion.getOwnerId()).isEqualTo(waiverTwo.getOwnerId());
@@ -395,15 +379,14 @@ public class AutoPolicyWaiverExclusionDAOTest
         waiverTwo.getOwnerId(),
         waiverTwo.getId(),
         2,
-        3
-    );
+        3);
 
     assertThat(resultFour).hasSize(2).allSatisfy(waiverExclusion -> {
       assertThat(waiverExclusion.getOwnerId()).isEqualTo(waiverTwo.getOwnerId());
       assertThat(waiverExclusion.getAutoPolicyWaiverId()).isEqualTo(waiverTwo.getId());
     });
   }
-  
+
   @Test
   public void testGetByOwnerIdPolicyViolation_NoMatch() {
     Application app = tempEntity.newApplicationWithParent();
@@ -428,8 +411,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         "a1 v1",
         policy.getId(),
         identifier,
-        violation.getConstraintFacts()
-    );
+        violation.getConstraintFacts());
 
     AutoPolicyWaiver autoPolicyWaiverTwo = tempEntity.newAutoPolicyWaiver(app.getOrganizationId());
     Organization otherOrg = tempEntity.newOrganization("fakeOrgOne");
@@ -443,8 +425,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverTwo.getId(),
         "fakeScan",
         "fakeHash",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
 
     AutoPolicyWaiverExclusion exclusionThree = new AutoPolicyWaiverExclusion(
         app.getOrganizationId(),
@@ -454,8 +435,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverTwo.getId(),
         "fakeScan",
         "fakeHash",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
 
     AutoPolicyWaiverExclusion exclusionFour = new AutoPolicyWaiverExclusion(
         otherOrg.getId(),
@@ -465,8 +445,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverThree.getId(),
         "fakeScan",
         "fakeHash",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
     dao.insert(exclusionTwo);
     dao.insert(exclusionThree);
     dao.insert(exclusionFour);
@@ -475,8 +454,7 @@ public class AutoPolicyWaiverExclusionDAOTest
     AutoPolicyWaiverExclusion result = dao.getByOwnerIdPolicyViolation(
         app.getId(),
         waiver.getId(),
-        "someotherPolicyViolationId"
-    );
+        "someotherPolicyViolationId");
 
     // then
     assertThat(result).isNull();
@@ -506,8 +484,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         "a1 v1",
         policy.getId(),
         identifier,
-        violation.getConstraintFacts()
-    );
+        violation.getConstraintFacts());
 
     AutoPolicyWaiver autoPolicyWaiverTwo = tempEntity.newAutoPolicyWaiver(app.getOrganizationId());
     Organization otherOrg = tempEntity.newOrganization("fakeOrgOne");
@@ -521,8 +498,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverTwo.getId(),
         "fakeScan",
         "fakeHash",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
 
     AutoPolicyWaiverExclusion exclusionThree = new AutoPolicyWaiverExclusion(
         app.getOrganizationId(),
@@ -532,8 +508,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverTwo.getId(),
         "fakeScan",
         "fakeHash",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
 
     AutoPolicyWaiverExclusion exclusionFour = new AutoPolicyWaiverExclusion(
         otherOrg.getId(),
@@ -543,8 +518,7 @@ public class AutoPolicyWaiverExclusionDAOTest
         autoPolicyWaiverThree.getId(),
         "fakeScan",
         "fakeHash",
-        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
-    );
+        ComponentMatcherStrategyForExclusion.EXACT_COMPONENT);
     dao.insert(exclusionTwo);
     dao.insert(exclusionThree);
     dao.insert(exclusionFour);
@@ -553,8 +527,7 @@ public class AutoPolicyWaiverExclusionDAOTest
     AutoPolicyWaiverExclusion result = dao.getByOwnerIdPolicyViolation(
         app.getId(),
         waiver.getId(),
-        violation.getId()
-    );
+        violation.getId());
 
     // then
     assertThat(result).isNotNull();

@@ -151,8 +151,7 @@ public class RepositoryPolicyEvaluator
       final ClusterLockManager clusterLockManager,
       AsyncEventBus eventBus,
       ApiFirewallMetricsService firewallMetricsService,
-      RepositoryPathnameParser repositoryPathnameParser
-  )
+      RepositoryPathnameParser repositoryPathnameParser)
   {
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -330,7 +329,8 @@ public class RepositoryPolicyEvaluator
             // If repositoryPathnameParser failed and format is maven, try manual parsing
             if (parsedIdentifier == null
                 && ComponentIdentifier.FORMAT_MAVEN.equalsIgnoreCase(componentEvaluationRequest.format)
-                && pathnameToUse != null) {
+                && pathnameToUse != null)
+            {
               parsedIdentifier = parseMavenPathname(pathnameToUse);
             }
           }
@@ -348,7 +348,8 @@ public class RepositoryPolicyEvaluator
     // This is a hot code path that we have to careful of from a performance perspective.
     // It is used by the Repo Policy Compliant Component Selection. Latency here can slow down builds:
     // https://sonatype.atlassian.net/browse/NEXUS-48520
-    final List<Component> componentsWithoutNulls = components.stream().filter(Objects::nonNull)
+    final List<Component> componentsWithoutNulls = components.stream()
+        .filter(Objects::nonNull)
         .collect(Collectors.toList());
     final Map<List<String>, Component> lookup = mapComponentForQuickLookUp(componentsWithoutNulls);
 
@@ -386,8 +387,8 @@ public class RepositoryPolicyEvaluator
           repositoryComponentEvaluationResult.catalogDate = new Date(component.getCatalogDate());
         }
 
-        repositoryComponentEvaluationResult.policyAlerts = 
-          policyAlertsByComponent.getOrDefault(component, Collections.emptyList());
+        repositoryComponentEvaluationResult.policyAlerts =
+            policyAlertsByComponent.getOrDefault(component, Collections.emptyList());
 
         if (persistEvaluationResults) {
           List<PolicyAlert> waivedAlerts = waivedAlertsByComponent.getOrDefault(component, Collections.emptyList());
@@ -473,11 +474,12 @@ public class RepositoryPolicyEvaluator
   private Map<List<String>, Component> mapComponentForQuickLookUp(final List<Component> components) {
     return components.stream()
         .collect(
-          toMap(Component::getPathnames, Function.identity(), (existing, replacement) -> replacement));
+            toMap(Component::getPathnames, Function.identity(), (existing, replacement) -> replacement));
   }
 
   private Component findComponentForAlert(final PolicyAlert policyAlert, final Map<List<String>, Component> lookup) {
-    return policyAlert.getTrigger().getComponentFacts()
+    return policyAlert.getTrigger()
+        .getComponentFacts()
         .stream()
         .filter(componentFact -> lookup.containsKey(componentFact.getPathnames()))
         .map(componentFact -> lookup.get(componentFact.getPathnames()))
@@ -494,7 +496,8 @@ public class RepositoryPolicyEvaluator
         .map(component -> component.getPathnames().get(0))
         .collect(Collectors.toList());
 
-    return repositoryComponentDAO.getByRepositoryIdAndPathnames(repository.getId(), pathnames).stream()
+    return repositoryComponentDAO.getByRepositoryIdAndPathnames(repository.getId(), pathnames)
+        .stream()
         .collect(toMap(RepositoryComponent::getPathname, Function.identity()));
   }
 
@@ -532,7 +535,8 @@ public class RepositoryPolicyEvaluator
       Component component)
   {
     if (repositoryComponent != null &&
-        (component.getHash() == null || repositoryComponent.getHash().equals(component.getHash()))) {
+        (component.getHash() == null || repositoryComponent.getHash().equals(component.getHash())))
+    {
       return repositoryComponent.isQuarantined();
     }
 
@@ -556,8 +560,9 @@ public class RepositoryPolicyEvaluator
   {
     RepositoryComponent repositoryComponent;
     try (ClusterLock clusterLock =
-             clusterLockManager.createForRepositoryComponent(repository.getId(), component.getPathnames().get(0));
-         TransactionContext tx = policyDAO.createTransactionContext()) {
+        clusterLockManager.createForRepositoryComponent(repository.getId(), component.getPathnames().get(0));
+        TransactionContext tx = policyDAO.createTransactionContext())
+    {
       clusterLock.lock();
       tx.begin();
 
@@ -601,7 +606,9 @@ public class RepositoryPolicyEvaluator
     if (repositoryComponent != null && !repositoryComponent.getHash().equals(component.getHash())) {
       if (repositoryComponent.isQuarantined()) {
         try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.RESET_QUARANTINE, false)) {
-          AuditData.get().setRepository(repository).setComponentHash(repositoryComponent.getHash())
+          AuditData.get()
+              .setRepository(repository)
+              .setComponentHash(repositoryComponent.getHash())
               .setData("componentPathname", repositoryComponent.getPathname());
         }
       }
@@ -612,14 +619,17 @@ public class RepositoryPolicyEvaluator
         log.debug("Component {} in repository {}:{} ({}) was quarantined", pathname,
             repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
         try (AuditSession auditSession = AuditData.get().recordSystemEvent(AuditEvent.RETAIN_QUARANTINE, false)) {
-          AuditData.get().setRepository(repository).setComponentHash(component.getHash())
+          AuditData.get()
+              .setRepository(repository)
+              .setComponentHash(component.getHash())
               .setData("componentPathname", pathname);
         }
       }
       Date quarantineTime = quarantine ? evaluationTime : null;
       repositoryComponent = new RepositoryComponent(repository.getId(), pathname, evaluationTime, component.getHash(),
           component.getComponentIdentifier(), component.getMatchState().getId(), component.getIdentificationSource()
-          .getId(), evaluationTime);
+              .getId(),
+          evaluationTime);
       repositoryComponent.setQuarantineTime(quarantineTime);
       repositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
       if (repositoryComponentId == null) {
@@ -658,7 +668,9 @@ public class RepositoryPolicyEvaluator
   {
     if (AuditData.get().getEvent() != null && !AuditData.get().getEvent().equals(AuditEvent.RELEASE_QUARANTINE)) {
       try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.RELEASE_QUARANTINE, false)) {
-        AuditData.get().setRepository(repository).setComponentHash(repositoryComponent.getHash())
+        AuditData.get()
+            .setRepository(repository)
+            .setComponentHash(repositoryComponent.getHash())
             .setData("componentPathname", repositoryComponent.getPathname());
       }
     }
@@ -706,7 +718,8 @@ public class RepositoryPolicyEvaluator
     repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
     repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(repositoryComponent,
         repositoryPolicyViolations, repository.getRepositoryManagerId(), repository.getPublicId(),
-        repositoryComponent.isQuarantined() ? RepositoryComponentTelemetryEventType.QUARANTINE
+        repositoryComponent.isQuarantined()
+            ? RepositoryComponentTelemetryEventType.QUARANTINE
             : RepositoryComponentTelemetryEventType.AUDIT,
         isNotificationsToBeSent ? policyNotifications : Collections.emptyList(),
         component);
@@ -739,7 +752,8 @@ public class RepositoryPolicyEvaluator
 
       Policy policy = policies.stream()
           .filter(p -> p.getId().equals(policyAlert.getTrigger().getPolicyId()))
-          .findFirst().get();
+          .findFirst()
+          .get();
 
       RepositoryPolicyViolation policyViolation = createRepositoryPolicyViolation(policyAlert, policy, componentFact,
           pathname,
@@ -774,7 +788,8 @@ public class RepositoryPolicyEvaluator
     // Update the existing violations so that 'time' is set and the original violation waive time, if it exists,
     // is brought forward
     for (Map.Entry<RepositoryPolicyViolation, RepositoryPolicyViolation> entry : policyViolationDiff.getSame()
-        .entrySet()) {
+        .entrySet())
+    {
       RepositoryPolicyViolation oldPolicyViolation = entry.getKey();
       RepositoryPolicyViolation newPolicyViolation = entry.getValue();
 
@@ -801,9 +816,11 @@ public class RepositoryPolicyEvaluator
   /**
    * Creates a RepositoryPolicyViolation from a policy alert.
    *
-   * <p>The actionTypeId will be set to the first non-NOTIFY action (FAIL or WARN). If the policy
+   * <p>
+   * The actionTypeId will be set to the first non-NOTIFY action (FAIL or WARN). If the policy
    * has only NOTIFY actions, actionTypeId will remain null. This is intentional behavior for Firewall,
-   * as NOTIFY-only policies don't represent quarantine or warning actions for repository components.</p>
+   * as NOTIFY-only policies don't represent quarantine or warning actions for repository components.
+   * </p>
    *
    * @param policyAlert The policy alert containing actions
    * @param policy The policy that was triggered
@@ -838,7 +855,7 @@ public class RepositoryPolicyEvaluator
     // don't represent quarantine/warn behavior for repository components.
     for (Action action : policyAlert.getActions()) {
       if (!Action.ID_NOTIFY.equals(action.getActionTypeId())) {
-        policyViolation.setActionTypeId(action.getActionTypeId());  // Will be Action.ID_FAIL or Action.ID_WARN
+        policyViolation.setActionTypeId(action.getActionTypeId()); // Will be Action.ID_FAIL or Action.ID_WARN
         break;
       }
     }

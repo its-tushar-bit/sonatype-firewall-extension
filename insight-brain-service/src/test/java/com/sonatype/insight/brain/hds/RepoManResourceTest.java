@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.hds;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -79,7 +80,9 @@ public class RepoManResourceTest
   @Test
   public void testProxyTelemetry_Config() throws Exception {
     HttpResponse response = restRequest().path(RepoManResource.RESOURCE_PATH)
-        .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.CONFIG_PATH).get();
+        .path(UserTelemetryResource.RESOURCE_SUBPATH)
+        .path(UserTelemetryResource.CONFIG_PATH)
+        .get();
 
     assertResponseStatus(200, response);
 
@@ -94,7 +97,9 @@ public class RepoManResourceTest
     getHdsServer().respondWith("some javascript").atUri("user-telemetry.js");
 
     HttpResponse response = restRequest().path(RepoManResource.RESOURCE_PATH)
-        .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.JAVASCRIPT_PATH).get();
+        .path(UserTelemetryResource.RESOURCE_SUBPATH)
+        .path(UserTelemetryResource.JAVASCRIPT_PATH)
+        .get();
 
     assertResponseStatus(200, response);
 
@@ -107,7 +112,8 @@ public class RepoManResourceTest
     getHdsServer().respondWith("some response").atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
 
     String url = UriBuilder.fromPath(RepoManResource.RESOURCE_PATH)
-        .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.EVENTS_PATH)
+        .path(UserTelemetryResource.RESOURCE_SUBPATH)
+        .path(UserTelemetryResource.EVENTS_PATH)
         .build(new String[]{"foo/bar"}, false /* encodeSlashInPath */)
         .toString();
 
@@ -122,7 +128,8 @@ public class RepoManResourceTest
     getHdsServer().respondWith("some response").atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
 
     String url = UriBuilder.fromPath(RepoManResource.RESOURCE_PATH)
-        .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.EVENTS_PATH)
+        .path(UserTelemetryResource.RESOURCE_SUBPATH)
+        .path(UserTelemetryResource.EVENTS_PATH)
         .build(new String[]{"foo/bar"}, false /* encodeSlashInPath */)
         .toString();
 

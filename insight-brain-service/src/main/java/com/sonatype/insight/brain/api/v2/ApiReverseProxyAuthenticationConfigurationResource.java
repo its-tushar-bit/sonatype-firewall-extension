@@ -53,22 +53,21 @@ public class ApiReverseProxyAuthenticationConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "404",
-              description = "No reverse proxy server configuration exists."),
-          @ApiResponse(responseCode = "200",
-              description = "The response contains:" +
-                  "<ul>" +
-                  "<li>`enabled` indicates if the configuration is enabled.</li>" +
-                  "<li>`usernameHeader` is the name of the HTTP request header field that contains the username. " +
-                  "The default value is `REMOTE_USER`.</li>" +
-                  "<li>`csrfProtectionDisabled` indicates if Cross-Site Request Forgery (CSRF) protection is " +
-                  "disabled. Used for backward compatibility with old client plugins.</li>" +
-                  "<li>`logoutUrl` is the redirect URL when a user logs out. If set to `null` the " +
-                  "user will not be redirected.</li>" +
-                  "</ul>",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(responseCode = "404",
+            description = "No reverse proxy server configuration exists."),
+        @ApiResponse(responseCode = "200",
+            description = "The response contains:" +
+                "<ul>" +
+                "<li>`enabled` indicates if the configuration is enabled.</li>" +
+                "<li>`usernameHeader` is the name of the HTTP request header field that contains the username. " +
+                "The default value is `REMOTE_USER`.</li>" +
+                "<li>`csrfProtectionDisabled` indicates if Cross-Site Request Forgery (CSRF) protection is " +
+                "disabled. Used for backward compatibility with old client plugins.</li>" +
+                "<li>`logoutUrl` is the redirect URL when a user logs out. If set to `null` the " +
+                "user will not be redirected.</li>" +
+                "</ul>",
+            useReturnTypeSchema = true)
+      })
   public ApiReverseProxyAuthenticationConfigurationDTO getConfiguration() {
     return service.getConfiguration();
   }
@@ -81,13 +80,11 @@ public class ApiReverseProxyAuthenticationConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "Reverse proxy server configuration successful."),
-          @ApiResponse(responseCode = "400",
-              description = "Missing or invalid values."
-          )
-      }
-  )
+        @ApiResponse(responseCode = "204",
+            description = "Reverse proxy server configuration successful."),
+        @ApiResponse(responseCode = "400",
+            description = "Missing or invalid values.")
+      })
   public void setConfiguration(
       @RequestBody(
           description = "The request JSON could include: " +
@@ -99,9 +96,7 @@ public class ApiReverseProxyAuthenticationConfigurationResource
               "disabled. Used for backward compatibility with old client plugins.</li>" +
               "<li>`logoutUrl` is the redirect URL when a user logs out. If set to `null` the " +
               "user will not be redirected.</li>" +
-              "</ul>"
-      )
-      ApiReverseProxyAuthenticationConfigurationDTO dto)
+              "</ul>") ApiReverseProxyAuthenticationConfigurationDTO dto)
   {
     service.setConfiguration(dto);
   }
@@ -112,8 +107,8 @@ public class ApiReverseProxyAuthenticationConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "Reverse proxy server configuration deleted successfully.")
+        @ApiResponse(responseCode = "204",
+            description = "Reverse proxy server configuration deleted successfully.")
       })
   @Audited(AuditEvent.DELETE_REVERSE_PROXY_AUTHENTICATION)
   public void deleteConfiguration() {

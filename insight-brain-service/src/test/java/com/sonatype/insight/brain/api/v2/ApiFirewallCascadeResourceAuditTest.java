@@ -41,7 +41,8 @@ public class ApiFirewallCascadeResourceAuditTest
     createRepositoryWithComponent();
 
     cascadeReevaluateRequest(COMPONENT_HASH)
-        .with(unauthorizedUser()).post();
+        .with(unauthorizedUser())
+        .post();
 
     assertAuditLog(AuditEvent.INITIATE_CASCADE_REEVALUATION, "unauthorized");
   }
@@ -94,20 +95,19 @@ public class ApiFirewallCascadeResourceAuditTest
         COMPONENT_HASH,
         ComponentIdentifier.createNpmCoordinates("test-pkg", "1.0.0"),
         now,
-        now
-    );
+        now);
   }
 
   private void assertCascadeReevaluationData(AuditDTO auditDTO, String componentHash) {
     boolean hasComponentHash = auditDTO.data.containsKey("componentHash") ||
-                              auditDTO.data.containsKey("pathParam.componentHash") ||
-                              auditDTO.data.containsKey("param.componentHash");
+        auditDTO.data.containsKey("pathParam.componentHash") ||
+        auditDTO.data.containsKey("param.componentHash");
 
     if (hasComponentHash) {
       // If componentHash is present, verify it matches
       String auditedHash = (String) auditDTO.data.getOrDefault("componentHash",
-                           auditDTO.data.getOrDefault("pathParam.componentHash",
-                           auditDTO.data.get("param.componentHash")));
+          auditDTO.data.getOrDefault("pathParam.componentHash",
+              auditDTO.data.get("param.componentHash")));
       assertThat(auditedHash).isEqualTo(componentHash);
     }
 

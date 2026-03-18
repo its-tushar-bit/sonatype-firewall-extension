@@ -89,8 +89,7 @@ public class ApiConfigFeaturesResourceTest
     assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST_400);
     assertThat(response.getBodyText()).isEqualTo(
         "'transitiveSolverDisable' is no longer supported. Instead you can disable and enable the feature " +
-            "using 'transitiveSolver'"
-    );
+            "using 'transitiveSolver'");
   }
 
   @Test
@@ -100,7 +99,6 @@ public class ApiConfigFeaturesResourceTest
     assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST_400);
     assertThat(response.getBodyText()).isEqualTo(
         "'transitiveSolverDisable' is no longer supported. Instead you can disable and enable the feature " +
-            "using 'transitiveSolver'"
-    );
+            "using 'transitiveSolver'");
   }
 }

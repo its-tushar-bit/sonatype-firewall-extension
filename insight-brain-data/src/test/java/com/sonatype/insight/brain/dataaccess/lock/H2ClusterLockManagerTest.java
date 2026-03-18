@@ -33,7 +33,8 @@ public class H2ClusterLockManagerTest
   public void testConstructor_H2() {
     ClusterLockId clusterLockId = ClusterLockId.forDataMigration();
     try (ClusterLock clusterLock1 = createClusterLock(clusterLockId);
-        ClusterLock clusterLock2 = createClusterLock(clusterLockId)) {
+        ClusterLock clusterLock2 = createClusterLock(clusterLockId))
+    {
       assertThat(clusterLock1.getClusterLockId()).isEqualTo(clusterLock2.getClusterLockId());
     }
   }

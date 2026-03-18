@@ -19,8 +19,7 @@ public class ApiIntegrationsCiCdStatIncrementDto
   public ApiIntegrationsCiCdStatIncrementDto(
       final long dateTimeMillis,
       final int totalNumberOfApps,
-      final int totalNumberOfAppsWithCiCdEnabled
-  )
+      final int totalNumberOfAppsWithCiCdEnabled)
   {
     this.dateTimeMillis = dateTimeMillis;
     this.totalNumberOfApps = totalNumberOfApps;

@@ -497,7 +497,8 @@ public class ApplicationReportTest
   @Test
   public void testEllipsisInComponentName() {
     reportPage.headers().componentNameFilterInput().click();
-    reportPage.headers().componentNameFilterInput()
+    reportPage.headers()
+        .componentNameFilterInput()
         .setValue("org.springframework.security : spring-security-config : 3.2.4.RELEASE");
     reportPage.getColFromResultRow(1, 3).shouldHave(cssValue("text-overflow", "ellipsis"));
 
@@ -510,40 +511,63 @@ public class ApplicationReportTest
   @Test
   public void testInnerSourceTransitiveViolationsCount() {
     reportPage.aggregateByComponentToggle().shouldBeOn();
-    reportPage.resultRow(16).shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
-        .transitiveViolationsCount().shouldHave(size(1))
-        .get(0).shouldHave(text("2 transitive violations"));
+    reportPage.resultRow(16)
+        .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
+        .transitiveViolationsCount()
+        .shouldHave(size(1))
+        .get(0)
+        .shouldHave(text("2 transitive violations"));
     reportPage.aggregateByComponentToggle().click();
     reportPage.aggregateByComponentToggle().shouldBeOff();
-    reportPage.resultRow(21).shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
-        .transitiveViolationsCount().shouldHave(size(0));
+    reportPage.resultRow(21)
+        .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
+        .transitiveViolationsCount()
+        .shouldHave(size(0));
   }
 
   @Test
   public void testDependencyIndicators() {
     reportPage.rowsWithDependencyInfo().shouldHave(size(6));
-    reportPage.resultRow(5).shouldHave(text("apache-httpclient : commons-httpclient : 3.1"))
-        .dependencyIndicators().shouldHave(size(1)).get(0).shouldHave(DIRECT_DEPENDENCY_CLASS);
+    reportPage.resultRow(5)
+        .shouldHave(text("apache-httpclient : commons-httpclient : 3.1"))
+        .dependencyIndicators()
+        .shouldHave(size(1))
+        .get(0)
+        .shouldHave(DIRECT_DEPENDENCY_CLASS);
     ResultRow resultRow = reportPage.resultRow(6).shouldHave(text("apache-taglibs : standard : 1.1.2"));
     ElementsCollection dependencyIndicators = resultRow.dependencyIndicators().shouldHave(size(2));
     dependencyIndicators.get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS).shouldHave(text("T"));
     dependencyIndicators.get(1).shouldHave(INNER_SOURCE_DEPENDENCY_CLASS).shouldHave(text("IS")).hover();
-    Tooltip.get().shouldBe(visible)
+    Tooltip.get()
+        .shouldBe(visible)
         .shouldHave(text("This component was brought in by the following InnerSource component:"))
         .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"));
     dependencyIndicators = reportPage.resultRow(16)
         .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
-        .dependencyIndicators().shouldHave(size(2));
+        .dependencyIndicators()
+        .shouldHave(size(2));
     dependencyIndicators.get(0).shouldHave(DIRECT_DEPENDENCY_CLASS).shouldHave(text("D")).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Direct Dependency"));
     dependencyIndicators.get(1).shouldHave(INNER_SOURCE_DEPENDENCY_CLASS).shouldHave(text("IS")).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("InnerSource"));
-    reportPage.resultRow(26).shouldHave(text("org.springframework : spring-core : 3.2.8.RELEASE"))
-        .dependencyIndicators().shouldHave(size(1)).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
-    reportPage.resultRow(58).shouldHave(text("org.springframework : spring-aop : 3.2.8.RELEASE"))
-        .dependencyIndicators().shouldHave(size(1)).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
-    reportPage.resultRow(59).shouldHave(text("org.springframework : spring-beans : 3.2.4.RELEASE"))
-        .dependencyIndicators().shouldHave(size(1)).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+    reportPage.resultRow(26)
+        .shouldHave(text("org.springframework : spring-core : 3.2.8.RELEASE"))
+        .dependencyIndicators()
+        .shouldHave(size(1))
+        .get(0)
+        .shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+    reportPage.resultRow(58)
+        .shouldHave(text("org.springframework : spring-aop : 3.2.8.RELEASE"))
+        .dependencyIndicators()
+        .shouldHave(size(1))
+        .get(0)
+        .shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+    reportPage.resultRow(59)
+        .shouldHave(text("org.springframework : spring-beans : 3.2.4.RELEASE"))
+        .dependencyIndicators()
+        .shouldHave(size(1))
+        .get(0)
+        .shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
   }
 
   @Test
@@ -648,10 +672,10 @@ public class ApplicationReportTest
     headers.componentNameHeader().click();
     headers.componentNameHeader().sortArrows().shouldBeUp();
     String[] componentNamesAlpha = {
-        "com.adobe.acrobat", "com.adobe.pdf", "com.fasterxml.jackson.core : jackson-annotations",
-        "com.fasterxml.jackson.core : jackson-core", "com.fasterxml.jackson.core : jackson-core",
-        "com.fasterxml.jackson.core : jackson-databind", "com.mycila", "com.palominolabs.metrics",
-        "com.vaadin.addon"
+      "com.adobe.acrobat", "com.adobe.pdf", "com.fasterxml.jackson.core : jackson-annotations",
+      "com.fasterxml.jackson.core : jackson-core", "com.fasterxml.jackson.core : jackson-core",
+      "com.fasterxml.jackson.core : jackson-databind", "com.mycila", "com.palominolabs.metrics",
+      "com.vaadin.addon"
     };
     violations.shouldHave(texts(componentNamesAlpha));
     // secondary sort by threat level descending
@@ -926,8 +950,7 @@ public class ApplicationReportTest
     // Setup
     final String SCAN_ID2 = "e16caf35769f4b3186a7e3476d34c2798";
     Application app2 = tempEntity.newApplicationWithParent(
-        "UnscannedComponentsAppReportTest", "UnscannedComponentsAppReportTest"
-    );
+        "UnscannedComponentsAppReportTest", "UnscannedComponentsAppReportTest");
     URL zippedReport = ReportHelper.zipReport("/canned-reports/evaluated-v4-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     File reportDestination = work.getReportFile(app2.getId(), SCAN_ID2);
@@ -967,9 +990,10 @@ public class ApplicationReportTest
 
   private void checkSecondarySortByNameDescending(final ElementsCollection violations) {
     violations.filterBy(text("License-Banned")).shouldHave(texts("com.mycila", "com.vaadin"));
-    violations.filterBy(text("Security-High")).shouldHave(
-        texts("com.fasterxml.jackson.core : jackson-core : 2.0.4",
-            "com.fasterxml.jackson.core : jackson-databind : 2.0.4"));
+    violations.filterBy(text("Security-High"))
+        .shouldHave(
+            texts("com.fasterxml.jackson.core : jackson-core : 2.0.4",
+                "com.fasterxml.jackson.core : jackson-databind : 2.0.4"));
     violations.filterBy(text("None"))
         .shouldHave(texts("com.adobe.acrobat", "com.adobe.pdf", "com.fasterxml", "com.palominolabs"));
   }

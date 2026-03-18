@@ -27,9 +27,11 @@ public class SastScanResponseDTO
   public SastScanResponseDTO() {
   }
 
-  public SastScanResponseDTO(String sastScanId, Date createdAt,
-                             List<SastFindingResponseDTO> findings,
-                             SastScmScanContextResponseDTO sastScmScanContext)
+  public SastScanResponseDTO(
+      String sastScanId,
+      Date createdAt,
+      List<SastFindingResponseDTO> findings,
+      SastScmScanContextResponseDTO sastScmScanContext)
   {
     this.sastScanId = sastScanId;
     this.createdAt = createdAt;
@@ -121,5 +123,3 @@ public class SastScanResponseDTO
     }
   }
 }
-
-

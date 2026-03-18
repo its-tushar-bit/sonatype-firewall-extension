@@ -57,9 +57,10 @@ public class SbomComponentsResource
   @Produces(MediaType.APPLICATION_JSON)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   @Audited(AuditEvent.VIEW_SBOM_COMPONENT_DETAILS)
-  public CDPSbomComponentDetailsDTO getComponentsDetails(@PathParam("applicationId") String applicationId,
-                                                         @PathParam("version") String sbomVersion,
-                                                         @PathParam("componentHash") String componentHash)
+  public CDPSbomComponentDetailsDTO getComponentsDetails(
+      @PathParam("applicationId") String applicationId,
+      @PathParam("version") String sbomVersion,
+      @PathParam("componentHash") String componentHash)
   {
     return service.getSbomComponentDetails(applicationId, sbomVersion, componentHash);
   }

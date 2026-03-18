@@ -153,7 +153,7 @@ public class RemediationPullRequestEligibilityServiceTest
         .contains("Component '" + mavenComponent + "' is not a direct dependency.");
   }
 
-  //manual pr section
+  // manual pr section
   @Test
   public void testIsEligibleForManualPullRequest_success() throws PlexusCipherException {
     setupSourceControl(false);
@@ -239,7 +239,8 @@ public class RemediationPullRequestEligibilityServiceTest
     var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId");
     for (var eventType : SourceControlEvent.EVENT_TYPES) {
       if (SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT.equals(eventType) ||
-          SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT.equals(eventType)) {
+          SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT.equals(eventType))
+      {
         continue;
       }
       tempEntity.newSourceControlEvent(application, policyEvaluation, branchName,

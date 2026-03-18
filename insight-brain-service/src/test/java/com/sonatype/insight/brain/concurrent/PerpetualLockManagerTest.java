@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.concurrent;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -87,7 +88,8 @@ public class PerpetualLockManagerTest
       String expectedMessage)
   {
     assertThatThrownBy(() -> perpetualLockManager.tryAcquireLock(perpetualLockId, category, ownerId, expiration))
-        .isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(expectedMessage);
   }
 
   @Test
@@ -156,8 +158,9 @@ public class PerpetualLockManagerTest
 
     // then:
     assertThat(perpetualLockManager.tryAcquireLock(lockId, "testing", "xyz45", 30)).isTrue();
-    assertThat(logOutput).atTraceLevel().contains(
-        "Trying to acquire perpetual lock abc12 on behalf of xyz45 to expire in 30 seconds.");
+    assertThat(logOutput).atTraceLevel()
+        .contains(
+            "Trying to acquire perpetual lock abc12 on behalf of xyz45 to expire in 30 seconds.");
     assertThat(logOutput).atTraceLevel()
         .contains("Perpetual lock abc12 does not exist yet.  Creating...");
     assertThat(logOutput).atTraceLevel()
@@ -179,8 +182,9 @@ public class PerpetualLockManagerTest
 
     // then:
     assertThat(perpetualLockManager.tryAcquireLock(lockId, category, owner, expiration)).isTrue();
-    assertThat(logOutput).atTraceLevel().contains("Perpetual lock abc12 already exists.  " +
-        "Will try to reserve it now on behalf of xyz45.");
+    assertThat(logOutput).atTraceLevel()
+        .contains("Perpetual lock abc12 already exists.  " +
+            "Will try to reserve it now on behalf of xyz45.");
   }
 
   @Test
@@ -197,8 +201,9 @@ public class PerpetualLockManagerTest
 
     // then:
     assertThat(perpetualLockManager.tryAcquireLock(lockId, category, owner, expiration)).isFalse();
-    assertThat(logOutput).atTraceLevel().contains("Perpetual lock abc12 already exists.  "
-        + "Will try to reserve it now on behalf of xyz45.");
+    assertThat(logOutput).atTraceLevel()
+        .contains("Perpetual lock abc12 already exists.  "
+            + "Will try to reserve it now on behalf of xyz45.");
   }
 
   @Test

@@ -121,7 +121,8 @@ public class JiraService
             ISSUETYPE.equals(key) ||
             DESCRIPTION.equals(key) ||
             field.isHasDefaultValue() ||
-            (customFields != null && customFields.containsKey(key))) {
+            (customFields != null && customFields.containsKey(key)))
+        {
           // accept the minimum set of required fields, required fields with default value,
           // or required fields with custom field defined for it
           continue;

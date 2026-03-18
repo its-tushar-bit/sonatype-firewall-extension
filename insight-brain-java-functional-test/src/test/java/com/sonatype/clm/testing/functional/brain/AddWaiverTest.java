@@ -141,7 +141,8 @@ public class AddWaiverTest
 
   @Test
   public void testVulnerabilityDetailsModal() {
-    testCLMServer.getHdsServer().respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails2.json"))
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails2.json"))
         .atUri("rest/vulnerability/details/json/sonatype-2017-0507");
     refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
 
@@ -907,7 +908,7 @@ public class AddWaiverTest
     List<PolicyWaiver> waivers = Collections.emptyList();
     try {
       refreshOrOpen(AddWaiverPage.url(policyViolation.getId(), null,
-              "9b704ef5bc064fc29d7fe08a251ee9a6"));
+          "9b704ef5bc064fc29d7fe08a251ee9a6"));
 
       AddWaiverPage addWaiverPage = new AddWaiverPage();
       addWaiverPage.waiverReasonOptions().get(1).shouldBe(selected);
@@ -930,7 +931,7 @@ public class AddWaiverTest
     List<PolicyWaiver> waivers = Collections.emptyList();
     try {
       refreshOrOpen(AddWaiverPage.url(policyViolation.getId(), "preloaded%20comments",
-              "9b704ef5bc064fc29d7fe08a251ee9a6"));
+          "9b704ef5bc064fc29d7fe08a251ee9a6"));
 
       AddWaiverPage addWaiverPage = new AddWaiverPage();
       addWaiverPage.comments().shouldHave(text("preloaded comments"));

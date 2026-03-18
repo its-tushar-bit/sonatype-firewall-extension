@@ -88,7 +88,8 @@ public class WebhookEditPage
     return $("#application-evaluation-disabled-message");
   }
 
-  public class AlertError extends BasicElement<AlertError>
+  public class AlertError
+      extends BasicElement<AlertError>
   {
     public AlertError(String... selector) {
       super(selector);
@@ -99,7 +100,8 @@ public class WebhookEditPage
     }
   }
 
-  public class HttpUrlWarningModal extends BasicElement<HttpUrlWarningModal>
+  public class HttpUrlWarningModal
+      extends BasicElement<HttpUrlWarningModal>
   {
     public HttpUrlWarningModal(String... selector) {
       super(selector);

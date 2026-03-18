@@ -159,9 +159,10 @@ public class TelemetryIdTest
     assertThat(telemetryId).matches(TELEMETRY_ID_PATTERN).startsWith(generatedIdProperty.getValue());
   }
 
-  private void assertTelemetryIdSame(SystemConfigurationProperty generatedIdProperty,
-                                     TelemetryId telemetryId,
-                                     TelemetryId newTelemetryId)
+  private void assertTelemetryIdSame(
+      SystemConfigurationProperty generatedIdProperty,
+      TelemetryId telemetryId,
+      TelemetryId newTelemetryId)
   {
     final var telemetryIdValue = telemetryId.getId();
     final var newTelemetryIdValue = newTelemetryId.getId();
@@ -174,9 +175,10 @@ public class TelemetryIdTest
     assertThat(telemetryIdValue).isEqualTo(newTelemetryIdValue);
   }
 
-  private void assertTelemetryIdDifferentDerived(SystemConfigurationProperty generatedIdProperty,
-                                                 TelemetryId telemetryId,
-                                                 TelemetryId newTelemetryId)
+  private void assertTelemetryIdDifferentDerived(
+      SystemConfigurationProperty generatedIdProperty,
+      TelemetryId telemetryId,
+      TelemetryId newTelemetryId)
   {
     var telemetryIdValue = telemetryId.getId();
     var newTelemetryIdValue = newTelemetryId.getId();

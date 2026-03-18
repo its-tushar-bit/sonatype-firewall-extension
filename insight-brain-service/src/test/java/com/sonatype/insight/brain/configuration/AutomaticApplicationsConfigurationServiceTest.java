@@ -97,8 +97,11 @@ public class AutomaticApplicationsConfigurationServiceTest
 
   private void assertTelemetryEvent(
       InvocationOnMock invocation,
-      TelemetryPurpose telemetryPurpose, String telemetryAttr,
-      Date before, Date after, boolean expected)
+      TelemetryPurpose telemetryPurpose,
+      String telemetryAttr,
+      Date before,
+      Date after,
+      boolean expected)
   {
     TelemetryData telemetryData = (TelemetryData) invocation.getArgument(0);
     assertThat(telemetryData.getPurpose()).isEqualTo(telemetryPurpose);

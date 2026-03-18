@@ -36,6 +36,7 @@ public enum ComponentMatchSortField
       Comparator.comparing(ApplicationComponentMatchDTO::getCveId, String.CASE_INSENSITIVE_ORDER));
 
   private final String fieldName;
+
   private final Comparator<ApplicationComponentMatchDTO> comparator;
 
   ComponentMatchSortField(final String fieldName, final Comparator<ApplicationComponentMatchDTO> comparator) {

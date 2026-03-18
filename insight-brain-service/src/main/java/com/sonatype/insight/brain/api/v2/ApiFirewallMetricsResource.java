@@ -54,12 +54,11 @@ public class ApiFirewallMetricsResource
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains a map of firewall metric name to value including the last " +
-                  "updated time.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains a map of firewall metric name to value including the last " +
+                "updated time.",
+            useReturnTypeSchema = true)
       })
   @Produces(MediaType.APPLICATION_JSON)
   public Map<FirewallMetricsName, ApiFirewallMetricsResultDTO> getFirewallMetrics() {
@@ -75,15 +74,14 @@ public class ApiFirewallMetricsResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Successfully retrieved ROI firewall metrics.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successfully retrieved ROI firewall metrics.",
+            useReturnTypeSchema = true)
       })
   public RoiFirewallMetricsDTO getRoiFirewallMetrics(
-      @Parameter(description = "The currency to use for the ROI firewall metrics.", required = true)
-      @PathParam("currencyType") String currencyType)
+      @Parameter(description = "The currency to use for the ROI firewall metrics.",
+          required = true) @PathParam("currencyType") String currencyType)
   {
     return apiFirewallMetricsService.getRoiFirewallMetrics(CurrencyTypes.fromString(currencyType));
   }

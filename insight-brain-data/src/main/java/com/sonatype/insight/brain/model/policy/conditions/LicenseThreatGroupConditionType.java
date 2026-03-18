@@ -68,8 +68,10 @@ public class LicenseThreatGroupConditionType
   }
 
   @Override
-  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
-      throws InvalidConditionException
+  public void validateCondition(
+      TransactionContext tx,
+      Condition condition,
+      String ownerId) throws InvalidConditionException
   {
     super.validateCondition(tx, condition, ownerId);
 
@@ -111,7 +113,8 @@ public class LicenseThreatGroupConditionType
       return LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_NAME;
     }
 
-    LicenseThreatGroup licenseThreatGroup = tx != null ? licenseThreatGroupDAO.getById(tx, licenseThreatGroupId)
+    LicenseThreatGroup licenseThreatGroup = tx != null
+        ? licenseThreatGroupDAO.getById(tx, licenseThreatGroupId)
         : licenseThreatGroupDAO.getById(licenseThreatGroupId);
     // NOTE: Due to CLM-8176, it's possible to reference a missing LTG, unfortunate but not appropriate to crash here
     return licenseThreatGroup != null ? licenseThreatGroup.getName() : "[deleted]";
@@ -130,7 +133,8 @@ public class LicenseThreatGroupConditionType
     }
 
     TriggerLicenseThreatGroup conditionTrigger = (TriggerLicenseThreatGroup) matchFact
-        .getConditionTriggerByConditionIndex(condition.getConditionIndex()).getTrigger();
+        .getConditionTriggerByConditionIndex(condition.getConditionIndex())
+        .getTrigger();
     String licenseThreatGroupId = conditionTrigger.id;
     String licenseThreatGroupName = getLicenseThreatGroupName(null, licenseThreatGroupId);
 
@@ -145,7 +149,8 @@ public class LicenseThreatGroupConditionType
   }
 
   private String licenseIdsToLicenseNamesCsv(Set<String> licenseIds) {
-    return licenseIds.stream().map(licenseId -> "'" + licenseDAO.getByIdNotNull(licenseId).getShortDisplayName() + "'")
+    return licenseIds.stream()
+        .map(licenseId -> "'" + licenseDAO.getByIdNotNull(licenseId).getShortDisplayName() + "'")
         .collect(Collectors.joining(", "));
   }
 

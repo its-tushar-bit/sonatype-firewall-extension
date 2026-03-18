@@ -88,7 +88,9 @@ public class OAuth2ConfigurationDAO
 
   private static boolean isValidJson(final String exactMatchClaimsJson) {
     try {
-      JsonUtils.parse(exactMatchClaimsJson, new TypeReference<Map<String, Object>>() { });
+      JsonUtils.parse(exactMatchClaimsJson, new TypeReference<Map<String, Object>>()
+      {
+      });
     }
     catch (IOException e) {
       return false;

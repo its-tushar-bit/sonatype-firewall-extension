@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.git;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -228,14 +229,14 @@ public class PullRequestMonitorTest
         "testBranchName5", "baseBranchName5", new Date(), new Date(), new Date(), null, null);
     tempEntity.newSourceControlPullRequest(repositoryUrl, 6, "testHeadCommitHash6", "testBaseCommitHash6",
         "testBranchName6", "baseBranchName6", new Date(), new Date(), new Date(), null, PullRequestSource.EXTERNAL);
-    lenient().when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl)).thenReturn(Map.of(
-        "testBranchName1", "testHeadCommitHashUpdated1",
-        "testBranchName2", "testHeadCommitHashUpdated2",
-        "testBranchName3", "testHeadCommitHashUpdated3",
-        "testBranchName4", "testHeadCommitHashUpdated4",
-        "testBranchName5", "testHeadCommitHashUpdated5",
-        "testBranchName6", "testHeadCommitHashUpdated6"
-    ));
+    lenient().when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl))
+        .thenReturn(Map.of(
+            "testBranchName1", "testHeadCommitHashUpdated1",
+            "testBranchName2", "testHeadCommitHashUpdated2",
+            "testBranchName3", "testHeadCommitHashUpdated3",
+            "testBranchName4", "testHeadCommitHashUpdated4",
+            "testBranchName5", "testHeadCommitHashUpdated5",
+            "testBranchName6", "testHeadCommitHashUpdated6"));
 
     pullRequestMonitor.updatePullRequestDetails();
 

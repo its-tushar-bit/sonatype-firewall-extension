@@ -34,8 +34,7 @@ public final class ComponentFeedbackHelper
   public static final ComponentIdentifier TEST_COMPONENT_IDENTIFIER = ComponentIdentifier.createMavenCoordinates(
       "my-group-id",
       "my-artifact-id",
-      "1.0.0"
-  );
+      "1.0.0");
 
   private static final List<String> VALID_VULN_CONDITION_TYPE_IDS = ImmutableList.of(
       SecurityVulnerabilitySeverityConditionType.ID,
@@ -95,8 +94,8 @@ public final class ComponentFeedbackHelper
       final String... refIds)
   {
     final ConditionFact[] conditionFacts = Arrays.stream(refIds)
-      .map(refId -> generateConditionFact(generateRandomValidVulnConditionTypeId(), refId))
-      .toArray(ConditionFact[]::new);
+        .map(refId -> generateConditionFact(generateRandomValidVulnConditionTypeId(), refId))
+        .toArray(ConditionFact[]::new);
     return generatePV(id, componentIdentifier, threatLevel, generateConstraintFact(conditionFacts));
   }
 
@@ -105,13 +104,14 @@ public final class ComponentFeedbackHelper
       final ComponentIdentifier componentIdentifier,
       final String... refIds)
   {
-    final String formattedValue = "startText" + IntStream.range(0, refIds.length).boxed()
+    final String formattedValue = "startText" + IntStream.range(0, refIds.length)
+        .boxed()
         .map(x -> "%s")
         .collect(Collectors.joining("sometext")) + "endText";
     final String value = String.format(formattedValue, (Object[]) refIds);
     return generatePV(id, componentIdentifier,
-      generateConstraintFact(
-        generateConditionFact(generateRandomValidVulnConditionTypeId(), value)));
+        generateConstraintFact(
+            generateConditionFact(generateRandomValidVulnConditionTypeId(), value)));
   }
 
   public static PolicyViolation generatePV(
@@ -131,7 +131,8 @@ public final class ComponentFeedbackHelper
     final PolicyViolation pv = new PolicyViolation();
     pv.setApplicationId(UUID.randomUUID().toString());
     pv.setComponentIdentifier(componentIdentifier);
-    pv.setThreatLevel(threatLevel <= 0 ? RANDOM_GENERATOR.randomInt(MIN_THREAT_LEVEL, MAX_THREAT_LEVEL + 1)
+    pv.setThreatLevel(threatLevel <= 0
+        ? RANDOM_GENERATOR.randomInt(MIN_THREAT_LEVEL, MAX_THREAT_LEVEL + 1)
         : threatLevel);
     pv.setId(id);
     if (constraintFacts.length > 0) {

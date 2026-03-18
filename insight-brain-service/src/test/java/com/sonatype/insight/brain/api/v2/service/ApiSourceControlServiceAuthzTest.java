@@ -43,8 +43,7 @@ public class ApiSourceControlServiceAuthzTest
 
   private static final String TOKEN = new String(
       new PasswordHandler(new TestEncryptionKeyStore())
-          .encryptPassword("token".toCharArray())
-  );
+          .encryptPassword("token".toCharArray()));
 
   @Before
   public void before() {
@@ -128,7 +127,9 @@ public class ApiSourceControlServiceAuthzTest
     sourceControlService.addSourceControlByOwner(
         OwnerType.APPLICATION, app.getId(),
         apiSourceControlAdapter.convertToDTO(
-            new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")
+            new SourceControl.Builder().setOwnerId(app.getId())
+                .setRepositoryUrl(VALID_URL)
+                .setToken("token")
                 .build()));
   }
 
@@ -150,8 +151,10 @@ public class ApiSourceControlServiceAuthzTest
     grantWritePermission(app.getId());
     ApiSourceControlDTO sourceControl = sourceControlService.addSourceControlByOwner(OwnerType.APPLICATION,
         app.getId(), apiSourceControlAdapter.convertToDTO(
-            new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")
-              .build()));
+            new SourceControl.Builder().setOwnerId(app.getId())
+                .setRepositoryUrl(VALID_URL)
+                .setToken("token")
+                .build()));
     sourceControl.token = "newToken";
     sourceControlService.updateSourceControlByOwner(
         OwnerType.APPLICATION, app.getId(), sourceControl);

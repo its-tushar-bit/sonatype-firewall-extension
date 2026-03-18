@@ -227,7 +227,8 @@ public class RepositoryPolicyViolationDAO
   }
 
   public List<RepositoryResultsDetails> getRepositoryResultsDetails(
-      Set<String> repositoryIds, RepositoryResultsDetailsFilter detailsFilter)
+      Set<String> repositoryIds,
+      RepositoryResultsDetailsFilter detailsFilter)
   {
     if (detailsFilter.aggregate) {
       return getRepositoryResultsDetailsAggregate(repositoryIds, detailsFilter);
@@ -241,7 +242,8 @@ public class RepositoryPolicyViolationDAO
    * @since 1.140.0
    */
   private List<RepositoryResultsDetails> getRepositoryResultsDetailsNonAggregate(
-      Set<String> repositoryIds, RepositoryResultsDetailsFilter detailsFilter)
+      Set<String> repositoryIds,
+      RepositoryResultsDetailsFilter detailsFilter)
   {
     try (TransactionContext tx = createTransactionContext()) {
       int repositoryIdsSize = repositoryIds.size();
@@ -304,8 +306,9 @@ public class RepositoryPolicyViolationDAO
       query.setParameter(searchFiltersParamStartPosition + 2,
           '%' + detailsFilter.searchFilters.get("COMPONENT_COORDINATES") + '%');
       query.setParameter(matchStateFilterParamPosition, detailsFilter.matchStateFilter);
-      query.setFirstResult(offset).setMaxResults(detailsFilter.pageSize +
-          1); // Incremented page size to help UI determine whether to enable / disable NextPage button
+      query.setFirstResult(offset)
+          .setMaxResults(detailsFilter.pageSize +
+              1); // Incremented page size to help UI determine whether to enable / disable NextPage button
 
       List<RepositoryResultsDetails> results = ((Stream<Object[]>) query.getResultStream())
           .map(array -> new RepositoryResultsDetails(getInteger(array[0]), (String) array[1],
@@ -358,8 +361,10 @@ public class RepositoryPolicyViolationDAO
           addThreatLevelFilters(detailsFilter.threatLevelFilters, threatLevelFiltersParamStartPosition) +
           addViolationStateFilters(detailsFilter.violationStateFilters) +
           addSearchFilters(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
-          (!detailsFilter.matchStateFilter.isEmpty() ?
-              " AND component.match_state_id = ?" + matchStateFilterParamPosition : "") +
+          (!detailsFilter.matchStateFilter.isEmpty()
+              ? " AND component.match_state_id = ?" + matchStateFilterParamPosition
+              : "")
+          +
           " GROUP BY repository.repository_manager_id, component.repository_id, component.pathname";
 
       // Incremented page size to help UI determine whether to enable / disable NextPage button
@@ -426,7 +431,8 @@ public class RepositoryPolicyViolationDAO
               (String) array[9],
               array[10] == null ? null : new Date(((Timestamp) array[10]).getTime()),
               null // waived doesn't make sense in an aggregation
-          )).collect(Collectors.toList());
+          ))
+          .collect(Collectors.toList());
 
       return results;
     }

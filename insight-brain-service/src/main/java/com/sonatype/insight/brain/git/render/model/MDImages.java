@@ -62,7 +62,8 @@ public enum MDImages
     return title;
   }
 
-  static class MDImageSerializer extends StdSerializer<MDImages>
+  static class MDImageSerializer
+      extends StdSerializer<MDImages>
   {
     public MDImageSerializer() {
       this(null);
@@ -76,8 +77,7 @@ public enum MDImages
     public void serialize(
         final MDImages mdImage,
         final JsonGenerator jgen,
-        final SerializerProvider serializerProvider)
-        throws IOException
+        final SerializerProvider serializerProvider) throws IOException
     {
       jgen.writeStartObject();
       jgen.writeStringField("title", mdImage.getTitle());

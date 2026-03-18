@@ -22,7 +22,7 @@ public class HdsPingResourceTest
     HttpResponse response = restRequest().path(HdsPingResource.RESOURCE_PATH).get();
 
     assertResponseStatus(200, response);
-    
+
     PingResponseDTO result = response.getBody(PingResponseDTO.class);
     assertThat(result.alive).isTrue();
     assertThat(result.errorMessage).isNull();

@@ -29,7 +29,8 @@ public class FirewallContainerRepositoryResultsPage
     return child("#container-repository-results-page__title");
   }
 
-  public static class ContainerRepositoryResultsTable extends BasicElement<ContainerRepositoryResultsTable>
+  public static class ContainerRepositoryResultsTable
+      extends BasicElement<ContainerRepositoryResultsTable>
   {
     public static final String ROOT = "#container-repository-results-table";
 

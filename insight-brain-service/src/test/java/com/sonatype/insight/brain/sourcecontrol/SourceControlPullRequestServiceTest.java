@@ -91,8 +91,8 @@ public class SourceControlPullRequestServiceTest
   @Test
   public void testGetPullRequestStatus_IdNotFound() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-        () -> service.getPullRequestStatus("doesNotExist")
-    ).withMessageContaining("SourceControlEvent with ID doesNotExist does not exist.");
+        () -> service.getPullRequestStatus("doesNotExist"))
+        .withMessageContaining("SourceControlEvent with ID doesNotExist does not exist.");
   }
 
   @Test
@@ -103,9 +103,9 @@ public class SourceControlPullRequestServiceTest
     sourceControlEventDAO.update(event);
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-        () -> service.getPullRequestStatus(event.getId())
-    ).withMessageContaining(
-        "Pull request not found for application '" + app.getPublicId() + "' and for id '" + event.getId() + "'.");
+        () -> service.getPullRequestStatus(event.getId()))
+        .withMessageContaining(
+            "Pull request not found for application '" + app.getPublicId() + "' and for id '" + event.getId() + "'.");
   }
 
   @Test
@@ -213,8 +213,8 @@ public class SourceControlPullRequestServiceTest
     sourceControlEventDAO.update(event);
 
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
-        () -> service.getPullRequestStatus(event.getId())
-    ).withMessageContaining("URL missing from pull request for id '" + event.getId() + "'.");
+        () -> service.getPullRequestStatus(event.getId()))
+        .withMessageContaining("URL missing from pull request for id '" + event.getId() + "'.");
   }
 
   @Test
@@ -225,8 +225,8 @@ public class SourceControlPullRequestServiceTest
     sourceControlEventDAO.update(event);
 
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
-        () -> service.getPullRequestStatus(event.getId())
-    ).withMessageContaining("Unsupported event status 'partially complete'.");
+        () -> service.getPullRequestStatus(event.getId()))
+        .withMessageContaining("Unsupported event status 'partially complete'.");
   }
 
   @Test
@@ -237,8 +237,8 @@ public class SourceControlPullRequestServiceTest
     sourceControlEventDAO.update(event);
 
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
-        () -> service.getPullRequestStatus(event.getId())
-    ).withMessageContaining("Unsupported event status 'someUnknownStatus'.");
+        () -> service.getPullRequestStatus(event.getId()))
+        .withMessageContaining("Unsupported event status 'someUnknownStatus'.");
   }
 
   @Test
@@ -253,7 +253,7 @@ public class SourceControlPullRequestServiceTest
         new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.2.0", "Sonatype",
             true);
 
-    //mock private repository and componentInfo
+    // mock private repository and componentInfo
     when(mockComponentInfoService.getComponentVersionInfoNoAuth(OwnerType.APPLICATION, application.getPublicId(),
         mavenComponentIdentifier, "build", "Sonatype", "scanId", DependencyType.DIRECT,
         SourceEndpoint.MANUAL_PULL_REQUEST,
@@ -278,7 +278,7 @@ public class SourceControlPullRequestServiceTest
         new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.2.0", "Sonatype",
             true);
 
-    //mock private repository, no applicable version return
+    // mock private repository, no applicable version return
     ComponentVersionInfoDTO componentVersionInfoDTO = new ComponentVersionInfoDTO();
     componentVersionInfoDTO.remediation = new ApiComponentRemediationValueDTO();
     componentVersionInfoDTO.remediation.versionChanges = new ArrayList<>();
@@ -307,12 +307,13 @@ public class SourceControlPullRequestServiceTest
         new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.2.0", "Sonatype",
             true);
 
-    //mock public repository, no applicable version return
+    // mock public repository, no applicable version return
     when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(any(GitRepositoryInfo.class))).thenReturn(
         false);
 
     assertThatThrownBy((() -> service.createPullRequest(submission)))
-        .isInstanceOf(BadRequestException.class).hasMessageContaining("Manual pull request creation is not eligible");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("Manual pull request creation is not eligible");
   }
 
   @Test
@@ -327,12 +328,13 @@ public class SourceControlPullRequestServiceTest
         new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.2.0", "Sonatype",
             false);
 
-    //mock private repository and componentInfo
+    // mock private repository and componentInfo
     lenient().when(
         mockComponentInfoService.getComponentVersionInfoNoAuth(OwnerType.APPLICATION, application.getPublicId(),
             mavenComponentIdentifier, "build", "Sonatype", "scanId", DependencyType.TRANSITIVE,
             SourceEndpoint.MANUAL_PULL_REQUEST,
-            true)).thenReturn(setupComponentVersionInfoDTO());
+            true))
+        .thenReturn(setupComponentVersionInfoDTO());
     lenient().when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(any(GitRepositoryInfo.class)))
         .thenReturn(true);
 
@@ -350,29 +352,27 @@ public class SourceControlPullRequestServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0.0");
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.createPullRequest(null)
-    ).withMessage("Pull request submission cannot be null");
+        () -> service.createPullRequest(null)).withMessage("Pull request submission cannot be null");
 
     PullRequestSubmissionDTO submissionWithWrongAppId =
         new PullRequestSubmissionDTO("wrongAppId", "scanId", componentIdentifier, "1.2.0", "Sonatype", true);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.createPullRequest(submissionWithWrongAppId)
-    ).withMessage("Application not found for id 'wrongAppId'.");
+        () -> service.createPullRequest(submissionWithWrongAppId))
+        .withMessage("Application not found for id 'wrongAppId'.");
 
     PullRequestSubmissionDTO submissionWithNullScanId =
         new PullRequestSubmissionDTO(application.getId(), null, componentIdentifier, "1.2.0", "Sonatype", true);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.createPullRequest(submissionWithNullScanId)
-    ).withMessage("Scan ID cannot be null");
+        () -> service.createPullRequest(submissionWithNullScanId)).withMessage("Scan ID cannot be null");
 
     PullRequestSubmissionDTO submissionWithNullComponentId =
         new PullRequestSubmissionDTO(application.getId(), "scanId", null, "1.2.0", "Sonatype", true);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.createPullRequest(submissionWithNullComponentId)
-    ).withMessage("Component identifier cannot be null");
+        () -> service.createPullRequest(submissionWithNullComponentId))
+        .withMessage("Component identifier cannot be null");
 
     PullRequestSubmissionDTO submissionWithNullTargetVersion =
         new PullRequestSubmissionDTO(application.getId(), "scanId", componentIdentifier, null, "Sonatype", true);
@@ -384,7 +384,7 @@ public class SourceControlPullRequestServiceTest
         new PullRequestSubmissionDTO(application.getId(), "scanId", componentIdentifier, "1.2.0", null, true);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> service.createPullRequest(submissionWithNullIdentificationSource))
+        () -> service.createPullRequest(submissionWithNullIdentificationSource))
         .withMessage("Identification source cannot be null");
   }
 

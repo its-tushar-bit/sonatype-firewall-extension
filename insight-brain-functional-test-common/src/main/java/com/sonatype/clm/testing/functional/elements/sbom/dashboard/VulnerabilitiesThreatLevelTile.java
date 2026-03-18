@@ -23,11 +23,11 @@ public class VulnerabilitiesThreatLevelTile
   public VulnerabilitiesThreatLevelTile() {
     super(ROOT);
   }
-  
+
   public TileLabels tileLabels() {
     return new TileLabels();
   }
-  
+
   public TileTable tileTable() {
     return new TileTable();
   }
@@ -45,15 +45,14 @@ public class VulnerabilitiesThreatLevelTile
 
     public SelenideElement label(int index) {
       return child(
-        createSelector(".sbom-manager-vulnerabilities-by-threat-level-tile__list__item", nthChild(index + 1))
-      );
+          createSelector(".sbom-manager-vulnerabilities-by-threat-level-tile__list__item", nthChild(index + 1)));
     }
   }
-  
+
   public SelenideElement tilePieChart() {
     return child(".sbom-manager-vulnerability-by-threat-level-pie-chart");
   }
-  
+
   public class TileTable
       extends BasicElement<TileTable>
   {
@@ -64,24 +63,24 @@ public class VulnerabilitiesThreatLevelTile
     public TableRow tableRow(int index) {
       return new TableRow(childSelector(createSelector("tr", nthChild(index + 1))));
     }
-    
+
     public TableHeaders tableHeaders() {
       return new TableHeaders();
     }
   }
-  
+
   public class TableHeaders
       extends BasicElement<TableHeaders>
   {
     public TableHeaders() {
       super(TABLE);
     }
-    
+
     public SelenideElement header(int index) {
       return child(createSelector("th", nthChild(index + 1)));
     }
   }
-  
+
   public class TableRow
       extends BasicElement<TableRow>
   {

@@ -228,8 +228,7 @@ public class SbomImportService
         tempSbomEntity,
         originalFilename,
         applicationId,
-        result
-    ).getLeft();
+        result).getLeft();
 
     return sbomMetadata.getSbomVersion();
   }
@@ -250,8 +249,7 @@ public class SbomImportService
         sbomMetadata,
         thirdPartyFile,
         ScanTriggerType.SBOM_UI,
-        clientUserAgent
-    );
+        clientUserAgent);
 
     thirdPartyPersistenceService.deletePersistentTempBinary(sbomMetadata, thirdPartyFile);
 

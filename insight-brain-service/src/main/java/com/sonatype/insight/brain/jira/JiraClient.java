@@ -71,8 +71,9 @@ public class JiraClient
    * , or
    * for Jira Server: https://docs.atlassian.com/jira/REST/latest/#api/2/issue-createIssue
    */
-  public JiraIssueCreateResponse createIssue(final JiraIssueCreateRequest request, final boolean isForCloud)
-      throws IOException
+  public JiraIssueCreateResponse createIssue(
+      final JiraIssueCreateRequest request,
+      final boolean isForCloud) throws IOException
   {
     String jsonRequest = JsonUtils.format(request);
     HttpEntity entity = new StringEntity(jsonRequest, ContentType.APPLICATION_JSON);
@@ -88,7 +89,8 @@ public class JiraClient
     String contentType = result.header(HttpHeaders.CONTENT_TYPE);
 
     if (result.status() == HttpStatus.SC_BAD_REQUEST && contentType != null
-        && contentType.contains(ContentType.APPLICATION_JSON.getMimeType())) {
+        && contentType.contains(ContentType.APPLICATION_JSON.getMimeType()))
+    {
       log.error("Unexpected response from Jira when trying to {} Status Code: {} Message: {}", context, result.status(),
           result.text());
     }

@@ -69,8 +69,9 @@ public class ApiApplicationCategoryResource
   @GET
   @Path(USED_BY_APPLICATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Operation(description =
-      "Grouping applications with similar characteristics into categories makes policy management easier. " +
+  @Operation(
+      description = "Grouping applications with similar characteristics into categories makes policy management easier. "
+          +
           "You can then create a policy that applies to a specific category. Use this method to retrieve " +
           "a list of application categories.")
   @ApiResponse(responseCode = "200",
@@ -84,8 +85,9 @@ public class ApiApplicationCategoryResource
   @GET
   @Path(APPLICATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Operation(description =
-      "Grouping applications with similar characteristics into categories makes policy management easier. " +
+  @Operation(
+      description = "Grouping applications with similar characteristics into categories makes policy management easier. "
+          +
           "You can then create a policy that applies to a specific category. " +
           "Use this method to retrieve a list of application " +
           "categories available to applications in this organization.")
@@ -95,8 +97,8 @@ public class ApiApplicationCategoryResource
       useReturnTypeSchema = true)
   @ProductLicenseEnforcementPoint(LicensedFeature.POLICY_READ_ONLY)
   public ApplicableTagsDTO getApplicationApplicableTags(
-      @Parameter(description = "The application public ID ", required = true)
-      @PathParam("applicationPublicId") String applicationPublicId)
+      @Parameter(description = "The application public ID ",
+          required = true) @PathParam("applicationPublicId") String applicationPublicId)
   {
     return service.getApplicableTags(OwnerType.APPLICATION, applicationPublicId);
   }
@@ -104,8 +106,9 @@ public class ApiApplicationCategoryResource
   @GET
   @Path(ORGANIZATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Operation(description =
-      "Grouping applications with similar characteristics into categories makes policy management easier. " +
+  @Operation(
+      description = "Grouping applications with similar characteristics into categories makes policy management easier. "
+          +
           "You can then create a policy that applies to a specific category." +
           " Use this method to retrieve a list of application " +
           "categories in use by applications in this organization.")
@@ -114,8 +117,8 @@ public class ApiApplicationCategoryResource
           "Each application category consists of an id, name, description and color. ",
       useReturnTypeSchema = true)
   public List<ApiApplicationCategoryDTO> getTags(
-      @Parameter(description = "The organizationId assigned by IQ Server.", required = true)
-      @PathParam("organizationId") String organizationId)
+      @Parameter(description = "The organizationId assigned by IQ Server.",
+          required = true) @PathParam("organizationId") String organizationId)
   {
     return service.getTags(organizationId);
   }
@@ -123,8 +126,9 @@ public class ApiApplicationCategoryResource
   @GET
   @Path(ORGANIZATION_APPLICABLE_TAGS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Operation(description =
-      "Grouping applications with similar characteristics into categories makes policy management easier. " +
+  @Operation(
+      description = "Grouping applications with similar characteristics into categories makes policy management easier. "
+          +
           "You can then create a policy that applies to a specific category. " +
           "Use this method to retrieve a list of application " +
           "categories that can be applied to applications in this organization.")
@@ -145,8 +149,9 @@ public class ApiApplicationCategoryResource
   @GET
   @Path(APPLICATION_PATH + "/applicable")
   @Produces(MediaType.APPLICATION_JSON)
-  @Operation(description =
-      "Grouping applications with similar characteristics into categories makes policy management easier. " +
+  @Operation(
+      description = "Grouping applications with similar characteristics into categories makes policy management easier. "
+          +
           "You can then create a policy that applies to a specific category. " +
           "Use this method to retrieve a list of application " +
           "categories that can be applied to applications in this organization.")
@@ -156,8 +161,8 @@ public class ApiApplicationCategoryResource
       useReturnTypeSchema = true)
   @ProductLicenseEnforcementPoint(LicensedFeature.POLICY_READ_ONLY)
   public List<ApiApplicationCategoryDTO> getApplicableTagsByApplicationPublicId(
-      @Parameter(description = "Provide the application public ID assigned by IQ Server.", required = true)
-      @PathParam("applicationPublicId") String applicationPublicId)
+      @Parameter(description = "Provide the application public ID assigned by IQ Server.",
+          required = true) @PathParam("applicationPublicId") String applicationPublicId)
   {
     return service.getApplicableTagsByApplicationPublicId(applicationPublicId);
   }
@@ -165,8 +170,9 @@ public class ApiApplicationCategoryResource
   @GET
   @Path(ORGANIZATION_PATH + "/applied")
   @Produces(MediaType.APPLICATION_JSON)
-  @Operation(description =
-      "Grouping applications with similar characteristics into categories makes policy management easier. " +
+  @Operation(
+      description = "Grouping applications with similar characteristics into categories makes policy management easier. "
+          +
           "You can then create a policy that applies to a specific category." +
           " Use this method to retrieve a list of application " +
           "categories that can be applied to applications in this organization.")
@@ -175,8 +181,8 @@ public class ApiApplicationCategoryResource
           "belonging to the organization specified by the organization id.",
       useReturnTypeSchema = true)
   public AppliedTagsDTO getAppliedTags(
-      @Parameter(description = "The organizationId assigned by IQ Server.", required = true)
-      @PathParam("organizationId") String organizationId)
+      @Parameter(description = "The organizationId assigned by IQ Server.",
+          required = true) @PathParam("organizationId") String organizationId)
   {
     return service.getAppliedTags(organizationId);
   }
@@ -184,8 +190,9 @@ public class ApiApplicationCategoryResource
   @GET
   @Path(ORGANIZATION_PATH + "/policy")
   @Produces(MediaType.APPLICATION_JSON)
-  @Operation(description =
-      "Grouping applications with similar characteristics into categories makes policy management easier. " +
+  @Operation(
+      description = "Grouping applications with similar characteristics into categories makes policy management easier. "
+          +
           "You can then create a policy that applies to a specific category. " +
           "Use this method to retrieve a list of application " +
           "categories that are applied to applications in this organization.")
@@ -194,8 +201,8 @@ public class ApiApplicationCategoryResource
           " in this organization.",
       useReturnTypeSchema = true)
   public List<PolicyTag> getAppliedPolicyTags(
-      @Parameter(description = "The organizationId assigned by IQ Server.", required = true)
-      @PathParam("organizationId") String organizationId)
+      @Parameter(description = "The organizationId assigned by IQ Server.",
+          required = true) @PathParam("organizationId") String organizationId)
   {
     return service.getAppliedPolicyTags(organizationId);
   }
@@ -205,8 +212,9 @@ public class ApiApplicationCategoryResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_APPLICATION_CATEGORY)
-  @Operation(description =
-      "Grouping applications with similar characteristics into categories makes policy management easier. " +
+  @Operation(
+      description = "Grouping applications with similar characteristics into categories makes policy management easier. "
+          +
           "You can then create a policy that applies to a specific category. " +
           "Use this method to add a new application category or tag.")
   @ApiResponse(responseCode = "200",
@@ -229,16 +237,17 @@ public class ApiApplicationCategoryResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_APPLICATION_CATEGORY)
-  @Operation(description =
-      "Grouping applications with similar characteristics into categories makes policy management easier. " +
+  @Operation(
+      description = "Grouping applications with similar characteristics into categories makes policy management easier. "
+          +
           "You can then create a policy that applies to a specific category. " +
           "Use this method to update an existing application category.")
   @ApiResponse(responseCode = "200",
       description = "Successful update echoing the updated application category details.",
       useReturnTypeSchema = true)
   public ApiApplicationCategoryDTO updateTag(
-      @Parameter(description = "The organizationId assigned by IQ Server.", required = true)
-      @PathParam("organizationId") String organizationId,
+      @Parameter(description = "The organizationId assigned by IQ Server.",
+          required = true) @PathParam("organizationId") String organizationId,
       @RequestBody(description = "Specify the id (application category id) and id of the organization that owns this " +
           " application category, to update the name, description and color.",
           required = true) ApiApplicationCategoryDTO tag)
@@ -249,8 +258,9 @@ public class ApiApplicationCategoryResource
   @DELETE
   @Path(ORGANIZATION_PATH + "/{tagId}")
   @Audited(AuditEvent.DELETE_APPLICATION_CATEGORY)
-  @Operation(description =
-      "Grouping applications with similar characteristics into categories makes policy management easier. " +
+  @Operation(
+      description = "Grouping applications with similar characteristics into categories makes policy management easier. "
+          +
           "You can then create a policy that applies to a specific category. Use this method to update an existing " +
           "application category." +
           "Use this method to delete an existing application category.")
@@ -259,8 +269,8 @@ public class ApiApplicationCategoryResource
       @Parameter(description = "The organizationId assigned by IQ Server, corresponding to the application" +
           " category tag you want to delete.",
           required = true) @PathParam("organizationId") String organizationId,
-      @Parameter(description = "The application category ID assigned by IQ Server, to be deleted.", required = true)
-      @PathParam("tagId") String tagId)
+      @Parameter(description = "The application category ID assigned by IQ Server, to be deleted.",
+          required = true) @PathParam("tagId") String tagId)
   {
     service.deleteTag(organizationId, tagId);
   }

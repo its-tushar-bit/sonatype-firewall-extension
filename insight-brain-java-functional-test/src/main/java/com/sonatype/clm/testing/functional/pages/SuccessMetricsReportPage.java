@@ -206,7 +206,7 @@ public class SuccessMetricsReportPage
 
     public static ElementsCollection mttrXAxisLabels() {
       return $$(SelectorUtils.createSelector(ROOT, "#mttr-chart-container", ".x-axis",
-      ".tick-label-container", "text"));
+          ".tick-label-container", "text"));
     }
   }
 
@@ -261,7 +261,7 @@ public class SuccessMetricsReportPage
 
     public static ElementsCollection xAxisLabels() {
       return $$(SelectorUtils.createSelector(ROOT, "#bycategory-chart-container",
-      ".x-axis", ".tick-label-container", "text"));
+          ".x-axis", ".tick-label-container", "text"));
     }
   }
 

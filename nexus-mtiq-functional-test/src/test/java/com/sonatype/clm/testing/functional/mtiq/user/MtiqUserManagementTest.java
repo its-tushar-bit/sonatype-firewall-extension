@@ -177,8 +177,9 @@ public class MtiqUserManagementTest
     NxDeleteModal deleteModal = new NxDeleteModal("#delete-user-modal");
 
     deleteModal.header().shouldHave(text("Delete User"));
-    deleteModal.alertContent().shouldHave(text("You are about to permanently remove " +
-        KEYCLOAK_USER_EMAIL_2 + ". This action cannot be undone."));
+    deleteModal.alertContent()
+        .shouldHave(text("You are about to permanently remove " +
+            KEYCLOAK_USER_EMAIL_2 + ". This action cannot be undone."));
 
     deleteModal.submitButton().click();
     deleteModal.should(disappear);

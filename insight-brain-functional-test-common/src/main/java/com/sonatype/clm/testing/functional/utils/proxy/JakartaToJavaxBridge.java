@@ -39,8 +39,7 @@ public class JakartaToJavaxBridge
     public void addCookie(javax.servlet.http.Cookie cookie) {
       jakarta.servlet.http.Cookie jakartaCookie = new jakarta.servlet.http.Cookie(
           cookie.getName(),
-          cookie.getValue()
-      );
+          cookie.getValue());
       jakartaCookie.setDomain(cookie.getDomain());
       jakartaCookie.setPath(cookie.getPath());
       jakartaCookie.setMaxAge(cookie.getMaxAge());
@@ -310,8 +309,7 @@ public class JakartaToJavaxBridge
         jakarta.servlet.http.Cookie jakartaCookie = jakartaCookies[i];
         javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie(
             jakartaCookie.getName(),
-            jakartaCookie.getValue()
-        );
+            jakartaCookie.getValue());
         cookie.setDomain(jakartaCookie.getDomain());
         cookie.setPath(jakartaCookie.getPath());
         cookie.setMaxAge(jakartaCookie.getMaxAge());
@@ -447,8 +445,8 @@ public class JakartaToJavaxBridge
     }
 
     @Override
-    public boolean authenticate(javax.servlet.http.HttpServletResponse response)
-        throws IOException, javax.servlet.ServletException
+    public boolean authenticate(
+        javax.servlet.http.HttpServletResponse response) throws IOException, javax.servlet.ServletException
     {
       throw new UnsupportedOperationException("authenticate not supported in adapter");
     }
@@ -484,8 +482,8 @@ public class JakartaToJavaxBridge
     }
 
     @Override
-    public <T extends javax.servlet.http.HttpUpgradeHandler> T upgrade(Class<T> handlerClass)
-        throws IOException, javax.servlet.ServletException
+    public <T extends javax.servlet.http.HttpUpgradeHandler> T upgrade(
+        Class<T> handlerClass) throws IOException, javax.servlet.ServletException
     {
       throw new UnsupportedOperationException("upgrade not supported in adapter");
     }

@@ -290,8 +290,9 @@ public class UserResourceTest
     assertResponseStatus(200, response);
     user = response.getBody(User.class);
 
-    HttpRequest request = restRequest().path(UserResource.MY_PASSWORD_PATH).auth(user.getUsername(),
-        "testChangePasswordPassword");
+    HttpRequest request = restRequest().path(UserResource.MY_PASSWORD_PATH)
+        .auth(user.getUsername(),
+            "testChangePasswordPassword");
 
     // Can't change password when password input doesn't match
     ChangePasswordDTO dto = new ChangePasswordDTO();
@@ -351,13 +352,14 @@ public class UserResourceTest
     assertThat(actual.getEmail()).isEqualTo(email);
   }
 
-  private void assertMember(HttpResponse response,
-                            String error,
-                            MemberType type,
-                            String name,
-                            String displayName,
-                            String email,
-                            String realm)
+  private void assertMember(
+      HttpResponse response,
+      String error,
+      MemberType type,
+      String name,
+      String displayName,
+      String email,
+      String realm)
   {
     assertResponseStatus(200, response);
 
@@ -370,12 +372,13 @@ public class UserResourceTest
     assertMember(members[0], type, name, displayName, email, realm);
   }
 
-  private void assertMember(final Member member,
-                            final MemberType type,
-                            final String name,
-                            final String displayName,
-                            final String email,
-                            final String realm)
+  private void assertMember(
+      final Member member,
+      final MemberType type,
+      final String name,
+      final String displayName,
+      final String email,
+      final String realm)
   {
     assertThat(member.getType()).isEqualTo(type);
     assertThat(member.getInternalName()).isEqualTo(name);

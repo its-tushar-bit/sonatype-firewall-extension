@@ -68,14 +68,16 @@ public class ManualPullRequestService
   @Inject
   public ManualPullRequestService(
       SourceControlDAO sourceControlDAO,
-      StageTypeService stageTypeService, PermissionService permissionService,
+      StageTypeService stageTypeService,
+      PermissionService permissionService,
       PullRequestExecutor pullRequestExecutor,
       ManualPullRequestFeatureCheck manualPullRequestFeatureCheck,
       PasswordHandler passwordHandler,
       PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
       ComponentRemediationService componentRemediationService,
       RemediationPullRequestEligibilityService remediationPullRequestEligibilityService,
-      TenantUtil tenantUtil, GitHubAppDAO gitHubAppDAO)
+      TenantUtil tenantUtil,
+      GitHubAppDAO gitHubAppDAO)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.stageTypeService = stageTypeService;
@@ -94,10 +96,10 @@ public class ManualPullRequestService
    * Check if a manual pull request is possible for the given component within its context.
    *
    * @param componentIdentifier the component identifier
-   * @param stageId             the stage ID
-   * @param dependencyType      the dependency type
-   * @param owner               the owner
-   * @param remediationDto      the remediation DTO
+   * @param stageId the stage ID
+   * @param dependencyType the dependency type
+   * @param owner the owner
+   * @param remediationDto the remediation DTO
    * @return the reason why a manual pull request is not possible, if any
    */
   public Optional<ManualPullRequestImpossibilityReason> isManualPullRequestPossible(
@@ -218,7 +220,8 @@ public class ManualPullRequestService
 
   private boolean isSupportedStage(String stageId) {
     return !Stage.ID_DEVELOP.equals(stageId) &&
-        stageTypeService.getLicensedStageTypes(StageTypeService.LIFECYCLE_CONTEXT).stream()
+        stageTypeService.getLicensedStageTypes(StageTypeService.LIFECYCLE_CONTEXT)
+            .stream()
             .anyMatch(stageType -> stageType.getId().equals(stageId));
   }
 

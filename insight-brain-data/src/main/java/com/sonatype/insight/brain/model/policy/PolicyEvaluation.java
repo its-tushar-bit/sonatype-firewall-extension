@@ -69,7 +69,7 @@ public class PolicyEvaluation
 
   /**
    * @since 1.160.0
-   * Entities before the version 1.160 will have a null value, which indicates an unknown clientScanType.
+   *        Entities before the version 1.160 will have a null value, which indicates an unknown clientScanType.
    */
   @Column(name = "client_scan_type")
   @Enumerated(EnumType.STRING)

@@ -45,16 +45,17 @@ public class ApiPolicyViolationWaiverResource
    * This is currently used in "request waiver"
    *
    * @deprecated Use
-   * {@link ApiPolicyWaiverResource#addPolicyWaiverByPolicyViolationId(OwnerType, String, String, ApiWaiverOptionsDTO)}
+   *             {@link ApiPolicyWaiverResource#addPolicyWaiverByPolicyViolationId(OwnerType, String, String, ApiWaiverOptionsDTO)}
    */
   @POST
   @Consumes(MediaType.TEXT_PLAIN)
   @Audited(AuditEvent.CREATE_WAIVER)
   @Deprecated
   @Operation(hidden = true)
-  public void addPolicyWaiver(@PathParam("policyViolationId") String policyViolationId,
-                              @PathParam("ownerType") OwnerType ownerType,
-                              String comment)
+  public void addPolicyWaiver(
+      @PathParam("policyViolationId") String policyViolationId,
+      @PathParam("ownerType") OwnerType ownerType,
+      String comment)
   {
     apiPolicyWaiverService.addPolicyWaiver(policyViolationId, ownerType, comment);
   }

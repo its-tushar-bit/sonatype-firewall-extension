@@ -5,6 +5,7 @@
  */
 
 package com.sonatype.insight.brain.api.experimental.sast;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -118,9 +119,7 @@ public class SastPullRequestCommentingServiceTest
   }
 
   @Test
-  public void testCreateOrUpdateSastPullRequestComment_CannotComment_WhenDeveloperFeatureNotInLicense()
-      throws Exception
-  {
+  public void testCreateOrUpdateSastPullRequestComment_CannotComment_WhenDeveloperFeatureNotInLicense() throws Exception {
     // Given: Developer is not included in the license
     setUpGitApiClient();
     setUpSourceControl(true);
@@ -425,9 +424,7 @@ public class SastPullRequestCommentingServiceTest
   }
 
   @Test
-  public void testCreateOrUpdateSastPullRequestComment_UpdateComment_WhenPriorCommentForPrExists()
-      throws Exception
-  {
+  public void testCreateOrUpdateSastPullRequestComment_UpdateComment_WhenPriorCommentForPrExists() throws Exception {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
     setUpGitApiClient();
@@ -500,9 +497,7 @@ public class SastPullRequestCommentingServiceTest
   }
 
   @Test
-  public void testCreateOrUpdateSastPullRequestComment_CommentTextReflectsWhenNoCriticalSastFindingsExist()
-      throws Exception
-  {
+  public void testCreateOrUpdateSastPullRequestComment_CommentTextReflectsWhenNoCriticalSastFindingsExist() throws Exception {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
     setUpGitApiClient();
@@ -540,9 +535,7 @@ public class SastPullRequestCommentingServiceTest
   }
 
   @Test
-  public void testCreateOrUpdateSastPullRequestComment_CommentTextReflectsWhenCriticalSastFindingsExist()
-      throws Exception
-  {
+  public void testCreateOrUpdateSastPullRequestComment_CommentTextReflectsWhenCriticalSastFindingsExist() throws Exception {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
     setUpGitApiClient();
@@ -581,9 +574,7 @@ public class SastPullRequestCommentingServiceTest
   }
 
   @Test
-  public void testCreateOrUpdateSastPullRequestComment_CommentTextReflectsWhenNoSastFindingsExist_WhenUpdatingComment()
-      throws Exception
-  {
+  public void testCreateOrUpdateSastPullRequestComment_CommentTextReflectsWhenNoSastFindingsExist_WhenUpdatingComment() throws Exception {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
     setUpGitApiClient();
@@ -625,9 +616,7 @@ public class SastPullRequestCommentingServiceTest
   }
 
   @Test
-  public void testCreateOrUpdateSastPullRequestComment_DoNotStoreCommentRecord_WhenCreateCommentFails()
-      throws Exception
-  {
+  public void testCreateOrUpdateSastPullRequestComment_DoNotStoreCommentRecord_WhenCreateCommentFails() throws Exception {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
     setUpGitApiClient();
@@ -660,9 +649,7 @@ public class SastPullRequestCommentingServiceTest
   }
 
   @Test
-  public void testCreateOrUpdateSastPullRequestComment_DoNotUpdateCommentRecord_WhenUpdateCommentFails()
-      throws Exception
-  {
+  public void testCreateOrUpdateSastPullRequestComment_DoNotUpdateCommentRecord_WhenUpdateCommentFails() throws Exception {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
     setUpGitApiClient();
@@ -705,9 +692,7 @@ public class SastPullRequestCommentingServiceTest
   }
 
   @Test
-  public void testCreateOrUpdateSastPullRequestComment_SendTelemetryAfterCommentCreated()
-      throws Exception
-  {
+  public void testCreateOrUpdateSastPullRequestComment_SendTelemetryAfterCommentCreated() throws Exception {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
     setUpGitApiClient();
@@ -820,9 +805,7 @@ public class SastPullRequestCommentingServiceTest
   }
 
   @Test
-  public void testCreateOrUpdateSastPullRequestComment_DoNotSendTelemetryIfCommentNotCreatedOrUpdated()
-      throws Exception
-  {
+  public void testCreateOrUpdateSastPullRequestComment_DoNotSendTelemetryIfCommentNotCreatedOrUpdated() throws Exception {
     // Given: pull request commenting is enabled, the Developer license feature is enabled, the repo is private or
     // internal, and a base URL is configured
     setUpGitApiClient();

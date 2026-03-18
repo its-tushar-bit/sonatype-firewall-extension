@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.policy;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -33,7 +34,8 @@ public class LicensedStagesResourceTest
   @Test
   public void testGetLicenseStages_All() throws Exception {
     HttpResponse response = restRequest().path(LicensedStagesResource.RESOURCE_PATH)
-        .query("context", StageTypeService.ALL_CONTEXT).get();
+        .query("context", StageTypeService.ALL_CONTEXT)
+        .get();
     assertResponseStatus(200, response);
     Stage[] stages = response.getBody(Stage[].class);
     assertStages(stages, StageTypes.PROXY, StageTypes.DEVELOP, StageTypes.SOURCE, StageTypes.BUILD,

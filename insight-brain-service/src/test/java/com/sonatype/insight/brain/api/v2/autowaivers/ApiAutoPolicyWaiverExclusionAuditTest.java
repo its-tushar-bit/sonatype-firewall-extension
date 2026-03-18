@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2.autowaivers;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -87,8 +88,7 @@ public class ApiAutoPolicyWaiverExclusionAuditTest
 
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         identifier,
-        violation
-    );
+        violation);
 
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
@@ -198,8 +198,7 @@ public class ApiAutoPolicyWaiverExclusionAuditTest
 
   private PolicyThreats.Component createPolicyThreatsComponents(
       ComponentIdentifier componentIdentifier,
-      PolicyViolation violation
-  )
+      PolicyViolation violation)
   {
     PolicyThreats.PolicyViolation policyViolation = new PolicyThreats.PolicyViolation();
     policyViolation.policyThreatLevel = violation.getThreatLevel();

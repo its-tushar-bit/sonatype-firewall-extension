@@ -88,7 +88,8 @@ public class AttributionReportTemplateDAOTest
     dao.update(attributionReportTemplate);
     assertThat(dao.getById(attributionReportTemplate.getId())).usingRecursiveComparison()
         .ignoringFields(JPA.IGNORE_FIELDS)
-        .usingOverriddenEquals().isEqualTo(attributionReportTemplate);
+        .usingOverriddenEquals()
+        .isEqualTo(attributionReportTemplate);
 
     // Delete
     dao.delete(attributionReportTemplate);
@@ -156,7 +157,8 @@ public class AttributionReportTemplateDAOTest
 
     assertThat(dao.getByTemplateName("template 2")).usingRecursiveComparison()
         .ignoringFields(JPA.IGNORE_FIELDS)
-        .usingOverriddenEquals().isEqualTo(attributionReportTemplate2);
+        .usingOverriddenEquals()
+        .isEqualTo(attributionReportTemplate2);
   }
 
   @Test
@@ -171,8 +173,7 @@ public class AttributionReportTemplateDAOTest
             false,
             false,
             false,
-            false
-        );
+            false);
 
     attributionReportTemplate.setLastUpdatedAt(null);
     Date now = new Date();

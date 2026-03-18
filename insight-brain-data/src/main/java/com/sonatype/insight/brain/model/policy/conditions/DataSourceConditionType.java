@@ -99,7 +99,7 @@ public class DataSourceConditionType
           : analyzerFeatures.isHasLicense();
       return HAS_SUPPORT_FOR.equals(operator) ? result : !result;
     }
-    //If Metadata is not present we are returning false so the condition is not triggered
+    // If Metadata is not present we are returning false so the condition is not triggered
     return false;
   }
 

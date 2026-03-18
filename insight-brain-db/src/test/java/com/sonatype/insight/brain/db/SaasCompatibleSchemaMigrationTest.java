@@ -46,7 +46,7 @@ public class SaasCompatibleSchemaMigrationTest
         if (getVersion(filename) >= schemaCutoff) {
           assertThat(isSaasCompatible(file))
               .as("Schema file %s/%s is annotated as SaaS Compatible.  " +
-                      "See insight_brain_ods/schema_incremental_0301.sql for more info.",
+                  "See insight_brain_ods/schema_incremental_0301.sql for more info.",
                   schema, filename)
               .isTrue();
         }

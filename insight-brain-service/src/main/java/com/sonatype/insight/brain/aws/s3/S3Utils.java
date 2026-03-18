@@ -70,8 +70,11 @@ public class S3Utils
     return getS3Objects(s3Client, bucketName, prefix, null);
   }
 
-  public static Stream<S3Object> getS3Objects(S3Client s3Client, String bucketName, String prefix, Integer maxKeys)
-      throws IOException
+  public static Stream<S3Object> getS3Objects(
+      S3Client s3Client,
+      String bucketName,
+      String prefix,
+      Integer maxKeys) throws IOException
   {
     ListObjectsV2Request request = ListObjectsV2Request.builder()
         .bucket(bucketName)
@@ -79,7 +82,8 @@ public class S3Utils
         .maxKeys(maxKeys)
         .build();
 
-    return wrapS3Exception(() -> s3Client.listObjectsV2Paginator(request).stream()
+    return wrapS3Exception(() -> s3Client.listObjectsV2Paginator(request)
+        .stream()
         .map(ListObjectsV2Response::contents)
         .flatMap(List::stream));
   }

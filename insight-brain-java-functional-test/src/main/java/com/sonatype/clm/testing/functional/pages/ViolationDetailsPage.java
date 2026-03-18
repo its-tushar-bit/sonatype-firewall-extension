@@ -52,7 +52,8 @@ public class ViolationDetailsPage
     return new SidebarNav("#sidebar-nav-list");
   }
 
-  public static class SidebarNav extends BasicElement<SidebarNav>
+  public static class SidebarNav
+      extends BasicElement<SidebarNav>
   {
     SidebarNav(String selector) {
       super(selector);
@@ -71,7 +72,8 @@ public class ViolationDetailsPage
     }
   }
 
-  public static class SidebarNavListItem extends BasicElement<SidebarNavListItem>
+  public static class SidebarNavListItem
+      extends BasicElement<SidebarNavListItem>
   {
     SidebarNavListItem(String selector) {
       super(selector);
@@ -248,7 +250,7 @@ public class ViolationDetailsPage
   }
 
   public static class PolicyViolationApplicableWaiversInfoTile
-          extends BasicElement<PolicyViolationApplicableWaiversInfoTile>
+      extends BasicElement<PolicyViolationApplicableWaiversInfoTile>
   {
     private final String parentSelector;
 
@@ -267,7 +269,7 @@ public class ViolationDetailsPage
   }
 
   public static class PolicyViolationSimilarWaiversInfoTile
-          extends BasicElement<PolicyViolationSimilarWaiversInfoTile>
+      extends BasicElement<PolicyViolationSimilarWaiversInfoTile>
   {
     private final String parentSelector;
 
@@ -311,7 +313,7 @@ public class ViolationDetailsPage
   }
 
   public static class PolicyViolationApplicableWaiversTab
-          extends BasicElement<PolicyViolationApplicableWaiversTab>
+      extends BasicElement<PolicyViolationApplicableWaiversTab>
   {
     public PolicyViolationApplicableWaiversTab(String selector) {
       super(selector);
@@ -323,7 +325,7 @@ public class ViolationDetailsPage
   }
 
   public static class PolicyViolationSimilarWaiversTab
-          extends BasicElement<PolicyViolationSimilarWaiversTab>
+      extends BasicElement<PolicyViolationSimilarWaiversTab>
   {
     public PolicyViolationSimilarWaiversTab(String selector) {
       super(selector);

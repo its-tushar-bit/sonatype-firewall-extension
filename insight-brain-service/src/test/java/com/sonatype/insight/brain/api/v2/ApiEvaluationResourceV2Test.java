@@ -87,7 +87,7 @@ public class ApiEvaluationResourceV2Test
 
   @Test
   public void testEvaluateComponents_invalidComponentIdentifier_noCoordinates() throws Exception {
-    String jsonRequest = 
+    String jsonRequest =
         "{\"components\":[{\"hash\":\"h1\",\"componentIdentifier\":{\"format\":\"maven\"},\"proprietary\":false}]}";
     HttpResponse response = restRequest(app.getId()).body(jsonRequest).post();
     assertResponseStatus(400, response);
@@ -279,8 +279,9 @@ public class ApiEvaluationResourceV2Test
     assertEvaluateComponent(packageURLIdentifier.toComponentIdentifier(), component);
   }
 
-  private void assertEvaluateComponent(ComponentIdentifier componentIdentifier, ApiComponentDTOV2 component)
-      throws Exception
+  private void assertEvaluateComponent(
+      ComponentIdentifier componentIdentifier,
+      ApiComponentDTOV2 component) throws Exception
   {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     request.components.add(component);
@@ -340,7 +341,7 @@ public class ApiEvaluationResourceV2Test
     String packageUrl1 = PackageUrlIdentifier.toPackageUrl(componentIdentifier1);
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2");
     String packageUrl2 = PackageUrlIdentifier.toPackageUrl(componentIdentifier2);
-    
+
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
             MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 11),
@@ -502,8 +503,9 @@ public class ApiEvaluationResourceV2Test
   }
 
   private void mockHDSInternalServiceError() {
-    hdsRespondWith("Internal Error").andStatus(500).atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
-        .replace("{purpose: evaluation|integration}", ApiComponentDetailsServiceV2.PURPOSE_EVALUATION));
+    hdsRespondWith("Internal Error").andStatus(500)
+        .atUri(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
+            .replace("{purpose: evaluation|integration}", ApiComponentDetailsServiceV2.PURPOSE_EVALUATION));
   }
 
   @Test
@@ -515,7 +517,9 @@ public class ApiEvaluationResourceV2Test
 
     HttpResponse response = restRequest()
         .path(APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
-        .parameter(app.getId()).body(apiPromoteScanRequestDTOV2).post();
+        .parameter(app.getId())
+        .body(apiPromoteScanRequestDTOV2)
+        .post();
 
     assertResponseStatus(200, response);
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 =
@@ -529,7 +533,9 @@ public class ApiEvaluationResourceV2Test
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     HttpResponse response = restRequest()
         .path(APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
-        .parameter(app.getId()).body(ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE)).post();
+        .parameter(app.getId())
+        .body(ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE))
+        .post();
     assertResponseStatus(200, response);
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 =
         response.getBody(ApiApplicationEvaluationStatusDTOV2.class);
@@ -566,7 +572,8 @@ public class ApiEvaluationResourceV2Test
     HttpResponse response = restRequest() //
         .path(APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.SOURCE_CONTROL_EVALUATION_PATH) //
         .parameter(app.getId()) //
-        .body(apiSourceControlEvaluationRequestDTO).post();
+        .body(apiSourceControlEvaluationRequestDTO)
+        .post();
 
     // the response contains status ID
     assertResponseStatus(200, response);
@@ -611,7 +618,8 @@ public class ApiEvaluationResourceV2Test
     HttpResponse response = restRequest() //
         .path(APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.SOURCE_CONTROL_EVALUATION_PATH) //
         .parameter(app.getId()) //
-        .body(apiSourceControlEvaluationRequestDTO).post();
+        .body(apiSourceControlEvaluationRequestDTO)
+        .post();
 
     // the response contains status ID
     assertResponseStatus(200, response);
@@ -646,8 +654,8 @@ public class ApiEvaluationResourceV2Test
     return componentEvaluationDataList;
   }
 
-  private HttpResponse getComponentEvaluationResult(final ApiComponentEvaluationTicketDTOV2 evaluationResult)
-      throws Exception
+  private HttpResponse getComponentEvaluationResult(
+      final ApiComponentEvaluationTicketDTOV2 evaluationResult) throws Exception
   {
     HttpResponse response = null;
     HttpRequest request = restRequest().path(evaluationResult.resultsUrl);

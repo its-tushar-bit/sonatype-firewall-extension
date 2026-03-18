@@ -62,4 +62,3 @@ public class ConfigUtilTest
     assertThat(configValue).isEqualTo(value);
   }
 }
-

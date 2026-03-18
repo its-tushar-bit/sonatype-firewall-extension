@@ -207,8 +207,8 @@ public class ApiRepositoryIdentifiedComponentService
 
       String clearAll = mergedJobDataMap.getString(TASK_PARAM_CLEAR_ALL);
 
-      //If the parameter TASK_PARAM_CLEAR_ALL exists, it's a request to clear all the cache,
-      //otherwise it's a single request
+      // If the parameter TASK_PARAM_CLEAR_ALL exists, it's a request to clear all the cache,
+      // otherwise it's a single request
       if (StringUtils.isNotBlank(clearAll)) {
         clearAllFromMemory();
       }

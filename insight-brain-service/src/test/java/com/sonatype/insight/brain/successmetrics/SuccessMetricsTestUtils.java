@@ -65,7 +65,7 @@ public class SuccessMetricsTestUtils
   }
 
   /**
-   * Create a PolicyViolation that is resolved one hour after its creation.  It is created on the second day of
+   * Create a PolicyViolation that is resolved one hour after its creation. It is created on the second day of
    * the previous month
    */
   public void createPolicyViolation(Application application, LocalDate today, TemporaryEntity tempEntity) {

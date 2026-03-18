@@ -63,8 +63,7 @@ public class JmxInfoTest
     runtime.put("SystemProperties", new HashSet<>(Arrays.asList(
         new HashMap<>(ImmutableMap.of("key", "dw.some.passWord", "value", "pass1")),
         new HashMap<>(ImmutableMap.of("key", "dw.some.passPhrase", "value", "pass2")),
-        new HashMap<>(ImmutableMap.of("key", "dw.some.other", "value", "other"))
-    )));
+        new HashMap<>(ImmutableMap.of("key", "dw.some.other", "value", "other")))));
     Map<String, SortedMap<String, Object>> entries = new HashMap<>();
     entries.put("java.lang:type=Runtime", runtime);
 

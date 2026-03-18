@@ -17,7 +17,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import static java.util.Objects.requireNonNull;
 
 /**
- * This context class represents all the variables needed to render the pullrequest-component-feedback.ftl Freemarker template.
+ * This context class represents all the variables needed to render the pullrequest-component-feedback.ftl Freemarker
+ * template.
  */
 public class ComponentFeedbackContext
 {
@@ -34,7 +35,7 @@ public class ComponentFeedbackContext
   private final int breakingChangesCount;
 
   private final String suggestedVersion;
-  
+
   private final String suggestedVersionType;
 
   private final boolean hasRemediationForDependencies;
@@ -42,27 +43,28 @@ public class ComponentFeedbackContext
   private final List<SecurityIssue> securityIssues;
 
   private final MDImages dependencyImage;
-  
+
   private final String codeSuggestion;
 
   private final boolean hasSecurityIssues;
 
   private final boolean hasReducedSecurityData;
 
-  public ComponentFeedbackContext(final boolean htmlSupported,
-                                  final ThreatLevelDisplay threatLevelDisplay,
-                                  final String componentDetailLink,
-                                  final String componentDisplayName,
-                                  final SourceControlProvider provider,
-                                  final int breakingChangesCount,
-                                  final String suggestedVersion,
-                                  final String suggestedVersionType,
-                                  final boolean hasRemediationForDependencies,
-                                  final List<SecurityIssue> securityIssues,
-                                  final MDImages dependencyImage,
-                                  final String codeSuggestion,
-                                  final boolean hasSecurityIssues,
-                                  final boolean hasReducedSecurityData)
+  public ComponentFeedbackContext(
+      final boolean htmlSupported,
+      final ThreatLevelDisplay threatLevelDisplay,
+      final String componentDetailLink,
+      final String componentDisplayName,
+      final SourceControlProvider provider,
+      final int breakingChangesCount,
+      final String suggestedVersion,
+      final String suggestedVersionType,
+      final boolean hasRemediationForDependencies,
+      final List<SecurityIssue> securityIssues,
+      final MDImages dependencyImage,
+      final String codeSuggestion,
+      final boolean hasSecurityIssues,
+      final boolean hasReducedSecurityData)
   {
     this.htmlSupported = htmlSupported;
     this.threatLevelDisplay = requireNonNull(threatLevelDisplay);
@@ -108,7 +110,7 @@ public class ComponentFeedbackContext
   public String getSuggestedVersion() {
     return suggestedVersion;
   }
-  
+
   public String getSuggestedVersionType() {
     return suggestedVersionType;
   }
@@ -132,7 +134,7 @@ public class ComponentFeedbackContext
   public MDImages getDependencyImage() {
     return dependencyImage;
   }
-  
+
   public boolean isHasSecurityIssues() {
     return hasSecurityIssues;
   }

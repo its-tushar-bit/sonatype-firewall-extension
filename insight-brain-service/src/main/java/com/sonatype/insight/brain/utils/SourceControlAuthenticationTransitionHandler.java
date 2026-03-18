@@ -39,19 +39,20 @@ public class SourceControlAuthenticationTransitionHandler
    * @param newSourceControl the incoming source control update
    */
   public void handleAuthTransition(
-          final SourceControl storedSourceControl,
-          final SourceControl newSourceControl)
+      final SourceControl storedSourceControl,
+      final SourceControl newSourceControl)
   {
     AuthenticationType oldAuthType = storedSourceControl.getAuthenticationType();
     AuthenticationType newAuthType = newSourceControl.getAuthenticationType();
 
     if (Objects.equals(storedSourceControl.getProvider(), newSourceControl.getProvider())
-            && Objects.equals(oldAuthType, newAuthType)) {
+        && Objects.equals(oldAuthType, newAuthType))
+    {
       return;
     }
 
     log.info("Authentication type changing from {} to {} for owner {}",
-            oldAuthType, newAuthType, storedSourceControl.getOwnerId());
+        oldAuthType, newAuthType, storedSourceControl.getOwnerId());
 
     if (AuthenticationType.PAT.equals(oldAuthType) && AuthenticationType.GITHUB_APP.equals(newAuthType)) {
       clearPatToken(newSourceControl);
@@ -67,11 +68,12 @@ public class SourceControlAuthenticationTransitionHandler
   }
 
   /**
-  * Delegates GitHub App deletion to provider-specific service.
-  */
+   * Delegates GitHub App deletion to provider-specific service.
+   */
   public void deleteGitHubAppInstallation(final SourceControl storedSourceControl) {
-    if (!SourceControlProvider.GITHUB.equals(storedSourceControl.getProvider() )
-            || !AuthenticationType.GITHUB_APP.equals(storedSourceControl.getAuthenticationType())) {
+    if (!SourceControlProvider.GITHUB.equals(storedSourceControl.getProvider())
+        || !AuthenticationType.GITHUB_APP.equals(storedSourceControl.getAuthenticationType()))
+    {
       log.debug("Provider {} does not require app deletion", storedSourceControl.getProvider());
       return;
     }

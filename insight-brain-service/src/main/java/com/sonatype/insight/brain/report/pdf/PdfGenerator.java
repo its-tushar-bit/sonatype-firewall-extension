@@ -100,16 +100,14 @@ public class PdfGenerator
   // Visible for testing
   static final PDRectangle MEDIA_BOX_SIZE = new PDRectangle(
       Math.min(PDRectangle.A4.getWidth(), PDRectangle.LETTER.getWidth()),
-      Math.min(PDRectangle.A4.getHeight(), PDRectangle.LETTER.getHeight())
-  );
+      Math.min(PDRectangle.A4.getHeight(), PDRectangle.LETTER.getHeight()));
 
   // Note the CropBox defines, in user space units, the visible region the page should be cropped to for display/print
   // Take off at least 1/2 an inch from all sides as a safe bet for printer margins
   // Visible for testing
   static final PDRectangle CROP_BOX_SIZE = new PDRectangle(
       MEDIA_BOX_SIZE.getWidth() - USER_SPACE_UNITS_PER_INCH,
-      MEDIA_BOX_SIZE.getHeight() - USER_SPACE_UNITS_PER_INCH
-  );
+      MEDIA_BOX_SIZE.getHeight() - USER_SPACE_UNITS_PER_INCH);
 
   static final String DATE_FORMAT_STRING = "EEE MMM dd yyyy 'at' HH:mm:ss 'UTC' Z";
 
@@ -374,8 +372,10 @@ public class PdfGenerator
         float legacyViolationsCountStartX = legacyViolationsSymbolStartX +
             legacyViolationsFontStyle.getStringWidth(String.valueOf(LEGACY_VIOLATIONS_SYMBOL)) + PADDING;
         float legacyViolationsCountStartY = violationsTextStartY - 4;
-        long legacyViolations = pdfData.components.stream().flatMap(component -> component.policyViolations.stream())
-            .filter(violation -> violation.legacyViolation).count();
+        long legacyViolations = pdfData.components.stream()
+            .flatMap(component -> component.policyViolations.stream())
+            .filter(violation -> violation.legacyViolation)
+            .count();
 
         String legacyViolationsText = legacyViolations + " LEGACY VIOLATIONS";
         if (legacyViolations == 1) {
@@ -435,7 +435,8 @@ public class PdfGenerator
           new TextCellBuilder(String.valueOf(policyViolationsTableRow.threatLevel),
               t -> cellBuilder(t)
                   .font(threatLevelFontStyle.getFont())
-                  .fontSize((int) threatLevelFontStyle.getFontSize()).textColor(threatLevelFontStyle.getFontColor())),
+                  .fontSize((int) threatLevelFontStyle.getFontSize())
+                  .textColor(threatLevelFontStyle.getFontColor())),
           new TextCellBuilder(policyViolationsTableRow.policyName, this::cellBuilder),
           new TextCellBuilder(policyViolationsTableRow.policyType, this::cellBuilder),
           new TextCellBuilder(policyViolationsTableRow.waived ? "Yes" : "No", this::cellBuilder),
@@ -457,8 +458,10 @@ public class PdfGenerator
         PolicyViolationsTableRow policyViolationsTableRow = new PolicyViolationsTableRow();
         policyViolationsTableRow.threatLevel = violation.policyThreatLevel;
         policyViolationsTableRow.policyName = violation.policyName;
-        policyViolationsTableRow.policyType = violation.policyThreatCategory == null ? "" : StringUtils
-            .capitalize(violation.policyThreatCategory.toLowerCase(Locale.ROOT));
+        policyViolationsTableRow.policyType = violation.policyThreatCategory == null
+            ? ""
+            : StringUtils
+                .capitalize(violation.policyThreatCategory.toLowerCase(Locale.ROOT));
         policyViolationsTableRow.waived = violation.waived;
         policyViolationsTableRow.componentName = component.displayName;
         policyViolationsTableRows.add(policyViolationsTableRow);
@@ -601,7 +604,7 @@ public class PdfGenerator
       return createLicensesTableForSbom(page);
     }
 
-    //for Lifecycle
+    // for Lifecycle
     float threatLevelColorWidthPercent = 1;
     float threatLevelWidthPercent = 9;
     float effectiveLicenseWidthPercent = 16;
@@ -611,13 +614,14 @@ public class PdfGenerator
 
     float tableWidthOnePercent = (page.getCropBox().getWidth() - 2 * MARGIN) / 100;
     TableBuilder tableBuilder =
-        Table.builder().addColumnsOfWidth(
-            tableWidthOnePercent * threatLevelColorWidthPercent,
-            tableWidthOnePercent * threatLevelWidthPercent,
-            tableWidthOnePercent * effectiveLicenseWidthPercent,
-            tableWidthOnePercent * declaredLicenseWidthPercent,
-            tableWidthOnePercent * observedLicenseWidthPercent,
-            tableWidthOnePercent * componentWidthPercent);
+        Table.builder()
+            .addColumnsOfWidth(
+                tableWidthOnePercent * threatLevelColorWidthPercent,
+                tableWidthOnePercent * threatLevelWidthPercent,
+                tableWidthOnePercent * effectiveLicenseWidthPercent,
+                tableWidthOnePercent * declaredLicenseWidthPercent,
+                tableWidthOnePercent * observedLicenseWidthPercent,
+                tableWidthOnePercent * componentWidthPercent);
 
     // Add licenses table headers
     tableBuilder.addRow(Row.builder()
@@ -638,7 +642,8 @@ public class PdfGenerator
           new TextCellBuilder(String.valueOf(licensesTableRow.threatLevel),
               t -> cellBuilder(t)
                   .font(threatLevelFontStyle.getFont())
-                  .fontSize((int) threatLevelFontStyle.getFontSize()).textColor(threatLevelFontStyle.getFontColor())),
+                  .fontSize((int) threatLevelFontStyle.getFontSize())
+                  .textColor(threatLevelFontStyle.getFontColor())),
           new TextCellBuilder("",
               t -> buildLicensesCell(licensesTableRow.effectiveLicenses, licensesTableRow.overridden)),
           new TextCellBuilder("", t -> buildLicensesCell(licensesTableRow.declaredLicenses, false)),
@@ -657,11 +662,12 @@ public class PdfGenerator
 
     float tableWidthOnePercent = (page.getCropBox().getWidth() - 2 * MARGIN) / 100;
     TableBuilder tableBuilder =
-        Table.builder().addColumnsOfWidth(
-            tableWidthOnePercent * threatLevelColorWidthPercent,
-            tableWidthOnePercent * threatLevelWidthPercent,
-            tableWidthOnePercent * licensesWidthPercent,
-            tableWidthOnePercent * componentWidthPercent);
+        Table.builder()
+            .addColumnsOfWidth(
+                tableWidthOnePercent * threatLevelColorWidthPercent,
+                tableWidthOnePercent * threatLevelWidthPercent,
+                tableWidthOnePercent * licensesWidthPercent,
+                tableWidthOnePercent * componentWidthPercent);
 
     // Add licenses table headers
     tableBuilder.addRow(Row.builder()
@@ -680,7 +686,8 @@ public class PdfGenerator
           new TextCellBuilder(String.valueOf(licensesTableRow.threatLevel),
               t -> cellBuilder(t)
                   .font(threatLevelFontStyle.getFont())
-                  .fontSize((int) threatLevelFontStyle.getFontSize()).textColor(threatLevelFontStyle.getFontColor())),
+                  .fontSize((int) threatLevelFontStyle.getFontSize())
+                  .textColor(threatLevelFontStyle.getFontColor())),
           new TextCellBuilder("",
               t -> buildLicensesCell(licensesTableRow.effectiveLicenses, licensesTableRow.overridden)),
           new TextCellBuilder(licensesTableRow.componentName, this::cellBuilder));
@@ -719,7 +726,8 @@ public class PdfGenerator
     List<LicensesTableRow> licensesTableRows = new ArrayList<>();
     for (PdfComponent component : pdfData.components) {
       if (CollectionUtils.isEmpty(component.effectiveLicenses) && CollectionUtils.isEmpty(component.declaredLicenses) &&
-          CollectionUtils.isEmpty(component.observedLicenses)) {
+          CollectionUtils.isEmpty(component.observedLicenses))
+      {
         continue;
       }
       LicensesTableRow licensesTableRow = new LicensesTableRow();
@@ -761,9 +769,11 @@ public class PdfGenerator
 
       // Add components summary
       int totalComponents = pdfData.components.size();
-      int totalMatched = (int) pdfData.components.stream().filter(
-          component -> MatchState.EXACT.getName().equalsIgnoreCase(component.matchState) ||
-              MatchState.SIMILAR.getName().equalsIgnoreCase(component.matchState)).count();
+      int totalMatched = (int) pdfData.components.stream()
+          .filter(
+              component -> MatchState.EXACT.getName().equalsIgnoreCase(component.matchState) ||
+                  MatchState.SIMILAR.getName().equalsIgnoreCase(component.matchState))
+          .count();
       long componentPercentIdentified = Math.round(100.0d * totalMatched / totalComponents);
       float donutChartStartX = MARGIN;
       float donutChartStartY = titleAndDatesStartY - DONUT_CHART_SIZE - dateDescriptorFontStyle.getFontDescent()
@@ -831,8 +841,7 @@ public class PdfGenerator
         pdfData.sbomMetadata.specification,
         pdfData.sbomMetadata.specVersion,
         pdfData.sbomMetadata.fileFormat,
-        pdfData.sbomMetadata.originalFile
-    );
+        pdfData.sbomMetadata.originalFile);
     labelsToUse = SBOM_METADATA_CDX_LABELS;
     return addSbomMetadataSectionToPdf(labelsToUse, contentStream, pageRec, startX, startY, values);
   }
@@ -850,14 +859,14 @@ public class PdfGenerator
         getSbomMetadataListValuesJoinedOrDefault(pdfData.sbomMetadata.organization),
         pdfData.sbomMetadata.specification,
         pdfData.sbomMetadata.specVersion,
-        pdfData.sbomMetadata.fileFormat
-    );
+        pdfData.sbomMetadata.fileFormat);
     labelsToUse = SBOM_METADATA_SPDX_LABELS;
     return addSbomMetadataSectionToPdf(labelsToUse, contentStream, pageRec, startX, startY, values);
   }
 
   private float addSbomMetadataSectionToPdf(
-      List<String> labelsToUse, final PDPageContentStream contentStream,
+      List<String> labelsToUse,
+      final PDPageContentStream contentStream,
       final PDRectangle pageRec,
       final int startX,
       float startY,
@@ -961,8 +970,10 @@ public class PdfGenerator
     }
   }
 
-  private void addProductVersion(PDPageContentStream contentStream, PDRectangle pageRec, float startY)
-      throws IOException
+  private void addProductVersion(
+      PDPageContentStream contentStream,
+      PDRectangle pageRec,
+      float startY) throws IOException
   {
     String versionLabel = "IQ Server release: ";
     float versionStartX = pageRec.getUpperRightX() - MARGIN - dateFontStyle.getStringWidth(pdfData.productVersion);
@@ -996,7 +1007,8 @@ public class PdfGenerator
 
   // Visible for testing
   long countPolicyViolations(int minThreatLevel, int maxThreatLevel) {
-    return pdfData.components.stream().flatMap(component -> component.policyViolations.stream())
+    return pdfData.components.stream()
+        .flatMap(component -> component.policyViolations.stream())
         .filter(isNotLegacyViolation)
         .filter(violation -> violation.policyThreatLevel >= minThreatLevel
             && violation.policyThreatLevel <= maxThreatLevel)
@@ -1005,8 +1017,10 @@ public class PdfGenerator
 
   // Visible for testing
   long countAffectedComponents() {
-    return pdfData.components.stream().filter(component -> component.policyViolations.stream()
-        .anyMatch(violation -> isNotLegacyViolation.test(violation) && violation.policyThreatLevel >= 2)).count();
+    return pdfData.components.stream()
+        .filter(component -> component.policyViolations.stream()
+            .anyMatch(violation -> isNotLegacyViolation.test(violation) && violation.policyThreatLevel >= 2))
+        .count();
   }
 
   private TableDrawer createTableDrawer(PDPageContentStream contentStream, float tableStartY, Table table) {
@@ -1033,9 +1047,10 @@ public class PdfGenerator
         .drawer(new TextCellDrawer<TextCell>()
         {
           @Override
-          protected void drawText(DrawingContext drawingContext, PositionedStyledText positionedStyledText)
-              throws IOException
-          {
+          protected void drawText(
+              DrawingContext drawingContext,
+              PositionedStyledText positionedStyledText) throws IOException
+        {
             addText(drawingContext.getContentStream(), positionedStyledText.getX(), positionedStyledText.getY(),
                 tableRowHeaderFontStyle, positionedStyledText.getText());
           }
@@ -1057,9 +1072,10 @@ public class PdfGenerator
         .drawer(new TextCellDrawer<TextCell>()
         {
           @Override
-          protected void drawText(DrawingContext drawingContext, PositionedStyledText positionedStyledText)
-              throws IOException
-          {
+          protected void drawText(
+              DrawingContext drawingContext,
+              PositionedStyledText positionedStyledText) throws IOException
+        {
             addText(drawingContext.getContentStream(), positionedStyledText.getX(), positionedStyledText.getY(),
                 tableRowFontStyle, positionedStyledText.getText());
           }
@@ -1071,7 +1087,8 @@ public class PdfGenerator
         .settings(Settings.builder()
             .font(tableRowFontStyle.getFont())
             .fontSize((int) tableRowFontStyle.getFontSize())
-            .textColor(tableRowFontStyle.getFontColor()).build())
+            .textColor(tableRowFontStyle.getFontColor())
+            .build())
         .borderWidthBottom(CELL_BORDER_WIDTH)
         .horizontalAlignment(HorizontalAlignment.LEFT)
         .verticalAlignment(VerticalAlignment.TOP)
@@ -1148,8 +1165,10 @@ public class PdfGenerator
     if (CollectionUtils.isEmpty(licenseThreats)) {
       return 0;
     }
-    return licenseThreats.stream().map(licenseThreat -> licenseThreat.licenseThreatGroupLevel)
-        .max(Integer::compareTo).orElse(0);
+    return licenseThreats.stream()
+        .map(licenseThreat -> licenseThreat.licenseThreatGroupLevel)
+        .max(Integer::compareTo)
+        .orElse(0);
   }
 
   /**
@@ -1174,8 +1193,10 @@ public class PdfGenerator
     private final Pattern breakPattern = Pattern.compile("[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF]([\\,/])");
 
     @Override
-    protected Pair<String> breakWordSoft(String word, FontDescriptor fontDescriptor, float maxWidth)
-        throws IOException
+    protected Pair<String> breakWordSoft(
+        String word,
+        FontDescriptor fontDescriptor,
+        float maxWidth) throws IOException
     {
       Matcher matcher = breakPattern.matcher(word);
       int breakIndex = -1;
@@ -1184,7 +1205,8 @@ public class PdfGenerator
         int currentIndex = matcher.end();
         if (currentIndex < word.length() - 1) {
           if (TextSequenceUtil.getStringWidth(word.substring(0, currentIndex),
-              fontDescriptor) < maxWidth) {
+              fontDescriptor) < maxWidth)
+          {
             breakIndex = currentIndex;
           }
           else {
@@ -1200,8 +1222,10 @@ public class PdfGenerator
     }
 
     @Override
-    protected Pair<String> breakWordHard(String word, FontDescriptor fontDescriptor, float maxWidth)
-        throws IOException
+    protected Pair<String> breakWordHard(
+        String word,
+        FontDescriptor fontDescriptor,
+        float maxWidth) throws IOException
     {
       int cutIndex = (int) (maxWidth / TextSequenceUtil.getEmWidth(fontDescriptor));
       float currentWidth = TextSequenceUtil.getStringWidth(word.substring(0, cutIndex), fontDescriptor);

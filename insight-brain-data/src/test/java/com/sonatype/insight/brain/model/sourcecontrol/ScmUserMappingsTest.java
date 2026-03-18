@@ -21,7 +21,8 @@ public class ScmUserMappingsTest
   public void testGetMappings() {
     List<Entry<String, String>> mappings = getRandomMappings();
     ScmUserMappings scmUserMappings = new ScmUserMappingsBuilder()
-            .withMappings(mappings).build();
+        .withMappings(mappings)
+        .build();
 
     assertThat(scmUserMappings.getMappings()).containsExactlyInAnyOrderElementsOf(mappings);
   }
@@ -30,7 +31,8 @@ public class ScmUserMappingsTest
   public void testGetMappingsAsJson() {
     List<Entry<String, String>> mappings = getRandomMappings();
     ScmUserMappings scmUserMappings = new ScmUserMappingsBuilder()
-            .withMappings(mappings).build();
+        .withMappings(mappings)
+        .build();
 
     assertThat(scmUserMappings.getMappingsJson()).isEqualTo(JsonUtils.format(mappings));
   }

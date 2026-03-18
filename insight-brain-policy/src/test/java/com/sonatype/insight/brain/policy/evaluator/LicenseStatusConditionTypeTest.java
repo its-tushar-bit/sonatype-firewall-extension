@@ -65,8 +65,15 @@ public class LicenseStatusConditionTypeTest
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseStatusConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("License status was Open");
   }
 
@@ -100,8 +107,15 @@ public class LicenseStatusConditionTypeTest
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseStatusConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("License status was Confirmed, not Open");
   }
 
@@ -110,6 +124,7 @@ public class LicenseStatusConditionTypeTest
     Condition condition = new Condition(LicenseStatusConditionType.ID, "is", "abc");
     assertThatThrownBy(
         () -> new LicenseStatusConditionType().validateCondition(null, condition, null /* applicationId */))
-        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
+            .isInstanceOf(InvalidConditionException.class)
+            .hasMessageEndingWith("Value not supported: abc");
   }
 }

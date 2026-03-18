@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Verifies that the process can access the databases using existing/pooled connections.
- * 
+ *
  * Usage: curl -u admin:admin123 http://localhost:8071/healthcheck?pretty=true
  *
  * @since 1.66

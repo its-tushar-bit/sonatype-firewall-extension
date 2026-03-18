@@ -97,7 +97,7 @@ public class UserManagementPage
   public static class EditUserForm
       extends BasicElement<EditUserForm>
   {
-    EditUserForm(final String ...selectors) {
+    EditUserForm(final String... selectors) {
       super(selectors);
     }
 

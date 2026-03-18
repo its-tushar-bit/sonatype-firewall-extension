@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Generates Drools code for all policies.
- * 
+ *
  * @since 1.12
  */
 @Named

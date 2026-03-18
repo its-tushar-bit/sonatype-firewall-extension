@@ -37,16 +37,18 @@ public class ThirdPartyScanResultUtils
   public static final int REFID_MAX_LENGTH = 255;
 
   public static final int THIRD_PARTY_IDENTIFICATION_SOURCE_MAX_LENGTH = 20;
-  
+
   public static final int PURL_MAX_LENGTH = 1000;
 
   private static final Pattern VULNERABILITY_REF_SOURCE_PATTERN = Pattern.compile("^([a-zA-Z]*)-?(.*)$");
 
   /**
    * Returns the vulnerability source based on the vulnerability reference.
-   * <p>Usually, the alphanumeric prefix of a vulnerability reference is considered the source
+   * <p>
+   * Usually, the alphanumeric prefix of a vulnerability reference is considered the source
    * (e.g. CVE for CVE-2014-1113) so will pick that if available.
-   * Otherwise returns the first few (up to 10) characters </p>
+   * Otherwise returns the first few (up to 10) characters
+   * </p>
    *
    * @return the <b>source</b> based on this reference or <b>null</b> if could not be determined
    */
@@ -68,7 +70,7 @@ public class ThirdPartyScanResultUtils
     final String sha1 = HashUtils.hash(plainText, HashUtils.SHA1);
     return sha1.substring(0, Math.min(sha1.length(), 20));
   }
- 
+
   public static String getValidFormat(String format) {
     String newFormat = StringUtils.truncate(format, FORMAT_MAX_LENGTH);
     return newFormat.replace(':', '-');
@@ -121,7 +123,8 @@ public class ThirdPartyScanResultUtils
   public static String getResearchTypeForThirdPartyVulnerability(String vulnerabilitySource, String refId) {
     if (vulnerabilitySource != null) {
       if (vulnerabilitySource.equalsIgnoreCase("NVD") ||
-          vulnerabilitySource.equalsIgnoreCase(SecurityVulnerabilitySource.NATIONAL_VULNERABILITY_DATABASE.getName())) {
+          vulnerabilitySource.equalsIgnoreCase(SecurityVulnerabilitySource.NATIONAL_VULNERABILITY_DATABASE.getName()))
+      {
         return SecurityVulnerabilityResearchType.PUBLIC_RESEARCH.name();
       }
       return SecurityVulnerabilityResearchType.VENDOR_RESEARCH.name();

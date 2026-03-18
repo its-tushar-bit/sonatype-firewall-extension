@@ -42,9 +42,9 @@ public abstract class BasePullRequestPolicyEvaluationResolver
   /**
    * If multiple policy evaluations exist for the same commit hash, we prefer them in the following order:
    * <ul>
-   *   <li>the BUILD stage evaluation, if one exists, or</li>
-   *   <li>the SOURCE stage evaluation, if one exists, or</li>
-   *   <li>the default evaluation (passed as a parameter).</li>
+   * <li>the BUILD stage evaluation, if one exists, or</li>
+   * <li>the SOURCE stage evaluation, if one exists, or</li>
+   * <li>the default evaluation (passed as a parameter).</li>
    * </ul>
    */
   protected PolicyEvaluation resolveForPreferredStages(PolicyEvaluation defaultPolicyEvaluation) {
@@ -69,7 +69,8 @@ public abstract class BasePullRequestPolicyEvaluationResolver
               policyEvaluation.getCommitHash(),
               stageTypeId);
       if (policyEvaluationCandidate != null &&
-          policyEvaluationCandidate.wasInternallyTriggered() == policyEvaluation.wasInternallyTriggered()) {
+          policyEvaluationCandidate.wasInternallyTriggered() == policyEvaluation.wasInternallyTriggered())
+      {
         return policyEvaluationCandidate;
       }
       return null;

@@ -209,7 +209,8 @@ public class QuarantineComponentReportTest
     ComponentDependenciesDTO componentDependenciesDTO = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
 
     try {
-      testCLMServer.getHdsServer().respondWith(mainComponentDetail)
+      testCLMServer.getHdsServer()
+          .respondWith(mainComponentDetail)
           .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
               + URLEncoder.encode(JsonUtils.format(mainComponentDetail.getComponentIdentifier()), "UTF-8")
               + "&hash=" + mainComponentDetail.getHash());
@@ -325,7 +326,8 @@ public class QuarantineComponentReportTest
       quarantinedComponentAccess =
           tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
     }
-    return Base64.getUrlEncoder().withoutPadding()
+    return Base64.getUrlEncoder()
+        .withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
   }
 
@@ -374,8 +376,10 @@ public class QuarantineComponentReportTest
   }
 
   private ConstraintFact createConstraintFact(
-      String constraintId, String constraintName,
-      String summary, String reason)
+      String constraintId,
+      String constraintName,
+      String summary,
+      String reason)
   {
     com.sonatype.insight.brain.model.policy.Condition condition =
         new com.sonatype.insight.brain.model.policy.Condition(MatchStateConditionType.ID, "is",
@@ -442,7 +446,8 @@ public class QuarantineComponentReportTest
         tempEntity
             .newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), date);
 
-    String encodedToken = Base64.getUrlEncoder().withoutPadding()
+    String encodedToken = Base64.getUrlEncoder()
+        .withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
@@ -499,8 +504,9 @@ public class QuarantineComponentReportTest
 
     RiskRemediationTile.RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
     recommendation.shouldBe(visible);
-    recommendation.text().shouldHave(
-        text("There are no suggested versions for this component"));
+    recommendation.text()
+        .shouldHave(
+            text("There are no suggested versions for this component"));
   }
 
   @Test
@@ -630,12 +636,14 @@ public class QuarantineComponentReportTest
     licenseViolationCells.get(0).shouldHave(text("5"));
     licenseViolationCells.get(1).shouldHave(text("LicensePolicy"));
 
-    ElementsCollection qualityPopularityViolationCells = policyViolationsTable.getRows().get(3)
+    ElementsCollection qualityPopularityViolationCells = policyViolationsTable.getRows()
+        .get(3)
         .findAll(By.tagName("td"));
     qualityPopularityViolationCells.get(0).shouldHave(text("4"));
     qualityPopularityViolationCells.get(1).shouldHave(text("QualityPolicyRelativePopularity"));
 
-    ElementsCollection qualityAgeInDaysViolationCells = policyViolationsTable.getRows().get(4)
+    ElementsCollection qualityAgeInDaysViolationCells = policyViolationsTable.getRows()
+        .get(4)
         .findAll(By.tagName("td"));
     qualityAgeInDaysViolationCells.get(0).shouldHave(text("2"));
     qualityAgeInDaysViolationCells.get(1).shouldHave(text("QualityPolicyAgeInDays"));
@@ -664,7 +672,9 @@ public class QuarantineComponentReportTest
 
     OtherVersionsTable otherVersionsTable = quarantineReportPage.getOtherVersionsTable();
     otherVersionsTable.getRows().shouldHave(size(1));
-    otherVersionsTable.getRow(1).findAll(By.tagName("td")).get(0)
+    otherVersionsTable.getRow(1)
+        .findAll(By.tagName("td"))
+        .get(0)
         .shouldHave(text("com.lingocoder : abi.cli : 0.5.3"));
   }
 
@@ -691,11 +701,17 @@ public class QuarantineComponentReportTest
 
     OtherVersionsTable otherVersionsTable = quarantineReportPage.getOtherVersionsTable();
     otherVersionsTable.getRows().shouldHave(size(3));
-    otherVersionsTable.getRow(1).findAll(By.tagName("td")).get(0)
+    otherVersionsTable.getRow(1)
+        .findAll(By.tagName("td"))
+        .get(0)
         .shouldHave(text("com.lingocoder : abi.cli : 0.5.5"));
-    otherVersionsTable.getRow(2).findAll(By.tagName("td")).get(0)
+    otherVersionsTable.getRow(2)
+        .findAll(By.tagName("td"))
+        .get(0)
         .shouldHave(text("com.lingocoder : abi.cli : 0.5.4"));
-    otherVersionsTable.getRow(3).findAll(By.tagName("td")).get(0)
+    otherVersionsTable.getRow(3)
+        .findAll(By.tagName("td"))
+        .get(0)
         .shouldHave(text("com.lingocoder : abi.cli : 0.5.3"));
   }
 
@@ -732,7 +748,8 @@ public class QuarantineComponentReportTest
     String newTab = null;
     try {
       quarantineReportPage.getQuarantineReportComponentOverviewTileRepositoryLink().shouldBe(visible).click();
-      newTab = driver.getWindowHandles().stream()
+      newTab = driver.getWindowHandles()
+          .stream()
           .filter(windowHandle -> !oldTab.equals(windowHandle))
           .findFirst()
           .orElse(null);

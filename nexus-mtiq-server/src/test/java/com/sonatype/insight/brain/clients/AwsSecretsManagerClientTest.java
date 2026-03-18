@@ -57,7 +57,7 @@ public class AwsSecretsManagerClientTest
         .thenThrow(SecretsManagerException.builder().build());
 
     testAsNewTenant(t1 -> {
-      Exception exception =  assertThrows(RuntimeException.class, () -> underTest.getSecret(expectedKeyName));
+      Exception exception = assertThrows(RuntimeException.class, () -> underTest.getSecret(expectedKeyName));
       String actualMessage = exception.getMessage();
       assertTrue(
           actualMessage.contains(String.format("Unable to get secret %s from AWS secrets manager.", expectedKeyName)));

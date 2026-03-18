@@ -203,7 +203,7 @@ public class RepositoryComponentTelemetryCreatorTest
 
     assertThat(telemetry.getComponentIdentifier()).isNotNull().contains("npm").contains("lodash");
     assertThat(telemetry.getComponentName()).isEqualTo("lodash");
-    assertThat(telemetry.getComponentNamespace()).isNull();  // npm packages may not have namespace
+    assertThat(telemetry.getComponentNamespace()).isNull(); // npm packages may not have namespace
     assertThat(telemetry.getComponentVersion()).isEqualTo("4.17.21");
   }
 
@@ -230,7 +230,7 @@ public class RepositoryComponentTelemetryCreatorTest
 
     assertThat(telemetry.getComponentIdentifier()).isNotNull().contains("pypi").contains("tornado");
     assertThat(telemetry.getComponentName()).isEqualTo("tornado");
-    assertThat(telemetry.getComponentNamespace()).isNull();  // pypi packages typically don't have namespace
+    assertThat(telemetry.getComponentNamespace()).isNull(); // pypi packages typically don't have namespace
     assertThat(telemetry.getComponentVersion()).isEqualTo("6.1");
   }
 

@@ -104,42 +104,40 @@ public class ApiSourceControlResource
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains source control configuration settings for the specified ownerId." +
-                  "\n" +
-                  "\n" +
-                  "<ul>" +
-                  "<li><code>id</code> is the owner internal ID.</li>" +
-                  "<li><code>repositoryUrl</code> indicates the http(s) and ssh urls for the application " +
-                  "specified in the ownerId.</li>" +
-                  "<li><code>username</code> is retrieved if available on the SCM system, e.g. for Bitbucket Server " +
-                  "and Cloud.</li>" +
-                  "<li><code>provider</code> indicates the name of the SCM system.</li>" +
-                  "<li><code>baseBranch</code> indicates the name of the last selected branch.</li>" +
-                  "<li><code>enablePullRequests</code> has been deprecated in version 124.</li>" +
-                  "<li><code>remediationPullRequestsEnabled</code> indicates if the Automated Pull Requests " +
-                  "feature is enabled.</li>" +
-                  "<li><code>enableStatusChecks</code> has been deprecated in version 124.</li>" +
-                  "<li><code>statusChecksEnabled</code> is an internal field.</li>" +
-                  "<li><code>pullRequestCommentingEnabled</code> indicates if the Pull Request Commenting feature is " +
-                  "enabled.</li>" +
-                  "<li><code>sourceControlEvaluationsEnabled</code> indicates if the source control evaluations are " +
-                  "enabled for the continuous risk profile feature.</li>" +
-                  "<li><code>sourceControlScanTarget</code> indicates the path inside the repository.</li>" +
-                  "<li><code>sshEnabled</code> indicates if ssh is enabled.</li>" +
-                  "<li><code>commitStatusEnabled</code> indicates if interaction with the commit statuses " +
-                  "on the SCM system is enabled.</li>" +
-                  "</ul>",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains source control configuration settings for the specified ownerId." +
+                "\n" +
+                "\n" +
+                "<ul>" +
+                "<li><code>id</code> is the owner internal ID.</li>" +
+                "<li><code>repositoryUrl</code> indicates the http(s) and ssh urls for the application " +
+                "specified in the ownerId.</li>" +
+                "<li><code>username</code> is retrieved if available on the SCM system, e.g. for Bitbucket Server " +
+                "and Cloud.</li>" +
+                "<li><code>provider</code> indicates the name of the SCM system.</li>" +
+                "<li><code>baseBranch</code> indicates the name of the last selected branch.</li>" +
+                "<li><code>enablePullRequests</code> has been deprecated in version 124.</li>" +
+                "<li><code>remediationPullRequestsEnabled</code> indicates if the Automated Pull Requests " +
+                "feature is enabled.</li>" +
+                "<li><code>enableStatusChecks</code> has been deprecated in version 124.</li>" +
+                "<li><code>statusChecksEnabled</code> is an internal field.</li>" +
+                "<li><code>pullRequestCommentingEnabled</code> indicates if the Pull Request Commenting feature is " +
+                "enabled.</li>" +
+                "<li><code>sourceControlEvaluationsEnabled</code> indicates if the source control evaluations are " +
+                "enabled for the continuous risk profile feature.</li>" +
+                "<li><code>sourceControlScanTarget</code> indicates the path inside the repository.</li>" +
+                "<li><code>sshEnabled</code> indicates if ssh is enabled.</li>" +
+                "<li><code>commitStatusEnabled</code> indicates if interaction with the commit statuses " +
+                "on the SCM system is enabled.</li>" +
+                "</ul>",
+            useReturnTypeSchema = true)
       })
   public ApiSourceControlDTO getSourceControl(
-      @Parameter(description = "Enter the value for ownerType.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the value for ownerType.",
+          required = true) @PathParam("ownerType") OwnerType ownerType,
       @Parameter(description = "Enter the value for internal ownerId. Use ROOT_ORGANIZATION_ID for the root " +
-          "organization")
-      @PathParam("internalOwnerId") String internalOwnerId)
+          "organization") @PathParam("internalOwnerId") String internalOwnerId)
   {
     return sourceControlService.getSourceControlByOwner(ownerType, internalOwnerId);
   }
@@ -155,18 +153,16 @@ public class ApiSourceControlResource
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The Source Control Management (SCM) settings have been created successfully.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The Source Control Management (SCM) settings have been created successfully.",
+            useReturnTypeSchema = true)
       })
   public ApiSourceControlDTO addSourceControl(
-      @Parameter(description = "Enter the value for ownerType.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the value for ownerType.",
+          required = true) @PathParam("ownerType") OwnerType ownerType,
       @Parameter(description = "Enter the value for internal ownerId. Use ROOT_ORGANIZATION_ID for root " +
-          "organization.", required = true)
-      @PathParam("internalOwnerId") String internalOwnerId,
+          "organization.", required = true) @PathParam("internalOwnerId") String internalOwnerId,
       @RequestBody(
           description = "Specify the SCM settings for the ownerId specified above in the request JSON." +
               "<ul>" +
@@ -193,9 +189,7 @@ public class ApiSourceControlResource
               "<li><code>sshEnabled</code> is set to `true` to enable ssh.</li>" +
               "<li><code>commitStatusEnabled</code> is set to `true` if interaction with the commit statuses" +
               " on the SCM is enabled.</li>" +
-              "</ul>"
-      )
-      ApiSourceControlDTO sourceControl)
+              "</ul>") ApiSourceControlDTO sourceControl)
   {
     return sourceControlService.addSourceControlByOwner(ownerType, internalOwnerId, sourceControl);
   }
@@ -211,18 +205,16 @@ public class ApiSourceControlResource
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The SCM settings have been updated successfully. The JSON returned shows the " +
-                  "updated values.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The SCM settings have been updated successfully. The JSON returned shows the " +
+                "updated values.",
+            useReturnTypeSchema = true)
       })
   public ApiSourceControlDTO updateSourceControl(
-      @Parameter(description = "Enter the value for ownerType.")
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the internal ownerId. Use ROOT_ORGANIZATION_ID for the root organization.")
-      @PathParam("internalOwnerId") String internalOwnerId,
+      @Parameter(description = "Enter the value for ownerType.") @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(
+          description = "Enter the internal ownerId. Use ROOT_ORGANIZATION_ID for the root organization.") @PathParam("internalOwnerId") String internalOwnerId,
       @RequestBody(
           description = "Specify the SCM settings for the ownerId specified above in the request JSON." +
               "<ul>" +
@@ -249,9 +241,7 @@ public class ApiSourceControlResource
               "<li><code>sshEnabled</code> is set to `true` to enable ssh.</li>" +
               "<li><code>commitStatusEnabled</code> is set to `true` if interaction with the commit statuses" +
               " on the SCM is enabled.</li>" +
-              "</ul>"
-      )
-      ApiSourceControlDTO sourceControl)
+              "</ul>") ApiSourceControlDTO sourceControl)
   {
     return sourceControlService.updateSourceControlByOwner(ownerType, internalOwnerId, sourceControl);
   }
@@ -265,15 +255,14 @@ public class ApiSourceControlResource
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "The SCM setting for the specified ownerType/ownerId has been successfully deleted.")
-      }
-  )
+        @ApiResponse(responseCode = "204",
+            description = "The SCM setting for the specified ownerType/ownerId has been successfully deleted.")
+      })
   public void deleteSourceControl(
-      @Parameter(description = "Enter the value for ownerType.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the value for internal ownerId.", required = true)
-      @PathParam("internalOwnerId") String internalOwnerId)
+      @Parameter(description = "Enter the value for ownerType.",
+          required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the value for internal ownerId.",
+          required = true) @PathParam("internalOwnerId") String internalOwnerId)
   {
     sourceControlService.deleteSourceControlByOwner(ownerType, internalOwnerId);
   }
@@ -312,21 +301,20 @@ public class ApiSourceControlResource
       "\n" +
       "Permissions required: Edit access control on the application.",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description =
-                  "The 'developer' role has automatically been assigned to all contributors of the repository, who " +
-                      "matched IQ Server users via the provided matching strategies." +
-                      "\n" +
-                      "\n" +
-                      "The response contains all usernames that were successfully granted the role provided " +
-                      "on the given application as well as an indication of which matching strategy was the first to " +
-                      "match a user.",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(responseCode = "200",
+            description = "The 'developer' role has automatically been assigned to all contributors of the repository, who "
+                +
+                "matched IQ Server users via the provided matching strategies." +
+                "\n" +
+                "\n" +
+                "The response contains all usernames that were successfully granted the role provided " +
+                "on the given application as well as an indication of which matching strategy was the first to " +
+                "match a user.",
+            useReturnTypeSchema = true)
+      })
   public SCMUserMatchingResultDTO automaticRoleAssignment(
-      @Parameter(description = "Enter the public applicationId for automatic role assignment.", required = true)
-      @PathParam("publicId") String publicId,
+      @Parameter(description = "Enter the public applicationId for automatic role assignment.",
+          required = true) @PathParam("publicId") String publicId,
       final SCMUserMappingsDTO scmUserMappingsDTO)
   {
     return scmUserMatchingService.automaticRoleAssignmentByMapping(publicId, scmUserMappingsDTO);
@@ -341,24 +329,24 @@ public class ApiSourceControlResource
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains:" +
-                  "<ul>" +
-                  "<li>`ownerInternalId` indicates the owner id for which the user mappings were created.</li>" +
-                  "<li>`inherited` is always `true` if the ownerType is application</li>" +
-                  "<li>`userMapping` is an object containing `role` and `mappings`." +
-                  "<ul>" +
-                  "<li> `role` indicates the role assigned to users during automatic role assignment.</li>" +
-                  "<li>`mappings` contain all existing user mappings from the SCM sytem to IQ.</li>" +
-                  "</ul>" +
-                  "</ul>",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains:" +
+                "<ul>" +
+                "<li>`ownerInternalId` indicates the owner id for which the user mappings were created.</li>" +
+                "<li>`inherited` is always `true` if the ownerType is application</li>" +
+                "<li>`userMapping` is an object containing `role` and `mappings`." +
+                "<ul>" +
+                "<li> `role` indicates the role assigned to users during automatic role assignment.</li>" +
+                "<li>`mappings` contain all existing user mappings from the SCM sytem to IQ.</li>" +
+                "</ul>" +
+                "</ul>",
+            useReturnTypeSchema = true)
       })
   public SCMUserMappingsResponseDTO getUserMappingsByOwner(
-      @Parameter(description = "Enter the value for ownerType.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the value for internal ownerId.", required = true)
-      @PathParam("internalOwnerId") String internalOwnerId)
+      @Parameter(description = "Enter the value for ownerType.",
+          required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the value for internal ownerId.",
+          required = true) @PathParam("internalOwnerId") String internalOwnerId)
   {
     return scmUserMappingService.getUserMappingsByOwner(ownerType, internalOwnerId);
   }
@@ -375,19 +363,17 @@ public class ApiSourceControlResource
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "User mappings applied successfully." +
-                  "<ul>" +
-                  "<li>When multiple user mappings are specified in the body, and the first mapping fails,  " +
-                  "the next user mapping will be attempted.</li>" +
-                  "<li>If duplicate user mappings are specified, an error message will be displayed</li>" +
-                  "</ul>"
-          )
+        @ApiResponse(responseCode = "204",
+            description = "User mappings applied successfully." +
+                "<ul>" +
+                "<li>When multiple user mappings are specified in the body, and the first mapping fails,  " +
+                "the next user mapping will be attempted.</li>" +
+                "<li>If duplicate user mappings are specified, an error message will be displayed</li>" +
+                "</ul>")
       })
   public void addUserMappings(
       @Parameter(description = "Enter the organizationId. Use `ROOT_ORGANIZATION_ID` for the root organization",
-          required = true)
-      @PathParam("organizationId") String organizationId,
+          required = true) @PathParam("organizationId") String organizationId,
       @RequestBody(description = "<ul>" +
           "<li>Specify the `role` in lowercase, without whitespaces.</li>" +
           "<li>`mappings` is an array of objects consisting of `from` and `to` fields.</li>" +
@@ -409,12 +395,12 @@ public class ApiSourceControlResource
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "User mappings deleted successfully.")
+        @ApiResponse(responseCode = "204",
+            description = "User mappings deleted successfully.")
       })
   public void deleteUserMappings(
-      @Parameter(description = "Enter the organizationId.", required = true)
-      @PathParam("organizationId") String organizationId)
+      @Parameter(description = "Enter the organizationId.",
+          required = true) @PathParam("organizationId") String organizationId)
   {
     scmUserMappingService.deleteUserMappingByOrg(organizationId);
   }

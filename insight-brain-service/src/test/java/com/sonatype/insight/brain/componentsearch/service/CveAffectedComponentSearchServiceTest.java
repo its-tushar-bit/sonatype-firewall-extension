@@ -48,7 +48,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests the service end-to-end from service layer through DAOs to the database,
  * using HdsMockServer to mock external HDS calls.
  */
-public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
+public class CveAffectedComponentSearchServiceTest
+    extends AbstractComponentTest
 {
   @ClassRule
   public static HdsMockServerRule hdsMockServer = new HdsMockServerRule();
@@ -76,29 +77,26 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
           app.getId(),
           StageTypes.STAGE_RELEASE.getId(),
           "scan-" + app.getPublicId(),
-          new Date()
-      );
+          new Date());
 
       ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates(
           "com.example",
           "vulnerable-lib",
-          "1.0.0"
-      );
+          "1.0.0");
 
       tempEntity.newApplicationComponent(
           app.getId(),
           StageTypes.STAGE_RELEASE.getId(),
           "hash-123",
           componentId,
-          "pkg:maven/com.example/vulnerable-lib@1.0.0"
-      );
+          "pkg:maven/com.example/vulnerable-lib@1.0.0");
     }
 
     List<AffectedComponentDTO> affectedComponents = List.of(
-        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0", null)
-    );
+        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0", null));
     hdsMockServer.respondWith(new AffectedComponentList(affectedComponents, null, null))
-        .atUri("/rest/vulnerability/affected?refId=CVE-2025-55182").withoutLicense();
+        .atUri("/rest/vulnerability/affected?refId=CVE-2025-55182")
+        .withoutLicense();
 
     String vulnDataJson = """
         {
@@ -112,18 +110,19 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         }
         """;
     hdsMockServer.respondWith(vulnDataJson)
-        .atUri("/rest/vulnerability/details/json").withoutLicense();
+        .atUri("/rest/vulnerability/details/json")
+        .withoutLicense();
 
     hdsMockServer.respondWith(List.of())
-        .atUri("/api/v2/component/nearestFixedVersions").withoutLicense();
+        .atUri("/api/v2/component/nearestFixedVersions")
+        .withoutLicense();
 
     ComponentSearchPageResultDTO result = service.searchCveAffectedComponentsPaginated(
         Set.of("CVE-2025-55182"),
         1,
         1,
         null,
-        "asc"
-    );
+        "asc");
 
     assertThat(result.getPageNumber()).isEqualTo(1);
     assertThat(result.getPageSize()).isEqualTo(1);
@@ -145,29 +144,26 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
           app.getId(),
           StageTypes.STAGE_RELEASE.getId(),
           "scan-" + app.getPublicId(),
-          new Date()
-      );
+          new Date());
 
       ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates(
           "com.example",
           "vulnerable-lib",
-          "1.0.0"
-      );
+          "1.0.0");
 
       tempEntity.newApplicationComponent(
           app.getId(),
           StageTypes.STAGE_RELEASE.getId(),
           "hash-123",
           componentId,
-          "pkg:maven/com.example/vulnerable-lib@1.0.0"
-      );
+          "pkg:maven/com.example/vulnerable-lib@1.0.0");
     }
 
     List<AffectedComponentDTO> affectedComponents = List.of(
-        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0", null)
-    );
+        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0", null));
     hdsMockServer.respondWith(new AffectedComponentList(affectedComponents, null, null))
-        .atUri("/rest/vulnerability/affected?refId=CVE-2025-55182").withoutLicense();
+        .atUri("/rest/vulnerability/affected?refId=CVE-2025-55182")
+        .withoutLicense();
 
     String vulnDataJson = """
         {
@@ -181,18 +177,19 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         }
         """;
     hdsMockServer.respondWith(vulnDataJson)
-        .atUri("/rest/vulnerability/details/json").withoutLicense();
+        .atUri("/rest/vulnerability/details/json")
+        .withoutLicense();
 
     hdsMockServer.respondWith(List.of())
-        .atUri("/api/v2/component/nearestFixedVersions").withoutLicense();
+        .atUri("/api/v2/component/nearestFixedVersions")
+        .withoutLicense();
 
     ComponentSearchPageResultDTO result = service.searchCveAffectedComponentsPaginated(
         Set.of("CVE-2025-55182"),
         1,
         10,
         ComponentMatchSortField.APPLICATION_NAME,
-        "asc"
-    );
+        "asc");
 
     List<ApplicationComponentMatchDTO> results = result.getResults();
     assertThat(results).hasSize(2);
@@ -200,21 +197,23 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
     assertThat(results.get(1).getApplicationName()).isEqualTo("Zebra App");
 
     hdsMockServer.respondWith(new AffectedComponentList(affectedComponents, null, null))
-        .atUri("/rest/vulnerability/affected?refId=CVE-2025-55182").withoutLicense();
+        .atUri("/rest/vulnerability/affected?refId=CVE-2025-55182")
+        .withoutLicense();
 
     hdsMockServer.respondWith(vulnDataJson)
-        .atUri("/rest/vulnerability/details/json").withoutLicense();
+        .atUri("/rest/vulnerability/details/json")
+        .withoutLicense();
 
     hdsMockServer.respondWith(List.of())
-        .atUri("/api/v2/component/nearestFixedVersions").withoutLicense();
+        .atUri("/api/v2/component/nearestFixedVersions")
+        .withoutLicense();
 
     result = service.searchCveAffectedComponentsPaginated(
         Set.of("CVE-2025-55182"),
         1,
         10,
         ComponentMatchSortField.APPLICATION_NAME,
-        "desc"
-    );
+        "desc");
 
     results = result.getResults();
     assertThat(results.get(0).getApplicationName()).isEqualTo("Zebra App");
@@ -237,24 +236,21 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
           app.getId(),
           StageTypes.STAGE_RELEASE.getId(),
           "scan-" + app.getPublicId(),
-          new Date()
-      );
+          new Date());
 
       ApplicationComponent component = tempEntity.newApplicationComponent(
           app.getId(),
           StageTypes.STAGE_RELEASE.getId(),
           "hash-" + app.getPublicId(),
           componentId,
-          "pkg:maven/com.example/vulnerable-lib@1.0.0"
-      );
+          "pkg:maven/com.example/vulnerable-lib@1.0.0");
 
       PolicyViolation violation = tempEntity.newPolicyViolation(
           evaluation,
           policy,
           componentId,
           component.getHash(),
-          "Test violation"
-      );
+          "Test violation");
 
       TriggerReference cveRef = new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID,
           "CVE-2025-55182");
@@ -269,8 +265,7 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
             violation.getHash(),
             policy.getId(),
             app.getId(),
-            "Test waiver"
-        );
+            "Test waiver");
         violation.setWaiveTime(new Date());
         violation.setPolicyWaiverId(waiver.getId());
       }
@@ -285,8 +280,7 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         1,
         10,
         null,
-        "asc"
-    );
+        "asc");
 
     ComponentSearchAggregatesDTO aggregates = result.getAggregates();
     assertThat(aggregates.getTotalAffectedApplications()).isEqualTo(3);
@@ -303,8 +297,7 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "scan-123",
-        new Date()
-    );
+        new Date());
 
     ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("com.example",
         "vulnerable-lib", "1.0.0");
@@ -313,8 +306,7 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         StageTypes.STAGE_RELEASE.getId(),
         "hash-123",
         componentId,
-        "pkg:maven/com.example/vulnerable-lib@1.0.0"
-    );
+        "pkg:maven/com.example/vulnerable-lib@1.0.0");
 
     setupHdsMocksForStandardSearch();
 
@@ -323,8 +315,7 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         5,
         10,
         null,
-        "asc"
-    );
+        "asc");
 
     assertThat(result.getPageNumber()).isEqualTo(5);
     assertThat(result.getTotalCount()).isEqualTo(1);
@@ -334,10 +325,10 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
 
   private void setupHdsMocksForStandardSearch() {
     List<AffectedComponentDTO> affectedComponents = List.of(
-        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0", null)
-    );
+        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0", null));
     hdsMockServer.respondWith(new AffectedComponentList(affectedComponents, null, null))
-        .atUri("/rest/vulnerability/affected?refId=CVE-2025-55182").withoutLicense();
+        .atUri("/rest/vulnerability/affected?refId=CVE-2025-55182")
+        .withoutLicense();
 
     String vulnDataJson = """
         {
@@ -351,10 +342,12 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         }
         """;
     hdsMockServer.respondWith(vulnDataJson)
-        .atUri("/rest/vulnerability/details/json").withoutLicense();
+        .atUri("/rest/vulnerability/details/json")
+        .withoutLicense();
 
     hdsMockServer.respondWith(List.of())
-        .atUri("/api/v2/component/nearestFixedVersions").withoutLicense();
+        .atUri("/api/v2/component/nearestFixedVersions")
+        .withoutLicense();
   }
 
   // ========== searchCveAffectedComponentsStreaming tests ==========
@@ -367,22 +360,19 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "scan-123",
-        new Date()
-    );
+        new Date());
 
     ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates(
         "com.example",
         "vulnerable-lib",
-        "1.0.0"
-    );
+        "1.0.0");
 
     tempEntity.newApplicationComponent(
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "hash-123",
         componentId,
-        "pkg:maven/com.example/vulnerable-lib@1.0.0"
-    );
+        "pkg:maven/com.example/vulnerable-lib@1.0.0");
 
     setupHdsMocksForStandardSearch();
 
@@ -409,14 +399,15 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "scan-123",
-        new Date()
-    );
+        new Date());
 
     hdsMockServer.respondWith(new AffectedComponentList(List.of(), null, null))
-        .atUri("/rest/vulnerability/affected?refId=CVE-2025-99999").withoutLicense();
+        .atUri("/rest/vulnerability/affected?refId=CVE-2025-99999")
+        .withoutLicense();
 
     hdsMockServer.respondWith("{\"vulnerabilities\":{}}")
-        .atUri("/rest/vulnerability/details/json").withoutLicense();
+        .atUri("/rest/vulnerability/details/json")
+        .withoutLicense();
 
     Stream<ApplicationComponentMatchDTO> results =
         service.searchCveAffectedComponentsStreaming(Set.of("CVE-2025-99999"));
@@ -432,22 +423,19 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "scan-123",
-        new Date()
-    );
+        new Date());
 
     ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates(
         "com.example",
         "vulnerable-lib",
-        "1.0.0"
-    );
+        "1.0.0");
 
     ApplicationComponent component = tempEntity.newApplicationComponent(
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "hash-123",
         componentId,
-        "pkg:maven/com.example/vulnerable-lib@1.0.0"
-    );
+        "pkg:maven/com.example/vulnerable-lib@1.0.0");
 
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Test Policy", 5);
 
@@ -456,8 +444,7 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         policy,
         componentId,
         component.getHash(),
-        "Test violation"
-    );
+        "Test violation");
 
     TriggerReference cveRef = new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID,
         "CVE-2025-55182");
@@ -471,8 +458,7 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         violation.getHash(),
         policy.getId(),
         app.getId(),
-        "Test waiver"
-    );
+        "Test waiver");
 
     violation.setWaiveTime(new Date());
     violation.setPolicyWaiverId(waiver.getId());
@@ -494,13 +480,14 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
   @Test
   public void testSearchCveAffectedComponentsStreaming_EmptyWhenNoApplications() {
     List<AffectedComponentDTO> affectedComponents = List.of(
-        new AffectedComponentDTO("maven", "com.example", "lib", "1.0.0", null)
-    );
+        new AffectedComponentDTO("maven", "com.example", "lib", "1.0.0", null));
     hdsMockServer.respondWith(new AffectedComponentList(affectedComponents, null, null))
-        .atUri("/rest/vulnerability/affected?refId=CVE-2025-55182").withoutLicense();
+        .atUri("/rest/vulnerability/affected?refId=CVE-2025-55182")
+        .withoutLicense();
 
     hdsMockServer.respondWith("{\"vulnerabilities\":{}}")
-        .atUri("/rest/vulnerability/details/json").withoutLicense();
+        .atUri("/rest/vulnerability/details/json")
+        .withoutLicense();
 
     Stream<ApplicationComponentMatchDTO> results =
         service.searchCveAffectedComponentsStreaming(Set.of("CVE-2025-55182"));
@@ -520,8 +507,7 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         StageTypes.STAGE_RELEASE.getId(),
         "hash-123",
         componentId,
-        "pkg:maven/com.example/vulnerable-lib@1.0.0"
-    );
+        "pkg:maven/com.example/vulnerable-lib@1.0.0");
 
     setupHdsMocksForStandardSearch();
 
@@ -538,25 +524,23 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "scan-123",
-        new Date()
-    );
+        new Date());
 
     ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates(
         "com.example",
         "vulnerable-lib",
-        "1.0.0"
-    );
+        "1.0.0");
 
     tempEntity.newApplicationComponent(
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "hash-123",
         componentId,
-        "pkg:maven/com.example/vulnerable-lib@1.0.0"
-    );
+        "pkg:maven/com.example/vulnerable-lib@1.0.0");
 
     hdsMockServer.respondWith(new NotFoundException("CVE not found in HDS"))
-        .atUri("/rest/vulnerability/affected?refId=CVE-2025-99999").withoutLicense();
+        .atUri("/rest/vulnerability/affected?refId=CVE-2025-99999")
+        .withoutLicense();
 
     Stream<ApplicationComponentMatchDTO> results =
         service.searchCveAffectedComponentsStreaming(Set.of("CVE-2025-99999"));
@@ -572,15 +556,13 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "scan-release",
-        new Date()
-    );
+        new Date());
 
     tempEntity.newPolicyEvaluation(
         app.getId(),
         StageTypes.DEVELOP.getId(),
         "scan-develop",
-        new Date()
-    );
+        new Date());
 
     ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("com.example",
         "vulnerable-lib", "1.0.0");
@@ -590,16 +572,14 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         StageTypes.STAGE_RELEASE.getId(),
         "hash-release",
         componentId,
-        "pkg:maven/com.example/vulnerable-lib@1.0.0"
-    );
+        "pkg:maven/com.example/vulnerable-lib@1.0.0");
 
     tempEntity.newApplicationComponent(
         app.getId(),
         StageTypes.DEVELOP.getId(),
         "hash-develop",
         componentId,
-        "pkg:maven/com.example/vulnerable-lib@1.0.0"
-    );
+        "pkg:maven/com.example/vulnerable-lib@1.0.0");
 
     setupHdsMocksForStandardSearch();
 
@@ -619,22 +599,19 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "scan-123",
-        new Date()
-    );
+        new Date());
 
     ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates(
         "com.example",
         "vulnerable-lib",
-        "1.0.0"
-    );
+        "1.0.0");
 
     ApplicationComponent component = tempEntity.newApplicationComponent(
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "hash-123",
         componentId,
-        "pkg:maven/com.example/vulnerable-lib@1.0.0"
-    );
+        "pkg:maven/com.example/vulnerable-lib@1.0.0");
 
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Test Policy", 5);
 
@@ -644,8 +621,7 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         policy,
         componentId,
         component.getHash(),
-        "Violation for CVE-2025-1111"
-    );
+        "Violation for CVE-2025-1111");
 
     TriggerReference cveRef1 = new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID,
         "CVE-2025-1111");
@@ -659,8 +635,7 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         violation1.getHash(),
         policy.getId(),
         app.getId(),
-        "Waived CVE-2025-1111"
-    );
+        "Waived CVE-2025-1111");
     violation1.setWaiveTime(new Date());
     violation1.setPolicyWaiverId(waiver.getId());
     tempEntity.updatePolicyViolation(violation1);
@@ -671,8 +646,7 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         policy,
         componentId,
         component.getHash(),
-        "Violation for CVE-2025-2222"
-    );
+        "Violation for CVE-2025-2222");
 
     TriggerReference cveRef2 = new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID,
         "CVE-2025-2222");
@@ -690,14 +664,15 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         "com.example",
         "vulnerable-lib",
         "1.0.0",
-        List.of("CVE-2025-1111", "CVE-2025-2222")
-    );
+        List.of("CVE-2025-1111", "CVE-2025-2222"));
 
     // Mock batch request with results for both CVEs (try both possible URL orders)
     hdsMockServer.respondWith(new AffectedComponentList(List.of(affectedComponent), null, null))
-        .atUri("/rest/vulnerability/affected?refId=CVE-2025-1111&refId=CVE-2025-2222").withoutLicense();
+        .atUri("/rest/vulnerability/affected?refId=CVE-2025-1111&refId=CVE-2025-2222")
+        .withoutLicense();
     hdsMockServer.respondWith(new AffectedComponentList(List.of(affectedComponent), null, null))
-        .atUri("/rest/vulnerability/affected?refId=CVE-2025-2222&refId=CVE-2025-1111").withoutLicense();
+        .atUri("/rest/vulnerability/affected?refId=CVE-2025-2222&refId=CVE-2025-1111")
+        .withoutLicense();
 
     String vulnDataJson = """
         {
@@ -716,10 +691,12 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         }
         """;
     hdsMockServer.respondWith(vulnDataJson)
-        .atUri("/rest/vulnerability/details/json").withoutLicense();
+        .atUri("/rest/vulnerability/details/json")
+        .withoutLicense();
 
     hdsMockServer.respondWith(List.of())
-        .atUri("/api/v2/component/nearestFixedVersions").withoutLicense();
+        .atUri("/api/v2/component/nearestFixedVersions")
+        .withoutLicense();
 
     // Search for both CVEs
     ComponentSearchPageResultDTO result = service.searchCveAffectedComponentsPaginated(
@@ -727,19 +704,20 @@ public class CveAffectedComponentSearchServiceTest extends AbstractComponentTest
         1,
         10,
         null,
-        "asc"
-    );
+        "asc");
 
     // Should have 2 results: one for each CVE on the same component
     assertThat(result.getResults()).hasSize(2);
 
     // Find the result for each CVE
-    ApplicationComponentMatchDTO cve1Match = result.getResults().stream()
+    ApplicationComponentMatchDTO cve1Match = result.getResults()
+        .stream()
         .filter(m -> m.getCveId().equals("CVE-2025-1111"))
         .findFirst()
         .orElseThrow(() -> new AssertionError("CVE-2025-1111 result not found"));
 
-    ApplicationComponentMatchDTO cve2Match = result.getResults().stream()
+    ApplicationComponentMatchDTO cve2Match = result.getResults()
+        .stream()
         .filter(m -> m.getCveId().equals("CVE-2025-2222"))
         .findFirst()
         .orElseThrow(() -> new AssertionError("CVE-2025-2222 result not found"));

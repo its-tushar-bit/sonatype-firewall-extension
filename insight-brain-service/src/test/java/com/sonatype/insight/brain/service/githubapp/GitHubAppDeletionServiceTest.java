@@ -38,7 +38,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for {@link GitHubAppDeletionService}.
  */
-public class GitHubAppDeletionServiceTest extends AbstractComponentTest
+public class GitHubAppDeletionServiceTest
+    extends AbstractComponentTest
 {
   private static final Long TEST_VALID_INSTALLATION_ID = 67890L;
 
@@ -71,18 +72,17 @@ public class GitHubAppDeletionServiceTest extends AbstractComponentTest
   private void setupGitHubAppDeletionService() {
     String wireMockBaseUrl = "http://localhost:" + githubMockServer.port();
     deletionService = new GitHubAppDeletionService(
-            gitHubAppDAO,
-            installationStateDAO,
-            passwordHandler,
-            insightProxy,
-            wireMockBaseUrl
-    );
+        gitHubAppDAO,
+        installationStateDAO,
+        passwordHandler,
+        insightProxy,
+        wireMockBaseUrl);
   }
 
   private void stubGitHubAppInstallationDeletion() {
     stubFor(delete(urlEqualTo("/app/installations/" + TEST_VALID_INSTALLATION_ID))
-            .willReturn(aResponse()
-                    .withStatus(204)));
+        .willReturn(aResponse()
+            .withStatus(204)));
   }
 
   @Test
@@ -122,9 +122,9 @@ public class GitHubAppDeletionServiceTest extends AbstractComponentTest
   @Test
   public void testDelete_GitHubApiDeletionFails_ContinuesWithDatabaseDeletion() {
     stubFor(delete(urlEqualTo("/app/installations/" + TEST_VALID_INSTALLATION_ID))
-            .willReturn(aResponse()
-                    .withStatus(500)
-                    .withBody("{\"message\":\"Internal Server Error\"}")));
+        .willReturn(aResponse()
+            .withStatus(500)
+            .withBody("{\"message\":\"Internal Server Error\"}")));
 
     Application app = tempEntity.newApplicationWithParent();
     createGitHubApp(app.getId());
@@ -137,9 +137,9 @@ public class GitHubAppDeletionServiceTest extends AbstractComponentTest
   @Test
   public void testDelete_GitHubApiReturns404_ContinuesWithDatabaseDeletion() {
     stubFor(delete(urlEqualTo("/app/installations/" + TEST_VALID_INSTALLATION_ID))
-            .willReturn(aResponse()
-                    .withStatus(404)
-                    .withBody("{\"message\":\"Not Found\"}")));
+        .willReturn(aResponse()
+            .withStatus(404)
+            .withBody("{\"message\":\"Not Found\"}")));
 
     Application app = tempEntity.newApplicationWithParent();
     createGitHubApp(app.getId());

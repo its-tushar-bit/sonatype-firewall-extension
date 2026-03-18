@@ -47,8 +47,9 @@ public class LicenseThreatGroupResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<LicenseThreatGroup> getLicenseThreatGroups(@PathParam("ownerType") OwnerType ownerType,
-                                                         @PathParam("ownerId") String ownerId)
+  public List<LicenseThreatGroup> getLicenseThreatGroups(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId)
   {
     return licenseThreatGroupService.getLicenseThreatGroups(ownerType, ownerId);
   }
@@ -59,8 +60,9 @@ public class LicenseThreatGroupResource
   @GET
   @Path("applicable")
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(@PathParam("ownerType") OwnerType ownerType,
-                                                                        @PathParam("ownerId") String ownerId)
+  public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId)
   {
     return licenseThreatGroupService.getApplicableLicenseThreatGroups(ownerType, ownerId);
   }
@@ -69,9 +71,10 @@ public class LicenseThreatGroupResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_LICENSE_THREAT_GROUP)
-  public LicenseThreatGroup addLicenseThreatGroup(@PathParam("ownerType") OwnerType ownerType,
-                                                  @PathParam("ownerId") String ownerId,
-                                                  LicenseThreatGroup licenseThreatGroup)
+  public LicenseThreatGroup addLicenseThreatGroup(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      LicenseThreatGroup licenseThreatGroup)
   {
     if (ownerType.equals(OwnerType.APPLICATION)) {
       throw new BadRequestException("Applications are not allowed to add license threat groups.");
@@ -83,9 +86,10 @@ public class LicenseThreatGroupResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_LICENSE_THREAT_GROUP)
-  public LicenseThreatGroup updateLicenseThreatGroup(@PathParam("ownerType") OwnerType ownerType,
-                                                     @PathParam("ownerId") String ownerId,
-                                                     LicenseThreatGroup licenseThreatGroup)
+  public LicenseThreatGroup updateLicenseThreatGroup(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      LicenseThreatGroup licenseThreatGroup)
   {
     return licenseThreatGroupService.updateLicenseThreatGroup(ownerType, ownerId, licenseThreatGroup);
   }
@@ -93,9 +97,10 @@ public class LicenseThreatGroupResource
   @DELETE
   @Path("{licenseThreatGroupId}")
   @Audited(AuditEvent.DELETE_LICENSE_THREAT_GROUP)
-  public void deleteLicenseThreatGroup(@PathParam("ownerType") OwnerType ownerType,
-                                       @PathParam("ownerId") String ownerId,
-                                       @PathParam("licenseThreatGroupId") String licenseThreatGroupId)
+  public void deleteLicenseThreatGroup(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @PathParam("licenseThreatGroupId") String licenseThreatGroupId)
   {
     licenseThreatGroupService.deleteLicenseThreatGroup(ownerType, ownerId, licenseThreatGroupId);
   }

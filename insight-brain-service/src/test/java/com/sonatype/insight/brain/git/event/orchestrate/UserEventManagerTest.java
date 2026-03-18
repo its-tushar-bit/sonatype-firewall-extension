@@ -96,7 +96,7 @@ public class UserEventManagerTest
     UserEventManager userEventManager =
         new UserEventManager(mockSourceControlEventDAO, mockSourceControlLoadBalancer, mockSourceControlEventProcessor,
             GITLAB, mockSourceControlUtils, mockShutdownHandler)
-            .setEventsSuspendedForTesting(true);
+                .setEventsSuspendedForTesting(true);
 
     SourceControlEvent event = new SourceControlEvent()
         .forUpdatedPullRequest()
@@ -118,7 +118,7 @@ public class UserEventManagerTest
     userEventManager.onEventCompleted(completedEvent);
 
     // then: completed event should be marked as such, queued event should NOT be sent for processing, and
-    //       load balancer should be called to release related events
+    // load balancer should be called to release related events
     verify(mockSourceControlEventDAO, times(1)).markEventComplete(eq(completedEvent.getId()));
     verify(mockSourceControlEventProcessor, never()).processEvent(eq(event), eq(userEventManager));
     verify(mockSourceControlLoadBalancer, times(1)).releaseRelatedEvents(eq(event), eq(true));
@@ -130,7 +130,7 @@ public class UserEventManagerTest
     UserEventManager userEventManager =
         new UserEventManager(mockSourceControlEventDAO, mockSourceControlLoadBalancer, mockSourceControlEventProcessor,
             GITLAB, mockSourceControlUtils, mockShutdownHandler)
-            .setEventsSuspendedForTesting(true);
+                .setEventsSuspendedForTesting(true);
 
     SourceControlEvent event = new SourceControlEvent()
         .forUpdatedPullRequest()
@@ -160,7 +160,7 @@ public class UserEventManagerTest
     UserEventManager userEventManager =
         new UserEventManager(mockSourceControlEventDAO, mockSourceControlLoadBalancer, mockSourceControlEventProcessor,
             GITHUB, mockSourceControlUtils, mockShutdownHandler)
-            .setEventsSuspendedForTesting(true);
+                .setEventsSuspendedForTesting(true);
 
     SourceControlEvent event = new SourceControlEvent()
         .forUpdatedPullRequest()
@@ -193,7 +193,7 @@ public class UserEventManagerTest
     UserEventManager userEventManager =
         new UserEventManager(mockSourceControlEventDAO, mockSourceControlLoadBalancer, mockSourceControlEventProcessor,
             GITLAB, mockSourceControlUtils, mockShutdownHandler)
-            .setEventsSuspendedForTesting(true);
+                .setEventsSuspendedForTesting(true);
 
     SourceControlEvent event = new SourceControlEvent()
         .forDiscoveredPullRequest()
@@ -223,7 +223,7 @@ public class UserEventManagerTest
     UserEventManager userEventManager =
         new UserEventManager(mockSourceControlEventDAO, mockSourceControlLoadBalancer, mockSourceControlEventProcessor,
             AZURE, mockSourceControlUtils, mockShutdownHandler)
-            .setEventsSuspendedForTesting(true);
+                .setEventsSuspendedForTesting(true);
 
     SourceControlEvent event = new SourceControlEvent()
         .forUpdatedPullRequest()
@@ -266,7 +266,7 @@ public class UserEventManagerTest
 
     userEventManager.onEventError(errorEvent, error);
 
-    // the retry errors also have suspension rules associated with them;  so, we need to wait for the suspension to
+    // the retry errors also have suspension rules associated with them; so, we need to wait for the suspension to
     // expire and then do something to trigger event processing - such as simulating completion of an event
     Thread.sleep(1_500);
     userEventManager.onEventCompleted(createEvent().setEventType(SourceControlEvent.STATUS_UPDATE_EVENT));

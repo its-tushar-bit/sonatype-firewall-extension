@@ -48,9 +48,11 @@ class PostgresTestContainer
 
   /**
    * The docker container will start with the name `iq-test-db`. Connect to it with `psql` using this command:
+   *
    * <pre>
    * docker exec -it $(docker ps --quiet --filter name=iq-test-db) psql -U testuser -d testdata
    * </pre>
+   *
    * Use standard psql commands to connect to the current test database. `\l` will list databases. `\c databasename`
    * will connect to the given database.
    */

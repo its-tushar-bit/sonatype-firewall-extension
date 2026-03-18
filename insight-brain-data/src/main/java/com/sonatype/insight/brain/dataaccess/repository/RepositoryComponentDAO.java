@@ -51,10 +51,10 @@ public class RepositoryComponentDAO
     extends AbstractOperationalSqlDAO<RepositoryComponent>
 {
   /*
-    For queries on `quarantineTime` or `unquarantineTime`, if we query using `IS NOT NULL` the applicable indices
-    are not used by H2. By changing this to `> {d EPOCH_START}` the queries return the same results but the applicable
-    indices are also used.
-  */
+   * For queries on `quarantineTime` or `unquarantineTime`, if we query using `IS NOT NULL` the applicable indices
+   * are not used by H2. By changing this to `> {d EPOCH_START}` the queries return the same results but the applicable
+   * indices are also used.
+   */
   private static final String EPOCH_START = new SimpleDateFormat("yyyy-MM-dd").format(Date.from(Instant.EPOCH));
 
   private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
@@ -258,7 +258,9 @@ public class RepositoryComponentDAO
 
   @SuppressWarnings("unchecked")
   public Map<LocalDate, Long> getAutoReleaseQuarantinedCountByRepositoryIdAndDate(
-      String repositoryId, Date date, boolean exclusiveDate)
+      String repositoryId,
+      Date date,
+      boolean exclusiveDate)
   {
     String sQuery = "SELECT CAST(rc.unquarantine_time AS DATE), COUNT(1)" + //
         " FROM " + getDatabaseSchema() + ".repository_component rc" + //
@@ -366,8 +368,7 @@ public class RepositoryComponentDAO
               (String) array[8],
               (String) array[9],
               (String) array[10],
-              toDate(array[11])
-          ))
+              toDate(array[11])))
           .collect(Collectors.toList());
 
       return results;
@@ -383,7 +384,10 @@ public class RepositoryComponentDAO
   }
 
   private Date toDate(Object o) {
-    return Optional.ofNullable(o).map(t -> ((Timestamp) t)).map(Timestamp::getTime).map(Date::new)
+    return Optional.ofNullable(o)
+        .map(t -> ((Timestamp) t))
+        .map(Timestamp::getTime)
+        .map(Date::new)
         // or else, return null
         .orElse(null);
   }
@@ -460,7 +464,8 @@ public class RepositoryComponentDAO
     select += "quarantine_time";
 
     if (null != filter.sortableField && filter.sortableField.equals(FirewallSortableField.QUARANTINE_TIME) &&
-        filter.asc) {
+        filter.asc)
+    {
       select += " NULLS LAST,";
     }
     else {
@@ -518,7 +523,8 @@ public class RepositoryComponentDAO
 
       if (filterFieldsMapContainsField(filter, FirewallFilterableField.POLICY_ID)) {
         paginationQuery.setParameter(parameterIndex++,
-            filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID)
+            filter.getFilterFieldsMap()
+                .get(FirewallFilterableField.POLICY_ID)
                 .split(FirewallFilterField.MULTI_VALUE_SEPARATOR));
       }
 
@@ -537,7 +543,8 @@ public class RepositoryComponentDAO
 
     // FILTER
     if (filterFieldsMapContainsField(filter, FirewallFilterableField.POLICY_ID)) {
-      parameters.add(filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID)
+      parameters.add(filter.getFilterFieldsMap()
+          .get(FirewallFilterableField.POLICY_ID)
           .split(FirewallFilterField.MULTI_VALUE_SEPARATOR));
     }
 
@@ -673,7 +680,8 @@ public class RepositoryComponentDAO
         sQueryContainsWhereClause.setTrue();
         return String.format(
             " %s (component.quarantineTime > {d '%s'} AND component.unquarantineTime > {d '%s'}" +
-                " AND component.autoUnquarantined = true)", prefix, EPOCH_START, EPOCH_START);
+                " AND component.autoUnquarantined = true)",
+            prefix, EPOCH_START, EPOCH_START);
       case UNQUARANTINE_MANUAL:
         sQueryContainsWhereClause.setTrue();
         return String.format(
@@ -697,14 +705,16 @@ public class RepositoryComponentDAO
     }
 
     if (filter.firewallComponentFilterState.equals(FirewallComponentFilterState.QUARANTINE) &&
-        FirewallSortableField.RELEASE_QUARANTINE_TIME.equals(filter.sortableField)) {
+        FirewallSortableField.RELEASE_QUARANTINE_TIME.equals(filter.sortableField))
+    {
       throw new BadRequestException(
           "Sortable field releaseQuarantineTime is not applicable to component state QUARANTINE");
     }
 
     if ((filter.firewallComponentFilterState.equals(FirewallComponentFilterState.AUDIT) ||
         filter.firewallComponentFilterState.equals(FirewallComponentFilterState.ALL)) &&
-        filter.sortableField != null) {
+        filter.sortableField != null)
+    {
       throw new BadRequestException(String
           .format("Sortable field cannot be specified for component state %s", filter.firewallComponentFilterState));
     }

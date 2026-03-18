@@ -388,9 +388,13 @@ public class LdapConfigurationTest
     connectionForm.authenticationMethod().shouldHave(text("NONE"));
     connectionForm.authenticationMethod().chooseOption(new Option(1, "SIMPLE"));
     connectionForm.saslRealm().shouldBe(visible, empty).setValue("just checking if persisted");
-    connectionForm.systemUsername().scrollIntoView(false).shouldBe(visible, empty)
+    connectionForm.systemUsername()
+        .scrollIntoView(false)
+        .shouldBe(visible, empty)
         .setValue("just checking if persisted");
-    connectionForm.systemPassword().scrollIntoView(false).shouldBe(visible, empty)
+    connectionForm.systemPassword()
+        .scrollIntoView(false)
+        .shouldBe(visible, empty)
         .setValue("just checking if persisted");
     connectionForm.ignoreReferrals().click();
 
@@ -448,7 +452,9 @@ public class LdapConfigurationTest
     userAndGroupSettingsForm.groupSearchWarning().shouldBe(hidden);
     userAndGroupSettingsForm.groupMappingType().shouldHave(text("NONE"));
     userAndGroupSettingsForm.groupMappingType().chooseOption(new Option(2, "DYNAMIC"));
-    userAndGroupSettingsForm.groupSearchWarning().scrollIntoView(true).shouldBe(visible)
+    userAndGroupSettingsForm.groupSearchWarning()
+        .scrollIntoView(true)
+        .shouldBe(visible)
         .shouldHave(text(LdapUserAndGroupSettingsForm.GROUP_SEARCH_WARNING));
     userAndGroupSettingsForm.userMemberOfGroupAttribute().shouldBe(empty).setValue("departmentNumber");
 
@@ -520,10 +526,13 @@ public class LdapConfigurationTest
     connectionForm.hostname().shouldHave(value(persistedConnection.getHostname()));
     connectionForm.port().shouldHave(value("" + persistedConnection.getPort()));
     connectionForm.searchBase().shouldHave(value(persistedConnection.getSearchBase()));
-    connectionForm.ignoreReferrals().input().scrollIntoView(true)
+    connectionForm.ignoreReferrals()
+        .input()
+        .scrollIntoView(true)
         .shouldBe(persistedConnection.isReferralIgnored() ? checked : not(checked));
-    connectionForm.authenticationMethod().shouldHave(
-        text(persistedConnection.getAuthenticationMethod().getMethod().toUpperCase()));
+    connectionForm.authenticationMethod()
+        .shouldHave(
+            text(persistedConnection.getAuthenticationMethod().getMethod().toUpperCase()));
     connectionForm.connectionTimeout().shouldHave(value("" + persistedConnection.getConnectionTimeout()));
     connectionForm.retryDelay().shouldHave(value("" + persistedConnection.getRetryDelay()));
 

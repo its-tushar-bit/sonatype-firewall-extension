@@ -16,7 +16,8 @@ import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_E
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 
-public class MtiqUserManagementFIPSTest extends MtiqUserManagementTest
+public class MtiqUserManagementFIPSTest
+    extends MtiqUserManagementTest
 {
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();

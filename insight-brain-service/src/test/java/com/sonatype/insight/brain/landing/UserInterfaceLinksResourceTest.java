@@ -211,16 +211,16 @@ public class UserInterfaceLinksResourceTest
   @Test
   public void testLinkToAddWaiverWithReasonId() throws Exception {
     HttpResponse response = get(UserInterfaceLinksHelper.ADD_WAIVER_PATH +
-            "?reasonId=9b704ef5bc064fc29d7fe08a251ee9a6", "violationId");
+        "?reasonId=9b704ef5bc064fc29d7fe08a251ee9a6", "violationId");
     assertRedirect(response, "assets/index.html#/addWaiver/violationId?reasonId=9b704ef5bc064fc29d7fe08a251ee9a6");
   }
 
   @Test
   public void testLinkToAddWaiverWithCommentsAndReasonId() throws Exception {
     HttpResponse response = get(UserInterfaceLinksHelper.ADD_WAIVER_PATH +
-            "?comments=some%20comments&reasonId=9b704ef5bc064fc29d7fe08a251ee9a6", "violationId");
+        "?comments=some%20comments&reasonId=9b704ef5bc064fc29d7fe08a251ee9a6", "violationId");
     assertRedirect(response, "assets/index.html#/addWaiver/violationId?comments=some%20comments" +
-            "&reasonId=9b704ef5bc064fc29d7fe08a251ee9a6");
+        "&reasonId=9b704ef5bc064fc29d7fe08a251ee9a6");
   }
 
   @Test
@@ -252,7 +252,8 @@ public class UserInterfaceLinksResourceTest
     startIqTestServer(config -> getHdsServer()
         .respondWith((HttpResponseProcessor) (request, response) -> responses.put(
             new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
-        .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
+        .andStatus(204)
+        .atUri(TelemetrySender.RESOURCE_PATH));
 
     Application application = tempEntity.newApplicationWithParent();
     String appPublicId = application.getPublicId();
@@ -261,7 +262,8 @@ public class UserInterfaceLinksResourceTest
         .isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/application/" + appPublicId + "/report/scan%20id");
     HttpRequest request = restRequest()
         .path(UserInterfaceLinksHelper.RESOURCE_PATH, UserInterfaceLinksHelper.REPORT_PATH)
-        .parameter(appPublicId, "scan id").query("source=Foo");
+        .parameter(appPublicId, "scan id")
+        .query("source=Foo");
 
     if (anonymous) {
       request.anon();
@@ -298,7 +300,8 @@ public class UserInterfaceLinksResourceTest
     startIqTestServer(config -> getHdsServer()
         .respondWith((HttpResponseProcessor) (request, response) -> responses.put(
             new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
-        .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
+        .andStatus(204)
+        .atUri(TelemetrySender.RESOURCE_PATH));
 
     assertThat(UserInterfaceLinksHelper.getReportUrl("app id", "scan id"))
         .isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/application/app%20id/report/scan%20id");
@@ -385,7 +388,8 @@ public class UserInterfaceLinksResourceTest
     final Application application = tempEntity.newApplicationWithParent();
     final String appPublicId = application.getPublicId();
     final HttpResponse response = restRequest()
-        .path(UserInterfaceLinksHelper.RESOURCE_PATH).path(INTEGRATIONS_PRIORITIES_PATH)
+        .path(UserInterfaceLinksHelper.RESOURCE_PATH)
+        .path(INTEGRATIONS_PRIORITIES_PATH)
         .parameter(appPublicId, "scan-id", "cli")
         .anon()
         .get();
@@ -398,7 +402,8 @@ public class UserInterfaceLinksResourceTest
     final Application application = tempEntity.newApplicationWithParent();
     final String appPublicId = application.getPublicId();
     final HttpResponse response = restRequest()
-        .path(UserInterfaceLinksHelper.RESOURCE_PATH).path(PRIORITIES_PATH)
+        .path(UserInterfaceLinksHelper.RESOURCE_PATH)
+        .path(PRIORITIES_PATH)
         .parameter(appPublicId, "scan-id")
         .anon()
         .get();
@@ -411,7 +416,8 @@ public class UserInterfaceLinksResourceTest
     final Application application = tempEntity.newApplicationWithParent();
     final String appPublicId = application.getPublicId();
     final HttpResponse response = restRequest()
-        .path(UserInterfaceLinksHelper.RESOURCE_PATH).path(PRIORITIES_PATH_LEGACY)
+        .path(UserInterfaceLinksHelper.RESOURCE_PATH)
+        .path(PRIORITIES_PATH_LEGACY)
         .parameter(appPublicId, "scan-id")
         .anon()
         .get();
@@ -453,8 +459,7 @@ public class UserInterfaceLinksResourceTest
   }
 
   private Map<TelemetryPurpose, List<TelemetryItem>> getTelemetryItemsByPurpose(
-      final Map<ByteArrayDataSource, Integer> responses)
-      throws MessagingException, IOException
+      final Map<ByteArrayDataSource, Integer> responses) throws MessagingException, IOException
   {
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(responses).isNotEmpty());
     return getTelemetryItems(responses).stream()

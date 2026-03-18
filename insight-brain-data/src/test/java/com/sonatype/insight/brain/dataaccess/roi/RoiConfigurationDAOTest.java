@@ -23,7 +23,7 @@ public class RoiConfigurationDAOTest
 
   @Before
   @Override
-  public  void setup() {
+  public void setup() {
     super.setup();
     dao = daoFactory.createRoiConfigurationDAO();
   }
@@ -36,8 +36,7 @@ public class RoiConfigurationDAOTest
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
         15,
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
     assertThat(roiConfiguration.getId()).isNotNull();
 
     // read
@@ -68,8 +67,7 @@ public class RoiConfigurationDAOTest
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
         15,
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
     assertThat(dao.getByCurrencyType(CurrencyTypes.USD)).isNotNull();
     assertRoiConfigurationEntityValues(roiConfiguration);
   }

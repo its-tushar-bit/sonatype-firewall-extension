@@ -57,7 +57,7 @@ public class PolicyAlertSourceCodeOrganizer
     // Finally, re-sort the components by highest threats within the policies, and then the component name
     return componentMap.entrySet()
         .stream()
-        .collect(Collectors.toMap(Entry::getKey, entry -> (List<PolicyNotification>)new ArrayList<>(entry.getValue())))
+        .collect(Collectors.toMap(Entry::getKey, entry -> (List<PolicyNotification>) new ArrayList<>(entry.getValue())))
         .entrySet()
         .stream()
         .sorted(this::compareEntries)
@@ -93,9 +93,11 @@ public class PolicyAlertSourceCodeOrganizer
     int threatLevel1 = policyNotifications1.get(depth).getPolicyFact().getThreatLevel();
     int threatLevel2 = policyNotifications2.get(depth).getPolicyFact().getThreatLevel();
 
-    return threatLevel1 > threatLevel2 ? -1 :
-        threatLevel1 < threatLevel2 ? 1 :
-            comparePolicyViolationThreats(policyNotifications1, policyNotifications2, depth + 1);
+    return threatLevel1 > threatLevel2
+        ? -1
+        : threatLevel1 < threatLevel2
+            ? 1
+            : comparePolicyViolationThreats(policyNotifications1, policyNotifications2, depth + 1);
   }
 
   /**

@@ -135,16 +135,24 @@ public class RepositoryComponentTelemetry
     this.repositoryName = null;
     this.repositoryType = null;
     this.componentFormat =
-        repositoryComponent.getComponentIdentifier() == null ? null : repositoryComponent.getComponentIdentifier()
-            .getFormat();
+        repositoryComponent.getComponentIdentifier() == null
+            ? null
+            : repositoryComponent.getComponentIdentifier()
+                .getFormat();
     this.componentHash = HdsClientAnalytics.obfuscate(repositoryComponent.getHash());
     this.eventType = eventType.getDescription();
     this.quarantineTime =
-        repositoryComponent.getQuarantineTime() == null ? null : repositoryComponent.getQuarantineTime().toInstant()
-            .toEpochMilli();
+        repositoryComponent.getQuarantineTime() == null
+            ? null
+            : repositoryComponent.getQuarantineTime()
+                .toInstant()
+                .toEpochMilli();
     this.releaseQuarantineTime =
-        repositoryComponent.getUnquarantineTime() == null ? null : repositoryComponent.getUnquarantineTime().toInstant()
-            .toEpochMilli();
+        repositoryComponent.getUnquarantineTime() == null
+            ? null
+            : repositoryComponent.getUnquarantineTime()
+                .toInstant()
+                .toEpochMilli();
     this.releaseQuarantineType = releaseQuarantineType == null ? null : releaseQuarantineType.getDescription();
     this.releaseReason = releaseReason;
 
@@ -214,7 +222,7 @@ public class RepositoryComponentTelemetry
     this.repositoryName = null;
     this.repositoryType = null;
     this.componentFormat = componentFormat;
-    this.componentHash =  HdsClientAnalytics.obfuscate(componentHash);
+    this.componentHash = HdsClientAnalytics.obfuscate(componentHash);
     this.eventType = repositoryComponentTelemetryEventType.getDescription();
     this.quarantineTime = quarantineTime;
     this.releaseQuarantineTime = releaseQuarantineTime;

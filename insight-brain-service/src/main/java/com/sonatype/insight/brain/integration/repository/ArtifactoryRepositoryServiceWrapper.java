@@ -174,14 +174,14 @@ public class ArtifactoryRepositoryServiceWrapper
    * plugin version 1.x which incorrectly used a hash of the repository name as the 'repository manager id'. This
    * method will return the correct value based on any migration that is required.
    * <ul>
-   *   <li>If plugin version 2.x <B>AND</B> configured repository manager ID, then perform migration <U>if necessary</U>
-   *   </li>
-   *   <li>If plugin version 2.x and <B>NO CONFIGURED</B> repository manager ID, then return old value</li>
-   *   <li>If plugin version 1.x then return old value</li>
+   * <li>If plugin version 2.x <B>AND</B> configured repository manager ID, then perform migration <U>if necessary</U>
+   * </li>
+   * <li>If plugin version 2.x and <B>NO CONFIGURED</B> repository manager ID, then return old value</li>
+   * <li>If plugin version 1.x then return old value</li>
    * </ul>
    *
    * @param repositoryManagerInstanceId The current repository manager instance ID (old format or new format)
-   * @param repositoryPublicId          The repository instance attached to the repository manager you are working with
+   * @param repositoryPublicId The repository instance attached to the repository manager you are working with
    * @return The correct, and possibly migrated, repository manager instance ID
    */
   @VisibleForTesting
@@ -233,6 +233,7 @@ public class ArtifactoryRepositoryServiceWrapper
    * </or>
    *
    * Before migration:
+   *
    * <pre>
    * ┌───────────────────────┬─────────────┐
    * │ repository_manager_id │ instance_id │
@@ -272,10 +273,10 @@ public class ArtifactoryRepositoryServiceWrapper
    * When `mvn-two` is requested we update mvn-two to point to record 10, then delete record 2.
    *
    * @param newRepositoryManagerInstanceId The new and correct repository manager ID
-   * @param hashRepositoryId               The old and incorrect hash used for the repository manager ID
-   * @param repositoryPublicId             The repository ID that needs migration. The legacy/broken approach had a 1-1
-   *                                       mapping between a repository manager and repository. The migration will fix
-   *                                       this relationship, and we need the repository public ID to verify.
+   * @param hashRepositoryId The old and incorrect hash used for the repository manager ID
+   * @param repositoryPublicId The repository ID that needs migration. The legacy/broken approach had a 1-1
+   *          mapping between a repository manager and repository. The migration will fix
+   *          this relationship, and we need the repository public ID to verify.
    * @return the newly migrated repository manager instance ID
    */
   private String doMigration(

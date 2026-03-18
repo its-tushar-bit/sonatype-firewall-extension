@@ -310,7 +310,8 @@ public class PolicyViolationDAO
   }
 
   public List<RepositoryResultsForImageContainer> getRepositoryResultsForImageContainer(
-      Collection<String> repositoryIds, Collection<String> applicationIds,
+      Collection<String> repositoryIds,
+      Collection<String> applicationIds,
       RepositoryResultsForImageContainerFilter detailsFilter)
   {
     if (detailsFilter.aggregate) {
@@ -322,7 +323,8 @@ public class PolicyViolationDAO
   }
 
   private List<RepositoryResultsForImageContainer> getRepositoryResultsForImageContainerNonAggregate(
-      Collection<String> repositoryIds, Collection<String> applicationIds,
+      Collection<String> repositoryIds,
+      Collection<String> applicationIds,
       RepositoryResultsForImageContainerFilter detailsFilter)
   {
     try (TransactionContext tx = createTransactionContext()) {
@@ -346,7 +348,7 @@ public class PolicyViolationDAO
       Map<String, String> applicationIdsToScanIdMap = policyEvalList.stream()
           .collect(Collectors.toMap(
               PolicyEvaluation::getApplicationId, // Key: applicationId
-              PolicyEvaluation::getScanId        // Value: scanId
+              PolicyEvaluation::getScanId // Value: scanId
           ));
 
       String baseQuery = "SELECT threat_level," + //
@@ -393,8 +395,9 @@ public class PolicyViolationDAO
           '%' + detailsFilter.searchFilters.get("QUARANTINE_TIME") + '%');
       query.setParameter(searchFiltersParamStartPosition + 2,
           '%' + detailsFilter.searchFilters.get("OBJECT_NAME") + '%');
-      query.setFirstResult(offset).setMaxResults(detailsFilter.pageSize +
-          1); // Incremented page size to help UI determine whether to enable / disable NextPage button
+      query.setFirstResult(offset)
+          .setMaxResults(detailsFilter.pageSize +
+              1); // Incremented page size to help UI determine whether to enable / disable NextPage button
 
       List<RepositoryResultsForImageContainer> results = ((Stream<Object[]>) query.getResultStream())
           .map(array -> new RepositoryResultsForImageContainer(getInteger(array[0]), (String) array[1], null,
@@ -413,7 +416,8 @@ public class PolicyViolationDAO
   }
 
   protected List<RepositoryResultsForImageContainer> getRepositoryResultsForImageContainerAggregate(
-      Collection<String> repositoryIds, Collection<String> applicationIds,
+      Collection<String> repositoryIds,
+      Collection<String> applicationIds,
       RepositoryResultsForImageContainerFilter detailsFilter)
   {
     try (TransactionContext tx = createTransactionContext()) {
@@ -438,36 +442,36 @@ public class PolicyViolationDAO
       Map<String, String> applicationIdsToScanIdMap = policyEvalList.stream()
           .collect(Collectors.toMap(
               PolicyEvaluation::getApplicationId, // Key: applicationId
-              PolicyEvaluation::getScanId        // Value: scanId
+              PolicyEvaluation::getScanId // Value: scanId
           ));
 
       String baseQuery = "SELECT max(threat_level) as threat_level," + //
-              " COUNT(CASE WHEN (threat_level >= 2) THEN 1 END) as violation_count," + //
-              " app.name as object," + //
-              " max(CASE WHEN pv.waive_time IS NOT NULL THEN NULL" + //
-              " WHEN pv.action_type_id = 'fail' THEN pv.open_time ELSE NULL END) as quarantine_time," + //
-              " app.application_id," + //
-              " app.public_id" + //
-              " FROM " + getDatabaseSchema() + ".organization org JOIN " + getDatabaseSchema() + ".application app" +
-              " ON org.organization_id = app.organization_id" + //
-              ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") +
-              " " + getDatabaseSchema() + ".policy_violation pv" + //
-              " ON app.application_id = pv.application_id AND pv.stage_type_id = 'proxy'" + //
-              " INNER JOIN " + getDatabaseSchema() + ".last_policy_evaluation lpe" + //
-              " ON lpe.application_id = app.application_id" + //
-              " INNER JOIN " + getDatabaseSchema() + ".policy_evaluation pe" + //
-              " ON lpe.policy_evaluation_id = pe.policy_evaluation_id" + //
-              " WHERE related_repository_id IN" + //
-              buildPositionalParameters(repositoryIds, repositoryIdsParamStartPosition) +
-              addThreatLevelFilters(detailsFilter.threatLevelFilters, threatLevelFiltersParamStartPosition) +
-              addViolationStateFilters(detailsFilter.violationStateFilters) +
-              addSearchFilters(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
-              " AND pv.fix_time IS NULL" + //
-              " GROUP BY app.application_id, app.name" + //
-              addPolicyViolationCountForHavingClause(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
-              validateAndAddSortFields(detailsFilter.sortFields) +
-              " LIMIT " + pageSize +
-              " OFFSET " + offset;
+          " COUNT(CASE WHEN (threat_level >= 2) THEN 1 END) as violation_count," + //
+          " app.name as object," + //
+          " max(CASE WHEN pv.waive_time IS NOT NULL THEN NULL" + //
+          " WHEN pv.action_type_id = 'fail' THEN pv.open_time ELSE NULL END) as quarantine_time," + //
+          " app.application_id," + //
+          " app.public_id" + //
+          " FROM " + getDatabaseSchema() + ".organization org JOIN " + getDatabaseSchema() + ".application app" +
+          " ON org.organization_id = app.organization_id" + //
+          ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") +
+          " " + getDatabaseSchema() + ".policy_violation pv" + //
+          " ON app.application_id = pv.application_id AND pv.stage_type_id = 'proxy'" + //
+          " INNER JOIN " + getDatabaseSchema() + ".last_policy_evaluation lpe" + //
+          " ON lpe.application_id = app.application_id" + //
+          " INNER JOIN " + getDatabaseSchema() + ".policy_evaluation pe" + //
+          " ON lpe.policy_evaluation_id = pe.policy_evaluation_id" + //
+          " WHERE related_repository_id IN" + //
+          buildPositionalParameters(repositoryIds, repositoryIdsParamStartPosition) +
+          addThreatLevelFilters(detailsFilter.threatLevelFilters, threatLevelFiltersParamStartPosition) +
+          addViolationStateFilters(detailsFilter.violationStateFilters) +
+          addSearchFilters(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
+          " AND pv.fix_time IS NULL" + //
+          " GROUP BY app.application_id, app.name" + //
+          addPolicyViolationCountForHavingClause(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
+          validateAndAddSortFields(detailsFilter.sortFields) +
+          " LIMIT " + pageSize +
+          " OFFSET " + offset;
 
       jakarta.persistence.Query query = tx.createNativeQuery(baseQuery);
       addPositionalParameters(query, repositoryIds, repositoryIdsParamStartPosition);
@@ -490,8 +494,8 @@ public class PolicyViolationDAO
               (String) array[2],
               array[3] == null ? null : new Date(((Timestamp) array[3]).getTime()),
               applicationIdsToScanIdMap.get(array[4]),
-              (String) array[5]
-          )).collect(Collectors.toList());
+              (String) array[5]))
+          .collect(Collectors.toList());
       return results;
     }
   }
@@ -926,15 +930,17 @@ public class PolicyViolationDAO
 
   /**
    * This method streams the policy violations that were either still open at the cutoff date or were created, waived,
-   * fixed or resolved as legacy since the cutoff date.  IOW, we ignore any policy violations that were resolved in some
+   * fixed or resolved as legacy since the cutoff date. IOW, we ignore any policy violations that were resolved in some
    * fashion before the cutoff date.
    *
    * @param cutoffDate the cutoff date
-   * @param batchSize  number of rows to process in a batch
-   * @param consumer   the consumer to accept the policy violations
+   * @param batchSize number of rows to process in a batch
+   * @param consumer the consumer to accept the policy violations
    */
-  public void consumePolicyViolationsSinceDate(Date cutoffDate, int batchSize, Consumer<PolicyViolation> consumer)
-      throws SQLException
+  public void consumePolicyViolationsSinceDate(
+      Date cutoffDate,
+      int batchSize,
+      Consumer<PolicyViolation> consumer) throws SQLException
   {
     log.debug("Starting to consume policy violations (cutoffDate={}, batchSize={}).", cutoffDate, batchSize);
 
@@ -988,7 +994,8 @@ public class PolicyViolationDAO
       inProgress = false;
       List<PolicyViolation> policyViolations = new ArrayList<>();
       try (Connection connection = getDataStore().getDataSource().getConnection();
-           PreparedStatement statement = connection.prepareStatement(sQuery)) {
+          PreparedStatement statement = connection.prepareStatement(sQuery))
+      {
         statement.setString(1, lastProcessedViolationId);
         statement.setDate(2, new java.sql.Date(cutoffDate.getTime()));
         statement.setDate(3, new java.sql.Date(cutoffDate.getTime()));
@@ -1101,7 +1108,7 @@ public class PolicyViolationDAO
   }
 
   public ContainerImagePolicyViolationSummaryDTO getContainerImagePolicyViolationSummaryForRepository(
-          String repositoryId)
+      String repositoryId)
   {
     String sQuery = "" + //
         "SELECT " + " COUNT(CASE WHEN (threat_level >= 8) THEN 1 END) AS policyViolationCritical," + //
@@ -1121,7 +1128,7 @@ public class PolicyViolationDAO
 
     try (TransactionContext tx = createTransactionContext()) {
       jakarta.persistence.Query query = createNativeQuery(tx, sQuery,
-              Action.ID_FAIL, repositoryId, ProxyStageType.ID);
+          Action.ID_FAIL, repositoryId, ProxyStageType.ID);
       Object[] result = (Object[]) query.getSingleResult();
       return new ContainerImagePolicyViolationSummaryDTO(result);
     }
@@ -1211,40 +1218,40 @@ public class PolicyViolationDAO
       int stageIdsParamStartPosition = useTemporaryTable ? 1 : appIdsParamStartPosition + applicationIds.size();
 
       aggregationQuery = String.format("""
-              SELECT
-                DISTINCT ON (
-                  pv.application_id,
-                  pv.policy_name,
-                  pv.threat_level,
-                  pv.hash,
-                  pv.component_id_format,
-                  pv.component_id_coordinates_json,
-                  pv.constraint_facts_id
-                )
-                pv.application_id,
-                pv.policy_name,
-                pv.threat_level,
-                pv.hash,
-                pv.component_id_format,
-                pv.component_id_coordinates_json,
-                pv.constraint_facts_id,
-                pv.open_time,
-                pv.filename,
-                pv.policy_violation_id,
-                pv.auto_policy_waiver_id
-              FROM %s.policy_violation pv
-              %s
-              WHERE
-                pv.stage_type_id IN %s
-                AND pv.fix_time IS NULL
-                %s
-              """,
+          SELECT
+            DISTINCT ON (
+              pv.application_id,
+              pv.policy_name,
+              pv.threat_level,
+              pv.hash,
+              pv.component_id_format,
+              pv.component_id_coordinates_json,
+              pv.constraint_facts_id
+            )
+            pv.application_id,
+            pv.policy_name,
+            pv.threat_level,
+            pv.hash,
+            pv.component_id_format,
+            pv.component_id_coordinates_json,
+            pv.constraint_facts_id,
+            pv.open_time,
+            pv.filename,
+            pv.policy_violation_id,
+            pv.auto_policy_waiver_id
+          FROM %s.policy_violation pv
+          %s
+          WHERE
+            pv.stage_type_id IN %s
+            AND pv.fix_time IS NULL
+            %s
+          """,
           databaseSchema,
           useTemporaryTable ? "JOIN temporary_ids ti ON pv.application_id = ti.id" : "",
           buildPositionalParameters(stageTypeIds, stageIdsParamStartPosition),
-          useTemporaryTable ? "" :
-              "AND pv.application_id IN " + buildPositionalParameters(applicationIds, appIdsParamStartPosition)
-      );
+          useTemporaryTable
+              ? ""
+              : "AND pv.application_id IN " + buildPositionalParameters(applicationIds, appIdsParamStartPosition));
 
       int nextParamPosition = stageIdsParamStartPosition + stageTypeIds.size();
       int minDateParamPosition = nextParamPosition;
@@ -1354,7 +1361,8 @@ public class PolicyViolationDAO
                   (String) array[10], // constraintFactsId
                   ((Timestamp) array[11]).getTime(), // firstOccurrenceTime
                   (String) array[12] // autoPolicyWaiverId
-              )).toList();
+              ))
+              .toList();
 
       return results;
     }
@@ -1401,7 +1409,7 @@ public class PolicyViolationDAO
     try (TransactionContext tx = createTransactionContext()) {
       jakarta.persistence.Query query = createNativeQuery(tx, sQuery);
       Object result = query.getSingleResult();
-      return (long)result;
+      return (long) result;
     }
   }
 
@@ -1452,7 +1460,8 @@ public class PolicyViolationDAO
               (String) array[6], // repositoryId
               ((Number) array[7]).longValue(), // policyViolationCount
               (String) array[8] // scanId
-          )).toList();
+          ))
+          .toList();
     }
   }
 
@@ -1465,7 +1474,9 @@ public class PolicyViolationDAO
       String repositoryPublicId,
       String repositoryId,
       Long policyViolationCount,
-      String scanId) { }
+      String scanId)
+  {
+  }
 
   private List<PolicyViolation> loadPolicyViolationsWithDateFilters(
       Collection<String> applicationIds,

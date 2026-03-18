@@ -58,7 +58,8 @@ public class OrganizationSummaryService
   }
 
   private List<Organization> getOrganizations() {
-    return organizationDAO.getAll().stream()
+    return organizationDAO.getAll()
+        .stream()
         .filter(org -> !org.getId().equals(Organization.ROOT_ORGANIZATION_ID))
         .collect(Collectors.toList());
   }

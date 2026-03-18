@@ -29,7 +29,8 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
-public class DashboardPage extends BasicElement<DashboardPage>
+public class DashboardPage
+    extends BasicElement<DashboardPage>
 {
   public static final WebElementCondition ACTIVE = cssClass("active");
 
@@ -61,7 +62,7 @@ public class DashboardPage extends BasicElement<DashboardPage>
     return BaseUrl.resolvePageUrl("/dashboard/newest-risk");
   }
 
-  public static final String ROOT =  "#dashboard-container";
+  public static final String ROOT = "#dashboard-container";
 
   public static final String NEEDS_ACKNOWLEDGEMENT_MESSAGE = "Select your filter criteria and click " +
       "'apply' to see results.";

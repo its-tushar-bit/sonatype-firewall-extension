@@ -103,7 +103,8 @@ public class DashboardUtils
 
     for (StageType stageType : licensedStageTypes) {
       if (!StageTypes.isIgnoredForDashboard(stageType.getId())
-          && (stageTypeIds.isEmpty() || stageTypeIds.contains(stageType.getId()))) {
+          && (stageTypeIds.isEmpty() || stageTypeIds.contains(stageType.getId())))
+      {
         stages.add(stageType);
       }
     }

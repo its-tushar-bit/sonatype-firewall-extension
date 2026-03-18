@@ -54,10 +54,12 @@ public class DevelopmentPrioritiesUtilsService
       return null;
     }
 
-    List<ApiVersionChangeOptionDTO> filteredVersions = remediation.versionChanges.stream().filter(
-        versionChange -> !versionChange.getData().getComponent().componentIdentifier.getCoordinates()
-            .get(ComponentIdentifier.VERSION).equals(currentVersion)
-    ).toList();
+    List<ApiVersionChangeOptionDTO> filteredVersions = remediation.versionChanges.stream()
+        .filter(
+            versionChange -> !versionChange.getData().getComponent().componentIdentifier.getCoordinates()
+                .get(ComponentIdentifier.VERSION)
+                .equals(currentVersion))
+        .toList();
 
     if (remediation.suggestedVersionChange != null && remediation.suggestedVersionChange.getData() != null) {
       String version =
@@ -69,8 +71,11 @@ public class DevelopmentPrioritiesUtilsService
         extractRemediationDto(filteredVersions, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES),
         extractRemediationDto(filteredVersions, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
         extractRemediationDto(filteredVersions, ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES),
-        extractRemediationDto(filteredVersions, ApiVersionChangeOptionType.NEXT_NON_FAILING)
-    ).map(Supplier::get).filter(Objects::nonNull).findFirst().orElse(null);
+        extractRemediationDto(filteredVersions, ApiVersionChangeOptionType.NEXT_NON_FAILING))
+        .map(Supplier::get)
+        .filter(Objects::nonNull)
+        .findFirst()
+        .orElse(null);
   }
 
   private Supplier<PrioritizationRemediationVersionDTO> extractRemediationDto(
@@ -93,14 +98,16 @@ public class DevelopmentPrioritiesUtilsService
   public String getVersionFromComponent(ApiComponentDTOV2 component) {
     if (component != null &&
         component.componentIdentifier != null &&
-        component.componentIdentifier.getCoordinates() != null) {
+        component.componentIdentifier.getCoordinates() != null)
+    {
       return component.componentIdentifier.toComponentIdentifier().get(ComponentIdentifier.VERSION);
     }
     return null;
   }
 
-  public ApiVersionChangeOptionDTO findVersionByType(List<ApiVersionChangeOptionDTO> versions,
-                                                     ApiVersionChangeOptionType type)
+  public ApiVersionChangeOptionDTO findVersionByType(
+      List<ApiVersionChangeOptionDTO> versions,
+      ApiVersionChangeOptionType type)
   {
     return versions.stream().filter(version -> version.getType().equals(type)).findFirst().orElse(null);
   }

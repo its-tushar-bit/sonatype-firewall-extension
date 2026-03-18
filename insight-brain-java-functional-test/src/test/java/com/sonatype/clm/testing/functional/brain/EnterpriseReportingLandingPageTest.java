@@ -96,8 +96,7 @@ public class EnterpriseReportingLandingPageTest
     DashboardMetadataListDTO dashboardList = new DashboardMetadataListDTO(
         version,
         List.of(dashboardVisibleMetadataDTO, dashboardHiddenMetadataDTO),
-        List.of(dashboardGroupMetadataDTO)
-    );
+        List.of(dashboardGroupMetadataDTO));
     setupTests(dashboardList, version);
     refreshOrOpen(EnterpriseReportingLandingPage.url());
 
@@ -108,19 +107,19 @@ public class EnterpriseReportingLandingPageTest
     DashboardCard hiddenDashboardCard = page.dashboardAt(dashboardHiddenMetadataDTO.dashboardId);
     DashboardCard dashboardGroupCard = page.dashboardAt(dashboardGroupMetadataDTO.groupId);
 
-    //Dashboards that have a groupId matching one of the dashboardGroupMetadataDTO groupId's will not render.
-    //This still needs to be mocked to allow the dashboardGroup to be rendered
+    // Dashboards that have a groupId matching one of the dashboardGroupMetadataDTO groupId's will not render.
+    // This still needs to be mocked to allow the dashboardGroup to be rendered
     hiddenDashboardCard.shouldBe(hidden);
     testReportContent(visibleDashboardCard,
-                      dashboardVisibleMetadataDTO.title,
-                      dashboardVisibleMetadataDTO.description,
-                      dashboardVisibleMetadataDTO.previewImageIcon,
-                      dashboardVisibleMetadataDTO.features);
+        dashboardVisibleMetadataDTO.title,
+        dashboardVisibleMetadataDTO.description,
+        dashboardVisibleMetadataDTO.previewImageIcon,
+        dashboardVisibleMetadataDTO.features);
     testReportContent(dashboardGroupCard,
-                      dashboardGroupMetadataDTO.title,
-                      dashboardGroupMetadataDTO.description,
-                      dashboardGroupMetadataDTO.previewImageIcon,
-                      dashboardGroupMetadataDTO.features);
+        dashboardGroupMetadataDTO.title,
+        dashboardGroupMetadataDTO.description,
+        dashboardGroupMetadataDTO.previewImageIcon,
+        dashboardGroupMetadataDTO.features);
     eyesWatcher.eyesCheck();
   }
 
@@ -145,29 +144,27 @@ public class EnterpriseReportingLandingPageTest
             spotlightTrueDashboardMetadataDTO,
             spotlightTextProvidedDashboardMetadataDTO,
             nonSpotlightDashboardMetadataDTO,
-            groupedDashboardMetadataDTO
-        ),
-        List.of(spotlightColorProvidedGroupDashboardMetadataDTO)
-    );
+            groupedDashboardMetadataDTO),
+        List.of(spotlightColorProvidedGroupDashboardMetadataDTO));
 
     setupTests(dashboardList, version);
     refreshOrOpen(EnterpriseReportingLandingPage.url());
 
     dashboardList.dashboardMetadata.forEach(dashboard -> {
       DashboardCard card = page.dashboardAt(dashboard.dashboardId);
-      testSpotlightFeature(card, 
-                           dashboard.spotlight,
-                           dashboard.spotlightText,
-                           dashboard.spotlightColor,
-                           dashboard.category);
+      testSpotlightFeature(card,
+          dashboard.spotlight,
+          dashboard.spotlightText,
+          dashboard.spotlightColor,
+          dashboard.category);
     });
     dashboardList.dashboardGroupMetadata.forEach(dashboard -> {
       DashboardCard card = page.dashboardAt(dashboard.groupId);
       testSpotlightFeature(card,
-                           dashboard.spotlight,
-                           dashboard.spotlightText,
-                           dashboard.spotlightColor,
-                           null);
+          dashboard.spotlight,
+          dashboard.spotlightText,
+          dashboard.spotlightColor,
+          null);
     });
   }
 
@@ -180,8 +177,7 @@ public class EnterpriseReportingLandingPageTest
     DashboardMetadataListDTO dashboardList = new DashboardMetadataListDTO(
         version,
         List.of(enabledDashboardMetadataDTO, disabledDashboardMetadataDTO),
-        List.of()
-    );
+        List.of());
 
     setupTests(dashboardList, version);
     refreshOrOpen(EnterpriseReportingLandingPage.url());
@@ -193,7 +189,7 @@ public class EnterpriseReportingLandingPageTest
     testButtonState(disabledDashboardMetadataDTO, userVersion);
   }
 
-  @Test 
+  @Test
   public void testFeatureEnabled_GroupButtonState() {
     DashboardsVersionDTO version = new DashboardsVersionDTO(5);
     DashboardMetadataDTO firstGroupedDashboardMetadataDTO = mockVersionedDashboardMetadata(3, "188", "group-id");
@@ -211,10 +207,8 @@ public class EnterpriseReportingLandingPageTest
             firstGroupedDashboardMetadataDTO,
             secondGroupedDashboardMetadataDTO,
             firstDisabledGroupedDashboardMetadataDTO,
-            secondDisabledGroupedDashboardMetadataDTO
-        ),
-        List.of(enabledDashboardGroupMetadataDTO, disabledDashboardGroupMetadataDTO)
-      );
+            secondDisabledGroupedDashboardMetadataDTO),
+        List.of(enabledDashboardGroupMetadataDTO, disabledDashboardGroupMetadataDTO));
 
     setupTests(dashboardList, version);
     refreshOrOpen(EnterpriseReportingLandingPage.url());
@@ -222,23 +216,21 @@ public class EnterpriseReportingLandingPageTest
     String fullVersion = testCLMServer.getCLMServer().getInstance(VersionService.class).getLogDisplayVersion();
     int userVersion = Integer.parseInt(fullVersion.substring(0, fullVersion.indexOf("-")).replace(".0", ""));
 
-    //to establish if button is disabled, need to check sinceIQVersion of related dashboards in dashboardMetadata
+    // to establish if button is disabled, need to check sinceIQVersion of related dashboards in dashboardMetadata
     List<String> enabledGroupedVersions = List.of(
         firstGroupedDashboardMetadataDTO.sinceIQVersion,
-        secondGroupedDashboardMetadataDTO.sinceIQVersion
-    );
+        secondGroupedDashboardMetadataDTO.sinceIQVersion);
     List<String> disabledGroupedVersions = List.of(
         firstDisabledGroupedDashboardMetadataDTO.sinceIQVersion,
-        secondDisabledGroupedDashboardMetadataDTO.sinceIQVersion
-    );
+        secondDisabledGroupedDashboardMetadataDTO.sinceIQVersion);
     testGroupButtonState(enabledDashboardGroupMetadataDTO,
-                         userVersion,
-                         enabledGroupedVersions,
-                         firstGroupedDashboardMetadataDTO.accessButtonText);
+        userVersion,
+        enabledGroupedVersions,
+        firstGroupedDashboardMetadataDTO.accessButtonText);
     testGroupButtonState(disabledDashboardGroupMetadataDTO,
-                         userVersion,
-                         disabledGroupedVersions,
-                         firstDisabledGroupedDashboardMetadataDTO.accessButtonText);
+        userVersion,
+        disabledGroupedVersions,
+        firstDisabledGroupedDashboardMetadataDTO.accessButtonText);
   }
 
   @Test
@@ -249,8 +241,7 @@ public class EnterpriseReportingLandingPageTest
     DashboardMetadataListDTO dashboardList = new DashboardMetadataListDTO(
         version,
         List.of(enabledDashboardMetadataDTO),
-        List.of()
-    );
+        List.of());
 
     setupTests(dashboardList, version);
     VersionService versionService = testCLMServer.getCLMServer().getInstance(VersionService.class);
@@ -277,8 +268,8 @@ public class EnterpriseReportingLandingPageTest
   @Test
   public void testCopyToClipboard__Success() {
     refreshOrOpen(EnterpriseReportingLandingPage.url());
-    //need to mock the ClipboardApi writeText() function which needs to resolve before success message renders
-    executeJavaScript( "navigator.clipboard = { writeText: function() { return Promise.resolve(); } }" );
+    // need to mock the ClipboardApi writeText() function which needs to resolve before success message renders
+    executeJavaScript("navigator.clipboard = { writeText: function() { return Promise.resolve(); } }");
     page.copyToClipboard().shouldBe(visible);
     page.copySuccessMessage().shouldBe(hidden);
 
@@ -318,15 +309,16 @@ public class EnterpriseReportingLandingPageTest
     thirdCard.contactButton().shouldHave(text("Explore Support"));
   }
 
-  private void testReportContent(DashboardCard report,
-                                 String title,
-                                 String description,
-                                 String iconName,
-                                 List<String> featuresList)
+  private void testReportContent(
+      DashboardCard report,
+      String title,
+      String description,
+      String iconName,
+      List<String> featuresList)
   {
     report.dashboardTitle().shouldHave(text(title));
     report.dashboardDescription().shouldBe(text(description));
-  
+
     SelenideElement icon = report.icon();
     icon.isDisplayed();
     String regex = "(?=[A-Z])";
@@ -340,11 +332,12 @@ public class EnterpriseReportingLandingPageTest
     }
   }
 
-  private void testSpotlightFeature(DashboardCard card,
-                                    Boolean spotlight,
-                                    String spotlightText,
-                                    String spotlightColor,
-                                    String category)
+  private void testSpotlightFeature(
+      DashboardCard card,
+      Boolean spotlight,
+      String spotlightText,
+      String spotlightColor,
+      String category)
   {
     if (spotlight) {
       card.spotlight().shouldBe(visible);
@@ -385,10 +378,11 @@ public class EnterpriseReportingLandingPageTest
     }
   }
 
-  private void testGroupButtonState(DashboardGroupMetadataDTO metadata,
-                                    int userVersion,
-                                    List<String> groupedVersions,
-                                    String buttonText)
+  private void testGroupButtonState(
+      DashboardGroupMetadataDTO metadata,
+      int userVersion,
+      List<String> groupedVersions,
+      String buttonText)
   {
     DashboardCard card = page.dashboardAt(metadata.groupId);
     SelenideElement button = card.dashboardGroupButton();
@@ -397,9 +391,9 @@ public class EnterpriseReportingLandingPageTest
     // Buttons on dashboardGroup cards should only be disabled if the user's IQ version is less than
     // the sinceIQVersion of ALL dashboards in dashboardMetadata with matching 'groupId'
     boolean allDisabled = groupedVersions.stream()
-          .filter(StringUtils::isNotBlank)
-          .mapToInt(Integer::parseInt)
-          .allMatch(version -> userVersion < version);
+        .filter(StringUtils::isNotBlank)
+        .mapToInt(Integer::parseInt)
+        .allMatch(version -> userVersion < version);
 
     if (allDisabled) {
       button.shouldBe(disabled);
@@ -440,10 +434,11 @@ public class EnterpriseReportingLandingPageTest
         "dashboards/rolling_recap::rolling_recap", null, null);
   }
 
-  private static DashboardMetadataDTO mockSpotlightDashboardMetadata(int order,
-                                                                     Boolean spotlight,
-                                                                     String spotlightText,
-                                                                     String groupId)
+  private static DashboardMetadataDTO mockSpotlightDashboardMetadata(
+      int order,
+      Boolean spotlight,
+      String spotlightText,
+      String groupId)
   {
     return new DashboardMetadataDTO("id" + order, groupId, "title", "enterprise", "description",
         Arrays.asList("feature 1", "feature 2"), "button text", "rolling-recap.svg", "faBrain", order, spotlight,

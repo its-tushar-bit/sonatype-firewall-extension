@@ -33,7 +33,7 @@ public class InsightDefaultServerFactory
 
   public InsightDefaultServerFactory() {
     setRegisterDefaultExceptionMappers(false);
-    
+
     setApplicationConnectors(Collections
         .singletonList(new InsightHttpConnectorFactory(InsightConfigurationFactory.DEFAULT_APPLICATION_PORT)));
     setAdminConnectors(

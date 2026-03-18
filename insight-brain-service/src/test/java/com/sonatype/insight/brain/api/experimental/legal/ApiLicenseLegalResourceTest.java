@@ -202,7 +202,9 @@ public class ApiLicenseLegalResourceTest
     LicenseLegalApplicationComponentsFilterDTO filter = new LicenseLegalApplicationComponentsFilterDTO();
 
     HttpResponse response = restRequest().path(ApiLicenseLegalResource.DASHBOARD_APPLICATION_PATH)
-        .parameter("fake-app-id").body(filter).post();
+        .parameter("fake-app-id")
+        .body(filter)
+        .post();
 
     assertResponseStatus(404, response);
   }
@@ -213,8 +215,10 @@ public class ApiLicenseLegalResourceTest
     LicenseLegalApplicationComponentsFilterDTO filter = new LicenseLegalApplicationComponentsFilterDTO();
 
     HttpResponse response =
-        restRequest().path(ApiLicenseLegalResource.DASHBOARD_APPLICATION_PATH).parameter(application.getPublicId())
-            .body(filter).post();
+        restRequest().path(ApiLicenseLegalResource.DASHBOARD_APPLICATION_PATH)
+            .parameter(application.getPublicId())
+            .body(filter)
+            .post();
 
     assertResponseStatus(200, response);
     List<ApiLicenseLegalApplicationComponentDTO> result =
@@ -468,7 +472,8 @@ public class ApiLicenseLegalResourceTest
     ApiLicenseLegalObligationDTO responseDto = response.getBody(ApiLicenseLegalObligationDTO.class);
     ApiLicenseLegalObligationDTO responseDto2 = response2.getBody(ApiLicenseLegalObligationDTO.class);
     assertThat(responseDto).isNotNull();
-    assertThat(responseDto).usingRecursiveComparison().ignoringExpectedNullFields()
+    assertThat(responseDto).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
         .isEqualTo(responseDto2);
     assertThat(responseDto.getPackageUrl()).isEqualTo(packageUrl);
     assertThat(responseDto.getId()).isEqualTo(componentObligation.getId());
@@ -503,7 +508,8 @@ public class ApiLicenseLegalResourceTest
     ComponentCopyrightWithOwnerDTO componentCopyrightWithOwnerDTO2 =
         response.getBody(ComponentCopyrightWithOwnerDTO.class);
     assertThat(componentCopyrightWithOwnerDTO).isNotNull();
-    assertThat(componentCopyrightWithOwnerDTO).usingRecursiveComparison().ignoringExpectedNullFields()
+    assertThat(componentCopyrightWithOwnerDTO).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
         .isEqualTo(componentCopyrightWithOwnerDTO2);
     assertThat(componentCopyrightWithOwnerDTO.getComponentCopyrightDTO().getId()).isEqualTo(componentCopyright.getId());
     assertThat(componentCopyrightWithOwnerDTO.getComponentCopyrightDTO().getId())
@@ -541,7 +547,8 @@ public class ApiLicenseLegalResourceTest
     ComponentLegalFileDTO componentLegalFileDTO = response.getBody(ComponentLegalFileDTO.class);
     ComponentLegalFileDTO componentLegalFileDTO2 = response.getBody(ComponentLegalFileDTO.class);
     assertThat(componentLegalFileDTO).isNotNull();
-    assertThat(componentLegalFileDTO).usingRecursiveComparison().ignoringExpectedNullFields()
+    assertThat(componentLegalFileDTO).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
         .isEqualTo(componentLegalFileDTO2);
     assertThat(componentLegalFile.getId()).isEqualTo(componentLegalFile.getId());
     assertThat(componentLegalFileDTO.getLegalFileOverrides()).hasSize(1);
@@ -579,7 +586,8 @@ public class ApiLicenseLegalResourceTest
     ComponentLegalFileDTO componentLegalFileDTO = response.getBody(ComponentLegalFileDTO.class);
     ComponentLegalFileDTO componentLegalFileDTO2 = response.getBody(ComponentLegalFileDTO.class);
     assertThat(componentLegalFileDTO).isNotNull();
-    assertThat(componentLegalFileDTO).usingRecursiveComparison().ignoringExpectedNullFields()
+    assertThat(componentLegalFileDTO).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
         .isEqualTo(componentLegalFileDTO2);
     assertThat(componentLegalFile.getId()).isEqualTo(componentLegalFile.getId());
     assertThat(componentLegalFileDTO.getLegalFileOverrides()).hasSize(1);
@@ -631,15 +639,17 @@ public class ApiLicenseLegalResourceTest
     final CopyrightFilePathsDTO filePaths = response.getBody(CopyrightFilePathsDTO.class);
     final CopyrightFilePathsDTO filePaths2 = response.getBody(CopyrightFilePathsDTO.class);
 
-    assertThat(filePaths.getFilePaths()).hasSize(3).containsExactly(
-        new CopyrightFilePathDTO("path1/file1", 2),
-        new CopyrightFilePathDTO("path2/file1", 2),
-        new CopyrightFilePathDTO("path2/file2", 1));
+    assertThat(filePaths.getFilePaths()).hasSize(3)
+        .containsExactly(
+            new CopyrightFilePathDTO("path1/file1", 2),
+            new CopyrightFilePathDTO("path2/file1", 2),
+            new CopyrightFilePathDTO("path2/file2", 1));
 
-    assertThat(filePaths2.getFilePaths()).hasSize(3).containsExactly(
-        new CopyrightFilePathDTO("path1/file1", 2),
-        new CopyrightFilePathDTO("path2/file1", 2),
-        new CopyrightFilePathDTO("path2/file2", 1));
+    assertThat(filePaths2.getFilePaths()).hasSize(3)
+        .containsExactly(
+            new CopyrightFilePathDTO("path1/file1", 2),
+            new CopyrightFilePathDTO("path2/file1", 2),
+            new CopyrightFilePathDTO("path2/file2", 1));
   }
 
   @Test

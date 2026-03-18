@@ -229,7 +229,7 @@ public class ApiPolicyViolationServiceV2AuthzTest
             BuildStageType.ID, null, "pkg:maven/g/a@v?type=e", null))
         .withMessageContaining("Component not found.");
   }
-  
+
   @Test(expected = UnauthenticatedException.class)
   public void testGetTransitivePolicyViolationsByAppScanComponent_Unauthenticated() {
     apiPolicyViolationService.getTransitivePolicyViolationsByAppScanComponent(app.getType(), app.getPublicId(),

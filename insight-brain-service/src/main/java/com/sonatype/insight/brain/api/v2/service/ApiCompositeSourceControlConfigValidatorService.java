@@ -56,8 +56,7 @@ public class ApiCompositeSourceControlConfigValidatorService
       GitClientFactory gitClientFactory,
       GitApiFactory gitApiFactory,
       ScmRepoVisibilityService scmRepoVisibilityService,
-      SourceControlSshService sourceControlSshService
-  )
+      SourceControlSshService sourceControlSshService)
   {
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
@@ -68,7 +67,7 @@ public class ApiCompositeSourceControlConfigValidatorService
 
   @Authorize(permission = Permission.READ)
   public ConfigurationValidationResult validateSourceControlConfig(
-          @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId)
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId)
   {
     ConfigurationValidationResult result = new ConfigurationValidationResult();
     GitRepositoryInfo gitInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
@@ -124,8 +123,10 @@ public class ApiCompositeSourceControlConfigValidatorService
     return result;
   }
 
-  private void validateSshConfiguration(String applicationId, ConfigurationValidationResult result,
-                                        GitRepositoryInfo gitInfo)
+  private void validateSshConfiguration(
+      String applicationId,
+      ConfigurationValidationResult result,
+      GitRepositoryInfo gitInfo)
   {
     if (!Boolean.TRUE.equals(gitInfo.sshEnabled)) {
       // SSH disabled, no need to perform further validation

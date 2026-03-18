@@ -88,7 +88,8 @@ public class RepositoryResultsSummaryTest
   private final FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
 
   private Wait<WebDriver> getWebDriverAwait() {
-    return new FluentWait<>(getWebDriver()).withTimeout(Duration.ofSeconds(240)).pollingEvery(Duration.ofSeconds(2))
+    return new FluentWait<>(getWebDriver()).withTimeout(Duration.ofSeconds(240))
+        .pollingEvery(Duration.ofSeconds(2))
         .ignoring(NoSuchElementException.class);
   }
 
@@ -167,7 +168,8 @@ public class RepositoryResultsSummaryTest
     counts.moderate().count().shouldHave(Condition.text("2"));
 
     RepositoryResultDetailPage.indicatorRow().coverageCaptionText().shouldHave(text("2 COMPONENTS"));
-    RepositoryResultDetailPage.indicatorRow().coverageCaptionSubtext()
+    RepositoryResultDetailPage.indicatorRow()
+        .coverageCaptionSubtext()
         .shouldHave(text("100% of all components identified"));
 
     RepositoryResultDetailPage.indicatorRow().quarantineCaptionText().shouldHave(text("1 QUARANTINED"));
@@ -1271,7 +1273,10 @@ public class RepositoryResultsSummaryTest
     // Repository Manager Summary View
     refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
     waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
-    RepositoriesSummaryPage.configTile().configurationTable().repoManagerConfigTableRow(1).repoManagerConfigTableLink()
+    RepositoriesSummaryPage.configTile()
+        .configurationTable()
+        .repoManagerConfigTableRow(1)
+        .repoManagerConfigTableLink()
         .click();
 
     waitUntilUrl(RepositoryResultDetailPage.url(repo.getId()));
@@ -1301,7 +1306,8 @@ public class RepositoryResultsSummaryTest
   @Test
   public void testRepositoryResultPageFilterPopOver_ViolationsFilter() {
     Date jan1st2024 = Date.from(LocalDateTime.of(2024, 1, 1, 12, 0)
-        .atZone(ZoneId.systemDefault()).toInstant());
+        .atZone(ZoneId.systemDefault())
+        .toInstant());
     RepositoryManager repoManager = tempEntity.newRepositoryManager("5E7PCC8D-3SAB6390-85FF543B-ECD79639-D431F7AE");
     Repository repo = tempEntity.newRepository(repoManager, "maven-central");
 
@@ -1382,8 +1388,8 @@ public class RepositoryResultsSummaryTest
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     ComponentDetails mainComponentDetail = componentDetailsArrayList.get(0);
 
-    //addComponentDetailSecurityVulnerability(mainComponentDetail, (float) 9.1);
-    //addComponentDetailSecurityVulnerability(mainComponentDetail, (float) 4.3);
+    // addComponentDetailSecurityVulnerability(mainComponentDetail, (float) 9.1);
+    // addComponentDetailSecurityVulnerability(mainComponentDetail, (float) 4.3);
     mainComponentDetail.setCatalogDate(new Date().getTime());
 
     componentDetailsList.setList(componentDetailsArrayList);
@@ -1391,12 +1397,14 @@ public class RepositoryResultsSummaryTest
 
     try {
       // Used when componentDetails are requested
-      testCLMServer.getHdsServer().respondWith(mainComponentDetail)
+      testCLMServer.getHdsServer()
+          .respondWith(mainComponentDetail)
           .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
               + URLEncoder.encode(JsonUtils.format(mainComponentDetail.getComponentIdentifier()), "UTF-8") + "&hash="
               + mainComponentDetail.getHash());
       // Used when multi license details are requested
-      testCLMServer.getHdsServer().respondWith(mainComponentDetail)
+      testCLMServer.getHdsServer()
+          .respondWith(mainComponentDetail)
           .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
               + URLEncoder.encode(JsonUtils.format(mainComponentDetail.getComponentIdentifier()), "UTF-8"));
     }
@@ -1460,27 +1468,33 @@ public class RepositoryResultsSummaryTest
     // Add not quarantined components
     RepositoryComponent component11 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path11", "hash11", ComponentIdentifier.createMavenCoordinates("groupId11",
-        "artifactId11", "version11", "classifier11", "jar"), false);
+            "artifactId11", "version11", "classifier11", "jar"),
+        false);
 
     RepositoryComponent component12 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path12", "hash12", ComponentIdentifier.createMavenCoordinates("groupId12",
-        "artifactId12", "version12", "classifier12", "jar"), false);
+            "artifactId12", "version12", "classifier12", "jar"),
+        false);
 
     RepositoryComponent component13 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path13", "hash13", ComponentIdentifier.createMavenCoordinates("groupId13",
-        "artifactId13", "version13", "classifier13", "jar"), false);
+            "artifactId13", "version13", "classifier13", "jar"),
+        false);
 
     RepositoryComponent component14 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path14", "hash14", ComponentIdentifier.createMavenCoordinates("groupId14",
-        "artifactId14", "version14", "classifier14", "jar"), false);
+            "artifactId14", "version14", "classifier14", "jar"),
+        false);
 
     RepositoryComponent component15 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path15", "hash15", ComponentIdentifier.createMavenCoordinates("groupId15",
-        "artifactId15", "version15", "classifier15", "jar"), false);
+            "artifactId15", "version15", "classifier15", "jar"),
+        false);
 
     RepositoryComponent component16 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path16", "hash16", ComponentIdentifier.createMavenCoordinates("groupId16",
-        "artifactId16", "version16", "classifier16", "jar"), false);
+            "artifactId16", "version16", "classifier16", "jar"),
+        false);
 
     // Add policy violations for not quarantined components
     tempEntity.newRepositoryPolicyViolation(component11, 1, false, "Policy Threat Level 1", null);
@@ -1494,91 +1508,117 @@ public class RepositoryResultsSummaryTest
   private void addComponentsWithoutPolicyViolations(Repository repository) {
     // Add components without violations
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path20", "hash20",
-        ComponentIdentifier.createMavenCoordinates("groupId20","artifactId20", "version20",
-        "classifier20", "jar"), false);
+        ComponentIdentifier.createMavenCoordinates("groupId20", "artifactId20", "version20",
+            "classifier20", "jar"),
+        false);
 
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path21", "hash21",
         ComponentIdentifier.createMavenCoordinates("groupId21", "artifactId21", "version21",
-        "classifier21", "jar"), false);
+            "classifier21", "jar"),
+        false);
 
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path22", "hash22",
         ComponentIdentifier.createMavenCoordinates("groupId22", "artifactId22", "version22",
-        "classifier22", "jar"), false);
+            "classifier22", "jar"),
+        false);
 
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path23", "hash23",
         ComponentIdentifier.createMavenCoordinates("groupId23", "artifactId23", "version23",
-        "classifier23", "jar"), false);
+            "classifier23", "jar"),
+        false);
 
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path24", "hash24",
         ComponentIdentifier.createMavenCoordinates("groupId24", "artifactId24", "version24",
-        "classifier24", "jar"), false);
+            "classifier24", "jar"),
+        false);
 
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path25", "hash25",
         ComponentIdentifier.createMavenCoordinates("groupId25", "artifactId25", "version25",
-        "classifier25", "jar"), false);
+            "classifier25", "jar"),
+        false);
   }
 
   private void addQuarantinedComponentsWithPolicyViolations(Repository repository) {
     // Add quarantined components
     Date june1st2020 = Date.from(LocalDateTime.of(2020, 6, 1, 11, 0)
-        .atZone(ZoneId.systemDefault()).toInstant());
+        .atZone(ZoneId.systemDefault())
+        .toInstant());
     RepositoryComponent component1 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path1", "hash1", ComponentIdentifier.createMavenCoordinates("groupId1",
-        "artifactId1", "version1", "classifier1", "jar"), june1st2020, june1st2020);
+            "artifactId1", "version1", "classifier1", "jar"),
+        june1st2020, june1st2020);
 
     Date june2nd2020 = Date.from(LocalDateTime.of(2020, 6, 2, 10, 0)
-        .atZone(ZoneId.systemDefault()).toInstant());
+        .atZone(ZoneId.systemDefault())
+        .toInstant());
     RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path2", "hash2", ComponentIdentifier.createMavenCoordinates("groupId2",
-        "artifactId2", "version2", "classifier2", "jar"), june2nd2020, june2nd2020);
+            "artifactId2", "version2", "classifier2", "jar"),
+        june2nd2020, june2nd2020);
 
     Date june3rd2020 = Date.from(LocalDateTime.of(2020, 6, 3, 13, 0)
-        .atZone(ZoneId.systemDefault()).toInstant());
+        .atZone(ZoneId.systemDefault())
+        .toInstant());
     RepositoryComponent component3 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path3", "hash3", ComponentIdentifier.createMavenCoordinates("groupId3",
-        "artifactId3", "version3", "classifier3", "jar"), june3rd2020, june3rd2020);
+            "artifactId3", "version3", "classifier3", "jar"),
+        june3rd2020, june3rd2020);
 
     Date june4th2020 = Date.from(LocalDateTime.of(2020, 6, 4, 15, 0)
-        .atZone(ZoneId.systemDefault()).toInstant());
+        .atZone(ZoneId.systemDefault())
+        .toInstant());
     RepositoryComponent component4 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path4", "hash4", ComponentIdentifier.createMavenCoordinates("groupId4",
-        "artifactId4", "version4", "classifier4", "jar"), june4th2020, june4th2020);
+            "artifactId4", "version4", "classifier4", "jar"),
+        june4th2020, june4th2020);
 
     Date june5th2020 = Date.from(LocalDateTime.of(2020, 6, 5, 5, 0)
-        .atZone(ZoneId.systemDefault()).toInstant());
+        .atZone(ZoneId.systemDefault())
+        .toInstant());
     RepositoryComponent component5 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path5", "hash5", ComponentIdentifier.createMavenCoordinates("groupId5",
-        "artifactId5", "version5", "classifier5", "jar"), june5th2020, june5th2020);
+            "artifactId5", "version5", "classifier5", "jar"),
+        june5th2020, june5th2020);
 
     Date june6th2020 = Date.from(LocalDateTime.of(2020, 6, 6, 10, 0)
-        .atZone(ZoneId.systemDefault()).toInstant());
+        .atZone(ZoneId.systemDefault())
+        .toInstant());
     RepositoryComponent component6 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path6", "hash6", ComponentIdentifier.createMavenCoordinates("groupId6",
-        "artifactId6", "version6", "classifier6", "jar"), june6th2020, june6th2020);
+            "artifactId6", "version6", "classifier6", "jar"),
+        june6th2020, june6th2020);
 
     Date june7th2020 = Date.from(LocalDateTime.of(2020, 6, 7, 10, 0)
-        .atZone(ZoneId.systemDefault()).toInstant());
+        .atZone(ZoneId.systemDefault())
+        .toInstant());
     RepositoryComponent component7 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path7", "hash7", ComponentIdentifier.createMavenCoordinates("groupId7",
-        "artifactId7", "version7", "classifier7", "jar"), june7th2020, june7th2020);
+            "artifactId7", "version7", "classifier7", "jar"),
+        june7th2020, june7th2020);
 
     Date june8th2020 = Date.from(LocalDateTime.of(2020, 6, 8, 10, 0)
-        .atZone(ZoneId.systemDefault()).toInstant());
+        .atZone(ZoneId.systemDefault())
+        .toInstant());
     RepositoryComponent component8 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path8", "hash8", ComponentIdentifier.createMavenCoordinates("groupId8",
-        "artifactId8", "version8", "classifier8", "jar"), june8th2020, june8th2020);
+            "artifactId8", "version8", "classifier8", "jar"),
+        june8th2020, june8th2020);
 
     Date june9th2020 = Date.from(LocalDateTime.of(2020, 6, 9, 10, 0)
-        .atZone(ZoneId.systemDefault()).toInstant());
+        .atZone(ZoneId.systemDefault())
+        .toInstant());
     RepositoryComponent component9 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path9", "hash9", ComponentIdentifier.createMavenCoordinates("groupId9",
-        "artifactId9", "version9", "classifier9", "jar"), june9th2020, june9th2020);
+            "artifactId9", "version9", "classifier9", "jar"),
+        june9th2020, june9th2020);
 
     Date june10th2020 = Date.from(LocalDateTime.of(2020, 6, 10, 10, 0)
-        .atZone(ZoneId.systemDefault()).toInstant());
+        .atZone(ZoneId.systemDefault())
+        .toInstant());
     RepositoryComponent component10 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "path10", "hash10", ComponentIdentifier.createMavenCoordinates("groupId10",
-        "artifactId10", "version10", "classifier10", "jar"), june10th2020, june10th2020);
+            "artifactId10", "version10", "classifier10", "jar"),
+        june10th2020, june10th2020);
 
     // Add Policy Violations for quarantined components
     // Component 1
@@ -1627,11 +1667,12 @@ public class RepositoryResultsSummaryTest
     tempEntity.newRepositoryPolicyViolation(component10, 10, false, "Policy Threat Level 10", null);
   }
 
-  private void testRow(RepositoryResultTableRow row,
-                       String threat,
-                       String policy,
-                       String quarantined,
-                       String component)
+  private void testRow(
+      RepositoryResultTableRow row,
+      String threat,
+      String policy,
+      String quarantined,
+      String component)
   {
     row.threat().shouldHave(threat.isEmpty() ? Condition.empty : text(threat));
     row.policy().shouldHave(policy.isEmpty() ? Condition.empty : text(policy));

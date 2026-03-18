@@ -19,7 +19,7 @@ public class InnerSourceUtils
   private static final Logger log = LoggerFactory.getLogger(InnerSourceUtils.class);
 
   private InnerSourceUtils() {
-    //noop
+    // noop
   }
 
   public static PackageUrlIdentifier getVersionlessPackageUrl(final ComponentIdentifier componentIdentifier) {

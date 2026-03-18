@@ -15,8 +15,12 @@ public class ProprietaryComponentMatcher
   private SelenideElement listItem;
 
   public ProprietaryComponentMatcher(String rootSelector, MatcherType type, String name) {
-    this.listItem = $$( rootSelector + " .nx-list__subtext")
-            .findBy(text(type.listValue)).parent().findAll(".nx-list__text").findBy(text(name)).parent();
+    this.listItem = $$(rootSelector + " .nx-list__subtext")
+        .findBy(text(type.listValue))
+        .parent()
+        .findAll(".nx-list__text")
+        .findBy(text(name))
+        .parent();
   }
 
   public SelenideElement name() {
@@ -29,7 +33,8 @@ public class ProprietaryComponentMatcher
 
   public enum MatcherType
   {
-    PACKAGE("Package"), REGEX("Regular Expression", "RegEx");
+    PACKAGE("Package"),
+    REGEX("Regular Expression", "RegEx");
 
     public final String name;
 

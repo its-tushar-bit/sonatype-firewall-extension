@@ -56,8 +56,10 @@ public class ComponentSourceLinkDAOTest
     componentSourceLink.setLastUpdatedByUsername("other");
     componentSourceLink.setLastUpdatedAt(now);
     dao.update(componentSourceLink);
-    assertThat(dao.getById(componentSourceLink.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
-        .usingOverriddenEquals().isEqualTo(componentSourceLink);
+    assertThat(dao.getById(componentSourceLink.getId())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .usingOverriddenEquals()
+        .isEqualTo(componentSourceLink);
 
     // Delete
     dao.delete(componentSourceLink);
@@ -128,7 +130,8 @@ public class ComponentSourceLinkDAOTest
     tempEntity.newComponentSourceLink(componentIdentifier, application.getId());
 
     assertThat(dao.getByOwnerIdAndComponentIdentifier(organization.getId(), componentIdentifier))
-        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(componentSourceLink);
+        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .isEqualTo(componentSourceLink);
   }
 
   @Test

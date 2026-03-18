@@ -73,8 +73,7 @@ public class RepositoryConfigurationCollectorTest
         userAgent.os,
         userAgent.osVersion,
         userAgent.hostProductName,
-        userAgent.hostProductVersion
-    );
+        userAgent.hostProductVersion);
 
     TelemetryData telemetryData = telemetryCollector.collectData();
 
@@ -83,7 +82,7 @@ public class RepositoryConfigurationCollectorTest
         RepositoryConfigurationCollector.IS_QUARANTINE_ENABLED);
 
     List<RepositoryTelemetry> repositoryTelemetries = (List<RepositoryTelemetry>) telemetryData.getAttributes()
-            .get(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY);
+        .get(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY);
 
     Comparator<RepositoryTelemetry> telemetryComparator =
         Comparator.comparing(RepositoryTelemetry::getRepositoryManagerId)
@@ -137,8 +136,7 @@ public class RepositoryConfigurationCollectorTest
         userAgent.os,
         userAgent.osVersion,
         userAgent.product,
-        userAgent.version
-    );
+        userAgent.version);
 
     TelemetryData telemetryData = telemetryCollector.collectData();
 
@@ -292,8 +290,7 @@ public class RepositoryConfigurationCollectorTest
         userAgent.os,
         userAgent.osVersion,
         userAgent.hostProductName,
-        userAgent.hostProductVersion
-    );
+        userAgent.hostProductVersion);
 
     TelemetryData telemetryData = telemetryCollector.collectData();
     List<RepositoryTelemetry> repositoryTelemetries = (List<RepositoryTelemetry>) telemetryData.getAttributes()

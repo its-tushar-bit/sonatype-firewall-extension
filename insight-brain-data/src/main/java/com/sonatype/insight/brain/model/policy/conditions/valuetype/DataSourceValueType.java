@@ -35,5 +35,3 @@ public class DataSourceValueType
     return ComponentDataSource.getAll();
   }
 }
-
-

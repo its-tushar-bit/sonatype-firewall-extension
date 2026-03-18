@@ -27,7 +27,8 @@ import org.slf4j.LoggerFactory;
  * DTO representing an application containing a matched component.
  */
 @Schema(description = "Application containing a matched component")
-public class ApplicationComponentMatchDTO implements CsvWritable
+public class ApplicationComponentMatchDTO
+    implements CsvWritable
 {
   private static final Logger log = LoggerFactory.getLogger(ApplicationComponentMatchDTO.class);
 
@@ -172,8 +173,7 @@ public class ApplicationComponentMatchDTO implements CsvWritable
         formatField(formattedDate),
         formatField(activeWaiver ? "True" : "False"),
         formatField(violating ? "True" : "False"),
-        formatField(evaluationUrl)
-    );
+        formatField(evaluationUrl));
   }
 
   private String extractVersionFromPackageUrl(String purl) {

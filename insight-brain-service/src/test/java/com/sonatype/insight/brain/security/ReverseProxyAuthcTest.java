@@ -55,12 +55,12 @@ public class ReverseProxyAuthcTest
   @Parameterized.Parameters(name = "ldapConfigured={0}, ldapUser={1}, localUser={2}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-        {false, false, false}, // totally unknown username, no LDAP configured
-        {true, false, false},  // totally unknown username, LDAP configured
-        {false, false, true},  // username only present in local db, no LDAP configured
-        {true, false, true},   // username only present in local db, LDAP configured
-        {true, true, false},   // username only present in LDAP
-        {true, true, true}     // username present in local db and LDAP
+      {false, false, false}, // totally unknown username, no LDAP configured
+      {true, false, false}, // totally unknown username, LDAP configured
+      {false, false, true}, // username only present in local db, no LDAP configured
+      {true, false, true}, // username only present in local db, LDAP configured
+      {true, true, false}, // username only present in LDAP
+      {true, true, true} // username present in local db and LDAP
     });
   }
 
@@ -120,7 +120,7 @@ public class ReverseProxyAuthcTest
   public void testLogout_reverseProxyIsEnabledWithLogoutUrl() throws Exception {
     String logoutUrl = "http://localhost/logout";
     tempEntity.newReverseProxyAuthenticationConfiguration(true,
-          ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER, false, logoutUrl);
+        ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER, false, logoutUrl);
     getCLMServer().getInstance(ApiReverseProxyAuthenticationConfigurationService.class)
         .applyReverseProxyAuthenticationConfigurationToClients();
 
@@ -135,7 +135,8 @@ public class ReverseProxyAuthcTest
     assertThat(authStatus.isInternalUser()).isFalse();
     assertThat(authStatus.getDisplayName()).isEqualTo(displayName());
 
-    response = request.subpath(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).cookie(sessionCookie)
+    response = request.subpath(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH)
+        .cookie(sessionCookie)
         .delete();
     assertResponseStatus(HttpStatus.SC_NO_CONTENT, response);
     assertThat(response.getHeader("Location")).isEqualTo(logoutUrl);
@@ -155,7 +156,8 @@ public class ReverseProxyAuthcTest
     assertThat(authStatus.isInternalUser()).isFalse();
     assertThat(authStatus.getDisplayName()).isEqualTo(displayName());
 
-    response = request.subpath(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).cookie(sessionCookie)
+    response = request.subpath(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH)
+        .cookie(sessionCookie)
         .delete();
     assertResponseStatus(HttpStatus.SC_NO_CONTENT, response);
     assertThat(response.getHeader("Location")).isNull();

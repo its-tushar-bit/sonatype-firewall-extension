@@ -18,11 +18,13 @@ import jakarta.ws.rs.NameBinding;
  * to prevent access.
  * <p>
  * Example usage:
+ *
  * <pre>
  * &#64;Named
  * &#64;IqOnlyEndpoint
  * &#64;Path("/api/v2/config/features")
- * public class ApiConfigFeaturesResource {
+ * public class ApiConfigFeaturesResource
+ * {
  *   // This resource will only be available in IQ, not MTIQ
  * }
  * </pre>

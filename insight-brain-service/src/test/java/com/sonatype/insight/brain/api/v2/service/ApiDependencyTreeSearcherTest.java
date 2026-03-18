@@ -28,17 +28,17 @@ public class ApiDependencyTreeSearcherTest
   }
 
   // example test tree structure
-  //root
-  //├── rootChild1 (direct)
-  //│   ├── child4 (transitive
-  //│   └── child5 (transitive)
-  //├── rootChild2 (direct)
-  //│   ├── child6 (transitive)
-  //│   └── child7 (direct)
-  //|    └── child8 (transitive)
-  //└── rootChild3 (direct)
-  //     └── child8 (transitive)
-  //     └── child9 (transitive)
+  // root
+  // ├── rootChild1 (direct)
+  // │ ├── child4 (transitive
+  // │ └── child5 (transitive)
+  // ├── rootChild2 (direct)
+  // │ ├── child6 (transitive)
+  // │ └── child7 (direct)
+  // | └── child8 (transitive)
+  // └── rootChild3 (direct)
+  // └── child8 (transitive)
+  // └── child9 (transitive)
 
   @Test
   public void testFindAllDirectParents_singleTransitive() {
@@ -61,7 +61,7 @@ public class ApiDependencyTreeSearcherTest
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(
             new ComponentIdentifier("maven", generateCoordinate("child7", "child7"))));
 
-    //Don't expect any parents if it is direct
+    // Don't expect any parents if it is direct
     assertThat(parents).hasSize(0);
   }
 
@@ -81,8 +81,7 @@ public class ApiDependencyTreeSearcherTest
             ApiComponentIdentifierDTOV2.fromComponentIdentifier(
                 new ComponentIdentifier("maven", generateCoordinate("child7", "child7"))),
             ApiComponentIdentifierDTOV2.fromComponentIdentifier(
-                new ComponentIdentifier("maven", generateCoordinate("rootChild3", "rootChild3")))
-        );
+                new ComponentIdentifier("maven", generateCoordinate("rootChild3", "rootChild3"))));
   }
 
   public ApiDependencyTreeNodeDTO generateTestTree() {
@@ -110,8 +109,7 @@ public class ApiDependencyTreeSearcherTest
     ApiDependencyTreeNodeDTO rootChild3 = new ApiDependencyTreeNodeDTO();
     rootChild3.setComponentIdentifier(
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(
-            new ComponentIdentifier("maven", generateCoordinate("rootChild3", "rootChild3")))
-    );
+            new ComponentIdentifier("maven", generateCoordinate("rootChild3", "rootChild3"))));
     rootChild3.setChildren(new ArrayList<>());
     rootChild3.setDirect(true);
 
@@ -175,10 +173,12 @@ public class ApiDependencyTreeSearcherTest
 
   public TreeMap<String, String> generateCoordinate(String artifactId, String groupdId) {
     return new TreeMap<>()
-    {{
+    {
+      {
         this.put("artifactId", artifactId);
         this.put("groupId", groupdId);
         this.put("version", "1.1.1");
-      }};
+      }
+    };
   }
 }

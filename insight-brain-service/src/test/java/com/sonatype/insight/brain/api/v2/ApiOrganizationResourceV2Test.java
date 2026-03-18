@@ -143,7 +143,9 @@ public class ApiOrganizationResourceV2Test
     Organization organization = tempEntity.newOrganization();
 
     HttpResponse response = restRequest().path(ApiOrganizationResourceV2.MOVE_ORGANIZATION_PATH)
-        .parameter(organizations.get(0).getId(), organization.getId()).query("failEarlyOnError", true).put();
+        .parameter(organizations.get(0).getId(), organization.getId())
+        .query("failEarlyOnError", true)
+        .put();
 
     assertResponseStatus(HttpStatus.SC_OK, response);
     assertThat(response.getBodyBytes()).isNotNull();

@@ -77,9 +77,11 @@ public class SimpleConfigurationMigrator
     nameToGetter.put(WEBHOOK_SECRET_PASSPHRASE, InsightConfig::getWebhookSecretPassphrase);
     nameToGetter.put(WEBHOOK_SECRET_PASSPHRASE_FIPS, InsightConfig::getWebhookSecretPassphraseFips);
     nameToGetter.put(EXTERNAL_HYPERLINKS_ALLOWED, InsightConfig::isExternalHyperlinksAllowed);
-    nameToGetter.put(MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, config ->
-        config.getMatcherConfiguration() == null ? null : ConfigurationUtils.parseBooleanWithDefault(
-            config.getMatcherConfiguration().get("disableConanNamespaceMatching"), null));
+    nameToGetter.put(MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
+        config -> config.getMatcherConfiguration() == null
+            ? null
+            : ConfigurationUtils.parseBooleanWithDefault(
+                config.getMatcherConfiguration().get("disableConanNamespaceMatching"), null));
     for (Feature feature : Feature.values()) {
       nameToGetter.put(feature.getFlag(), config -> getFeature(config, feature));
     }
@@ -129,7 +131,7 @@ public class SimpleConfigurationMigrator
 
     if (!nonNullToMigrate.isEmpty()) {
       log.warn("{} is now configured using the REST API. " +
-              "The configuration in the config.yml or via system properties is obsolete.",
+          "The configuration in the config.yml or via system properties is obsolete.",
           String.join(", ", nonNullToMigrate.keySet()));
     }
 

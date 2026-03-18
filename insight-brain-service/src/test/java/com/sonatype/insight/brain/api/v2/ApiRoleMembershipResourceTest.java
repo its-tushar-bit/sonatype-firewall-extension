@@ -293,7 +293,8 @@ public class ApiRoleMembershipResourceTest
     assertThat(result.membersByRole()).hasSize(5);
 
     // Find the Developer role in the results
-    ApiRoleWithMembersByOwnerDTO developerRole = result.membersByRole().stream()
+    ApiRoleWithMembersByOwnerDTO developerRole = result.membersByRole()
+        .stream()
         .filter(role -> DEVELOPER_ROLE_ID.equals(role.roleId()))
         .findFirst()
         .orElseThrow(() -> new AssertionError("Developer role not found"));
@@ -304,7 +305,8 @@ public class ApiRoleMembershipResourceTest
 
     // Verify that user-one appears somewhere in the membersByOwner list
     // (could be under application or inherited from parent org)
-    boolean foundUserOne = developerRole.membersByOwner().stream()
+    boolean foundUserOne = developerRole.membersByOwner()
+        .stream()
         .flatMap(mbo -> mbo.members().stream())
         .anyMatch(member -> USER.equals(member.type()) && "user-one".equals(member.internalName()));
 
@@ -344,7 +346,8 @@ public class ApiRoleMembershipResourceTest
     assertThat(result.membersByRole()).hasSize(5);
 
     // Verify that repo-user appears somewhere in the response
-    boolean foundRepoUser = result.membersByRole().stream()
+    boolean foundRepoUser = result.membersByRole()
+        .stream()
         .filter(role -> DEVELOPER_ROLE_ID.equals(role.roleId()))
         .flatMap(role -> role.membersByOwner().stream())
         .flatMap(mbo -> mbo.members().stream())
@@ -359,8 +362,7 @@ public class ApiRoleMembershipResourceTest
     tempEntity.newUser("new-user");
 
     List<ApiMemberWithDetailsDTO> members = List.of(
-        createApiMemberWithDetails(USER, "new-user", "New User", "new-user@test.com", "IQ Server")
-    );
+        createApiMemberWithDetails(USER, "new-user", "New User", "new-user@test.com", "IQ Server"));
 
     HttpResponse response = restRequest()
         .path("application", application.getPublicId(), "role", DEVELOPER_ROLE_ID, "members")
@@ -381,8 +383,7 @@ public class ApiRoleMembershipResourceTest
     tempEntity.newUser("new-user");
 
     List<ApiMemberWithDetailsDTO> members = List.of(
-        createApiMemberWithDetails(USER, "new-user", "New User", "new-user@test.com", "IQ Server")
-    );
+        createApiMemberWithDetails(USER, "new-user", "New User", "new-user@test.com", "IQ Server"));
 
     HttpResponse response = restRequest()
         .path("application", application.getPublicId(), "role", DEVELOPER_ROLE_ID, "members")
@@ -427,8 +428,7 @@ public class ApiRoleMembershipResourceTest
     tempEntity.newUser("repo-user");
 
     List<ApiMemberWithDetailsDTO> members = List.of(
-        createApiMemberWithDetails(USER, "repo-user", "Repo User", "repo-user@test.com","IQ Server")
-    );
+        createApiMemberWithDetails(USER, "repo-user", "Repo User", "repo-user@test.com", "IQ Server"));
 
     HttpResponse response = restRequest()
         .path("repository_container", "role", DEVELOPER_ROLE_ID, "members")
@@ -451,8 +451,7 @@ public class ApiRoleMembershipResourceTest
 
     List<ApiMemberWithDetailsDTO> members = List.of(
         createApiMemberWithDetails(USER, "user-one", "User One", "user-one@test.com", "IQ Server"),
-        createApiMemberWithDetails(USER, "user-two", "User Two", "user-two@test.com", "IQ Server")
-    );
+        createApiMemberWithDetails(USER, "user-two", "User Two", "user-two@test.com", "IQ Server"));
 
     HttpResponse response = restRequest()
         .path("application", application.getPublicId(), "role", OWNER_ROLE_ID, "members")
@@ -485,8 +484,7 @@ public class ApiRoleMembershipResourceTest
     tempEntity.newUser("global-admin");
 
     List<ApiMemberWithDetailsDTO> members = List.of(
-        createApiMemberWithDetails(USER, "global-admin", "Global Admin", "global-admin@test.com", "IQ Server")
-    );
+        createApiMemberWithDetails(USER, "global-admin", "Global Admin", "global-admin@test.com", "IQ Server"));
 
     HttpResponse response = restRequest()
         .path("global", "role", SYSTEM_ADMIN_ROLE_ID, "members")

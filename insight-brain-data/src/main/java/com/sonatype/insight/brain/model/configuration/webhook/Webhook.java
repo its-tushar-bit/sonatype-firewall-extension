@@ -55,17 +55,19 @@ public class Webhook
     this(url, secretKey, null);
   }
 
-  public Webhook(final String url,
-                 final String secretKey,
-                 final Set<WebhookEventType> eventTypes)
+  public Webhook(
+      final String url,
+      final String secretKey,
+      final Set<WebhookEventType> eventTypes)
   {
     this(url, secretKey, eventTypes, null);
   }
 
-  public Webhook(final String url,
-                 final String secretKey,
-                 final Set<WebhookEventType> eventTypes,
-                 final String description)
+  public Webhook(
+      final String url,
+      final String secretKey,
+      final Set<WebhookEventType> eventTypes,
+      final String description)
   {
     this.url = url;
     this.secretKey = secretKey;

@@ -336,8 +336,11 @@ public class ThirdPartyDataServiceTest
     tempEntity.newThirdPartyScan(TemporaryEntity.uuid(), scanId, thirdPartyFile1);
     tempEntity.createSbomMetadata("appId", "1", thirdPartyFile1, PENDING);
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByScanId(scanId);
-    String sbomApplicationPath = tempDir.getRoot().toPath()
-        .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath()).normalize().toString();
+    String sbomApplicationPath = tempDir.getRoot()
+        .toPath()
+        .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath())
+        .normalize()
+        .toString();
     File sbomFile = tempDir.newFile(sbomApplicationPath + File.separator + sbomMetadata.getFilename());
     sbomFile.deleteOnExit();
     assertThat(sbomFile).exists();
@@ -364,7 +367,7 @@ public class ThirdPartyDataServiceTest
     tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, "Medium", null);
     tempEntity.newThirdPartyCoordinateSecurity(coord2, "r2", "desc2", "l2", 7f, "High", null);
 
-    //mismatching records, expect not to get filtered
+    // mismatching records, expect not to get filtered
     ThirdPartyFileCoordinate coord3 = tempEntity
         .newThirdPartyFileCoordinate(anotherThirdPartyFile, "f3", "CLAIR", "n3", "v3", "hash3", "pkg:CLAIR/n3@v3");
     tempEntity.newThirdPartyCoordinateSecurity(coord3, "r3", "desc3", "l3", 1f, "Low", null);
@@ -462,9 +465,7 @@ public class ThirdPartyDataServiceTest
   }
 
   @Test
-  public void testMergeSonatypeDataWithSbomDataWithIndexing_SbomMetadataStatusIsUnchangedIfUnlicensed()
-      throws Exception
-  {
+  public void testMergeSonatypeDataWithSbomDataWithIndexing_SbomMetadataStatusIsUnchangedIfUnlicensed() throws Exception {
     productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
@@ -539,16 +540,18 @@ public class ThirdPartyDataServiceTest
 
     LinkedHashSet<String> expectedPurlsForHash1 = new LinkedHashSet<>(Arrays
         .asList("pkg:f1/n1@v1", "pkg:f1/n1@v1_duplicated"));
-    assertThat(scanData.billOfMaterials.stream().filter(component
-        -> component.hash.equals("hash1")).collect(Collectors.toList()))
-        .hasSize(1)
-        .extracting(thirdPartyBillOfMaterialsRowDTO -> thirdPartyBillOfMaterialsRowDTO.pathnames)
-        .containsOnly(expectedPurlsForHash1);
+    assertThat(scanData.billOfMaterials.stream()
+        .filter(component -> component.hash.equals("hash1"))
+        .collect(Collectors.toList()))
+            .hasSize(1)
+            .extracting(thirdPartyBillOfMaterialsRowDTO -> thirdPartyBillOfMaterialsRowDTO.pathnames)
+            .containsOnly(expectedPurlsForHash1);
 
     assertBomContains(scanData.billOfMaterials, coord1, file);
     assertBomContains(scanData.billOfMaterials, coord2, file);
-    assertThat(scanData.billOfMaterials.stream().noneMatch(component
-        -> component.packageUrl.equals(coord3.getPackageUrl()))).isTrue();
+    assertThat(
+        scanData.billOfMaterials.stream().noneMatch(component -> component.packageUrl.equals(coord3.getPackageUrl())))
+            .isTrue();
     assertBomContains(scanData.billOfMaterials, coord4, file);
     assertBomContains(scanData.billOfMaterials, coord5, file);
   }
@@ -610,14 +613,16 @@ public class ThirdPartyDataServiceTest
     final List<ThirdPartyHealthCheckReportSecurityRowDTO> found =
         securityRows.stream().filter(sec -> sec.hash.equals(coordinate.getHash())).collect(Collectors.toList());
 
-    assertThat(found.stream().filter(sec -> sec.reference.equals(
-        expectedSecRows.getRefId())).findFirst())
-        .hasValueSatisfying(securityRow -> {
-          assertThat(securityRow.analysis.state).isEqualTo(vex.getState());
-          assertThat(securityRow.analysis.justification).isEqualTo(vex.getJustification());
-          assertThat(securityRow.analysis.response).isEqualTo(vex.getResponse());
-          assertThat(securityRow.analysis.detail).isEqualTo(vex.getDetail());
-        });
+    assertThat(found.stream()
+        .filter(sec -> sec.reference.equals(
+            expectedSecRows.getRefId()))
+        .findFirst())
+            .hasValueSatisfying(securityRow -> {
+              assertThat(securityRow.analysis.state).isEqualTo(vex.getState());
+              assertThat(securityRow.analysis.justification).isEqualTo(vex.getJustification());
+              assertThat(securityRow.analysis.response).isEqualTo(vex.getResponse());
+              assertThat(securityRow.analysis.detail).isEqualTo(vex.getDetail());
+            });
   }
 
   private void assertLicenseNotProvided(
@@ -666,8 +671,9 @@ public class ThirdPartyDataServiceTest
   {
     assertThat(bom.stream().filter(component -> component.hash.equals(coordinate.getHash())).findFirst())
         .hasValueSatisfying(bomRow -> {
-          String expectedPurl = StringUtils.isNotEmpty(coordinate.getPackageUrl()) ?
-              coordinate.getPackageUrl() : PackageUrlIdentifier.toPackageUrl(bomRow.componentIdentifier);
+          String expectedPurl = StringUtils.isNotEmpty(coordinate.getPackageUrl())
+              ? coordinate.getPackageUrl()
+              : PackageUrlIdentifier.toPackageUrl(bomRow.componentIdentifier);
           assertThat(bomRow.componentIdentifier).isEqualTo(handler.getComponentIdentifier(coordinate));
           assertThat(bomRow.createTime).isCloseTo(files[0].getCreated().getTime(), withinPercentage(0.001));
           assertThat(bomRow.matchState).isEqualTo(MatchState.EXACT.toString());

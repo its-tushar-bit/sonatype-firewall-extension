@@ -185,19 +185,19 @@ public class ArtifactCoordinateTest
         ComponentIdentifier.createPypiCoordinates("PyYAML", "3.12", "win-amd64-py2.8", "zip");
 
     ArtifactCoordinate pypyExactCoordinate = new ArtifactCoordinate(
-        ComponentIdentifier.createPypiCoordinates("pyyaml", "3.11", "win-amd64-py2.7","exe"));
+        ComponentIdentifier.createPypiCoordinates("pyyaml", "3.11", "win-amd64-py2.7", "exe"));
     assertThat(pypyExactCoordinate.matches(pypiCoordinate1)).isTrue();
     assertThat(pypyExactCoordinate.matches(pypiCoordinate2)).isFalse();
     assertThat(pypyExactCoordinate.matches(pypiCoordinate3)).isFalse();
 
     ArtifactCoordinate pypyCoordWithWildcardQualifier = new ArtifactCoordinate(
-        ComponentIdentifier.createPypiCoordinates("pyyaml", "3.11", "win*","exe"));
+        ComponentIdentifier.createPypiCoordinates("pyyaml", "3.11", "win*", "exe"));
     assertThat(pypyCoordWithWildcardQualifier.matches(pypiCoordinate1)).isTrue();
     assertThat(pypyCoordWithWildcardQualifier.matches(pypiCoordinate2)).isTrue();
     assertThat(pypyCoordWithWildcardQualifier.matches(pypiCoordinate3)).isFalse();
 
     ArtifactCoordinate pypyCoordWithAllWildcards = new ArtifactCoordinate(
-        ComponentIdentifier.createPypiCoordinates("pyy*", "3*", "win*","*"));
+        ComponentIdentifier.createPypiCoordinates("pyy*", "3*", "win*", "*"));
     assertThat(pypyCoordWithAllWildcards.matches(pypiCoordinate1)).isTrue();
     assertThat(pypyCoordWithAllWildcards.matches(pypiCoordinate2)).isTrue();
     assertThat(pypyCoordWithAllWildcards.matches(pypiCoordinate3)).isTrue();
@@ -206,7 +206,7 @@ public class ArtifactCoordinateTest
   @Test
   public void testMatchesIgnoreCase_NullCandidateIdentifier() {
     ArtifactCoordinate pypyCoord = new ArtifactCoordinate(
-        ComponentIdentifier.createPypiCoordinates("pyy*", "3*", "win*","*"));
+        ComponentIdentifier.createPypiCoordinates("pyy*", "3*", "win*", "*"));
     assertThat(pypyCoord.matches(null)).isFalse();
   }
 
@@ -215,7 +215,7 @@ public class ArtifactCoordinateTest
     ComponentIdentifier mavenCoordinates = ComponentIdentifier.createMavenCoordinates("pyy", "*", "*", "*", "*");
 
     ArtifactCoordinate pypyCoord = new ArtifactCoordinate(
-        ComponentIdentifier.createPypiCoordinates("pyy*", "3*", "win*","*"));
+        ComponentIdentifier.createPypiCoordinates("pyy*", "3*", "win*", "*"));
     assertThat(pypyCoord.matches(mavenCoordinates)).isFalse();
   }
 }

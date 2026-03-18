@@ -9,7 +9,8 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.ElementsCollection;
 
-public class NxDropdown extends BasicElement<NxDropdown>
+public class NxDropdown
+    extends BasicElement<NxDropdown>
 {
   public NxDropdown(String selector) {
     super(selector);
@@ -23,7 +24,8 @@ public class NxDropdown extends BasicElement<NxDropdown>
     return new NxDropdownMenu(childSelector(".nx-dropdown-menu"));
   }
 
-  public static class NxDropdownMenu extends BasicElement<NxDropdown.NxDropdownMenu>
+  public static class NxDropdownMenu
+      extends BasicElement<NxDropdown.NxDropdownMenu>
   {
     public NxDropdownMenu(String selector) {
       super(selector);

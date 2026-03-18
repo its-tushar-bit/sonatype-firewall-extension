@@ -54,8 +54,10 @@ public class HttpHeaderValidatorFilter
   }
 
   @Override
-  public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
-      throws IOException, ServletException
+  public void doFilter(
+      final ServletRequest request,
+      final ServletResponse response,
+      final FilterChain chain) throws IOException, ServletException
   {
     HttpServletRequest httpRequest = (HttpServletRequest) request;
     HttpServletResponse httpResponse = (HttpServletResponse) response;

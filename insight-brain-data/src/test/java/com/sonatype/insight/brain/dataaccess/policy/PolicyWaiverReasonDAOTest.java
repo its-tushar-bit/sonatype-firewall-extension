@@ -92,7 +92,7 @@ public class PolicyWaiverReasonDAOTest
         results.get(MITIGATED_EXTERNALLY_WAIVER_REASON.getId()),
         MITIGATED_EXTERNALLY_WAIVER_REASON);
     assertPolicyWaiverReasonsEqual(
-        results.get( NO_UPGRADE_PATH_WAIVER_REASON.getId()),
+        results.get(NO_UPGRADE_PATH_WAIVER_REASON.getId()),
         NO_UPGRADE_PATH_WAIVER_REASON);
     assertPolicyWaiverReasonsEqual(
         results.get(NOT_EXPLOITABLE_WAIVER_REASON.getId()),
@@ -149,7 +149,7 @@ public class PolicyWaiverReasonDAOTest
   @Test
   public void testGetAll_returnsAllEntriesCorrectlySorted() {
     final var oranges = tempEntity.newWaiverReason("system", "oranges", null);
-    final var apples  = tempEntity.newWaiverReason("system", "apples", null);
+    final var apples = tempEntity.newWaiverReason("system", "apples", null);
     final var plumbs = tempEntity.newWaiverReason("system", "plumbs", null);
 
     final var overLappingSortOrder = tempEntity.newWaiverReason("system", "over-lapping-sort-order", 10);
@@ -180,8 +180,7 @@ public class PolicyWaiverReasonDAOTest
 
   private void assertPolicyWaiverReasonListEqual(
       final List<PolicyWaiverReason> actualReasons,
-      final List<PolicyWaiverReason> expectedReasons
-  )
+      final List<PolicyWaiverReason> expectedReasons)
   {
     assertThat(actualReasons.size()).isEqualTo(expectedReasons.size());
 

@@ -41,8 +41,7 @@ public class RoiConfigurationResourceAuditTest
         30,
         15,
         BigDecimal.valueOf(800),
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
   }
 
   @Override
@@ -59,8 +58,7 @@ public class RoiConfigurationResourceAuditTest
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
         30,
-        BigDecimal.valueOf(800)
-    );
+        BigDecimal.valueOf(800));
     HttpResponse response =
         restRequest().body(roiConfigurationDTO).post();
     assertResponseStatus(200, response);
@@ -78,8 +76,7 @@ public class RoiConfigurationResourceAuditTest
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
         15,
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
 
     RoiConfigurationDTO roiConfigurationDTO = new RoiConfigurationDTO(
         null,
@@ -88,8 +85,7 @@ public class RoiConfigurationResourceAuditTest
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
         30,
-        BigDecimal.valueOf(800)
-    );
+        BigDecimal.valueOf(800));
     HttpResponse response =
         restRequest().body(roiConfigurationDTO).post();
     assertResponseStatus(200, response);
@@ -109,8 +105,7 @@ public class RoiConfigurationResourceAuditTest
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
         30,
-        BigDecimal.valueOf(800)
-    );
+        BigDecimal.valueOf(800));
     HttpResponse response =
         restRequest().body(roiConfigurationDTO).post();
     assertResponseStatus(402, response);
@@ -126,8 +121,7 @@ public class RoiConfigurationResourceAuditTest
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
         10,
-        BigDecimal.valueOf(800)
-    );
+        BigDecimal.valueOf(800));
     HttpResponse response =
         restRequest().body(roiConfigurationDTO).post();
     assertResponseStatus(400, response);

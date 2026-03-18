@@ -8,7 +8,7 @@ package org.keycloak.saml.common;
 /**
  * Custom logger impl for Keycloak that prefers to rethrow exceptions instead of merely logging them and then letting
  * the code continue into a cryptic/misleading follow-up exception.
- * 
+ *
  * NOTE: Fully-qualified class name must comply with lookup logic in PicketLinkLoggerFactory.
  */
 public class PicketLinkLoggerImpl

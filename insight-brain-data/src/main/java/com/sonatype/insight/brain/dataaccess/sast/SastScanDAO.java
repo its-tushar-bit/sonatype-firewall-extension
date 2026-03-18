@@ -21,7 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 
 @Named
 @Singleton
-public class SastScanDAO extends AbstractOperationalSqlDAO<SastScan>
+public class SastScanDAO
+    extends AbstractOperationalSqlDAO<SastScan>
 {
   private final SastScmScanContextDAO sastScmScanContextDAO;
 

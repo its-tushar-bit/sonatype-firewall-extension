@@ -7,7 +7,10 @@ package com.sonatype.insight.brain.zscaler;
 
 public enum ZScalerSupportedFormat
 {
-  MAVEN, NPM, PYPI, NUGET;
+  MAVEN,
+  NPM,
+  PYPI,
+  NUGET;
 
   public static ZScalerSupportedFormat fromString(String format) {
     for (ZScalerSupportedFormat zScalerFormat : ZScalerSupportedFormat.values()) {

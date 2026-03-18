@@ -85,7 +85,7 @@ public class CallFlowAnalysisConfigDAOTest
     CallFlowAnalysisConfig callFlowAnalysisConfig2 =
         new CallFlowAnalysisConfig(
             true, Collections.singletonList("nameSpace1"), CallFlowAlgorithm.CLASS_HIERARCHY_ANALYSIS, 3,
-        owner.getId());
+            owner.getId());
 
     try (TransactionContext tx = dao.createTransactionContext()) {
       assertThatThrownBy(() -> dao.update(tx, callFlowAnalysisConfig2))

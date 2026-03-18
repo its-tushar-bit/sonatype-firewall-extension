@@ -101,7 +101,7 @@ public class PullRequestLineFeedback
    * Renders the template and returns the content
    *
    * @return An optional variable containing the Markdown-formatted contents of the Pull Request Line Comment, will be
-   * empty if no new violations or no components available
+   *         empty if no new violations or no components available
    */
   public Optional<String> renderTemplateAndGetContents(
       final SourceControlProvider provider)
@@ -122,12 +122,10 @@ public class PullRequestLineFeedback
    * @return An optional variable containing the PR line feedback contents
    * @throws IOException
    */
-  private String constructContents(final SourceControlProvider provider)
-      throws IOException
-  {
+  private String constructContents(final SourceControlProvider provider) throws IOException {
     Preconditions.checkState(!violations.isEmpty(), "violations cannot be empty");
 
-    //Get a map containing the values to be populated in the template for the component
+    // Get a map containing the values to be populated in the template for the component
     final Map<String, Object> componentFeedbackList =
         getComponentFeedbackList(
             displayName,
@@ -148,9 +146,9 @@ public class PullRequestLineFeedback
   /**
    * Gets a list of feedback items for each of the components
    *
-   * @param displayName           The display name for the given component
-   * @param violations            The list of violations for the given component
-   * @param baseUrl               The baseUrl of the IQ server
+   * @param displayName The display name for the given component
+   * @param violations The list of violations for the given component
+   * @param baseUrl The baseUrl of the IQ server
    * @param remediationVersionDTO Recommended version to upgrade to
    * @return A map containing the feedback for a specific component
    */
@@ -170,7 +168,7 @@ public class PullRequestLineFeedback
     int threatLevel = getHighestThreatLevel(violations);
     String threatImage = PullRequestFeedbackDetails.getImageForThreatLevel(threatLevel);
     String suggestedVersion = remediationVersionDTO == null ? "" : remediationVersionDTO.getVersion();
-    String suggestedVersionType = 
+    String suggestedVersionType =
         remediationVersionDTO == null ? "" : remediationVersionDTO.getRemediationType().getDisplayName();
     int breakingChangesCount = -1;
     boolean remediationForDependencies = false;
@@ -202,7 +200,7 @@ public class PullRequestLineFeedback
         .put("provider", provider);
 
     findComponentReportUrl(baseUrl, violations, applicationPublicId, featureBranchScanId)
-        .ifPresent( url -> modelMapBuilder.put("componentDetailsReportUrl", url));
+        .ifPresent(url -> modelMapBuilder.put("componentDetailsReportUrl", url));
 
     return modelMapBuilder.build();
   }

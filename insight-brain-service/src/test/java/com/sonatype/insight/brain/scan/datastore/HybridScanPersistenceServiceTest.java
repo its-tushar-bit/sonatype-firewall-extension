@@ -96,9 +96,9 @@ public class HybridScanPersistenceServiceTest
   @Parameters
   public static List<Object[]> dataStoreTypes() {
     return Arrays.asList(new Object[][]{
-        {new LinkedHashSet<>(List.of(DataStoreType.S3, DataStoreType.FILE))},
-        {new LinkedHashSet<>(List.of(DataStoreType.FILE, DataStoreType.S3))},
-        });
+      {new LinkedHashSet<>(List.of(DataStoreType.S3, DataStoreType.FILE))},
+      {new LinkedHashSet<>(List.of(DataStoreType.FILE, DataStoreType.S3))},
+    });
   }
 
   @BeforeClass
@@ -115,8 +115,7 @@ public class HybridScanPersistenceServiceTest
         .credentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create(
                 localstack.getContainer().getAccessKey(),
-                localstack.getContainer().getSecretKey()
-            )))
+                localstack.getContainer().getSecretKey())))
         .build();
   }
 
@@ -125,7 +124,9 @@ public class HybridScanPersistenceServiceTest
     s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
         .contents()
         .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
-            .bucket(BUCKET_NAME).key(obj.key()).build()));
+            .bucket(BUCKET_NAME)
+            .key(obj.key())
+            .build()));
   }
 
   private final LinkedHashSet<DataStoreType> dataStoreTypes;
@@ -139,8 +140,7 @@ public class HybridScanPersistenceServiceTest
     super.configure(binder);
     AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
         localstack.getContainer().getAccessKey(),
-        localstack.getContainer().getSecretKey()
-    ));
+        localstack.getContainer().getSecretKey()));
     binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }
 
@@ -358,8 +358,7 @@ public class HybridScanPersistenceServiceTest
         s3ScanEntity1,
         s3ScanEntity2,
         fileScanEntity1,
-        fileScanEntity2
-    );
+        fileScanEntity2);
   }
 
   @Test

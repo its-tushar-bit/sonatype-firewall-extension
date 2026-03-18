@@ -68,7 +68,9 @@ public class PublicRestApiAuthcTest
     HttpCookie sessionCookie = response.getSessionCookie();
     assertThat(sessionCookie).isNotNull();
 
-    HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing").anon().csrfToken("nonce", "nonce")
+    HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing")
+        .anon()
+        .csrfToken("nonce", "nonce")
         .cookie(sessionCookie);
     response = request.put();
     assertResponseStatus(404, response);
@@ -194,7 +196,7 @@ public class PublicRestApiAuthcTest
     assertThat(response.getHeader(HttpHeaders.WWW_AUTHENTICATE)).isNull();
   }
 
-  private void assertResponses(HttpRequest request, int status) throws Exception  {
+  private void assertResponses(HttpRequest request, int status) throws Exception {
     HttpResponse response = request.get();
     assertResponseStatus(status, response);
 

@@ -112,7 +112,6 @@ public class SastPullRequestCommentDAOTest
         "commit-hash",
         "content-hash",
         "discussion_r1450570374",
-        0
-    );
+        0);
   }
 }

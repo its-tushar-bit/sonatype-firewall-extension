@@ -186,9 +186,10 @@ public class ProductNotificationServiceTest
     return notifications;
   }
 
-  private void assertNotification(final ProductNotificationDTO notificationDTO,
-                                  final ProductNotification notification,
-                                  final boolean viewed)
+  private void assertNotification(
+      final ProductNotificationDTO notificationDTO,
+      final ProductNotification notification,
+      final boolean viewed)
   {
     assertThat(notificationDTO.id).isEqualTo(notification.getId());
     assertThat(notificationDTO.summaryText).isEqualTo(notification.getSummaryText());

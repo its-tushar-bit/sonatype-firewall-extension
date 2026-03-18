@@ -224,7 +224,8 @@ public class RepositoryContainerPolicyEditorTest
     createPolicy();
     refresh();
 
-    RepositoriesSummaryPage.policyTile().policyLists()
+    RepositoriesSummaryPage.policyTile()
+        .policyLists()
         .shouldHave(size(2)); // include inherited policies
     PolicyTileList policyList = RepositoriesSummaryPage.policyTile().policyList(0);
     policyList.row(1).click();
@@ -445,11 +446,11 @@ public class RepositoryContainerPolicyEditorTest
     waitUntilUrl(PolicyEditorPage.firewallUrlToEdit(OwnerType.REPOSITORY_CONTAINER,
         RepositoryContainer.REPOSITORY_CONTAINER_ID, inheritedPolicies.get(0).getId()));
 
-    //Summary Section
+    // Summary Section
     PolicyEditorPage.summarySection().policyName().input().shouldBe(visible, disabled);
     PolicyEditorPage.summarySection().threatLevel().shouldBe(visible).shouldHave(DISABLED);
 
-    //Inheritance section
+    // Inheritance section
     PolicyInheritsToSection inheritance = PolicyEditorPage.inheritanceSection();
 
     ScrollUtil.scrollIntoView(PolicyEditorPage.inheritanceSection().header());
@@ -457,21 +458,23 @@ public class RepositoryContainerPolicyEditorTest
     inheritance.allChildrenInheritRadio().shouldBe(visible, disabled);
     inheritance.specifiedChildrenInheritRadio().shouldBe(visible, disabled);
     inheritance.policyActionsOverrideCheckbox().shouldBe(visible, disabled);
-    inheritance.policyActionsOverrideCheckbox().label().shouldHave(
-        text("Allow action overrides at organization, application and repositories levels")
-    );
+    inheritance.policyActionsOverrideCheckbox()
+        .label()
+        .shouldHave(
+            text("Allow action overrides at organization, application and repositories levels"));
     inheritance.policyNotificationsOverrideCheckbox().shouldBe(visible, disabled);
-    inheritance.policyNotificationsOverrideCheckbox().label().shouldHave(
-        text("Allow notification overrides at organization, application and repositories levels")
-    );
+    inheritance.policyNotificationsOverrideCheckbox()
+        .label()
+        .shouldHave(
+            text("Allow notification overrides at organization, application and repositories levels"));
 
     eyesWatcher.eyesCheck("Policy Editor Inheritance section at repository container level for root org policy");
 
-    //Constraints Section
+    // Constraints Section
     ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
     constraintSection.addConstraintButton().shouldBe(visible, disabled);
 
-    //Actions Section
+    // Actions Section
     ActionsSection actionsSection = PolicyEditorPage.actionsSection();
 
     ScrollUtil.scrollIntoView(PolicyEditorPage.actionsSection().header());
@@ -499,7 +502,7 @@ public class RepositoryContainerPolicyEditorTest
     actionsSection.operate().warnRadio().shouldBe(visible, disabled);
     actionsSection.operate().failRadio().shouldBe(visible, disabled);
 
-    //Notifications Section
+    // Notifications Section
     NotificationsSection notificationsSection = PolicyEditorPage.notificationsSection();
 
     notificationsSection.notificationsOverrideSection().shouldBe(visible);

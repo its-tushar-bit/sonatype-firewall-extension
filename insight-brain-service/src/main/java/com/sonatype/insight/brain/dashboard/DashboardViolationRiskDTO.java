@@ -19,7 +19,8 @@ import com.google.common.base.Joiner;
  *
  * @since 1.11.0
  */
-public class DashboardViolationRiskDTO implements CsvWritable
+public class DashboardViolationRiskDTO
+    implements CsvWritable
 {
   private static final Joiner joiner = Joiner.on(",");
 

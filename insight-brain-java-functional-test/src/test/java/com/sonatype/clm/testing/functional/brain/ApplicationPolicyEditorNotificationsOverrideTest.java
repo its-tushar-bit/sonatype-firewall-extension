@@ -371,8 +371,7 @@ public class ApplicationPolicyEditorNotificationsOverrideTest
         new WebhookNotification(webhook1.getId(), allStageIdsWithoutProxyAndCompliance),
         new WebhookNotification(webhook2.getId()),
         new JiraNotification("projectKey1", 1, allStageIdsWithoutProxyAndCompliance),
-        new JiraNotification("projectKey2", 2)
-    );
+        new JiraNotification("projectKey2", 2));
     // StageIds get desirialized as an unordered HashSet, so to allow recursive comparison ensure the StageIds here
     // are also a HashSet
     notifications.getAllNotifications()
@@ -391,8 +390,7 @@ public class ApplicationPolicyEditorNotificationsOverrideTest
         new WebhookNotification(webhook1.getId()),
         new WebhookNotification(webhook2.getId(), allStageIdsWithoutProxy),
         new JiraNotification("projectKey1", 1),
-        new JiraNotification("projectKey2", 2, allStageIdsWithoutProxy)
-    );
+        new JiraNotification("projectKey2", 2, allStageIdsWithoutProxy));
     // StageIds get desirialized as an unordered HashSet, so to allow recursive comparison ensure the StageIds here
     // are also a HashSet
     notifications.getAllNotifications()
@@ -457,8 +455,11 @@ public class ApplicationPolicyEditorNotificationsOverrideTest
   }
 
   private Set<String> getAllStageIdsSet() {
-    Set<String> allStageIdsAndContinuousMonitoring = StageTypes.getAll().stream().map(StageType::getId).collect(
-        Collectors.toCollection(LinkedHashSet::new));
+    Set<String> allStageIdsAndContinuousMonitoring = StageTypes.getAll()
+        .stream()
+        .map(StageType::getId)
+        .collect(
+            Collectors.toCollection(LinkedHashSet::new));
     allStageIdsAndContinuousMonitoring.add(Notification.CONTINUOUS_MONITORING);
     return allStageIdsAndContinuousMonitoring;
   }

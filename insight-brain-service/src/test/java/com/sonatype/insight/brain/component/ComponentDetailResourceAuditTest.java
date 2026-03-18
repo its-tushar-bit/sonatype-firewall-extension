@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.component;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Date;
@@ -83,12 +84,13 @@ public class ComponentDetailResourceAuditTest
     assertGetApplicationDetailsByHashAuditData(auditDTO, hash, null, null, 1, 1);
   }
 
-  private void assertGetApplicationDetailsByHashAuditData(AuditDTO auditDTO,
-                                                          String hash,
-                                                          ComponentIdentifier componentIdentifier,
-                                                          String componentFilename,
-                                                          int appCount,
-                                                          int recordCount)
+  private void assertGetApplicationDetailsByHashAuditData(
+      AuditDTO auditDTO,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      String componentFilename,
+      int appCount,
+      int recordCount)
   {
     assertCustomData(auditDTO, "componentHash", hash);
     assertCustomObject(auditDTO, "componentIdentifier", componentIdentifier);

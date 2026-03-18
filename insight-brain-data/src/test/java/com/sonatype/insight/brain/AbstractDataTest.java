@@ -41,8 +41,7 @@ public abstract class AbstractDataTest
     SystemConfigurationPropertyFeature.injectDependencies(daoFactory.createSystemConfigurationPropertyDAO());
     clusterLockManager = new ClusterLockManagerProvider(
         databaseRule.getOperationalDataStore(),
-        daoFactory.createPostgresAdvisoryLockDAO()
-    ).get();
+        daoFactory.createPostgresAdvisoryLockDAO()).get();
 
     // Re-inject classes that have static dependencies
     ConditionTypesTestHelper.initConditionTypes(daoFactory);

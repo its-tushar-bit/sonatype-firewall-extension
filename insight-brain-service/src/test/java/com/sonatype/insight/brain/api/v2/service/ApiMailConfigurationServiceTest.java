@@ -357,7 +357,7 @@ public class ApiMailConfigurationServiceTest
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> mailConfigurationService.setConfiguration(configurationDTO))
-            .withMessageContaining("The password must be provided when the hostname or port are updated");
+        .withMessageContaining("The password must be provided when the hostname or port are updated");
 
     assertThat(configurationDTO.password).containsOnly('0');
 

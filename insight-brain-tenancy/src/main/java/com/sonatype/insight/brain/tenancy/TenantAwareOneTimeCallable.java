@@ -40,8 +40,8 @@ public class TenantAwareOneTimeCallable<T>
   public T call() throws Exception {
     if (previouslyRun) {
       /*
-        This is to fail fast. The request will fail when the wrapped runnable is called and gets the tenant anyway but
-        by failing fast we get a better stack trace, making it easier to find and resolve the problem.
+       * This is to fail fast. The request will fail when the wrapped runnable is called and gets the tenant anyway but
+       * by failing fast we get a better stack trace, making it easier to find and resolve the problem.
        */
       throw new RuntimeException("TenantAwareOneTimeCallable cannot be reused");
     }

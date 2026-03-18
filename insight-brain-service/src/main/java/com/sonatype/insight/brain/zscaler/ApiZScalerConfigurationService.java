@@ -43,7 +43,7 @@ public class ApiZScalerConfigurationService
   private final PasswordHandler passwordHandler;
 
   public static final String EULA_MESSAGE = """
-      access to and use of Sonatype's Zscaler integration is subject to and governed by these 
+      access to and use of Sonatype's Zscaler integration is subject to and governed by these
       <a href="https://links.sonatype.com/products/firewall/docs/zscaler/zscaler-eula">License Terms</a>.
       """;
 
@@ -105,7 +105,8 @@ public class ApiZScalerConfigurationService
     zScalerConfiguration.setHostname(configuration.getHostname());
     zScalerConfiguration.setApikey(configuration.getApiKey());
 
-    Map<String, ZscalerFormat> formatMap = zscalerFormatDAO.getAll().stream()
+    Map<String, ZscalerFormat> formatMap = zscalerFormatDAO.getAll()
+        .stream()
         .collect(Collectors.toMap(ZscalerFormat::getFormat, f -> f));
     for (ZScalerSupportedFormat format : ZScalerSupportedFormat.values()) {
       boolean enabled = switch (format) {
@@ -163,7 +164,8 @@ public class ApiZScalerConfigurationService
     if (!configuration.isMavenFormatEnabled() &&
         !configuration.isNpmFormatEnabled() &&
         !configuration.isPypiFormatEnabled() &&
-        !configuration.isNugetFormatEnabled()) {
+        !configuration.isNugetFormatEnabled())
+    {
       throw new BadRequestException("At least one format must be enabled.");
     }
   }

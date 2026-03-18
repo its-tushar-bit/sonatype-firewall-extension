@@ -9,7 +9,8 @@ package com.sonatype.clm.testing.functional.pages;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
-public class IntegrationsPage extends BasicElement<IntegrationsPage>
+public class IntegrationsPage
+    extends BasicElement<IntegrationsPage>
 {
   public static String urlOverview() {
     return BaseUrl.resolvePageUrl("/developer/dashboard/overview");

@@ -138,9 +138,9 @@ public class BitbucketCodeInsightsServiceTest
         zipReportDir("/BitbucketCodeInsightsServiceTest/to-report", tempDir), insightWork);
 
     gitRepositoryInfo = new GitRepositoryInfo("https://foo.com", null, "username", "token", BITBUCKET, "baseBranch",
-        true, true, true,true, true, true, false, null);
+        true, true, true, true, true, true, false, null);
 
-    //setup evaluations
+    // setup evaluations
     defaultBranchPolicyEvaluation = tempEntity
         .newPolicyEvaluation(application.getId(), BuildStageType.ID, FROM_SCAN_ID);
     featureBranchPolicyEvaluation = tempEntity
@@ -148,15 +148,16 @@ public class BitbucketCodeInsightsServiceTest
     featureBranchPolicyEvaluation.setTime(new GregorianCalendar(2020, Calendar.JUNE, 21, 9, 15, 32).getTime());
     featureBranchPolicyEvaluation.setCommitHash("12345678abcd12345678");
 
-    //setup diff
+    // setup diff
     policyViolationDiff = policyEvaluationDiffService
-        .createPolicyViolationDiff(defaultBranchPolicyEvaluation, featureBranchPolicyEvaluation).get();
+        .createPolicyViolationDiff(defaultBranchPolicyEvaluation, featureBranchPolicyEvaluation)
+        .get();
 
     lenient().when(gitClientFactory.createApiClient(gitRepositoryInfo)).thenReturn(bitbucketApiClient);
 
     locationDiscoveryResult = new LocationDiscoveryResult();
 
-    //setup source control component details
+    // setup source control component details
     componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
         featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
   }
@@ -182,7 +183,7 @@ public class BitbucketCodeInsightsServiceTest
     SystemConfigurationPropertyFeature.CODE_INSIGHTS.setEnabled(true);
     service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, componentDetails,
         featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
-    verify(bitbucketApiClient).deleteCodeInsightReport(anyString(), anyString()); //interaction itself doesn't matter
+    verify(bitbucketApiClient).deleteCodeInsightReport(anyString(), anyString()); // interaction itself doesn't matter
   }
 
   @Test

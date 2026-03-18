@@ -72,9 +72,10 @@ public class ApplicationComponentDAO
     }
   }
 
-  public List<ApplicationComponent> getByApplicationIdAndStageTypeId(TransactionContext tx,
-                                                                     String appId,
-                                                                     String stageTypeId)
+  public List<ApplicationComponent> getByApplicationIdAndStageTypeId(
+      TransactionContext tx,
+      String appId,
+      String stageTypeId)
   {
     String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2";
@@ -134,9 +135,10 @@ public class ApplicationComponentDAO
         ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())).forceSingleResult().get();
   }
 
-  public List<ApplicationComponent> getByApplicationIdsAndStageTypeIdsSince(Set<String> applicationIds,
-                                                                            Set<String> stageTypeIds,
-                                                                            Date date)
+  public List<ApplicationComponent> getByApplicationIdsAndStageTypeIdsSince(
+      Set<String> applicationIds,
+      Set<String> stageTypeIds,
+      Date date)
   {
     if (applicationIds != null && applicationIds.size() >= getInOperatorThreshold()) {
       String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
@@ -196,10 +198,10 @@ public class ApplicationComponentDAO
    * entry for a component in {@ComponentObligation} whether at the application, organization or root organization scope
    * while a not started review is when there is not a single entry.
    *
-   * @param applicationIds  Applications IDs where the query can be made.
-   * @param stageTypeIds    Stage type IDs where the query can be made.
+   * @param applicationIds Applications IDs where the query can be made.
+   * @param stageTypeIds Stage type IDs where the query can be made.
    * @param isReviewStarted {@code true} to query the applications and stage types where the review already started,
-   *                        {@code false} to query the ones where the review hasn't started.
+   *          {@code false} to query the ones where the review hasn't started.
    * @return A list of Object arrays with 2 positions: the application ID and the stage type ID.
    */
   @SuppressWarnings("unchecked")
@@ -275,8 +277,9 @@ public class ApplicationComponentDAO
       boolean useTemporaryTable =
           temporaryTableHelper.maybeCreateTemporaryTableWithIds(tx, applicationIds);
 
-      String applicationWhereClause = useTemporaryTable ? "" :
-          " pv.application_id IN (?" + StringUtils.repeat(",?", applicationIds.size() - 1) + ")";
+      String applicationWhereClause = useTemporaryTable
+          ? ""
+          : " pv.application_id IN (?" + StringUtils.repeat(",?", applicationIds.size() - 1) + ")";
       String stageTypeWhereClause = stageTypes.isEmpty()
           ? ""
           : "pv.stage_type_id IN (?" + StringUtils.repeat(",?", stageTypes.size() - 1) + ")";
@@ -295,7 +298,8 @@ public class ApplicationComponentDAO
       }
       else {
         violationStateWhereClause = "(" + StringUtils.joinWith(" OR ",
-            policyViolationStateFilter.stream().map(state -> switch (state) {
+            policyViolationStateFilter.stream().map(state -> switch (state)
+            {
               case "WAIVED" -> "pv.waive_time IS NOT NULL";
               case "LEGACY_VIOLATION" -> "pv.legacy_violation_time IS NOT NULL";
               case "OPEN" -> "(pv.waive_time IS NULL AND pv.legacy_violation_time IS NULL)";
@@ -366,19 +370,20 @@ public class ApplicationComponentDAO
         return Collections.emptyList();
       }
 
-      return (results).stream().parallel().map(array ->
-        new ApplicationComponentRisk(
-            (String) array[0],
-            (String) array[1],
-            (String) array[2],
-            (String) array[3],
-            Long.valueOf((long) array[4]).intValue(),
-            Long.valueOf((long) array[5]).intValue(),
-            Long.valueOf((long) array[6]).intValue(),
-            Long.valueOf((long) array[7]).intValue(),
-            Long.valueOf((long) array[8]).intValue(),
-            Long.valueOf((long) array[9]).intValue()
-        )).toList();
+      return (results).stream()
+          .parallel()
+          .map(array -> new ApplicationComponentRisk(
+              (String) array[0],
+              (String) array[1],
+              (String) array[2],
+              (String) array[3],
+              Long.valueOf((long) array[4]).intValue(),
+              Long.valueOf((long) array[5]).intValue(),
+              Long.valueOf((long) array[6]).intValue(),
+              Long.valueOf((long) array[7]).intValue(),
+              Long.valueOf((long) array[8]).intValue(),
+              Long.valueOf((long) array[9]).intValue()))
+          .toList();
     }
   }
 

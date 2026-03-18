@@ -31,7 +31,7 @@ public class AttributionReportTemplateDTO
 
   private boolean includeStandardLicenseTexts;
 
-  private  boolean includeSonatypeSpecialLicenses;
+  private boolean includeSonatypeSpecialLicenses;
 
   private Date lastUpdatedAt;
 
@@ -105,8 +105,7 @@ public class AttributionReportTemplateDTO
         attributionReportTemplate.isIncludeStandardLicenseTexts(),
         attributionReportTemplate.getLastUpdatedAt(),
         attributionReportTemplate.isIncludeInnerSource(),
-        attributionReportTemplate.isIncludeSonatypeSpecialLicenses()
-    );
+        attributionReportTemplate.isIncludeSonatypeSpecialLicenses());
   }
 
   public String getId() {

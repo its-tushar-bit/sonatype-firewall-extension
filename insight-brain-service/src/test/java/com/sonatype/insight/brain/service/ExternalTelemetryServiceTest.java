@@ -51,7 +51,8 @@ public class ExternalTelemetryServiceTest
     telemetryValues.put("violation_count", 1);
 
     assertThatThrownBy(() -> externalTelemetryService.sendTelemetry(telemetryValues, httpServletRequest))
-        .isInstanceOf(BadRequestException.class).hasMessage("Telemetry purpose is required.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Telemetry purpose is required.");
 
     verifyNoInteractions(telemetrySenderMock);
   }
@@ -62,7 +63,8 @@ public class ExternalTelemetryServiceTest
     telemetryValues.put("telemetry_purpose", "ADVANCED_SEARCH");
 
     assertThatThrownBy(() -> externalTelemetryService.sendTelemetry(telemetryValues, httpServletRequest))
-        .isInstanceOf(BadRequestException.class).hasMessage("Telemetry purpose not supported.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Telemetry purpose not supported.");
 
     verifyNoInteractions(telemetrySenderMock);
   }
@@ -73,7 +75,8 @@ public class ExternalTelemetryServiceTest
     telemetryValues.put("telemetry_purpose", "BOGUS_PURPOSE");
 
     assertThatThrownBy(() -> externalTelemetryService.sendTelemetry(telemetryValues, httpServletRequest))
-        .isInstanceOf(BadRequestException.class).hasMessage("Unknown telemetry purpose.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Unknown telemetry purpose.");
 
     verifyNoInteractions(telemetrySenderMock);
   }
@@ -187,7 +190,7 @@ public class ExternalTelemetryServiceTest
     telemetryValues.put("client_id", "iq_for_jira");
     telemetryValues.put("client_version", "1.7.0");
     telemetryValues.put("client_runtime", "Java");
-    telemetryValues.put("client_runtime_version","1.8.0");
+    telemetryValues.put("client_runtime_version", "1.8.0");
     telemetryValues.put("client_os_name", "Linux");
     telemetryValues.put("client_os_version", "5.14.0");
     telemetryValues.put("client_other", "Jira Server 9.0.0");
@@ -204,7 +207,7 @@ public class ExternalTelemetryServiceTest
     expectedAttributes.put("client_id", "iq_for_jira");
     expectedAttributes.put("client_version", "1.7.0");
     expectedAttributes.put("client_runtime", "Java");
-    expectedAttributes.put("client_runtime_version","1.8.0");
+    expectedAttributes.put("client_runtime_version", "1.8.0");
     expectedAttributes.put("client_os_name", "Linux");
     expectedAttributes.put("client_os_version", "5.14.0");
     expectedAttributes.put("client_other", "Jira Server 9.0.0");

@@ -49,22 +49,27 @@ public class ApiHashComponentIdentifierService
 
   @Authorize(permission = Permission.CLAIM_COMPONENT)
   public ApiHashComponentIdentifiersDTO getAll() {
-    return new ApiHashComponentIdentifiersDTO(hashComponentIdentifierDAO.getAll().stream()
-        .map(ApiHashComponentIdentifierDTO::new).collect(Collectors.toList()));
+    return new ApiHashComponentIdentifiersDTO(hashComponentIdentifierDAO.getAll()
+        .stream()
+        .map(ApiHashComponentIdentifierDTO::new)
+        .collect(Collectors.toList()));
   }
 
   @Authorize(permission = Permission.CLAIM_COMPONENT)
   public ApiHashComponentIdentifierDTO set(ApiHashComponentIdentifierDTO apiHashComponentIdentifierDTO) {
     HashComponentIdentifier hashComponentIdentifier = validateAndComplete(apiHashComponentIdentifierDTO);
     return new ApiHashComponentIdentifierDTO(
-        hashComponentIdentifierDAO.getByHash(hashComponentIdentifier.getHash()) == null ? hashComponentIdentifierService
-            .set(hashComponentIdentifier) : hashComponentIdentifierService.update(hashComponentIdentifier));
+        hashComponentIdentifierDAO.getByHash(hashComponentIdentifier.getHash()) == null
+            ? hashComponentIdentifierService
+                .set(hashComponentIdentifier)
+            : hashComponentIdentifierService.update(hashComponentIdentifier));
   }
 
   private HashComponentIdentifier validateAndComplete(ApiHashComponentIdentifierDTO apiHashComponentIdentifierDTO) {
     if (apiHashComponentIdentifierDTO == null || apiHashComponentIdentifierDTO.hash == null ||
         (apiHashComponentIdentifierDTO.componentIdentifier == null &&
-            apiHashComponentIdentifierDTO.packageUrl == null)) {
+            apiHashComponentIdentifierDTO.packageUrl == null))
+    {
       throw new BadRequestException("A component hash and identifier/package url are required.");
     }
 

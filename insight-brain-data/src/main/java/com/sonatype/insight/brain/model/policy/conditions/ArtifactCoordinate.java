@@ -17,13 +17,13 @@ import org.apache.commons.lang3.StringUtils;
  * <p>
  * The coordinates/conditions used to address one artifact. If we want to expand the rules, this is the place to do so.
  * The coordinates may be "fixed" (isFixed() returns TRUE), or "wildcarded". Examples (presented as G:A:V triplets):
- * 
+ *
  * <pre>
  * org.sonatype.nexus : nexus-indexer : 1.0 - is a fixed coordinate that points exactly to what is says
- * org.sonatype* : nexus-indexer : 1.* - is a wildcard coordinate, that points to (inclusive) group 'org.sonatype' and below (ie. 'org.sonatypefoo' or  'org.sonatype.blah'), and artifact named named 'nexus-indexer' in these groups, and any version that starts with '1.' 
+ * org.sonatype* : nexus-indexer : 1.* - is a wildcard coordinate, that points to (inclusive) group 'org.sonatype' and below (ie. 'org.sonatypefoo' or  'org.sonatype.blah'), and artifact named named 'nexus-indexer' in these groups, and any version that starts with '1.'
  * org.sonatype.* : nexus-indexer : 1.0 - is a wildcard coordinate, that is like the above one, except it matches this group and its subgroups ONLY ('org.sonatypefoo' is NOT matched), and matches for version '1.0' only.
  * </pre>
- * 
+ *
  * The other fields (A, V) also are able to make use of '*' (wildcard), but it will be interpreted obly as "starts with"
  * (ie. in field A, 'nexus*' will be inerpreted as artifactId.startsWith("nexus"). Same stands for V field). In case of
  * <b>groups</b> (G field), the things are a little different: blah* means group starts with 'blah' (hence, and and
@@ -31,7 +31,7 @@ import org.apache.commons.lang3.StringUtils;
  * <p>
  * An ArtifactCoordinate is matchable only against "fixed" coordinate, hence, two wildarcded coordinate cannot be
  * matched.
- * 
+ *
  * @author cstamas
  */
 public class ArtifactCoordinate
@@ -62,13 +62,14 @@ public class ArtifactCoordinate
       return matchesGroup(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID),
           otherComponentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID))
           && matches(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
-          otherComponentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID), ignoreCase)
+              otherComponentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID), ignoreCase)
           && matches(componentIdentifier.get(ComponentIdentifier.VERSION),
-          otherComponentIdentifier.get(ComponentIdentifier.VERSION), ignoreCase)
+              otherComponentIdentifier.get(ComponentIdentifier.VERSION), ignoreCase)
           && matches(componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION),
-          otherComponentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION), ignoreCase) && matches(
-          componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER),
-          otherComponentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER), ignoreCase);
+              otherComponentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION), ignoreCase)
+          && matches(
+              componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER),
+              otherComponentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER), ignoreCase);
     }
 
     for (Entry<String, String> coord : componentIdentifier.getCoordinates().entrySet()) {

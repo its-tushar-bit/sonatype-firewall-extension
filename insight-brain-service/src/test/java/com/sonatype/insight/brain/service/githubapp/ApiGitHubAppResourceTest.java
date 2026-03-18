@@ -125,9 +125,7 @@ public class ApiGitHubAppResourceTest
             .willReturn(aResponse()
                 .withStatus(200)
                 .withHeader("Content-Type", "application/json")
-                .withBody("{\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":\"bearer\",\"scope\":\"\"}")
-            )
-    );
+                .withBody("{\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":\"bearer\",\"scope\":\"\"}")));
 
     // Mock user endpoint
     githubMockServer.stubFor(
@@ -136,9 +134,7 @@ public class ApiGitHubAppResourceTest
             .willReturn(aResponse()
                 .withStatus(200)
                 .withHeader("Content-Type", "application/json")
-                .withBody("{\"login\":\"testuser\",\"id\":12345,\"type\":\"User\"}")
-            )
-    );
+                .withBody("{\"login\":\"testuser\",\"id\":12345,\"type\":\"User\"}")));
 
     // Mock user installations API
     githubMockServer.stubFor(
@@ -148,9 +144,7 @@ public class ApiGitHubAppResourceTest
                 .withStatus(200)
                 .withHeader("Content-Type", "application/json")
                 .withBody("{\"total_count\":1,\"installations\":[{\"id\":" + INSTALLATION_ID
-                    + ",\"app_id\":" + APP_ID + "}]}")
-            )
-    );
+                    + ",\"app_id\":" + APP_ID + "}]}")));
   }
 
   @Test
@@ -225,9 +219,7 @@ public class ApiGitHubAppResourceTest
             .willReturn(aResponse()
                 .withStatus(400)
                 .withHeader("Content-Type", "application/json")
-                .withBody("{\"error\":\"bad_verification_code\",\"error_description\":\"The code is invalid\"}")
-            )
-    );
+                .withBody("{\"error\":\"bad_verification_code\",\"error_description\":\"The code is invalid\"}")));
 
     HttpResponse response = restRequest()
         .path("setupInstallation")
@@ -250,9 +242,7 @@ public class ApiGitHubAppResourceTest
             .willReturn(aResponse()
                 .withStatus(401)
                 .withHeader("Content-Type", "application/json")
-                .withBody("{\"error\":\"unauthorized_client\",\"error_description\":\"Invalid client credentials\"}")
-            )
-    );
+                .withBody("{\"error\":\"unauthorized_client\",\"error_description\":\"Invalid client credentials\"}")));
 
     HttpResponse response = restRequest()
         .path("setupInstallation")
@@ -275,9 +265,7 @@ public class ApiGitHubAppResourceTest
             .willReturn(aResponse()
                 .withStatus(500)
                 .withHeader("Content-Type", "application/json")
-                .withBody("{\"message\":\"Internal server error\"}")
-            )
-    );
+                .withBody("{\"message\":\"Internal server error\"}")));
 
     HttpResponse response = restRequest()
         .path("setupInstallation")
@@ -303,9 +291,7 @@ public class ApiGitHubAppResourceTest
                 .withHeader("Content-Type", "application/json")
                 .withBody("{\"total_count\":2,\"installations\":["
                     + "{\"id\":" + otherInstallId + ",\"app_id\":999},"
-                    + "{\"id\":" + INSTALLATION_ID + ",\"app_id\":" + APP_ID + "}]}")
-            )
-    );
+                    + "{\"id\":" + INSTALLATION_ID + ",\"app_id\":" + APP_ID + "}]}")));
 
     HttpResponse response = restRequest()
         .path("setupInstallation")
@@ -328,9 +314,7 @@ public class ApiGitHubAppResourceTest
             .willReturn(aResponse()
                 .withStatus(200)
                 .withHeader("Content-Type", "application/json")
-                .withBody("{\"total_count\":0,\"installations\":[]}")
-            )
-    );
+                .withBody("{\"total_count\":0,\"installations\":[]}")));
 
     HttpResponse response = restRequest()
         .path("setupInstallation")
@@ -422,9 +406,7 @@ public class ApiGitHubAppResourceTest
             .willReturn(aResponse()
                 .withStatus(404)
                 .withHeader("Content-Type", "application/json")
-                .withBody("{\"message\":\"Not Found\"}")
-            )
-    );
+                .withBody("{\"message\":\"Not Found\"}")));
 
     HttpResponse response = restRequest()
         .path("redirect")
@@ -447,9 +429,7 @@ public class ApiGitHubAppResourceTest
             .willReturn(aResponse()
                 .withStatus(500)
                 .withHeader("Content-Type", "application/json")
-                .withBody("{\"message\":\"Internal Server Error\"}")
-            )
-    );
+                .withBody("{\"message\":\"Internal Server Error\"}")));
 
     HttpResponse response = restRequest()
         .path("redirect")
@@ -497,18 +477,15 @@ public class ApiGitHubAppResourceTest
   private void mockManifestConversionSuccess() {
     String responseJson = String.format(
         "{\"id\":%d,\"slug\":\"%s\",\"client_id\":\"%s\",\"client_secret\":\"%s\",\"pem\":\"%s\",\"owner\":" +
-                "{\"login\":\"test-owner\",\"id\":12345}}",
-        APP_ID, APP_SLUG, CLIENT_ID, CLIENT_SECRET, PRIVATE_KEY_PEM.replace("\n", "\\n")
-    );
+            "{\"login\":\"test-owner\",\"id\":12345}}",
+        APP_ID, APP_SLUG, CLIENT_ID, CLIENT_SECRET, PRIVATE_KEY_PEM.replace("\n", "\\n"));
 
     githubMockServer.stubFor(
         post(urlPathEqualTo("/app-manifests/" + MANIFEST_CODE + "/conversions"))
             .willReturn(aResponse()
                 .withStatus(201)
                 .withHeader("Content-Type", "application/json")
-                .withBody(responseJson)
-            )
-    );
+                .withBody(responseJson)));
   }
 
   private String generateCodeVerifier() {

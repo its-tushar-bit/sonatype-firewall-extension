@@ -16,7 +16,8 @@ import com.google.common.base.Joiner;
 /**
  * @since 1.11.0
  */
-public class ApplicationRiskScoreDTO implements CsvWritable
+public class ApplicationRiskScoreDTO
+    implements CsvWritable
 {
   private static final Joiner joiner = Joiner.on(",");
 
@@ -38,11 +39,12 @@ public class ApplicationRiskScoreDTO implements CsvWritable
 
   public List<StageRiskScoreDTO> stageRisks = new ArrayList<>();
 
-  public ApplicationRiskScoreDTO(final String organizationName,
-                                 final String organizationId,
-                                 final String applicationName,
-                                 final String applicationId,
-                                 final String id)
+  public ApplicationRiskScoreDTO(
+      final String organizationName,
+      final String organizationId,
+      final String applicationName,
+      final String applicationId,
+      final String id)
   {
     this.organizationName = organizationName;
     this.organizationId = organizationId;

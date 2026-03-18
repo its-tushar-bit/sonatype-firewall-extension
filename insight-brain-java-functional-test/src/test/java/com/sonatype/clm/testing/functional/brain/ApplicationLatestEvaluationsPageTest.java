@@ -90,8 +90,7 @@ public class ApplicationLatestEvaluationsPageTest
         "scan-id-0",
         false,
         false,
-        new Date()
-    );
+        new Date());
     createReport(policyEvaluation);
     refreshOrOpen(ApplicationLatestEvaluationsPage.url(application, BuildStageType.ID));
 
@@ -106,9 +105,11 @@ public class ApplicationLatestEvaluationsPageTest
     tableHeaders.get(4).shouldBe(visible).shouldHave(exactText("Components"));
     tableHeaders.get(5).shouldBe(visible).shouldBe(empty);
     ElementsCollection tableBodyRowColumns = page.tableBodyRowColumns(0).shouldHave(size(6));
-    tableBodyRowColumns.get(0).shouldBe(visible)
+    tableBodyRowColumns.get(0)
+        .shouldBe(visible)
         .shouldHave(exactText(DATE_TIME_FORMATTER.format(policyEvaluation.getTime().toInstant())));
-    tableBodyRowColumns.get(1).shouldBe(visible)
+    tableBodyRowColumns.get(1)
+        .shouldBe(visible)
         .shouldHave(exactText(policyEvaluation.getScanTriggerType().getDisplayName()));
     // Since tempEntity.newPolicyEvaluation sets scanTriggerType to CLI, we only trim the qualifier
     tableBodyRowColumns.get(2).shouldBe(visible).shouldHave(exactText("1.53.0"));
@@ -118,7 +119,7 @@ public class ApplicationLatestEvaluationsPageTest
     tableBodyRowColumns.get(4).shouldBe(visible).shouldHave(exactText("64"));
     tableBodyRowColumns.get(5).shouldBe(visible).shouldHave(exactText("View Report"));
   }
-  
+
   @Test
   public void testApplicationLatestEvaluationsPage_ScannerVersion_Trimmed() throws Exception {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(
@@ -129,8 +130,7 @@ public class ApplicationLatestEvaluationsPageTest
         false,
         "system",
         ScanTriggerType.WEB_UI,
-        ClientScanType.SONATYPE
-    );
+        ClientScanType.SONATYPE);
     policyEvaluation.setTime(new Date());
     lookup(PolicyEvaluationDAO.class).insert(policyEvaluation);
     createReport(policyEvaluation);
@@ -150,8 +150,7 @@ public class ApplicationLatestEvaluationsPageTest
         false,
         "system",
         ScanTriggerType.WEB_UI,
-        ClientScanType.SONATYPE
-    );
+        ClientScanType.SONATYPE);
     policyEvaluation.setTime(new Date());
     lookup(PolicyEvaluationDAO.class).insert(policyEvaluation);
     createReport(policyEvaluation);
@@ -188,8 +187,7 @@ public class ApplicationLatestEvaluationsPageTest
           "scan-id-" + i,
           false,
           false,
-          DateUtils.addDays(date, -i)
-      );
+          DateUtils.addDays(date, -i));
       createReport(policyEvaluation);
     }
     refreshOrOpen(ApplicationLatestEvaluationsPage.url(application, BuildStageType.ID));
@@ -205,8 +203,7 @@ public class ApplicationLatestEvaluationsPageTest
         "scan-id-0",
         false,
         false,
-        new Date()
-    );
+        new Date());
     createReport(policyEvaluation);
     refreshOrOpen(ApplicationLatestEvaluationsPage.url(application, BuildStageType.ID));
 
@@ -224,8 +221,7 @@ public class ApplicationLatestEvaluationsPageTest
         "scan-id-0",
         false,
         false,
-        DateUtils.addDays(date, -1)
-    );
+        DateUtils.addDays(date, -1));
     createReport(buildEvaluation);
     PolicyEvaluation releaseEvaluation = tempEntity.newPolicyEvaluation(
         application.getId(),
@@ -233,18 +229,21 @@ public class ApplicationLatestEvaluationsPageTest
         "scan-id-1",
         false,
         false,
-        date
-    );
+        date);
     createReport(releaseEvaluation);
 
     refreshOrOpen(ApplicationLatestEvaluationsPage.url(application, BuildStageType.ID));
     page.tableBodyRows().shouldHave(size(1));
-    page.tableBodyRowColumns(0).get(0).shouldBe(visible)
+    page.tableBodyRowColumns(0)
+        .get(0)
+        .shouldBe(visible)
         .shouldHave(exactText(DATE_TIME_FORMATTER.format(buildEvaluation.getTime().toInstant())));
 
     refreshOrOpen(ApplicationLatestEvaluationsPage.url(application, ReleaseStageType.ID));
     page.tableBodyRows().shouldHave(size(1));
-    page.tableBodyRowColumns(0).get(0).shouldBe(visible)
+    page.tableBodyRowColumns(0)
+        .get(0)
+        .shouldBe(visible)
         .shouldHave(exactText(DATE_TIME_FORMATTER.format(releaseEvaluation.getTime().toInstant())));
 
     refreshOrOpen(ApplicationLatestEvaluationsPage.url(application, OperateStageType.ID));
@@ -261,20 +260,19 @@ public class ApplicationLatestEvaluationsPageTest
         "scan-id-0",
         false,
         false,
-        DateUtils.addDays(date, -1)
-    );
+        DateUtils.addDays(date, -1));
     createReport(policyEvaluation);
     PolicyEvaluation policyReEvaluation = tempEntity.newPolicyReEvaluation(
         application.getId(),
         BuildStageType.ID,
         policyEvaluation.getScanId(),
-        date
-    );
+        date);
     refreshOrOpen(ApplicationLatestEvaluationsPage.url(application, BuildStageType.ID));
 
     page.tableBodyRows().shouldHave(size(1));
     ElementsCollection tableBodyRowColumns = page.tableBodyRowColumns(0).shouldHave(size(6));
-    tableBodyRowColumns.get(0).shouldBe(visible)
+    tableBodyRowColumns.get(0)
+        .shouldBe(visible)
         .shouldHave(exactText(DATE_TIME_FORMATTER.format(policyReEvaluation.getTime().toInstant())));
   }
 
@@ -288,8 +286,7 @@ public class ApplicationLatestEvaluationsPageTest
           "scan-id-" + i,
           false,
           false,
-          DateUtils.addDays(date, -i)
-      );
+          DateUtils.addDays(date, -i));
       createReport(policyEvaluation);
     }
 
@@ -317,8 +314,7 @@ public class ApplicationLatestEvaluationsPageTest
         "scan-id-0",
         false,
         false,
-        DateUtils.addDays(date, -1)
-    );
+        DateUtils.addDays(date, -1));
     createReport(policyEvaluation);
     PolicyEvaluation monitoringEvaluation = tempEntity.newPolicyEvaluation(
         application.getId(),
@@ -326,8 +322,7 @@ public class ApplicationLatestEvaluationsPageTest
         "scan-id-1",
         false,
         true,
-        date
-    );
+        date);
     createReport(monitoringEvaluation);
 
     refreshOrOpen(ApplicationLatestEvaluationsPage.url(application, BuildStageType.ID));
@@ -335,7 +330,9 @@ public class ApplicationLatestEvaluationsPageTest
     page.tableBodyRows().shouldHave(size(2));
     page.reportLink(0)
         .shouldHave(attribute("href", ApplicationReportPage.url(application, monitoringEvaluation.getScanId())));
-    page.tableBodyRowColumns(0).get(1).shouldBe(visible)
+    page.tableBodyRowColumns(0)
+        .get(1)
+        .shouldBe(visible)
         .shouldHave(innerText(policyEvaluation.getScanTriggerType().getDisplayName() + " (Continuous Monitoring)"));
     page.reportLink(1)
         .shouldHave(attribute("href", ApplicationReportPage.url(application, policyEvaluation.getScanId())));
@@ -353,8 +350,7 @@ public class ApplicationLatestEvaluationsPageTest
         false,
         date,
         "commitHash0",
-        ScanTriggerType.SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING
-    );
+        ScanTriggerType.SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING);
     createReport(policyEvaluationWithLongTriggerName);
     PolicyEvaluation policyEvaluationWithShortTriggerName = tempEntity.newPolicyEvaluation(
         application.getId(),
@@ -365,8 +361,7 @@ public class ApplicationLatestEvaluationsPageTest
         false,
         DateUtils.addDays(date, -1),
         "commitHash1",
-        ScanTriggerType.WEB_UI
-    );
+        ScanTriggerType.WEB_UI);
     createReport(policyEvaluationWithShortTriggerName);
 
     refreshOrOpen(ApplicationLatestEvaluationsPage.url(application, BuildStageType.ID));
@@ -394,8 +389,7 @@ public class ApplicationLatestEvaluationsPageTest
         "scan-id-0",
         false,
         false,
-        new Date()
-    );
+        new Date());
     createReport(policyEvaluation);
 
     refreshOrOpen(ApplicationLatestEvaluationsPage.url(application, BuildStageType.ID));
@@ -415,11 +409,10 @@ public class ApplicationLatestEvaluationsPageTest
         "scan-id-0",
         false,
         false,
-        new Date()
-    );
+        new Date());
     createReport(policyEvaluation);
 
-    //we are not using `createReport` because it doesn't produce all the needed files
+    // we are not using `createReport` because it doesn't produce all the needed files
     URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     TestReportEvaluator evaluator =
@@ -438,7 +431,8 @@ public class ApplicationLatestEvaluationsPageTest
     MainHeader.backButton().shouldBe(visible).click();
 
     waitUntilUrl(ApplicationReportPage.url(application, policyEvaluation.getScanId()));
-    reportPage.reportTitle().shouldBe(visible)
+    reportPage.reportTitle()
+        .shouldBe(visible)
         .shouldHave(exactText(application.getName() + " Build Report"));
   }
 
@@ -450,19 +444,16 @@ public class ApplicationLatestEvaluationsPageTest
         tempEntity.newPolicyViolation(policyEvaluation, policy, 6, PolicyThreatCategory.SECURITY),
         tempEntity.newPolicyViolation(policyEvaluation, policy, 3, PolicyThreatCategory.SECURITY),
         tempEntity.newPolicyViolation(policyEvaluation, policy, 3, PolicyThreatCategory.SECURITY),
-        tempEntity.newPolicyViolation(policyEvaluation, policy, 3, PolicyThreatCategory.SECURITY)
-    );
+        tempEntity.newPolicyViolation(policyEvaluation, policy, 3, PolicyThreatCategory.SECURITY));
     ReportTestUtils.createReportFile(
         application.getId(),
         policyEvaluation.getScanId(),
         zipReportDir("/canned-reports/large-report", tempDir),
-        testCLMServer.getCLMServer().getInstance(InsightWork.class)
-    );
+        testCLMServer.getCLMServer().getInstance(InsightWork.class));
     ReportHelper.createPolicyThreats(
         testCLMServer.getCLMServer().getInstance(InsightWork.class),
         application.getId(),
         policyEvaluation.getScanId(),
-        policyViolations
-    );
+        policyViolations);
   }
 }

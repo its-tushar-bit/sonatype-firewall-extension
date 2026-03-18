@@ -48,7 +48,7 @@ public class DeleteModal
   public static SelenideElement cancelButton() {
     return root().$(".nx-form__cancel-btn");
   }
-  
+
   public static SelenideElement retryButton() {
     return root().$(".nx-load-error__retry");
   }

@@ -21,18 +21,17 @@ import org.slf4j.LoggerFactory;
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.EXISTING_PROPERTY,
-    property = "status"
-)
+    property = "status")
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = AutomatedRemediationStatusDTO.ManualPullRequestNotPossibleDTO.class,
-        name = "MANUAL_PULL_REQUEST_NOT_POSSIBLE"),
-    @JsonSubTypes.Type(value = AutomatedRemediationStatusDTO.ManualPullRequestPossibleDTO.class,
-        name = "MANUAL_PULL_REQUEST_POSSIBLE"),
-    @JsonSubTypes.Type(value = AutomatedRemediationStatusDTO.PullRequestCreationPendingDTO.class,
-        name = "PULL_REQUEST_CREATION_PENDING"),
-    @JsonSubTypes.Type(value = AutomatedRemediationStatusDTO.PullRequestCreationFailedDTO.class,
-        name = "PULL_REQUEST_CREATION_FAILED"),
-    @JsonSubTypes.Type(value = AutomatedRemediationStatusDTO.PullRequestDTO.class, name = "PULL_REQUEST")
+  @JsonSubTypes.Type(value = AutomatedRemediationStatusDTO.ManualPullRequestNotPossibleDTO.class,
+      name = "MANUAL_PULL_REQUEST_NOT_POSSIBLE"),
+  @JsonSubTypes.Type(value = AutomatedRemediationStatusDTO.ManualPullRequestPossibleDTO.class,
+      name = "MANUAL_PULL_REQUEST_POSSIBLE"),
+  @JsonSubTypes.Type(value = AutomatedRemediationStatusDTO.PullRequestCreationPendingDTO.class,
+      name = "PULL_REQUEST_CREATION_PENDING"),
+  @JsonSubTypes.Type(value = AutomatedRemediationStatusDTO.PullRequestCreationFailedDTO.class,
+      name = "PULL_REQUEST_CREATION_FAILED"),
+  @JsonSubTypes.Type(value = AutomatedRemediationStatusDTO.PullRequestDTO.class, name = "PULL_REQUEST")
 })
 public abstract sealed class AutomatedRemediationStatusDTO
 {

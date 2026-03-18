@@ -113,7 +113,9 @@ public class ZScalerClient
       }
 
       List<ZScalerCategory> zScalerCategories =
-          JsonUtils.parse(response.body(), new TypeReference<>() { });
+          JsonUtils.parse(response.body(), new TypeReference<>()
+          {
+          });
       log.info("Fetched {} URL categories", zScalerCategories.size());
       return zScalerCategories;
     }
@@ -149,7 +151,10 @@ public class ZScalerClient
   }
 
   public ZScalerOperationResult<Void> updateCustomUrlCategories(
-      String baseUrl, String category, String categoryId, List<String> urls)
+      String baseUrl,
+      String category,
+      String categoryId,
+      List<String> urls)
   {
     String body;
     try {
@@ -166,14 +171,15 @@ public class ZScalerClient
     if (result.isSuccess()) {
       return ZScalerOperationResult.success(result.getStatusCode());
     }
-    else
-    {
+    else {
       return ZScalerOperationResult.failure(result.getStatusCode(), result.getMessage());
     }
   }
 
   public ZScalerOperationResult<ZScalerCategory> createCustomUrlCategory(
-      final String baseUrl, final String category, final List<String> urls)
+      final String baseUrl,
+      final String category,
+      final List<String> urls)
   {
     ZScalerCreateCategory create = new ZScalerCreateCategory(category, "USER_DEFINED", urls, "URL_CATEGORY", true);
     String body;

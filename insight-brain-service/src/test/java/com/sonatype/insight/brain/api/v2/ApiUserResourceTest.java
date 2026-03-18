@@ -181,7 +181,8 @@ public class ApiUserResourceTest
 
     HttpResponse response = restRequest()
         .path(username)
-        .query("realm", queryRealm).get();
+        .query("realm", queryRealm)
+        .get();
 
     assertResponseStatus(200, response);
     ApiUserDTO apiUserDTO = response.getBody(ApiUserDTO.class);
@@ -199,8 +200,9 @@ public class ApiUserResourceTest
     assertPresenceOfRealmField(expectedRealm, response);
   }
 
-  private void assertPresenceOfRealmField(final String expectedRealm, final HttpResponse response)
-      throws JsonProcessingException
+  private void assertPresenceOfRealmField(
+      final String expectedRealm,
+      final HttpResponse response) throws JsonProcessingException
   {
     ObjectMapper objectMapper = new ObjectMapper();
     JsonNode jsonNode = objectMapper.readTree(response.getBodyText());

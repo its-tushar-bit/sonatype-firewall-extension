@@ -95,7 +95,7 @@ public class IgnoredRepositoryComponentCleaner
     log.info("Deleted ignored repository components for {} repositories in {} ms.", repositories.size(),
         System.currentTimeMillis() - start);
   }
-  
+
   @Override
   public String getJobName() {
     return TASK_NAME;

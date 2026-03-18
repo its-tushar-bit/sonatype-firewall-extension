@@ -20,10 +20,10 @@ public class SbomPolicyViolationSummaryDTO
   }
 
   public SbomPolicyViolationSummaryDTO(Object[] resultantObject) {
-    critical = ((Long)resultantObject[1]).intValue();
-    severe = ((Long)(resultantObject[2])).intValue();
-    moderate = ((Long)(resultantObject[3])).intValue();
-    low = ((Long)(resultantObject[4])).intValue();
+    critical = ((Long) resultantObject[1]).intValue();
+    severe = ((Long) (resultantObject[2])).intValue();
+    moderate = ((Long) (resultantObject[3])).intValue();
+    low = ((Long) (resultantObject[4])).intValue();
   }
 
   public int getLow() {

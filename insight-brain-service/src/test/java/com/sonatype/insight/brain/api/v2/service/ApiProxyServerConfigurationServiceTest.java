@@ -55,8 +55,8 @@ public class ApiProxyServerConfigurationServiceTest
 
   @Override
   public void configure(Binder binder) {
-    Multibinder<ProxyServerConfigurationListener>
-        multiBinder = newSetBinder(binder, ProxyServerConfigurationListener.class);
+    Multibinder<ProxyServerConfigurationListener> multiBinder =
+        newSetBinder(binder, ProxyServerConfigurationListener.class);
     multiBinder.addBinding().toInstance(proxyServerConfigurationListener);
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     super.configure(binder);

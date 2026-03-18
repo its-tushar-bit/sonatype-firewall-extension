@@ -356,8 +356,7 @@ public class TestDAOFactory
   public SamlConfigurationInternalDAO createSamlConfigurationInternalDAO() {
     return new SamlConfigurationInternalDAO(
         dataStoreProvider.getOperationalDataStore(),
-        testSamlFactory.createSamlPasswordFactory()
-    );
+        testSamlFactory.createSamlPasswordFactory());
   }
 
   @Override

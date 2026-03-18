@@ -66,8 +66,7 @@ public class NonBreakingRecommendationTelemetryMetricsTest
             versionChange2.getType().getNameForTelemetry(),
             "3.0.0-alpha",
             "pkg2:@3.0.0-alpha",
-            3L)
-    );
+            3L));
   }
 
   @Test
@@ -112,9 +111,10 @@ public class NonBreakingRecommendationTelemetryMetricsTest
     return app;
   }
 
-  private ApiSuggestedVersionChangeOptionDTO createVersionChange(String version,
-                                                                 ApiVersionChangeOptionType type,
-                                                                 String purl)
+  private ApiSuggestedVersionChangeOptionDTO createVersionChange(
+      String version,
+      ApiVersionChangeOptionType type,
+      String purl)
   {
     ApiSuggestedVersionChangeOptionDTO versionChange = new ApiSuggestedVersionChangeOptionDTO();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();

@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Generates the release graph images for the report.
- * 
+ *
  * @since 1.10
  */
 @Named
@@ -36,9 +36,10 @@ public class ReleaseGraphService
     this.releaseGraphCacheProvider = releaseGraphCacheProvider;
   }
 
-  public byte[] getImage(final String applicationPublicId,
-                         final String scanId,
-                         ComponentIdentifier componentIdentifier)
+  public byte[] getImage(
+      final String applicationPublicId,
+      final String scanId,
+      ComponentIdentifier componentIdentifier)
   {
     log.debug("Creating popularity graph for {} for scan {}", componentIdentifier, scanId);
     try {

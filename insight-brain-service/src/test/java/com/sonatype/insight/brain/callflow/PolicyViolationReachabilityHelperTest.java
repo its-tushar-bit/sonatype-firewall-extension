@@ -66,8 +66,7 @@ public class PolicyViolationReachabilityHelperTest
     npmReachablePolicyViolation2.setOpenTime(new Date());
 
     List<PolicyViolation> result = filterOnReachabilitySupport(
-        List.of(mvnReachablePolicyViolation, unreachablePolicyViolation1, npmReachablePolicyViolation2)
-    );
+        List.of(mvnReachablePolicyViolation, unreachablePolicyViolation1, npmReachablePolicyViolation2));
 
     assertThat(result).hasSize(2);
     assertThat(result.get(0)).isEqualTo(mvnReachablePolicyViolation);
@@ -93,14 +92,11 @@ public class PolicyViolationReachabilityHelperTest
             "scanId",
             Map.of(
                 fromComponentIdentifier(policyViolation.getComponentIdentifier()),
-                new PresentReachableComponentVulnerabilities(Set.of("CVE-1234"))
-            )
-        );
+                new PresentReachableComponentVulnerabilities(Set.of("CVE-1234"))));
 
     updateReachabilityStatus(
         policyViolation,
-        purlIdentifiersWithVulnerabilities
-    );
+        purlIdentifiersWithVulnerabilities);
 
     assertThat(policyViolation.getReachabilityStatus()).isEqualTo(REACHABLE);
   }
@@ -114,14 +110,11 @@ public class PolicyViolationReachabilityHelperTest
             "scanId",
             Map.of(
                 fromComponentIdentifier(policyViolation.getComponentIdentifier()),
-                new PresentReachableComponentVulnerabilities(new HashSet<>())
-            )
-        );
+                new PresentReachableComponentVulnerabilities(new HashSet<>())));
 
     updateReachabilityStatus(
         policyViolation,
-        purlIdentifiersWithVulnerabilities
-    );
+        purlIdentifiersWithVulnerabilities);
 
     assertThat(policyViolation.getReachabilityStatus()).isEqualTo(NON_REACHABLE);
   }
@@ -135,14 +128,11 @@ public class PolicyViolationReachabilityHelperTest
             "scanId",
             Map.of(
                 fromComponentIdentifier(policyViolation.getComponentIdentifier()),
-                MissingReachableComponentVulnerabilities.INSTANCE
-            )
-        );
+                MissingReachableComponentVulnerabilities.INSTANCE));
 
     updateReachabilityStatus(
         policyViolation,
-        purlIdentifiersWithVulnerabilities
-    );
+        purlIdentifiersWithVulnerabilities);
 
     assertThat(policyViolation.getReachabilityStatus()).isEqualTo(ReachabilityStatus.UNKNOWN);
   }
@@ -177,9 +167,7 @@ public class PolicyViolationReachabilityHelperTest
             "scanId",
             Map.of(
                 fromComponentIdentifier(reachablePolicyViolation.getComponentIdentifier()),
-                new PresentReachableComponentVulnerabilities(Set.of("CVE-1234"))
-            )
-        );
+                new PresentReachableComponentVulnerabilities(Set.of("CVE-1234"))));
 
     assertThat(hasPolicyViolationByComponentIdentifier(reachablePolicyViolation, purlIdentifiersWithVulnerabilities))
         .isTrue();

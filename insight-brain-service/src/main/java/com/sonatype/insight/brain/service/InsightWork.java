@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.utils.IdValidationUtils;
 
 @Named
 @Singleton
-public class InsightWork 
+public class InsightWork
 {
   private final InsightConfig insightConfig;
 
@@ -65,6 +65,7 @@ public class InsightWork
   /**
    * Should no longer be used in production code,
    * See {@link com.sonatype.insight.brain.scan.datastore.ScanPersistenceService#getScan(String, String)}
+   *
    * @param appId
    * @param scanId
    * @return
@@ -99,6 +100,7 @@ public class InsightWork
   /**
    * Should no longer be used in production code see
    * com.sonatype.insight.brain.report.ApplicationReportPersistenceService#getReportEntity(String, String, String)
+   *
    * @param appId
    * @param scanId
    * @return
@@ -113,6 +115,7 @@ public class InsightWork
   /**
    * Should no longer be used in production code see
    * com.sonatype.insight.brain.report.ApplicationReportPersistenceService#getReportEntity(String, String, String)
+   *
    * @param appId
    * @param scanId
    * @return

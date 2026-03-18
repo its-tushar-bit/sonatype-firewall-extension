@@ -93,7 +93,8 @@ public class ApiCrowdConfigurationService
     }
     else {
       if (dto.applicationPassword == null && dto.serverUrl != null &&
-          !crowdConfiguration.getServerUrl().equalsIgnoreCase(dto.serverUrl)) {
+          !crowdConfiguration.getServerUrl().equalsIgnoreCase(dto.serverUrl))
+      {
         throw new BadRequestException(CROWD_SERVER_URL_UPDATE_NEEDS_APPLICATION_PASSWORD);
       }
       if (dto.serverUrl != null) {
@@ -106,7 +107,8 @@ public class ApiCrowdConfigurationService
         crowdConfiguration.setApplicationPassword(passwordHandler.encryptPassword(dto.applicationPassword));
       }
     }
-    AuditData.get().setData(CROWD_SERVER_URL_AUDIT_KEY, crowdConfiguration.getServerUrl())
+    AuditData.get()
+        .setData(CROWD_SERVER_URL_AUDIT_KEY, crowdConfiguration.getServerUrl())
         .setData(CROWD_APPLICATION_NAME_AUDIT_KEY, crowdConfiguration.getApplicationName());
     crowdConfigurationDAO.set(crowdConfiguration);
   }
@@ -117,7 +119,8 @@ public class ApiCrowdConfigurationService
     if (crowdConfiguration == null) {
       throw new NotFoundException(CROWD_IS_NOT_CONFIGURED);
     }
-    AuditData.get().setData(CROWD_SERVER_URL_AUDIT_KEY, crowdConfiguration.getServerUrl())
+    AuditData.get()
+        .setData(CROWD_SERVER_URL_AUDIT_KEY, crowdConfiguration.getServerUrl())
         .setData(CROWD_APPLICATION_NAME_AUDIT_KEY, crowdConfiguration.getApplicationName());
     crowdConfigurationDAO.delete(crowdConfiguration);
   }

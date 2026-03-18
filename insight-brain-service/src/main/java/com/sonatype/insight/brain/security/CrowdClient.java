@@ -39,9 +39,8 @@ public class CrowdClient
     this.crowdClient = crowdClient;
   }
 
-  public UserPrincipal authenticateUser(UsernamePasswordToken usernamePasswordToken)
-      throws UserNotFoundException, OperationFailedException, ApplicationPermissionException,
-             InvalidAuthenticationException, ExpiredCredentialException, InactiveAccountException
+  public UserPrincipal authenticateUser(
+      UsernamePasswordToken usernamePasswordToken) throws UserNotFoundException, OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException, ExpiredCredentialException, InactiveAccountException
   {
     User crowdUser = crowdClient.authenticateUser(usernamePasswordToken.getUsername(),
         new String(usernamePasswordToken.getPassword()));
@@ -49,9 +48,8 @@ public class CrowdClient
     return createUserPrincipal(crowdUser, CrowdRealm.ID, groupNames);
   }
 
-  public UserPrincipal getUser(UserToken userToken)
-      throws UserNotFoundException, OperationFailedException, ApplicationPermissionException,
-             InvalidAuthenticationException, InactiveAccountException
+  public UserPrincipal getUser(
+      UserToken userToken) throws UserNotFoundException, OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException, InactiveAccountException
   {
     User crowdUser = crowdClient.getUser(userToken.getUsername());
     if (!crowdUser.isActive()) {
@@ -61,11 +59,11 @@ public class CrowdClient
     return createUserPrincipal(crowdUser, UserTokenRealm.ID, groupNames);
   }
 
-  private Set<String> getGroupNames(String username)
-      throws UserNotFoundException, OperationFailedException, ApplicationPermissionException,
-             InvalidAuthenticationException
+  private Set<String> getGroupNames(
+      String username) throws UserNotFoundException, OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException
   {
-    return crowdClient.getGroupsForNestedUser(username, 0, -1).stream()
+    return crowdClient.getGroupsForNestedUser(username, 0, -1)
+        .stream()
         .filter(Group::isActive)
         .map(DirectoryEntity::getName)
         .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -79,36 +77,35 @@ public class CrowdClient
     return new UserPrincipal(crowdUser.getName(), crowdUser.getDisplayName(), realmId, groupNames);
   }
 
-  public void testConnection()
-      throws OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException
-  {
+  public void testConnection() throws OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException {
     crowdClient.testConnection();
   }
 
-  public Set<Member> searchUsersByUsernames(Set<String> usernames)
-      throws OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException
+  public Set<Member> searchUsersByUsernames(
+      Set<String> usernames) throws OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException
   {
-    return crowdClient.searchUsers(anyNameMatchesAndActive(usernames), 0, -1).stream()
-        .map(user ->
-            new Member(MemberType.USER, user.getName(), user.getDisplayName(), user.getEmailAddress(),
-                    CrowdRealm.ID, user.getExternalId()))
+    return crowdClient.searchUsers(anyNameMatchesAndActive(usernames), 0, -1)
+        .stream()
+        .map(user -> new Member(MemberType.USER, user.getName(), user.getDisplayName(), user.getEmailAddress(),
+            CrowdRealm.ID, user.getExternalId()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
-  public Set<Member> searchUsersByDisplayName(String displayName)
-      throws OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException
+  public Set<Member> searchUsersByDisplayName(
+      String displayName) throws OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException
   {
-    return crowdClient.searchUsers(displayNameMatchesAndActive(displayName), 0, -1).stream()
-        .map(user ->
-            new Member(MemberType.USER, user.getName(), user.getDisplayName(), user.getEmailAddress(),
-                    CrowdRealm.ID, user.getExternalId()))
+    return crowdClient.searchUsers(displayNameMatchesAndActive(displayName), 0, -1)
+        .stream()
+        .map(user -> new Member(MemberType.USER, user.getName(), user.getDisplayName(), user.getEmailAddress(),
+            CrowdRealm.ID, user.getExternalId()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
-  public Set<Member> searchGroupsByGroupNames(Set<String> groupNames)
-      throws OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException
+  public Set<Member> searchGroupsByGroupNames(
+      Set<String> groupNames) throws OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException
   {
-    return crowdClient.searchGroups(anyNameMatchesAndActive(groupNames), 0, -1).stream()
+    return crowdClient.searchGroups(anyNameMatchesAndActive(groupNames), 0, -1)
+        .stream()
         .map(group -> new Member(MemberType.GROUP, group.getName(), group.getName(), null, CrowdRealm.ID))
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
@@ -118,20 +115,18 @@ public class CrowdClient
     return Combine.allOf(
         Combine.anyOf(names.stream()
             .map(name -> createStringPropertyRestriction(UserTermKeys.USERNAME, name))
-            .collect(Collectors.toList())
-        ),
-        new TermRestriction<>(UserTermKeys.ACTIVE, MatchMode.EXACTLY_MATCHES, true)
-    );
+            .collect(Collectors.toList())),
+        new TermRestriction<>(UserTermKeys.ACTIVE, MatchMode.EXACTLY_MATCHES, true));
   }
 
-  public Set<Member> getUsersByGroupName(String groupName)
-      throws OperationFailedException, ApplicationPermissionException, GroupNotFoundException,
-             InvalidAuthenticationException
+  public Set<Member> getUsersByGroupName(
+      String groupName) throws OperationFailedException, ApplicationPermissionException, GroupNotFoundException, InvalidAuthenticationException
   {
-    return crowdClient.getNestedUsersOfGroup(groupName, 0, -1).stream()
+    return crowdClient.getNestedUsersOfGroup(groupName, 0, -1)
+        .stream()
         .filter(User::isActive)
-        .map(user ->
-            new Member(MemberType.USER, user.getName(), user.getDisplayName(), user.getEmailAddress(), CrowdRealm.ID))
+        .map(user -> new Member(MemberType.USER, user.getName(), user.getDisplayName(), user.getEmailAddress(),
+            CrowdRealm.ID))
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
@@ -139,8 +134,7 @@ public class CrowdClient
   SearchRestriction displayNameMatchesAndActive(String displayName) {
     return Combine.allOf(
         createStringPropertyRestriction(UserTermKeys.DISPLAY_NAME, displayName),
-        new TermRestriction<>(UserTermKeys.ACTIVE, MatchMode.EXACTLY_MATCHES, true)
-    );
+        new TermRestriction<>(UserTermKeys.ACTIVE, MatchMode.EXACTLY_MATCHES, true));
   }
 
   private TermRestriction<String> createStringPropertyRestriction(Property<String> property, String value) {

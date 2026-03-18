@@ -60,7 +60,7 @@ import org.apache.shiro.util.CollectionUtils;
 @Singleton
 public class Configuration
     implements ConfigurationListener, ReverseProxyAuthenticationConfigurationListener, JiraConfigurationListener,
-               SourceControlConfigurationListener, ProxyServerConfigurationListener, TenantManaged, BaseUrlProvider
+    SourceControlConfigurationListener, ProxyServerConfigurationListener, TenantManaged, BaseUrlProvider
 {
   private static final String BASE_URL_CONFIGURATION = "baseUrlConfiguration";
 
@@ -220,9 +220,7 @@ public class Configuration
         SystemConfigurationProperty.EPSS_DATA,
         SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT,
         SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS,
-        SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS
-        )
-    );
+        SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS));
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     configCache.putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION,
         reverseProxyAuthenticationConfigurationDAO.get());
@@ -240,7 +238,8 @@ public class Configuration
 
   private void updateBaseUrlConfigurationIfNeeded(Map<String, Object> result) {
     if (result.containsKey(SystemConfigurationProperty.BASE_URL) &&
-        result.containsKey(SystemConfigurationProperty.FORCE_BASE_URL)) {
+        result.containsKey(SystemConfigurationProperty.FORCE_BASE_URL))
+    {
       BaseUrlConfiguration baseUrlConfiguration =
           new BaseUrlConfiguration((String) result.remove(SystemConfigurationProperty.BASE_URL),
               (boolean) result.remove(SystemConfigurationProperty.FORCE_BASE_URL));
@@ -253,7 +252,8 @@ public class Configuration
     Set<String> propertyNamesCopy = new HashSet<>(propertyNames);
     // Update baseUrl and forceBaseUrl together to make sure they're in sync
     if (propertyNamesCopy.contains(SystemConfigurationProperty.BASE_URL) ||
-        propertyNamesCopy.contains(SystemConfigurationProperty.FORCE_BASE_URL)) {
+        propertyNamesCopy.contains(SystemConfigurationProperty.FORCE_BASE_URL))
+    {
       propertyNamesCopy.add(SystemConfigurationProperty.BASE_URL);
       propertyNamesCopy.add(SystemConfigurationProperty.FORCE_BASE_URL);
     }
@@ -277,7 +277,7 @@ public class Configuration
     waivedComponentUpgradeInspectionHourScheduleWaivedComponentUpgradeInspection(propertyNamesCopy,
         isWaivedComponentUpgradeMonitoringEnabled, currentWaivedComponentUpgradeInspectionHour);
     waivedComponentUpgradeMonitoringEnabledScheduleWaivedComponentUpgradeInspectionOrDeregister(propertyNamesCopy,
-        isWaivedComponentUpgradeMonitoringEnabled );
+        isWaivedComponentUpgradeMonitoringEnabled);
   }
 
   private void hdsUrlAndTimeoutsServerConfigurationChanged(Set<String> propertyNamesCopy) {
@@ -285,36 +285,34 @@ public class Configuration
         prop -> prop.equals(SystemConfigurationProperty.HDS_URL) ||
             prop.equals(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS) ||
             prop.equals(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS),
-        prop -> hdsClientsProvider.get().forEach(HdsClient::serverConfigurationChanged)
-    );
+        prop -> hdsClientsProvider.get().forEach(HdsClient::serverConfigurationChanged));
   }
 
   private void eventBusMaxThreadPoolSizeSetMaxPoolSize(Set<String> propertyNamesCopy) {
     filterAndAction(propertyNamesCopy,
         prop -> prop.equals(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE),
-        prop -> asyncEventBusProvider.get().setMaxPoolSize(getEventBusMaxThreadPoolSize())
-    );
+        prop -> asyncEventBusProvider.get().setMaxPoolSize(getEventBusMaxThreadPoolSize()));
   }
 
   private void releaseGraphCacheSizeInitializeCache(Set<String> propertyNamesCopy) {
     filterAndAction(propertyNamesCopy,
         prop -> prop.equals(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE),
-        prop -> releaseGraphCacheProviderProvider.get().initializeCache()
-    );
+        prop -> releaseGraphCacheProviderProvider.get().initializeCache());
   }
 
-  private void policyMonitoringHourSchedulePolicyMonitoring(Set<String> propertyNamesCopy,
-                                                            Integer currentPolicyMonitoringHour)
+  private void policyMonitoringHourSchedulePolicyMonitoring(
+      Set<String> propertyNamesCopy,
+      Integer currentPolicyMonitoringHour)
   {
     filterAndAction(propertyNamesCopy,
         prop -> prop.equals(SystemConfigurationProperty.POLICY_MONITORING_HOUR) &&
             !Objects.equals(currentPolicyMonitoringHour, getPolicyMonitoringHour()),
-        prop -> policyMonitorSchedulerProvider.get().schedulePolicyMonitoring()
-    );
+        prop -> policyMonitorSchedulerProvider.get().schedulePolicyMonitoring());
   }
 
   private void historicalPolicyViolationTelemetryScheduleHour(
-      Set<String> propertyNamesCopy, Integer currentHistoricalPolicyViolationTelemetryHour)
+      Set<String> propertyNamesCopy,
+      Integer currentHistoricalPolicyViolationTelemetryHour)
   {
     filterAndAction(propertyNamesCopy,
         prop -> prop.equals(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR) &&
@@ -323,30 +321,31 @@ public class Configuration
   }
 
   private void automaticQuarantineReleaseTimeIntervalInMinutesScheduleAutomaticQuarantineRelease(
-      Set<String> propertyNamesCopy, Integer currentAutomaticQuarantineReleaseTimeIntervalInMinutes)
+      Set<String> propertyNamesCopy,
+      Integer currentAutomaticQuarantineReleaseTimeIntervalInMinutes)
   {
     filterAndAction(propertyNamesCopy,
         prop -> prop.equals(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES)
             && !Objects.equals(currentAutomaticQuarantineReleaseTimeIntervalInMinutes,
-            getAutomaticQuarantineReleaseTimeIntervalInMinutes()),
-        prop -> automaticQuarantineReleaseSchedulerProvider.get().scheduleAutomaticQuarantineRelease()
-    );
+                getAutomaticQuarantineReleaseTimeIntervalInMinutes()),
+        prop -> automaticQuarantineReleaseSchedulerProvider.get().scheduleAutomaticQuarantineRelease());
   }
 
   private void waivedComponentUpgradeInspectionHourScheduleWaivedComponentUpgradeInspection(
-      Set<String> propertyNamesCopy, boolean isWaivedComponentUpgradeMonitoringEnabled,
+      Set<String> propertyNamesCopy,
+      boolean isWaivedComponentUpgradeMonitoringEnabled,
       Integer currentWaivedComponentUpgradeInspectionHour)
   {
     filterAndAction(propertyNamesCopy,
         prop -> prop.equals(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR) &&
             isWaivedComponentUpgradeMonitoringEnabled && !Objects.equals(currentWaivedComponentUpgradeInspectionHour,
-            getWaivedComponentUpgradeInspectionHour()),
-        prop -> waivedComponentUpgradeSchedulerProvider.get().scheduleWaivedComponentUpgradeInspection()
-    );
+                getWaivedComponentUpgradeInspectionHour()),
+        prop -> waivedComponentUpgradeSchedulerProvider.get().scheduleWaivedComponentUpgradeInspection());
   }
 
   private void waivedComponentUpgradeMonitoringEnabledScheduleWaivedComponentUpgradeInspectionOrDeregister(
-      Set<String> propertyNamesCopy, boolean isWaivedComponentUpgradeMonitoringEnabled)
+      Set<String> propertyNamesCopy,
+      boolean isWaivedComponentUpgradeMonitoringEnabled)
   {
     filterAndAction(propertyNamesCopy,
         prop -> prop.equals(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED) &&
@@ -356,12 +355,13 @@ public class Configuration
               ? () -> waivedComponentUpgradeSchedulerProvider.get().scheduleWaivedComponentUpgradeInspection()
               : () -> waivedComponentUpgradeSchedulerProvider.get().deregister();
           action.run();
-        }
-    );
+        });
   }
 
-  private void filterAndAction(Set<String> propertyNames,
-                                            Predicate<String> filterPredicate, Consumer<String> action)
+  private void filterAndAction(
+      Set<String> propertyNames,
+      Predicate<String> filterPredicate,
+      Consumer<String> action)
   {
     propertyNames.stream()
         .filter(filterPredicate)
@@ -412,9 +412,11 @@ public class Configuration
     DefaultBranchMonitor defaultBranchMonitor = defaultBranchMonitorProvider.get();
     if (!taskScheduler.isTaskScheduled(defaultBranchMonitor) ||
         !Objects.equals(currentSourceControlConfiguration.getDefaultBranchMonitoringStartTime(),
-            sourceControlConfiguration.getDefaultBranchMonitoringStartTime()) ||
-        currentSourceControlConfiguration.getDefaultBranchMonitoringIntervalHours() !=
-            sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours()) {
+            sourceControlConfiguration.getDefaultBranchMonitoringStartTime())
+        ||
+        currentSourceControlConfiguration.getDefaultBranchMonitoringIntervalHours() != sourceControlConfiguration
+            .getDefaultBranchMonitoringIntervalHours())
+    {
       defaultBranchMonitor.scheduleDefaultBranchMonitoring();
     }
   }
@@ -428,8 +430,9 @@ public class Configuration
     }
     PullRequestMonitor pullRequestMonitor = pullRequestMonitorProvider.get();
     if (!taskScheduler.isTaskScheduled(pullRequestMonitor) ||
-        currentSourceControlConfiguration.getPullRequestMonitoringIntervalSeconds() !=
-            sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()) {
+        currentSourceControlConfiguration.getPullRequestMonitoringIntervalSeconds() != sourceControlConfiguration
+            .getPullRequestMonitoringIntervalSeconds())
+    {
       pullRequestMonitor.schedulePullRequestMonitor();
     }
   }
@@ -601,9 +604,9 @@ public class Configuration
   }
 
   public String getWebhookSecretPassphrase() {
-    return FIPSModeDetector.isEnabled() ?
-        configCache.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS) :
-        configCache.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE);
+    return FIPSModeDetector.isEnabled()
+        ? configCache.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS)
+        : configCache.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE);
   }
 
   public boolean isExternalHyperlinksAllowed() {

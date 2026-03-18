@@ -145,7 +145,7 @@ public class DependencyResolver
         proprietaryConfigService);
   }
 
-  //visible for testing
+  // visible for testing
   DependencyResolver(
       final JsonNode dependenciesJson,
       final JsonNode bomJson,
@@ -212,7 +212,7 @@ public class DependencyResolver
     bomNode.put(FIELD_DEPENDENCY_INDICATOR, dependencyDataExists);
   }
 
-  //visible for testing
+  // visible for testing
   boolean saveInnerSourceComponent(final PackageUrlIdentifier packageUrl) {
     if (packageUrl == null) {
       return false;
@@ -354,10 +354,11 @@ public class DependencyResolver
 
     if (packageUrlIdentifier != null) {
       PackageUrlIdentifier simplifiedPurl = packageUrlIdentifier.createAlternativeVersion(null);
-      //Only InnerSource components that are different from the current app,
-      //if they are the same app it means they are likely modules
-      InnerSourceApplication innerSourceApplication = simplifiedPurl == null ? null :
-          innerSourceApplicationDAO.getByPackageUrlExcludingApplication(simplifiedPurl, application.getId());
+      // Only InnerSource components that are different from the current app,
+      // if they are the same app it means they are likely modules
+      InnerSourceApplication innerSourceApplication = simplifiedPurl == null
+          ? null
+          : innerSourceApplicationDAO.getByPackageUrlExcludingApplication(simplifiedPurl, application.getId());
 
       if (innerSourceApplication != null) {
         Application innerSourceApp = applicationDAO.getByIdNotNull(innerSourceApplication.getApplicationId());
@@ -371,7 +372,7 @@ public class DependencyResolver
       }
       else {
         Optional<Collection<ObjectNode>> bomNode = findBomComponent(packageUrlIdentifier);
-        //Only modules need to be created
+        // Only modules need to be created
         if (bomNode.isEmpty()) {
           if (directDependency.isModule()) {
             ObjectNode node = newNodeComponent(packageUrlIdentifier);
@@ -667,10 +668,11 @@ public class DependencyResolver
         }
       }
 
-      //Unknown components resulted from a binary scan (maven or other tools) that are not InnerSource
+      // Unknown components resulted from a binary scan (maven or other tools) that are not InnerSource
       // or modules should not be updated as "known"
       if (markAsKnown && (!bomObjectNode.hasNonNull(MATCH_STATE) ||
-          MatchState.UNKNOWN.getId().equals(bomObjectNode.get(MATCH_STATE).asText()))) {
+          MatchState.UNKNOWN.getId().equals(bomObjectNode.get(MATCH_STATE).asText())))
+      {
         markComponentAsKnown(bomObjectNode, componentPurl, isDirect);
         log.debug((innerSourceData != null ? "InnerSource component" : "Component")
             + "'{}' was updated in bom.json as a known component", componentPurl);
@@ -728,8 +730,8 @@ public class DependencyResolver
     PackageUrlIdentifier versionlessPurl = bomPurl.createAlternativeVersion(null);
     InnerSourceApplication is = innerSourceApplicationDAO.getByPackageUrl(versionlessPurl);
     if (is != null) {
-      //If the component is transitive and exists as InnerSource, it needs to be updated, so it can be marked as
-      //Transitive dependency but not as InnerSource
+      // If the component is transitive and exists as InnerSource, it needs to be updated, so it can be marked as
+      // Transitive dependency but not as InnerSource
       markComponentAsKnown(bomObjectNode, bomPurl, false);
       log.debug("InnerSource module {} was updated in bom.json as Transitive InnerSource", bomPurl);
     }

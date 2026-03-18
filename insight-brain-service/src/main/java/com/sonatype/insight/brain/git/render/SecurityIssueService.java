@@ -116,15 +116,17 @@ public class SecurityIssueService
         .map(PolicyViolation::getOwnerId)
         .orElse(null);
     final boolean policyViolationsHasVulnerabilities = !NO_REF_IDS_SENTINEL_KEY.equals(refId);
-    final SecurityVulnerabilityData securityVulnerabilityData = policyViolationsHasVulnerabilities ?
-            findSecurityVulnerabilityData(refId, componentIdentifier, applicationId ) : null;
-    return policyViolationsForRefId.stream().map(pv ->
-        buildSecurityIssue(iqBaseUrl, pv, securityVulnerabilityData, provider));
+    final SecurityVulnerabilityData securityVulnerabilityData = policyViolationsHasVulnerabilities
+        ? findSecurityVulnerabilityData(refId, componentIdentifier, applicationId)
+        : null;
+    return policyViolationsForRefId.stream()
+        .map(pv -> buildSecurityIssue(iqBaseUrl, pv, securityVulnerabilityData, provider));
   }
 
-  private SecurityVulnerabilityData findSecurityVulnerabilityData(final String refId,
-                                                                  final ComponentIdentifier componentIdentifier,
-                                                                  final String applicationId )
+  private SecurityVulnerabilityData findSecurityVulnerabilityData(
+      final String refId,
+      final ComponentIdentifier componentIdentifier,
+      final String applicationId)
   {
     try {
       return vulnerabilityDetailsService.getSecurityVulnerabilityDetails(
@@ -175,7 +177,7 @@ public class SecurityIssueService
       final SourceControlProvider provider)
   {
     final String reportPath = getPolicyViolationReportPath(policyViolationId);
-    final String url  = trimTrailingSlash(iqBaseUrl) + "/" + trimTrailingSlash(reportPath);
+    final String url = trimTrailingSlash(iqBaseUrl) + "/" + trimTrailingSlash(reportPath);
     return maybeAppendUTMSourceParam(url, provider);
   }
 
@@ -193,14 +195,16 @@ public class SecurityIssueService
 
   private static Optional<Float> resolveMainSeverityScore(final SecurityVulnerabilityData securityVulnerabilityData) {
     return nonNull(securityVulnerabilityData.mainSeverity) && securityVulnerabilityData.mainSeverity.score > 0
-        ? Optional.of(securityVulnerabilityData.mainSeverity.score) : Optional.empty();
+        ? Optional.of(securityVulnerabilityData.mainSeverity.score)
+        : Optional.empty();
   }
 
   private static Optional<Float> resolveCustomSeverityScore(final SecurityVulnerabilityData securityVulnerabilityData) {
     return nonNull(securityVulnerabilityData.customData)
         && nonNull(securityVulnerabilityData.customData.cvssSeverity)
         && securityVulnerabilityData.customData.cvssSeverity > 0
-        ? Optional.of(securityVulnerabilityData.customData.cvssSeverity) : Optional.empty();
+            ? Optional.of(securityVulnerabilityData.customData.cvssSeverity)
+            : Optional.empty();
   }
 
   private static MDImages resolveVerificationImage(final SecurityVulnerabilityData securityVulnerabilityData) {

@@ -88,7 +88,9 @@ public class BlockEndpointsContainerRequestFilter
       // resource classes using AOP (e.g. for @Authorize) get subclassed but the generated subclasses miss the
       // annotations, so we have to manually inspect the original class
       try {
-        blocked = method.getDeclaringClass().getSuperclass().getMethod(method.getName(), method.getParameterTypes())
+        blocked = method.getDeclaringClass()
+            .getSuperclass()
+            .getMethod(method.getName(), method.getParameterTypes())
             .getAnnotation(BlockIfMultiTenant.class);
       }
       catch (NoSuchMethodException e) {

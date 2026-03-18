@@ -36,7 +36,7 @@ public class InvalidRequestFilterTest
 
   @Test
   public void testNonAsciiAllowedByDefault() throws Exception {
-    //Jetty 10 handles this now rather than InvalidRequestFilter
+    // Jetty 10 handles this now rather than InvalidRequestFilter
     assertThat(doRequestWithNonAsciiCharacters()).isEqualTo(400);
   }
 
@@ -57,7 +57,7 @@ public class InvalidRequestFilterTest
     configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, false);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH);
 
-    //Jetty 10 handles this now rather than InvalidRequestFilter
+    // Jetty 10 handles this now rather than InvalidRequestFilter
     assertThat(doRequestWithNonAsciiCharacters()).isEqualTo(400);
   }
 

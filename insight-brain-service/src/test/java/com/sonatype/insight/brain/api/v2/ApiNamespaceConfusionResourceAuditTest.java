@@ -22,7 +22,8 @@ public class ApiNamespaceConfusionResourceAuditTest
   public void testApiNamespaceConfusionResourceAddNamespace() throws Exception {
     HttpResponse response = restRequest().path(ApiNamespaceConfusionResource.NAMESPACE_CONFUSION_PATH)
         .parameter("maven2")
-        .body("[ \"org.sonatype\" ]").post();
+        .body("[ \"org.sonatype\" ]")
+        .post();
 
     assertResponseStatus(204, response);
 
@@ -35,7 +36,8 @@ public class ApiNamespaceConfusionResourceAuditTest
   @Test
   public void testApiNamespaceConfusionResourceDeleteNamespace() throws Exception {
     HttpResponse response = restRequest().path(ApiNamespaceConfusionResource.NAMESPACE_CONFUSION_PATH)
-        .parameter("maven2").delete();
+        .parameter("maven2")
+        .delete();
 
     assertResponseStatus(204, response);
 

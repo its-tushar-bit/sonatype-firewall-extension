@@ -159,17 +159,15 @@ public class PendingSbomMetadataCleanerTest
     // Check the file tree
     existingFilesHelper.assertExistingSbomFiles(
         Stream.of(
-                sbomFiles.get(2),
-                sbomFiles.get(5),
-                sbomFiles.get(6),
-                sbomFiles.get(7),
-                sbomFiles.get(8),
-                sbomFiles.get(11),
-                sbomFiles.get(14)
-            )
+            sbomFiles.get(2),
+            sbomFiles.get(5),
+            sbomFiles.get(6),
+            sbomFiles.get(7),
+            sbomFiles.get(8),
+            sbomFiles.get(11),
+            sbomFiles.get(14))
             .map(file -> insightWork.getSbomDir().toPath().relativize(file.toPath()).toString())
-            .toArray(String[]::new)
-    );
+            .toArray(String[]::new));
   }
 
   /**
@@ -238,8 +236,7 @@ public class PendingSbomMetadataCleanerTest
         ImmutablePair.of(null, tempTransientSbomLessThan24HoursOld),
         tempPersistentBinaryMoreThan24HoursOld,
         tempPersistentBinaryExactly24HoursOld,
-        tempPersistentBinaryLessThan24HoursOld
-    );
+        tempPersistentBinaryLessThan24HoursOld);
   }
 
   private ImmutablePair<String, File> createSbom(
@@ -261,14 +258,13 @@ public class PendingSbomMetadataCleanerTest
     SbomEntity tempSbomPath = null;
     try {
       tempSbomPath = thirdPartyPersistenceService.writeToTransientStorage(
-        new ByteArrayInputStream("content".getBytes(StandardCharsets.UTF_8)), "sbom.xml");
+          new ByteArrayInputStream("content".getBytes(StandardCharsets.UTF_8)), "sbom.xml");
       sbomPersistenceResult =
           thirdPartyPersistenceService.saveSbomManagerSbomOrBinary(
               tempSbomPath,
               "sbom.xml",
               application.getId(),
-              sbomDetectionResult
-          );
+              sbomDetectionResult);
     }
     finally {
       if (tempSbomPath != null) {
@@ -286,8 +282,7 @@ public class PendingSbomMetadataCleanerTest
   private File createTemporaryTransientSbom() throws Exception {
     SbomEntity sbomEntity = thirdPartyPersistenceService.writeToTransientStorage(
         new ByteArrayInputStream("content".getBytes()),
-        "sbom.xml"
-    );
+        "sbom.xml");
     File tempTransientSbom = sbomEntity.getPath().toFile();
     assertThat(tempTransientSbom).exists();
     return tempTransientSbom;
@@ -315,8 +310,7 @@ public class PendingSbomMetadataCleanerTest
               tempSbomPath,
               "binary.zip",
               application.getId(),
-              sbomDetectionResult
-          );
+              sbomDetectionResult);
     }
     finally {
       if (tempSbomPath != null) {

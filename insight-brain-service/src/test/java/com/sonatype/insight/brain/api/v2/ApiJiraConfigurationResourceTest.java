@@ -44,7 +44,9 @@ public class ApiJiraConfigurationResourceTest
 
     assertResponseStatus(200, response);
     ApiJiraConfigurationDTO dto = response.getBody(ApiJiraConfigurationDTO.class);
-    assertThat(dto).usingRecursiveComparison().ignoringExpectedNullFields().ignoringFields("password")
+    assertThat(dto).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
+        .ignoringFields("password")
         .isEqualTo(config);
     assertThat(dto.password).isNull();
   }
@@ -69,7 +71,9 @@ public class ApiJiraConfigurationResourceTest
 
     assertResponseStatus(204, response);
     JiraConfiguration jiraConfiguration = dao.get();
-    assertThat(jiraConfiguration).usingRecursiveComparison().ignoringExpectedNullFields().ignoringFields("password")
+    assertThat(jiraConfiguration).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
+        .ignoringFields("password")
         .isEqualTo(dto);
     assertThat(getCLMServer().getInstance(PasswordHandler.class).decryptPassword(jiraConfiguration.getPassword()))
         .isEqualTo(dto.password);

@@ -347,11 +347,12 @@ public class ApplicationAdapterTest
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
 
-  private ApplicationManagementSummaryDTO createExpectedApplicationManagementSummaryDTO(String orgId,
-                                                                                        String orgName,
-                                                                                        String appName,
-                                                                                        String appId,
-                                                                                        ContactDTO contact)
+  private ApplicationManagementSummaryDTO createExpectedApplicationManagementSummaryDTO(
+      String orgId,
+      String orgName,
+      String appName,
+      String appId,
+      ContactDTO contact)
   {
     ApplicationManagementSummaryDTO dto = new ApplicationManagementSummaryDTO();
     dto.setName(appName);
@@ -420,8 +421,9 @@ public class ApplicationAdapterTest
     return member;
   }
 
-  private void assertApplicationDTOs(List<ApplicationDTO> actualApplicationDTOs,
-                                     List<ApplicationDTO> expectedApplicationDTOs)
+  private void assertApplicationDTOs(
+      List<ApplicationDTO> actualApplicationDTOs,
+      List<ApplicationDTO> expectedApplicationDTOs)
   {
     assertThat(actualApplicationDTOs).hasSameSizeAs(expectedApplicationDTOs);
     for (int i = 0; i < actualApplicationDTOs.size(); i++) {
@@ -454,8 +456,9 @@ public class ApplicationAdapterTest
     assertThat(actualContact.getError()).isEqualTo(expectedContact.getError());
   }
 
-  private void assertApplicationManagementSummaryDTOs(List<ApplicationManagementSummaryDTO> actualList,
-                                                      List<ApplicationManagementSummaryDTO> expectedList)
+  private void assertApplicationManagementSummaryDTOs(
+      List<ApplicationManagementSummaryDTO> actualList,
+      List<ApplicationManagementSummaryDTO> expectedList)
   {
     assertThat(actualList).hasSameSizeAs(expectedList);
 
@@ -467,8 +470,9 @@ public class ApplicationAdapterTest
     }
   }
 
-  private void assertApplicationManagementSummaryDTO(ApplicationManagementSummaryDTO actual,
-                                                     ApplicationManagementSummaryDTO expected)
+  private void assertApplicationManagementSummaryDTO(
+      ApplicationManagementSummaryDTO actual,
+      ApplicationManagementSummaryDTO expected)
   {
     assertThat(actual.getId()).isEqualTo(expected.getId());
     assertThat(actual.getName()).isEqualTo(expected.getName());

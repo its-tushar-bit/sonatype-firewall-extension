@@ -137,7 +137,7 @@ public class EnterpriseReportingServiceTest
     String expectedBaseUrl = "https://sonatypeexternaldev.cloud.looker.com/";
     when(mockHdsClient.get(EnterpriseReportingConfigDTO.class,
         EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH))
-        .thenReturn(new EnterpriseReportingConfigDTO(expectedBaseUrl));
+            .thenReturn(new EnterpriseReportingConfigDTO(expectedBaseUrl));
     assertThat(enterpriseReportingService.getEnterpriseReportingConfigDTOBaseUrl()).isEqualTo(expectedBaseUrl);
   }
 
@@ -148,7 +148,7 @@ public class EnterpriseReportingServiceTest
     Tenant tenant1 = testAsNewTenant(testName, t1 -> {
       when(mockHdsClient.get(EnterpriseReportingConfigDTO.class,
           EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH))
-          .thenReturn(new EnterpriseReportingConfigDTO(expectedTenant1BaseUrl));
+              .thenReturn(new EnterpriseReportingConfigDTO(expectedTenant1BaseUrl));
     });
     testAsTenant(tenant1, t1 -> {
       assertThat(enterpriseReportingService.getEnterpriseReportingConfigDTOBaseUrl()).isEqualTo(expectedTenant1BaseUrl);
@@ -156,7 +156,7 @@ public class EnterpriseReportingServiceTest
     Tenant tenant2 = testAsNewTenant(testName, t1 -> {
       when(mockHdsClient.get(EnterpriseReportingConfigDTO.class,
           EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH))
-          .thenReturn(new EnterpriseReportingConfigDTO(expectedTenant2BaseUrl));
+              .thenReturn(new EnterpriseReportingConfigDTO(expectedTenant2BaseUrl));
     });
     testAsTenant(tenant2, t1 -> {
       assertThat(enterpriseReportingService.getEnterpriseReportingConfigDTOBaseUrl()).isEqualTo(expectedTenant2BaseUrl);
@@ -266,9 +266,11 @@ public class EnterpriseReportingServiceTest
   public void testCacheDashboardIcons_FirstCacheLoad() throws Exception {
     String firstIconImageFileName = "icon-1.png";
     byte[] firstIconBytes = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/" + firstIconImageFileName).toURI()));
+        .getResource("/EnterpriseReportingServiceTest/" + firstIconImageFileName)
+        .toURI()));
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
+        .getResource("/EnterpriseReportingServiceTest/icon-1.zip")
+        .toURI()));
     DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
     var version = new DashboardsVersionDTO(1);
     DashboardMetadataListDTO firstDashboardMetadataListDTO =
@@ -291,14 +293,17 @@ public class EnterpriseReportingServiceTest
   public void testCacheDashboardIcons_FirstCacheLoad_MultipleIcons() throws Exception {
     String firstIconImageFileName = "icon-1.png";
     byte[] firstIconBytes = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/" + firstIconImageFileName).toURI()));
+        .getResource("/EnterpriseReportingServiceTest/" + firstIconImageFileName)
+        .toURI()));
     byte[] iconsZipFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/icons.zip").toURI()));
+        .getResource("/EnterpriseReportingServiceTest/icons.zip")
+        .toURI()));
     var version = new DashboardsVersionDTO(1);
     DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
     String secondIconImageFileName = "icon-2.png";
     byte[] secondIconBytes = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/" + secondIconImageFileName).toURI()));
+        .getResource("/EnterpriseReportingServiceTest/" + secondIconImageFileName)
+        .toURI()));
     DashboardMetadataDTO secondDashboardMetadataDTO = createDashboardMetadata(secondIconImageFileName);
     DashboardMetadataListDTO dashboardMetadataListDTO =
         new DashboardMetadataListDTO(version,
@@ -322,9 +327,11 @@ public class EnterpriseReportingServiceTest
   public void testCacheDashboardIcons_CacheReloadWithNoIconUpdates() throws Exception {
     String firstIconImageFileName = "icon-1.png";
     byte[] firstIconBytes = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/" + firstIconImageFileName).toURI()));
+        .getResource("/EnterpriseReportingServiceTest/" + firstIconImageFileName)
+        .toURI()));
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
+        .getResource("/EnterpriseReportingServiceTest/icon-1.zip")
+        .toURI()));
     var version = new DashboardsVersionDTO(1);
     DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
     DashboardMetadataListDTO firstDashboardMetadataListDTO =
@@ -349,9 +356,11 @@ public class EnterpriseReportingServiceTest
   public void testGetIcon_CacheReloadWithIconUpdates() throws Exception {
     String firstIconImageFileName = "icon-1.png";
     byte[] firstIconBytes = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/" + firstIconImageFileName).toURI()));
+        .getResource("/EnterpriseReportingServiceTest/" + firstIconImageFileName)
+        .toURI()));
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
+        .getResource("/EnterpriseReportingServiceTest/icon-1.zip")
+        .toURI()));
     var version = new DashboardsVersionDTO(1);
     DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
     DashboardMetadataListDTO firstDashboardMetadataListDTO =
@@ -372,9 +381,11 @@ public class EnterpriseReportingServiceTest
 
     String secondIconImageFileName = "icon-2.png";
     byte[] secondIconBytes = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/" + secondIconImageFileName).toURI()));
+        .getResource("/EnterpriseReportingServiceTest/" + secondIconImageFileName)
+        .toURI()));
     byte[] secondIconZipFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/icon-2.zip").toURI()));
+        .getResource("/EnterpriseReportingServiceTest/icon-2.zip")
+        .toURI()));
     DashboardsVersionDTO secondVersion = new DashboardsVersionDTO(2);
     DashboardMetadataDTO secondDashboardMetadataDTO = createDashboardMetadata(secondIconImageFileName);
     DashboardMetadataListDTO secondDashboardMetadataListDTO =
@@ -411,7 +422,7 @@ public class EnterpriseReportingServiceTest
     final var previewImageIcon = generateRandomString();
     final var priority = 1;
     final var spotlight = false;
-    final var dashboardPath =  "dashboards/rolling_recap::rolling_recap";
+    final var dashboardPath = "dashboards/rolling_recap::rolling_recap";
     final String spotlightColor = null;
     final String spotlightText = null;
     return new DashboardMetadataDTO(dashboardId, groupId, title, category, description, features, accessButtonText,
@@ -454,7 +465,7 @@ public class EnterpriseReportingServiceTest
   public void testGetIcon_valid_onlyRequestedOnce() throws Exception {
     String iconName = "icon-1.png";
     var version = new DashboardsVersionDTO(1);
-    DashboardMetadataListDTO dashboardMetadataListDTO = 
+    DashboardMetadataListDTO dashboardMetadataListDTO =
         new DashboardMetadataListDTO(version, Collections.singletonList(createDashboardMetadata(iconName)),
             DASHBOARD_GROUP_METADATA);
     when(mockHdsClient.get(DashboardsVersionDTO.class,
@@ -462,7 +473,8 @@ public class EnterpriseReportingServiceTest
     when(mockHdsClient.get(DashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(dashboardMetadataListDTO);
     byte[] iconZipFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
+        .getResource("/EnterpriseReportingServiceTest/icon-1.zip")
+        .toURI()));
     when(mockHdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(iconZipFile));
 
@@ -521,7 +533,8 @@ public class EnterpriseReportingServiceTest
     when(mockHdsClient.get(DashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(dashboardMetadataListDTO);
     byte[] iconZipFile = Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
+        .getResource("/EnterpriseReportingServiceTest/icon-1.zip")
+        .toURI()));
     lenient().when(mockHdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(iconZipFile));
 
@@ -566,15 +579,14 @@ public class EnterpriseReportingServiceTest
         anyString(),
         any(),
         mapArgumentCaptor.capture(),
-        anyString())
-    ).thenReturn(expectedResponse);
+        anyString())).thenReturn(expectedResponse);
 
     // When
     EmbedCookielessSessionAcquire sessionAcquireResult =
         enterpriseReportingService.acquireEmbedSession("dashboardId", embedDomain,
             "Mozilla/:::::");
 
-    //Then
+    // Then
     assertSessionAcquireResult(sessionAcquireResult);
 
     Map<String, String> value = mapArgumentCaptor.getValue();
@@ -596,15 +608,14 @@ public class EnterpriseReportingServiceTest
         anyString(),
         any(),
         mapArgumentCaptor.capture(),
-        anyString())
-    ).thenReturn(expectedResponse);
+        anyString())).thenReturn(expectedResponse);
 
     // When
     EmbedCookielessSessionAcquire sessionAcquireResult =
         enterpriseReportingService.acquireEmbedSession("dashboardId", embedDomain,
             "Mozilla/:::::");
 
-    //Then
+    // Then
     assertSessionAcquireResult(sessionAcquireResult);
 
     Map<String, String> value = mapArgumentCaptor.getValue();
@@ -631,9 +642,9 @@ public class EnterpriseReportingServiceTest
 
   @Test
   public void testAcquireEmbedSession_BadRequest_missingParameters() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
-            enterpriseReportingService.acquireEmbedSession(null, embedDomain,
-                "Mozilla/:::::"))
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> enterpriseReportingService.acquireEmbedSession(null, embedDomain,
+            "Mozilla/:::::"))
         .withMessage("Dashboard is null or empty");
   }
 
@@ -641,10 +652,10 @@ public class EnterpriseReportingServiceTest
   public void testGenerateEmbedTokens_Success() throws Exception {
     EmbedCookielessSessionGenerateTokensResponse expectedResponse =
         new EmbedCookielessSessionGenerateTokensResponse("navToken", 200, "apiToken", 300,
-            "sessionRefTokenResponse",            400);
+            "sessionRefTokenResponse", 400);
     when(mockHdsClient.put(eq(EmbedCookielessSessionGenerateTokensResponse.class), anyString(), any(),
         anyString())).thenReturn(
-        expectedResponse);
+            expectedResponse);
 
     EmbedCookielessSessionGenerateTokens tokenRequestDto =
         new EmbedCookielessSessionGenerateTokens("navToken", "apiToken", "oldSessionToken");
@@ -664,20 +675,20 @@ public class EnterpriseReportingServiceTest
   public void testGenerateEmbedTokens_BadRequest_MissingParameters() throws Exception {
     final EmbedCookielessSessionGenerateTokens tokenRequestDtoNoNav =
         new EmbedCookielessSessionGenerateTokens(null, "apiToken", "oldSessionToken");
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
-            enterpriseReportingService.generateEmbedTokens(tokenRequestDtoNoNav, "Mozilla/:::::"))
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> enterpriseReportingService.generateEmbedTokens(tokenRequestDtoNoNav, "Mozilla/:::::"))
         .withMessage("Navigation token is null or empty");
 
     final EmbedCookielessSessionGenerateTokens tokenRequestDtoNoApi =
         new EmbedCookielessSessionGenerateTokens("navToken", null, "oldSessionToken");
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
-            enterpriseReportingService.generateEmbedTokens(tokenRequestDtoNoApi, "Mozilla/:::::"))
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> enterpriseReportingService.generateEmbedTokens(tokenRequestDtoNoApi, "Mozilla/:::::"))
         .withMessage("Api token is null or empty");
 
     final EmbedCookielessSessionGenerateTokens tokenRequestDtoNoSessionRef =
         new EmbedCookielessSessionGenerateTokens("navToken", "apiToken", null);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
-            enterpriseReportingService.generateEmbedTokens(tokenRequestDtoNoSessionRef, "Mozilla/:::::"))
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> enterpriseReportingService.generateEmbedTokens(tokenRequestDtoNoSessionRef, "Mozilla/:::::"))
         .withMessage("Session reference token is null or empty");
   }
 
@@ -709,7 +720,7 @@ public class EnterpriseReportingServiceTest
     assertThat(ssoEmbedUrlRequest.usernameAndRealm).isEqualTo("username@Internal");
     assertThat(ssoEmbedUrlRequest.userPermissions).isEmpty();
     assertThat(ssoEmbedUrlRequest.applicationIds)
-        .containsExactlyInAnyOrder(obfuscatedApplicationIds.toArray(new String[] {}));
+        .containsExactlyInAnyOrder(obfuscatedApplicationIds.toArray(new String[]{}));
   }
 
   @Test
@@ -721,8 +732,7 @@ public class EnterpriseReportingServiceTest
         .thenReturn(Set.of(Solution.FIREWALL));
     List<DashboardMetadataDTO> allDashboards = List.of(
         createDashboard("firewall-1", "firewall"),
-        createDashboard("enterprise-1", "enterprise")
-    );
+        createDashboard("enterprise-1", "enterprise"));
 
     List<DashboardMetadataDTO> result = spy.filterByLicenseAndFeatureFlags(allDashboards);
 
@@ -738,8 +748,7 @@ public class EnterpriseReportingServiceTest
     when(mockSolutionResolver.getLicensedSolutions())
         .thenReturn(Set.of(Solution.FIREWALL));
     List<DashboardMetadataDTO> allDashboards = List.of(
-        createDashboard("firewall-1", "firewall")
-    );
+        createDashboard("firewall-1", "firewall"));
 
     List<DashboardMetadataDTO> result = spy.filterByLicenseAndFeatureFlags(allDashboards);
 
@@ -753,8 +762,7 @@ public class EnterpriseReportingServiceTest
     List<DashboardMetadataDTO> allDashboards = List.of(
         createDashboard("enterprise-1", "enterprise"),
         createDashboard("datainsight-1", "dataInsight"),
-        createDashboard("firewall-1", "firewall")
-    );
+        createDashboard("firewall-1", "firewall"));
 
     List<DashboardMetadataDTO> result = enterpriseReportingService.filterByLicenseAndFeatureFlags(allDashboards);
 
@@ -773,8 +781,7 @@ public class EnterpriseReportingServiceTest
     List<DashboardMetadataDTO> allDashboards = List.of(
         createDashboard("enterprise-1", "enterprise"),
         createDashboard("firewall-1", "firewall"),
-        createDashboard("datainsight-1", "dataInsight")
-    );
+        createDashboard("datainsight-1", "dataInsight"));
 
     List<DashboardMetadataDTO> result = spy.filterByLicenseAndFeatureFlags(allDashboards);
 
@@ -787,8 +794,7 @@ public class EnterpriseReportingServiceTest
     List<DashboardMetadataDTO> allDashboards = List.of(
         createDashboard("enterprise-1", "enterprise"),
         createDashboard("partner-1", "partner"),
-        createDashboard("firewall-1", "firewall")
-    );
+        createDashboard("firewall-1", "firewall"));
 
     List<DashboardMetadataDTO> result = enterpriseReportingService.filterByLicenseAndFeatureFlags(allDashboards);
 

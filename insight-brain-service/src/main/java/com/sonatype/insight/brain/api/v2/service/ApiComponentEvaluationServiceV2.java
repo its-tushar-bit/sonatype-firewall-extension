@@ -87,14 +87,15 @@ public class ApiComponentEvaluationServiceV2
   private final ErrorResponseGenerator errorResponseGenerator;
 
   @Inject
-  public ApiComponentEvaluationServiceV2(final ApplicationDAO applicationDAO,
-                                         final ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2,
-                                         final ComponentPolicyEvaluator componentPolicyEvaluator,
-                                         final ApiComponentDetailsAdapter componentDetailsAdapter,
-                                         final ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
-                                         final InsightWork work,
-                                         final ErrorResponseGenerator errorResponseGenerator,
-                                         final ShutdownHandler shutdownHandler)
+  public ApiComponentEvaluationServiceV2(
+      final ApplicationDAO applicationDAO,
+      final ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2,
+      final ComponentPolicyEvaluator componentPolicyEvaluator,
+      final ApiComponentDetailsAdapter componentDetailsAdapter,
+      final ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
+      final InsightWork work,
+      final ErrorResponseGenerator errorResponseGenerator,
+      final ShutdownHandler shutdownHandler)
   {
     this.applicationDAO = applicationDAO;
     this.apiComponentDetailsServiceV2 = apiComponentDetailsServiceV2;
@@ -206,8 +207,9 @@ public class ApiComponentEvaluationServiceV2
 
     private final ApiComponentEvaluationRequestDTOV2 evaluationRequestDTO;
 
-    public ComponentEvaluationTask(final ApiComponentEvaluationTicketDTOV2 evaluationTicketDTO,
-                                   final ApiComponentEvaluationRequestDTOV2 evaluationRequestDTO)
+    public ComponentEvaluationTask(
+        final ApiComponentEvaluationTicketDTOV2 evaluationTicketDTO,
+        final ApiComponentEvaluationRequestDTOV2 evaluationRequestDTO)
     {
       this.evaluationTicketDTO = evaluationTicketDTO;
       this.evaluationRequestDTO = evaluationRequestDTO;
@@ -284,7 +286,8 @@ public class ApiComponentEvaluationServiceV2
     private void augmentSecurityVulnerabilities(Component component, List<SecurityVulnerability> vulnerabilities) {
       if (component.getSecurityVulnerabilities() != null) {
         for (com.sonatype.insight.brain.model.component.SecurityVulnerability sv : component
-            .getSecurityVulnerabilities()) {
+            .getSecurityVulnerabilities())
+        {
           if (sv.getUrl() == null && sv.getRefId() != null) {
             for (SecurityVulnerability vulnerability : vulnerabilities) {
               if (sv.getRefId().equals(vulnerability.getRefId())) {

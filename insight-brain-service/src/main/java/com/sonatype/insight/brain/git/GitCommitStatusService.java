@@ -94,7 +94,8 @@ public class GitCommitStatusService
         sourceControlUtils.getGitRepositoryInfoForApplication(sourceControl, event.ownerId);
 
     if (null == gitRepositoryInfo || null == gitRepositoryInfo.provider ||
-        Strings.isNullOrEmpty(gitRepositoryInfo.token)) {
+        Strings.isNullOrEmpty(gitRepositoryInfo.token))
+    {
       log.debug("The git repository information could not be found for application with id {}. " +
           "scm status could not be created.", event.ownerId);
       return;
@@ -111,8 +112,7 @@ public class GitCommitStatusService
             .setScanId(event.reportId)
             .withComponentCounts(event.criticalComponentCount, event.severeComponentCount, event.moderateComponentCount)
             .setInitiator(event.initiator)
-            .setStageTypeId(event.stageTypeId)
-    );
+            .setStageTypeId(event.stageTypeId));
   }
 
   public void onSendCommitStatus(SourceControlEvent event) {
@@ -120,7 +120,8 @@ public class GitCommitStatusService
         sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
 
     if (null == gitRepositoryInfo || null == gitRepositoryInfo.provider ||
-        Strings.isNullOrEmpty(gitRepositoryInfo.token)) {
+        Strings.isNullOrEmpty(gitRepositoryInfo.token))
+    {
       log.debug("The git repository information could not be found for application with id {}, " +
           "scm status could not be created.", event.getApplicationId());
       return;
@@ -139,13 +140,12 @@ public class GitCommitStatusService
       log.info(
           "Commit status sent for repository: {}, commit hash: {}, evaluation outcome: {}, state: {}, response: {}",
           gitApiClient.getProjectUrl().getUrl(), event.getCommitHash(), event.getPolicyEvaluationOutcome(),
-          statusRequest.getState(), status
-      );
+          statusRequest.getState(), status);
     }
     catch (Exception e) {
       String message = String.format(
           "Failed to update status for applicationId: %s, repository: %s, commitHash: %s, " +
-          "triggered by policyEvaluationId: %s, reason: %s",
+              "triggered by policyEvaluationId: %s, reason: %s",
           event.getApplicationId(), gitRepositoryInfo.normalizedRepositoryUrl, event.getCommitHash(),
           event.getPolicyEvaluationId(), e.getMessage());
       throw new SourceControlException(message, e);

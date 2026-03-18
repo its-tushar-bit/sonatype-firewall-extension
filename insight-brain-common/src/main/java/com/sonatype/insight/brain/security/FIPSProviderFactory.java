@@ -36,9 +36,9 @@ public final class FIPSProviderFactory
    * embeds the FIPS dependencies as resources rather than shading their classes into the main JAR.
    */
   private static final String[] EMBEDDED_FIPS_JARS = {
-      "lib/bc-fips.jar",
-      "lib/bcpkix-fips.jar",
-      "lib/bctls-fips.jar"
+    "lib/bc-fips.jar",
+    "lib/bcpkix-fips.jar",
+    "lib/bctls-fips.jar"
   };
 
   private static final String TEMP_DIRECTORY_NEXUS_FIPS_JARS = "nexus-fips-jars";
@@ -115,9 +115,7 @@ public final class FIPSProviderFactory
    * @throws IllegalStateException if JAR extraction is incomplete
    */
   @SuppressWarnings("resource")
-  private static Provider loadFromEmbeddedJars()
-      throws IOException, ReflectiveOperationException, IllegalStateException
-  {
+  private static Provider loadFromEmbeddedJars() throws IOException, ReflectiveOperationException, IllegalStateException {
     log.debug("Loading FIPS provider from embedded resources");
 
     // Extract embedded FIPS JARs to temp files (URLClassLoader can't handle nested JARs)

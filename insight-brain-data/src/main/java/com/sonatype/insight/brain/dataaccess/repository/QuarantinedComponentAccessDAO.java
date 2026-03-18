@@ -68,6 +68,7 @@ public class QuarantinedComponentAccessDAO
 
   public boolean isAnonymousAccessEnabled() {
     return Boolean.parseBoolean(systemConfigurationPropertyDAO
-        .getByName(SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS).getValue());
+        .getByName(SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS)
+        .getValue());
   }
 }

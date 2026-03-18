@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  * Extends {@link ModularRealmAuthenticator} to short-cut authentication on the first successful attempt.
  * This is different to {@link FirstSuccessfulStrategy} which will still go ahead and query every single
  * realm, but then only return the first successful result from the aggregated authentication info.
- * 
+ *
  * @since 1.7
  */
 @Singleton
@@ -34,8 +34,9 @@ class FirstSuccessfulRealmAuthenticator
   private static final Logger log = LoggerFactory.getLogger(FirstSuccessfulRealmAuthenticator.class);
 
   @Inject
-  public FirstSuccessfulRealmAuthenticator(Set<Realm> realms,
-                                           Set<AuthenticationListener> authenticationListeners)
+  public FirstSuccessfulRealmAuthenticator(
+      Set<Realm> realms,
+      Set<AuthenticationListener> authenticationListeners)
   {
     setRealms(realms);
     setAuthenticationListeners(authenticationListeners);

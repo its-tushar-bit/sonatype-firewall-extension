@@ -31,7 +31,8 @@ public class ApiRoleMembershipResourceAuditTest
     Application app = tempEntity.newApplicationWithParent();
 
     restRequest().path(APPLICATION_OR_ORGANIZATION)
-        .parameter("application", app.getId(), DEVELOPER_ROLE_ID, "user", "username").put();
+        .parameter("application", app.getId(), DEVELOPER_ROLE_ID, "user", "username")
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.GRANT_ROLE_MEMBERSHIP, null);
     assertRoleMembershipData(auditDTO, DEVELOPER_ROLE_ID);
@@ -43,7 +44,8 @@ public class ApiRoleMembershipResourceAuditTest
     Organization org = tempEntity.newOrganization();
 
     restRequest().path(APPLICATION_OR_ORGANIZATION)
-        .parameter("organization", org.getId(), DEVELOPER_ROLE_ID, "user", "username").put();
+        .parameter("organization", org.getId(), DEVELOPER_ROLE_ID, "user", "username")
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.GRANT_ROLE_MEMBERSHIP, null);
     assertRoleMembershipData(auditDTO, DEVELOPER_ROLE_ID);
@@ -53,7 +55,8 @@ public class ApiRoleMembershipResourceAuditTest
   @Test
   public void testGrantRoleMembership_Global() throws Exception {
     restRequest().path(GLOBAL_OR_REPOSITORY_CONTAINER)
-        .parameter("global", SYSTEM_ADMIN_ROLE_ID, "user", "username").put();
+        .parameter("global", SYSTEM_ADMIN_ROLE_ID, "user", "username")
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.GRANT_ROLE_MEMBERSHIP, null);
     assertRoleMembershipData(auditDTO, SYSTEM_ADMIN_ROLE_ID);
@@ -64,8 +67,10 @@ public class ApiRoleMembershipResourceAuditTest
   public void testGrantRoleMembership_Application_Unauthorized() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
 
-    restRequest().with(unauthorizedUser()).path(APPLICATION_OR_ORGANIZATION)
-        .parameter("application", app.getId(), DEVELOPER_ROLE_ID, "user", "username").put();
+    restRequest().with(unauthorizedUser())
+        .path(APPLICATION_OR_ORGANIZATION)
+        .parameter("application", app.getId(), DEVELOPER_ROLE_ID, "user", "username")
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.GRANT_ROLE_MEMBERSHIP, "unauthorized");
     assertRoleMembershipData(auditDTO, DEVELOPER_ROLE_ID);
@@ -76,8 +81,10 @@ public class ApiRoleMembershipResourceAuditTest
   public void testGrantRoleMembership_Organization_Unauthorized() throws Exception {
     Organization org = tempEntity.newOrganization();
 
-    restRequest().with(unauthorizedUser()).path(APPLICATION_OR_ORGANIZATION)
-        .parameter("organization", org.getId(), DEVELOPER_ROLE_ID, "user", "username").put();
+    restRequest().with(unauthorizedUser())
+        .path(APPLICATION_OR_ORGANIZATION)
+        .parameter("organization", org.getId(), DEVELOPER_ROLE_ID, "user", "username")
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.GRANT_ROLE_MEMBERSHIP, "unauthorized");
     assertRoleMembershipData(auditDTO, DEVELOPER_ROLE_ID);
@@ -90,7 +97,8 @@ public class ApiRoleMembershipResourceAuditTest
     tempEntity.newMembershipMapping(app.getId(), DEVELOPER_ROLE_ID, "username", MemberType.USER);
 
     restRequest().path(APPLICATION_OR_ORGANIZATION)
-        .parameter("application", app.getId(), DEVELOPER_ROLE_ID, "user", "username").delete();
+        .parameter("application", app.getId(), DEVELOPER_ROLE_ID, "user", "username")
+        .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REVOKE_ROLE_MEMBERSHIP, null);
     assertRoleMembershipData(auditDTO, DEVELOPER_ROLE_ID);
@@ -102,7 +110,8 @@ public class ApiRoleMembershipResourceAuditTest
     tempEntity.newMembershipMapping(GLOBAL_CONTEXT_ID, SYSTEM_ADMIN_ROLE_ID, "username", MemberType.USER);
 
     restRequest().path(GLOBAL_OR_REPOSITORY_CONTAINER)
-        .parameter("global", SYSTEM_ADMIN_ROLE_ID, "user", "username").delete();
+        .parameter("global", SYSTEM_ADMIN_ROLE_ID, "user", "username")
+        .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REVOKE_ROLE_MEMBERSHIP, null);
     assertRoleMembershipData(auditDTO, SYSTEM_ADMIN_ROLE_ID);
@@ -115,7 +124,8 @@ public class ApiRoleMembershipResourceAuditTest
     tempEntity.newMembershipMapping(org.getId(), DEVELOPER_ROLE_ID, "username", MemberType.USER);
 
     restRequest().path(APPLICATION_OR_ORGANIZATION)
-        .parameter("organization", org.getId(), DEVELOPER_ROLE_ID, "user", "username").delete();
+        .parameter("organization", org.getId(), DEVELOPER_ROLE_ID, "user", "username")
+        .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REVOKE_ROLE_MEMBERSHIP, null);
     assertRoleMembershipData(auditDTO, DEVELOPER_ROLE_ID);
@@ -127,8 +137,10 @@ public class ApiRoleMembershipResourceAuditTest
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newMembershipMapping(app.getId(), DEVELOPER_ROLE_ID, "username", MemberType.USER);
 
-    restRequest().with(unauthorizedUser()).path(APPLICATION_OR_ORGANIZATION)
-        .parameter("application", app.getId(), DEVELOPER_ROLE_ID, "user", "username").delete();
+    restRequest().with(unauthorizedUser())
+        .path(APPLICATION_OR_ORGANIZATION)
+        .parameter("application", app.getId(), DEVELOPER_ROLE_ID, "user", "username")
+        .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REVOKE_ROLE_MEMBERSHIP, "unauthorized");
     assertRoleMembershipData(auditDTO, DEVELOPER_ROLE_ID);
@@ -140,8 +152,10 @@ public class ApiRoleMembershipResourceAuditTest
     Organization org = tempEntity.newOrganization();
     tempEntity.newMembershipMapping(org.getId(), DEVELOPER_ROLE_ID, "username", MemberType.USER);
 
-    restRequest().with(unauthorizedUser()).path(APPLICATION_OR_ORGANIZATION)
-        .parameter("organization", org.getId(), DEVELOPER_ROLE_ID, "user", "username").delete();
+    restRequest().with(unauthorizedUser())
+        .path(APPLICATION_OR_ORGANIZATION)
+        .parameter("organization", org.getId(), DEVELOPER_ROLE_ID, "user", "username")
+        .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REVOKE_ROLE_MEMBERSHIP, "unauthorized");
     assertRoleMembershipData(auditDTO, DEVELOPER_ROLE_ID);

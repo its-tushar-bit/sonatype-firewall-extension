@@ -164,7 +164,8 @@ public class ApiReportViolationsDiffService
           "The commit identifier or policy evaluation id for the `to` evaluation needs to be specified");
     }
     if ((toCommit != null && toCommit.equals(fromCommit)) ||
-        (toEvaluationId != null && toEvaluationId.equals(fromEvaluationId))) {
+        (toEvaluationId != null && toEvaluationId.equals(fromEvaluationId)))
+    {
       throw new BadRequestException("The specified commits or evaluation ids cannot be identical.");
     }
     if (!Strings.isNullOrEmpty(fromCommit) && !Strings.isNullOrEmpty(fromEvaluationId)) {
@@ -297,8 +298,9 @@ public class ApiReportViolationsDiffService
     return apiPolicyViolationForDiffDTO;
   }
 
-  private ApiApplicationEvaluationCommitDTO buildEvaluationCommit(String applicationPublicId,
-                                                                  PolicyEvaluation policyEvaluation)
+  private ApiApplicationEvaluationCommitDTO buildEvaluationCommit(
+      String applicationPublicId,
+      PolicyEvaluation policyEvaluation)
   {
     final ApiApplicationEvaluationCommitDTO apiApplicationEvaluationCommitDTO = new ApiApplicationEvaluationCommitDTO();
     apiApplicationEvaluationCommitDTO.commitHash = policyEvaluation.getCommitHash();
@@ -334,10 +336,10 @@ public class ApiReportViolationsDiffService
 
   private void includeViolationTimes(final ApiPolicyViolationDiffDTO apiPolicyViolationDiffDTO) {
     Set<ApiPolicyViolationForDiffDTO> policyViolations = Stream.concat(
-            apiPolicyViolationDiffDTO.addedViolations.stream(),
-            Stream.concat(
-                apiPolicyViolationDiffDTO.sameViolations.stream(),
-                apiPolicyViolationDiffDTO.removedViolations.stream()))
+        apiPolicyViolationDiffDTO.addedViolations.stream(),
+        Stream.concat(
+            apiPolicyViolationDiffDTO.sameViolations.stream(),
+            apiPolicyViolationDiffDTO.removedViolations.stream()))
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
 
@@ -347,7 +349,8 @@ public class ApiReportViolationsDiffService
         .collect(Collectors.toSet());
 
     Map<String, com.sonatype.insight.brain.model.policy.PolicyViolation> policyViolationById =
-        policyViolationDAO.getByIds(policyViolationIds).stream()
+        policyViolationDAO.getByIds(policyViolationIds)
+            .stream()
             .collect(Collectors.toMap(PolicyViolation::getId, Function.identity()));
 
     for (ApiPolicyViolationForDiffDTO policyViolation : policyViolations) {

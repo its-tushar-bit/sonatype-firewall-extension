@@ -52,7 +52,7 @@ public class ApiUserResourceAuditTest
   @Test
   public void testAdd_Unauthorized() throws Exception {
     ApiUserDTO inputUserDTO = createUserDTOToAdd();
-    
+
     restRequest().with(unauthorizedUser()).body(inputUserDTO).post();
 
     assertAuditLog(AuditEvent.CREATE_USER, "unauthorized");
@@ -71,8 +71,11 @@ public class ApiUserResourceAuditTest
   @Test
   public void testUpdate_Unauthorized() throws Exception {
     ApiUserDTO inputUserDTO = createUserDTOToUpdate(tempEntity.newUser());
-    restRequest().path(ApiUserResource.USERNAME_PATH).parameter(inputUserDTO.username).with(unauthorizedUser())
-        .body(inputUserDTO).put();
+    restRequest().path(ApiUserResource.USERNAME_PATH)
+        .parameter(inputUserDTO.username)
+        .with(unauthorizedUser())
+        .body(inputUserDTO)
+        .put();
 
     assertAuditLog(AuditEvent.UPDATE_USER, "unauthorized");
   }
@@ -91,8 +94,10 @@ public class ApiUserResourceAuditTest
   public void testDelete_SamlUser() throws Exception {
     SamlUser samlUser = tempEntity.newSamlUser();
 
-    restRequest().path(ApiUserResource.USERNAME_PATH).parameter(samlUser.getUsername())
-        .query("realm", SamlRealm.ID).delete();
+    restRequest().path(ApiUserResource.USERNAME_PATH)
+        .parameter(samlUser.getUsername())
+        .query("realm", SamlRealm.ID)
+        .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_USER, null);
     assertUserData(auditDTO, SamlRealm.ID, samlUser);
@@ -103,8 +108,10 @@ public class ApiUserResourceAuditTest
     enableSsoWithOAuth2();
     OAuth2User oAuth2User = tempEntity.newOAuth2User();
 
-    restRequest().path(ApiUserResource.USERNAME_PATH).parameter(oAuth2User.getUsername())
-        .query("realm", OAuth2Realm.ID).delete();
+    restRequest().path(ApiUserResource.USERNAME_PATH)
+        .parameter(oAuth2User.getUsername())
+        .query("realm", OAuth2Realm.ID)
+        .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_USER, null);
     assertUserData(auditDTO, OAuth2Realm.ID, oAuth2User);
@@ -112,8 +119,10 @@ public class ApiUserResourceAuditTest
 
   @Test
   public void testDelete_Unauthorized() throws Exception {
-    restRequest().with(unauthorizedUser()).path(ApiUserResource.USERNAME_PATH)
-        .parameter(tempEntity.newUser().getUsername()).delete();
+    restRequest().with(unauthorizedUser())
+        .path(ApiUserResource.USERNAME_PATH)
+        .parameter(tempEntity.newUser().getUsername())
+        .delete();
 
     assertAuditLog(AuditEvent.DELETE_USER, "unauthorized");
   }

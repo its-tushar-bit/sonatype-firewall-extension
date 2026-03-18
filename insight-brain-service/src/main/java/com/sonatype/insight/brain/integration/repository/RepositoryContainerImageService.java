@@ -286,7 +286,8 @@ public class RepositoryContainerImageService
     }
 
     if (StringUtils.isAnyBlank(containerImagePurl.getNamespace(), containerImagePurl.getName(),
-        containerImagePurl.getVersion())) {
+        containerImagePurl.getVersion()))
+    {
       throw new BadRequestException("BOM must contain a purl in metadata's component with namespace, name and version");
     }
 
@@ -300,7 +301,8 @@ public class RepositoryContainerImageService
       String clientUserAgent,
       PackageUrlIdentifier containerImagePurl)
   {
-    String baseUrl = CollectionUtils.emptyIfNull(bom.getMetadata().getProperties()).stream()
+    String baseUrl = CollectionUtils.emptyIfNull(bom.getMetadata().getProperties())
+        .stream()
         .filter(property -> SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME.equals(property.getName()) &&
             StringUtils.isNotBlank(property.getValue()))
         .map(Property::getValue)
@@ -310,23 +312,23 @@ public class RepositoryContainerImageService
 
     ApiVerifyOrCreateApplicationForContainerImageFirewallDTO dto =
         new ApiVerifyOrCreateApplicationForContainerImageFirewallDTO(
-        repositoryManagerInstanceId,
-        repositoryPublicId,
-        baseUrl,
-        containerImagePurl.getNamespace(),
-        containerImagePurl.getName(),
-        containerImagePurl.getVersion(),
-        clientUserAgent
-    );
+            repositoryManagerInstanceId,
+            repositoryPublicId,
+            baseUrl,
+            containerImagePurl.getNamespace(),
+            containerImagePurl.getName(),
+            containerImagePurl.getVersion(),
+            clientUserAgent);
 
     // Resolve withQuarantine from BOM metadata and default to true when missing/invalid.
     boolean withQuarantine = true;
-    String withQuarantineValue = CollectionUtils.emptyIfNull(bom.getMetadata().getProperties()).stream()
+    String withQuarantineValue = CollectionUtils.emptyIfNull(bom.getMetadata().getProperties())
+        .stream()
         .filter(property -> SONATYPE_NEXUS_REPOSITORY_WITH_QUARANTINE_PROPERTY_NAME.equals(property.getName()))
         .map(Property::getValue)
         .findFirst()
         .orElse(null);
-    if (withQuarantineValue == null ||  StringUtils.isBlank(withQuarantineValue)) {
+    if (withQuarantineValue == null || StringUtils.isBlank(withQuarantineValue)) {
       log.warn("BOM is missing {} property or has blank value, defaulting to true",
           SONATYPE_NEXUS_REPOSITORY_WITH_QUARANTINE_PROPERTY_NAME);
     }

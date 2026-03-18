@@ -301,8 +301,8 @@ public class SbomFileDetector
     }
     else if (t instanceof ParseException ||
         t instanceof InvalidSPDXAnalysisException ||
-        t instanceof JSONException
-    ) {
+        t instanceof JSONException)
+    {
       validationExceptions.add(new ValidationException(t));
     }
     for (Throwable child : t.getSuppressed()) {
@@ -345,15 +345,18 @@ public class SbomFileDetector
 
     // The errors have different locations
     if (validationException.getLine() != null && otherValidationException.getLine() != null &&
-        !Objects.equals(validationException.getLine(), otherValidationException.getLine())) {
+        !Objects.equals(validationException.getLine(), otherValidationException.getLine()))
+    {
       return -1;
     }
     if (validationException.getColumn() != null && otherValidationException.getColumn() != null &&
-        !Objects.equals(validationException.getColumn(), otherValidationException.getColumn())) {
+        !Objects.equals(validationException.getColumn(), otherValidationException.getColumn()))
+    {
       return -1;
     }
     if (validationException.getPath() != null && otherValidationException.getPath() != null &&
-        !Objects.equals(validationException.getPath(), otherValidationException.getPath())) {
+        !Objects.equals(validationException.getPath(), otherValidationException.getPath()))
+    {
       return -1;
     }
 
@@ -381,8 +384,7 @@ public class SbomFileDetector
   private void populateSpdxResult(
       final SbomDetectionResult sbomResult,
       final SbomFormat sbomFormat,
-      final SpdxDocument document)
-      throws InvalidSPDXAnalysisException
+      final SpdxDocument document) throws InvalidSPDXAnalysisException
   {
     sbomResult.summary = new SbomSummary();
     sbomResult.summary.serialNumber = SbomSpdxUtils.getOrGenerateSpdxSerialNumber(document);
@@ -432,7 +434,8 @@ public class SbomFileDetector
     // For the calculation we add both counts, because they can't be in the SBOM at the same time.
     int vulnerabilitiesExtensionsCount = 0;
     if (bom.getComponents() != null) {
-      vulnerabilitiesExtensionsCount = bom.getComponents().stream()
+      vulnerabilitiesExtensionsCount = bom.getComponents()
+          .stream()
           .map(Component::getExtensions)
           .filter(MapUtils::isNotEmpty)
           .map(m -> m.get(SbomCycloneDxUtils.VULNERABILITY_KEY))

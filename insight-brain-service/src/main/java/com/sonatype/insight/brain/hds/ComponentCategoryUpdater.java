@@ -99,7 +99,7 @@ public class ComponentCategoryUpdater
   void doLoadComponentCategories() {
     loadComponentCategories();
   }
-  
+
   @Override
   public String getJobName() {
     return TASK_NAME;

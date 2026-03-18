@@ -24,9 +24,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 
 /**
- * Waiver reason was added to policy waivers in August of 2024.  Unfortunately, the waiver reason wasn't added to the
- * policy waiver telemetry at that time.  The purpose of this service is to backfill the missing waiver reason into the
- * policy waiver telemetry.  It will be sent as a new telemetry purpose and then processes on the backend in Databricks
+ * Waiver reason was added to policy waivers in August of 2024. Unfortunately, the waiver reason wasn't added to the
+ * policy waiver telemetry at that time. The purpose of this service is to backfill the missing waiver reason into the
+ * policy waiver telemetry. It will be sent as a new telemetry purpose and then processes on the backend in Databricks
  * will merge this info into the existing policy waiver and time to waive policy violation telemetry.
  *
  * At the time of this writing there are customers with hundreds of thousands (455k being the highest) of policy waivers
@@ -46,8 +46,7 @@ public class PolicyWaiverTelemetryBackfillService
   private static final Date CUTOFF_DATE = Date.from(
       LocalDate.of(2024, 8, 1)
           .atStartOfDay(ZoneId.of("GMT"))
-          .toInstant()
-  );
+          .toInstant());
 
   private static final TelemetryPurpose TELEMETRY_PURPOSE = TelemetryPurpose.POLICY_WAIVER_BACKFILL;
 

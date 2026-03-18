@@ -57,19 +57,19 @@ public class ApiComponentSearchResourceKeepAliveTest
 
   private static ApplicationComponentMatchDTO createTestDto(String appId, String appName, String reportId) {
     ApplicationComponentMatchDTO dto = new ApplicationComponentMatchDTO(
-        appId,                          // applicationPublicId
-        appName,                        // applicationName
-        appId,                          // applicationInternalId
-        "build",                        // stage
-        new Date(1733914800000L),       // evaluationDate (2024-12-11T10:00:00Z)
+        appId, // applicationPublicId
+        appName, // applicationName
+        appId, // applicationInternalId
+        "build", // stage
+        new Date(1733914800000L), // evaluationDate (2024-12-11T10:00:00Z)
         "pkg:maven/com.example/lib@1.0.0", // packageUrl
-        "com.example:lib",             // componentDisplayName
-        "abc123",                       // hash
-        "CVE-2025-55182",              // cveId
-        "Upgrade to 2.0.0",            // recommendedAction
-        false,                          // activeWaiver
-        true,                           // violating
-        reportId                        // reportId
+        "com.example:lib", // componentDisplayName
+        "abc123", // hash
+        "CVE-2025-55182", // cveId
+        "Upgrade to 2.0.0", // recommendedAction
+        false, // activeWaiver
+        true, // violating
+        reportId // reportId
     );
     dto.setBaseUrl("http://localhost:8070");
     return dto;
@@ -88,10 +88,10 @@ public class ApiComponentSearchResourceKeepAliveTest
     // Create test data with different timing scenarios
     // Final record with null dto represents EOF delay without emitting data
     List<TimedRecord> records = List.of(
-        new TimedRecord(DTO_1, 0),      // Immediate
-        new TimedRecord(DTO_2, 100),    // 100ms later - no keep-alive (< 200ms threshold)
-        new TimedRecord(DTO_3, 300),    // 300ms later - 1 keep-alive space
-        new TimedRecord(null, 600)      // 600ms EOF delay - 3 keep-alive spaces on Record3
+        new TimedRecord(DTO_1, 0), // Immediate
+        new TimedRecord(DTO_2, 100), // 100ms later - no keep-alive (< 200ms threshold)
+        new TimedRecord(DTO_3, 300), // 300ms later - 1 keep-alive space
+        new TimedRecord(null, 600) // 600ms EOF delay - 3 keep-alive spaces on Record3
     );
 
     when(cveAffectedComponentSearchService.searchCveAffectedComponentsStreaming(any()))
@@ -196,7 +196,9 @@ public class ApiComponentSearchResourceKeepAliveTest
   /**
    * Record with timing information. Null dto represents EOF delay without emitting data.
    */
-  private record TimedRecord(ApplicationComponentMatchDTO dto, long delayMs) { }
+  private record TimedRecord(ApplicationComponentMatchDTO dto, long delayMs)
+  {
+  }
 
   private ServletOutputStream createServletOutputStream(ByteArrayOutputStream outputStream) {
     return new ServletOutputStream()

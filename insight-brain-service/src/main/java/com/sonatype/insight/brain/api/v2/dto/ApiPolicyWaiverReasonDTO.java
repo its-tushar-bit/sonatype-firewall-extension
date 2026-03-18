@@ -14,7 +14,6 @@ public record ApiPolicyWaiverReasonDTO(String id, String type, String reasonText
     return new ApiPolicyWaiverReasonDTO(
         policyWaiverReason.getId(),
         policyWaiverReason.getType(),
-        policyWaiverReason.getReasonText()
-    );
+        policyWaiverReason.getReasonText());
   }
 }

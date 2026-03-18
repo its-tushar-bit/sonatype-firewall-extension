@@ -54,8 +54,9 @@ public class ApplicationPolicyViolationLogger
   }
 
   @Override
-  protected boolean shouldIncludeStagePolicyAction(PolicyViolationLogEvent policyViolationLogEvent,
-                                                   PolicyViolation policyViolation)
+  protected boolean shouldIncludeStagePolicyAction(
+      PolicyViolationLogEvent policyViolationLogEvent,
+      PolicyViolation policyViolation)
   {
     return super.shouldIncludeStagePolicyAction(policyViolationLogEvent, policyViolation) &&
         !policyViolation.isLegacyViolation() && !policyViolation.isWaived();

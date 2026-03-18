@@ -90,7 +90,8 @@ public class DatabaseRuleAndFixturesTest
     DataSource dataSource = databaseRule.getOperationalDataStore().getDataSource();
     try (Connection connection = dataSource.getConnection()) {
       try (Statement statement = connection.createStatement();
-           ResultSet results = statement.executeQuery("SELECT * FROM insight_brain_test.test_table")) {
+          ResultSet results = statement.executeQuery("SELECT * FROM insight_brain_test.test_table"))
+      {
         Assertions.assertThat(results.next()).isTrue();
         Assertions.assertThat(results.getString(1)).isEqualTo("test-value");
         Assertions.assertThat(results.next()).isFalse();

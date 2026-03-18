@@ -61,39 +61,46 @@ public abstract class AbstractComponentInfoResourceTest
     return super.restRequest().path(getResourcePath());
   }
 
-  protected HttpRequest detailsRequest(String ownerId,
-                                       ComponentIdentifier componentIdentifier,
-                                       String hash,
-                                       MatchState matchState,
-                                       Boolean proprietary)
+  protected HttpRequest detailsRequest(
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      MatchState matchState,
+      Boolean proprietary)
   {
     String identificationSource =
         MatchState.UNKNOWN == matchState || matchState == null ? null : IdentificationSource.SONATYPE.getId();
     return detailsRequest(ownerId, componentIdentifier, hash, matchState, proprietary, identificationSource, null);
   }
 
-  protected HttpRequest detailsRequest(String ownerId,
-                                       ComponentIdentifier componentIdentifier,
-                                       String hash,
-                                       MatchState matchState,
-                                       Boolean proprietary,
-                                       String identificationSource,
-                                       String scanId)
+  protected HttpRequest detailsRequest(
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      MatchState matchState,
+      Boolean proprietary,
+      String identificationSource,
+      String scanId)
   {
     return restRequest().path(getOwner().getType().toString(), ownerId)
-        .query("componentIdentifier", componentIdentifier).query("hash", hash)
-        .query("matchState", matchState != null ? matchState.getId() : null).query("proprietary", proprietary)
-        .query("identificationSource", identificationSource).query("scanId", scanId);
+        .query("componentIdentifier", componentIdentifier)
+        .query("hash", hash)
+        .query("matchState", matchState != null ? matchState.getId() : null)
+        .query("proprietary", proprietary)
+        .query("identificationSource", identificationSource)
+        .query("scanId", scanId);
   }
 
   protected HttpRequest listRequest(String ownerId, ComponentIdentifier componentIdentifier) {
-    return restRequest().path(getOwner().getType().toString(), ownerId, "list").query("componentIdentifier",
-        componentIdentifier);
+    return restRequest().path(getOwner().getType().toString(), ownerId, "list")
+        .query("componentIdentifier",
+            componentIdentifier);
   }
 
   protected HttpRequest allVersionsRequest(String ownerId, ComponentIdentifier componentIdentifier) {
-    return restRequest().path(getOwner().getType().toString(), ownerId, "allVersions").query("componentIdentifier",
-        componentIdentifier);
+    return restRequest().path(getOwner().getType().toString(), ownerId, "allVersions")
+        .query("componentIdentifier",
+            componentIdentifier);
   }
 
   @Before
@@ -195,7 +202,7 @@ public abstract class AbstractComponentInfoResourceTest
     HttpRequest request = allVersionsRequest(getOwnerId(), MAVEN_COORDINATES);
     hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(request.getUrl()));
     hdsRespondWith(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>())).atUri("rest/component/dependencies");
-    hdsRespondWith(new VersionScoringService[] {}).atUri(HDS_BULK_SCORE_VERSIONING_PATH);
+    hdsRespondWith(new VersionScoringService[]{}).atUri(HDS_BULK_SCORE_VERSIONING_PATH);
 
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
@@ -255,8 +262,11 @@ public abstract class AbstractComponentInfoResourceTest
     assertThat(actual.overriddenLicenses).isEqualTo(expected.getOverriddenLicenses());
     assertThat(actual.effectiveLicenses).isEqualTo(expected.getEffectiveLicenses());
     assertThat(actual.effectiveLicenseStatus).isEqualTo(expected.getEffectiveLicenseStatus());
-    assertThat(actual.highestSecurityVulnerabilitySeverity).isEqualTo(expected.getSecurityVulnerabilities().stream()
-        .map(SecurityVulnerability::getSeverity).max(Float::compareTo).get());
+    assertThat(actual.highestSecurityVulnerabilitySeverity).isEqualTo(expected.getSecurityVulnerabilities()
+        .stream()
+        .map(SecurityVulnerability::getSeverity)
+        .max(Float::compareTo)
+        .get());
     assertThat(actual.identificationSource).isEqualTo(expected.getIdentificationSource());
     assertThat(actual.identificationSourceComment).isEqualTo(expected.getIdentificationSourceComment());
     assertThat(actual.majorRevisionStep).isEqualTo(expected.isMajorRevisionStep());

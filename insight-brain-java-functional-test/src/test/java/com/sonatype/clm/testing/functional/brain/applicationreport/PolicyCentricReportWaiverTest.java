@@ -102,7 +102,8 @@ public class PolicyCentricReportWaiverTest
     policyViolationDAO.loadConstraintFacts(policyViolations);
     PolicyViolation policyViolation = policyViolations.stream()
         .filter(violation -> policyWaiver.getConstraintFactsJson().equals(violation.getConstraintFactsJson()))
-        .findFirst().get();
+        .findFirst()
+        .get();
 
     assertThat(policyWaiver.getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     assertThat(policyWaiver.getOwnerId()).isEqualTo(policyViolation.getApplicationId());
@@ -173,9 +174,10 @@ public class PolicyCentricReportWaiverTest
     evaluator.reevaluatePolicy();
 
     refreshOrOpen(ApplicationReportPage.url(app, scanId));
-    reportPage.resultRows().shouldHave(texts("All Components", "All Components", "All Components", "All Components",
-        "All Components", "All Components", "All Components", "All Components", "All Components", "All Components",
-        "All Components", "None", "None"));
+    reportPage.resultRows()
+        .shouldHave(texts("All Components", "All Components", "All Components", "All Components",
+            "All Components", "All Components", "All Components", "All Components", "All Components", "All Components",
+            "All Components", "None", "None"));
   }
 
   @Test
@@ -269,4 +271,3 @@ public class PolicyCentricReportWaiverTest
     return null;
   }
 }
-

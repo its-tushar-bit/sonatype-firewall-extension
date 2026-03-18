@@ -33,7 +33,7 @@ public class BomPageSbomSummaryDTO
     medium = Long.parseLong(String.valueOf(array[2]));
     high = Long.parseLong(String.valueOf(array[3]));
     critical = Long.parseLong(String.valueOf(array[4]));
-    this.releaseStatusPercentage = array[5] != null ? ((Number)array[5]).doubleValue() : null;
+    this.releaseStatusPercentage = array[5] != null ? ((Number) array[5]).doubleValue() : null;
   }
 
   public Double getReleaseStatusPercentage() {

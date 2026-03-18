@@ -34,8 +34,8 @@ import com.sonatype.nexus.scm.api.model.StatusRequest;
  * This is a helper class, that is used when creating a new commit status and when creating a
  * new pull request status. Check the next classes:
  * <lu>
- *   <li>For commit status creation {@link com.sonatype.insight.brain.git.GitCommitStatusService},</li>
- *   <li>For pull request status creation {@link com.sonatype.insight.brain.git.PullRequestStatusService},</li>
+ * <li>For commit status creation {@link com.sonatype.insight.brain.git.GitCommitStatusService},</li>
+ * <li>For pull request status creation {@link com.sonatype.insight.brain.git.PullRequestStatusService},</li>
  * </lu>
  */
 @Named

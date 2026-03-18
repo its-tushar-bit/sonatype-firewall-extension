@@ -100,7 +100,9 @@ public class ApiFirewallContainerImageResourceTest
     assertResponseStatus(200, response);
 
     TypeReference<ApiPageResult<ContainerImageInQuarantineData>> typeReference =
-        new TypeReference<>() { };
+        new TypeReference<>()
+        {
+        };
     ApiPageResult<ContainerImageInQuarantineData> data =
         new ObjectMapper().readValue(response.getBodyBytes(), typeReference);
 

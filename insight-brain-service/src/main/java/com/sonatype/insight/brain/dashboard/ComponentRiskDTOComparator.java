@@ -23,7 +23,7 @@ class ComponentRiskDTOComparator
 
   @Override
   public int compare(ComponentRiskDTO o1, ComponentRiskDTO o2) {
-    int result  = 0;
+    int result = 0;
     if (componentRiskOrderBy != null) {
       ComponentRiskDTO ob1 = componentRiskOrderBy.isOrderByAsc() ? o1 : o2;
       ComponentRiskDTO ob2 = componentRiskOrderBy.isOrderByAsc() ? o2 : o1;

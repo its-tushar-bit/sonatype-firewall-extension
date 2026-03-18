@@ -56,8 +56,7 @@ public class PullRequestEligibilityValidatorTest
     assertThat(testScenario.isPullRequestEligibleForCommenting()).isFalse();
     assertThatLogMessagesEqual(
         debug("Repository is not valid for pull requests, ensure that it is private or internal: "
-            + "http://gitlab.com/projects/app1")
-    );
+            + "http://gitlab.com/projects/app1"));
   }
 
   @Test
@@ -101,20 +100,18 @@ public class PullRequestEligibilityValidatorTest
     // then
     assertThat(testScenario.isPullRequestEligibleForCommenting()).isFalse();
     assertThatLogMessagesEqual(
-        debug("application 'app1' pull request '0' state 'CLOSED' is not open")
-    );
+        debug("application 'app1' pull request '0' state 'CLOSED' is not open"));
   }
 
   @Test
   public void testIsPullRequestEligibleForCommenting_pullRequestForDefaultBranch() {
-    // given:  pull request is for the default branch (i.e. trying to merge default branch to some other branch)
+    // given: pull request is for the default branch (i.e. trying to merge default branch to some other branch)
     testScenario.withPullRequestHead("trunk");
 
     // then
     assertThat(testScenario.isPullRequestEligibleForCommenting()).isFalse();
     assertThatLogMessagesEqual(
-        debug("application 'app1' pull request '0' is for the default branch")
-    );
+        debug("application 'app1' pull request '0' is for the default branch"));
   }
 
   @Test
@@ -126,8 +123,7 @@ public class PullRequestEligibilityValidatorTest
     assertThat(testScenario.isPullRequestEligibleForCommenting()).isFalse();
     assertThatLogMessagesEqual(
         debug("The head commit hash 'abc123', for application 'app1', PR '0' does not match the commit on the policy" +
-            " evaluation 'tail-123'")
-    );
+            " evaluation 'tail-123'"));
   }
 
   @Test

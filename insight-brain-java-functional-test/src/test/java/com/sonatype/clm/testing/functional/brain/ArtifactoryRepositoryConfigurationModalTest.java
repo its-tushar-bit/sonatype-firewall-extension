@@ -125,8 +125,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
     ArtifactoryConnection artifactoryConnection = tempEntity.newArtifactoryConnection(
         org.getId(),
         artifactoryMockSever.baseUrl(),
-        "username", passwordHandler.encryptPassword("password".toCharArray())
-    );
+        "username", passwordHandler.encryptPassword("password".toCharArray()));
 
     ArtifactoryRepositoryBaseConfigurationsPage page = visitPage();
 
@@ -203,8 +202,10 @@ public class ArtifactoryRepositoryConfigurationModalTest
     assertThat(artifactoryConnection.getId()).isNotBlank();
     assertThat(artifactoryConnection.getBaseUrl()).isEqualTo(expectedBaseUrl);
     assertThat(artifactoryConnection.getUsername()).isEqualTo(expectedUsername);
-    assertThat(artifactoryConnection.getPassword() == null ? null : String.valueOf(
-        passwordHandler.decryptPassword(artifactoryConnection.getPassword()))).isEqualTo(expectedPassword);
+    assertThat(artifactoryConnection.getPassword() == null
+        ? null
+        : String.valueOf(
+            passwordHandler.decryptPassword(artifactoryConnection.getPassword()))).isEqualTo(expectedPassword);
   }
 
   @Test
@@ -221,12 +222,13 @@ public class ArtifactoryRepositoryConfigurationModalTest
         org.getId(),
         artifactoryMockSever.baseUrl(),
         "username",
-        passwordHandler.encryptPassword("password".toCharArray())
-    );
+        passwordHandler.encryptPassword("password".toCharArray()));
 
     modal.save().shouldBe(Condition.enabled).click();
 
-    modal.getElement().find(".nx-alert--error").shouldBe(visible)
+    modal.getElement()
+        .find(".nx-alert--error")
+        .shouldBe(visible)
         .shouldHave(Condition.text("An error occurred saving data."));
   }
 
@@ -248,7 +250,9 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--success").shouldBe(visible)
+    modal.getElement()
+        .find(".nx-alert--success")
+        .shouldBe(visible)
         .shouldHave(Condition.text("Repository configuration test successful."));
   }
 
@@ -268,7 +272,9 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--error").shouldBe(visible)
+    modal.getElement()
+        .find(".nx-alert--error")
+        .shouldBe(visible)
         .shouldHave(Condition.text("Unable to connect to the configured repository. 404 Not Found"));
   }
 
@@ -278,8 +284,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
         org.getId(),
         artifactoryMockSever.baseUrl(),
         "username",
-        passwordHandler.encryptPassword("password".toCharArray())
-    );
+        passwordHandler.encryptPassword("password".toCharArray()));
 
     ArtifactoryRepositoryBaseConfigurationsPage page = visitPage();
 
@@ -304,7 +309,9 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--success").shouldBe(visible)
+    modal.getElement()
+        .find(".nx-alert--success")
+        .shouldBe(visible)
         .shouldHave(Condition.text("Repository configuration test successful."));
   }
 
@@ -314,8 +321,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
         org.getId(),
         artifactoryMockSever.baseUrl(),
         "username",
-        passwordHandler.encryptPassword("password".toCharArray())
-    );
+        passwordHandler.encryptPassword("password".toCharArray()));
 
     ArtifactoryRepositoryBaseConfigurationsPage page = visitPage();
 
@@ -340,7 +346,9 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--error").shouldBe(visible)
+    modal.getElement()
+        .find(".nx-alert--error")
+        .shouldBe(visible)
         .shouldHave(Condition.text("Unable to connect to the configured repository. 404 Not Found"));
   }
 
@@ -350,8 +358,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
         org.getId(),
         artifactoryMockSever.baseUrl(),
         "username",
-        passwordHandler.encryptPassword("password".toCharArray())
-    );
+        passwordHandler.encryptPassword("password".toCharArray()));
 
     ArtifactoryRepositoryBaseConfigurationsPage page = visitPage();
 
@@ -388,8 +395,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
         org.getId(),
         artifactoryMockSever.baseUrl(),
         "username",
-        passwordHandler.encryptPassword("password".toCharArray())
-    );
+        passwordHandler.encryptPassword("password".toCharArray()));
 
     ArtifactoryRepositoryBaseConfigurationsPage page = visitPage();
 

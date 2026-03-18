@@ -80,10 +80,11 @@ public class ProprietaryConfigDAOTest
         .hasMessage("A proprietary config already exists for owner id " + application.getId());
   }
 
-  private void assertProprietaryConfig(String applicationId,
-                                       List<String> packages,
-                                       List<String> regexes,
-                                       ProprietaryConfig config)
+  private void assertProprietaryConfig(
+      String applicationId,
+      List<String> packages,
+      List<String> regexes,
+      ProprietaryConfig config)
   {
     assertThat(config.getOwnerId()).isEqualTo(applicationId);
     assertThat(config.getPackages()).isEqualTo(packages);

@@ -296,8 +296,10 @@ public class ReportPurger
       log.debug("Purging {} reports from report {} with time {} to report {} with time {}.", purgeableScanIds.size(),
           fromEvaluation.getScanId(), fromEvaluation.getTime(), toEvaluation.getScanId(), toEvaluation.getTime());
     }
-    policyEvaluationDAO.getLastByApplicationIds(Collections.singleton(application.getId())).stream()
-        .map(PolicyEvaluation::getScanId).forEach(purgeableScanIds::remove);
+    policyEvaluationDAO.getLastByApplicationIds(Collections.singleton(application.getId()))
+        .stream()
+        .map(PolicyEvaluation::getScanId)
+        .forEach(purgeableScanIds::remove);
     return purgeReports(application, purgeableScanIds, trashBucket);
   }
 

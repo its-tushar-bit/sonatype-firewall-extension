@@ -319,9 +319,7 @@ public class ApiMetricsReportingServiceV2Test
                     waived().asMap(), //
                     open().asMap(), //
                     0 // evaluationCount
-                )
-            )
-        );
+                )));
 
     assertDTO(actualDTO, expectedDTO);
   }
@@ -549,7 +547,7 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // open security
             0, 0, 0, 0, // open license
             0, 0, 0, 0, // open quality
-            0, 0, 0, 0  // open other
+            0, 0, 0, 0 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2(app.getId(), app.getPublicId(), app.getName(), org.getId(), org.getName(),
             "2017-12-01", //
@@ -570,9 +568,8 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // open security
             0, 0, 0, 0, // open license
             0, 0, 0, 0, // open quality
-            0, 0, 0, 0  // open other
-        )
-    );
+            0, 0, 0, 0 // open other
+        ));
 
     assertThat(results).hasSameSizeAs(expectedDTOs);
 
@@ -637,9 +634,7 @@ public class ApiMetricsReportingServiceV2Test
                     waived().security(0, 0, 1, 1).asMap(), //
                     openWithSampleData().asMap(), //
                     1 // evaluationCount
-                )
-            ).subList(0, numTimePeriods)
-        ),
+                )).subList(0, numTimePeriods)),
         new ApiMetricsReportingDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
             Arrays.asList( //
                 new ApiMetricsReportingAggregationDTOV2( //
@@ -649,8 +644,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().security(0, 0, 1, 0).asMap(), //
                     waived().asMap(), //
                     openWithSampleData().asMap(), //
-                    0
-                ),
+                    0),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-11-01", //
                     5000L, 6000L, 7000L, 8000L, //
@@ -658,8 +652,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().quality(1, 1, 1, 1).asMap(), //
                     openWithSampleData().asMap(), //
-                    2
-                ),
+                    2),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-01", //
                     5000L, 6000L, 7000L, 8000L, //
@@ -667,10 +660,8 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().security(1, 1, 0, 0).asMap(), //
                     waived().security(0, 0, 1, 1).asMap(), //
                     openWithSampleData().asMap(), //
-                    3
-                )
-            ).subList(0, numTimePeriods)
-        ),
+                    3))
+                .subList(0, numTimePeriods)),
         new ApiMetricsReportingDTOV2("3", "3-publicId", "app-3", organization.getId(), organization.getName(),
             Arrays.asList( //
                 new ApiMetricsReportingAggregationDTOV2( //
@@ -680,8 +671,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().asMap(), //
                     openWithSampleData().asMap(), //
-                    0
-                ),
+                    0),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-11-01", //
                     9000L, 10000L, 11000L, 12000L, //
@@ -689,8 +679,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().security(1, 1, 0, 0).asMap(), //
                     waived().security(0, 0, 1, 1).asMap(), //
                     openWithSampleData().asMap(), //
-                    3
-                ),
+                    3),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-01", //
                     null, null, null, null, //
@@ -698,10 +687,8 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().asMap(), //
                     openWithSampleData().asMap(), //
-                    0
-                )
-            ).subList(0, numTimePeriods)
-        ),
+                    0))
+                .subList(0, numTimePeriods)),
         new ApiMetricsReportingDTOV2("4", "4-publicId", "app-4", organization.getId(), organization.getName(),
             Arrays.asList( //
                 new ApiMetricsReportingAggregationDTOV2( //
@@ -711,8 +698,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().asMap(), //
                     openWithSampleData().asMap(), //
-                    0
-                ),
+                    0),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-11-01", //
                     13000L, 14000L, 15000L, 16000L, //
@@ -720,8 +706,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().quality(1, 1, 0, 0).asMap(), //
                     waived().security(0, 0, 1, 1).asMap(), //
                     openWithSampleData().asMap(), //
-                    1
-                ),
+                    1),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-01", //
                     null, null, null, null, //
@@ -729,10 +714,8 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().asMap(), //
                     openWithSampleData().asMap(), //
-                    0
-                )
-            ).subList(0, numTimePeriods)
-        ),
+                    0))
+                .subList(0, numTimePeriods)),
         new ApiMetricsReportingDTOV2("5", "5-publicId", "app-5", organization.getId(), organization.getName(),
             Arrays.asList( //
                 new ApiMetricsReportingAggregationDTOV2( //
@@ -742,8 +725,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().asMap(), //
                     open().asMap(), //
-                    0
-                ),
+                    0),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-11-01", //
                     null, null, null, null, //
@@ -751,8 +733,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().asMap(), //
                     open().asMap(), //
-                    0
-                ),
+                    0),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-01", //
                     null, null, null, null, //
@@ -760,10 +741,8 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().asMap(), //
                     open().asMap(), //
-                    0
-                )
-            ).subList(0, numTimePeriods)
-        ) // no aggregations for app 6
+                    0))
+                .subList(0, numTimePeriods)) // no aggregations for app 6
     );
 
     assertDTOs(results, expected, applicationIds);
@@ -799,7 +778,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("1", "1-publicId", "app-1", organization.getId(), organization.getName(),
             "2017-11-01", //
@@ -820,7 +799,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("1", "1-publicId", "app-1", organization.getId(), organization.getName(),
             "2017-12-01", //
@@ -841,9 +820,8 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
-        )
-    ).subList(0, numTimePeriods);
+            0, 3, 0, 2 // open other
+        )).subList(0, numTimePeriods);
 
     List<ApiMetricsReportingFlattenedDTOV2> app2Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
@@ -865,7 +843,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
             "2017-11-01", //
@@ -886,7 +864,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
             "2017-12-01", //
@@ -907,9 +885,8 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
-        )
-    ).subList(0, numTimePeriods);
+            0, 3, 0, 2 // open other
+        )).subList(0, numTimePeriods);
 
     List<ApiMetricsReportingFlattenedDTOV2> app3Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("3", "3-publicId", "app-3", organization.getId(), organization.getName(),
@@ -931,7 +908,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("3", "3-publicId", "app-3", organization.getId(), organization.getName(),
             "2017-11-01", //
@@ -952,7 +929,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("3", "3-publicId", "app-3", organization.getId(), organization.getName(),
             "2017-12-01", //
@@ -973,9 +950,8 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
-        )
-    ).subList(0, numTimePeriods);
+            0, 3, 0, 2 // open other
+        )).subList(0, numTimePeriods);
 
     List<ApiMetricsReportingFlattenedDTOV2> app4Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("4", "4-publicId", "app-4", organization.getId(), organization.getName(),
@@ -997,7 +973,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("4", "4-publicId", "app-4", organization.getId(), organization.getName(),
             "2017-11-01", //
@@ -1018,7 +994,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("4", "4-publicId", "app-4", organization.getId(), organization.getName(),
             "2017-12-01", //
@@ -1039,9 +1015,8 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
-        )
-    ).subList(0, numTimePeriods);
+            0, 3, 0, 2 // open other
+        )).subList(0, numTimePeriods);
 
     List<ApiMetricsReportingFlattenedDTOV2> app5Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("5", "5-publicId", "app-5", organization.getId(), organization.getName(),
@@ -1063,7 +1038,7 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // open security
             0, 0, 0, 0, // open license
             0, 0, 0, 0, // open quality
-            0, 0, 0, 0  // open other
+            0, 0, 0, 0 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("5", "5-publicId", "app-5", organization.getId(), organization.getName(),
             "2017-11-01", //
@@ -1084,7 +1059,7 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // open security
             0, 0, 0, 0, // open license
             0, 0, 0, 0, // open quality
-            0, 0, 0, 0  // open other
+            0, 0, 0, 0 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("5", "5-publicId", "app-5", organization.getId(), organization.getName(),
             "2017-12-01", //
@@ -1105,9 +1080,8 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // open security
             0, 0, 0, 0, // open license
             0, 0, 0, 0, // open quality
-            0, 0, 0, 0  // open other
-        )
-    ).subList(0, numTimePeriods);
+            0, 0, 0, 0 // open other
+        )).subList(0, numTimePeriods);
 
     // no aggregations for app 6
 
@@ -1157,9 +1131,7 @@ public class ApiMetricsReportingServiceV2Test
                     waived().security(0, 0, 1, 1).asMap(), //
                     openWithSampleData().asMap(), //
                     1 // evaluationCount
-                )
-            ).subList(0, numTimePeriods)
-        ),
+                )).subList(0, numTimePeriods)),
         new ApiMetricsReportingDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
             Arrays.asList( //
                 new ApiMetricsReportingAggregationDTOV2( //
@@ -1169,8 +1141,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().security(0, 0, 1, 0).asMap(), //
                     waived().asMap(), //
                     openWithSampleData().asMap(), //
-                    0
-                ),
+                    0),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-04", //
                     6000L, 7000L, 8000L, 9000L, //
@@ -1178,8 +1149,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().quality(1, 1, 1, 1).asMap(), //
                     openWithSampleData().asMap(), //
-                    2
-                ),
+                    2),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-11", //
                     6000L, 7000L, 8000L, 9000L, //
@@ -1187,10 +1157,8 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().security(1, 1, 0, 0).asMap(), //
                     waived().security(0, 0, 1, 1).asMap(), //
                     openWithSampleData().asMap(), //
-                    3
-                )
-            ).subList(0, numTimePeriods)
-        ),
+                    3))
+                .subList(0, numTimePeriods)),
         new ApiMetricsReportingDTOV2("3", "3-publicId", "app-3", organization.getId(), organization.getName(),
             Arrays.asList( //
                 new ApiMetricsReportingAggregationDTOV2( //
@@ -1200,8 +1168,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().asMap(), //
                     openWithSampleData().asMap(), //
-                    0
-                ),
+                    0),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-04", //
                     10000L, 11000L, 12000L, 13000L, //
@@ -1209,8 +1176,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().security(1, 1, 0, 0).asMap(), //
                     waived().security(0, 0, 1, 1).asMap(), //
                     openWithSampleData().asMap(), //
-                    3
-                ),
+                    3),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-11", //
                     null, null, null, null, //
@@ -1218,10 +1184,8 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().asMap(), //
                     openWithSampleData().asMap(), //
-                    0
-                )
-            ).subList(0, numTimePeriods)
-        ),
+                    0))
+                .subList(0, numTimePeriods)),
         new ApiMetricsReportingDTOV2("4", "4-publicId", "app-4", organization.getId(), organization.getName(),
             Arrays.asList( //
                 new ApiMetricsReportingAggregationDTOV2( //
@@ -1231,8 +1195,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().asMap(), //
                     openWithSampleData().asMap(), //
-                    0
-                ),
+                    0),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-04", //
                     14000L, 15000L, 16000L, 17000L, //
@@ -1240,8 +1203,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().quality(1, 1, 0, 0).asMap(), //
                     waived().security(0, 0, 1, 1).asMap(), //
                     openWithSampleData().asMap(), //
-                    1
-                ),
+                    1),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-11", //
                     null, null, null, null, //
@@ -1249,10 +1211,8 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().asMap(), //
                     openWithSampleData().asMap(), //
-                    0
-                )
-            ).subList(0, numTimePeriods)
-        ),
+                    0))
+                .subList(0, numTimePeriods)),
         new ApiMetricsReportingDTOV2("5", "5-publicId", "app-5", organization.getId(), organization.getName(),
             Arrays.asList( //
                 new ApiMetricsReportingAggregationDTOV2( //
@@ -1262,8 +1222,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().asMap(), //
                     open().asMap(), //
-                    0
-                ),
+                    0),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-04", //
                     null, null, null, null, //
@@ -1271,8 +1230,7 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().asMap(), //
                     open().asMap(), //
-                    0
-                ),
+                    0),
                 new ApiMetricsReportingAggregationDTOV2( //
                     "2017-12-11", //
                     null, null, null, null, //
@@ -1280,10 +1238,8 @@ public class ApiMetricsReportingServiceV2Test
                     fixed().asMap(), //
                     waived().asMap(), //
                     open().asMap(), //
-                    0
-                )
-            ).subList(0, numTimePeriods)
-        ) // no aggregations for app 6
+                    0))
+                .subList(0, numTimePeriods)) // no aggregations for app 6
     );
 
     assertDTOs(results, expected, applicationIds);
@@ -1319,7 +1275,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("1", "1-publicId", "app-1", organization.getId(), organization.getName(),
             "2017-12-04", //
@@ -1340,7 +1296,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("1", "1-publicId", "app-1", organization.getId(), organization.getName(),
             "2017-12-11", //
@@ -1361,9 +1317,8 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
-        )
-    ).subList(0, numTimePeriods);
+            0, 3, 0, 2 // open other
+        )).subList(0, numTimePeriods);
 
     List<ApiMetricsReportingFlattenedDTOV2> app2Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
@@ -1385,7 +1340,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
             "2017-12-04", //
@@ -1406,7 +1361,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("2", "2-publicId", "app-2", organization.getId(), organization.getName(),
             "2017-12-11", //
@@ -1427,9 +1382,8 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
-        )
-    ).subList(0, numTimePeriods);
+            0, 3, 0, 2 // open other
+        )).subList(0, numTimePeriods);
 
     List<ApiMetricsReportingFlattenedDTOV2> app3Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("3", "3-publicId", "app-3", organization.getId(), organization.getName(),
@@ -1451,7 +1405,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("3", "3-publicId", "app-3", organization.getId(), organization.getName(),
             "2017-12-04", //
@@ -1472,7 +1426,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("3", "3-publicId", "app-3", organization.getId(), organization.getName(),
             "2017-12-11", //
@@ -1493,9 +1447,8 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
-        )
-    ).subList(0, numTimePeriods);
+            0, 3, 0, 2 // open other
+        )).subList(0, numTimePeriods);
 
     List<ApiMetricsReportingFlattenedDTOV2> app4Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("4", "4-publicId", "app-4", organization.getId(), organization.getName(),
@@ -1517,7 +1470,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("4", "4-publicId", "app-4", organization.getId(), organization.getName(),
             "2017-12-04", //
@@ -1538,7 +1491,7 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
+            0, 3, 0, 2 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("4", "4-publicId", "app-4", organization.getId(), organization.getName(),
             "2017-12-11", //
@@ -1559,9 +1512,8 @@ public class ApiMetricsReportingServiceV2Test
             1, 0, 1, 1, // open security
             0, 3, 2, 1, // open license
             5, 0, 0, 0, // open quality
-            0, 3, 0, 2  // open other
-        )
-    ).subList(0, numTimePeriods);
+            0, 3, 0, 2 // open other
+        )).subList(0, numTimePeriods);
 
     List<ApiMetricsReportingFlattenedDTOV2> app5Expected = Arrays.asList(
         new ApiMetricsReportingFlattenedDTOV2("5", "5-publicId", "app-5", organization.getId(), organization.getName(),
@@ -1583,7 +1535,7 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // open security
             0, 0, 0, 0, // open license
             0, 0, 0, 0, // open quality
-            0, 0, 0, 0  // open other
+            0, 0, 0, 0 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("5", "5-publicId", "app-5", organization.getId(), organization.getName(),
             "2017-12-04", //
@@ -1604,7 +1556,7 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // open security
             0, 0, 0, 0, // open license
             0, 0, 0, 0, // open quality
-            0, 0, 0, 0  // open other
+            0, 0, 0, 0 // open other
         ),
         new ApiMetricsReportingFlattenedDTOV2("5", "5-publicId", "app-5", organization.getId(), organization.getName(),
             "2017-12-11", //
@@ -1625,9 +1577,8 @@ public class ApiMetricsReportingServiceV2Test
             0, 0, 0, 0, // open security
             0, 0, 0, 0, // open license
             0, 0, 0, 0, // open quality
-            0, 0, 0, 0  // open other
-        )
-    ).subList(0, numTimePeriods);
+            0, 0, 0, 0 // open other
+        )).subList(0, numTimePeriods);
 
     // no aggregations for app 6
 
@@ -1826,7 +1777,8 @@ public class ApiMetricsReportingServiceV2Test
       Set<String> applicationIds)
   {
     if (applicationIds != null) {
-      expected = expected.stream().filter(dto -> applicationIds.contains(dto.applicationId))
+      expected = expected.stream()
+          .filter(dto -> applicationIds.contains(dto.applicationId))
           .collect(Collectors.toList());
     }
 
@@ -1836,7 +1788,8 @@ public class ApiMetricsReportingServiceV2Test
       // results have no guaranteed application ordering
       ApiMetricsReportingDTOV2 matchingResult = actual.stream()
           .filter(r -> r.applicationId.equals(expectedDTO.applicationId))
-          .findFirst().orElse(null);
+          .findFirst()
+          .orElse(null);
 
       assertDTO(matchingResult, expectedDTO);
     }

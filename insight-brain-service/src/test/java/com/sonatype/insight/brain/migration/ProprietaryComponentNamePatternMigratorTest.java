@@ -81,7 +81,8 @@ public class ProprietaryComponentNamePatternMigratorTest
     String repoManagerId = null;
     try (Connection connection = dataSource.getConnection();
         PreparedStatement select = connection.prepareStatement(
-            "SELECT * FROM insight_brain_ods.repository_manager WHERE instance_id='testRepoManagerInstanceId'")) {
+            "SELECT * FROM insight_brain_ods.repository_manager WHERE instance_id='testRepoManagerInstanceId'"))
+    {
       int repoManagerCount = 0;
       try (ResultSet resultSet = select.executeQuery()) {
         while (resultSet.next()) {
@@ -99,7 +100,8 @@ public class ProprietaryComponentNamePatternMigratorTest
     try (Connection connection = dataSource.getConnection();
         PreparedStatement select =
             connection.prepareStatement(
-                "SELECT * FROM insight_brain_ods.repository WHERE public_id='testRepoPublicId'")) {
+                "SELECT * FROM insight_brain_ods.repository WHERE public_id='testRepoPublicId'"))
+    {
       int repoCount = 0;
       try (ResultSet resultSet = select.executeQuery()) {
         while (resultSet.next()) {
@@ -123,7 +125,8 @@ public class ProprietaryComponentNamePatternMigratorTest
     try (Connection connection = dataSource.getConnection();
         PreparedStatement select =
             connection.prepareStatement("SELECT * FROM insight_brain_ods.proprietary_component_name_pattern"
-                + " ORDER BY proprietary_component_name_pattern_id")) {
+                + " ORDER BY proprietary_component_name_pattern_id"))
+    {
       int migratedPatternCount = 0;
       try (ResultSet resultSet = select.executeQuery()) {
         while (resultSet.next()) {

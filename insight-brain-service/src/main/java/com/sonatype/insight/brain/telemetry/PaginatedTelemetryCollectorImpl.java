@@ -15,8 +15,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.quartz.JobExecutionContext;
 
 /**
- *  For paginated telemetry collectors we send a single telemetry object with a page worth of data as a list in the
- *  'data-list' attribute
+ * For paginated telemetry collectors we send a single telemetry object with a page worth of data as a list in the
+ * 'data-list' attribute
  */
 public abstract class PaginatedTelemetryCollectorImpl
     implements PaginatedTelemetryCollector

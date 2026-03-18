@@ -48,7 +48,7 @@ public class ComponentAnalysisServiceAuthzTest
   public void testAnalyzeComponentsWithPolling_Unauthenticated() {
     assertThatThrownBy(() -> componentAnalysisService.analyzeComponentsWithPolling(IntegrationType.CLI,
         app.getPublicId(), ClientScanType.SONATYPE, httpRequest, new Stage(Stage.ID_BUILD)))
-        .isInstanceOf(UnauthenticatedException.class);
+            .isInstanceOf(UnauthenticatedException.class);
   }
 
   @Test
@@ -56,7 +56,7 @@ public class ComponentAnalysisServiceAuthzTest
     login();
     assertThatThrownBy(() -> componentAnalysisService.analyzeComponentsWithPolling(IntegrationType.CLI,
         app.getPublicId(), ClientScanType.SONATYPE, httpRequest, new Stage(Stage.ID_BUILD)))
-        .isInstanceOf(UnauthorizedException.class);
+            .isInstanceOf(UnauthorizedException.class);
   }
 
   @Test
@@ -65,6 +65,6 @@ public class ComponentAnalysisServiceAuthzTest
 
     assertThatCode(() -> componentAnalysisService.analyzeComponentsWithPolling(IntegrationType.CLI,
         app.getPublicId(), ClientScanType.SONATYPE, httpRequest, new Stage(Stage.ID_BUILD)))
-        .doesNotThrowAnyException();
+            .doesNotThrowAnyException();
   }
 }

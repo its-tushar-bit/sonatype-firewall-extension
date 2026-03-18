@@ -36,8 +36,9 @@ public class TenantDeregistrationJob
   private final MultiTenantTaskScheduler taskScheduler;
 
   @Inject
-  public TenantDeregistrationJob(TenantManager tenantManager,
-                                 MultiTenantTaskScheduler taskScheduler)
+  public TenantDeregistrationJob(
+      TenantManager tenantManager,
+      MultiTenantTaskScheduler taskScheduler)
   {
     this.tenantManager = tenantManager;
     this.taskScheduler = taskScheduler;

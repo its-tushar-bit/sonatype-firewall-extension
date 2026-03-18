@@ -134,8 +134,9 @@ public class CpeMatchingConfigurationService
         dto.enabled = dto.enabledInParent;
         dto.inheritedFromOrganizationName = inheritedFrom != null ? inheritedFrom.getName() : null;
         dto.inheritedFromOrganizationAllowOverride = inheritedConfig != null ? inheritedConfig.isAllowOverride() : null;
-        dto.allowOverride = !isApplication && (ownerConfig.isAllowOverride() !=
-            null ? ownerConfig.isAllowOverride() : dto.inheritedFromOrganizationAllowOverride);
+        dto.allowOverride = !isApplication && (ownerConfig.isAllowOverride() != null
+            ? ownerConfig.isAllowOverride()
+            : dto.inheritedFromOrganizationAllowOverride);
         return dto;
       }
     }
@@ -168,7 +169,8 @@ public class CpeMatchingConfigurationService
     CpeMatchingConfigurationDTO existingConfig = getCpeMatchingConfigurationNoAuthz(ownerType, internalOwnerId);
 
     if (existingConfig.inheritedFromOrganizationAllowOverride != null &&
-        !existingConfig.inheritedFromOrganizationAllowOverride) {
+        !existingConfig.inheritedFromOrganizationAllowOverride)
+    {
       throw new UnauthorizedException(format("Updating cpe matching configuration for ownerId %s is " +
           "disabled by parent organization %s", internalOwnerId, existingConfig.inheritedFromOrganizationName));
     }
@@ -234,8 +236,8 @@ public class CpeMatchingConfigurationService
    * <p/>
    * 1. The product license includes the CPE_MATCHING feature, AND <br/>
    * 2. Either:
-   *    a. SBOM Manager product is licensed without Lifecycle product, OR
-   *    b. The application has CPE matching explicitly enabled in its configuration
+   * a. SBOM Manager product is licensed without Lifecycle product, OR
+   * b. The application has CPE matching explicitly enabled in its configuration
    *
    * @param appInternalId The unique identifier of the application to check
    * @return true if CPE data matching is enabled for the application, false otherwise
@@ -272,8 +274,9 @@ public class CpeMatchingConfigurationService
 
   private void deleteChildrenConfigInHierarchy(final TransactionContext tx, final String orgId) {
     final List<String> childApplicationIds = new ArrayList<>(getChildApplicationIdsForOrg(orgId, tx));
-    organizationDAO.getAllChildOrganizations(tx, orgId).stream()
-        .filter(org -> !orgId.equals(org.getId())) //remove itself from children
+    organizationDAO.getAllChildOrganizations(tx, orgId)
+        .stream()
+        .filter(org -> !orgId.equals(org.getId())) // remove itself from children
         .forEach(childOrg -> {
           childApplicationIds.addAll(getChildApplicationIdsForOrg(childOrg.getId(), tx));
           cpeMatchingConfigurationDAO.delete(tx, childOrg.getId());
@@ -304,7 +307,3 @@ public class CpeMatchingConfigurationService
     }
   }
 }
-
-
-
-

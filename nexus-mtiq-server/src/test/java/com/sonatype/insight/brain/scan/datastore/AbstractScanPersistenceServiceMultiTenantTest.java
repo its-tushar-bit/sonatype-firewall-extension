@@ -196,7 +196,7 @@ public abstract class AbstractScanPersistenceServiceMultiTenantTest
       helper.assertScanContents(permanentEntity, scanContent);
     });
 
-    //each tenant should only see their own moved scan
+    // each tenant should only see their own moved scan
     testAsTenant(tenant1, tenant -> {
       var entity = service.getScan(APPLICATION_ID, "moved-scan");
       helper.assertScanContents(entity, "temporary scan content 1");

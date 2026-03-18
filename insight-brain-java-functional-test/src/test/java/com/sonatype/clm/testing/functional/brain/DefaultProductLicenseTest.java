@@ -191,8 +191,7 @@ public class DefaultProductLicenseTest
     String licensingModelsString = String.join(",", Arrays.asList(
         ProductLicenseDetails.LICENSING_SBOM_BASED,
         ProductLicenseDetails.LICENSING_APP_BASED,
-        ProductLicenseDetails.LICENSING_USER_BASED
-    ));
+        ProductLicenseDetails.LICENSING_USER_BASED));
     productLicenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL, licensingModelsString);
     productLicenseManager.setApplicationLimit(100);
     productLicenseManager.setMaxUsers(8765);
@@ -205,8 +204,9 @@ public class DefaultProductLicenseTest
         .shouldHave(texts("Lifecycle — 8765", "Lifecycle Cloud — 8765", "Firewall — 4321"));
     ProductLicensePage.licensedApplications().shouldBe(visible).shouldHave(text("100"));
     ProductLicensePage.licensedSboms().shouldBe(visible).shouldHave(text("50"));
-    ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype Developer",
-        "Sonatype Lifecycle", "Sonatype Repository Firewall"));
+    ProductLicensePage.products()
+        .shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype Developer",
+            "Sonatype Lifecycle", "Sonatype Repository Firewall"));
 
     SidebarNavigation.openNavigationSidebar();
     SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle"));

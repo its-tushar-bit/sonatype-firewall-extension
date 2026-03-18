@@ -55,7 +55,8 @@ public class ApiPolicyViolationWaiverResourceTest
   public void testAddPolicyWaiver_Application() throws Exception {
     HttpResponse response = restRequest().path(PublicApiPaths.POLICY_VIOLATION_WAIVER_PATH)
         .parameter(policyViolation.getId(), OwnerType.APPLICATION.toString())
-        .body("waiver comment", MediaType.TEXT_PLAIN).post();
+        .body("waiver comment", MediaType.TEXT_PLAIN)
+        .post();
 
     assertResponseStatus(204, response);
     assertPolicyWaiver(app.getId(), "waiver comment");
@@ -65,7 +66,8 @@ public class ApiPolicyViolationWaiverResourceTest
   public void testAddPolicyWaiver_Organization() throws Exception {
     HttpResponse response = restRequest().path(PublicApiPaths.POLICY_VIOLATION_WAIVER_PATH)
         .parameter(policyViolation.getId(), OwnerType.ORGANIZATION.toString())
-        .body("waiver comment", MediaType.TEXT_PLAIN).post();
+        .body("waiver comment", MediaType.TEXT_PLAIN)
+        .post();
 
     assertResponseStatus(204, response);
     assertPolicyWaiver(org.getId(), "waiver comment");

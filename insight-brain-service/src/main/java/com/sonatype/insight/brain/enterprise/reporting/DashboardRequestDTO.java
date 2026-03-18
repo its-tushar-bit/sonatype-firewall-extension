@@ -10,7 +10,7 @@ public class DashboardRequestDTO
   public String dashboard;
 
   public DashboardRequestDTO() {
-    //for jackson;
+    // for jackson;
   }
 
   public DashboardRequestDTO(final String dashboard) {

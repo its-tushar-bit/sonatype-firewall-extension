@@ -44,8 +44,9 @@ public abstract class AbstractDataStoreTest
     try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection()) {
       resourceDatabasePopulator.populate(connection);
       try (Statement statement = connection.createStatement();
-           ResultSet results = statement.executeQuery(
-               "SELECT * FROM " + getTestDataStore().getID() + ".schema_version")) {
+          ResultSet results = statement.executeQuery(
+              "SELECT * FROM " + getTestDataStore().getID() + ".schema_version"))
+      {
         assertThat(results.next()).isTrue();
       }
     }
@@ -55,7 +56,7 @@ public abstract class AbstractDataStoreTest
     int desiredDbVersion = LegacyDataStoreMigrator.determineDesiredVersion(getTestDataStore().getID());
     assertThat(DatabaseUtil.getLegacyDatabaseSchemaVersion(getTestDataStore())).isEqualTo(desiredDbVersion);
 
-    //TODO - liquibase assertions
+    // TODO - liquibase assertions
   }
 
   public void testInit_Migrate() {
@@ -67,6 +68,6 @@ public abstract class AbstractDataStoreTest
 
     int desiredDbVersion = LegacyDataStoreMigrator.determineDesiredVersion(getTestDataStore().getID());
     assertThat(DatabaseUtil.getLegacyDatabaseSchemaVersion(getTestDataStore())).isEqualTo(desiredDbVersion);
-    //TODO - liquibase assertions
+    // TODO - liquibase assertions
   }
 }

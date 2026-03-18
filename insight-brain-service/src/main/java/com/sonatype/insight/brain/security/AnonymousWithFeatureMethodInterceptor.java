@@ -35,8 +35,8 @@ class AnonymousWithFeatureMethodInterceptor
     return methodInvocation.proceed();
   }
 
-  private void assertAnonymousWithFeature(final AnonymousWithFeature anonymousWithFeature)
-      throws AuthorizationException
+  private void assertAnonymousWithFeature(
+      final AnonymousWithFeature anonymousWithFeature) throws AuthorizationException
   {
     Object principal = SecurityUtils.getSubject().getPrincipal();
     if (principal != null) {

@@ -65,8 +65,9 @@ public class WebhookClientUtilTest
     context.addServlet(new ServletHolder(new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
+      protected void service(
+          HttpServletRequest request,
+          HttpServletResponse response) throws IOException, ServletException
       {
         if (handler != null) {
           handler.service(request, response);
@@ -126,9 +127,7 @@ public class WebhookClientUtilTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         bodies.add(body);
         signature[0] = request.getHeader(WebhookClientUtil.WEBHOOK_SIGNATURE_HEADER);
@@ -147,9 +146,7 @@ public class WebhookClientUtilTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         bodies.add(body);
         signature[0] = request.getHeader(WebhookClientUtil.WEBHOOK_SIGNATURE_HEADER);
@@ -174,17 +171,19 @@ public class WebhookClientUtilTest
     };
 
     doWebhookClientUtilPost();
-    assertThat(logOutput).atErrorLevel().contains("Unable to perform HTTP request for Webhook " + WEBHOOK_ID
-        + " with delivery ID " + deliveryIds.get(0) + " due to Status Code: 400 Message: Bad Request");
+    assertThat(logOutput).atErrorLevel()
+        .contains("Unable to perform HTTP request for Webhook " + WEBHOOK_ID
+            + " with delivery ID " + deliveryIds.get(0) + " due to Status Code: 400 Message: Bad Request");
   }
 
   private Map<String, String> getRequestHeaders() {
     final Map<String, String> headers = new HashMap<>();
-    handler = new HttpServlet() {
+    handler = new HttpServlet()
+    {
       @Override
       protected void service(HttpServletRequest request, HttpServletResponse response) {
         headers.clear();
-        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
+        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
           String headerName = en.nextElement();
           headers.put(headerName, request.getHeader(headerName));
         }

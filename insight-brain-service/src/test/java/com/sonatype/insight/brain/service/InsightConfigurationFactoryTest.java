@@ -85,15 +85,13 @@ public class InsightConfigurationFactoryTest
   }
 
   @Test
-  public void testBuild_ConfigWithLogbackAccessRequestAppendersWithoutLogFormats_UsesOurRequestLogFormat()
-      throws Exception
-  {
+  public void testBuild_ConfigWithLogbackAccessRequestAppendersWithoutLogFormats_UsesOurRequestLogFormat() throws Exception {
     InsightConfig insightConfig = build("config-without-logback-access-request-log-formats.yml");
 
     assertAppenderFactories(((LogbackAccessRequestLogFactory) ((DefaultServerFactory) insightConfig.getServerFactory())
         .getRequestLogFactory()).getAppenders(), Arrays.asList(InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT,
-        InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT,
-        InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT));
+            InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT,
+            InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT));
   }
 
   @Test
@@ -101,20 +99,18 @@ public class InsightConfigurationFactoryTest
     InsightConfig insightConfig = build("config-with-logback-access-request-log-formats.yml");
 
     assertAppenderFactories(((LogbackAccessRequestLogFactory) ((DefaultServerFactory) insightConfig.getServerFactory())
-            .getRequestLogFactory()).getAppenders(),
+        .getRequestLogFactory()).getAppenders(),
         Arrays.asList("consoleRequestLogFormat", "fileRequestLogFormat", "syslogRequestLogFormat"));
   }
 
   @Test
-  public void testBuild_ConfigWithLogbackClassicRequestAppendersWithoutLogFormats_UsesDropwizardRequestLogFormats()
-      throws Exception
-  {
+  public void testBuild_ConfigWithLogbackClassicRequestAppendersWithoutLogFormats_UsesDropwizardRequestLogFormats() throws Exception {
     InsightConfig insightConfig = build("config-without-logback-classic-request-log-formats.yml");
 
     assertAppenderFactories(((LogbackClassicRequestLogFactory) ((DefaultServerFactory) insightConfig.getServerFactory())
         .getRequestLogFactory()).getAppenders(), Arrays
-        .asList(new ConsoleAppenderFactory<>().getLogFormat(), new FileAppenderFactory<>().getLogFormat(),
-            new SyslogAppenderFactory().getLogFormat()));
+            .asList(new ConsoleAppenderFactory<>().getLogFormat(), new FileAppenderFactory<>().getLogFormat(),
+                new SyslogAppenderFactory().getLogFormat()));
   }
 
   @Test
@@ -122,7 +118,7 @@ public class InsightConfigurationFactoryTest
     InsightConfig insightConfig = build("config-with-logback-classic-request-log-formats.yml");
 
     assertAppenderFactories(((LogbackClassicRequestLogFactory) ((DefaultServerFactory) insightConfig.getServerFactory())
-            .getRequestLogFactory()).getAppenders(),
+        .getRequestLogFactory()).getAppenders(),
         Arrays.asList("consoleRequestLogFormat", "fileRequestLogFormat", "syslogRequestLogFormat"));
   }
 
@@ -364,7 +360,8 @@ public class InsightConfigurationFactoryTest
     assertThat(loggerConfiguration.getAppenders()).hasSize(1);
     assertThat(loggerConfiguration.getAppenders().get(0)).isInstanceOf(FileAppenderFactory.class);
     FileAppenderFactory<ILoggingEvent> fileAppenderFactory = (FileAppenderFactory<ILoggingEvent>) loggerConfiguration
-        .getAppenders().get(0);
+        .getAppenders()
+        .get(0);
     assertThat(fileAppenderFactory.getCurrentLogFilename()).isEqualTo("./log/policy-violation.log");
     assertThat(fileAppenderFactory.getArchivedLogFilenamePattern()).isEqualTo("./log/policy-violation-%d.log.gz");
     assertThat(fileAppenderFactory.getArchivedFileCount()).isEqualTo(5);
@@ -427,8 +424,9 @@ public class InsightConfigurationFactoryTest
   @Test
   public void testBuild_ConfigWithOtherUnknown_DoesNotSuggestUpdateConfig() {
     assertThatExceptionOfType(ConfigurationParsingException.class)
-        .isThrownBy(() -> build("config-with-other-unknown.yml")).satisfies(e -> assertThat(e.getMessage())
-        .isNotEqualTo(InsightConfigurationFactory.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE));
+        .isThrownBy(() -> build("config-with-other-unknown.yml"))
+        .satisfies(e -> assertThat(e.getMessage())
+            .isNotEqualTo(InsightConfigurationFactory.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE));
   }
 
   @Test
@@ -450,10 +448,11 @@ public class InsightConfigurationFactoryTest
         .create(InsightConfig.class, bootstrap.getValidatorFactory().getValidator(), bootstrap.getObjectMapper(), "dw");
     InsightConfig insightConfig =
         configurationFactory.build(bootstrap.getConfigurationSourceProvider(), configFile.getPath());
-    insightConfig.getServerFactory().build(
-        new Environment(bootstrap.getApplication().getName(), bootstrap.getObjectMapper(),
-            bootstrap.getValidatorFactory(), bootstrap.getMetricRegistry(), bootstrap.getClassLoader(),
-            bootstrap.getHealthCheckRegistry(), insightConfig));
+    insightConfig.getServerFactory()
+        .build(
+            new Environment(bootstrap.getApplication().getName(), bootstrap.getObjectMapper(),
+                bootstrap.getValidatorFactory(), bootstrap.getMetricRegistry(), bootstrap.getClassLoader(),
+                bootstrap.getHealthCheckRegistry(), insightConfig));
     insightConfig.getLoggingFactory().configure(bootstrap.getMetricRegistry(), bootstrap.getApplication().getName());
     return insightConfig;
   }

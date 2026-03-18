@@ -187,8 +187,8 @@ public class OrganizationDAO
   }
 
   public List<Organization> getByRelatedRepositoryManagerId(
-      TransactionContext tx, String relatedRepositoryManagerId
-  )
+      TransactionContext tx,
+      String relatedRepositoryManagerId)
   {
     String sQuery = "SELECT entity FROM Organization entity" + //
         " WHERE entity.relatedRepositoryManagerId=?1" + //
@@ -338,7 +338,7 @@ public class OrganizationDAO
       repositoryConnectionDAO.delete(tx, repositoryConnection);
     }
 
-    //Cascade to source control on-boarding events
+    // Cascade to source control on-boarding events
     for (SourceControlOrganizationImportEvent importEvent : scmEventDAO.getByOrganizationId(tx, organization.getId())) {
       scmEventDAO.delete(tx, importEvent);
     }
@@ -384,7 +384,8 @@ public class OrganizationDAO
   protected SearchIndexChange newSearchIndexChange(Organization entity) {
     if (entity.getRelatedRepositorContainerId() != null
         || entity.getRelatedRepositoryManagerId() != null
-        || entity.getRelatedRepositoryId() != null) {
+        || entity.getRelatedRepositoryId() != null)
+    {
       return null;
     }
     return new SearchIndexChange(ChangeType.ORGANIZATION, entity.getId());
@@ -393,7 +394,7 @@ public class OrganizationDAO
   /**
    * @param ownerType if known, specify the OwnerType here for improved performance.
    * @return all organization ancestors of the specified owner, in order from the bottom up. If the specified owner
-   * is itself an organization, it is included in the returned collection.
+   *         is itself an organization, it is included in the returned collection.
    */
   public List<Organization> getAllParentOrganizations(TransactionContext tx, String ownerId, OwnerType ownerType) {
     String sQuery = "SELECT org FROM Organization org, OwnerAncestor oa " +
@@ -412,10 +413,10 @@ public class OrganizationDAO
 
   /**
    * @param ownerType if known, specify the OwnerType here for improved performance, this assumes all IDs in your
-   *                  list are of the same owner type
+   *          list are of the same owner type
    *
    * @return all organization ancestors of the specified owners. If the specified owner
-   * is itself an organization, it is included in the returned collection.
+   *         is itself an organization, it is included in the returned collection.
    */
   public List<Organization> getAllParentOrganizations(List<String> ownerIds, OwnerType ownerType) {
     String sQuery = "SELECT org FROM Organization org, OwnerAncestor oa " +
@@ -439,9 +440,11 @@ public class OrganizationDAO
 
   /**
    * @return all organization descendants of the specified owner, in order from the top down. If the specified owner
-   * is itself an organization, it is included in the returned collection. The relative order of returned organizations
-   * that are at the same level in the tree is unspecified, but all organizations at a given level will be returned
-   * before organizations from a lower level.
+   *         is itself an organization, it is included in the returned collection. The relative order of returned
+   *         organizations
+   *         that are at the same level in the tree is unspecified, but all organizations at a given level will be
+   *         returned
+   *         before organizations from a lower level.
    */
   public List<Organization> getAllChildOrganizations(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT org FROM Organization org, OrganizationAncestor oa " +
@@ -472,7 +475,7 @@ public class OrganizationDAO
 
   /**
    * @param org an Organization that has had its parent id updated and which needs its (and its
-   * children's) OrganizationAncestors updated to match
+   *          children's) OrganizationAncestors updated to match
    */
   private void updateOrganizationAncestors(TransactionContext tx, Organization organization) {
     for (Organization org : getAllChildOrganizations(tx, organization.getId())) {

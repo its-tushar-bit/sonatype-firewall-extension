@@ -169,7 +169,7 @@ public class LdapResource
 
   /**
    * Returns 20 random ldap users. Meant to visually inspect user mapping configuration in UI.
-   * 
+   *
    * @since 1.7
    */
   @PUT

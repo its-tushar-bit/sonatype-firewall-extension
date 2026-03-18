@@ -98,7 +98,7 @@ public class SuccessMetricsReportServiceTest
     SuccessMetricsReport actual = successMetricsReportDAO.getById(actualDto.id);
     assertSuccessMetrics(actual, USERNAME, "Metrics1", "metrics1", scopeDTO);
 
-    //cleanup
+    // cleanup
     successMetricsReportDAO.delete(actual);
   }
 
@@ -239,11 +239,12 @@ public class SuccessMetricsReportServiceTest
         .withMessage("Cannot find a success metrics report with id not_found for user id " + USERNAME + ".");
   }
 
-  private void assertSuccessMetrics(SuccessMetricsReport actual,
-                                    String username,
-                                    String name,
-                                    String nameLowercaseNoWhitespace,
-                                    SuccessMetricsReportScopeDTO scopeDTO)
+  private void assertSuccessMetrics(
+      SuccessMetricsReport actual,
+      String username,
+      String name,
+      String nameLowercaseNoWhitespace,
+      SuccessMetricsReportScopeDTO scopeDTO)
   {
     assertThat(actual.getId()).isNotNull();
     assertThat(actual.getUsername()).isEqualTo(username);
@@ -252,9 +253,10 @@ public class SuccessMetricsReportServiceTest
     assertThat(actual.getScopeJson()).isEqualTo(JsonUtils.format(scopeDTO));
   }
 
-  private void assertSuccessMetricsReportDTO(SuccessMetricsReportDTO actual,
-                                             String name,
-                                             SuccessMetricsReportScopeDTO scopeDTO)
+  private void assertSuccessMetricsReportDTO(
+      SuccessMetricsReportDTO actual,
+      String name,
+      SuccessMetricsReportScopeDTO scopeDTO)
   {
     assertThat(actual.id).isNotNull();
     assertThat(actual.name).isEqualTo(name);

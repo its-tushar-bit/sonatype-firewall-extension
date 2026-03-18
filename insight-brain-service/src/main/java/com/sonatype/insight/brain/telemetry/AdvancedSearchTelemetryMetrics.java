@@ -52,8 +52,11 @@ public class AdvancedSearchTelemetryMetrics
    */
   AggregatedSearchStats computeStatsAndReset() {
     synchronized (tenantUtil.getTenantSlugForSynchronization()) {
-      List<SearchCount> searchCounts = searchesByFieldNameMap.get().entrySet().stream()
-          .map(p -> new SearchCount(p.getKey(), p.getValue())).collect(Collectors.toList());
+      List<SearchCount> searchCounts = searchesByFieldNameMap.get()
+          .entrySet()
+          .stream()
+          .map(p -> new SearchCount(p.getKey(), p.getValue()))
+          .collect(Collectors.toList());
 
       AggregatedSearchStats stats = new AggregatedSearchStats(totalSearches.get(), searchCounts);
 

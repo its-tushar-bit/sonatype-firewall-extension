@@ -23,7 +23,10 @@ public class ApiAgeDTO
 
   public enum AgeUnit
   {
-    DAY, WEEK, MONTH, YEAR;
+    DAY,
+    WEEK,
+    MONTH,
+    YEAR;
 
     @Override
     public String toString() {

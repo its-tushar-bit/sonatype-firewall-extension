@@ -48,11 +48,11 @@ public class ScmOperationMetricsTest
 
       assertTimerCount("scm.pr.comment.duration",
           "kind", "scm_operation", "operation", "create", "provider", "GITHUB", "tenant_id", "acme-corp")
-          .isEqualTo(1);
+              .isEqualTo(1);
 
       assertCounter("scm.pr.comment.completed",
           "kind", "scm_operation", "operation", "create", "provider", "GITHUB", "tenant_id", "acme-corp")
-          .isEqualTo(1);
+              .isEqualTo(1);
     });
   }
 
@@ -64,7 +64,7 @@ public class ScmOperationMetricsTest
 
       assertCounter("scm.pr.comment.failed",
           "kind", "scm_operation", "operation", "update", "provider", "GITLAB", "tenant_id", "acme-corp")
-          .isEqualTo(1);
+              .isEqualTo(1);
     });
   }
 
@@ -76,11 +76,11 @@ public class ScmOperationMetricsTest
 
       assertTimerCount("scm.pr.create.duration",
           "kind", "scm_operation", "provider", "BITBUCKET", "tenant_id", "widgets-inc")
-          .isEqualTo(1);
+              .isEqualTo(1);
 
       assertCounter("scm.pr.create.completed",
           "kind", "scm_operation", "provider", "BITBUCKET", "tenant_id", "widgets-inc")
-          .isEqualTo(1);
+              .isEqualTo(1);
     });
   }
 
@@ -92,7 +92,7 @@ public class ScmOperationMetricsTest
 
       assertCounter("scm.pr.create.failed",
           "kind", "scm_operation", "provider", "GITHUB", "tenant_id", "acme-corp")
-          .isEqualTo(1);
+              .isEqualTo(1);
     });
   }
 
@@ -110,15 +110,15 @@ public class ScmOperationMetricsTest
 
     assertCounter("scm.pr.create.ineligible",
         "kind", "scm_operation", "reason", "not_eligible", "tenant_id", "tenant-a")
-        .isEqualTo(2);
+            .isEqualTo(2);
 
     assertCounter("scm.pr.create.ineligible",
         "kind", "scm_operation", "reason", "no_remediation", "tenant_id", "tenant-a")
-        .isEqualTo(1);
+            .isEqualTo(1);
 
     assertCounter("scm.pr.create.ineligible",
         "kind", "scm_operation", "reason", "already_remediated", "tenant_id", "tenant-b")
-        .isEqualTo(1);
+            .isEqualTo(1);
   }
 
   @Test

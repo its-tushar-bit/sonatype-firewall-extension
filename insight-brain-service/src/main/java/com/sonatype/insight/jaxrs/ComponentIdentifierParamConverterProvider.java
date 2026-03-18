@@ -48,11 +48,15 @@ public class ComponentIdentifierParamConverterProvider
         }
         catch (IOException e) {
           throw new WebApplicationException(e, Response.status(Response.Status.BAD_REQUEST)
-              .type(ErrorResponse.CONTENT_TYPE).entity("Invalid component identifier").build());
+              .type(ErrorResponse.CONTENT_TYPE)
+              .entity("Invalid component identifier")
+              .build());
         }
         catch (InvalidComponentIdentifierException e) {
           throw new WebApplicationException(e, Response.status(Response.Status.BAD_REQUEST)
-              .type(ErrorResponse.CONTENT_TYPE).entity(e.getMessage()).build());
+              .type(ErrorResponse.CONTENT_TYPE)
+              .entity(e.getMessage())
+              .build());
         }
       }
 

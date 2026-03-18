@@ -94,7 +94,8 @@ public class ApiSamlConfigurationServiceTest
   @Test
   public void testGetSamlConfiguration_NotConfigured() {
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> apiSamlConfigurationService.getSamlConfiguration()).withMessage("SAML not configured.");
+        .isThrownBy(() -> apiSamlConfigurationService.getSamlConfiguration())
+        .withMessage("SAML not configured.");
   }
 
   @Test
@@ -118,7 +119,7 @@ public class ApiSamlConfigurationServiceTest
   public void testInsertOrUpdateSamlConfiguration_InsertNoEntityIdProvided() throws Exception {
     try {
       ApiSamlConfigurationDTO dto = dtoWithCustomValues();
-      dto.entityId = null;  // Override with null to test default value is set
+      dto.entityId = null; // Override with null to test default value is set
 
       apiSamlConfigurationService.insertOrUpdateSamlConfiguration(validIdentityProviderXml(), dto);
 
@@ -416,7 +417,8 @@ public class ApiSamlConfigurationServiceTest
   @Test
   public void testDeleteSamlConfiguration_NotConfigured() {
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> apiSamlConfigurationService.deleteSamlConfiguration()).withMessage("SAML not configured.");
+        .isThrownBy(() -> apiSamlConfigurationService.deleteSamlConfiguration())
+        .withMessage("SAML not configured.");
   }
 
   @Test
@@ -467,7 +469,8 @@ public class ApiSamlConfigurationServiceTest
     assertThat(spssoDescriptorType.getKeyDescriptor()).extracting(KeyDescriptorType::getUse)
         .containsExactlyInAnyOrder(KeyTypes.SIGNING, KeyTypes.ENCRYPTION);
     assertThat(spssoDescriptorType.getKeyDescriptor())
-        .extracting(key -> key.getKeyInfo().getElementsByTagNameNS("*", "X509Certificate")).allSatisfy(nodes -> {
+        .extracting(key -> key.getKeyInfo().getElementsByTagNameNS("*", "X509Certificate"))
+        .allSatisfy(nodes -> {
           assertThat(nodes.getLength()).isEqualTo(1);
           assertThat(nodes.item(0).getTextContent()).isEqualTo(expectedCertificatePem);
         });
@@ -486,7 +489,8 @@ public class ApiSamlConfigurationServiceTest
   @Test
   public void testDelete_InvalidConfiguration() throws Exception {
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-         Statement statement = connection.createStatement()) {
+        Statement statement = connection.createStatement())
+    {
       statement.execute("INSERT INTO " + operationalDataStore.getDatabaseSchema() + ".saml_configuration " +
           "VALUES ('474878d8bfe44d2086ca8387e340692f', '{}', '', '');");
     }

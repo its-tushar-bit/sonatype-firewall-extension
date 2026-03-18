@@ -14,7 +14,7 @@ import jakarta.persistence.Query;
 /**
  * Holds the transaction context for data access. It can be used to begin and commit transactions. Instances of this
  * class need to be closed.
- * 
+ *
  * @since 2.1.2
  */
 public class TransactionContext

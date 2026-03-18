@@ -50,9 +50,10 @@ public class NonBreakingRecommendationTelemetryMetrics
     this.telemetryUtils = telemetryUtils;
   }
 
-  public void collect(final ApiSuggestedVersionChangeOptionDTO suggestedVersionChange,
-                      final Owner owner,
-                      final SourceEndpoint source)
+  public void collect(
+      final ApiSuggestedVersionChangeOptionDTO suggestedVersionChange,
+      final Owner owner,
+      final SourceEndpoint source)
   {
     synchronized (tenantUtil.getTenantSlugForSynchronization()) {
       if (suggestedVersionChange == null) {
@@ -64,18 +65,20 @@ public class NonBreakingRecommendationTelemetryMetrics
       String recommendedVersion = null;
       if (suggestedVersionChange.getData() != null &&
           suggestedVersionChange.getData().getComponent() != null &&
-          suggestedVersionChange.getData().getComponent().componentIdentifier != null) {
+          suggestedVersionChange.getData().getComponent().componentIdentifier != null)
+      {
         recommendedVersion = PackageUrlIdentifier.fromComponentIdentifier(
-            suggestedVersionChange.getData().getComponent().componentIdentifier.toComponentIdentifier()
-        ).getVersion();
+            suggestedVersionChange.getData().getComponent().componentIdentifier.toComponentIdentifier()).getVersion();
         recommendedVersionComponentPackageUrl = suggestedVersionChange.getData().getComponent().packageUrl;
       }
-      stats.get().computeIfAbsent(new NonBreakingRecommendationTelemetryStats(
-          type,
-          recommendedVersion,
-          recommendedVersionComponentPackageUrl,
-          source,
-          owner), key -> new LongAdder()).increment();
+      stats.get()
+          .computeIfAbsent(new NonBreakingRecommendationTelemetryStats(
+              type,
+              recommendedVersion,
+              recommendedVersionComponentPackageUrl,
+              source,
+              owner), key -> new LongAdder())
+          .increment();
     }
   }
 
@@ -83,39 +86,38 @@ public class NonBreakingRecommendationTelemetryMetrics
     synchronized (tenantUtil.getTenantSlugForSynchronization()) {
       List<TelemetryData> telemetryList = new ArrayList<>();
       stats.get().forEach((stat, counter) -> {
-            TelemetryData telemetryData = new TelemetryData(
-                TelemetryPurpose.NON_BREAKING_VERSION_CHANGE_RECOMMENDATION);
-            Map<String, Object> attributes = new HashMap<>();
-            if (stat.recommendedNonBreakingVersionChangeOptionType() != null) {
-              attributes.put("recommended_non_breaking_version_change_option_type",
-                  stat.recommendedNonBreakingVersionChangeOptionType().getNameForTelemetry());
-              attributes.put("recommended_non_breaking_version",
-                  stat.recommendedNonBreakingVersion());
-              attributes.put("recommended_non_breaking_version_package_url",
-                  stat.recommendedNonBreakingVersionPackageUrl());
-            }
+        TelemetryData telemetryData = new TelemetryData(
+            TelemetryPurpose.NON_BREAKING_VERSION_CHANGE_RECOMMENDATION);
+        Map<String, Object> attributes = new HashMap<>();
+        if (stat.recommendedNonBreakingVersionChangeOptionType() != null) {
+          attributes.put("recommended_non_breaking_version_change_option_type",
+              stat.recommendedNonBreakingVersionChangeOptionType().getNameForTelemetry());
+          attributes.put("recommended_non_breaking_version",
+              stat.recommendedNonBreakingVersion());
+          attributes.put("recommended_non_breaking_version_package_url",
+              stat.recommendedNonBreakingVersionPackageUrl());
+        }
 
-            if (stat.sourceEndpoint().name() != null) {
-              attributes.put("recommended_non_breaking_version_source_endpoint",
-                  stat.sourceEndpoint().name());
-            }
+        if (stat.sourceEndpoint().name() != null) {
+          attributes.put("recommended_non_breaking_version_source_endpoint",
+              stat.sourceEndpoint().name());
+        }
 
-            Owner owner = stat.owner();
+        Owner owner = stat.owner();
 
-            if (OwnerType.APPLICATION == owner.getType()) {
-              attributes.put("application_id", HdsClientAnalytics.obfuscate(owner.getId()));
-              telemetryUtils.includeRealApplicationId(attributes, owner.getId());
-            }
-            else {
-              logger.error("Owner type expected to be application but is not, owner type: {}, owner id: {}",
-                  owner.getType(), owner.getId());
-            }
-            attributes.put("recommended_non_breaking_version_count_of_the_same_suggestion",
-                counter.sumThenReset());
-            telemetryData.setAttributes(attributes);
-            telemetryList.add(telemetryData);
-          }
-      );
+        if (OwnerType.APPLICATION == owner.getType()) {
+          attributes.put("application_id", HdsClientAnalytics.obfuscate(owner.getId()));
+          telemetryUtils.includeRealApplicationId(attributes, owner.getId());
+        }
+        else {
+          logger.error("Owner type expected to be application but is not, owner type: {}, owner id: {}",
+              owner.getType(), owner.getId());
+        }
+        attributes.put("recommended_non_breaking_version_count_of_the_same_suggestion",
+            counter.sumThenReset());
+        telemetryData.setAttributes(attributes);
+        telemetryList.add(telemetryData);
+      });
       stats.get().clear();
       return telemetryList;
     }

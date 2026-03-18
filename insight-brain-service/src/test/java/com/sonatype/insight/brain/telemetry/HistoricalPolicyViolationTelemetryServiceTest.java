@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.telemetry;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.ArrayList;
@@ -86,7 +87,7 @@ public class HistoricalPolicyViolationTelemetryServiceTest
     tempEntity.newPolicyViolation(eval, policy, component, "hash", "reason");
 
     // and given: historical telemetry setup for batches of 2, a violation to push telemetry for and an invalid
-    //            starting status
+    // starting status
     final var cutoffDate = new Date();
     final var batchSize = 2;
     final var minFreeMemoryMb = 0;

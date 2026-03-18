@@ -88,12 +88,11 @@ public class SidebarServiceTest
     assertThat(ownerDetailsDTO.roles.membersByRole)
         .extracting(m -> m.roleId)
         .containsExactlyInAnyOrder(
-            Role.APPLICATION_EVALUATOR_ROLE_ID, 
-            Role.COMPONENT_EVALUATOR_ROLE_ID, 
-            Role.DEVELOPER_ROLE_ID, 
-            Role.LEGAL_REVIEWER_ROLE_ID, 
-            Role.OWNER_ROLE_ID
-        );
+            Role.APPLICATION_EVALUATOR_ROLE_ID,
+            Role.COMPONENT_EVALUATOR_ROLE_ID,
+            Role.DEVELOPER_ROLE_ID,
+            Role.LEGAL_REVIEWER_ROLE_ID,
+            Role.OWNER_ROLE_ID);
   }
 
   @Test
@@ -119,12 +118,11 @@ public class SidebarServiceTest
     assertThat(ownerDetailsDTO.roles.membersByRole)
         .extracting(m -> m.roleId)
         .containsExactlyInAnyOrder(
-            Role.APPLICATION_EVALUATOR_ROLE_ID, 
-            Role.COMPONENT_EVALUATOR_ROLE_ID, 
-            Role.DEVELOPER_ROLE_ID, 
-            Role.LEGAL_REVIEWER_ROLE_ID, 
-            Role.OWNER_ROLE_ID
-        );
+            Role.APPLICATION_EVALUATOR_ROLE_ID,
+            Role.COMPONENT_EVALUATOR_ROLE_ID,
+            Role.DEVELOPER_ROLE_ID,
+            Role.LEGAL_REVIEWER_ROLE_ID,
+            Role.OWNER_ROLE_ID);
   }
 
   @Test
@@ -145,12 +143,11 @@ public class SidebarServiceTest
     assertThat(ownerDetailsDTO.roles.membersByRole)
         .extracting(m -> m.roleId)
         .containsExactlyInAnyOrder(
-            Role.APPLICATION_EVALUATOR_ROLE_ID, 
-            Role.COMPONENT_EVALUATOR_ROLE_ID, 
-            Role.DEVELOPER_ROLE_ID, 
-            Role.LEGAL_REVIEWER_ROLE_ID, 
-            Role.OWNER_ROLE_ID
-        );
+            Role.APPLICATION_EVALUATOR_ROLE_ID,
+            Role.COMPONENT_EVALUATOR_ROLE_ID,
+            Role.DEVELOPER_ROLE_ID,
+            Role.LEGAL_REVIEWER_ROLE_ID,
+            Role.OWNER_ROLE_ID);
   }
 
   @Test
@@ -172,12 +169,11 @@ public class SidebarServiceTest
     assertThat(ownerDetailsDTO.roles.membersByRole)
         .extracting(m -> m.roleId)
         .containsExactlyInAnyOrder(
-            Role.APPLICATION_EVALUATOR_ROLE_ID, 
-            Role.COMPONENT_EVALUATOR_ROLE_ID, 
-            Role.DEVELOPER_ROLE_ID, 
-            Role.LEGAL_REVIEWER_ROLE_ID, 
-            Role.OWNER_ROLE_ID
-        );
+            Role.APPLICATION_EVALUATOR_ROLE_ID,
+            Role.COMPONENT_EVALUATOR_ROLE_ID,
+            Role.DEVELOPER_ROLE_ID,
+            Role.LEGAL_REVIEWER_ROLE_ID,
+            Role.OWNER_ROLE_ID);
   }
 
   @Test
@@ -199,12 +195,11 @@ public class SidebarServiceTest
     assertThat(ownerDetailsDTO.roles.membersByRole)
         .extracting(m -> m.roleId)
         .containsExactlyInAnyOrder(
-            Role.APPLICATION_EVALUATOR_ROLE_ID, 
-            Role.COMPONENT_EVALUATOR_ROLE_ID, 
-            Role.DEVELOPER_ROLE_ID, 
-            Role.LEGAL_REVIEWER_ROLE_ID, 
-            Role.OWNER_ROLE_ID
-        );
+            Role.APPLICATION_EVALUATOR_ROLE_ID,
+            Role.COMPONENT_EVALUATOR_ROLE_ID,
+            Role.DEVELOPER_ROLE_ID,
+            Role.LEGAL_REVIEWER_ROLE_ID,
+            Role.OWNER_ROLE_ID);
   }
 
   @Test
@@ -233,8 +228,7 @@ public class SidebarServiceTest
     OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();
     assertThat(ownerHierarchyDTO.ownersMap).hasSize(12);
     OwnerHierarchyOrganizationDTO rootOrg = (OwnerHierarchyOrganizationDTO) ownerHierarchyDTO.ownersMap.get(
-        ownerHierarchyDTO.topParentOrganizationId
-    );
+        ownerHierarchyDTO.topParentOrganizationId);
 
     // Root org
     assertThat(rootOrg.id).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
@@ -248,8 +242,7 @@ public class SidebarServiceTest
 
     // first level organization
     OwnerHierarchyOrganizationDTO firstLevelOrg = (OwnerHierarchyOrganizationDTO) ownerHierarchyDTO.ownersMap.get(
-        rootOrg.organizationIds.get(0)
-    );
+        rootOrg.organizationIds.get(0));
     assertThat(firstLevelOrg.parentOrganizationId).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
     assertThat(firstLevelOrg.name).isEqualTo(orgOne.getName());
     assertThat(firstLevelOrg.getParentId()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
@@ -262,8 +255,7 @@ public class SidebarServiceTest
 
     // second level organization
     OwnerHierarchyOrganizationDTO secondLevelOrg = (OwnerHierarchyOrganizationDTO) ownerHierarchyDTO.ownersMap.get(
-        firstLevelOrg.organizationIds.get(0)
-    );
+        firstLevelOrg.organizationIds.get(0));
     assertThat(secondLevelOrg.parentOrganizationId).isEqualTo(firstLevelOrg.id);
     assertThat(secondLevelOrg.name).isEqualTo(orgTwo.getName());
     assertThat(secondLevelOrg.getParentId()).isEqualTo(firstLevelOrg.id);
@@ -271,8 +263,7 @@ public class SidebarServiceTest
     assertThat(secondLevelOrg.organizationIds).isEmpty();
     OwnerHierarchyApplicationDTO secondLevelOrgApplication =
         (OwnerHierarchyApplicationDTO) ownerHierarchyDTO.ownersMap.get(
-            secondLevelOrg.applicationIds.get(0)
-        );
+            secondLevelOrg.applicationIds.get(0));
     assertThat(secondLevelOrgApplication.id).isEqualTo(appThree.getId());
     assertThat(secondLevelOrg.subOrgs).isEqualTo(0);
     assertThat(secondLevelOrg.totalApps).isEqualTo(1);
@@ -287,8 +278,7 @@ public class SidebarServiceTest
     assertThat(repositoryContainer.repositoryManagerIds).hasSize(2);
     assertThat(repositoryContainer.repositoryManagerIds).containsExactlyInAnyOrder(
         repositoryManagerOne.getId(),
-        repositoryManagerTwo.getId()
-    );
+        repositoryManagerTwo.getId());
 
     // repository manager one
     OwnerHierarchyRepositoryManagerDTO repositoryManagerOneDTO =
@@ -310,8 +300,7 @@ public class SidebarServiceTest
     assertThat(repositoryManagerTwoDTO.repositoryIds).hasSize(2);
     assertThat(repositoryManagerTwoDTO.repositoryIds).containsExactlyInAnyOrder(
         repositoryTwo.getId(),
-        repositoryThree.getId()
-    );
+        repositoryThree.getId());
 
     // repository one
     OwnerHierarchyRepositoryDTO repositoryOneDTO =

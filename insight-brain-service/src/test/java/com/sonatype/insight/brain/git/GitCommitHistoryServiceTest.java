@@ -254,7 +254,7 @@ public class GitCommitHistoryServiceTest
 
     // when
     optionalEvaluation = gitCommitHistoryService
-            .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId(), false);
+        .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId(), false);
 
     // then
     assertThat(optionalEvaluation).isNotEmpty();

@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.product.license;
 
 /**
  * Hook to be get notified of changes to the server's product license.
- * 
+ *
  * @since 1.9
  */
 public interface ProductLicenseListener

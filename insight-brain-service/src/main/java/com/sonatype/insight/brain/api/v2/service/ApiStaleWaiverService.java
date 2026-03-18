@@ -103,7 +103,8 @@ public class ApiStaleWaiverService
   private final PolicyWaiverReasonDAO policyWaiverReasonDAO;
 
   @Inject
-  public ApiStaleWaiverService(OwnerDAO ownerDAO,
+  public ApiStaleWaiverService(
+      OwnerDAO ownerDAO,
       PolicyDAO policyDAO,
       RepositoryDAO repositoryDAO,
       PolicyWaiverDAO policyWaiverDAO,
@@ -156,7 +157,7 @@ public class ApiStaleWaiverService
     staleWaivers.addAll(getStaleApplicationWaivers(allUsedPolicyWaiverIds, authorizedApplications));
 
     Map<String, PolicyWaiverReason> policyWaiversReasons = policyWaiverReasonDAO
-            .getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
+        .getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
 
     List<PolicyEvaluation> evaluations = policyEvaluationDAO.getAllLast();
 
@@ -167,11 +168,13 @@ public class ApiStaleWaiverService
     Map<String, List<PolicyEvaluation>> lastEvaluationsByAppId =
         lastEvaluations.stream().collect(Collectors.groupingBy(PolicyEvaluation::getApplicationId));
 
-    Map<String, String> policyIdToNameMap = policyDAO.getAll().stream()
+    Map<String, String> policyIdToNameMap = policyDAO.getAll()
+        .stream()
         .collect(Collectors.toMap(Policy::getId, Policy::getName));
 
-    Map<String, Application> allApplicationsMap = allApplications.stream().collect(
-        Collectors.toMap(Application::getId, app -> app));
+    Map<String, Application> allApplicationsMap = allApplications.stream()
+        .collect(
+            Collectors.toMap(Application::getId, app -> app));
 
     Map<String, RepositoryWithDate> oldestEvalTimesByRepoId = getOldestEvalTimesByRepoId();
 
@@ -180,7 +183,7 @@ public class ApiStaleWaiverService
       ApiStaleWaiverDTO staleWaiverDTO =
           createApiStaleWaiverDTO(policyIdToNameMap, policyWaiver, lastEvaluationsByAppId, lastEvaluations,
               allApplicationsMap, authorizedApplicationIds, oldestEvalTimesByRepoId, authorizedReposMap,
-                  policyWaiversReasons);
+              policyWaiversReasons);
       staleWaiverDTOs.add(staleWaiverDTO);
     }
 
@@ -194,16 +197,18 @@ public class ApiStaleWaiverService
    */
   private Map<String, RepositoryWithDate> getOldestEvalTimesByRepoId() {
     List<Repository> allRepositories = repositoryDAO.getAll();
-    return allRepositories.stream().map(
-        repository -> {
-          Date oldestDate = repositoryComponentDAO.getOldestComponentEvaluationTimeByRepositoryId(repository.getId());
-          return new RepositoryWithDate(repository, oldestDate);
-        })
-        .filter(repoWithDate -> repoWithDate.date != null)   // no date on repo means it has no components
+    return allRepositories.stream()
+        .map(
+            repository -> {
+              Date oldestDate =
+                  repositoryComponentDAO.getOldestComponentEvaluationTimeByRepositoryId(repository.getId());
+              return new RepositoryWithDate(repository, oldestDate);
+            })
+        .filter(repoWithDate -> repoWithDate.date != null) // no date on repo means it has no components
         .collect(Collectors.toMap(repoWithDate -> repoWithDate.repository.getId(), Function.identity()));
   }
 
-  private List<ApiStaleApplicationEvaluationDTO>  getStaleApplicationEvaluations(
+  private List<ApiStaleApplicationEvaluationDTO> getStaleApplicationEvaluations(
       PolicyWaiver policyWaiver,
       Map<String, List<PolicyEvaluation>> evaluationsByAppId,
       List<PolicyEvaluation> lastEvaluations,
@@ -275,7 +280,7 @@ public class ApiStaleWaiverService
       final Set<String> applicationIds)
   {
     List<PolicyEvaluation> allStaleAppEvaluations = new ArrayList<>();
-    for (String appId: applicationIds) {
+    for (String appId : applicationIds) {
       List<PolicyEvaluation> appPolicyEvaluations = evaluationsByAppId.get(appId);
       if (appPolicyEvaluations != null) {
         List<PolicyEvaluation> staleAppEvaluations = appPolicyEvaluations.stream()
@@ -287,7 +292,7 @@ public class ApiStaleWaiverService
     return allStaleAppEvaluations;
   }
 
-  private List<ApiStaleApplicationEvaluationDTO>  buildApplicationEvaluationDTOs(
+  private List<ApiStaleApplicationEvaluationDTO> buildApplicationEvaluationDTOs(
       List<PolicyEvaluation> policyEvaluations,
       Map<String, Application> allApplications,
       Set<String> authorizedApplicationIds)
@@ -336,9 +341,9 @@ public class ApiStaleWaiverService
 
     Set<String> allUsedWaiverIds =
         repositoryPolicyViolationDAO.getActiveWaivedRepositoryPolicyViolations(allRepositoryIds)
-        .stream()
-        .map(RepositoryPolicyViolation::getPolicyWaiverId)
-        .collect(Collectors.toSet());
+            .stream()
+            .map(RepositoryPolicyViolation::getPolicyWaiverId)
+            .collect(Collectors.toSet());
 
     // Repository violations can have legacy waivers without a waiverId. Throw an exception if we don't know
     // the waiverId for a waived violation. The repository has to be re-evaluated to set the waiverId.
@@ -359,7 +364,8 @@ public class ApiStaleWaiverService
 
     if (!authorizedReposMap.isEmpty()) {
       authorizedReposMap.keySet().forEach(repositoryId -> {
-        staleRepositoryWaivers.addAll(policyWaiverDAO.getActiveApplicableByOwnerId(repositoryId).stream()
+        staleRepositoryWaivers.addAll(policyWaiverDAO.getActiveApplicableByOwnerId(repositoryId)
+            .stream()
             .filter(policyWaiver -> !allUsedWaiverIds.contains(policyWaiver.getId()))
             .collect(Collectors.toList()));
       });
@@ -472,7 +478,8 @@ public class ApiStaleWaiverService
     List<RepositoryWithDate> staleRepositories = getStaleRepositories(policyWaiver, oldestEvalTimesByRepoId, owner);
 
     List<RepositoryWithDate> authorizedStaleRepositories =
-        staleRepositories.stream().filter(repo -> authorizedReposMap.containsKey(repo.repository.getId()))
+        staleRepositories.stream()
+            .filter(repo -> authorizedReposMap.containsKey(repo.repository.getId()))
             .collect(Collectors.toList());
 
     return buildRepositoryEvaluationDTOs(authorizedStaleRepositories);
@@ -507,8 +514,10 @@ public class ApiStaleWaiverService
     List<RepositoryWithDate> staleRepositories = Collections.emptyList();
 
     if (owner.getId().equals(Organization.ROOT_ORGANIZATION_ID) ||
-        owner.getType().equals(OwnerType.REPOSITORY_CONTAINER)) {
-      staleRepositories = oldestEvalTimesByRepoId.values().stream()
+        owner.getType().equals(OwnerType.REPOSITORY_CONTAINER))
+    {
+      staleRepositories = oldestEvalTimesByRepoId.values()
+          .stream()
           .filter(repoWithDate -> repoWithDate.date.getTime() <= policyWaiver.getCreateTime().getTime())
           .collect(Collectors.toList());
     }

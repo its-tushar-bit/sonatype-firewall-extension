@@ -50,19 +50,19 @@ public class ActivePolicyViolationsWithActionFailResourceTest
     Policy policy = tempEntity.newPolicy(application);
 
     PolicyEvaluation policyEvaluation =
-            tempEntity.newPolicyEvaluation(application.getId(), STAGE_ID, "scan-1");
+        tempEntity.newPolicyEvaluation(application.getId(), STAGE_ID, "scan-1");
 
     PolicyViolation openViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
     openViolation.setActionTypeId(Action.ID_FAIL);
     policyViolationDAO.update(openViolation);
 
     tempEntity.newWaivedPolicyViolation(policyEvaluation, policy,
-            tempEntity.newWaiver(policy.getId(), application.getId()));
+        tempEntity.newWaiver(policy.getId(), application.getId()));
 
     tempEntity.newPolicyViolation(policyEvaluation, policy);
     HttpResponse response = restRequest()
-            .parameter(application.getPublicId(), STAGE_ID)
-            .get();
+        .parameter(application.getPublicId(), STAGE_ID)
+        .get();
 
     assertResponseStatus(200, response);
 
@@ -78,8 +78,8 @@ public class ActivePolicyViolationsWithActionFailResourceTest
     Application application = tempEntity.newApplication(organization.getPublicId());
 
     HttpResponse response = restRequest()
-            .parameter(application.getPublicId(), STAGE_ID)
-            .get();
+        .parameter(application.getPublicId(), STAGE_ID)
+        .get();
 
     assertResponseStatus(200, response);
 

@@ -54,7 +54,7 @@ public class ApiRepositoryDTO
     repository.setNamespaceConfusionProtectionEnabled(dto.namespaceConfusionProtectionEnabled);
     return repository;
   }
-  
+
   public static ApiRepositoryDTO fromRepository(Repository repository) {
     ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
     apiRepositoryDTO.repositoryId = repository.getId();

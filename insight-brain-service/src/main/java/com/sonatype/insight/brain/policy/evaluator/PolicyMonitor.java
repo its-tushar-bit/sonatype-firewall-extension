@@ -174,8 +174,7 @@ public class PolicyMonitor
         POLICY_MONITOR_THREADS_MIN,
         maxThreadCount,
         threadCount,
-        "insight.threads.monitor"
-    );
+        "insight.threads.monitor");
     TenantThreadPoolExecutor tenantThreadPoolExecutor = new TenantThreadPoolExecutor(
         finalThreadCount,
         finalThreadCount,
@@ -185,8 +184,7 @@ public class PolicyMonitor
         new ThreadFactoryBuilder().setNameFormat("insight-thread-monitor-%d").build(),
         new AbortPolicy(),
         "policy_monitor",
-        getClass().getSimpleName()
-    );
+        getClass().getSimpleName());
     tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
 
     return tenantThreadPoolExecutor;
@@ -196,7 +194,7 @@ public class PolicyMonitor
     log.info("Starting policy monitoring for tenant {}", TenantThreadLocal.getTenant());
 
     long start = System.currentTimeMillis();
-    
+
     if (policyMonitoringDAO.getCount() == 0) {
       log.info("Policy monitoring was not configured for any applications, organizations, or repositories.");
       return;
@@ -206,7 +204,9 @@ public class PolicyMonitor
       executorService = initThreadPool(configuration);
       shutdownHandler.add(executorService);
 
-      evaluateApplications(StageTypes.getAll().stream().filter(stageType -> stageType != StageTypes.COMPLIANCE)
+      evaluateApplications(StageTypes.getAll()
+          .stream()
+          .filter(stageType -> stageType != StageTypes.COMPLIANCE)
           .toArray(StageType[]::new));
       evaluateApplications(StageTypes.COMPLIANCE);
     }
@@ -329,8 +329,9 @@ public class PolicyMonitor
   }
 
   @VisibleForTesting
-  void evaluateSbomManagerComplianceStage(Application app, PolicyMonitoring policyMonitoring)
-      throws IOException, InterruptedException
+  void evaluateSbomManagerComplianceStage(
+      Application app,
+      PolicyMonitoring policyMonitoring) throws IOException, InterruptedException
   {
     long start = System.currentTimeMillis();
     log.info("SBOM Manager Policy Monitoring is enabled for application '{}' and stage '{}'", app.getName(),
@@ -421,12 +422,13 @@ public class PolicyMonitor
     while (true);
   }
 
-  private String uploadFilteredScanForComplianceStage(ScanEntity filteredScanEntity, Application app)
-      throws IOException, InterruptedException
+  private String uploadFilteredScanForComplianceStage(
+      ScanEntity filteredScanEntity,
+      Application app) throws IOException, InterruptedException
   {
     ScanReceipt scanReceipt =
         scanUploadService.upload(filteredScanEntity, app, ComplianceStageType.ID, ClientScanType.SONATYPE, null, null,
-            null, false );
+            null, false);
     scanReceipt.waitForReport();
     return scanReceipt.getScanId();
   }
@@ -435,13 +437,12 @@ public class PolicyMonitor
       ScanEntity tempScanEntity,
       Application app,
       String stageTypeId,
-      boolean hasThirdPartyContent)
-      throws IOException, InterruptedException
+      boolean hasThirdPartyContent) throws IOException, InterruptedException
   {
     ClientScanType clientScanType =
         hasThirdPartyContent ? ClientScanType.SONATYPE_THIRD_PARTY : ClientScanType.SONATYPE;
     ScanReceipt scanReceipt =
-        scanUploadService.upload(tempScanEntity, app, stageTypeId, clientScanType, null, null, null, false );
+        scanUploadService.upload(tempScanEntity, app, stageTypeId, clientScanType, null, null, null, false);
     scanReceipt.waitForReport();
     String scanId = scanReceipt.getScanId();
     scanPersistenceService.moveTempScan(tempScanEntity, app.getId(), scanId);
@@ -468,7 +469,9 @@ public class PolicyMonitor
     return isLicensedForApplications(productLicense);
   }
 
-  private record ApplicationWithPolicyMonitoring(Application app, PolicyMonitoring policyMonitoring) { }
+  private record ApplicationWithPolicyMonitoring(Application app, PolicyMonitoring policyMonitoring)
+  {
+  }
 
   private Iterator<ApplicationWithPolicyMonitoring> createApplicationWithPolicyMonitoringIterator(
       final StageType... stageTypes)

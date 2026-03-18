@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -82,8 +83,10 @@ public class AggregateFileDAOTest
         Sets.newLinkedHashSet(Arrays.asList("pathname3", "pathname4")));
 
     assertThat(dao.getByApplicationComponentId(applicationComponent.getId()))
-        .usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(aggregateFile1, aggregateFile2);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(aggregateFile1, aggregateFile2);
     assertThat(dao.getByApplicationComponentId(otherApplicationComponent.getId()))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(otherAggregateFile);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(otherAggregateFile);
   }
 }

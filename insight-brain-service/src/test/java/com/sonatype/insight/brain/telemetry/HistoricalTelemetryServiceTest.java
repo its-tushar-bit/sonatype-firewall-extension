@@ -47,8 +47,7 @@ public class HistoricalTelemetryServiceTest
         TEST_PURPOSE,
         mockTelemetrySender,
         batchSize,
-        new Date()
-    );
+        new Date());
   }
 
   @Test
@@ -59,8 +58,7 @@ public class HistoricalTelemetryServiceTest
     final var minFreeMemoryMb = 0;
 
     HistoricalTelemetryState telemetryState = tempEntity.newHistoricalTelemetryState(
-        TEST_PURPOSE.name(), cutoffDate, batchSize, minFreeMemoryMb, Status.PENDING.name()
-    );
+        TEST_PURPOSE.name(), cutoffDate, batchSize, minFreeMemoryMb, Status.PENDING.name());
 
     for (Status status : Status.values()) {
       // given: historical telemetry set to the given status
@@ -120,8 +118,7 @@ public class HistoricalTelemetryServiceTest
     final var minFreeMemoryMb = 0;
 
     HistoricalTelemetryState telemetryState = tempEntity.newHistoricalTelemetryState(
-        TEST_PURPOSE.name(), cutoffDate, batchSize, minFreeMemoryMb, Status.PENDING.name()
-    );
+        TEST_PURPOSE.name(), cutoffDate, batchSize, minFreeMemoryMb, Status.PENDING.name());
 
     for (Status status : Status.values()) {
       // given: historical telemetry set to the given status
@@ -264,6 +261,7 @@ public class HistoricalTelemetryServiceTest
     }
   }
 
-  private record TestData(Date date, String id) {
+  private record TestData(Date date, String id)
+  {
   }
 }

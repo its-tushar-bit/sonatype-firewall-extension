@@ -8,7 +8,8 @@ package com.sonatype.insight.brain.report;
 
 import static java.util.Objects.requireNonNull;
 
-public record S3ObjectKey(String format, String appId, String scanId, String objectName, String keyPrefix) {
+public record S3ObjectKey(String format, String appId, String scanId, String objectName, String keyPrefix)
+{
   public S3ObjectKey {
     requireNonNull(format);
     requireNonNull(appId);

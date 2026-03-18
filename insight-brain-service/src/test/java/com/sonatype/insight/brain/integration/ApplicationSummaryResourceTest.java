@@ -180,9 +180,7 @@ public class ApplicationSummaryResourceTest
   }
 
   @Test
-  public void testVerifyOrCreateApplicationForContainerImageFirewall_defaultsQuarantineToTrueWhenMissing()
-      throws Exception
-  {
+  public void testVerifyOrCreateApplicationForContainerImageFirewall_defaultsQuarantineToTrueWhenMissing() throws Exception {
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
 
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager("instance1");
@@ -303,8 +301,8 @@ public class ApplicationSummaryResourceTest
 
     repositoryManagerDAO.update(repositoryManager);
 
-    ApiVerifyOrCreateApplicationForContainerImageFirewallDTO
-        dto = new ApiVerifyOrCreateApplicationForContainerImageFirewallDTO();
+    ApiVerifyOrCreateApplicationForContainerImageFirewallDTO dto =
+        new ApiVerifyOrCreateApplicationForContainerImageFirewallDTO();
     dto.setRepositoryManagerInstanceId("instance1");
     dto.setRepositoryPublicId("repositoryPublicId");
     dto.setContainerImageName("image1");

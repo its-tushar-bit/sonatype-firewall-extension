@@ -317,7 +317,7 @@ public class PolicyWaiverTelemetryCreatorTest
             policyViolation.getStageTypeId(),
             policyWaiver.isForContainerImage(),
             policyWaiver.isForContainerImageComponent())
-            .withWaiverReason(policyWaiverReason);
+                .withWaiverReason(policyWaiverReason);
     assertTelemetry(policyViolationTelemetry, policyWaiverTelemetry);
   }
 
@@ -341,7 +341,7 @@ public class PolicyWaiverTelemetryCreatorTest
             StageTypes.PROXY.getId(),
             policyWaiver.isForContainerImage(),
             policyWaiver.isForContainerImageComponent())
-            .withWaiverReason(policyWaiverReason);
+                .withWaiverReason(policyWaiverReason);
     assertTelemetry(policyViolationTelemetry, policyWaiverTelemetry);
   }
 

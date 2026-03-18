@@ -57,10 +57,10 @@ public class KeycloakServerRule
     keycloakServer = new KeycloakServer(network);
     keycloakServerUtil.init(keycloakServer.getBaseUrl());
   }
-  
+
   /**
    * Resets the test keycloak server to original state.
-   * 
+   *
    * WARNING: The test keycloak server is restarted if the cleanup fails (there's a bug in keycloak).
    */
   public void clean() {

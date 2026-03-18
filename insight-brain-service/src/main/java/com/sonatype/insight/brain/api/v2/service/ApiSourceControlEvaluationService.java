@@ -126,7 +126,8 @@ public class ApiSourceControlEvaluationService
       throw new BadRequestException("Missing parameters.");
     }
 
-    stageTypeService.getLicensedStageTypes(StageTypeService.LIFECYCLE_CONTEXT).stream()
+    stageTypeService.getLicensedStageTypes(StageTypeService.LIFECYCLE_CONTEXT)
+        .stream()
         .filter(stageType -> stageType.getId().equals(sourceControlEvaluationRequest.stageId))
         .findFirst()
         .orElseThrow(() -> new BadRequestException("Stage " + sourceControlEvaluationRequest.stageId +

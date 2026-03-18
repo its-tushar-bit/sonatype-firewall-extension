@@ -19,6 +19,7 @@ import org.testcontainers.containers.GenericContainer;
  * {@code @ClassRule} functionality by managing the container lifecycle.
  * <p>
  * Example usage:
+ *
  * <pre>
  * {@code @ClassRule}
  * public static ContainerRule<PostgreSQLContainer<?>> postgres =
@@ -27,7 +28,8 @@ import org.testcontainers.containers.GenericContainer;
  *
  * @param <T> the type of container being wrapped
  */
-public class ContainerRule<T extends GenericContainer<?>> implements TestRule
+public class ContainerRule<T extends GenericContainer<?>>
+    implements TestRule
 {
   private final T container;
 

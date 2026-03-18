@@ -54,8 +54,9 @@ public class PolicyViolationTest
     // Test construction of PolicyViolation with constraint facts.
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts, null);
-    assertThat(policyViolation.getConstraintFactsJson()).isEqualTo(constraintFactsJson).doesNotContain("\n", "\r",
-        "\\n", "\\r");
+    assertThat(policyViolation.getConstraintFactsJson()).isEqualTo(constraintFactsJson)
+        .doesNotContain("\n", "\r",
+            "\\n", "\\r");
     assertConstraintFacts(policyViolation.getConstraintFacts(), constraintFacts);
   }
 
@@ -119,7 +120,8 @@ public class PolicyViolationTest
       assertThat(actualConstraintFact.getConstraintName()).isEqualTo(expectedConstraintFact.getConstraintName());
       assertThat(actualConstraintFact.getOperatorName()).isEqualTo(expectedConstraintFact.getOperatorName());
       for (int conditionFactIndex = 0; conditionFactIndex < expectedConstraintFact.getConditionFacts()
-          .size(); conditionFactIndex++) {
+          .size(); conditionFactIndex++)
+      {
         ConditionFact expectedConditionFact = expectedConstraintFact.getConditionFacts().get(conditionFactIndex);
         ConditionFact actualConditionFact = actualConstraintFact.getConditionFacts().get(conditionFactIndex);
         assertThat(actualConditionFact.getConditionTypeId()).isEqualTo(expectedConditionFact.getConditionTypeId());

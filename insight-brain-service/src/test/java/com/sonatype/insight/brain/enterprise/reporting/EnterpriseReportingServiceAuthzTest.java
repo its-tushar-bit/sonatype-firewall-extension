@@ -75,6 +75,6 @@ public class EnterpriseReportingServiceAuthzTest
     obfuscatedApplicationIds.add(HashUtils.hash(application4.getId(), HashUtils.SHA1));
 
     assertThat(ssoEmbedUrlRequest.applicationIds)
-        .containsExactlyInAnyOrder(obfuscatedApplicationIds.toArray(new String[] {}));
+        .containsExactlyInAnyOrder(obfuscatedApplicationIds.toArray(new String[]{}));
   }
 }

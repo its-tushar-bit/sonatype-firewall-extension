@@ -144,7 +144,8 @@ public class EnterpriseReportingResourceTest
     String encodedEmbedDomain = "http%3A%2F%2Flocalhost%3A8070";
     String embedDomain = "http://localhost:8070";
     HttpResponse response =
-        restRequest().path(EnterpriseReportingResource.ACQUIRE_EMBED_SESSION).query("dashboardId", "dashboardIdParam")
+        restRequest().path(EnterpriseReportingResource.ACQUIRE_EMBED_SESSION)
+            .query("dashboardId", "dashboardIdParam")
             .query("embedDomain", encodedEmbedDomain)
             .get();
     assertResponseStatus(200, response);
@@ -163,7 +164,9 @@ public class EnterpriseReportingResourceTest
 
     // Verify that the domain sent to HDS was truncated to exclude the final separator
     String requestBody = hdsMockServer.getCapturedRequestBody("rest/enterpriseReporting/acquireEmbedSession");
-    SSOEmbedUrlRequest requestSentToHds = JsonUtils.parse(requestBody, new TypeReference<SSOEmbedUrlRequest>() { });
+    SSOEmbedUrlRequest requestSentToHds = JsonUtils.parse(requestBody, new TypeReference<SSOEmbedUrlRequest>()
+    {
+    });
     assertThat(requestSentToHds.embedDomain).isEqualTo(embedDomain);
   }
 
@@ -251,72 +254,73 @@ public class EnterpriseReportingResourceTest
 
   private String createDashboardMetadataJsonList() {
     return """
-      {
-        "version": 100,
-        "dashboardMetadata": [
-          {
-            "dashboardId": "sbom-scorecard",
-            "title": "Sbom Report Overview",
-            "category": "enterprise",
-            "description": "A comprehensive view of monthly sboms",
-            "features": [
-              "Graphs",
-              "Tables"
-            ],
-            "accessButtonText": "Open Dashboard",
-            "previewImage": "rolling-recap.svg",
-            "previewImageIcon": "faCalendar",
-            "priority": 1,
-            "spotlight": true
-          }
-        ],
-        "dashboardGroupMetadata": [
-          {
-            "groupId": "security",
-            "title": "Security Risk",
-            "description": "A group of security dashboards",
-            "features": [
-              "Trends",
-              "Breakdowns"
-            ],
-            "previewImageIcon": "faShield",
-            "spotlight": false
-          }
-        ]
-      }
-      """;
+        {
+          "version": 100,
+          "dashboardMetadata": [
+            {
+              "dashboardId": "sbom-scorecard",
+              "title": "Sbom Report Overview",
+              "category": "enterprise",
+              "description": "A comprehensive view of monthly sboms",
+              "features": [
+                "Graphs",
+                "Tables"
+              ],
+              "accessButtonText": "Open Dashboard",
+              "previewImage": "rolling-recap.svg",
+              "previewImageIcon": "faCalendar",
+              "priority": 1,
+              "spotlight": true
+            }
+          ],
+          "dashboardGroupMetadata": [
+            {
+              "groupId": "security",
+              "title": "Security Risk",
+              "description": "A group of security dashboards",
+              "features": [
+                "Trends",
+                "Breakdowns"
+              ],
+              "previewImageIcon": "faShield",
+              "spotlight": false
+            }
+          ]
+        }
+        """;
   }
 
   private String createDashboardMetadataAdditionalAttrJsonList() {
     return """
-      {
-        "version": 101,
-        "dashboardMetadata": [
-          {
-            "dashboardId": "sbom-scorecard",
-            "title": "Sbom Report Overview",
-            "category": "enterprise",
-            "description": "A comprehensive view of monthly sboms",
-            "features": [
-              "Graphs",
-              "Tables"
-            ],
-            "accessButtonText": "Open Dashboard",
-            "previewImage": "rolling-recap.svg",
-            "previewImageIcon": "faBrain",
-            "priority": 1,
-            "spotlight": true,
-            "unexpectedAttr": "what is this"
-          }
-        ],
-        "dashboardGroupMetadata": []
-      }
-      """;
+        {
+          "version": 101,
+          "dashboardMetadata": [
+            {
+              "dashboardId": "sbom-scorecard",
+              "title": "Sbom Report Overview",
+              "category": "enterprise",
+              "description": "A comprehensive view of monthly sboms",
+              "features": [
+                "Graphs",
+                "Tables"
+              ],
+              "accessButtonText": "Open Dashboard",
+              "previewImage": "rolling-recap.svg",
+              "previewImageIcon": "faBrain",
+              "priority": 1,
+              "spotlight": true,
+              "unexpectedAttr": "what is this"
+            }
+          ],
+          "dashboardGroupMetadata": []
+        }
+        """;
   }
 
   private byte[] getBytesFromIconsZip() throws IOException, URISyntaxException {
     return Files.readAllBytes(Paths.get(getClass()
-        .getResource("/EnterpriseReportingServiceTest/icons_svg.zip").toURI()));
+        .getResource("/EnterpriseReportingServiceTest/icons_svg.zip")
+        .toURI()));
   }
 
   private String createDashboardVersionJson() {
@@ -446,9 +450,9 @@ public class EnterpriseReportingResourceTest
 
     var updatedDTO = new EnterpriseReportingDashboardFilterDTO(filter2.getId(), "Filter 2", "{\"k\":3}", true);
     HttpResponse response = restRequest()
-            .path(EnterpriseReportingResource.SAVED_FILTERS_PATH)
-            .body(updatedDTO)
-            .put();
+        .path(EnterpriseReportingResource.SAVED_FILTERS_PATH)
+        .body(updatedDTO)
+        .put();
     assertResponseStatus(200, response);
 
     assertDefaultFilterForUser(userId, filter2.getId());
@@ -489,12 +493,12 @@ public class EnterpriseReportingResourceTest
         .isEqualTo("Cannot find filter to delete. It may have already been removed or does not exist.");
   }
 
-  //If there is no filterId value when the request is sent, "undefined" is appended to the URL in its place
+  // If there is no filterId value when the request is sent, "undefined" is appended to the URL in its place
   @Test
   public void testDeleteFilterForCurrentUser_UndefinedId() throws Exception {
     HttpResponse response = restRequest()
         .path(EnterpriseReportingResource.DELETE_FILTERS_PATH)
-            .parameter("undefined")
+        .parameter("undefined")
         .delete();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
@@ -505,7 +509,7 @@ public class EnterpriseReportingResourceTest
   public void testDeleteFilterForCurrentUser_NullId() throws Exception {
     HttpResponse response = restRequest()
         .path(EnterpriseReportingResource.DELETE_FILTERS_PATH)
-            .parameter("null")
+        .parameter("null")
         .delete();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
@@ -567,9 +571,9 @@ public class EnterpriseReportingResourceTest
   @Test
   public void testInsertDefaultFilterForCurrentUser__UndefinedId() throws Exception {
     HttpResponse response = restRequest()
-            .path(EnterpriseReportingResource.UPDATE_DEFAULT_FILTERS_PATH)
-            .parameter("undefined")
-            .put();
+        .path(EnterpriseReportingResource.UPDATE_DEFAULT_FILTERS_PATH)
+        .parameter("undefined")
+        .put();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Filter does not already exist to mark as default.");
   }
@@ -577,9 +581,9 @@ public class EnterpriseReportingResourceTest
   @Test
   public void testInsertDefaultFilterForCurrentUser__NullId() throws Exception {
     HttpResponse response = restRequest()
-            .path(EnterpriseReportingResource.UPDATE_DEFAULT_FILTERS_PATH)
-            .parameter("null")
-            .put();
+        .path(EnterpriseReportingResource.UPDATE_DEFAULT_FILTERS_PATH)
+        .parameter("null")
+        .put();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Filter does not already exist to mark as default.");
   }
@@ -665,9 +669,10 @@ public class EnterpriseReportingResourceTest
     return userDAO.getByUsernameNotNull(getUsername()).getId();
   }
 
-  private void assertFilterEquality(EnterpriseReportingDashboardFilterDTO response,
-                                    EnterpriseReportingFilter persistedFilter,
-                                    String userId)
+  private void assertFilterEquality(
+      EnterpriseReportingDashboardFilterDTO response,
+      EnterpriseReportingFilter persistedFilter,
+      String userId)
   {
     assertThat(persistedFilter.getFilterName()).isEqualTo(response.name);
     assertThat(persistedFilter.getId()).isEqualTo(response.id);

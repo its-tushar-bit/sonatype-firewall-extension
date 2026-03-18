@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.telemetry;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -59,8 +60,7 @@ public class TelemetryStatusResourceTest
         mockApplicationService,
         mockConfiguration,
         mockProductLicense,
-        mockTelemetryId
-    );
+        mockTelemetryId);
   }
 
   @Test
@@ -165,8 +165,7 @@ public class TelemetryStatusResourceTest
     when(mockProductLicense.hasFeature(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING))
         .thenReturn(enterpriseReportingFeatureExists);
     when(mockApplicationService.getApplications()).thenReturn(Collections.nCopies(userAppCount,
-        new Application("application-public-id", "Application Name", "organization-id-1234567890")
-    ));
+        new Application("application-public-id", "Application Name", "organization-id-1234567890")));
     when(mockApplicationDAO.getCount()).thenReturn(totalAppCount);
   }
 }

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.configuration.ldap;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -28,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Mapping tests ported from nexus-ldap-common; LDAP schema files (ldif) were not changed.
- * 
+ *
  * @since 1.7
  */
 @Category(SlowTest.class)

@@ -155,7 +155,7 @@ public class Policy
    * @param stageId the id of the stage to retrieve actions for
    * @param continuousMonitoring is this for continuous monitoring
    * @param ownerIds optional, sorted list of ids of all the owners up in the hierarchy starting from the application
-   *                 and ending with root org. This is used for overrides.
+   *          and ending with root org. This is used for overrides.
    * @return list of Action objects
    */
   public List<Action> toActions(String stageId, boolean continuousMonitoring, List<String> ownerIds) {
@@ -262,7 +262,8 @@ public class Policy
 
   /**
    * Add action override to this policy
-   * @param ownerId  the id of the org or app to which the override should be applied to
+   *
+   * @param ownerId the id of the org or app to which the override should be applied to
    * @param policyActionsOverride actions mapped to stage
    */
   public void addPolicyActionsOverride(final String ownerId, final Map<String, String> policyActionsOverride) {
@@ -290,7 +291,8 @@ public class Policy
 
   private Notifications getNotificationsOverride(List<String> ownerIds) {
     if (!isNotificationsOverrideApplicable(ownerIds) || policyNotificationsOverrides == null ||
-        policyNotificationsOverrides.isEmpty()) {
+        policyNotificationsOverrides.isEmpty())
+    {
       return null;
     }
 
@@ -312,7 +314,7 @@ public class Policy
   /**
    * Add notifications override to this policy
    *
-   * @param ownerId                     the id of the org or app to which the override should be applied to
+   * @param ownerId the id of the org or app to which the override should be applied to
    * @param policyNotificationsOverride notifications mapped to stages
    */
   public void addPolicyNotificationsOverride(String ownerId, Notifications policyNotificationsOverride) {

@@ -37,7 +37,8 @@ public class ApplicationTelemetryCollector
   @Override
   public TelemetryData collectData() {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REAL_OWNER_IDS);
-    List<OwnerTelemetryCollector.OwnerData> ownerData = applicationDAO.getAll().stream()
+    List<OwnerTelemetryCollector.OwnerData> ownerData = applicationDAO.getAll()
+        .stream()
         .map(this::createOwnerData)
         .collect(Collectors.toList());
     telemetryData.put(ALL_OWNER_IDS_NAMES, ownerData);

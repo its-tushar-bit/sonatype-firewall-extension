@@ -30,14 +30,12 @@ public class CLM
   public static final WebElementCondition RSC_DISABLED = and(
       "is disabled",
       cssClass("disabled"),
-      attribute("aria-disabled", "true" )
-  );
+      attribute("aria-disabled", "true"));
 
   public static final WebElementCondition RSC_TERTIARY_DISABLED = and(
       "is disabled",
       attribute("disabled"),
-      attribute("aria-disabled", "true" )
-  );
+      attribute("aria-disabled", "true"));
 
   public static final WebElementCondition CSS_SIDEBAR_OPEN = cssClass("open");
 

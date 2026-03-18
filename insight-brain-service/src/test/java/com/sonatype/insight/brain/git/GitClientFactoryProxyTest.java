@@ -97,18 +97,18 @@ public class GitClientFactoryProxyTest
   @Parameters(name = "{index} - {1}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-        {createApiClient, SourceControlProvider.GITHUB, "org/repo", null},
-        {createApiClient, SourceControlProvider.GITLAB, "org/repo", null},
-        {createApiClient, SourceControlProvider.BITBUCKET, "scm/org/repo", "username"},
-        {createApiClient, SourceControlProvider.AZURE, "org/project/_git/repo", "username"},
-        {createPullRequestInfoClient, SourceControlProvider.GITHUB, "org/repo", null},
-        {createPullRequestInfoClient, SourceControlProvider.GITLAB, "org/repo", null},
-        {createPullRequestInfoClient, SourceControlProvider.BITBUCKET, "scm/org/repo", "username"},
-        {createPullRequestInfoClient, SourceControlProvider.AZURE, "org/project/_git/repo", "username"},
-        {createGeneralApiClient, SourceControlProvider.GITHUB, "org/repo", null},
-        {createGeneralApiClient, SourceControlProvider.GITLAB, "org/repo", null},
-        {createGeneralApiClient, SourceControlProvider.BITBUCKET, "scm/org/repo", "username"},
-        {createGeneralApiClient, SourceControlProvider.AZURE, "org/project/_git/repo", "username"}
+      {createApiClient, SourceControlProvider.GITHUB, "org/repo", null},
+      {createApiClient, SourceControlProvider.GITLAB, "org/repo", null},
+      {createApiClient, SourceControlProvider.BITBUCKET, "scm/org/repo", "username"},
+      {createApiClient, SourceControlProvider.AZURE, "org/project/_git/repo", "username"},
+      {createPullRequestInfoClient, SourceControlProvider.GITHUB, "org/repo", null},
+      {createPullRequestInfoClient, SourceControlProvider.GITLAB, "org/repo", null},
+      {createPullRequestInfoClient, SourceControlProvider.BITBUCKET, "scm/org/repo", "username"},
+      {createPullRequestInfoClient, SourceControlProvider.AZURE, "org/project/_git/repo", "username"},
+      {createGeneralApiClient, SourceControlProvider.GITHUB, "org/repo", null},
+      {createGeneralApiClient, SourceControlProvider.GITLAB, "org/repo", null},
+      {createGeneralApiClient, SourceControlProvider.BITBUCKET, "scm/org/repo", "username"},
+      {createGeneralApiClient, SourceControlProvider.AZURE, "org/project/_git/repo", "username"}
     });
   }
 
@@ -125,11 +125,11 @@ public class GitClientFactoryProxyTest
   private interface TestConsumer
   {
     /**
-     * @param gitClientFactory      The subject class under test. Injected above and passed in.
+     * @param gitClientFactory The subject class under test. Injected above and passed in.
      * @param sourceControlProvider The SCM provider under test.
-     * @param url                   host url for SCM (passed in from {@link #pingUrl(String)}).
-     * @param urlSuffix             url suffix to add to host URL that is provider specific.
-     * @param username              username from credentials.
+     * @param url host url for SCM (passed in from {@link #pingUrl(String)}).
+     * @param urlSuffix url suffix to add to host URL that is provider specific.
+     * @param username username from credentials.
      * @throws Exception The client methods (e.g. getPullRequestsSince) throw an IOException.
      */
     void accept(

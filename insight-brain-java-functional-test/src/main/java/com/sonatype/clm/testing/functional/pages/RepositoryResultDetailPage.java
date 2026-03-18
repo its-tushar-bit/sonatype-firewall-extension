@@ -20,7 +20,8 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
-public class RepositoryResultDetailPage extends BasicElement<RepositoryResultDetailPage>
+public class RepositoryResultDetailPage
+    extends BasicElement<RepositoryResultDetailPage>
 {
   public static String url(String repositoryId) {
     return BaseUrl.resolvePageUrl("/firewall/repository/{repositoryId}/result", repositoryId);
@@ -78,7 +79,8 @@ public class RepositoryResultDetailPage extends BasicElement<RepositoryResultDet
     return $("#repository-report-aggregate-by-component-toggle");
   }
 
-  public static class RepositoryFilterPopover extends BasicElement<RepositoryFilterPopover>
+  public static class RepositoryFilterPopover
+      extends BasicElement<RepositoryFilterPopover>
   {
     static final String POPOVER_SELECTOR = "#iq-summary-page-components-filter";
 
@@ -183,7 +185,8 @@ public class RepositoryResultDetailPage extends BasicElement<RepositoryResultDet
     }
   }
 
-  public static class RepositoryResultTableRow extends BasicElement<RepositoryResultTableRow>
+  public static class RepositoryResultTableRow
+      extends BasicElement<RepositoryResultTableRow>
   {
     public RepositoryResultTableRow(String... selectors) {
       super(selectors);

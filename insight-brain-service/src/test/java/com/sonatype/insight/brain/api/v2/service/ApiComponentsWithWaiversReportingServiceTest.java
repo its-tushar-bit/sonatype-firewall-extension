@@ -320,7 +320,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
 
     // Waived active policy violations and their corresponding waivers
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", policy1.getId(), repo1.getId(),
-         "Some comments here", null, constraintFacts1, NO_UPGRADE_PATH_WAIVER_REASON_ID);
+        "Some comments here", null, constraintFacts1, NO_UPGRADE_PATH_WAIVER_REASON_ID);
     RepositoryPolicyViolation waivedViolation =
         tempEntity.newRepositoryPolicyViolation(repo1.getId(), 6, "tomcat/catalina/5.5.15/catalina-5.5.15.jar",
             "hash1", constraintFacts1, true, "actionId1", policy1.getId(), policy1.getName(),
@@ -537,11 +537,11 @@ public class ApiComponentsWithWaiversReportingServiceTest
     for (int i = 0; i < 28; i++) {
       Application app = tempEntity.newApplication("appBatch" + String.format("%02d", i), org1.getId());
       PolicyEvaluation appPolicyEvaluation =
-              tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "test scan appBatch " + i + " id (build)",
-                      new Date(System.currentTimeMillis() - 1000));
+          tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "test scan appBatch " + i + " id (build)",
+              new Date(System.currentTimeMillis() - 1000));
 
       PolicyWaiver policyWaiver1 =
-          tempEntity.newWaiver("h1", policy1.getId(), app.getId(), constraintFacts1,  "Some comments here");
+          tempEntity.newWaiver("h1", policy1.getId(), app.getId(), constraintFacts1, "Some comments here");
       PolicyWaiver policyWaiver2 = tempEntity.newWaiver("h2", policy1.getId(), app.getId(), "Some comments here2");
 
       tempEntity.newWaivedPolicyViolation(appPolicyEvaluation, policy1,
@@ -563,7 +563,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     assertThat(result.repositoryWaivers).hasSize(0);
 
     result.applicationWaivers.sort(
-            Comparator.comparing(apiApplicationWaiverDTO -> apiApplicationWaiverDTO.application.publicId));
+        Comparator.comparing(apiApplicationWaiverDTO -> apiApplicationWaiverDTO.application.publicId));
 
     for (int i = 0; i < result.applicationWaivers.size(); i++) {
       ApiApplicationWaiverDTO applicationWaiverDTO = result.applicationWaivers.get(i);
@@ -873,8 +873,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
         date,
         policyWaiver1.getId(),
         policyWaiver1.getComment(),
-        DateUtils.addDays(date, 1)
-    );
+        DateUtils.addDays(date, 1));
 
     ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
 

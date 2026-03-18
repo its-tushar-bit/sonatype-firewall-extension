@@ -12,7 +12,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * Condition types reasoning about the component in general.
- * 
+ *
  * @param <T> The type of the condition value.
  */
 public abstract class AbstractComponentConditionType<T>

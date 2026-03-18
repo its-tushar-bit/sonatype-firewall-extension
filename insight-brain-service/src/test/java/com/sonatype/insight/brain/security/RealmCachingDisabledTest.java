@@ -28,14 +28,17 @@ public class RealmCachingDisabledTest
 
   @Override
   protected void configure(Binder binder) {
-    binder.bind(new com.google.inject.TypeLiteral<Set<CachingRealm>>() {})
+    binder.bind(new com.google.inject.TypeLiteral<Set<CachingRealm>>()
+    {
+    })
         .toProvider(CachingRealmSetProvider.class);
   }
 
   /**
    * Provider that collects all CachingRealm instances into a Set.
    */
-  private static class CachingRealmSetProvider implements com.google.inject.Provider<Set<CachingRealm>>
+  private static class CachingRealmSetProvider
+      implements com.google.inject.Provider<Set<CachingRealm>>
   {
     private final InternalRealm internalRealm;
 

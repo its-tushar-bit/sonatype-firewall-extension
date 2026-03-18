@@ -51,12 +51,18 @@ public class DroolsGenerator
     droolsCode.append("import java.util.List\n");
     droolsCode.append("import java.util.ArrayList\n");
     droolsCode.append('\n');
-    droolsCode.append("// Begin policy: ").append(policy.getName()).append(" (Id=").append(policy.getId())
+    droolsCode.append("// Begin policy: ")
+        .append(policy.getName())
+        .append(" (Id=")
+        .append(policy.getId())
         .append(")\n");
 
     for (final Constraint constraint : policy.getConstraints()) {
-      droolsCode.append("// Begin constraint: ").append(constraint.getName()).append(" (Id=")
-          .append(constraint.getId()).append(")\n");
+      droolsCode.append("// Begin constraint: ")
+          .append(constraint.getName())
+          .append(" (Id=")
+          .append(constraint.getId())
+          .append(")\n");
 
       if (constraint.getOperator() == LogicalOperator.AND) {
         droolsCode.append("rule \"").append(constraint.getId()).append("\"\n");
@@ -72,7 +78,9 @@ public class DroolsGenerator
         droolsCode.append("then\n");
         droolsCode.append(INDENT).append("List $conditionTriggers = new ArrayList();\n");
         droolsCode.append(conditionGenerator.generateConditionTriggerCode());
-        droolsCode.append(INDENT).append("insert( new MatchFact( $component, \"").append(policy.getId())
+        droolsCode.append(INDENT)
+            .append("insert( new MatchFact( $component, \"")
+            .append(policy.getId())
             .append("\", \"");
         droolsCode.append(constraint.getId()).append("\", $conditionTriggers ) );\n");
         droolsCode.append("end\n");
@@ -89,9 +97,13 @@ public class DroolsGenerator
           droolsCode.append("then\n");
           droolsCode.append(INDENT).append("List $conditionTriggers = new ArrayList();\n");
           droolsCode.append(conditionGenerator.generateConditionTriggerCode());
-          droolsCode.append(INDENT).append("insert( new MatchFact( $component, \"").append(policy.getId())
+          droolsCode.append(INDENT)
+              .append("insert( new MatchFact( $component, \"")
+              .append(policy.getId())
               .append("\", \"");
-          droolsCode.append(constraint.getId()).append("\", ").append(conditionIndex)
+          droolsCode.append(constraint.getId())
+              .append("\", ")
+              .append(conditionIndex)
               .append(", $conditionTriggers ) );\n");
           droolsCode.append("end\n");
 

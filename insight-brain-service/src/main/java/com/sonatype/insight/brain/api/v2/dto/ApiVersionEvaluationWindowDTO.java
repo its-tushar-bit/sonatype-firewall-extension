@@ -5,4 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-public record ApiVersionEvaluationWindowDTO(String contextId, Integer maxVersions, Integer maxAgeInDays) { }
+public record ApiVersionEvaluationWindowDTO(String contextId, Integer maxVersions, Integer maxAgeInDays)
+{
+}

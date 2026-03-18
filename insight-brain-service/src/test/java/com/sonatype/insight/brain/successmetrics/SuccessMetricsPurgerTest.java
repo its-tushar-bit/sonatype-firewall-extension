@@ -140,7 +140,8 @@ public class SuccessMetricsPurgerTest
     successMetricsPurger.purgeSuccessMetrics();
 
     assertThat(policyViolationDAO.getByApplicationId(app1.getId()))
-        .usingElementComparator(Comparator.comparing(PolicyViolation::getId)).containsExactlyInAnyOrder( //
+        .usingElementComparator(Comparator.comparing(PolicyViolation::getId))
+        .containsExactlyInAnyOrder( //
             namedViolations.get(app1.getId() + "-open"), //
             namedViolations.get(app1.getId() + "-waived"), //
             namedViolations.get(app1.getId() + "-grandfathered"), //
@@ -150,7 +151,8 @@ public class SuccessMetricsPurgerTest
             namedViolations.get(app1.getId() + "-fixed4"));
 
     assertThat(policyViolationDAO.getByApplicationId(app2.getId()))
-        .usingElementComparator(Comparator.comparing(PolicyViolation::getId)).containsExactlyInAnyOrder( //
+        .usingElementComparator(Comparator.comparing(PolicyViolation::getId))
+        .containsExactlyInAnyOrder( //
             namedViolations.get(app2.getId() + "-open"), //
             namedViolations.get(app2.getId() + "-waived"), //
             namedViolations.get(app2.getId() + "-grandfathered"), //
@@ -158,7 +160,8 @@ public class SuccessMetricsPurgerTest
             namedViolations.get(app2.getId() + "-fixed4"));
 
     assertThat(policyViolationDAO.getByApplicationId(app3.getId()))
-        .usingElementComparator(Comparator.comparing(PolicyViolation::getId)).containsExactlyInAnyOrder( //
+        .usingElementComparator(Comparator.comparing(PolicyViolation::getId))
+        .containsExactlyInAnyOrder( //
             namedViolations.get(app3.getId() + "-open"), //
             namedViolations.get(app3.getId() + "-waived"), //
             namedViolations.get(app3.getId() + "-grandfathered"), //

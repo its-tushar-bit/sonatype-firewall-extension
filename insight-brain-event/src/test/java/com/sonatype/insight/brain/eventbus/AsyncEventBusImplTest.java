@@ -118,8 +118,10 @@ public class AsyncEventBusImplTest
 
     private int sleepTime;
 
-    public HandlerWithLongExecution(final AsyncEventBusImpl asyncEventBus, final CountDownLatch latch,
-                                    final int sleepTime)
+    public HandlerWithLongExecution(
+        final AsyncEventBusImpl asyncEventBus,
+        final CountDownLatch latch,
+        final int sleepTime)
     {
       this.latch = latch;
       this.sleepTime = sleepTime;

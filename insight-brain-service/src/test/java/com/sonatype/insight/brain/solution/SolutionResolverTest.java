@@ -69,11 +69,10 @@ public class SolutionResolverTest
   public void testOnlySbomLicensed_WhenOnlySbomProductAndALP_arePresentInLicense() {
     ProductLicense productLicense = Mockito.mock(ProductLicense.class);
     for (String product : ProductLicenseDetails.PRODUCTS) {
-      if (
-          product.equals(ProductLicenseDetails.PRODUCT_SBOM_MANAGER) ||
-              product.equals(ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK) ||
-              product.equals(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS)
-      ) {
+      if (product.equals(ProductLicenseDetails.PRODUCT_SBOM_MANAGER) ||
+          product.equals(ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK) ||
+          product.equals(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS))
+      {
         when(productLicense.hasProduct(product)).thenReturn(true);
       }
       else {

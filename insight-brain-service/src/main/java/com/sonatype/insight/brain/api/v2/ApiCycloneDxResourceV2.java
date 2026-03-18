@@ -78,22 +78,19 @@ public class ApiCycloneDxResourceV2
       hidden = true,
       description = "Use this method to generate a CycloneDX SBOM for an application." +
           "<p>" +
-          "Permissions Required: View IQ Elements"
-  )
+          "Permissions Required: View IQ Elements")
   @ApiResponse(responseCode = "200", description = "A downloadable file will be generated.",
       content = @Content(
-          mediaType = "application/xml"
-      ))
+          mediaType = "application/xml"))
   public Response getLatest(
       @Parameter(description = "Enter the internal applicationId for the application you want to generate the SBOM. " +
-          "You can also retrieve it using the Application REST API", required = true) @PathParam("applicationId")
-      String applicationId,
-      @Parameter(description =
-          "Enter the stageId to generate the SBOM based on the latest application policy evaluation at that stage. " +
+          "You can also retrieve it using the Application REST API",
+          required = true) @PathParam("applicationId") String applicationId,
+      @Parameter(
+          description = "Enter the stageId to generate the SBOM based on the latest application policy evaluation at that stage. "
+              +
               "Allowed values for stageId are 'develop', 'source', 'build', 'stage-release', 'release', and, " +
-              "'operate'.")
-      @PathParam("stageId")
-      String stageId)
+              "'operate'.") @PathParam("stageId") String stageId)
   {
     return apiCycloneDxService.getLatest(applicationId, stageId, MediaType.APPLICATION_XML, Version.VERSION_11);
   }
@@ -105,25 +102,23 @@ public class ApiCycloneDxResourceV2
   @Operation(
       description = "Use this method to generate a CycloneDX SBOM for an application." +
           "<p>" +
-          "Permissions Required: View IQ Elements"
-  )
+          "Permissions Required: View IQ Elements")
   @ApiResponse(responseCode = "200", description = "A downloadable file will be generated.",
       content = {
-          @Content(mediaType = "application/json"),
-          @Content(mediaType = "application/xml")
+        @Content(mediaType = "application/json"),
+        @Content(mediaType = "application/xml")
       })
   public Response getLatest(
       @Parameter(description = "Enter the internal applicationId for the application you want to generate the SBOM. " +
-          "You can also retrieve the applicationId using the Application REST API.", required = true)
-      @PathParam("applicationId") String applicationId,
-      @Parameter(description =
-          "Enter the stageId to generate the SBOM based on the latest application policy evaluation at that stage. " +
+          "You can also retrieve the applicationId using the Application REST API.",
+          required = true) @PathParam("applicationId") String applicationId,
+      @Parameter(
+          description = "Enter the stageId to generate the SBOM based on the latest application policy evaluation at that stage. "
+              +
               "Allowed values for stageId are 'develop', 'source', 'build', 'stage-release', 'release', and, " +
-              "'operate'.")
-      @PathParam("stageId")
-      String stageId,
-      @Parameter(description = "Possible values are 1.1|1.2|1.3|1.4|1.5|1.6.") @PathParam("cdxVersion")
-      String cycloneDxVersion,
+              "'operate'.") @PathParam("stageId") String stageId,
+      @Parameter(
+          description = "Possible values are 1.1|1.2|1.3|1.4|1.5|1.6.") @PathParam("cdxVersion") String cycloneDxVersion,
       @Context HttpHeaders headers)
   {
     String acceptType = determineAcceptableMediaType(headers);
@@ -140,16 +135,14 @@ public class ApiCycloneDxResourceV2
       hidden = true,
       description = "Use this method to generate a CycloneDX SBOM for an application." +
           "<p>" +
-          "Permissions Required: View IQ Elements"
-  )
+          "Permissions Required: View IQ Elements")
   @ApiResponse(responseCode = "200", description = "A downloadable file will be generated.",
       content = @Content(
-          mediaType = "application/xml"
-      ))
+          mediaType = "application/xml"))
   public Response getByReportId(
       @Parameter(description = "Enter the internal applicationId for the application you want to generate the SBOM. " +
-          "You can also retrieve the applicationId using the Application REST API.", required = true)
-      @PathParam("applicationId") String applicationId,
+          "You can also retrieve the applicationId using the Application REST API.",
+          required = true) @PathParam("applicationId") String applicationId,
       @Parameter(description = "Enter the reportId to generate the SBOM for the application for a specific " +
           "scan report.") @PathParam("reportId") String reportId)
   {
@@ -169,17 +162,17 @@ public class ApiCycloneDxResourceV2
   )
   @ApiResponse(responseCode = "200", description = "A downloadable file will be generated.",
       content = {
-          @Content(mediaType = "application/json"),
-          @Content(mediaType = "application/xml")
+        @Content(mediaType = "application/json"),
+        @Content(mediaType = "application/xml")
       })
   public Response getByReportId(
       @Parameter(description = "Enter the internal applicationId for the application you want to generate the SBOM. " +
-          "You can also retrieve the applicationId using the Application REST API.", required = true)
-      @PathParam("applicationId") String applicationId,
+          "You can also retrieve the applicationId using the Application REST API.",
+          required = true) @PathParam("applicationId") String applicationId,
       @Parameter(description = "Enter the reportId to generate the SBOM for the application for a " +
           "specific scan report.") @PathParam("reportId") String reportId,
-      @Parameter(description = "Possible values are 1.1|1.2|1.3|1.4|1.5|1.6.") @PathParam("cdxVersion")
-      String cycloneDxVersion,
+      @Parameter(
+          description = "Possible values are 1.1|1.2|1.3|1.4|1.5|1.6.") @PathParam("cdxVersion") String cycloneDxVersion,
       @Context HttpHeaders headers)
   {
     String acceptType = determineAcceptableMediaType(headers);

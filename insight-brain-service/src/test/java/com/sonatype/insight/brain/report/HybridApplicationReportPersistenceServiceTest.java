@@ -114,9 +114,9 @@ public class HybridApplicationReportPersistenceServiceTest
   @Parameters
   public static List<Object[]> dataStoreTypes() {
     return Arrays.asList(new Object[][]{
-        {new LinkedHashSet<>(List.of(DataStoreType.S3, DataStoreType.FILE))},
-        {new LinkedHashSet<>(List.of(DataStoreType.FILE, DataStoreType.S3))},
-        });
+      {new LinkedHashSet<>(List.of(DataStoreType.S3, DataStoreType.FILE))},
+      {new LinkedHashSet<>(List.of(DataStoreType.FILE, DataStoreType.S3))},
+    });
   }
 
   private final LinkedHashSet<DataStoreType> dataStoreTypes;
@@ -130,8 +130,7 @@ public class HybridApplicationReportPersistenceServiceTest
     super.configure(binder);
     AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
         localstack.getContainer().getAccessKey(),
-        localstack.getContainer().getSecretKey()
-    ));
+        localstack.getContainer().getSecretKey()));
     binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }
 
@@ -142,8 +141,7 @@ public class HybridApplicationReportPersistenceServiceTest
         .credentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create(
                 localstack.getContainer().getAccessKey(),
-                localstack.getContainer().getSecretKey()
-            )))
+                localstack.getContainer().getSecretKey())))
         .build();
   }
 
@@ -175,7 +173,9 @@ public class HybridApplicationReportPersistenceServiceTest
     s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
         .contents()
         .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
-            .bucket(BUCKET_NAME).key(obj.key()).build()));
+            .bucket(BUCKET_NAME)
+            .key(obj.key())
+            .build()));
   }
 
   @Test
@@ -464,8 +464,7 @@ public class HybridApplicationReportPersistenceServiceTest
         APP_ID,
         SCAN_ID,
         entry,
-        new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
-    );
+        new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
 
     ApplicationReportPersistenceService applicationReportPersistenceService =
         applicationReportPersistenceServiceProvider.get(dataStoreTypes.iterator().next());
@@ -483,8 +482,7 @@ public class HybridApplicationReportPersistenceServiceTest
         APP_ID,
         SCAN_ID,
         entry,
-        new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
-    );
+        new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
 
     ApplicationReportPersistenceService applicationReportPersistenceService =
         applicationReportPersistenceServiceProvider.get(dataStoreTypes.iterator().next());

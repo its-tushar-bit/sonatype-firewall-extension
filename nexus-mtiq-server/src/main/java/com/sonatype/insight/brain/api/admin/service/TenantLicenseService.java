@@ -47,12 +47,14 @@ public class TenantLicenseService
    * Installs/Update a license for a tenant
    *
    * @param inputStream the input stream of the license file
-   * @param fileName    the file name
-   * @param tenantSlug  the tenant name
+   * @param fileName the file name
+   * @param tenantSlug the tenant name
    */
   public void updateLicense(final InputStream inputStream, final String fileName, final String tenantSlug) {
-    /* Proper validations for the tenant name were executed as part of the AdminTenantFilter.
-     * Here we are just checking we are not using the global tenant */
+    /*
+     * Proper validations for the tenant name were executed as part of the AdminTenantFilter.
+     * Here we are just checking we are not using the global tenant
+     */
     if (tenantUtil.isGlobalTenant()) {
       throw new BadRequestException("Invalid tenant");
     }

@@ -45,12 +45,13 @@ public class AverageDiscoveredPolicyViolationsDTO
     this.otherViolations = new ThreatCategoryPolicyViolationsDTO();
   }
 
-  public AverageDiscoveredPolicyViolationsDTO(double evaluationCount,
-                                              ThreatCategoryPolicyViolationsDTO totalViolations,
-                                              ThreatCategoryPolicyViolationsDTO securityViolations,
-                                              ThreatCategoryPolicyViolationsDTO licenseViolations,
-                                              ThreatCategoryPolicyViolationsDTO qualityViolations,
-                                              ThreatCategoryPolicyViolationsDTO otherViolations)
+  public AverageDiscoveredPolicyViolationsDTO(
+      double evaluationCount,
+      ThreatCategoryPolicyViolationsDTO totalViolations,
+      ThreatCategoryPolicyViolationsDTO securityViolations,
+      ThreatCategoryPolicyViolationsDTO licenseViolations,
+      ThreatCategoryPolicyViolationsDTO qualityViolations,
+      ThreatCategoryPolicyViolationsDTO otherViolations)
   {
     this.evaluationCount = evaluationCount;
 

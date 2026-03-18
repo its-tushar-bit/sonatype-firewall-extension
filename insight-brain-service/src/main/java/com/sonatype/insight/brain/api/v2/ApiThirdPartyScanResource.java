@@ -77,25 +77,20 @@ public class ApiThirdPartyScanResource
       "\n" +
       "Permissions required: Evaluate Applications",
       responses = {
-          @ApiResponse(responseCode = "202",
-              description = "The response contains a `statusUrl` containing the applicationId and statusId " +
-                  "that can be used to check the progress of the SBOM evaluation.",
-              content = @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ApiThirdPartyScanTicketDTO.class)
-              )
-          )
+        @ApiResponse(responseCode = "202",
+            description = "The response contains a `statusUrl` containing the applicationId and statusId " +
+                "that can be used to check the progress of the SBOM evaluation.",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiThirdPartyScanTicketDTO.class)))
       })
   public Response scanComponents(
       @Parameter(description = "Enter the application internal id. Use the Applications REST API to retrieve the" +
-          "application internal id.", required = true)
-      @PathParam("applicationId") final String applicationId,
+          "application internal id.", required = true) @PathParam("applicationId") final String applicationId,
       @Parameter(description = "Specify the specification name of the SBOM to be evaluated. " +
-          "Allowed values are `cyclonedx` and `spdx`", required = true)
-      @PathParam("source") final String source,
+          "Allowed values are `cyclonedx` and `spdx`", required = true) @PathParam("source") final String source,
       @Parameter(description = "Enter the stageId to run the evaluation for. The policy actions will be determined " +
-          "by the stage selected. Allowed values are `develop`, `build`, `stage-release`, `release` and `operate`")
-      @DefaultValue("build") @QueryParam("stageId") final String stageId,
+          "by the stage selected. Allowed values are `develop`, `build`, `stage-release`, `release` and `operate`") @DefaultValue("build") @QueryParam("stageId") final String stageId,
       @Context final HttpServletRequest request,
       @RequestBody(description = "Select the request header content-type from the dropdown, depending on whether " +
           "the SBOM is in XML or JSON format." +
@@ -109,8 +104,7 @@ public class ApiThirdPartyScanResource
           "<li>Component name and version</li></ol>" +
           "\n" +
           "\n" +
-          "Any SPE and SWID tags for the component will be preserved in the evaluation report."
-      ) final String sbom)
+          "Any SPE and SWID tags for the component will be preserved in the evaluation report.") final String sbom)
   {
     SbomFormat format =
         request.getContentType().equalsIgnoreCase(MediaType.APPLICATION_XML) ? SbomFormat.XML : SbomFormat.JSON;
@@ -128,27 +122,24 @@ public class ApiThirdPartyScanResource
       "\n" +
       "Permissions required: Evaluate Applications",
       responses = {
-          @ApiResponse(
-              responseCode = "404",
-              description = "Evaluation report is not ready."),
-          @ApiResponse(
-              responseCode = "200",
-              description =
-                  "The response contains summarized results of the SBOM evaluation and the URLs for detailed " +
-                      "evaluation reports in HTML, pdf and raw formats." +
-                      "\n" +
-                      "\n" +
-                      "`policyAction` indicates the policy actions determined by the `stageId` selected while " +
-                      "submitting the evaluation using the POST method.",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(
+            responseCode = "404",
+            description = "Evaluation report is not ready."),
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains summarized results of the SBOM evaluation and the URLs for detailed " +
+                "evaluation reports in HTML, pdf and raw formats." +
+                "\n" +
+                "\n" +
+                "`policyAction` indicates the policy actions determined by the `stageId` selected while " +
+                "submitting the evaluation using the POST method.",
+            useReturnTypeSchema = true)
+      })
   public ApiThirdPartyScanResultDTO getScanStatus(
-      @Parameter(description = "Enter the application internal id for the SBOM to be evaluated.", required = true)
-      @PathParam("applicationId") String applicationId,
+      @Parameter(description = "Enter the application internal id for the SBOM to be evaluated.",
+          required = true) @PathParam("applicationId") String applicationId,
       @Parameter(description = "Enter the statusId from the statusUrl generated as a response to the POST request to " +
-          "perform the evaluation.", required = true)
-      @PathParam("scanRequestId") String scanRequestId)
+          "perform the evaluation.", required = true) @PathParam("scanRequestId") String scanRequestId)
   {
     return thirdPartyScanService.getScanStatus(applicationId, scanRequestId);
   }

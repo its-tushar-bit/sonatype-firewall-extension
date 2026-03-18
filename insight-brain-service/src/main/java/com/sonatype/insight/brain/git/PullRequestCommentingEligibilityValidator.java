@@ -24,7 +24,7 @@ public class PullRequestCommentingEligibilityValidator
   {
     boolean isEligibleForLineCommenting = sourceControlProvider.supportsCodeInsights()
         || (SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.isEnabled()
-        && sourceControlProvider.supportsPullRequestLineCommenting());
+            && sourceControlProvider.supportsPullRequestLineCommenting());
     return isEligibleForLineCommenting && policyViolationDiff.hasAppeared();
   }
 

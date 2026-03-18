@@ -299,7 +299,7 @@ public class DeleteTenantsJobTest
 
       @Override
       public void execute(JobExecutionContext context) throws JobExecutionException {
-        //no-op
+        // no-op
       }
     };
   }

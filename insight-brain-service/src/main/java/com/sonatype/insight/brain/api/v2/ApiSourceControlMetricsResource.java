@@ -61,23 +61,23 @@ public class ApiSourceControlMetricsResource
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains `results` which is a list of elements, each including: " +
-                  "<ul>" +
-                  "<li>`startTime` indicates the start time of the pull request.</li>" +
-                  "<li>`title` indicates the title of the pull request.</li>" +
-                  "<li>`exceptionThrown` indicates if the pull request caused an exception.</li>" +
-                  "<li>`successful` indicates if the pull request was successful.</li>" +
-                  "<li>`totalTime` indicates the total time taken to complete the pull request.</li>" +
-                  "<li>`reasoning` indicates the summary of the outcome of the pull request.</li>" +
-                  "</ul>",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains `results` which is a list of elements, each including: " +
+                "<ul>" +
+                "<li>`startTime` indicates the start time of the pull request.</li>" +
+                "<li>`title` indicates the title of the pull request.</li>" +
+                "<li>`exceptionThrown` indicates if the pull request caused an exception.</li>" +
+                "<li>`successful` indicates if the pull request was successful.</li>" +
+                "<li>`totalTime` indicates the total time taken to complete the pull request.</li>" +
+                "<li>`reasoning` indicates the summary of the outcome of the pull request.</li>" +
+                "</ul>",
+            useReturnTypeSchema = true)
       })
   public ApiPullRequestResults getSourceControl(
-      @Parameter(description = "Select the ownerType for the pull requests.")
-      @PathParam("ownerType") OwnerType ownerType,
-      @Parameter(description = "Enter the ownerId corresponding to the ownerType.")
-      @PathParam("internalOwnerId") String internalOwnerId)
+      @Parameter(
+          description = "Select the ownerType for the pull requests.") @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(
+          description = "Enter the ownerId corresponding to the ownerType.") @PathParam("internalOwnerId") String internalOwnerId)
   {
     return sourceControlService.getSourceControlMetricsForApplication(ownerType, internalOwnerId);
   }

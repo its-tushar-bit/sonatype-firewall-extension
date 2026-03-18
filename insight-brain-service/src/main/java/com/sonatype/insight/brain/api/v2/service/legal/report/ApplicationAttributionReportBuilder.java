@@ -181,7 +181,7 @@ public class ApplicationAttributionReportBuilder
     Set<Optional<ApiLicenseLegalApplicationReportDTO>> applicationReportDTOSet =
         apiLicenseLegalService.getLicenseLegalMultiApplicationReport(applications, stageIds,
             reportParameters.isIncludeInnerSource(), reportParameters.isIncludeSonatypeSpecialLicenses());
-    
+
     ApiLicenseLegalApplicationReportDTO applicationReportDTO = mergeApplicationReports(applicationReportDTOSet);
     Map<String, Object> contextMap = buildContextMap(null, applicationReportDTO, reportParameters);
     return templateEngine.process(APPLICATION_ATTRIBUTION_REPORT, new Context(Locale.getDefault(), contextMap));
@@ -202,10 +202,12 @@ public class ApplicationAttributionReportBuilder
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = new HashSet<>();
     for (Optional<ApiLicenseLegalApplicationReportDTO> apiLicenseLegalApplicationReportDTO : applicationReportDTOS) {
       if (apiLicenseLegalApplicationReportDTO.isPresent()) {
-        components.addAll(apiLicenseLegalApplicationReportDTO.get().components.stream().filter(Objects::nonNull)
+        components.addAll(apiLicenseLegalApplicationReportDTO.get().components.stream()
+            .filter(Objects::nonNull)
             .collect(Collectors.toList()));
         licenseLegalMetadata.addAll(apiLicenseLegalApplicationReportDTO.get().licenseLegalMetadata.stream()
-            .filter(Objects::nonNull).collect(Collectors.toSet()));
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet()));
       }
     }
     return new ApiLicenseLegalApplicationReportDTO(components, licenseLegalMetadata);
@@ -216,14 +218,14 @@ public class ApplicationAttributionReportBuilder
       final ApiLicenseLegalApplicationReportDTO applicationReportDTO,
       final LegalCustomReportParameters reportParameters)
   {
-    //Map obligation DB names to human readable names
+    // Map obligation DB names to human readable names
     Map<String, String> obligationNameMap = new HashMap<>(4);
     obligationNameMap.put("Must State Changes", "Stated Changes");
     obligationNameMap.put("Inclusion of Install Instructions", "Install Instructions");
     obligationNameMap.put("Must Give Credit", "Give Credit");
     obligationNameMap.put(null, "Additional Attributions");
 
-    //Map application data
+    // Map application data
     Map<String, Object> contextMap = new HashMap<>(3);
     contextMap.put("applicationReport", applicationReportDTO);
     if (application != null) {
@@ -231,31 +233,31 @@ public class ApplicationAttributionReportBuilder
     }
     contextMap.put("obligationNameMap", obligationNameMap);
 
-    //Map Custom Report data
+    // Map Custom Report data
     contextMap.put("reportParameters", reportParameters);
 
-    Map<String, String> licenseIdToLicenseText = applicationReportDTO.licenseLegalMetadata == null ? new HashMap<>() :
-        applicationReportDTO.licenseLegalMetadata.stream()
+    Map<String, String> licenseIdToLicenseText = applicationReportDTO.licenseLegalMetadata == null
+        ? new HashMap<>()
+        : applicationReportDTO.licenseLegalMetadata.stream()
             .filter(l -> StringUtils.isNotEmpty(l.licenseText))
             .collect(Collectors.toMap(
                 l -> l.licenseId,
-                l -> l.licenseText
-            ));
+                l -> l.licenseText));
 
-    //Map Component Purl --> List<Pair<licenseId, Standard License text>>
+    // Map Component Purl --> List<Pair<licenseId, Standard License text>>
     Map<String, List<Pair<String, String>>> purlToStandardLicenseText = new HashMap<>();
 
-    //Map ComponentPurl+'-'+licenseId --> LicenseLink
+    // Map ComponentPurl+'-'+licenseId --> LicenseLink
     // A license will either link to the standard text, or the license file. The logic is easier to determine here than
     // within the thymeleaf template.
     Map<String, String> purlLicenseToLicenseLink = new HashMap<>();
 
-    //Map licenseId --> License Text. Not all licenses of the application will be present in this map, only
+    // Map licenseId --> License Text. Not all licenses of the application will be present in this map, only
     // licenses for components which don't have license files. That is, when a component does not have license files
     // then we need to include standard license text to the report.
     Map<String, String> licenseIdToStandardLicenseText = new HashMap<>();
 
-    //Map Component Purl --> String (formatted link)
+    // Map Component Purl --> String (formatted link)
     Map<String, String> purlToFormattedLinks = new HashMap<>();
     Map<String, LegalSourceLinkDTO[]> purlToEnabledLinks = new HashMap<>();
     if (applicationReportDTO.components != null) {
@@ -274,8 +276,9 @@ public class ApplicationAttributionReportBuilder
                 k -> new ArrayList<>()).add(Pair.of(effectiveLicense, licenseIdToLicenseText.get(effectiveLicense)));
             purlLicenseToLicenseLink
                 .put(purlLicenseKey,
-                    reportParameters.isIncludeAppendix() ?
-                        "standard-" + effectiveLicense : componentDTO.packageUrl + "-standard-" + effectiveLicense);
+                    reportParameters.isIncludeAppendix()
+                        ? "standard-" + effectiveLicense
+                        : componentDTO.packageUrl + "-standard-" + effectiveLicense);
             licenseIdToStandardLicenseText.putIfAbsent(effectiveLicense, licenseIdToLicenseText.get(effectiveLicense));
           }
           else if (hasLicenseFiles) {
@@ -323,9 +326,11 @@ public class ApplicationAttributionReportBuilder
 
       String firstLink = links[0].content;
       if (sourceLinks.size() > 1) {
-        String linksCommaSeparated = sourceLinks.stream().map(o -> o.content)
+        String linksCommaSeparated = sourceLinks.stream()
+            .map(o -> o.content)
             .collect(Collectors.joining(", "));
-        return linksCommaSeparated.length() > 55 ? linksCommaSeparated.substring(0, 55) + "..., "
+        return linksCommaSeparated.length() > 55
+            ? linksCommaSeparated.substring(0, 55) + "..., "
             : firstLink + ", ";
       }
       else {

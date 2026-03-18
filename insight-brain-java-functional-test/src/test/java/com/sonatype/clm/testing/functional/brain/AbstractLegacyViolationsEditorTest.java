@@ -103,12 +103,14 @@ public abstract class AbstractLegacyViolationsEditorTest
     }
     else {
       LegacyViolationsEditorPage.policyRadioButttons().shouldHave(size(3));
-      LegacyViolationsEditorPage.policyRadioButttons().get(0)
-              .shouldHave(text("Inherit from parent (Disabled)"));
+      LegacyViolationsEditorPage.policyRadioButttons()
+          .get(0)
+          .shouldHave(text("Inherit from parent (Disabled)"));
       LegacyViolationsEditorPage.policyRadioButttons().get(1).shouldHave(text("Enabled"));
       LegacyViolationsEditorPage.policyRadioButttons().get(2).shouldHave(text("Disabled"));
       LegacyViolationsEditorPage.legacyViolationInherited(legacyViolationStatusDTO.enabledInParent)
-              .shouldBe(visible).shouldBe(NX_RADIO_SELECTED);
+          .shouldBe(visible)
+          .shouldBe(NX_RADIO_SELECTED);
     }
 
     if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
@@ -160,23 +162,26 @@ public abstract class AbstractLegacyViolationsEditorTest
     else {
       LegacyViolationsEditorPage.policyRadioButttons().shouldHave(size(3));
       LegacyViolationsEditorPage.policyRadioButttons()
-              .get(0).shouldHave(text("Inherit from parent (Disabled)"));
+          .get(0)
+          .shouldHave(text("Inherit from parent (Disabled)"));
       LegacyViolationsEditorPage.policyRadioButttons().get(1).shouldHave(text("Enabled"));
       LegacyViolationsEditorPage.policyRadioButttons().get(2).shouldHave(text("Disabled"));
 
       LegacyViolationsEditorPage.legacyViolationInherited(legacyViolationStatusDTO.enabledInParent)
-              .shouldHave(NX_RADIO_CHECKBOX_DISABLED);
+          .shouldHave(NX_RADIO_CHECKBOX_DISABLED);
       LegacyViolationsEditorPage.legacyViolationDisabled().shouldHave(NX_RADIO_CHECKBOX_DISABLED);
       LegacyViolationsEditorPage.legacyViolationEnabled().shouldHave(NX_RADIO_CHECKBOX_DISABLED);
       LegacyViolationsEditorPage.disabledMessage().shouldBe(visible);
       if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
         LegacyViolationsEditorPage.overridesCheckbox()
-                .shouldHave(NX_RADIO_CHECKBOX_DISABLED).shouldBe(visible);
+            .shouldHave(NX_RADIO_CHECKBOX_DISABLED)
+            .shouldBe(visible);
       }
     }
 
     LegacyViolationsEditorPage.updateButton().click();
-    FormUtils.getAlertElement(LegacyViolationsEditorPage.form()).shouldBe(visible)
+    FormUtils.getAlertElement(LegacyViolationsEditorPage.form())
+        .shouldBe(visible)
         .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
   }
 

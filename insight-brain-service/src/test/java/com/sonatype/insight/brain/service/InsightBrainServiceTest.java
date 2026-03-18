@@ -106,13 +106,13 @@ public class InsightBrainServiceTest
     extends AbstractBrainServiceIntegrationTest
 {
   private static final TelemetryPurpose[] EXPECTED_TELEMETRY_PURPOSES = {
-      TelemetryPurpose.HIERARCHY_METRICS, TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE,
-      TelemetryPurpose.CONFIGURATION_PROPERTIES, TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS,
-      TelemetryPurpose.SOURCE_CONTROL_RATE_LIMITS, TelemetryPurpose.ROLE_USAGE, TelemetryPurpose.RUNTIME_ENVIRONMENT,
-      TelemetryPurpose.REPOSITORY_CONFIGURATION, TelemetryPurpose.CLUSTER_USAGE, TelemetryPurpose.REAL_OWNER_IDS,
-      TelemetryPurpose.REAL_OWNER_IDS, // One for apps and another for organizations
-      TelemetryPurpose.APPLICATION_CATEGORY,
-      TelemetryPurpose.CLUSTER_IDENTITY
+    TelemetryPurpose.HIERARCHY_METRICS, TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE,
+    TelemetryPurpose.CONFIGURATION_PROPERTIES, TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS,
+    TelemetryPurpose.SOURCE_CONTROL_RATE_LIMITS, TelemetryPurpose.ROLE_USAGE, TelemetryPurpose.RUNTIME_ENVIRONMENT,
+    TelemetryPurpose.REPOSITORY_CONFIGURATION, TelemetryPurpose.CLUSTER_USAGE, TelemetryPurpose.REAL_OWNER_IDS,
+    TelemetryPurpose.REAL_OWNER_IDS, // One for apps and another for organizations
+    TelemetryPurpose.APPLICATION_CATEGORY,
+    TelemetryPurpose.CLUSTER_IDENTITY
   };
 
   @Rule
@@ -175,8 +175,9 @@ public class InsightBrainServiceTest
 
     Date expectedMinCreateTime = new Date();
     startIqTestServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> responses.put(
-            new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
-        .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
+        new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
+        .andStatus(204)
+        .atUri(TelemetrySender.RESOURCE_PATH));
     temporarilyEnableQuartzTelemetry();
     await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(EXPECTED_TELEMETRY_PURPOSES.length));
     Date expectedMaxCreateTime = new Date();
@@ -307,15 +308,18 @@ public class InsightBrainServiceTest
     Map<ByteArrayDataSource, Integer> responses = new ConcurrentHashMap<>();
     Date expectedMinCreateTime = new Date();
     startIqTestServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> responses.put(
-            new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
-        .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
+        new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
+        .andStatus(204)
+        .atUri(TelemetrySender.RESOURCE_PATH));
 
     assertResponseStatus(404,
         restRequest().path(PublicApiPaths.USER_RESOURCE_PATH_V2, ApiUserResource.USERNAME_PATH)
-            .parameter("sensitiveUsername").get());
+            .parameter("sensitiveUsername")
+            .get());
     assertResponseStatus(404,
         restRequest().path(PublicApiPaths.USER_RESOURCE_PATH_V2, ApiUserResource.USERNAME_PATH)
-            .parameter("otherUsername").get());
+            .parameter("otherUsername")
+            .get());
     assertResponseStatus(404, restRequest()
         .path(PublicApiPaths.ROLE_MEMBERSHIP_PATH_V2, ApiRoleMembershipResource.APPLICATION_OR_ORGANIZATION)
         .parameter("organization", "orgId", "roleId", "user", "sensitiveUsername")
@@ -330,18 +334,20 @@ public class InsightBrainServiceTest
     Collection<TelemetryData> allTelemetryData =
         assertTelemetry(responses, expectedMinCreateTime, expectedMaxCreateTime);
     Collection<TelemetryData> restEndpointUsageTelemetryData =
-        allTelemetryData.stream().filter(t -> t.getPurpose().equals(TelemetryPurpose.REST_ENDPOINT_USAGE))
+        allTelemetryData.stream()
+            .filter(t -> t.getPurpose().equals(TelemetryPurpose.REST_ENDPOINT_USAGE))
             .collect(Collectors.toList());
     RestEndpointTelemetry[] expected = new RestEndpointTelemetry[]{
-        new RestEndpointTelemetry("GET", "/api/v2/users/{username}", 2),
-        new RestEndpointTelemetry("PUT",
-            "/api/v2/roleMemberships/{ownerType}/{internalOwnerId}/role/{roleId}/{memberType}/{memberName}", 1)
+      new RestEndpointTelemetry("GET", "/api/v2/users/{username}", 2),
+      new RestEndpointTelemetry("PUT",
+          "/api/v2/roleMemberships/{ownerType}/{internalOwnerId}/role/{roleId}/{memberType}/{memberName}", 1)
     };
     assertThat(restEndpointUsageTelemetryData)
         .extracting(t -> JsonUtils
             .asPojo(JsonUtils.asTree(t.getAttributes().get(TelemetryContainerRequestFilter.REST_ENDPOINT_TELEMETRY)),
                 RestEndpointTelemetry.class))
-        .usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(expected);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(expected);
   }
 
   @Test
@@ -378,8 +384,9 @@ public class InsightBrainServiceTest
     });
     InsightConfig insightConfig = getCLMServer().getConfiguration();
 
-    LogbackAccessRequestLogFactory logbackAccessRequestLogFactory = (LogbackAccessRequestLogFactory)
-        ((AbstractServerFactory) insightConfig.getServerFactory()).getRequestLogFactory();
+    LogbackAccessRequestLogFactory logbackAccessRequestLogFactory =
+        (LogbackAccessRequestLogFactory) ((AbstractServerFactory) insightConfig.getServerFactory())
+            .getRequestLogFactory();
     List<? extends AppenderFactory<?>> accessAppenders = logbackAccessRequestLogFactory.getAppenders();
     assertThat(((ConsoleAppenderFactory<?>) accessAppenders.get(0)).getLogFormat())
         .isEqualTo(InsightConfigurationFactory.DEFAULT_REQUEST_LOG_FORMAT);
@@ -487,7 +494,8 @@ public class InsightBrainServiceTest
       @Override
       public String getConfigFilePath() {
         return InsightBrainService.class
-            .getResource("/InsightBrainServiceTest/config-with-feature-flags.yml").getFile();
+            .getResource("/InsightBrainServiceTest/config-with-feature-flags.yml")
+            .getFile();
       }
     });
     InsightConfig config = getCLMServer().getConfiguration();
@@ -514,7 +522,7 @@ public class InsightBrainServiceTest
     assertThat(getCLMServer().getInstance(DashboardViolationRiskService.class)).isInstanceOf(
         H2DashboardViolationRiskService.class);
     assertThat(getCLMServer().getInstance(DashboardComponentRiskService.class))
-            .isInstanceOf(H2ComponentRiskService.class);
+        .isInstanceOf(H2ComponentRiskService.class);
     assertThat(getCLMServer().getInstance(ApplicationRiskService.class)).isInstanceOf(H2ApplicationRiskService.class);
   }
 
@@ -530,7 +538,8 @@ public class InsightBrainServiceTest
       @Override
       public String getConfigFilePath() {
         return InsightBrainService.class
-            .getResource("/InsightBrainServiceTest/config-with-max-connections-below-min.yml").getFile();
+            .getResource("/InsightBrainServiceTest/config-with-max-connections-below-min.yml")
+            .getFile();
       }
     };
     assertThatExceptionOfType(IllegalStateException.class)
@@ -551,7 +560,8 @@ public class InsightBrainServiceTest
       @Override
       public String getConfigFilePath() {
         return InsightBrainService.class
-            .getResource("/InsightBrainServiceTest/config-with-max-connections-above-max.yml").getFile();
+            .getResource("/InsightBrainServiceTest/config-with-max-connections-above-max.yml")
+            .getFile();
       }
     };
     assertThatExceptionOfType(IllegalStateException.class)

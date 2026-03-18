@@ -71,8 +71,15 @@ public class AiModelContentConditionTypeTest
         new ConditionTrigger(0, new TriggerAiModelContentType(AiModelContentType.OBJECTIONABLE.getId()));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, AiModelContentConditionType.ID,
         expectedConditionTrigger, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("AI model is Objectionable");
   }
 
@@ -113,8 +120,15 @@ public class AiModelContentConditionTypeTest
         new ConditionTrigger(0, new TriggerAiModelContentType(AiModelContentType.OBJECTIONABLE.getId()));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, AiModelContentConditionType.ID,
         expectedConditionTrigger, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("AI model is not Objectionable");
   }
 

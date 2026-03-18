@@ -34,7 +34,8 @@ public class ApiVersionEvaluationWindowService
 
   @Authorize(permission = Permission.READ)
   public ApiVersionEvaluationWindowsDTO getVersionEvaluationWindows(@AuthzContext(Key.OWNER) final Owner owner) {
-    return new ApiVersionEvaluationWindowsDTO(versionEvaluationWindowDAO.getByOwnerId(owner.getId()).stream()
+    return new ApiVersionEvaluationWindowsDTO(versionEvaluationWindowDAO.getByOwnerId(owner.getId())
+        .stream()
         .map(this::toDTO)
         .toList());
   }
@@ -85,7 +86,6 @@ public class ApiVersionEvaluationWindowService
     return new ApiVersionEvaluationWindowDTO(
         window.getContextId(),
         window.getMaxVersions(),
-        window.getMaxAgeInDays()
-    );
+        window.getMaxAgeInDays());
   }
 }

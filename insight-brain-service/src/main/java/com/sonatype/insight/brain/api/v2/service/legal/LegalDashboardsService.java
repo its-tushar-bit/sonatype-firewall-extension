@@ -56,7 +56,8 @@ public class LegalDashboardsService
       ObligationStatus status = obligations.stream()
           .filter(o -> o.getObligationName().equals(obligationName))
           .map(ComponentObligation::getStatus)
-          .findFirst().orElse(ObligationStatus.OPEN);
+          .findFirst()
+          .orElse(ObligationStatus.OPEN);
 
       switch (status) {
         case FLAGGED:
@@ -85,7 +86,8 @@ public class LegalDashboardsService
       reviewStatus = LicenseObligationReviewStatus.FLAGGED;
     }
     else if (isEmpty(allObligationNames)) {
-      reviewStatus = isEmptyOrUnspecifiedLicenses(multiLicenseIds) ? LicenseObligationReviewStatus.UNREVIEWED
+      reviewStatus = isEmptyOrUnspecifiedLicenses(multiLicenseIds)
+          ? LicenseObligationReviewStatus.UNREVIEWED
           : LicenseObligationReviewStatus.COMPLETED;
     }
     else if (openCount == allObligationNames.size()) {
@@ -98,11 +100,16 @@ public class LegalDashboardsService
   }
 
   public Map<String, Set<String>> getLicenseObligationsFromHds(Set<String> licenseIds) {
-    return licenseIds.isEmpty() ? Collections.emptyMap()
-        : apiLicenseLegalHdsService.getLicenseMetadata(licenseIds).parallelStream()
+    return licenseIds.isEmpty()
+        ? Collections.emptyMap()
+        : apiLicenseLegalHdsService.getLicenseMetadata(licenseIds)
+            .parallelStream()
             .collect(Collectors.toMap(LicenseMetadataDTO::getLicenseId, //
                 new TenantAwareFunction<LicenseMetadataDTO, Set<String>>(licenseMetadata -> licenseMetadata
-                    .getLicenseObligations().stream().map(LicenseObligationDTO::getName).collect(Collectors.toSet()))));
+                    .getLicenseObligations()
+                    .stream()
+                    .map(LicenseObligationDTO::getName)
+                    .collect(Collectors.toSet()))));
   }
 
   private boolean isEmptyOrUnspecifiedLicenses(Set<String> licenseIds) {

@@ -72,8 +72,10 @@ public class LicenseStatusConditionType
   }
 
   @Override
-  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
-      throws InvalidConditionException
+  public void validateCondition(
+      TransactionContext tx,
+      Condition condition,
+      String ownerId) throws InvalidConditionException
   {
     super.validateCondition(tx, condition, ownerId);
 

@@ -45,10 +45,10 @@ public class ZScalerPermissionValidatorTest
 
     when(mockZScalerClient.createCustomUrlCategory(eq("http://example.com"), anyString(),
         any(List.class)))
-        .thenReturn(ZScalerOperationResult.success(200, testCategory));
+            .thenReturn(ZScalerOperationResult.success(200, testCategory));
     when(mockZScalerClient.updateCustomUrlCategories(eq("http://example.com"), anyString(),
         eq("test-123"), any(List.class)))
-        .thenReturn(ZScalerOperationResult.success(200));
+            .thenReturn(ZScalerOperationResult.success(200));
     when(mockZScalerClient.deleteCustomUrlCategory(eq("http://example.com"), eq("test-123")))
         .thenReturn(ZScalerOperationResult.success(204));
 
@@ -68,9 +68,8 @@ public class ZScalerPermissionValidatorTest
         .thenReturn(
             ZScalerOperationResult.failure(403, "Failed to create URL category: Forbidden - insufficient permissions"));
 
-    BadRequestException exception = assertThrows(BadRequestException.class, () ->
-        underTest.validatePermissions("http://example.com")
-    );
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> underTest.validatePermissions("http://example.com"));
 
     assertTrue(exception.getMessage().contains("Insufficient ZScaler permissions"));
     assertTrue(exception.getMessage().contains("CUSTOM_URL_CAT"));
@@ -88,14 +87,13 @@ public class ZScalerPermissionValidatorTest
         .thenReturn(ZScalerOperationResult.success(200, testCategory));
     when(mockZScalerClient.updateCustomUrlCategories(eq("http://example.com"), anyString(), eq("test-123"),
         any(List.class)))
-        .thenReturn(ZScalerOperationResult.failure(403,
-            "Failed to update URL category: Forbidden - cannot override existing categories"));
+            .thenReturn(ZScalerOperationResult.failure(403,
+                "Failed to update URL category: Forbidden - cannot override existing categories"));
     when(mockZScalerClient.deleteCustomUrlCategory(eq("http://example.com"), eq("test-123")))
         .thenReturn(ZScalerOperationResult.success(204));
 
-    BadRequestException exception = assertThrows(BadRequestException.class, () ->
-        underTest.validatePermissions("http://example.com")
-    );
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> underTest.validatePermissions("http://example.com"));
 
     // Verify it's a permission error related to ZScaler permissions
     String message = exception.getMessage();
@@ -117,14 +115,13 @@ public class ZScalerPermissionValidatorTest
         .thenReturn(ZScalerOperationResult.success(200, testCategory));
     when(mockZScalerClient.updateCustomUrlCategories(eq("http://example.com"), anyString(), eq("test-123"),
         any(List.class)))
-        .thenReturn(ZScalerOperationResult.success(200));
+            .thenReturn(ZScalerOperationResult.success(200));
     when(mockZScalerClient.deleteCustomUrlCategory(eq("http://example.com"), eq("test-123")))
         .thenReturn(ZScalerOperationResult.failure(500, "Failed to delete URL category test-123: Connection timeout"));
 
     // Delete failures should now fail validation (no more quiet cleanup)
-    BadRequestException exception = assertThrows(BadRequestException.class, () ->
-        underTest.validatePermissions("http://example.com")
-    );
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> underTest.validatePermissions("http://example.com"));
 
     assertTrue(exception.getMessage().contains("permission validation failed"));
     assertTrue(exception.getMessage().contains("manually deleted"));
@@ -142,9 +139,8 @@ public class ZScalerPermissionValidatorTest
     when(mockZScalerClient.createCustomUrlCategory(eq("http://example.com"), anyString(), any(List.class)))
         .thenReturn(ZScalerOperationResult.failure(400, "Failed to create URL category: Quota limit exceeded"));
 
-    BadRequestException exception = assertThrows(BadRequestException.class, () ->
-        underTest.validatePermissions("http://example.com")
-    );
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> underTest.validatePermissions("http://example.com"));
 
     assertTrue(exception.getMessage().contains("quota is full"));
     assertTrue(exception.getMessage().contains("Please free up quota"));
@@ -162,15 +158,14 @@ public class ZScalerPermissionValidatorTest
         .thenReturn(ZScalerOperationResult.success(200, testCategory));
     when(mockZScalerClient.updateCustomUrlCategories(eq("http://example.com"), anyString(), eq("test-123"),
         any(List.class)))
-        .thenReturn(
-            ZScalerOperationResult.failure(400, "Failed to update URL category test-123: Quota limit exceeded"));
+            .thenReturn(
+                ZScalerOperationResult.failure(400, "Failed to update URL category test-123: Quota limit exceeded"));
     when(mockZScalerClient.deleteCustomUrlCategory(eq("http://example.com"), eq("test-123")))
         .thenReturn(ZScalerOperationResult.success(204));
 
     // Quota errors now always fail validation to be honest about what we can validate
-    BadRequestException exception = assertThrows(BadRequestException.class, () ->
-        underTest.validatePermissions("http://example.com")
-    );
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> underTest.validatePermissions("http://example.com"));
 
     assertTrue(exception.getMessage().contains("quota is full"));
     assertTrue(exception.getMessage().contains("Please free up quota"));
@@ -191,10 +186,10 @@ public class ZScalerPermissionValidatorTest
 
     when(mockZScalerClient.createCustomUrlCategory(eq("http://example.com"), anyString(),
         any(List.class)))
-        .thenReturn(ZScalerOperationResult.success(200, testCategory));
+            .thenReturn(ZScalerOperationResult.success(200, testCategory));
     when(mockZScalerClient.updateCustomUrlCategories(eq("http://example.com"), anyString(),
         eq("test-123"), any(List.class)))
-        .thenReturn(ZScalerOperationResult.success(200));
+            .thenReturn(ZScalerOperationResult.success(200));
     when(mockZScalerClient.deleteCustomUrlCategory(eq("http://example.com"), eq("test-123")))
         .thenReturn(ZScalerOperationResult.success(204));
 
@@ -204,13 +199,11 @@ public class ZScalerPermissionValidatorTest
     verify(mockZScalerClient).createCustomUrlCategory(
         eq("http://example.com"),
         anyString(),
-        any(List.class)
-    );
+        any(List.class));
     verify(mockZScalerClient).updateCustomUrlCategories(
         eq("http://example.com"),
         anyString(),
         eq("test-123"),
-        any(List.class)
-    );
+        any(List.class));
   }
 }

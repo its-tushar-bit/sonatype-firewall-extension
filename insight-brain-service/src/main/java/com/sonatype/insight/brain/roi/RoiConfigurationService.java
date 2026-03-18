@@ -40,10 +40,11 @@ public class RoiConfigurationService
   private final TelemetrySender telemetrySender;
 
   @Inject
-  public  RoiConfigurationService(RoiConfigurationDAO roiConfigurationDAO,
-                                  RoiConfigurationDefaultValuesDAO roiConfigurationDefaultValuesDAO,
-                                  SolutionResolver solutionResolver,
-                                  TelemetrySender telemetrySender)
+  public RoiConfigurationService(
+      RoiConfigurationDAO roiConfigurationDAO,
+      RoiConfigurationDefaultValuesDAO roiConfigurationDefaultValuesDAO,
+      SolutionResolver solutionResolver,
+      TelemetrySender telemetrySender)
   {
     this.roiConfigurationDAO = roiConfigurationDAO;
     this.roiConfigurationDefaultValuesDAO = roiConfigurationDefaultValuesDAO;
@@ -58,7 +59,7 @@ public class RoiConfigurationService
     RoiConfigurationDefaultValues roiConfigurationDefaultValues =
         roiConfigurationDefaultValuesDAO.getByCurrencyType(currencyTypeEnum);
 
-    //merge both entities to fetch current and minimum values
+    // merge both entities to fetch current and minimum values
     RoiConfigurationCurrentAndMinimumValuesDTO roiConfigurationCurrentAndMinimumValuesDTO =
         new RoiConfigurationCurrentAndMinimumValuesDTO();
     if (roiConfiguration != null) {
@@ -147,8 +148,7 @@ public class RoiConfigurationService
         roiConfiguration.getBaselineDaysToResolveViolation(),
         defaultValues.getBaselineDaysToResolveViolationMinimum(),
         roiConfiguration.getDailyRiskCostOfUnfixedViolation(),
-        defaultValues.getDailyRiskCostOfUnfixedViolationMinimum()
-    );
+        defaultValues.getDailyRiskCostOfUnfixedViolationMinimum());
   }
 
   private RoiConfiguration validateAndMapToRoiConfiguration(RoiConfigurationDTO roiConfigurationDTO) {
@@ -165,16 +165,14 @@ public class RoiConfigurationService
           roiConfigurationDTO.namespaceAttacksPrevented(),
           roiConfigurationDTO.safeComponentsAutoSelected(),
           roiConfigurationDTO.baselineDaysToResolveViolation(),
-          roiConfigurationDTO.dailyRiskCostOfUnfixedViolation()
-      );
+          roiConfigurationDTO.dailyRiskCostOfUnfixedViolation());
     }
     else if (licensedSolutions.contains(Solution.LIFECYCLE)) {
       validateLifecycleValues(roiConfigurationDTO, roiConfigurationDefaultValues);
       return new RoiConfiguration(
           CurrencyTypes.valueOf(roiConfigurationDTO.currency().name()),
           roiConfigurationDTO.baselineDaysToResolveViolation(),
-          roiConfigurationDTO.dailyRiskCostOfUnfixedViolation()
-      );
+          roiConfigurationDTO.dailyRiskCostOfUnfixedViolation());
     }
     else if (licensedSolutions.contains(Solution.FIREWALL)) {
       validateFirewallValues(roiConfigurationDTO, roiConfigurationDefaultValues);
@@ -229,7 +227,7 @@ public class RoiConfigurationService
     telemetryData.put("namespaceAttacksPrevented", roiConfiguration.getNamespaceAttacksPrevented());
     telemetryData.put("safeComponentsAutoSelected", roiConfiguration.getSafeComponentsAutoSelected());
     telemetryData.put("baselineDaysToResolveViolation", roiConfiguration.getBaselineDaysToResolveViolation());
-    telemetryData.put("dailyRiskCostOfUnfixedViolation",roiConfiguration.getDailyRiskCostOfUnfixedViolation());
+    telemetryData.put("dailyRiskCostOfUnfixedViolation", roiConfiguration.getDailyRiskCostOfUnfixedViolation());
     telemetrySender.send(telemetryData);
   }
 
@@ -241,8 +239,7 @@ public class RoiConfigurationService
         roiConfiguration.getNamespaceAttacksPrevented(),
         roiConfiguration.getSafeComponentsAutoSelected(),
         roiConfiguration.getBaselineDaysToResolveViolation(),
-        roiConfiguration.getDailyRiskCostOfUnfixedViolation()
-    );
+        roiConfiguration.getDailyRiskCostOfUnfixedViolation());
   }
 
   private <T extends Comparable<T>> void validateValue(String fieldName, T value, T minimumValue) {

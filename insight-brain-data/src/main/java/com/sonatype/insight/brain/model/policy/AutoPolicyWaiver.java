@@ -60,8 +60,7 @@ public class AutoPolicyWaiver
       boolean pathForward,
       String creatorId,
       String creatorName,
-      Date createTime
-  )
+      Date createTime)
   {
     this.id = id;
     this.ownerId = ownerId;
@@ -80,8 +79,7 @@ public class AutoPolicyWaiver
       boolean pathForward,
       String creatorId,
       String creatorName,
-      Date createTime
-  )
+      Date createTime)
   {
     this.ownerId = ownerId;
     this.threatLevel = threatLevel;
@@ -100,8 +98,7 @@ public class AutoPolicyWaiver
       String creatorId,
       String creatorName,
       Date createTime,
-      boolean scopesOperatorAny
-  )
+      boolean scopesOperatorAny)
   {
     this.ownerId = ownerId;
     this.threatLevel = threatLevel;

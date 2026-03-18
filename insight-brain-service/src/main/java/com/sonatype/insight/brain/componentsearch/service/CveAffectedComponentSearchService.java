@@ -98,11 +98,11 @@ public class CveAffectedComponentSearchService
    * Applies multi-level sorting (primary field, then applicationName, then componentName) and
    * enriches results with remediation guidance.
    *
-   * @param cveIds     the CVE identifiers to search for
+   * @param cveIds the CVE identifiers to search for
    * @param pageNumber one-based page number (first page is 1)
-   * @param pageSize   number of results per page
-   * @param sortBy     field to sort by, or null for default multi-field sort (applicationName → componentName → cveId)
-   * @param sortOrder  sort direction ("asc" or "desc")
+   * @param pageSize number of results per page
+   * @param sortBy field to sort by, or null for default multi-field sort (applicationName → componentName → cveId)
+   * @param sortOrder sort direction ("asc" or "desc")
    * @return paginated result containing total count and sorted matches
    */
   public ComponentSearchPageResultDTO searchCveAffectedComponentsPaginated(
@@ -136,7 +136,8 @@ public class CveAffectedComponentSearchService
       return Stream.empty();
     }
 
-    Set<AffectedCoordinates> allAffectedCoordinates = cveToCoordinatesMap.values().stream()
+    Set<AffectedCoordinates> allAffectedCoordinates = cveToCoordinatesMap.values()
+        .stream()
         .flatMap(Set::stream)
         .collect(Collectors.toSet());
 
@@ -160,8 +161,7 @@ public class CveAffectedComponentSearchService
               application,
               evaluations,
               allAffectedCoordinates,
-              cveToCoordinatesMap
-          );
+              cveToCoordinatesMap);
 
           return appMatches.stream();
         })
@@ -192,8 +192,7 @@ public class CveAffectedComponentSearchService
         uniqueAppIds.size(),
         uniqueComponents.size(),
         violatingComponents.size(),
-        waivedComponents.size()
-    );
+        waivedComponents.size());
   }
 
   private List<ApplicationComponentMatchDTO> findMatches(final Set<String> cveIds) {
@@ -203,7 +202,8 @@ public class CveAffectedComponentSearchService
       return new ArrayList<>();
     }
 
-    Set<AffectedCoordinates> allAffectedCoordinates = cveToCoordinatesMap.values().stream()
+    Set<AffectedCoordinates> allAffectedCoordinates = cveToCoordinatesMap.values()
+        .stream()
         .flatMap(Set::stream)
         .collect(Collectors.toSet());
 
@@ -264,8 +264,7 @@ public class CveAffectedComponentSearchService
     for (PolicyEvaluation evaluation : evaluations) {
       List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(
           application.getId(),
-          evaluation.getStageTypeId()
-      );
+          evaluation.getStageTypeId());
 
       List<ApplicationComponent> matchingComponents = filterMatchingComponents(appComponents, affectedCoordinates);
 
@@ -287,8 +286,7 @@ public class CveAffectedComponentSearchService
         null,
         null,
         null,
-        null
-    );
+        null);
 
     List<PolicyViolation> filteredViolations = allAppViolations.stream()
         .filter(v -> matchingComponentHashes.contains(v.getHash()))
@@ -334,8 +332,7 @@ public class CveAffectedComponentSearchService
                 evaluation,
                 component,
                 cveId,
-                cveSpecificViolations
-            );
+                cveSpecificViolations);
 
             if (match != null) {
               allMatches.add(match);
@@ -413,7 +410,8 @@ public class CveAffectedComponentSearchService
         for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
           if (conditionFact.getReference() != null &&
               TriggerReference.Type.SECURITY_VULNERABILITY_REFID == conditionFact.getReference().getType() &&
-              cveIds.contains(conditionFact.getReference().getValue())) {
+              cveIds.contains(conditionFact.getReference().getValue()))
+          {
             return true;
           }
         }
@@ -434,8 +432,7 @@ public class CveAffectedComponentSearchService
             Pair::getRight,
             pair -> List.of(pair.getLeft()),
             (list1, list2) -> Stream.of(list1, list2).flatMap(List::stream).toList(),
-            HashBasedTable::create
-        ));
+            HashBasedTable::create));
   }
 
   private Set<String> getCveIds(final PolicyViolation violation) {

@@ -125,14 +125,16 @@ public class MembershipMappingServiceTest
   public void testLoadMembersByRoleForNonGlobalContext_GlobalContext() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> membershipMappingService.loadMembersByRoleForNonGlobalContext(OwnerType.GLOBAL, "ownerId",
-            null /* roles */, null/* membersByRoleByRoleId */)).withMessage("The 'global' context is not allowed.");
+            null /* roles */, null/* membersByRoleByRoleId */))
+        .withMessage("The 'global' context is not allowed.");
   }
 
   @Test
   public void testSetMembershipMappingsForNonGlobalContext_GlobalContext() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> membershipMappingService.setMembershipMappingsForNonGlobalContext(OwnerType.GLOBAL, "ownerId",
-            null /* roleToMembers */)).withMessage("The 'global' context is not allowed.");
+            null /* roleToMembers */))
+        .withMessage("The 'global' context is not allowed.");
   }
 
   @Test
@@ -512,20 +514,20 @@ public class MembershipMappingServiceTest
     organizationDAO.update(orgWithRelatedRepo);
 
     membershipMappingService
-            .grantRoleMembership(OwnerType.REPOSITORY, repository.getId(),
-                    Role.DEVELOPER_ROLE_ID, MemberType.USER, username);
+        .grantRoleMembership(OwnerType.REPOSITORY, repository.getId(),
+            Role.DEVELOPER_ROLE_ID, MemberType.USER, username);
 
     MembershipMapping repoMembershipMapping = membershipMappingDAO
-            .getByContextIdAndRoleIdAndMemberNameAndMemberType(repository.getId(),
-                    Role.DEVELOPER_ROLE_ID, username, MemberType.USER);
+        .getByContextIdAndRoleIdAndMemberNameAndMemberType(repository.getId(),
+            Role.DEVELOPER_ROLE_ID, username, MemberType.USER);
     assertThat(repoMembershipMapping.getMemberName()).isEqualTo(username);
     assertThat(repoMembershipMapping.getMemberType()).isEqualTo(MemberType.USER);
     assertThat(repoMembershipMapping.getRoleId()).isEqualTo(Role.DEVELOPER_ROLE_ID);
     assertThat(repoMembershipMapping.getContextId()).isEqualTo(repository.getId());
 
     MembershipMapping orgMembershipMapping = membershipMappingDAO
-            .getByContextIdAndRoleIdAndMemberNameAndMemberType(orgWithRelatedRepo.getId(),
-                    Role.DEVELOPER_ROLE_ID, username, MemberType.USER);
+        .getByContextIdAndRoleIdAndMemberNameAndMemberType(orgWithRelatedRepo.getId(),
+            Role.DEVELOPER_ROLE_ID, username, MemberType.USER);
     assertThat(orgMembershipMapping.getMemberName()).isEqualTo(username);
     assertThat(orgMembershipMapping.getMemberType()).isEqualTo(MemberType.USER);
     assertThat(orgMembershipMapping.getRoleId()).isEqualTo(Role.DEVELOPER_ROLE_ID);
@@ -554,8 +556,7 @@ public class MembershipMappingServiceTest
             .grantRoleMembership(OwnerType.ORGANIZATION, orgWithRelatedRepoCon.getId(), Role.DEVELOPER_ROLE_ID,
                 MemberType.USER, username))
         .withMessageContaining(
-            "Access control is not permitted for an organization related to a repository container."
-        );
+            "Access control is not permitted for an organization related to a repository container.");
   }
 
   @Test
@@ -612,8 +613,7 @@ public class MembershipMappingServiceTest
             .grantRoleMembership(OwnerType.APPLICATION, appWithRelatedRepoOrg.getId(), Role.DEVELOPER_ROLE_ID,
                 MemberType.USER, username))
         .withMessageContaining(
-            "Access control is not permitted for an application whose parent organization is related to a repository."
-        );
+            "Access control is not permitted for an application whose parent organization is related to a repository.");
   }
 
   @Test
@@ -748,7 +748,7 @@ public class MembershipMappingServiceTest
         .grantRoleMembership(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID, MemberType.USER, username,
             false);
   }
-  
+
   @Test
   public void testGrantRoleMembership_ValidateMemberNameTrue_GroupDoesNotExist() throws Exception {
     testLdapServer.start();
@@ -766,9 +766,7 @@ public class MembershipMappingServiceTest
   }
 
   @Test
-  public void testGrantRoleMembership_ValidateMemberNameTrue_GroupDoesNotExist_AndGroupSearchDisabled()
-      throws Exception
-  {
+  public void testGrantRoleMembership_ValidateMemberNameTrue_GroupDoesNotExist_AndGroupSearchDisabled() throws Exception {
     testLdapServer.start();
     testLdapServer.loadData("/MembershipMappingServiceTest/ldap_users1.ldif");
     LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
@@ -869,15 +867,15 @@ public class MembershipMappingServiceTest
 
     MembershipMapping orgMembershipMapping =
         tempEntity.newMembershipMapping(orgWithRelatedRepoCon.getId(),
-                Role.DEVELOPER_ROLE_ID, memberName, memberType);
+            Role.DEVELOPER_ROLE_ID, memberName, memberType);
 
     MembershipMapping repoConMembershipMapping =
         tempEntity.newMembershipMapping(RepositoryContainer.REPOSITORY_CONTAINER_ID,
-                Role.DEVELOPER_ROLE_ID, memberName, memberType);
+            Role.DEVELOPER_ROLE_ID, memberName, memberType);
 
     membershipMappingService
         .revokeRoleMembership(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
-                Role.DEVELOPER_ROLE_ID, memberType, memberName);
+            Role.DEVELOPER_ROLE_ID, memberType, memberName);
     assertThat(membershipMappingDAO.getById(repoConMembershipMapping.getId())).isNull();
     assertThat(membershipMappingDAO.getById(orgMembershipMapping.getId())).isNull();
 
@@ -902,15 +900,15 @@ public class MembershipMappingServiceTest
 
     MembershipMapping orgMembershipMapping =
         tempEntity.newMembershipMapping(orgWithRelatedRepoMan.getId(),
-                Role.DEVELOPER_ROLE_ID, memberName, memberType);
+            Role.DEVELOPER_ROLE_ID, memberName, memberType);
 
     MembershipMapping repoManMembershipMapping =
         tempEntity.newMembershipMapping(repositoryManager.getId(),
-                Role.DEVELOPER_ROLE_ID, memberName, memberType);
+            Role.DEVELOPER_ROLE_ID, memberName, memberType);
 
     membershipMappingService
         .revokeRoleMembership(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(),
-                Role.DEVELOPER_ROLE_ID, memberType, memberName);
+            Role.DEVELOPER_ROLE_ID, memberType, memberName);
     assertThat(membershipMappingDAO.getById(repoManMembershipMapping.getId())).isNull();
     assertThat(membershipMappingDAO.getById(orgMembershipMapping.getId())).isNull();
 
@@ -935,15 +933,15 @@ public class MembershipMappingServiceTest
 
     MembershipMapping orgMembershipMapping =
         tempEntity.newMembershipMapping(orgWithRelatedRepo.getId(),
-                Role.DEVELOPER_ROLE_ID, memberName, memberType);
+            Role.DEVELOPER_ROLE_ID, memberName, memberType);
 
     MembershipMapping repoMembershipMapping =
         tempEntity.newMembershipMapping(repository.getId(),
-                Role.DEVELOPER_ROLE_ID, memberName, memberType);
+            Role.DEVELOPER_ROLE_ID, memberName, memberType);
 
     membershipMappingService
         .revokeRoleMembership(OwnerType.REPOSITORY, repository.getId(),
-                Role.DEVELOPER_ROLE_ID, memberType, memberName);
+            Role.DEVELOPER_ROLE_ID, memberType, memberName);
     assertThat(membershipMappingDAO.getById(repoMembershipMapping.getId())).isNull();
     assertThat(membershipMappingDAO.getById(orgMembershipMapping.getId())).isNull();
 
@@ -1115,9 +1113,7 @@ public class MembershipMappingServiceTest
   }
 
   @Test
-  public void testGrantRoleMembershipsForNonGlobalContextNoAuthz_NewMemberships() throws InterruptedException,
-                                                                                         SQLException
-  {
+  public void testGrantRoleMembershipsForNonGlobalContextNoAuthz_NewMemberships() throws InterruptedException, SQLException {
     handler = new TestEventHandler<>(new CountDownLatch(1), RoleEvent.class);
     eventBus.register(handler);
 
@@ -1150,8 +1146,9 @@ public class MembershipMappingServiceTest
     assertThat(members.get(0).getType()).isEqualTo(MemberType.USER);
   }
 
-  private void assertGlobalPermisionsAreGranted(final TestEventHandler<RoleEvent> handler, final String username)
-      throws InterruptedException
+  private void assertGlobalPermisionsAreGranted(
+      final TestEventHandler<RoleEvent> handler,
+      final String username) throws InterruptedException
   {
     ApiRoleMemberMappingListDTO listDTO = membershipMappingService
         .getRoleMembershipsOmitEmpty(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);

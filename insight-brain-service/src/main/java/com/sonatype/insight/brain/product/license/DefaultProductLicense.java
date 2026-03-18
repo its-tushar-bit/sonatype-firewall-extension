@@ -219,8 +219,10 @@ public class DefaultProductLicense
         return;
       }
     }
-    log.error("Product license is missing any one of " + Arrays.stream(features).map(LicensedFeature::name).collect(
-        Collectors.joining(", ")));
+    log.error("Product license is missing any one of " + Arrays.stream(features)
+        .map(LicensedFeature::name)
+        .collect(
+            Collectors.joining(", ")));
     throw new InvalidLicenseException();
   }
 

@@ -133,13 +133,14 @@ public class JiraPolicyAlertNotifierAuditTest
     return new PolicyNotification(policyFact, policy.getNotifications());
   }
 
-  private void assertJiraNotificationAuditLog(AuditDTO auditDTO,
-                                              Application app,
-                                              String scanId,
-                                              String stageId,
-                                              String jiraProjectKey,
-                                              int totalPolicyViolationCount,
-                                              String error)
+  private void assertJiraNotificationAuditLog(
+      AuditDTO auditDTO,
+      Application app,
+      String scanId,
+      String stageId,
+      String jiraProjectKey,
+      int totalPolicyViolationCount,
+      String error)
   {
     assertStandardData(auditDTO, AuditEvent.CREATE_JIRA_ISSUE, error, SYSTEM_USER);
     assertApplicationData(auditDTO, app);

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dashboard;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Collections;
@@ -67,7 +68,8 @@ public class H2ComponentRiskServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
             () -> componentRiskService.getPolicyViolations(null, null, Sets.newHashSet(badStageTypeId), null, null,
-                null, null)).withMessage("Invalid stage type: " + badStageTypeId + ".");
+                null, null))
+        .withMessage("Invalid stage type: " + badStageTypeId + ".");
   }
 
   @Test

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.sbom.components;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.File;
@@ -237,9 +238,7 @@ public class SbomComponentsServiceTest
   }
 
   @Test
-  public void testGetSbomComponentDetails_LatestPreviousAnnotation_Components_SameAndDifferent_VersionsMatched()
-      throws IOException
-  {
+  public void testGetSbomComponentDetails_LatestPreviousAnnotation_Components_SameAndDifferent_VersionsMatched() throws IOException {
     ThirdPartyFile thirdPartyFilePrevious = tempEntity.newThirdPartyFile();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
@@ -504,8 +503,7 @@ public class SbomComponentsServiceTest
         .withThirdPartyFileId(thirdPartyScan.getThirdPartyFileId())
         .build();
     BomPageMetadataDTO spdxResultDto = service.getBomPageMetadata(
-        application.getId(), sbomSPDXMetadata.getSbomVersion()
-    );
+        application.getId(), sbomSPDXMetadata.getSbomVersion());
     assertThat(spdxResultDto.person).isEqualTo(Arrays.asList("John Doe", "Jane Doe"));
     assertThat(spdxResultDto.organization).isEqualTo(Arrays.asList("Example Organization"));
     assertThat(spdxResultDto.fileFormat).isEqualTo(sbomSPDXMetadata.getSpecFormat());

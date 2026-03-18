@@ -38,11 +38,11 @@ public interface ConditionType
   /**
    * Generates Drools code that adds trigger data to the Drools results. The generated code is included in the "then"
    * part of the Drools rule (aka the right-hand-side).
-   * 
+   *
    * Not all condition types report back trigger data.
-   * 
+   *
    * @param conditionIndex The condition index in the policy constraint.
-   * 
+   *
    * @since 1.50
    */
   default String generateDroolsTriggerCode(@SuppressWarnings("unused") Condition condition, int conditionIndex) {

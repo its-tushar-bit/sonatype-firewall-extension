@@ -191,7 +191,8 @@ public class ComponentInfoResourceAuditTest
   @Test
   public void testGetMultiLicensesForLegalReviewer_Unauthorized() throws Exception {
     detailsRequestForSubpath(MULTI_LICENSES_LEGAL_REVIEWER_SUBPATH, repository, COMPONENT_IDENTIFIER)
-        .with(unauthorizedUser()).get();
+        .with(unauthorizedUser())
+        .get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, "unauthorized");
     assertRepositoryData(auditDTO, repository);
@@ -221,16 +222,18 @@ public class ComponentInfoResourceAuditTest
   @Test
   public void testGetSecurityVulnerabilities_Unauthorized() throws Exception {
     detailsRequestForSubpath(VULNERABILITIES_SUBPATH, repository, COMPONENT_IDENTIFIER, COMPONENT_HASH)
-        .with(unauthorizedUser()).get();
+        .with(unauthorizedUser())
+        .get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, "unauthorized");
     assertRepositoryData(auditDTO, repository);
   }
 
-  private HttpRequest detailsRequestForSubpath(String subpath,
-                                               Owner owner,
-                                               ComponentIdentifier componentIdentifier,
-                                               String hash)
+  private HttpRequest detailsRequestForSubpath(
+      String subpath,
+      Owner owner,
+      ComponentIdentifier componentIdentifier,
+      String hash)
   {
     return detailsRequest(owner, componentIdentifier, hash).path(subpath);
   }
@@ -242,6 +245,7 @@ public class ComponentInfoResourceAuditTest
   private HttpRequest detailsRequest(Owner owner, ComponentIdentifier componentIdentifier, String hash) {
     return restRequest().path(ComponentInfoResource.RESOURCE_PATH, ComponentInfoResource.COMPONENT_DETAILS_PATH)
         .parameter(owner.getType(), owner.getType().equals(OwnerType.APPLICATION) ? owner.getPublicId() : owner.getId())
-        .query("componentIdentifier", componentIdentifier).query("hash", hash);
+        .query("componentIdentifier", componentIdentifier)
+        .query("hash", hash);
   }
 }

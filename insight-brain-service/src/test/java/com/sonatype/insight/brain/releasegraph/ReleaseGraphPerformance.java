@@ -87,9 +87,10 @@ public class ReleaseGraphPerformance
     callables = new LinkedList<>();
     pool = new ThreadPoolExecutor(threads, threads, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(threads));
     ReportService reportService = null;
-    cache = CacheBuilder.newBuilder().maximumSize(1000)
-        .build(new ReleaseGraphCacheLoader(new ReportItemCacheLoader(reportService, daoFactory.createApplicationDAO()
-        )));
+    cache = CacheBuilder.newBuilder()
+        .maximumSize(1000)
+        .build(
+            new ReleaseGraphCacheLoader(new ReportItemCacheLoader(reportService, daoFactory.createApplicationDAO())));
     ReleaseGraphCacheProvider mockReleaseGraphCacheProvider = mock(ReleaseGraphCacheProvider.class);
     when(mockReleaseGraphCacheProvider.get()).thenReturn(cache);
     reportResource = new ReleaseGraphResource(new ReleaseGraphService(mockReleaseGraphCacheProvider));
@@ -116,8 +117,8 @@ public class ReleaseGraphPerformance
   /**
    * Simulates browser test which
    *
-   * @param reports            the number of reports
-   * @param usersPerReport     the number of users per report
+   * @param reports the number of reports
+   * @param usersPerReport the number of users per report
    * @param connectionsPerUser the number of connections each user uses (FF uses 6)
    * @param work
    * @throws Exception

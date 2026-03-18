@@ -67,7 +67,7 @@ public class PostgresApplicationRiskServiceTest
             INSERT INTO insight_brain_ods.policy_evaluation(
               policy_evaluation_id, application_id, stage_type_id, scan_id, time, initiator, scan_trigger_type
             )
-            SELECT 
+            SELECT
               'pe-' || application_id as policy_evaluation_id,
               application_id,
               'build',

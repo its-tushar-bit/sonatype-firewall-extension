@@ -20,7 +20,8 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
-public class UserTelemetryResourceTest extends AbstractResourceTest
+public class UserTelemetryResourceTest
+    extends AbstractResourceTest
 {
   @Before
   public void setup() {
@@ -38,7 +39,8 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
     getHdsServer().respondWith("some javascript").atUri("user-telemetry.js");
 
     HttpResponse response = restRequest()
-        .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH).get();
+        .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH)
+        .get();
     assertResponseStatus(200, response);
 
     assertThat(response.getBodyText()).isEqualTo("some javascript");
@@ -50,7 +52,8 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
     getHdsServer().respondWith("some error message").andStatus(404).atUri("user-telemetry.js");
 
     HttpResponse response = restRequest()
-        .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH).get();
+        .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH)
+        .get();
     assertResponseStatus(200, response);
 
     assertThat(response.getBodyText()).isEqualTo("");
@@ -59,11 +62,14 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
   @Test
   public void testProxyGet() throws Exception {
     String contentType = "application/javascript;charset=UTF-8";
-    getHdsServer().respondWith("some response").withType(contentType)
+    getHdsServer().respondWith("some response")
+        .withType(contentType)
         .atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
 
-    String url = UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH).path(UserTelemetryResource.EVENTS_PATH)
-        .build(new String[]{"foo/bar"}, false /* encodeSlashInPath */).toString();
+    String url = UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH)
+        .path(UserTelemetryResource.EVENTS_PATH)
+        .build(new String[]{"foo/bar"}, false /* encodeSlashInPath */)
+        .toString();
     HttpResponse response = restRequest().path(url).get();
     assertResponseStatus(200, response);
 
@@ -83,8 +89,10 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
   public void testProxyPost() throws Exception {
     getHdsServer().respondWith("some response").atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
 
-    String url = UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH).path(UserTelemetryResource.EVENTS_PATH)
-        .build(new String[]{"foo/bar"}, false /* encodeSlashInPath */).toString();
+    String url = UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH)
+        .path(UserTelemetryResource.EVENTS_PATH)
+        .build(new String[]{"foo/bar"}, false /* encodeSlashInPath */)
+        .toString();
     HttpResponse response = restRequest().path(url).body("Foo").post();
     assertResponseStatus(200, response);
 

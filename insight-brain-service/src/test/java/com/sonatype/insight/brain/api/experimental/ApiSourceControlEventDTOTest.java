@@ -28,8 +28,8 @@ public class ApiSourceControlEventDTOTest
     sourceControlEvent.setEventType("eventType");
     long now = System.currentTimeMillis();
     sourceControlEvent.setCreateTime(new Date(now - 10000));
-    sourceControlEvent.setStartTime( new Date(now - 5000));
-    sourceControlEvent.setCompleteTime( new Date(now - 1000));
+    sourceControlEvent.setStartTime(new Date(now - 5000));
+    sourceControlEvent.setCompleteTime(new Date(now - 1000));
 
     ApiSourceControlEventDTO actual = ApiSourceControlEventAdapterDTO.convert(sourceControlEvent);
 

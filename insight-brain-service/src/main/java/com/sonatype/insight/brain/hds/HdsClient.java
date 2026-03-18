@@ -137,7 +137,7 @@ public class HdsClient
 
   static final String DISABLE_TELEMETRY_CONFIG_KEY = "com.sonatype.insight.disableOutboundTelemetryRequests";
 
-  static final List<String> TELEMETRY_URLS = ImmutableList.of("environment/stats","user-telemetry");
+  static final List<String> TELEMETRY_URLS = ImmutableList.of("environment/stats", "user-telemetry");
 
   public static final String CLIENT_INSTANCE_ID_HEADER = "X-CLM-Client-Instance-Id";
   // VisibleForTesting
@@ -195,8 +195,9 @@ public class HdsClient
   private String getRutHeader() {
     ReverseProxyAuthenticationConfiguration reverseProxyAuthenticationConfiguration =
         configuration.getReverseProxyAuthenticationConfiguration();
-    return reverseProxyAuthenticationConfiguration != null && reverseProxyAuthenticationConfiguration.isEnabled() ?
-        reverseProxyAuthenticationConfiguration.getUsernameHeader() : null;
+    return reverseProxyAuthenticationConfiguration != null && reverseProxyAuthenticationConfiguration.isEnabled()
+        ? reverseProxyAuthenticationConfiguration.getUsernameHeader()
+        : null;
   }
 
   private synchronized void updateClient() {
@@ -282,13 +283,20 @@ public class HdsClient
   }
 
   public <T> T getWithMultimap(
-      Class<T> clazz, String path, Multimap<String, String> queryParams, String... uriParams)
+      Class<T> clazz,
+      String path,
+      Multimap<String, String> queryParams,
+      String... uriParams)
   {
     return getWithMultimap(retryCreator.apply(path), clazz, path, queryParams, uriParams);
   }
 
   public <T> T getWithMultimap(
-      Retry retry, Class<T> clazz, String path, Multimap<String, String> queryParams, String... uriParams)
+      Retry retry,
+      Class<T> clazz,
+      String path,
+      Multimap<String, String> queryParams,
+      String... uriParams)
   {
     return internalGet(retry, clazz, buildUriWithMultimap(null, path, queryParams, uriParams), null);
   }
@@ -449,14 +457,14 @@ public class HdsClient
     return relayResponse;
   }
 
-  public HttpResponse forwardingProxy(HttpServletRequest request, Map<String, String> queryParams)
-      throws IOException
-  {
+  public HttpResponse forwardingProxy(HttpServletRequest request, Map<String, String> queryParams) throws IOException {
     return forwardingProxy(retryCreator.apply(request.toString()), request, queryParams);
   }
 
-  public HttpResponse forwardingProxy(Retry retry, HttpServletRequest request, Map<String, String> queryParams)
-      throws IOException
+  public HttpResponse forwardingProxy(
+      Retry retry,
+      HttpServletRequest request,
+      Map<String, String> queryParams) throws IOException
   {
     String url = buildUri(request, request.getPathInfo(), queryParams);
     HttpUriRequest labReq = createRequest(request, url, null);
@@ -532,13 +540,13 @@ public class HdsClient
         case 500:
           throw new InternalServerErrorException(
               "The Sonatype Data Services returned error 500, please retry in a bit.");
-        case 502:  // Bad Gateway
-        case 504:  // Gateway Timeout
+        case 502: // Bad Gateway
+        case 504: // Gateway Timeout
           throw new BadGatewayException(
               "Could not contact Sonatype Data Services, please verify the network configuration of your Nexus IQ "
                   + "Server. Sonatype Data Services error " + status
                   + formatRequestId(" (request %s)", getRequestId(response)) + ": " + getErrorMessage(response));
-        case 503:  // Service Unavailable
+        case 503: // Service Unavailable
           throw new BadGatewayException("The Sonatype Data Services are currently out of service"
               + formatRequestId(" (request %s)", getRequestId(response)) + ", please retry in a bit. If the outage "
               + "persists, please verify the network configuration of your Nexus IQ Server "
@@ -561,7 +569,8 @@ public class HdsClient
   String getErrorMessage(HttpResponse response) {
     Header hdr = response.getFirstHeader(HttpHeaders.CONTENT_TYPE);
     if (hdr != null && hdr.getValue() != null && hdr.getValue().contains(ContentType.TEXT_PLAIN.getMimeType())
-        && response.getEntity() != null) {
+        && response.getEntity() != null)
+    {
       try {
         return EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
       }
@@ -573,8 +582,10 @@ public class HdsClient
     return response.getStatusLine().getReasonPhrase();
   }
 
-  private HttpUriRequest createRequest(HttpServletRequest request, String url, HdsClientAnalytics analytics)
-      throws IOException
+  private HttpUriRequest createRequest(
+      HttpServletRequest request,
+      String url,
+      HdsClientAnalytics analytics) throws IOException
   {
     HttpUriRequest cloudReq;
     if (request == null || "GET".equals(request.getMethod())) {
@@ -780,7 +791,8 @@ public class HdsClient
     // These are guaranteed to fail with 402, and too many failures can cause HDS to cache
     // the 402 response for the SaaS IP, affecting other tenants with valid licenses
     if (productLicenseHeader == null || StringUtils.isBlank(productLicenseHeader.getValue()) ||
-        !productLicense.isValid()) {
+        !productLicense.isValid())
+    {
       throw new InvalidLicenseException("The product license is invalid.");
     }
   }
@@ -868,7 +880,8 @@ public class HdsClient
   private HttpEntity buildEntity(HttpServletRequest request) throws IOException {
     File uploadFile = (File) request.getAttribute(UPLOAD_FILE_ATTRIBUTE);
     if (uploadFile != null) {
-      ContentType contentType = request.getContentType() != null ? ContentType.create(request.getContentType())
+      ContentType contentType = request.getContentType() != null
+          ? ContentType.create(request.getContentType())
           : ContentType.DEFAULT_BINARY;
       return new FileEntity(uploadFile, contentType);
     }
@@ -878,7 +891,7 @@ public class HdsClient
 
   private void populateRequest(final HttpServletRequest orig, HttpUriRequest req, HdsClientAnalytics analytics) {
     if (orig != null) {
-      for (Enumeration<String> e = orig.getHeaderNames(); e.hasMoreElements(); ) {
+      for (Enumeration<String> e = orig.getHeaderNames(); e.hasMoreElements();) {
         String headerName = e.nextElement();
         if (!HttpHeaders.CONNECTION.equalsIgnoreCase(headerName) && !HttpHeaders.HOST.equalsIgnoreCase(headerName)
             && !HttpHeaders.ACCEPT_ENCODING.equalsIgnoreCase(headerName)
@@ -888,7 +901,8 @@ public class HdsClient
             && !HttpHeaders.AUTHORIZATION.equalsIgnoreCase(headerName)
             && !HttpHeaders.PROXY_AUTHORIZATION.equalsIgnoreCase(headerName) && !"COOKIE".equalsIgnoreCase(headerName)
             && !"COOKIE2".equalsIgnoreCase(headerName) && !headerName.equalsIgnoreCase(getRutHeader())
-            && !headerName.startsWith("X-Forward")) {
+            && !headerName.startsWith("X-Forward"))
+        {
           req.setHeader(headerName, orig.getHeader(headerName));
         }
       }
@@ -983,7 +997,10 @@ public class HdsClient
   }
 
   private String buildUriWithMultimap(
-      HttpServletRequest base, String path, Multimap<String, String> queryParams, String... uriParams)
+      HttpServletRequest base,
+      String path,
+      Multimap<String, String> queryParams,
+      String... uriParams)
   {
     UriBuilder uriBuilder = UriBuilder.fromUri(config.getServerUrl());
     uriBuilder.path(path);

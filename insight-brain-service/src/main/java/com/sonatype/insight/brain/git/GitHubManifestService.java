@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Service for interacting with GitHub's manifest-based App registration API.
  *
-*/
+ */
 @Named
 @Singleton
 public class GitHubManifestService
@@ -44,9 +44,9 @@ public class GitHubManifestService
    * @throws BadRequestException if the code is invalid or GitHub returns 4xx error
    * @throws InternalServerErrorException if network/IO failure or GitHub returns 5xx error
    */
-  public GitHubAppCredentials convertManifestCode(final String code,
-                                                  final GitHubAppManagementClient client)
-          throws IOException
+  public GitHubAppCredentials convertManifestCode(
+      final String code,
+      final GitHubAppManagementClient client) throws IOException
   {
     if (code == null || code.trim().isEmpty()) {
       throw new BadRequestException("GitHub manifest code is required");

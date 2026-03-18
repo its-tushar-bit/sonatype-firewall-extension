@@ -58,8 +58,7 @@ public class PolicyViolationReachabilityService
         purlIdentifiersWithVulnerabilities.getApplicationId(),
         purlIdentifiersWithVulnerabilities.getScanId(),
         purlIdentifiersWithVulnerabilities.getVulnerabilitiesByPurlIdentifiers(),
-        applicationReport
-    );
+        applicationReport);
   }
 
   public void updateReachabilityStatusForPolicyViolations(

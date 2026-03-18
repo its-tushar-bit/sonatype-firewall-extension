@@ -182,7 +182,8 @@ public class ApiPolicyViolationServiceV2
     // Returns all apps the user has READ permission for.
     List<Application> applications = applicationService.getApplications();
 
-    AuditData.get().setData("selectedPolicies", transcribeToPolicyAuditDTO(policyIds))
+    AuditData.get()
+        .setData("selectedPolicies", transcribeToPolicyAuditDTO(policyIds))
         .setData("inspectedApplicationCount", applications.size());
 
     Map<String, Application> applicationsById =
@@ -262,8 +263,7 @@ public class ApiPolicyViolationServiceV2
         openTimeBefore,
         violationTypes.contains(PolicyViolationType.ACTIVE),
         violationTypes.contains(PolicyViolationType.WAIVED),
-        violationTypes.contains(PolicyViolationType.LEGACY)
-    );
+        violationTypes.contains(PolicyViolationType.LEGACY));
 
     policyViolationDAO.loadConstraintFacts(policyViolations);
     log.debug("Loaded {} policy violations for {} applications and {} policies in {} ms", policyViolations.size(),
@@ -406,7 +406,9 @@ public class ApiPolicyViolationServiceV2
     Component foundComponent = pair.getLeft();
     List<Pair<PolicyViolation, Component>> allTransitivePolicyViolations = pair.getRight();
 
-    AuditData.get().setStageId(stageId).setComponentIdentifier(foundComponent.getComponentIdentifier())
+    AuditData.get()
+        .setStageId(stageId)
+        .setComponentIdentifier(foundComponent.getComponentIdentifier())
         .setComponentHash(foundComponent.getHash());
     ApiComponentTransitivePolicyViolationsDTO result =
         new ApiComponentTransitivePolicyViolationsDTO(foundComponent, allTransitivePolicyViolations);
@@ -482,7 +484,8 @@ public class ApiPolicyViolationServiceV2
   // Visible for testing
   void sort(List<ApiStagePolicyViolationComponentDTO> policyViolations) {
     policyViolations.sort(Comparator
-        .comparing((ApiStagePolicyViolationComponentDTO policyViolation) -> policyViolation.threatLevel).reversed()
+        .comparing((ApiStagePolicyViolationComponentDTO policyViolation) -> policyViolation.threatLevel)
+        .reversed()
         .thenComparing(
             policyViolation -> ApiComponentIdentifierDTOV2.toComponentIdentifier(policyViolation.componentIdentifier),
             Comparator.nullsLast(Comparator.naturalOrder())));
@@ -514,7 +517,7 @@ public class ApiPolicyViolationServiceV2
       ReportEntry reportEntry = applicationReport.getEntry(BOM_JSON.getName());
       if (reportEntry != null) {
         return componentLoaderFactory.createComponentLoader(
-                idUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId))
+            idUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId))
             .getAll(null, null, reportEntry.buf, null);
       }
       log.debug("{} not found for application id {} and scan id {}.", BOM_JSON.getName(), applicationId, scanId);
@@ -572,9 +575,11 @@ public class ApiPolicyViolationServiceV2
     }
     return components.stream()
         .filter(component -> component.getParentComponentPurls() != null &&
-            component.getParentComponentPurls().stream()
+            component.getParentComponentPurls()
+                .stream()
                 .map(ComponentIdentifierAdapter::toComponentIdentifier)
-                .map(this::getComplete).collect(toSet())
+                .map(this::getComplete)
+                .collect(toSet())
                 .contains(parentComponentIdentifier))
         .collect(Collectors.toList());
   }

@@ -153,7 +153,8 @@ public class HierarchyMetricsTelemetryCollector
   private Collection<Long> countAppsPerOrg(List<Application> applications, int numberOfOrgsMinusRoot) {
     Collection<Long> appsPerOrg = new ArrayList<>();
     appsPerOrg.addAll(
-        applications.stream().collect(Collectors.groupingBy(Application::getOrganizationId, Collectors.counting()))
+        applications.stream()
+            .collect(Collectors.groupingBy(Application::getOrganizationId, Collectors.counting()))
             .values());
     // Add zeros for Organizations with no Applications
     for (int i = appsPerOrg.size(); i < numberOfOrgsMinusRoot; i++) {

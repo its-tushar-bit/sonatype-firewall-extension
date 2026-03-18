@@ -36,11 +36,10 @@ public class ExistingFilesHelper
    */
   public void assertExistingSbomFiles(String... filenames) throws IOException {
     Set<Path> alwaysExpectedDirs = Stream.of(
-            insightWork.getSbomDir(),
-            insightWork.getSbomTempDir(),
-            insightWork.getSbomTransientDir(),
-            insightWork.getSbomPersistentTempDir()
-        )
+        insightWork.getSbomDir(),
+        insightWork.getSbomTempDir(),
+        insightWork.getSbomTransientDir(),
+        insightWork.getSbomPersistentTempDir())
         .map(File::toPath)
         .map(Path::toAbsolutePath)
         .collect(Collectors.toSet());
@@ -53,8 +52,8 @@ public class ExistingFilesHelper
     Set<Path> expectedDirs = Stream.concat(
         alwaysExpectedDirs.stream(),
         expectedFiles.stream()
-            .flatMap(f -> Stream.iterate(f.getParent(), Predicate.not(alwaysExpectedDirs::contains), Path::getParent))
-    ).collect(Collectors.toSet());
+            .flatMap(f -> Stream.iterate(f.getParent(), Predicate.not(alwaysExpectedDirs::contains), Path::getParent)))
+        .collect(Collectors.toSet());
 
     Map<Boolean, List<Path>> existingFilesAndDirs;
     try (Stream<Path> walkedFile = Files.walk(sbomDir)) {

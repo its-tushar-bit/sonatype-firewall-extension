@@ -136,8 +136,10 @@ public class TenantManager
   void preregisterAllTenants() {
     log.info("Pre-registering all tenants");
 
-    final List<String> deletedTenants = deletedTenantDAO.getAllTenantDeletions().stream()
-        .map(DeletedTenant::getId).collect(Collectors.toList());
+    final List<String> deletedTenants = deletedTenantDAO.getAllTenantDeletions()
+        .stream()
+        .map(DeletedTenant::getId)
+        .collect(Collectors.toList());
 
     final List<String> nonDeletedTenants = tenantService
         .getAllTenantsNames()
@@ -270,8 +272,7 @@ public class TenantManager
           }
           catch (Exception e) {
             log.error(
-                "Failed to register bean {} for tenant {}", tenantManaged.getClass(), TenantThreadLocal.getTenant(), e
-            );
+                "Failed to register bean {} for tenant {}", tenantManaged.getClass(), TenantThreadLocal.getTenant(), e);
           }
         });
   }
@@ -281,9 +282,11 @@ public class TenantManager
   }
 
   List<String> getRegisteredTenants() {
-    return registeredTenants.keySet().stream()
+    return registeredTenants.keySet()
+        .stream()
         .filter(this::isTenantRegistered)
-        .map(t -> t.tenantSlug).collect(toList());
+        .map(t -> t.tenantSlug)
+        .collect(toList());
   }
 
   boolean isTenantRegistered(Tenant tenant) {

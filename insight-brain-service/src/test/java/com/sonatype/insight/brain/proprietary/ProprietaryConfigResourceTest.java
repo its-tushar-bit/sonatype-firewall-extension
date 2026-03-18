@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.proprietary;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Arrays;
@@ -102,7 +103,8 @@ public class ProprietaryConfigResourceTest
     tempEntity.newProprietaryConfig(org.getId(), null, Collections.singletonList("regex1"));
 
     HttpRequest request = restRequest()
-        .path(ProprietaryConfigResource.RESOURCE_PATH).path(ProprietaryConfigResource.ADD_FILE_PATH_REGEX)
+        .path(ProprietaryConfigResource.RESOURCE_PATH)
+        .path(ProprietaryConfigResource.ADD_FILE_PATH_REGEX)
         .parameter(org.getType(), org.getId());
 
     // Add File Path regex

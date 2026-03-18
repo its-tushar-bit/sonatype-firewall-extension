@@ -185,8 +185,10 @@ public abstract class AbstractApiAdvancedSearchResourceV2Test
         Arrays.stream(response.getBodyText().split(",")).map(String::trim).toArray(String[]::new);
     assertThat(csvExportSearchHeaders).isEqualTo(
         Arrays.asList(ITEM_TYPE, ORGANIZATION, ORGANIZATION_LINK, APPLICATION, APPLICATION_LINK, APPLICATION_CATEGORY,
-                APPLICATION_CATEGORY_LINK, COMPONENT_LABEL, COMPONENT_LABEL_LINK, POLICY, THREAT, POLICY_LINK,
-                COMPONENT_NAME, REPORT, SECURITY_ISSUE, STAGE).stream().map(SearchRowFactory.Header::getHeader)
+            APPLICATION_CATEGORY_LINK, COMPONENT_LABEL, COMPONENT_LABEL_LINK, POLICY, THREAT, POLICY_LINK,
+            COMPONENT_NAME, REPORT, SECURITY_ISSUE, STAGE)
+            .stream()
+            .map(SearchRowFactory.Header::getHeader)
             .toArray(String[]::new));
   }
 
@@ -257,9 +259,11 @@ public abstract class AbstractApiAdvancedSearchResourceV2Test
         Arrays.stream(response.getBodyText().split(",")).map(String::trim).toArray(String[]::new);
     assertThat(csvExportSearchHeaders).isEqualTo(
         Arrays.asList(ITEM_TYPE, ORGANIZATION, ORGANIZATION_LINK, APPLICATION, APPLICATION_LINK, APPLICATION_CATEGORY,
-                APPLICATION_CATEGORY_LINK, POLICY, THREAT, POLICY_LINK, COMPONENT_NAME, SECURITY_ISSUE,
-                SECURITY_ISSUE_ID, APPLICATION_VERSION, SBOM_SPECIFICATION).stream()
-            .map(SearchRowFactory.Header::getHeader).toArray(String[]::new));
+            APPLICATION_CATEGORY_LINK, POLICY, THREAT, POLICY_LINK, COMPONENT_NAME, SECURITY_ISSUE,
+            SECURITY_ISSUE_ID, APPLICATION_VERSION, SBOM_SPECIFICATION)
+            .stream()
+            .map(SearchRowFactory.Header::getHeader)
+            .toArray(String[]::new));
   }
 
   @Override

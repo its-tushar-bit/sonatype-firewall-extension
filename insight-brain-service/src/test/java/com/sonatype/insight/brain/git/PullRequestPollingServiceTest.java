@@ -115,8 +115,7 @@ public class PullRequestPollingServiceTest
     verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
         debug("Repository 'https://domain.com/org5/repo5' pull request '10' is for application 'appBaseBranch' base " +
-            "branch, skipping commenting")
-    );
+            "branch, skipping commenting"));
   }
 
   @Test
@@ -149,8 +148,7 @@ public class PullRequestPollingServiceTest
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
         info("Sent pull request discovered event for application 'appPost' with PR# '10' and commit " +
-            "'feature-commit-xyz-1'")
-    );
+            "'feature-commit-xyz-1'"));
   }
 
   @Test
@@ -209,8 +207,7 @@ public class PullRequestPollingServiceTest
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
         info("Sent pull request discovered event for application 'appPost' with PR# '10' and commit " +
-            "'feature-commit-xyz-1'")
-    );
+            "'feature-commit-xyz-1'"));
   }
 
   @Test
@@ -249,8 +246,10 @@ public class PullRequestPollingServiceTest
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
             "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
-        .forRepository("testorg/testrepo", SourceControlProvider.GITHUB).withApplication("app2", "main-branch")
-        .withPollingTime(pullRequestPollingTime).build();
+        .forRepository("testorg/testrepo", SourceControlProvider.GITHUB)
+        .withApplication("app2", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .build();
 
     // when: fetch and send
     Date before = new Date();
@@ -299,12 +298,15 @@ public class PullRequestPollingServiceTest
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("testorg/testrepo", SourceControlProvider.GITHUB).withApplication("app1", "main-branch")
+        .forRepository("testorg/testrepo", SourceControlProvider.GITHUB)
+        .withApplication("app1", "main-branch")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
             "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
-        .forRepository("testorg/testrepo", SourceControlProvider.GITHUB).withApplication("app2", "main-branch")
-        .withPollingTime(pullRequestPollingTime).build();
+        .forRepository("testorg/testrepo", SourceControlProvider.GITHUB)
+        .withApplication("app2", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .build();
 
     // when: fetch and send
     Date before = new Date();
@@ -329,19 +331,20 @@ public class PullRequestPollingServiceTest
   }
 
   @Test
-  public void testFetchAndSendPullRequestsForCommenting_MultipleAppsSameRepositoryUrlWithDifferentCase()
-      throws IOException
-  {
+  public void testFetchAndSendPullRequestsForCommenting_MultipleAppsSameRepositoryUrlWithDifferentCase() throws IOException {
     // given:
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
     PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
-        .forRepository("testorg/testrepo", SourceControlProvider.GITHUB).withApplication("app1", "main-branch")
+        .forRepository("testorg/testrepo", SourceControlProvider.GITHUB)
+        .withApplication("app1", "main-branch")
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
             "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
-        .forRepository("TESTORG/testrepo", SourceControlProvider.GITHUB).withApplication("app2", "main-branch")
-        .withPollingTime(pullRequestPollingTime).build();
+        .forRepository("TESTORG/testrepo", SourceControlProvider.GITHUB)
+        .withApplication("app2", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .build();
 
     // when: fetch and send
     Date before = new Date();
@@ -394,8 +397,7 @@ public class PullRequestPollingServiceTest
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
         info("Sent pull request discovered event for application 'appNoTarget' with PR# '10' and " +
-            "commit 'feature-commit-xyz-1'")
-    );
+            "commit 'feature-commit-xyz-1'"));
   }
 
   private void assertSourceControlPullRequest(
@@ -456,8 +458,7 @@ public class PullRequestPollingServiceTest
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
         info("Sent pull request discovered event for application 'appInternal' with PR# '10' and commit " +
-            "'feature-commit-xyz-1'")
-    );
+            "'feature-commit-xyz-1'"));
   }
 
   @Test
@@ -475,8 +476,7 @@ public class PullRequestPollingServiceTest
     // then: no events emitted
     verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
-        debug("BITBUCKET is not currently supported for pull request commenting on repository " + repositoryUrl)
-    );
+        debug("BITBUCKET is not currently supported for pull request commenting on repository " + repositoryUrl));
   }
 
   @Test
@@ -500,8 +500,7 @@ public class PullRequestPollingServiceTest
     verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
         debug("Repository is not valid for pull requests, check that it is private/internal: "
-            + "https://domain.com/orgNp/repoNp")
-    );
+            + "https://domain.com/orgNp/repoNp"));
   }
 
   @Test
@@ -530,8 +529,7 @@ public class PullRequestPollingServiceTest
         warn(
             "Could not fetch pull requests for org 'orgErr'; will retry in 5 minutes.  Please " +
                 "check that the configured project url https://domain.com/orgErr/repoErr is correct, that it is for " +
-                "'github' and that the API token is valid")
-    );
+                "'github' and that the API token is valid"));
   }
 
   @Test
@@ -560,8 +558,7 @@ public class PullRequestPollingServiceTest
         warn(
             "Could not fetch pull requests for org 'orgErr' repo 'repoErr'; will retry in 5 minutes.  Please " +
                 "check that the configured project url https://domain.com/orgErr/repoErr is correct, that it is for " +
-                "'gitlab' and that the API token is valid")
-    );
+                "'gitlab' and that the API token is valid"));
   }
 
   @Test
@@ -625,8 +622,7 @@ public class PullRequestPollingServiceTest
                 "'feature-commit-xyz-1'"),
         info(
             "Sent pull request discovered event for application 'gitlab2' with PR# '20' and commit " +
-                "'feature-commit-abc-2'")
-    );
+                "'feature-commit-abc-2'"));
   }
 
   @Test
@@ -652,8 +648,7 @@ public class PullRequestPollingServiceTest
     verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
         debug("Pull request 10 for branch app123/com.sonatype/iq-server/1.108 is determined to be an IQ Server " +
-            "generated remediation PR.  We will not comment on it.")
-    );
+            "generated remediation PR.  We will not comment on it."));
   }
 
   @Test
@@ -709,7 +704,7 @@ public class PullRequestPollingServiceTest
     assertThat(sourceControl2.getPullRequestPollTime()).isEqualTo(repo2pullRequestCreateDate);
     assertThat(sourceControl2.getPullRequestErrorCount()).isEqualTo(0);
 
-    //  and events are emitted
+    // and events are emitted
     verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
         info(
@@ -717,8 +712,7 @@ public class PullRequestPollingServiceTest
                 "'feature-commit-xyz-1'"),
         info(
             "Sent pull request discovered event for application 'github2' with PR# '20' and commit " +
-                "'feature-commit-abc-2'")
-    );
+                "'feature-commit-abc-2'"));
   }
 
   @Test
@@ -791,7 +785,7 @@ public class PullRequestPollingServiceTest
     private SourceControlUtils mockSourceControlUtils;
 
     @Mock
-    GitClientFactory mockGitClientFactory;  // Package-private for test access
+    GitClientFactory mockGitClientFactory; // Package-private for test access
 
     @Mock
     private ScmRepoVisibilityService mockScmRepoVisibilityService;
@@ -822,7 +816,8 @@ public class PullRequestPollingServiceTest
         doReturn(false).when(mockSourceControlUtils).isScmEnabled((GitRepositoryInfo) null);
         doReturn(true).when(mockSourceControlUtils).isScmEnabled(mockRepo.gitRepositoryInfo);
         doReturn(mockRepo.gitRepositoryInfo.repositoryUrl.contains("bitbucket.org"))
-            .when(mockSourceControlUtils).isBitbucketCloud(mockRepo.gitRepositoryInfo);
+            .when(mockSourceControlUtils)
+            .isBitbucketCloud(mockRepo.gitRepositoryInfo);
 
         if (null != mockRepo.gitRepositoryInfo) {
           // Use a GitHubProjectUrl as the most generic format to test with
@@ -831,7 +826,8 @@ public class PullRequestPollingServiceTest
         }
 
         if (null != mockRepo.gitRepositoryInfo &&
-            mockRepo.gitRepositoryInfo.provider.supportsOrganizationWidePullRequestQueries()) {
+            mockRepo.gitRepositoryInfo.provider.supportsOrganizationWidePullRequestQueries())
+        {
           allPullRequests.addAll(mockRepo.pullRequests);
           doReturn(allPullRequests).when(mockClientMap.get(mockRepo.orgAndRepoName))
               .getPullRequestsSince(any(), any(OffsetDateTime.class), anyInt());
@@ -909,7 +905,8 @@ public class PullRequestPollingServiceTest
       tempEntity.newSourceControl(currentMockRepo.sourceControl);
       currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(currentMockRepo.repositoryUrl,
           currentMockRepo.repositoryUrl, null, username, "token",
-          currentMockRepo.sourceControlProvider, defaultBranch, true, true,true, true, prCommentingEnabled, true, false,
+          currentMockRepo.sourceControlProvider, defaultBranch, true, true, true, true, prCommentingEnabled, true,
+          false,
           null, null, null);
       return this;
     }

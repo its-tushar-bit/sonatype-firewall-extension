@@ -106,8 +106,7 @@ public class GitCommitStatusServiceTest
     // then : no source control event created
     verifyNoSourceControlEventCreated();
     assertThatLogMessagesEqual(
-        debug("License does not support source control notification feature")
-    );
+        debug("License does not support source control notification feature"));
   }
 
   @Test
@@ -148,8 +147,7 @@ public class GitCommitStatusServiceTest
     verifyNoSourceControlEventCreated();
     assertThatLogMessagesEqual(
         debug("The git repository information could not be found for application with id app1. " +
-            "scm status could not be created.")
-    );
+            "scm status could not be created."));
   }
 
   @Test
@@ -207,16 +205,14 @@ public class GitCommitStatusServiceTest
     verifyStatusRequest(
         "yes",
         "Components: Critical: 7, Severe: 4, Moderate: 2",
-        "http://localhost:8070/ui/links/application/two/report/scan-2?source=gitlab"
-    );
+        "http://localhost:8070/ui/links/application/two/report/scan-2?source=gitlab");
     verify(mockGitApiClient).createStatus(eq(event.getCommitHash()), any());
 
     assertThatLogMessagesEqual(
         debug("Creating a gitlab commit status for repository: https://gitlab.com/sonatype/testing/testRepo1/," +
             " commit hash: commit-2, with outcome: none, state: yes"),
         info("Commit status sent for repository: https://gitlab.com/sonatype/testing/testRepo1/," +
-            " commit hash: commit-2, evaluation outcome: none, state: yes, response: status message")
-    );
+            " commit hash: commit-2, evaluation outcome: none, state: yes, response: status message"));
   }
 
   @Test
@@ -236,16 +232,14 @@ public class GitCommitStatusServiceTest
     verifyStatusRequest(
         "yes",
         "Components: Critical: 9, Severe: 1, Moderate: 4",
-        "http://localhost:8070/ui/links/application/three/report/scan-3?source=gitlab"
-    );
+        "http://localhost:8070/ui/links/application/three/report/scan-3?source=gitlab");
     verify(mockGitApiClient).createStatus(eq(event.getCommitHash()), any());
 
     assertThatLogMessagesEqual(
         debug("Creating a gitlab commit status for repository: https://gitlab.com/sonatype/testing/testRepo1/," +
             " commit hash: commit-3, with outcome: warn, state: yes"),
         info("Commit status sent for repository: https://gitlab.com/sonatype/testing/testRepo1/," +
-            " commit hash: commit-3, evaluation outcome: warn, state: yes, response: status message")
-    );
+            " commit hash: commit-3, evaluation outcome: warn, state: yes, response: status message"));
   }
 
   @Test
@@ -265,16 +259,14 @@ public class GitCommitStatusServiceTest
     verifyStatusRequest(
         "no",
         "Components: Critical: 0, Severe: 2, Moderate: 8",
-        "http://localhost:8070/ui/links/application/four/report/scan-4?source=gitlab"
-    );
+        "http://localhost:8070/ui/links/application/four/report/scan-4?source=gitlab");
     verify(mockGitApiClient).createStatus(eq(event.getCommitHash()), any());
 
     assertThatLogMessagesEqual(
         debug("Creating a gitlab commit status for repository: https://gitlab.com/sonatype/testing/testRepo1/," +
             " commit hash: commit-4, with outcome: fail, state: no"),
         info("Commit status sent for repository: https://gitlab.com/sonatype/testing/testRepo1/," +
-            " commit hash: commit-4, evaluation outcome: fail, state: no, response: status message")
-    );
+            " commit hash: commit-4, evaluation outcome: fail, state: no, response: status message"));
   }
 
   @Test
@@ -297,8 +289,7 @@ public class GitCommitStatusServiceTest
 
     assertThatLogMessagesEqual(
         debug("The git repository information could not be found for application with id app-5, scm status could not" +
-            " be created.")
-    );
+            " be created."));
   }
 
   @Test
@@ -321,8 +312,7 @@ public class GitCommitStatusServiceTest
 
     assertThatLogMessagesEqual(
         debug("The git repository information could not be found for application with id app-7," +
-            " scm status could not be created.")
-    );
+            " scm status could not be created."));
   }
 
   @Test
@@ -345,8 +335,7 @@ public class GitCommitStatusServiceTest
 
     assertThatLogMessagesEqual(
         debug("The git repository information could not be found for application with id app-6, scm status could not" +
-            " be created.")
-    );
+            " be created."));
   }
 
   @Test
@@ -361,23 +350,22 @@ public class GitCommitStatusServiceTest
     SourceControlEvent event = createSourceControlEvent(8, ApplicationEvaluationEvent.ACTION_ID_NONE, 8, 9, 10);
 
     // expect:
-    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() ->
-        commitStatusService.onSendCommitStatus(event)
-    ).withMessage("Failed to update status for applicationId: app-8, repository: http://gitlab.com/testOrg/testRepo," +
-        " commitHash: commit-8, triggered by policyEvaluationId: eval-8, reason: gitlab API error");
+    assertThatExceptionOfType(SourceControlException.class)
+        .isThrownBy(() -> commitStatusService.onSendCommitStatus(event))
+        .withMessage(
+            "Failed to update status for applicationId: app-8, repository: http://gitlab.com/testOrg/testRepo," +
+                " commitHash: commit-8, triggered by policyEvaluationId: eval-8, reason: gitlab API error");
 
     // and:
     verifyStatusRequest(
         "yes",
         "Components: Critical: 8, Severe: 9, Moderate: 10",
-        "http://localhost:8070/ui/links/application/eight/report/scan-8?source=gitlab"
-    );
+        "http://localhost:8070/ui/links/application/eight/report/scan-8?source=gitlab");
     verify(mockGitApiClient).createStatus(eq(event.getCommitHash()), any());
 
     assertThatLogMessagesEqual(
         debug("Creating a gitlab commit status for repository: https://gitlab.com/sonatype/testing/testRepo1/," +
-            " commit hash: commit-8, with outcome: none, state: yes")
-    );
+            " commit hash: commit-8, with outcome: none, state: yes"));
   }
 
   @Test
@@ -406,7 +394,8 @@ public class GitCommitStatusServiceTest
   @Test
   public void testOnApplicationEvaluation_CommitStatusEnabled_False() throws Exception {
     GitCommitStatusService commitStatusService = new TestableGitCommitStatusServiceBuilder()
-        .withCommitStatusEnabled(false).build();
+        .withCommitStatusEnabled(false)
+        .build();
     ApplicationEvaluationEvent event =
         new ApplicationEvaluationEventBuilder().withApplicationId("app1").withCommitHash("commit456").build();
 
@@ -414,14 +403,14 @@ public class GitCommitStatusServiceTest
 
     verify(mockSourceControlEventPublisher, never()).publishEvent(any());
     assertThatLogMessagesEqual(
-        debug("Source control commit status notification feature is disabled")
-    );
+        debug("Source control commit status notification feature is disabled"));
   }
 
   @Test
   public void testOnApplicationEvaluation_CommitStatusEnabled_True() throws Exception {
     GitCommitStatusService commitStatusService = new TestableGitCommitStatusServiceBuilder()
-        .withCommitStatusEnabled(true).build();
+        .withCommitStatusEnabled(true)
+        .build();
     ApplicationEvaluationEvent event =
         new ApplicationEvaluationEventBuilder().withApplicationId("app1").withCommitHash("commit456").build();
 
@@ -433,7 +422,8 @@ public class GitCommitStatusServiceTest
   @Test
   public void testOnApplicationEvaluation_CommitStatusEnabled_Null() throws Exception {
     GitCommitStatusService commitStatusService = new TestableGitCommitStatusServiceBuilder()
-        .withCommitStatusEnabled(null).build();
+        .withCommitStatusEnabled(null)
+        .build();
     ApplicationEvaluationEvent event =
         new ApplicationEvaluationEventBuilder().withApplicationId("app1").withCommitHash("commit456").build();
 
@@ -644,8 +634,7 @@ public class GitCommitStatusServiceTest
           mockSourceControlEventPublisher,
           mockAsyncEventBus,
           scmStatusHelper,
-          mockApiSourceControlService
-      );
+          mockApiSourceControlService);
     }
   }
 }

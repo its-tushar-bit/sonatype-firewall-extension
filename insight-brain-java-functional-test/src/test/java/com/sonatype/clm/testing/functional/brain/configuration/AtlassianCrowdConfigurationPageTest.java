@@ -26,7 +26,8 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 
-public class AtlassianCrowdConfigurationPageTest extends AbstractFunctionalTest
+public class AtlassianCrowdConfigurationPageTest
+    extends AbstractFunctionalTest
 {
   @Rule
   public CrowdMockServerRule crowdMockServer = new CrowdMockServerRule();
@@ -61,7 +62,7 @@ public class AtlassianCrowdConfigurationPageTest extends AbstractFunctionalTest
     refreshOrOpen(AtlassianCrowdConfigurationPage.url());
     loginAsAdmin();
 
-    //Once saved data is re-loaded
+    // Once saved data is re-loaded
     atlassianCrowdConfigurationPage.serverUrlAttribute().shouldHave(value("http://localhost:8095/crowd"));
     atlassianCrowdConfigurationPage.applicationNameAttribute().shouldHave(value("Sonatype"));
     atlassianCrowdConfigurationPage.applicationPasswordAttribute().shouldHave(value("\u0000\u0000\u0000\u0000\u0000"));
@@ -70,7 +71,7 @@ public class AtlassianCrowdConfigurationPageTest extends AbstractFunctionalTest
     atlassianCrowdConfigurationPage.cancelButton().shouldBe(enabled);
     atlassianCrowdConfigurationPage.testButton().shouldBe(enabled);
 
-    //If a crowd config is loaded, then it can be deleted
+    // If a crowd config is loaded, then it can be deleted
     atlassianCrowdConfigurationPage.deleteButton().shouldBe(enabled);
     atlassianCrowdConfigurationPage.deleteButton().click();
     AtlassianCrowdConfigurationDeleteModal deleteModal = new AtlassianCrowdConfigurationDeleteModal();
@@ -80,7 +81,7 @@ public class AtlassianCrowdConfigurationPageTest extends AbstractFunctionalTest
     deleteModal.should(disappear);
     FormMask.seeAndWaitForDismissal();
 
-    //Deleting a crowd conf sets the controls to default values
+    // Deleting a crowd conf sets the controls to default values
     assertDefaultState(atlassianCrowdConfigurationPage);
   }
 
@@ -89,11 +90,11 @@ public class AtlassianCrowdConfigurationPageTest extends AbstractFunctionalTest
     AtlassianCrowdConfigurationPage atlassianCrowdConfigurationPage = new AtlassianCrowdConfigurationPage();
     atlassianCrowdConfigurationPage = fillFormData();
 
-    //If the form is dirty, the cancel button should be enabled
+    // If the form is dirty, the cancel button should be enabled
     atlassianCrowdConfigurationPage.cancelButton().shouldBe(enabled);
     atlassianCrowdConfigurationPage.cancelButton().click();
 
-    //The form should be reset
+    // The form should be reset
     assertDefaultState(atlassianCrowdConfigurationPage);
   }
 

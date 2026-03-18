@@ -85,9 +85,9 @@ public class ApplicationPublicDataSourcesEditorTest
     assertThat(inheritedRadioInput.text().contains(" (Disabled)")).isTrue();
     inheritedRadioInput.shouldHave(cssClass(RADIO_SELECTED_CSS_CLASS));
 
-    PublicDataSourcesEditorPage.radioInputs().forEach(input -> input.shouldHave(
-        attribute("disabled", "")));
+    PublicDataSourcesEditorPage.radioInputs()
+        .forEach(input -> input.shouldHave(
+            attribute("disabled", "")));
     PublicDataSourcesEditorPage.allowOverridesCheckbox().shouldNotBe(visible);
   }
 }
-

@@ -60,10 +60,10 @@ public class PagedNamingEnumerationTest
 
   private byte[] berEncoded(byte results, Byte cookie) {
     if (cookie == null) {
-      return new byte[] { 48, 5, 2, 1, results, 4, 0 };
+      return new byte[]{48, 5, 2, 1, results, 4, 0};
     }
     else {
-      return new byte[] { 48, 6, 2, 1, results, 4, 1, cookie };
+      return new byte[]{48, 6, 2, 1, results, 4, 1, cookie};
     }
   }
 
@@ -76,7 +76,7 @@ public class PagedNamingEnumerationTest
   }
 
   private Control[] newResponseControls(Byte cookie) throws Exception {
-    return new Control[] { new PagedResultsResponseControl("id", false, berEncoded(resultSize, cookie)) };
+    return new Control[]{new PagedResultsResponseControl("id", false, berEncoded(resultSize, cookie))};
   }
 
   @Test

@@ -53,8 +53,7 @@ public class PartitionHelperTest
         initLocks("testCategory")
             .withHeartbeatLock("instanceA", false)
             .withHeartbeatLock("instanceB", false)
-            .withLock(partitionInUse, "instanceB", false)
-    );
+            .withLock(partitionInUse, "instanceB", false));
     PartitionHelper partitionHelper = new PartitionHelper("testCategory", "instanceA")
         .withPerpetualLockManager(mockPerpetualLockManager);
 
@@ -73,8 +72,7 @@ public class PartitionHelperTest
         initLocks("testCategory")
             .withHeartbeatLock("instanceA", false)
             .withHeartbeatLock("instanceB", false)
-            .withLock(partitionInUse, "instanceA", false)
-    );
+            .withLock(partitionInUse, "instanceA", false));
     PartitionHelper partitionHelper = new PartitionHelper("testCategory", "instanceA")
         .withPerpetualLockManager(mockPerpetualLockManager);
 
@@ -92,8 +90,7 @@ public class PartitionHelperTest
     when(mockPerpetualLockManager.getAllActivePerpetualLocksForCategory("testCategory")).thenReturn(
         initLocks("testCategory")
             .withHeartbeatLock("instanceA", false)
-            .withHeartbeatLock("instanceB", false)
-    );
+            .withHeartbeatLock("instanceB", false));
     PartitionHelper partitionHelper = new PartitionHelper("testCategory", "instanceA")
         .withPerpetualLockManager(mockPerpetualLockManager);
 
@@ -113,8 +110,7 @@ public class PartitionHelperTest
             .withHeartbeatLock("instanceB", false)
             .withLock("partition1", "instanceA", false)
             .withLock("partition2", "instanceA", false)
-            .withLock("partition3", "instanceA", false)
-    );
+            .withLock("partition3", "instanceA", false));
     PartitionHelper partitionHelper = new PartitionHelper("testCategory", "instanceA")
         .withPerpetualLockManager(mockPerpetualLockManager);
 
@@ -140,8 +136,7 @@ public class PartitionHelperTest
     when(mockPerpetualLockManager.getAllActivePerpetualLocksForCategory("testCategory")).thenReturn(
         initLocks("testCategory")
             .withHeartbeatLock("instanceA", false)
-            .withHeartbeatLock("instanceB", false)
-    );
+            .withHeartbeatLock("instanceB", false));
     PartitionHelper partitionHelper = new PartitionHelper("testCategory", "instanceA")
         .withPerpetualLockManager(mockPerpetualLockManager);
 
@@ -166,8 +161,7 @@ public class PartitionHelperTest
     when(mockPerpetualLockManager.getAllActivePerpetualLocksForCategory("testCategory")).thenReturn(
         initLocks("testCategory")
             .withHeartbeatLock("instanceA", false)
-            .withHeartbeatLock("instanceB", false)
-    );
+            .withHeartbeatLock("instanceB", false));
     PartitionHelper partitionHelper = new PartitionHelper("testCategory", "instanceA")
         .withPerpetualLockManager(mockPerpetualLockManager);
 
@@ -242,7 +236,7 @@ public class PartitionHelperTest
 
     PerpetualLockTestList takeInstanceOffline(String instanceId) {
       // remove all the locks for the given instance
-      for (int i = 0; i < size(); ) {
+      for (int i = 0; i < size();) {
         if (instanceId.equals(get(i).getOwner())) {
           remove(i);
         }

@@ -68,7 +68,11 @@ public class ApiReverseProxyAuthenticationConfigurationResourceAuditTest
   }
 
   private void assertAuditData(
-      AuditDTO auditDTO, boolean enabled, String usernameHeader, boolean csrfProtectionDisabled, String logoutUrl)
+      AuditDTO auditDTO,
+      boolean enabled,
+      String usernameHeader,
+      boolean csrfProtectionDisabled,
+      String logoutUrl)
   {
     assertCustomData(auditDTO, "enabled", enabled);
     assertCustomData(auditDTO, "usernameHeader", usernameHeader);

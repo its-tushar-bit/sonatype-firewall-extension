@@ -50,7 +50,8 @@ public class MultiTenantInsightBrainServiceTest
   @Test
   @ManualIqServerInit
   public void shouldNotBindAwsRelatedClasses_WhenUsingDefaultEncryptionKeyStore() throws Exception {
-    startIqTestServer(new MtiqDatabaseConfigurator() {
+    startIqTestServer(new MtiqDatabaseConfigurator()
+    {
       @Override
       public void configure(InsightConfig config) {
         super.configure(config);
@@ -67,7 +68,8 @@ public class MultiTenantInsightBrainServiceTest
   @Test
   @ManualIqServerInit
   public void shouldBindAwsRelatedClasses_WhenNotUsingDefaultEncryptionKeyStore() throws Exception {
-    startIqTestServer(new MtiqDatabaseConfigurator() {
+    startIqTestServer(new MtiqDatabaseConfigurator()
+    {
       @Override
       public void configure(InsightConfig config) {
         super.configure(config);
@@ -86,9 +88,9 @@ public class MultiTenantInsightBrainServiceTest
     assertThat(getCLMServer().getInstance(DashboardViolationRiskService.class)).isInstanceOf(
         PostgresDashboardViolationRiskService.class);
     assertThat(getCLMServer().getInstance(ApplicationRiskService.class))
-            .isInstanceOf(PostgresApplicationRiskService.class);
+        .isInstanceOf(PostgresApplicationRiskService.class);
     assertThat(getCLMServer().getInstance(DashboardComponentRiskService.class))
-            .isInstanceOf(PostgresComponentRiskService.class);
+        .isInstanceOf(PostgresComponentRiskService.class);
   }
 
   @Override

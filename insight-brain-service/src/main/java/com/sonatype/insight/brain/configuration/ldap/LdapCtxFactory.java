@@ -18,7 +18,7 @@ import static java.lang.Boolean.TRUE;
 
 /**
  * Shiro LDAP context factory that uses a thread-local to properly track system contexts.
- * 
+ *
  * @since 1.7
  */
 class LdapCtxFactory
@@ -77,7 +77,7 @@ class LdapCtxFactory
   }
 
   @Override
-  @SuppressWarnings({ "rawtypes", "unchecked" })
+  @SuppressWarnings({"rawtypes", "unchecked"})
   protected LdapContext createLdapContext(Hashtable env) throws NamingException {
     // force switch to 'simple' if auth is 'none' and this is not the system context
     if ("none".equals(env.get(Context.SECURITY_AUTHENTICATION)) && !isSystemContext()) {

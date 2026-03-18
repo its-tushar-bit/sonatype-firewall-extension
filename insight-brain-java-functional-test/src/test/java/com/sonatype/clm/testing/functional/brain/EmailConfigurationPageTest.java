@@ -198,9 +198,10 @@ public class EmailConfigurationPageTest
     refreshOrOpen(EmailConfigurationPage.url());
     saveConfiguration();
 
-    FormUtils.getAlertElement(emailConfigurationPage).shouldBe(visible)
-           .shouldBe(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + 
-        " Hostname, Port and System Email are required details."));
+    FormUtils.getAlertElement(emailConfigurationPage)
+        .shouldBe(visible)
+        .shouldBe(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX +
+            " Hostname, Port and System Email are required details."));
     emailConfigurationPage.hostName().setValue("smtp.myserver.com");
     emailConfigurationPage.port().setValue("465");
     emailConfigurationPage.systemEmail().setValue("no-reply@iqserver.com");
@@ -212,8 +213,8 @@ public class EmailConfigurationPageTest
   // And if I do not modify the password, it must not be modified.
   @Test
   public void testUpdatePasswordIsNotModified() {
-    MailConfiguration existing
-        = tempEntity.newMailConfiguration("admin", insightMail.encryptPassword("password".toCharArray()));
+    MailConfiguration existing =
+        tempEntity.newMailConfiguration("admin", insightMail.encryptPassword("password".toCharArray()));
 
     refreshOrOpen(EmailConfigurationPage.url());
 
@@ -274,8 +275,8 @@ public class EmailConfigurationPageTest
 
   @Test
   public void testRemoveCredentials() {
-    MailConfiguration existing
-        = tempEntity.newMailConfiguration("a", insightMail.encryptPassword("password".toCharArray()));
+    MailConfiguration existing =
+        tempEntity.newMailConfiguration("a", insightMail.encryptPassword("password".toCharArray()));
 
     refreshOrOpen(EmailConfigurationPage.url());
 
@@ -310,9 +311,10 @@ public class EmailConfigurationPageTest
 
   private void assertSavingProducesValidationErrorWithPasswordRequired() {
     saveConfiguration();
-    FormUtils.getAlertElement(emailConfigurationPage).shouldBe(visible)
-           .shouldBe(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + 
-        " Password must be provided when updating Hostname or Port."));
+    FormUtils.getAlertElement(emailConfigurationPage)
+        .shouldBe(visible)
+        .shouldBe(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX +
+            " Password must be provided when updating Hostname or Port."));
   }
 
   private void saveConfiguration() {

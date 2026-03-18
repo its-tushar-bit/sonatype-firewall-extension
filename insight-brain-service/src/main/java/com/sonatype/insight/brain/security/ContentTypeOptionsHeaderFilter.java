@@ -19,7 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * Adds the X-Content-Type-Options: nosniff header to the response, which forces the browser to respect the
  * Content-Type on the response, protecting against some types of security vulnerabilities
- * 
+ *
  * @since 1.57
  */
 @Named
@@ -31,8 +31,10 @@ public class ContentTypeOptionsHeaderFilter
   }
 
   @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
-      throws IOException, ServletException
+  public void doFilter(
+      ServletRequest request,
+      ServletResponse response,
+      FilterChain filterChain) throws IOException, ServletException
   {
     HttpServletResponse httpResponse = (HttpServletResponse) response;
 

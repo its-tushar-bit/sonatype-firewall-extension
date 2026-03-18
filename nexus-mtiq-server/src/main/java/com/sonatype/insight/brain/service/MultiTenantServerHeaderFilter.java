@@ -10,7 +10,6 @@ import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.version.VersionService;
 
-
 /**
  * Servlet filter that adds the "Server" header to all responses.
  */

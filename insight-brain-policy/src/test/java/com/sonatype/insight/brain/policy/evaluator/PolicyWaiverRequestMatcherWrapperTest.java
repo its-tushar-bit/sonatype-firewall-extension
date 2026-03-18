@@ -65,7 +65,8 @@ public class PolicyWaiverRequestMatcherWrapperTest
         new PolicyWaiverRequest().setHash("hash").setComponentMatchStrategy(DEFAULT));
 
     assertThatThrownBy(() -> policyWaiverRequestMatcherWrapper.matchesComponent(null))
-        .hasMessage(notNullComponentFactErrorMessage).isInstanceOf(RuntimeException.class);
+        .hasMessage(notNullComponentFactErrorMessage)
+        .isInstanceOf(RuntimeException.class);
   }
 
   @Test
@@ -74,7 +75,8 @@ public class PolicyWaiverRequestMatcherWrapperTest
         new PolicyWaiverRequest().setHash("hash").setComponentMatchStrategy(EXACT_COMPONENT));
 
     assertThatThrownBy(() -> policyWaiverRequestMatcherWrapper.matchesComponent(null))
-        .hasMessage(notNullComponentFactErrorMessage).isInstanceOf(RuntimeException.class);
+        .hasMessage(notNullComponentFactErrorMessage)
+        .isInstanceOf(RuntimeException.class);
   }
 
   @Test
@@ -91,14 +93,16 @@ public class PolicyWaiverRequestMatcherWrapperTest
         new PolicyWaiverRequest().setHash("hash").setComponentMatchStrategy(ALL_VERSIONS));
 
     assertThatThrownBy(() -> policyWaiverRequestMatcherWrapper.matchesComponent(null))
-        .hasMessage(notNullComponentFactErrorMessage).isInstanceOf(RuntimeException.class);
+        .hasMessage(notNullComponentFactErrorMessage)
+        .isInstanceOf(RuntimeException.class);
   }
 
   @Test
   public void testMatchesComponent_DEFAULT() {
     String hash = "hash";
     PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest().setHash(hash)
-        .setComponentMatchStrategy(DEFAULT).setAssociatedPackageUrl(associatedPackagedUrl);
+        .setComponentMatchStrategy(DEFAULT)
+        .setAssociatedPackageUrl(associatedPackagedUrl);
     ComponentFact componentFact = new ComponentFact(policyWaiverRequest.getComponentIdentifier(), hash);
     PolicyWaiverRequestMatcherWrapper policyWaiverRequestMatcherWrapper =
         new PolicyWaiverRequestMatcherWrapper(policyWaiverRequest);
@@ -110,7 +114,8 @@ public class PolicyWaiverRequestMatcherWrapperTest
   public void testMatchesComponent_EXACT_COMPONENT() {
     String hash = "hash";
     PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest().setHash(hash)
-        .setComponentMatchStrategy(EXACT_COMPONENT).setAssociatedPackageUrl(associatedPackagedUrl);
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setAssociatedPackageUrl(associatedPackagedUrl);
     ComponentFact componentFact = new ComponentFact(policyWaiverRequest.getComponentIdentifier(), hash);
     PolicyWaiverRequestMatcherWrapper policyWaiverRequestMatcherWrapper =
         new PolicyWaiverRequestMatcherWrapper(policyWaiverRequest);
@@ -121,7 +126,8 @@ public class PolicyWaiverRequestMatcherWrapperTest
   @Test
   public void testMatchesComponent_EXACT_COMPONENT_nullHash() {
     PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest()
-        .setComponentMatchStrategy(EXACT_COMPONENT).setAssociatedPackageUrl(associatedPackagedUrl);
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setAssociatedPackageUrl(associatedPackagedUrl);
     ComponentFact componentFact = new ComponentFact(policyWaiverRequest.getComponentIdentifier(), null);
     PolicyWaiverRequestMatcherWrapper policyWaiverRequestMatcherWrapper =
         new PolicyWaiverRequestMatcherWrapper(policyWaiverRequest);
@@ -133,7 +139,8 @@ public class PolicyWaiverRequestMatcherWrapperTest
   public void testMatchesComponent_EXACT_COMPONENT_nullHash_missingRequiredCoordinates() {
     String associatedPackagedUrl = "pkg:pypi/name?extension=e&qualifier=q";
     PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest()
-        .setComponentMatchStrategy(EXACT_COMPONENT).setAssociatedPackageUrl(associatedPackagedUrl);
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setAssociatedPackageUrl(associatedPackagedUrl);
 
     ComponentIdentifier componentIdentifier = new ComponentIdentifier(FORMAT_PYPI, new TreeMap<String, String>()
     {
@@ -154,7 +161,8 @@ public class PolicyWaiverRequestMatcherWrapperTest
   @Test
   public void testMatchesComponent_ALL_COMPONENTS() {
     PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest().setHash(null)
-        .setComponentMatchStrategy(ALL_COMPONENTS).setAssociatedPackageUrl(associatedPackagedUrl);
+        .setComponentMatchStrategy(ALL_COMPONENTS)
+        .setAssociatedPackageUrl(associatedPackagedUrl);
     PolicyWaiverRequestMatcherWrapper policyWaiverRequestMatcherWrapper =
         new PolicyWaiverRequestMatcherWrapper(policyWaiverRequest);
 
@@ -181,7 +189,8 @@ public class PolicyWaiverRequestMatcherWrapperTest
     String hash = "hash";
     String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@2.0?type=jar";
     PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest().setHash(hash)
-        .setComponentMatchStrategy(ALL_VERSIONS).setAssociatedPackageUrl(associatedPackagedUrlAllVersions);
+        .setComponentMatchStrategy(ALL_VERSIONS)
+        .setAssociatedPackageUrl(associatedPackagedUrlAllVersions);
 
     ComponentFact componentFact = new ComponentFact(null, "otherHash");
     PolicyWaiverRequestMatcherWrapper policyWaiverRequestMatcherWrapper =
@@ -341,7 +350,8 @@ public class PolicyWaiverRequestMatcherWrapperTest
   public void testMatchesComponent_EXACT_COMPONENT_differentFormat_WithHashNull_mavenEmptyExtension() {
     String associatedPackagedUrl = "pkg:pypi/ruamel.yaml@0.17.35?extension=whl&qualifier=py3-none-any";
     PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest()
-        .setComponentMatchStrategy(EXACT_COMPONENT).setAssociatedPackageUrl(associatedPackagedUrl);
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setAssociatedPackageUrl(associatedPackagedUrl);
 
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("group", "artifact", "otherVersion", "", null);
@@ -357,7 +367,8 @@ public class PolicyWaiverRequestMatcherWrapperTest
   @Test
   public void testMatcherWrapper_matchesComponent_EXACT_COMPONENT_sameFormat_WithHashNull_mavenEmptyExtension() {
     PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest()
-        .setComponentMatchStrategy(EXACT_COMPONENT).setAssociatedPackageUrl(associatedPackagedUrl);
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setAssociatedPackageUrl(associatedPackagedUrl);
 
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("group", "artifact", "otherVersion", "", null);

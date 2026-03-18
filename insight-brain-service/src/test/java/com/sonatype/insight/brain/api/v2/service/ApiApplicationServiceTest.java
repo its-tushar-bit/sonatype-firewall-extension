@@ -319,8 +319,8 @@ public class ApiApplicationServiceTest
     assertThat(actual.organizationId).isEqualTo(app.getOrganizationId());
     assertThat(actual.name).isEqualTo(app.getName());
     assertThat(actual.contactUserName).isEqualTo(app.getContactInternalName());
-    assertThat(actual.categories).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        tags.stream().map(TagService::toDTO).toArray(ApiApplicationCategoryDTO[]::new)
-    );
+    assertThat(actual.categories).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            tags.stream().map(TagService::toDTO).toArray(ApiApplicationCategoryDTO[]::new));
   }
 }

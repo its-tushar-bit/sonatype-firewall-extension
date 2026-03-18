@@ -135,7 +135,8 @@ public class LegalApplicationDashboardService
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     Set<String> stageTypeIdsToCheck =
-        isEmpty(stageTypeIds) ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
+        isEmpty(stageTypeIds)
+            ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
             : stageTypeIds;
 
     List<ApplicationComponentLicensesDTO> applicationComponentLicensesDTOS = applicationComponentLicenseDAO
@@ -149,7 +150,8 @@ public class LegalApplicationDashboardService
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
 
-    Set<String> innerSourcePackageUrls = innerSourceApplicationDAO.getByPackageUrls(componentPurls).stream()
+    Set<String> innerSourcePackageUrls = innerSourceApplicationDAO.getByPackageUrls(componentPurls)
+        .stream()
         .map(InnerSourceApplication::getPackageUrl)
         .collect(Collectors.toSet());
 
@@ -174,7 +176,8 @@ public class LegalApplicationDashboardService
         Map<String, Set<String>> multiLicenseIdToSingleLicenseId =
             buildMultiLicenseIdToSingleLicenseIdsMap(multiLicenseIds);
 
-        Set<String> singleLicenseIds = multiLicenseIdToSingleLicenseId.values().stream()
+        Set<String> singleLicenseIds = multiLicenseIdToSingleLicenseId.values()
+            .stream()
             .flatMap(Collection::stream)
             .collect(Collectors.toSet());
 
@@ -246,8 +249,7 @@ public class LegalApplicationDashboardService
                 .map(License::getId)
                 .collect(Collectors.toSet()),
             (prev, next) -> next,
-            HashMap::new
-        ));
+            HashMap::new));
   }
 
   private void checkLicense() {
@@ -258,12 +260,15 @@ public class LegalApplicationDashboardService
   }
 
   private Map<String, Set<String>> getLicenseObligationsFromHds(Set<String> licenseIds) {
-    return licenseIds.isEmpty() ? Collections.emptyMap()
-        : apiLicenseLegalHdsService.getLicenseMetadata(licenseIds).parallelStream()
-        .collect(Collectors.toMap(LicenseMetadataDTO::getLicenseId, licenseMetadata ->
-            licenseMetadata.getLicenseObligations().stream()
-                .map(LicenseObligationDTO::getName)
-                .collect(Collectors.toSet())));
+    return licenseIds.isEmpty()
+        ? Collections.emptyMap()
+        : apiLicenseLegalHdsService.getLicenseMetadata(licenseIds)
+            .parallelStream()
+            .collect(Collectors.toMap(LicenseMetadataDTO::getLicenseId,
+                licenseMetadata -> licenseMetadata.getLicenseObligations()
+                    .stream()
+                    .map(LicenseObligationDTO::getName)
+                    .collect(Collectors.toSet())));
   }
 
   private Set<String> filterLicenseIdsByThreatGroups(
@@ -313,7 +318,7 @@ public class LegalApplicationDashboardService
       List<ApiLicenseThreatDTOV2> licenseThreatGroups = new ArrayList<>();
 
       for (String singleLicense : e.getValue()) {
-        //Fetch all license threat groups associated with this license, filter based on user selection
+        // Fetch all license threat groups associated with this license, filter based on user selection
         final List<LicenseThreatGroup> singleLicenseThreatGroups =
             threatGroupsByLicenseId.getOrDefault(singleLicense, Collections.emptyList());
 
@@ -322,8 +327,7 @@ public class LegalApplicationDashboardService
                 .filter(threatGroup -> isEmpty(licenseThreatGroupNamesToInclude)
                     || licenseThreatGroupNamesToInclude.contains(threatGroup.getName()))
                 .map(licenseDataAdapter::convert)
-                .collect(Collectors.toList())
-        );
+                .collect(Collectors.toList()));
       }
 
       licenses.add(new ApiLicenseDTOV2(e.getKey(), licenseNamesByLicenseId.get(e.getKey()), licenseThreatGroups));

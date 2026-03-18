@@ -54,7 +54,7 @@ public class ApplicationCategoryEditorTest
 
   @Before
   public void init() {
-    //note the ȧ being used to force a character to be encoded
+    // note the ȧ being used to force a character to be encoded
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
     refreshOrOpen(OwnerSummaryPage.url(application));
@@ -83,26 +83,27 @@ public class ApplicationCategoryEditorTest
     eyesWatcher.eyesCheck();
 
     ApplicationCategoryEditorPage.title().shouldHave(ApplicationCategoryEditorPage.titleText());
-    ApplicationCategoryEditorPage.subtitle().text()
-            .equals(ApplicationCategoryEditorPage.subtitleText(YE_OLE_APPLICATION));
+    ApplicationCategoryEditorPage.subtitle()
+        .text()
+        .equals(ApplicationCategoryEditorPage.subtitleText(YE_OLE_APPLICATION));
     ApplicationCategoryEditorPage.associationEditor().shouldBe(visible);
     ApplicationCategoryEditorPage.associationEditor().rows().shouldHave(size(2));
     ApplicationCategoryEditorPage.associationEditor().shouldNotBe(MULTI_COLUMN);
 
     IqAssociationEditor.AssociationEditorElement category1Item =
-            ApplicationCategoryEditorPage.associationEditor().item(0);
+        ApplicationCategoryEditorPage.associationEditor().item(0);
     category1Item.checkBox().shouldBe(visible).shouldNotBe(selected);
     category1Item.description().shouldBe(visible).shouldHave(text(category1.getName()));
     String nxColorClass = "nx-selectable-color--" +
-            NxColor.getNxColorFromColor(category1.getColor()).toString();
+        NxColor.getNxColorFromColor(category1.getColor()).toString();
     category1Item.icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
 
     IqAssociationEditor.AssociationEditorElement category2Item =
-            ApplicationCategoryEditorPage.associationEditor().item(1);
+        ApplicationCategoryEditorPage.associationEditor().item(1);
     category2Item.checkBox().shouldBe(visible).shouldNotBe(selected);
     category2Item.description().shouldBe(visible).shouldHave(text(category2.getName()));
     nxColorClass = "nx-selectable-color--" +
-            NxColor.getNxColorFromColor(category2.getColor()).toString();
+        NxColor.getNxColorFromColor(category2.getColor()).toString();
     category2Item.icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
 
     // just pick one to click
@@ -143,8 +144,9 @@ public class ApplicationCategoryEditorTest
     Tag category6 = categories.get(5);
 
     ApplicationCategoryEditorPage.title().shouldHave(ApplicationCategoryEditorPage.titleText());
-    ApplicationCategoryEditorPage.subtitle().text()
-            .equals(ApplicationCategoryEditorPage.subtitleText(YE_OLE_APPLICATION));
+    ApplicationCategoryEditorPage.subtitle()
+        .text()
+        .equals(ApplicationCategoryEditorPage.subtitleText(YE_OLE_APPLICATION));
     ApplicationCategoryEditorPage.associationEditor().shouldBe(visible);
     ApplicationCategoryEditorPage.associationEditor().rows().shouldHave(size(10));
     ApplicationCategoryEditorPage.associationEditor().shouldBe(MULTI_COLUMN);
@@ -154,15 +156,15 @@ public class ApplicationCategoryEditorTest
       item.checkBox().shouldBe(visible).shouldNotBe(selected);
       item.description().shouldBe(visible).shouldHave(text(categories.get(i).getName()));
       String nxColorClass = "nx-selectable-color--" +
-              NxColor.getNxColorFromColor(categories.get(i).getColor()).toString();
+          NxColor.getNxColorFromColor(categories.get(i).getColor()).toString();
       item.icon().shouldHave(cssClass(nxColorClass));
     }
 
     // select the items in the first row
     IqAssociationEditor.AssociationEditorElement category1Item =
-            ApplicationCategoryEditorPage.associationEditor().item(0);
+        ApplicationCategoryEditorPage.associationEditor().item(0);
     IqAssociationEditor.AssociationEditorElement category6Item =
-            ApplicationCategoryEditorPage.associationEditor().item(5);
+        ApplicationCategoryEditorPage.associationEditor().item(5);
     category1Item.checkBox().shouldBe(visible).click();
     category6Item.checkBox().shouldBe(visible).click();
 
@@ -182,9 +184,9 @@ public class ApplicationCategoryEditorTest
     // make sure the remaining items aren't selected and haven't been applied
     for (int i = 1; i < 5; i++) {
       IqAssociationEditor.AssociationEditorElement firstItem =
-              ApplicationCategoryEditorPage.associationEditor().item(i);
+          ApplicationCategoryEditorPage.associationEditor().item(i);
       IqAssociationEditor.AssociationEditorElement secondItem =
-              ApplicationCategoryEditorPage.associationEditor().item(i + 5);
+          ApplicationCategoryEditorPage.associationEditor().item(i + 5);
       firstItem.checkBox().shouldNotBe(selected);
       secondItem.checkBox().shouldNotBe(selected);
     }

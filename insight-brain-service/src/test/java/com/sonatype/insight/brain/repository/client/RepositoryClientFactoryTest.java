@@ -68,8 +68,8 @@ public class RepositoryClientFactoryTest
     when(dao.get()).thenReturn(null);
 
     RepositoryClientBuilder clientBuilder = factory.create();
-    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() ->
-            clientBuilder.forNexus3(null, "user", "pass".toCharArray()))
+    assertThatExceptionOfType(IllegalStateException.class)
+        .isThrownBy(() -> clientBuilder.forNexus3(null, "user", "pass".toCharArray()))
         .withMessage("Missing repository base url");
   }
 

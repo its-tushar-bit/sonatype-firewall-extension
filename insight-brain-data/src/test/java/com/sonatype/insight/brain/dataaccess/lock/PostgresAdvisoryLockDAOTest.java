@@ -44,7 +44,7 @@ public class PostgresAdvisoryLockDAOTest
 
   private static final int TEST_LOCK_OBJID = TEST_LOCK_APP_ID.hashCode();
 
-  // on-prem IQ uses "notused" as the tenant name.  The hashCode of "notused" is 0x7EF0F510.
+  // on-prem IQ uses "notused" as the tenant name. The hashCode of "notused" is 0x7EF0F510.
   // The high byte there should be replaced with the ordinal of CompoundIdClass.POLICY_VIOLATIONS enum value, which is
   // 0, and the highest bit should also be set as this is a CompoundId and not a SimpleId.
   private static final int TEST_LOCK_ONPREM_CLASSID = 0x80F0F510;
@@ -109,7 +109,8 @@ public class PostgresAdvisoryLockDAOTest
   private List<ImmutableTriple<Integer, Integer, String>> getExistingLocks() throws SQLException {
     try (Connection connection = getConnection();
         Statement stmt = connection.createStatement();
-        ResultSet results = stmt.executeQuery(LOCK_QUERY)) {
+        ResultSet results = stmt.executeQuery(LOCK_QUERY))
+    {
       List<ImmutableTriple<Integer, Integer, String>> retval = new ArrayList<>();
       while (results.next()) {
         retval.add(ImmutableTriple.of((int) results.getLong(1), (int) results.getLong(2), results.getString(3)));
@@ -210,8 +211,7 @@ public class PostgresAdvisoryLockDAOTest
 
       assertExistingLocks(
           ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"),
-          ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock")
-      );
+          ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
     }
   }
 
@@ -255,8 +255,7 @@ public class PostgresAdvisoryLockDAOTest
 
         assertExistingLocks(
             ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"),
-            ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock")
-        );
+            ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
       });
       otherThread.start();
 
@@ -276,8 +275,7 @@ public class PostgresAdvisoryLockDAOTest
 
       assertThat(getExistingLocks()).containsExactly(
           ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"),
-          ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock")
-      );
+          ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"));
     }
   }
 
@@ -445,8 +443,7 @@ public class PostgresAdvisoryLockDAOTest
 
         assertExistingLocks(
             ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"),
-            ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock")
-        );
+            ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
       });
       otherThread.start();
 
@@ -474,8 +471,7 @@ public class PostgresAdvisoryLockDAOTest
 
       assertThat(getExistingLocks()).containsExactlyInAnyOrder(
           ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"),
-          ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock")
-      );
+          ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
     }
   }
 
@@ -488,8 +484,7 @@ public class PostgresAdvisoryLockDAOTest
 
       assertThat(getExistingLocks()).containsExactlyInAnyOrder(
           ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"),
-          ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock")
-      );
+          ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
     }
   }
 
@@ -681,8 +676,7 @@ public class PostgresAdvisoryLockDAOTest
               ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"),
 
               // "othertenant" hashCode = 0xD24FDBBA, and again we replace the top byte
-              ImmutableTriple.of(0x884FDBBA, TEST_LOCK_OBJID, "ExclusiveLock")
-          );
+              ImmutableTriple.of(0x884FDBBA, TEST_LOCK_OBJID, "ExclusiveLock"));
         });
       });
       otherThread.start();

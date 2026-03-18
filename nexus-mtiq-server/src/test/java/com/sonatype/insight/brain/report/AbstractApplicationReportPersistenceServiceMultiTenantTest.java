@@ -348,8 +348,7 @@ public abstract class AbstractApplicationReportPersistenceServiceMultiTenantTest
                   // new file from additional files dir
                   assertThat(entity.getName()).isEqualTo("bar.txt");
                   helper.assertEntityContents(entity, "bar1");
-                })
-        );
+                }));
       }
     });
 
@@ -390,8 +389,7 @@ public abstract class AbstractApplicationReportPersistenceServiceMultiTenantTest
                   // new file from additional files dir
                   assertThat(entity.getName()).isEqualTo("baz.txt");
                   helper.assertEntityContents(entity, "baz2");
-                })
-        );
+                }));
       }
     });
   }
@@ -401,14 +399,16 @@ public abstract class AbstractApplicationReportPersistenceServiceMultiTenantTest
   public void testSaveOriginalReport() throws Exception {
     Tenant tenant1 = testAsNewTenant("tenant1", tenant -> {
       try (var zipStream =
-          getClass().getResourceAsStream("/ApplicationReportPersistenceServiceTest/report1.zip")) {
+          getClass().getResourceAsStream("/ApplicationReportPersistenceServiceTest/report1.zip"))
+      {
         service.saveOriginalReport(APPLICATION_ID, SCAN_ID, zipStream);
       }
     });
 
     Tenant tenant2 = testAsNewTenant("tenant2", tenant -> {
       try (var zipStream =
-          getClass().getResourceAsStream("/ApplicationReportPersistenceServiceTest/report2.zip")) {
+          getClass().getResourceAsStream("/ApplicationReportPersistenceServiceTest/report2.zip"))
+      {
         service.saveOriginalReport(APPLICATION_ID, SCAN_ID, zipStream);
       }
     });

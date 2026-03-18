@@ -98,8 +98,8 @@ public class MultiTenantPostgresTestCluster
     log.debug("Renaming template schema");
     try {
       String[] cmd = {
-          "/usr/local/bin/psql", "--variable", "ON_ERROR_STOP=1", "--dbname", databaseName, "--username", getUsername(),
-          "--command", "ALTER SCHEMA t_" + TEMPLATE_TENANT_NAME + " RENAME TO " + TEMPLATE_TENANT_NAME
+        "/usr/local/bin/psql", "--variable", "ON_ERROR_STOP=1", "--dbname", databaseName, "--username", getUsername(),
+        "--command", "ALTER SCHEMA t_" + TEMPLATE_TENANT_NAME + " RENAME TO " + TEMPLATE_TENANT_NAME
       };
       ExecResult execResult = postgresTestContainer.execInContainer(cmd);
       if (execResult.getExitCode() != 0) {
@@ -116,17 +116,17 @@ public class MultiTenantPostgresTestCluster
 
     try {
       String[] pgDumpCmd = {
-          "/usr/local/bin/pg_dump",
-          "--username", postgresTestContainer.getUsername(),
-          "--dbname", databaseName,
-          "--schema", TEMPLATE_TENANT_NAME,
-          "|",
-          "sed",
-          "'s/templatetenant/" + databaseSchema + "/g'",
-          "|",
-          "psql",
-          "--username", postgresTestContainer.getUsername(),
-          "--dbname", databaseName
+        "/usr/local/bin/pg_dump",
+        "--username", postgresTestContainer.getUsername(),
+        "--dbname", databaseName,
+        "--schema", TEMPLATE_TENANT_NAME,
+        "|",
+        "sed",
+        "'s/templatetenant/" + databaseSchema + "/g'",
+        "|",
+        "psql",
+        "--username", postgresTestContainer.getUsername(),
+        "--dbname", databaseName
       };
       String[] cmd = {"sh", "-c", String.join(" ", pgDumpCmd)};
 

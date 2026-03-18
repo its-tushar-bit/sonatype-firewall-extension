@@ -71,7 +71,8 @@ public class ComponentObligationDAOTest
     dao.update(componentObligation);
     assertThat(dao.getById(componentObligation.getId())).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
         .ignoringFields(JPA.IGNORE_FIELDS)
-        .usingOverriddenEquals().isEqualTo(componentObligation);
+        .usingOverriddenEquals()
+        .isEqualTo(componentObligation);
 
     // Delete
     dao.delete(componentObligation);

@@ -15,7 +15,8 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
-public class RoleEditorPage extends BasicElement<RoleEditorPage> 
+public class RoleEditorPage
+    extends BasicElement<RoleEditorPage>
 {
   public static String url() {
     return BaseUrl.resolvePageUrl("/roles");
@@ -65,7 +66,8 @@ public class RoleEditorPage extends BasicElement<RoleEditorPage>
     return new PermissionCategory("#test-permission-category-" + categoryName);
   }
 
-  public class PermissionCategory extends BasicElement<PermissionCategory> 
+  public class PermissionCategory
+      extends BasicElement<PermissionCategory>
   {
     PermissionCategory(final String... selectors) {
       super(selectors);
@@ -81,12 +83,13 @@ public class RoleEditorPage extends BasicElement<RoleEditorPage>
   }
 
   public NxToggle permission(String categoryName, int num, boolean firstColumn) {
-    return new NxToggle(childSelector( ".test-permissions-" + categoryName,
+    return new NxToggle(childSelector(".test-permissions-" + categoryName,
         ".iq-role-editor-permission-group__col", nthChild(firstColumn ? 1 : 2),
         ".nx-toggle--no-gap", nthChild(num + 1)));
   }
 
-  public class Permission extends BasicElement<Permission> 
+  public class Permission
+      extends BasicElement<Permission>
   {
     Permission(final String... selectors) {
       super(selectors);
@@ -105,7 +108,8 @@ public class RoleEditorPage extends BasicElement<RoleEditorPage>
     }
   }
 
-  public class ToggleSwitch extends BasicElement<ToggleSwitch> 
+  public class ToggleSwitch
+      extends BasicElement<ToggleSwitch>
   {
     ToggleSwitch(final String... selectors) {
       super(selectors);

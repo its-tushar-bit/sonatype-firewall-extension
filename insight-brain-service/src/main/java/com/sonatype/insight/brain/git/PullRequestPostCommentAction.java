@@ -20,11 +20,11 @@ public interface PullRequestPostCommentAction
   /**
    * Invoke the post-pull-request-comment action
    *
-   * @param gitClientFactory             factory for the git client
-   * @param gitRepositoryInfo            the repository the action is being invoked on
-   * @param policyViolationDiff          the policy violation diff between the source and branch
+   * @param gitClientFactory factory for the git client
+   * @param gitRepositoryInfo the repository the action is being invoked on
+   * @param policyViolationDiff the policy violation diff between the source and branch
    * @param sourceCommitPolicyEvaluation {@link PolicyViolation} for the source commit
-   * @param baseBranchPolicyEvaluation   {@link PolicyViolation} for the base branch
+   * @param baseBranchPolicyEvaluation {@link PolicyViolation} for the base branch
    */
   void invokeAction(
       final GitClientFactory gitClientFactory,

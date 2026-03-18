@@ -45,7 +45,8 @@ public class DataStoreTestModule
     binder.bind(DataStoreProvider.class).toInstance(databaseContainerRule.getDatabaseContainer());
     // Bind ClusterLockManagerProvider so it can be injected, then use it as a provider
     binder.bind(ClusterLockManagerProvider.class);
-    binder.bind(ClusterLockManager.class).toProvider(new com.google.inject.Provider<>() {
+    binder.bind(ClusterLockManager.class).toProvider(new com.google.inject.Provider<>()
+    {
       @Inject
       ClusterLockManagerProvider provider;
 

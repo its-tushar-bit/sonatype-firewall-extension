@@ -72,8 +72,8 @@ public class DefaultBranchMonitorExecutor
   }
 
   /**
-   * The start time and interval form a continual series of date-times.  This method gets the next datetime that is
-   * closest to now.  If the interval start time is in the future we back it up one day. Then, in all cases, we
+   * The start time and interval form a continual series of date-times. This method gets the next datetime that is
+   * closest to now. If the interval start time is in the future we back it up one day. Then, in all cases, we
    * repeatedly bump the time forward one interval until we find the first series datetime that is in the future.
    */
   @VisibleForTesting

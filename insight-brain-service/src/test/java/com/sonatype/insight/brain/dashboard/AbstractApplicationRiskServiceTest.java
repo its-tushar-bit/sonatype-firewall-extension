@@ -110,7 +110,8 @@ abstract class AbstractApplicationRiskServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> getApplicationRiskService()
         .getApplicationRisks(null, null, Collections.singleton(DevelopStageType.ID), null, null,
-            null, null, "-TOTAL_RISK", 0, 100)).withMessage("Invalid stage type: develop.");
+            null, null, "-TOTAL_RISK", 0, 100))
+        .withMessage("Invalid stage type: develop.");
   }
 
   @Test
@@ -125,12 +126,14 @@ abstract class AbstractApplicationRiskServiceTest
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = getApplicationRiskService().getApplicationRisks(null,
         Collections.singleton(app1.getId()),
         new LinkedHashSet<>(Arrays.asList(ReleaseStageType.ID, OperateStageType.ID, BuildStageType.ID,
-            StageReleaseStageType.ID)), null, null, null, null, "-TOTAL_RISK", 0, 100);
+            StageReleaseStageType.ID)),
+        null, null, null, null, "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     ApplicationRiskScoreDTO appDTO = result.dashboardResults.get(0);
-    assertThat(appDTO.stageRisks).extracting(dto -> dto.stageTypeId).containsExactly(BuildStageType.ID,
-        StageReleaseStageType.ID, ReleaseStageType.ID, OperateStageType.ID);
+    assertThat(appDTO.stageRisks).extracting(dto -> dto.stageTypeId)
+        .containsExactly(BuildStageType.ID,
+            StageReleaseStageType.ID, ReleaseStageType.ID, OperateStageType.ID);
   }
 
   @Test
@@ -191,7 +194,8 @@ abstract class AbstractApplicationRiskServiceTest
     result = getApplicationRiskService()
         .getApplicationRisks(null, Collections.singleton(app1.getId()), null, null, null, null,
             new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.LEGACY_VIOLATION,
-                PolicyViolationState.OPEN), "-TOTAL_RISK", 0, 100);
+                PolicyViolationState.OPEN),
+            "-TOTAL_RISK", 0, 100);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.hasNextPage).isEqualTo(false);
     appDTO = result.dashboardResults.get(0);
@@ -528,7 +532,7 @@ abstract class AbstractApplicationRiskServiceTest
     tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
 
     assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> getApplicationRiskService()
-            .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, Integer.MAX_VALUE))
+        .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0, Integer.MAX_VALUE))
         .withMessage("The dashboard feature has been disabled.");
   }
 

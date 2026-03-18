@@ -226,7 +226,8 @@ public class ArtifactoryClient
     String server = serverHeader == null ? null : serverHeader.getValue();
     log.debug("Artifactory server header {}, status {}", server, response.getStatusLine());
     if (StringUtils.isBlank(server)) {
-      return new StatusType() {
+      return new StatusType()
+      {
         @Override
         public int getStatusCode() {
           return Status.BAD_REQUEST.getStatusCode();

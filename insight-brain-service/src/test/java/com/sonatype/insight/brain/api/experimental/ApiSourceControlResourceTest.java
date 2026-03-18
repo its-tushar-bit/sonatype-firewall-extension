@@ -75,7 +75,8 @@ public class ApiSourceControlResourceTest
         new DefaultPlexusCipher().encrypt("token", "CMMDwoV"), SourceControlProvider.GITHUB);
 
     HttpResponse response = restRequest().path(ApiSourceControlResource.RATE_LIMITS_PATH)
-        .parameter(OwnerType.ORGANIZATION, application.getOrganizationId()).get();
+        .parameter(OwnerType.ORGANIZATION, application.getOrganizationId())
+        .get();
 
     assertResponseStatus(200, response);
     ApiOwnerUserRateLimitsDTO result = response.getBody(ApiOwnerUserRateLimitsDTO.class);

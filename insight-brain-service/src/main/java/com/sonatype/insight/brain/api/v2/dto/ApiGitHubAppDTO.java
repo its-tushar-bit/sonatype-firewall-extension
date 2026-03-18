@@ -14,6 +14,6 @@ public record ApiGitHubAppDTO(
     String slug,
     String clientId,
     Long installationId,
-    String ownerId
-) {
+    String ownerId)
+{
 }

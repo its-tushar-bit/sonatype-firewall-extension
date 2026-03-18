@@ -91,8 +91,9 @@ public class RepositoryDAO
     return getList(tx, sQuery, repositoryManagerId);
   }
 
-  public Repository getByRepositoryManagerInstanceIdAndPublicIdNotNull(final String repositoryManagerInstanceId,
-                                                                       final String publicId)
+  public Repository getByRepositoryManagerInstanceIdAndPublicIdNotNull(
+      final String repositoryManagerInstanceId,
+      final String publicId)
   {
     final Repository repository = getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, publicId);
     if (repository == null) {
@@ -140,7 +141,8 @@ public class RepositoryDAO
       }
 
       if (repository.isPolicyCompliantComponentSelectionEnabled()
-          && (!repository.isAuditEnabled() || !repository.isQuarantineEnabled())) {
+          && (!repository.isAuditEnabled() || !repository.isQuarantineEnabled()))
+      {
         throw new InvalidRepositoryException(
             "Policy Compliant Component Selection requires Audit and Quarantine to be enabled.");
       }
@@ -168,7 +170,8 @@ public class RepositoryDAO
     validateNotEmptyPublicId(repository.getPublicId());
 
     if (getByRepositoryManagerIdAndPublicId(tx, repository.getRepositoryManagerId(),
-        repository.getPublicId()) != null) {
+        repository.getPublicId()) != null)
+    {
       throw new InvalidRepositoryException("There is already a repository with public ID '" + repository.getPublicId()
           + "' for the same repository manager.");
     }

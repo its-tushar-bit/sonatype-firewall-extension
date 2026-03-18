@@ -153,7 +153,8 @@ public class IqConditions
   }
 
   private static List<String> getSafeValues(List<WebElement> elements, Function<WebElement, String> valueGetter) {
-    return elements != null ? elements.stream().map(element -> getSafeValue(element, valueGetter)).collect(toList())
+    return elements != null
+        ? elements.stream().map(element -> getSafeValue(element, valueGetter)).collect(toList())
         : Collections.emptyList();
   }
 

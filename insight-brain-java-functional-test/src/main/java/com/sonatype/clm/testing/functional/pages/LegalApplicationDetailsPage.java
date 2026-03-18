@@ -30,13 +30,15 @@ public class LegalApplicationDetailsPage
         publicAppId, stage));
   }
 
-  public static String urlToApplicationScopeComingFromCDP(String publicAppId, String stage,
-                                                          String scanId, String componentHash)
+  public static String urlToApplicationScopeComingFromCDP(
+      String publicAppId,
+      String stage,
+      String scanId,
+      String componentHash)
   {
     return BaseUrl.resolvePageUrl(String.format(BASE_URL_CDP_ORIGIN, publicAppId, scanId) +
         String.format("/legal/application/%s/stage/%s", publicAppId, stage) +
-        String.format("/component/%s?scanId=%s&tabId=legal", componentHash, scanId)
-    );
+        String.format("/component/%s?scanId=%s&tabId=legal", componentHash, scanId));
   }
 
   public static String urlToComponentAtRootScopeByHash(String componentHash) {
@@ -52,14 +54,15 @@ public class LegalApplicationDetailsPage
       String publicAppId,
       String hash,
       String scanId,
-      String tabId
-  )
+      String tabId)
   {
     // note can't use resolvePageUrl since it unescapes characters in a way that's not consistent wit the frontend,
     // making it unsuitable for test comparisons.
-    return BaseUrl.pageUriBuilder().fragment(
-        String.format("/legal/component/componentIdentifier/%s/application/%s/component/%s/scan/%s/%s",
-            componentIdentifier, publicAppId, hash, scanId, tabId)).toString();
+    return BaseUrl.pageUriBuilder()
+        .fragment(
+            String.format("/legal/component/componentIdentifier/%s/application/%s/component/%s/scan/%s/%s",
+                componentIdentifier, publicAppId, hash, scanId, tabId))
+        .toString();
   }
 
   public static String sbomManagerUrlToApplicationScope(String publicAppId) {
@@ -98,7 +101,7 @@ public class LegalApplicationDetailsPage
       return getFilterCheckboxAt(1);
     }
 
-    public NxCheckbox getFilterCheckboxAt(int i ) {
+    public NxCheckbox getFilterCheckboxAt(int i) {
       return new NxCheckbox(child(".nx-collapsible-items__children .nx-collapsible-items__child", nthChild(i + 1)));
     }
   }

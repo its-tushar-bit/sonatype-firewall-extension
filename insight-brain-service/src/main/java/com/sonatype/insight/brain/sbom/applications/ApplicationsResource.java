@@ -48,9 +48,8 @@ public class ApplicationsResource
       @DefaultValue("IMPORT_DATE") @QueryParam("sortBy") SbomApplicationsSortableField sortBy,
       @DefaultValue("false") @QueryParam("asc") boolean asc,
       @DefaultValue("1") @QueryParam("page") int page,
-      @DefaultValue("50") @QueryParam("pageSize") int pageSize
-  )
+      @DefaultValue("50") @QueryParam("pageSize") int pageSize)
   {
-    return sbomApplicationsService.getApplications(applicationName, sortBy, asc, page, pageSize );
+    return sbomApplicationsService.getApplications(applicationName, sortBy, asc, page, pageSize);
   }
 }

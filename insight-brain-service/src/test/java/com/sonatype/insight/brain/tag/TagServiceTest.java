@@ -344,7 +344,7 @@ public class TagServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> tagService.deleteTag(organization2.getId(), tag.getId()))
         .withMessage("Cannot find an application category with id " + tag.getId() + " for organization id " +
-                organization2.getId());
+            organization2.getId());
   }
 
   @Test
@@ -366,7 +366,9 @@ public class TagServiceTest
     tempEntity.newTag(organization2.getId(), "name4");
 
     List<Tag> allTags =
-        tagService.getTagsUsedByApplications().stream().map(dto -> TagService.fromDTO(dto, dto.organizationId))
+        tagService.getTagsUsedByApplications()
+            .stream()
+            .map(dto -> TagService.fromDTO(dto, dto.organizationId))
             .collect(Collectors.toList());
     assertThat(allTags).usingElementComparator(byId).containsExactlyInAnyOrder(tag1, tag2);
   }
@@ -378,7 +380,8 @@ public class TagServiceTest
     Tag orgTag = tempEntity.newTag(org.getId(), "orgTag");
     Tag parentOrgTag = tempEntity.newTag(org.getParentOrganizationId(), "parentOrgTag");
 
-    List<Tag> tags = tagService.getApplicableTagsByApplicationPublicId(app.getPublicId()).stream()
+    List<Tag> tags = tagService.getApplicableTagsByApplicationPublicId(app.getPublicId())
+        .stream()
         .map(dto -> TagService.fromDTO(dto, dto.organizationId))
         .collect(Collectors.toList());
     assertThat(tags).usingElementComparator(byId).containsExactlyInAnyOrder(orgTag, parentOrgTag);

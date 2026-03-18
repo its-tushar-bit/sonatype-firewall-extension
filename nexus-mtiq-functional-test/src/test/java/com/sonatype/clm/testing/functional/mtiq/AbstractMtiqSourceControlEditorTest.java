@@ -56,14 +56,14 @@ public abstract class AbstractMtiqSourceControlEditorTest
   }
 
   protected void assertSourceControl(
-          final String ownerId,
-          final String repositoryUrl,
-          final String token,
-          final SourceControlProvider provider,
-          final boolean prCommentingEnabled,
-          final boolean remediationPREnabled,
-          final boolean sourceEvalsEnabled,
-          final boolean commitStatusEnabled)
+      final String ownerId,
+      final String repositoryUrl,
+      final String token,
+      final SourceControlProvider provider,
+      final boolean prCommentingEnabled,
+      final boolean remediationPREnabled,
+      final boolean sourceEvalsEnabled,
+      final boolean commitStatusEnabled)
   {
     final SourceControl sourceControl = sourceControlDAO.getByOwnerId(ownerId);
     assertThat(sourceControl.getProvider()).isEqualTo(provider);
@@ -85,7 +85,7 @@ public abstract class AbstractMtiqSourceControlEditorTest
 
   private String getDecryptedToken(String token) {
     return new String(new PasswordHandler(new TestEncryptionKeyStore()).decryptPassword(
-            token.toCharArray()));
+        token.toCharArray()));
   }
 
   protected void navigateToSourceControlEditorPage(boolean isRoot) {

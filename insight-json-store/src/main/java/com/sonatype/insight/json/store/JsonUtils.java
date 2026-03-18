@@ -335,7 +335,9 @@ public final class JsonUtils
    * of {@code fieldNameToEmpty} with an empty array.
    * If the field had another type of content inside, it will transform it to an empty array.
    *
-   * <p>For example, given the following JSON object and {@code fieldNameToEmpty} as "field2":
+   * <p>
+   * For example, given the following JSON object and {@code fieldNameToEmpty} as "field2":
+   *
    * <pre>
    * {
    *     "field1": ["field1_value"],
@@ -347,7 +349,9 @@ public final class JsonUtils
    *     }
    * }
    * </pre>
+   *
    * The method will return:
+   *
    * <pre>
    * {
    *     "field1": ["field1_value"],
@@ -368,7 +372,8 @@ public final class JsonUtils
     try (ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         JsonReader reader = new JsonReader(new InputStreamReader(new ByteArrayInputStream(jsonByteBuffer),
             StandardCharsets.UTF_8));
-        JsonWriter writer = new JsonWriter(new OutputStreamWriter(outStream, StandardCharsets.UTF_8)) ) {
+        JsonWriter writer = new JsonWriter(new OutputStreamWriter(outStream, StandardCharsets.UTF_8)))
+    {
       iterateJsonSetArrayToEmpty(reader, writer, fieldNameToEmpty);
       writer.close();
       reader.close();
@@ -383,8 +388,10 @@ public final class JsonUtils
     return JSON.getCodec().convertValue(input, clazz);
   }
 
-  private static void iterateJsonSetArrayToEmpty(JsonReader reader, JsonWriter writer, String fieldNameToExclude)
-      throws IOException
+  private static void iterateJsonSetArrayToEmpty(
+      JsonReader reader,
+      JsonWriter writer,
+      String fieldNameToExclude) throws IOException
   {
     JsonToken token = reader.peek();
 
@@ -408,8 +415,7 @@ public final class JsonUtils
             reader.skipValue();
             writer.name(fieldNameToExclude).beginArray().endArray();
           }
-          else
-          {
+          else {
             writer.name(name);
             iterateJsonSetArrayToEmpty(reader, writer, fieldNameToExclude);
           }

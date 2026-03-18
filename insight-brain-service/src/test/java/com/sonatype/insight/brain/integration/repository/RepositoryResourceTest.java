@@ -199,7 +199,8 @@ public class RepositoryResourceTest
 
     HttpResponse response =
         restRequest().path(RepositoryResource.PROPRIETARY_NAMES_PATH)
-            .parameter(repoManager.getInstanceId(), repo.getPublicId()).delete();
+            .parameter(repoManager.getInstanceId(), repo.getPublicId())
+            .delete();
     assertResponseStatus(204, response);
 
     assertThat(proprietaryComponentNamePatternDAO.getByFormat("npm")).isEmpty();
@@ -225,7 +226,9 @@ public class RepositoryResourceTest
     repositoryComponentPathnames.pathnames.add(componentRepo1ToKeep.getPathname());
 
     HttpResponse response = restRequest().path(RepositoryResource.REMOVE_EXTRA_COMPONENTS_PATH)
-        .parameter("testRepoManagerInstanceId", "testRepoPublicId1").body(repositoryComponentPathnames).post();
+        .parameter("testRepoManagerInstanceId", "testRepoPublicId1")
+        .body(repositoryComponentPathnames)
+        .post();
 
     assertResponseStatus(204, response);
 

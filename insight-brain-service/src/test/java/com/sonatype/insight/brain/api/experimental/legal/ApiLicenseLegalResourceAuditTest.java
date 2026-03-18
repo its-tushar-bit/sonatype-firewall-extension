@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.experimental.legal;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -155,7 +156,7 @@ public class ApiLicenseLegalResourceAuditTest
     assertCustomData(auditDTO, "notices", Arrays
         .asList(resultDto.getLegalFileOverrides().get(0).getId(), resultDto.getLegalFileOverrides().get(1).getId()));
   }
-  
+
   @Test
   public void testSaveComponentLegalFile_Licenses() throws Exception {
     Application app = tempEntity.newApplicationWithParent();

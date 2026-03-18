@@ -175,7 +175,7 @@ public class OrganizationSummaryViewTest
   @Test
   public void testImportPolicy() {
     String filePath = new File(getClass().getResource("/policyExport/sampleNonJsonFile.file")
-            .getFile()).getAbsolutePath();
+        .getFile()).getAbsolutePath();
 
     ActionDropDown.actionButton().click();
     ActionDropDown.importPoliciesButton().shouldBe(visible).click();
@@ -194,11 +194,9 @@ public class OrganizationSummaryViewTest
     ImportPolicyModal.errorMessage()
         .shouldBe(visible)
         .shouldHave(
-          text(
-            "An error occurred saving data. The file you selected failed to upload correctly, are you certain it " +
-            "is a properly formatted policy import json file?"
-          )
-        );
+            text(
+                "An error occurred saving data. The file you selected failed to upload correctly, are you certain it " +
+                    "is a properly formatted policy import json file?"));
 
     // Clear file selection
     ImportPolicyModal.fileInputClearButton().click();
@@ -368,8 +366,10 @@ public class OrganizationSummaryViewTest
       String nxColorClass = NxColor.getNxColorFromColor(expectedCategory.getColor()).toNxClass();
       actualCategory.icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
     }
-    categoryTile.categoryListSubheader(i).shouldBe(visible)
-        .shouldHave(CategoryTile.inheritedText(owners.get(i).getName())).click();
+    categoryTile.categoryListSubheader(i)
+        .shouldBe(visible)
+        .shouldHave(CategoryTile.inheritedText(owners.get(i).getName()))
+        .click();
     categoriesList.shouldNotBe(visible);
   }
 
@@ -456,14 +456,16 @@ public class OrganizationSummaryViewTest
     tile.maxAge(Stage.ID_DEVELOP).shouldBe(visible).shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
     tile.maxReport(Stage.ID_DEVELOP).shouldBe(visible).shouldHave(exactTextCaseSensitive("6"));
     tile.maxAge(Stage.ID_SOURCE).shouldBe(visible).shouldHave(exactTextCaseSensitive("3 w"));
-    tile.maxReport(Stage.ID_SOURCE).shouldBe(visible)
+    tile.maxReport(Stage.ID_SOURCE)
+        .shouldBe(visible)
         .shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
     tile.maxAge(Stage.ID_BUILD).shouldBe(visible).shouldHave(exactTextCaseSensitive("2 w"));
     tile.maxReport(Stage.ID_BUILD).shouldBe(visible).shouldHave(exactTextCaseSensitive("8"));
     tile.maxAge(Stage.ID_RELEASE).shouldBe(visible).shouldHave(exactTextCaseSensitive(DataRetentionTile.DONT_PURGE));
     tile.maxReport(Stage.ID_RELEASE).shouldBe(visible).shouldHave(exactTextCaseSensitive(DataRetentionTile.DONT_PURGE));
     tile.maxAge(Stage.ID_OPERATE).shouldBe(visible).shouldHave(exactTextCaseSensitive("1 w"));
-    tile.maxReport(Stage.ID_OPERATE).shouldBe(visible)
+    tile.maxReport(Stage.ID_OPERATE)
+        .shouldBe(visible)
         .shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
     tile.successMetrics().shouldBe(visible).shouldHave(exactTextCaseSensitive("Don't Purge"));
   }
@@ -519,12 +521,16 @@ public class OrganizationSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
+    tile.nxSubHeader()
+        .shouldBe(visible)
+        .shouldHave(Condition.text(String
+            .format("Configures the integration with an external SCM for the %s organization",
+                organization.getName())));
     tile.rows().shouldHave(size(1));
 
     tile.itemSubText().shouldNotBe(visible);
-    tile.itemText().shouldBe(visible)
+    tile.itemText()
+        .shouldBe(visible)
         .shouldHave(Condition.text("Source Control not configured"));
 
     SourceControl rootSourceControl =
@@ -537,8 +543,11 @@ public class OrganizationSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
+    tile.nxSubHeader()
+        .shouldBe(visible)
+        .shouldHave(Condition.text(String
+            .format("Configures the integration with an external SCM for the %s organization",
+                organization.getName())));
     tile.rows().shouldHave(size(1));
 
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
@@ -554,13 +563,18 @@ public class OrganizationSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
+    tile.nxSubHeader()
+        .shouldBe(visible)
+        .shouldHave(Condition.text(String
+            .format("Configures the integration with an external SCM for the %s organization",
+                organization.getName())));
     tile.rows().shouldHave(size(1));
 
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
-    tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Inherit access token from %s", rootOrganization.getName())));
+    tile.itemSubText()
+        .shouldBe(visible)
+        .shouldHave(Condition.text(String
+            .format("Inherit access token from %s", rootOrganization.getName())));
 
     tempEntity.newSourceControl(organization.getId(), null, "TEST_TOKEN", null);
     refresh();
@@ -571,13 +585,18 @@ public class OrganizationSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
+    tile.nxSubHeader()
+        .shouldBe(visible)
+        .shouldHave(Condition.text(String
+            .format("Configures the integration with an external SCM for the %s organization",
+                organization.getName())));
     tile.rows().shouldHave(size(1));
 
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
-    tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Provides default access token for %s", organization.getName())));
+    tile.itemSubText()
+        .shouldBe(visible)
+        .shouldHave(Condition.text(String
+            .format("Provides default access token for %s", organization.getName())));
   }
 
   @Test
@@ -610,8 +629,11 @@ public class OrganizationSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
+    tile.nxSubHeader()
+        .shouldBe(visible)
+        .shouldHave(Condition.text(String
+            .format("Configures the integration with an external SCM for the %s organization",
+                organization.getName())));
     tile.content().shouldBe(visible);
 
     tile.itemText().shouldBe(visible);

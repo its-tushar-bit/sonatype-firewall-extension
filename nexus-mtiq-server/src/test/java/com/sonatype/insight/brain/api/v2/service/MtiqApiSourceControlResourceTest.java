@@ -110,8 +110,8 @@ public class MtiqApiSourceControlResourceTest
   public void testMtiqDoesNotSupportGitlabWithoutFeatureEnabled() {
     testAsTestTenant(tenant -> {
       HttpResponse response = callConfigFeaturesEndpoint(tenant.tenantSlug)
-              .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
-              .delete();
+          .path(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)
+          .delete();
       assertResponseStatus(204, response);
 
       response = sendSourceControlConfigWithProvider(SourceControlProvider.GITLAB);
@@ -137,7 +137,9 @@ public class MtiqApiSourceControlResourceTest
 
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setProvider(gitlab)
-            .setOwnerId(org.getId()).setToken("token").setCommitStatusEnabled(false)
+            .setOwnerId(org.getId())
+            .setToken("token")
+            .setCommitStatusEnabled(false)
             .build());
 
     return restRequest()

@@ -74,4 +74,3 @@ public class ApiVersionChangeOptionDTO
     this.directDependencyData = directDependencyData;
   }
 }
-

@@ -203,7 +203,7 @@ class SamlFilter
   {
     String destination = getDestinationOrDefault(httpRequest);
     return new SamlSessionStoreForRedirect(httpRequest, httpFacade, 0, samlSessionIdMapper, samlDeployment,
-                                           destination);
+        destination);
   }
 
   @VisibleForTesting
@@ -213,7 +213,8 @@ class SamlFilter
       SamlDeployment samlDeployment,
       SamlSessionStore samlSessionStore)
   {
-    return samlEndpoint ? new SamlAuthenticatorForSamlEndpoint(httpFacade, samlDeployment, samlSessionStore)
+    return samlEndpoint
+        ? new SamlAuthenticatorForSamlEndpoint(httpFacade, samlDeployment, samlSessionStore)
         : new SamlAuthenticatorForNonSamlEndpoint(httpFacade, samlDeployment, samlSessionStore);
   }
 

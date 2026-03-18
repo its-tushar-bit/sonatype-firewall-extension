@@ -69,8 +69,7 @@ public class S3ScanPersistenceService
         s3DataStoreConfig.getObjectKeyPrefix(),
         s3DataStoreConfig.getServerSideEncryption(),
         appId,
-        scanId
-    );
+        scanId);
   }
 
   @Override
@@ -83,8 +82,7 @@ public class S3ScanPersistenceService
         s3DataStoreConfig.getObjectKeyPrefix(),
         s3DataStoreConfig.getServerSideEncryption(),
         appId,
-        tempId
-    );
+        tempId);
   }
 
   @Override
@@ -97,8 +95,7 @@ public class S3ScanPersistenceService
         s3DataStoreConfig.getObjectKeyPrefix(),
         s3DataStoreConfig.getServerSideEncryption(),
         appId,
-        scanId
-    );
+        scanId);
 
     CopyObjectRequest copyRequest = CopyObjectRequest.builder()
         .sourceBucket(s3DataStoreConfig.getBucketName())
@@ -122,8 +119,7 @@ public class S3ScanPersistenceService
         s3DataStoreConfig.getObjectKeyPrefix(),
         s3DataStoreConfig.getServerSideEncryption(),
         appId,
-        name
-    );
+        name);
   }
 
   @Override
@@ -165,8 +161,7 @@ public class S3ScanPersistenceService
                 s3DataStoreConfig.getObjectKeyPrefix(),
                 s3DataStoreConfig.getServerSideEncryption(),
                 appId,
-                scanName
-            );
+                scanName);
           });
     }
     catch (IOException e) {

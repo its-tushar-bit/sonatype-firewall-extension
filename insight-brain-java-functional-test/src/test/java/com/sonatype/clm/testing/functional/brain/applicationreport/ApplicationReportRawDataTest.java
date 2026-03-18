@@ -123,14 +123,16 @@ public class ApplicationReportRawDataTest
     checkRawDataRow(resultRowXpp3, "xpp3 : xpp3_min : 1.1.4c", "Non-Standard, Public Domain, XPP-1.1.1", "XPP-1.2",
         "", "");
     resultRowXpp3.declaredLicenses().hover();
-    Tooltip.get().shouldBe(visible)
+    Tooltip.get()
+        .shouldBe(visible)
         .shouldHave(text("Declared: Non-Standard, Public Domain, XPP-1.1.1 Observed: XPP-1.2"));
 
     // ensure that the entire (filled) part of the license column has the tooltip
     resultRowXpp3.cvssScore().hover();
     Tooltip.get().shouldNotBe(visible);
     resultRowXpp3.observedLicenses().hover();
-    Tooltip.get().shouldBe(visible)
+    Tooltip.get()
+        .shouldBe(visible)
         .shouldHave(text("Declared: Non-Standard, Public Domain, XPP-1.1.1 Observed: XPP-1.2"));
 
     eyesWatcher.eyesCheck("Test Raw Data License Tooltip", false, false);
@@ -138,7 +140,8 @@ public class ApplicationReportRawDataTest
 
   @Test
   public void testVulnerabilityModal() {
-    testCLMServer.getHdsServer().respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails2.json"))
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails2.json"))
         .atUri("rest/vulnerability/details/json/sonatype-2017-0507");
 
     ResultTable resultTable = rawDataPage.resultTable();
@@ -329,12 +332,13 @@ public class ApplicationReportRawDataTest
     rawDataPage.noResultsRow().shouldHave(exactText("No Data Available"));
   }
 
-  private void checkRawDataRow(final ResultRow row,
-                               final String componentName,
-                               final String declaredLicenses,
-                               final String observedLicenses,
-                               final String securityIssue,
-                               final String cvssScore)
+  private void checkRawDataRow(
+      final ResultRow row,
+      final String componentName,
+      final String declaredLicenses,
+      final String observedLicenses,
+      final String securityIssue,
+      final String cvssScore)
   {
     row.component().shouldHave(exactText(componentName));
     if (observedLicenses == null && declaredLicenses == null) {

@@ -39,8 +39,7 @@ public class CoordinatesConditionTypeTest
         createConstraint("match", "hf-model:g2:a2:2222222:e2:c2"),
         createComponent("hf-model:g2:a2:2222222:e2:c2"),
         "Coordinates were g2 : a2 : 2222222 : c2 : e2 (match g2 : a2 : 2222222 : c2 : e2)",
-        createComponent("hf-model:g1:a1:1111111:e1:c1")
-    );
+        createComponent("hf-model:g1:a1:1111111:e1:c1"));
   }
 
   @Test
@@ -49,8 +48,7 @@ public class CoordinatesConditionTypeTest
         createConstraint("match", "hf-model:*:a2:2222222:e2:c2"),
         createComponent("hf-model:g2:a2:2222222:e2:c2"),
         "Coordinates were g2 : a2 : 2222222 : c2 : e2 (match * : a2 : 2222222 : c2 : e2)",
-        createComponent("hf-model:g1:a1:1111111:e1:c1")
-    );
+        createComponent("hf-model:g1:a1:1111111:e1:c1"));
   }
 
   @Test
@@ -59,8 +57,7 @@ public class CoordinatesConditionTypeTest
         createConstraint("do not match", "hf-model:g2:a2:2222222:e2:c2"),
         createComponent("hf-model:g1:a1:1111111:e1:c1"),
         "Coordinates were g1 : a1 : 1111111 : c1 : e1 (do not match g2 : a2 : 2222222 : c2 : e2)",
-        createComponent("hf-model:g2:a2:2222222:e2:c2")
-    );
+        createComponent("hf-model:g2:a2:2222222:e2:c2"));
   }
 
   @Test
@@ -69,8 +66,7 @@ public class CoordinatesConditionTypeTest
         createConstraint("do not match", "hf-model:*:a2:2222222:e2:c2"),
         createComponent("hf-model:g1:a1:1111111:e1:c1"),
         "Coordinates were g1 : a1 : 1111111 : c1 : e1 (do not match * : a2 : 2222222 : c2 : e2)",
-        createComponent("hf-model:g2:a2:2222222:e2:c2")
-    );
+        createComponent("hf-model:g2:a2:2222222:e2:c2"));
   }
 
   @Test
@@ -79,8 +75,7 @@ public class CoordinatesConditionTypeTest
         createConstraint("match", "hf-model:g2:a2:*:e2:c2"),
         createComponent("hf-model:g2:a2:2222222:e2:c2"),
         "Coordinates were g2 : a2 : 2222222 : c2 : e2 (match g2 : a2 : * : c2 : e2)",
-        createComponent("hf-model:g1:a1:1111111:e1:c1")
-    );
+        createComponent("hf-model:g1:a1:1111111:e1:c1"));
   }
 
   @Test
@@ -102,7 +97,8 @@ public class CoordinatesConditionTypeTest
       StringWriter sw = new StringWriter();
       e.printStackTrace(new PrintWriter(sw));
       if (!sw.toString()
-          .contains("Unsupported component identifier format for coordinates policy condition: 'hf-repo'")) {
+          .contains("Unsupported component identifier format for coordinates policy condition: 'hf-repo'"))
+      {
         throw e;
       }
     }
@@ -136,12 +132,15 @@ public class CoordinatesConditionTypeTest
         constraint,
         FailActionType.ID,
         CoordinatesConditionType.ID,
-        policyAlerts
-    );
+        policyAlerts);
     String actualReason = policyAlerts.get(0)
-        .getTrigger().getComponentFacts().get(0)
-        .getConstraintFacts().get(0)
-        .getConditionFacts().get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
         .getReason();
     assertThat(actualReason).isEqualTo(expectedReason);
   }
@@ -231,8 +230,15 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo(expectedMessage);
   }
 
@@ -250,8 +256,15 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
         CoordinatesConditionType.ID, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a : e : c : v (match g : a : e : c : v)");
   }
 
@@ -269,8 +282,15 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
         CoordinatesConditionType.ID, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a : e : v (match g : a : e : v)");
   }
 
@@ -305,20 +325,55 @@ public class CoordinatesConditionTypeTest
         CoordinatesConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
         CoordinatesConditionType.ID, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a :  : c : v (match g : a : * : * : v)");
-    actualReason = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(1)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a : e : c : v (match g : a : * : * : v)");
-    actualReason = policyAlerts.get(2).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(2)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a : e : v (match g : a : * : * : v)");
-    actualReason = policyAlerts.get(3).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(3)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a : v (match g : a : * : * : v)");
-    actualReason = policyAlerts.get(4).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(4)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a : v (match g : a : * : * : v)");
   }
 
@@ -356,14 +411,35 @@ public class CoordinatesConditionTypeTest
         CoordinatesConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
         CoordinatesConditionType.ID, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a : e : c : v " + expectedConditionMessage);
-    actualReason = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(1)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a : e : v " + expectedConditionMessage);
-    actualReason = policyAlerts.get(2).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(2)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a : v " + expectedConditionMessage);
   }
 
@@ -389,8 +465,15 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentNqv, policy, policy.getConstraints().get(0), FailActionType.ID,
         CoordinatesConditionType.ID, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were n (q) v " + expectedConditionMessage);
   }
 
@@ -407,8 +490,15 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
         CoordinatesConditionType.ID, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a : e : v (match g : a : e : v)");
   }
 
@@ -429,11 +519,25 @@ public class CoordinatesConditionTypeTest
         CoordinatesConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
         CoordinatesConditionType.ID, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a : e : c : v (match g : a : e : * : v)");
-    actualReason = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(1)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a : e : v (match g : a : e : * : v)");
   }
 
@@ -466,8 +570,15 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g1 : a1 : v1 (match g1 : a1 : * : * : v1)");
   }
 
@@ -543,8 +654,15 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo(expectedMessage);
   }
 
@@ -621,8 +739,15 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo(expectedMessage);
   }
 
@@ -699,8 +824,15 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo(expectedMessage);
   }
 
@@ -723,8 +855,15 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were pyyaml (*) 1 (.*) (match PyYaMl (*) 1 (.*))");
   }
 
@@ -747,8 +886,15 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were jquery : 1 (do not match jQuery : 1)");
   }
 
@@ -771,8 +917,15 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were pyyaml 1 (match PyYaMl 1)");
   }
 
@@ -796,8 +949,15 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were conantest : 1.1 (match conantest : 1.1)");
   }
 
@@ -821,8 +981,15 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
 
     assertThat(actualReason).isEqualTo("Coordinates were cargo : 1 (match cargo : 1)");
   }
@@ -844,8 +1011,15 @@ public class CoordinatesConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g1 : \\\"\r\n" + "\t' : v1 (match g1 : \\\"\r\n" +
         "\t' : * : * : *)");
   }
@@ -855,7 +1029,8 @@ public class CoordinatesConditionTypeTest
     Condition condition = new Condition(CoordinatesConditionType.ID, "match", null);
     assertThatThrownBy(
         () -> new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */))
-        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Missing coordinates");
+            .isInstanceOf(InvalidConditionException.class)
+            .hasMessageEndingWith("Missing coordinates");
   }
 
   @Test
@@ -863,7 +1038,8 @@ public class CoordinatesConditionTypeTest
     Condition condition = new Condition(CoordinatesConditionType.ID, "match", " ");
     assertThatThrownBy(
         () -> new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */))
-        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Missing coordinates");
+            .isInstanceOf(InvalidConditionException.class)
+            .hasMessageEndingWith("Missing coordinates");
   }
 
   @Test

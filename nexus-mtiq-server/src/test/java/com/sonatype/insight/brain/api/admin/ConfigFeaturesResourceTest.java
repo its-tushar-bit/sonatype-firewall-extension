@@ -44,41 +44,41 @@ public class ConfigFeaturesResourceTest
    * MTIQ, if the feature should not be allowed for MTIQ please add to be MTIQ_BANNED_FEATURES
    */
   private final String[] defaultTenantEnabledFeatures = new String[]{
-      SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
-      SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
-      SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
-      SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
-      SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
-      SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION.getId(),
-      SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
-      SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
-      SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
-      SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
-      SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId(),
-      SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getId(),
-      SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.getId(),
-      SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId(),
-      SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
-      SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.getId(),
-      SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION.getId(),
-      SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
-      SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.getId(),
-      SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.getId(),
-      SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.getId(),
-      SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI.getId(),
-      SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.getId(),
-      SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.getId(),
-      SystemConfigurationPropertyFeature.NON_BREAKING_VERSION_SUGGESTION_TELEMETRY.getId(),
-      SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),
-      SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId(),
-      SystemConfigurationPropertyFeature.API_PAGE.getId(),
-      SystemConfigurationPropertyFeature.ZSCALER.getId(),
-      SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.getId(),
-      SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getId(),
-      SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.getId(),
-      SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.getId(),
-      SystemConfigurationPropertyFeature.CODE_INSIGHTS.getId(),
-      SystemConfigurationPropertyFeature.FIREWALL_ENTERPRISE_REPORTING.getId(),
+    SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
+    SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
+    SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
+    SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
+    SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
+    SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION.getId(),
+    SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
+    SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
+    SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
+    SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
+    SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId(),
+    SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getId(),
+    SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.getId(),
+    SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId(),
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.getId(),
+    SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION.getId(),
+    SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
+    SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.getId(),
+    SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.getId(),
+    SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.getId(),
+    SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI.getId(),
+    SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.getId(),
+    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.getId(),
+    SystemConfigurationPropertyFeature.NON_BREAKING_VERSION_SUGGESTION_TELEMETRY.getId(),
+    SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId(),
+    SystemConfigurationPropertyFeature.API_PAGE.getId(),
+    SystemConfigurationPropertyFeature.ZSCALER.getId(),
+    SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.getId(),
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getId(),
+    SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.getId(),
+    SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.getId(),
+    SystemConfigurationPropertyFeature.CODE_INSIGHTS.getId(),
+    SystemConfigurationPropertyFeature.FIREWALL_ENTERPRISE_REPORTING.getId(),
   };
 
   /**
@@ -87,41 +87,41 @@ public class ConfigFeaturesResourceTest
    * MTIQ, if the feature should not be allowed for MTIQ please add to be MTIQ_BANNED_FEATURES
    */
   private final String[] defaultGlobalTenantEnabledFeatures = new String[]{
-      SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
-      SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
-      SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
-      SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
-      SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
-      SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION.getId(),
-      SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
-      SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
-      SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
-      SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
-      SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId(),
-      SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getId(),
-      SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.getId(),
-      SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId(),
-      SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
-      SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.getId(),
-      SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION.getId(),
-      SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
-      SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.getId(),
-      SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.getId(),
-      SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.getId(),
-      SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI.getId(),
-      SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.getId(),
-      SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.getId(),
-      SystemConfigurationPropertyFeature.NON_BREAKING_VERSION_SUGGESTION_TELEMETRY.getId(),
-      SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),
-      SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId(),
-      SystemConfigurationPropertyFeature.API_PAGE.getId(),
-      SystemConfigurationPropertyFeature.ZSCALER.getId(),
-      SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.getId(),
-      SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getId(),
-      SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.getId(),
-      SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.getId(),
-      SystemConfigurationPropertyFeature.CODE_INSIGHTS.getId(),
-      SystemConfigurationPropertyFeature.FIREWALL_ENTERPRISE_REPORTING.getId(),
+    SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId(),
+    SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getId(),
+    SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION.getId(),
+    SystemConfigurationPropertyFeature.EMAIL_CONFIGURATION.getId(),
+    SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION.getId(),
+    SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION.getId(),
+    SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.getId(),
+    SystemConfigurationPropertyFeature.PR_COMMENTING.getId(),
+    SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
+    SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
+    SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId(),
+    SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getId(),
+    SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.getId(),
+    SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId(),
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.getId(),
+    SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION.getId(),
+    SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
+    SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.getId(),
+    SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.getId(),
+    SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.getId(),
+    SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI.getId(),
+    SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.getId(),
+    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.getId(),
+    SystemConfigurationPropertyFeature.NON_BREAKING_VERSION_SUGGESTION_TELEMETRY.getId(),
+    SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId(),
+    SystemConfigurationPropertyFeature.API_PAGE.getId(),
+    SystemConfigurationPropertyFeature.ZSCALER.getId(),
+    SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.getId(),
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getId(),
+    SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.getId(),
+    SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.getId(),
+    SystemConfigurationPropertyFeature.CODE_INSIGHTS.getId(),
+    SystemConfigurationPropertyFeature.FIREWALL_ENTERPRISE_REPORTING.getId(),
   };
 
   /**
@@ -129,27 +129,26 @@ public class ConfigFeaturesResourceTest
    */
   private final String[] allFeatures = Stream.concat(Arrays.stream(defaultGlobalTenantEnabledFeatures), Arrays.stream(
       new String[]{
-          SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.getId(),
-          SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.getId(),
-          SystemConfigurationPropertyFeature.SBOM_MANAGER.getId(),
-          SystemConfigurationPropertyFeature.OAUTH2_ENABLED.getId(),
-          SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.getId(),
-          SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS.getId(),
-          SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
-          SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.getId(),
-          SystemConfigurationPropertyFeature.ALP_FOR_SBOM_MANAGER.getId(),
-          SystemConfigurationPropertyFeature.COMPONENT_CHANGE_DETECTION_API.getId(),
-          SystemConfigurationPropertyFeature.EPSS_DATA.getId(),
-          SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES.getId(),
-          SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.getId(),
-          SystemConfigurationPropertyFeature.SAML_ENABLED.getId(),
-          SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.getId(),
-          SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.getId(),
-          SystemConfigurationPropertyFeature.PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE.getId(),
-          SystemConfigurationPropertyFeature.MALICIOUS_URLS_PARTNER_ACCESS.getId(),
-          SystemConfigurationPropertyFeature.GITHUB_APP_AUTHENTICATION.getId(),
-      }
-  )).toArray(String[]::new);
+        SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.getId(),
+        SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.getId(),
+        SystemConfigurationPropertyFeature.SBOM_MANAGER.getId(),
+        SystemConfigurationPropertyFeature.OAUTH2_ENABLED.getId(),
+        SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.getId(),
+        SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS.getId(),
+        SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
+        SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.getId(),
+        SystemConfigurationPropertyFeature.ALP_FOR_SBOM_MANAGER.getId(),
+        SystemConfigurationPropertyFeature.COMPONENT_CHANGE_DETECTION_API.getId(),
+        SystemConfigurationPropertyFeature.EPSS_DATA.getId(),
+        SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES.getId(),
+        SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.getId(),
+        SystemConfigurationPropertyFeature.SAML_ENABLED.getId(),
+        SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.getId(),
+        SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.getId(),
+        SystemConfigurationPropertyFeature.PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE.getId(),
+        SystemConfigurationPropertyFeature.MALICIOUS_URLS_PARTNER_ACCESS.getId(),
+        SystemConfigurationPropertyFeature.GITHUB_APP_AUTHENTICATION.getId(),
+      })).toArray(String[]::new);
 
   @Before
   public void before() {
@@ -191,7 +190,8 @@ public class ConfigFeaturesResourceTest
   @Test
   public void testFeatures_all_asGlobal() throws Exception {
     HttpResponse response = callConfigFeaturesEndpoint(Tenant.GLOBAL_TENANT.tenantSlug)
-        .path("all").get();
+        .path("all")
+        .get();
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
@@ -202,7 +202,8 @@ public class ConfigFeaturesResourceTest
   public void testFeatures_all_asTenant() throws Exception {
     Tenant testTenant = getTestTenant();
     HttpResponse response = callConfigFeaturesEndpoint(testTenant.tenantSlug)
-        .path("all").get();
+        .path("all")
+        .get();
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
 
@@ -248,7 +249,8 @@ public class ConfigFeaturesResourceTest
     });
 
     HttpResponse response = callConfigFeaturesEndpoint(getTestTenant().tenantSlug)
-        .path("dashboard").delete();
+        .path("dashboard")
+        .delete();
     assertResponseStatus(204, response);
 
     testAsTestTenant(tenant -> {
@@ -269,7 +271,8 @@ public class ConfigFeaturesResourceTest
   public void testDeleteFeature_asInvalidTenant() throws Exception {
     String notTenantSlug = "not-a-tenant";
     HttpResponse response = callConfigFeaturesEndpoint(notTenantSlug)
-        .path("dashboard").delete();
+        .path("dashboard")
+        .delete();
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo(String.format("Tenant %s does not exist", notTenantSlug));
@@ -343,7 +346,8 @@ public class ConfigFeaturesResourceTest
   public void testEnableFeature_asInvalidTenant() throws Exception {
     String notTenantSlug = "not-a-tenant";
     HttpResponse response = callConfigFeaturesEndpoint(notTenantSlug)
-        .path("dashboard").post();
+        .path("dashboard")
+        .post();
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo(String.format("Tenant %s does not exist", notTenantSlug));

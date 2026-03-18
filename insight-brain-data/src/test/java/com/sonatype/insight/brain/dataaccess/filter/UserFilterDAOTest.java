@@ -24,7 +24,8 @@ import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LE
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class UserFilterDAOTest extends NameableDAOTest<UserFilter>
+public class UserFilterDAOTest
+    extends NameableDAOTest<UserFilter>
 {
   private UserFilterDAO userFilterDAO;
 
@@ -49,7 +50,7 @@ public class UserFilterDAOTest extends NameableDAOTest<UserFilter>
   protected int getMaxNameLength() {
     return NameHelper.MAX_NAME_LENGTH;
   }
-  
+
   @Override
   protected UserFilter getEntityByName(String name) {
     return userFilterDAO.getByUsernameAndRealmIdAndNameAndType("testUsername", "testRealmId", name,
@@ -83,10 +84,9 @@ public class UserFilterDAOTest extends NameableDAOTest<UserFilter>
 
   @Test
   public void testInsert_RealmIdNull() {
-    assertThatThrownBy(() ->
-        tempEntity.newUserFilter("testUsername", null /* realmId */, "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD,
-            "")
-    ).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
+    assertThatThrownBy(() -> tempEntity.newUserFilter("testUsername", null /* realmId */, "testFilterName",
+        ADVANCED_LEGAL_PACK_DASHBOARD,
+        "")).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
   }
 
   @Test
@@ -95,16 +95,15 @@ public class UserFilterDAOTest extends NameableDAOTest<UserFilter>
         tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
 
     userFilter.setRealmId(null);
-    assertThatThrownBy(() ->
-        userFilterDAO.update(userFilter)
-    ).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
+    assertThatThrownBy(() -> userFilterDAO.update(userFilter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("The realm ID is required.");
   }
 
   @Test
   public void testInsert_RealmIdWhitespace() {
-    assertThatThrownBy(() ->
-        tempEntity.newUserFilter("testUsername", " " /* realmId */, "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "")
-    ).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
+    assertThatThrownBy(() -> tempEntity.newUserFilter("testUsername", " " /* realmId */, "testFilterName",
+        ADVANCED_LEGAL_PACK_DASHBOARD, "")).isInstanceOf(BadRequestException.class)
+            .hasMessage("The realm ID is required.");
   }
 
   @Test
@@ -113,16 +112,15 @@ public class UserFilterDAOTest extends NameableDAOTest<UserFilter>
         tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
 
     userFilter.setRealmId(" ");
-    assertThatThrownBy(() ->
-        userFilterDAO.update(userFilter)
-    ).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
+    assertThatThrownBy(() -> userFilterDAO.update(userFilter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("The realm ID is required.");
   }
 
   @Test
   public void testInsert_TypeNull() {
-    assertThatThrownBy(() ->
-        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", null, "")
-    ).isInstanceOf(BadRequestException.class).hasMessage("The type is required.");
+    assertThatThrownBy(() -> tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", null, ""))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("The type is required.");
   }
 
   @Test
@@ -131,18 +129,16 @@ public class UserFilterDAOTest extends NameableDAOTest<UserFilter>
         tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
 
     userFilter.setType(null);
-    assertThatThrownBy(() ->
-        userFilterDAO.update(userFilter)
-    ).isInstanceOf(BadRequestException.class).hasMessage("The type is required.");
+    assertThatThrownBy(() -> userFilterDAO.update(userFilter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("The type is required.");
   }
 
   @Test
   public void testValidate_insertNamedFilterBasedOnAnother() {
     UserFilter userFilter = new UserFilter("testUsername", "testRealmId", "valid name", ADVANCED_LEGAL_PACK_DASHBOARD);
     userFilter.setBasedOnFilterName("any non-null value");
-    assertThatThrownBy(() ->
-        userFilterDAO.insert(userFilter)
-    ).isInstanceOf(BadRequestException.class).hasMessage("Only the active filter can be based on another filter.");
+    assertThatThrownBy(() -> userFilterDAO.insert(userFilter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Only the active filter can be based on another filter.");
   }
 
   @Test
@@ -151,9 +147,8 @@ public class UserFilterDAOTest extends NameableDAOTest<UserFilter>
         tempEntity
             .newUserFilter("testUsername", "testRealmId", "original filter name", ADVANCED_LEGAL_PACK_DASHBOARD, "");
     userFilter.setBasedOnFilterName("any non-null value");
-    assertThatThrownBy(() ->
-        userFilterDAO.update(userFilter)
-    ).isInstanceOf(BadRequestException.class).hasMessage("Only the active filter can be based on another filter.");
+    assertThatThrownBy(() -> userFilterDAO.update(userFilter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Only the active filter can be based on another filter.");
   }
 
   @Test

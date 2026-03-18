@@ -83,7 +83,7 @@ public class FirewallIgnorePatternUpdater
       throw new RuntimeException("Failed to get ignore patterns from remote: " + e.getMessage(), e);
     }
   }
-  
+
   @Override
   public String getJobName() {
     return TASK_NAME;

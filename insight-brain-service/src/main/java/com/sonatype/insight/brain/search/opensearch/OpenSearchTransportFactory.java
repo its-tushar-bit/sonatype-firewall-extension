@@ -55,9 +55,9 @@ public class OpenSearchTransportFactory
    * closed, so the caller is responsible for lifecycle management. Use a singleton provider to avoid creating multiple
    * instances.
    *
-   * @param searchConfig        the AWS OpenSearch configuration
+   * @param searchConfig the AWS OpenSearch configuration
    * @param credentialsProvider the AWS credentials provider
-   * @param httpClient          the SdkHttpClient to use (should be reused across calls to avoid resource leaks)
+   * @param httpClient the SdkHttpClient to use (should be reused across calls to avoid resource leaks)
    * @return an AwsSdk2Transport instance
    */
   public static OpenSearchTransport create(
@@ -71,7 +71,6 @@ public class OpenSearchTransportFactory
         Region.of(searchConfig.getRegion()),
         AwsSdk2TransportOptions.builder()
             .setCredentials(credentialsProvider)
-            .build()
-    );
+            .build());
   }
 }

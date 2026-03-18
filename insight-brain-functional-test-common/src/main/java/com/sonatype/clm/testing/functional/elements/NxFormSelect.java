@@ -45,12 +45,12 @@ public class NxFormSelect
 
   public void chooseOption(String option) {
     SelenideElement selectorElement = getElement();
-    //If selector you use is already the selector, like when using ID
+    // If selector you use is already the selector, like when using ID
     if (selectorElement.is(type("select-one"))) {
       new Select(element).selectByVisibleText(option);
     }
     else {
-      //If selector is on a wrapper like a div or no ID was used
+      // If selector is on a wrapper like a div or no ID was used
       new Select(child(FORM_SELECTOR)).selectByVisibleText(option);
     }
   }

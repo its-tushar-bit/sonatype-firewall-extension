@@ -125,7 +125,7 @@ public class PullRequestPollingService
         }
         else if (isRemediationPullRequest(pullRequest, app)) {
           log.debug("Pull request {} for branch {} is determined to be an IQ Server generated remediation PR." +
-                  "  We will not comment on it.",
+              "  We will not comment on it.",
               pullRequest.getNumber(), pullRequest.getHead());
         }
         else if (!scmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(gitRepositoryInfo)) {
@@ -218,7 +218,7 @@ public class PullRequestPollingService
    * pull requests for the org and api key associated with the given source control entry.
    *
    * @return list of pull requests discovered or an empty list if there are no new pull requests for any of the source
-   * control applications
+   *         control applications
    */
   private List<PullRequest> getPullRequestsFromScm(PullRequestPollingTracker pollingTracker) {
     List<PullRequest> pullRequests = new ArrayList<>();
@@ -260,12 +260,12 @@ public class PullRequestPollingService
           // if a provider supports querying across the organization, we do not need a repo in context
           repo =
               gitRepositoryInfo.provider.supportsOrganizationWidePullRequestQueries() ? null : projectUri.getProject();
-  
+
           String token = gitRepositoryInfo.token;
-  
+
           Date currentCutoffTime =
               pollingTracker.getCachedCutoffTime(org, repo, token, sourceControl.getPullRequestPollTime());
-  
+
           if (pollingTracker.visitAndCheckKeyAlreadyUsed(org, repo, token)) {
             // we've already used this key combination and any results for the given repo would have already come back.
             // so, we just need to advance the polling times for this repo
@@ -327,18 +327,18 @@ public class PullRequestPollingService
   }
 
   private boolean canPoll(GitRepositoryInfo gitRepositoryInfo) {
-    if (!sourceControlUtils.isScmEnabled(gitRepositoryInfo) ) {
+    if (!sourceControlUtils.isScmEnabled(gitRepositoryInfo)) {
       log.debug("PR polling will be skipped for given repo due to incomplete gitRepositoryInfo:%n" +
-              "  url={}%n  provider={}%n  has token={}%n  has username={}",
+          "  url={}%n  provider={}%n  has token={}%n  has username={}",
           gitRepositoryInfo.repositoryUrl,
           gitRepositoryInfo.provider,
           StringUtils.isNotBlank(gitRepositoryInfo.token) ? "true" : "false",
-          StringUtils.isNotBlank(gitRepositoryInfo.username) ? "true" : "false"
-      );
+          StringUtils.isNotBlank(gitRepositoryInfo.username) ? "true" : "false");
       return false;
     }
     if (!gitRepositoryInfo.provider.supportsPullRequestCommenting() ||
-        sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)) {
+        sourceControlUtils.isBitbucketCloud(gitRepositoryInfo))
+    {
       if (log.isDebugEnabled()) {
         log.debug("{} is not currently supported for pull request commenting on repository {}",
             gitRepositoryInfo.provider.toString().toUpperCase(), gitRepositoryInfo.normalizedRepositoryUrl);
@@ -346,11 +346,11 @@ public class PullRequestPollingService
       return false;
     }
 
-    return  sourceControlLoadBalancer.canPollForPullRequests(getScmUsernameForPolling(gitRepositoryInfo));
+    return sourceControlLoadBalancer.canPollForPullRequests(getScmUsernameForPolling(gitRepositoryInfo));
   }
 
   private String getScmUsernameForPolling(GitRepositoryInfo gitRepositoryInfo) {
-    return  StringUtils.isNotBlank(gitRepositoryInfo.getUsername())
+    return StringUtils.isNotBlank(gitRepositoryInfo.getUsername())
         ? gitRepositoryInfo.getUsername()
         : String.format("%s-%s", gitRepositoryInfo.provider, SCM_ANONYMOUS_POLLER);
   }

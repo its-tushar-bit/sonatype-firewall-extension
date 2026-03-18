@@ -161,7 +161,8 @@ public class ApiPromoteScanServiceV2Test
   public void testPromoteScan_NoSourceScan() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromStage(null, Stage.ID_OPERATE),
-            null /* userAgent */)).withMessageStartingWith("Either scanId or sourceStageId need to be supplied.");
+            null /* userAgent */))
+        .withMessageStartingWith("Either scanId or sourceStageId need to be supplied.");
   }
 
   @Test
@@ -177,7 +178,8 @@ public class ApiPromoteScanServiceV2Test
   public void testPromoteScan_NoEvaluationsInSourceStage() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, Stage.ID_OPERATE),
-            null /* userAgent */)).withMessageStartingWith("No scan available to promote from stage");
+            null /* userAgent */))
+        .withMessageStartingWith("No scan available to promote from stage");
   }
 
   @Test
@@ -195,7 +197,8 @@ public class ApiPromoteScanServiceV2Test
     for (String invalidStage : invalidStages) {
       assertThatExceptionOfType(BadRequestException.class)
           .isThrownBy(() -> service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, invalidStage),
-              null /* userAgent */)).withMessage("Stage " + invalidStage + " is invalid.");
+              null /* userAgent */))
+          .withMessage("Stage " + invalidStage + " is invalid.");
     }
   }
 
@@ -209,13 +212,13 @@ public class ApiPromoteScanServiceV2Test
       String toStageId = Stage.ID_OPERATE;
       when(scanUploadService.upload(any(ScanEntity.class), any(Application.class), anyString(),
           any(ClientScanType.class), eq(null), any(), any(), any(ScanContext.class), eq(false)))
-          .thenReturn(scanReceipt);
+              .thenReturn(scanReceipt);
       ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
       evaluatorResults.evaluation =
           tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID, ClientScanType.SONATYPE_THIRD_PARTY);
       when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class),
           eq(ScanTriggerType.CLI), eq(null), eq(null), eq(ClientScanType.SONATYPE_THIRD_PARTY))).thenReturn(
-          evaluatorResults);
+              evaluatorResults);
 
       ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service.promoteScan(app.getId(),
           ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, toStageId), null /* userAgent */);
@@ -242,9 +245,10 @@ public class ApiPromoteScanServiceV2Test
     lenient().doAnswer((Answer<ScanReceipt>) invocationOnMock -> {
       countDownLatch.await(1, TimeUnit.MINUTES);
       return null;
-    }).when(scanUploadService)
+    })
+        .when(scanUploadService)
         .upload(any(ScanEntity.class), any(Application.class), anyString(), any(ClientScanType.class), eq(null), any(),
-          any(), any(ScanContext.class), anyBoolean());
+            any(), any(ScanContext.class), anyBoolean());
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service
         .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE), null /* userAgent */);
@@ -268,7 +272,7 @@ public class ApiPromoteScanServiceV2Test
     createScanFile();
     when(scanUploadService.upload(any(ScanEntity.class), any(Application.class), anyString(), any(ClientScanType.class),
         eq(null), any(), any(), any(ScanContext.class), anyBoolean()))
-        .thenThrow(new RuntimeException("ruh-roh"));
+            .thenThrow(new RuntimeException("ruh-roh"));
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service
         .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE), null /* userAgent */);

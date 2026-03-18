@@ -82,7 +82,7 @@ public class SourceControlPullRequestDAO
    * range. At least the start or the end of the range must be specified i.e. not {@code null}.
    *
    * @param startDate start of the date range; can be {@code null}, in which case the range has no left boundary
-   * @param endDate   end of the date range; can be {@code null}, in which case the range has no right boundary
+   * @param endDate end of the date range; can be {@code null}, in which case the range has no right boundary
    */
   public int getExternalCountByUpdateTimeRange(Date startDate, Date endDate) {
     String sQuery = "SELECT COUNT(entity.id) FROM SourceControlPullRequest entity" +
@@ -113,7 +113,7 @@ public class SourceControlPullRequestDAO
 
   /**
    * @param startDate the date from which to start looking for PRs created by IQ Manual PR and Auto PR features.
-   *                Can be {@code null}, in which case the date range has no left boundary.
+   *          Can be {@code null}, in which case the date range has no left boundary.
    * @return a list of PRs created by IQ Manual PR and Auto PR features since the specified date
    */
   public List<SourceControlPullRequest> getInternalCreatedSince(Date startDate) {
@@ -127,8 +127,7 @@ public class SourceControlPullRequestDAO
         PullRequestSource.AUTOMATIC,
         PullRequestSource.AUTOMATIC_INNER_SOURCE,
         PullRequestSource.MANUAL,
-        PullRequestSource.MANUAL_INNER_SOURCE
-    ), startDate);
+        PullRequestSource.MANUAL_INNER_SOURCE), startDate);
   }
 
   @Override

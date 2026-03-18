@@ -79,8 +79,9 @@ public class HdsClientKeepConnectionAliveTest
     try (ServerSocket serverSocket = new ServerSocket(port)) {
       countDownLatch.countDown();
       try (Socket socket = serverSocket.accept();
-           BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-           PrintWriter pw = new PrintWriter(socket.getOutputStream())) {
+          BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+          PrintWriter pw = new PrintWriter(socket.getOutputStream()))
+      {
 
         while (!(br.readLine()).equals("")) {
           // consume all data

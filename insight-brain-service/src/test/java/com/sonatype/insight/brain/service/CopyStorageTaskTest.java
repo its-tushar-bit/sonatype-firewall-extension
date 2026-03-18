@@ -61,8 +61,7 @@ public class CopyStorageTaskTest
   public void testExecute_FromNotSpecified() {
     Map<String, List<String>> map = Map.of(
         "tenant", List.of("some-tenant"),
-        "to", List.of(DataStoreType.S3.name())
-    );
+        "to", List.of(DataStoreType.S3.name()));
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> copyStorageTask.execute(map, null))
@@ -73,8 +72,7 @@ public class CopyStorageTaskTest
   public void testExecute_ToNotSpecified() {
     Map<String, List<String>> map = Map.of(
         "tenant", List.of("some-tenant"),
-        "from", List.of(DataStoreType.FILE.name())
-    );
+        "from", List.of(DataStoreType.FILE.name()));
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> copyStorageTask.execute(map, null))
@@ -86,8 +84,7 @@ public class CopyStorageTaskTest
     Map<String, List<String>> map = Map.of(
         "tenant", List.of("some-tenant"),
         "from", List.of("unknownFrom"),
-        "to", List.of(DataStoreType.S3.name())
-    );
+        "to", List.of(DataStoreType.S3.name()));
 
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> copyStorageTask.execute(map, null));
@@ -98,8 +95,7 @@ public class CopyStorageTaskTest
     Map<String, List<String>> map = Map.of(
         "tenant", List.of("some-tenant"),
         "from", List.of(DataStoreType.FILE.name()),
-        "to", List.of("unknownTo")
-    );
+        "to", List.of("unknownTo"));
 
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> copyStorageTask.execute(map, null));
@@ -109,8 +105,7 @@ public class CopyStorageTaskTest
   public void testExecute_ChecksFromAndTo() throws Exception {
     Map<String, List<String>> map = Map.of(
         "from", List.of(DataStoreType.FILE.name()),
-        "to", List.of(DataStoreType.S3.name())
-    );
+        "to", List.of(DataStoreType.S3.name()));
 
     copyStorageTask.execute(map, null);
 
@@ -124,8 +119,7 @@ public class CopyStorageTaskTest
   public void testExecute_TriggersTheJob() throws Exception {
     Map<String, List<String>> map = Map.of(
         "from", List.of(DataStoreType.FILE.name()),
-        "to", List.of(DataStoreType.S3.name())
-    );
+        "to", List.of(DataStoreType.S3.name()));
 
     copyStorageTask.execute(map, null);
 

@@ -99,9 +99,13 @@ public class WebhookResourceAuditTest
     assertCustomData(auditDTO, "webhookId", webhook.getId());
     assertCustomData(auditDTO, "webhookUrl", webhook.getUrl());
     List<String> webhookTriggerEvents =
-        webhook.getEventTypes() == null ? new ArrayList<>() : webhook.getEventTypes().stream()
-            .map(webhookEventType -> webhookEventType.name().toLowerCase(Locale.ROOT).replace('_', '-')).sorted()
-            .collect(Collectors.toList());
+        webhook.getEventTypes() == null
+            ? new ArrayList<>()
+            : webhook.getEventTypes()
+                .stream()
+                .map(webhookEventType -> webhookEventType.name().toLowerCase(Locale.ROOT).replace('_', '-'))
+                .sorted()
+                .collect(Collectors.toList());
     assertCustomData(auditDTO, "webhookTriggerEvents", webhookTriggerEvents);
   }
 }

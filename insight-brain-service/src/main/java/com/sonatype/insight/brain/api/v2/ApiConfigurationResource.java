@@ -59,20 +59,18 @@ public class ApiConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users or system property dependent",
       responses = {
-          @ApiResponse(
-              responseCode = "400",
-              description = "Bad request, check for invalid property name."
-          ),
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains all the requested properties and the corresponding values.",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(
+            responseCode = "400",
+            description = "Bad request, check for invalid property name."),
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains all the requested properties and the corresponding values.",
+            useReturnTypeSchema = true)
+      })
   @Produces(MediaType.APPLICATION_JSON)
   public Map<String, Object> getConfiguration(
-      @Parameter(description = "Enter the names of the system properties. Values provided for name are case-sensitive.")
-      @QueryParam("property") Set<String> properties)
+      @Parameter(
+          description = "Enter the names of the system properties. Values provided for name are case-sensitive.") @QueryParam("property") Set<String> properties)
   {
     return service.getConfiguration(properties);
   }
@@ -87,18 +85,16 @@ public class ApiConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(
-              responseCode = "400",
-              description = "Bad request, check for invalid property name."
-          ),
-          @ApiResponse(
-              responseCode = "204",
-              description = "The specified IQ server configuration property has been set successfully."
-          )
+        @ApiResponse(
+            responseCode = "400",
+            description = "Bad request, check for invalid property name."),
+        @ApiResponse(
+            responseCode = "204",
+            description = "The specified IQ server configuration property has been set successfully.")
       })
   public void setConfiguration(
-      @RequestBody(description = "Enter the property names and the corresponding values.", required = true)
-      Map<String, Object> properties)
+      @RequestBody(description = "Enter the property names and the corresponding values.",
+          required = true) Map<String, Object> properties)
   {
     service.setConfiguration(properties);
   }
@@ -110,21 +106,18 @@ public class ApiConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(
-              responseCode = "400",
-              description = "Bad request, check for invalid property name."
-          ),
-          @ApiResponse(
-              responseCode = "204",
-              description = "The IQ Server system properties specified have been successfully disabled."
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "400",
+            description = "Bad request, check for invalid property name."),
+        @ApiResponse(
+            responseCode = "204",
+            description = "The IQ Server system properties specified have been successfully disabled.")
+      })
   @Audited(AuditEvent.DELETE_PROPERTIES)
   @BlockIfMultiTenant
   public void deleteConfiguration(
-      @Parameter(description = "Enter the names of the system properties. Values provided for name are case-sensitive.")
-      @QueryParam("property") Set<String> properties)
+      @Parameter(
+          description = "Enter the names of the system properties. Values provided for name are case-sensitive.") @QueryParam("property") Set<String> properties)
   {
     service.deleteConfiguration(properties);
   }

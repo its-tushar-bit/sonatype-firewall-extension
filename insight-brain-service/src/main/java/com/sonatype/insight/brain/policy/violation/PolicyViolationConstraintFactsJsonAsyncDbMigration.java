@@ -21,7 +21,9 @@ public class PolicyViolationConstraintFactsJsonAsyncDbMigration
 {
   @Inject
   public PolicyViolationConstraintFactsJsonAsyncDbMigration(
-      final PolicyViolationDAO dao, final MigrationTrackerDAO migrationTrackerDAO, final InsightConfig insightConfig)
+      final PolicyViolationDAO dao,
+      final MigrationTrackerDAO migrationTrackerDAO,
+      final InsightConfig insightConfig)
   {
     super(dao, migrationTrackerDAO, "policy violations", insightConfig);
   }

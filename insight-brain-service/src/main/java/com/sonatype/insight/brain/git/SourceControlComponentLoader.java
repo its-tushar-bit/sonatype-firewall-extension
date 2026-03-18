@@ -82,7 +82,7 @@ public class SourceControlComponentLoader
     if (dependenciesReportEntry == null) {
       // only display name will be available; no dependency information
       components = componentLoader
-          .getAll(null /* license data */, null /* security data */, bomReportEntry.buf, null  /* dependency data */);
+          .getAll(null /* license data */, null /* security data */, bomReportEntry.buf, null /* dependency data */);
     }
     else {
       // display name and dependency information will be available
@@ -148,12 +148,13 @@ public class SourceControlComponentLoader
     }
     Map<ComponentIdentifier, ComponentInfo> byIdentifierMap = componentDetails.getIdentifierToComponentInfoMap();
     Map<String, ComponentInfo> byHashMap = componentDetails.getHashToComponentInfoMap();
-    for  (PullRequestLineCommentDTO pullRequestLineComment : pullRequestLineComments) {
+    for (PullRequestLineCommentDTO pullRequestLineComment : pullRequestLineComments) {
       ComponentIdentifier componentIdentifier = pullRequestLineComment.getComponentIdentifier();
       if (componentIdentifier != null && byIdentifierMap.containsKey(componentIdentifier)) {
         ComponentInfo componentInfo = byIdentifierMap.get(componentIdentifier);
         if (componentInfo != null &&
-            (componentInfo.getDirectDependency() == null || !componentInfo.getDirectDependency())) {
+            (componentInfo.getDirectDependency() == null || !componentInfo.getDirectDependency()))
+        {
           componentInfo =
               new ComponentInfo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString(), true);
           byIdentifierMap.put(componentIdentifier, componentInfo);

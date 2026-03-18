@@ -37,13 +37,15 @@ public class DependencyTypeConditionType
 
   @Override
   protected boolean internalEvaluateCondition(
-      final Component component, final String operator, final String value)
+      final Component component,
+      final String operator,
+      final String value)
   {
     DependencyType dependencyType = getDependencyType(component);
     Boolean isInnerSource = component.getInnerSource();
 
     if (DependencyType.INNER_SOURCE == DependencyType.getById(value) && isInnerSource != null) {
-      return "is".equals(operator) ==  isInnerSource;
+      return "is".equals(operator) == isInnerSource;
     }
     else if (dependencyType != null) {
       boolean result = value.equals(dependencyType.getId());
@@ -54,7 +56,8 @@ public class DependencyTypeConditionType
 
   @Override
   protected String generateDroolsConditionValue(
-      final TransactionContext tx, final String value)
+      final TransactionContext tx,
+      final String value)
   {
     return asDroolsString(value);
   }
@@ -92,8 +95,10 @@ public class DependencyTypeConditionType
   }
 
   @Override
-  public void validateCondition(final TransactionContext tx, final Condition condition, final String ownerId)
-      throws InvalidConditionException
+  public void validateCondition(
+      final TransactionContext tx,
+      final Condition condition,
+      final String ownerId) throws InvalidConditionException
   {
     super.validateCondition(tx, condition, ownerId);
 

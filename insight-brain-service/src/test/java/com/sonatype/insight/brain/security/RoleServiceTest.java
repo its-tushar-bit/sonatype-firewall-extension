@@ -36,8 +36,7 @@ public class RoleServiceTest
       Role.COMPONENT_EVALUATOR_ROLE_ID,
       Role.DEVELOPER_ROLE_ID,
       Role.LEGAL_REVIEWER_ROLE_ID,
-      Role.OWNER_ROLE_ID
-  );
+      Role.OWNER_ROLE_ID);
 
   @Test
   public void testGetAllRoles() {
@@ -196,7 +195,8 @@ public class RoleServiceTest
 
   private void assertAllowedPermissions(final RoleDTO actual, final Permission... permissions) {
     assertThat(actual.permissionCategories).flatExtracting(category -> category.permissions)
-        .filteredOn(permission -> permission.allowed).extracting(permission -> permission.id)
+        .filteredOn(permission -> permission.allowed)
+        .extracting(permission -> permission.id)
         .containsExactlyInAnyOrder(permissions);
   }
 }

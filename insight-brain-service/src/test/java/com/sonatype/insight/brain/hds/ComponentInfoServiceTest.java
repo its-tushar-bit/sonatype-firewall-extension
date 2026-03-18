@@ -281,12 +281,11 @@ public class ComponentInfoServiceTest
 
     when(hdsClientMock.post(Map.class, "rest/component/versions/list", componentIdentifiers, Map.of(
         "stableVersionsOnly", "false")))
-        .thenReturn(stringListMap);
+            .thenReturn(stringListMap);
   }
 
   private void mockGetComponentDetailsListFromHds(
-      List<ComponentEvaluationDataList.ComponentEvaluationData> componentEvaluationDataList
-  )
+      List<ComponentEvaluationDataList.ComponentEvaluationData> componentEvaluationDataList)
   {
     when(apiComponentDetailsServiceV2Mock.getComponentDetailsListFromHds(anyList(), any(String.class)))
         .thenReturn(componentEvaluationDataList);
@@ -305,10 +304,10 @@ public class ComponentInfoServiceTest
       boolean stableVersionsOnly)
   {
     when(hdsClientMock.get(ComponentDetailsList.class, "rest/" + TOOL_NAME +
-            "/componentDetails/list",
+        "/componentDetails/list",
         Map.of("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier), "stableVersionsOnly",
             String.valueOf(stableVersionsOnly))))
-        .thenReturn(hdsComponentDetailsList);
+                .thenReturn(hdsComponentDetailsList);
   }
 
   @Test
@@ -327,10 +326,11 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, application.getPublicId(), MAVEN_A1_COORDINATES,
         httpRequestMock, null, null).selectableLicenses;
-    assertThat(licenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("Apache-UNSPECIFIED", "Apache-1.0",
-        "Apache-1.1", "Apache-2.0", "Apache-2.0-with-Astramind-MA", "Apache-XML-Security-License",
-        "Apache-2.0-with-LLVM-exception", "Apache-2.0-with-Commons-Clause-1.0", "Apache-2.0-with-Swift-exception",
-        "Apache-2.0-with-Commercial-Use-Enforcer", "Apache-2.0-with-Commons-Clause-UNSPECIFIED");
+    assertThat(licenses).extracting(License::getLicenseId)
+        .containsExactlyInAnyOrder("Apache-UNSPECIFIED", "Apache-1.0",
+            "Apache-1.1", "Apache-2.0", "Apache-2.0-with-Astramind-MA", "Apache-XML-Security-License",
+            "Apache-2.0-with-LLVM-exception", "Apache-2.0-with-Commons-Clause-1.0", "Apache-2.0-with-Swift-exception",
+            "Apache-2.0-with-Commercial-Use-Enforcer", "Apache-2.0-with-Commons-Clause-UNSPECIFIED");
 
     // Verify that declared and observed licenses are merged
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0", "EPL-1.0"));
@@ -338,8 +338,9 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetails(hdsComponentDetails);
     licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, application.getPublicId(), MAVEN_A1_COORDINATES,
         httpRequestMock, null, null).selectableLicenses;
-    assertThat(licenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("Apache-2.0", "EPL-1.0",
-        "GPL-2.0");
+    assertThat(licenses).extracting(License::getLicenseId)
+        .containsExactlyInAnyOrder("Apache-2.0", "EPL-1.0",
+            "GPL-2.0");
   }
 
   @Test
@@ -353,10 +354,10 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testgetMultiLicensesNoAuth_NoComponentIdentifier() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> 
-    componentInfoService.getMultiLicensesNoAuth(null, null, null /* componentIdentifier */, 
-      httpRequestMock, null, null)
-    ).withMessage("componentIdentifier is required");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> componentInfoService.getMultiLicensesNoAuth(null, null, null /* componentIdentifier */,
+            httpRequestMock, null, null))
+        .withMessage("componentIdentifier is required");
   }
 
   @Test
@@ -374,14 +375,16 @@ public class ComponentInfoServiceTest
   private void testGetLicenses_BadOwnerId(final OwnerType ownerType, final String expectedErrMsgPrefix) {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
         () -> componentInfoService.getLicenses(ownerType, "bogusOwnerId", MAVEN_A1_COORDINATES, httpRequestMock, null,
-            null)).withMessageContaining(expectedErrMsgPrefix + "bogusOwnerId");
+            null))
+        .withMessageContaining(expectedErrMsgPrefix + "bogusOwnerId");
   }
 
   private void testgetMultiLicensesNoAuth_BadOwnerId(OwnerType ownerType, String expectedErrMsgPrefix) {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
-    componentInfoService.getMultiLicensesNoAuth(ownerType, "bogusOwnerId", MAVEN_A1_COORDINATES, httpRequestMock, null, 
-  null)
-    ).withMessageContaining(expectedErrMsgPrefix + "bogusOwnerId");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> componentInfoService.getMultiLicensesNoAuth(ownerType, "bogusOwnerId", MAVEN_A1_COORDINATES,
+            httpRequestMock, null,
+            null))
+        .withMessageContaining(expectedErrMsgPrefix + "bogusOwnerId");
   }
 
   @Test
@@ -437,7 +440,7 @@ public class ComponentInfoServiceTest
 
     ComponentMultiLicenses licenses =
         componentInfoService.getMultiLicensesNoAuth(OwnerType.APPLICATION, application.getPublicId(),
-        MAVEN_A1_COORDINATES, httpRequestMock, identificationSource, scanId);
+            MAVEN_A1_COORDINATES, httpRequestMock, identificationSource, scanId);
 
     assertMultiLicenses(licenses.declaredLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertMultiLicenses(licenses.observedLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
@@ -519,8 +522,9 @@ public class ComponentInfoServiceTest
     assertLicenses(licenses.effectiveLicenses, tuple("Apache-2.0", "Apache-2.0", 0), tuple("LGPL-2.0", "LGPL-2.0", 5),
         tuple("MPL-1.1", "MPL-1.1", 2), tuple("GPL-2.0", "GPL-2.0", 9), tuple("AFL-2.1", "AFL-2.1", 2),
         tuple("BSD-3-Clause", "BSD-3-Clause", 5));
-    assertThat(licenses.selectableLicenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("Apache-2.0",
-        "LGPL-2.0", "MPL-1.1", "GPL-2.0", "BSD-3-Clause", "AFL-2.1");
+    assertThat(licenses.selectableLicenses).extracting(License::getLicenseId)
+        .containsExactlyInAnyOrder("Apache-2.0",
+            "LGPL-2.0", "MPL-1.1", "GPL-2.0", "BSD-3-Clause", "AFL-2.1");
   }
 
   private void testgetMultiLicensesNoAuth(final OwnerType ownerType, final String ownerId) throws Exception {
@@ -562,8 +566,9 @@ public class ComponentInfoServiceTest
         tuple("LGPL-2.0", "LGPL-2.0", 5),
         tuple("MPL-1.1", "MPL-1.1", 2), tuple("GPL-2.0", "GPL-2.0", 9), tuple("AFL-2.1", "AFL-2.1", 2),
         tuple("BSD-3-Clause", "BSD-3-Clause", 5));
-    assertThat(licenses.selectableLicenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("Apache-2.0",
-        "LGPL-2.0", "MPL-1.1", "GPL-2.0", "BSD-3-Clause", "AFL-2.1");
+    assertThat(licenses.selectableLicenses).extracting(License::getLicenseId)
+        .containsExactlyInAnyOrder("Apache-2.0",
+            "LGPL-2.0", "MPL-1.1", "GPL-2.0", "BSD-3-Clause", "AFL-2.1");
     assertThat(licenses.hiddenObservedLicenses).isFalse();
     assertThat(licenses.supportAlpObservedLicenses).isFalse();
   }
@@ -593,7 +598,8 @@ public class ComponentInfoServiceTest
 
     // Verify component with licenses
     // Note: For now, only an Org or App (not a Repository) can contain a LTG
-    final String tempEntityOwnerId = OwnerType.APPLICATION.equals(ownerType) ? privateOwnerId
+    final String tempEntityOwnerId = OwnerType.APPLICATION.equals(ownerType)
+        ? privateOwnerId
         : Organization.ROOT_ORGANIZATION_ID;
     tempEntity.newLicenseThreatGroup(tempEntityOwnerId, "ComponentInfoServiceTest", 5, "LGPL-2.0", "BSD-3-Clause");
     tempEntity.newLicenseOverride(tempEntityOwnerId, MAVEN_A1_COORDINATES, LicenseOverrideStatus.SELECTED,
@@ -651,8 +657,9 @@ public class ComponentInfoServiceTest
     testgetMultiLicensesNoAuth_withNotDeclaredForDeclaredLicenses(OwnerType.REPOSITORY, repository.getId());
   }
 
-  private void testGetLicenses_withNotDeclaredForDeclaredLicenses(final OwnerType ownerType, final String ownerId)
-      throws Exception
+  private void testGetLicenses_withNotDeclaredForDeclaredLicenses(
+      final OwnerType ownerType,
+      final String ownerId) throws Exception
   {
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Not-Declared"));
@@ -695,8 +702,9 @@ public class ComponentInfoServiceTest
     testgetMultiLicensesNoAuth_withNoSourcesForObservedLicenses(OwnerType.REPOSITORY, repository.getId());
   }
 
-  private void testGetLicenses_withNoSourcesForObservedLicenses(final OwnerType ownerType, final String ownerId)
-      throws Exception
+  private void testGetLicenses_withNoSourcesForObservedLicenses(
+      final OwnerType ownerType,
+      final String ownerId) throws Exception
   {
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("GPL-2.0"));
@@ -739,8 +747,9 @@ public class ComponentInfoServiceTest
     testgetMultiLicensesNoAuth_withNoSourceLicenseForObservedLicenses(OwnerType.REPOSITORY, repository.getId());
   }
 
-  private void testGetLicenses_withNoSourceLicenseForObservedLicenses(final OwnerType ownerType, final String ownerId)
-      throws Exception
+  private void testGetLicenses_withNoSourceLicenseForObservedLicenses(
+      final OwnerType ownerType,
+      final String ownerId) throws Exception
   {
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("GPL-2.0"));
@@ -838,8 +847,7 @@ public class ComponentInfoServiceTest
 
   private void testGetLicenses_withNotSupportedLicense(
       final OwnerType ownerType,
-      final String ownerId)
-      throws Exception
+      final String ownerId) throws Exception
   {
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(NUGET_COORDINATES);
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("MIT"));
@@ -850,7 +858,8 @@ public class ComponentInfoServiceTest
     assertLicenses(licenses.declaredlicenses, tuple("MIT", "MIT", 0));
     assertLicenses(licenses.observedlicenses, tuple("Not-Supported", "Not Supported", null));
     assertLicenses(licenses.effectiveLicenses, tuple("MIT", "MIT", 0));
-    assertThat(licenses.selectableLicenses).isNotEmpty().extracting(License::getLicenseId)
+    assertThat(licenses.selectableLicenses).isNotEmpty()
+        .extracting(License::getLicenseId)
         .doesNotContain("Not-Supported");
   }
 
@@ -867,7 +876,8 @@ public class ComponentInfoServiceTest
     assertMultiLicenses(licenses.declaredLicenses, tuple("MIT", "MIT", 0));
     assertMultiLicenses(licenses.observedLicenses, tuple("Not-Supported", "Not Supported", null));
     assertMultiLicenses(licenses.effectiveLicenses, tuple("MIT", "MIT", 0));
-    assertThat(licenses.selectableLicenses).isNotEmpty().extracting(License::getLicenseId)
+    assertThat(licenses.selectableLicenses).isNotEmpty()
+        .extracting(License::getLicenseId)
         .doesNotContain("Not-Supported");
     assertThat(licenses.hiddenObservedLicenses).isFalse();
     assertThat(licenses.supportAlpObservedLicenses).isTrue();
@@ -1024,8 +1034,9 @@ public class ComponentInfoServiceTest
     ComponentDetailsList componentDetailsList =
         componentInfoService.getComponentDetailsList(componentIdentifier1, null, null, null, null,
             true).getLeft();
-    componentDetailsLoaderFactory.newInstance(application).augmentComponentDetails(componentDetailsList.getList(),
-        MatchState.EXACT.getId(), null);
+    componentDetailsLoaderFactory.newInstance(application)
+        .augmentComponentDetails(componentDetailsList.getList(),
+            MatchState.EXACT.getId(), null);
 
     assertThat(componentDetailsList).isNotNull();
     assertThat(componentDetailsList.getList()).hasSize(4);
@@ -1232,11 +1243,14 @@ public class ComponentInfoServiceTest
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createGenericCoordinates("a1", "1.0", null);
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createGenericCoordinates("a1", "2.0", null);
     ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createGenericCoordinates("a1", "3.0", null);
-    ComponentIdentifier componentIdentifier4 = new ComponentIdentifier("apt", new TreeMap<String, String>() {{
+    ComponentIdentifier componentIdentifier4 = new ComponentIdentifier("apt", new TreeMap<String, String>()
+    {
+      {
         this.put("plan", "a1");
         this.put("name", "g1");
         this.put("version", "1.0.0");
-      }});
+      }
+    });
 
     List<ComponentIdentifier> componentIdentifiers =
         asList(componentIdentifier1, componentIdentifier2, componentIdentifier3, componentIdentifier4);
@@ -1321,13 +1335,13 @@ public class ComponentInfoServiceTest
         "3.0.0");
     mockGetComponentDetailsListFromHds(Collections.singletonList(componentEvaluationData1));
 
-    //generic
+    // generic
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createGenericCoordinates("a1", "1.0", null);
     when(thirdPartyComponentDAO.resolveComponentDetails(
         eq(application.getId()), eq(componentIdentifier2), eq("myScanId")))
-        .thenReturn(null);
+            .thenReturn(null);
 
-    //generic third party component
+    // generic third party component
     ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createGenericCoordinates("b1", "2.0", null);
 
     mockComponentResolution(componentIdentifier3, application.getId());
@@ -1339,7 +1353,8 @@ public class ComponentInfoServiceTest
         this.put("plan", "a1");
         this.put("name", "g1");
         this.put("version", "1.0.0");
-      }});
+      }
+    });
 
     List<ComponentIdentifier> componentIdentifiers =
         asList(componentIdentifier1,
@@ -1360,10 +1375,10 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getObservedLicenses()).isNull();
     assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
 
-    //generic assertion
+    // generic assertion
     assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier2).get(0), componentIdentifier2);
 
-    //generic third party assertion
+    // generic third party assertion
     componentDetails = componentDetailsMap.get(componentIdentifier3).get(0);
     assertThat(componentDetails.getIdentificationSource()).isEqualTo("randomIdentificationSource");
     assertThat(componentDetails.getComponentIdentifier())
@@ -1379,11 +1394,14 @@ public class ComponentInfoServiceTest
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createGenericCoordinates("a1", "1.0", null);
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createGenericCoordinates("a1", "2.0", null);
     ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createGenericCoordinates("a1", "3.0", null);
-    ComponentIdentifier componentIdentifier4 = new ComponentIdentifier("apt", new TreeMap<String, String>() {{
+    ComponentIdentifier componentIdentifier4 = new ComponentIdentifier("apt", new TreeMap<String, String>()
+    {
+      {
         this.put("plan", "a1");
         this.put("name", "g1");
         this.put("version", "1.0.0");
-      }});
+      }
+    });
 
     List<ComponentIdentifier> componentIdentifiers =
         asList(componentIdentifier1, componentIdentifier2, componentIdentifier3, componentIdentifier4);
@@ -1406,11 +1424,14 @@ public class ComponentInfoServiceTest
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createGenericCoordinates("a1", "1.0", null);
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createGenericCoordinates("a1", "2.0", null);
     ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createGenericCoordinates("a1", "3.0", null);
-    ComponentIdentifier componentIdentifier4deb = new ComponentIdentifier("deb", new TreeMap<String, String>() {{
+    ComponentIdentifier componentIdentifier4deb = new ComponentIdentifier("deb", new TreeMap<String, String>()
+    {
+      {
         this.put("plan", "a1");
         this.put("name", "g1");
         this.put("version", "1.0.0");
-      }});
+      }
+    });
 
     List<ComponentIdentifier> componentIdentifiers =
         asList(componentIdentifier1, componentIdentifier2, componentIdentifier3, componentIdentifier4deb);
@@ -1430,16 +1451,22 @@ public class ComponentInfoServiceTest
     String applicationPublicId = "testGetComponentDetailsList";
     Application application = tempEntity.newApplication(applicationPublicId, applicationPublicId, organization.getId());
 
-    ComponentIdentifier componentIdentifier1deb = new ComponentIdentifier("deb", new TreeMap<String, String>() {{
+    ComponentIdentifier componentIdentifier1deb = new ComponentIdentifier("deb", new TreeMap<String, String>()
+    {
+      {
         this.put("plan", "a1");
         this.put("name", "g1");
         this.put("version", "1.0.0");
-      }});
-    ComponentIdentifier componentIdentifier2deb = new ComponentIdentifier("deb", new TreeMap<String, String>() {{
+      }
+    });
+    ComponentIdentifier componentIdentifier2deb = new ComponentIdentifier("deb", new TreeMap<String, String>()
+    {
+      {
         this.put("plan", "a1");
         this.put("name", "g1");
         this.put("version", "1.0.0");
-      }});
+      }
+    });
 
     List<ComponentIdentifier> componentIdentifiers =
         asList(componentIdentifier1deb, componentIdentifier2deb);
@@ -1602,7 +1629,7 @@ public class ComponentInfoServiceTest
     qualityPolicy2.setOwnerId(application.getId());
     tempEntity.newPolicy(qualityPolicy2);
 
-    Constraint licenseContraint1 = new Constraint("LC1", "LicenseConstraint1",LogicalOperator.AND);
+    Constraint licenseContraint1 = new Constraint("LC1", "LicenseConstraint1", LogicalOperator.AND);
     Condition licenseCondition1 = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
     licenseContraint1.addCondition(licenseCondition1);
     Policy licensePolicy1 = new Policy("LicensePolicyId1", "LicensePolicy1");
@@ -2331,8 +2358,8 @@ public class ComponentInfoServiceTest
         .isEqualTo("pkg:maven/g1/a2@v1?type=jar");
     assertThat(dto.remediation.versionChanges.get(0).getData().getComponent().displayName).isEqualTo(
         ComponentDisplayNameUtil.fromIdentifier(
-                dto.remediation.versionChanges.get(0).getData().getComponent().componentIdentifier
-                    .toComponentIdentifier())
+            dto.remediation.versionChanges.get(0).getData().getComponent().componentIdentifier
+                .toComponentIdentifier())
             .toString());
   }
 
@@ -2424,7 +2451,7 @@ public class ComponentInfoServiceTest
     assertThat(dto.remediation.versionChanges).isNotEmpty();
     assertThat(
         dto.remediation.versionChanges.get(0).getData().getComponent().componentIdentifier.toComponentIdentifier())
-        .isEqualTo(MAVEN_A1_COORDINATES);
+            .isEqualTo(MAVEN_A1_COORDINATES);
 
     ComponentDetailsDTO resultComponentDetails = resultComponentDetailsList.get(0);
     assertThat(resultComponentDetails.displayName)
@@ -2658,7 +2685,8 @@ public class ComponentInfoServiceTest
 
     List<ComponentDetailsDTO> result = dto.allVersions;
 
-    assertThat(result).hasSize(2).extracting(d -> d.identificationSource)
+    assertThat(result).hasSize(2)
+        .extracting(d -> d.identificationSource)
         .containsExactlyInAnyOrder(identificationSource, IdentificationSource.SONATYPE.getId());
     assertThat(dto.sourceResponse).isNull();
     verify(repositoryQueryService, never()).getAllVersions(eq(MAVEN_A1_COORDINATES), any(Owner.class));
@@ -2685,7 +2713,8 @@ public class ComponentInfoServiceTest
 
     List<ComponentDetailsDTO> result = dto.allVersions;
 
-    assertThat(result).hasSize(2).extracting(d -> d.identificationSource)
+    assertThat(result).hasSize(2)
+        .extracting(d -> d.identificationSource)
         .containsExactlyInAnyOrder(identificationSource, IdentificationSource.SONATYPE.getId());
     assertThat(dto.sourceResponse).isNull();
     verify(repositoryQueryService, never()).getAllVersions(eq(MAVEN_A1_COORDINATES), any(Owner.class));
@@ -2791,10 +2820,10 @@ public class ComponentInfoServiceTest
     ComponentIdentifier componentIdentifier1 = new ComponentIdentifier(ComponentIdentifier.FORMAT_PYPI, coordinates);
 
     when(hdsClientMock.get(ComponentDetailsList.class, "rest/" + TOOL_NAME +
-            "/componentDetails/list",
+        "/componentDetails/list",
         Map.of("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier1),
             "stableVersionsOnly", "true")))
-        .thenThrow(BadRequestException.class);
+                .thenThrow(BadRequestException.class);
 
     ComponentDetails tpComponentDetails = newNamedComponentDetails(componentIdentifier1);
     tpComponentDetails.setIdentificationSource(identificationSource);
@@ -2835,16 +2864,16 @@ public class ComponentInfoServiceTest
     ComponentIdentifier componentIdentifier1 = new ComponentIdentifier(ComponentIdentifier.FORMAT_PYPI, coordinates);
 
     when(hdsClientMock.get(ComponentDetailsList.class, "rest/" + TOOL_NAME +
-            "/componentDetails/list",
+        "/componentDetails/list",
         Map.of("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier1),
             "stableVersionsOnly", "true")))
-        .thenThrow(BadRequestException.class);
+                .thenThrow(BadRequestException.class);
 
     assertThatThrownBy(
         () -> componentInfoService
             .getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId, dependencyType,
                 true))
-        .isInstanceOf(BadRequestException.class);
+                    .isInstanceOf(BadRequestException.class);
   }
 
   @Test
@@ -2898,8 +2927,8 @@ public class ComponentInfoServiceTest
     assertThatThrownBy(
         () -> componentInfoService.getComponentDetailsList(componentIdentifier1, application, null, null, null,
             true))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("Invalid format: unknown");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Invalid format: unknown");
   }
 
   @Test
@@ -3152,7 +3181,7 @@ public class ComponentInfoServiceTest
     mockLicenseFeature(true);
 
     // case: remediation event exists but dependency is null
-    //       -> proceeds to check if manual pull request is possible
+    // -> proceeds to check if manual pull request is possible
     insertSourceControlEvent(SourceControlEvent.EVENT_STATUS_ERROR);
     ComponentVersionInfoDTO dto =
         testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID, null);
@@ -3161,7 +3190,7 @@ public class ComponentInfoServiceTest
     assertThat(prNotPossible.reason).isEqualTo(ManualPullRequestImpossibilityReason.INSUFFICIENT_PERMISSIONS);
 
     // case: remediation event exists but dependency is transitive
-    //       -> proceeds to check if manual pull request is possible
+    // -> proceeds to check if manual pull request is possible
     insertSourceControlEvent(SourceControlEvent.EVENT_STATUS_ERROR);
     dto = testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID,
         DependencyType.TRANSITIVE);
@@ -3170,7 +3199,7 @@ public class ComponentInfoServiceTest
     assertThat(prNotPossible.reason).isEqualTo(ManualPullRequestImpossibilityReason.INSUFFICIENT_PERMISSIONS);
 
     // case: remediation event exists and dependency is direct
-    //       -> returns the remediation event status
+    // -> returns the remediation event status
     insertSourceControlEvent(SourceControlEvent.EVENT_STATUS_ERROR);
     dto =
         testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID, DependencyType.DIRECT);
@@ -3540,8 +3569,8 @@ public class ComponentInfoServiceTest
   }
 
   private void assertGenericComponentDetails(
-        ComponentDetails componentDetails,
-        ComponentIdentifier componentIdentifier1)
+      ComponentDetails componentDetails,
+      ComponentIdentifier componentIdentifier1)
   {
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier1);
 
@@ -3619,7 +3648,7 @@ public class ComponentInfoServiceTest
 
   private void mockHdsGetVersionScoringData() {
     lenient().when(hdsClientMock.post(eq(VersionScoringDTO[].class), eq(HDS_BULK_SCORE_VERSIONING_PATH), anyList(),
-            eq(Map.of("stableVersionsOnly", "true"))))
-        .thenReturn(new VersionScoringDTO[] {});
+        eq(Map.of("stableVersionsOnly", "true"))))
+        .thenReturn(new VersionScoringDTO[]{});
   }
 }

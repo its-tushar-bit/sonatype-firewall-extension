@@ -150,8 +150,8 @@ public class OrganizationServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> organizationService.deleteOrganization(organizationId))
         .withMessageContaining(
-            "Cannot delete the parent organization for automatic application creation: " + organization.getName() + "."
-        );
+            "Cannot delete the parent organization for automatic application creation: " + organization.getName()
+                + ".");
     assertThat(organizationDAO.getById(organizationId)).isNotNull();
     verifyNoInteractions(mockOwnerMaintenanceTelemetryCreator);
   }
@@ -170,8 +170,7 @@ public class OrganizationServiceTest
             " Some sub-Orgs and applications of this Org were deleted," +
             " while some failed with error(s) below." +
             "\n" + "Cannot delete the parent organization for automatic application creation: " +
-            organization.getName() + "."
-        );
+            organization.getName() + ".");
 
     for (Organization currentOrg : testList.subList(0, 4)) {
       assertThat(organizationDAO.getById(currentOrg.getId())).isNull();
@@ -200,9 +199,9 @@ public class OrganizationServiceTest
   @Test
   public void testGetAllWithoutRelatedRepositories() {
     OrganizationService organizationService =
-            new OrganizationService(
-                    null, null, null, organizationDAO, applicationDAO, null, policyViolationLoggerFactory,
-                    null, mockOwnerMaintenanceTelemetryCreator);
+        new OrganizationService(
+            null, null, null, organizationDAO, applicationDAO, null, policyViolationLoggerFactory,
+            null, mockOwnerMaintenanceTelemetryCreator);
 
     tempEntity.newOrganizationWithRepositoryManager("org-with-repo-man");
 
@@ -247,11 +246,17 @@ public class OrganizationServiceTest
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
 
-    OwnerEvent ownerEvent = (OwnerEvent) handler.getAllEvents().stream().filter(event -> event instanceof OwnerEvent)
-        .findFirst().get();
+    OwnerEvent ownerEvent = (OwnerEvent) handler.getAllEvents()
+        .stream()
+        .filter(event -> event instanceof OwnerEvent)
+        .findFirst()
+        .get();
     OrganizationApplicationManagementEvent orgAppSummaryEvent =
-        (OrganizationApplicationManagementEvent) handler.getAllEvents().stream()
-            .filter(event -> event instanceof OrganizationApplicationManagementEvent).findFirst().get();
+        (OrganizationApplicationManagementEvent) handler.getAllEvents()
+            .stream()
+            .filter(event -> event instanceof OrganizationApplicationManagementEvent)
+            .findFirst()
+            .get();
 
     assertThat(ownerEvent.action).isEqualTo(CREATED);
     assertThat(ownerEvent.ownerId).isEqualTo(organizationId);
@@ -268,11 +273,17 @@ public class OrganizationServiceTest
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
 
-    ownerEvent = (OwnerEvent) handler.getAllEvents().stream().filter(event -> event instanceof OwnerEvent)
-        .findFirst().get();
+    ownerEvent = (OwnerEvent) handler.getAllEvents()
+        .stream()
+        .filter(event -> event instanceof OwnerEvent)
+        .findFirst()
+        .get();
     orgAppSummaryEvent =
-        (OrganizationApplicationManagementEvent) handler.getAllEvents().stream()
-            .filter(event -> event instanceof OrganizationApplicationManagementEvent).findFirst().get();
+        (OrganizationApplicationManagementEvent) handler.getAllEvents()
+            .stream()
+            .filter(event -> event instanceof OrganizationApplicationManagementEvent)
+            .findFirst()
+            .get();
 
     assertThat(ownerEvent.action).isEqualTo(UPDATED);
     assertThat(ownerEvent.ownerId).isEqualTo(organizationId);
@@ -288,11 +299,17 @@ public class OrganizationServiceTest
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
 
-    ownerEvent = (OwnerEvent) handler.getAllEvents().stream().filter(event -> event instanceof OwnerEvent)
-        .findFirst().get();
+    ownerEvent = (OwnerEvent) handler.getAllEvents()
+        .stream()
+        .filter(event -> event instanceof OwnerEvent)
+        .findFirst()
+        .get();
     orgAppSummaryEvent =
-        (OrganizationApplicationManagementEvent) handler.getAllEvents().stream()
-            .filter(event -> event instanceof OrganizationApplicationManagementEvent).findFirst().get();
+        (OrganizationApplicationManagementEvent) handler.getAllEvents()
+            .stream()
+            .filter(event -> event instanceof OrganizationApplicationManagementEvent)
+            .findFirst()
+            .get();
 
     assertThat(ownerEvent.action).isEqualTo(DELETED);
     assertThat(ownerEvent.ownerId).isEqualTo(organizationId);
@@ -380,11 +397,11 @@ public class OrganizationServiceTest
         .getAllParentOrgsNoAuthz(Arrays.asList(application1, application2));
 
     assertThat(parentOrgs).hasSize(5)
-      .containsKey(organization.getId())
-      .containsKey(parentOrganization1.getId())
-      .containsKey(parentOrganization2.getId())
-      .containsKey(parentOrganization3.getId())
-      .containsKey(ROOT_ORGANIZATION_ID);
+        .containsKey(organization.getId())
+        .containsKey(parentOrganization1.getId())
+        .containsKey(parentOrganization2.getId())
+        .containsKey(parentOrganization3.getId())
+        .containsKey(ROOT_ORGANIZATION_ID);
     verifyNoInteractions(mockOwnerMaintenanceTelemetryCreator);
   }
 
@@ -405,14 +422,14 @@ public class OrganizationServiceTest
         .getAllParentOrgsNoAuthz(Arrays.asList(application1, application2));
 
     assertThat(parentOrgs).hasSize(8)
-      .containsKey(organization1.getId())
-      .containsKey(organization2.getId())
-      .containsKey(parentOrganization1.getId())
-      .containsKey(parentOrganization2.getId())
-      .containsKey(parentOrganization3.getId())
-      .containsKey(parentOrganization4.getId())
-      .containsKey(parentOrganization5.getId())
-      .containsKey(ROOT_ORGANIZATION_ID);
+        .containsKey(organization1.getId())
+        .containsKey(organization2.getId())
+        .containsKey(parentOrganization1.getId())
+        .containsKey(parentOrganization2.getId())
+        .containsKey(parentOrganization3.getId())
+        .containsKey(parentOrganization4.getId())
+        .containsKey(parentOrganization5.getId())
+        .containsKey(ROOT_ORGANIZATION_ID);
     verifyNoInteractions(mockOwnerMaintenanceTelemetryCreator);
   }
 }

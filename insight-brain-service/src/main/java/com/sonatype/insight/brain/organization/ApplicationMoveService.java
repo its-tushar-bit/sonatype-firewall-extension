@@ -193,7 +193,8 @@ public class ApplicationMoveService
 
   @AuthzFilter(permission = Permission.ADD_APPLICATION, context = AuthzFilter.Context.ORGANIZATION)
   List<Organization> getPermittedDestinationOrganizations() {
-    return organizationDAO.getAll().stream()
+    return organizationDAO.getAll()
+        .stream()
         .filter(organization -> !organization.getId().equals(Organization.ROOT_ORGANIZATION_ID))
         .collect(Collectors.toList());
   }
@@ -218,8 +219,9 @@ public class ApplicationMoveService
   }
 
   @Authorize(permission = Permission.ADD_APPLICATION)
-  List<String> moveApplication(Application application,
-                               @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
+  List<String> moveApplication(
+      Application application,
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
   {
     if (Organization.ROOT_ORGANIZATION_ID.equals(organizationId)) {
       throw new BadRequestException("Applications cannot be moved to the root organization.");
@@ -339,12 +341,14 @@ public class ApplicationMoveService
           .forEach(policy -> {
             boolean updated = false;
             if (policy.getPolicyActionsOverrides() != null &&
-                policy.getPolicyActionsOverrides().containsKey(applicationId)) {
+                policy.getPolicyActionsOverrides().containsKey(applicationId))
+          {
               policy.getPolicyActionsOverrides().remove(applicationId);
               updated = true;
             }
             if (policy.getPolicyNotificationsOverrides() != null &&
-                policy.getPolicyNotificationsOverrides().containsKey(applicationId)) {
+                policy.getPolicyNotificationsOverrides().containsKey(applicationId))
+          {
               policy.getPolicyNotificationsOverrides().remove(applicationId);
               updated = true;
             }
@@ -506,7 +510,8 @@ public class ApplicationMoveService
       for (Constraint constraint : policy.getConstraints()) {
         for (Condition condition : constraint.getConditions()) {
           if (LicenseThreatGroupConditionType.ID.equals(condition.getConditionTypeId())
-              && !LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID.equals(condition.getValue())) {
+              && !LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID.equals(condition.getValue()))
+          {
             conditions.add(condition);
           }
         }
@@ -553,7 +558,7 @@ public class ApplicationMoveService
     private void checkPolicyMonitoring() {
       log.debug("Checking policy monitoring");
       List<PolicyMonitoring> oldMonitorings = getPolicyMonitoring(oldOwnersById.keySet());
-      for (PolicyMonitoring oldMonitoring: oldMonitorings) {
+      for (PolicyMonitoring oldMonitoring : oldMonitorings) {
         if (oldMonitoring == null || oldMonitoring.getOwnerId().equals(application.getId())) {
           return;
         }
@@ -563,7 +568,7 @@ public class ApplicationMoveService
       if (!oldMonitorings.isEmpty() && newMonitorings.isEmpty()) {
         warnings.add(POLICY_MONITORING_MISSING_MSG);
       }
-      for (PolicyMonitoring newMonitoring: newMonitorings) {
+      for (PolicyMonitoring newMonitoring : newMonitorings) {
         for (PolicyMonitoring oldMonitoring : oldMonitorings) {
           if (!newMonitoring.getStageTypeId().equals(oldMonitoring.getStageTypeId())) {
             warnings.add(POLICY_MONITORING_DIFFERENT_MSG);
@@ -718,7 +723,8 @@ public class ApplicationMoveService
         List<LicenseOverride> inheritedOverrides = licenseOverrideDAO.getByOwnerId(tx, ownerId);
         for (LicenseOverride inheritedOverride : inheritedOverrides) {
           if (isLicenseOverrideApplicable(appOverrides, inheritedOverride)
-              && isLicenseOverrideApplicable(oldInheritedOverrides, inheritedOverride)) {
+              && isLicenseOverrideApplicable(oldInheritedOverrides, inheritedOverride))
+          {
             oldInheritedOverrides.add(inheritedOverride);
           }
         }
@@ -734,7 +740,8 @@ public class ApplicationMoveService
           }
         }
         if (newInheritedOverride == null || !newInheritedOverride.getStatus().equals(oldInheritedOverride.getStatus())
-            || !newInheritedOverride.getLicenseIds().equals(oldInheritedOverride.getLicenseIds())) {
+            || !newInheritedOverride.getLicenseIds().equals(oldInheritedOverride.getLicenseIds()))
+        {
           lostLicenseOverrides++;
           log.info("License override with status {} and licenses {} no longer applies to component {}"
               + " after move of application", oldInheritedOverride.getStatus(), oldInheritedOverride.getLicenseIds(),
@@ -743,8 +750,9 @@ public class ApplicationMoveService
       }
     }
 
-    private boolean isLicenseOverrideApplicable(List<LicenseOverride> applicableOverrides,
-                                                LicenseOverride inheritedOverride)
+    private boolean isLicenseOverrideApplicable(
+        List<LicenseOverride> applicableOverrides,
+        LicenseOverride inheritedOverride)
     {
       for (LicenseOverride applicableOverride : applicableOverrides) {
         if (isLicenseOverrideForEqualComponent(applicableOverride, inheritedOverride)) {
@@ -754,8 +762,9 @@ public class ApplicationMoveService
       return true;
     }
 
-    private boolean isLicenseOverrideForEqualComponent(LicenseOverride effectiveOverride,
-                                                       LicenseOverride otherOverride)
+    private boolean isLicenseOverrideForEqualComponent(
+        LicenseOverride effectiveOverride,
+        LicenseOverride otherOverride)
     {
       ComponentIdentifier effective = effectiveOverride.getComponentIdentifier();
       ComponentIdentifier other = otherOverride.getComponentIdentifier();
@@ -763,7 +772,8 @@ public class ApplicationMoveService
         return true;
       }
       if (effective.isMaven() && other.isMaven() && effective.getCoordinates()
-          .equals(ComponentIdentifierAdapter.toGavOnlyCoordinates(other.getCoordinates()))) {
+          .equals(ComponentIdentifierAdapter.toGavOnlyCoordinates(other.getCoordinates())))
+      {
         return true;
       }
       return false;
@@ -776,7 +786,8 @@ public class ApplicationMoveService
       newOwnerIds.addAll(newAncestorIds);
       for (String ownerId : newOwnerIds) {
         for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextIdAndRoleId(tx, ownerId,
-            Role.OWNER_ROLE_ID)) {
+            Role.OWNER_ROLE_ID))
+        {
           if (membershipMapping.includes(userPrincipal)) {
             return;
           }

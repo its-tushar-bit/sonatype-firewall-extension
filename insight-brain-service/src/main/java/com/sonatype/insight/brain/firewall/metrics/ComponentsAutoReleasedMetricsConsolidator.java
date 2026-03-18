@@ -57,8 +57,7 @@ public class ComponentsAutoReleasedMetricsConsolidator
       RepositoryDAO repositoryDAO,
       RepositoryComponentDAO repositoryComponentDAO,
       FirewallMetricsDAO firewallMetricsDAO,
-      ApiFirewallMetricsService apiFirewallMetricsService
-  )
+      ApiFirewallMetricsService apiFirewallMetricsService)
   {
     this.repositoryDAO = repositoryDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -83,12 +82,13 @@ public class ComponentsAutoReleasedMetricsConsolidator
         DateConverter.toDate(LocalDate.now().minusMonths(12)));
 
     List<List<FirewallMetrics>> allMetrics = CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> repositories
-        .parallelStream().map(new TenantAwareFunction<Repository, List<FirewallMetrics>>(repository -> {
+        .parallelStream()
+        .map(new TenantAwareFunction<Repository, List<FirewallMetrics>>(repository -> {
           List<FirewallMetrics> repositoryMetrics = new ArrayList<>();
 
           Map<LocalDate, Long> autoReleasedComponentsCount = repositoryComponentDAO
               .getAutoReleaseQuarantinedCountByRepositoryIdAndDate(
-              repository.getId(), mostRecentMetricDateFound, true);
+                  repository.getId(), mostRecentMetricDateFound, true);
 
           for (Entry<LocalDate, Long> entry : autoReleasedComponentsCount.entrySet()) {
             repositoryMetrics.add(new FirewallMetrics(entry.getKey(), COMPONENTS_AUTO_RELEASED,
@@ -96,9 +96,10 @@ public class ComponentsAutoReleasedMetricsConsolidator
           }
 
           return repositoryMetrics;
-        })).collect(toList())), ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL)).join();
+        }))
+        .collect(toList())), ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL)).join();
 
-    for (List<FirewallMetrics> metricsList :  allMetrics) {
+    for (List<FirewallMetrics> metricsList : allMetrics) {
       for (FirewallMetrics fm : metricsList) {
         firewallMetricsDAO.insertUpdateFirewallMetrics(fm);
       }

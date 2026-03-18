@@ -31,9 +31,9 @@ public class AutoPolicyWaiverExclusionMatcherWrapper
 
   public boolean matchesViolation(PolicyViolation policyViolation) {
     ComponentMatcherStrategyForExclusion componentMatcherStrategy =
-        autoPolicyWaiverExclusion.getComponentMatchStrategy() == null ?
-            ComponentMatcherStrategyForExclusion.EXACT_COMPONENT :
-            autoPolicyWaiverExclusion.getComponentMatchStrategy();
+        autoPolicyWaiverExclusion.getComponentMatchStrategy() == null
+            ? ComponentMatcherStrategyForExclusion.EXACT_COMPONENT
+            : autoPolicyWaiverExclusion.getComponentMatchStrategy();
 
     policyViolationNotNull(policyViolation);
     ComponentFact componentFact =
@@ -102,7 +102,9 @@ public class AutoPolicyWaiverExclusionMatcherWrapper
       ComponentIdentifier exclusionIdentifier,
       ComponentIdentifier componentIdentifier)
   {
-    return componentIdentifier.getCoordinates().entrySet().stream()
+    return componentIdentifier.getCoordinates()
+        .entrySet()
+        .stream()
         .allMatch(compCoord -> compCoord.getValue().equals(exclusionIdentifier.get(compCoord.getKey())));
   }
 
@@ -114,7 +116,8 @@ public class AutoPolicyWaiverExclusionMatcherWrapper
     if (autoPolicyWaiverExclusion.getComponentIdentifier() == null ||
         componentFact.getComponentIdentifier() == null ||
         isDifferentFormat(componentFact.getComponentIdentifier(),
-            autoPolicyWaiverExclusion.getComponentIdentifier())) {
+            autoPolicyWaiverExclusion.getComponentIdentifier()))
+    {
       return false;
     }
 
@@ -166,7 +169,8 @@ public class AutoPolicyWaiverExclusionMatcherWrapper
     if (autoPolicyWaiverExclusion.getThreatLevel() != policyViolation.getThreatLevel()) {
       log.debug(
           "Policy violation match for policy ID {} failed: threat levels do not match. Exclusion threat level: {}, " +
-          "violation threat level: {}", policyViolation.getPolicyId(), autoPolicyWaiverExclusion.getThreatLevel(),
+              "violation threat level: {}",
+          policyViolation.getPolicyId(), autoPolicyWaiverExclusion.getThreatLevel(),
           policyViolation.getThreatLevel());
       return false;
     }
@@ -187,11 +191,11 @@ public class AutoPolicyWaiverExclusionMatcherWrapper
 
     try {
       autoPolicyWaiverExclusion.getComponentIdentifier().ensureComplete();
-      if (autoPolicyWaiverExclusion.getComponentIdentifier().compareTo(policyViolation.getComponentIdentifier()) !=
-          0) {
+      if (autoPolicyWaiverExclusion.getComponentIdentifier().compareTo(policyViolation.getComponentIdentifier()) != 0) {
         log.debug(
             "Policy violation match for policy ID {} failed: Component identifiers do not match. " +
-            "Exclusion component identifier: {}, Violation component identifier: {}", policyViolation.getPolicyId(),
+                "Exclusion component identifier: {}, Violation component identifier: {}",
+            policyViolation.getPolicyId(),
             autoPolicyWaiverExclusion.getComponentIdentifier(), policyViolation.getComponentIdentifier());
         return false;
       }
@@ -199,7 +203,8 @@ public class AutoPolicyWaiverExclusionMatcherWrapper
     catch (InvalidComponentIdentifierException e) {
       log.debug(
           "Policy violation match for policy ID {} failed: Invalid component identifier. " +
-          "Exclusion component identifier: {}, Error: {}", policyViolation.getPolicyId(),
+              "Exclusion component identifier: {}, Error: {}",
+          policyViolation.getPolicyId(),
           autoPolicyWaiverExclusion.getComponentIdentifier(), e.getMessage());
       return false;
     }
@@ -208,19 +213,20 @@ public class AutoPolicyWaiverExclusionMatcherWrapper
       if (autoPolicyWaiverExclusion.getConstraintFacts() == null || policyViolation.getConstraintFacts() == null) {
         log.debug(
             "Policy violation match for policy ID {} failed: Constraint facts are null. " +
-            "Exclusion constraint facts: {}, Violation constraint facts: {}", policyViolation.getPolicyId(),
+                "Exclusion constraint facts: {}, Violation constraint facts: {}",
+            policyViolation.getPolicyId(),
             autoPolicyWaiverExclusion.getConstraintFacts(), policyViolation.getConstraintFacts());
         return false;
       }
       boolean constraintFactsMatch =
           AutoPolicyWaiverViolationConstraintFactsListComparator.CONSTRAINT_FACTS_LIST_COMPARATOR.compare(
               policyViolation.getConstraintFacts(),
-              autoPolicyWaiverExclusion.getConstraintFacts()
-          ) == 0;
+              autoPolicyWaiverExclusion.getConstraintFacts()) == 0;
       if (!constraintFactsMatch) {
         log.debug(
             "Policy violation match for policy ID {} failed: Constraint facts do not match. " +
-            "Exclusion constraint facts: {}, Violation constraint facts: {}", policyViolation.getPolicyId(),
+                "Exclusion constraint facts: {}, Violation constraint facts: {}",
+            policyViolation.getPolicyId(),
             autoPolicyWaiverExclusion.getConstraintFacts(), policyViolation.getConstraintFacts());
       }
       else {
@@ -233,7 +239,8 @@ public class AutoPolicyWaiverExclusionMatcherWrapper
     catch (NullPointerException e) {
       log.debug(
           "Policy violation match for policy ID {} failed: NullPointerException during constraint facts comparison. " +
-              "Error: {}", policyViolation.getPolicyId(), e.getMessage());
+              "Error: {}",
+          policyViolation.getPolicyId(), e.getMessage());
       return false;
     }
   }

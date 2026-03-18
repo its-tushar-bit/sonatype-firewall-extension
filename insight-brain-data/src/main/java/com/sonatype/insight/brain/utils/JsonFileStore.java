@@ -155,7 +155,7 @@ public final class JsonFileStore
     if (primary == null) {
       return secondary;
     }
-    final ObjectNode[] result = { primary };
+    final ObjectNode[] result = {primary};
     for (final Entry<String, JsonNode> field : secondary.properties()) {
       final String name = field.getKey();
       final JsonNode primaryValue = primary.get(name);

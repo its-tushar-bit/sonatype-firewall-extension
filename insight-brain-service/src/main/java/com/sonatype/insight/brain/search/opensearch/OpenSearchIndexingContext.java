@@ -71,8 +71,7 @@ public class OpenSearchIndexingContext
     DeleteByQueryRequest request = DeleteByQueryRequest.of(d -> d
         .index(indexConfigProvider.getIndexConfig().getIndexName())
         .q(query)
-        .refresh(true)
-    );
+        .refresh(true));
     DeleteByQueryResponse deleteByQueryResponse = openSearchClient.deleteByQuery(request);
     List<String> errors = getErrors(deleteByQueryResponse.failures(), deleteByQueryResponse.timedOut(),
         deleteByQueryResponse.versionConflicts());
@@ -183,10 +182,8 @@ public class OpenSearchIndexingContext
       Map<String, Object> documentMap = getConversionHelper().documentToMap(document);
       documentMap.put(IndexMapping.CREATED_AT_EPOCH_MS, createdAtEpochMs);
       bulkBuilder.operations(op -> op.index(idx -> idx
-              .index(indexName)
-              .document(documentMap)
-          )
-      ).refresh(Refresh.WaitFor);
+          .index(indexName)
+          .document(documentMap))).refresh(Refresh.WaitFor);
     }
 
     BulkResponse bulkResponse = openSearchClient.bulk(bulkBuilder.build());

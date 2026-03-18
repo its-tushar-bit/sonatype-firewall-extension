@@ -10,14 +10,14 @@ import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.Compone
 public class ApiAutoPolicyWaiverExclusionRequestDTO
 {
   public String applicationPublicId;
-  
+
   public String ownerId;
-  
+
   public String scanId;
-  
+
   public String policyViolationId;
-  
+
   public String autoPolicyWaiverId;
-  
+
   public ComponentMatcherStrategyForExclusion matchStrategy;
 }

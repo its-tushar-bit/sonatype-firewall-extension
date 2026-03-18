@@ -193,8 +193,8 @@ public class OwnerDAOTest
   public void testWalkChildren_MultiOrgBranches() {
     List<String> ownersIds = new ArrayList<>();
     List<Organization> mainBranch = tempEntity.newRelatedOrganizationsAsList(1, 5, 0);
-    List<Organization> secondBranch = tempEntity.newRelatedOrganizationsAsList(mainBranch.get(2) ,1, 2, 0);
-    List<Organization> thirdBranch = tempEntity.newRelatedOrganizationsAsList(secondBranch.get(1) ,1, 4, 0);
+    List<Organization> secondBranch = tempEntity.newRelatedOrganizationsAsList(mainBranch.get(2), 1, 2, 0);
+    List<Organization> thirdBranch = tempEntity.newRelatedOrganizationsAsList(secondBranch.get(1), 1, 4, 0);
     Application app1 = tempEntity.newApplicationWithParent(mainBranch.get(2));
     Application app2 = tempEntity.newApplicationWithParent(secondBranch.get(0));
     Application app3 = tempEntity.newApplicationWithParent(thirdBranch.get(1));
@@ -273,8 +273,9 @@ public class OwnerDAOTest
   @Test
   public void testGetChildOwners_RootOrganization() {
     List<Owner> childOwners = ownerDAO.getChildOwners(ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID));
-    assertThat(childOwners).extracting(Owner::getId).containsExactly(organization.getId(),
-        RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(childOwners).extracting(Owner::getId)
+        .containsExactly(organization.getId(),
+            RepositoryContainer.REPOSITORY_CONTAINER_ID);
   }
 
   @Test
@@ -585,12 +586,12 @@ public class OwnerDAOTest
 
     assertOwnersEqualInAnyOrder(
         results,
-            app2,
-            app3,
-            app4,
-            app5,
-            app6,
-            app7);
+        app2,
+        app3,
+        app4,
+        app5,
+        app6,
+        app7);
   }
 
   @Test
@@ -711,18 +712,17 @@ public class OwnerDAOTest
   private void assertOwnersEqualInAnyOrder(final List<Owner> actual, final Owner... expected) {
     assertThat(actual)
         .usingElementComparator((a, b) -> {
-          if (
-              Objects.equals(a.getId(), b.getId()) &&
+          if (Objects.equals(a.getId(), b.getId()) &&
               Objects.equals(a.getName(), b.getName()) &&
               Objects.equals(a.getParentOwnerId(), b.getParentOwnerId()) &&
               Objects.equals(a.getType(), b.getType()) &&
               Objects.equals(a.getPublicId(), b.getPublicId()) &&
-              a.canHaveChildren() == b.canHaveChildren()
-          ) {
+              a.canHaveChildren() == b.canHaveChildren())
+        {
             return 0;
           }
 
-          return  -1;
+          return -1;
         })
         .containsExactlyInAnyOrder(expected);
   }

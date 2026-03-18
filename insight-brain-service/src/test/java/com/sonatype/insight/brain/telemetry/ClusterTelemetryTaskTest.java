@@ -91,8 +91,8 @@ public class ClusterTelemetryTaskTest
     List<ZscalerFormat> zscalerFormats = new ArrayList<>();
     zscalerFormats.add(new ZscalerFormat("maven", false));
     zscalerFormats.add(new ZscalerFormat("npm", true));
-    zscalerFormats.add(new ZscalerFormat("pypi",true));
-    zscalerFormats.add(new ZscalerFormat("nuget",false));
+    zscalerFormats.add(new ZscalerFormat("pypi", true));
+    zscalerFormats.add(new ZscalerFormat("nuget", false));
     zScalerConfigurationDAO.set(zScalerConfiguration, zscalerFormats);
     zScalerMetricsDAO.set(new ZScalerMetrics());
 
@@ -107,20 +107,20 @@ public class ClusterTelemetryTaskTest
     }
 
     TelemetryPurpose[] expectedPurposes = { //
-                                            TelemetryPurpose.DATABASE, //
-                                            TelemetryPurpose.HIERARCHY_METRICS, //
-                                            TelemetryPurpose.POLICY_STATUS_OVERRIDE, //
-                                            TelemetryPurpose.REALM, //
-                                            TelemetryPurpose.ROLE_USAGE, //
-                                            TelemetryPurpose.REPOSITORY_CONFIGURATION, //
-                                            TelemetryPurpose.SOURCE_CONTROL_METRICS, //
-                                            TelemetryPurpose.CLUSTER_USAGE, //
-                                            TelemetryPurpose.REAL_OWNER_IDS, // This one is for Applications
-                                            TelemetryPurpose.REAL_OWNER_IDS, // This one is for Organizations
-                                            TelemetryPurpose.ZSCALER_CONFIGURATION,
-                                            TelemetryPurpose.ZSCALER_METRICS,
-                                            // TelemetryPurpose.APPLICATION_CATEGORY, Sent with a different overload:
-                                            // .send(TelemetryData telemetryData)
+      TelemetryPurpose.DATABASE, //
+      TelemetryPurpose.HIERARCHY_METRICS, //
+      TelemetryPurpose.POLICY_STATUS_OVERRIDE, //
+      TelemetryPurpose.REALM, //
+      TelemetryPurpose.ROLE_USAGE, //
+      TelemetryPurpose.REPOSITORY_CONFIGURATION, //
+      TelemetryPurpose.SOURCE_CONTROL_METRICS, //
+      TelemetryPurpose.CLUSTER_USAGE, //
+      TelemetryPurpose.REAL_OWNER_IDS, // This one is for Applications
+      TelemetryPurpose.REAL_OWNER_IDS, // This one is for Organizations
+      TelemetryPurpose.ZSCALER_CONFIGURATION,
+      TelemetryPurpose.ZSCALER_METRICS,
+      // TelemetryPurpose.APPLICATION_CATEGORY, Sent with a different overload:
+      // .send(TelemetryData telemetryData)
     };
     verify(telemetrySenderMock, times(expectedPurposes.length)).send(allTelemetryDataCaptor.capture());
     List<TelemetryData> allTelemetryData =
@@ -136,13 +136,12 @@ public class ClusterTelemetryTaskTest
     ClusterTelemetryTask simpleClusterTelemetryTask = new ClusterTelemetryTask(
         telemetryCollectorsProviderMock,
         taskSchedulerMock,
-        telemetrySenderMock
-    );
+        telemetrySenderMock);
 
     // When
     simpleClusterTelemetryTask.execute(mock(JobExecutionContext.class));
 
-    //Then verify that 2 pages were sent
+    // Then verify that 2 pages were sent
     verify(telemetrySenderMock, times(2)).send(any(TelemetryData.class));
   }
 

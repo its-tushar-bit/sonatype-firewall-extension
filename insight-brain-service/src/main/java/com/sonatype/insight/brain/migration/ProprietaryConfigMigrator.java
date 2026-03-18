@@ -85,7 +85,8 @@ public class ProprietaryConfigMigrator
   private com.sonatype.clm.dto.model.ProprietaryConfig getObsoleteProprietaryConfig() {
     try {
       final JsonNode config = readObsoleteProprietaryConfig();
-      return (config != null) ? JsonUtils.asPojo(config, com.sonatype.clm.dto.model.ProprietaryConfig.class)
+      return (config != null)
+          ? JsonUtils.asPojo(config, com.sonatype.clm.dto.model.ProprietaryConfig.class)
           : new com.sonatype.clm.dto.model.ProprietaryConfig();
     }
     catch (IOException e) {

@@ -9,7 +9,8 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class PublicDataSourcesTile extends BasicElement<PublicDataSourcesTile>
+public class PublicDataSourcesTile
+    extends BasicElement<PublicDataSourcesTile>
 {
   public PublicDataSourcesTile() {
     super("#owner-pill-public-data-sources");

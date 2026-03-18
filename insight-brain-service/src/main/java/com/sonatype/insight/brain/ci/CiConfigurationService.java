@@ -216,7 +216,8 @@ public class CiConfigurationService
   /**
    * Merges CI configurations from an organization hierarchy with provenance tracking.
    *
-   * <p>Configurations are merged from the top of the hierarchy (root organization) down to the
+   * <p>
+   * Configurations are merged from the top of the hierarchy (root organization) down to the
    * specific owner (application or organization), with lower levels taking precedence. This means
    * a configuration field set at the application level will override the same field set at any
    * parent organization level.
@@ -265,13 +266,15 @@ public class CiConfigurationService
   /**
    * Applies non-null fields from the override configuration to the base configuration.
    *
-   * <p>For each configuration field in the override object, if the field is non-null, it will:
+   * <p>
+   * For each configuration field in the override object, if the field is non-null, it will:
    * <ol>
-   *   <li>Override the corresponding field in the base configuration</li>
-   *   <li>Record the owner ID as the source of that field in the provenance map</li>
+   * <li>Override the corresponding field in the base configuration</li>
+   * <li>Record the owner ID as the source of that field in the provenance map</li>
    * </ol>
    *
-   * <p>For nested objects (proxy, download, reachability), performs deep merging at the field level,
+   * <p>
+   * For nested objects (proxy, download, reachability), performs deep merging at the field level,
    * allowing child configurations to override specific fields while inheriting others from parent.
    *
    * @param base the base configuration to be modified (accumulated merged result)

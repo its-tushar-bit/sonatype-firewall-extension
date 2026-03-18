@@ -59,8 +59,11 @@ public class AdvancedSearchPageTest
 
   private SystemConfigurationPropertyDAO dao;
 
-  private PolicyEvaluation newAppReport(String appId, String stageId, String reportId, String reportResourceName)
-      throws Exception
+  private PolicyEvaluation newAppReport(
+      String appId,
+      String stageId,
+      String reportId,
+      String reportResourceName) throws Exception
   {
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(appId, stageId, reportId);
     ReportTestUtils.createReportFile(policyEval.getApplicationId(), policyEval.getScanId(),
@@ -192,8 +195,9 @@ public class AdvancedSearchPageTest
     // Squeeze in verifying search can be triggered with enter button
     page.searchInput().sendKeys(Keys.ENTER);
 
-    page.queryError().shouldHave(text(
-        "The search query is invalid: Syntax Error, cannot parse foo:bar:baz -itemType:NON_VULNERABLE_COMPONENT:"));
+    page.queryError()
+        .shouldHave(text(
+            "The search query is invalid: Syntax Error, cannot parse foo:bar:baz -itemType:NON_VULNERABLE_COMPONENT:"));
 
     // Make sure errors are cleared upon successful search
     page.searchInput().setValue("itemType:ORGANIZATION");
@@ -214,9 +218,11 @@ public class AdvancedSearchPageTest
     page.searchButton().click();
     FormMask.seeAndWaitForDismissal();
 
-    page.queryError().shouldBe(visible).shouldHave(text(
-        "Search index not found. The Advanced Search index is unavailable or has not been created yet. " +
-            "Re-indexing is required before results can be returned."));
+    page.queryError()
+        .shouldBe(visible)
+        .shouldHave(text(
+            "Search index not found. The Advanced Search index is unavailable or has not been created yet. " +
+                "Re-indexing is required before results can be returned."));
   }
 
   private void enableAdvancedSearch() {
@@ -304,7 +310,7 @@ public class AdvancedSearchPageTest
     page.prefixTagWithId("organizationId").shouldNotHave(cssClass("nx-tag--selected")).click();
     // when I click on the pill it should get an additional class which fills the pill with green background
     page.prefixTagWithId("organizationId").shouldHave(cssClass("nx-tag--selected"));
-    page.queryBuilderSearchTermsContainer().shouldBe(visible);  // query builder must remain open
+    page.queryBuilderSearchTermsContainer().shouldBe(visible); // query builder must remain open
     page.searchInput().shouldHave(value("organizationId:"));
 
     // test upon search query builder is closed
@@ -599,8 +605,9 @@ public class AdvancedSearchPageTest
     FormMask.seeAndWaitForDismissal();
 
     // Verify complex query was built correctly
-    page.searchInput().shouldHave(
-        value("itemType:*ORGANIZATION* AND itemType:*APPLICATION* OR componentName:*test-component*"));
+    page.searchInput()
+        .shouldHave(
+            value("itemType:*ORGANIZATION* AND itemType:*APPLICATION* OR componentName:*test-component*"));
   }
 
   @Test

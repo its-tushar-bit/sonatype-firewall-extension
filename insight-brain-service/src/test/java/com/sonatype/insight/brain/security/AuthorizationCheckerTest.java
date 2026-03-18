@@ -256,7 +256,8 @@ public class AuthorizationCheckerTest
 
     for (Permission perm : Permission.values()) {
       assertThat(checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.ORGANIZATION))
-          .as(perm.toString()).isEmpty();
+          .as(perm.toString())
+          .isEmpty();
     }
   }
 

@@ -123,7 +123,7 @@ public abstract class SearchRowFactory
           addColumns(row, searchResultItemDTO, baseUrl, ORGANIZATION, ORGANIZATION_LINK);
         }
         addColumns(row, searchResultItemDTO, baseUrl,
-              APPLICATION, APPLICATION_LINK, COMPONENT_NAME, REPORT, STAGE, APPLICATION_VERSION, SBOM_SPECIFICATION);
+            APPLICATION, APPLICATION_LINK, COMPONENT_NAME, REPORT, STAGE, APPLICATION_VERSION, SBOM_SPECIFICATION);
         break;
       case SBOM_METADATA:
         if (searchResultItemDTO.organizationName != null) {
@@ -145,8 +145,7 @@ public abstract class SearchRowFactory
       List<String> row,
       SearchResultItemDTO searchResultItemDTO,
       String baseUrl,
-      Header... headers
-  )
+      Header... headers)
   {
     for (Header header : headers) {
       addColumn(row, header, searchResultItemDTO, baseUrl);

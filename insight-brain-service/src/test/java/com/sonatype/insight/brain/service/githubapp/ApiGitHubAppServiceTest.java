@@ -127,20 +127,19 @@ public class ApiGitHubAppServiceTest
     String mockServerUrl = githubMockServer.baseUrl();
     baseUrl = mock(BaseUrl.class);
     service = new ApiGitHubAppService(
-            gitHubAppDAO,
-            installationStateDAO,
-            registrationStateDAO,
-            sourceControlDAO,
-            ownerDAO,
-            passwordHandler,
-            insightProxy,
-            gitHubManifestService,
-            authStrategyCache,
-            gitHubAppDeletionService,
-            mockServerUrl,  // githubApiBaseUrl
-            mockServerUrl,  // githubOAuthTokenUrl
-            baseUrl
-    );
+        gitHubAppDAO,
+        installationStateDAO,
+        registrationStateDAO,
+        sourceControlDAO,
+        ownerDAO,
+        passwordHandler,
+        insightProxy,
+        gitHubManifestService,
+        authStrategyCache,
+        gitHubAppDeletionService,
+        mockServerUrl, // githubApiBaseUrl
+        mockServerUrl, // githubOAuthTokenUrl
+        baseUrl);
 
     setupGitHubMocks();
 
@@ -161,46 +160,38 @@ public class ApiGitHubAppServiceTest
 
   private void setupGitHubMocks() {
     githubMockServer.stubFor(
-            post(urlPathEqualTo("/login/oauth/access_token"))
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("{\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":" +
-                                    "\"bearer\",\"scope\":\"\"}")
-                    )
-    );
+        post(urlPathEqualTo("/login/oauth/access_token"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":" +
+                    "\"bearer\",\"scope\":\"\"}")));
 
     // Mock user endpoint
     githubMockServer.stubFor(
-            get(urlPathEqualTo("/user"))
-                    .withHeader("Authorization", equalTo("token " + ACCESS_TOKEN))
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("{\"login\":\"testuser\",\"id\":12345}")
-                    )
-    );
+        get(urlPathEqualTo("/user"))
+            .withHeader("Authorization", equalTo("token " + ACCESS_TOKEN))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"login\":\"testuser\",\"id\":12345}")));
 
     // Mock user installations API
     githubMockServer.stubFor(
-            get(urlPathEqualTo("/user/installations"))
-                    .withHeader("Authorization", equalTo("token " + ACCESS_TOKEN))
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("{\"total_count\":1,\"installations\":[{\"id\":" + INSTALLATION_ID
-                                    + ",\"app_id\":" + APP_ID + ",\"account\":{\"login\":\"test-org\",\"id\":12345}}]}")
-                    )
-    );
+        get(urlPathEqualTo("/user/installations"))
+            .withHeader("Authorization", equalTo("token " + ACCESS_TOKEN))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"total_count\":1,\"installations\":[{\"id\":" + INSTALLATION_ID
+                    + ",\"app_id\":" + APP_ID + ",\"account\":{\"login\":\"test-org\",\"id\":12345}}]}")));
 
     // Mock delete installation API (for GitHubAppDeletionService)
     // Accepts any Authorization header (JWT token from GitHubApp authentication)
     githubMockServer.stubFor(
-            delete(urlMatching("/app/installations/.*"))
-                    .willReturn(aResponse()
-                            .withStatus(204)
-                    )
-    );
+        delete(urlMatching("/app/installations/.*"))
+            .willReturn(aResponse()
+                .withStatus(204)));
   }
 
   @Test
@@ -229,16 +220,14 @@ public class ApiGitHubAppServiceTest
 
     // Mock user installations API with personal account
     githubMockServer.stubFor(
-            get(urlPathEqualTo("/user/installations"))
-                    .atPriority(1)
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("{\"total_count\":1,\"installations\":[{\"id\":" + INSTALLATION_ID
-                                    + ",\"app_id\":" + APP_ID
-                                    + ",\"account\":{\"login\":\"personal-user\",\"id\":54321,\"type\":\"User\"}}]}")
-                    )
-    );
+        get(urlPathEqualTo("/user/installations"))
+            .atPriority(1)
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"total_count\":1,\"installations\":[{\"id\":" + INSTALLATION_ID
+                    + ",\"app_id\":" + APP_ID
+                    + ",\"account\":{\"login\":\"personal-user\",\"id\":54321,\"type\":\"User\"}}]}")));
 
     Owner owner = service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-personal", OAUTH_CODE);
 
@@ -252,10 +241,9 @@ public class ApiGitHubAppServiceTest
 
   @Test
   public void testHandleInstallationSetupCallback_InvalidStateToken_NotFound() {
-    assertThatThrownBy(() ->
-            service.handleInstallationSetupCallback(INSTALLATION_ID, "invalid-state", OAUTH_CODE))
-            .isInstanceOf(BadRequestException.class)
-            .hasMessageContaining("Invalid or expired state parameter");
+    assertThatThrownBy(() -> service.handleInstallationSetupCallback(INSTALLATION_ID, "invalid-state", OAUTH_CODE))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("Invalid or expired state parameter");
   }
 
   @Test
@@ -263,10 +251,9 @@ public class ApiGitHubAppServiceTest
     Date pastDate = new Date(System.currentTimeMillis() - 60000);
     createInstallationState("expired-state", gitHubApp.getId(), pastDate);
 
-    assertThatThrownBy(() ->
-            service.handleInstallationSetupCallback(INSTALLATION_ID, "expired-state", OAUTH_CODE))
-            .isInstanceOf(BadRequestException.class)
-            .hasMessageContaining("Invalid or expired state parameter");
+    assertThatThrownBy(() -> service.handleInstallationSetupCallback(INSTALLATION_ID, "expired-state", OAUTH_CODE))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("Invalid or expired state parameter");
 
     try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
       GitHubAppInstallationState deletedState = installationStateDAO.findByStateToken(tx, "expired-state");
@@ -285,19 +272,17 @@ public class ApiGitHubAppServiceTest
 
     // Configure WireMock to reject OAuth token exchange with empty client_secret (simulating GitHub API behavior)
     githubMockServer.stubFor(
-            post(urlPathEqualTo("/login/oauth/access_token"))
-                    .atPriority(1)
-                    .withRequestBody(containing("\"client_secret\":\"\""))
-                    .willReturn(aResponse()
-                            .withStatus(400)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("{\"error\":\"bad_verification_code\","
-                                    + "\"error_description\":\"The code passed is incorrect or expired.\"}")
-                    )
-    );
+        post(urlPathEqualTo("/login/oauth/access_token"))
+            .atPriority(1)
+            .withRequestBody(containing("\"client_secret\":\"\""))
+            .willReturn(aResponse()
+                .withStatus(400)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"error\":\"bad_verification_code\","
+                    + "\"error_description\":\"The code passed is incorrect or expired.\"}")));
 
-    assertThatThrownBy(() ->
-            service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-empty-secret", OAUTH_CODE))
+    assertThatThrownBy(
+        () -> service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-empty-secret", OAUTH_CODE))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("clientSecret is required");
   }
@@ -331,18 +316,16 @@ public class ApiGitHubAppServiceTest
     createInstallationState("valid-state-oauth-400", gitHubApp.getId(), futureDate);
 
     githubMockServer.stubFor(
-            post(urlPathEqualTo("/login/oauth/access_token"))
-                    .atPriority(1)
-                    .willReturn(aResponse()
-                            .withStatus(400)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("{\"error\":\"invalid_grant\","
-                                    + "\"error_description\":\"The provided authorization grant is invalid\"}")
-                    )
-    );
+        post(urlPathEqualTo("/login/oauth/access_token"))
+            .atPriority(1)
+            .willReturn(aResponse()
+                .withStatus(400)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"error\":\"invalid_grant\","
+                    + "\"error_description\":\"The provided authorization grant is invalid\"}")));
 
-    assertThatThrownBy(() ->
-            service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-oauth-400", OAUTH_CODE))
+    assertThatThrownBy(
+        () -> service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-oauth-400", OAUTH_CODE))
             .isInstanceOf(IOException.class);
   }
 
@@ -352,18 +335,16 @@ public class ApiGitHubAppServiceTest
     createInstallationState("valid-state-oauth-401", gitHubApp.getId(), futureDate);
 
     githubMockServer.stubFor(
-            post(urlPathEqualTo("/login/oauth/access_token"))
-                    .atPriority(1)
-                    .willReturn(aResponse()
-                            .withStatus(401)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("{\"error\":\"unauthorized_client\",\"error_description\":" +
-                                    "\"Client authentication failed\"}")
-                    )
-    );
+        post(urlPathEqualTo("/login/oauth/access_token"))
+            .atPriority(1)
+            .willReturn(aResponse()
+                .withStatus(401)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"error\":\"unauthorized_client\",\"error_description\":" +
+                    "\"Client authentication failed\"}")));
 
-    assertThatThrownBy(() ->
-            service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-oauth-401", OAUTH_CODE))
+    assertThatThrownBy(
+        () -> service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-oauth-401", OAUTH_CODE))
             .isInstanceOf(IOException.class);
   }
 
@@ -373,17 +354,15 @@ public class ApiGitHubAppServiceTest
     createInstallationState("valid-state-oauth-500", gitHubApp.getId(), futureDate);
 
     githubMockServer.stubFor(
-            post(urlPathEqualTo("/login/oauth/access_token"))
-                    .atPriority(1)
-                    .willReturn(aResponse()
-                            .withStatus(500)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("{\"message\":\"Internal server error\"}")
-                    )
-    );
+        post(urlPathEqualTo("/login/oauth/access_token"))
+            .atPriority(1)
+            .willReturn(aResponse()
+                .withStatus(500)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"message\":\"Internal server error\"}")));
 
-    assertThatThrownBy(() ->
-            service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-oauth-500", OAUTH_CODE))
+    assertThatThrownBy(
+        () -> service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-oauth-500", OAUTH_CODE))
             .isInstanceOf(IOException.class);
   }
 
@@ -393,17 +372,15 @@ public class ApiGitHubAppServiceTest
     createInstallationState("valid-state-installations-404", gitHubApp.getId(), futureDate);
 
     githubMockServer.stubFor(
-            get(urlPathEqualTo("/user/installations"))
-                    .atPriority(1)
-                    .willReturn(aResponse()
-                            .withStatus(404)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("{\"message\":\"Not Found\"}")
-                    )
-    );
+        get(urlPathEqualTo("/user/installations"))
+            .atPriority(1)
+            .willReturn(aResponse()
+                .withStatus(404)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"message\":\"Not Found\"}")));
 
-    assertThatThrownBy(() ->
-            service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-installations-404", OAUTH_CODE))
+    assertThatThrownBy(
+        () -> service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-installations-404", OAUTH_CODE))
             .isInstanceOf(IOException.class);
   }
 
@@ -413,17 +390,15 @@ public class ApiGitHubAppServiceTest
     createInstallationState("valid-state-installations-403", gitHubApp.getId(), futureDate);
 
     githubMockServer.stubFor(
-            get(urlPathEqualTo("/user/installations"))
-                    .atPriority(1)
-                    .willReturn(aResponse()
-                            .withStatus(403)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("{\"message\":\"Forbidden\"}")
-                    )
-    );
+        get(urlPathEqualTo("/user/installations"))
+            .atPriority(1)
+            .willReturn(aResponse()
+                .withStatus(403)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"message\":\"Forbidden\"}")));
 
-    assertThatThrownBy(() ->
-            service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-installations-403", OAUTH_CODE))
+    assertThatThrownBy(
+        () -> service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-installations-403", OAUTH_CODE))
             .isInstanceOf(IOException.class);
   }
 
@@ -433,20 +408,18 @@ public class ApiGitHubAppServiceTest
     createInstallationState("valid-state-multiple-installs", gitHubApp.getId(), futureDate);
 
     githubMockServer.stubFor(
-            get(urlPathEqualTo("/user/installations"))
-                    .atPriority(1)
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("{\"total_count\":3,\"installations\":["
-                                    + "{\"id\":11111,\"app_id\":111,"
-                                    + "\"account\":{\"login\":\"other-org-1\",\"id\":11111}},"
-                                    + "{\"id\":" + INSTALLATION_ID + ",\"app_id\":" + APP_ID + ","
-                                    + "\"account\":{\"login\":\"test-org\",\"id\":12345}},"
-                                    + "{\"id\":33333,\"app_id\":333,"
-                                    + "\"account\":{\"login\":\"other-org-2\",\"id\":33333}}]}")
-                    )
-    );
+        get(urlPathEqualTo("/user/installations"))
+            .atPriority(1)
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"total_count\":3,\"installations\":["
+                    + "{\"id\":11111,\"app_id\":111,"
+                    + "\"account\":{\"login\":\"other-org-1\",\"id\":11111}},"
+                    + "{\"id\":" + INSTALLATION_ID + ",\"app_id\":" + APP_ID + ","
+                    + "\"account\":{\"login\":\"test-org\",\"id\":12345}},"
+                    + "{\"id\":33333,\"app_id\":333,"
+                    + "\"account\":{\"login\":\"other-org-2\",\"id\":33333}}]}")));
 
     service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-multiple-installs", OAUTH_CODE);
 
@@ -461,17 +434,15 @@ public class ApiGitHubAppServiceTest
     createInstallationState("valid-state-empty-installs", gitHubApp.getId(), futureDate);
 
     githubMockServer.stubFor(
-            get(urlPathEqualTo("/user/installations"))
-                    .atPriority(1)
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("{\"total_count\":0,\"installations\":[]}")
-                    )
-    );
+        get(urlPathEqualTo("/user/installations"))
+            .atPriority(1)
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"total_count\":0,\"installations\":[]}")));
 
-    assertThatThrownBy(() ->
-            service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-empty-installs", OAUTH_CODE))
+    assertThatThrownBy(
+        () -> service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-empty-installs", OAUTH_CODE))
             .isInstanceOf(BadRequestException.class)
             .hasMessageContaining("User does not have permission to install this GitHub App");
   }
@@ -486,18 +457,17 @@ public class ApiGitHubAppServiceTest
     when(mockBaseUrl.get()).thenReturn("https://iqserver.example.com");
 
     ApiGitHubAppService testService = new ApiGitHubAppService(
-            gitHubAppDAO,
-            installationStateDAO,
-            registrationStateDAO,
-            sourceControlDAO,
-            ownerDAO,
-            passwordHandler,
-            insightProxy,
-            gitHubManifestService,
+        gitHubAppDAO,
+        installationStateDAO,
+        registrationStateDAO,
+        sourceControlDAO,
+        ownerDAO,
+        passwordHandler,
+        insightProxy,
+        gitHubManifestService,
         authStrategyCache,
-            gitHubAppDeletionService,
-            mockBaseUrl
-    );
+        gitHubAppDeletionService,
+        mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
 
@@ -521,7 +491,7 @@ public class ApiGitHubAppServiceTest
       GitHubAppRegistrationState token = registrationStateDAO.findByStateToken(tx, result.state());
       assertThat(token).isNotNull();
       assertThat(token.getStateToken()).isEqualTo(result.state());
-      assertThat(token.getOwnerId()).isEqualTo(organization.getId());  // Owner is set during manifest generation
+      assertThat(token.getOwnerId()).isEqualTo(organization.getId()); // Owner is set during manifest generation
       assertThat(token.getGithubOrganizationName()).isEqualTo("test-org");
       assertThat(token.getExpiresAt()).isAfter(new Date());
       assertThat(token.getCreatedAt()).isBefore(new Date(System.currentTimeMillis() + 1000));
@@ -537,18 +507,17 @@ public class ApiGitHubAppServiceTest
     when(mockBaseUrl.get()).thenReturn("");
 
     ApiGitHubAppService testService = new ApiGitHubAppService(
-            gitHubAppDAO,
-            installationStateDAO,
-            registrationStateDAO,
-            sourceControlDAO,
-            ownerDAO,
-            passwordHandler,
-            insightProxy,
-            gitHubManifestService,
-                authStrategyCache,
-            gitHubAppDeletionService,
-            mockBaseUrl
-    );
+        gitHubAppDAO,
+        installationStateDAO,
+        registrationStateDAO,
+        sourceControlDAO,
+        ownerDAO,
+        passwordHandler,
+        insightProxy,
+        gitHubManifestService,
+        authStrategyCache,
+        gitHubAppDeletionService,
+        mockBaseUrl);
 
     assertThatThrownBy(() -> testService.generateManifest(organization.getId(), "test-org"))
         .isInstanceOf(InternalServerErrorException.class)
@@ -571,8 +540,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        mockBaseUrl
-    );
+        mockBaseUrl);
 
     for (int i = 0; i < 10; i++) {
       ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
@@ -599,8 +567,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        mockBaseUrl
-    );
+        mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
 
@@ -626,8 +593,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        mockBaseUrl
-    );
+        mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
 
@@ -651,8 +617,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        mockBaseUrl
-    );
+        mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
 
@@ -676,8 +641,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        mockBaseUrl
-    );
+        mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
 
@@ -701,8 +665,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        mockBaseUrl
-    );
+        mockBaseUrl);
 
     // Simulate concurrent manifest generation
     int threadCount = 10;
@@ -749,8 +712,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        mockBaseUrl
-    );
+        mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
 
@@ -791,8 +753,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        baseUrl
-    );
+        baseUrl);
 
     assertThatThrownBy(() -> testService.generateManifest(organization.getId(), "test-org"))
         .isInstanceOf(InternalServerErrorException.class)
@@ -815,8 +776,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        baseUrl
-    );
+        baseUrl);
 
     assertThatThrownBy(() -> testService.generateManifest(organization.getId(), "test-org"))
         .isInstanceOf(InternalServerErrorException.class)
@@ -839,8 +799,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        baseUrl
-    );
+        baseUrl);
 
     ApiGitHubAppManifestDTO result1 = testService.generateManifest(organization.getId(), "test-org");
     ApiGitHubAppManifestDTO result2 = testService.generateManifest(organization.getId(), "test-org");
@@ -871,8 +830,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        baseUrl
-    );
+        baseUrl);
 
     long beforeGenerate = System.currentTimeMillis();
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
@@ -888,9 +846,8 @@ public class ApiGitHubAppServiceTest
       long actualExpiration = token.getExpiresAt().getTime();
 
       assertThat(actualExpiration).isBetween(
-            expectedExpiration - 2000,
-            afterGenerate + (10 * 60 * 1000) + 2000
-      );
+          expectedExpiration - 2000,
+          afterGenerate + (10 * 60 * 1000) + 2000);
       tx.commit();
     }
   }
@@ -911,8 +868,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        baseUrl
-    );
+        baseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
     Map<String, String> permissions = result.manifest().default_permissions();
@@ -939,8 +895,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        baseUrl
-    );
+        baseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
 
@@ -964,8 +919,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        baseUrl
-    );
+        baseUrl);
 
     ApiGitHubAppManifestDTO result1 = testService.generateManifest(organization.getId(), "test-org");
     ApiGitHubAppManifestDTO result2 = testService.generateManifest(organization.getId(), "test-org");
@@ -998,8 +952,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        baseUrl
-    );
+        baseUrl);
 
     for (int i = 0; i < 10; i++) {
       ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
@@ -1023,8 +976,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        baseUrl
-    );
+        baseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
     String appName = result.manifest().name();
@@ -1048,8 +1000,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        baseUrl
-    );
+        baseUrl);
 
     ApiGitHubAppManifestDTO result1 = testService.generateManifest(organization.getId(), "test-org");
     ApiGitHubAppManifestDTO result2 = testService.generateManifest(organization.getId(), "test-org");
@@ -1080,8 +1031,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        baseUrl
-    );
+        baseUrl);
 
     for (int i = 0; i < 10; i++) {
       ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
@@ -1103,10 +1053,9 @@ public class ApiGitHubAppServiceTest
   public void testCreateGitHubAppFromManifest_NullCode_ThrowsException() {
     Date futureDate = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState registrationState = createRegistrationState("manifest-state-null-code",
-            organization.getId(), futureDate);
+        organization.getId(), futureDate);
 
-    assertThatThrownBy(() ->
-        service.createGitHubAppFromManifest(null, registrationState))
+    assertThatThrownBy(() -> service.createGitHubAppFromManifest(null, registrationState))
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("GitHub manifest conversion code is required");
   }
@@ -1115,15 +1064,13 @@ public class ApiGitHubAppServiceTest
   public void testCreateGitHubAppFromManifest_EmptyCode_ThrowsException() {
     Date futureDate = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState registrationState = createRegistrationState("manifest-state-empty-code",
-            organization.getId(), futureDate);
+        organization.getId(), futureDate);
 
-    assertThatThrownBy(() ->
-        service.createGitHubAppFromManifest("", registrationState))
+    assertThatThrownBy(() -> service.createGitHubAppFromManifest("", registrationState))
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("GitHub manifest conversion code is required");
 
-    assertThatThrownBy(() ->
-        service.createGitHubAppFromManifest("   ", registrationState))
+    assertThatThrownBy(() -> service.createGitHubAppFromManifest("   ", registrationState))
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("GitHub manifest conversion code is required");
   }
@@ -1132,13 +1079,12 @@ public class ApiGitHubAppServiceTest
   public void testCreateGitHubAppFromManifest_MissingAppId_ThrowsException() {
     Date futureDate = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState registrationState = createRegistrationState("manifest-state-no-id",
-            organization.getId(), futureDate);
+        organization.getId(), futureDate);
 
     String manifestCode = "test-manifest-code-no-id";
     mockManifestConversionMissingField(manifestCode, null, APP_SLUG, CLIENT_ID, CLIENT_SECRET);
 
-    assertThatThrownBy(() ->
-        service.createGitHubAppFromManifest(manifestCode, registrationState))
+    assertThatThrownBy(() -> service.createGitHubAppFromManifest(manifestCode, registrationState))
         .isInstanceOf(InternalServerErrorException.class)
         .hasMessageContaining("Invalid response from GitHub: missing app ID");
   }
@@ -1147,13 +1093,12 @@ public class ApiGitHubAppServiceTest
   public void testCreateGitHubAppFromManifest_MissingClientId_ThrowsException() {
     Date futureDate = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState registrationState = createRegistrationState("manifest-state-no-client-id",
-            organization.getId(), futureDate);
+        organization.getId(), futureDate);
 
     String manifestCode = "test-manifest-code-no-client-id";
     mockManifestConversionMissingField(manifestCode, APP_ID + 2000, APP_SLUG, null, CLIENT_SECRET);
 
-    assertThatThrownBy(() ->
-        service.createGitHubAppFromManifest(manifestCode, registrationState))
+    assertThatThrownBy(() -> service.createGitHubAppFromManifest(manifestCode, registrationState))
         .isInstanceOf(InternalServerErrorException.class)
         .hasMessageContaining("Invalid response from GitHub: missing client_id");
   }
@@ -1162,13 +1107,12 @@ public class ApiGitHubAppServiceTest
   public void testCreateGitHubAppFromManifest_EmptyClientId_ThrowsException() {
     Date futureDate = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState registrationState = createRegistrationState("manifest-state-empty-client-id",
-            organization.getId(), futureDate);
+        organization.getId(), futureDate);
 
     String manifestCode = "test-manifest-code-empty-client-id";
     mockManifestConversionMissingField(manifestCode, APP_ID + 2001, APP_SLUG, "", CLIENT_SECRET);
 
-    assertThatThrownBy(() ->
-        service.createGitHubAppFromManifest(manifestCode, registrationState))
+    assertThatThrownBy(() -> service.createGitHubAppFromManifest(manifestCode, registrationState))
         .isInstanceOf(InternalServerErrorException.class)
         .hasMessageContaining("Invalid response from GitHub: missing client_id");
   }
@@ -1177,13 +1121,12 @@ public class ApiGitHubAppServiceTest
   public void testCreateGitHubAppFromManifest_MissingClientSecret_ThrowsException() {
     Date futureDate = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState registrationState = createRegistrationState("manifest-state-no-secret",
-            organization.getId(), futureDate);
+        organization.getId(), futureDate);
 
     String manifestCode = "test-manifest-code-no-secret";
     mockManifestConversionMissingClientSecret(manifestCode, APP_ID + 3000, APP_SLUG, CLIENT_ID);
 
-    assertThatThrownBy(() ->
-        service.createGitHubAppFromManifest(manifestCode, registrationState))
+    assertThatThrownBy(() -> service.createGitHubAppFromManifest(manifestCode, registrationState))
         .isInstanceOf(InternalServerErrorException.class)
         .hasMessageContaining("Invalid response from GitHub: missing client_secret");
   }
@@ -1192,13 +1135,12 @@ public class ApiGitHubAppServiceTest
   public void testCreateGitHubAppFromManifest_EmptyClientSecret_ThrowsException() {
     Date futureDate = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState registrationState = createRegistrationState("manifest-state-empty-secret",
-            organization.getId(), futureDate);
+        organization.getId(), futureDate);
 
     String manifestCode = "test-manifest-code-empty-secret";
     mockManifestConversionMissingClientSecret(manifestCode, APP_ID + 3001, APP_SLUG, CLIENT_ID, "");
 
-    assertThatThrownBy(() ->
-        service.createGitHubAppFromManifest(manifestCode, registrationState))
+    assertThatThrownBy(() -> service.createGitHubAppFromManifest(manifestCode, registrationState))
         .isInstanceOf(InternalServerErrorException.class)
         .hasMessageContaining("Invalid response from GitHub: missing client_secret");
   }
@@ -1207,13 +1149,12 @@ public class ApiGitHubAppServiceTest
   public void testCreateGitHubAppFromManifest_MissingPrivateKey_ThrowsException() {
     Date futureDate = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState registrationState = createRegistrationState("manifest-state-no-pem",
-            organization.getId(), futureDate);
+        organization.getId(), futureDate);
 
     String manifestCode = "test-manifest-code-no-pem";
     mockManifestConversionMissingPem(manifestCode, APP_ID + 4000, APP_SLUG, CLIENT_ID, CLIENT_SECRET);
 
-    assertThatThrownBy(() ->
-        service.createGitHubAppFromManifest(manifestCode, registrationState))
+    assertThatThrownBy(() -> service.createGitHubAppFromManifest(manifestCode, registrationState))
         .isInstanceOf(InternalServerErrorException.class)
         .hasMessageContaining("Invalid response from GitHub: missing private key");
   }
@@ -1222,13 +1163,12 @@ public class ApiGitHubAppServiceTest
   public void testCreateGitHubAppFromManifest_EmptyPrivateKey_ThrowsException() {
     Date futureDate = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState registrationState = createRegistrationState("manifest-state-empty-pem",
-            organization.getId(), futureDate);
+        organization.getId(), futureDate);
 
     String manifestCode = "test-manifest-code-empty-pem";
     mockManifestConversionMissingPem(manifestCode, APP_ID + 4001, APP_SLUG, CLIENT_ID, CLIENT_SECRET, "");
 
-    assertThatThrownBy(() ->
-        service.createGitHubAppFromManifest(manifestCode, registrationState))
+    assertThatThrownBy(() -> service.createGitHubAppFromManifest(manifestCode, registrationState))
         .isInstanceOf(InternalServerErrorException.class)
         .hasMessageContaining("Invalid response from GitHub: missing private key");
   }
@@ -1237,7 +1177,7 @@ public class ApiGitHubAppServiceTest
   public void testCreateGitHubAppFromManifest_GitHubApiFailure_PropagatesException_Empty_manifest_code() {
     Date futureDate = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState registrationState = createRegistrationState("manifest-state-api-fail",
-            organization.getId(), futureDate);
+        organization.getId(), futureDate);
 
     String manifestCode = "";
 
@@ -1246,12 +1186,9 @@ public class ApiGitHubAppServiceTest
             .willReturn(aResponse()
                 .withStatus(500)
                 .withHeader("Content-Type", "application/json")
-                .withBody("{\"message\":\"Internal server error\"}")
-            )
-    );
+                .withBody("{\"message\":\"Internal server error\"}")));
 
-    assertThatThrownBy(() ->
-        service.createGitHubAppFromManifest(manifestCode, registrationState))
+    assertThatThrownBy(() -> service.createGitHubAppFromManifest(manifestCode, registrationState))
         .isInstanceOf(BadRequestException.class);
   }
 
@@ -1260,7 +1197,7 @@ public class ApiGitHubAppServiceTest
     deleteExistingGitHubAppForOwner(organization.getId());
 
     GitHubApp existingApp = createGitHubApp(999999, "old-app-slug", "old-client-id",
-            organization.getId(), "old-org", null);
+        organization.getId(), "old-org", null);
 
     GitHubApp retrievedBefore = gitHubAppDAO.getByOwnerId(organization.getId());
     assertThat(retrievedBefore).isNotNull();
@@ -1269,7 +1206,7 @@ public class ApiGitHubAppServiceTest
 
     Date futureDate = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState registrationState = createRegistrationState("replace-app-state",
-            organization.getId(), futureDate);
+        organization.getId(), futureDate);
 
     String manifestCode = "replace-app-code";
     Integer newAppId = APP_ID + 5000;
@@ -1292,7 +1229,7 @@ public class ApiGitHubAppServiceTest
     deleteExistingGitHubAppForOwner(organization.getId());
 
     GitHubApp existingApp = createGitHubApp(999999, "old-app-slug", "old-client-id",
-            organization.getId(), "old-org", 777777L);
+        organization.getId(), "old-org", 777777L);
     String existingAppId = existingApp.getId();
 
     GitHubApp retrievedBefore = gitHubAppDAO.getByOwnerId(organization.getId());
@@ -1301,18 +1238,16 @@ public class ApiGitHubAppServiceTest
     assertThat(retrievedBefore.getInstallationId()).isEqualTo(777777L);
 
     githubMockServer.stubFor(
-            delete(urlPathEqualTo("/app/installations/777777"))
-                    .willReturn(aResponse()
-                            .withStatus(500)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("{\"message\":\"Internal server error\"}")
-                    )
-    );
+        delete(urlPathEqualTo("/app/installations/777777"))
+            .willReturn(aResponse()
+                .withStatus(500)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{\"message\":\"Internal server error\"}")));
 
     // Create registration state for new app
     Date futureDate = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState registrationState = createRegistrationState("fail-delete-state",
-            organization.getId(), futureDate);
+        organization.getId(), futureDate);
 
     String manifestCode = "fail-delete-code";
     Integer newAppId = APP_ID + 5500;
@@ -1338,7 +1273,7 @@ public class ApiGitHubAppServiceTest
 
     Date futureDate1 = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState state1 = createRegistrationState("first-app-state",
-            organization.getId(), futureDate1);
+        organization.getId(), futureDate1);
     String code1 = "first-app-code";
     Integer appId1 = APP_ID + 7000;
     mockManifestConversion(code1, appId1, "first-slug");
@@ -1351,7 +1286,7 @@ public class ApiGitHubAppServiceTest
 
     Date futureDate2 = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState state2 = createRegistrationState("second-app-state",
-            organization.getId(), futureDate2);
+        organization.getId(), futureDate2);
     String code2 = "second-app-code";
     Integer appId2 = APP_ID + 8000;
     mockManifestConversion(code2, appId2, "second-slug");
@@ -1364,7 +1299,7 @@ public class ApiGitHubAppServiceTest
 
     Date futureDate3 = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState state3 = createRegistrationState("third-app-state",
-            organization.getId(), futureDate3);
+        organization.getId(), futureDate3);
     String code3 = "third-app-code";
     Integer appId3 = APP_ID + 9000;
     mockManifestConversion(code3, appId3, "third-slug");
@@ -1380,8 +1315,8 @@ public class ApiGitHubAppServiceTest
       tx.begin();
       List<GitHubApp> allApps = gitHubAppDAO.getAll(tx);
       long countForOwner = allApps.stream()
-              .filter(app -> organization.getId().equals(app.getOwnerId()))
-              .count();
+          .filter(app -> organization.getId().equals(app.getOwnerId()))
+          .count();
       assertThat(countForOwner).isEqualTo(1);
       tx.commit();
     }
@@ -1392,7 +1327,7 @@ public class ApiGitHubAppServiceTest
     deleteExistingGitHubAppForOwner(organization.getId());
 
     GitHubApp existingApp = createGitHubApp(999999, "old-app-slug", "old-client-id",
-            organization.getId(), "old-org", 888888L);
+        organization.getId(), "old-org", 888888L);
 
     Date expiresAt = new Date(System.currentTimeMillis() + 900000);
     tempEntity.newGitHubAppInstallationState("pending-state-1", existingApp.getId(), "code-verifier-1", expiresAt);
@@ -1407,7 +1342,7 @@ public class ApiGitHubAppServiceTest
 
     Date futureDate = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState registrationState = createRegistrationState("replace-with-states",
-            organization.getId(), futureDate);
+        organization.getId(), futureDate);
 
     String manifestCode = "replace-code-with-states";
     Integer newAppId = APP_ID + 10000;
@@ -1434,7 +1369,7 @@ public class ApiGitHubAppServiceTest
     deleteExistingGitHubAppForOwner(organization.getId());
 
     GitHubApp existingApp = createGitHubApp(999998, "app-with-many-states", "client-many-states",
-            organization.getId(), "org-many-states", 888887L);
+        organization.getId(), "org-many-states", 888887L);
 
     Date expiresAt = new Date(System.currentTimeMillis() + 900000);
     tempEntity.newGitHubAppInstallationState("state-1", existingApp.getId(), "verifier-1", expiresAt);
@@ -1453,7 +1388,7 @@ public class ApiGitHubAppServiceTest
 
     Date futureDate = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState registrationState = createRegistrationState("replace-many-states",
-            organization.getId(), futureDate);
+        organization.getId(), futureDate);
 
     String manifestCode = "replace-code-many-states";
     Integer newAppId = APP_ID + 11000;
@@ -1476,8 +1411,13 @@ public class ApiGitHubAppServiceTest
     }
   }
 
-  private GitHubApp createGitHubApp(Integer appId, String slug, String clientId, String ownerId,
-                                     String githubOrgName, Long installationId)
+  private GitHubApp createGitHubApp(
+      Integer appId,
+      String slug,
+      String clientId,
+      String ownerId,
+      String githubOrgName,
+      Long installationId)
   {
     GitHubApp app = new GitHubApp();
     app.setAppId(appId);
@@ -1635,22 +1575,23 @@ public class ApiGitHubAppServiceTest
 
     String responseJson = String.format(
         "{\"id\":%d,\"slug\":\"%s\",\"client_id\":\"%s\",\"client_secret\":\"%s\",\"pem\":\"%s\",\"owner\":" +
-                "{\"login\":\"test-owner\",\"id\":12345}}",
-        appId, slug, CLIENT_ID, CLIENT_SECRET, privateKeyPem.replace("\n", "\\n")
-    );
+            "{\"login\":\"test-owner\",\"id\":12345}}",
+        appId, slug, CLIENT_ID, CLIENT_SECRET, privateKeyPem.replace("\n", "\\n"));
 
     githubMockServer.stubFor(
         post(urlPathEqualTo("/app-manifests/" + code + "/conversions"))
             .willReturn(aResponse()
                 .withStatus(201)
                 .withHeader("Content-Type", "application/json")
-                .withBody(responseJson)
-            )
-    );
+                .withBody(responseJson)));
   }
 
-  private void mockManifestConversionMissingField(String code, Integer appId, String slug, String clientId,
-                                                  String clientSecret)
+  private void mockManifestConversionMissingField(
+      String code,
+      Integer appId,
+      String slug,
+      String clientId,
+      String clientSecret)
   {
     String privateKeyPem = "-----BEGIN RSA PRIVATE KEY-----\n" +
         "MIIEogIBAAKCAQEAr8QX8ucHKiSq36qP82OnlHF+v1XbSDuws2zovOtHa/RW8TgV\n" +
@@ -1702,17 +1643,19 @@ public class ApiGitHubAppServiceTest
             .willReturn(aResponse()
                 .withStatus(201)
                 .withHeader("Content-Type", "application/json")
-                .withBody(jsonBuilder.toString())
-            )
-    );
+                .withBody(jsonBuilder.toString())));
   }
 
   private void mockManifestConversionMissingClientSecret(String code, Integer appId, String slug, String clientId) {
     mockManifestConversionMissingClientSecret(code, appId, slug, clientId, null);
   }
 
-  private void mockManifestConversionMissingClientSecret(String code, Integer appId, String slug, String clientId,
-                                                         String clientSecret)
+  private void mockManifestConversionMissingClientSecret(
+      String code,
+      Integer appId,
+      String slug,
+      String clientId,
+      String clientSecret)
   {
     String privateKeyPem = "-----BEGIN RSA PRIVATE KEY-----\n" +
         "MIIEogIBAAKCAQEAr8QX8ucHKiSq36qP82OnlHF+v1XbSDuws2zovOtHa/RW8TgV\n" +
@@ -1758,19 +1701,26 @@ public class ApiGitHubAppServiceTest
             .willReturn(aResponse()
                 .withStatus(201)
                 .withHeader("Content-Type", "application/json")
-                .withBody(jsonBuilder.toString())
-            )
-    );
+                .withBody(jsonBuilder.toString())));
   }
 
-  private void mockManifestConversionMissingPem(String code, Integer appId, String slug, String clientId,
-                                                String clientSecret)
+  private void mockManifestConversionMissingPem(
+      String code,
+      Integer appId,
+      String slug,
+      String clientId,
+      String clientSecret)
   {
     mockManifestConversionMissingPem(code, appId, slug, clientId, clientSecret, null);
   }
 
-  private void mockManifestConversionMissingPem(String code, Integer appId, String slug, String clientId,
-                                                String clientSecret, String pem)
+  private void mockManifestConversionMissingPem(
+      String code,
+      Integer appId,
+      String slug,
+      String clientId,
+      String clientSecret,
+      String pem)
   {
     StringBuilder jsonBuilder = new StringBuilder("{");
     jsonBuilder.append("\"id\":").append(appId).append(",");
@@ -1788,9 +1738,7 @@ public class ApiGitHubAppServiceTest
             .willReturn(aResponse()
                 .withStatus(201)
                 .withHeader("Content-Type", "application/json")
-                .withBody(jsonBuilder.toString())
-            )
-    );
+                .withBody(jsonBuilder.toString())));
   }
 
   @Test
@@ -1809,8 +1757,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        mockBaseUrl
-    );
+        mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "my-github-org");
 
@@ -1840,8 +1787,7 @@ public class ApiGitHubAppServiceTest
         gitHubManifestService,
         authStrategyCache,
         gitHubAppDeletionService,
-        mockBaseUrl
-    );
+        mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), null);
 

@@ -32,7 +32,7 @@ import com.codahale.metrics.annotation.Timed;
 @ProductLicenseEnforcementPoint(LicensedFeature.COMPONENT_LABELS)
 public class ComponentLabelResource
 {
-  public static final String RESOURCE_PATH = 
+  public static final String RESOURCE_PATH =
       "rest/label/component/{ownerType: application|organization|repository|repository_manager|repository_container}"
           + "/{ownerId}/{hash}";
 
@@ -52,9 +52,10 @@ public class ComponentLabelResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
-  public AppliedLabels getComponentLabels(@PathParam("ownerType") final OwnerType ownerType,
-                                          @PathParam("ownerId") final String ownerId,
-                                          @PathParam("hash") final String hash)
+  public AppliedLabels getComponentLabels(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId,
+      @PathParam("hash") final String hash)
   {
     return componentLabelService.getComponentLabels(ownerType, ownerId, hash);
   }
@@ -67,10 +68,11 @@ public class ComponentLabelResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.ASSIGN_COMPONENT_LABEL)
-  public void setComponentLabel(@PathParam("ownerType") final OwnerType ownerType,
-                                @PathParam("ownerId") final String ownerId,
-                                @PathParam("hash") final String hash,
-                                final Label label)
+  public void setComponentLabel(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId,
+      @PathParam("hash") final String hash,
+      final Label label)
   {
     componentLabelService.setComponentLabel(ownerType, ownerId, hash, label);
   }
@@ -83,10 +85,11 @@ public class ComponentLabelResource
   @DELETE
   @Path("{labelId}")
   @Audited(AuditEvent.REMOVE_COMPONENT_LABEL)
-  public void deleteComponentLabel(@PathParam("ownerType") final OwnerType ownerType,
-                                   @PathParam("ownerId") final String ownerId,
-                                   @PathParam("hash") final String hash,
-                                   @PathParam("labelId") final String labelId)
+  public void deleteComponentLabel(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId,
+      @PathParam("hash") final String hash,
+      @PathParam("labelId") final String labelId)
   {
     componentLabelService.deleteComponentLabel(ownerType, ownerId, hash, labelId);
   }

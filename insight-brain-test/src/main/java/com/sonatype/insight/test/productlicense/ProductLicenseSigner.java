@@ -54,7 +54,8 @@ public class ProductLicenseSigner
       for (String stageId : signedProductLicenseDetailsDTO.stageIds) {
         signature.update(stageId.getBytes(StandardCharsets.UTF_8));
       }
-      signature.update((signedProductLicenseDetailsDTO.maxApplications == null ? "0"
+      signature.update((signedProductLicenseDetailsDTO.maxApplications == null
+          ? "0"
           : signedProductLicenseDetailsDTO.maxApplications.toString()).getBytes(StandardCharsets.UTF_8));
 
       if (signedProductLicenseDetailsDTO.maxSboms != null) {

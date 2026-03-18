@@ -26,7 +26,8 @@ import static com.sonatype.insight.brain.organization.OwnerTelemetryCollector.Ow
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-public class OrganizationTelemetryCollectorTest extends AbstractComponentTest
+public class OrganizationTelemetryCollectorTest
+    extends AbstractComponentTest
 {
   @Inject
   private OrganizationTelemetryCollector telemetryCollector;
@@ -55,12 +56,13 @@ public class OrganizationTelemetryCollectorTest extends AbstractComponentTest
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REAL_OWNER_IDS);
     assertThat(telemetryData.getAttributes()).containsKey(ALL_OWNER_IDS_NAMES);
     List<OwnerData> appData = (List<OwnerData>) telemetryData.getAttributes().get(ALL_OWNER_IDS_NAMES);
-    assertThat(appData).hasSize(4).extracting("ownerId", "ownerName", "ownerType", "parentOwnerId").contains(
-        tuple("ROOT_ORGANIZATION_ID", "Root Organization", OwnerType.ORGANIZATION.toString(), null),
-        tuple(org1.getId(), org1.getName(), OwnerType.ORGANIZATION.toString(), org1.getParentOrganizationId()),
-        tuple(org2.getId(), org2.getName(), OwnerType.ORGANIZATION.toString(), org2.getParentOrganizationId()),
-        tuple(org3.getId(), org3.getName(), OwnerType.ORGANIZATION.toString(), org3.getParentOrganizationId())
-    );
+    assertThat(appData).hasSize(4)
+        .extracting("ownerId", "ownerName", "ownerType", "parentOwnerId")
+        .contains(
+            tuple("ROOT_ORGANIZATION_ID", "Root Organization", OwnerType.ORGANIZATION.toString(), null),
+            tuple(org1.getId(), org1.getName(), OwnerType.ORGANIZATION.toString(), org1.getParentOrganizationId()),
+            tuple(org2.getId(), org2.getName(), OwnerType.ORGANIZATION.toString(), org2.getParentOrganizationId()),
+            tuple(org3.getId(), org3.getName(), OwnerType.ORGANIZATION.toString(), org3.getParentOrganizationId()));
   }
 
   @Test
@@ -79,31 +81,28 @@ public class OrganizationTelemetryCollectorTest extends AbstractComponentTest
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REAL_OWNER_IDS);
     assertThat(telemetryData.getAttributes()).containsKey(ALL_OWNER_IDS_NAMES);
     List<OwnerData> appData = (List<OwnerData>) telemetryData.getAttributes().get(ALL_OWNER_IDS_NAMES);
-    assertThat(appData).hasSize(4).extracting("ownerId", "ownerName", "ownerType", "parentOwnerId").contains(
-        tuple(
-            telemetryUtils.obfuscate("ROOT_ORGANIZATION_ID"),
-            telemetryUtils.obfuscate("Root Organization"),
-            OwnerType.ORGANIZATION.toString(),
-            telemetryUtils.obfuscate(null)
-        ),
-        tuple(
-            telemetryUtils.obfuscate(org1.getId()),
-            telemetryUtils.obfuscate(org1.getName()),
-            OwnerType.ORGANIZATION.toString(),
-            telemetryUtils.obfuscate(org1.getParentOrganizationId())
-        ),
-        tuple(
-            telemetryUtils.obfuscate(org2.getId()),
-            telemetryUtils.obfuscate(org2.getName()),
-            OwnerType.ORGANIZATION.toString(),
-            telemetryUtils.obfuscate(org2.getParentOrganizationId())
-        ),
-        tuple(
-            telemetryUtils.obfuscate(org3.getId()),
-            telemetryUtils.obfuscate(org3.getName()),
-            OwnerType.ORGANIZATION.toString(),
-            telemetryUtils.obfuscate(org3.getParentOrganizationId())
-        )
-    );
+    assertThat(appData).hasSize(4)
+        .extracting("ownerId", "ownerName", "ownerType", "parentOwnerId")
+        .contains(
+            tuple(
+                telemetryUtils.obfuscate("ROOT_ORGANIZATION_ID"),
+                telemetryUtils.obfuscate("Root Organization"),
+                OwnerType.ORGANIZATION.toString(),
+                telemetryUtils.obfuscate(null)),
+            tuple(
+                telemetryUtils.obfuscate(org1.getId()),
+                telemetryUtils.obfuscate(org1.getName()),
+                OwnerType.ORGANIZATION.toString(),
+                telemetryUtils.obfuscate(org1.getParentOrganizationId())),
+            tuple(
+                telemetryUtils.obfuscate(org2.getId()),
+                telemetryUtils.obfuscate(org2.getName()),
+                OwnerType.ORGANIZATION.toString(),
+                telemetryUtils.obfuscate(org2.getParentOrganizationId())),
+            tuple(
+                telemetryUtils.obfuscate(org3.getId()),
+                telemetryUtils.obfuscate(org3.getName()),
+                OwnerType.ORGANIZATION.toString(),
+                telemetryUtils.obfuscate(org3.getParentOrganizationId())));
   }
 }

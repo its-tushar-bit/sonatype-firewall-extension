@@ -36,7 +36,7 @@ public class ApiFirewallMetricsResourceTest
 
   @Test
   public void testGetFirewallMetrics() throws Exception {
-    LocalDate fiveDaysAgoLocalDate =  LocalDate.now().minusDays(5);
+    LocalDate fiveDaysAgoLocalDate = LocalDate.now().minusDays(5);
     tempEntity.newFirewallMetrics(FirewallMetricsName.WAIVED_COMPONENTS, 10,
         toDate(fiveDaysAgoLocalDate), fiveDaysAgoLocalDate);
     HttpResponse response = restRequest().get();
@@ -60,14 +60,14 @@ public class ApiFirewallMetricsResourceTest
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
         15,
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
 
     tempEntity.newFirewallMetrics(FirewallMetricsName.SUPPLY_CHAIN_ATTACKS_BLOCKED, 10, new Date());
     tempEntity.newFirewallMetrics(NAMESPACE_ATTACKS_BLOCKED, 10, new Date());
     tempEntity.newFirewallMetrics(SAFE_VERSIONS_SELECTED_AUTOMATICALLY, 10, new Date(), LocalDate.now());
     HttpResponse response = restRequest().path(ApiFirewallMetricsResource.ROI_FIREWALL_METRICS_PATH)
-        .parameter(CurrencyTypes.USD).get();
+        .parameter(CurrencyTypes.USD)
+        .get();
     assertResponseStatus(200, response);
     RoiFirewallMetricsDTO roiMetricsDTO = response.getBody(RoiFirewallMetricsDTO.class);
     assertThat(roiMetricsDTO).isNotNull();

@@ -46,11 +46,10 @@ public class FirewallContainerReportPageTest
   @Test
   public void testContent() throws Exception {
     setFeatures(
-            LicensedFeature.CONTAINER_IMAGES_EVALUATION,
-            LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
-            LicensedFeature.APPLICATION_EVALUATION,
-            LicensedFeature.APPLICATION_REPORTS
-    );
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION,
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.APPLICATION_REPORTS);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
 
     hardreset();

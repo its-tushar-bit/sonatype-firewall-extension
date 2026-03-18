@@ -75,13 +75,14 @@ public class DashboardPolicyWaiverDTO
   @JsonProperty(access = Access.READ_ONLY)
   public ComponentDisplayName getDisplayName() {
     return this.componentIdentifier == null
-        ? null : ComponentDisplayNameUtil.fromIdentifier(this.componentIdentifier.toComponentIdentifier());
+        ? null
+        : ComponentDisplayNameUtil.fromIdentifier(this.componentIdentifier.toComponentIdentifier());
   }
 
   static String getCsvHeader() {
     return "Waiver Id, Threat level, Created Date, Expiration Date, Policy Id, Policy Name, Policy Constraints, " +
         "Scope Type, Scope Id, Scope Name, Component Match Strategy, Component Hash, Component Name, " +
-        "Upgrade, Created by Id, Created by Name,Comment, Is Auto Waiver, "   +
+        "Upgrade, Created by Id, Created by Name,Comment, Is Auto Waiver, " +
         "Is Expire When Remediation Available Waiver, Waiver Reason Id, Waiver Reason Text";
   }
 

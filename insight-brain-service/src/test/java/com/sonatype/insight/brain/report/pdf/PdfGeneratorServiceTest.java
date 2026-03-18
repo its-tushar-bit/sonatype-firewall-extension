@@ -79,17 +79,17 @@ public class PdfGeneratorServiceTest
 
   @Test
   public void testPrintReport_NoApplication() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
-        pdfGeneratorService.printReport("doesNotExist", "scanId")
-    ).withMessage("Could not find an application with public ID doesNotExist.");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> pdfGeneratorService.printReport("doesNotExist", "scanId"))
+        .withMessage("Could not find an application with public ID doesNotExist.");
   }
 
   @Test
   public void testPrintReport_NoReport() {
     Application application = tempEntity.newApplicationWithParent();
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
-        pdfGeneratorService.printReport(application.getPublicId(), "scanId")
-    ).withMessage("Could not find a report with ID scanId");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> pdfGeneratorService.printReport(application.getPublicId(), "scanId"))
+        .withMessage("Could not find a report with ID scanId");
   }
 
   @Test
@@ -114,10 +114,11 @@ public class PdfGeneratorServiceTest
     assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(reportPdf.length()));
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
-        .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
+            .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
 
     try (InputStream inputStreamReportPdf = reportPdf.getInputStream();
-        InputStream inputStreamResponse = (InputStream) response.getEntity()) {
+        InputStream inputStreamResponse = (InputStream) response.getEntity())
+    {
       byte[] reportPdfBytes = inputStreamReportPdf.readAllBytes();
       byte[] responseBytes = inputStreamResponse.readAllBytes();
       assertThat(reportPdfBytes).isEqualTo(responseBytes);
@@ -149,10 +150,11 @@ public class PdfGeneratorServiceTest
     assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(reportPdf.length()));
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
-        .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
+            .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
 
     try (InputStream inputStreamReportPdf = reportPdf.getInputStream();
-        InputStream inputStreamResponse = (InputStream) response.getEntity()) {
+        InputStream inputStreamResponse = (InputStream) response.getEntity())
+    {
       byte[] reportPdfBytes = inputStreamReportPdf.readAllBytes();
       byte[] responseBytes = inputStreamResponse.readAllBytes();
       assertThat(reportPdfBytes).isEqualTo(responseBytes);
@@ -187,10 +189,11 @@ public class PdfGeneratorServiceTest
     assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(reportPdf.length()));
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
-        .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
+            .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
 
     try (InputStream inputStreamReportPdf = reportPdf.getInputStream();
-        InputStream inputStreamResponse = (InputStream) response.getEntity()) {
+        InputStream inputStreamResponse = (InputStream) response.getEntity())
+    {
       byte[] reportPdfBytes = inputStreamReportPdf.readAllBytes();
       byte[] responseBytes = inputStreamResponse.readAllBytes();
       assertThat(reportPdfBytes).isEqualTo(responseBytes);
@@ -225,10 +228,11 @@ public class PdfGeneratorServiceTest
     assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(reportPdf.length()));
     assertThat(
         DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
-        .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
+            .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
 
     try (InputStream inputStreamReportPdf = reportPdf.getInputStream();
-        InputStream inputStreamResponse = (InputStream) response.getEntity()) {
+        InputStream inputStreamResponse = (InputStream) response.getEntity())
+    {
       byte[] reportPdfBytes = inputStreamReportPdf.readAllBytes();
       byte[] responseBytes = inputStreamResponse.readAllBytes();
       assertThat(reportPdfBytes).isEqualTo(responseBytes);

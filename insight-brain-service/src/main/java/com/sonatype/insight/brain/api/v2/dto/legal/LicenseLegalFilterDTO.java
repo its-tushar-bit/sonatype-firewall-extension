@@ -13,14 +13,15 @@ public class LicenseLegalFilterDTO
     // for Jackson
   }
 
-  public LicenseLegalFilterDTO(Set<String> organizationIds,
-                               Set<String> applicationIds,
-                               Set<String> tagIds,
-                               Set<String> stageTypeIds,
-                               LicenseLegalResultsOrder order,
-                               int page,
-                               int pageSize,
-                               String componentName)
+  public LicenseLegalFilterDTO(
+      Set<String> organizationIds,
+      Set<String> applicationIds,
+      Set<String> tagIds,
+      Set<String> stageTypeIds,
+      LicenseLegalResultsOrder order,
+      int page,
+      int pageSize,
+      String componentName)
   {
     this.organizationIds = organizationIds;
     this.applicationIds = applicationIds;
@@ -32,15 +33,16 @@ public class LicenseLegalFilterDTO
     this.componentName = componentName;
   }
 
-  public LicenseLegalFilterDTO(Set<String> organizationIds,
-                               Set<String> applicationIds,
-                               Set<String> tagIds,
-                               Set<String> stageTypeIds,
-                               Set<LicenseLegalReviewStatus> reviewStatus,
-                               LicenseLegalResultsOrder order,
-                               int page,
-                               int pageSize,
-                               String componentName)
+  public LicenseLegalFilterDTO(
+      Set<String> organizationIds,
+      Set<String> applicationIds,
+      Set<String> tagIds,
+      Set<String> stageTypeIds,
+      Set<LicenseLegalReviewStatus> reviewStatus,
+      LicenseLegalResultsOrder order,
+      int page,
+      int pageSize,
+      String componentName)
   {
     this.organizationIds = organizationIds;
     this.applicationIds = applicationIds;

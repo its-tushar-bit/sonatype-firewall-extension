@@ -43,7 +43,7 @@ public class ReportHelper
    * Create zipped report given report dir
    *
    * @param reportResourceName resource directory with unzipped report
-   * @param tempDir            directory to put zipped report
+   * @param tempDir directory to put zipped report
    * @return URL to zipped report
    */
   public static URL zipReport(String reportResourceName, TemporaryFolder tempDir) {
@@ -125,8 +125,10 @@ public class ReportHelper
       String scanId,
       InputStream jsonStream) throws IOException
   {
-    Path filePath = insightWork.getReportDir(appId, scanId).toPath()
-        .resolve("report.cache").resolve("policythreats.json");
+    Path filePath = insightWork.getReportDir(appId, scanId)
+        .toPath()
+        .resolve("report.cache")
+        .resolve("policythreats.json");
 
     Files.createDirectories(filePath.getParent());
     Files.copy(jsonStream, filePath);
@@ -248,8 +250,10 @@ public class ReportHelper
     }
   }
 
-  public static void addToZip(final Path zipPath, final Path entryPath, final InputStream inputStream)
-      throws Exception
+  public static void addToZip(
+      final Path zipPath,
+      final Path entryPath,
+      final InputStream inputStream) throws Exception
   {
     try (FileSystem fileSystem = createZipFileSystem(zipPath, false)) {
       Path relative = zipPath.relativize(entryPath);

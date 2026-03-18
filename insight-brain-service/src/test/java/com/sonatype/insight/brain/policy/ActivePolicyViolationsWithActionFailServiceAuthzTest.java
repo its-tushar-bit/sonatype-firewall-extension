@@ -22,20 +22,20 @@ public class ActivePolicyViolationsWithActionFailServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void getActiveViolationsWithActionFail_Anon() throws Exception {
     activePolicyViolationsWithActionFailService.getActiveViolationsWithActionFail(
-            app.getPublicId(), "irrelevant");
+        app.getPublicId(), "irrelevant");
   }
 
   @Test(expected = UnauthorizedException.class)
   public void getActiveViolationsWithActionFail_Unauthorized() throws Exception {
     login();
     activePolicyViolationsWithActionFailService.getActiveViolationsWithActionFail(
-            app.getPublicId(), "irrelevant");
+        app.getPublicId(), "irrelevant");
   }
 
   @Test
   public void getActiveViolationsWithActionFail_Authorized() throws Exception {
     grantReadPermission(app.getId());
     activePolicyViolationsWithActionFailService.getActiveViolationsWithActionFail(
-            app.getPublicId(), "proxy");
+        app.getPublicId(), "proxy");
   }
 }

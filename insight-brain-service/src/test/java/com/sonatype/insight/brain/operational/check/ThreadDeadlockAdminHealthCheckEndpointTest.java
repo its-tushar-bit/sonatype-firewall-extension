@@ -67,8 +67,9 @@ public class ThreadDeadlockAdminHealthCheckEndpointTest
           lenient().when(mockStackTraceElement1.toString()).thenReturn("stack1");
           StackTraceElement mockStackTraceElement2 = mock(StackTraceElement.class);
           lenient().when(mockStackTraceElement2.toString()).thenReturn("stack2");
-          lenient().when(mockThreadInfo.getStackTrace()).thenReturn(
-              new StackTraceElement[]{mockStackTraceElement1, mockStackTraceElement2});
+          lenient().when(mockThreadInfo.getStackTrace())
+              .thenReturn(
+                  new StackTraceElement[]{mockStackTraceElement1, mockStackTraceElement2});
           result[i] = mockThreadInfo;
         }
         return result;

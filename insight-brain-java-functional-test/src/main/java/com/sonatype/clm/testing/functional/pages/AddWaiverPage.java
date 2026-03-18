@@ -34,7 +34,7 @@ public class AddWaiverPage
   public static String url(String violationId, String comments, String reasonId) {
     if (comments != null && reasonId != null) {
       return BaseUrl.resolvePageUrl("/addWaiver/{id}?comments={comments}&reasonId={reasonId}",
-              violationId, comments, reasonId);
+          violationId, comments, reasonId);
     }
     else if (comments != null) {
       return BaseUrl.resolvePageUrl("/addWaiver/{id}?comments={comments}", violationId, comments);

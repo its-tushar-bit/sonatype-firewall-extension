@@ -40,16 +40,20 @@ public class AuthenticationLoggingFilter
   }
 
   @Override
-  public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
-      throws IOException, ServletException
+  public void doFilter(
+      final ServletRequest request,
+      final ServletResponse response,
+      final FilterChain chain) throws IOException, ServletException
   {
     if (!currentUser.isAnonymous()) {
       String username = currentUser.getUsername();
       AuditData.get().setUsername(username);
       setUsernameForRequestLogging(request, username);
     }
-    try (MDCUsernameScope mdcUsernameScope = currentUser.isAnonymous() ? MDCUsernameScope.forAnonymous()
-        : MDCUsernameScope.forUser(currentUser.getUsername())) {
+    try (MDCUsernameScope mdcUsernameScope = currentUser.isAnonymous()
+        ? MDCUsernameScope.forAnonymous()
+        : MDCUsernameScope.forUser(currentUser.getUsername()))
+    {
       chain.doFilter(request, response);
     }
   }
@@ -60,7 +64,8 @@ public class AuthenticationLoggingFilter
   private void setUsernameForRequestLogging(final ServletRequest servletRequest, final String username) {
     if (servletRequest instanceof ServletApiRequest servletApiRequest) {
       Request jettyRequest = servletApiRequest.getRequest();
-      Request.setAuthenticationState(jettyRequest, new Request.AuthenticationState() {
+      Request.setAuthenticationState(jettyRequest, new Request.AuthenticationState()
+      {
         @Override
         public Principal getUserPrincipal() {
           return () -> username;

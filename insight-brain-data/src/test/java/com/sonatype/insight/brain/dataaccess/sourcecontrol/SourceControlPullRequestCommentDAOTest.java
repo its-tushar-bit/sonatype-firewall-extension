@@ -62,10 +62,9 @@ public class SourceControlPullRequestCommentDAOTest
         pullRequestCommentVersion,
         contentHash,
         sourcePolicyEvaluation.getId(),
-        targetPolicyEvaluation.getId()
-    );
+        targetPolicyEvaluation.getId());
 
-    // fetch will create a new pull request comment instance;  since the create time is set internally we want to make
+    // fetch will create a new pull request comment instance; since the create time is set internally we want to make
     // sure the fetch time is different from the insert time so we can verify that the create time is indeed coming
     // from the DB and not the comment instance creation
     Thread.sleep(10);
@@ -125,8 +124,7 @@ public class SourceControlPullRequestCommentDAOTest
           commentId,
           pullRequestCommentVersion,
           sourcePolicyEvaluation.getId(),
-          targetPolicyEvaluation.getId()
-      );
+          targetPolicyEvaluation.getId());
     }
 
     // and given: an overall comment for the same app and PR
@@ -137,8 +135,7 @@ public class SourceControlPullRequestCommentDAOTest
         pullRequestCommentVersion,
         "contentHash",
         sourcePolicyEvaluation.getId(),
-        targetPolicyEvaluation.getId()
-    );
+        targetPolicyEvaluation.getId());
 
     // and given: line comments for a different app and PR
     final int additionalPullRequestId = 2;
@@ -156,8 +153,7 @@ public class SourceControlPullRequestCommentDAOTest
           additionalPullRequestId,
           commentId,
           pullRequestCommentVersion,
-          sourcePolicyEvaluation2.getId(), targetPolicyEvaluation2.getId()
-      );
+          sourcePolicyEvaluation2.getId(), targetPolicyEvaluation2.getId());
     }
 
     // when: fetch ALL the line comments for the subject PR
@@ -273,9 +269,11 @@ public class SourceControlPullRequestCommentDAOTest
 
     // given : add some pull request data
     String sourcePolicyEvalId = tempEntity
-        .newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit").getId();
+        .newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit")
+        .getId();
     String targetPolicyEvalId = tempEntity
-        .newPolicyEvaluation(application.getId(), BuildStageType.ID, "targetScan", "targetCommit").getId();
+        .newPolicyEvaluation(application.getId(), BuildStageType.ID, "targetScan", "targetCommit")
+        .getId();
     tempEntity.newSourceControlPullRequestComment(application.getId(), 1, 11, 111, "contentHash1",
         sourcePolicyEvalId, targetPolicyEvalId);
     tempEntity.newSourceControlPullRequestComment(application.getId(), 2, 22, 222, "contentHash2",
@@ -327,9 +325,11 @@ public class SourceControlPullRequestCommentDAOTest
   public void testDeleteByApplicationId() {
     // given : add some pull request data
     String sourcePolicyEvalId = tempEntity
-        .newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit").getId();
+        .newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit")
+        .getId();
     String targetPolicyEvalId = tempEntity
-        .newPolicyEvaluation(application.getId(), BuildStageType.ID, "targetScan", "targetCommit").getId();
+        .newPolicyEvaluation(application.getId(), BuildStageType.ID, "targetScan", "targetCommit")
+        .getId();
     tempEntity.newSourceControlPullRequestComment(application.getId(), 1, 11, 111, "contentHash1",
         sourcePolicyEvalId, targetPolicyEvalId);
     tempEntity.newSourceControlPullRequestComment(application.getId(), 2, 22, 222, "contentHash2",
@@ -346,7 +346,7 @@ public class SourceControlPullRequestCommentDAOTest
     tempEntity.newSourceControlPullRequestComment(app2.getId(), 3, 33, 333, "contentHash2",
         sourcePolicyEvalId2, targetPolicyEvalId2);
 
-    // when :  delete all for first app
+    // when : delete all for first app
     try (TransactionContext tx = pullRequestCommentDAO.createTransactionContext()) {
       tx.begin();
       pullRequestCommentDAO.deleteByApplicationId(tx, application.getId());
@@ -397,7 +397,7 @@ public class SourceControlPullRequestCommentDAOTest
         tempEntity.newSourceControlPullRequestComment(application.getId(), 1, 2, 3, "contentHash", //
             policyEvaluationSameApp1.getId(), //
             policyEvaluationSameApp2.getId());
-    
+
     Application otherApp = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluationOtherApp =
         tempEntity.newPolicyEvaluation(otherApp.getId(), BuildStageType.ID, "targetScan", "targetCommit");

@@ -37,7 +37,7 @@ public class UserToken
 
   /**
    * The id of the realm that authenticated the user that created this user token.
-   * 
+   *
    * @see UserPrincipal#realmId
    */
   @Column(name = "realm_id")

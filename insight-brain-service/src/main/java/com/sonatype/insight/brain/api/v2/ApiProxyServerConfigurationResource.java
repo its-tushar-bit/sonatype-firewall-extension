@@ -57,23 +57,22 @@ public class ApiProxyServerConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "404",
-              description = "No HTTP proxy server configuration exists."),
-          @ApiResponse(responseCode = "200",
-              description = "The response contains:" +
-                  "<ul>" +
-                  "<li>`hostname` is host name or IP address of the HTTP proxy server to use for outgoing HTTP " +
-                  "connections.</li>" +
-                  "<li>`port` is the port number for the HTTP proxy server.</li>" +
-                  "<li>`username` is the username needed to authenticate with the HTTP proxy server.</li>" +
-                  "<li>`password` is always null, never included for security purposes.</li>" +
-                  "<li>`passwordIsIncluded` is always FALSE </li>" +
-                  "<li>`excludeHosts` is a list of host names that are to be excluded from using the HTTP proxy " +
-                  "server.</li>" +
-                  "</ul>",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(responseCode = "404",
+            description = "No HTTP proxy server configuration exists."),
+        @ApiResponse(responseCode = "200",
+            description = "The response contains:" +
+                "<ul>" +
+                "<li>`hostname` is host name or IP address of the HTTP proxy server to use for outgoing HTTP " +
+                "connections.</li>" +
+                "<li>`port` is the port number for the HTTP proxy server.</li>" +
+                "<li>`username` is the username needed to authenticate with the HTTP proxy server.</li>" +
+                "<li>`password` is always null, never included for security purposes.</li>" +
+                "<li>`passwordIsIncluded` is always FALSE </li>" +
+                "<li>`excludeHosts` is a list of host names that are to be excluded from using the HTTP proxy " +
+                "server.</li>" +
+                "</ul>",
+            useReturnTypeSchema = true)
+      })
 
   public ApiProxyServerConfigurationDTO getConfiguration() {
     return proxyServerConfigurationService.getConfiguration();
@@ -87,13 +86,11 @@ public class ApiProxyServerConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "HTTP proxy server configuration successful."),
-          @ApiResponse(responseCode = "400",
-              description = "Missing or invalid values."
-          )
-      }
-  )
+        @ApiResponse(responseCode = "204",
+            description = "HTTP proxy server configuration successful."),
+        @ApiResponse(responseCode = "400",
+            description = "Missing or invalid values.")
+      })
   public void setConfiguration(
       @RequestBody(
           description = "The request JSON could include: " +
@@ -111,9 +108,7 @@ public class ApiProxyServerConfigurationResource
               "</ul>" +
               "<li>`excludeHosts` is a list of host names that are to be excluded from using the HTTP proxy " +
               "server.</li>" +
-              "</ul>"
-      )
-      ApiProxyServerConfigurationDTO configurationDTO)
+              "</ul>") ApiProxyServerConfigurationDTO configurationDTO)
   {
     proxyServerConfigurationService.setConfiguration(configurationDTO);
   }
@@ -125,10 +120,10 @@ public class ApiProxyServerConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "HTTP proxy server configuration deleted successfully."),
-          @ApiResponse(responseCode = "404",
-              description = "No HTTP server configuration was found.")
+        @ApiResponse(responseCode = "204",
+            description = "HTTP proxy server configuration deleted successfully."),
+        @ApiResponse(responseCode = "404",
+            description = "No HTTP server configuration was found.")
       })
   public void deleteConfiguration() {
     proxyServerConfigurationService.deleteConfiguration();

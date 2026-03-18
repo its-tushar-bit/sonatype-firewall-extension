@@ -125,9 +125,9 @@ public class EditNoticesTest
     Notices notices = ComponentLegalOverviewPage.notices();
     notices.all().shouldHave(size(2));
     assertNotice(notices.at(0), "META-INF/NOTICE", "\nApache ServiceComb" +
-            "\nCopyright 2017-2021 The Apache Software Foundation" +
-            "\n\nThis product includes software developed at" +
-            "\nThe Apache Software Foundation (http://www.apache.org/).\n\n\n");
+        "\nCopyright 2017-2021 The Apache Software Foundation" +
+        "\n\nThis product includes software developed at" +
+        "\nThe Apache Software Foundation (http://www.apache.org/).\n\n\n");
     assertNotice(notices.at(1), "notice", "content");
   }
 
@@ -149,9 +149,9 @@ public class EditNoticesTest
     editNoticesModal.shouldBe(Condition.visible);
     editNoticesModal.allNotices().shouldHave(size(2));
     assertNotice(editNoticesModal.noticeAt(0), "\nApache ServiceComb" +
-            "\nCopyright 2017-2021 The Apache Software Foundation" +
-            "\n\nThis product includes software developed at" +
-            "\nThe Apache Software Foundation (http://www.apache.org/).\n\n\n", true);
+        "\nCopyright 2017-2021 The Apache Software Foundation" +
+        "\n\nThis product includes software developed at" +
+        "\nThe Apache Software Foundation (http://www.apache.org/).\n\n\n", true);
     assertNotice(editNoticesModal.noticeAt(1), "content", true);
     assertOption(editNoticesModal.scopeDropdown().getSelectedOption(), rootOrg);
     ElementsCollection options = editNoticesModal.scopeDropdown().$$("option");
@@ -466,7 +466,7 @@ public class EditNoticesTest
       assertThat(componentLegalFileDAO.getAll()).hasSize(size - 1);
       assertThat(componentLegalFileDAO
           .getByOwnerIdAndComponentIdentifierAndType(owner.getId(), componentIdentifier, LegalFileType.NOTICE))
-          .isNull();
+              .isNull();
     }
     else {
       assertThat(componentLegalFileDAO.getAll()).hasSize(size + 1);
@@ -481,7 +481,8 @@ public class EditNoticesTest
     notices.all().shouldHave(size(2));
     notices.at(0).viewMoreDetailsLink().click();
     ComponentNoticeDetailsPage.noticeOverview().shouldBe(visible);
-    ComponentNoticeDetailsPage.noticeOverview().getNoticeText()
+    ComponentNoticeDetailsPage.noticeOverview()
+        .getNoticeText()
         .shouldHave(text("Apache ServiceComb"));
   }
 
@@ -492,7 +493,8 @@ public class EditNoticesTest
     notices.all().shouldHave(size(2));
     notices.at(0).viewMoreDetailsLink().click();
     ComponentNoticeDetailsPage.noticeOverview().shouldBe(visible);
-    ComponentNoticeDetailsPage.noticeOverview().getNoticeText()
+    ComponentNoticeDetailsPage.noticeOverview()
+        .getNoticeText()
         .shouldHave(text("Apache ServiceComb"));
   }
 
@@ -560,7 +562,8 @@ public class EditNoticesTest
   private List<Tuple> getNoticeContentsAndStatuses(List<LegalFileOverride> legalFileOverrides) {
     return legalFileOverrides.stream()
         .map(legalFileOverride -> new Tuple(legalFileOverride.getContent(),
-            legalFileOverride.getStatus() == ComponentLegalPartStatus.ENABLED)).collect(Collectors.toList());
+            legalFileOverride.getStatus() == ComponentLegalPartStatus.ENABLED))
+        .collect(Collectors.toList());
   }
 
   private void assertSaved(

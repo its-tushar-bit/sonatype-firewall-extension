@@ -59,8 +59,7 @@ public class SbomImportResource
       @PathParam("applicationId") String applicationId,
       @FormDataParam("file") InputStream sbom,
       @FormDataParam("file") FormDataContentDisposition fileDetail,
-      @QueryParam("ignoreValidationError") boolean ignoreValidationError
-  )
+      @QueryParam("ignoreValidationError") boolean ignoreValidationError)
   {
     return sbomImportService.detectSbom(applicationId, sbom, fileDetail.getFileName(), ignoreValidationError);
   }
@@ -83,7 +82,6 @@ public class SbomImportResource
         applicationId,
         applicationVersion,
         applicationVersionOverride,
-        HdsClient.getClientUserAgent(req)
-    );
+        HdsClient.getClientUserAgent(req));
   }
 }

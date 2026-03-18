@@ -98,8 +98,7 @@ public class ApplicationEvaluationResourceTest
   public void setUp() throws Exception {
     licenseManager.setProducts(
         ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
-        ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS
-    );
+        ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
     installLicense();
 
     policyEvaluationDAO = lookup(PolicyEvaluationDAO.class);
@@ -121,7 +120,8 @@ public class ApplicationEvaluationResourceTest
   {
     HttpRequest request = restRequest()
         .path(path)
-        .query("scanType", scanType).parameter(applicationPublicId, integrationType, stageId);
+        .query("scanType", scanType)
+        .parameter(applicationPublicId, integrationType, stageId);
 
     if (withFile) {
       URL resource = getClass().getResource("/ApplicationEvaluationResourceTest/container-scan.xml");
@@ -179,8 +179,8 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
             ClientScanType.SONATYPE, false, EVALUATE_PATH) //
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+                .post();
     assertResponseStatus(200, response);
 
     PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
@@ -238,8 +238,8 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), ComplianceStageType.ID,
             ClientScanType.SONATYPE_THIRD_PARTY, true, EVALUATE_PATH) //
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+                .post();
     assertResponseStatus(200, response);
 
     PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
@@ -261,7 +261,7 @@ public class ApplicationEvaluationResourceTest
     licenseManager.setProducts(
         ProductLicenseDetails.PRODUCT_FIREWALL);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
-    licenseManager.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION,LicensedFeature.COMPONENT_EVALUATION);
+    licenseManager.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION, LicensedFeature.COMPONENT_EVALUATION);
     installLicense();
     Repository repository = tempEntity.newRepository("publicId");
     Organization organization = tempEntity.newOrganization("org");
@@ -286,10 +286,10 @@ public class ApplicationEvaluationResourceTest
 
     // evaluate policy
     HttpResponse response =
-            makeRequest(IntegrationType.CLI, app.getPublicId(), ProxyStageType.ID,
-                    ClientScanType.SONATYPE_THIRD_PARTY, true, EVALUATE_PATH) //
-                    .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
-                    .post();
+        makeRequest(IntegrationType.CLI, app.getPublicId(), ProxyStageType.ID,
+            ClientScanType.SONATYPE_THIRD_PARTY, true, EVALUATE_PATH) //
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+                .post();
     assertResponseStatus(200, response);
 
     PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
@@ -299,7 +299,7 @@ public class ApplicationEvaluationResourceTest
     policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
 
     PolicyEvaluationPollingResult policyEvaluationPollingResult = pollEvaluationResultRequest(app.getPublicId(),
-            receipt.getStatusId()).get().getBody(PolicyEvaluationPollingResult.class);
+        receipt.getStatusId()).get().getBody(PolicyEvaluationPollingResult.class);
 
     assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
     assertThat(policyEvaluationPollingResult.getReason()).isNull();
@@ -320,13 +320,11 @@ public class ApplicationEvaluationResourceTest
     assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
 
     assertThat(getHdsServer().getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)
-            .get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+        .get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
 
   @Test
-  public void testEvaluateWithPollingAndPollEvaluationResult_ValidateFeature()
-      throws Exception
-  {
+  public void testEvaluateWithPollingAndPollEvaluationResult_ValidateFeature() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
     licenseManager.setFeatures();
@@ -334,15 +332,13 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
             ClientScanType.SONATYPE_THIRD_PARTY, true, EVALUATE_PATH) //
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+                .post();
     assertResponseStatus(402, response);
   }
 
   @Test
-  public void testEvaluateWithPollingForContainerImageEvaluation_NotFeatureFlag()
-      throws Exception
-  {
+  public void testEvaluateWithPollingForContainerImageEvaluation_NotFeatureFlag() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
@@ -351,15 +347,13 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), ProxyStageType.ID,
             ClientScanType.SONATYPE_THIRD_PARTY, true, EVALUATE_PATH) //
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+                .post();
     assertResponseStatus(404, response);
   }
 
   @Test
-  public void testEvaluateWithPollingForContainerImageEvaluation_NotContainerImageEvaluationFeature()
-      throws Exception
-  {
+  public void testEvaluateWithPollingForContainerImageEvaluation_NotContainerImageEvaluationFeature() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
     licenseManager.setFeatures();
@@ -367,8 +361,8 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), ProxyStageType.ID,
             ClientScanType.SONATYPE_THIRD_PARTY, true, EVALUATE_PATH) //
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+                .post();
     assertResponseStatus(402, response);
     response.getBodyText();
   }
@@ -392,8 +386,8 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
             ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH) //
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+                .post();
     assertResponseStatus(200, response);
 
     PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
@@ -428,8 +422,8 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
             ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH) //
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+                .post();
     assertResponseStatus(200, response);
 
     PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
@@ -464,8 +458,8 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), ComplianceStageType.ID,
             ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH) //
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+                .post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Compliance scans are not supported for component analysis." +
         " Please use the policy evaluation endpoint.");
@@ -491,8 +485,8 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), invalidStage,
             ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH) //
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+                .post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid stage id=" + invalidStage);
   }
@@ -500,7 +494,7 @@ public class ApplicationEvaluationResourceTest
   @Test
   public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_UnlicensedStage() throws Exception {
     licenseManager.setStageTypes(StageTypes.BUILD);
-    
+
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 
@@ -519,8 +513,8 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), unlicensedStage,
             ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH) //
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+                .post();
     assertResponseStatus(402, response);
     assertThat(response.getBodyText()).isEqualTo(String.format("Stage '%s' is not supported by your license.",
         unlicensedStage));
@@ -544,9 +538,7 @@ public class ApplicationEvaluationResourceTest
         new PersistedPolicyEvaluationPollingResult(
             app.getId(),
             statusId,
-            policyEvaluationPollingResult
-        )
-    );
+            policyEvaluationPollingResult));
 
     VulnerabilitySignatureAnalysisDTO analysisDTO = getVulnerabilitySignatureAnalysisDTO(app);
 
@@ -557,8 +549,8 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
             ClientScanType.SONATYPE, POLICY_EVALUATION_PATH, statusId, policyEvaluationRequestDTO) //
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+                .post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo(
         String.format("Component analysis has not completed for public application id: %1$s and status ID: %2$s " +
@@ -586,8 +578,8 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
             ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH)
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
+                .post();
     assertResponseStatus(200, response);
 
     PolicyEvaluationReceipt componentAnalyzeEvaluationReceipt = response.getBody(PolicyEvaluationReceipt.class);
@@ -599,8 +591,7 @@ public class ApplicationEvaluationResourceTest
     PersistedPolicyEvaluationPollingResult componentAnalyzePollingResult = persistedPolicyEvaluationPollingResultDAO
         .getByApplicationIdAndStatusId(
             app.getId(),
-            componentAnalyzeEvaluationReceipt.getStatusId()
-        );
+            componentAnalyzeEvaluationReceipt.getStatusId());
 
     assertThat(componentAnalyzeEvaluationReceipt.getStatusId()).isEqualTo(componentAnalyzePollingResult.getStatusId());
 
@@ -614,8 +605,7 @@ public class ApplicationEvaluationResourceTest
         policyEvaluationPollingResult.getScanReceipt().getScanId(),
         createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"),
         "CVE-2012-0022",
-        lookup(InsightWork.class)
-    );
+        lookup(InsightWork.class));
 
     PolicyEvaluationRequestDTO policyEvaluationRequestDTO = new PolicyEvaluationRequestDTO();
     policyEvaluationRequestDTO.setAnalysisDTO(analysisDTO);
@@ -626,10 +616,9 @@ public class ApplicationEvaluationResourceTest
     response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
             ClientScanType.SONATYPE, POLICY_EVALUATION_PATH,
-            statusId, policyEvaluationRequestDTO
-        )
-        .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
-        .post();
+            statusId, policyEvaluationRequestDTO)
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
+                .post();
 
     assertResponseStatus(200, response);
 
@@ -671,8 +660,8 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
             ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH)
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
+                .post();
     assertResponseStatus(200, response);
 
     PolicyEvaluationReceipt componentAnalyzeEvaluationReceipt = response.getBody(PolicyEvaluationReceipt.class);
@@ -684,8 +673,7 @@ public class ApplicationEvaluationResourceTest
     PersistedPolicyEvaluationPollingResult componentAnalyzePollingResult = persistedPolicyEvaluationPollingResultDAO
         .getByApplicationIdAndStatusId(
             app.getId(),
-            componentAnalyzeEvaluationReceipt.getStatusId()
-        );
+            componentAnalyzeEvaluationReceipt.getStatusId());
 
     assertThat(componentAnalyzeEvaluationReceipt.getStatusId()).isEqualTo(componentAnalyzePollingResult.getStatusId());
 
@@ -699,8 +687,7 @@ public class ApplicationEvaluationResourceTest
         policyEvaluationPollingResult.getScanReceipt().getScanId(),
         createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"),
         "CVE-2012-0022",
-        lookup(InsightWork.class)
-    );
+        lookup(InsightWork.class));
 
     PolicyEvaluationRequestDTO policyEvaluationRequestDTO = new PolicyEvaluationRequestDTO();
     policyEvaluationRequestDTO.setAnalysisDTO(analysisDTO);
@@ -711,10 +698,9 @@ public class ApplicationEvaluationResourceTest
     response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
             ClientScanType.SONATYPE, POLICY_EVALUATION_PATH,
-            incorrectStatusId, policyEvaluationRequestDTO
-        )
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
-            .post();
+            incorrectStatusId, policyEvaluationRequestDTO)
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
+                .post();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo(
@@ -742,8 +728,8 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
             ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH)
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
+                .post();
     assertResponseStatus(200, response);
 
     PolicyEvaluationReceipt componentAnalyzeEvaluationReceipt = response.getBody(PolicyEvaluationReceipt.class);
@@ -755,8 +741,7 @@ public class ApplicationEvaluationResourceTest
     PersistedPolicyEvaluationPollingResult componentAnalyzePollingResult = persistedPolicyEvaluationPollingResultDAO
         .getByApplicationIdAndStatusId(
             app.getId(),
-            componentAnalyzeEvaluationReceipt.getStatusId()
-        );
+            componentAnalyzeEvaluationReceipt.getStatusId());
 
     assertThat(componentAnalyzeEvaluationReceipt.getStatusId()).isEqualTo(componentAnalyzePollingResult.getStatusId());
 
@@ -770,8 +755,7 @@ public class ApplicationEvaluationResourceTest
         policyEvaluationPollingResult.getScanReceipt().getScanId(),
         createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"),
         "CVE-2012-0022",
-        lookup(InsightWork.class)
-    );
+        lookup(InsightWork.class));
 
     PolicyEvaluationRequestDTO policyEvaluationRequestDTO = new PolicyEvaluationRequestDTO();
     policyEvaluationRequestDTO.setAnalysisDTO(analysisDTO);
@@ -780,10 +764,9 @@ public class ApplicationEvaluationResourceTest
     response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
             ClientScanType.SONATYPE, POLICY_EVALUATION_PATH,
-            null, policyEvaluationRequestDTO
-        )
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
-            .post();
+            null, policyEvaluationRequestDTO)
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
+                .post();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo(
@@ -811,8 +794,8 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
             ClientScanType.SONATYPE, false, COMPONENT_ANALYSIS_PATH)
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
+                .post();
     assertResponseStatus(200, response);
 
     PolicyEvaluationReceipt componentAnalyzeEvaluationReceipt = response.getBody(PolicyEvaluationReceipt.class);
@@ -824,8 +807,7 @@ public class ApplicationEvaluationResourceTest
     PersistedPolicyEvaluationPollingResult componentAnalyzePollingResult = persistedPolicyEvaluationPollingResultDAO
         .getByApplicationIdAndStatusId(
             app.getId(),
-            componentAnalyzeEvaluationReceipt.getStatusId()
-        );
+            componentAnalyzeEvaluationReceipt.getStatusId());
 
     assertThat(componentAnalyzeEvaluationReceipt.getStatusId()).isEqualTo(componentAnalyzePollingResult.getStatusId());
 
@@ -844,10 +826,9 @@ public class ApplicationEvaluationResourceTest
     response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
             ClientScanType.SONATYPE, POLICY_EVALUATION_PATH,
-            statusId, policyEvaluationRequestDTO
-        )
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
-            .post();
+            statusId, policyEvaluationRequestDTO)
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
+                .post();
     assertResponseStatus(200, response);
 
     PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
@@ -889,8 +870,8 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), unlicensedStage,
             ClientScanType.SONATYPE, POLICY_EVALUATION_PATH, "statusId", policyEvaluationRequestDTO)
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
+                .post();
     assertResponseStatus(402, response);
     assertThat(response.getBodyText()).isEqualTo(String.format("Stage '%s' is not supported by your license.",
         unlicensedStage));
@@ -914,8 +895,8 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), invalidStage,
             ClientScanType.SONATYPE, POLICY_EVALUATION_PATH, "statusId", policyEvaluationRequestDTO)
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
+                .post();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid stage id=" + invalidStage);
@@ -940,23 +921,20 @@ public class ApplicationEvaluationResourceTest
     HttpResponse response =
         makeRequest(IntegrationType.CLI, app.getPublicId(), ComplianceStageType.ID,
             ClientScanType.SONATYPE, POLICY_EVALUATION_PATH, "statusId", policyEvaluationRequestDTO)
-            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
-            .post();
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent)
+                .post();
 
     assertResponseStatus(402, response);
     assertThat(response.getBodyText()).isEqualTo(
         String.format("You have exceeded the licensed limit of %s sboms.", testProductLicense.getMaxSboms()));
   }
 
-  private VulnerabilitySignatureAnalysisDTO getVulnerabilitySignatureAnalysisDTO(Application app)
-      throws Exception
-  {
+  private VulnerabilitySignatureAnalysisDTO getVulnerabilitySignatureAnalysisDTO(Application app) throws Exception {
     return createTestAnalysisDTO(
         app.getId(),
         "scanId",
         createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"),
         "CVE-2012-0022",
-        lookup(InsightWork.class)
-    );
+        lookup(InsightWork.class));
   }
 }

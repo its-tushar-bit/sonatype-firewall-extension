@@ -161,7 +161,7 @@ public class InsightMailTest
     assertThat(recipients).hasSize(1);
     assertThat(recipients[0].toString()).isEqualTo(toEmailAddress);
     assertThat(email.getFrom()[0].toString()).isEqualTo("Nexus IQ Server <" + mailConfiguration.getSystemEmail() + ">");
-    
+
     // Assert email subject and body
     assertThat(email.getSubject()).isEqualTo(subject);
     String emailBody = IOUtils.toString(email.getInputStream(), StandardCharsets.UTF_8);

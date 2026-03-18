@@ -88,18 +88,22 @@ public class OidcConfigurationDAO
       throw new IllegalArgumentException(IDP_TOKEN_URL_REQUIRED);
     }
     if (StringUtils.isNotBlank(config.getAuthorizationCustomParamsJson()) &&
-        !isValidJason(config.getAuthorizationCustomParamsJson())) {
+        !isValidJason(config.getAuthorizationCustomParamsJson()))
+    {
       throw new IllegalArgumentException(AUTHORIZATION_PARAMS_JSON_IS_INVALID);
     }
     if (StringUtils.isNotBlank(config.getTokenRequestCustomParamsJson()) &&
-        !isValidJason(config.getTokenRequestCustomParamsJson())) {
+        !isValidJason(config.getTokenRequestCustomParamsJson()))
+    {
       throw new IllegalArgumentException(TOKEN_REQUEST_PARAMS_JSON_IS_INVALID);
     }
   }
 
   private boolean isValidJason(final String exactMatchClaimsJson) {
     try {
-      JsonUtils.parse(exactMatchClaimsJson, new TypeReference<Map<String, Object>>() { });
+      JsonUtils.parse(exactMatchClaimsJson, new TypeReference<Map<String, Object>>()
+      {
+      });
     }
     catch (IOException e) {
       return false;

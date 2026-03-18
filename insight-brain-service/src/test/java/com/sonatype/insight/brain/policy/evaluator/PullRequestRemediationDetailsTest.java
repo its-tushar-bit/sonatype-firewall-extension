@@ -146,8 +146,7 @@ public class PullRequestRemediationDetailsTest
         SourceControlProvider.BITBUCKET,
         "/PullRequestRemediationDetailsTest/VulnerabilityReport_bb_Golden.md",
         0,
-        "recommended-non-breaking-with-dependencies"
-    );
+        "recommended-non-breaking-with-dependencies");
   }
 
   @Test
@@ -156,8 +155,7 @@ public class PullRequestRemediationDetailsTest
         SourceControlProvider.BITBUCKET,
         "/PullRequestRemediationDetailsTest/VulnerabilityReport_bb_Suggested.md",
         0,
-        "recommended-non-breaking"
-    );
+        "recommended-non-breaking");
   }
 
   @Test
@@ -189,8 +187,7 @@ public class PullRequestRemediationDetailsTest
         "/PullRequestRemediationDetailsTest/VulnerabilityReport_Golden_manual.md",
         0,
         "recommended-non-breaking-with-dependencies",
-        true
-    );
+        true);
   }
 
   @Test
@@ -200,8 +197,7 @@ public class PullRequestRemediationDetailsTest
         "/PullRequestRemediationDetailsTest/VulnerabilityReport_Suggested_manual.md",
         0,
         "recommended-non-breaking",
-        true
-    );
+        true);
   }
 
   @Test
@@ -211,8 +207,7 @@ public class PullRequestRemediationDetailsTest
         "/PullRequestRemediationDetailsTest/VulnerabilityReport_manual.md",
         null,
         "next-no-violations",
-        true
-    );
+        true);
   }
 
   @Test
@@ -222,8 +217,7 @@ public class PullRequestRemediationDetailsTest
         "/PullRequestRemediationDetailsTest/VulnerabilityReport_Golden_noHtml_manual.md",
         0,
         "recommended-non-breaking-with-dependencies",
-        true
-    );
+        true);
   }
 
   @Test
@@ -233,8 +227,7 @@ public class PullRequestRemediationDetailsTest
         "/PullRequestRemediationDetailsTest/VulnerabilityReport_Suggested_noHtml_manual.md",
         0,
         "recommended-non-breaking",
-        true
-    );
+        true);
   }
 
   @Test
@@ -244,16 +237,14 @@ public class PullRequestRemediationDetailsTest
         "/PullRequestRemediationDetailsTest/VulnerabilityReport_noHtml_manual.md",
         null,
         "next-no-violations",
-        true
-    );
+        true);
   }
 
   private void testSecurityVulnerabilityReport(
       SourceControlProvider provider,
       String expectedResource,
       Integer breakingChangesCount,
-      String targetVersionType)
-      throws Exception
+      String targetVersionType) throws Exception
   {
     testSecurityVulnerabilityReport(provider, expectedResource, breakingChangesCount, targetVersionType, false);
   }
@@ -263,8 +254,7 @@ public class PullRequestRemediationDetailsTest
       String expectedResource,
       Integer breakingChangesCount,
       String targetVersionType,
-      boolean isManualPullRequest)
-      throws Exception
+      boolean isManualPullRequest) throws Exception
   {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("org.jooq", "jooq", "3.11.2");
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("foo", "bar", "baz");
@@ -455,7 +445,7 @@ public class PullRequestRemediationDetailsTest
     criticalComponentFact.addConstraintFact(criticalConstraintFact1);
     criticalPolicyNotification.getPolicyFact().addComponentFact(criticalComponentFact);
 
-    //introduce a second fact for the same component, with differing CVE
+    // introduce a second fact for the same component, with differing CVE
     ComponentFact criticalComponentFact2 =
         new ComponentFact(criticalComponentFact.getComponentIdentifier(), criticalComponentFact.getHash());
     criticalComponentFact2.addConstraintFact(new ConstraintFact(criticalConstraintFact1.getConstraintId(),
@@ -463,7 +453,7 @@ public class PullRequestRemediationDetailsTest
         createSecuritySeverityConditionFact("CVE-2016-1000032", ">= 9", "9.8")));
     criticalPolicyNotification.getPolicyFact().addComponentFact(criticalComponentFact2);
 
-    //introduce a different Component violating the same policy, should be omitted from output
+    // introduce a different Component violating the same policy, should be omitted from output
     ComponentFact criticatComponentFact2 = new ComponentFact(componentIdentifier2, "dummy-hash");
     ConstraintFact criticalConstraintFact2 =
         new ConstraintFact("constraint-id", "Another Critical risk CVSS score", "OR");

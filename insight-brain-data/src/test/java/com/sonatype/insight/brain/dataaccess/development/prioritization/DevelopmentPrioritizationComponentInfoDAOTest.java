@@ -5,6 +5,7 @@
  */
 
 package com.sonatype.insight.brain.dataaccess.development.prioritization;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -146,8 +147,7 @@ public class DevelopmentPrioritizationComponentInfoDAOTest
         StageTypes.SOURCE, "none",
         StageTypes.BUILD, FailActionType.ID,
         StageTypes.STAGE_RELEASE, "none",
-        StageTypes.RELEASE, WarnActionType.ID
-    );
+        StageTypes.RELEASE, WarnActionType.ID);
     assertThat(componentStatuses)
         .hasSize(4)
         .doesNotContainKeys(StageTypes.DEVELOP, StageTypes.OPERATE, StageTypes.PROXY)
@@ -166,14 +166,14 @@ public class DevelopmentPrioritizationComponentInfoDAOTest
   public void testUpdate_UpdateStageStatus() {
     assertThat(dao.getByScanIdAndComponentHash(scan1component1.getScanId(), scan1component1.getComponentHash())
         .getBuildStatus())
-        .isNull();
+            .isNull();
 
     scan1component1.setBuildStatus(WarnActionType.ID);
     dao.update(scan1component1);
 
     assertThat(dao.getByScanIdAndComponentHash(scan1component1.getScanId(), scan1component1.getComponentHash())
         .getBuildStatus())
-        .isEqualTo(WarnActionType.ID);
+            .isEqualTo(WarnActionType.ID);
   }
 
   private void insertComponentInfoRows() {

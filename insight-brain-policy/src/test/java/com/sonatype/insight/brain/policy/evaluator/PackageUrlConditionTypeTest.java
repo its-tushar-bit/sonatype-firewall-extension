@@ -134,8 +134,15 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, PackageUrlConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("Coordinates were " + component2.getDisplayNameFromIdentifier() + " " + expectedConditionMessage);
   }
@@ -152,8 +159,15 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
         PackageUrlConditionType.ID, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("Coordinates were g : a : e : c : v (matches package URL pkg:maven/g/a@v?classifier=c&type=e)");
   }
@@ -170,8 +184,15 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
         PackageUrlConditionType.ID, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("Coordinates were g : a : e : v (matches package URL pkg:maven/g/a@v?classifier=*&type=e)");
   }
@@ -202,31 +223,66 @@ public class PackageUrlConditionTypeTest
         PackageUrlConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
         PackageUrlConditionType.ID, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("Coordinates were g : a :  : c : v (matches package URL pkg:maven/g/a@v?classifier=*&type=*)");
-    actualReason = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(1)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("Coordinates were g : a : e : c : v (matches package URL pkg:maven/g/a@v?classifier=*&type=*)");
-    actualReason = policyAlerts.get(2).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(2)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("Coordinates were g : a : e : v (matches package URL pkg:maven/g/a@v?classifier=*&type=*)");
-    actualReason = policyAlerts.get(3).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(3)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("Coordinates were g : a : v (matches package URL pkg:maven/g/a@v?classifier=*&type=*)");
-    actualReason = policyAlerts.get(4).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(4)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("Coordinates were g : a : v (matches package URL pkg:maven/g/a@v?classifier=*&type=*)");
   }
 
   @Test
   public void testEvaluate_Maven_LegacyConditionsWithEmptyVCoordinates() throws Exception {
-    //Only name and namespace
+    // Only name and namespace
     testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven/g/a",
         "(matches package URL pkg:maven/g/a@*?classifier=*&type=*)");
   }
@@ -252,14 +308,35 @@ public class PackageUrlConditionTypeTest
         PackageUrlConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
         PackageUrlConditionType.ID, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a : e : c : v " + expectedConditionMessage);
-    actualReason = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(1)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a : e : v " + expectedConditionMessage);
-    actualReason = policyAlerts.get(2).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(2)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g : a : v " + expectedConditionMessage);
   }
 
@@ -286,8 +363,15 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentNqv, policy, policy.getConstraints().get(0), FailActionType.ID,
         PackageUrlConditionType.ID, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were n (q) v " + expectedConditionMessage);
   }
 
@@ -303,8 +387,15 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(componentGave, policy, policy.getConstraints().get(0), FailActionType.ID,
         PackageUrlConditionType.ID, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("Coordinates were g : a : e : c : v (matches package URL pkg:maven/g/a@v?classifier=*&type=e)");
   }
@@ -324,12 +415,26 @@ public class PackageUrlConditionTypeTest
         PackageUrlConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(componentGavec, policy, policy.getConstraints().get(0), FailActionType.ID,
         PackageUrlConditionType.ID, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("Coordinates were g : a : e : c : v (matches package URL pkg:maven/g/a@v?classifier=*&type=e)");
-    actualReason = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(1)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("Coordinates were g : a : e : v (matches package URL pkg:maven/g/a@v?classifier=*&type=e)");
   }
@@ -512,8 +617,15 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, PackageUrlConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("Coordinates were " + component2.getDisplayNameFromIdentifier() + " " + expectedConditionMessage);
   }
@@ -608,8 +720,15 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, PackageUrlConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("Coordinates were " + component1.getDisplayNameFromIdentifier() + " " + expectedConditionMessage);
   }
@@ -705,8 +824,15 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, PackageUrlConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("Coordinates were " + component1.getDisplayNameFromIdentifier() + " " + expectedConditionMessage);
   }
@@ -728,8 +854,15 @@ public class PackageUrlConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, PackageUrlConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Coordinates were g1 : test@test# : v1 " +
         "(matches package URL pkg:maven/g1/test%40test%23@*?classifier=*&type=*)");
   }
@@ -738,21 +871,24 @@ public class PackageUrlConditionTypeTest
   public void testValidateCondition_NullPackageUrl() {
     Condition condition = new Condition(PackageUrlConditionType.ID, OPERATOR_MATCH, null);
     assertThatThrownBy(() -> new PackageUrlConditionType().validateCondition(null, condition, null))
-        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("missing package URL");
+        .isInstanceOf(InvalidConditionException.class)
+        .hasMessageEndingWith("missing package URL");
   }
 
   @Test
   public void testValidateCondition_EmptyPackageUrl() {
     Condition condition = new Condition(PackageUrlConditionType.ID, OPERATOR_MATCH, " ");
     assertThatThrownBy(() -> new PackageUrlConditionType().validateCondition(null, condition, null))
-        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("missing package URL");
+        .isInstanceOf(InvalidConditionException.class)
+        .hasMessageEndingWith("missing package URL");
   }
 
   @Test
   public void testValidateCondition_InvalidPackageUrl() {
     Condition condition = new Condition(PackageUrlConditionType.ID, OPERATOR_MATCH, "invalid");
     assertThatThrownBy(() -> new PackageUrlConditionType().validateCondition(null, condition, null))
-        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("invalid package URL");
+        .isInstanceOf(InvalidConditionException.class)
+        .hasMessageEndingWith("invalid package URL");
   }
 
   @Test
@@ -905,7 +1041,7 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:cran/n@V", "pkg:cran/n@V?type=*");
     assertConvertIfNeeded("pkg:cran/N@V", "pkg:cran/N@V?type=*");
   }
-  
+
   private void convertIfNeededSwift() {
     assertConvertIfNeeded("pkg:swift/n", "pkg:swift/n@*");
     assertConvertIfNeeded("pkg:swift/n@v", "pkg:swift/n@v");

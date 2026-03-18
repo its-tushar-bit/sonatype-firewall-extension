@@ -84,8 +84,15 @@ public class ComponentCategoryConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(COMPONENT_1, policy, constraint, FailActionType.ID, ComponentCategoryConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Component Category was Web Frameworks/Rest/Server, Mail/Server");
   }
 
@@ -100,8 +107,15 @@ public class ComponentCategoryConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(COMPONENT_1, policy, constraint, FailActionType.ID, ComponentCategoryConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Component Category was Web Frameworks/Rest/Server, Mail/Server");
   }
 
@@ -119,11 +133,25 @@ public class ComponentCategoryConditionTypeTest
         policyAlerts);
     assertContainsPolicyAlert(COMPONENT_2, policy, constraint, FailActionType.ID, ComponentCategoryConditionType.ID,
         policyAlerts);
-    String actualReason1 = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason1 = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason1).isEqualTo("Component Category was Web Frameworks/Rest/Server, Mail/Server");
-    String actualReason2 = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason2 = policyAlerts.get(1)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason2).isEqualTo("Component Category was Web Frameworks");
   }
 
@@ -142,11 +170,25 @@ public class ComponentCategoryConditionTypeTest
         policyAlerts);
     assertContainsPolicyAlert(COMPONENT_3, policy, constraint, FailActionType.ID, ComponentCategoryConditionType.ID,
         policyAlerts);
-    String actualReason1 = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason1 = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason1).isEqualTo("Component Category was Web Frameworks, not Web Frameworks/Rest/Server");
-    String actualReason2 = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason2 = policyAlerts.get(1)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason2).isEqualTo("Component Category was Server, not Web Frameworks/Rest/Server");
   }
 
@@ -164,11 +206,25 @@ public class ComponentCategoryConditionTypeTest
         policyAlerts);
     assertContainsPolicyAlert(COMPONENT_3, policy, constraint, FailActionType.ID, ComponentCategoryConditionType.ID,
         policyAlerts);
-    String actualReason1 = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason1 = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason1).isEqualTo("Component Category was Web Frameworks, not Web Frameworks/Rest");
-    String actualReason2 = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason2 = policyAlerts.get(1)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason2).isEqualTo("Component Category was Server, not Web Frameworks/Rest");
   }
 
@@ -183,8 +239,15 @@ public class ComponentCategoryConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(COMPONENT_3, policy, constraint, FailActionType.ID, ComponentCategoryConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Component Category was Server, not Web Frameworks");
   }
 
@@ -193,6 +256,6 @@ public class ComponentCategoryConditionTypeTest
     Condition condition = new Condition(ComponentCategoryConditionType.ID, "is", "abc");
     assertThatThrownBy(() -> ConditionTypes.ComponentCategoryConditionType
         .validateCondition(null, condition, null /* applicationId */)).isInstanceOf(InvalidConditionException.class)
-        .hasMessageEndingWith("Value not supported: abc");
+            .hasMessageEndingWith("Value not supported: abc");
   }
 }

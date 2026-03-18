@@ -89,8 +89,7 @@ public class ConditionTypesTestHelper
         new AiModelContentConditionType(),
         new SecurityVulnerabilityDetectionConditionType(),
         new KevStatusConditionType(),
-        new SecurityVulnerabilityEpssScoreConditionType()
-    );
+        new SecurityVulnerabilityEpssScoreConditionType());
   }
 
   public static void initConditionValueTypes(final DAOFactory daoFactory) {

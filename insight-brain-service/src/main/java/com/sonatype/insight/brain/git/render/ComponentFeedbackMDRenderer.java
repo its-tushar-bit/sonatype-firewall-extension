@@ -33,7 +33,7 @@ public class ComponentFeedbackMDRenderer
   static {
     try {
       COMPONENT_FEEDBACK_EMBEDDED_HTML_TEMPLATE =
-              createFreemarkerConfig().getTemplate("pullrequest-component-feedback.ftl");
+          createFreemarkerConfig().getTemplate("pullrequest-component-feedback.ftl");
     }
     catch (final IOException e) {
       log.error("Error loading component feedback template: {}", e.getMessage(), e);
@@ -52,6 +52,8 @@ public class ComponentFeedbackMDRenderer
   }
 
   private static Map<String, Object> getModelMap(final ComponentFeedbackContext context) {
-    return OBJECT_MAPPER.convertValue(context, new TypeReference<Map<String, Object>>() { });
+    return OBJECT_MAPPER.convertValue(context, new TypeReference<Map<String, Object>>()
+    {
+    });
   }
 }

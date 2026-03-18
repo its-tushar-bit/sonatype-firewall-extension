@@ -43,13 +43,14 @@ public class DependencyTreeParser
     if (!dependencyTreeNode.isMissingNode()) {
       DependencyNode tree = JsonUtils.asPojo(dependencyTreeNode, DependencyNode.class);
       if (tree != null) {
-        walkDependencyTreeAndSaveComponentDependencyData(Collections.singletonList(tree),0);
+        walkDependencyTreeAndSaveComponentDependencyData(Collections.singletonList(tree), 0);
       }
     }
   }
 
-  private void walkDependencyTreeAndSaveComponentDependencyData(List<DependencyNode> children,
-                                                                int recursionDepth)
+  private void walkDependencyTreeAndSaveComponentDependencyData(
+      List<DependencyNode> children,
+      int recursionDepth)
   {
     for (DependencyNode child : children) {
       if (child.getComponentIdentifier() != null) {
@@ -57,9 +58,12 @@ public class DependencyTreeParser
       }
       PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(child.getComponentIdentifier());
       if (purl != null) {
-        this.dependencyTree.putIfAbsent(purl.getPackageUrl(), new HashSet<>(child.getChildren().stream()
+        this.dependencyTree.putIfAbsent(purl.getPackageUrl(), new HashSet<>(child.getChildren()
+            .stream()
             .map(it -> PackageUrlIdentifier.fromComponentIdentifier(it.getComponentIdentifier()))
-            .filter(Objects::nonNull).map(PackageUrlIdentifier::getPackageUrl).toList()));
+            .filter(Objects::nonNull)
+            .map(PackageUrlIdentifier::getPackageUrl)
+            .toList()));
       }
       if (++recursionDepth <= MAX_RECURSION_DEPTH) {
         walkDependencyTreeAndSaveComponentDependencyData(child.getChildren(), recursionDepth);

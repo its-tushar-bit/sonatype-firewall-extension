@@ -68,8 +68,7 @@ public class ComponentFeedbackContextFactoryTest
   private static final ComponentIdentifier COMPONENT_IDENTIFIER = createMavenCoordinates(
       "com.fasterxml.jackson.core",
       "jackson-databind",
-      CURRENT_VERSION
-  );
+      CURRENT_VERSION);
 
   private static final String COMPONENT_DISPLAY_NAME = "com.fasterxml.jackson.core.jackson-databind:" + CURRENT_VERSION;
 
@@ -91,7 +90,7 @@ public class ComponentFeedbackContextFactoryTest
 
   private static final SecurityVulnerabilityData VULN_UNKNOWN = generateVulnData("SONATYPE-123-03", null, 8.7f);
 
-  private static final PolicyViolation DEFAULT_PV =  generatePolicyViolation("pv1", 7);
+  private static final PolicyViolation DEFAULT_PV = generatePolicyViolation("pv1", 7);
 
   private static final RemediationVersionDTO NO_SUGGESTION_REMEDIATION = null;
 
@@ -229,13 +228,13 @@ public class ComponentFeedbackContextFactoryTest
     testCases.put(WITH_SUGGESTION, buildWithSuggestionTestData(provider));
     testCases.put(WITH_SUGGESTION_AND_DEPENDENCY_REMEDIATION, buildWithSuggestionWithDepRemediationTestData(provider));
     testCases.put(MANY_BREAKING_CHANGES, buildBreakingChangesTestData(provider, MANY));
-    testCases.put(FEW_BREAKING_CHANGES,  buildBreakingChangesTestData(provider, FEW));
-    testCases.put(NO_BREAKING_CHANGES,   buildBreakingChangesTestData(provider, NONE));
+    testCases.put(FEW_BREAKING_CHANGES, buildBreakingChangesTestData(provider, FEW));
+    testCases.put(NO_BREAKING_CHANGES, buildBreakingChangesTestData(provider, NONE));
     testCases.put(HAS_DIRECT_DEP, buildDirectDepTestData(provider));
-    testCases.put(LOW_THREAT_LEVEL,        buildThreatLevelTestData(provider, LOW_THREAT_LEVEL_DISPLAY, false));
-    testCases.put(MODERATE_THREAT_LEVEL,   buildThreatLevelTestData(provider, MODERATE_THREAT_LEVEL_DISPLAY, false));
-    testCases.put(SEVERE_THREAT_LEVEL,     buildThreatLevelTestData(provider, SEVERE_THREAT_LEVEL_DISPLAY, false));
-    testCases.put(CRITICAL_THREAT_LEVEL,   buildThreatLevelTestData(provider, CRITICAL_THREAT_LEVEL_DISPLAY, false));
+    testCases.put(LOW_THREAT_LEVEL, buildThreatLevelTestData(provider, LOW_THREAT_LEVEL_DISPLAY, false));
+    testCases.put(MODERATE_THREAT_LEVEL, buildThreatLevelTestData(provider, MODERATE_THREAT_LEVEL_DISPLAY, false));
+    testCases.put(SEVERE_THREAT_LEVEL, buildThreatLevelTestData(provider, SEVERE_THREAT_LEVEL_DISPLAY, false));
+    testCases.put(CRITICAL_THREAT_LEVEL, buildThreatLevelTestData(provider, CRITICAL_THREAT_LEVEL_DISPLAY, false));
     testCases.put(NO_VULN, buildNoVulnTestData(provider));
     testCases.put(HAS_UTM_SOURCE, buildHasUtmSourceTestData(provider));
     testCases.put(NO_UTM_SOURCE, buildNoUtmSourceTestData(provider));
@@ -255,15 +254,14 @@ public class ComponentFeedbackContextFactoryTest
       final SecurityVulnerabilityData securityVulnerabilityData)
   {
     lenient()
-            .when(vulnerabilityDetailsServiceMock.getSecurityVulnerabilityDetails(securityVulnerabilityData.identifier,
-                    pv.getComponentIdentifier(),
-                    null,
-                    null,
-                    APPLICATION,
-                    pv.getOwnerId(),
-                    true
-                    ))
-            .thenReturn(securityVulnerabilityData);
+        .when(vulnerabilityDetailsServiceMock.getSecurityVulnerabilityDetails(securityVulnerabilityData.identifier,
+            pv.getComponentIdentifier(),
+            null,
+            null,
+            APPLICATION,
+            pv.getOwnerId(),
+            true))
+        .thenReturn(securityVulnerabilityData);
   }
 
   private void runTest(final TestCaseId testCaseId, final SourceControlProvider provider) {
@@ -271,16 +269,15 @@ public class ComponentFeedbackContextFactoryTest
     final TestData testData = testCases.get(testCaseId);
     testData.factoryInput.violations.forEach(this::setupAllVulnerabilities);
     final ComponentFeedbackContext actual = underTest.build(
-            testData.factoryInput.provider,
-            testData.factoryInput.violations,
-            testData.factoryInput.displayName,
-            testData.factoryInput.remediationVersionDTO,
-            testData.factoryInput.applicationPublicId,
-            testData.factoryInput.featureBranchScanId,
-            testData.factoryInput.iqBaseUrl,
-            testData.factoryInput.codeSuggestion,
-            testData.factoryInput.hasReducedSecurityData
-    );
+        testData.factoryInput.provider,
+        testData.factoryInput.violations,
+        testData.factoryInput.displayName,
+        testData.factoryInput.remediationVersionDTO,
+        testData.factoryInput.applicationPublicId,
+        testData.factoryInput.featureBranchScanId,
+        testData.factoryInput.iqBaseUrl,
+        testData.factoryInput.codeSuggestion,
+        testData.factoryInput.hasReducedSecurityData);
     assertThat(actual).usingRecursiveComparison().isEqualTo(testData.expected);
     renderAndAssert(actual);
   }
@@ -359,9 +356,8 @@ public class ComponentFeedbackContextFactoryTest
     factoryInput.violations = ImmutableList.of(pv);
     factoryInput.hasReducedSecurityData = hasReducedSecurityData;
     final List<SecurityIssue> expectedSecurityIssues = ImmutableList.of(
-            buildSecurityIssueWithUtmSource(pv, VULN_2, SONATYPE_DEEP_DIVE_TAG, provider),
-            buildSecurityIssueWithUtmSource(pv, VULN_1, SONATYPE_FAST_TRACK_TAG, provider)
-    );
+        buildSecurityIssueWithUtmSource(pv, VULN_2, SONATYPE_DEEP_DIVE_TAG, provider),
+        buildSecurityIssueWithUtmSource(pv, VULN_1, SONATYPE_FAST_TRACK_TAG, provider));
     return new TestData(buildThreatLevelContext(provider, expectedThreatLevelDisplay,
         expectedSecurityIssues, hasReducedSecurityData), factoryInput);
   }
@@ -378,14 +374,13 @@ public class ComponentFeedbackContextFactoryTest
     final List<SecurityIssue> expectedSecurityIssues = ImmutableList.of(
         buildSecurityIssueWithUtmSource(pv, VULN_2, SONATYPE_DEEP_DIVE_TAG, provider),
         buildSecurityIssueWithUtmSource(pv, VULN_1, SONATYPE_FAST_TRACK_TAG, provider),
-        buildSecurityIssueWitUnknownVuln(pv2, provider)
-    );
+        buildSecurityIssueWitUnknownVuln(pv2, provider));
     return new TestData(buildThreatLevelContext(provider, expectedThreatLevelDisplay,
         expectedSecurityIssues), factoryInput);
   }
 
   private static TestData buildNoVulnTestData(final SourceControlProvider provider) {
-    final PolicyViolation pv =  generatePolicyViolationUnknownVuln("pv2", 7);
+    final PolicyViolation pv = generatePolicyViolationUnknownVuln("pv2", 7);
     final FactoryInput factoryInput = initFactoryInput(provider);
     factoryInput.violations = ImmutableList.of(pv);
     return new TestData(buildNoVulnContext(provider, pv), factoryInput);
@@ -406,11 +401,11 @@ public class ComponentFeedbackContextFactoryTest
   }
 
   private static ComponentFeedbackContext buildNoSuggestionContext(final SourceControlProvider provider) {
-    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", "",false, true);
+    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", "", false, true);
   }
 
   private static ComponentFeedbackContext buildWithSuggestionContext(final SourceControlProvider provider) {
-    return buildDefaultContext(provider, FEW, SUGGESTED_VERSION, "next-no-violations",false, true);
+    return buildDefaultContext(provider, FEW, SUGGESTED_VERSION, "next-no-violations", false, true);
   }
 
   private static ComponentFeedbackContext buildWithSuggestionWithDepRemediationContext(
@@ -428,7 +423,7 @@ public class ComponentFeedbackContextFactoryTest
   }
 
   private static ComponentFeedbackContext buildDirectDepContext(final SourceControlProvider provider) {
-    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", "",false, true);
+    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", "", false, true);
   }
 
   private static ComponentFeedbackContext buildThreatLevelContext(
@@ -471,20 +466,20 @@ public class ComponentFeedbackContextFactoryTest
       final SourceControlProvider provider,
       final PolicyViolation pv)
   {
-    final List<SecurityIssue> securityIssues  = ImmutableList.of(buildSecurityIssueWitUnknownVuln(pv, provider));
+    final List<SecurityIssue> securityIssues = ImmutableList.of(buildSecurityIssueWitUnknownVuln(pv, provider));
     return new ComponentFeedbackContext(
-            true,
-            ThreatLevelDisplay.fromValue(pv.getThreatLevel()),
-            resolveExpectedComponentDetailsLink(true, provider),
-            COMPONENT_DISPLAY_NAME,
-            provider,
-            BreakingChangeType.NOT_APPLICABLE.getNumBreakingChanges(),
-            "",
-            "",
-            false,
-            securityIssues,
-            DIRECT_DEP_LOGO,
-            NO_CODE_SUGGESTION,
+        true,
+        ThreatLevelDisplay.fromValue(pv.getThreatLevel()),
+        resolveExpectedComponentDetailsLink(true, provider),
+        COMPONENT_DISPLAY_NAME,
+        provider,
+        BreakingChangeType.NOT_APPLICABLE.getNumBreakingChanges(),
+        "",
+        "",
+        false,
+        securityIssues,
+        DIRECT_DEP_LOGO,
+        NO_CODE_SUGGESTION,
         false,
         false);
   }
@@ -494,7 +489,7 @@ public class ComponentFeedbackContextFactoryTest
   }
 
   private ComponentFeedbackContext buildNoUtmSourceContext(final SourceControlProvider provider) {
-    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", "",false, false);
+    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", "", false, false);
   }
 
   private static String resolveExpectedComponentDetailsLink(
@@ -513,23 +508,22 @@ public class ComponentFeedbackContextFactoryTest
       final boolean enableUtmSource)
   {
     final ImmutableList<SecurityIssue> securityIssues = ImmutableList.of(
-            buildSecurityIssue(DEFAULT_PV, VULN_2, SONATYPE_DEEP_DIVE_TAG, provider, enableUtmSource),
-            buildSecurityIssue(DEFAULT_PV, VULN_1, SONATYPE_FAST_TRACK_TAG, provider, enableUtmSource)
-    );
+        buildSecurityIssue(DEFAULT_PV, VULN_2, SONATYPE_DEEP_DIVE_TAG, provider, enableUtmSource),
+        buildSecurityIssue(DEFAULT_PV, VULN_1, SONATYPE_FAST_TRACK_TAG, provider, enableUtmSource));
     final String codeSuggestion = suggestedVersion.equals(SUGGESTED_VERSION) ? CODE_SUGGESTION : NO_CODE_SUGGESTION;
     return new ComponentFeedbackContext(
-            true,
-            ThreatLevelDisplay.fromValue(DEFAULT_PV.getThreatLevel()),
-            resolveExpectedComponentDetailsLink(enableUtmSource, provider),
-            COMPONENT_DISPLAY_NAME,
-            provider,
-            breakingChangeType.getNumBreakingChanges(),
-            suggestedVersion,
-            suggestedVersionType,
-            hasRemediationDeps,
-            securityIssues,
-            DIRECT_DEP_LOGO,
-            codeSuggestion,
+        true,
+        ThreatLevelDisplay.fromValue(DEFAULT_PV.getThreatLevel()),
+        resolveExpectedComponentDetailsLink(enableUtmSource, provider),
+        COMPONENT_DISPLAY_NAME,
+        provider,
+        breakingChangeType.getNumBreakingChanges(),
+        suggestedVersion,
+        suggestedVersionType,
+        hasRemediationDeps,
+        securityIssues,
+        DIRECT_DEP_LOGO,
+        codeSuggestion,
         true,
         false);
   }
@@ -590,7 +584,8 @@ public class ComponentFeedbackContextFactoryTest
       final SourceControlProvider utmSourceProvider,
       final boolean enableUtmSource)
   {
-    return enableUtmSource ? buildSecurityIssueWithUtmSource(pv, svd, dependencyImage, utmSourceProvider)
+    return enableUtmSource
+        ? buildSecurityIssueWithUtmSource(pv, svd, dependencyImage, utmSourceProvider)
         : buildSecurityIssueNoUtmSource(pv, svd, dependencyImage);
   }
 
@@ -627,8 +622,7 @@ public class ComponentFeedbackContextFactoryTest
     HAS_UTM_SOURCE,
     NO_UTM_SOURCE,
     CRITICAL_THREAT_LEVEL_AND_NON_VULN,
-    CRITICAL_THREAT_LEVEL_AND_REDUCED_SECURITY_DATA
-    ;
+    CRITICAL_THREAT_LEVEL_AND_REDUCED_SECURITY_DATA;
 
   }
 
@@ -638,6 +632,7 @@ public class ComponentFeedbackContextFactoryTest
     FEW(4),
     NONE(0),
     NOT_APPLICABLE(-1);
+
     private final int numBreakingChanges;
 
     BreakingChangeType(final int numBreakingChanges) {

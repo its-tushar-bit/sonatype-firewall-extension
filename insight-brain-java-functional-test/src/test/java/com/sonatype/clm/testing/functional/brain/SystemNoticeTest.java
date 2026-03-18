@@ -48,16 +48,16 @@ public class SystemNoticeTest
   private static final SystemNotice FILLED_ENABLED = createSystemNotice(FIVE_HUNDRED_CHARACTERS, true);
 
   private static final String[] PAGE_URLS = new String[]{
-      DashboardPage.url(),
-      ReportListPage.url(),
-      OwnerSummaryPage.url(),
-      UserManagementPage.url(),
-      RoleManagementPage.url(),
-      ProductLicensePage.url(),
-      AdministratorsPage.url(),
-      new LdapServerListPage().url(),
-      WebhookConfigurationPage.url(),
-      SystemNoticeConfigurationPage.url()
+    DashboardPage.url(),
+    ReportListPage.url(),
+    OwnerSummaryPage.url(),
+    UserManagementPage.url(),
+    RoleManagementPage.url(),
+    ProductLicensePage.url(),
+    AdministratorsPage.url(),
+    new LdapServerListPage().url(),
+    WebhookConfigurationPage.url(),
+    SystemNoticeConfigurationPage.url()
   };
 
   private final com.sonatype.clm.testing.functional.elements.SystemNotice systemNotice =

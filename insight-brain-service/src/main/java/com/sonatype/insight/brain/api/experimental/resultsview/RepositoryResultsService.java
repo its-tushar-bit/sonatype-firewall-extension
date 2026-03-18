@@ -120,8 +120,10 @@ public class RepositoryResultsService
         proxyRepositoriesWithReadPermission.stream().map(Repository::getId).collect(Collectors.toSet());
 
     List<RepositoryResultsDetails> detailsList =
-        repositoryIds.isEmpty() ? Collections.emptyList() : repositoryPolicyViolationDAO.getRepositoryResultsDetails(
-            repositoryIds, detailsFilter);
+        repositoryIds.isEmpty()
+            ? Collections.emptyList()
+            : repositoryPolicyViolationDAO.getRepositoryResultsDetails(
+                repositoryIds, detailsFilter);
 
     RepositoryResultsDetailsResponseDto result = new RepositoryResultsDetailsResponseDto();
 
@@ -148,7 +150,8 @@ public class RepositoryResultsService
   }
 
   RepositoryResultsDetailsFilter validateAndInitializeDetailsFilter(
-      OwnerType ownerType, RepositoryResultsDetailsRequestDto detailsRequest)
+      OwnerType ownerType,
+      RepositoryResultsDetailsRequestDto detailsRequest)
   {
     if (detailsRequest.page <= 0 || detailsRequest.pageSize <= 0) {
       throw new BadRequestException("Page and Page size must be greater than 0");
@@ -173,12 +176,14 @@ public class RepositoryResultsService
 
   private boolean containsValidSearchFilter(OwnerType ownerType, RepositoryResultsDetailsRequestDto detailsRequest) {
     if (CollectionUtils.isNotEmpty(detailsRequest.searchFilters) && ownerType.equals(OwnerType.REPOSITORY)) {
-      return detailsRequest.searchFilters.stream().map(searchFilter -> searchFilter.filterableField.name())
+      return detailsRequest.searchFilters.stream()
+          .map(searchFilter -> searchFilter.filterableField.name())
           .noneMatch(field -> field.equals("REPOSITORY_ID") || field.equals("REPOSITORY_MANAGER_ID"));
     }
 
     if (CollectionUtils.isNotEmpty(detailsRequest.searchFilters) && ownerType.equals(OwnerType.REPOSITORY_MANAGER)) {
-      return detailsRequest.searchFilters.stream().map(searchFilter -> searchFilter.filterableField.name())
+      return detailsRequest.searchFilters.stream()
+          .map(searchFilter -> searchFilter.filterableField.name())
           .noneMatch(field -> field.equals("REPOSITORY_MANAGER_ID"));
     }
 
@@ -214,7 +219,8 @@ public class RepositoryResultsService
 
   private Set<String> initializeViolationStateFilters(final List<ViolationStateFilter> violationStateFilters) {
     if (CollectionUtils.isEmpty(violationStateFilters)
-        || violationStateFilters.contains(ViolationStateFilter.VIOLATION_STATE_ALL)) {
+        || violationStateFilters.contains(ViolationStateFilter.VIOLATION_STATE_ALL))
+    {
       return ImmutableSet.of(ViolationStateFilter.VIOLATION_STATE_ALL.name());
     }
 
@@ -222,7 +228,8 @@ public class RepositoryResultsService
   }
 
   private Map<String, String> initializeSearchFilterMap(final List<SearchFilter> searchFilters) {
-    return CollectionUtils.emptyIfNull(searchFilters).stream()
+    return CollectionUtils.emptyIfNull(searchFilters)
+        .stream()
         .collect(Collectors.toMap(searchFilter -> searchFilter.filterableField.name(),
             searchFilter -> searchFilter.value.toLowerCase()));
   }

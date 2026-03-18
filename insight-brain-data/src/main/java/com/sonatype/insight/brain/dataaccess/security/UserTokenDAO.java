@@ -97,7 +97,8 @@ public class UserTokenDAO
         || !userToken.getUserCode().equals(stored.getUserCode())
         || !userToken.getPassCode().equals(stored.getPassCode())
         || !userToken.getRealmId().equals(stored.getRealmId())
-        || !userToken.getCreateTime().equals(stored.getCreateTime())) {
+        || !userToken.getCreateTime().equals(stored.getCreateTime()))
+    {
       throw new UnsupportedOperationException("Cannot update anything except last access time.");
     }
     super.update(tx, userToken);
@@ -116,7 +117,7 @@ public class UserTokenDAO
   /**
    * Both createdAfter and createdBefore can be null.
    *
-   * @param createdAfter  :inclusive
+   * @param createdAfter :inclusive
    * @param createdBefore :inclusive
    * @param realmId : realmId (e.g. {Internal|SAML|...}
    */

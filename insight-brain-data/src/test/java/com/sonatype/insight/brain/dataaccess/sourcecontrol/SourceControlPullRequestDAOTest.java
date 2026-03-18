@@ -199,7 +199,7 @@ public class SourceControlPullRequestDAOTest
     assertThatThrownBy(() -> {
       tempEntity.newSourceControlPullRequest("repoUrl", 1, "sha", "b-sha", "/testBranchName", "testBaseBranchName");
     }).isInstanceOf(BadRequestException.class)
-            .hasMessageContaining("The branch name is invalid: cannot begin with a slash.");
+        .hasMessageContaining("The branch name is invalid: cannot begin with a slash.");
   }
 
   @Test
@@ -234,8 +234,7 @@ public class SourceControlPullRequestDAOTest
         PullRequestSource.AUTOMATIC,
         PullRequestSource.AUTOMATIC_INNER_SOURCE,
         PullRequestSource.MANUAL,
-        PullRequestSource.MANUAL_INNER_SOURCE)
-    ).isEmpty();
+        PullRequestSource.MANUAL_INNER_SOURCE)).isEmpty();
 
     SourceControlPullRequest s1 = createSourceControlPullRequest(1, PullRequestSource.AUTOMATIC);
     SourceControlPullRequest s2 = createSourceControlPullRequest(2, PullRequestSource.AUTOMATIC);
@@ -267,7 +266,7 @@ public class SourceControlPullRequestDAOTest
     assertThat(dao.getBySources(PullRequestSource.MANUAL_INNER_SOURCE))
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(s9, s10);
-    
+
     // Multiple and same
     assertThat(dao.getBySources(PullRequestSource.AUTOMATIC, PullRequestSource.AUTOMATIC))
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
@@ -316,16 +315,16 @@ public class SourceControlPullRequestDAOTest
     assertThat(dao.getBySources(PullRequestSource.MANUAL, PullRequestSource.MANUAL_INNER_SOURCE))
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(s7, s8, s9, s10);
-    
+
     // All
     assertThat(dao.getBySources(
         PullRequestSource.EXTERNAL,
         PullRequestSource.AUTOMATIC,
         PullRequestSource.AUTOMATIC_INNER_SOURCE,
         PullRequestSource.MANUAL,
-        PullRequestSource.MANUAL_INNER_SOURCE)
-    ).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10);
+        PullRequestSource.MANUAL_INNER_SOURCE))
+            .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+            .containsExactlyInAnyOrder(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10);
   }
 
   @Test
@@ -366,8 +365,7 @@ public class SourceControlPullRequestDAOTest
     // Test getByStatesAndSources with OPEN state and only AUTOMATIC source
     List<SourceControlPullRequest> openAutomaticPullRequests = dao.getByStatesAndSources(
         Set.of(PullRequestState.OPEN),
-        Set.of(PullRequestSource.AUTOMATIC)
-    );
+        Set.of(PullRequestSource.AUTOMATIC));
 
     assertThat(openAutomaticPullRequests).hasSize(1);
     assertThat(openAutomaticPullRequests)
@@ -377,8 +375,7 @@ public class SourceControlPullRequestDAOTest
     // Test getByStatesAndSources with CLOSED state and AUTOMATIC source
     List<SourceControlPullRequest> closedPullRequests = dao.getByStatesAndSources(
         Set.of(PullRequestState.CLOSED),
-        Set.of(PullRequestSource.AUTOMATIC)
-    );
+        Set.of(PullRequestSource.AUTOMATIC));
 
     assertThat(closedPullRequests).hasSize(1);
     assertThat(closedPullRequests)
@@ -388,8 +385,7 @@ public class SourceControlPullRequestDAOTest
     // Test getByStatesAndSources with MERGED state and AUTOMATIC source
     List<SourceControlPullRequest> mergedPullRequests = dao.getByStatesAndSources(
         Set.of(PullRequestState.MERGED),
-        Set.of(PullRequestSource.AUTOMATIC)
-    );
+        Set.of(PullRequestSource.AUTOMATIC));
 
     assertThat(mergedPullRequests).hasSize(1);
     assertThat(mergedPullRequests)
@@ -399,8 +395,7 @@ public class SourceControlPullRequestDAOTest
     // Test getByStatesAndSources with LOCKED state and MANUAL source
     List<SourceControlPullRequest> lockedPullRequests = dao.getByStatesAndSources(
         Set.of(PullRequestState.LOCKED),
-        Set.of(PullRequestSource.MANUAL)
-    );
+        Set.of(PullRequestSource.MANUAL));
 
     assertThat(lockedPullRequests).hasSize(1);
     assertThat(lockedPullRequests)
@@ -425,16 +420,14 @@ public class SourceControlPullRequestDAOTest
     // Query for CLOSED state should return empty list
     List<SourceControlPullRequest> closedPullRequests = dao.getByStatesAndSources(
         Set.of(PullRequestState.CLOSED),
-        Set.of(PullRequestSource.AUTOMATIC)
-    );
+        Set.of(PullRequestSource.AUTOMATIC));
 
     assertThat(closedPullRequests).isEmpty();
 
     // Query for OPEN state but wrong source should return empty list
     List<SourceControlPullRequest> wrongSourcePullRequests = dao.getByStatesAndSources(
         Set.of(PullRequestState.OPEN),
-        Set.of(PullRequestSource.MANUAL)
-    );
+        Set.of(PullRequestSource.MANUAL));
 
     assertThat(wrongSourcePullRequests).isEmpty();
   }
@@ -480,8 +473,7 @@ public class SourceControlPullRequestDAOTest
     // Test multiple states and multiple sources
     List<SourceControlPullRequest> openAndClosedAutoAndManualPRs = dao.getByStatesAndSources(
         Set.of(PullRequestState.OPEN, PullRequestState.CLOSED),
-        Set.of(PullRequestSource.AUTOMATIC, PullRequestSource.MANUAL)
-    );
+        Set.of(PullRequestSource.AUTOMATIC, PullRequestSource.MANUAL));
     assertThat(openAndClosedAutoAndManualPRs).hasSize(4);
     assertThat(openAndClosedAutoAndManualPRs)
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
@@ -490,8 +482,7 @@ public class SourceControlPullRequestDAOTest
     // Test another combination: OPEN and MERGED states with AUTOMATIC and EXTERNAL sources
     List<SourceControlPullRequest> openAndMergedAutoAndExternalPRs = dao.getByStatesAndSources(
         Set.of(PullRequestState.OPEN, PullRequestState.MERGED),
-        Set.of(PullRequestSource.AUTOMATIC, PullRequestSource.EXTERNAL)
-    );
+        Set.of(PullRequestSource.AUTOMATIC, PullRequestSource.EXTERNAL));
     assertThat(openAndMergedAutoAndExternalPRs).hasSize(4);
     assertThat(openAndMergedAutoAndExternalPRs)
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
@@ -500,8 +491,7 @@ public class SourceControlPullRequestDAOTest
     // Test another combination, all InnerSource
     List<SourceControlPullRequest> openAndClosedAndMergedInnerSourcePRs = dao.getByStatesAndSources(
         Set.of(PullRequestState.OPEN, PullRequestState.CLOSED, PullRequestState.MERGED),
-        Set.of(PullRequestSource.AUTOMATIC_INNER_SOURCE, PullRequestSource.MANUAL_INNER_SOURCE)
-    );
+        Set.of(PullRequestSource.AUTOMATIC_INNER_SOURCE, PullRequestSource.MANUAL_INNER_SOURCE));
     assertThat(openAndClosedAndMergedInnerSourcePRs).hasSize(6);
     assertThat(openAndClosedAndMergedInnerSourcePRs)
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
@@ -665,8 +655,7 @@ public class SourceControlPullRequestDAOTest
         createTime,
         new Date(),
         new Date(),
-        source
-    );
+        source);
   }
 
   private SourceControlPullRequest createSourceControlPullRequest(
@@ -680,8 +669,7 @@ public class SourceControlPullRequestDAOTest
         "b-sha",
         "testBranchName",
         "testBaseBranchName",
-        source
-    );
+        source);
   }
 
   private SourceControlPullRequest createSourceControlPullRequestWithStateAndSource(
@@ -700,7 +688,6 @@ public class SourceControlPullRequestDAOTest
         new Date(),
         new Date(),
         state,
-        source
-    );
+        source);
   }
 }

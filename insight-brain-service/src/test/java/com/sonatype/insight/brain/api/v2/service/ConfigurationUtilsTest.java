@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2.service;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -199,7 +200,7 @@ public class ConfigurationUtilsTest
   @Test
   public void testStringToAccessAllowlist_ThrowsException() {
     assertThatExceptionOfType(UncheckedIOException.class).isThrownBy(
-            () -> ConfigurationUtils.stringToAccessAllowlist("invalid_value"))
+        () -> ConfigurationUtils.stringToAccessAllowlist("invalid_value"))
         .withMessageContaining("Invalid json: invalid_value");
   }
 
@@ -207,9 +208,9 @@ public class ConfigurationUtilsTest
   public void testAccessAllowlistToString() {
     String listToString = ConfigurationUtils.accessAllowlistToString(getAllowlistMap(getAccessAllowlist()));
     assertEquals("[{\"ipAddress\":\"192.168.33.10\",\"description\":\"Test IPv4 address\"}," +
-            "{\"ipAddress\":\"8ed5:9e96:1da1:f53b:587e:9f4d:a7f9:817e\",\"description\":\"Test IPv6 address\"}," +
-            "{\"ipAddress\":\"15.177.0.0/18\",\"description\":\"Test IPv4 CIDR\"}," +
-            "{\"ipAddress\":\"2600:1f18:3fff:f800::/56\",\"description\":\"Test IPv6 CIDR\"}]",
+        "{\"ipAddress\":\"8ed5:9e96:1da1:f53b:587e:9f4d:a7f9:817e\",\"description\":\"Test IPv6 address\"}," +
+        "{\"ipAddress\":\"15.177.0.0/18\",\"description\":\"Test IPv4 CIDR\"}," +
+        "{\"ipAddress\":\"2600:1f18:3fff:f800::/56\",\"description\":\"Test IPv6 CIDR\"}]",
         listToString);
   }
 
@@ -229,7 +230,7 @@ public class ConfigurationUtilsTest
     allowlist.add(null);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> ConfigurationUtils.accessAllowlistToString(allowlist))
+        () -> ConfigurationUtils.accessAllowlistToString(allowlist))
         .withMessageContaining("Invalid IP addresses: [null]");
   }
 
@@ -257,7 +258,7 @@ public class ConfigurationUtilsTest
     List<Map<String, String>> allowlistMap = getAllowlistMap(allowlist);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> ConfigurationUtils.accessAllowlistToString(allowlistMap))
+        () -> ConfigurationUtils.accessAllowlistToString(allowlistMap))
         .withMessageContaining("Invalid IP addresses: [192.168.33.999, 192.168.33.1/31, 192.160.1.0/12, " +
             "192.128.1.0/10, 192.1.0.0/8, 2600:1f18:3fff:f800/56, 2600:1f18:3fff:f800::0001/56, null, , null]");
   }
@@ -272,7 +273,9 @@ public class ConfigurationUtilsTest
   }
 
   private List<Map<String, String>> getAllowlistMap(List<AllowedIp> allowlist) {
-    return JSON.convertValue(allowlist, new TypeReference<List<Map<String, String>>>() { });
+    return JSON.convertValue(allowlist, new TypeReference<List<Map<String, String>>>()
+    {
+    });
   }
 
   @Test
@@ -283,15 +286,16 @@ public class ConfigurationUtilsTest
   @Test
   public void testUserAgentSuffix_MaxLength() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> ConfigurationUtils.userAgentSuffix(
-        StringUtils.repeat("a", ConfigurationUtils.MAX_USER_AGENT_SUFFIX_SIZE + 1))).withMessageContaining(
-        String.format(ConfigurationUtils.LONG_USER_AGENT_SUFFIX_ERROR_MSG,
-            ConfigurationUtils.MAX_USER_AGENT_SUFFIX_SIZE));
+        StringUtils.repeat("a", ConfigurationUtils.MAX_USER_AGENT_SUFFIX_SIZE + 1)))
+        .withMessageContaining(
+            String.format(ConfigurationUtils.LONG_USER_AGENT_SUFFIX_ERROR_MSG,
+                ConfigurationUtils.MAX_USER_AGENT_SUFFIX_SIZE));
   }
 
   @Test
   public void testUserAgentSuffix_NoControlCharactersToBlockHeaderInjection() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> ConfigurationUtils.userAgentSuffix("\nInjected-Header: Value"))
+        () -> ConfigurationUtils.userAgentSuffix("\nInjected-Header: Value"))
         .withMessageContaining(ConfigurationUtils.INVALID_USER_AGENT_SUFFIX_ERROR_MSG);
   }
 
@@ -337,7 +341,7 @@ public class ConfigurationUtilsTest
   @Test
   public void testParseRepositoryList_invalidCharacters() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> ConfigurationUtils.parseRepositoryList("repo1,repo 2, repo3"))
+        () -> ConfigurationUtils.parseRepositoryList("repo1,repo 2, repo3"))
         .withMessageContaining(String.format(ConfigurationUtils.INVALID_CHARACTERS_ERROR_MSG, "repo 2"));
   }
 
@@ -354,14 +358,14 @@ public class ConfigurationUtilsTest
   @Test
   public void testPurgeScanFiles_InvalidValue() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> ConfigurationUtils.purgeScanFiles("foo-bar"))
+        () -> ConfigurationUtils.purgeScanFiles("foo-bar"))
         .withMessageContaining(String.format(ConfigurationUtils.INVALID_PURGE_SCAN_FILES_VALUE_MSG, "foo-bar"));
   }
 
   @Test
   public void testPurgeScanFiles_nullValue() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> ConfigurationUtils.purgeScanFiles(null))
+        () -> ConfigurationUtils.purgeScanFiles(null))
         .withMessageContaining(String.format(ConfigurationUtils.INVALID_PURGE_SCAN_FILES_VALUE_MSG, (String) null));
   }
 
@@ -379,10 +383,10 @@ public class ConfigurationUtilsTest
   @Test
   public void testValidateCustomMessage_MaxLength() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> ConfigurationUtils.validateCustomMessage(
-        StringUtils.repeat("a", ConfigurationUtils.MAX_QUARANTINED_ITEM_CUSTOM_MESSAGE_SIZE + 1)
-    )).withMessageContaining(
-        String.format(ConfigurationUtils.LONG_QUARANTINED_ITEM_CUSTOM_MESSAGE_ERROR_MSG,
-            ConfigurationUtils.MAX_QUARANTINED_ITEM_CUSTOM_MESSAGE_SIZE));
+        StringUtils.repeat("a", ConfigurationUtils.MAX_QUARANTINED_ITEM_CUSTOM_MESSAGE_SIZE + 1)))
+        .withMessageContaining(
+            String.format(ConfigurationUtils.LONG_QUARANTINED_ITEM_CUSTOM_MESSAGE_ERROR_MSG,
+                ConfigurationUtils.MAX_QUARANTINED_ITEM_CUSTOM_MESSAGE_SIZE));
   }
 
   @Test

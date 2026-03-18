@@ -78,12 +78,13 @@ public class CategoryEditorPage
 
   public static WebElementCondition deleteWarningText(String applicationNames) {
     String baseMessage = "Are you sure you want to delete this application category?";
-    return text(applicationNames == null ? baseMessage :
-        baseMessage + " It is in use by the following applications: " + applicationNames + ".");
+    return text(applicationNames == null
+        ? baseMessage
+        : baseMessage + " It is in use by the following applications: " + applicationNames + ".");
   }
 
   public static WebElementCondition associatedPoliciesText(String... policyNames) {
     return text("You cannot delete this application category because it is associated with the following policies: " +
-            Joiner.on(", ").join(policyNames));
+        Joiner.on(", ").join(policyNames));
   }
 }

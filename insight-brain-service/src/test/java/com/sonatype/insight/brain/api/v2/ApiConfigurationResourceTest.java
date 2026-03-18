@@ -56,7 +56,8 @@ public class ApiConfigurationResourceTest
 
     assertResponseStatus(200, response);
     Map<String, Object> result = response.getBody(Map.class);
-    assertThat(result).isNotNull().containsEntry(SystemConfigurationProperty.BASE_URL, "http://baseUrl/")
+    assertThat(result).isNotNull()
+        .containsEntry(SystemConfigurationProperty.BASE_URL, "http://baseUrl/")
         .containsEntry(SystemConfigurationProperty.FORCE_BASE_URL, true);
   }
 

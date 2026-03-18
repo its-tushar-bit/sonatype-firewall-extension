@@ -26,7 +26,7 @@ public class ApiZScalerConfigurationDTO
   private boolean nugetFormatEnabled;
 
   public ApiZScalerConfigurationDTO() {
-    //empty
+    // empty
   }
 
   public String getUsername() {

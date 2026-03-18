@@ -52,19 +52,17 @@ public class ApiOidcConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "404",
-              description = "OIDC is not configured."
-          ),
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains:" +
-                  "\n" +
-                  " - `oidcConfiguration` field that contains all the oidc configuration data " +
-                  "\n" +
-                  " - `oAuth2Configuration` field that contains the OAuth2 configuration required for oidc",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(responseCode = "404",
+            description = "OIDC is not configured."),
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains:" +
+                "\n" +
+                " - `oidcConfiguration` field that contains all the oidc configuration data " +
+                "\n" +
+                " - `oAuth2Configuration` field that contains the OAuth2 configuration required for oidc",
+            useReturnTypeSchema = true)
+      })
   public SsoConfigurationDTO getOidcConfiguration() {
     return apiOidcConfigurationService.getOidcConfiguration();
   }
@@ -72,44 +70,37 @@ public class ApiOidcConfigurationResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_OIDC)
-  @Operation(description =
-      "Use this method to enable SSO using OpenID Connect (OIDC). This request uses the content type " +
+  @Operation(
+      description = "Use this method to enable SSO using OpenID Connect (OIDC). This request uses the content type " +
           "application/json to transmit the configuration to IQ Server." +
           "\n" +
           "\n" +
           "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(
-              responseCode = "400",
-              description = "Invalid configuration."
-          ),
-          @ApiResponse(
-              responseCode = "204",
-              description = "Configuration successful."
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid configuration."),
+        @ApiResponse(
+            responseCode = "204",
+            description = "Configuration successful.")
+      })
   public void insertOrUpdateOidcConfiguration(SsoConfigurationDTO oidcConfiguration) {
     apiOidcConfigurationService.insertOrUpdateOidcConfiguration(oidcConfiguration);
   }
 
   @DELETE
   @Audited(AuditEvent.DELETE_OIDC)
-  @Operation(description =
-      "Use this method to delete the OIDC configuration." +
-          "\n" +
-          "\n" +
-          "Permissions required: Edit System Configuration and Users",
+  @Operation(description = "Use this method to delete the OIDC configuration." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(
-              responseCode = "404",
-              description = "OIDC is not configured."
-          ),
-          @ApiResponse(
-              responseCode = "204"
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "404",
+            description = "OIDC is not configured."),
+        @ApiResponse(
+            responseCode = "204")
+      })
   public void deleteOidcConfiguration() {
     apiOidcConfigurationService.deleteOidcConfiguration();
   }

@@ -156,8 +156,7 @@ public class PullRequestLocationDiscoveryServiceTest
     assertThat(discoveryResult).isNull();
     assertThatLogMessagesEqual(
         debug("Pull request location discovery initiated for application 'appId'"),
-        error("Failed to execute pull request location discovery")
-    );
+        error("Failed to execute pull request location discovery"));
     verifySshServiceInvoked();
   }
 
@@ -182,8 +181,7 @@ public class PullRequestLocationDiscoveryServiceTest
     assertThat(discoveryResult.getLocationMap()).isEmpty();
     assertThatLogMessagesEqual(
         debug("Pull request location discovery initiated for application 'appId'"),
-        debug("Pull request location discovery completed for application 'appId': 0 components found")
-    );
+        debug("Pull request location discovery completed for application 'appId': 0 components found"));
     verifySshServiceInvoked();
   }
 
@@ -212,8 +210,7 @@ public class PullRequestLocationDiscoveryServiceTest
     assertThat(discoveryResult.getLocationMap()).isNotEmpty();
     assertThatLogMessagesEqual(
         debug("Pull request location discovery initiated for application 'appId'"),
-        debug("Pull request location discovery completed for application 'appId': 1 components found")
-    );
+        debug("Pull request location discovery completed for application 'appId': 1 components found"));
     verifySshServiceInvoked();
   }
 

@@ -69,8 +69,7 @@ public class ScannerModule
     return new FileScanner(
         new DefaultDigester(new JavaDigester(), digesterLogger),
         new Anonymizer(),
-        logger
-    );
+        logger);
   }
 
   /**

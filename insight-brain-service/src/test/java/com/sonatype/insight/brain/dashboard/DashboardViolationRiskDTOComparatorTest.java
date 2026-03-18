@@ -32,10 +32,11 @@ public class DashboardViolationRiskDTOComparatorTest
     return dto;
   }
 
-  private void assertComparison(Comparator<DashboardViolationRiskDTO> comparator,
-                                int expected,
-                                DashboardViolationRiskDTO dto1,
-                                DashboardViolationRiskDTO dto2)
+  private void assertComparison(
+      Comparator<DashboardViolationRiskDTO> comparator,
+      int expected,
+      DashboardViolationRiskDTO dto1,
+      DashboardViolationRiskDTO dto2)
   {
     assertThat(comparator.compare(dto1, dto2)).isEqualTo(expected);
     assertThat(comparator.compare(dto2, dto1)).isEqualTo(-expected);
@@ -116,13 +117,14 @@ public class DashboardViolationRiskDTOComparatorTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> assertComparison(new DashboardViolationRiskDTOComparator(",THREAT_LEVEL"), 1,
             newDTO(5, 0, "MyPolicy", "MyApp", "c.jar"),
-            newDTO(4, 0, "MyPolicy", "MyApp", "d.jar"))).withMessage("Invalid orderBy property.");
+            newDTO(4, 0, "MyPolicy", "MyApp", "d.jar")))
+        .withMessage("Invalid orderBy property.");
   }
 
   @Test
   public void testCompare_MultipleOrderBys() {
     // policy names are the same so the compare is made with -THREAT_LEVEL
     assertComparison(new DashboardViolationRiskDTOComparator("POLICY_NAME,-THREAT_LEVEL"), -1,
-        newDTO(5, 0, "MyPolicy", "MyApp", null), newDTO(4, 0, "MyPolicy", "MyApp", null));  
+        newDTO(5, 0, "MyPolicy", "MyApp", null), newDTO(4, 0, "MyPolicy", "MyApp", null));
   }
 }

@@ -28,14 +28,14 @@ public enum PolicyViolationLogEvent
 
   GRANT_LEGACY_STATUS, //
 
-  REVOKE_LEGACY_STATUS,//
+  REVOKE_LEGACY_STATUS, //
 
   WAIVE, //
-  
+
   AUTOWAIVE,
 
   UNWAIVE, //
-  
+
   UNAUTOWAIVE,
 
   CLEAR

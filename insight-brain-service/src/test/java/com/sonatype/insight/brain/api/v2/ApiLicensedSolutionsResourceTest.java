@@ -29,14 +29,13 @@ public class ApiLicensedSolutionsResourceTest
   public void setUp() {
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
   }
-  
+
   @Test
   public void testGetLicensedSolutions_expectRelativeUrls() throws Exception {
     // given: config with no base url and licensed for firewall
     setBaseUrl(null);
     licenseManager.setProducts(
-        ProductLicenseDetails.PRODUCT_FIREWALL
-    );
+        ProductLicenseDetails.PRODUCT_FIREWALL);
 
     // when:
     final boolean allowRelativeUrls = true;
@@ -55,8 +54,7 @@ public class ApiLicensedSolutionsResourceTest
     // given: config with a base url and licensed for lifecycle and developer
     setBaseUrl("https://localhost:8443");
     licenseManager.setProducts(
-        ProductLicenseDetails.PRODUCT_TEAMS_EDITION
-    );
+        ProductLicenseDetails.PRODUCT_TEAMS_EDITION);
 
     // when:
     final boolean allowRelativeUrls = false;
@@ -77,8 +75,7 @@ public class ApiLicensedSolutionsResourceTest
     setBaseUrl("https://localhost:8443");
     licenseManager.setProducts(
         ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
-        ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS
-    );
+        ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
 
     // when:
     final boolean allowRelativeUrls = true;
@@ -98,8 +95,7 @@ public class ApiLicensedSolutionsResourceTest
     setBaseUrl(null);
     licenseManager.setProducts(
         ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
-        ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS
-    );
+        ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
 
     // when:
     final boolean allowRelativeUrls = false;

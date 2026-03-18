@@ -43,7 +43,7 @@ public class SbomManagerContinuousMonitoringPage
     return child("#enable-continuous-monitoring");
   }
 
-  public SelenideElement  stageStatusLabel() {
+  public SelenideElement stageStatusLabel() {
     return child("#sbom-continuous-monitoring-status-label");
   }
 }

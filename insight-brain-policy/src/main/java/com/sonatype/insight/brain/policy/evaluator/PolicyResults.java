@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 
 /**
  * Carries the results from {@link ComponentPolicyEvaluator}.
- * 
+ *
  * @since 1.9
  */
 public class PolicyResults

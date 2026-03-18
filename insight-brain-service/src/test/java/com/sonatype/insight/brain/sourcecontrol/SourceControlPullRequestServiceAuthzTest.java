@@ -119,12 +119,10 @@ public class SourceControlPullRequestServiceAuthzTest
         ComponentIdentifier.createMavenCoordinates(
             "group",
             "artifact",
-            DEFAULT_VERSION
-        ),
+            DEFAULT_VERSION),
         DEFAULT_REMEDIATION_VERSION,
         "Sonatype",
-        true
-    );
+        true);
     service.createPullRequest(submissionDTO);
   }
 
@@ -137,12 +135,10 @@ public class SourceControlPullRequestServiceAuthzTest
         ComponentIdentifier.createMavenCoordinates(
             "group",
             "artifact",
-            DEFAULT_VERSION
-        ),
+            DEFAULT_VERSION),
         DEFAULT_REMEDIATION_VERSION,
         "Sonatype",
-        true
-    );
+        true);
     service.createPullRequest(submissionDTO);
   }
 
@@ -154,12 +150,10 @@ public class SourceControlPullRequestServiceAuthzTest
         ComponentIdentifier.createMavenCoordinates(
             "group",
             "artifact",
-            DEFAULT_VERSION
-        ),
+            DEFAULT_VERSION),
         DEFAULT_REMEDIATION_VERSION,
         "Sonatype",
-        true
-    );
+        true);
     service.createPullRequest(submissionDTO);
   }
 }

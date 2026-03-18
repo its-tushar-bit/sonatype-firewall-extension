@@ -50,9 +50,10 @@ public class PermissionResource
   @Path(OWNER_CONTEXT_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Set<Permission> validatePermission(@PathParam("ownerType") final OwnerType ownerType,
-                                            @PathParam("ownerId") final String ownerId,
-                                            Set<Permission> permissions)
+  public Set<Permission> validatePermission(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId,
+      Set<Permission> permissions)
   {
     if (permissions == null || permissions.isEmpty()) {
       throw new BadRequestException("Must specify permissions to check.");
@@ -77,7 +78,8 @@ public class PermissionResource
   @Path(SINGLETON_OWNER_CONTEXT_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Set<Permission> validatePermission(@PathParam("ownerType") final OwnerType ownerType,
+  public Set<Permission> validatePermission(
+      @PathParam("ownerType") final OwnerType ownerType,
       Set<Permission> permissions)
   {
     return validatePermission(ownerType, RepositoryContainer.REPOSITORY_CONTAINER_ID, permissions);

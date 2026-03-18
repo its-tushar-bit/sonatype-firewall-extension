@@ -77,8 +77,10 @@ public class TenantProvisioningService
    * @see com.sonatype.insight.brain.tenancy.AdminTenantFilter to check how the tenant is set.
    */
   public void provisionTenant(String tenantSlug) {
-    /* Proper validations for the tenant name were executed as part of the AdminTenantFilter.
-     * Here we are just checking we are not using the global tenant */
+    /*
+     * Proper validations for the tenant name were executed as part of the AdminTenantFilter.
+     * Here we are just checking we are not using the global tenant
+     */
     if (tenantUtil.isGlobalTenant()) {
       throw new BadRequestException("Invalid tenant");
     }
@@ -95,7 +97,7 @@ public class TenantProvisioningService
 
     adjustDefaultTenantData();
 
-    //TODO make sure the OpenSearch configuration is set up correctly
+    // TODO make sure the OpenSearch configuration is set up correctly
     if (config.getSearchConfig() != null) {
       indexService.createSearchIndex();
     }
@@ -105,6 +107,7 @@ public class TenantProvisioningService
    * Removes a tenant from the list of records that are marked for deletion.
    * This prevents the accidental deletion of a tenant with the same slug as a tenant that was previously deleted,
    * and whose deletion was scheduled but not yet executed.
+   *
    * @param tenantSlug
    */
   private void removeTenantMarkedForDeletion(String tenantSlug) {

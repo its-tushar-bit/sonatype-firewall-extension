@@ -207,11 +207,13 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
     page.row(repositoryConnection2.getId()).shouldNotBe(visible);
     page.enable().click();
     RepositoryConnectionRow repositoryConnectionRow1 = page.row(repositoryConnection1.getId()).shouldBe(visible);
-    repositoryConnectionRow1.text().shouldHave(text(repositoryConnection1.getBaseUrl()),
-        text(repositoryConnection1.getFormat().toString()));
+    repositoryConnectionRow1.text()
+        .shouldHave(text(repositoryConnection1.getBaseUrl()),
+            text(repositoryConnection1.getFormat().toString()));
     RepositoryConnectionRow repositoryConnectionRow2 = page.row(repositoryConnection2.getId()).shouldBe(visible);
-    repositoryConnectionRow2.text().shouldHave(text(repositoryConnection2.getBaseUrl()),
-        text(repositoryConnection2.getFormat().toString()));
+    repositoryConnectionRow2.text()
+        .shouldHave(text(repositoryConnection2.getBaseUrl()),
+            text(repositoryConnection2.getFormat().toString()));
   }
 
   @Test

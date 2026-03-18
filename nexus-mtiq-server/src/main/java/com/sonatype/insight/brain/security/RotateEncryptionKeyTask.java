@@ -108,13 +108,16 @@ public class RotateEncryptionKeyTask
    * Implementations of this interface should inherit from the abstract class AbstractOperationalSqlDAO.
    *
    * @param parameters a map containing the parameters for the task execution.
-   * The first key should be "newEncryptionKeyName", which holds a list of strings where the first element is the name
-   * of the new encryption key to be used.
+   *          The first key should be "newEncryptionKeyName", which holds a list of strings where the first element is
+   *          the name
+   *          of the new encryption key to be used.
    */
   @Override
   public void execute(final Map<String, List<String>> parameters, final PrintWriter printWriter) {
-    String newEncryptionKeyName = parameters.getOrDefault(QUERY_PARAM_NEW_ENCRYPTION_KEY_NAME, List.of()).stream()
-        .findFirst().orElse(null);
+    String newEncryptionKeyName = parameters.getOrDefault(QUERY_PARAM_NEW_ENCRYPTION_KEY_NAME, List.of())
+        .stream()
+        .findFirst()
+        .orElse(null);
 
     if (newEncryptionKeyName == null) {
       throw new BadRequestException("Param newEncryptionKeyName not provided.");
@@ -188,7 +191,7 @@ public class RotateEncryptionKeyTask
         }
         catch (RuntimeException | SQLException e) {
           log.error("Tenant encryption key rotation failed. Unable to rotate encrypted secrets using new tenant " +
-                  "encryption key {}. Failed to rotate secrets for: {}", newEncryptionKeyName,
+              "encryption key {}. Failed to rotate secrets for: {}", newEncryptionKeyName,
               rotatableSecret.getClass(), e);
           return false;
         }

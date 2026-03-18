@@ -41,12 +41,11 @@ public class SbomDashboardService
   private final ProductLicense productLicense;
 
   @Inject
-  public  SbomDashboardService(
+  public SbomDashboardService(
       final ApplicationService applicationService,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
-      final ProductLicense productLicense
-  )
+      final ProductLicense productLicense)
   {
     this.applicationService = applicationService;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;

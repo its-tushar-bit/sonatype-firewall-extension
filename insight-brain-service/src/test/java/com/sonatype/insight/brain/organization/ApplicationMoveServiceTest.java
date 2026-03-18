@@ -240,7 +240,7 @@ public class ApplicationMoveServiceTest
     assertThatExceptionOfType(ApplicationMoveException.class)
         .isThrownBy(() -> applicationMoveService.moveApplication(app.getId(), newOrg.getId()))
         .satisfies(e -> assertIssues(e, policyIssue(ApplicationMoveService.POLICY_MISSING_MSG, inheritedPolicy, oldOrg),
-        policyIssue(ApplicationMoveService.TAG_MISMATCH_MSG, taggedPolicy, oldOrg)));
+            policyIssue(ApplicationMoveService.TAG_MISMATCH_MSG, taggedPolicy, oldOrg)));
   }
 
   @Test
@@ -499,7 +499,7 @@ public class ApplicationMoveServiceTest
     assertThatExceptionOfType(ApplicationMoveException.class)
         .isThrownBy(() -> applicationMoveService.moveApplication(app.getId(), newOrg.getId()))
         .satisfies(e -> assertIssues(e, labelIssue(ApplicationMoveService.LABEL_MISSING_MSG, labelUsedByPolicy, oldOrg),
-        labelIssue(ApplicationMoveService.LABEL_MISSING_MSG, labelUsedByComponentLabel, oldOrg)));
+            labelIssue(ApplicationMoveService.LABEL_MISSING_MSG, labelUsedByComponentLabel, oldOrg)));
   }
 
   @Test
@@ -630,11 +630,9 @@ public class ApplicationMoveServiceTest
   public void testMoveApplication_OldPolicyOverridesAreRemoved() {
     Application app = tempEntity.newApplication(oldOrg.getId());
     Policy oldOrgPolicy = createPolicyWithOverrides(
-        "Policy with overrides", oldOrg.getId(), app.getId()
-    );
+        "Policy with overrides", oldOrg.getId(), app.getId());
     Policy rootOrgPolicy = createPolicyWithOverrides(
-        "Policy with overrides 2", Organization.ROOT_ORGANIZATION_ID, app.getId()
-    );
+        "Policy with overrides 2", Organization.ROOT_ORGANIZATION_ID, app.getId());
     createPolicyWithOverrides("Policy with overrides", newOrg.getId(), app.getId());
     applicationMoveService.moveApplication(app.getId(), newOrg.getId());
 

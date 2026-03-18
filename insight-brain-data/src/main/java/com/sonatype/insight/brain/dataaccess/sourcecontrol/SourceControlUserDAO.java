@@ -66,7 +66,8 @@ public class SourceControlUserDAO
 
     String dbSchema = getDatabaseSchema();
     SourceControlUserDAOQueryBuilder queryBuilder =
-        isDatabasePostgresql() ? new PostgresqlSourceControlUserDAOQueryBuilder(dbSchema)
+        isDatabasePostgresql()
+            ? new PostgresqlSourceControlUserDAOQueryBuilder(dbSchema)
             : new DefaultSourceControlUserDAOQueryBuilder(dbSchema);
 
     final jakarta.persistence.Query query =

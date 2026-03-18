@@ -60,24 +60,23 @@ public class ApiGitHubAppResource
   @POST
   @Path("manifest")
   @Operation(
-          summary = "Generate GitHub App manifest",
-          description = "Generate a GitHub App manifest for registration. " +
-                  "Returns manifest JSON with a state token for CSRF protection. " +
-                  "The state token is cryptographically secure, single-use, and expires after 10 minutes. " +
-                  "Submit the manifest to GitHub's app creation flow, which will redirect back to IQ Server " +
-                  "with the state token for validation. " +
-                  "\n\n" +
-                  "**Permissions Required:** Configure System Configuration and Users",
-          tags = {"GitHub App"}
-  )
+      summary = "Generate GitHub App manifest",
+      description = "Generate a GitHub App manifest for registration. " +
+          "Returns manifest JSON with a state token for CSRF protection. " +
+          "The state token is cryptographically secure, single-use, and expires after 10 minutes. " +
+          "Submit the manifest to GitHub's app creation flow, which will redirect back to IQ Server " +
+          "with the state token for validation. " +
+          "\n\n" +
+          "**Permissions Required:** Configure System Configuration and Users",
+      tags = {"GitHub App"})
   @ApiResponse(responseCode = "200", description = "Manifest generated successfully")
   @ApiResponse(responseCode = "400", description = "Missing owner id or organization name")
   @ApiResponse(responseCode = "500", description = "Base URL not configured or invalid request")
   public ApiGitHubAppManifestDTO generateManifest(
-      @Parameter(description = "Owner (organization/application) ID", required = true)
-      @QueryParam("ownerId") @NotBlank final String ownerId,
-      @Parameter(description = "GitHub organization name", required = false)
-      @QueryParam("organizationName") final String organizationName)
+      @Parameter(description = "Owner (organization/application) ID",
+          required = true) @QueryParam("ownerId") @NotBlank final String ownerId,
+      @Parameter(description = "GitHub organization name",
+          required = false) @QueryParam("organizationName") final String organizationName)
   {
     return apiGitHubAppService.generateManifest(ownerId, organizationName);
   }
@@ -85,22 +84,21 @@ public class ApiGitHubAppResource
   @GET
   @Path("redirect")
   @Operation(
-          summary = "GitHub App registration redirect callback",
-          description = "Handles redirect from GitHub after manifest submission. " +
-                  "Exchanges temporary code for permanent app credentials. " +
-                  "The user's browser is automatically redirected here by GitHub - not intended for direct use. " +
-                  "**Permissions Required:** Configure System Configuration and Users",
-          tags = {"GitHub App"}
-  )
+      summary = "GitHub App registration redirect callback",
+      description = "Handles redirect from GitHub after manifest submission. " +
+          "Exchanges temporary code for permanent app credentials. " +
+          "The user's browser is automatically redirected here by GitHub - not intended for direct use. " +
+          "**Permissions Required:** Configure System Configuration and Users",
+      tags = {"GitHub App"})
   @ApiResponse(responseCode = "303", description = "Successfully registered GitHub App, redirecting to settings page")
   @ApiResponse(responseCode = "400", description = "Invalid or expired code")
-  @ApiResponse(responseCode = "401",description = "Authentication required")
-  @ApiResponse(responseCode = "403",description = "Insufficient permissions")
+  @ApiResponse(responseCode = "401", description = "Authentication required")
+  @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   public Response handleRedirect(
-          @Parameter(description = "Temporary manifest conversion code from GitHub", required = true)
-          @QueryParam("code") final String code,
-          @Parameter(description = "OAuth state token for CSRF protection")
-          @QueryParam("state") final String state) throws Exception
+      @Parameter(description = "Temporary manifest conversion code from GitHub",
+          required = true) @QueryParam("code") final String code,
+      @Parameter(
+          description = "OAuth state token for CSRF protection") @QueryParam("state") final String state) throws Exception
   {
     final String installUrl = apiGitHubAppService.handleManifestConversionAndRegistration(code, state);
     return Response.seeOther(URI.create(installUrl)).build();
@@ -116,17 +114,16 @@ public class ApiGitHubAppResource
       description = "Process the redirect from GitHub after OAuth authorization, " +
           "validate state token, exchange OAuth code with PKCE verification, verify user ownership, " +
           "configure the installation for the specified organization/application, " +
-          "and redirect to the configuration page"
-  )
+          "and redirect to the configuration page")
   public Response handleInstallationSetup(
-      @Parameter(description = "GitHub App installation ID", required = true)
-      @QueryParam("installation_id") @NotNull @Min(1) final Long installationId,
+      @Parameter(description = "GitHub App installation ID",
+          required = true) @QueryParam("installation_id") @NotNull @Min(1) final Long installationId,
 
-      @Parameter(description = "State token for CSRF protection", required = true)
-      @QueryParam("state") @NotBlank final String state,
+      @Parameter(description = "State token for CSRF protection",
+          required = true) @QueryParam("state") @NotBlank final String state,
 
-      @Parameter(description = "OAuth authorization code", required = true)
-      @QueryParam("code") @NotBlank final String oauthCode) throws IOException
+      @Parameter(description = "OAuth authorization code",
+          required = true) @QueryParam("code") @NotBlank final String oauthCode) throws IOException
   {
     Owner owner = apiGitHubAppService.handleInstallationSetupCallback(installationId, state, oauthCode);
 
@@ -136,13 +133,13 @@ public class ApiGitHubAppResource
         : owner.getId();
     // Use UriBuilder for proper path construction and query parameter handling
     URI uri = baseUrl.redirect()
-            .path(UserInterfaceLinksHelper.RESOURCE_PATH)
-            .path(UserInterfaceLinksHelper.SOURCE_CONTROL_MANAGEMENT_PATH)
-            .queryParam("githubAppSuccess", "true")
-            .build(owner.getType().toString().toLowerCase(), ownerIdForUrl);
+        .path(UserInterfaceLinksHelper.RESOURCE_PATH)
+        .path(UserInterfaceLinksHelper.SOURCE_CONTROL_MANAGEMENT_PATH)
+        .queryParam("githubAppSuccess", "true")
+        .build(owner.getType().toString().toLowerCase(), ownerIdForUrl);
 
     log.info("Redirecting to source control configuration after GitHub App installation: ownerId={}, ownerType={}",
-            ownerIdForUrl, owner.getType());
+        ownerIdForUrl, owner.getType());
 
     return Response.temporaryRedirect(uri).build();
   }

@@ -32,7 +32,7 @@ public class HdsPingService
    * Perform a GET request of the HDS ping endpoint.
    */
   public PingResponseDTO pingHds() {
-    PingResponseDTO response =  new PingResponseDTO();
+    PingResponseDTO response = new PingResponseDTO();
 
     try {
       pingHdsClient.get(String.class, "ping");

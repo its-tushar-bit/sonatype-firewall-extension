@@ -26,8 +26,7 @@ public record AffectedCoordinates(
         componentIdentifier.getFormat(),
         normalizedNamespace,
         purlIdentifier.getName(),
-        purlIdentifier.getVersion()
-    );
+        purlIdentifier.getVersion());
   }
 
   private static String normalizeNamespace(String namespace) {

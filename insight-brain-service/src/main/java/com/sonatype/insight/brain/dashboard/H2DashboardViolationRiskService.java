@@ -166,7 +166,8 @@ public class H2DashboardViolationRiskService
             allUniqueAppPolicyViolations.addAll(diff.getAppeared());
           }
           return localDTOs;
-        }, ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL))).collect(toList());
+        }, ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL)))
+        .collect(toList());
 
     dtoFutures.stream().map(CompletableFuture::join).forEach(riskDTOs::addAll);
 

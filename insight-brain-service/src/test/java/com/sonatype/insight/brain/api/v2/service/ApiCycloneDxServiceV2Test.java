@@ -199,23 +199,26 @@ public class ApiCycloneDxServiceV2Test
     testGetByScanId(MediaType.APPLICATION_JSON, Version.VERSION_15, true);
   }
 
-  private void testGetByScanId(String contentType, Version version, boolean hasVulnerabilities)
-      throws Exception
-  {
+  private void testGetByScanId(String contentType, Version version, boolean hasVulnerabilities) throws Exception {
     createReportAndPolicyEvaluation("report");
     getScanByIdAndAssert(contentType, version, hasVulnerabilities, Method.CVSSV3);
   }
 
-  private void testGetByScanId(String contentType, Version version, boolean hasVulnerabilities, String folderName,
-                               final Method method)
-      throws Exception
+  private void testGetByScanId(
+      String contentType,
+      Version version,
+      boolean hasVulnerabilities,
+      String folderName,
+      final Method method) throws Exception
   {
     createReportAndPolicyEvaluation(folderName);
     getScanByIdAndAssert(contentType, version, hasVulnerabilities, method);
   }
 
   private void getScanByIdAndAssert(
-      String contentType, Version version, boolean hasVulnerabilities,
+      String contentType,
+      Version version,
+      boolean hasVulnerabilities,
       final Method method) throws Exception
   {
     if (version != Version.VERSION_11) {
@@ -250,8 +253,11 @@ public class ApiCycloneDxServiceV2Test
     assertThat(bom.getComponents()).hasSize(1);
     Component component = bom.getComponents().get(0);
     assertThat(component.getPurl()).isEqualTo("pkg:npm/lodash@4.17.19");
-    List<String> licenseNames = component.getLicenses().getLicenses().stream()
-        .map(l -> StringUtils.isEmpty(l.getId()) ? l.getName() : l.getId()).collect(Collectors.toList());
+    List<String> licenseNames = component.getLicenses()
+        .getLicenses()
+        .stream()
+        .map(l -> StringUtils.isEmpty(l.getId()) ? l.getName() : l.getId())
+        .collect(Collectors.toList());
     assertThat(licenseNames).containsExactlyInAnyOrder("MIT", "Not Supported");
   }
 
@@ -276,11 +282,11 @@ public class ApiCycloneDxServiceV2Test
         "Apache.NMS.dll");
 
     assertThat(bom.getComponents()).usingRecursiveFieldByFieldElementComparator(
-            RecursiveComparisonConfiguration.builder()
-                .withIgnoreCollectionOrder(true)
-                .withIgnoreAllExpectedNullFields(true)
-                .withIgnoredFields("bomRef")
-                .build())
+        RecursiveComparisonConfiguration.builder()
+            .withIgnoreCollectionOrder(true)
+            .withIgnoreAllExpectedNullFields(true)
+            .withIgnoredFields("bomRef")
+            .build())
         .containsExactlyInAnyOrder(component1, component2);
   }
 
@@ -305,11 +311,11 @@ public class ApiCycloneDxServiceV2Test
             "Not Provided");
 
     assertThat(bom.getComponents()).usingRecursiveFieldByFieldElementComparator(
-            RecursiveComparisonConfiguration.builder()
-                .withIgnoreCollectionOrder(true)
-                .withIgnoreAllExpectedNullFields(true)
-                .withIgnoredFields("bomRef", "properties")
-                .build())
+        RecursiveComparisonConfiguration.builder()
+            .withIgnoreCollectionOrder(true)
+            .withIgnoreAllExpectedNullFields(true)
+            .withIgnoredFields("bomRef", "properties")
+            .build())
         .containsExactlyInAnyOrder(component);
   }
 
@@ -364,13 +370,13 @@ public class ApiCycloneDxServiceV2Test
         "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar",
         "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar",
         "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar",
-        "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar"
-    );
+        "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar");
 
     assertThat(bom.getDependencies()).hasSize(5);
     Dependency root = bom.getDependencies().get(0);
     assertThat(root.getRef()).isEqualTo(rootComponent.getBomRef());
-    assertThat(root.getDependencies()).hasSize(2).extracting("ref")
+    assertThat(root.getDependencies()).hasSize(2)
+        .extracting("ref")
         .containsExactlyInAnyOrder(
             bomRefOf(bom, "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar"),
             bomRefOf(bom, "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar"));
@@ -384,10 +390,10 @@ public class ApiCycloneDxServiceV2Test
     assertThat(d2.getRef()).isEqualTo(bomRefOf(bom,
         "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar"));
     assertThat(d2.getDependencies()).hasSize(2);
-    assertThat(d2.getDependencies()).extracting("ref").containsExactlyInAnyOrder(
-        bomRefOf(bom, "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar"),
-        bomRefOf(bom, "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar")
-    );
+    assertThat(d2.getDependencies()).extracting("ref")
+        .containsExactlyInAnyOrder(
+            bomRefOf(bom, "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar"),
+            bomRefOf(bom, "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar"));
 
     Dependency d3 = bom.getDependencies().get(3);
     assertThat(d3.getRef()).isEqualTo(bomRefOf(bom, "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar"));
@@ -452,8 +458,12 @@ public class ApiCycloneDxServiceV2Test
   }
 
   private String bomRefOf(final Bom bom, final String purl) {
-    return bom.getComponents().stream()
-        .filter(c -> c.getPurl().equals(purl)).findFirst().map(Component::getBomRef).orElse(null);
+    return bom.getComponents()
+        .stream()
+        .filter(c -> c.getPurl().equals(purl))
+        .findFirst()
+        .map(Component::getBomRef)
+        .orElse(null);
   }
 
   @Test
@@ -557,12 +567,12 @@ public class ApiCycloneDxServiceV2Test
         "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar"));
     assertThat(
         bom.getDependencies().get(2).getDependencies().stream().map(BomReference::getRef)).containsExactlyInAnyOrder(
-        getBomRefOfComponent(bom, "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar"),
-        getBomRefOfComponent(bom, "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar"),
-        getBomRefOfComponent(bom, "pkg:maven/org.apache.httpcomponents/httpclient@4.5.13?type=jar"),
-        getBomRefOfComponent(bom,
-            "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar"),
-        getBomRefOfComponent(bom, "pkg:maven/org.eclipse.jetty/jetty-server@9.4.46.v20220331?type=jar"));
+            getBomRefOfComponent(bom, "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar"),
+            getBomRefOfComponent(bom, "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar"),
+            getBomRefOfComponent(bom, "pkg:maven/org.apache.httpcomponents/httpclient@4.5.13?type=jar"),
+            getBomRefOfComponent(bom,
+                "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar"),
+            getBomRefOfComponent(bom, "pkg:maven/org.eclipse.jetty/jetty-server@9.4.46.v20220331?type=jar"));
 
     assertComponentsVsDependencies(bom);
     assertToolVendor(bom.getMetadata());
@@ -576,19 +586,26 @@ public class ApiCycloneDxServiceV2Test
 
   private void assertComponentsVsDependencies(Bom bom) {
     List<Component> components = new ArrayList<>();
-    bom.getDependencies().forEach(
-        dependency -> bom.getComponents().stream()
-            .filter(component -> component.getBomRef().equals(dependency.getRef()))
-            .findFirst()
-            .ifPresent(components::add));
+    bom.getDependencies()
+        .forEach(
+            dependency -> bom.getComponents()
+                .stream()
+                .filter(component -> component.getBomRef().equals(dependency.getRef()))
+                .findFirst()
+                .ifPresent(components::add));
     assertThat(components.size()).isEqualTo(bom.getDependencies().size() - 1);
-    //The parent component is not in the components list
-    assertThat(components.stream().filter(
-        component -> component.getBomRef().equals(bom.getDependencies().get(0).getRef())).count()).isEqualTo(0);
+    // The parent component is not in the components list
+    assertThat(components.stream()
+        .filter(
+            component -> component.getBomRef().equals(bom.getDependencies().get(0).getRef()))
+        .count()).isEqualTo(0);
   }
 
-  private void assertBom(Response response, Version version, boolean hasVulnerabilities, boolean isSageReport)
-      throws Exception
+  private void assertBom(
+      Response response,
+      Version version,
+      boolean hasVulnerabilities,
+      boolean isSageReport) throws Exception
   {
     boolean hasOccurrences = version.compareTo(Version.VERSION_15) >= 0;
     boolean hasOriginalPurl = version.compareTo(Version.VERSION_14) >= 0;
@@ -607,8 +624,8 @@ public class ApiCycloneDxServiceV2Test
     assertThat(bom.getExternalReferences()).hasSize(1);
 
     Component component1 = createComponent("2fa0ab71b154da29ac134097bc6bbacd90987dd4c4005516159e6494d1d52ea2",
-            version, "pkg:nuget/jQuery@3.4.1", "pkg:nuget/jQuery@3.4.1", "5408e54a94044d1f1f21", "exact",
-        "jquery.3.4.1.nupkg",  "CC0-1.0", "CDDL-1.1", "MIT");
+        version, "pkg:nuget/jQuery@3.4.1", "pkg:nuget/jQuery@3.4.1", "5408e54a94044d1f1f21", "exact",
+        "jquery.3.4.1.nupkg", "CC0-1.0", "CDDL-1.1", "MIT");
     Component component2 = createComponent(version, "pkg:nuget/jQuery@3.2.1", null,
         "0babbbd2c221d24484f5", "similar", "common.ps1,install.ps1,uninstall.ps1",
         true, "CC0-1.0", "CDDL-1.1", "MIT");
@@ -623,7 +640,8 @@ public class ApiCycloneDxServiceV2Test
                 .withIgnoreAllExpectedNullFields(true)
                 .build())
         .contains(component1, component2, component3)
-        .map(Component::getBomRef).allMatch(bomRef -> bomRef.matches(UUID_REGEX));
+        .map(Component::getBomRef)
+        .allMatch(bomRef -> bomRef.matches(UUID_REGEX));
 
     if (hasVulnerabilities) {
       Vulnerability vulnerability = new Vulnerability();
@@ -685,10 +703,15 @@ public class ApiCycloneDxServiceV2Test
       assertThat(bom.getVulnerabilities()).isNull();
     }
 
-    if ( hasOccurrences ) {
+    if (hasOccurrences) {
       assertThat(bom.getComponents()).allMatch(component -> !component.getEvidence()
-          .getOccurrences().isEmpty());
-      assertThat(bom.getComponents().get(0).getEvidence().getOccurrences().get(0)
+          .getOccurrences()
+          .isEmpty());
+      assertThat(bom.getComponents()
+          .get(0)
+          .getEvidence()
+          .getOccurrences()
+          .get(0)
           .getLocation()).isEqualTo("jquery.3.4.1.nupkg");
     }
     else {
@@ -696,7 +719,10 @@ public class ApiCycloneDxServiceV2Test
     }
 
     if (hasOriginalPurl) {
-      bom.getComponents().get(0).getProperties().stream()
+      bom.getComponents()
+          .get(0)
+          .getProperties()
+          .stream()
           .filter(c -> c.getName().equals(SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME))
           .forEach(originalPurlProperty -> {
             assertThat(originalPurlProperty.getValue()).isEqualTo("pkg:nuget/jQuery@3.4.1");
@@ -704,9 +730,7 @@ public class ApiCycloneDxServiceV2Test
     }
   }
 
-  private void assertBomCVSSv4(Response response, Version version, boolean hasVulnerabilities)
-      throws Exception
-  {
+  private void assertBomCVSSv4(Response response, Version version, boolean hasVulnerabilities) throws Exception {
     byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
     Parser parser = BomParserFactory.createParser(bytes);
     Bom bom = parser.parse(bytes);
@@ -725,8 +749,10 @@ public class ApiCycloneDxServiceV2Test
             "db6b61d995de714813ac", "exact",
             "pkg:fake/com.google.guava/guava@30.1-jre?type=jar",
             false, "Apache-2.0");
-    final Property identificationSource = component1.getProperties().stream()
-        .filter(p -> p.getName().equals(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME)).findFirst()
+    final Property identificationSource = component1.getProperties()
+        .stream()
+        .filter(p -> p.getName().equals(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME))
+        .findFirst()
         .orElse(new Property());
     identificationSource.setName(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME);
     identificationSource.setValue("third-party-cvss4");
@@ -738,7 +764,8 @@ public class ApiCycloneDxServiceV2Test
                 .withIgnoreAllExpectedNullFields(true)
                 .build())
         .contains(component1)
-        .map(Component::getBomRef).allMatch(bomRef -> bomRef.matches(UUID_REGEX));
+        .map(Component::getBomRef)
+        .allMatch(bomRef -> bomRef.matches(UUID_REGEX));
 
     if (hasVulnerabilities) {
       Vulnerability vulnerability = new Vulnerability();
@@ -838,14 +865,14 @@ public class ApiCycloneDxServiceV2Test
   }
 
   private Component createComponent(
-          String sha256,
-          Version bomVersion,
-          String packageUrl,
-          String originalPurl,
-          String hashStr,
-          String matchState,
-          String filenames,
-          String... licenses)
+      String sha256,
+      Version bomVersion,
+      String packageUrl,
+      String originalPurl,
+      String hashStr,
+      String matchState,
+      String filenames,
+      String... licenses)
   {
     Component component = createComponent(bomVersion, packageUrl, originalPurl, hashStr, matchState,
         filenames, false, licenses);
@@ -972,8 +999,10 @@ public class ApiCycloneDxServiceV2Test
 
     assertThat(vulnerabilities)
         .usingRecursiveFieldByFieldElementComparator(
-            RecursiveComparisonConfiguration.builder().withIgnoreCollectionOrder(true)
-                .withIgnoreAllExpectedNullFields(true).build())
+            RecursiveComparisonConfiguration.builder()
+                .withIgnoreCollectionOrder(true)
+                .withIgnoreAllExpectedNullFields(true)
+                .build())
         .contains(vulnerability);
   }
 
@@ -1016,12 +1045,16 @@ public class ApiCycloneDxServiceV2Test
     List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
         Version.VERSION_14);
 
-    assertThat(vulnerabilities).hasSize(2).extracting("source").extracting("name", "url")
+    assertThat(vulnerabilities).hasSize(2)
+        .extracting("source")
+        .extracting("name", "url")
         .containsExactlyInAnyOrder(tuple("NVD", "www.test.com"), tuple("SONATYPE", "www.test1.com"));
 
-    assertThat(vulnerabilities).hasSize(2).extracting("ratings")
+    assertThat(vulnerabilities).hasSize(2)
+        .extracting("ratings")
         .flatExtracting(list -> (List<Rating>) list)
-        .extracting("source").extracting("name", "url")
+        .extracting("source")
+        .extracting("name", "url")
         .containsExactlyInAnyOrder(tuple("NVD", null), tuple("SONATYPE", null));
   }
 
@@ -1042,7 +1075,8 @@ public class ApiCycloneDxServiceV2Test
     List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
         Version.VERSION_14);
 
-    assertThat(vulnerabilities).hasSize(3).extracting("ratings")
+    assertThat(vulnerabilities).hasSize(3)
+        .extracting("ratings")
         .flatExtracting(list -> (List<Rating>) list)
         .extracting("method")
         .containsExactlyInAnyOrder(Method.CVSSV3, Method.OTHER, Method.CVSSV31);
@@ -1062,7 +1096,9 @@ public class ApiCycloneDxServiceV2Test
     List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
         Version.VERSION_14);
 
-    assertThat(vulnerabilities).hasSize(2).extracting("cwes").flatExtracting(list -> (List<Integer>) list)
+    assertThat(vulnerabilities).hasSize(2)
+        .extracting("cwes")
+        .flatExtracting(list -> (List<Integer>) list)
         .containsExactlyInAnyOrder(220, 110, 120);
   }
 
@@ -1083,7 +1119,8 @@ public class ApiCycloneDxServiceV2Test
     List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
         Version.VERSION_14);
 
-    assertThat(vulnerabilities).hasSize(3).extracting("ratings")
+    assertThat(vulnerabilities).hasSize(3)
+        .extracting("ratings")
         .flatExtracting(list -> (List<Rating>) list)
         .extracting("severity")
         .containsExactlyInAnyOrder(Severity.MEDIUM, Severity.CRITICAL, Severity.UNKNOWN);
@@ -1103,7 +1140,8 @@ public class ApiCycloneDxServiceV2Test
     List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
         Version.VERSION_14);
 
-    assertThat(vulnerabilities).hasSize(1).extracting("affects")
+    assertThat(vulnerabilities).hasSize(1)
+        .extracting("affects")
         .flatExtracting(list -> (List<Rating>) list)
         .extracting("ref")
         .containsExactlyInAnyOrder("test1", "test2");
@@ -1135,14 +1173,17 @@ public class ApiCycloneDxServiceV2Test
     List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents,
         Version.VERSION_14);
 
-    assertThat(vulnerabilities).hasSize(3).extracting("ratings")
+    assertThat(vulnerabilities).hasSize(3)
+        .extracting("ratings")
         .flatExtracting(list -> (List<Rating>) list)
         .extracting("severity")
         .containsExactlyInAnyOrder(Severity.MEDIUM, Severity.CRITICAL, Severity.UNKNOWN);
 
     Vulnerability vulnerability =
-        vulnerabilities.stream().filter(v -> v.getSource().getName().equalsIgnoreCase("f19ac613238ca6e4ae78"))
-            .findFirst().get();
+        vulnerabilities.stream()
+            .filter(v -> v.getSource().getName().equalsIgnoreCase("f19ac613238ca6e4ae78"))
+            .findFirst()
+            .get();
 
     assertThat(vulnerability.getAnalysis().getDetail()).isEqualTo(analysis.detail);
     assertThat(vulnerability.getAnalysis().getResponses().get(0).getResponseName()).isEqualTo("can_not_fix");
@@ -1172,8 +1213,10 @@ public class ApiCycloneDxServiceV2Test
         Version.VERSION_14);
 
     Vulnerability vulnerability =
-        vulnerabilities.stream().filter(v -> v.getSource().getName().equalsIgnoreCase("f19ac613238ca6e4ae78"))
-            .findFirst().get();
+        vulnerabilities.stream()
+            .filter(v -> v.getSource().getName().equalsIgnoreCase("f19ac613238ca6e4ae78"))
+            .findFirst()
+            .get();
 
     assertThat(vulnerability.getAnalysis().getDetail()).isEqualTo(analysis.detail);
     assertThat(vulnerability.getAnalysis().getResponses()).isNull();
@@ -1212,7 +1255,8 @@ public class ApiCycloneDxServiceV2Test
     Map<String, Map<String, String>> matchingComponents = new HashMap<>();
 
     ApiReportComponentDTOV2 noScore =
-        createComponentReport("pkg:generic/test@5","f19ac613238ca6e4ae77", "cve", null, "120", "CVSSv3", "www.test.com",
+        createComponentReport("pkg:generic/test@5", "f19ac613238ca6e4ae77", "cve", null, "120", "CVSSv3",
+            "www.test.com",
             "Critical", "CVE-2022-1234");
     matchingComponents.put(noScore.packageUrl, null);
     componentReport.add(noScore);
@@ -1265,7 +1309,7 @@ public class ApiCycloneDxServiceV2Test
       String reference,
       String bomRef)
   {
-    ApiReportComponentDTOV2  componentReport =
+    ApiReportComponentDTOV2 componentReport =
         createComponentReport(purl, hash, source, severity, cwe, vectorSource, url, category, reference);
     Map<String, String> componentInfo = new HashMap<>();
     componentInfo.put(componentReport.hash, bomRef);

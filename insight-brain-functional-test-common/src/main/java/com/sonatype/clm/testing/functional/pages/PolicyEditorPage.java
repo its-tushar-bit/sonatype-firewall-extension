@@ -27,7 +27,7 @@ public class PolicyEditorPage
 
   public static String urlToEdit(Owner owner, String policyId) {
     boolean isOrgOrApp = owner.getType().equals(OwnerType.ORGANIZATION) ||
-            owner.getType().equals(OwnerType.APPLICATION);
+        owner.getType().equals(OwnerType.APPLICATION);
     String ownerId = isOrgOrApp ? owner.getPublicId() : owner.getId();
     return urlToEdit(owner.getType(), ownerId, policyId);
   }
@@ -38,7 +38,7 @@ public class PolicyEditorPage
 
   public static String urlToCreate(Owner owner) {
     boolean isOrgOrApp = owner.getType().equals(OwnerType.ORGANIZATION) ||
-            owner.getType().equals(OwnerType.APPLICATION);
+        owner.getType().equals(OwnerType.APPLICATION);
     String ownerId = isOrgOrApp ? owner.getPublicId() : owner.getId();
     return urlToCreate(owner.getType(), ownerId);
   }

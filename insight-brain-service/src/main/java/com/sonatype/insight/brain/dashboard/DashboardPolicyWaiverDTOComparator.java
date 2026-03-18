@@ -106,10 +106,10 @@ public class DashboardPolicyWaiverDTOComparator
         return 0; // Both null → equal
       }
       if (o1.createTime == null) {
-        return 1;  // o1 is null → o1 comes AFTER o2
+        return 1; // o1 is null → o1 comes AFTER o2
       }
       if (o2.createTime == null) {
-        return -1;  //o2 is null → o1 comes BEFORE o2
+        return -1; // o2 is null → o1 comes BEFORE o2
       }
       return o2.createTime.compareTo(o1.createTime); // DESCENDING: newer dates come first
     }
@@ -197,6 +197,11 @@ public class DashboardPolicyWaiverDTOComparator
   // Test visible enumeration
   enum DashboardPolicyWaiverOrderByEnum
   {
-    COMPONENT_SCOPE, CREATION_DATE, EXPIRATION_DATE, OWNER_SCOPE, POLICY_NAME, THREAT_LEVEL
+    COMPONENT_SCOPE,
+    CREATION_DATE,
+    EXPIRATION_DATE,
+    OWNER_SCOPE,
+    POLICY_NAME,
+    THREAT_LEVEL
   }
 }

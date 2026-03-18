@@ -50,7 +50,7 @@ public class CLMLicenseManagerDatabaseTest
 {
   private static final String UNEXPIRED_LICENSE_FINGERPRINT = "662ea4dcae50eccbd92df98bc2a10217d3264bea";
 
-  private static final String EXPIRED_LICENSE_FINGERPRINT =  "238de98fcee541b7c6b311dedfa6799de2524181";
+  private static final String EXPIRED_LICENSE_FINGERPRINT = "238de98fcee541b7c6b311dedfa6799de2524181";
 
   @ClassRule
   public static HdsMockServerRule hdsMockServer = new HdsMockServerRule();
@@ -181,8 +181,8 @@ public class CLMLicenseManagerDatabaseTest
     mockHdsProductLicenseDetails(fingerprint);
 
     assertThatThrownBy(
-        () -> clmLicenseManager.installLicense(getTestLicenseUrl(fingerprint).openStream())
-    ).isInstanceOf(LicensingException.class);
+        () -> clmLicenseManager.installLicense(getTestLicenseUrl(fingerprint).openStream()))
+            .isInstanceOf(LicensingException.class);
 
     assertThat(productLicense.isValid()).isFalse();
     assertThat(productLicense.getFingerprint()).isEqualTo(null);

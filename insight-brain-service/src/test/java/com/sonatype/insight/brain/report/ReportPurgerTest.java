@@ -44,10 +44,11 @@ public class ReportPurgerTest
       reportDir = reportDir.resolve("report.cache");
       Files.createDirectories(reportDir);
       for (String filename : new String[]{
-          "index.html", "bom.json", "data.json", "licenses.json",
-          "licensethreats.json", "partialmatched.json", "policyalerts.json", "policythreats.json", "security.json",
-          "summary.json"
-      }) {
+        "index.html", "bom.json", "data.json", "licenses.json",
+        "licensethreats.json", "partialmatched.json", "policyalerts.json", "policythreats.json", "security.json",
+        "summary.json"
+      })
+      {
         Files.write(reportDir.resolve(filename),
             Collections.singletonList("report.cache/" + filename));
       }
@@ -89,16 +90,16 @@ public class ReportPurgerTest
     assertThat(trashDir.list()).containsExactly(trashFile.getName());
     try (FileSystem zipFileSystem = FileSystems.newFileSystem(trashFile.toPath(), (ClassLoader) null)) {
       String[] expectedZipEntries = {
-          "report.zip", "report.cache/index.html",
-          "report.cache/bom.json",
-          "report.cache/data.json",
-          "report.cache/licenses.json",
-          "report.cache/licensethreats.json",
-          "report.cache/partialmatched.json",
-          "report.cache/policyalerts.json",
-          "report.cache/policythreats.json",
-          "report.cache/security.json",
-          "report.cache/summary.json"
+        "report.zip", "report.cache/index.html",
+        "report.cache/bom.json",
+        "report.cache/data.json",
+        "report.cache/licenses.json",
+        "report.cache/licensethreats.json",
+        "report.cache/partialmatched.json",
+        "report.cache/policyalerts.json",
+        "report.cache/policythreats.json",
+        "report.cache/security.json",
+        "report.cache/summary.json"
       };
       for (String zipEntry : expectedZipEntries) {
         Path zipEntryPath = zipFileSystem.getPath(app.getId(), reportId, zipEntry);

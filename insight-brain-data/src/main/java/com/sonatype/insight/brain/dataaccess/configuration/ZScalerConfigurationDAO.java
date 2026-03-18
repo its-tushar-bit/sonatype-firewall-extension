@@ -31,8 +31,9 @@ public class ZScalerConfigurationDAO
   private final ZscalerFormatDAO zscalerFormatDAO;
 
   @Inject
-  public ZScalerConfigurationDAO(OperationalDataStore operationalDataStore,
-                                 ZscalerFormatDAO zscalerFormatDAO)
+  public ZScalerConfigurationDAO(
+      OperationalDataStore operationalDataStore,
+      ZscalerFormatDAO zscalerFormatDAO)
   {
     super(operationalDataStore);
     this.zscalerFormatDAO = zscalerFormatDAO;

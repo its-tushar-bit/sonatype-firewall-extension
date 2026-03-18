@@ -43,7 +43,8 @@ import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorP
 import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.INVALID_PACKAGE_MESSAGE;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public abstract class AbstractProprietaryConfigEditorTest extends AbstractFunctionalTest
+public abstract class AbstractProprietaryConfigEditorTest
+    extends AbstractFunctionalTest
 {
   private Owner currentOwner;
 
@@ -92,7 +93,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
     ProprietaryConfigEditorPage.matcherValue().shouldBe(empty);
     ProprietaryConfigEditorPage.addButton().shouldHave(attribute("disabled"));
 
-    //take focus off of the select to prevent the select options displayed
+    // take focus off of the select to prevent the select options displayed
     SidebarNavigation.container().click();
 
     assertInheritanceSection();
@@ -190,7 +191,8 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
 
     ProprietaryConfigInheritedList list = configTile.proprietaryConfigInheritedList(0);
 
-    list.ownerName().shouldBe(visible)
+    list.ownerName()
+        .shouldBe(visible)
         .shouldHave(ProprietaryConfigInheritedTile.inheritedText(parentOwners.get(0).getName()));
     list.inheritedMatchers().get(0).shouldHave(text(".*test\\.zip"));
     list.inheritedMatchers().get(0).shouldHave(text("RegEx"));

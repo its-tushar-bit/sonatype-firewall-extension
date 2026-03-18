@@ -18,7 +18,7 @@ public class CompareUtil
    * @param object1 the first object
    * @param object2 the second object
    * @return 1 if the first object is null and the second object is not null, -1 if the second object is null and the
-   * first object is not null, 0 otherwise.
+   *         first object is not null, 0 otherwise.
    */
   public static int compareObjectsByNull(final Object object1, final Object object2) {
     if (object1 == null && object2 != null) {

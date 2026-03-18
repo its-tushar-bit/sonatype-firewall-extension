@@ -31,7 +31,7 @@ public class ApiSearchResultDTOV2
    *
    * @deprecated Will be removed in next API version in favor of returning relative URL only.
    */
-  @Deprecated  // CLM-9330
+  @Deprecated // CLM-9330
   public String reportUrl;
 
   public String hash;

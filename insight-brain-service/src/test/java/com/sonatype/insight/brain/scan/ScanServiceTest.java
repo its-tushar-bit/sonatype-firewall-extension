@@ -120,14 +120,15 @@ public class ScanServiceTest
     receipt.setScanId("scan-id");
     lenient().when(scanUploader.upload(any(), any(Application.class), anyString(), any(), eq(null), any(), any(),
         anyBoolean())).thenReturn(receipt);
-    lenient().when(reportDownloader.downloadReport(any(ApplicationReport.class), anyInt(), anyInt())).then(
-        (Answer<Boolean>) invocation -> {
-          ApplicationReport reportFile = (ApplicationReport) invocation.getArguments()[0];
-          Application app = reportFile.getApplication();
-          ReportHelper.saveMockReport(insightWork, tempDir, "/ScanServiceTest/report", app.getId(),
-              reportFile.getScanId());
-          return true;
-        });
+    lenient().when(reportDownloader.downloadReport(any(ApplicationReport.class), anyInt(), anyInt()))
+        .then(
+            (Answer<Boolean>) invocation -> {
+              ApplicationReport reportFile = (ApplicationReport) invocation.getArguments()[0];
+              Application app = reportFile.getApplication();
+              ReportHelper.saveMockReport(insightWork, tempDir, "/ScanServiceTest/report", app.getId(),
+                  reportFile.getScanId());
+              return true;
+            });
     hdsMockServer.reset();
     setHdsUrl(hdsMockServer.getHttpUrl());
   }
@@ -159,7 +160,7 @@ public class ScanServiceTest
         null, null, null);
     assertThat(scanTicket).isNotNull();
     assertThat(scanTicket.ticketId).isNotNull();
-    
+
     waitForScanResults();
     PolicyEvaluation policyEvaluation =
         policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanTicket.scanId);
@@ -194,16 +195,17 @@ public class ScanServiceTest
     Mockito.reset(scanUploader);
     when(scanUploader.upload(any(), any(Application.class), anyString(), any(ClientScanType.class), eq(null),
         any(), any(), anyBoolean()))
-        .thenAnswer(invocation -> {
-          String appPublicId = ((Application) invocation.getArgument(1)).getPublicId();
-          if (appPublicId.startsWith("t1") &&
-              !countDownLatch.await(5, TimeUnit.SECONDS)) {
-            return null;
-          }
-          ScanReceipt receipt = new ScanReceipt();
-          receipt.setScanId("scan-id-" + appPublicId);
-          return receipt;
-        });
+            .thenAnswer(invocation -> {
+              String appPublicId = ((Application) invocation.getArgument(1)).getPublicId();
+              if (appPublicId.startsWith("t1") &&
+                  !countDownLatch.await(5, TimeUnit.SECONDS))
+            {
+                return null;
+              }
+              ScanReceipt receipt = new ScanReceipt();
+              receipt.setScanId("scan-id-" + appPublicId);
+              return receipt;
+            });
     Mockito.reset(reportDownloader);
     when(reportDownloader.downloadReport(any(ApplicationReport.class), anyInt(), anyInt()))
         .then((Answer<Boolean>) invocation -> {
@@ -256,15 +258,19 @@ public class ScanServiceTest
       // Check scans from tenant 1 are still blocked, unblock them, and check that they complete
       TenantTestHelper.testAsTenantAndInvalidate(tenant1.tenantSlug, t -> {
         for (String t1TicketId : t1TicketIds) {
-          assertThat(persistedScanTicketDAO.getById(t1TicketId)).isNotNull().extracting(PersistedScanTicket::getStateId)
+          assertThat(persistedScanTicketDAO.getById(t1TicketId)).isNotNull()
+              .extracting(PersistedScanTicket::getStateId)
               .isEqualTo(State.UPLOADING_SCAN.name());
         }
 
         countDownLatch.countDown();
 
-        await().atMost(5, TimeUnit.SECONDS).until(
-            () -> persistedScanTicketDAO.getAll().stream().map(PersistedScanTicket::getStateId)
-                .allMatch(s -> s.equals(State.DONE.name())));
+        await().atMost(5, TimeUnit.SECONDS)
+            .until(
+                () -> persistedScanTicketDAO.getAll()
+                    .stream()
+                    .map(PersistedScanTicket::getStateId)
+                    .allMatch(s -> s.equals(State.DONE.name())));
       });
     }
     finally {
@@ -297,7 +303,7 @@ public class ScanServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       InputStream appBundle = getBundle("app01.zip");
       scanTicket = scanService.scanBinary(app.getPublicId(), appBundle, filePath, new Stage(Stage.ID_BUILD), false,
-              null, null, null);
+          null, null, null);
     }).withMessage("Filename must not be a directory: " + filePath);
   }
 
@@ -308,7 +314,7 @@ public class ScanServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       InputStream appBundle = getBundle("app01.zip");
       scanTicket = scanService.scanBinary(app.getPublicId(), appBundle, filePath, new Stage(Stage.ID_BUILD), false,
-              null, null, null);
+          null, null, null);
     }).withMessage("Filename must not be a directory: " + filePath);
   }
 

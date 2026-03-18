@@ -47,8 +47,9 @@ public class DatabaseUtil
   @Trace
   public static boolean tableExists(DataSource dataSource, String databaseSchema, String tableName) {
     try (Connection connection = dataSource.getConnection();
-         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES " +
-             "WHERE TABLE_SCHEMA = ? AND LOWER(TABLE_NAME) = ?")) {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES " +
+            "WHERE TABLE_SCHEMA = ? AND LOWER(TABLE_NAME) = ?"))
+    {
       preparedStatement.setString(1, databaseSchema);
       preparedStatement.setString(2, tableName);
       try (ResultSet result = preparedStatement.executeQuery()) {
@@ -64,8 +65,9 @@ public class DatabaseUtil
   @Trace
   public static boolean schemaExists(DataSource dataSource, String databaseSchema) {
     try (Connection connection = dataSource.getConnection();
-         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES " +
-             "WHERE TABLE_SCHEMA = ?")) {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES " +
+            "WHERE TABLE_SCHEMA = ?"))
+    {
       preparedStatement.setString(1, databaseSchema);
       try (ResultSet result = preparedStatement.executeQuery()) {
         return result.next();
@@ -80,9 +82,10 @@ public class DatabaseUtil
   @Trace
   public static boolean databaseSchemaExists(DataSource dataSource, String databaseSchema) {
     try (Connection connection = dataSource.getConnection();
-         PreparedStatement preparedStatement = connection.prepareStatement(
-             "SELECT * FROM INFORMATION_SCHEMA.SCHEMATA " +
-                 "WHERE SCHEMA_NAME = ?")) {
+        PreparedStatement preparedStatement = connection.prepareStatement(
+            "SELECT * FROM INFORMATION_SCHEMA.SCHEMATA " +
+                "WHERE SCHEMA_NAME = ?"))
+    {
       preparedStatement.setString(1, databaseSchema);
       try (ResultSet result = preparedStatement.executeQuery()) {
         return result.next();
@@ -137,7 +140,8 @@ public class DatabaseUtil
     }
 
     try (Connection connection = dataSource.getConnection();
-         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        PreparedStatement preparedStatement = connection.prepareStatement(sql))
+    {
       if (preparedStatement.getParameterMetaData().getParameterCount() == 1) {
         preparedStatement.setString(1, dataStoreId);
       }
@@ -159,10 +163,11 @@ public class DatabaseUtil
   @Trace
   public static Long getLastCheckinTime(final DataSource dataSource, final String databaseSchema) {
     try (Connection connection = dataSource.getConnection();
-         Statement statement = connection.createStatement();
-         ResultSet resultSet = statement.executeQuery(
-             "SELECT MAX(last_checkin_time) FROM " + databaseSchema +
-                 ".QRTZ_SCHEDULER_STATE")) {
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(
+            "SELECT MAX(last_checkin_time) FROM " + databaseSchema +
+                ".QRTZ_SCHEDULER_STATE"))
+    {
       if (resultSet.next()) {
         return resultSet.getLong(1);
       }
@@ -217,7 +222,8 @@ public class DatabaseUtil
     Map<String, Integer> schemaVersions = new HashMap<>();
 
     try (Connection connection = dataSource.getConnection();
-         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        PreparedStatement preparedStatement = connection.prepareStatement(sql))
+    {
       ResultSet result = preparedStatement.executeQuery();
       while (result != null && result.next()) {
         schemaVersions.put(result.getString("data_store_id"), result.getInt("schema_version"));
@@ -239,9 +245,8 @@ public class DatabaseUtil
     try (
         Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(
-            "select schema_name from information_schema.schemata where schema_name like 't\\_%'"
-        )
-    ) {
+            "select schema_name from information_schema.schemata where schema_name like 't\\_%'"))
+    {
       ResultSet result = preparedStatement.executeQuery();
       while (result != null && result.next()) {
         schemas.add(result.getString("schema_name"));

@@ -61,18 +61,18 @@ public class ApiComponentReleaseQuarantineResource
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains:" +
-                  "<ul>" +
-                  "<li>The quarantined component details for the component being released.</li>" +
-                  "<li>The quarantine and release times.</li>" +
-                  "<li>A list of policy violations that were waived to release the component from quarantine.</li>" +
-                  "<ul>",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains:" +
+                "<ul>" +
+                "<li>The quarantined component details for the component being released.</li>" +
+                "<li>The quarantine and release times.</li>" +
+                "<li>A list of policy violations that were waived to release the component from quarantine.</li>" +
+                "<ul>",
+            useReturnTypeSchema = true)
       })
   public ApiComponentReleasedFromQuarantineDTO releaseQuarantineWithoutReEval(
-      @Parameter(description = "Enter the component `quarantineId`.")
-      @PathParam("quarantineId") final String quarantineId,
+      @Parameter(
+          description = "Enter the component `quarantineId`.") @PathParam("quarantineId") final String quarantineId,
       @RequestBody(description = "Enter a waiver comment for releasing the component from quarantine.",
           required = true) final String comment)
   {

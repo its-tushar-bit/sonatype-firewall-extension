@@ -47,8 +47,7 @@ public class SbomPolicyService
   public SbomPolicyService(
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final ThirdPartyScanDAO thirdPartyScanDAO,
-      final ReportService reportService
-  )
+      final ReportService reportService)
   {
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
@@ -87,7 +86,8 @@ public class SbomPolicyService
       throw new BadRequestException("componentRef, fileCoordinateId and hash cannot be both null or empty.");
     }
 
-    ReportEntry policyViolationsReportEntry = policyThreatsReportEntry != null ? policyThreatsReportEntry
+    ReportEntry policyViolationsReportEntry = policyThreatsReportEntry != null
+        ? policyThreatsReportEntry
         : getPolicyViolationsReportEntry(applicationId, sbomVersion);
 
     if (policyViolationsReportEntry == null) {
@@ -141,18 +141,19 @@ public class SbomPolicyService
         // Match first by componentRefs
         if (isJsonNodeNotNull(componentRefsNode)) {
           List<String> bomNodeComponentRefs = JsonUtils.getStringListFromArray(componentRefsNode);
-          //given that we consolidate any possible multiple componentRefs into a single componentRef during merge
+          // given that we consolidate any possible multiple componentRefs into a single componentRef during merge
           // we can safely assume that the first componentRef in the list is the one we are looking for
           if (CollectionUtils.isNotEmpty(bomNodeComponentRefs) && bomNodeComponentRefs.get(0).equals(componentRef)) {
             return hashNode.asText();
           }
         }
 
-        //Fallback to Match by sonatypeIdentifier for old sbom reports
+        // Fallback to Match by sonatypeIdentifier for old sbom reports
         JsonNode sonatypeIdentifierNode = bomComponentNode.get(SbomCycloneDxUtils.PROPERTY_SONATYPE_IDENTIFIER);
         if (isJsonNodeNotNull(sonatypeIdentifierNode)
             && StringUtils.isNotBlank(fileCoordinateId)
-            && fileCoordinateId.equals(sonatypeIdentifierNode.asText())) {
+            && fileCoordinateId.equals(sonatypeIdentifierNode.asText()))
+        {
           return hashNode.asText();
         }
         // Fallback match by hash
@@ -173,7 +174,8 @@ public class SbomPolicyService
     ThirdPartySbomMetadata thirdPartySbomMetadata =
         thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(applicationId, sbomVersion);
     if (thirdPartySbomMetadata == null
-        || !ThirdPartySbomMetadataStatus.ACTIVE.equals(thirdPartySbomMetadata.getStatus())) {
+        || !ThirdPartySbomMetadataStatus.ACTIVE.equals(thirdPartySbomMetadata.getStatus()))
+    {
       throw new NotFoundException(
           String.format("Cannot find version %s for application with ID %s.", sbomVersion, applicationId));
     }

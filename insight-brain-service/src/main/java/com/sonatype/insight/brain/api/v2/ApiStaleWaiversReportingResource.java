@@ -54,23 +54,20 @@ public class ApiStaleWaiversReportingResource
       "Permissions required: View IQ Elements. You can view stale waivers only for applications/repositories " +
       " to which you have access. ",
       responses = {
-          @ApiResponse(
-              responseCode = "409",
-              description = "Found waivers for applications/repositories that have not been evaluated since IQ " +
-                  "Server version 76. Re-evaluating the repository is recommended."),
-          @ApiResponse(
-              responseCode = "200",
-              description =
-                  "The response contains waiverId of the stale waiver, policyId and policyName of the policy " +
-                      "being waived, comment, waiver scope, time created, expiry time and the waiver " +
-                      "creator details. " +
-                      "The response field staleEvaluations contains a list of applications or repositories " +
-                      "that have not " +
-                      "been evaluated since the waiver was created. ",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "409",
+            description = "Found waivers for applications/repositories that have not been evaluated since IQ " +
+                "Server version 76. Re-evaluating the repository is recommended."),
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains waiverId of the stale waiver, policyId and policyName of the policy " +
+                "being waived, comment, waiver scope, time created, expiry time and the waiver " +
+                "creator details. " +
+                "The response field staleEvaluations contains a list of applications or repositories " +
+                "that have not " +
+                "been evaluated since the waiver was created. ",
+            useReturnTypeSchema = true)
+      })
   public ApiStaleWaiversResponseDTO getStaleWaivers() {
     ApiStaleWaiversResponseDTO staleWaiversResponseDTO = new ApiStaleWaiversResponseDTO();
     staleWaiversResponseDTO.staleWaivers = staleWaiverService.getStaleWaivers();

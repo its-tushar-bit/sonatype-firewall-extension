@@ -63,22 +63,22 @@ import static org.awaitility.Awaitility.await;
  * <p>
  * Some Guidance on using/extending these tests:
  * <p>
- *   <ul>
- *   <li>We use these tests to test the end-to-end flow of importing and exporting SBOMs in different formats, versions,
+ * <ul>
+ * <li>We use these tests to test the end-to-end flow of importing and exporting SBOMs in different formats, versions,
  * specifications.</li>
  *
- *  <li>The idea is to catch regression issues when converting and exporting to different formats due the
+ * <li>The idea is to catch regression issues when converting and exporting to different formats due the
  * ongoing changes in core SBOM features.</li>
  *
- *  <li>Try to use comprehensive SBOMs for each scenario to cover as many edge cases as possible</li>
+ * <li>Try to use comprehensive SBOMs for each scenario to cover as many edge cases as possible</li>
  *
- * <li> Use the `variant` scenarios only for exceptional cases that cannot be meaningfully covered in general cases
- *  and that is agreed upon by the team. (Ideally all variants should be tested at unit tests level)</li>
+ * <li>Use the `variant` scenarios only for exceptional cases that cannot be meaningfully covered in general cases
+ * and that is agreed upon by the team. (Ideally all variants should be tested at unit tests level)</li>
  *
- * <li> If any unit/int test scenarios are automatically getting covered by these regression tests,
- *  consider removing those duplicate unit/int tests. </li>
+ * <li>If any unit/int test scenarios are automatically getting covered by these regression tests,
+ * consider removing those duplicate unit/int tests.</li>
  *
- *  </ul>
+ * </ul>
  */
 @RunWith(Parameterized.class)
 public class SbomRegressionTest
@@ -149,51 +149,51 @@ public class SbomRegressionTest
   @Parameterized.Parameters(name = "from: {0}_{1}_{2} -> to: {3}_{4}_{5} {6}")
   public static Collection<Object[]> data() {
     Object[][] data = {
-        {"cyclonedx", "1.1", "xml", "cyclonedx", "1.5", "xml", ""},
-        {"cyclonedx", "1.1", "xml", "cyclonedx", "1.5", "json", ""},
-        {"cyclonedx", "1.1", "xml", "cyclonedx", "1.6", "xml", ""},
-        {"cyclonedx", "1.1", "xml", "cyclonedx", "1.6", "json", ""},
-        {"cyclonedx", "1.1", "xml", "spdx", "2.2", "xml", ""},
-        {"cyclonedx", "1.1", "xml", "spdx", "2.2", "json", ""},
-        {"cyclonedx", "1.1", "xml", "spdx", "2.3", "xml", ""},
-        {"cyclonedx", "1.1", "xml", "spdx", "2.3", "json", ""},
-        {"cyclonedx", "1.4", "xml", "cyclonedx", "1.5", "xml", ""},
-        {"cyclonedx", "1.4", "xml", "cyclonedx", "1.5", "json", ""},
-        {"cyclonedx", "1.4", "xml", "cyclonedx", "1.6", "xml", ""},
-        {"cyclonedx", "1.4", "xml", "cyclonedx", "1.6", "json", ""},
-        {"cyclonedx", "1.4", "xml", "spdx", "2.2", "xml", ""},
-        {"cyclonedx", "1.4", "xml", "spdx", "2.2", "json", ""},
-        {"cyclonedx", "1.4", "xml", "spdx", "2.3", "xml", ""},
-        {"cyclonedx", "1.4", "xml", "spdx", "2.3", "json", ""},
-        {"cyclonedx", "1.4", "json", "cyclonedx", "1.5", "xml", ""},
-        {"cyclonedx", "1.4", "json", "cyclonedx", "1.5", "json", ""},
-        {"cyclonedx", "1.4", "json", "cyclonedx", "1.6", "xml", ""},
-        {"cyclonedx", "1.4", "json", "cyclonedx", "1.6", "json", ""},
-        {"cyclonedx", "1.4", "json", "spdx", "2.2", "xml", ""},
-        {"cyclonedx", "1.4", "json", "spdx", "2.2", "json", ""},
-        {"cyclonedx", "1.4", "json", "spdx", "2.3", "xml", ""},
-        {"cyclonedx", "1.4", "json", "spdx", "2.3", "json", ""},
-        {"cyclonedx", "1.5", "xml", "cyclonedx", "1.6", "xml", ""},
-        {"cyclonedx", "1.5", "xml", "cyclonedx", "1.6", "json", ""},
-        {"cyclonedx", "1.5", "json", "cyclonedx", "1.6", "xml", ""},
-        {"cyclonedx", "1.5", "json", "cyclonedx", "1.6", "json", ""},
-        {"cyclonedx", "1.5", "xml", "spdx", "2.3", "xml", ""},
-        {"cyclonedx", "1.5", "xml", "spdx", "2.3", "json", ""},
-        {"cyclonedx", "1.5", "json", "spdx", "2.3", "xml", ""},
-        {"cyclonedx", "1.5", "json", "spdx", "2.3", "json", ""},
-        {"cyclonedx", "1.6", "xml", "cyclonedx", "1.6", "xml", ""},
-        {"cyclonedx", "1.6", "xml", "cyclonedx", "1.6", "json", ""},
-        {"cyclonedx", "1.6", "json", "cyclonedx", "1.6", "xml", ""},
-        {"cyclonedx", "1.6", "json", "cyclonedx", "1.6", "json", ""},
-        {"cyclonedx", "1.6", "xml", "spdx", "2.2", "xml", ""},
-        {"cyclonedx", "1.6", "xml", "spdx", "2.2", "json", ""},
-        {"cyclonedx", "1.6", "json", "spdx", "2.2", "xml", ""},
-        {"cyclonedx", "1.6", "json", "spdx", "2.2", "json", ""},
-        {"cyclonedx", "1.6", "xml", "spdx", "2.3", "xml", ""},
-        {"cyclonedx", "1.6", "xml", "spdx", "2.3", "json", ""},
-        {"cyclonedx", "1.6", "json", "spdx", "2.3", "xml", ""},
-        {"cyclonedx", "1.6", "json", "spdx", "2.3", "json", ""},
-        };
+      {"cyclonedx", "1.1", "xml", "cyclonedx", "1.5", "xml", ""},
+      {"cyclonedx", "1.1", "xml", "cyclonedx", "1.5", "json", ""},
+      {"cyclonedx", "1.1", "xml", "cyclonedx", "1.6", "xml", ""},
+      {"cyclonedx", "1.1", "xml", "cyclonedx", "1.6", "json", ""},
+      {"cyclonedx", "1.1", "xml", "spdx", "2.2", "xml", ""},
+      {"cyclonedx", "1.1", "xml", "spdx", "2.2", "json", ""},
+      {"cyclonedx", "1.1", "xml", "spdx", "2.3", "xml", ""},
+      {"cyclonedx", "1.1", "xml", "spdx", "2.3", "json", ""},
+      {"cyclonedx", "1.4", "xml", "cyclonedx", "1.5", "xml", ""},
+      {"cyclonedx", "1.4", "xml", "cyclonedx", "1.5", "json", ""},
+      {"cyclonedx", "1.4", "xml", "cyclonedx", "1.6", "xml", ""},
+      {"cyclonedx", "1.4", "xml", "cyclonedx", "1.6", "json", ""},
+      {"cyclonedx", "1.4", "xml", "spdx", "2.2", "xml", ""},
+      {"cyclonedx", "1.4", "xml", "spdx", "2.2", "json", ""},
+      {"cyclonedx", "1.4", "xml", "spdx", "2.3", "xml", ""},
+      {"cyclonedx", "1.4", "xml", "spdx", "2.3", "json", ""},
+      {"cyclonedx", "1.4", "json", "cyclonedx", "1.5", "xml", ""},
+      {"cyclonedx", "1.4", "json", "cyclonedx", "1.5", "json", ""},
+      {"cyclonedx", "1.4", "json", "cyclonedx", "1.6", "xml", ""},
+      {"cyclonedx", "1.4", "json", "cyclonedx", "1.6", "json", ""},
+      {"cyclonedx", "1.4", "json", "spdx", "2.2", "xml", ""},
+      {"cyclonedx", "1.4", "json", "spdx", "2.2", "json", ""},
+      {"cyclonedx", "1.4", "json", "spdx", "2.3", "xml", ""},
+      {"cyclonedx", "1.4", "json", "spdx", "2.3", "json", ""},
+      {"cyclonedx", "1.5", "xml", "cyclonedx", "1.6", "xml", ""},
+      {"cyclonedx", "1.5", "xml", "cyclonedx", "1.6", "json", ""},
+      {"cyclonedx", "1.5", "json", "cyclonedx", "1.6", "xml", ""},
+      {"cyclonedx", "1.5", "json", "cyclonedx", "1.6", "json", ""},
+      {"cyclonedx", "1.5", "xml", "spdx", "2.3", "xml", ""},
+      {"cyclonedx", "1.5", "xml", "spdx", "2.3", "json", ""},
+      {"cyclonedx", "1.5", "json", "spdx", "2.3", "xml", ""},
+      {"cyclonedx", "1.5", "json", "spdx", "2.3", "json", ""},
+      {"cyclonedx", "1.6", "xml", "cyclonedx", "1.6", "xml", ""},
+      {"cyclonedx", "1.6", "xml", "cyclonedx", "1.6", "json", ""},
+      {"cyclonedx", "1.6", "json", "cyclonedx", "1.6", "xml", ""},
+      {"cyclonedx", "1.6", "json", "cyclonedx", "1.6", "json", ""},
+      {"cyclonedx", "1.6", "xml", "spdx", "2.2", "xml", ""},
+      {"cyclonedx", "1.6", "xml", "spdx", "2.2", "json", ""},
+      {"cyclonedx", "1.6", "json", "spdx", "2.2", "xml", ""},
+      {"cyclonedx", "1.6", "json", "spdx", "2.2", "json", ""},
+      {"cyclonedx", "1.6", "xml", "spdx", "2.3", "xml", ""},
+      {"cyclonedx", "1.6", "xml", "spdx", "2.3", "json", ""},
+      {"cyclonedx", "1.6", "json", "spdx", "2.3", "xml", ""},
+      {"cyclonedx", "1.6", "json", "spdx", "2.3", "json", ""},
+    };
     return Arrays.asList(data);
   }
 
@@ -210,7 +210,7 @@ public class SbomRegressionTest
 
   @Test
   public void testImportAndExport() throws Exception {
-    //import flow
+    // import flow
     String originalSbomFileName = getOriginalSbomFileName();
     mockReport("SCAN-ID", getMockHdsReport());
     byte[] sbomFile = loadFileFromAssets(getOriginalSbomFileFullPath());
@@ -231,13 +231,13 @@ public class SbomRegressionTest
     assertThat(resultDTO.isError).isFalse();
 
     String sbomVersion = resultDTO.version;
-    //apply vex
+    // apply vex
     String vexDataFile = getVexFileName();
     if (fileExists(vexDataFile)) {
       applyVex(vexDataFile, sbomVersion);
     }
 
-    //export flow
+    // export flow
     HttpResponse exportResponse = restRequest().path(ApiSbomResource.SBOM_VERSION_PATH)
         .parameter(app.getId(), sbomVersion)
         .query("specification=" + "%s%s".formatted(exportSpec, exportSpecVersion))
@@ -285,19 +285,17 @@ public class SbomRegressionTest
               .whenElementIsNamed("checksums")
               .thenUse(ElementSelectors.byXPath("./algorithm", ElementSelectors.byNameAndText))
               .whenElementIsNamed("licenseDeclared")
-              .thenUse(ElementSelectors.byNameAndText)  // pairs same-text elements, order-agnostic
+              .thenUse(ElementSelectors.byNameAndText) // pairs same-text elements, order-agnostic
               .whenElementIsNamed("externalRefs")
               .thenUse(ElementSelectors.and(
                   ElementSelectors.byXPath("./referenceCategory", ElementSelectors.byNameAndText),
                   ElementSelectors.byXPath("./referenceType", ElementSelectors.byNameAndText),
-                  ElementSelectors.byXPath("./referenceLocator", ElementSelectors.byNameAndText)
-              ))
+                  ElementSelectors.byXPath("./referenceLocator", ElementSelectors.byNameAndText)))
               .whenElementIsNamed("relationships")
               .thenUse(ElementSelectors.and(
                   ElementSelectors.byXPath("./spdxElementId", ElementSelectors.byNameAndText),
                   ElementSelectors.byXPath("./relationshipType", ElementSelectors.byNameAndText),
-                  ElementSelectors.byXPath("./relatedSpdxElement", ElementSelectors.byNameAndText)
-              ))
+                  ElementSelectors.byXPath("./relatedSpdxElement", ElementSelectors.byNameAndText)))
               // default fallback: same element name; if it's a leaf, text must match
               .elseUse(ElementSelectors.byName)
               .build();
@@ -311,9 +309,10 @@ public class SbomRegressionTest
     else {
       ConfigurableJsonAssert asserter = assertThatJson(sbomContent);
       asserter =
-          exportSpec.equals("spdx") ? asserter.whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
-              .withOptions(IGNORING_ARRAY_ORDER) :
-              asserter.whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS);
+          exportSpec.equals("spdx")
+              ? asserter.whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
+                  .withOptions(IGNORING_ARRAY_ORDER)
+              : asserter.whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS);
       asserter.isEqualTo(expectedContent);
     }
   }
@@ -330,8 +329,9 @@ public class SbomRegressionTest
   }
 
   private ApiSbomStatusDTO getSbomStatusDTO(String statusUrl) {
-    HttpResponse response = await().atMost(10, TimeUnit.SECONDS).until(() -> super.restRequest().path(statusUrl).get(),
-        resp -> resp.getStatusCode() == 200);
+    HttpResponse response = await().atMost(10, TimeUnit.SECONDS)
+        .until(() -> super.restRequest().path(statusUrl).get(),
+            resp -> resp.getStatusCode() == 200);
     return response.getBody(ApiSbomStatusDTO.class);
   }
 
@@ -347,23 +347,23 @@ public class SbomRegressionTest
   }
 
   private String getOriginalSbomFileName() {
-    return (StringUtils.isNotEmpty(variant) ?
-        IMPORT_SBOM_VARIANT_TEMPLATE.formatted(importSpec, importSpecVersion, variant, importSpecFormat) :
-        IMPORT_SBOM_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat));
+    return (StringUtils.isNotEmpty(variant)
+        ? IMPORT_SBOM_VARIANT_TEMPLATE.formatted(importSpec, importSpecVersion, variant, importSpecFormat)
+        : IMPORT_SBOM_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat));
   }
 
   private String getVexFileName() {
-    return VEX_DIR + (StringUtils.isNotEmpty(variant) ?
-        VEX_FILE_VARIANT_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat, variant, exportSpec,
-            exportSpecVersion, variant, exportSpecFormat) :
-        VEX_FILE_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat, exportSpec, exportSpecVersion,
+    return VEX_DIR + (StringUtils.isNotEmpty(variant)
+        ? VEX_FILE_VARIANT_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat, variant, exportSpec,
+            exportSpecVersion, variant, exportSpecFormat)
+        : VEX_FILE_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat, exportSpec, exportSpecVersion,
             exportSpecFormat));
   }
 
   private String getMockHdsReport() {
-    String reportDir = MOCK_HDS_DIR + (StringUtils.isNotEmpty(variant) ?
-        MOCK_HDS_VARIANT_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat, variant) :
-        MOCK_HDS_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat));
+    String reportDir = MOCK_HDS_DIR + (StringUtils.isNotEmpty(variant)
+        ? MOCK_HDS_VARIANT_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat, variant)
+        : MOCK_HDS_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat));
     if (!directoryExists(reportDir)) {
       reportDir = MOCK_HDS_DIR + MOCK_HDS_DEFAULT;
     }
@@ -371,10 +371,11 @@ public class SbomRegressionTest
   }
 
   private String getExpectedSbomContentFile() {
-    return EXPECTED_DIR + (StringUtils.isNotEmpty(variant) ?
-        EXPECTED_SBOM_VARIANT_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat, variant, exportSpec,
-            exportSpecVersion, variant, exportSpecFormat) :
-        EXPECTED_SBOM_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat, exportSpec, exportSpecVersion,
+    return EXPECTED_DIR + (StringUtils.isNotEmpty(variant)
+        ? EXPECTED_SBOM_VARIANT_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat, variant, exportSpec,
+            exportSpecVersion, variant, exportSpecFormat)
+        : EXPECTED_SBOM_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat, exportSpec,
+            exportSpecVersion,
             exportSpecFormat));
   }
 

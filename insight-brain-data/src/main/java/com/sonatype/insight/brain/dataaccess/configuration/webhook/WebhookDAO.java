@@ -75,9 +75,9 @@ public class WebhookDAO
    */
   private void updatePoliciesRemoveWebhook(TransactionContext tx, Webhook webhook) {
     Predicate<WebhookNotification> predicate = notification -> notification.getWebhookId().equals(webhook.getId());
-    policyDAO.getAll(tx).stream()
+    policyDAO.getAll(tx)
+        .stream()
         .filter(policy -> policy.getNotifications().getWebhookNotifications().removeIf(predicate))
         .forEach(policy -> policyDAO.update(tx, policy));
   }
 }
-

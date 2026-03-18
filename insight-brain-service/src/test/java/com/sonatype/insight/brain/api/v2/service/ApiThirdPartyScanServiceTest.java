@@ -152,8 +152,10 @@ public class ApiThirdPartyScanServiceTest
     testScanComponents("valid_spdx_2_3.xml", SbomFormat.XML);
   }
 
-  public void testScanComponentsWithFailure(String fileName, SbomFormat format, String expectedMessage)
-      throws Exception
+  public void testScanComponentsWithFailure(
+      String fileName,
+      SbomFormat format,
+      String expectedMessage) throws Exception
   {
     String bom = getBomFile(fileName);
     String appId = app.getId();
@@ -163,9 +165,7 @@ public class ApiThirdPartyScanServiceTest
         .withMessage(expectedMessage);
   }
 
-  public void testScanComponents(String fileName, SbomFormat format)
-      throws Exception
-  {
+  public void testScanComponents(String fileName, SbomFormat format) throws Exception {
     String bom = getBomFile(fileName);
 
     ApiThirdPartyScanTicketDTO scanResult =

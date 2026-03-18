@@ -69,8 +69,7 @@ public class MockReportDownloader
             tempDir,
             reportResourceName,
             report.getApplication().getId(),
-            report.getScanId()
-        );
+            report.getScanId());
 
         return true;
       }

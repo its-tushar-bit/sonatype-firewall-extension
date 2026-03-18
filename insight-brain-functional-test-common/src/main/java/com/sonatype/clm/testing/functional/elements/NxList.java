@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.clm.testing.functional.elements;
+
 import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -12,7 +13,8 @@ import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.cssClass;
 
-public class NxList extends BasicElement<NxList>
+public class NxList
+    extends BasicElement<NxList>
 {
   public static final WebElementCondition CLICKABLE = cssClass("nx-list__item--clickable");
 

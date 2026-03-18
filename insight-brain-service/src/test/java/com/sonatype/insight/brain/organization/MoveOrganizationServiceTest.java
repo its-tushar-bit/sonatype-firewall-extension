@@ -217,9 +217,9 @@ public class MoveOrganizationServiceTest
     assertThat(validationError.type).isEqualTo(MoveOrganizationValidationErrorType.TAG);
 
     /*
-      should not assert the entire message to avoid potentially flaky test
-      since the tag order is not always guaranteed and also not important.
-    */
+     * should not assert the entire message to avoid potentially flaky test
+     * since the tag order is not always guaranteed and also not important.
+     */
     assertThat(validationError.message)
         .contains("Missing application categories for new parent org " + organization.getName())
         .contains(tag.getName())
@@ -279,9 +279,9 @@ public class MoveOrganizationServiceTest
     assertThat(validationError.type).isEqualTo(MoveOrganizationValidationErrorType.LABEL);
 
     /*
-      should not assert the entire message to avoid potentially flaky test
-      since the label order is not always guaranteed and also not important.
-    */
+     * should not assert the entire message to avoid potentially flaky test
+     * since the label order is not always guaranteed and also not important.
+     */
 
     assertThat(validationError.message)
         .contains("Missing labels for new parent org " + organization.getName())
@@ -337,9 +337,9 @@ public class MoveOrganizationServiceTest
     assertThat(validationError.type).isEqualTo(MoveOrganizationValidationErrorType.LICENSE_THREAT_GROUP);
 
     /*
-      should not assert the entire message to avoid potentially flaky test
-      since the ltg order is not always guaranteed and also not important.
-    */
+     * should not assert the entire message to avoid potentially flaky test
+     * since the ltg order is not always guaranteed and also not important.
+     */
 
     assertThat(validationError.message)
         .contains("Missing license threat groups for new parent org " + organization.getName())
@@ -379,9 +379,9 @@ public class MoveOrganizationServiceTest
     assertThat(validationError.type).isEqualTo(MoveOrganizationValidationErrorType.POLICY);
 
     /*
-      should not assert the entire message to avoid potentially flaky test
-      since the policy order is not always guaranteed and also not important.
-    */
+     * should not assert the entire message to avoid potentially flaky test
+     * since the policy order is not always guaranteed and also not important.
+     */
 
     assertThat(validationError.message)
         .contains("Missing org policies for new parent org " + organization.getName())
@@ -394,10 +394,10 @@ public class MoveOrganizationServiceTest
   }
 
   /*
-  Test using an entity that is a common parent of both (source and destination) hierarchies and sitting under root.
-  This test indirectly tests if removal of the common parent duplication is working properly
-  It is also a use case where source and destination org have a common parent that is different from the root org.
-  */
+   * Test using an entity that is a common parent of both (source and destination) hierarchies and sitting under root.
+   * This test indirectly tests if removal of the common parent duplication is working properly
+   * It is also a use case where source and destination org have a common parent that is different from the root org.
+   */
   @Test
   public void testMoveOrganization_PoliciesAreMissingInTheNewParents() {
     List<Organization> sourceOrgHierarchy = tempEntity.newRelatedOrganizationsAsList(1, 3, 0);
@@ -701,7 +701,7 @@ public class MoveOrganizationServiceTest
         moveOrganizationResponseDTO.errors.get(0);
     assertThat(validationError.type).isEqualTo(MoveOrganizationValidationErrorType.LABEL);
     assertThat(validationError.message).contains(
-            "The following labels already exist on new parent " + organization.getName())
+        "The following labels already exist on new parent " + organization.getName())
         .contains("ApplicationLabelDuplicatedOnOrg")
         .contains("LabelText");
 

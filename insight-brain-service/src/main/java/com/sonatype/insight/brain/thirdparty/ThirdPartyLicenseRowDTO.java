@@ -26,7 +26,7 @@ public class ThirdPartyLicenseRowDTO
     this.hash = hash;
   }
 
-  //for jackson
+  // for jackson
   ThirdPartyLicenseRowDTO() {
     this(null, null);
   }

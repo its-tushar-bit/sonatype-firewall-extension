@@ -94,8 +94,7 @@ public class ThirdPartyComponentDAO
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   // For testing visibility
-  final TenantReference<Cache<String, Table<String, ComponentIdentifier, ThirdPartyReportComponentDTO>>>
-      componentCache;
+  final TenantReference<Cache<String, Table<String, ComponentIdentifier, ThirdPartyReportComponentDTO>>> componentCache;
 
   private static final Comparator<ComparableVersion> comparator = ComparableVersion::compareTo;
 
@@ -112,8 +111,9 @@ public class ThirdPartyComponentDAO
     componentCache = new TenantReference<>(() -> CacheBuilder.newBuilder()
         .expireAfterAccess(1, TimeUnit.DAYS)
         .maximumWeight(100000)
-        .weigher((Weigher<String, Table<String, ComponentIdentifier, ThirdPartyReportComponentDTO>>) (key, value) ->
-            value.size())
+        .weigher(
+            (Weigher<String, Table<String, ComponentIdentifier, ThirdPartyReportComponentDTO>>) (key, value) -> value
+                .size())
         .build());
   }
 
@@ -133,14 +133,20 @@ public class ThirdPartyComponentDAO
     try {
       final ReportEntry tpBomEntry = applicationReport.getEntry(THIRD_PARTY_BOM_JSON.getName());
       final List<ThirdPartyBillOfMaterialsRowDTO> bomRows =
-          readData(tpBomEntry, new TypeReference<>() { });
+          readData(tpBomEntry, new TypeReference<>()
+          {
+          });
       if (bomRows != null && !bomRows.isEmpty()) {
         ReportEntry tpSecurityReportEntry = applicationReport.getEntry(THIRD_PARTY_SECURITY_JSON.getName());
         final List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows =
-            readData(tpSecurityReportEntry, new TypeReference<>() { });
+            readData(tpSecurityReportEntry, new TypeReference<>()
+            {
+            });
         ReportEntry tpLicenseReportEntry = applicationReport.getEntry(THIRD_PARTY_LICENSE_JSON.getName());
         final List<ThirdPartyLicenseRowDTO> licenseRows =
-            readData(tpLicenseReportEntry, new TypeReference<>() { });
+            readData(tpLicenseReportEntry, new TypeReference<>()
+            {
+            });
         prepareComponentData(bomRows, securityRows, licenseRows, reportData);
       }
     }
@@ -358,7 +364,8 @@ public class ThirdPartyComponentDAO
             HealthCheckReportRowDTO licenseDTO =
                 new HealthCheckReportRowDTO(thirdPartyReportComponentDTO.componentIdentifier, hash);
             licenseDTO.declaredLicenses = thirdPartyReportComponentDTO.licensesRow.declaredLicenses.stream()
-                .map(license -> license.name).collect(Collectors.toSet());
+                .map(license -> license.name)
+                .collect(Collectors.toSet());
             licenseJsonArray.add(JsonUtils.asTree(licenseDTO));
           }
         }
@@ -384,8 +391,9 @@ public class ThirdPartyComponentDAO
     log.debug("Finished updating report for third party in: {} ms", (currentTimeMillis() - startTimeReport));
   }
 
-  private void addExploitRiskDataToSecurityData(Set<String> hashesToUpdate,
-                                    Map<String, List<JsonNode>> unmatchedRefToNodeMap)
+  private void addExploitRiskDataToSecurityData(
+      Set<String> hashesToUpdate,
+      Map<String, List<JsonNode>> unmatchedRefToNodeMap)
   {
     if (unmatchedRefToNodeMap.isEmpty()) {
       return;
@@ -444,7 +452,7 @@ public class ThirdPartyComponentDAO
       Map<String, ThirdPartyReportComponentDTO> thirdPartyReportComponentDataByHash)
   {
     if (thirdPartyReportComponentDataByHash != null) {
-      //data to update with VEX
+      // data to update with VEX
       Map<String, List<JsonNode>> vulnComponentListMap = new HashMap<>();
 
       ArrayNode aaData = (ArrayNode) securityJsonData.get("aaData");
@@ -499,11 +507,14 @@ public class ThirdPartyComponentDAO
       final ThirdPartyReportComponentDTO dto = new ThirdPartyReportComponentDTO(bomRow);
       if (securityRows != null && !securityRows.isEmpty()) {
         dto.securityRows.addAll(
-            securityRows.stream().filter(row -> row.componentIdentifier.equals(dto.componentIdentifier))
+            securityRows.stream()
+                .filter(row -> row.componentIdentifier.equals(dto.componentIdentifier))
                 .collect(Collectors.toList()));
       }
       if (licenseRows != null && !licenseRows.isEmpty()) {
-        licenseRows.stream().filter(row -> row.componentIdentifier.equals(dto.componentIdentifier)).findFirst()
+        licenseRows.stream()
+            .filter(row -> row.componentIdentifier.equals(dto.componentIdentifier))
+            .findFirst()
             .ifPresent(license -> dto.licensesRow = license);
       }
       reportData.put(bomRow.hash, dto);
@@ -578,7 +589,8 @@ public class ThirdPartyComponentDAO
 
       if (!emptyVersions) {
         Set<ComparableVersion> fixedVersions = component.securityRows.stream()
-            .map(securityRow -> new ComparableVersion(securityRow.fixedVersion)).collect(Collectors.toSet());
+            .map(securityRow -> new ComparableVersion(securityRow.fixedVersion))
+            .collect(Collectors.toSet());
 
         Optional<ComparableVersion> fixedVersion = fixedVersions.stream().max(comparator::compare);
 
@@ -619,13 +631,14 @@ public class ThirdPartyComponentDAO
         return Collections.emptyMap();
       }
 
-      return dto.getVulnerabilities().entrySet().stream()
+      return dto.getVulnerabilities()
+          .entrySet()
+          .stream()
           .filter(entry -> entry.getValue() != null &&
               (entry.getValue().kevData != null || entry.getValue().epssData != null))
           .collect(Collectors.toMap(
               Map.Entry::getKey,
-              entry -> new VulnerabilityExploitRiskData(entry.getValue().kevData, entry.getValue().epssData)
-          ));
+              entry -> new VulnerabilityExploitRiskData(entry.getValue().kevData, entry.getValue().epssData)));
     }
     catch (Exception e) {
       log.error("Failed to retrieve KEV and EPSS data from HDS: {}", e.getMessage(), e);

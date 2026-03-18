@@ -159,7 +159,8 @@ public class PolicyWaiverDAO
 
       List<PolicyWaiver> appliesToAllVersionsOfSomeComponent =
           getActiveByOwnerIdAndHash(tx, ownerId, null, ALL_VERSIONS);
-      return appliesToAllVersionsOfSomeComponent.stream().filter(keepOnlyMatchingWildcardPurl)
+      return appliesToAllVersionsOfSomeComponent.stream()
+          .filter(keepOnlyMatchingWildcardPurl)
           .collect(Collectors.toList());
     }
     return Collections.emptyList();
@@ -533,12 +534,12 @@ public class PolicyWaiverDAO
   public List<WaiverReasonData> getPolicyWaiverReasonMappings() {
     try (TransactionContext tx = createTransactionContext()) {
       String sQuery = String.format("""
-        SELECT waiver.policy_waiver_id AS policyWaiverId, reason.reason_text AS reasonText
-        FROM %1$s.policy_waiver waiver
-        JOIN %1$s.policy_waiver_reason reason ON waiver.waiver_reason_id = reason.waiver_reason_id
-        WHERE waiver.waiver_reason_id IS NOT NULL
-        ORDER BY waiver.policy_waiver_id
-          """, getDatabaseSchema());
+          SELECT waiver.policy_waiver_id AS policyWaiverId, reason.reason_text AS reasonText
+          FROM %1$s.policy_waiver waiver
+          JOIN %1$s.policy_waiver_reason reason ON waiver.waiver_reason_id = reason.waiver_reason_id
+          WHERE waiver.waiver_reason_id IS NOT NULL
+          ORDER BY waiver.policy_waiver_id
+            """, getDatabaseSchema());
 
       jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
 
@@ -725,7 +726,9 @@ public class PolicyWaiverDAO
         """, getDatabaseSchema());
   }
 
-  public static record WaiverReasonData(String policyWaiverId, String reasonText) {  }
+  public static record WaiverReasonData(String policyWaiverId, String reasonText)
+  {
+  }
 
   public static record PolicyContainerWaiverData(
       String policyWaiverId,
@@ -735,5 +738,7 @@ public class PolicyWaiverDAO
       int maxThreatLevel,
       String applicationScope,
       Long uniquePolicyCount,
-      Long uniqueComponentCount) {}
+      Long uniqueComponentCount)
+  {
+  }
 }

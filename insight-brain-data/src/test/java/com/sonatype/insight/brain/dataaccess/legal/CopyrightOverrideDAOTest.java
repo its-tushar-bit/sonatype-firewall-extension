@@ -53,7 +53,8 @@ public class CopyrightOverrideDAOTest
         ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), application.getId(), "legalContentHash2");
     copyrightOverride.setComponentCopyrightId(componentCopyright2.getId());
     dao.update(copyrightOverride);
-    assertThat(dao.getById(copyrightOverride.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(dao.getById(copyrightOverride.getId())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(copyrightOverride);
 
     // Delete
@@ -115,11 +116,14 @@ public class CopyrightOverrideDAOTest
 
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForRootOrganization);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(copyrightOverrideForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForRootOrganization);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(copyrightOverrideForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForRootOrganization);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(copyrightOverrideForRootOrganization);
 
     // Add another copyright override at the org level
     ComponentCopyright componentCopyrightForOrganization =
@@ -130,11 +134,14 @@ public class CopyrightOverrideDAOTest
 
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForRootOrganization);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(copyrightOverrideForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForOrganization);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(copyrightOverrideForOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForOrganization);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(copyrightOverrideForOrganization);
 
     // Add another copyright override at the app level
     ComponentCopyright componentCopyrightForApplication =
@@ -145,11 +152,14 @@ public class CopyrightOverrideDAOTest
 
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForRootOrganization);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(copyrightOverrideForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForOrganization);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(copyrightOverrideForOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(copyrightOverrideForApplication);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(copyrightOverrideForApplication);
   }
 
   @Test

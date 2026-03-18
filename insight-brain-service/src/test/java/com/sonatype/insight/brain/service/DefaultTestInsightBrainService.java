@@ -173,7 +173,8 @@ public class DefaultTestInsightBrainService
     configuration.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
     String protocol = "http";
     if (testKeystore != null || ((DefaultServerFactory) insightConfig.getServerFactory()).getApplicationConnectors()
-        .get(0) instanceof HttpsConnectorFactory) {
+        .get(0) instanceof HttpsConnectorFactory)
+    {
       protocol = "https";
     }
     String contextPath = ((DefaultServerFactory) insightConfig.getServerFactory()).getApplicationContextPath();
@@ -227,8 +228,9 @@ public class DefaultTestInsightBrainService
       return new ConfigurationFactory<InsightConfig>()
       {
         @Override
-        public InsightConfig build(ConfigurationSourceProvider provider, String path)
-            throws IOException, ConfigurationException
+        public InsightConfig build(
+            ConfigurationSourceProvider provider,
+            String path) throws IOException, ConfigurationException
         {
           return augment(configurationFactory.build(provider, path));
         }

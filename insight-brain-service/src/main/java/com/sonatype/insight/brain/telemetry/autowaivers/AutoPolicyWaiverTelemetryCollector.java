@@ -62,32 +62,28 @@ public class AutoPolicyWaiverTelemetryCollector
         AutoPolicyWaiverTelemetry.AutoPolicyWaiverAction.APPLY,
         autoWaiver,
         policyViolation,
-        owner
-    );
+        owner);
   }
 
   public void addTelemetryForCreateAutoWaiver(final AutoPolicyWaiver autoWaiver, final Owner owner) {
     createTelemetry(
         AutoPolicyWaiverTelemetry.AutoPolicyWaiverAction.CREATE,
         autoWaiver,
-        owner
-    );
+        owner);
   }
 
   public void addTelemetryForUpdateAutoWaiver(final AutoPolicyWaiver autoWaiver, final Owner owner) {
     createTelemetry(
         AutoPolicyWaiverTelemetry.AutoPolicyWaiverAction.UPDATE,
         autoWaiver,
-        owner
-    );
+        owner);
   }
 
   public void addTelemetryForDeleteAutoWaiver(final AutoPolicyWaiver autoWaiver, final Owner owner) {
     createTelemetry(
         AutoPolicyWaiverTelemetry.AutoPolicyWaiverAction.DELETE,
         autoWaiver,
-        owner
-    );
+        owner);
   }
 
   private TelemetryData createTelemetry(

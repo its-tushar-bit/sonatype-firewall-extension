@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2.service;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -119,7 +120,7 @@ public class ApiReportServiceV2Test
 
   @Test
   public void testGetReportHistoryForApplication() throws IOException, URISyntaxException {
-    //setup application scan reports and evaluations
+    // setup application scan reports and evaluations
     Application app = tempEntity.newApplicationWithParent("application");
     tempEntity.newPolicy(app);
     grantReadPermission(app.getId());
@@ -141,10 +142,10 @@ public class ApiReportServiceV2Test
     evalRequest(app.getPublicId(), scanId3, new Stage(Stage.ID_RELEASE), ScanTriggerType.IDE);
     evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD), ScanTriggerType.REPOSITORY_MANAGER);
 
-    //When fetching all reports for application
+    // When fetching all reports for application
     ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
 
-    //Verify 3 reports with correct results are retrieved
+    // Verify 3 reports with correct results are retrieved
     assertThat(reports.applicationId).isEqualTo(app.getId());
     assertThat(reports.reports).hasSize(3);
     assertPolicyEvaluationResults(reports.reports.get(0));
@@ -283,7 +284,7 @@ public class ApiReportServiceV2Test
     assertThat(reports.applicationId).isEqualTo(app.getId());
     assertThat(reports.reports).hasSize(1);
     assertThat(reports.reports.get(0).stage).isEqualTo("build");
-    assertThat(reports.reports.get(0).scanId).isEqualTo("ScanId2");  // should return most recent
+    assertThat(reports.reports.get(0).scanId).isEqualTo("ScanId2"); // should return most recent
   }
 
   @Test
@@ -293,7 +294,8 @@ public class ApiReportServiceV2Test
     grantEvaluateApplicationPermission(app.getId());
 
     assertThatThrownBy(() -> apiReportServiceV2.getReportHistoryForApplication(app.getId(), "no-such-stage", null))
-        .isInstanceOf(BadRequestException.class).hasMessageContaining("Invalid stage: no-such-stage.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("Invalid stage: no-such-stage.");
   }
 
   @Test
@@ -303,12 +305,13 @@ public class ApiReportServiceV2Test
     grantEvaluateApplicationPermission(app.getId());
 
     assertThatThrownBy(() -> apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, 0))
-        .isInstanceOf(BadRequestException.class).hasMessageContaining("Limit must be positive integer.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("Limit must be positive integer.");
   }
 
   @Test
   public void testGetReportHistoryForApplication_LegacyViolationCount() throws IOException, URISyntaxException {
-    //setup application scan reports and evaluations
+    // setup application scan reports and evaluations
     Application app = tempEntity.newApplicationWithParent("application");
     grantReadPermission(app.getId());
     grantEvaluateApplicationPermission(app.getId());
@@ -340,23 +343,21 @@ public class ApiReportServiceV2Test
 
   @Test
   public void testGetReportHistoryForApplication_NoReport() {
-    //setup evaluation
+    // setup evaluation
     Application application = tempEntity.newApplicationWithParent("application");
     grantReadPermission(application.getId());
 
-    //When fetching all reports for application
+    // When fetching all reports for application
     ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(application.getId(), null, null);
 
-    //Verify no reports are retrieved
+    // Verify no reports are retrieved
     assertThat(reports.applicationId).isEqualTo(application.getId());
     assertThat(reports.reports).isEmpty();
   }
 
   @Test
-  public void testGetReportHistoryWhenTheReportFileWasDeleted_NoExceptionWasThrow()
-      throws URISyntaxException, IOException
-  {
-    //setup evaluation
+  public void testGetReportHistoryWhenTheReportFileWasDeleted_NoExceptionWasThrow() throws URISyntaxException, IOException {
+    // setup evaluation
     Application app = tempEntity.newApplicationWithParent("application");
     tempEntity.newPolicy(app);
     grantReadPermission(app.getId());
@@ -369,14 +370,14 @@ public class ApiReportServiceV2Test
     FileUtils.copyFile(reportFile, insightWork.getReportFile(app.getId(), scanId1));
 
     evalRequest(app.getPublicId(), scanId1, new Stage(Stage.ID_BUILD));
-    //removing report file
+    // removing report file
     FileUtils.delete(insightWork.getReportFile(app.getId(), scanId1));
 
-    //executing when the reports were deleted
+    // executing when the reports were deleted
     ApiReportHistoryDTO apiReportHistoryDTO =
         apiReportServiceV2.getReportHistoryForApplication(app.getId(), null, null);
 
-    //no exceptions were thrown
+    // no exceptions were thrown
     assertThat(apiReportHistoryDTO).isNotNull();
   }
 

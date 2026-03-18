@@ -118,8 +118,7 @@ public class MultiTenantDefaultBranchMonitorExecutorTest
     verifySlugStartTime(argument.getValue(), 6, 0, 0);
 
     when(mockTenantService.getAllTenantsNames()).thenReturn(
-        Arrays.asList("slug1", "slug2", "slug3", "slug4", "slug5")
-    );
+        Arrays.asList("slug1", "slug2", "slug3", "slug4", "slug5"));
 
     underTest.performScan(mock(InsightJob.class));
     verify(mockTaskScheduler, times(2)).scheduleOneTimeTask(any(), argument.capture());

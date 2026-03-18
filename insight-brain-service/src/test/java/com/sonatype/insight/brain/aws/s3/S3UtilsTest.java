@@ -56,8 +56,7 @@ public class S3UtilsTest
         .credentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create(
                 localstack.getContainer().getAccessKey(),
-                localstack.getContainer().getSecretKey()
-            )))
+                localstack.getContainer().getSecretKey())))
         .build();
   }
 
@@ -150,8 +149,7 @@ public class S3UtilsTest
               .bucket(BUCKET_NAME)
               .key(key)
               .build(),
-          RequestBody.fromString("test content " + i)
-      );
+          RequestBody.fromString("test content " + i));
     }
   }
 

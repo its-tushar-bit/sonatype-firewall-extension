@@ -66,11 +66,12 @@ public class ApplicationTelemetryCollectorTest
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REAL_OWNER_IDS);
     assertThat(telemetryData.getAttributes()).containsKey(ALL_OWNER_IDS_NAMES);
     List<OwnerData> appData = (List<OwnerData>) telemetryData.getAttributes().get(ALL_OWNER_IDS_NAMES);
-    assertThat(appData).hasSize(3).extracting("ownerId", "ownerName", "ownerType", "parentOwnerId").contains(
-        tuple(app1.getId(), app1.getName(), OwnerType.APPLICATION.toString(), app1.getParentOwnerId()),
-        tuple(app2.getId(), app2.getName(), OwnerType.APPLICATION.toString(), app2.getParentOwnerId()),
-        tuple(app3.getId(), app3.getName(), OwnerType.APPLICATION.toString(), app3.getParentOwnerId())
-    );
+    assertThat(appData).hasSize(3)
+        .extracting("ownerId", "ownerName", "ownerType", "parentOwnerId")
+        .contains(
+            tuple(app1.getId(), app1.getName(), OwnerType.APPLICATION.toString(), app1.getParentOwnerId()),
+            tuple(app2.getId(), app2.getName(), OwnerType.APPLICATION.toString(), app2.getParentOwnerId()),
+            tuple(app3.getId(), app3.getName(), OwnerType.APPLICATION.toString(), app3.getParentOwnerId()));
   }
 
   @Test
@@ -89,25 +90,23 @@ public class ApplicationTelemetryCollectorTest
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REAL_OWNER_IDS);
     assertThat(telemetryData.getAttributes()).containsKey(ALL_OWNER_IDS_NAMES);
     List<OwnerData> appData = (List<OwnerData>) telemetryData.getAttributes().get(ALL_OWNER_IDS_NAMES);
-    assertThat(appData).hasSize(3).extracting("ownerId", "ownerName", "ownerType", "parentOwnerId").contains(
-        tuple(
-            telemetryUtils.obfuscate(app1.getId()),
-            telemetryUtils.obfuscate(app1.getName()),
-            OwnerType.APPLICATION.toString(),
-            telemetryUtils.obfuscate(app1.getParentOwnerId())
-        ),
-        tuple(
-            telemetryUtils.obfuscate(app2.getId()),
-            telemetryUtils.obfuscate(app2.getName()),
-            OwnerType.APPLICATION.toString(),
-            telemetryUtils.obfuscate(app2.getParentOwnerId())
-        ),
-        tuple(
-            telemetryUtils.obfuscate(app3.getId()),
-            telemetryUtils.obfuscate(app3.getName()),
-            OwnerType.APPLICATION.toString(),
-            telemetryUtils.obfuscate(app3.getParentOwnerId())
-        )
-    );
+    assertThat(appData).hasSize(3)
+        .extracting("ownerId", "ownerName", "ownerType", "parentOwnerId")
+        .contains(
+            tuple(
+                telemetryUtils.obfuscate(app1.getId()),
+                telemetryUtils.obfuscate(app1.getName()),
+                OwnerType.APPLICATION.toString(),
+                telemetryUtils.obfuscate(app1.getParentOwnerId())),
+            tuple(
+                telemetryUtils.obfuscate(app2.getId()),
+                telemetryUtils.obfuscate(app2.getName()),
+                OwnerType.APPLICATION.toString(),
+                telemetryUtils.obfuscate(app2.getParentOwnerId())),
+            tuple(
+                telemetryUtils.obfuscate(app3.getId()),
+                telemetryUtils.obfuscate(app3.getName()),
+                OwnerType.APPLICATION.toString(),
+                telemetryUtils.obfuscate(app3.getParentOwnerId())));
   }
 }

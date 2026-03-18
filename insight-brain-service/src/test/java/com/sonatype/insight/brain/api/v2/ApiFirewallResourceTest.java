@@ -248,7 +248,9 @@ public class ApiFirewallResourceTest
 
     assertResponseStatus(HttpStatus.OK_200, response);
     ApiPageResult<ApiFirewallComponentDTO> responseDTO = getBodyByTypeReference(response.getBodyBytes(),
-        new TypeReference<ApiPageResult<ApiFirewallComponentDTO>>() { });
+        new TypeReference<ApiPageResult<ApiFirewallComponentDTO>>()
+        {
+        });
     assertThat(responseDTO.getTotal()).isEqualTo(1);
     final ApiFirewallComponentDTO componentDTO1 = responseDTO.getResults().get(0);
     ApiFirewallServiceTest
@@ -275,11 +277,14 @@ public class ApiFirewallResourceTest
         .createPolicyViolationFail(policy1, component1, tempEntity);
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH).get();
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
+        .get();
 
     assertResponseStatus(HttpStatus.OK_200, response);
     ApiPageResult<ApiFirewallComponentDTO> responseDTO = getBodyByTypeReference(response.getBodyBytes(),
-        new TypeReference<ApiPageResult<ApiFirewallComponentDTO>>() { });
+        new TypeReference<ApiPageResult<ApiFirewallComponentDTO>>()
+        {
+        });
     assertThat(responseDTO.getTotal()).isEqualTo(1);
     final ApiFirewallComponentDTO componentDTO1 = responseDTO.getResults().get(0);
     ApiFirewallServiceTest
@@ -370,7 +375,9 @@ public class ApiFirewallResourceTest
 
     assertResponseStatus(HttpStatus.OK_200, response);
     ApiPageResult<ApiFirewallQuarantinedComponentDto> responseDTO = getBodyByTypeReference(response.getBodyBytes(),
-        new TypeReference<ApiPageResult<ApiFirewallQuarantinedComponentDto>>() { });
+        new TypeReference<ApiPageResult<ApiFirewallQuarantinedComponentDto>>()
+        {
+        });
     assertThat(responseDTO.getTotal()).isEqualTo(1);
     final ApiFirewallQuarantinedComponentDto componentDTO1 = responseDTO.getResults().get(0);
     ApiFirewallServiceTest
@@ -392,7 +399,9 @@ public class ApiFirewallResourceTest
     assertResponseStatus(HttpStatus.OK_200, response);
     responseDTO = getBodyByTypeReference(
         response.getBodyBytes(),
-        new TypeReference<ApiPageResult<ApiFirewallQuarantinedComponentDto>>() { });
+        new TypeReference<ApiPageResult<ApiFirewallQuarantinedComponentDto>>()
+        {
+        });
 
     assertThat(responseDTO.getTotal()).isEqualTo(2);
 
@@ -432,11 +441,14 @@ public class ApiFirewallResourceTest
         .createPolicyViolationFail(policy1, component1, tempEntity);
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH).get();
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
+        .get();
 
     assertResponseStatus(HttpStatus.OK_200, response);
     ApiPageResult<ApiFirewallQuarantinedComponentDto> responseDTO = getBodyByTypeReference(response.getBodyBytes(),
-        new TypeReference<ApiPageResult<ApiFirewallQuarantinedComponentDto>>() { });
+        new TypeReference<ApiPageResult<ApiFirewallQuarantinedComponentDto>>()
+        {
+        });
     assertThat(responseDTO.getTotal()).isEqualTo(1);
     final ApiFirewallQuarantinedComponentDto componentDTO1 = responseDTO.getResults().get(0);
     ApiFirewallServiceTest
@@ -495,7 +507,8 @@ public class ApiFirewallResourceTest
     HttpResponse response = restRequest()
         .path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
             ApiFirewallResource.QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS_SET)
-        .parameter(false).put();
+        .parameter(false)
+        .put();
     assertResponseStatus(204, response);
     assertThat(quarantinedComponentAccessDAO.isAnonymousAccessEnabled()).isFalse();
   }
@@ -540,7 +553,8 @@ public class ApiFirewallResourceTest
   @Test
   public void testGetRepositoryManagers_Unauthenticated() throws Exception {
     HttpResponse response = restRequest().anon()
-        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGERS_PATH).get();
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGERS_PATH)
+        .get();
 
     assertResponseStatus(401, response);
   }
@@ -553,16 +567,16 @@ public class ApiFirewallResourceTest
 
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     tempEntity.newRepository(repositoryManager, "testRepoNpm", RepositoryType.proxy, "npm",
-            may5th20239AM);
+        may5th20239AM);
     Repository repository =
-            tempEntity.newRepository(repositoryManager, "testRepoMaven", RepositoryType.proxy, "maven", may5th202311AM);
+        tempEntity.newRepository(repositoryManager, "testRepoMaven", RepositoryType.proxy, "maven", may5th202311AM);
 
     HttpResponse response = restRequest()
-            .path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
-                    ApiFirewallResource.REPOSITORIES_CONFIGURATION_PATH)
-            .parameter(repositoryManager.getId())
-            .query("sinceUtcTimestamp", may5th202310AM.getTime())
-            .get();
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
+            ApiFirewallResource.REPOSITORIES_CONFIGURATION_PATH)
+        .parameter(repositoryManager.getId())
+        .query("sinceUtcTimestamp", may5th202310AM.getTime())
+        .get();
 
     assertResponseStatus(HttpStatus.OK_200, response);
     ApiRepositoryListDTO expected = response.getBody(ApiRepositoryListDTO.class);
@@ -575,9 +589,9 @@ public class ApiFirewallResourceTest
     assertThat(repositoryDTO.auditEnabled).isEqualTo(repository.isAuditEnabled());
     assertThat(repositoryDTO.quarantineEnabled).isEqualTo(repository.isQuarantineEnabled());
     assertThat(repositoryDTO.policyCompliantComponentSelectionEnabled).isEqualTo(
-            repository.isPolicyCompliantComponentSelectionEnabled());
+        repository.isPolicyCompliantComponentSelectionEnabled());
     assertThat(repositoryDTO.namespaceConfusionProtectionEnabled).isEqualTo(
-            repository.isNamespaceConfusionProtectionEnabled());
+        repository.isNamespaceConfusionProtectionEnabled());
   }
 
   @Test
@@ -596,8 +610,10 @@ public class ApiFirewallResourceTest
 
     assertResponseStatus(204, response);
     Repository storedRepository = repositoryDAO.getById(repository.getId());
-    assertThat(storedRepository).usingRecursiveComparison().ignoringFields(
-        ArrayUtils.add(JPA.IGNORE_FIELDS, "lastManualConfigureTime")).isEqualTo(repository);
+    assertThat(storedRepository).usingRecursiveComparison()
+        .ignoringFields(
+            ArrayUtils.add(JPA.IGNORE_FIELDS, "lastManualConfigureTime"))
+        .isEqualTo(repository);
     assertThat(storedRepository.getLastManualConfigureTime()).isAfterOrEqualTo(date);
   }
 
@@ -755,7 +771,8 @@ public class ApiFirewallResourceTest
 
     HttpResponse response =
         restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGER_PATH)
-            .parameter(repositoryManager.getId()).get();
+            .parameter(repositoryManager.getId())
+            .get();
 
     assertResponseStatus(200, response);
 
@@ -773,7 +790,8 @@ public class ApiFirewallResourceTest
 
     HttpResponse response =
         restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGER_PATH)
-            .parameter(repositoryManager.getId()).delete();
+            .parameter(repositoryManager.getId())
+            .delete();
 
     assertResponseStatus(204, response);
 
@@ -790,7 +808,8 @@ public class ApiFirewallResourceTest
 
     HttpResponse response =
         restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGERS_PATH)
-            .body(apiRepositoryManagerDTO).post();
+            .body(apiRepositoryManagerDTO)
+            .post();
 
     assertResponseStatus(200, response);
 

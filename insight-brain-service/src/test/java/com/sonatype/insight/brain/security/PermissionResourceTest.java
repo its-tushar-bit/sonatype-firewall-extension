@@ -68,7 +68,7 @@ public class PermissionResourceTest
 
     HttpResponse response =
         validateRequest_PublicApplicationId(app.getPublicId()).body(EnumSet.of(Permission.READ, Permission.WRITE))
-          .put();
+            .put();
     assertResponseStatus(200, response);
     assertThat(response.getBody(Permission[].class)).containsExactlyInAnyOrder(Permission.READ);
   }
@@ -117,9 +117,8 @@ public class PermissionResourceTest
 
     HttpResponse response =
         validateRequest(
-          OwnerType.REPOSITORY_MANAGER,
-          repoManager.getId()
-        ).body(EnumSet.of(Permission.READ, Permission.WRITE)).put();
+            OwnerType.REPOSITORY_MANAGER,
+            repoManager.getId()).body(EnumSet.of(Permission.READ, Permission.WRITE)).put();
     assertResponseStatus(200, response);
     assertThat(response.getBody(Permission[].class)).containsExactlyInAnyOrder(Permission.READ);
   }

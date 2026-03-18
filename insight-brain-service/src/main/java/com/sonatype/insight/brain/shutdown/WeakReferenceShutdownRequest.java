@@ -24,7 +24,9 @@ public abstract class WeakReferenceShutdownRequest<T>
   }
 
   /**
-   * Convenience method that has already checked the {@link WeakReference} referent is not null.<br/><br/>See
+   * Convenience method that has already checked the {@link WeakReference} referent is not null.<br/>
+   * <br/>
+   * See
    * {@link ShutdownRequest#execute(ExecutorService)}.
    */
   public Future<?> execute(

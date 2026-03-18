@@ -240,8 +240,10 @@ public class InsightBrainService
 
       // Second `run` is the entry point for the `ServerCommand` which is the main http server
       @Override
-      protected void run(Bootstrap<InsightConfig> bootstrap, Namespace namespace, InsightConfig insightConfig)
-          throws Exception
+      protected void run(
+          Bootstrap<InsightConfig> bootstrap,
+          Namespace namespace,
+          InsightConfig insightConfig) throws Exception
       {
         Files.createDirectories(insightConfig.getSonatypeWork().toPath());
         Files.createDirectories(insightConfig.getClusterDirectory().toPath());
@@ -340,9 +342,9 @@ public class InsightBrainService
   /**
    * Configures Jetty's GzipHandler to exclude CSV endpoints from compression. This is critical for:
    * 1. Streaming CSV endpoints with keep-alive - gzip buffers the entire response before compressing,
-   *    defeating the streaming mechanism.
+   * defeating the streaming mechanism.
    * 2. Functional test compatibility - the test proxy chain doesn't handle GZIP-compressed CSV responses
-   *    correctly, causing timeouts.
+   * correctly, causing timeouts.
    */
   private void configureGzipExclusions(Environment environment) {
     environment.lifecycle().addServerLifecycleListener(server -> {
@@ -547,7 +549,7 @@ public class InsightBrainService
   protected <T extends ObjectMapper> T configureObjectMapper(T objectMapper) {
     // Use an object mapper mostly matching the default for Dropwizard version 1.2.2 i.e.
     // https://github.com/dropwizard/dropwizard/blob/v1.2.2/
-    //   dropwizard-jackson/src/main/java/io/dropwizard/jackson/Jackson.java#L65
+    // dropwizard-jackson/src/main/java/io/dropwizard/jackson/Jackson.java#L65
     // Register default modules except io.dropwizard.jackson.FuzzyEnumModule so enums using @JsonValue can be
     // deserialized without needing @JsonCreator methods
     objectMapper.registerModule(new GuavaModule());
@@ -597,8 +599,7 @@ public class InsightBrainService
         injector.getInstance(OrganizationDAO.class),
         injector.getInstance(RepositoryDAO.class),
         injector.getInstance(RepositoryManagerDAO.class),
-        injector.getProvider(ResourceInfo.class)
-    );
+        injector.getProvider(ResourceInfo.class));
 
     // Register ThrowableHandler as a filter for both application and admin contexts
     // This must be registered early to catch all exceptions
@@ -606,7 +607,8 @@ public class InsightBrainService
 
     env.jersey().register(auditContainerRequestFilter);
 
-    env.servlets().addServlet(PingServlet.class.getSimpleName(), PingServlet.class)
+    env.servlets()
+        .addServlet(PingServlet.class.getSimpleName(), PingServlet.class)
         .addMapping(PublicApiPaths.PING_RESOURCE_PATH);
 
     addServletFilters(env);
@@ -649,10 +651,12 @@ public class InsightBrainService
       String... urlPatterns)
   {
     Filter filter = getInstance(filterType);
-    env.servlets().addFilter(filterType.getSimpleName(), filter)
+    env.servlets()
+        .addFilter(filterType.getSimpleName(), filter)
         .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, urlPatterns);
     if (includeAdmin) {
-      env.admin().addFilter(filterType.getSimpleName(), filter)
+      env.admin()
+          .addFilter(filterType.getSimpleName(), filter)
           .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, urlPatterns);
     }
   }
@@ -661,9 +665,7 @@ public class InsightBrainService
     // Add our own mapper for exceptions.
     JaxRsExceptionMapper jaxRsExceptionMapper = getInstance(JaxRsExceptionMapper.class);
     JavaLangErrorHandler errorHandler = getInstance(JavaLangErrorHandler.class);
-    errorHandler.setExitOnFatalErrorSupplier(() ->
-        SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.isEnabled()
-    );
+    errorHandler.setExitOnFatalErrorSupplier(() -> SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.isEnabled());
     environment.jersey().register(jaxRsExceptionMapper);
   }
 

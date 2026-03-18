@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.clm.testing.functional.elements;
+
 import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
@@ -29,4 +30,3 @@ public class NxTextInput
     return this.inputWrapper().find(".nx-field-validation-message");
   }
 }
-

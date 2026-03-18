@@ -71,13 +71,13 @@ public class ApiReportViolationsDiffServiceAuthzAndLicenseTest
   public void testGetPolicyViolationDiff_Authorized() throws URISyntaxException, IOException {
     grantReadPermission(app.getId());
     Date date = new Date();
-    //setup reports
+    // setup reports
     createReportFile(app.getId(), FROM_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/from-report", tempDir),
         insightWork);
     createReportFile(app.getId(), TO_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/to-report", tempDir),
         insightWork);
 
-    //setup evaluations
+    // setup evaluations
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID, false, false, false,
         date, FROM_COMMIT_HASH);
     tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID, false, false, false,

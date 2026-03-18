@@ -43,7 +43,7 @@ public class AdministratorsTest
   public void startup() {
     ldapUserMappingDAO = lookup(LdapUserMappingDAO.class);
 
-    //create two users
+    // create two users
     tempEntity.newUser("test-a", "secret", "John", "Doe", "john@doe.net");
     tempEntity.newUser("test-b", "secret", "Jane", "Doe", "jane@doe.net");
 
@@ -63,7 +63,7 @@ public class AdministratorsTest
 
       UnsavedModal unsavedModal = new UnsavedModal();
 
-      //dismiss unsaved changes
+      // dismiss unsaved changes
       SelenideElement modalBtn = unsavedModal.continueButton();
       if (modalBtn.exists()) {
         modalBtn.click();
@@ -113,7 +113,8 @@ public class AdministratorsTest
 
     administratorsEditPage.roleDetails().shouldBe(visible);
     administratorsEditPage.roleDetails().name().shouldHave(text("Policy Administrator"));
-    administratorsEditPage.roleDetails().description()
+    administratorsEditPage.roleDetails()
+        .description()
         .shouldHave(text("Manages all organizations, applications, policies, and policy violations."));
     addMembersForm.shouldBe(visible);
     addMembersForm.addedItems().shouldHave(size(1));
@@ -133,7 +134,7 @@ public class AdministratorsTest
     addMembersForm.searchInput().setValue("*").click();
     addMembersForm.searchResults().shouldHave(size(3));
     addMembersForm.searchResults()
-            .shouldHave(texts("John Doe", "Jane Doe", "Authenticated Users (Group)"));
+        .shouldHave(texts("John Doe", "Jane Doe", "Authenticated Users (Group)"));
     addMembersForm.searchResults().get(1).click();
     addMembersForm.addedItems().shouldHave(size(2));
     addMembersForm.addedItems().shouldHave(texts("Admin BuiltIn", "Jane Doe"));
@@ -141,11 +142,11 @@ public class AdministratorsTest
     addMembersForm.searchInput().setValue("*").click();
     addMembersForm.searchResults().shouldHave(size(2));
     addMembersForm.searchResults()
-            .shouldHave(texts("John Doe", "Authenticated Users (Group)"));
+        .shouldHave(texts("John Doe", "Authenticated Users (Group)"));
     addMembersForm.searchResults().get(1).click();
     addMembersForm.addedItems().shouldHave(size(3));
     addMembersForm.addedItems()
-            .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "Jane Doe"));
+        .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "Jane Doe"));
 
     addMembersForm.addedItems().get(0).click();
     addMembersForm.addedItems().shouldHave(size(2));
@@ -157,7 +158,7 @@ public class AdministratorsTest
     addMembersForm.searchInput().setValue("*").click();
     addMembersForm.searchResults().shouldHave(size(4));
     addMembersForm.searchResults()
-            .shouldHave(texts("Admin BuiltIn", "John Doe", "Jane Doe", "Authenticated Users (Group)"));
+        .shouldHave(texts("Admin BuiltIn", "John Doe", "Jane Doe", "Authenticated Users (Group)"));
   }
 
   @Test
@@ -188,7 +189,7 @@ public class AdministratorsTest
     addMembersForm.searchResults().get(1).click();
     addMembersForm.addedItems().shouldHave(size(3));
     addMembersForm.addedItems()
-            .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "Jane Doe"));
+        .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "Jane Doe"));
 
     addMembersForm.submitBtn().click();
     waitUntilUrl(AdministratorsPage.url());
@@ -204,7 +205,7 @@ public class AdministratorsTest
     addMembersForm.addedItems().get(1).click();
     addMembersForm.addedItems().get(1).click();
     addMembersForm.addedItems()
-            .shouldHave(texts("Admin BuiltIn"));
+        .shouldHave(texts("Admin BuiltIn"));
 
     addMembersForm.submitBtn().click();
     waitUntilUrl(AdministratorsPage.url());
@@ -242,7 +243,7 @@ public class AdministratorsTest
     addMembersForm.searchResults().get(1).click();
     addMembersForm.addedItems().shouldHave(size(3));
     addMembersForm.addedItems()
-            .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "Jane Doe"));
+        .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "Jane Doe"));
 
     addMembersForm.cancelBtn().click();
     UnsavedModal unsavedModal = new UnsavedModal();

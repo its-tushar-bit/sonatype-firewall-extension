@@ -151,7 +151,8 @@ public class ReportResourceTest
     assertThat(expiresHeader).isNotNull();
     Date expires = expirationHeaderFormat.parse(expiresHeader);
     assertThat(Math.abs(calendar.getTimeInMillis() - expires.getTime()))
-        .as("insight.js expires in 365 days: " + expires + " vs " + calendar.getTime()).isLessThan(2 * 60 * 1000);
+        .as("insight.js expires in 365 days: " + expires + " vs " + calendar.getTime())
+        .isLessThan(2 * 60 * 1000);
 
     calendar.setTime(new Date());
     response = request.subpath(DATA_JSON.getName()).get();
@@ -193,7 +194,7 @@ public class ReportResourceTest
     mockReport(scanId, reportResource);
     createScanFile(app.getId(), scanId);
 
-    //This will trigger two legacy violations upon evaluation.
+    // This will trigger two legacy violations upon evaluation.
     app.setLegacyViolationEnabled(true);
     applicationDAO.update(app);
     Constraint constraint = new Constraint(null /* constraintId */, "Constraint Coordinates", LogicalOperator.OR);
@@ -211,8 +212,11 @@ public class ReportResourceTest
     policy.setLegacyViolationAllowed(true);
     tempEntity.newPolicy(policy);
 
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)
-        .parameter(app.getPublicId()).body(new Stage(Stage.ID_BUILD)).post();
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .query("scanId", scanId)
+        .parameter(app.getPublicId())
+        .body(new Stage(Stage.ID_BUILD))
+        .post();
     assertResponseStatus(200, response);
 
     URL reportResourceUrl = getClass().getResource(reportResource);
@@ -308,8 +312,11 @@ public class ReportResourceTest
       mockReport(scanId, reportResource);
       createScanFile(app.getId(), scanId);
 
-      HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)
-          .parameter(app.getPublicId()).body(new Stage(Stage.ID_BUILD)).post();
+      HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+          .query("scanId", scanId)
+          .parameter(app.getPublicId())
+          .body(new Stage(Stage.ID_BUILD))
+          .post();
       assertResponseStatus(200, response);
 
       response = request.subpath("bom.json").get();
@@ -330,7 +337,7 @@ public class ReportResourceTest
     mockReport(scanId, reportResource);
     createScanFile(app.getId(), scanId);
 
-    //This will trigger two legacy violations upon evaluation.
+    // This will trigger two legacy violations upon evaluation.
     app.setLegacyViolationEnabled(true);
     applicationDAO.update(app);
     Constraint constraint = new Constraint(null /* constraintId */, "Constraint Coordinates", LogicalOperator.OR);
@@ -348,8 +355,11 @@ public class ReportResourceTest
     policy.setLegacyViolationAllowed(true);
     tempEntity.newPolicy(policy);
 
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)
-        .parameter(app.getPublicId()).body(new Stage(Stage.ID_BUILD)).post();
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .query("scanId", scanId)
+        .parameter(app.getPublicId())
+        .body(new Stage(Stage.ID_BUILD))
+        .post();
     assertResponseStatus(200, response);
 
     URL reportResourceUrl = getClass().getResource(reportResource);
@@ -453,7 +463,7 @@ public class ReportResourceTest
 
         URL url = new URL(urlString);
         return new Uri(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(),
-                url.getQuery(), url.getRef());
+            url.getQuery(), url.getRef());
       });
 
       HttpResponse response = request.subpath("../restricted.txt").get();
@@ -500,7 +510,8 @@ public class ReportResourceTest
 
     HttpResponse response =
         restRequest(app.getPublicId(), sbomMetadata.getSbomVersion())
-            .path("sbom/{sbomVersion}/printReport").get();
+            .path("sbom/{sbomVersion}/printReport")
+            .get();
     assertResponseStatus(200, response);
     assertThat(response.getHeader(HttpHeaders.CONTENT_DISPOSITION))
         .containsSubsequence("attachment; filename=\"" + app.getName() + "-" + sbomMetadata.getSbomVersion(), ".pdf\"");
@@ -530,8 +541,7 @@ public class ReportResourceTest
     tempEntity.newSbomEvaluation(
         app, sbomVersion, "spec1",
         new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"),
-        "hash1", scanId, true, ACTIVE
-    );
+        "hash1", scanId, true, ACTIVE);
 
     setFeatures(LicensedFeature.SBOM_MANAGER);
     response = restRequest()
@@ -557,8 +567,10 @@ public class ReportResourceTest
     testGetSbomPolicyViolationReport("1249e25aebb15358bedd", "some-nonexistent-id", null);
   }
 
-  private void testGetSbomPolicyViolationReport(String hash, String fileCoordinateId, String componentRef)
-      throws Exception
+  private void testGetSbomPolicyViolationReport(
+      String hash,
+      String fileCoordinateId,
+      String componentRef) throws Exception
   {
     String scanId = "ReportResourceTest_ScanId";
 
@@ -691,8 +703,11 @@ public class ReportResourceTest
     List<Message> notifications = MailboxTestUtil.get("manager@test.corp");
 
     // Evaluate policy
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
-        .query("scanId", scanId).body(stage).post();
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .parameter(app.getPublicId())
+        .query("scanId", scanId)
+        .body(stage)
+        .post();
     assertResponseStatus(200, response);
 
     policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
@@ -728,8 +743,11 @@ public class ReportResourceTest
     scanId = "ReportResourceTest_ScanId1";
     mockReport(scanId, "/ReportResourceTest/report");
     createScanFile(app.getId(), scanId);
-    response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
-        .query("scanId", scanId).body(stage).post();
+    response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .parameter(app.getPublicId())
+        .query("scanId", scanId)
+        .body(stage)
+        .post();
     assertResponseStatus(200, response);
 
     policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
@@ -767,8 +785,11 @@ public class ReportResourceTest
     final Stage stage = new Stage(Stage.ID_BUILD);
 
     // Evaluate policy
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
-        .query("scanId", scanId).body(stage).post();
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .parameter(app.getPublicId())
+        .query("scanId", scanId)
+        .body(stage)
+        .post();
     assertResponseStatus(200, response);
 
     policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
@@ -780,7 +801,7 @@ public class ReportResourceTest
 
     List<PolicyViolation> autoWaivedPolicyViolations =
         policyViolationDAO.getAutoWaivedByApplicationIdAndStageId(app.getId(),
-        Stage.ID_BUILD);
+            Stage.ID_BUILD);
 
     Thread.sleep(1);
 
@@ -840,8 +861,11 @@ public class ReportResourceTest
     final Stage stage = new Stage(Stage.ID_BUILD);
 
     // Evaluate policy
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
-        .query("scanId", scanId).body(stage).post();
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .parameter(app.getPublicId())
+        .query("scanId", scanId)
+        .body(stage)
+        .post();
     assertResponseStatus(200, response);
 
     policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
@@ -869,7 +893,8 @@ public class ReportResourceTest
     // ReEvaluate
     response =
         restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy")
-            .query("skipAutoWaivers", true).post();
+            .query("skipAutoWaivers", true)
+            .post();
     assertResponseStatus(200, response);
 
     PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(),
@@ -918,8 +943,11 @@ public class ReportResourceTest
         LicenseOverrideStatus.OVERRIDDEN, "EPL-1.0");
     Policy policy = tempEntity.newPolicy(app);
 
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
-        .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .parameter(app.getPublicId())
+        .query("scanId", scanId)
+        .body(new Stage(Stage.ID_BUILD))
+        .post();
     assertResponseStatus(200, response);
 
     response = restRequest(app.getPublicId(), scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
@@ -959,7 +987,8 @@ public class ReportResourceTest
           zip.getInputStream(zip.getEntry("data/cip/list/"
               + componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID) + "/"
               + componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID) + "/"
-              + componentIdentifier.get(ComponentIdentifier.VERSION) + ".json")), ComponentDetailsList.class);
+              + componentIdentifier.get(ComponentIdentifier.VERSION) + ".json")),
+          ComponentDetailsList.class);
       assertThat(list.getList()).isEmpty();
 
       details = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/details/1249e25aebb15358bedd.json")),
@@ -980,7 +1009,9 @@ public class ReportResourceTest
       assertThat(details).isNotNull();
       assertThat(details.getOverriddenLicenses()).hasSize(1);
       assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId()).isEqualTo(licenseOverride2
-          .getLicenseIds().iterator().next());
+          .getLicenseIds()
+          .iterator()
+          .next());
       assertThat(details.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Weak Copyleft");
       assertThat(details.getLicenseThreatLevel()).isEqualTo(2);
     }
@@ -1011,8 +1042,11 @@ public class ReportResourceTest
         "EPL-1.0");
     Policy policy = tempEntity.newPolicy(app);
 
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
-        .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .parameter(app.getPublicId())
+        .query("scanId", scanId)
+        .body(new Stage(Stage.ID_BUILD))
+        .post();
     assertResponseStatus(200, response);
 
     response = restRequest(app.getPublicId(), scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
@@ -1066,7 +1100,8 @@ public class ReportResourceTest
               + componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER) + "/extension="
               + componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION) + "/groupId="
               + componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID) + "/version="
-              + componentIdentifier.get(ComponentIdentifier.VERSION) + "/list.json")), ComponentDetailsList.class);
+              + componentIdentifier.get(ComponentIdentifier.VERSION) + "/list.json")),
+          ComponentDetailsList.class);
       assertThat(list.getList()).isEmpty();
 
       details = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/details/1249e25aebb15358bedd.json")),
@@ -1088,7 +1123,9 @@ public class ReportResourceTest
       assertThat(detailsFromList).isNotNull();
       assertThat(detailsFromList.getOverriddenLicenses()).hasSize(1);
       assertThat(detailsFromList.getOverriddenLicenses().iterator().next().getLicenseId()).isEqualTo(licenseOverride2
-          .getLicenseIds().iterator().next());
+          .getLicenseIds()
+          .iterator()
+          .next());
       assertThat(detailsFromList.getLicenseThreatGroupNames()).containsExactlyInAnyOrder("Weak Copyleft");
       assertThat(detailsFromList.getLicenseThreatLevel()).isEqualTo(2);
     }
@@ -1104,8 +1141,11 @@ public class ReportResourceTest
         "reactivex:rxjs", "5.0.0-alpha.7", "", "jar");
     Policy policy = tempEntity.newPolicy(app);
 
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
-        .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .parameter(app.getPublicId())
+        .query("scanId", scanId)
+        .body(new Stage(Stage.ID_BUILD))
+        .post();
     assertResponseStatus(200, response);
 
     response = restRequest(app.getPublicId(), scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
@@ -1225,19 +1265,23 @@ public class ReportResourceTest
     assertThat(entry.buf).isEqualTo(expectedIndexContent.getBytes(StandardCharsets.UTF_8));
   }
 
-  private static void assertComponent(String groupId,
-                                      String artifactId,
-                                      String version,
-                                      String threatGroup,
-                                      int threatLevel,
-                                      List<ApiReportComponentDTOV2> components)
+  private static void assertComponent(
+      String groupId,
+      String artifactId,
+      String version,
+      String threatGroup,
+      int threatLevel,
+      List<ApiReportComponentDTOV2> components)
   {
     for (ApiReportComponentDTOV2 candidate : components) {
-      Map<String, String> coordinates = candidate.componentIdentifier == null ? null : candidate.componentIdentifier
-          .getCoordinates();
+      Map<String, String> coordinates = candidate.componentIdentifier == null
+          ? null
+          : candidate.componentIdentifier
+              .getCoordinates();
 
       if (coordinates != null && groupId.equals(coordinates.get("groupId"))
-          && artifactId.equals(coordinates.get("artifactId")) && version.equals(coordinates.get("version"))) {
+          && artifactId.equals(coordinates.get("artifactId")) && version.equals(coordinates.get("version")))
+      {
         for (ApiLicenseThreatDTOV2 effectiveLicense : candidate.licenseData.effectiveLicenseThreats) {
           if (threatGroup.equals(effectiveLicense.licenseThreatGroupName)) {
             assertThat(effectiveLicense.licenseThreatGroupLevel).isEqualTo(threatLevel);
@@ -1305,7 +1349,7 @@ public class ReportResourceTest
       JsonNode effectiveLicenseThreat = license.get("effectiveLicenseThreat");
       assertThat(effectiveLicenseThreat).isNotNull();
       int threat = effectiveLicenseThreat.asInt();
-      assertThat(threat).isBetween(0,  10);
+      assertThat(threat).isBetween(0, 10);
       if (threat > 0) {
         countNotZero++;
       }

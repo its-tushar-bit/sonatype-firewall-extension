@@ -60,8 +60,10 @@ public class ComponentLegalFileDAOTest
     componentLegalFile.setLastUpdatedByUsername("other");
     componentLegalFile.setLastUpdatedAt(now);
     dao.update(componentLegalFile);
-    assertThat(dao.getById(componentLegalFile.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
-        .usingOverriddenEquals().isEqualTo(componentLegalFile);
+    assertThat(dao.getById(componentLegalFile.getId())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .usingOverriddenEquals()
+        .isEqualTo(componentLegalFile);
 
     // Delete
     dao.delete(componentLegalFile);
@@ -162,7 +164,8 @@ public class ComponentLegalFileDAOTest
 
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierAndType(organization.getId(), componentIdentifier, LegalFileType.NOTICE))
-            .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(componentLegalFile);
+            .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+            .isEqualTo(componentLegalFile);
   }
 
   @Test
@@ -192,46 +195,55 @@ public class ComponentLegalFileDAOTest
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier,
             LegalFileType.NOTICE))
-                .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(rootOrgComponentLegalFile);
+                .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+                .isEqualTo(rootOrgComponentLegalFile);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(organization.getId(), compIdentifier,
         LegalFileType.NOTICE))
-            .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(orgComponentLegalFile);
+            .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+            .isEqualTo(orgComponentLegalFile);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(application.getId(), compIdentifier,
         LegalFileType.NOTICE))
-            .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(appComponentLegalFile);
+            .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+            .isEqualTo(appComponentLegalFile);
 
     dao.delete(appComponentLegalFile);
 
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier,
             LegalFileType.NOTICE))
-                .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(rootOrgComponentLegalFile);
+                .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+                .isEqualTo(rootOrgComponentLegalFile);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(organization.getId(), compIdentifier,
         LegalFileType.NOTICE))
-            .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(orgComponentLegalFile);
+            .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+            .isEqualTo(orgComponentLegalFile);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(application.getId(), compIdentifier,
         LegalFileType.NOTICE))
-            .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(orgComponentLegalFile);
+            .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+            .isEqualTo(orgComponentLegalFile);
 
     dao.delete(orgComponentLegalFile);
 
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier,
             LegalFileType.NOTICE))
-                .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(rootOrgComponentLegalFile);
+                .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+                .isEqualTo(rootOrgComponentLegalFile);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(organization.getId(), compIdentifier,
         LegalFileType.NOTICE))
-            .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(rootOrgComponentLegalFile);
+            .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+            .isEqualTo(rootOrgComponentLegalFile);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(application.getId(), compIdentifier,
         LegalFileType.NOTICE))
-            .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(rootOrgComponentLegalFile);
+            .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+            .isEqualTo(rootOrgComponentLegalFile);
 
     dao.delete(rootOrgComponentLegalFile);
 
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(Organization.ROOT_ORGANIZATION_ID, compIdentifier,
             LegalFileType.NOTICE))
-        .isNull();
+                .isNull();
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(organization.getId(), compIdentifier,
         LegalFileType.NOTICE)).isNull();
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(application.getId(), compIdentifier,

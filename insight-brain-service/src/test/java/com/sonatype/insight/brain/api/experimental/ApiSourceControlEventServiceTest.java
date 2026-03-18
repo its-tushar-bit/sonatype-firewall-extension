@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.experimental;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -149,7 +150,7 @@ public class ApiSourceControlEventServiceTest
     assertThrows("Filter limit cannot be less than 1",
         BadRequestException.class,
         () -> apiSourceControlEventService
-        .getApiSourceControlEventData(OwnerType.APPLICATION, application.getId(), filter));
+            .getApiSourceControlEventData(OwnerType.APPLICATION, application.getId(), filter));
   }
 
   @Test
@@ -171,6 +172,6 @@ public class ApiSourceControlEventServiceTest
     assertThrows("Flter offset cannot be less than 0",
         BadRequestException.class,
         () -> apiSourceControlEventService
-        .getApiSourceControlEventData(OwnerType.APPLICATION, application.getId(), filter));
+            .getApiSourceControlEventData(OwnerType.APPLICATION, application.getId(), filter));
   }
 }

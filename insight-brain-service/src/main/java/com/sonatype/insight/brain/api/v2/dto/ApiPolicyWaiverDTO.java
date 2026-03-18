@@ -148,7 +148,8 @@ public class ApiPolicyWaiverDTO
   @JsonProperty(access = Access.READ_ONLY)
   public ComponentDisplayName getDisplayName() {
     return this.componentIdentifier == null
-        ? null : ComponentDisplayNameUtil.fromIdentifier(this.componentIdentifier.toComponentIdentifier());
+        ? null
+        : ComponentDisplayNameUtil.fromIdentifier(this.componentIdentifier.toComponentIdentifier());
   }
 
   /**
@@ -218,13 +219,14 @@ public class ApiPolicyWaiverDTO
     }
 
     if (policyWaiver.getConstraintFacts() != null) {
-      policyWaiver.getConstraintFacts().stream()
-              .flatMap(constraintFact -> constraintFact.getConditionFacts().stream().map(ConditionFact::getReference))
-              .filter(Objects::nonNull)
-              .filter(triggerReference -> triggerReference.getType().equals(SECURITY_VULNERABILITY_REFID))
-              .map(TriggerReference::getValue)
-              .findFirst()
-              .ifPresent(vulnerabilityId -> dto.vulnerabilityId = vulnerabilityId);
+      policyWaiver.getConstraintFacts()
+          .stream()
+          .flatMap(constraintFact -> constraintFact.getConditionFacts().stream().map(ConditionFact::getReference))
+          .filter(Objects::nonNull)
+          .filter(triggerReference -> triggerReference.getType().equals(SECURITY_VULNERABILITY_REFID))
+          .map(TriggerReference::getValue)
+          .findFirst()
+          .ifPresent(vulnerabilityId -> dto.vulnerabilityId = vulnerabilityId);
     }
 
     if (policyWaiverReason != null) {

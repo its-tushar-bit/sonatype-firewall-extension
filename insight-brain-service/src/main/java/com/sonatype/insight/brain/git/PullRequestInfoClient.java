@@ -52,8 +52,7 @@ public class PullRequestInfoClient
           commitHash,
           gitRepositoryInfo.baseBranch,
           COMMIT_HISTORY_FETCH_COUNT,
-          APPLICATION_PULL_REQUEST_FETCH_COUNT
-      );
+          APPLICATION_PULL_REQUEST_FETCH_COUNT);
       log.debug("obtained CommitInfo from SCM for commit '{}' with {} pull request(s) and {} base branch commit(s)",
           commitHash, result.getPullRequests().size(), result.getCommits().size());
     }

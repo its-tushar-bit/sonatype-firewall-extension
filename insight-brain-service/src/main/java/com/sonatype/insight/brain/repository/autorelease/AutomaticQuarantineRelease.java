@@ -223,7 +223,8 @@ public class AutomaticQuarantineRelease
           repositoryPolicyEvaluator.evaluateForAutomaticRelease(repository, evaluationRequestList);
 
       int unquarantinedComponentsCount = (int) evaluationResults.componentEvalResults.stream()
-          .filter(componentEvaluationData -> !componentEvaluationData.quarantine).count();
+          .filter(componentEvaluationData -> !componentEvaluationData.quarantine)
+          .count();
       log.debug("Auto un-quarantined {} of {} components for repository {}", unquarantinedComponentsCount,
           evaluationResults.componentEvalResults.size(), repository.getName());
       return unquarantinedComponentsCount;
@@ -241,7 +242,9 @@ public class AutomaticQuarantineRelease
       Repository repository,
       RepositoryComponentEvaluationDataRequestList repoComponentEvalList)
   {
-    AuditData.get().setRepository(repository).setData("componentCount", repoComponentEvalList.components.size())
+    AuditData.get()
+        .setRepository(repository)
+        .setData("componentCount", repoComponentEvalList.components.size())
         .setData("evaluationCause", RepositoryComponentEvaluationDataRequestList.REEVALUATION);
 
     AuditData.get().setData("componentCount", repoComponentEvalList.components.size());
@@ -251,7 +254,8 @@ public class AutomaticQuarantineRelease
   }
 
   private List<RepositoryComponent> getApplicableQuarantinedComponents(
-      final Repository repository, Set<String> autoUnquarantineEnabledConditionTypes)
+      final Repository repository,
+      Set<String> autoUnquarantineEnabledConditionTypes)
   {
     Date minQuarantineDate = Date.from(Instant.now().minus(Duration.ofDays(MAX_REEVALUATION_DAYS_FOR_AUTO_RELEASED)));
 

@@ -46,7 +46,7 @@ public class DevelopmentPrioritiesReportService
     }
     catch (final IOException ioException) {
       log.warn("IOException fetching bom information from report files (" +
-          applicationPublicId + ", " + scanId +  "): " + ioException.getMessage());
+          applicationPublicId + ", " + scanId + "): " + ioException.getMessage());
       throw new NotFoundException(NOT_FOUND_ERROR_MESSAGE);
     }
   }

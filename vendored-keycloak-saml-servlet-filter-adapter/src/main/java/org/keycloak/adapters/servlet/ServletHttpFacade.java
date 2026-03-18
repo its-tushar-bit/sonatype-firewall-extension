@@ -36,7 +36,8 @@ import org.keycloak.common.util.UriUtils;
 
 /**
  * Copied from <a
- * href="https://github.com/keycloak/keycloak/blob/23.0.7/adapters/spi/servlet-adapter-spi/src/main/java/org/keycloak/adapters/servlet/ServletHttpFacade.java">...</a>
+ * href=
+ * "https://github.com/keycloak/keycloak/blob/23.0.7/adapters/spi/servlet-adapter-spi/src/main/java/org/keycloak/adapters/servlet/ServletHttpFacade.java">...</a>
  *
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $

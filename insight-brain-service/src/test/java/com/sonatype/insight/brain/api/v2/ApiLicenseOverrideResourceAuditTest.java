@@ -31,7 +31,8 @@ import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApiLicenseOverrideResourceAuditTest extends AbstractAuditTest
+public class ApiLicenseOverrideResourceAuditTest
+    extends AbstractAuditTest
 {
   private ApiLicenseOverrideDTO licenseOverride;
 
@@ -53,22 +54,23 @@ public class ApiLicenseOverrideResourceAuditTest extends AbstractAuditTest
     app = tempEntity.newApplicationWithParent();
   }
 
-  private void assertOverrideData(AuditDTO auditDTO,
-                                  ApiLicenseOverrideDTO override,
-                                  String... selectedOverriddenLicenseNames)
+  private void assertOverrideData(
+      AuditDTO auditDTO,
+      ApiLicenseOverrideDTO override,
+      String... selectedOverriddenLicenseNames)
   {
     assertOverrideData(auditDTO, override, false, selectedOverriddenLicenseNames);
   }
 
   @SuppressWarnings("unchecked")
-  private void assertOverrideData(AuditDTO auditDTO,
-                                  ApiLicenseOverrideDTO override,
-                                  boolean isDelete,
-                                  String... selectedOverriddenLicenseNames)
+  private void assertOverrideData(
+      AuditDTO auditDTO,
+      ApiLicenseOverrideDTO override,
+      boolean isDelete,
+      String... selectedOverriddenLicenseNames)
   {
     assertCustomObject(auditDTO, "componentIdentifier", override.componentIdentifier);
-    assertCustomData(auditDTO, "status", isDelete ? "inherited" :
-        override.status.name().toLowerCase(Locale.ROOT));
+    assertCustomData(auditDTO, "status", isDelete ? "inherited" : override.status.name().toLowerCase(Locale.ROOT));
     assertCustomData(auditDTO, "comment", isDelete ? null : override.comment);
     if (selectedOverriddenLicenseNames.length > 0) {
       assertThat(auditDTO.data).containsKey("licenseNames");
@@ -84,8 +86,9 @@ public class ApiLicenseOverrideResourceAuditTest extends AbstractAuditTest
   public void testAddLicenseOverride_Application() throws Exception {
     licenseOverride.comment = "My comment";
     ApiLicenseOverrideDTO response =
-        restRequest(OwnerType.APPLICATION, app.getPublicId()).body(licenseOverride).post()
-        .getBody(ApiLicenseOverrideDTO.class);
+        restRequest(OwnerType.APPLICATION, app.getPublicId()).body(licenseOverride)
+            .post()
+            .getBody(ApiLicenseOverrideDTO.class);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_LICENSE, null);
     assertOverrideData(auditDTO, response, "Apache-2.0", "GPL-2.0");
@@ -99,8 +102,9 @@ public class ApiLicenseOverrideResourceAuditTest extends AbstractAuditTest
     licenseOverride.licenseIds = null;
     licenseOverride.status = LicenseOverrideStatus.OPEN;
     ApiLicenseOverrideDTO response =
-        restRequest(OwnerType.ORGANIZATION, org.getPublicId()).body(licenseOverride).post()
-        .getBody(ApiLicenseOverrideDTO.class);
+        restRequest(OwnerType.ORGANIZATION, org.getPublicId()).body(licenseOverride)
+            .post()
+            .getBody(ApiLicenseOverrideDTO.class);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_LICENSE, null);
     assertOverrideData(auditDTO, response);
@@ -111,7 +115,8 @@ public class ApiLicenseOverrideResourceAuditTest extends AbstractAuditTest
   public void testAddLicenseOverride_Repository() throws Exception {
     Repository repo = tempEntity.newRepository();
 
-    ApiLicenseOverrideDTO response = restRequest(OwnerType.REPOSITORY, repo.getId()).body(licenseOverride).post()
+    ApiLicenseOverrideDTO response = restRequest(OwnerType.REPOSITORY, repo.getId()).body(licenseOverride)
+        .post()
         .getBody(ApiLicenseOverrideDTO.class);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_LICENSE, null);
@@ -122,8 +127,9 @@ public class ApiLicenseOverrideResourceAuditTest extends AbstractAuditTest
   @Test
   public void testAddLicenseOverride_RepositoryContainer() throws Exception {
     ApiLicenseOverrideDTO response = restRequest(
-        OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID
-    ).body(licenseOverride).post().getBody(ApiLicenseOverrideDTO.class);
+        OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID).body(licenseOverride)
+            .post()
+            .getBody(ApiLicenseOverrideDTO.class);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_COMPONENT_LICENSE, null);
     assertOverrideData(auditDTO, response, "Apache-2.0", "GPL-2.0");

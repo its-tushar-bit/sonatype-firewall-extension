@@ -614,7 +614,8 @@ public abstract class AbstractSummaryViewTest
 
       String threatLevel = String.valueOf(expectedLTG.getThreatLevel());
       actualLTG.getThreatLevelValue().shouldBe(visible).shouldHave(text(threatLevel));
-      actualLTG.getThreatLevelIndicator().shouldBe(visible)
+      actualLTG.getThreatLevelIndicator()
+          .shouldBe(visible)
           .shouldHave(LicenseThreatGroupElement.threatLevel(expectedLTG.getThreatLevel()));
       actualLTG.getChevron().shouldBe(visible);
     }
@@ -799,7 +800,8 @@ public abstract class AbstractSummaryViewTest
 
     for (int i = 0; i < parentOwners.size(); i++) {
       String ownerId = parentOwners.get(i).getId();
-      labelTile.labelListSubheader(i + 1).shouldBe(visible)
+      labelTile.labelListSubheader(i + 1)
+          .shouldBe(visible)
           .shouldHave(LabelTile.inheritedText(parentOwners.get(i).getName()));
       InheritedLabelsList inheritedLabelList = labelTile.inheritedLabelsList(ownerId);
       inheritedLabelList.should(exist).shouldBe(visible);
@@ -875,7 +877,9 @@ public abstract class AbstractSummaryViewTest
       OwnerSummaryPage.summaryTile().name().shouldBe(visible).shouldNotHave(text(ownerName));
     }
     else {
-      OwnerSummaryPage.summaryTile().name().shouldBe(visible)
+      OwnerSummaryPage.summaryTile()
+          .name()
+          .shouldBe(visible)
           .shouldNotHave(text(parentOwners.get(parentOwners.size() - 1).getName()));
     }
   }
@@ -919,10 +923,12 @@ public abstract class AbstractSummaryViewTest
         // If inherited, should show inherited text and expand/collapse icon
         int element = i - 1;
         int expectedTestLTGSize = Organization.ROOT_ORGANIZATION_ID.equals(parentOwners.get(element).getId())
-            ? LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT : 0;
+            ? LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT
+            : 0;
         int expectedLTGCount = inheritedLTGs.get(element).size() + expectedTestLTGSize;
         section.getSectionContentRows().shouldHave(size(expectedLTGCount));
-        section.getTitle().shouldBe(visible)
+        section.getTitle()
+            .shouldBe(visible)
             .shouldHave(LicenseThreatGroupSummaryTile.inheritedText(parentOwners.get(element).getName()));
         section.getCollapsibleIcon().shouldBe(visible);
 
@@ -939,7 +945,8 @@ public abstract class AbstractSummaryViewTest
           if (inheritedLTGs.size() < i) {
             LicenseThreatGroup expectedLTG = inheritedLTGs.get(i - 1).get(j);
             actualLTG.getName().shouldBe(visible).shouldHave(text(expectedLTG.getName()));
-            actualLTG.getThreatLevelValue().shouldBe(visible)
+            actualLTG.getThreatLevelValue()
+                .shouldBe(visible)
                 .shouldHave(LicenseThreatGroupElement.threatLevel(expectedLTG.getThreatLevel()));
           }
 
@@ -967,14 +974,15 @@ public abstract class AbstractSummaryViewTest
       Owner parent = parentOwners.get(i);
       InheritedAccessList inheritedAccessList = accessTile.inheritedAccessList(parent.getId());
 
-      //Expanded by default
-      accessTile.accessListSubheader(i).shouldBe(visible)
+      // Expanded by default
+      accessTile.accessListSubheader(i)
+          .shouldBe(visible)
           .shouldHave(AccessTile.inheritedText(parentOwners.get(i).getName()));
       inheritedAccessList.should(exist).shouldBe(visible);
-      //Collapse
+      // Collapse
       accessTile.accessListSubheader(i).shouldBe(visible).click();
       inheritedAccessList.shouldNotBe(visible);
-      //Expanded again
+      // Expanded again
       accessTile.accessListSubheader(i).shouldBe(visible).click();
 
       inheritedAccessList.elements().shouldHave(size(2));
@@ -1071,11 +1079,17 @@ public abstract class AbstractSummaryViewTest
     policy.operate().shouldBe(visible).shouldHave(PolicyTile.noActionText());
 
     if (actionTypeId.equals(Action.ID_WARN)) {
-      policy.build().find("span").shouldHave(PolicyTileListElement.WARN).shouldHave(text("warn"))
+      policy.build()
+          .find("span")
+          .shouldHave(PolicyTileListElement.WARN)
+          .shouldHave(text("warn"))
           .shouldNotHave(PolicyTileListElement.FAIL);
     }
     else if (actionTypeId.equals(Action.ID_FAIL)) {
-      policy.build().find("span").shouldHave(PolicyTileListElement.FAIL).shouldHave(text("fail"))
+      policy.build()
+          .find("span")
+          .shouldHave(PolicyTileListElement.FAIL)
+          .shouldHave(text("fail"))
           .shouldNotHave(PolicyTileListElement.WARN);
     }
   }
@@ -1130,12 +1144,16 @@ public abstract class AbstractSummaryViewTest
       // If not read only, only proxy should not be disabled
       if (i == 2 && !isProxyActionReadOnly) {
         header.root.shouldNotHave(PolicyTileList.CELL_DISABLED);
-        policyElement.column(i + 1).shouldBe(visible).shouldHave(PolicyTile.noActionText())
+        policyElement.column(i + 1)
+            .shouldBe(visible)
+            .shouldHave(PolicyTile.noActionText())
             .shouldNotHave(PolicyTileList.CELL_DISABLED);
       }
       else {
         header.root.shouldHave(PolicyTileList.CELL_DISABLED);
-        policyElement.column(i + 1).shouldBe(visible).shouldHave(PolicyTile.noActionText())
+        policyElement.column(i + 1)
+            .shouldBe(visible)
+            .shouldHave(PolicyTile.noActionText())
             .shouldHave(PolicyTileList.CELL_DISABLED);
       }
     }
@@ -1179,7 +1197,7 @@ public abstract class AbstractSummaryViewTest
   public void testPublicDataSources_isVisible() {
     productLicenseManager.setFeatures(LicensedFeature.CPE_MATCHING);
     refresh();
-    //Pill is visible
+    // Pill is visible
     OwnerSummaryPage.navigationPills().publicDataSources().shouldBe(visible);
     OwnerSummaryPage.navigationPills().publicDataSources().click();
 
@@ -1191,7 +1209,7 @@ public abstract class AbstractSummaryViewTest
   @Test
   public void testPublicDataSources_isNotVisible() {
     refresh();
-    //Pill is not visible due lack of CPE_MATCHING feature
+    // Pill is not visible due lack of CPE_MATCHING feature
     OwnerSummaryPage.navigationPills().publicDataSources().shouldNotBe(visible);
     OwnerSummaryPage.publicDataSourcesTile().shouldNotBe(visible);
   }

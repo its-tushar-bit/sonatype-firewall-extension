@@ -72,75 +72,76 @@ public class SourceControlDAO
   // The '_SCHEMA_' string will be replaced by the proper schema at runtime.
   private static final String SELECT_APPLICATIONS_FOR_SOURCE_SCAN =
       "SELECT sc.owner_id " +
-      "FROM _SCHEMA_.source_control sc " +
-      "JOIN _SCHEMA_.application a ON sc.owner_id = a.application_id " +
-      "LEFT JOIN ( " +
-      "   SELECT pe.application_id, pe.time, pe.scan_trigger_type " +
-      "     FROM _SCHEMA_.last_policy_evaluation lpe " +
-      "     JOIN _SCHEMA_.policy_evaluation pe ON pe.policy_evaluation_id = lpe.policy_evaluation_id" +
-      "     WHERE lpe.stage_type_id='source' " +
-      ") lpe ON lpe.application_id = sc.owner_id " +
-      "WHERE " +
-      // Either: last source stage PE is internally triggered, but not by DBM, and it's older than the DBM run window
-      "( lpe.time < ?1 AND lpe.scan_trigger_type " +
-      "           IN ('SOURCE_CONTROL_INTERNAL_ONBOARDING', 'SOURCE_CONTROL_INTERNAL_PULL_REQUEST') ) " +
-      // Or: the last source stage PE is triggered by SC API, and it's older than the external eval. window (7 days)
-      "      OR ( lpe.time < ?2 AND lpe.scan_trigger_type = 'SOURCE_CONTROL_API' ) " +
-      // Or: the last source stage PE is triggered by DBM; we'll keep doing DBM for this app
-      "      OR lpe.scan_trigger_type = 'SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING' " +
-      // Or: we don't have any source-stage PE
-      // This case happens if the user manually creates the application with source control information
-      "      OR lpe.application_id IS NULL ";
+          "FROM _SCHEMA_.source_control sc " +
+          "JOIN _SCHEMA_.application a ON sc.owner_id = a.application_id " +
+          "LEFT JOIN ( " +
+          "   SELECT pe.application_id, pe.time, pe.scan_trigger_type " +
+          "     FROM _SCHEMA_.last_policy_evaluation lpe " +
+          "     JOIN _SCHEMA_.policy_evaluation pe ON pe.policy_evaluation_id = lpe.policy_evaluation_id" +
+          "     WHERE lpe.stage_type_id='source' " +
+          ") lpe ON lpe.application_id = sc.owner_id " +
+          "WHERE " +
+          // Either: last source stage PE is internally triggered, but not by DBM, and it's older than the DBM run
+          // window
+          "( lpe.time < ?1 AND lpe.scan_trigger_type " +
+          "           IN ('SOURCE_CONTROL_INTERNAL_ONBOARDING', 'SOURCE_CONTROL_INTERNAL_PULL_REQUEST') ) " +
+          // Or: the last source stage PE is triggered by SC API, and it's older than the external eval. window (7 days)
+          "      OR ( lpe.time < ?2 AND lpe.scan_trigger_type = 'SOURCE_CONTROL_API' ) " +
+          // Or: the last source stage PE is triggered by DBM; we'll keep doing DBM for this app
+          "      OR lpe.scan_trigger_type = 'SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING' " +
+          // Or: we don't have any source-stage PE
+          // This case happens if the user manually creates the application with source control information
+          "      OR lpe.application_id IS NULL ";
 
   private static final String BUILD_COMPOSITE_SOURCE_CONTROL =
       "SELECT " +
       // select the first non-null value for each column in the ordered set of Source Control records
-      "(ARRAY_REMOVE(ARRAY_AGG(source_control_id ORDER BY hierarchy_order), NULL))[1] as source_control_id," +
-      "(ARRAY_REMOVE(ARRAY_AGG(owner_id ORDER BY hierarchy_order), NULL))[1] as owner_id," +
-      "(ARRAY_REMOVE(ARRAY_AGG(repository_url ORDER BY hierarchy_order), NULL))[1] as repository_url," +
-      "(ARRAY_REMOVE(ARRAY_AGG(normalized_repository_url ORDER BY hierarchy_order), NULL))[1] " +
-      "as normalized_repository_url," +
-      "(ARRAY_REMOVE(ARRAY_AGG(repository_ssh_url ORDER BY hierarchy_order), NULL))[1] as repository_ssh_url," +
-      "(ARRAY_REMOVE(ARRAY_AGG(username ORDER BY hierarchy_order), NULL))[1] as username," +
-      "(ARRAY_REMOVE(ARRAY_AGG(token ORDER BY hierarchy_order), NULL))[1] as token," +
-      "(ARRAY_REMOVE(ARRAY_AGG(provider ORDER BY hierarchy_order), NULL))[1] as provider," +
-      "(ARRAY_REMOVE(ARRAY_AGG(base_branch ORDER BY hierarchy_order), NULL))[1] as base_branch," +
-      "(ARRAY_REMOVE(ARRAY_AGG(remediation_pull_requests_enabled ORDER BY hierarchy_order), NULL))[1] " +
-      "as remediation_pull_requests_enabled," +
-      "(ARRAY_REMOVE(ARRAY_AGG(status_checks_enabled ORDER BY hierarchy_order), NULL))[1] " +
-      "as status_checks_enabled," +
-      "(ARRAY_REMOVE(ARRAY_AGG(pull_request_poll_time ORDER BY hierarchy_order), NULL))[1] " +
-      "as pull_request_poll_time," +
-      "(ARRAY_REMOVE(ARRAY_AGG(pull_request_error_count ORDER BY hierarchy_order), NULL))[1] " +
-      "as pull_request_error_count," +
-      "(ARRAY_REMOVE(ARRAY_AGG(pull_request_commenting_enabled ORDER BY hierarchy_order), NULL))[1] " +
-      "as pull_request_commenting_enabled," +
-      "(ARRAY_REMOVE(ARRAY_AGG(source_control_evaluations_enabled ORDER BY hierarchy_order), NULL))[1] " +
-      "as source_control_evaluations_enabled," +
-      "(ARRAY_REMOVE(ARRAY_AGG(source_control_scan_target ORDER BY hierarchy_order), NULL))[1] " +
-      "as source_control_scan_target," +
-      "(ARRAY_REMOVE(ARRAY_AGG(ssh_enabled ORDER BY hierarchy_order), NULL))[1] as ssh_enabled," +
-      "(ARRAY_REMOVE(ARRAY_AGG(commit_status_enabled ORDER BY hierarchy_order), NULL))[1] " +
-      "as commit_status_enabled, " +
-      "(ARRAY_REMOVE(ARRAY_AGG(manual_pull_requests_enabled ORDER BY hierarchy_order), NULL))[1] " +
-      "as manual_pull_requests_enabled, " +
-      "(ARRAY_REMOVE(ARRAY_AGG(inner_source_automated_updates_enabled ORDER BY hierarchy_order), NULL))[1] " +
-      "as inner_source_automated_updates_enabled " +
-      "FROM (" +
-      // Create ordered set of Source Control records, from application to root organization
-      "SELECT * FROM (" +
-      "WITH RECURSIVE ownership_hierarchy(entity_id, hierarchy_order) AS (" +
-      "SELECT organization_id, 1 from _SCHEMA_.application WHERE application_id=?1" +
-      "  UNION " +
-      "SELECT org.parent_organization_id, oh.hierarchy_order+1 " +
-      "FROM ownership_hierarchy oh, _SCHEMA_.organization org " +
-      "WHERE org.organization_id = oh.entity_id AND org.parent_organization_id IS NOT NULL" +
-      ") SELECT DISTINCT hierarchy_order, entity_id " +
-      "FROM ownership_hierarchy UNION SELECT 0, ?1 FROM ownership_hierarchy " +
-      "ORDER BY hierarchy_order" +
-      ") AS ORDERED_SOURCE_CONTROLS LEFT JOIN _SCHEMA_.source_control " +
-      "ON source_control.owner_id = ORDERED_SOURCE_CONTROLS.entity_id" +
-      ") AS FINAL_RESULT";
+          "(ARRAY_REMOVE(ARRAY_AGG(source_control_id ORDER BY hierarchy_order), NULL))[1] as source_control_id," +
+          "(ARRAY_REMOVE(ARRAY_AGG(owner_id ORDER BY hierarchy_order), NULL))[1] as owner_id," +
+          "(ARRAY_REMOVE(ARRAY_AGG(repository_url ORDER BY hierarchy_order), NULL))[1] as repository_url," +
+          "(ARRAY_REMOVE(ARRAY_AGG(normalized_repository_url ORDER BY hierarchy_order), NULL))[1] " +
+          "as normalized_repository_url," +
+          "(ARRAY_REMOVE(ARRAY_AGG(repository_ssh_url ORDER BY hierarchy_order), NULL))[1] as repository_ssh_url," +
+          "(ARRAY_REMOVE(ARRAY_AGG(username ORDER BY hierarchy_order), NULL))[1] as username," +
+          "(ARRAY_REMOVE(ARRAY_AGG(token ORDER BY hierarchy_order), NULL))[1] as token," +
+          "(ARRAY_REMOVE(ARRAY_AGG(provider ORDER BY hierarchy_order), NULL))[1] as provider," +
+          "(ARRAY_REMOVE(ARRAY_AGG(base_branch ORDER BY hierarchy_order), NULL))[1] as base_branch," +
+          "(ARRAY_REMOVE(ARRAY_AGG(remediation_pull_requests_enabled ORDER BY hierarchy_order), NULL))[1] " +
+          "as remediation_pull_requests_enabled," +
+          "(ARRAY_REMOVE(ARRAY_AGG(status_checks_enabled ORDER BY hierarchy_order), NULL))[1] " +
+          "as status_checks_enabled," +
+          "(ARRAY_REMOVE(ARRAY_AGG(pull_request_poll_time ORDER BY hierarchy_order), NULL))[1] " +
+          "as pull_request_poll_time," +
+          "(ARRAY_REMOVE(ARRAY_AGG(pull_request_error_count ORDER BY hierarchy_order), NULL))[1] " +
+          "as pull_request_error_count," +
+          "(ARRAY_REMOVE(ARRAY_AGG(pull_request_commenting_enabled ORDER BY hierarchy_order), NULL))[1] " +
+          "as pull_request_commenting_enabled," +
+          "(ARRAY_REMOVE(ARRAY_AGG(source_control_evaluations_enabled ORDER BY hierarchy_order), NULL))[1] " +
+          "as source_control_evaluations_enabled," +
+          "(ARRAY_REMOVE(ARRAY_AGG(source_control_scan_target ORDER BY hierarchy_order), NULL))[1] " +
+          "as source_control_scan_target," +
+          "(ARRAY_REMOVE(ARRAY_AGG(ssh_enabled ORDER BY hierarchy_order), NULL))[1] as ssh_enabled," +
+          "(ARRAY_REMOVE(ARRAY_AGG(commit_status_enabled ORDER BY hierarchy_order), NULL))[1] " +
+          "as commit_status_enabled, " +
+          "(ARRAY_REMOVE(ARRAY_AGG(manual_pull_requests_enabled ORDER BY hierarchy_order), NULL))[1] " +
+          "as manual_pull_requests_enabled, " +
+          "(ARRAY_REMOVE(ARRAY_AGG(inner_source_automated_updates_enabled ORDER BY hierarchy_order), NULL))[1] " +
+          "as inner_source_automated_updates_enabled " +
+          "FROM (" +
+          // Create ordered set of Source Control records, from application to root organization
+          "SELECT * FROM (" +
+          "WITH RECURSIVE ownership_hierarchy(entity_id, hierarchy_order) AS (" +
+          "SELECT organization_id, 1 from _SCHEMA_.application WHERE application_id=?1" +
+          "  UNION " +
+          "SELECT org.parent_organization_id, oh.hierarchy_order+1 " +
+          "FROM ownership_hierarchy oh, _SCHEMA_.organization org " +
+          "WHERE org.organization_id = oh.entity_id AND org.parent_organization_id IS NOT NULL" +
+          ") SELECT DISTINCT hierarchy_order, entity_id " +
+          "FROM ownership_hierarchy UNION SELECT 0, ?1 FROM ownership_hierarchy " +
+          "ORDER BY hierarchy_order" +
+          ") AS ORDERED_SOURCE_CONTROLS LEFT JOIN _SCHEMA_.source_control " +
+          "ON source_control.owner_id = ORDERED_SOURCE_CONTROLS.entity_id" +
+          ") AS FINAL_RESULT";
 
   @Inject
   public SourceControlDAO(
@@ -169,11 +170,11 @@ public class SourceControlDAO
    * Consistency means:
    * 1 - if the source control entry has no repo URL then it's of no interest so we set the poll time to null
    * 2 - for an 'application' source control entry set the poll time to:
-   *     (a) orgs that we poll on a per repo basis (i.e. gitlab):
-   *         (1) the initial default polling time (now - 72 hours) if it's not already set, or
-   *         (2) the minimum of the earliest policy evaluation timestamp or the initial default polling time
-   *     (b) orgs that we poll on an org-wide basis (i.e. github):
-   *         (1) always the current time, if it's not already set
+   * (a) orgs that we poll on a per repo basis (i.e. gitlab):
+   * (1) the initial default polling time (now - 72 hours) if it's not already set, or
+   * (2) the minimum of the earliest policy evaluation timestamp or the initial default polling time
+   * (b) orgs that we poll on an org-wide basis (i.e. github):
+   * (1) always the current time, if it's not already set
    *
    * Poll time is used to determine (a) for which repos and in what sequence we will query the SCM to determine if there
    * are any open pull requests that we can possibly comment on and (b) the cutoff time after which the pull request
@@ -219,8 +220,9 @@ public class SourceControlDAO
               "     GROUP BY application_id" +
               "     ) AS first_policy_eval_commit" +
               " WHERE sc.owner_id = first_policy_eval_commit.application_id)" +
-              " WHERE sc.pull_request_poll_time IS NULL;"
-      ).setParameter(1, defaultPollingTime).executeUpdate();
+              " WHERE sc.pull_request_poll_time IS NULL;")
+          .setParameter(1, defaultPollingTime)
+          .executeUpdate();
       txn.commit();
     }
   }
@@ -231,8 +233,9 @@ public class SourceControlDAO
       txn.createNativeQuery(
           "UPDATE " + getDatabaseSchema() +
               ".source_control SET pull_request_poll_time = ?1" +
-              " WHERE pull_request_poll_time IS NULL AND repository_url IS NOT NULL;"
-      ).setParameter(1, defaultPollingTime).executeUpdate();
+              " WHERE pull_request_poll_time IS NULL AND repository_url IS NOT NULL;")
+          .setParameter(1, defaultPollingTime)
+          .executeUpdate();
       txn.commit();
     }
   }
@@ -244,8 +247,8 @@ public class SourceControlDAO
       // set poll time to null where repo url is null
       txn.createNativeQuery(
           "UPDATE " + getDatabaseSchema() +
-              ".source_control SET pull_request_poll_time = NULL WHERE repository_url IS NULL;"
-      ).executeUpdate();
+              ".source_control SET pull_request_poll_time = NULL WHERE repository_url IS NULL;")
+          .executeUpdate();
 
       txn.commit();
     }
@@ -274,8 +277,7 @@ public class SourceControlDAO
     // Single query to build Source Control instance for an application. Relies on Postgres-specific features
     try (TransactionContext tx = createTransactionContext()) {
       jakarta.persistence.Query query = tx.createNativeQuery(
-          injectSchemaName(BUILD_COMPOSITE_SOURCE_CONTROL), SourceControl.class
-      );
+          injectSchemaName(BUILD_COMPOSITE_SOURCE_CONTROL), SourceControl.class);
       query.setParameter(1, applicationId);
       return (SourceControl) query.getSingleResult();
     }
@@ -415,8 +417,8 @@ public class SourceControlDAO
 
     return getByApplication()
         .stream()
-        .filter( application ->
-            areRemediationPullRequestsEnabled(application, appsById, orgsById, orgSourceControlsByOrgId))
+        .filter(
+            application -> areRemediationPullRequestsEnabled(application, appsById, orgsById, orgSourceControlsByOrgId))
         .collect(Collectors.toList());
   }
 
@@ -476,7 +478,8 @@ public class SourceControlDAO
 
     SourceControl existingSourceControl = getById(tx, sourceControl.getId());
     if (!Objects.equals(sourceControl.getRepositoryUrl(), existingSourceControl.getRepositoryUrl())
-        && !StringUtils.isBlank(existingSourceControl.getRepositoryUrl())) {
+        && !StringUtils.isBlank(existingSourceControl.getRepositoryUrl()))
+    {
       // If the repository URL has changed, clear the SSH URL
       sourceControl.setRepositorySshUrl(null);
       // if other SC entries have the same repo URL, clear their PRs
@@ -707,10 +710,12 @@ public class SourceControlDAO
     return getProviderFromOrganization(tx, organization.getParentOrganizationId());
   }
 
-  /** Builds a composite source control record starting from the given ownerId and looking up the owner hierarchy for
-   *  missing fields.
-   *  <br/>
-   *  Note: The composite source control owner ID can be different from the given owner ID.
+  /**
+   * Builds a composite source control record starting from the given ownerId and looking up the owner hierarchy for
+   * missing fields.
+   * <br/>
+   * Note: The composite source control owner ID can be different from the given owner ID.
+   *
    * @param ownerId an application or organization ID
    */
   public SourceControl buildCompositeSourceControlInApplication(final String ownerId) {

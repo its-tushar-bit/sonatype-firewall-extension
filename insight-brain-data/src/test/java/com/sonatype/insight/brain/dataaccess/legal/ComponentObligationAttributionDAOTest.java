@@ -62,7 +62,9 @@ public class ComponentObligationAttributionDAOTest
     componentObligationAttribution.setLastUpdatedAt(now);
     dao.update(componentObligationAttribution);
     assertThat(dao.getById(componentObligationAttribution.getId())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).usingOverriddenEquals().isEqualTo(componentObligationAttribution);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .usingOverriddenEquals()
+        .isEqualTo(componentObligationAttribution);
 
     // Delete
     dao.delete(componentObligationAttribution);
@@ -255,15 +257,15 @@ public class ComponentObligationAttributionDAOTest
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(Organization.ROOT_ORGANIZATION_ID,
         componentIdentifier, obligationNames))
             .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Root);
+            .containsExactlyInAnyOrder(c1Root);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(organization.getId(),
         componentIdentifier, obligationNames))
             .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Root, c2Org);
+            .containsExactlyInAnyOrder(c1Root, c2Org);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(application.getId(),
         componentIdentifier, obligationNames))
             .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Root, c2Org, c3App);
+            .containsExactlyInAnyOrder(c1Root, c2Org, c3App);
 
     // Add c1 at org scope
     ComponentObligationAttribution c1Org = tempEntity.newComponentObligationAttribution(componentIdentifier,
@@ -271,15 +273,15 @@ public class ComponentObligationAttributionDAOTest
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(Organization.ROOT_ORGANIZATION_ID,
         componentIdentifier, obligationNames))
             .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Root);
+            .containsExactlyInAnyOrder(c1Root);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(organization.getId(),
         componentIdentifier, obligationNames))
             .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Org, c2Org);
+            .containsExactlyInAnyOrder(c1Org, c2Org);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(application.getId(),
         componentIdentifier, obligationNames))
             .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Org, c2Org, c3App);
+            .containsExactlyInAnyOrder(c1Org, c2Org, c3App);
 
     // Add c1 at app scope
     ComponentObligationAttribution c1App = tempEntity.newComponentObligationAttribution(componentIdentifier,
@@ -287,15 +289,15 @@ public class ComponentObligationAttributionDAOTest
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(Organization.ROOT_ORGANIZATION_ID,
         componentIdentifier, obligationNames))
             .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Root);
+            .containsExactlyInAnyOrder(c1Root);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(organization.getId(),
         componentIdentifier, obligationNames))
             .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Org, c2Org);
+            .containsExactlyInAnyOrder(c1Org, c2Org);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(application.getId(),
         componentIdentifier, obligationNames))
             .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1App, c2Org, c3App);
+            .containsExactlyInAnyOrder(c1App, c2Org, c3App);
   }
 
   @Test
@@ -316,38 +318,38 @@ public class ComponentObligationAttributionDAOTest
     // Try to get all obligation attributions at different scopes
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID,
         componentIdentifier)).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Root);
+            .containsExactlyInAnyOrder(c1Root);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(),
         componentIdentifier)).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Root, c2Org);
+            .containsExactlyInAnyOrder(c1Root, c2Org);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(),
         componentIdentifier)).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Root, c2Org, c3App);
+            .containsExactlyInAnyOrder(c1Root, c2Org, c3App);
 
     // Add c1 at org scope
     ComponentObligationAttribution c1Org = tempEntity.newComponentObligationAttribution(componentIdentifier,
         organization.getId(), obligationName1, "content4", "legalContentHash4");
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID,
         componentIdentifier)).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Root);
+            .containsExactlyInAnyOrder(c1Root);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(),
         componentIdentifier)).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Org, c2Org);
+            .containsExactlyInAnyOrder(c1Org, c2Org);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(),
         componentIdentifier)).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Org, c2Org, c3App);
+            .containsExactlyInAnyOrder(c1Org, c2Org, c3App);
 
     // Add c1 at app scope
     ComponentObligationAttribution c1App = tempEntity.newComponentObligationAttribution(componentIdentifier,
         application.getId(), obligationName1, "content5", "legalContentHash5");
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID,
         componentIdentifier)).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Root);
+            .containsExactlyInAnyOrder(c1Root);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(),
         componentIdentifier)).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1Org, c2Org);
+            .containsExactlyInAnyOrder(c1Org, c2Org);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(),
         componentIdentifier)).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(c1App, c2Org, c3App);
+            .containsExactlyInAnyOrder(c1App, c2Org, c3App);
   }
 }

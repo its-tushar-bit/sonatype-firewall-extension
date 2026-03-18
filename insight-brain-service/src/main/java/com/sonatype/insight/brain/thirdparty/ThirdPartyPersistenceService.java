@@ -155,7 +155,8 @@ public class ThirdPartyPersistenceService
         var normalizedPath = userFilePath.normalize();
 
         if (normalizedPath.toString().isEmpty() || Path.of(".").equals(normalizedPath)
-            || Streams.stream(normalizedPath.iterator()).anyMatch(Path.of("..")::equals)) {
+            || Streams.stream(normalizedPath.iterator()).anyMatch(Path.of("..")::equals))
+        {
           throw new CheckedIllegalArgumentException("Invalid filename: %s".formatted(userFilePath));
         }
 
@@ -188,7 +189,8 @@ public class ThirdPartyPersistenceService
       private static Path getSafeFilename(Path userFilePath) throws CheckedIllegalArgumentException {
         Path filenamePath = userFilePath.getFileName();
         if (filenamePath.equals(Path.of("")) || filenamePath.equals(Path.of(".")) ||
-            filenamePath.equals(Path.of(".."))) {
+            filenamePath.equals(Path.of("..")))
+        {
           throw new CheckedIllegalArgumentException("Invalid filename: " + userFilePath);
         }
         else {
@@ -220,7 +222,7 @@ public class ThirdPartyPersistenceService
    * temporary location where they can be retrieved later for scanning.
    *
    * @param userFilename The filename/path provided by the user. Only the basename on this path will be considered (any
-   * directories will be ignored).
+   *          directories will be ignored).
    *
    * @throws CheckedIllegalArgumentException if the basename of userFilename is empty, `.`, or `..`
    */
@@ -235,8 +237,7 @@ public class ThirdPartyPersistenceService
         new PersistencePath.SanitizedUserPath(userFilename),
         applicationId,
         null,
-        detectionResult
-    );
+        detectionResult);
   }
 
   /**
@@ -244,7 +245,7 @@ public class ThirdPartyPersistenceService
    * be used as the version if supplied, falling back to the version from the file and then the timestamp if necessary.
    *
    * @param userFilename The filename/path provided by the user. Only the basename on this path will be considered (any
-   * directories will be ignored).
+   *          directories will be ignored).
    *
    * @throws CheckedIllegalArgumentException if the basename of userFilename is empty, `.`, or `..`
    */
@@ -260,8 +261,7 @@ public class ThirdPartyPersistenceService
         new PersistencePath.SanitizedUserPath(userFilename),
         applicationId,
         preferredVersion,
-        detectionResult
-    );
+        detectionResult);
   }
 
   /**
@@ -286,12 +286,11 @@ public class ThirdPartyPersistenceService
         new PersistencePath.SanitizedSbomScanPath(scanPath),
         applicationId,
         null,
-        detectionResult
-    );
+        detectionResult);
   }
 
   /**
-   * Save information about the binary to the database.  The binary contents are NOT saved to a persistent temporary
+   * Save information about the binary to the database. The binary contents are NOT saved to a persistent temporary
    * location as this method is intended to be called during processing of an already-existing scan file, in which there
    * is no need for such temporary storage. This method stores the full "path" value from the scan.xml without sanity
    * checking that it is a safe file path. No actual files are saved using any part of that value.
@@ -310,8 +309,7 @@ public class ThirdPartyPersistenceService
         new PersistencePath.UnsafePath(scanPath),
         applicationId,
         null,
-        detectionResult
-    );
+        detectionResult);
   }
 
   /**
@@ -331,8 +329,9 @@ public class ThirdPartyPersistenceService
 
   /**
    * Returns an InputStream of the contents of the SBOM file associated with the given ThirdPartySbomMetadata.
+   *
    * @throws IllegalArgumentException if sbomMetadata does not have an associated persisted SBOM file (i.e. if
-   * sbomMetadata.getFilename() is null)
+   *           sbomMetadata.getFilename() is null)
    */
   public InputStream getSbomContentsInputStream(
       ThirdPartySbomMetadata sbomMetadata) throws IOException, IllegalArgumentException
@@ -367,6 +366,7 @@ public class ThirdPartyPersistenceService
   /**
    * Write the SBOM/binary content from the input stream to a randomly-named file with the same file extension as
    * userFilename in the transient storage directory.
+   *
    * @return an SbomEntity representing the written file, which should be removed when no longer needed
    */
   public SbomEntity writeToTransientStorage(
@@ -400,19 +400,21 @@ public class ThirdPartyPersistenceService
 
   /**
    * @return the persistent temporary binary file associated with the given sbomMetadata and thirdPartyFile as an
-   * SBOM entity.
+   *         SBOM entity.
    *
-   * External callers should only read the file at this path and not modify or delete it.  The actual directory
-   * structure of the path should also be treated as an implementation detail of this class and not inspected by
-   * external callers.
+   *         External callers should only read the file at this path and not modify or delete it. The actual directory
+   *         structure of the path should also be treated as an implementation detail of this class and not inspected by
+   *         external callers.
    *
-   * Implementation notes:
-   * Persistent temp files for binaries are stored in a directory/path named using the ThirdPartySbomMetadata id, with a
-   * filename matching their original filename as recorded in the ThirdPartyFile. Using the original name for the file
-   * is important for enabling the insight-scanner code to process it correctly.
+   *         Implementation notes:
+   *         Persistent temp files for binaries are stored in a directory/path named using the ThirdPartySbomMetadata
+   *         id, with a
+   *         filename matching their original filename as recorded in the ThirdPartyFile. Using the original name for
+   *         the file
+   *         is important for enabling the insight-scanner code to process it correctly.
    *
    * @throws IllegalArgumentException if the thirdPartyFile does not match the sbomMetadata or does not contain
-   * a sanitizable filename
+   *           a sanitizable filename
    */
   public SbomEntity getBinaryPersistentTempFilePath(
       ThirdPartySbomMetadata sbomMetadata,
@@ -421,8 +423,7 @@ public class ThirdPartyPersistenceService
     if (!sbomMetadata.getThirdPartyFileId().equals(thirdPartyFile.getId())) {
       throw new IllegalArgumentException(
           "ThirdPartyFile does not match ThirdPartySbomMetadata: %s vs %s"
-              .formatted(sbomMetadata.getThirdPartyFileId(), thirdPartyFile.getId())
-      );
+              .formatted(sbomMetadata.getThirdPartyFileId(), thirdPartyFile.getId()));
     }
 
     PersistencePath.SanitizedUserPath sanitizedPath;
@@ -507,7 +508,8 @@ public class ThirdPartyPersistenceService
       }
 
       try (var fileStream = compressedSbomPath.getOutputStream();
-           var outputStream = new GzipCompressorOutputStream(fileStream)) {
+          var outputStream = new GzipCompressorOutputStream(fileStream))
+      {
         IOUtils.copy(sbomStream, outputStream);
       }
 
@@ -591,8 +593,7 @@ public class ThirdPartyPersistenceService
           userPath,
           applicationId,
           preferredVersion,
-          detectionResult
-      );
+          detectionResult);
     }
     else {
       return saveSbomManagerBinaryFromUserUpload(
@@ -600,8 +601,7 @@ public class ThirdPartyPersistenceService
           userPath,
           applicationId,
           preferredVersion,
-          detectionResult
-      );
+          detectionResult);
     }
   }
 
@@ -620,8 +620,7 @@ public class ThirdPartyPersistenceService
         userPath,
         applicationId,
         versionToSave,
-        detectionResult
-    ));
+        detectionResult));
   }
 
   /**
@@ -639,8 +638,7 @@ public class ThirdPartyPersistenceService
         userPath,
         applicationId,
         versionToSave,
-        detectionResult
-    ));
+        detectionResult));
   }
 
   /**
@@ -659,8 +657,7 @@ public class ThirdPartyPersistenceService
         userPath,
         applicationId,
         versionToSave,
-        detectionResult
-    ));
+        detectionResult));
   }
 
   /**
@@ -677,8 +674,7 @@ public class ThirdPartyPersistenceService
         userPath,
         applicationId,
         versionToSave,
-        detectionResult
-    ));
+        detectionResult));
   }
 
   /**
@@ -690,10 +686,9 @@ public class ThirdPartyPersistenceService
   private ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> trySaveInLoop(
       String userPreferredVersion,
       SbomDetectionResult detectionResult,
-      FunctionWithException<String, ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile>, IOException> saveFunction)
-      throws IOException
+      FunctionWithException<String, ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile>, IOException> saveFunction) throws IOException
   {
-    //Try to save using the user's preferred SBOM version if any, otherwise the version detected in the SBOM if any
+    // Try to save using the user's preferred SBOM version if any, otherwise the version detected in the SBOM if any
     final Optional<String> preferredVersion = Optional.ofNullable(userPreferredVersion)
         .or(() -> Optional.ofNullable(detectionResult.summary).map(s -> s.applicationVersion))
         .filter(v -> !v.isBlank());
@@ -751,8 +746,7 @@ public class ThirdPartyPersistenceService
               applicationId,
               applicationVersion,
               SbomScanType.SBOM,
-              detectionResult
-          );
+              detectionResult);
 
       tx.commit();
       return retval;
@@ -783,15 +777,13 @@ public class ThirdPartyPersistenceService
           userPath,
           applicationId,
           applicationVersion,
-          detectionResult
-      );
+          detectionResult);
       var sbomMetadata = retval.getLeft();
 
       persistentTempSbom = writeBinaryToPersistentTempStorage(
           sbomEntity,
           sbomMetadata,
-          userPath
-      );
+          userPath);
 
       tx.commit();
       return retval;
@@ -820,8 +812,7 @@ public class ThirdPartyPersistenceService
           userPath,
           applicationId,
           applicationVersion,
-          detectionResult
-      );
+          detectionResult);
 
       tx.commit();
       return retval;
@@ -845,8 +836,7 @@ public class ThirdPartyPersistenceService
         applicationId,
         applicationVersion,
         SbomScanType.BINARY,
-        detectionResult
-    );
+        detectionResult);
 
     var sbomMetadata = retval.getLeft();
     sbomMetadata.setOriginalBinaryFileName(userPath.toString());
@@ -875,8 +865,9 @@ public class ThirdPartyPersistenceService
       }
 
       try (InputStream sbomStream = sbomContentStreamSupplier.get();
-           OutputStream outputStream = permanentSbom.getOutputStream();
-           GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(outputStream)) {
+          OutputStream outputStream = permanentSbom.getOutputStream();
+          GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(outputStream))
+      {
         IOUtils.copy(sbomStream, compressorOutputStream);
       }
 
@@ -990,7 +981,7 @@ public class ThirdPartyPersistenceService
 
   /**
    * @return the current timestamp in the format yyyyMMddHHmmssSSS, used in various places in this class
-   * for auto-generated and disambiguated version strings
+   *         for auto-generated and disambiguated version strings
    */
   private String getTimestampForVersion() {
     return dtFormatter.format(LocalDateTime.now());
@@ -998,7 +989,7 @@ public class ThirdPartyPersistenceService
 
   /**
    * @return a hopefully unique version string based on the given versionFromSbomFile (if non-null)
-   * and the current timestamp
+   *         and the current timestamp
    */
   private String getNewHopefullyUniqueVersion(Optional<String> versionFromSbomFile) {
     var versionJoiner = new StringJoiner("_");

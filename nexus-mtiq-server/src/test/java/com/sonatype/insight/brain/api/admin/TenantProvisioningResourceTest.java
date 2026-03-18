@@ -63,7 +63,7 @@ public class TenantProvisioningResourceTest
     HttpResponse deleteResponse = deleteTenant(tenantName);
     assertResponseStatus(204, deleteResponse);
 
-    //Deletion records should be stored globally and not per-tenant
+    // Deletion records should be stored globally and not per-tenant
     testAsGlobal(t -> assertThat(deletedTenantDAO.getTenantBySlug(tenantName)).isNotNull());
   }
 

@@ -69,7 +69,8 @@ public class DatabaseSchemaPopulator
   private List<String> getScripts(String scriptsFilename) {
     List<String> scripts = new ArrayList<>();
     try (InputStream is = getClass().getResourceAsStream(scriptsFilename);
-         LineNumberReader reader = new LineNumberReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+        LineNumberReader reader = new LineNumberReader(new InputStreamReader(is, StandardCharsets.UTF_8)))
+    {
       String line = reader.readLine();
       while (line != null) {
         if (!line.trim().isEmpty()) {

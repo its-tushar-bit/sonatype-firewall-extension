@@ -13,7 +13,7 @@ public enum SbomVersionsApplicationSortableField
 
   private final String column;
 
-  SbomVersionsApplicationSortableField( final String column) {
+  SbomVersionsApplicationSortableField(final String column) {
     this.column = column;
   }
 

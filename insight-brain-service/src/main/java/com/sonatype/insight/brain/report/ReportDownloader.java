@@ -42,7 +42,7 @@ public class ReportDownloader
   /**
    * Downloads a report for a scan.
    *
-   * @param applicationReport             to save report to
+   * @param applicationReport to save report to
    * @param reportTimeoutInSeconds time to wait before the report times out - 0 will not make retry attempts
    * @return true if the report was downloaded, false otherwise.
    */
@@ -62,8 +62,7 @@ public class ReportDownloader
           Duration.ofSeconds(reportTimeoutInSeconds),
           BadGatewayException.class::isInstance,
           NotFoundException.class::isInstance,
-          i -> Duration.ofSeconds(retryIntervalInSeconds)
-      );
+          i -> Duration.ofSeconds(retryIntervalInSeconds));
       try (InputStream is = client.get(retryConfig, InputStream.class, HDS_PATH, null, scanId)) {
         applicationReportPersistenceService.saveOriginalReport(applicationId, scanId, is);
         return true;

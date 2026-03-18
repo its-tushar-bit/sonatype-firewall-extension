@@ -68,7 +68,7 @@ public class PullRequestRemediationDetails
   private final Integer breakingChangesCount;
 
   private final boolean isManualPullRequest;
-  
+
   private final boolean isInnerSource;
 
   static {

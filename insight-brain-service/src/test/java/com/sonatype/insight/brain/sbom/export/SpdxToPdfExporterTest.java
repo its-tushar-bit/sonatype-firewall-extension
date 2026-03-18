@@ -51,8 +51,7 @@ public class SpdxToPdfExporterTest
         versionService,
         apiReportDataServiceV2,
         licenseResolutionService,
-        buildThirdPartyPersistenceService()
-    );
+        buildThirdPartyPersistenceService());
   }
 
   @Test
@@ -80,7 +79,7 @@ public class SpdxToPdfExporterTest
     rawData.components.add(
         setupReportRawDataLTG("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar", 10));
 
-    //When
+    // When
     SbomExportParams exportParams = withExportParams(sbomMetadata, spec, SbomFormat.JSON);
     exportParams.withReportRawData(rawData);
     exporter.setExportParams(exportParams);
@@ -90,26 +89,24 @@ public class SpdxToPdfExporterTest
 
   @Test
   public void testExportPdf_withMissingReportData() throws Exception {
-    //Given
+    // Given
     File testBomFile = mockOriginalSbomFile("spdx2.3-bom.xml");
     ThirdPartySbomMetadata sbomMetadata =
         createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, SPDX_23, SbomFormat.XML);
     exporter.setExportParams(withExportParams(sbomMetadata, SPDX_23, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fc1 = setupFileCoordinateEntity("log4j", "1.2.8", "3640dd71069d7986c9a1",
-        "pkg:maven/log4j/log4j@1.2.8?type=jar", "pkg:maven/log4j/log4j@1.2.8?type=jar:3640dd71069d7986c9a1"
-    );
+        "pkg:maven/log4j/log4j@1.2.8?type=jar", "pkg:maven/log4j/log4j@1.2.8?type=jar:3640dd71069d7986c9a1");
     setupFileCoordinateEntity("jackson-databind", "2.9.9", "43482bee60d253ab70b6",
         "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar",
-        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
-    );
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar");
     setupCoordinateSecurityEntity(fc1, "CVE-2022-23307", "name=CVE-2022-23307", "HIGH", "502", "CVSSV3",
         "NVD", 8.8d, null);
 
-    //When
+    // When
     PdfData pdfData = exporter.exportPdf();
 
-    //Then
+    // Then
     assertThat(pdfData.title).isEqualTo(app.getName() + REPORT_NAME);
     assertThat(pdfData.createdDate).isNotNull();
     assertThat(pdfData.analyzedDate).isNotNull();
@@ -138,7 +135,7 @@ public class SpdxToPdfExporterTest
 
   @Test
   public void testExportPdf_validateVulnerabilitiesArePrinted() throws Exception {
-    //Given
+    // Given
     File testBomFile = mockOriginalSbomFile("spdx2.3-validate-vulnerabilities-are-printed.spdx.json");
     ThirdPartySbomMetadata sbomMetadata =
         createMetadataEntityJson(testBomFile.getName(), app.getId(), SBOM_VERSION, SPDX_23);
@@ -146,21 +143,19 @@ public class SpdxToPdfExporterTest
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fc1 = setupFileCoordinateEntity("org.apache.logging.log4j:log4j-core", "2.13.2", "12345",
         "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
-        "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar:12345"
-    );
+        "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar:12345");
     ThirdPartyFileCoordinate fc2 = setupFileCoordinateEntity("junit:junit", "4.12", "67890",
         "pkg:maven/junit/junit@4.12?type=jar",
-        "pkg:maven/junit/junit@4.12?type=jar"
-    );
+        "pkg:maven/junit/junit@4.12?type=jar");
     setupCoordinateSecurityEntity(fc1, "CVE-2021-45046", "name=CVE-2021-45046", "HIGH", "502", "CVSSV3",
         "NVD", 8.8d, null);
     setupCoordinateSecurityEntity(fc2, "CVE-2020-15250", "name=CVE-2020-15250", "HIGH", "502", "CVSSV3",
         "NVD", 1.0d, null);
 
-    //When
+    // When
     PdfData pdfData = exporter.exportPdf();
 
-    //Then
+    // Then
     assertThat(pdfData.title).isEqualTo(app.getName() + REPORT_NAME);
     assertThat(pdfData.createdDate).isNotNull();
     assertThat(pdfData.analyzedDate).isNotNull();
@@ -177,7 +172,7 @@ public class SpdxToPdfExporterTest
     assertThat(c1.policyViolations).hasSize(0);
     assertThat(c1.effectiveLicenses).hasSize(1);
     assertThat(c1.effectiveLicenses.get(0).name).isEqualTo("Apache-2.0");
-    //Verify vulnerabilities are printed
+    // Verify vulnerabilities are printed
     assertThat(c1.securityIssues).hasSize(1);
     assertThat(c1.securityIssues.stream().map(s -> s.reference)).contains("CVE-2021-45046");
 
@@ -187,7 +182,7 @@ public class SpdxToPdfExporterTest
     assertThat(c2.policyViolations).hasSize(0);
     assertThat(c2.effectiveLicenses).hasSize(1);
     assertThat(c2.effectiveLicenses.get(0).name).isEqualTo("EPL-1.0");
-    //Verify vulnerabilities are printed
+    // Verify vulnerabilities are printed
     assertThat(c2.securityIssues).hasSize(1);
     assertThat(c2.securityIssues.stream().map(s -> s.reference)).contains("CVE-2020-15250");
   }
@@ -196,8 +191,7 @@ public class SpdxToPdfExporterTest
       String filename,
       String applicationId,
       String version,
-      SbomExportParams.ExportSpecification spec
-  )
+      SbomExportParams.ExportSpecification spec)
   {
     ThirdPartySbomMetadata entity = tempEntity.createSbomMetadata(applicationId, version,
         thirdPartyFile, ACTIVE);

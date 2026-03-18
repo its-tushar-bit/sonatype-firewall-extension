@@ -161,7 +161,8 @@ public class ThirdPartyScanDAOTest
       final String thirdPartyFileId,
       final String scanRequestId,
       final String scanId,
-      final Date created, final ThirdPartyScan actual)
+      final Date created,
+      final ThirdPartyScan actual)
   {
     assertThat(actual.getId()).isEqualTo(id);
     assertThat(actual.getThirdPartyFileId()).isEqualTo(thirdPartyFileId);

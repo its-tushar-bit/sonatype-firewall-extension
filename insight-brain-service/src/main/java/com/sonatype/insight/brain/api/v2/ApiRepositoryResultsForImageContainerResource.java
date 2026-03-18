@@ -34,7 +34,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
     description = "This API provides access to the results of the image container scan")
 public class ApiRepositoryResultsForImageContainerResource
 {
-  static  final String IMAGE_CONTAINER_PATH = "/{ownerId}/results/image-details";
+  static final String IMAGE_CONTAINER_PATH = "/{ownerId}/results/image-details";
 
   private final ApiRepositoryResultsForImageContainerService repositoryResultsService;
 
@@ -51,19 +51,15 @@ public class ApiRepositoryResultsForImageContainerResource
   @Produces(MediaType.APPLICATION_JSON)
   @Hidden
   @Operation(description = "This API provides access to the results of the image container scan",
-      responses =
-          {
-              @ApiResponse
-                  (responseCode = "200",
-                      description = "The results of the image container scan"),
-          }
-  )
+      responses = {
+        @ApiResponse(responseCode = "200",
+            description = "The results of the image container scan"),
+      })
   public RepositoryResultsForImageContainerResponseDto getDetails(
-      @Parameter(description = "Enter the value for ownerType.", required = true)
-      @PathParam("ownerType") final OwnerType ownerType,
+      @Parameter(description = "Enter the value for ownerType.",
+          required = true) @PathParam("ownerType") final OwnerType ownerType,
       @Parameter(description = "The public ID of the repository to get results for",
-          required = true)
-      @PathParam("ownerId") final String ownerId,
+          required = true) @PathParam("ownerId") final String ownerId,
       @RequestBody(description = "The request JSON should contain" +
           "<ol>" +
           "<li>page (required) page number</li>" +
@@ -73,8 +69,7 @@ public class ApiRepositoryResultsForImageContainerResource
           "<li>searchFilters (required) empty if nothing to search" +
           "<li>sortFields (required)</li>" +
           "<li>aggregate (not required) result is returned non aggregated if aggregate is null</li>" +
-          "</ol>")
-      final RepositoryResultsForImageContainerRequestDto detailsRequest)
+          "</ol>") final RepositoryResultsForImageContainerRequestDto detailsRequest)
   {
     return repositoryResultsService.getDetails(ownerType, ownerId, detailsRequest);
   }

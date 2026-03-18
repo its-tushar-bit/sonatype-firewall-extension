@@ -201,8 +201,7 @@ public class ApiCompositeSourceControlServiceTest
             SourceControlProvider.GITHUB,
             false,
             null,
-            null
-        );
+            null);
     sourceControlDAO.delete(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
@@ -295,8 +294,7 @@ public class ApiCompositeSourceControlServiceTest
             SourceControlProvider.GITLAB,
             false,
             null,
-            null
-        );
+            null);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level1ChildOrg.getId());
@@ -683,8 +681,7 @@ public class ApiCompositeSourceControlServiceTest
         SourceControlProvider.GITHUB,
         false,
         null,
-        null
-    );
+        null);
 
     final SourceControl orgSourceControl =
         tempEntity.newSourceControl(level2ChildOrg.getId(), null, null, null, TOKEN,
@@ -768,8 +765,7 @@ public class ApiCompositeSourceControlServiceTest
         SourceControlProvider.GITHUB,
         false,
         null,
-        null
-    );
+        null);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level2ChildOrg.getId());
@@ -814,8 +810,7 @@ public class ApiCompositeSourceControlServiceTest
             SourceControlProvider.GITLAB,
             false,
             null,
-            null
-        );
+            null);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level2ChildOrg.getId());
@@ -1149,8 +1144,7 @@ public class ApiCompositeSourceControlServiceTest
     ApiCompositeSourceControlDTO dto =
         apiCompositeSourceControlService.getCompositeSourceControlByOwnerDecrypted(
             OwnerType.ORGANIZATION,
-            level1ChildOrg.getId()
-        );
+            level1ChildOrg.getId());
 
     // then the passwords at both levels match
     assertThat(dto.token.value).isEqualTo(TOKEN);
@@ -1166,8 +1160,7 @@ public class ApiCompositeSourceControlServiceTest
     ApiCompositeSourceControlDTO dto =
         apiCompositeSourceControlService.getCompositeSourceControlByOwner(
             OwnerType.ORGANIZATION,
-            level1ChildOrg.getId()
-        );
+            level1ChildOrg.getId());
 
     // then the passwords are redacted
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);

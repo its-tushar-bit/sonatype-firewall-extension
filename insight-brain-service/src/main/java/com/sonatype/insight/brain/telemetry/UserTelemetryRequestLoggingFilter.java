@@ -14,6 +14,7 @@ import io.dropwizard.logging.common.filter.FilterFactory;
 
 /**
  * Based on the example at https://www.dropwizard.io/1.2.1/docs/manual/core.html#logging-filters
+ *
  * @since 1.50
  */
 public class UserTelemetryRequestLoggingFilter
@@ -24,7 +25,8 @@ public class UserTelemetryRequestLoggingFilter
 
   @Override
   public Filter<IAccessEvent> build() {
-    return new Filter<>() {
+    return new Filter<>()
+    {
       @Override
       public FilterReply decide(IAccessEvent event) {
         if (event.getRequestURI().contains(uriToFilter)) {

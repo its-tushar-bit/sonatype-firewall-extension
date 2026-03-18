@@ -76,9 +76,10 @@ public class DatabaseTelemetryCollector
 
   private String getOdsSizeBytes_ExternalDatabase() {
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-         PreparedStatement statement = connection.prepareStatement(
-             "SELECT SUM(pg_total_relation_size(quote_ident(schemaname) || '.' || quote_ident(tablename)))::BIGINT "
-                 + "FROM pg_tables WHERE schemaname = ?")) {
+        PreparedStatement statement = connection.prepareStatement(
+            "SELECT SUM(pg_total_relation_size(quote_ident(schemaname) || '.' || quote_ident(tablename)))::BIGINT "
+                + "FROM pg_tables WHERE schemaname = ?"))
+    {
       statement.setString(1, operationalDataStore.getDatabaseSchema());
       ResultSet resultSet = statement.executeQuery();
       resultSet.next();

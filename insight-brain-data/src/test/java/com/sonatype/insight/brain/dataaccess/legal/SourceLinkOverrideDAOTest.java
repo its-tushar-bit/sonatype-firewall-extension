@@ -52,7 +52,8 @@ public class SourceLinkOverrideDAOTest
         ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), application.getId());
     sourceLinkOverride.setComponentSourceLinkId(componentSourceLink2.getId());
     dao.update(sourceLinkOverride);
-    assertThat(dao.getById(sourceLinkOverride.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(dao.getById(sourceLinkOverride.getId())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(sourceLinkOverride);
 
     // Delete
@@ -73,11 +74,14 @@ public class SourceLinkOverrideDAOTest
 
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(sourceLinkOverrideForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(sourceLinkOverrideForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(sourceLinkOverrideForRootOrganization);
 
     // Add another sourceLink override at the org level
     ComponentSourceLink componentSourceLinkForOrganization =
@@ -88,11 +92,14 @@ public class SourceLinkOverrideDAOTest
 
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(sourceLinkOverrideForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForOrganization);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(sourceLinkOverrideForOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForOrganization);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(sourceLinkOverrideForOrganization);
 
     // Add another sourceLink override at the app level
     ComponentSourceLink componentSourceLinkForApplication =
@@ -103,11 +110,14 @@ public class SourceLinkOverrideDAOTest
 
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(sourceLinkOverrideForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForOrganization);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(sourceLinkOverrideForOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForApplication);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(sourceLinkOverrideForApplication);
   }
 
   @Test

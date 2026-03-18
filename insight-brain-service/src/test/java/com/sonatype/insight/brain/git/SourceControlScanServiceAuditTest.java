@@ -104,10 +104,10 @@ public class SourceControlScanServiceAuditTest
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
     when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class)))
-            .thenReturn(scanReceipt);
+        .thenReturn(scanReceipt);
 
     sourceControlScanService.onSourceControlScan(sourceControlEvent);
-    
+
     assertEvaluationAuditLog(null /* error */, app, Stage.ID_BUILD, false /* isReevaluation */);
   }
 
@@ -126,7 +126,7 @@ public class SourceControlScanServiceAuditTest
         .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_API);
 
     when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class)))
-            .thenThrow(new RuntimeException("test error"));
+        .thenThrow(new RuntimeException("test error"));
 
     sourceControlScanService.onSourceControlScan(sourceControlEvent);
 
@@ -147,7 +147,7 @@ public class SourceControlScanServiceAuditTest
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
     when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class)))
-            .thenReturn(scanReceipt);
+        .thenReturn(scanReceipt);
 
     sourceControlScanService.doSynchronousSourceControlScan(app.getId(), new Stage(Stage.ID_BUILD), "testBranchName");
 
@@ -161,12 +161,13 @@ public class SourceControlScanServiceAuditTest
     tempEntity.newSourceControl(app.getId(), "http://localhost/testorg/testproject");
 
     when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class)))
-            .thenThrow(new RuntimeException("test error"));
+        .thenThrow(new RuntimeException("test error"));
 
     assertThatExceptionOfType(RuntimeException.class)
         .isThrownBy(
             () -> sourceControlScanService.doSynchronousSourceControlScan(app.getId(), new Stage(Stage.ID_BUILD),
-                "testBranchName")).withMessage("test error");
+                "testBranchName"))
+        .withMessage("test error");
 
     assertEvaluationAuditLog("server-error", app, Stage.ID_BUILD, null /* isReevaluation */);
   }

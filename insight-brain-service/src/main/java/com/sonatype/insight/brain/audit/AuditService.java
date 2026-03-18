@@ -67,7 +67,8 @@ public class AuditService
           application = applicationDAO.getById(applicationId);
         }
         if (application == null || organizationIds == null ||
-            !organizationIds.contains(application.getOrganizationId())) {
+            !organizationIds.contains(application.getOrganizationId()))
+        {
           applicationAuditDTOs.add(new ApplicationAuditDTO(applicationId, application));
         }
       }

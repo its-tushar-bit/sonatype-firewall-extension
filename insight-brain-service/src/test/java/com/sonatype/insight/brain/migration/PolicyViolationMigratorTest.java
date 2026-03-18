@@ -128,7 +128,8 @@ public class PolicyViolationMigratorTest
   private List<PolicyViolation> loadViolations(DataSource dataSource) throws Exception {
     try (Connection connection = dataSource.getConnection();
         PreparedStatement select = connection.prepareStatement("SELECT * FROM insight_brain_ods.policy_violation"
-            + " ORDER BY application_id, stage_type_id, open_time, policy_violation_id")) {
+            + " ORDER BY application_id, stage_type_id, open_time, policy_violation_id"))
+    {
       List<PolicyViolation> violations = new ArrayList<>();
       try (ResultSet resultSet = select.executeQuery()) {
         while (resultSet.next()) {
@@ -151,25 +152,26 @@ public class PolicyViolationMigratorTest
     }
   }
 
-  private void assertViolation(PolicyViolation violation,
-                               String applicationId,
-                               String stageTypeId,
-                               String policyId,
-                               String policyName,
-                               int threatLevel,
-                               String threatCategory,
-                               String hash,
-                               ComponentIdentifier componentIdentifer,
-                               String filename,
-                               String actionTypeId,
-                               String constraintFacts,
-                               String policyWaiverId,
-                               String policyWaiverComment,
-                               String openTime,
-                               String waiveTime,
-                               String fixTime,
-                               boolean seenByPrimaryEvaluation,
-                               boolean seenByMonitoringEvaluation)
+  private void assertViolation(
+      PolicyViolation violation,
+      String applicationId,
+      String stageTypeId,
+      String policyId,
+      String policyName,
+      int threatLevel,
+      String threatCategory,
+      String hash,
+      ComponentIdentifier componentIdentifer,
+      String filename,
+      String actionTypeId,
+      String constraintFacts,
+      String policyWaiverId,
+      String policyWaiverComment,
+      String openTime,
+      String waiveTime,
+      String fixTime,
+      boolean seenByPrimaryEvaluation,
+      boolean seenByMonitoringEvaluation)
   {
     assertThat(violation.applicationId).isEqualTo(applicationId);
     assertThat(violation.stageTypeId).isEqualTo(stageTypeId);
@@ -303,6 +305,7 @@ public class PolicyViolationMigratorTest
   @Category(SlowTest.class)
   public void testMigrate_BrokenViolation() {
     assertThatExceptionOfType(UncheckedIOException.class)
-        .isThrownBy(() -> migrate("broken-violation")).withMessageContaining("eval-0-vio-0");
+        .isThrownBy(() -> migrate("broken-violation"))
+        .withMessageContaining("eval-0-vio-0");
   }
 }

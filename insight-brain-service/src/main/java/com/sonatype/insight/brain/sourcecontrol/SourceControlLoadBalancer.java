@@ -64,16 +64,17 @@ public class SourceControlLoadBalancer
   }
 
   /**
-   * Obtains a list of available/unassigned source control events that this instance can process.  This entails:
-   *   - finding the unassigned events
-   *   - checking each event to see if it can be processed by this instance (i.e. we have capacity and can get the lock)
+   * Obtains a list of available/unassigned source control events that this instance can process. This entails:
+   * - finding the unassigned events
+   * - checking each event to see if it can be processed by this instance (i.e. we have capacity and can get the lock)
+   *
    * @return
    */
   public List<SourceControlEvent> acquireEventsToProcess() {
     resetStaleEvents();
 
     List<SourceControlEvent> result = new ArrayList<>();
-    List<SourceControlEvent> availableEvents =  sourceControlEventDAO.getUnassignedEventsToProcess();
+    List<SourceControlEvent> availableEvents = sourceControlEventDAO.getUnassignedEventsToProcess();
     if (!CollectionUtils.isEmpty(availableEvents)) {
       // as we iterate thru the events and discover which ones can and cannot be processed by this instance remember
       // the outcomes for the associated partition keys so we can avoid trying to reserve any related events
@@ -99,6 +100,7 @@ public class SourceControlLoadBalancer
 
   /**
    * determines whether or not this instance is allowed to poll for pull requests on behalf of the given scm user
+   *
    * @param scmUsername
    * @return
    */
@@ -107,7 +109,7 @@ public class SourceControlLoadBalancer
   }
 
   /**
-   * determine whether or not this instance can reserve the given event;  this comes down to whether or not this
+   * determine whether or not this instance can reserve the given event; this comes down to whether or not this
    * instance has 'capacity', per the load balancing rules, and can get a perpetual lock for the partition represented
    * by this event
    *
@@ -127,16 +129,16 @@ public class SourceControlLoadBalancer
   }
 
   /**
-   * Related events are source control events for the same SCM user.  This method instructs the load balancer
+   * Related events are source control events for the same SCM user. This method instructs the load balancer
    * to release (unassign) events for the associated user so they can be picked up by other instances in
    * the cluster
    *
    * @param sourceControlEvent an event representative of the SCM user
    * @param releasePerpetualLock this flag tells the load balancer whether or not to immediately release the associated
-   *                             perpetual lock;  `true` signifies there is no scm event work currently in flight for
-   *                             the associated SCM user by this instance;  `false` means that there IS still scm event
-   *                             work being processed by this instance for the associated scm user and that the
-   *                             perpetual lock for the related partition should be allowed to expire
+   *          perpetual lock; `true` signifies there is no scm event work currently in flight for
+   *          the associated SCM user by this instance; `false` means that there IS still scm event
+   *          work being processed by this instance for the associated scm user and that the
+   *          perpetual lock for the related partition should be allowed to expire
    */
   public void releaseRelatedEvents(SourceControlEvent sourceControlEvent, boolean releasePerpetualLock) {
     sourceControlEventDAO.releaseRelatedEvents(sourceControlEvent);

@@ -115,7 +115,7 @@ public class ApiPolicyService
     }
 
     // Add the repositories that the user has permissions to
-    for (Repository repository: repositoryService.getRepositoriesWithReadPermission()) {
+    for (Repository repository : repositoryService.getRepositoriesWithReadPermission()) {
       repositoryIds.add(repository.getId());
       // Need to add the repository manager and its hierarchy
       repositoryManagerIds.add(repository.getRepositoryManagerId());

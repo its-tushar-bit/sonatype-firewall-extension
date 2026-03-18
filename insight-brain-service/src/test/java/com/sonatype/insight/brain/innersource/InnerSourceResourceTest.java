@@ -37,7 +37,8 @@ public class InnerSourceResourceTest
     tempEntity.newInnerSourceVersion(innerSourceApplication, version, StageTypes.RELEASE.getId());
 
     HttpResponse response = restRequest().path(InnerSourceResource.COMPONENT_LATEST_VERSION_PATH)
-        .query("componentIdentifier", componentIdentifier).get();
+        .query("componentIdentifier", componentIdentifier)
+        .get();
     assertResponseStatus(200, response);
     assertThat(response.getBodyText()).isEqualTo(version);
   }

@@ -15,7 +15,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * This represents the response from GitHub when exchanging a manifest code for app credentials.
  *
- * @see <a href="https://docs.github.com/en/rest/apps/apps#create-a-github-app-from-a-manifest">GitHub API - Create from Manifest</a>
+ * @see <a href="https://docs.github.com/en/rest/apps/apps#create-a-github-app-from-a-manifest">GitHub API - Create from
+ *      Manifest</a>
  * @since 1.195
  */
 public class ApiGitHubAppCreateFromManifestDTO

@@ -95,7 +95,8 @@ public class ApplicationForContainerImageFirewallService
     validate(dto);
 
     if (repository == null || repository.getRepositoryType() != RepositoryType.proxy
-        || !StringUtils.equalsAny(repository.getFormat(), "docker", null)) {
+        || !StringUtils.equalsAny(repository.getFormat(), "docker", null))
+    {
       throw new BadRequestException("Repository must be of type proxy and format docker");
     }
 
@@ -135,7 +136,8 @@ public class ApplicationForContainerImageFirewallService
       }
       if (StringUtils.isNotBlank(dto.getClientUserAgent())
           && !dto.getClientUserAgent().equals(repositoryManager.getUserAgent())
-          && SonatypeUserAgentUtil.parse(dto.getClientUserAgent()) != null) {
+          && SonatypeUserAgentUtil.parse(dto.getClientUserAgent()) != null)
+      {
         repositoryManager.setUserAgent(dto.getClientUserAgent());
         needToUpdateRepositoryManager = true;
       }
@@ -285,7 +287,8 @@ public class ApplicationForContainerImageFirewallService
           organizationDAO.getByIdNotNull(tx, organizationForRepository.getParentOrganizationId());
 
       if (organizationForRepositoryManager.getRelatedRepositoryManagerId() == null
-          || !organizationForRepositoryManager.getRelatedRepositoryManagerId().equals(repositoryManager.getId())) {
+          || !organizationForRepositoryManager.getRelatedRepositoryManagerId().equals(repositoryManager.getId()))
+      {
         throw new ConflictException("Repository " + repository.getId()
             + " with invalid configuration for container images: " + repository.getRelatedOrganizationId());
       }
@@ -302,7 +305,8 @@ public class ApplicationForContainerImageFirewallService
           || repositoryManager.getRelatedOrganizationId() == null
           || !repositoryManager.getRelatedOrganizationId().equals(organizationForRepositoryManager.getId())
           || !StringUtils.equals(organizationForRepositoryManager.getParentOrganizationId(),
-              organizationIdForRepositoryContainer)) {
+              organizationIdForRepositoryContainer))
+      {
         throw new ConflictException("Repository manager instance " + repositoryManager.getInstanceId()
             + " with invalid configuration for container images: " + repositoryManager.getRelatedOrganizationId());
       }

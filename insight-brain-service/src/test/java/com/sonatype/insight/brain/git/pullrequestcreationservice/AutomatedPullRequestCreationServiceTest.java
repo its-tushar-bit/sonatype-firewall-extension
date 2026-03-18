@@ -137,8 +137,7 @@ public class AutomatedPullRequestCreationServiceTest
         mavenComponent,
         () -> Optional.of(remediationVersionDTO),
         notifications,
-        true
-    );
+        true);
 
     List<SourceControlEvent> eventList = sourceControlEventDAO.getAllByApplicationId(application.getId());
     assertThat(eventList).hasSize(1);
@@ -194,14 +193,14 @@ public class AutomatedPullRequestCreationServiceTest
         mavenComponent,
         () -> Optional.of(remediationVersionDTO),
         notifications,
-        true
-    );
+        true);
 
-    //no event
+    // no event
     List<SourceControlEvent> eventList = sourceControlEventDAO.getAll();
     assertThat(eventList).isEmpty();
-    assertThat(logOutput).atDebugLevel().contains(
-        "Remediation type for component 'maven: {artifactId=artifact, groupId=group, version=1.0.0}' is not golden");
+    assertThat(logOutput).atDebugLevel()
+        .contains(
+            "Remediation type for component 'maven: {artifactId=artifact, groupId=group, version=1.0.0}' is not golden");
     verify(mockScmOperationMetrics).recordPrCreationIneligible(NOT_GOLDEN_VERSION);
   }
 
@@ -221,10 +220,9 @@ public class AutomatedPullRequestCreationServiceTest
         mavenComponent,
         () -> Optional.of(remediationVersionDTO),
         notifications,
-        true
-    );
+        true);
 
-    //should create PR since golden PR feature flag is disabled
+    // should create PR since golden PR feature flag is disabled
     List<SourceControlEvent> eventList = sourceControlEventDAO.getAll();
     assertThat(eventList).hasSize(1);
     SourceControlEvent event = eventList.get(0);
@@ -250,7 +248,6 @@ public class AutomatedPullRequestCreationServiceTest
         application,
         policyViolations,
         evaluation.getStageTypeId(),
-        evaluation.isForMonitoring()
-    );
+        evaluation.isForMonitoring());
   }
 }

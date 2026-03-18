@@ -23,11 +23,14 @@ public class ApiLicenseLegalCopyrightDTO
   public ComponentLegalPartStatus status;
 
   public ApiLicenseLegalCopyrightDTO() {
-    //for jackson
+    // for jackson
   }
 
   public ApiLicenseLegalCopyrightDTO(
-      final String id, final String content, final String originalContentHash, final ComponentLegalPartStatus status)
+      final String id,
+      final String content,
+      final String originalContentHash,
+      final ComponentLegalPartStatus status)
   {
     this.id = id;
     this.content = content;

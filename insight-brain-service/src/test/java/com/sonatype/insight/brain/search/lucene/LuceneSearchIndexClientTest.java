@@ -489,7 +489,7 @@ public class LuceneSearchIndexClientTest
         "someSource", "someFormat", "someName", "someVersion", "someHash", null);
 
     assertFields(documentBuilderHelper.buildDocument(organization, application, thirdPartySbomMetadata,
-            thirdPartyFileCoordinate, Collections.singletonList(rootOrganization)),
+        thirdPartyFileCoordinate, Collections.singletonList(rootOrganization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.NON_VULNERABLE_COMPONENT.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_FORMAT, "someformat", TextField.class, true),
         field(FieldIdentifier.COMPONENT_COORDINATE + "Name", "someName", TextField.class, true),
@@ -519,7 +519,7 @@ public class LuceneSearchIndexClientTest
         "someSource", "someFormat", "someName", "someVersion", "someHash", "invalid");
 
     assertFields(documentBuilderHelper.buildDocument(organization, application, thirdPartySbomMetadata,
-            thirdPartyFileCoordinate, Collections.singletonList(rootOrganization)),
+        thirdPartyFileCoordinate, Collections.singletonList(rootOrganization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.NON_VULNERABLE_COMPONENT.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_FORMAT, "someformat", TextField.class, true),
         field(FieldIdentifier.COMPONENT_COORDINATE + "Name", "someName", TextField.class, true),
@@ -549,7 +549,7 @@ public class LuceneSearchIndexClientTest
         "someSource", "someFormat", "someName", "someVersion", "someHash", "pkg:maven/g/a@v?type=jar");
 
     assertFields(documentBuilderHelper.buildDocument(organization, application, thirdPartySbomMetadata,
-            thirdPartyFileCoordinate, Collections.singletonList(rootOrganization)),
+        thirdPartyFileCoordinate, Collections.singletonList(rootOrganization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.NON_VULNERABLE_COMPONENT.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_FORMAT, "maven", TextField.class, true),
         field(FieldIdentifier.COMPONENT_COORDINATE + "GroupId", "g", TextField.class, true),
@@ -747,7 +747,8 @@ public class LuceneSearchIndexClientTest
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.ADVANCED_SEARCH_INDEXING);
     assertThat(telemetryData.getAttributes()).containsEntry(SearchIndexClient.SEARCH_INDEX_REINDEX, true);
     assertThat((Long) telemetryData.getAttributes().get(SearchIndexClient.SEARCH_INDEX_DURATION_SECONDS))
-        .isGreaterThanOrEqualTo(0).isLessThanOrEqualTo(duration);
+        .isGreaterThanOrEqualTo(0)
+        .isLessThanOrEqualTo(duration);
     assertThat((Long) telemetryData.getAttributes().get(SearchIndexClient.SEARCH_INDEX_SIZE_BYTES)).isEqualTo(size);
   }
 

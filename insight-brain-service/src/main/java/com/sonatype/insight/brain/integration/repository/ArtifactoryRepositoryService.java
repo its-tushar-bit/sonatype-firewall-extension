@@ -27,7 +27,8 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 @Named
-public class ArtifactoryRepositoryService extends AbstractRepositoryService
+public class ArtifactoryRepositoryService
+    extends AbstractRepositoryService
 {
   @Inject
   public ArtifactoryRepositoryService(

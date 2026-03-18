@@ -561,10 +561,12 @@ public class ApplicationForContainerImageFirewallServiceTest
     assertThat(organizationForRepositoryResult.getRelatedRepositoryId()).isEqualTo(repository.getId());
 
     Map<String, String> membershipsInOrganizationForRepositoryResult =
-        membershipMappingDAO.getByContextId(organizationForRepositoryResult.getId()).stream()
+        membershipMappingDAO.getByContextId(organizationForRepositoryResult.getId())
+            .stream()
             .collect(Collectors.toMap(MembershipMapping::getRoleId, MembershipMapping::getMemberName));
 
-    Map<String, String> membershipsInRepository = membershipMappingDAO.getByContextId(repository.getId()).stream()
+    Map<String, String> membershipsInRepository = membershipMappingDAO.getByContextId(repository.getId())
+        .stream()
         .collect(Collectors.toMap(MembershipMapping::getRoleId, MembershipMapping::getMemberName));
 
     assertThat(membershipsInOrganizationForRepositoryResult)
@@ -577,11 +579,13 @@ public class ApplicationForContainerImageFirewallServiceTest
     assertThat(organizationForRepositoryManagerResult.getName()).isEqualTo(repositoryManager.getId());
 
     Map<String, String> membershipsInOrganizationForRepositoryManagerResult =
-        membershipMappingDAO.getByContextId(organizationForRepositoryManagerResult.getId()).stream()
+        membershipMappingDAO.getByContextId(organizationForRepositoryManagerResult.getId())
+            .stream()
             .collect(Collectors.toMap(MembershipMapping::getRoleId, MembershipMapping::getMemberName));
 
     Map<String, String> membershipsInRepositoryManager = membershipMappingDAO.getByContextId(repositoryManager.getId())
-        .stream().collect(Collectors.toMap(MembershipMapping::getRoleId, MembershipMapping::getMemberName));
+        .stream()
+        .collect(Collectors.toMap(MembershipMapping::getRoleId, MembershipMapping::getMemberName));
 
     assertThat(membershipsInOrganizationForRepositoryManagerResult)
         .containsExactlyInAnyOrderEntriesOf(membershipsInRepositoryManager);
@@ -595,11 +599,13 @@ public class ApplicationForContainerImageFirewallServiceTest
         .isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
     Map<String, String> membershipsInOrganizationForRepositoryContainerResult =
-        membershipMappingDAO.getByContextId(organizationForRepositoryContainerResult.getId()).stream()
+        membershipMappingDAO.getByContextId(organizationForRepositoryContainerResult.getId())
+            .stream()
             .collect(Collectors.toMap(MembershipMapping::getRoleId, MembershipMapping::getMemberName));
 
     Map<String, String> membershipsInRepositoryContainer =
-        membershipMappingDAO.getByContextId(RepositoryContainer.REPOSITORY_CONTAINER_ID).stream()
+        membershipMappingDAO.getByContextId(RepositoryContainer.REPOSITORY_CONTAINER_ID)
+            .stream()
             .collect(Collectors.toMap(MembershipMapping::getRoleId, MembershipMapping::getMemberName));
 
     assertThat(membershipsInOrganizationForRepositoryContainerResult)

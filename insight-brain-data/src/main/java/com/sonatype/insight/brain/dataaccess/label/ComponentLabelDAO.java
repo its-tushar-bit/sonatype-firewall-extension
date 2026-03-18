@@ -94,7 +94,7 @@ public class ComponentLabelDAO
 
   /**
    * Gets the component label applied to a given component and context (org/app) using the specified label.
-   * 
+   *
    * @since 1.6
    */
   public ComponentLabel getByOwnerIdAndHashAndLabelId(String ownerId, String hash, String labelId) {
@@ -103,10 +103,11 @@ public class ComponentLabelDAO
     }
   }
 
-  private ComponentLabel getByOwnerIdAndHashAndLabelId(TransactionContext tx,
-                                                       String ownerId,
-                                                       String hash,
-                                                       String labelId)
+  private ComponentLabel getByOwnerIdAndHashAndLabelId(
+      TransactionContext tx,
+      String ownerId,
+      String hash,
+      String labelId)
   {
     String sQuery = "SELECT entity FROM ComponentLabel entity" + //
         " WHERE entity.ownerId=?1 AND entity.hash=?2 AND entity.labelId=?3";

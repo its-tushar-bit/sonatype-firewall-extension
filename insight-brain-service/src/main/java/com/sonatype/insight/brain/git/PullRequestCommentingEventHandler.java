@@ -117,13 +117,15 @@ public class PullRequestCommentingEventHandler
       }
 
       if (!gitRepositoryInfo.provider.supportsPullRequestCommenting() ||
-          sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)) {
+          sourceControlUtils.isBitbucketCloud(gitRepositoryInfo))
+      {
         log.debug("'{}' not currently supported for pull request commenting", gitRepositoryInfo.provider.toString());
       }
       else if (wasPolicyEvalInternallyTriggered(event.policyEvaluationId)) {
         log.debug(
             "Ignoring ApplicationEvaluationEvent for application {} because the policy evaluation {} was " +
-                "internally triggered", applicationId, event.policyEvaluationId);
+                "internally triggered",
+            applicationId, event.policyEvaluationId);
         // but we want to update the default branch commit history with the new eval. ID, if that's the case
         gitCommitHistoryService.updateCommitHistoryForPolicyEvaluation(event.policyEvaluationId);
       }
@@ -197,7 +199,8 @@ public class PullRequestCommentingEventHandler
     }
 
     if (!pullRequestPolicyEvaluationsDTO.getTargetPolicyEvaluation().wasInternallyTriggered()
-        || !pullRequestPolicyEvaluationsDTO.getFeatureBranchPolicyEvaluation().wasInternallyTriggered()) {
+        || !pullRequestPolicyEvaluationsDTO.getFeatureBranchPolicyEvaluation().wasInternallyTriggered())
+    {
       // There is at least one policy evaluation triggered externally for this pull request.
       return;
     }

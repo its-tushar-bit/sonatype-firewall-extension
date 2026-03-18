@@ -226,8 +226,7 @@ public class IntegrationModule
       HdsClient hdsClient,
       FirewallAuditHdsClient firewallAuditHdsClient,
       FirewallQuarantineHdsClient firewallQuarantineHdsClient,
-      PingHdsClient pingHdsClient
-  )
+      PingHdsClient pingHdsClient)
   {
     return List.of(hdsClient, firewallAuditHdsClient, firewallQuarantineHdsClient, pingHdsClient);
   }
@@ -239,8 +238,7 @@ public class IntegrationModule
   @Provides
   @Singleton
   public List<PullRequestPostCommentAction> providePullRequestPostCommentActions(
-      BitbucketCodeInsightsService bitbucketCodeInsightsService
-  )
+      BitbucketCodeInsightsService bitbucketCodeInsightsService)
   {
     return List.of(bitbucketCodeInsightsService);
   }

@@ -135,8 +135,7 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.SCAN_POM_FILES_IN_META_INF_DIRECTORY,
         SystemConfigurationPropertyFeature.VULNERABILITY_SOURCE,
         SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE,
-        SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS
-    );
+        SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
 
     assertThat(expectedBannedFeatures).allSatisfy(expectedBannedFeature -> {
       assertThatThrownBy(() -> underTest.enableFeature(expectedBannedFeature.getId()))
@@ -159,8 +158,7 @@ public class MTIQFeatureServiceTest
     List<Feature> expectedAlwaysEnabledFeatures = List.of(
         SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION,
         SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION,
-        SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER
-    );
+        SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER);
 
     assertThat(expectedAlwaysEnabledFeatures).allSatisfy(expectedAlwaysEnabledFeature -> {
       assertThatThrownBy(() -> underTest.disableFeature(expectedAlwaysEnabledFeature.getId()))
@@ -173,8 +171,7 @@ public class MTIQFeatureServiceTest
   public void testGetFeatures_containsMultiTenant() {
     Set<Feature> features = new MTIQFeatureService(
         productLicense, configuration, systemConfigurationPropertyDAO, service, developerEnablementService,
-        mailConfigurationDAO, tenantUtil
-    ).getFeatures();
+        mailConfigurationDAO, tenantUtil).getFeatures();
 
     assertThat(features).contains(MULTI_TENANT);
     assertThat(features).doesNotContain(SINGLE_TENANT);
@@ -267,14 +264,15 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED,
         SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED,
         SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR,
-        SystemConfigurationPropertyFeature.FIREWALL_ENTERPRISE_REPORTING
-    ).collect(toSet()).toArray(new SystemConfigurationPropertyFeature[]{});
+        SystemConfigurationPropertyFeature.FIREWALL_ENTERPRISE_REPORTING)
+        .collect(toSet())
+        .toArray(new SystemConfigurationPropertyFeature[]{});
   }
 
   private Set<Feature> getExpectedFeatures() {
     return Stream.of(
         Stream.of(MULTI_TENANT),
-        // We're expecting SystemConfigurationPropertyFeature.API_PAGE to be enabled 
+        // We're expecting SystemConfigurationPropertyFeature.API_PAGE to be enabled
         // and LicensedFeature.API_PAGE to be present
         // however we only return LicensedFeature.API_PAGE
         Stream.of(getEnabledSystemConfigurationPropertyFeatures())
@@ -290,7 +288,9 @@ public class MTIQFeatureServiceTest
             .filter(f -> !f.equals(LicensedFeature.DEVELOPER_DASHBOARD))
             .filter(f -> !f.equals(LicensedFeature.DEVELOPER_VERSION_UPPER_BOUND)),
         stream(NonLicensedFeature.values())
-            .filter(f -> !f.equals(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS))
-    ).flatMap(i -> i).map(Feature.class::cast).collect(toSet());
+            .filter(f -> !f.equals(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS)))
+        .flatMap(i -> i)
+        .map(Feature.class::cast)
+        .collect(toSet());
   }
 }

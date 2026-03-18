@@ -75,8 +75,15 @@ public class DerivativeAiModelConditionTypeTest
         new TriggerDerivedFromAiModel(new DerivedFromAiModel(derivedFromAiModelComponentIdentifier1, 0.5)));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, DerivativeAiModelConditionType.ID,
         expectedConditionTrigger, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("AI model is derived from repoIdD1 : modelD1 : version : modelFormatD1 : modelExtensionD1");
   }
@@ -124,16 +131,30 @@ public class DerivativeAiModelConditionTypeTest
         new TriggerDerivedFromAiModel(new DerivedFromAiModel(component2.getComponentIdentifier(), 1.0)));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, DerivativeAiModelConditionType.ID,
         expectedConditionTrigger, policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("AI model is not derived from another AI model");
 
     assertFactCounts(1, 1, policyAlerts.get(0));
     expectedConditionTrigger = new ConditionTrigger(0, new TriggerDerivedFromAiModel(null));
     assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, DerivativeAiModelConditionType.ID,
         expectedConditionTrigger, policyAlerts);
-    actualReason = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(1)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("AI model is not derived from another AI model");
   }
 

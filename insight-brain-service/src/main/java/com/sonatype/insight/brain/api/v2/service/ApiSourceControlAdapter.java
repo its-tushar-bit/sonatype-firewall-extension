@@ -29,7 +29,7 @@ public class ApiSourceControlAdapter
 {
   private static final Set<SourceControlProvider> MULTI_TENANT_SCM_PROVIDERS =
       ImmutableSet.of(SourceControlProvider.AZURE, SourceControlProvider.BITBUCKET, SourceControlProvider.GITHUB,
-        SourceControlProvider.GITLAB);
+          SourceControlProvider.GITLAB);
 
   private final ApiConfigFeaturesService configFeaturesService;
 
@@ -66,7 +66,8 @@ public class ApiSourceControlAdapter
     apiSourceControlDTO.commitStatusEnabled = sourceControl.getCommitStatusEnabled();
     apiSourceControlDTO.manualPullRequestsEnabled = sourceControl.getManualPullRequestsEnabled();
     apiSourceControlDTO.innerSourceAutomatedUpdatesEnabled = sourceControl.getInnerSourceAutomatedUpdatesEnabled();
-    apiSourceControlDTO.authenticationType = sourceControl.getAuthenticationType() == null ? null
+    apiSourceControlDTO.authenticationType = sourceControl.getAuthenticationType() == null
+        ? null
         : sourceControl.getAuthenticationType().name();
 
     return apiSourceControlDTO;
@@ -146,13 +147,15 @@ public class ApiSourceControlAdapter
     }
 
     SourceControl sourceControl = new SourceControl.Builder().setOwnerId(dto.ownerId)
-        .setRepositoryUrl(dto.repositoryUrl).setUsername(dto.username).setToken(dto.token)
+        .setRepositoryUrl(dto.repositoryUrl)
+        .setUsername(dto.username)
+        .setToken(dto.token)
         .setProvider(getSourceControlProvider(dto.provider))
         .setRemediationPullRequestsEnabled(
             convertRemediationPullRequestsEnabled(
-                dto.remediationPullRequestsEnabled != null ? dto.remediationPullRequestsEnabled : dto.enablePullRequests
-            )
-        )
+                dto.remediationPullRequestsEnabled != null
+                    ? dto.remediationPullRequestsEnabled
+                    : dto.enablePullRequests))
         .setStatusChecksEnabled(dto.statusChecksEnabled != null ? dto.statusChecksEnabled : dto.enableStatusChecks)
         .setBaseBranch(dto.baseBranch)
         .setClosePrOnFailedChecksEnabled(dto.closePrOnFailedChecksEnabled)

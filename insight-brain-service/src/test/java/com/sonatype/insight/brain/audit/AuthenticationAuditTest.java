@@ -51,7 +51,9 @@ public class AuthenticationAuditTest
     assertThat(log.requestMethod).isEqualTo("POST");
     assertThat(log.requestUri).isEqualTo(AUTH_RESOURCE_PATH);
 
-    restRequest().path(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).anon().cookie(sessionCookie)
+    restRequest().path(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH)
+        .anon()
+        .cookie(sessionCookie)
         .delete();
 
     log = awaitLogEntries(AuditEvent.LOGOUT, 1).get(0);

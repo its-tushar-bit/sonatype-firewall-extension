@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.experimental;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -44,7 +45,7 @@ public class ApiSourceControlEventResourceTest
     Set<String> applicationIds = Collections.singleton(application.getId());
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
         BuildStageType.ID,
-            "sourceScan",
+        "sourceScan",
         new Date(System.currentTimeMillis() - 10000),
         "sourceCommit");
     SourceControlEvent sourceControlEvent = tempEntity.newSourceControlEvent(application, policyEvaluation);
@@ -53,8 +54,7 @@ public class ApiSourceControlEventResourceTest
         sourceControlEvent.getCreateTime().getTime(),
         true,
         10,
-        0
-    );
+        0);
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.SOURCE_CONTROL_EVENTS_RESOURCE_PATH)
@@ -88,8 +88,7 @@ public class ApiSourceControlEventResourceTest
         sourceControlEvent.getCreateTime().getTime(),
         true,
         10,
-        0
-    );
+        0);
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.SOURCE_CONTROL_EVENTS_RESOURCE_PATH)
@@ -122,8 +121,7 @@ public class ApiSourceControlEventResourceTest
         sourceControlEvent.getCreateTime().getTime(),
         true,
         1,
-        -1
-    );
+        -1);
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.SOURCE_CONTROL_EVENTS_RESOURCE_PATH)
@@ -153,8 +151,7 @@ public class ApiSourceControlEventResourceTest
         sourceControlEvent.getCreateTime().getTime(),
         true,
         0,
-        0
-    );
+        0);
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.SOURCE_CONTROL_EVENTS_RESOURCE_PATH)

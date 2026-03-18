@@ -17,11 +17,12 @@ public class ComponentCopyrightWithOwnerDTO
   private String ownerId;
 
   public ComponentCopyrightWithOwnerDTO() {
-    //for jackson
+    // for jackson
   }
 
   public ComponentCopyrightWithOwnerDTO(
-      final ComponentCopyrightDTO componentCopyrightDTO, final String ownerId)
+      final ComponentCopyrightDTO componentCopyrightDTO,
+      final String ownerId)
   {
     this.componentCopyrightDTO = componentCopyrightDTO;
     this.ownerId = ownerId;

@@ -60,8 +60,7 @@ public class ComponentCopyrightDTO
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentCopyright.getComponentIdentifier()),
         copyrightOverrideDTOS,
         componentCopyright.getLastUpdatedByUsername(),
-        componentCopyright.getLastUpdatedAt()
-    );
+        componentCopyright.getLastUpdatedAt());
   }
 
   public String getId() {

@@ -22,7 +22,7 @@ public class ApplicationAuditDTO
   public String applicationName;
 
   public ApplicationAuditDTO() {
-    //for jackson
+    // for jackson
   }
 
   public ApplicationAuditDTO(String applicationId, Application application) {

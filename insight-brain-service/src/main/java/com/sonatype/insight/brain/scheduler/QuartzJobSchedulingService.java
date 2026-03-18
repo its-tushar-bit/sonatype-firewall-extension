@@ -69,10 +69,10 @@ public class QuartzJobSchedulingService
    * after a delay to reduce contention.
    *
    * @param scheduler the Quartz scheduler to use
-   * @param job       the job to schedule
-   * @param triggers  the triggers for the job
+   * @param job the job to schedule
+   * @param triggers the triggers for the job
    * @param jobLogger a log message to run after the job is actually scheduled with quartz. This is so that we can
-   *                  determine the real next execution time from Quartz after the job is scheduled.
+   *          determine the real next execution time from Quartz after the job is scheduled.
    */
   void scheduleTask(
       final Scheduler scheduler,
@@ -106,7 +106,9 @@ public class QuartzJobSchedulingService
     }
   }
 
-  record QuartzJobRecord(Scheduler scheduler, JobDetail jobDetail, Set<Trigger> triggers, JobLogger jobLogger) { }
+  record QuartzJobRecord(Scheduler scheduler, JobDetail jobDetail, Set<Trigger> triggers, JobLogger jobLogger)
+  {
+  }
 
   /**
    * Encapsulate the jobs for a tenant. Adding a job for a tenant will enqueue it, and a per-tenant timer reset

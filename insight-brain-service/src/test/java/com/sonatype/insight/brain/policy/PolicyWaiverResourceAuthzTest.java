@@ -48,7 +48,8 @@ public class PolicyWaiverResourceAuthzTest
   public void testGetApplicableContexts() throws Exception {
     grantReadPermission(app.getId());
 
-    testAuthzGet(restRequest().path("applicable/context/{policyId}").parameter(OwnerType.APPLICATION,
-        app.getPublicId(), policy.getId()));
+    testAuthzGet(restRequest().path("applicable/context/{policyId}")
+        .parameter(OwnerType.APPLICATION,
+            app.getPublicId(), policy.getId()));
   }
 }

@@ -99,23 +99,23 @@ public class PullRequestStateEventHandlerTest
 
   @Inject
   private PasswordHandler passwordHandler;
-  
-  @Inject 
+
+  @Inject
   private GitClientFactory gitClientFactory;
-  
+
   @Inject
   private com.sonatype.insight.brain.sourcecontrol.SourceControlUtils sourceControlUtils;
-  
+
   @Inject
   private PullRequestPollingService pullRequestPollingService;
 
   // Mocks for telemetry testing
   @Mock
   private TelemetrySender mockTelemetrySender;
-  
+
   @Mock
   private TelemetryUtils mockTelemetryUtils;
-  
+
   // Handler with mocked telemetry dependencies for specific tests
   private PullRequestStateEventHandler handlerWithMockedTelemetry;
 
@@ -131,7 +131,7 @@ public class PullRequestStateEventHandlerTest
   public void setup() throws Exception {
     // Initialize mocks
     MockitoAnnotations.openMocks(this);
-    
+
     gitlabRepoUrl = "http://localhost:%d/%s/%s.git".formatted(wireMockRule.port(), TEST_ORG, TEST_REPO);
     bitbucketRepoUrl = "http://localhost:%d/scm/%s/%s.git".formatted(wireMockRule.port(), TEST_ORG, TEST_REPO);
     String encyptedToken = passwordHandler.encryptPassword(TOKEN);
@@ -146,8 +146,7 @@ public class PullRequestStateEventHandlerTest
         applicationWithBatchSupport.getId(),
         gitlabRepoUrl,
         encyptedToken,
-        SourceControlProvider.GITLAB
-    );
+        SourceControlProvider.GITLAB);
 
     // For this test, we'll use BITBUCKET as a provider that doesn't support batch fetch
     tempEntity.newSourceControl(
@@ -155,11 +154,10 @@ public class PullRequestStateEventHandlerTest
         bitbucketRepoUrl,
         BITBUCKET_USERNAME,
         encyptedToken,
-        SourceControlProvider.BITBUCKET
-    );
+        SourceControlProvider.BITBUCKET);
 
     setupGitlabBoilerplateEndpoints();
-    
+
     // Create handler with mocked telemetry dependencies for specific tests
     handlerWithMockedTelemetry = new PullRequestStateEventHandler(
         gitClientFactory,
@@ -169,8 +167,7 @@ public class PullRequestStateEventHandlerTest
         sourceControlPullRequestDAO,
         pullRequestPollingService,
         mockTelemetrySender,
-        mockTelemetryUtils
-    );
+        mockTelemetryUtils);
   }
 
   /**
@@ -196,9 +193,9 @@ public class PullRequestStateEventHandlerTest
 
     stubFor(get(urlEqualTo(gitlabApiPath))
         .willReturn(aResponse()
-          .withStatus(statusCode)
-          .withHeader("Content-Type", "application/json")
-          .withBody(response)));
+            .withStatus(statusCode)
+            .withHeader("Content-Type", "application/json")
+            .withBody(response)));
   }
 
   private void setupGitlabMergeRequestsEndpoint(int[] prNumbers, String responseResource) throws IOException {
@@ -212,9 +209,9 @@ public class PullRequestStateEventHandlerTest
 
     stubFor(get(urlEqualTo(bitbucketApiPath))
         .willReturn(aResponse()
-          .withStatus(statusCode)
-          .withHeader("Content-Type", "application/json")
-          .withBody(response)));
+            .withStatus(statusCode)
+            .withHeader("Content-Type", "application/json")
+            .withBody(response)));
   }
 
   private void setupBitbucketPullRequestEndpoint(int prNumber, String responseResource) throws IOException {
@@ -244,8 +241,7 @@ public class PullRequestStateEventHandlerTest
     // Create JSON array of PR numbers
     String detailsJson = "[%s]".formatted(Arrays.stream(prNumbers)
         .mapToObj(String::valueOf)
-        .collect(Collectors.joining(","))
-    );
+        .collect(Collectors.joining(",")));
 
     event.setEventStatusDetails(detailsJson);
     return event;
@@ -260,9 +256,8 @@ public class PullRequestStateEventHandlerTest
         "deadbeef",
         "deadbeef2",
         "foo-branch",
-        "different-base-branch",  // Using different value to verify it gets updated
-        PullRequestState.OPEN
-    );
+        "different-base-branch", // Using different value to verify it gets updated
+        PullRequestState.OPEN);
     pullRequest.setSource(PullRequestSource.AUTOMATIC);
     sourceControlPullRequestDAO.update(pullRequest);
 
@@ -307,9 +302,8 @@ public class PullRequestStateEventHandlerTest
         "deadbeef",
         "deadbeef2",
         "foo-branch",
-        "old-target-branch",  // Using different value to verify it gets updated
-        PullRequestState.OPEN
-    );
+        "old-target-branch", // Using different value to verify it gets updated
+        PullRequestState.OPEN);
     pullRequest.setSource(PullRequestSource.AUTOMATIC);
     sourceControlPullRequestDAO.update(pullRequest);
 
@@ -354,9 +348,8 @@ public class PullRequestStateEventHandlerTest
         "deadbeef",
         "deadbeef2",
         "foo-branch",
-        "develop",  // Using different value to verify it gets updated to main
-        PullRequestState.OPEN
-    );
+        "develop", // Using different value to verify it gets updated to main
+        PullRequestState.OPEN);
 
     // Create a PR state update event
     SourceControlEvent event = createSinglePrEvent(prNumber, applicationWithoutBatchSupport);
@@ -400,8 +393,7 @@ public class PullRequestStateEventHandlerTest
         "deadbeef2",
         "foo-branch",
         "main",
-        PullRequestState.OPEN
-    );
+        PullRequestState.OPEN);
 
     // Create a PR state update event
     SourceControlEvent event = createSinglePrEvent(prNumber, applicationWithoutBatchSupport);
@@ -459,9 +451,8 @@ public class PullRequestStateEventHandlerTest
         "deadbeef",
         "deadbeef2",
         "foo-branch",
-        "error-branch",  // Using a value that should not change due to API error
-        PullRequestState.OPEN
-    );
+        "error-branch", // Using a value that should not change due to API error
+        PullRequestState.OPEN);
 
     // Create a PR state update event
     SourceControlEvent event = createSinglePrEvent(prNumber, applicationWithoutBatchSupport);
@@ -483,7 +474,7 @@ public class PullRequestStateEventHandlerTest
 
     // Verify branch and commit hash information remains unchanged during API error
     assertThat(updatedPr.getBranchName()).isEqualTo("foo-branch");
-    assertThat(updatedPr.getBaseBranchName()).isEqualTo("error-branch");  // Should not be updated due to API error
+    assertThat(updatedPr.getBaseBranchName()).isEqualTo("error-branch"); // Should not be updated due to API error
     assertThat(updatedPr.getHeadCommitHash()).isEqualTo("deadbeef");
     assertThat(updatedPr.getBaseCommitHash()).isEqualTo("deadbeef2");
 
@@ -509,9 +500,8 @@ public class PullRequestStateEventHandlerTest
         "deadbeef1",
         "deadbeef2",
         "branch1",
-        "feature-branch",  // Different value to verify it gets updated
-        PullRequestState.OPEN
-    );
+        "feature-branch", // Different value to verify it gets updated
+        PullRequestState.OPEN);
     pr1.setSource(PullRequestSource.AUTOMATIC);
     sourceControlPullRequestDAO.update(pr1);
 
@@ -522,8 +512,7 @@ public class PullRequestStateEventHandlerTest
         "deadbeef3",
         "branch2",
         "release-branch",
-        PullRequestState.OPEN
-    );
+        PullRequestState.OPEN);
     pr2.setSource(PullRequestSource.AUTOMATIC);
     sourceControlPullRequestDAO.update(pr2);
 
@@ -533,9 +522,8 @@ public class PullRequestStateEventHandlerTest
         "deadbeef3",
         "deadbeef4",
         "branch3",
-        "master",  // Different value to verify it gets updated
-        PullRequestState.OPEN
-    );
+        "master", // Different value to verify it gets updated
+        PullRequestState.OPEN);
     pr3.setSource(PullRequestSource.AUTOMATIC);
     sourceControlPullRequestDAO.update(pr3);
 
@@ -545,9 +533,8 @@ public class PullRequestStateEventHandlerTest
         "deadbeef5",
         "deadbeef6",
         "branch4",
-        "hotfix-branch",  // Different value to verify it gets updated
-        PullRequestState.OPEN
-    );
+        "hotfix-branch", // Different value to verify it gets updated
+        PullRequestState.OPEN);
     pr4.setSource(PullRequestSource.AUTOMATIC);
     sourceControlPullRequestDAO.update(pr4);
 
@@ -635,9 +622,8 @@ public class PullRequestStateEventHandlerTest
         "deadbeef1",
         "deadbeef2",
         "branch1",
-        "batch-error-branch1",  // Custom value for error testing
-        PullRequestState.OPEN
-    );
+        "batch-error-branch1", // Custom value for error testing
+        PullRequestState.OPEN);
 
     SourceControlPullRequest pr2 = tempEntity.newSourceControlPullRequest(
         gitlabRepoUrl,
@@ -645,9 +631,8 @@ public class PullRequestStateEventHandlerTest
         "deadbeef3",
         "deadbeef4",
         "branch2",
-        "batch-error-branch2",  // Custom value for error testing
-        PullRequestState.OPEN
-    );
+        "batch-error-branch2", // Custom value for error testing
+        PullRequestState.OPEN);
 
     SourceControlPullRequest pr3 = tempEntity.newSourceControlPullRequest(
         gitlabRepoUrl,
@@ -655,9 +640,8 @@ public class PullRequestStateEventHandlerTest
         "deadbeef5",
         "deadbeef6",
         "branch3",
-        "batch-error-branch3",  // Custom value for error testing
-        PullRequestState.OPEN
-    );
+        "batch-error-branch3", // Custom value for error testing
+        PullRequestState.OPEN);
 
     // Create a batch PR state update event
     int[] prNumbers = {pr1Number, pr2Number, pr3Number};
@@ -727,9 +711,8 @@ public class PullRequestStateEventHandlerTest
         "deadbeef1",
         "deadbeef2",
         "branch1",
-        "dev-branch",  // Different value to verify it gets updated
-        PullRequestState.OPEN
-    );
+        "dev-branch", // Different value to verify it gets updated
+        PullRequestState.OPEN);
     pr1.setSource(PullRequestSource.AUTOMATIC);
     sourceControlPullRequestDAO.update(pr1);
 
@@ -739,9 +722,8 @@ public class PullRequestStateEventHandlerTest
         "deadbeef5",
         "deadbeef6",
         "branch3",
-        "legacy-branch",  // Different value to verify it gets updated
-        PullRequestState.OPEN
-    );
+        "legacy-branch", // Different value to verify it gets updated
+        PullRequestState.OPEN);
     pr3.setSource(PullRequestSource.AUTOMATIC);
     sourceControlPullRequestDAO.update(pr3);
 
@@ -802,9 +784,8 @@ public class PullRequestStateEventHandlerTest
         "deadbeef",
         "deadbeef2",
         "foo-branch",
-        "invalid-repo-branch",  // Using a value that shouldn't change
-        PullRequestState.OPEN
-    );
+        "invalid-repo-branch", // Using a value that shouldn't change
+        PullRequestState.OPEN);
 
     // Create a PR state update event
     SourceControlEvent event = createSinglePrEvent(prNumber, applicationWithoutBatchSupport);
@@ -828,7 +809,7 @@ public class PullRequestStateEventHandlerTest
 
     // Branch and commit info should remain unchanged
     assertThat(updatedPr.getBranchName()).isEqualTo("foo-branch");
-    assertThat(updatedPr.getBaseBranchName()).isEqualTo("invalid-repo-branch");  // Should keep original value
+    assertThat(updatedPr.getBaseBranchName()).isEqualTo("invalid-repo-branch"); // Should keep original value
     assertThat(updatedPr.getHeadCommitHash()).isEqualTo("deadbeef");
     assertThat(updatedPr.getBaseCommitHash()).isEqualTo("deadbeef2");
 
@@ -851,9 +832,8 @@ public class PullRequestStateEventHandlerTest
         "deadbeef1",
         "deadbeef2",
         "branch1",
-        "batch-invalid-repo-branch",  // Should not change since repo is invalid
-        PullRequestState.OPEN
-    );
+        "batch-invalid-repo-branch", // Should not change since repo is invalid
+        PullRequestState.OPEN);
 
     // Create a batch PR state update event
     int[] prNumbers = {pr1Number};
@@ -900,8 +880,7 @@ public class PullRequestStateEventHandlerTest
         "137f2be0e87037a7e93f1aa83e867189e0792cd1", // Base commit hash that matches API response
         "foo", // Branch name that matches API response
         "main", // Base branch name that matches API response
-        PullRequestState.OPEN
-    );
+        PullRequestState.OPEN);
 
     // Create a PR state update event
     SourceControlEvent event = createSinglePrEvent(prNumber, applicationWithoutBatchSupport);
@@ -957,8 +936,7 @@ public class PullRequestStateEventHandlerTest
         "deadbeef2", // Any value is fine, as the test will mock the base commit hash
         "172a68/ch.qos.logback/logback-access/0.6-to-1.3.15", // Branch name that matches API response
         "main", // Base branch name that matches API response
-        PullRequestState.OPEN
-    );
+        PullRequestState.OPEN);
 
     // PR3 - Merged status with matching data
     SourceControlPullRequest pr3 = tempEntity.newSourceControlPullRequest(
@@ -968,8 +946,7 @@ public class PullRequestStateEventHandlerTest
         "deadbeef4", // Any value is fine, as the test will mock the base commit hash
         "foo", // Branch name that matches API response
         "main", // Base branch name that matches API response
-        PullRequestState.MERGED
-    );
+        PullRequestState.MERGED);
 
     // PR4 - Closed status with matching data
     SourceControlPullRequest pr4 = tempEntity.newSourceControlPullRequest(
@@ -979,8 +956,7 @@ public class PullRequestStateEventHandlerTest
         "deadbeef6", // Any value is fine, as the test will mock the base commit hash
         "bar", // Branch name that matches API response
         "main", // Base branch name that matches API response
-        PullRequestState.CLOSED
-    );
+        PullRequestState.CLOSED);
 
     // Save original timestamps to verify they don't change
     Date pr1OriginalUpdateTime = pr1.getLastDetectedUpdateTime();
@@ -1076,8 +1052,7 @@ public class PullRequestStateEventHandlerTest
         "deadbeef2",
         "foo-branch",
         "integer-test-branch",
-        PullRequestState.OPEN
-    );
+        PullRequestState.OPEN);
 
     // Create a PR state update event using explicit Integer
     SourceControlEvent event = createSinglePrEvent(prNumber, applicationWithoutBatchSupport);
@@ -1112,8 +1087,7 @@ public class PullRequestStateEventHandlerTest
         githubApp.getId(),
         "https://github.com/test-org/test-repo.git",
         passwordHandler.encryptPassword(TOKEN),
-        GITHUB
-    );
+        GITHUB);
     sourceControl.setClosePrOnFailedChecksEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -1124,8 +1098,7 @@ public class PullRequestStateEventHandlerTest
         "def457",
         "manual-branch",
         "main",
-        PullRequestState.OPEN
-    );
+        PullRequestState.OPEN);
     pullRequest.setSource(PullRequestSource.MANUAL);
     sourceControlPullRequestDAO.update(pullRequest);
 
@@ -1148,8 +1121,7 @@ public class PullRequestStateEventHandlerTest
         "def458",
         "auto-branch",
         "main",
-        PullRequestState.OPEN
-    );
+        PullRequestState.OPEN);
     pullRequest.setSource(PullRequestSource.AUTOMATIC);
     sourceControlPullRequestDAO.update(pullRequest);
 
@@ -1383,8 +1355,7 @@ public class PullRequestStateEventHandlerTest
         "deadbeef2",
         "telemetry-no-transition",
         "main",
-        PullRequestState.OPEN
-    );
+        PullRequestState.OPEN);
     pullRequest.setSource(PullRequestSource.AUTOMATIC);
     sourceControlPullRequestDAO.update(pullRequest);
 
@@ -1432,8 +1403,7 @@ public class PullRequestStateEventHandlerTest
         "deadbeef2",
         "telemetry-verify-branch",
         "main",
-        PullRequestState.OPEN
-    );
+        PullRequestState.OPEN);
     pullRequest.setSource(PullRequestSource.AUTOMATIC);
     sourceControlPullRequestDAO.update(pullRequest);
 
@@ -1497,8 +1467,7 @@ public class PullRequestStateEventHandlerTest
         "deadbeef2",
         "telemetry-closed-verify-branch",
         "main",
-        PullRequestState.OPEN
-    );
+        PullRequestState.OPEN);
     pullRequest.setSource(PullRequestSource.AUTOMATIC);
     sourceControlPullRequestDAO.update(pullRequest);
 
@@ -1562,8 +1531,7 @@ public class PullRequestStateEventHandlerTest
         "deadbeef2",
         "telemetry-unknown-branch",
         "main",
-        PullRequestState.OPEN
-    );
+        PullRequestState.OPEN);
     pullRequest.setSource(PullRequestSource.AUTOMATIC);
     sourceControlPullRequestDAO.update(pullRequest);
 
@@ -1607,8 +1575,7 @@ public class PullRequestStateEventHandlerTest
       SourceControlProvider provider,
       boolean closePrOnFailedChecks,
       boolean closePrAfterDaysOpen,
-      int closePrAfterDays
-  )
+      int closePrAfterDays)
   {
     String repoUrl = switch (provider) {
       case GITLAB -> "https://gitlab.com/test-org/test-repo.git";
@@ -1623,15 +1590,14 @@ public class PullRequestStateEventHandlerTest
         "deadbeef2",
         "auto-branch",
         "main",
-        PullRequestState.OPEN
-    );
+        PullRequestState.OPEN);
     pullRequest.setSource(PullRequestSource.AUTOMATIC);
     Instant tenDaysAgo = LocalDate.now().minusDays(10).atStartOfDay(ZoneId.systemDefault()).toInstant();
     pullRequest.setCreateTime(Date.from(tenDaysAgo));
     sourceControlPullRequestDAO.update(pullRequest);
 
     SourceControl rootOrgSourceControl = (provider == AZURE || provider == BITBUCKET)
-        ? tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, "username",null, provider)
+        ? tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, "username", null, provider)
         : tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, provider);
     rootOrgSourceControl.setClosePrOnFailedChecksEnabled(closePrOnFailedChecks);
     rootOrgSourceControl.setClosePrAfterDaysOpenEnabled(closePrAfterDaysOpen);
@@ -1643,8 +1609,7 @@ public class PullRequestStateEventHandlerTest
         repoUrl,
         (provider == AZURE || provider == BITBUCKET) ? "username" : null,
         passwordHandler.encryptPassword(TOKEN),
-        provider
-    );
+        provider);
     return pullRequest;
   }
 

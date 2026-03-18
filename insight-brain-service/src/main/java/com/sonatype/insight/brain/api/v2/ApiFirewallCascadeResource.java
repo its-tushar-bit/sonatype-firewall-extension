@@ -30,7 +30,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * REST resource for managing cascade re-evaluation operations across repository hierarchies.
- * 
+ *
  * @since 1.196
  */
 @Named
@@ -61,22 +61,19 @@ public class ApiFirewallCascadeResource
           + "<p>" +
           "Permissions Required: Evaluate Components at Repository Managers level",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Cascade re-evaluation initiated successfully. The response contains statusUrl with a " +
-                  "requestId, which can be used to check the cascade re-evaluation status using the GET method." +
-                  "A requestId for a cascade re-evaluation only lasts 24 hours before being deleted.",
-              useReturnTypeSchema = true
-          ),
-          @ApiResponse(
-              responseCode = "403",
-              description = "Forbidden - insufficient permissions"
-          ),
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Cascade re-evaluation initiated successfully. The response contains statusUrl with a " +
+                "requestId, which can be used to check the cascade re-evaluation status using the GET method." +
+                "A requestId for a cascade re-evaluation only lasts 24 hours before being deleted.",
+            useReturnTypeSchema = true),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - insufficient permissions"),
+      })
   public CascadeReevaluateTicketDTO initiateCascadeReevaluation(
-      @Parameter(description = "The component hash to re-evaluate across all repositories", required = true)
-      @PathParam("componentHash") final String componentHash)
+      @Parameter(description = "The component hash to re-evaluate across all repositories",
+          required = true) @PathParam("componentHash") final String componentHash)
   {
     // Initiate cascade re-evaluation
     return apiFirewallCascadeService.initiateCascadeReevaluation(
@@ -106,24 +103,20 @@ public class ApiFirewallCascadeResource
           + "<p>" +
           "Permissions Required: Evaluate Components at Repository Managers level",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Cascade status retrieved successfully",
-              useReturnTypeSchema = true
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "Cascade request not found. It could have been deleted after 24 hours."
-          ),
-          @ApiResponse(
-              responseCode = "403",
-              description = "Forbidden - insufficient permissions"
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Cascade status retrieved successfully",
+            useReturnTypeSchema = true),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Cascade request not found. It could have been deleted after 24 hours."),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - insufficient permissions")
+      })
   public CascadeStatusResponseDTO getCascadeStatus(
-      @Parameter(description = "The cascade request ID to check status for", required = true)
-      @PathParam("requestId") final String requestId)
+      @Parameter(description = "The cascade request ID to check status for",
+          required = true) @PathParam("requestId") final String requestId)
   {
     return apiFirewallCascadeService.getCascadeStatus(requestId);
   }

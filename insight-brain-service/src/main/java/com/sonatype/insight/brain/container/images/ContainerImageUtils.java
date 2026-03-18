@@ -38,10 +38,10 @@ public class ContainerImageUtils
           case BASE_OS_PROPERTY_NAME -> telemetryMetrics.setBaseOs(value);
           case COMPONENTS_COUNT_PROPERTY_NAME -> telemetryMetrics.setComponentsCount(stringToLong(value));
           case MANIFEST_TYPE_PROPERTY_NAME -> telemetryMetrics.setManifestMediaType(value);
-          case SCAN_DURATION_MILLISECONDS_PROPERTY_NAME ->
-              telemetryMetrics.setScanDurationMilliseconds(stringToLong(value));
-          case POLICY_EVALUATION_DURATION_MILLISECONDS_PROPERTY_NAME ->
-              telemetryMetrics.setPolicyEvaluationDurationMilliseconds(stringToLong(value));
+          case SCAN_DURATION_MILLISECONDS_PROPERTY_NAME -> telemetryMetrics
+              .setScanDurationMilliseconds(stringToLong(value));
+          case POLICY_EVALUATION_DURATION_MILLISECONDS_PROPERTY_NAME -> telemetryMetrics
+              .setPolicyEvaluationDurationMilliseconds(stringToLong(value));
           default -> log.warn("Unknown property {} in CycloneDx metadata with value {}", name, value);
         }
       }

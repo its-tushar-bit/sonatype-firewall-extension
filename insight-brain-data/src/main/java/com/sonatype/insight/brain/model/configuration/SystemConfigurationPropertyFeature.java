@@ -16,37 +16,41 @@ import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.license.model.Feature;
 
 /**
- * This enumeration contains features that can be enabled/disabled by the ApiConfigFeaturesResource. <br/><br/> Each
+ * This enumeration contains features that can be enabled/disabled by the ApiConfigFeaturesResource. <br/>
+ * <br/>
+ * Each
  * enum value has these properties:
  * <ul>
- *   <li>
- *     {@code name} - this is returned to the frontend via FeaturesResource#getFeatures() after being
- *     transformed according to {@link Feature#getId()}.
- *   </li>
- *   <li>
- *     {@code propertyName} - this is the name stored in the {@link SystemConfigurationProperty} table.
- *   </li>
- *   <li>
- *     {@code propertyValue} - this represents the value that will be stored in the
- *     {@link SystemConfigurationProperty} table. Note that the value has no impact on whether or not the feature is
- *     enabled/disabled (only the presence/absence of the row itself). However the value can be set to help
- *     understanding. This defaults to the String value of the opposite of {@code enabledWhenAbsent}.
- *   </li>
- *   <li>
- *     {@code enabledWhenAbsent} - if this is {@code true}, then the feature will be enabled even if its
- *     {@code propertyName} is absent from the {@link SystemConfigurationProperty} table.
- *   </li>
+ * <li>
+ * {@code name} - this is returned to the frontend via FeaturesResource#getFeatures() after being
+ * transformed according to {@link Feature#getId()}.
+ * </li>
+ * <li>
+ * {@code propertyName} - this is the name stored in the {@link SystemConfigurationProperty} table.
+ * </li>
+ * <li>
+ * {@code propertyValue} - this represents the value that will be stored in the
+ * {@link SystemConfigurationProperty} table. Note that the value has no impact on whether or not the feature is
+ * enabled/disabled (only the presence/absence of the row itself). However the value can be set to help
+ * understanding. This defaults to the String value of the opposite of {@code enabledWhenAbsent}.
+ * </li>
+ * <li>
+ * {@code enabledWhenAbsent} - if this is {@code true}, then the feature will be enabled even if its
+ * {@code propertyName} is absent from the {@link SystemConfigurationProperty} table.
+ * </li>
  * </ul>
  * Note that if you want the feature name passed to ApiConfigFeaturesResource to be different to the
  * {@code name}, result of {@link Feature#getId()}, and {@code propertyName}, then you need to add a mapping to the
  * ApiConfigFeaturesService#getPropertyNameForFeature method.
- * <br/><br/>
+ * <br/>
+ * <br/>
  * Typically, a feature would start with {@code enabledWhenAbsent} set to {@code false}, making it experimental.
  * When it's production-ready {@code enabledWhenAbsent} can be changed to {@code true} alongside an incremental script
  * to delete the feature from the {@link SystemConfigurationProperty} table.
  */
 public enum SystemConfigurationPropertyFeature
-    implements Feature
+    implements
+    Feature
 {
   DASHBOARD_CAN_BE_ENABLED(SystemConfigurationProperty.DASHBOARD_DISABLED, "true", true),
   REPORTS_LIST_CAN_BE_ENABLED(SystemConfigurationProperty.REPORTS_LIST_DISABLED, "true", true),
@@ -82,7 +86,7 @@ public enum SystemConfigurationPropertyFeature
   },
   // Special case to let us set ADVANCED_SEARCH_ENABLED to true/false via the configuration API
   // this is an older feature flag and has no concept of being enabled/disabled when absent
-  ADVANCED_SEARCH_ENABLED(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, /*ignored*/false)
+  ADVANCED_SEARCH_ENABLED(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, /* ignored */false)
   {
     @Override
     public boolean isEnabled(TransactionContext tx) {
@@ -132,9 +136,9 @@ public enum SystemConfigurationPropertyFeature
         final SystemConfigurationProperty systemConfigurationProperty =
             systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
         // Enabled in MTIQ non-FIPS mode, disabled otherwise
-        return systemConfigurationProperty == null ?
-            !tenantUtil.isSingleTenant() && !FIPSModeDetector.isEnabled() :
-            Boolean.parseBoolean(systemConfigurationProperty.getValue());
+        return systemConfigurationProperty == null
+            ? !tenantUtil.isSingleTenant() && !FIPSModeDetector.isEnabled()
+            : Boolean.parseBoolean(systemConfigurationProperty.getValue());
       }
       else {
         return Boolean.parseBoolean(valueInEnvVar);
@@ -177,9 +181,9 @@ public enum SystemConfigurationPropertyFeature
       final SystemConfigurationProperty systemConfigurationProperty =
           systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
       // Enabled in MTIQ non-FIPS mode, disabled otherwise
-      return systemConfigurationProperty == null ?
-          !tenantUtil.isSingleTenant() && !FIPSModeDetector.isEnabled() :
-          Boolean.parseBoolean(systemConfigurationProperty.getValue());
+      return systemConfigurationProperty == null
+          ? !tenantUtil.isSingleTenant() && !FIPSModeDetector.isEnabled()
+          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
   },
 
@@ -231,8 +235,7 @@ public enum SystemConfigurationPropertyFeature
   SBOM_MANAGER(SystemConfigurationProperty.SBOM_MANAGER, false),
   DEVELOPMENT_DASHBOARD_METRIC_COLLECTION(
       SystemConfigurationProperty.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION,
-      true
-  ),
+      true),
   PRIORITIZED_FINDINGS_REPORT(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT, true),
 
   /**
@@ -262,8 +265,9 @@ public enum SystemConfigurationPropertyFeature
     public boolean isEnabled(TransactionContext tx) {
       final SystemConfigurationProperty systemConfigurationProperty =
           systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-      return systemConfigurationProperty == null ? super.isEnabled(tx) :
-          Boolean.parseBoolean(systemConfigurationProperty.getValue());
+      return systemConfigurationProperty == null
+          ? super.isEnabled(tx)
+          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
   },
 
@@ -282,8 +286,9 @@ public enum SystemConfigurationPropertyFeature
     public boolean isEnabled(TransactionContext tx) {
       final SystemConfigurationProperty systemConfigurationProperty =
           systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-      return systemConfigurationProperty == null ? super.isEnabled(tx) :
-          Boolean.parseBoolean(systemConfigurationProperty.getValue());
+      return systemConfigurationProperty == null
+          ? super.isEnabled(tx)
+          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
   },
 
@@ -332,8 +337,9 @@ public enum SystemConfigurationPropertyFeature
     public boolean isEnabled(TransactionContext tx) {
       final SystemConfigurationProperty systemConfigurationProperty =
           systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-      return systemConfigurationProperty == null ? super.isEnabled(tx) :
-          Boolean.parseBoolean(systemConfigurationProperty.getValue());
+      return systemConfigurationProperty == null
+          ? super.isEnabled(tx)
+          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
   },
 
@@ -348,9 +354,9 @@ public enum SystemConfigurationPropertyFeature
       // 1) On prem IQ - Default to be enabled.
       // 2) MTIQ with FIPS enabled - Default to be enabled.
       // 3) MITQ with FIPS disabled - Default to be disabled.
-      return systemConfigurationProperty == null ?
-          tenantUtil.isSingleTenant() || FIPSModeDetector.isEnabled() :
-          Boolean.parseBoolean(systemConfigurationProperty.getValue());
+      return systemConfigurationProperty == null
+          ? tenantUtil.isSingleTenant() || FIPSModeDetector.isEnabled()
+          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
   },
 
@@ -361,9 +367,9 @@ public enum SystemConfigurationPropertyFeature
       final SystemConfigurationProperty systemConfigurationProperty =
           systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
       // Enabled in single tenant OR FIPS mode, disabled otherwise
-      return systemConfigurationProperty == null ?
-        tenantUtil.isSingleTenant() || FIPSModeDetector.isEnabled() :
-        Boolean.parseBoolean(systemConfigurationProperty.getValue());
+      return systemConfigurationProperty == null
+          ? tenantUtil.isSingleTenant() || FIPSModeDetector.isEnabled()
+          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
   },
 
@@ -394,8 +400,9 @@ public enum SystemConfigurationPropertyFeature
     public boolean isEnabled(TransactionContext tx) {
       final SystemConfigurationProperty systemConfigurationProperty =
           systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-      return systemConfigurationProperty == null ? super.isEnabled(tx) :
-          Boolean.parseBoolean(systemConfigurationProperty.getValue());
+      return systemConfigurationProperty == null
+          ? super.isEnabled(tx)
+          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
 
     @Override

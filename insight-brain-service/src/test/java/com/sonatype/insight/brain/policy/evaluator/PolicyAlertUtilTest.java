@@ -160,7 +160,13 @@ public class PolicyAlertUtilTest
     assertThat(alert1.getTrigger().getPolicyId()).isEqualTo(policy.getId());
     assertThat(alert1.getTrigger().getPolicyName()).isEqualTo(policy.getName());
     assertThat(alert1.getTrigger().getPolicyViolationId()).isEqualTo(policyViolation1.getId());
-    assertThat(alert1.getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0).getConditionFacts().get(0)
+    assertThat(alert1.getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
         .getReason()).isEqualTo(reason1);
     assertThat(alert1.getActions()).isEmpty();
 
@@ -168,7 +174,13 @@ public class PolicyAlertUtilTest
     assertThat(alert2.getTrigger().getPolicyId()).isEqualTo(policy.getId());
     assertThat(alert2.getTrigger().getPolicyName()).isEqualTo(policy.getName());
     assertThat(alert2.getTrigger().getPolicyViolationId()).isEqualTo(policyViolation2.getId());
-    assertThat(alert2.getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0).getConditionFacts().get(0)
+    assertThat(alert2.getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
         .getReason()).isEqualTo(reason2);
     assertThat(alert2.getActions()).isEmpty();
   }
@@ -238,8 +250,7 @@ public class PolicyAlertUtilTest
         stageTypeId,
         application.getId(),
         policyEvaluation.isForMonitoring(),
-        false
-    );
+        false);
 
     assertThat(policyAlerts).hasSize(1);
     PolicyAlert policyAlert = policyAlerts.get(0);
@@ -271,8 +282,7 @@ public class PolicyAlertUtilTest
         stageTypeId,
         application.getId(),
         policyEvaluation.isForMonitoring(),
-        false
-    );
+        false);
 
     assertThat(policyAlerts).hasSize(1);
     PolicyAlert policyAlert = policyAlerts.get(0);
@@ -310,8 +320,7 @@ public class PolicyAlertUtilTest
         stageTypeId,
         application.getId(),
         policyEvaluation.isForMonitoring(),
-        false
-    );
+        false);
 
     assertThat(policyAlerts).hasSize(1);
     PolicyAlert policyAlert = policyAlerts.get(0);
@@ -324,8 +333,9 @@ public class PolicyAlertUtilTest
     assertThat(componentFact).isNotNull();
     assertThat(componentFact.getPathnames()).isEqualTo(
         Stream.concat(component1.getPathnames().stream(), component2.getPathnames().stream())
-            .distinct().sorted().collect(Collectors.toList())
-    );
+            .distinct()
+            .sorted()
+            .collect(Collectors.toList()));
   }
 
   @Test
@@ -348,8 +358,7 @@ public class PolicyAlertUtilTest
         stageTypeId,
         application.getId(),
         policyEvaluation.isForMonitoring(),
-        false
-    );
+        false);
 
     assertThat(policyAlerts).hasSize(1);
     PolicyAlert policyAlert = policyAlerts.get(0);

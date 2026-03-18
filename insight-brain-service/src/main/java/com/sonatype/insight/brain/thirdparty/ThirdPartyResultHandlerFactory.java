@@ -89,11 +89,13 @@ public class ThirdPartyResultHandlerFactory
           telemetrySender, thirdPartyScanContext);
     }
     else if (ItemContentType.CONTAINER_URI.equals(itemContentType)
-        || ItemContentType.CONTAINER_URI_SONATYPE.equals(itemContentType)) {
+        || ItemContentType.CONTAINER_URI_SONATYPE.equals(itemContentType))
+    {
 
       if (ItemContentType.CONTAINER_URI_SONATYPE.equals(itemContentType)
           && SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()
-          && !productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)) {
+          && !productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION))
+      {
         throw new InvalidLicenseException(
             "Your IQ Server license does not include the Container Images Evaluation feature "
                 + "required for Sonatype container scans.");

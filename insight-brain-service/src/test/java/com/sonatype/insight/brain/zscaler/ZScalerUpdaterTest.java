@@ -238,8 +238,7 @@ public class ZScalerUpdaterTest
     verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.MAVEN),
         eq(List.of(
             "repo1.maven.org/maven2/org/sonatype/maven-policy-demo/1.1.0/maven-policy-demo-1.1.0.jar",
-            "repo.maven.apache.org/maven2/org/sonatype/maven-policy-demo/1.1.0/maven-policy-demo-1.1.0.jar"
-        )));
+            "repo.maven.apache.org/maven2/org/sonatype/maven-policy-demo/1.1.0/maven-policy-demo-1.1.0.jar")));
     verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.NUGET),
         eq(List.of("placeholder.com/nuget")));
     verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.NPM),

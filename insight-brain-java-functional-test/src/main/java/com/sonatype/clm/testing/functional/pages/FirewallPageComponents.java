@@ -275,18 +275,18 @@ public class FirewallPageComponents
       super(rootSelector, "#firewall-roi-tab");
     }
   }
-  
+
   public static class RoiFirewallMetrics
       extends BasicElement<RoiFirewallMetrics>
   {
     public RoiFirewallMetrics(String rootSelector) {
       super(rootSelector, "#roi-firewall-metrics");
     }
-    
+
     public SelenideElement title() {
       return child(".roi-firewall-metrics__title");
     }
-    
+
     public SelenideElement description() {
       return child(".roi-firewall-metrics__description");
     }

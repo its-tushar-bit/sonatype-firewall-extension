@@ -121,7 +121,7 @@ public class PolicyAlertNotifierTest
     doThrow(new RuntimeException("oh no in jira!")).when(jiraPolicyAlertNotifier)
         .sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
     doThrow(new RuntimeException("oh no in scm!")).when(policyAlertScmNotifier)
-      .sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
+        .sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
 
     // when we send a notification
     notifier.sendNotifications(app, results);

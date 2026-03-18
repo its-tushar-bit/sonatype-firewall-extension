@@ -24,7 +24,8 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AutoPolicyWaiverExclusionTelemetryCollectorTest extends AbstractComponentTest
+public class AutoPolicyWaiverExclusionTelemetryCollectorTest
+    extends AbstractComponentTest
 {
   @Inject
   private TelemetryUtils telemetryUtils;
@@ -110,8 +111,7 @@ public class AutoPolicyWaiverExclusionTelemetryCollectorTest extends AbstractCom
                   .containsEntry(
                       AutoPolicyWaiverExclusionTelemetryCollector.AUTO_POLICY_WAIVER_EXCLUSION_AUTO_POLICY_WAIVER_ID,
                       autoWaiverExclusion3.getAutoPolicyWaiverId());
-            }
-        );
+            });
   }
 
   @Test
@@ -169,8 +169,7 @@ public class AutoPolicyWaiverExclusionTelemetryCollectorTest extends AbstractCom
                   .containsEntry(
                       AutoPolicyWaiverExclusionTelemetryCollector.AUTO_POLICY_WAIVER_EXCLUSION_AUTO_POLICY_WAIVER_ID,
                       autoWaiverExclusion3.getAutoPolicyWaiverId());
-            }
-        );
+            });
   }
 
   private AutoPolicyWaiverExclusion createAutoPolicyWaiverExclusion(

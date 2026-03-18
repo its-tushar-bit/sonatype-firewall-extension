@@ -412,9 +412,11 @@ public class SourceControlLoadBalancerTest
     assertThat(balancerTwoEvents).isNotEmpty();
 
     // and: each balancer had a distinct user
-    Set<String> balancerOneUsers = balancerOneEvents.stream().map(SourceControlEvent::getScmUsername)
+    Set<String> balancerOneUsers = balancerOneEvents.stream()
+        .map(SourceControlEvent::getScmUsername)
         .collect(Collectors.toSet());
-    Set<String> balancerTwoUsers = balancerTwoEvents.stream().map(SourceControlEvent::getScmUsername)
+    Set<String> balancerTwoUsers = balancerTwoEvents.stream()
+        .map(SourceControlEvent::getScmUsername)
         .collect(Collectors.toSet());
     assertThat(balancerOneUsers).hasSize(1);
     assertThat(balancerTwoUsers).hasSize(1);
@@ -494,8 +496,7 @@ public class SourceControlLoadBalancerTest
         heartbeatPartitionManager,
         perpetualLockManager,
         new SourceControlEventDAO(ods),
-        mock(TenantUtil.class)
-    );
+        mock(TenantUtil.class));
     loadBalancer.start();
     try {
       sleep(1_000);

@@ -25,7 +25,8 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AutoPolicyWaiverTelemetryCollectorTest extends AbstractComponentTest
+public class AutoPolicyWaiverTelemetryCollectorTest
+    extends AbstractComponentTest
 {
   @Inject
   private TelemetryUtils telemetryUtils;
@@ -127,8 +128,7 @@ public class AutoPolicyWaiverTelemetryCollectorTest extends AbstractComponentTes
                       autoPolicyWaiver3.getThreatLevel())
                   .containsEntry(AutoPolicyWaiverTelemetryCollector.AUTO_POLICY_WAIVER_POLICY_VIOLATION_ID,
                       policyViolation3.getHash());
-            }
-        );
+            });
   }
 
   @Test
@@ -189,8 +189,7 @@ public class AutoPolicyWaiverTelemetryCollectorTest extends AbstractComponentTes
                   .containsEntry(AutoPolicyWaiverTelemetryCollector.AUTO_POLICY_WAIVER_THREAT_LEVEL,
                       autoPolicyWaiver3.getThreatLevel())
                   .containsEntry(AutoPolicyWaiverTelemetryCollector.AUTO_POLICY_WAIVER_POLICY_VIOLATION_ID, null);
-            }
-        );
+            });
   }
 
   @Test
@@ -250,8 +249,7 @@ public class AutoPolicyWaiverTelemetryCollectorTest extends AbstractComponentTes
                   .containsEntry(AutoPolicyWaiverTelemetryCollector.AUTO_POLICY_WAIVER_THREAT_LEVEL,
                       autoPolicyWaiver3.getThreatLevel())
                   .containsEntry(AutoPolicyWaiverTelemetryCollector.AUTO_POLICY_WAIVER_POLICY_VIOLATION_ID, null);
-            }
-        );
+            });
   }
 
   @Test
@@ -312,8 +310,7 @@ public class AutoPolicyWaiverTelemetryCollectorTest extends AbstractComponentTes
                   .containsEntry(AutoPolicyWaiverTelemetryCollector.AUTO_POLICY_WAIVER_THREAT_LEVEL,
                       autoPolicyWaiver3.getThreatLevel())
                   .containsEntry(AutoPolicyWaiverTelemetryCollector.AUTO_POLICY_WAIVER_POLICY_VIOLATION_ID, null);
-            }
-        );
+            });
   }
 
   private AutoPolicyWaiver createAutoPolicyWaiver(

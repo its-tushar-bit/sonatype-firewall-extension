@@ -133,13 +133,15 @@ public class ApiAuditLogsServiceTest
     insightConfig.setLoggingFactory(loggingFactory);
 
     assertThatThrownBy(() -> apiAuditLogsService.getAuditLogs("2024-02-04", "2024-02-08"))
-        .isInstanceOf(BadRequestException.class).hasMessage("Cannot get the audit log path.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Cannot get the audit log path.");
   }
 
   @Test
   public void testGetAuditLogs_StartUtcDateAndEndUtcDateValidations() {
     assertThatThrownBy(() -> apiAuditLogsService.getAuditLogs("2024-02-04", null))
-        .isInstanceOf(BadRequestException.class).hasMessage("startUtcDate and endUtcDate must be defined");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("startUtcDate and endUtcDate must be defined");
 
     assertThatThrownBy(() -> apiAuditLogsService.getAuditLogs("2024-02-04", "")).isInstanceOf(BadRequestException.class)
         .hasMessage("endUtcDate '' is invalid");
@@ -148,7 +150,8 @@ public class ApiAuditLogsServiceTest
         .hasMessage("startUtcDate and endUtcDate must be defined");
 
     assertThatThrownBy(() -> apiAuditLogsService.getAuditLogs(null, "2024-02-04"))
-        .isInstanceOf(BadRequestException.class).hasMessage("startUtcDate and endUtcDate must be defined");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("startUtcDate and endUtcDate must be defined");
 
     assertThatThrownBy(() -> apiAuditLogsService.getAuditLogs("", "2024-02-04")).isInstanceOf(BadRequestException.class)
         .hasMessage("startUtcDate '' is invalid");
@@ -157,16 +160,20 @@ public class ApiAuditLogsServiceTest
         .hasMessage("startUtcDate and endUtcDate must be defined");
 
     assertThatThrownBy(() -> apiAuditLogsService.getAuditLogs("2024-02-04", "2024-02-01"))
-        .isInstanceOf(BadRequestException.class).hasMessage("startUtcDate must be before endUtcDate");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("startUtcDate must be before endUtcDate");
 
     assertThatThrownBy(() -> apiAuditLogsService.getAuditLogs("2024-02-04", "2024-13-01"))
-        .isInstanceOf(BadRequestException.class).hasMessage("endUtcDate '2024-13-01' is invalid");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("endUtcDate '2024-13-01' is invalid");
 
     assertThatThrownBy(() -> apiAuditLogsService.getAuditLogs("2024-13-04", "2024-02-01"))
-        .isInstanceOf(BadRequestException.class).hasMessage("startUtcDate '2024-13-04' is invalid");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("startUtcDate '2024-13-04' is invalid");
 
     assertThatThrownBy(() -> apiAuditLogsService.getAuditLogs("2024-03-04", LocalDate.now().plusDays(1).toString()))
-        .isInstanceOf(BadRequestException.class).hasMessage("endUtcDate cannot be in the future");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("endUtcDate cannot be in the future");
   }
 
   private String getResponseContent(StreamingOutput streamingOutput) throws WebApplicationException, IOException {

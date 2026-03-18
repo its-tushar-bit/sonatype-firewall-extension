@@ -29,8 +29,7 @@ public class SolutionUrlResolver
       Solution.FIREWALL, UserInterfaceLinksHelper.getFirewallHomePath(),
       Solution.LIFECYCLE, UserInterfaceLinksHelper.getLifecycleHomePath(),
       Solution.REPO_MANAGER, "",
-      Solution.SBOM_MANAGER, UserInterfaceLinksHelper.getSbomManagerHomePath()
-  );
+      Solution.SBOM_MANAGER, UserInterfaceLinksHelper.getSbomManagerHomePath());
 
   private final Configuration configuration;
 
@@ -46,10 +45,10 @@ public class SolutionUrlResolver
    * Computes the URL for the given solution
    *
    * @param solution reference to one of the solutions (i.e. firewall, lifecycle, developer, etc.)
-   * @param allowRelativeUrls specifies how to handle the case where the baseUrl is not configured;  true will
-   *                          return a relative Url;  false will result in an empty result
+   * @param allowRelativeUrls specifies how to handle the case where the baseUrl is not configured; true will
+   *          return a relative Url; false will result in an empty result
    * @return full url, relative url, or blank string, depending on whether baseUrl is configured and whether relative
-   * urls are allowed
+   *         urls are allowed
    */
   public String getUrlForSolution(Solution solution, boolean allowRelativeUrls) {
     if (StringUtils.isBlank(SOLUTION_PATH_MAP.get(solution))) {

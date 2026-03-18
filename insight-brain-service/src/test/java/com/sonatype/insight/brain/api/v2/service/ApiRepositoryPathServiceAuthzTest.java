@@ -34,7 +34,7 @@ public class ApiRepositoryPathServiceAuthzTest
     grantGlobalPermission(Permission.READ);
     Repository repository = tempEntity.newRepository("repositoryManager1", "repo1", "npm");
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "comp1/-/comp1-1.tgz", "hash1",
-            ComponentIdentifier.createNpmCoordinates("comp1", "1"), true);
+        ComponentIdentifier.createNpmCoordinates("comp1", "1"), true);
 
     ApiRepositoryPathResponseDTO dto = apiRepositoryPathService.getQuarantinedByPathnames(
         "repositoryManager1", repository.getPublicId(), Collections.singletonList("comp1/-/comp1-1.tgz"));

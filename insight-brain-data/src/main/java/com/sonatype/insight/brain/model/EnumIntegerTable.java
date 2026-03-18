@@ -16,15 +16,15 @@ public class EnumIntegerTable<R extends Enum<R>, C extends Enum<C>>
     extends ForwardingTable<R, C, Integer>
 {
   private Table<R, C, Integer> delegate = HashBasedTable.create();
-  
-  public EnumIntegerTable(Class<R> row, Class<C>column) {
+
+  public EnumIntegerTable(Class<R> row, Class<C> column) {
     for (R r : row.getEnumConstants()) {
       for (C c : column.getEnumConstants()) {
         delegate.put(r, c, 0);
       }
     }
   }
-  
+
   @Override
   protected Table<R, C, Integer> delegate() {
     return delegate;

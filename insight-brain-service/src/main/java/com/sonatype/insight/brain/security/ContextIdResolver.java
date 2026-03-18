@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.security;
 
 /**
  * Resolves the ids of all relevant authorization contexts from a given entity or id.
- * 
+ *
  * @since 1.7
  */
 interface ContextIdResolver<T>

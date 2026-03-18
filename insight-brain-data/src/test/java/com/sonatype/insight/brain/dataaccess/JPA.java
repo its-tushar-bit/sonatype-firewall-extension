@@ -22,8 +22,10 @@ public class JPA
    * doesn't work anymore. So we need to tell AssertJ to compare the epoch values for java.util.Date fields.
    */
   public static final RecursiveComparisonConfiguration RECURSIVE_COMPARISON_CONFIG =
-      RecursiveComparisonConfiguration.builder().withComparatorForType(Comparator.comparing(Date::getTime), Date.class)
-          .withIgnoredFieldsMatchingRegexes(JPA.IGNORE_FIELDS).build();
+      RecursiveComparisonConfiguration.builder()
+          .withComparatorForType(Comparator.comparing(Date::getTime), Date.class)
+          .withIgnoredFieldsMatchingRegexes(JPA.IGNORE_FIELDS)
+          .build();
 
   public static <T> void assertEntityEquals(T actual, T expected) {
     assertThat(actual).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(expected);

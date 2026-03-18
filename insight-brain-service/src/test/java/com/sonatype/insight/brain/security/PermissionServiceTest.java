@@ -98,7 +98,8 @@ public class PermissionServiceTest
   @Test
   public void testValidatePermissions_PublicAppContext_NoPermission() {
     assertThatThrownBy(() -> assertPublicAppPermissionsNone(app.getPublicId()))
-      .isInstanceOf(BadRequestException.class).hasMessage("Must specify permissions to check.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Must specify permissions to check.");
   }
 
   @Test

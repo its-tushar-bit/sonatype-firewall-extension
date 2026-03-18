@@ -91,8 +91,9 @@ public class SystemNoticeConfigurationTest
   private void cannotUpdateWithoutChanges() {
     init();
     systemNoticeConfigurationPage.update().shouldBe(visible).click();
-    FormUtils.getAlertElement(systemNoticeConfigurationPage).shouldBe(visible)
-      .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to update."));
+    FormUtils.getAlertElement(systemNoticeConfigurationPage)
+        .shouldBe(visible)
+        .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to update."));
   }
 
   private void cannotCancelWithoutChanges() {

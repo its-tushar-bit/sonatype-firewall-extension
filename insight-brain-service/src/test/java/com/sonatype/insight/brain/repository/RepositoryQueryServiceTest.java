@@ -96,7 +96,7 @@ public class RepositoryQueryServiceTest
   public void testGetAllVersions_Maven() throws Exception {
     RepositoryQueryService.REPOSITORY_QUERY_COUNT_PER_FORMAT.get().clear();
 
-    //given
+    // given
     Application app = getApplicationWithConnectionsEnabled();
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.MAVEN, "user", "pass".toCharArray());
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
@@ -116,11 +116,11 @@ public class RepositoryQueryServiceTest
     RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
-    //when
+    // when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app);
 
-    //then
+    // then
     assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
     List<TelemetryData> telemetryData = repositoryQueryService.collectAllData();
     assertThat(telemetryData).hasSize(1);
@@ -132,7 +132,7 @@ public class RepositoryQueryServiceTest
   @Test
   public void testGetAllVersions_Telemetry() throws Exception {
     RepositoryQueryService.REPOSITORY_QUERY_COUNT_PER_FORMAT.get().clear();
-    //given
+    // given
     Application app = getApplicationWithConnectionsEnabled();
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
     ComponentIdentifier maven = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
@@ -142,12 +142,12 @@ public class RepositoryQueryServiceTest
     when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
     doReturn(new RepositoryAllVersionsResponse(Collections.emptyList())).when(mockClient).getAllVersions(anyMap());
 
-    //when
+    // when
     repositoryQueryService.getAllVersions(maven, app);
     repositoryQueryService.getAllVersions(npm1, app);
     repositoryQueryService.getAllVersions(npm2, app);
 
-    //then
+    // then
     List<TelemetryData> telemetryData = repositoryQueryService.collectAllData();
     assertThat(telemetryData).hasSize(2);
     assertThat(telemetryData.get(0).getAttributes()).hasSize(2)
@@ -160,7 +160,7 @@ public class RepositoryQueryServiceTest
 
   @Test
   public void testGetAllVersions_Inherited_Org() throws Exception {
-    //given
+    // given
     Organization org = tempEntity.newOrganization();
     org.setRepositoryConnectionEnabled(true);
     organizationDAO.update(org);
@@ -186,11 +186,11 @@ public class RepositoryQueryServiceTest
     RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
-    //when
+    // when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app);
 
-    //then
+    // then
     assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
   }
 
@@ -263,7 +263,7 @@ public class RepositoryQueryServiceTest
 
   @Test
   public void testGetAllVersions_Maven_OnlyGeneric() throws Exception {
-    //given
+    // given
     Application app = getApplicationWithConnectionsEnabled();
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.NPM, "user2", "pass2".toCharArray());
@@ -282,34 +282,34 @@ public class RepositoryQueryServiceTest
     RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
-    //when
+    // when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app);
 
-    //then
+    // then
     assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
   }
 
   @Test
   public void testGetAllVersions_Maven_DoesNotMix() {
-    //given
+    // given
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newRepositoryConnection(org.getId(), "baseUrl1", RepositoryFormat.MAVEN, "user", "pass".toCharArray());
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.NPM, "user2", "pass2".toCharArray());
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
 
-    //when
+    // when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app);
 
-    //then
+    // then
     assertThat(results.getLeft().getComponents()).isEmpty();
   }
 
   @Test
   public void testGetAllVersions_Npm() throws Exception {
-    //given
+    // given
     Application app = getApplicationWithConnectionsEnabled();
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.NPM, "user", "pass".toCharArray());
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
@@ -328,17 +328,17 @@ public class RepositoryQueryServiceTest
     RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
-    //when
+    // when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app);
 
-    //then
+    // then
     assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
   }
 
   @Test
   public void testGetAllVersions_Npm_OnlyGeneric() throws Exception {
-    //given
+    // given
     Application app = getApplicationWithConnectionsEnabled();
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.MAVEN, "user2", "pass2".toCharArray());
@@ -356,11 +356,11 @@ public class RepositoryQueryServiceTest
     RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
-    //when
+    // when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app);
 
-    //then
+    // then
     assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
     assertThat(results.getRight().source).isEqualTo("baseUrl");
     assertThat(results.getRight().sourceMessage).isNull();
@@ -368,55 +368,55 @@ public class RepositoryQueryServiceTest
 
   @Test
   public void testGetAllVersions_Npm_DoesNotMix() {
-    //given
+    // given
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newRepositoryConnection(org.getId(), "baseUrl1", RepositoryFormat.NPM, "user", "pass".toCharArray());
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.MAVEN, "user2", "pass2".toCharArray());
     ComponentIdentifier identifier = ComponentIdentifier.createNpmCoordinates("p1", "1.2.0");
 
-    //when
+    // when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app);
 
-    //then
+    // then
     assertThat(results.getLeft().getComponents()).isEmpty();
     assertThat(results.getRight()).isNull();
   }
 
   @Test
   public void testGetAllVersions_unsupportedFormat() {
-    //given
+    // given
     Application app = tempEntity.newApplicationWithParent();
     Map<String, String> coords = ImmutableMap.of("name", "n1", "version", "1.1.0");
     ComponentIdentifier identifier = new ComponentIdentifier("unknown", coords);
 
-    //when
+    // when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app);
 
-    //then
+    // then
     assertThat(results.getLeft().getComponents()).isEmpty();
   }
 
   @Test
   public void testGetAllVersions_noApplicableConnections() {
-    //given
+    // given
     Application app = tempEntity.newApplicationWithParent();
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
 
-    //when
+    // when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app);
 
-    //then
+    // then
     assertThat(results.getLeft().getComponents()).isEmpty();
     assertThat(results.getRight()).isNull();
   }
 
   @Test
   public void testGetAllVersions_RepositoryApiError() throws Exception {
-    //given
+    // given
     Application app = getApplicationWithConnectionsEnabled();
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl", "user", "pass".toCharArray());
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
@@ -426,11 +426,11 @@ public class RepositoryQueryServiceTest
     when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
     when(mockClient.getAllVersions(params)).thenThrow(new IOException("error"));
 
-    //when
+    // when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app);
 
-    //then
+    // then
     assertThat(results.getLeft().getComponents()).isEmpty();
     assertThat(results.getRight().source).isEqualTo("baseUrl");
     assertThat(results.getRight().sourceMessage).isEqualTo(
@@ -439,7 +439,7 @@ public class RepositoryQueryServiceTest
 
   @Test
   public void testGetAllVersions_NoResults() throws Exception {
-    //given
+    // given
     Application app = getApplicationWithConnectionsEnabled();
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl", null, null);
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
@@ -449,11 +449,11 @@ public class RepositoryQueryServiceTest
     when(mockBuilder.forNexus3(eq("baseUrl"), any(), any())).thenReturn(mockClient);
     when(mockClient.getAllVersions(params)).thenReturn(new RepositoryAllVersionsResponse(Collections.emptyList()));
 
-    //when
+    // when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app);
 
-    //then
+    // then
     assertThat(results.getLeft().getComponents()).isEmpty();
     assertThat(results.getRight().source).isEqualTo("baseUrl");
     assertThat(results.getRight().sourceMessage).isEqualTo(
@@ -511,7 +511,7 @@ public class RepositoryQueryServiceTest
   @Test
   public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() throws Exception {
     RepositoryQueryService.REPOSITORY_QUERY_COUNT_PER_FORMAT.get().clear();
-    //given
+    // given
     Application app = getApplicationWithConnectionsEnabled();
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
     ComponentIdentifier maven = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
@@ -522,7 +522,7 @@ public class RepositoryQueryServiceTest
     doReturn(new RepositoryAllVersionsResponse(Collections.emptyList())).when(mockClient).getAllVersions(anyMap());
 
     Tenant tenant1 = testAsNewTenant(testName, t1 -> {
-      //when
+      // when
       repositoryQueryService.getAllVersions(maven, app);
       repositoryQueryService.getAllVersions(npm1, app);
     });
@@ -533,7 +533,7 @@ public class RepositoryQueryServiceTest
     });
 
     testAsTenant(tenant1, t1 -> {
-      //then
+      // then
       List<TelemetryData> telemetryData = repositoryQueryService.collectAllData();
       assertThat(telemetryData).hasSize(2);
       assertThat(telemetryData.get(0).getAttributes()).hasSize(2)
@@ -545,7 +545,7 @@ public class RepositoryQueryServiceTest
     });
 
     testAsTenant(tenant2, t2 -> {
-      //then
+      // then
       List<TelemetryData> telemetryData = repositoryQueryService.collectAllData();
       assertThat(telemetryData).hasSize(1);
       assertThat(telemetryData.get(0).getAttributes()).hasSize(2)

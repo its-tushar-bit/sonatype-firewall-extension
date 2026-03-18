@@ -137,8 +137,8 @@ public class MemberAttributeResolverTest
     groupMember2.setType(MemberType.GROUP);
     groupMember2.setInternalName("Alpha2");
 
-    List<Member>members = Arrays.asList(groupMember1, groupMember2);
-    
+    List<Member> members = Arrays.asList(groupMember1, groupMember2);
+
     memberAttributeResolver.resolve(members);
 
     assertThat(members).hasSize(2);
@@ -195,13 +195,14 @@ public class MemberAttributeResolverTest
         "testuser1_2@void.com", "IQ Server", null);
   }
 
-  private void assertMember(Member member,
-                            MemberType type,
-                            String internalName,
-                            String displayName,
-                            String email,
-                            String realm,
-                            String dn)
+  private void assertMember(
+      Member member,
+      MemberType type,
+      String internalName,
+      String displayName,
+      String email,
+      String realm,
+      String dn)
   {
     assertThat(member.getType()).isEqualTo(type);
     assertThat(member.getInternalName()).isEqualTo(internalName);

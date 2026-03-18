@@ -66,35 +66,38 @@ public class EditRoiConfigurationPage
     return child(".nx-alert--load-error");
   }
 
-  /*  public Button cancelButton() {
-    return new Button(child("#edit-roi-configuration-page__button__cancel"));
-  }
-
-  public Button restoreDefaultsButton() {
-    return new Button(child("#edit-roi-configuration-page__button__restore-defaults"));
-  }
-
-  public Button updateButton() {
-    return new Button(child("#edit-roi-configuration-page__button__update"));
-  }*/
   /*
-  public static class RestoreDefaultsModal
-      extends BasicElement<RestoreDefaultsModal>
-  {
-    public RestoreDefaultsModal(String selector) {
-      super(selector);
-    }
-
-    public SelenideElement modal() {
-      return child("#edit-roi-configuration-page__restore-defaults-modal");
-    }
-
-   public Button cancelButton() {
-      return new Button(child(".restore-defaults-modal__cancel-button"));
-    }
-
-    public Button restoreDefaultsButton() {
-      return new Button(child(".restore-defaults-modal__restore-button"));
-    }
-  }*/
+   * public Button cancelButton() {
+   * return new Button(child("#edit-roi-configuration-page__button__cancel"));
+   * }
+   *
+   * public Button restoreDefaultsButton() {
+   * return new Button(child("#edit-roi-configuration-page__button__restore-defaults"));
+   * }
+   *
+   * public Button updateButton() {
+   * return new Button(child("#edit-roi-configuration-page__button__update"));
+   * }
+   */
+  /*
+   * public static class RestoreDefaultsModal
+   * extends BasicElement<RestoreDefaultsModal>
+   * {
+   * public RestoreDefaultsModal(String selector) {
+   * super(selector);
+   * }
+   *
+   * public SelenideElement modal() {
+   * return child("#edit-roi-configuration-page__restore-defaults-modal");
+   * }
+   *
+   * public Button cancelButton() {
+   * return new Button(child(".restore-defaults-modal__cancel-button"));
+   * }
+   *
+   * public Button restoreDefaultsButton() {
+   * return new Button(child(".restore-defaults-modal__restore-button"));
+   * }
+   * }
+   */
 }

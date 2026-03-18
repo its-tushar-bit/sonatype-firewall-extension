@@ -78,9 +78,9 @@ public class ComponentChangeDetectionConfigurationDAO
         component.setId(UUID.randomUUID().toString().replace("-", ""));
       }
       tx.createNativeQuery(
-              "INSERT INTO " + getDatabaseSchema() + ".component_change_detection_configuration" +
-                  " (component_change_detection_configuration_id, version, purl, component_hash, added_time)" +
-                  " VALUES (?1, ?2, ?3, ?4, CURRENT_TIMESTAMP)")
+          "INSERT INTO " + getDatabaseSchema() + ".component_change_detection_configuration" +
+              " (component_change_detection_configuration_id, version, purl, component_hash, added_time)" +
+              " VALUES (?1, ?2, ?3, ?4, CURRENT_TIMESTAMP)")
           .setParameter(1, component.getId())
           .setParameter(2, COMPONENT_CHANGE_DETECTION_VERSION)
           .setParameter(3, component.getPurl())
@@ -132,12 +132,13 @@ public class ComponentChangeDetectionConfigurationDAO
     try {
       jakarta.persistence.Query selectQuery =
           tx.createNativeQuery("SELECT * FROM " + getDatabaseSchema() +
-                  ".component_change_detection_configuration ORDER BY added_time LIMIT ?1 FOR UPDATE")
+              ".component_change_detection_configuration ORDER BY added_time LIMIT ?1 FOR UPDATE")
               .setParameter(1, removeCount);
 
       removeComponents = ((Stream<Object[]>) selectQuery.getResultStream()).map(
           array -> new ComponentChangeDetectionConfiguration((String) array[1], (String) array[2], (String) array[3],
-              (String) array[4], new Date(((Timestamp) array[5]).getTime()))).collect(Collectors.toList());
+              (String) array[4], new Date(((Timestamp) array[5]).getTime())))
+          .collect(Collectors.toList());
 
       List<String> removeComponentPurls = removeComponents.stream()
           .map(ComponentChangeDetectionConfiguration::getPurl)

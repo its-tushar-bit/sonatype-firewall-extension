@@ -72,14 +72,14 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
 
     assertSourceControl(ROOT_ORGANIZATION_ID, null, "secret_key", GITHUB, PR_COMMENTING_ON,
-            REMEDIATION_PR_OFF, SOURCE_EVALS_ON, COMMIT_STATUS_ON);
+        REMEDIATION_PR_OFF, SOURCE_EVALS_ON, COMMIT_STATUS_ON);
   }
 
   @Test
   public void testSourceControlEditorUpdate() {
     tempEntity
-            .newSourceControl(ROOT_ORGANIZATION_ID, GITHUB, TOKEN, null, "master",
-                    PR_COMMENTING_ON, REMEDIATION_PR_ON, SOURCE_EVALS_ON, COMMIT_STATUS_ON);
+        .newSourceControl(ROOT_ORGANIZATION_ID, GITHUB, TOKEN, null, "master",
+            PR_COMMENTING_ON, REMEDIATION_PR_ON, SOURCE_EVALS_ON, COMMIT_STATUS_ON);
 
     navigateToSourceControlEditorPage(true);
 
@@ -101,14 +101,14 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
 
     assertSourceControl(ROOT_ORGANIZATION_ID, null, "secret_key", GITHUB, PR_COMMENTING_OFF,
-            REMEDIATION_PR_OFF, SOURCE_EVALS_OFF, COMMIT_STATUS_OFF);
+        REMEDIATION_PR_OFF, SOURCE_EVALS_OFF, COMMIT_STATUS_OFF);
   }
 
   @Test
   public void testSourceControlEditorReset() {
     tempEntity
-            .newSourceControl(ROOT_ORGANIZATION_ID, GITHUB, TOKEN, null, "master",
-                    PR_COMMENTING_ON, REMEDIATION_PR_ON, SOURCE_EVALS_ON, COMMIT_STATUS_ON);
+        .newSourceControl(ROOT_ORGANIZATION_ID, GITHUB, TOKEN, null, "master",
+            PR_COMMENTING_ON, REMEDIATION_PR_ON, SOURCE_EVALS_ON, COMMIT_STATUS_ON);
 
     navigateToSourceControlEditorPage(true);
 

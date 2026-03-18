@@ -175,11 +175,12 @@ public class LdapUserAndGroupSettingsForm
       return child(".nx-btn.nx-btn--secondary");
     }
 
-    public CheckUserMappingModal shouldHaveUserEntry(int row,
-                                                     String username,
-                                                     String name,
-                                                     String email,
-                                                     String groups)
+    public CheckUserMappingModal shouldHaveUserEntry(
+        int row,
+        String username,
+        String name,
+        String email,
+        String groups)
     {
       UserRow userRow = new UserRow("tbody", "tr", SelectorUtils.nthChild(row));
 

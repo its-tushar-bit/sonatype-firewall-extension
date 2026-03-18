@@ -106,15 +106,15 @@ public abstract class AbstractVersionGraphMavenTest
       executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
 
       VersionsCIP.versionGraph().shouldHave(attribute("height", "153"));
-      VersionsCIP.versionGraphLabels().shouldHave(exactTexts(
-          "Popularity",
-          "Policy Threat",
-          "Details",
-          "Security",
-          "License",
-          "Quality",
-          "Other"
-      ));
+      VersionsCIP.versionGraphLabels()
+          .shouldHave(exactTexts(
+              "Popularity",
+              "Policy Threat",
+              "Details",
+              "Security",
+              "License",
+              "Quality",
+              "Other"));
     }
   }
 
@@ -223,12 +223,13 @@ public abstract class AbstractVersionGraphMavenTest
     }
   }
 
-  protected Policy createPolicy(String ownerId,
-                              int threatLevel,
-                              String name,
-                              String conditionType,
-                              String operator,
-                              String value)
+  protected Policy createPolicy(
+      String ownerId,
+      int threatLevel,
+      String name,
+      String conditionType,
+      String operator,
+      String value)
   {
     Policy p = new Policy(null, name);
     p.setThreatLevel(threatLevel);
@@ -285,14 +286,14 @@ public abstract class AbstractVersionGraphMavenTest
   protected void setupHdsResponsesForBreakingChanges() {
     mockHdsResponseForFirstComponent();
     testCLMServer.getHdsServer()
-            .respondWith(getClass().getResource("/componentDetails/componentDetailsBreakingChangesList.json"))
-            .atUri("rest/ide/componentDetails/list");
+        .respondWith(getClass().getResource("/componentDetails/componentDetailsBreakingChangesList.json"))
+        .atUri("rest/ide/componentDetails/list");
     testCLMServer.getHdsServer()
-            .respondWith(getClass().getResource("/componentDetails/componentDetailsBreakingChangesList.json"))
-            .atUri("rest/ci/componentDetails/list");
+        .respondWith(getClass().getResource("/componentDetails/componentDetailsBreakingChangesList.json"))
+        .atUri("rest/ci/componentDetails/list");
     testCLMServer.getHdsServer()
-            .respondWith(getClass().getResource("/componentDetails/componentDetailsBreakingChangesList.json"))
-            .atUri("rest/rm/componentDetails/list");
+        .respondWith(getClass().getResource("/componentDetails/componentDetailsBreakingChangesList.json"))
+        .atUri("rest/rm/componentDetails/list");
   }
 
   protected void mockHdsResponseForRemediation() {

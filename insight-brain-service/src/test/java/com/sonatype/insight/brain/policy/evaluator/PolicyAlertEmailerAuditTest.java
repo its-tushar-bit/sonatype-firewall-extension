@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.policy.evaluator;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -124,10 +125,11 @@ public class PolicyAlertEmailerAuditTest
     return new PolicyNotification(policyFact, policy.getNotifications());
   }
 
-  private void assertApplicationPolicyNotificationAuditData(AuditDTO auditDTO,
-                                                            int totalPolicyViolationCount,
-                                                            String email,
-                                                            String error)
+  private void assertApplicationPolicyNotificationAuditData(
+      AuditDTO auditDTO,
+      int totalPolicyViolationCount,
+      String email,
+      String error)
   {
     assertStandardData(auditDTO, AuditEvent.SEND_MAIL, error, SYSTEM_USER);
     assertApplicationData(auditDTO, application);

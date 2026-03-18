@@ -59,19 +59,18 @@ public class ApiJiraConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "404",
-              description = "No saved Jira configuration exists."),
-          @ApiResponse(responseCode = "200",
-              description = "The response contains:" +
-                  "<ol>" +
-                  "<li>`url` is the Jira server address.</li>" +
-                  "<li>`username` is the username used to connect to the Jira server.</li>" +
-                  "<li>`password` is the password used to authenticate on the Jira server.</li>" +
-                  "<li>`customFields` are any project issue type required fields defined in Jira.</li>" +
-                  "</ol>",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(responseCode = "404",
+            description = "No saved Jira configuration exists."),
+        @ApiResponse(responseCode = "200",
+            description = "The response contains:" +
+                "<ol>" +
+                "<li>`url` is the Jira server address.</li>" +
+                "<li>`username` is the username used to connect to the Jira server.</li>" +
+                "<li>`password` is the password used to authenticate on the Jira server.</li>" +
+                "<li>`customFields` are any project issue type required fields defined in Jira.</li>" +
+                "</ol>",
+            useReturnTypeSchema = true)
+      })
   public ApiJiraConfigurationDTO getConfiguration() {
     return service.getConfiguration();
   }
@@ -86,15 +85,13 @@ public class ApiJiraConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "Set Jira configuration successfully."
-          ),
+        @ApiResponse(
+            responseCode = "204",
+            description = "Set Jira configuration successfully."),
       })
   public void setConfiguration(
       @RequestBody(description = "Enter the Jira configuration details here.",
-          content = @Content(schema = @Schema(implementation = ApiJiraConfigurationDTO.class)))
-      JsonNode jsonNode)
+          content = @Content(schema = @Schema(implementation = ApiJiraConfigurationDTO.class))) JsonNode jsonNode)
   {
     service.setConfiguration(jsonNode);
   }
@@ -106,12 +103,10 @@ public class ApiJiraConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "Jira configuration deleted."
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "204",
+            description = "Jira configuration deleted.")
+      })
   public void deleteConfiguration() {
     service.deleteConfiguration();
   }

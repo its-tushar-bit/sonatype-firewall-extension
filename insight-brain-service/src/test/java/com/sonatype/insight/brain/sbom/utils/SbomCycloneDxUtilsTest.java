@@ -158,7 +158,7 @@ public class SbomCycloneDxUtilsTest
     property.setName("someOtherProperty");
     property.setValue("someValue");
     component.addProperty(property);
-    
+
     String result = SbomCycloneDxUtils.getSonatypeTruncatedSha1(component);
     assertThat(result).isNull();
   }
@@ -166,28 +166,28 @@ public class SbomCycloneDxUtilsTest
   @Test
   public void testGetSonatypeTruncatedSha1_ComponentWithMultiplePropertiesIncludingSha1() {
     Component component = new Component();
-    
+
     Property otherProperty = new Property();
     otherProperty.setName("someOtherProperty");
     otherProperty.setValue("someValue");
     component.addProperty(otherProperty);
-    
+
     Property sha1Property = new Property();
     sha1Property.setName(SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
     sha1Property.setValue("efgh5678");
     component.addProperty(sha1Property);
-    
+
     Property anotherProperty = new Property();
     anotherProperty.setName("anotherProperty");
     anotherProperty.setValue("anotherValue");
     component.addProperty(anotherProperty);
-    
+
     String result = SbomCycloneDxUtils.getSonatypeTruncatedSha1(component);
     assertThat(result).isEqualTo("efgh5678");
   }
 
-  private static Bom getCycloneDxDocument(final String fileName)
-      throws IOException, ParseException, URISyntaxException
+  private static Bom getCycloneDxDocument(
+      final String fileName) throws IOException, ParseException, URISyntaxException
   {
     URL resource = SbomCycloneDxUtilsTest.class.getResource("/SbomCycloneDxUtilsTest/" + fileName);
     String content =

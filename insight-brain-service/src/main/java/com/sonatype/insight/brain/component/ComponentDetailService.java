@@ -194,7 +194,8 @@ public class ComponentDetailService
         AuditData.get().setData("componentFilename", filename.orElse(null));
       }
     }
-    AuditData.get().setData("inspectedApplicationCount", inspectedApplicationCount)
+    AuditData.get()
+        .setData("inspectedApplicationCount", inspectedApplicationCount)
         .setData("resultRecordCount", resultRecordCount);
   }
 

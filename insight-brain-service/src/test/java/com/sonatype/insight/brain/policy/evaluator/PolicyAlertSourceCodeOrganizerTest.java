@@ -137,7 +137,7 @@ public class PolicyAlertSourceCodeOrganizerTest
     // Hashbrowns - low
 
     critical1.addComponentFact(BACON);
-    critical1.addComponentFact(BACON); //model second CVE for same component and same policy
+    critical1.addComponentFact(BACON); // model second CVE for same component and same policy
     critical1.addComponentFact(TOAST);
     critical1.addComponentFact(SAUSAGE);
 
@@ -185,22 +185,22 @@ public class PolicyAlertSourceCodeOrganizerTest
     PolicyNotification policyNotificationCritical2 = new PolicyNotification(critical2, notifications);
     PolicyNotification policyNotificationLow = new PolicyNotification(low, notifications);
     List<PolicyNotification> policyNotifications = Arrays.asList(
-        policyNotificationMid, policyNotificationCritical, policyNotificationCritical2, policyNotificationLow
-    );
+        policyNotificationMid, policyNotificationCritical, policyNotificationCritical2, policyNotificationLow);
 
     return policyAlertSourceCodeOrganizer.getNotificationsForScm(policyNotifications);
   }
 
-  private void validateComponentsPolicies(Map<ComponentIdentifier, List<PolicyNotification>> sortedNotifications,
-                                          ComponentFact componentFact,
-                                          String[] matchedPolicies)
+  private void validateComponentsPolicies(
+      Map<ComponentIdentifier, List<PolicyNotification>> sortedNotifications,
+      ComponentFact componentFact,
+      String[] matchedPolicies)
   {
     assertThat(sortedNotifications.get(componentFact.getComponentIdentifier())
         .stream()
         .map(PolicyNotification::getPolicyFact)
         .map(policyFact -> String.format("%s: %d", policyFact.getPolicyName(), policyFact.getThreatLevel()))
         .collect(Collectors.toList()))
-        .containsExactly(matchedPolicies);
+            .containsExactly(matchedPolicies);
   }
 
   private static ComponentFact createComponentFact(final String name, final String version) {
@@ -211,7 +211,8 @@ public class PolicyAlertSourceCodeOrganizerTest
       final Map<ComponentIdentifier, List<PolicyNotification>> results,
       final ComponentFact... componentFacts)
   {
-    String[] packages = Arrays.stream(componentFacts).map(PolicyAlertSourceCodeOrganizerTest::getComponentId)
+    String[] packages = Arrays.stream(componentFacts)
+        .map(PolicyAlertSourceCodeOrganizerTest::getComponentId)
         .toArray(String[]::new);
 
     assertThat(results.keySet())

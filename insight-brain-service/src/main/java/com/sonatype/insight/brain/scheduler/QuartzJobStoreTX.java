@@ -96,8 +96,7 @@ public class QuartzJobStoreTX
   public QuartzJobStoreTX(
       ProductLicense productLicense,
       InsightConfig insightConfig,
-      OperationalDataStore operationalDataStore)
-      throws InvalidConfigurationException
+      OperationalDataStore operationalDataStore) throws InvalidConfigurationException
   {
     this.productLicense = productLicense;
     this.insightConfig = insightConfig;
@@ -137,7 +136,7 @@ public class QuartzJobStoreTX
       // Need to trigger shutdown in a different thread otherwise it can deadlock because
       // - System.exit makes this thread (probably clusterManagementThread) wait for ApplicationShutdownHooks to finish
       // - ApplicationShutdownHooks includes org.eclipse.jetty.util.thread.ShutdownThread which stops TaskScheduler,
-      //   TaskScheduler stops our org.quartz.Scheduler, which in turn waits for clusterManagementThread to finish
+      // TaskScheduler stops our org.quartz.Scheduler, which in turn waits for clusterManagementThread to finish
       // i.e. clusterManagementThread waits for ShutdownThread, and ShutdownThread waits for clusterManagementThread
       isShuttingDown = true;
       exitInNewThread(NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS, UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
@@ -189,7 +188,7 @@ public class QuartzJobStoreTX
       sleep(50);
     }
     log.error("Node clustering is not enabled, but with this scheduler state record {}" +
-            " found another scheduler state record to cause us to exit {}.",
+        " found another scheduler state record to cause us to exit {}.",
         schedulerStateRecordToString(myRecord),
         schedulerStateRecordToString(otherMostRecentRecord));
     log.error(potentialErrorMessage);
@@ -221,12 +220,13 @@ public class QuartzJobStoreTX
 
   private SchedulerStateRecord getMostRecentRecord(List<SchedulerStateRecord> schedulerStateRecords) {
     return schedulerStateRecords.stream()
-        .max(Comparator.comparing(SchedulerStateRecord::getCheckinTimestamp)).orElse(null);
+        .max(Comparator.comparing(SchedulerStateRecord::getCheckinTimestamp))
+        .orElse(null);
   }
 
   private boolean isFailed(SchedulerStateRecord schedulerStateRecord) {
-    return (System.currentTimeMillis() - schedulerStateRecord.getCheckinTimestamp()) >=
-        FAILED_CLUSTER_CHECKIN_INTERVAL_MILLIS;
+    return (System.currentTimeMillis()
+        - schedulerStateRecord.getCheckinTimestamp()) >= FAILED_CLUSTER_CHECKIN_INTERVAL_MILLIS;
   }
 
   private boolean isFirstRecordMoreRecent(
@@ -279,9 +279,7 @@ public class QuartzJobStoreTX
     }
   }
 
-  public int countCurrentlyExecutingJobs(final String jobName)
-      throws JobPersistenceException
-  {
+  public int countCurrentlyExecutingJobs(final String jobName) throws JobPersistenceException {
     Connection conn = getNonManagedTXConnection();
     try {
       return countFiredTriggerRecords(conn, jobName);
@@ -318,8 +316,11 @@ public class QuartzJobStoreTX
   }
 
   @Override
-  protected List<OperableTrigger> acquireNextTrigger(Connection conn, long noLaterThan, int maxCount, long timeWindow)
-      throws JobPersistenceException
+  protected List<OperableTrigger> acquireNextTrigger(
+      Connection conn,
+      long noLaterThan,
+      int maxCount,
+      long timeWindow) throws JobPersistenceException
   {
     List<OperableTrigger> operableTriggers = super.acquireNextTrigger(conn, noLaterThan, maxCount, timeWindow);
     operableTriggers.forEach(this::vetoIfTriggerForOtherNode);

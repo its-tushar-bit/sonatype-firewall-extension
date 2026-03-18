@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.experimental;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -74,7 +75,7 @@ public class ApiCallFlowAnalysisConfigResourceTest
 
   @Test
   public void testGetApiCallFlowAnalysisConfig_Successful() throws Exception {
-    //insert element to search
+    // insert element to search
     insertElementToSearch();
     HttpRequest request = restRequest().path(PublicApiPaths.CALL_FLOW_ANALYSIS_CONFIG)
         .parameter(application.getType(), application.getId());
@@ -101,9 +102,9 @@ public class ApiCallFlowAnalysisConfigResourceTest
 
   @Test
   public void testGetApiCallFlowAnalysisConfigByPublicId_Successful() throws Exception {
-    //insert element to search
+    // insert element to search
     insertElementToSearch();
-    HttpRequest request = restRequest().path(PublicApiPaths.CALL_FLOW_ANALYSIS_CONFIG,"publicId")
+    HttpRequest request = restRequest().path(PublicApiPaths.CALL_FLOW_ANALYSIS_CONFIG, "publicId")
         .parameter(application.getType(), application.getPublicId());
 
     HttpResponse response = request.get();
@@ -116,7 +117,7 @@ public class ApiCallFlowAnalysisConfigResourceTest
 
   @Test
   public void testGetApiCallFlowAnalysisConfigByPublicId_NotFound() throws Exception {
-    HttpRequest request = restRequest().path(PublicApiPaths.CALL_FLOW_ANALYSIS_CONFIG,"publicId")
+    HttpRequest request = restRequest().path(PublicApiPaths.CALL_FLOW_ANALYSIS_CONFIG, "publicId")
         .parameter(application.getType(), application.getPublicId());
     ApiCallFlowAnalysisConfigDTO callFlowAnalysisConfig = buildCallFlowAnalysisConfigBadRequest(application.getId());
 
@@ -128,13 +129,13 @@ public class ApiCallFlowAnalysisConfigResourceTest
 
   @Test
   public void testDeleteApiCallFlowAnalysisConfig_Successful() throws Exception {
-    //insert element to search
+    // insert element to search
     insertElementToSearch();
     HttpRequest request = restRequest().path(PublicApiPaths.CALL_FLOW_ANALYSIS_CONFIG)
         .parameter(application.getType(), application.getId());
 
     HttpResponse response = request.delete();
-    //void method
+    // void method
     assertResponseStatus(204, response);
   }
 

@@ -104,8 +104,9 @@ public class ApiLicenseDataAdapter
         declaredLicenses, observedLicenses, component.getLicenseOverrideIds()));
   }
 
-  private void convert(ComponentEvaluationDataList.ComponentEvaluationData componentDetailsFromHds,
-                       ApiLicenseDataDTO licenseDataDTO)
+  private void convert(
+      ComponentEvaluationDataList.ComponentEvaluationData componentDetailsFromHds,
+      ApiLicenseDataDTO licenseDataDTO)
   {
     licenseDataDTO.status = LicenseOverrideStatus.OPEN.getName();
     convertLicenses(licenseDataDTO.declaredLicenses, componentDetailsFromHds.declaredLicenses);

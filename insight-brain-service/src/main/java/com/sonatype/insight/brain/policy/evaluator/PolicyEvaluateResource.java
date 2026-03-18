@@ -48,11 +48,11 @@ public class PolicyEvaluateResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_APPLICATION)
-  public PolicyEvaluationResult evaluate(@PathParam("applicationPublicId") final String applicationPublicId,
-                                         @QueryParam("scanId") final String scanId,
-                                         @QueryParam("scanTriggerType") @DefaultValue("Unknown")
-                                           ScanTriggerType scanTriggerType,
-                                         final Stage stage) throws IOException
+  public PolicyEvaluationResult evaluate(
+      @PathParam("applicationPublicId") final String applicationPublicId,
+      @QueryParam("scanId") final String scanId,
+      @QueryParam("scanTriggerType") @DefaultValue("Unknown") ScanTriggerType scanTriggerType,
+      final Stage stage) throws IOException
   {
     AuditData.get().setScanId(scanId);
     return policyEvaluateService.evaluate(applicationPublicId, scanId, stage, scanTriggerType);

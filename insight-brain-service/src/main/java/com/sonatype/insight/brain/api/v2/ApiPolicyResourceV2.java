@@ -48,18 +48,18 @@ public class ApiPolicyResourceV2
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains a `policies` object which contains a list of:" +
-                  "<ul>" +
-                  "<li>`id` is the policyId. It can be used in the GET method for endpoint /api/v2/policyViolations " +
-                  "to retrieve policy violations for the policy, and other similar operations.</li>" +
-                  "<li>`name` is the name of the policy.</li>" +
-                  "<li>`ownerType` is the ownerType.</li>" +
-                  "<li>`ownerId` is the internal id associated with the ownerType.</li>" +
-                  "<li>`threatLevel` is the threat level that is set for this policy.</li>" +
-                  "<li>`policyType` indicates the type for the policy. Values can be `Security`, `License`, " +
-                  "`Quality` or `Other`.</li>",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains a `policies` object which contains a list of:" +
+                "<ul>" +
+                "<li>`id` is the policyId. It can be used in the GET method for endpoint /api/v2/policyViolations " +
+                "to retrieve policy violations for the policy, and other similar operations.</li>" +
+                "<li>`name` is the name of the policy.</li>" +
+                "<li>`ownerType` is the ownerType.</li>" +
+                "<li>`ownerId` is the internal id associated with the ownerType.</li>" +
+                "<li>`threatLevel` is the threat level that is set for this policy.</li>" +
+                "<li>`policyType` indicates the type for the policy. Values can be `Security`, `License`, " +
+                "`Quality` or `Other`.</li>",
+            useReturnTypeSchema = true)
       })
   public ApiPolicyListDTO getPolicies() {
     return apiPolicyService.getPolicies();

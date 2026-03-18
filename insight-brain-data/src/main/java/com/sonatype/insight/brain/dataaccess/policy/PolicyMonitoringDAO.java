@@ -94,9 +94,11 @@ public class PolicyMonitoringDAO
    */
   public void insert(TransactionContext tx, PolicyMonitoring entity) {
     List<PolicyMonitoring> others = getByOwnerId(tx, entity.getOwnerId());
-    if (others.stream().anyMatch(pM -> pM.getStageTypeId().equals(entity.getStageTypeId()) ||
-        (!ComplianceStageType.ID.equals(others.get(0).getStageTypeId()) &&
-            !ComplianceStageType.ID.equals(entity.getStageTypeId())))) {
+    if (others.stream()
+        .anyMatch(pM -> pM.getStageTypeId().equals(entity.getStageTypeId()) ||
+            (!ComplianceStageType.ID.equals(others.get(0).getStageTypeId()) &&
+                !ComplianceStageType.ID.equals(entity.getStageTypeId()))))
+    {
       throw new BadRequestException("This application/organization already has policy monitoring.");
     }
     super.insert(tx, entity);
@@ -118,7 +120,8 @@ public class PolicyMonitoringDAO
       }
       else {
         Optional<PolicyMonitoring> others = getByOwnerId(tx, entity.getOwnerId()).stream()
-            .filter(pm -> !ComplianceStageType.ID.equals(pm.getStageTypeId())).findFirst();
+            .filter(pm -> !ComplianceStageType.ID.equals(pm.getStageTypeId()))
+            .findFirst();
         if (others.isPresent()) {
           existing = others.get();
         }

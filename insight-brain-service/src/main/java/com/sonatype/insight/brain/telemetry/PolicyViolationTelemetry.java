@@ -18,18 +18,22 @@ import com.sonatype.insight.brain.policy.utils.ConstraintFactsUtil.CveData;
 
 /**
  * Telemetry data for policy violations on repository components.
- * <p>Captures policy violation details including action type, threat information, CVE data,
+ * <p>
+ * Captures policy violation details including action type, threat information, CVE data,
  * and malware classifications for components evaluated against policies. Used for both
- * Firewall quarantine/audit operations and Lifecycle policy evaluations.</p>
+ * Firewall quarantine/audit operations and Lifecycle policy evaluations.
+ * </p>
  */
 public class PolicyViolationTelemetry
 {
   /**
    * The action type ID from the policy (e.g., "FAIL" for quarantine, "WARN" for warning).
    *
-   * <p><b>Note:</b> This field can be null for Firewall policies that have only NOTIFY actions.
+   * <p>
+   * <b>Note:</b> This field can be null for Firewall policies that have only NOTIFY actions.
    * Firewall intentionally excludes NOTIFY-only actions as they don't represent quarantine or
-   * warning behavior for repository components. This is expected and valid behavior.</p>
+   * warning behavior for repository components. This is expected and valid behavior.
+   * </p>
    */
   private final String actionTypeId;
 
@@ -122,7 +126,8 @@ public class PolicyViolationTelemetry
 
     // Enrich missing CVE fields and threat types from Component's SecurityVulnerability list
     if (component != null && telemetry.cveNumber != null &&
-        component.getSecurityVulnerabilities() != null) {
+        component.getSecurityVulnerabilities() != null)
+    {
       enrichCveDataFromComponent(telemetry, component);
     }
 
@@ -137,7 +142,8 @@ public class PolicyViolationTelemetry
    * @param component The component with SecurityVulnerability data
    */
   private static void enrichCveDataFromComponent(PolicyViolationTelemetry telemetry, Component component) {
-    component.getSecurityVulnerabilities().stream()
+    component.getSecurityVulnerabilities()
+        .stream()
         .filter(vuln -> telemetry.cveNumber.equalsIgnoreCase(vuln.getRefId()))
         .findFirst()
         .ifPresent(vuln -> {
@@ -158,7 +164,8 @@ public class PolicyViolationTelemetry
 
           // Enrich vulnerabilityCategory if missing
           if (telemetry.vulnerabilityCategory == null && vuln.getVulnerabilityCategories() != null &&
-              !vuln.getVulnerabilityCategories().isEmpty()) {
+              !vuln.getVulnerabilityCategories().isEmpty())
+        {
             // Use the first category's ID (uppercased to match constraint facts format)
             telemetry.vulnerabilityCategory =
                 vuln.getVulnerabilityCategories().get(0).getId().toUpperCase();
@@ -166,7 +173,8 @@ public class PolicyViolationTelemetry
 
           // Enrich threat types if missing
           if (telemetry.threatTypes == null && vuln.getThreatTypes() != null &&
-              !vuln.getThreatTypes().isEmpty()) {
+              !vuln.getThreatTypes().isEmpty())
+        {
             telemetry.threatTypes = vuln.getThreatTypes();
           }
         });
@@ -249,7 +257,8 @@ public class PolicyViolationTelemetry
     ConstraintTelemetry(final ConstraintFact constraintFact) {
       constraintOperator = constraintFact.getOperatorName();
       if (constraintFact.getConditionFacts() != null) {
-        conditions.addAll(constraintFact.getConditionFacts().stream()
+        conditions.addAll(constraintFact.getConditionFacts()
+            .stream()
             .map(ConditionTelemetry::new)
             .collect(Collectors.toList()));
       }
@@ -264,4 +273,3 @@ public class PolicyViolationTelemetry
     }
   }
 }
-

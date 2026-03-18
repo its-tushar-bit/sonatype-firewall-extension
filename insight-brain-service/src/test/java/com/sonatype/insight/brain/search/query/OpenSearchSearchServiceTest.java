@@ -57,8 +57,9 @@ public class OpenSearchSearchServiceTest
 
     binder.bind(SearchIndexClient.class).to(OpenSearchSearchIndexClient.class);
     // Use test utility to create isolated transport - prevents "Connection pool shut down" errors
-    binder.bind(OpenSearchTransport.class).toInstance(
-        TestOpenSearchTransportFactory.createIsolatedForTest(searchConfig));
+    binder.bind(OpenSearchTransport.class)
+        .toInstance(
+            TestOpenSearchTransportFactory.createIsolatedForTest(searchConfig));
     binder.bind(IndexConfigProvider.class).to(SingleTenantIndexConfigProvider.class);
     super.configure(binder);
   }
@@ -129,7 +130,7 @@ public class OpenSearchSearchServiceTest
   public void testSearchIndex_NoSearchIndex() {
     openSearchSearchIndexClient.deleteIndex();
     assertThatExceptionOfType(ConflictException.class).isThrownBy(
-            () -> searchService.searchIndex("query", 1, 1, false, null, null))
+        () -> searchService.searchIndex("query", 1, 1, false, null, null))
         .withMessageContaining("Search index not found. The Advanced Search index is unavailable or has not " +
             "been created yet. Re-indexing is required before results can be returned.");
   }

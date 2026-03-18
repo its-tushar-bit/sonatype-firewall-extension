@@ -59,10 +59,9 @@ public class AbstractSearchIndexClientTest
     doThrow(new IOException(new ParseException("Parse error"))).when(client)
         .updateIndex(any(SearchIndexChange.class), any());
 
-    assertThatCode(() ->
-        client.processSearchIndexChanges(Collections.singletonList(change), null, searchIndexChange -> {
-        })
-    ).doesNotThrowAnyException();
+    assertThatCode(
+        () -> client.processSearchIndexChanges(Collections.singletonList(change), null, searchIndexChange -> {
+        })).doesNotThrowAnyException();
   }
 
   @Test
@@ -74,10 +73,9 @@ public class AbstractSearchIndexClientTest
     IOException wrapped = new IOException("Wrapped", new ParseException("Parse error"));
     doThrow(wrapped).when(client).updateIndex(any(SearchIndexChange.class), any());
 
-    assertThatCode(() ->
-        client.processSearchIndexChanges(Collections.singletonList(change), null, searchIndexChange -> {
-        })
-    ).doesNotThrowAnyException();
+    assertThatCode(
+        () -> client.processSearchIndexChanges(Collections.singletonList(change), null, searchIndexChange -> {
+        })).doesNotThrowAnyException();
   }
 
   @Test
@@ -438,8 +436,7 @@ public class AbstractSearchIndexClientTest
         new AtomicLong(System.currentTimeMillis()), // It just threw already
         new AtomicReference<>(Duration.ofSeconds(30)),
         Duration.ofSeconds(30),
-        Duration.ofMinutes(10))
-    ).isTrue();
+        Duration.ofMinutes(10))).isTrue();
   }
 
   @Test
@@ -450,8 +447,7 @@ public class AbstractSearchIndexClientTest
         new AtomicLong(System.currentTimeMillis()), // It just threw already
         new AtomicReference<>(Duration.ofSeconds(30)),
         Duration.ofSeconds(30),
-        Duration.ofMinutes(10))
-    ).isFalse();
+        Duration.ofMinutes(10))).isFalse();
   }
 
   @Test
@@ -465,8 +461,7 @@ public class AbstractSearchIndexClientTest
         lastRecordedExceptionEpochMs,
         cooldown,
         Duration.ofSeconds(30),
-        Duration.ofMinutes(10))
-    ).isTrue();
+        Duration.ofMinutes(10))).isTrue();
     // Cooldown should be increased by x2
     assertThat(cooldown.get()).isEqualTo(Duration.ofMinutes(1));
   }
@@ -482,8 +477,7 @@ public class AbstractSearchIndexClientTest
         lastRecordedExceptionEpochMs,
         cooldown,
         Duration.ofSeconds(30),
-        Duration.ofMinutes(10))
-    ).isTrue();
+        Duration.ofMinutes(10))).isTrue();
     // Cooldown should be increased to max
     assertThat(cooldown.get()).isEqualTo(Duration.ofMinutes(10));
   }
@@ -500,8 +494,7 @@ public class AbstractSearchIndexClientTest
         lastRecordedExceptionEpochMs,
         cooldown,
         Duration.ofSeconds(30),
-        Duration.ofMinutes(10))
-    ).isTrue();
+        Duration.ofMinutes(10))).isTrue();
     assertThat(cooldown.get()).isEqualTo(Duration.ofSeconds(30));
   }
 

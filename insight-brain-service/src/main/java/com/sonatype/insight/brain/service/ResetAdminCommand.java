@@ -66,7 +66,8 @@ public class ResetAdminCommand
   @Override
   protected void run(Bootstrap<InsightConfig> bootstrap, Namespace namespace, InsightConfig insightConfig) {
     try (AuditSession auditSession = new AuditRecorder(new ErrorResponseGenerator())
-        .recordSystemEvent(AuditEvent.RESET_USER_PASSWORD)) {
+        .recordSystemEvent(AuditEvent.RESET_USER_PASSWORD))
+    {
       AuditData.get().setData("username", DEFAULT_ADMIN.getUsername());
       try {
         DatabaseConfig databaseConfig = DatabaseConfigProviderFactory.createDatabaseConfigProvider(insightConfig)
@@ -126,8 +127,11 @@ public class ResetAdminCommand
 
   private void setAdminMemberOfIfNeeded(TransactionContext tx, String roleId) {
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO(operationalDataStore);
-    if (membershipMappingDAO.getByContextIdAndRoleId(MembershipMapping.GLOBAL_CONTEXT_ID, roleId).stream().noneMatch(
-        membershipMapping -> membershipMapping.includes(DEFAULT_ADMIN.getUsername(), Collections.emptySet()))) {
+    if (membershipMappingDAO.getByContextIdAndRoleId(MembershipMapping.GLOBAL_CONTEXT_ID, roleId)
+        .stream()
+        .noneMatch(
+            membershipMapping -> membershipMapping.includes(DEFAULT_ADMIN.getUsername(), Collections.emptySet())))
+    {
       membershipMappingDAO.insert(tx,
           new MembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, roleId, DEFAULT_ADMIN.getUsername(),
               MemberType.USER));

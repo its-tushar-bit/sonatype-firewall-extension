@@ -115,22 +115,19 @@ public class OpenSearchSearchIndexClient
   private static final Set<Class<?>> SYSTEMIC_NETWORK_EXCEPTIONS = Set.of(
       SocketException.class,
       SocketTimeoutException.class,
-      UnknownHostException.class
-  );
+      UnknownHostException.class);
 
   private static final Set<String> SYSTEMIC_OPENSEARCH_LOWERCASE_EXCEPTION_TYPES = Set.of(
       "circuit_breaking_exception",
       "cluster_block_exception",
       "master_not_discovered_exception",
       "no_shard_available_action_exception",
-      "unavailable_shards_exception"
-  );
+      "unavailable_shards_exception");
 
   private static final Set<String> SYSTEMIC_OPENSEARCH_LOWERCASE_REASON_FRAGMENTS = Set.of(
       "internal failure",
       "throttling",
-      "too many requests"
-  );
+      "too many requests");
 
   private static final Set<String> SYSTEMIC_OPENSEARCH_LOWERCASE_ERROR_MESSAGES = Set.of(
       "connection refused",
@@ -138,14 +135,12 @@ public class OpenSearchSearchIndexClient
       "service unavailable",
       "throttling",
       "timeout",
-      "unreachable"
-  );
+      "unreachable");
 
   private static final Set<String> CHANGE_SPECIFIC_OPENSEARCH_LOWERCASE_ERROR_MESSAGES = Set.of(
       "document_parsing_exception",
       "illegal_argument_exception",
-      "mapper_parsing_exception"
-  );
+      "mapper_parsing_exception");
 
   private final OpenSearchTransport openSearchTransport;
 
@@ -287,9 +282,7 @@ public class OpenSearchSearchIndexClient
           .sort(sort -> sort
               .field(f -> f
                   .field(IndexMapping.CREATED_AT_EPOCH_MS)
-                  .order(SortOrder.Desc)
-              )
-          )
+                  .order(SortOrder.Desc)))
           .build();
       SearchResponse<Map> searchResponse = getClient().search(searchRequest, Map.class);
       if (searchResponse.hits().hits().isEmpty()) {
@@ -374,9 +367,7 @@ public class OpenSearchSearchIndexClient
             .query(q -> q
                 .queryString(qs -> qs
                     .query(finalQuery)
-                    .defaultField(FieldIdentifier.VULNERABILITY_ID.label)
-                )
-            )
+                    .defaultField(FieldIdentifier.VULNERABILITY_ID.label)))
             .size(newPageSize)
             .trackTotalHits(new TrackHits.Builder().enabled(true).build())
             .sort(List.of(
@@ -385,8 +376,7 @@ public class OpenSearchSearchIndexClient
                     .build(),
                 new SortOptions.Builder()
                     .field(new FieldSort.Builder().field("_id").order(SortOrder.Asc).build())
-                    .build()
-            ));
+                    .build()));
         if (currentSearchAfter != null) {
           searchRequestBuilder.searchAfter(currentSearchAfter);
         }
@@ -476,8 +466,11 @@ public class OpenSearchSearchIndexClient
     GetIndicesSettingsResponse getIndicesSettingsResponse =
         getClient().indices().getSettings(getIndicesSettingsRequest);
     return Optional.ofNullable(
-        getIndicesSettingsResponse.result().get(getRealIndexName())).map(
-        IndexState::settings).map(IndexSettings::maxResultWindow).orElse(DEFAULT_MAX_RESULT_WINDOW);
+        getIndicesSettingsResponse.result().get(getRealIndexName()))
+        .map(
+            IndexState::settings)
+        .map(IndexSettings::maxResultWindow)
+        .orElse(DEFAULT_MAX_RESULT_WINDOW);
   }
 
   @Override
@@ -580,7 +573,8 @@ public class OpenSearchSearchIndexClient
   private void throwIfIndexNotFound(final Exception e) {
     if (e instanceof OpenSearchException openSearchException) {
       if (openSearchException.status() == 404 ||
-          openSearchException.response().toJsonString().contains("index_not_found_exception")) {
+          openSearchException.response().toJsonString().contains("index_not_found_exception"))
+      {
         throw new ConflictException(NO_INDEX_ERROR_MESSAGE);
       }
     }

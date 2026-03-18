@@ -195,50 +195,51 @@ public class SbomSpdxUtilsTest
   public void testGetRefIdAndSourceForVulnerability() {
     assertThat(SbomSpdxUtils
         .getRefIdAndSourceForVulnerability("http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-27088"))
-        .isEqualTo(Pair.of("CVE-2024-27088", "NVD"));
+            .isEqualTo(Pair.of("CVE-2024-27088", "NVD"));
     assertThat(SbomSpdxUtils
         .getRefIdAndSourceForVulnerability("http://nvd.nist.gov/vuln/detail/CVE-2016-5007"))
-        .isEqualTo(Pair.of("CVE-2016-5007", "NVD"));
+            .isEqualTo(Pair.of("CVE-2016-5007", "NVD"));
     assertThat(SbomSpdxUtils
         .getRefIdAndSourceForVulnerability("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2016-5007"))
-        .isEqualTo(Pair.of("CVE-2016-5007", "NVD"));
+            .isEqualTo(Pair.of("CVE-2016-5007", "NVD"));
     assertThat(SbomSpdxUtils
         .getRefIdAndSourceForVulnerability("https://osv.dev/vulnerability/BIT-vault-2024-5798"))
-        .isEqualTo(Pair.of("BIT-vault-2024-5798", "OSV"));
+            .isEqualTo(Pair.of("BIT-vault-2024-5798", "OSV"));
     assertThat(SbomSpdxUtils
         .getRefIdAndSourceForVulnerability("https://iq.sonatype.dev/ui/links/vln/sonatype-2014-0026"))
-        .isEqualTo(Pair.of("sonatype-2014-0026", "SONATYPE"));
+            .isEqualTo(Pair.of("sonatype-2014-0026", "SONATYPE"));
     assertThat(SbomSpdxUtils
         .getRefIdAndSourceForVulnerability("https://security.snyk.io/vuln/SNYK-PYTHON-PYMONGO-7172112"))
-        .isEqualTo(Pair.of("SNYK-PYTHON-PYMONGO-7172112", "OTHER"));
+            .isEqualTo(Pair.of("SNYK-PYTHON-PYMONGO-7172112", "OTHER"));
     assertThat(SbomSpdxUtils
         .getRefIdAndSourceForVulnerability("https://github.com/advisories/GHSA-3jmm-f6jj-rcc3"))
-        .isEqualTo(Pair.of("GHSA-3jmm-f6jj-rcc3", "OTHER"));
+            .isEqualTo(Pair.of("GHSA-3jmm-f6jj-rcc3", "OTHER"));
     assertThat(SbomSpdxUtils
         .getRefIdAndSourceForVulnerability("https://securitylab.github.com/advisories/GHSL-2024-144_JupyterLab/"))
-        .isEqualTo(Pair.of("GHSL-2024-144", "OTHER"));
+            .isEqualTo(Pair.of("GHSL-2024-144", "OTHER"));
     assertThat(SbomSpdxUtils
         .getRefIdAndSourceForVulnerability("https://errata.almalinux.org/8/ALSA-2024-3128.html"))
-        .isEqualTo(Pair.of("ALSA-2024-3128", "OTHER"));
+            .isEqualTo(Pair.of("ALSA-2024-3128", "OTHER"));
     assertThat(SbomSpdxUtils
         .getRefIdAndSourceForVulnerability("https://securitylab.github.com/advisories/GHSL-2022-097_rudder-server"))
-        .isEqualTo(Pair.of("GHSL-2022-097", "OTHER"));
+            .isEqualTo(Pair.of("GHSL-2022-097", "OTHER"));
     assertThat(SbomSpdxUtils
         .getRefIdAndSourceForVulnerability("https://securitylab.github.com/advisories#GHSL-2022-097"))
-        .isEqualTo(Pair.of("GHSL-2022-097", "OTHER"));
+            .isEqualTo(Pair.of("GHSL-2022-097", "OTHER"));
     assertThat(SbomSpdxUtils
         .getRefIdAndSourceForVulnerability("https://access.redhat.com/errata/RHSA-2024:3128"))
-        .isEqualTo(Pair.of("RHSA-2024:3128", "OTHER"));
+            .isEqualTo(Pair.of("RHSA-2024:3128", "OTHER"));
 
-    //invalid
+    // invalid
     assertThat(SbomSpdxUtils.getRefIdAndSourceForVulnerability("invalid-url")).isNull();
     assertThat(SbomSpdxUtils.getRefIdAndSourceForVulnerability("https://iq.sonatype.dev/ui/links/vln")).isNull();
     assertThat(SbomSpdxUtils.getRefIdAndSourceForVulnerability(
         "https://osv.dev/vulnerability/BIT-vault-2024-5798/vln")).isNull();
   }
 
-  private static SpdxDocument getSpdxDocument(final String fileName, Format format)
-      throws IOException, InvalidSPDXAnalysisException, URISyntaxException
+  private static SpdxDocument getSpdxDocument(
+      final String fileName,
+      Format format) throws IOException, InvalidSPDXAnalysisException, URISyntaxException
   {
     URL resource = SbomSpdxUtilsTest.class.getResource("/SbomSpdxUtilsTest/" + fileName);
     String content = new String(Files.readAllBytes(Paths.get(resource.toURI())), StandardCharsets.UTF_8);
@@ -247,7 +248,8 @@ public class SbomSpdxUtilsTest
     IModelStore modelStore = new InMemSpdxStore();
     String uri;
     try (MultiFormatStore multiFormatStore = new MultiFormatStore(modelStore, format, Verbose.COMPACT);
-         InputStream in = new BufferedInputStream(new ByteArrayInputStream(content.getBytes()))) {
+        InputStream in = new BufferedInputStream(new ByteArrayInputStream(content.getBytes())))
+    {
       uri = multiFormatStore.deSerialize(in, true);
     }
     catch (Exception e) {

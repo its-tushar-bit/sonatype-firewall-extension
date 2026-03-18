@@ -48,7 +48,6 @@ public class AuditErrorTypeTest
         "service-unavailable",
         "gateway-timeout",
         "server-error",
-        "client-error"
-    ));
+        "client-error"));
   }
 }

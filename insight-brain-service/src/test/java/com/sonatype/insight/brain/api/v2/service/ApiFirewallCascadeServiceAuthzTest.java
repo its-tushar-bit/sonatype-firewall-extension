@@ -198,8 +198,7 @@ public class ApiFirewallCascadeServiceAuthzTest
         componentHash,
         ComponentIdentifier.createNpmCoordinates("authz-status-pkg", "1.0.0"),
         now,
-        now
-    );
+        now);
 
     String cascadeRequestId = "authz_cascade_" + System.currentTimeMillis();
     tempEntity.newReevaluateCascadeRequest(cascadeRequestId, componentHash, "testuser");

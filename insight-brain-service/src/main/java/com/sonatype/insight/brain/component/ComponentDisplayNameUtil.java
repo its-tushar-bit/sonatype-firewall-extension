@@ -95,12 +95,14 @@ public class ComponentDisplayNameUtil
    * @since 1.38
    */
   public static String deriveComponentName(DashboardViolationRiskDTO dto) {
-    return dto.displayName != null ? dto.displayName.toString() :
-        !StringUtils.isBlank(dto.filename) ? dto.filename : "Unknown";
+    return dto.displayName != null
+        ? dto.displayName.toString()
+        : !StringUtils.isBlank(dto.filename) ? dto.filename : "Unknown";
   }
 
   public static String deriveComponentName(ComponentRiskDTO dto) {
-    return dto.displayName != null ? dto.displayName.toString() :
-        !StringUtils.isBlank(dto.filename) ? dto.filename : "Unknown";
+    return dto.displayName != null
+        ? dto.displayName.toString()
+        : !StringUtils.isBlank(dto.filename) ? dto.filename : "Unknown";
   }
 }

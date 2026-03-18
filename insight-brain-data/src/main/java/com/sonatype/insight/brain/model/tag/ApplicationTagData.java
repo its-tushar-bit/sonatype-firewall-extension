@@ -14,7 +14,7 @@ public class ApplicationTagData
   private List<String> categories;
 
   public ApplicationTagData() {
-    //for serialization
+    // for serialization
   }
 
   public ApplicationTagData(String appId, List<String> categories) {

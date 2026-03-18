@@ -40,23 +40,24 @@ public class DashboardMetadataDTO
   public String groupId;
 
   public DashboardMetadataDTO() {
-    //for jackson;
+    // for jackson;
   }
 
-  public DashboardMetadataDTO(final String dashboardId,
-                              final String groupId,
-                              final String title,
-                              final String category,
-                              final String description,
-                              final List<String> features,
-                              final String accessButtonText,
-                              final String previewImage,
-                              final String previewImageIcon,
-                              final Integer priority,
-                              final boolean spotlight,
-                              final String dashboardPath,
-                              final String spotlightColor,
-                              final String spotlightText)
+  public DashboardMetadataDTO(
+      final String dashboardId,
+      final String groupId,
+      final String title,
+      final String category,
+      final String description,
+      final List<String> features,
+      final String accessButtonText,
+      final String previewImage,
+      final String previewImageIcon,
+      final Integer priority,
+      final boolean spotlight,
+      final String dashboardPath,
+      final String spotlightColor,
+      final String spotlightText)
   {
     this.dashboardId = dashboardId;
     this.groupId = groupId;
@@ -74,22 +75,23 @@ public class DashboardMetadataDTO
     this.spotlightText = spotlightText;
   }
 
-  //for testing
-  public DashboardMetadataDTO(final String dashboardId,
-                              final String groupId,
-                              final String title,
-                              final String category,
-                              final String description,
-                              final List<String> features,
-                              final String accessButtonText,
-                              final String previewImage,
-                              final String previewImageIcon,
-                              final Integer priority,
-                              final boolean spotlight,
-                              final String dashboardPath,
-                              final String spotlightColor,
-                              final String spotlightText,
-                              final String sinceIQVersion)
+  // for testing
+  public DashboardMetadataDTO(
+      final String dashboardId,
+      final String groupId,
+      final String title,
+      final String category,
+      final String description,
+      final List<String> features,
+      final String accessButtonText,
+      final String previewImage,
+      final String previewImageIcon,
+      final Integer priority,
+      final boolean spotlight,
+      final String dashboardPath,
+      final String spotlightColor,
+      final String spotlightText,
+      final String sinceIQVersion)
   {
     this.dashboardId = dashboardId;
     this.groupId = groupId;

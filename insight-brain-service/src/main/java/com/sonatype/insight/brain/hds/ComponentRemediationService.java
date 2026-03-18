@@ -69,7 +69,7 @@ import static com.sonatype.insight.brain.report.InnerSourceUtils.createComposite
 
 /**
  * @since 1.83
- * This code was formerly in ApiComponentRemediationService but was split out to avoid a circular dependency
+ *        This code was formerly in ApiComponentRemediationService but was split out to avoid a circular dependency
  */
 @Named
 public class ComponentRemediationService
@@ -89,8 +89,7 @@ public class ComponentRemediationService
       ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
       ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
       ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES,
-      ApiVersionChangeOptionType.NEXT_NON_FAILING
-  );
+      ApiVersionChangeOptionType.NEXT_NON_FAILING);
 
   private static final String OWNER_TYPE_ATTR = "owner_type";
 
@@ -121,7 +120,7 @@ public class ComponentRemediationService
   private final VersionScoringService versionScoringService;
 
   private final NonBreakingRecommendationTelemetryMetrics nonBreakingRecommendationTelemetryMetrics;
-  
+
   private final InnerSourceService innerSourceService;
 
   @Inject
@@ -167,8 +166,7 @@ public class ComponentRemediationService
       final Owner owner,
       final String stageId,
       final ComponentDetailsLoader componentDetailsLoader,
-      final SourceEndpoint source
-  )
+      final SourceEndpoint source)
   {
     ApiComponentRemediationValueDTO suggestedRemediation = getSuggestedSelectedRemediation(
         currentComponent,
@@ -216,7 +214,7 @@ public class ComponentRemediationService
         throw new BadRequestException(e.getMessage(), e);
       }
     }
-    
+
     int currentIndex = findCurrentIndex(allVersions, currentComponent);
 
     Map<String, Object> telemetryAttributes = new HashMap<>();
@@ -237,9 +235,8 @@ public class ComponentRemediationService
 
       // nonFailingVersions will be empty if stage is not specified
       // and we won't add non-failing/non-failing with dependencies remedies.
-      List<ComponentDetailsDTO> nonFailingVersions = (stageId == null) ?
-          Collections.emptyList() :
-          nonFailingVersions(currentIndex, allVersions);
+      List<ComponentDetailsDTO> nonFailingVersions =
+          (stageId == null) ? Collections.emptyList() : nonFailingVersions(currentIndex, allVersions);
 
       // find first non failing version
       nonFailingVersions.stream()
@@ -266,8 +263,8 @@ public class ComponentRemediationService
             .filter(nonViolatingVersionsSet::contains)
             .findFirst();
         topScoreNonViolatingNonBreakingVersion.ifPresent(topScore ->
-            // the non-golden version suggestion should happen before (to be overridden by) the golden suggestion.
-            componentRemediationDto.suggestedVersionChange = createSuggestedVersionChangeOption(
+        // the non-golden version suggestion should happen before (to be overridden by) the golden suggestion.
+        componentRemediationDto.suggestedVersionChange = createSuggestedVersionChangeOption(
             topScore, ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING, false));
       }
 
@@ -278,8 +275,7 @@ public class ComponentRemediationService
           final ComponentDependenciesDTO componentDependencies =
               fetchDependencyInformation(
                   allVersions,
-                  currentIndex
-              );
+                  currentIndex);
           Map<PackageUrlIdentifier, List<PolicyAlert>> dependencyAlerts = getDependencyAlerts(componentDependencies,
               owner, stageId, componentDetailsLoader);
 
@@ -288,8 +284,7 @@ public class ComponentRemediationService
               .ifPresent(dto -> {
                 componentRemediationDto.versionChanges.add(
                     createVersionChangeOption(dto.componentIdentifier,
-                        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, dto.breakingChangesCount)
-                );
+                        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, dto.breakingChangesCount));
                 telemetryAttributes.put(OPTION_NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES_ATTR, String.valueOf(true));
               });
 
@@ -298,8 +293,7 @@ public class ComponentRemediationService
               .ifPresent(dto -> {
                 componentRemediationDto.versionChanges.add(
                     createVersionChangeOption(dto.componentIdentifier,
-                        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES, dto.breakingChangesCount)
-                );
+                        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES, dto.breakingChangesCount));
                 telemetryAttributes.put(OPTION_NEXT_NON_FAILING_WITH_DEPENDENCIES_ATTR, String.valueOf(true));
               });
 
@@ -307,24 +301,23 @@ public class ComponentRemediationService
             log.debug("Fetching non-breaking versions with dependencies for component: {}", currentComponent);
             Set<ComponentDetailsDTO> nonViolatingVersionsAboveThreshold =
                 findNoViolatingAboveSeverityThreshold(currentIndex, allVersions, SEVERITY_THRESHOLD)
-                .collect(Collectors.toSet());
+                    .collect(Collectors.toSet());
 
             List<ComponentIdentifier> nonViolatingVersionsWithDependenciesSet =
                 nonViolatingWithDependenciesAboveThreshold(
-                nonViolatingVersionsAboveThreshold,
-                dependencyAlerts,
-                SEVERITY_THRESHOLD
-            ).map(dto -> dto.componentIdentifier).toList();
+                    nonViolatingVersionsAboveThreshold,
+                    dependencyAlerts,
+                    SEVERITY_THRESHOLD).map(dto -> dto.componentIdentifier).toList();
 
             Optional<ComponentIdentifier> topScoreNonViolatingNonBreakingWithDependenciesVersion =
                 nonBreakingVersionsSortedByScore.stream()
-                .map(currentComponent::createAlternativeVersion)
-                .filter(nonViolatingVersionsWithDependenciesSet::contains)
-                .findFirst();
+                    .map(currentComponent::createAlternativeVersion)
+                    .filter(nonViolatingVersionsWithDependenciesSet::contains)
+                    .findFirst();
             topScoreNonViolatingNonBreakingWithDependenciesVersion.ifPresent(topScore ->
-                // the golden version suggestion should happen after (override) the non-golden version suggestions.
-                componentRemediationDto.suggestedVersionChange = createSuggestedVersionChangeOption(
-                    topScore, ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES, true));
+            // the golden version suggestion should happen after (override) the non-golden version suggestions.
+            componentRemediationDto.suggestedVersionChange = createSuggestedVersionChangeOption(
+                topScore, ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES, true));
           }
         }
       }
@@ -369,8 +362,9 @@ public class ComponentRemediationService
     int currentIndex = -1;
     Map<String, Object> telemetryAttributes = new HashMap<>();
 
-    for (Map.Entry<ComponentIdentifier, List<ComponentDetailsDTO>> entry
-        : componentIdentifierToAllVersionMap.entrySet()) {
+    for (Map.Entry<ComponentIdentifier, List<ComponentDetailsDTO>> entry : componentIdentifierToAllVersionMap
+        .entrySet())
+    {
 
       ComponentIdentifier directComponentIdentifier = entry.getKey();
       List<ComponentDetailsDTO> allVersions = entry.getValue();
@@ -435,19 +429,20 @@ public class ComponentRemediationService
     if (suggestedVersionChange != null) {
       ApiVersionChangeOptionDTO changeOption = new ApiVersionChangeOptionDTO(
           suggestedVersionChange.getType(),
-          suggestedVersionChange.getData()
-      );
+          suggestedVersionChange.getData());
       return Optional.of(changeOption);
     }
 
-    Optional<ApiVersionChangeOptionDTO> versionChange = versionChanges.stream().filter(
-        vChange -> vChange.getType() ==
-            ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES).findFirst();
+    Optional<ApiVersionChangeOptionDTO> versionChange = versionChanges.stream()
+        .filter(
+            vChange -> vChange.getType() == ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES)
+        .findFirst();
 
     if (!versionChange.isPresent()) {
-      versionChange = versionChanges.stream().filter(
-          vChange -> vChange.getType() ==
-              ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS).findFirst();
+      versionChange = versionChanges.stream()
+          .filter(
+              vChange -> vChange.getType() == ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS)
+          .findFirst();
     }
 
     return versionChange;
@@ -468,8 +463,7 @@ public class ComponentRemediationService
     if (suggestedVersionChange != null) {
       ApiVersionChangeOptionDTO changeOption = new ApiVersionChangeOptionDTO(
           suggestedVersionChange.getType(),
-          suggestedVersionChange.getData()
-      );
+          suggestedVersionChange.getData());
       return Optional.of(changeOption);
     }
 
@@ -502,11 +496,12 @@ public class ComponentRemediationService
         evaluateAndGetPolicyAlertsByComponent(owner.getId(), stage, components);
 
     // map parent components to their dependency alerts
-    for (Map.Entry<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> entry :
-        dependenciesDto.getDependenciesMap().entrySet())
+    for (Map.Entry<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> entry : dependenciesDto.getDependenciesMap()
+        .entrySet())
     {
       dependencyAlerts.put(entry.getKey(),
-          entry.getValue().stream()
+          entry.getValue()
+              .stream()
               .flatMap(purl -> {
                 List<PolicyAlert> alert = policyAlertsByComponent.get(purl);
                 return (alert == null) ? Stream.empty() : alert.stream();
@@ -519,8 +514,7 @@ public class ComponentRemediationService
 
   private ComponentDependenciesDTO fetchDependencyInformation(
       final Collection<ComponentDetailsDTO> allVersions,
-      final int currentComponentIndex
-  )
+      final int currentComponentIndex)
   {
     final Collection<PackageUrlIdentifier> candidatePurls = allVersions.stream()
         .skip(currentComponentIndex)
@@ -543,8 +537,7 @@ public class ComponentRemediationService
       for (ComponentFact componentFact : policyAlert.getTrigger().getComponentFacts()) {
         policyAlertsByComponent.computeIfAbsent(
             PackageUrlIdentifier.fromComponentIdentifier(componentFact.getComponentIdentifier()),
-            key -> new ArrayList<>()
-        ).add(policyAlert);
+            key -> new ArrayList<>()).add(policyAlert);
       }
     }
 
@@ -552,24 +545,28 @@ public class ComponentRemediationService
   }
 
   private List<ComponentDetailsDTO> nonViolatingVersions(int startingIndex, List<ComponentDetailsDTO> dtos) {
-    return dtos.stream().parallel()
+    return dtos.stream()
+        .parallel()
         .skip(startingIndex)
         .filter(dto -> dto.violatedPolicyCount == 0)
         .toList();
   }
 
   private List<ComponentDetailsDTO> nonFailingVersions(int startingIndex, List<ComponentDetailsDTO> dtos) {
-    return dtos.stream().parallel()
+    return dtos.stream()
+        .parallel()
         .skip(startingIndex)
         .filter(dto -> !hasFailAction(dto.policyAlerts))
         .toList();
   }
 
-  private Stream<ComponentDetailsDTO> findNoViolatingAboveSeverityThreshold(int startingIndex,
-                                                                            List<ComponentDetailsDTO> dtos,
-                                                                            int severityThreshold)
+  private Stream<ComponentDetailsDTO> findNoViolatingAboveSeverityThreshold(
+      int startingIndex,
+      List<ComponentDetailsDTO> dtos,
+      int severityThreshold)
   {
-    return dtos.stream().parallel()
+    return dtos.stream()
+        .parallel()
         .skip(startingIndex)
         .filter(dto -> {
           Stream<Integer> stream;
@@ -598,8 +595,7 @@ public class ComponentRemediationService
   {
     for (ComponentDetailsDTO dto : nonViolatingVersions) {
       final PackageUrlIdentifier versionPurl = PackageUrlIdentifier.fromComponentIdentifier(dto.componentIdentifier);
-      if (CollectionUtils.isEmpty(dependencyAlerts.get(versionPurl)))
-      {
+      if (CollectionUtils.isEmpty(dependencyAlerts.get(versionPurl))) {
         dto.componentIdentifier = tryEnsureCompleteIdentifier(versionPurl);
         return Optional.of(dto);
       }
@@ -614,15 +610,16 @@ public class ComponentRemediationService
   {
     return nonViolatingVersions.stream().filter(dto -> {
       final PackageUrlIdentifier versionPurl = PackageUrlIdentifier.fromComponentIdentifier(dto.componentIdentifier);
-      if (CollectionUtils.isEmpty(dependencyAlerts.get(versionPurl)))
-      {
+      if (CollectionUtils.isEmpty(dependencyAlerts.get(versionPurl))) {
         dto.componentIdentifier = tryEnsureCompleteIdentifier(versionPurl);
         return true;
       }
 
       long dependenciesAboveThresholdCount =
-          dependencyAlerts.get(versionPurl).stream().filter(dependencyAlert ->
-              dependencyAlert.getTrigger().getThreatLevel() > severityThreshold).count();
+          dependencyAlerts.get(versionPurl)
+              .stream()
+              .filter(dependencyAlert -> dependencyAlert.getTrigger().getThreatLevel() > severityThreshold)
+              .count();
 
       return dependenciesAboveThresholdCount == 0;
     });
@@ -635,8 +632,7 @@ public class ComponentRemediationService
     for (ComponentDetailsDTO dto : nonFailingVersions) {
       final PackageUrlIdentifier versionPurl = PackageUrlIdentifier.fromComponentIdentifier(dto.componentIdentifier);
       List<PolicyAlert> policyAlerts = dependencyAlerts.get(versionPurl);
-      if (policyAlerts == null || !hasFailAction(policyAlerts))
-      {
+      if (policyAlerts == null || !hasFailAction(policyAlerts)) {
         dto.componentIdentifier = tryEnsureCompleteIdentifier(versionPurl);
         return Optional.of(dto);
       }
@@ -645,9 +641,12 @@ public class ComponentRemediationService
   }
 
   private boolean hasFailAction(List<PolicyAlert> alerts) {
-    return alerts.stream().anyMatch(
-        alert -> Optional.ofNullable(alert.getActions()).map(Collection::stream).orElseGet(Stream::empty)
-            .anyMatch(action -> Action.ID_FAIL.equals(action.getActionTypeId())));
+    return alerts.stream()
+        .anyMatch(
+            alert -> Optional.ofNullable(alert.getActions())
+                .map(Collection::stream)
+                .orElseGet(Stream::empty)
+                .anyMatch(action -> Action.ID_FAIL.equals(action.getActionTypeId())));
   }
 
   private void sendTelemetry(
@@ -670,9 +669,10 @@ public class ComponentRemediationService
     telemetrySender.send(telemetryData);
   }
 
-  private ApiSuggestedVersionChangeOptionDTO createSuggestedVersionChangeOption(ComponentIdentifier componentIdentifier,
-                                                              ApiVersionChangeOptionType apiVersionChangeOptionType,
-                                                              boolean isGolden)
+  private ApiSuggestedVersionChangeOptionDTO createSuggestedVersionChangeOption(
+      ComponentIdentifier componentIdentifier,
+      ApiVersionChangeOptionType apiVersionChangeOptionType,
+      boolean isGolden)
   {
     ApiComponentDTOV2 componentDTOV2 = createComponentDtoFromIdentifier(componentIdentifier);
     componentDTOV2.breakingChangesCount = 0;
@@ -691,9 +691,10 @@ public class ComponentRemediationService
     return componentDTOV2;
   }
 
-  private ApiVersionChangeOptionDTO createVersionChangeOption(ComponentIdentifier componentIdentifier,
-                                                              ApiVersionChangeOptionType apiVersionChangeOptionType,
-                                                              Integer breakingChangesCount)
+  private ApiVersionChangeOptionDTO createVersionChangeOption(
+      ComponentIdentifier componentIdentifier,
+      ApiVersionChangeOptionType apiVersionChangeOptionType,
+      Integer breakingChangesCount)
   {
     ApiComponentDTOV2 componentDTOV2 = createComponentDtoFromIdentifier(componentIdentifier);
     componentDTOV2.breakingChangesCount = breakingChangesCount;
@@ -717,8 +718,7 @@ public class ComponentRemediationService
     ApiComponentChangeActionDTO parentAction = new ApiComponentChangeActionDTO(directApiComponentDTOV2);
     ApiVersionChangeOptionDTO versionChangeOption =
         createVersionChangeOption(transitiveComponent.toComponentIdentifier(),
-            apiVersionChangeOptionType, dto.breakingChangesCount
-        );
+            apiVersionChangeOptionType, dto.breakingChangesCount);
     versionChangeOption.setDirectDependency(false);
     versionChangeOption.getDirectDependencyData().add(parentAction);
     return versionChangeOption;

@@ -14,7 +14,8 @@ import com.google.common.base.Joiner;
 /**
  * Carries the data backing the "Highest Risk Component View", i.e. roll-up of violations by component.
  */
-public class ComponentRiskDTO implements CsvWritable
+public class ComponentRiskDTO
+    implements CsvWritable
 {
   private static final Joiner joiner = Joiner.on(",");
 

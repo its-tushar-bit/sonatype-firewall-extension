@@ -44,8 +44,9 @@ public class SourceControlPullRequestMetrics
   private ComponentHelper componentHelper;
 
   @Inject
-  public SourceControlPullRequestMetrics(SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO,
-                                         ComponentHelper componentHelper)
+  public SourceControlPullRequestMetrics(
+      SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO,
+      ComponentHelper componentHelper)
   {
     this.sourceControlPullRequestResultDAO = sourceControlPullRequestResultDAO;
     this.componentHelper = componentHelper;
@@ -72,7 +73,8 @@ public class SourceControlPullRequestMetrics
    * Retrieve recorded metrics for the given application within the last telemetry reporting window.
    */
   public List<EnhancedPullRequestResult> metricsForApplication(final String applicationId) {
-    return sourceControlPullRequestResultDAO.getByApplicationId(applicationId).stream()
+    return sourceControlPullRequestResultDAO.getByApplicationId(applicationId)
+        .stream()
         .map(this::convert)
         .filter(Objects::nonNull)
         .sorted(Comparator.comparing(EnhancedPullRequestResult::getStartTime))
@@ -134,8 +136,7 @@ public class SourceControlPullRequestMetrics
           sourceControlPullRequestResult.getApplicationId(),
           sourceControlPullRequestResult.getPullRequestResultJson(),
           e.getMessage(),
-          e
-      );
+          e);
       sourceControlPullRequestResultDAO.delete(sourceControlPullRequestResult);
       return null;
     }

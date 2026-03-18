@@ -54,7 +54,8 @@ public class AutomaticApplicationsConfigurationTest
 
     // check descriptions visibility
     automaticApplicationsConfigurationPage.explanation().shouldBe(visible).shouldNotBe(empty);
-    automaticApplicationsConfigurationPage.explanationSourceControl().shouldBe(visible)
+    automaticApplicationsConfigurationPage.explanationSourceControl()
+        .shouldBe(visible)
         .shouldNotHave(text("which is configured to use"));
 
     // check initial state
@@ -120,7 +121,8 @@ public class AutomaticApplicationsConfigurationTest
 
     // then source control configuration is mentioned in the explanation
     automaticApplicationsConfigurationPage.explanation().shouldBe(visible).shouldNotBe(empty);
-    automaticApplicationsConfigurationPage.explanationSourceControl().shouldBe(visible)
+    automaticApplicationsConfigurationPage.explanationSourceControl()
+        .shouldBe(visible)
         .shouldHave(text("which is configured to use Github"));
   }
 

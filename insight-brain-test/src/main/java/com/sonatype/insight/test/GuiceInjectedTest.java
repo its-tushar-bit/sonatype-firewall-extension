@@ -26,9 +26,11 @@ import com.google.inject.util.Modules;
  * Pure Guice test base class that replaces Sisu's InjectedTest. Provides dependency injection for tests without
  * requiring Sisu's classpath scanning.
  *
- * <p>This class separates production modules from test modules and supports overriding
+ * <p>
+ * This class separates production modules from test modules and supports overriding
  * bindings via Guice's Modules.override() mechanism. This prevents binding conflicts when tests need to replace
- * production bindings with test implementations.</p>
+ * production bindings with test implementations.
+ * </p>
  */
 public abstract class GuiceInjectedTest
 {

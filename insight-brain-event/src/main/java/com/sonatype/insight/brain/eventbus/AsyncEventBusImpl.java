@@ -27,7 +27,8 @@ public class AsyncEventBusImpl
   private final com.google.common.eventbus.EventBus delegate;
 
   public AsyncEventBusImpl(int maxPoolSize) {
-    ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat("AsyncEventBusThread-%d")
+    ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true)
+        .setNameFormat("AsyncEventBusThread-%d")
         .build();
 
     threadPoolExecutor =

@@ -547,7 +547,7 @@ public class SourceControl
     accumulator.setCommitStatusEnabled(coalesce(accumulator.getCommitStatusEnabled(), other.getCommitStatusEnabled()));
     accumulator.setRepositorySshUrl(coalesce(accumulator.getRepositorySshUrl(), other.getRepositorySshUrl()));
     accumulator.setManualPullRequestsEnabled(
-            coalesce(accumulator.getManualPullRequestsEnabled(), other.getManualPullRequestsEnabled()));
+        coalesce(accumulator.getManualPullRequestsEnabled(), other.getManualPullRequestsEnabled()));
     accumulator.setInnerSourceAutomatedUpdatesEnabled(
         coalesce(accumulator.getInnerSourceAutomatedUpdatesEnabled(), other.getInnerSourceAutomatedUpdatesEnabled()));
     accumulator.setAuthenticationType(coalesce(accumulator.getAuthenticationType(), other.getAuthenticationType()));

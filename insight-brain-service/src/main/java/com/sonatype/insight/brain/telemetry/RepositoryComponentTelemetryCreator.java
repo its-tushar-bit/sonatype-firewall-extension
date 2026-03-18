@@ -144,7 +144,8 @@ public class RepositoryComponentTelemetryCreator
 
   public void sendRepositoryComponentTelemetry(TelemetryData repositoryComponentTelemetry) {
     if (repositoryComponentTelemetry == null ||
-        !repositoryComponentTelemetry.getPurpose().equals(TelemetryPurpose.REPOSITORY_COMPONENT)) {
+        !repositoryComponentTelemetry.getPurpose().equals(TelemetryPurpose.REPOSITORY_COMPONENT))
+    {
       log.debug("TelemetryData is not for REPOSITORY_COMPONENT purpose. Skipping telemetry send.");
       return;
     }

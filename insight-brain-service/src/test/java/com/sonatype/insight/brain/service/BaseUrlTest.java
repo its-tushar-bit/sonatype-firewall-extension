@@ -133,7 +133,8 @@ public class BaseUrlTest
   @Test
   public void testGetConfigured_BaseUrlNotConfigured() {
     assertThatExceptionOfType(IllegalStateException.class)
-        .isThrownBy(() -> baseUrl.getConfigured()).withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+        .isThrownBy(() -> baseUrl.getConfigured())
+        .withMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   @Test

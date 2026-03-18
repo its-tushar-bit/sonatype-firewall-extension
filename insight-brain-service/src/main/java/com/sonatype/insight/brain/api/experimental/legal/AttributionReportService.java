@@ -52,7 +52,7 @@ public class AttributionReportService
    * updated.
    *
    * @param attributionReportTemplateDTO the {@link AttributionReportTemplateDTO} representing the {@link
-   *                                     AttributionReportTemplate} to be created/updated.
+   *          AttributionReportTemplate} to be created/updated.
    * @return a {@link AttributionReportTemplateDTO} representing the created/updated {@link AttributionReportTemplate}.
    * @since 1.120
    */
@@ -71,8 +71,7 @@ public class AttributionReportService
         attributionReportTemplateDTO.isIncludeAppendix(),
         attributionReportTemplateDTO.isIncludeStandardLicenseTexts(),
         attributionReportTemplateDTO.isIncludeInnerSource(),
-        attributionReportTemplateDTO.isIncludeSonatypeSpecialLicenses()
-    );
+        attributionReportTemplateDTO.isIncludeSonatypeSpecialLicenses());
 
     validateTemplateName(attributionReportTemplate);
 
@@ -93,7 +92,8 @@ public class AttributionReportService
       if (attributionReportTemplate.getId() == null
           ||
           (attributionReportTemplate.getId() != null &&
-              !attributionReportTemplate.getId().equals(existingTemplate.get().getId()))) {
+              !attributionReportTemplate.getId().equals(existingTemplate.get().getId())))
+      {
         throw new InvalidNameException(
             String.format("Report template already exists with name %s", attributionReportTemplate.getTemplateName()));
       }
@@ -121,8 +121,10 @@ public class AttributionReportService
     checkLegalReviewerPermission(ROOT_ORGANIZATION_ID);
     LegalServiceUtil.checkLicense(productLicense, log);
 
-    return attributionReportTemplateDAO.getAll().stream()
-        .map(AttributionReportTemplateDTO::fromReportTemplate).collect(Collectors.toList());
+    return attributionReportTemplateDAO.getAll()
+        .stream()
+        .map(AttributionReportTemplateDTO::fromReportTemplate)
+        .collect(Collectors.toList());
   }
 
   /**

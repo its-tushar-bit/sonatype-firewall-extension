@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.integration;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -42,9 +43,10 @@ public class ApplicationSummaryResourceAuditTest
     assertDetailedApplicationData(auditDTO, persistedApp, organization);
   }
 
-  private void assertDetailedApplicationData(final AuditDTO auditDTO,
-                                             final Application application,
-                                             final Organization organization)
+  private void assertDetailedApplicationData(
+      final AuditDTO auditDTO,
+      final Application application,
+      final Organization organization)
   {
     assertApplicationData(auditDTO, application);
     assertCustomData(auditDTO, "contactUsername", application.getContactInternalName());

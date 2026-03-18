@@ -16,8 +16,8 @@ public record RoiConfigurationDTO(
     BigDecimal namespaceAttacksPrevented,
     BigDecimal safeComponentsAutoSelected,
     Integer baselineDaysToResolveViolation,
-    BigDecimal dailyRiskCostOfUnfixedViolation
-) {
+    BigDecimal dailyRiskCostOfUnfixedViolation)
+{
   public RoiConfigurationDTO(
       String id,
       CurrencyTypes currency,

@@ -20,13 +20,13 @@ public class Parameters
       + ", cf. sonatypeWork setting from server's config.yml")
   private File workDirectory = new File("sonatype-work/clm-server");
 
-  @Parameter(names = { "-c", "--compact-database" }, description = "Compact the database by reclaiming empty space")
+  @Parameter(names = {"-c", "--compact-database"}, description = "Compact the database by reclaiming empty space")
   private boolean compact;
 
-  @Parameter(names = { "-r", "--recover-database" }, description = "Recover a corrupted database")
+  @Parameter(names = {"-r", "--recover-database"}, description = "Recover a corrupted database")
   private boolean recover;
 
-  @Parameter(names = { "-h", "--help" }, description = "Show this help screen")
+  @Parameter(names = {"-h", "--help"}, description = "Show this help screen")
   private boolean help;
 
   public Parameters() {

@@ -10,8 +10,8 @@ package com.sonatype.insight.brain.security;
  * <p>
  * Controls how user membership context IDs are retrieved from the database:
  * <ul>
- *   <li><strong>DIRECT_CONTEXT_ID</strong>faster, lower memory usage</li>
- *   <li><strong>FULL_MEMBERSHIP_MAPPING_CONTEXT_ID</strong> - Traditional approach (default)</li>
+ * <li><strong>DIRECT_CONTEXT_ID</strong>faster, lower memory usage</li>
+ * <li><strong>FULL_MEMBERSHIP_MAPPING_CONTEXT_ID</strong> - Traditional approach (default)</li>
  * </ul>
  * <p>
  * Configured via {@code AUTHORIZATION_CHECKER_MEMBERSHIP_QUERY_STRATEGY} environment variable.
@@ -42,7 +42,7 @@ public enum AuthorizationMembershipQueryStrategy
    * <p>
    * Reads {@code AUTHORIZATION_CHECKER_MEMBERSHIP_QUERY_STRATEGY} environment variable.
    * Returns {@code FULL_MEMBERSHIP_MAPPING_CONTEXT_ID} if not set or invalid.
-   * 
+   *
    * @return the configured strategy, or default if not configured
    */
   public static AuthorizationMembershipQueryStrategy getStrategyFromEnv() {

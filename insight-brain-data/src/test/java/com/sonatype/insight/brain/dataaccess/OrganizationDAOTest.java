@@ -100,7 +100,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
-public class OrganizationDAOTest extends NameableDAOTest<Organization>
+public class OrganizationDAOTest
+    extends NameableDAOTest<Organization>
 {
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -339,8 +340,7 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     Organization org4 = tempEntity.newOrganizationWithRepositoryManager("org-with-repo-manager");
 
     List<Organization> orgs = dao.getByNames(
-        Sets.newHashSet(org1.getName(), org3.getName(), org4.getName())
-    );
+        Sets.newHashSet(org1.getName(), org3.getName(), org4.getName()));
     assertThat(orgs).extracting(Organization::getId).containsExactly(org4.getId(), org1.getId(), org3.getId());
   }
 
@@ -352,8 +352,7 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     Organization org4 = tempEntity.newOrganizationWithRepositoryManager("org-with-repo-manager");
 
     List<Organization> orgs = dao.getByNamesAndWithoutRelatedRepositories(
-        Sets.newHashSet(org3.getName(), org1.getName(), org4.getName())
-    );
+        Sets.newHashSet(org3.getName(), org1.getName(), org4.getName()));
     assertThat(orgs).extracting(Organization::getId).containsExactly(org1.getId(), org3.getId());
   }
 
@@ -740,9 +739,11 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     List<Entry<String, String>> mappings = getRandomMappings();
 
     ScmUserMappings scmUserMappings = new ScmUserMappingsBuilder()
-        .withId().withRoleId(Role.DEVELOPER_ROLE_ID)
+        .withId()
+        .withRoleId(Role.DEVELOPER_ROLE_ID)
         .withMappings(mappings)
-        .withOrganizationId(organization.getId()).build();
+        .withOrganizationId(organization.getId())
+        .build();
 
     scmUserMappingsDAO.addOrUpdate(scmUserMappings);
 
@@ -812,8 +813,7 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
         true,
         "creatorId",
         "creatorName",
-        new Date()
-    );
+        new Date());
 
     AutoPolicyWaiver autoPolicyWaiverTwo = new AutoPolicyWaiver(
         organization.getId(),
@@ -822,8 +822,7 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
         true,
         "creatorId",
         "creatorName",
-        new Date()
-    );
+        new Date());
 
     AutoPolicyWaiver autoPolicyWaiverThree = new AutoPolicyWaiver(
         organization.getId(),
@@ -832,8 +831,7 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
         true,
         "creatorId",
         "creatorName",
-        new Date()
-    );
+        new Date());
 
     AutoPolicyWaiver autoPolicyWaiverFour = new AutoPolicyWaiver(
         "otherOrg",
@@ -842,8 +840,7 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
         true,
         "creatorId",
         "creatorName",
-        new Date()
-    );
+        new Date());
 
     AutoPolicyWaiver autoPolicyWaiverFive = new AutoPolicyWaiver(
         "otherOrg",
@@ -852,8 +849,7 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
         true,
         "creatorId",
         "creatorName",
-        new Date()
-    );
+        new Date());
 
     AutoPolicyWaiverDAO autoPolicyWaiverDAO = daoFactory.createAutoPolicyWaiverDAO();
     autoPolicyWaiverDAO.insert(autoPolicyWaiverOne);
@@ -907,8 +903,10 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     automaticApplicationsConfigurationDAO.setEnabled(true);
     automaticApplicationsConfigurationDAO.setOrganizationId(organizationId);
 
-    assertThatThrownBy(() -> dao.delete(organization)).isInstanceOf(BadRequestException.class).hasMessage(
-        "Cannot delete the parent organization for automatic application creation: " + organization.getName() + ".");
+    assertThatThrownBy(() -> dao.delete(organization)).isInstanceOf(BadRequestException.class)
+        .hasMessage(
+            "Cannot delete the parent organization for automatic application creation: " + organization.getName()
+                + ".");
 
     automaticApplicationsConfigurationDAO.setOrganizationId("");
     dao.delete(organization);
@@ -1248,21 +1246,21 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
     // === For App Orgs ==
     var results = dao.getAllParentOrganizations(
-        Lists .newArrayList(org3.getId()),
+        Lists.newArrayList(org3.getId()),
         OwnerType.ORGANIZATION);
 
     assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
         .containsExactlyInAnyOrder(ROOT_ORGANIZATION_ID, org1.getId(), org2.getId(), org3.getId());
 
     results = dao.getAllParentOrganizations(
-        Lists .newArrayList(org6.getId()),
+        Lists.newArrayList(org6.getId()),
         OwnerType.ORGANIZATION);
 
     assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
         .containsExactlyInAnyOrder(ROOT_ORGANIZATION_ID, org6.getId(), org5.getId(), org4.getId());
 
     results = dao.getAllParentOrganizations(
-        Lists .newArrayList(org3.getId(), org6.getId()),
+        Lists.newArrayList(org3.getId(), org6.getId()),
         OwnerType.ORGANIZATION);
 
     assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
@@ -1272,7 +1270,7 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
             org6.getId(), org5.getId(), org4.getId());
 
     results = dao.getAllParentOrganizations(
-        Lists .newArrayList(org2.getId(), org4.getId()),
+        Lists.newArrayList(org2.getId(), org4.getId()),
         OwnerType.ORGANIZATION);
 
     assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
@@ -1280,37 +1278,37 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
     // === For App Ids ==
     results = dao.getAllParentOrganizations(
-        Lists .newArrayList(app1.getId()),
+        Lists.newArrayList(app1.getId()),
         OwnerType.APPLICATION);
 
     assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
         .containsExactlyInAnyOrder(ROOT_ORGANIZATION_ID, org1.getId(), org2.getId(), org3.getId());
 
     results = dao.getAllParentOrganizations(
-        Lists .newArrayList(app2.getId()),
+        Lists.newArrayList(app2.getId()),
         OwnerType.APPLICATION);
 
     assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
         .containsExactlyInAnyOrder(ROOT_ORGANIZATION_ID, org1.getId(), org2.getId());
 
     results = dao.getAllParentOrganizations(
-        Lists .newArrayList(app2.getId(), app3.getId()),
+        Lists.newArrayList(app2.getId(), app3.getId()),
         OwnerType.APPLICATION);
 
     assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
         .containsExactlyInAnyOrder(
             ROOT_ORGANIZATION_ID, org1.getId(), org2.getId(), org6.getId(), org5.getId(), org4.getId());
 
-    // empty if the ids don't match  the type provided
+    // empty if the ids don't match the type provided
     results = dao.getAllParentOrganizations(
-        Lists .newArrayList(app1.getId()),
+        Lists.newArrayList(app1.getId()),
         OwnerType.ORGANIZATION);
 
     assertThat(results).isEmpty();
 
     // === No Owner Type Allows Mixed Ids ===
     results = dao.getAllParentOrganizations(
-        Lists .newArrayList(app2.getId(), org6.getId()),
+        Lists.newArrayList(app2.getId(), org6.getId()),
         null);
 
     assertThat(results.stream().map(Organization::getId).collect(Collectors.toSet()))
@@ -1347,7 +1345,8 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
         .extracting(Organization::getId)
         .containsExactly(org11.getId());
 
-    List<String> childOrgIds = dao.getAllChildOrganizations(ROOT_ORGANIZATION_ID).stream()
+    List<String> childOrgIds = dao.getAllChildOrganizations(ROOT_ORGANIZATION_ID)
+        .stream()
         .map(Organization::getId)
         .collect(Collectors.toList());
 

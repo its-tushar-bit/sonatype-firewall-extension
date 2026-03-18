@@ -105,8 +105,7 @@ public class SpdxToCycloneDxExporterTest
         versionService,
         apiReportDataServiceV2,
         licenseResolutionService,
-        buildThirdPartyPersistenceService()
-    );
+        buildThirdPartyPersistenceService());
     app = tempEntity.newApplicationWithParent();
   }
 
@@ -169,7 +168,8 @@ public class SpdxToCycloneDxExporterTest
         .withTargetFormat(SbomFormat.XML);
     spdxToCycloneDxExporter.setExportParams(exportParams);
     String actual = spdxToCycloneDxExporter.export();
-    XmlAssert.assertThat(actual).and(readFileToString("outputs/" + outputFileName))
+    XmlAssert.assertThat(actual)
+        .and(readFileToString("outputs/" + outputFileName))
         .withNodeFilter(cycloneDxIgnoreNodesFilter())
         .withAttributeFilter(cycloneDxIgnoreAttributesFilter())
         .ignoreWhitespace()
@@ -193,8 +193,7 @@ public class SpdxToCycloneDxExporterTest
         "abcdef",
         "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
         "log4j-core-2.13.2.jar",
-        "similar"
-    );
+        "similar");
 
     tempEntity.newThirdPartyFileCoordinateWithMatchState(tpf,
         "source",
@@ -204,17 +203,17 @@ public class SpdxToCycloneDxExporterTest
         "1111111",
         "pkg:maven/junit/junit@4.12?type=jar",
         "junit-4.12.jar",
-        "exact"
-    );
+        "exact");
 
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
         .withExportSpecification(SbomExportParams.ExportSpecification.CYCLONEDX_15)
         .withTargetFormat(SbomFormat.XML);
     spdxToCycloneDxExporter.setExportParams(exportParams);
     String actual = spdxToCycloneDxExporter.export();
-    XmlAssert.assertThat(actual).and(readFileToString("outputs/output_cdx-v_1_5-similar-components.xml"))
+    XmlAssert.assertThat(actual)
+        .and(readFileToString("outputs/output_cdx-v_1_5-similar-components.xml"))
         .withNodeFilter(cycloneDxIgnoreNodesFilter())
-        .withNodeFilter( n -> n.getNodeName().equals("vulnerabilities"))
+        .withNodeFilter(n -> n.getNodeName().equals("vulnerabilities"))
         .withAttributeFilter(cycloneDxIgnoreAttributesFilter())
         .ignoreWhitespace()
         .areIdentical();
@@ -230,7 +229,7 @@ public class SpdxToCycloneDxExporterTest
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), "1.0-SNAPSHOT", ACTIVE,
             sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
-    //mock sonatype vulnerability
+    // mock sonatype vulnerability
     tempEntity.newThirdPartyCoordinateSecurity(core, "sonatype-2022-6438",
         "Sonatype: The jackson-core package is vulnerable to a Denial of Service (DoS) attack.",
         "http://localhost:8070/ui/links/vln/sonatype-2022-6438", 8.0, "High", "SONAYPE",
@@ -274,7 +273,7 @@ public class SpdxToCycloneDxExporterTest
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), "1.0-SNAPSHOT", ACTIVE,
             sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
-    //mock sonatype vulnerability
+    // mock sonatype vulnerability
     tempEntity.newThirdPartyCoordinateLicense(core, "BSD-3-Clause", "BSD-3-Clause", "", "SONATYPE");
     tempEntity.newThirdPartyCoordinateLicense(databind, "MIT", "MIT", "", "SONATYPE");
 
@@ -335,7 +334,7 @@ public class SpdxToCycloneDxExporterTest
             sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
     ComponentIdentifier id = new PackageUrlIdentifier(core.getPackageUrl()).toComponentIdentifier();
     id.ensureComplete();
-    //mock license override
+    // mock license override
     tempEntity.newLicenseOverride(app.getId(), id, LicenseOverrideStatus.OVERRIDDEN, Set.of("GPL-3.0", "Aladdin"));
 
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
@@ -359,7 +358,7 @@ public class SpdxToCycloneDxExporterTest
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), "1.0-SNAPSHOT", ACTIVE,
             sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
-    //mock sonatype vulnerability
+    // mock sonatype vulnerability
     tempEntity.newThirdPartyCoordinateLicense(databind, "Not-Supported", "Not Supported", "", "SONATYPE");
     tempEntity.newThirdPartyCoordinateLicense(databind, "Sonatype-Private", "Sonatype Private", "", "SONATYPE");
 
@@ -387,10 +386,10 @@ public class SpdxToCycloneDxExporterTest
   }
 
   private Map<String, Object> mockOriginalThirdPartyScan() {
-    //scan
+    // scan
     ThirdPartyFile tpFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(tpFile);
-    //coordinates
+    // coordinates
     ThirdPartyFileCoordinate databind =
         tempEntity.newThirdPartyFileCoordinate(tpFile, "Third-Party", "maven", "jackson-databind", "2.13.3",
             "2dc096121af49cea9299", "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar",
@@ -405,7 +404,7 @@ public class SpdxToCycloneDxExporterTest
             "ab4b99bf70ab45d4e745165b2d2d8f81fe53ff7e");
     tempEntity.newThirdPartyFileCoordinate(tpFile, "Third-Party", "maven", "parentApp", "1.0-SNAPSHOT",
         "e33c095684013cced9f4", "pkg:maven/org.example/JavaPlay@1.0-SNAPSHOT?type=jar");
-    //security
+    // security
     tempEntity.newThirdPartyCoordinateSecurity(databind, "CVE-2022-42003",
         "In FasterXML jackson-databind before versions 2.13.4.1 and 2.12.17.1, resource exhaustion can occur.",
         "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-42003", 7.5d, "HIGH", "NVD",
@@ -414,7 +413,7 @@ public class SpdxToCycloneDxExporterTest
         "FasterXML jackson-databind before 2.13.4, resource exhaustion can occur due to lack of a check",
         "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-42004", 7.5d, "HIGH", "NVD",
         " CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "HIGH", "502", "", "", "", "SBOM");
-    //license
+    // license
     tempEntity.newThirdPartyCoordinateLicense(databind, "Apache-2.0", "Apache-2.0", "", "SBOM");
     tempEntity.newThirdPartyCoordinateLicense(annotations, "Apache-2.0", "Apache-2.0", "", "SBOM");
     tempEntity.newThirdPartyCoordinateLicense(core, "Apache-2.0", "Apache-2.0", "", "SBOM");

@@ -29,7 +29,8 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
+public class ApiFirewallCascadeResourceTest
+    extends AbstractResourceTest
 {
   @Test
   public void testInitiateCascadeReevaluation_Success() throws Exception {
@@ -167,7 +168,7 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
     hdsResult.components.add(componentEvaluationData);
     getHdsServer().respondWith(hdsResult).atUri("/rest/component/details/firewall");
 
-    //call to start the cascade request
+    // call to start the cascade request
     HttpResponse responseCreateRequest = restRequest()
         .path(uri)
         .post();
@@ -343,7 +344,7 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
 
     String uri = PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/componentHash/" + componentHash;
 
-    //call to start the cascade request
+    // call to start the cascade request
     HttpResponse responseCreateRequest = restRequest()
         .path(uri)
         .post();

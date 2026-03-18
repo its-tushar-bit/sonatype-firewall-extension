@@ -81,7 +81,7 @@ public class DashboardFilterDAO
    * Before Insight Brain 1.76, dashboard filters stored the username as the user entered it at login time,
    * not as it is stored in the authentication realm.
    * This means there may be multiple filters with the same name and same case insensitive username.
-   * 
+   *
    * This method tries first to find a match by username case sensitive, then by username case insensitive.
    * In both cases, if there are multiple filters, then this method will return only one of those filters.
    */

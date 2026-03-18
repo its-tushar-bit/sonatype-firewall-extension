@@ -49,20 +49,20 @@ public class TenantSizeMetricsJob
   private static final String VIEW_EXISTS = "SELECT COUNT(*) FROM pg_matviews WHERE matviewname = 'schema_size'";
 
   private static final String CREATE_MATERIALIZE_VIEW = """
-    CREATE MATERIALIZED VIEW public.schema_size AS
-    SELECT
-      schema_name,
-      sum(table_size) as schema_size,
-      round((sum(table_size) / database_size) * 100, 2) as percentage_of_db
-      FROM (
-          SELECT pg_catalog.pg_namespace.nspname as schema_name,
-          pg_relation_size(pg_catalog.pg_class.oid) as table_size,
-      sum(pg_relation_size(pg_catalog.pg_class.oid)) over () as database_size
-      FROM   pg_catalog.pg_class
-      JOIN pg_catalog.pg_namespace ON relnamespace = pg_catalog.pg_namespace.oid
-    ) t
-    GROUP BY schema_name, database_size
-    ORDER BY sum(table_size) DESC;""";
+      CREATE MATERIALIZED VIEW public.schema_size AS
+      SELECT
+        schema_name,
+        sum(table_size) as schema_size,
+        round((sum(table_size) / database_size) * 100, 2) as percentage_of_db
+        FROM (
+            SELECT pg_catalog.pg_namespace.nspname as schema_name,
+            pg_relation_size(pg_catalog.pg_class.oid) as table_size,
+        sum(pg_relation_size(pg_catalog.pg_class.oid)) over () as database_size
+        FROM   pg_catalog.pg_class
+        JOIN pg_catalog.pg_namespace ON relnamespace = pg_catalog.pg_namespace.oid
+      ) t
+      GROUP BY schema_name, database_size
+      ORDER BY sum(table_size) DESC;""";
 
   private static final String REFRESH_MATERIALIZED_VIEW = "REFRESH MATERIALIZED VIEW public.schema_size";
 
@@ -103,7 +103,8 @@ public class TenantSizeMetricsJob
   public void execute(JobExecutionContext context) {
     log.info("Updating materialized view for tenant database schema sizes");
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-         Statement statement = connection.createStatement()) {
+        Statement statement = connection.createStatement())
+    {
       if (viewExists(statement)) {
         refreshMaterializedView(statement);
       }

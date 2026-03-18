@@ -105,8 +105,8 @@ public class TenantSsoConfigurationServiceTest
 
       assertThatThrownBy(
           () -> underTest.syncSsoProviderDataSources(tenant.tenantSlug))
-          .withFailMessage("Tenant doesn't exist")
-          .isInstanceOf(NotFoundException.class);
+              .withFailMessage("Tenant doesn't exist")
+              .isInstanceOf(NotFoundException.class);
     });
   }
 
@@ -117,8 +117,8 @@ public class TenantSsoConfigurationServiceTest
 
       assertThatThrownBy(
           () -> underTest.syncSsoProviderDataSources(tenant.tenantSlug))
-          .withFailMessage("Invalid tenant")
-          .isInstanceOf(BadRequestException.class);
+              .withFailMessage("Invalid tenant")
+              .isInstanceOf(BadRequestException.class);
     });
   }
 
@@ -180,8 +180,8 @@ public class TenantSsoConfigurationServiceTest
 
       assertThatThrownBy(
           () -> underTest.updateSsoConfiguration(ssoConfigurationDTO, tenant.tenantSlug))
-          .withFailMessage("Tenant doesn't exist")
-          .isInstanceOf(NotFoundException.class);
+              .withFailMessage("Tenant doesn't exist")
+              .isInstanceOf(NotFoundException.class);
     });
   }
 
@@ -194,8 +194,8 @@ public class TenantSsoConfigurationServiceTest
 
       assertThatThrownBy(
           () -> underTest.updateSsoConfiguration(ssoConfigurationDTO, tenant.tenantSlug))
-          .withFailMessage("Invalid tenant")
-          .isInstanceOf(BadRequestException.class);
+              .withFailMessage("Invalid tenant")
+              .isInstanceOf(BadRequestException.class);
     });
   }
 

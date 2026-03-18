@@ -33,8 +33,8 @@ public abstract class AbstractDataSourceProviderTest
     final List<Object[]> testIterations = new ArrayList<>();
     testIterations.add(new Object[]{"default DatabaseConfig", newTestDatabaseConfig()});
     testIterations.add(new Object[]{
-        "customized DatabaseConfig",
-        newTestDatabaseConfig(10, 11, "sessionVariables", "options", "applicationName")
+      "customized DatabaseConfig",
+      newTestDatabaseConfig(10, 11, "sessionVariables", "options", "applicationName")
     });
     return testIterations;
   }
@@ -79,12 +79,11 @@ public abstract class AbstractDataSourceProviderTest
         databaseConfig.isAccessToUnderlyingConnectionAllowed());
 
     assertThat(basicDataSource.getMaxTotal()).isEqualTo(
-        databaseConfig.getMaxConnections() == null ? DEFAULT_MAX_CONNECTIONS : databaseConfig.getMaxConnections()
-    );
+        databaseConfig.getMaxConnections() == null ? DEFAULT_MAX_CONNECTIONS : databaseConfig.getMaxConnections());
     assertThat(basicDataSource.getMaxIdle()).isEqualTo(
-        databaseConfig.getMaxIdleConnections() ==
-            null ? DEFAULT_MAX_CONNECTIONS : databaseConfig.getMaxIdleConnections()
-    );
+        databaseConfig.getMaxIdleConnections() == null
+            ? DEFAULT_MAX_CONNECTIONS
+            : databaseConfig.getMaxIdleConnections());
 
     // BasicDataSource#connectionProperties is package-private :(. Enter boss mode.
     try {

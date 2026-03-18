@@ -219,7 +219,8 @@ public class ProprietaryConfigService
   }
 
   private void auditProprietaryConfigUpdates(final ProprietaryConfig proprietaryConfig) {
-    AuditData.get().setData("packageMatchers", proprietaryConfig.getPackages())
+    AuditData.get()
+        .setData("packageMatchers", proprietaryConfig.getPackages())
         .setData("regexMatchers", proprietaryConfig.getRegexes());
   }
 

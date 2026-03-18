@@ -272,10 +272,11 @@ public class WebhookDispatcherAuditTest
     assertWebhookData(auditDTO, webhook, WebhookEventType.APPLICATION_EVALUATION, true);
   }
 
-  private void assertWebhookData(final AuditDTO auditDTO,
-                                 final Webhook webhook,
-                                 WebhookEventType webhookEventType,
-                                 boolean withDelivery)
+  private void assertWebhookData(
+      final AuditDTO auditDTO,
+      final Webhook webhook,
+      WebhookEventType webhookEventType,
+      boolean withDelivery)
   {
     assertCustomData(auditDTO, "webhookdId", webhook.getId());
     assertCustomData(auditDTO, "webhookUrl", webhook.getUrl());

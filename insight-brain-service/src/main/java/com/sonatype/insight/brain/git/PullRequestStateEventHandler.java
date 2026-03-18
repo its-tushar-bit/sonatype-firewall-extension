@@ -116,8 +116,7 @@ public class PullRequestStateEventHandler
               "SourceControlEvent %s is a BATCH_PR_STATE_UPDATE_EVENT event but is " +
                   "for non-batch-capable SCM provider %s",
               event,
-              prInfoProvider.getClass().getName()
-          );
+              prInfoProvider.getClass().getName());
           throw new IllegalArgumentException(message);
         }
         break;
@@ -207,8 +206,7 @@ public class PullRequestStateEventHandler
   {
     SourceControlPullRequest pullRequest = sourceControlPullRequestDAO.getByApplicationIdAndPullRequestId(
         applicationId,
-        prNumber
-    );
+        prNumber);
 
     if (pullRequest == null) {
       log.warn("Pull request {} not found in database, cannot update state", prNumber);
@@ -252,7 +250,8 @@ public class PullRequestStateEventHandler
 
       // Note: gitlab doesn't have this info in the lifecycle response hence the extra null check
       if (prLifecycleInfo.getBaseCommitHash() != null &&
-          !Objects.equals(pullRequest.getBaseCommitHash(), prLifecycleInfo.getBaseCommitHash())) {
+          !Objects.equals(pullRequest.getBaseCommitHash(), prLifecycleInfo.getBaseCommitHash()))
+      {
         pullRequest.setBaseCommitHash(prLifecycleInfo.getBaseCommitHash());
         hasChanges = true;
       }
@@ -273,7 +272,7 @@ public class PullRequestStateEventHandler
     }
 
     sourceControlPullRequestDAO.update(pullRequest);
-    
+
     // Send telemetry when PR transitions to final states (MERGED/CLOSED)
     if (isPullRequestConcluded(oldState, pullRequest.getState())) {
       sendTelemetry(pullRequest, prLifecycleInfo);
@@ -299,7 +298,8 @@ public class PullRequestStateEventHandler
 
     if (isClosePrOnFailedChecksEnabled
         && sourceControl.getProvider() == SourceControlProvider.GITHUB
-        && hasPrFailedChecks(prLifecycleInfo)) {
+        && hasPrFailedChecks(prLifecycleInfo))
+    {
       closeReason = "**This pull request was automatically closed.**  \n" +
           "This automated pull request failed one or more required checks and has been closed, " +
           "per Lifecycle configuration.";
@@ -307,7 +307,8 @@ public class PullRequestStateEventHandler
 
     if (isClosePrOnFailedChecksEnabled
         && sourceControl.getProvider() == SourceControlProvider.GITLAB
-        && isMrCloseable(prLifecycleInfo)) {
+        && isMrCloseable(prLifecycleInfo))
+    {
       closeReason = "**This merge request was automatically closed.**  \n" +
           "This automated merge request failed one or more required checks and has been closed, " +
           "per Lifecycle configuration.";
@@ -317,13 +318,14 @@ public class PullRequestStateEventHandler
         .orElse(false);
 
     if (isClosePrAfterDaysOpenEnabled
-        && isPrOlderThanDays(pullRequest, sourceControl.getClosePrAfterDays())) {
+        && isPrOlderThanDays(pullRequest, sourceControl.getClosePrAfterDays()))
+    {
       String codeRequest = sourceControl.getProvider() == SourceControlProvider.GITLAB
           ? "merge request"
           : "pull request";
       closeReason = String.format("**This %s was automatically closed.**  \n" +
-        "This automated %s was not merged and has been closed after %s days of inactivity, " +
-        "per Lifecycle configuration.", codeRequest, codeRequest, sourceControl.getClosePrAfterDays());
+          "This automated %s was not merged and has been closed after %s days of inactivity, " +
+          "per Lifecycle configuration.", codeRequest, codeRequest, sourceControl.getClosePrAfterDays());
     }
 
     if (closeReason != null) {
@@ -366,8 +368,8 @@ public class PullRequestStateEventHandler
   }
 
   private boolean isPrOlderThanDays(
-        final SourceControlPullRequest pullRequest,
-        final int openLimitDays)
+      final SourceControlPullRequest pullRequest,
+      final int openLimitDays)
   {
     long daysOpen = ChronoUnit.DAYS.between(pullRequest.getCreateTime().toInstant(), Instant.now());
     return daysOpen > openLimitDays;
@@ -446,7 +448,8 @@ public class PullRequestStateEventHandler
     telemetryData.put("pull_request_creation_type", pullRequest.getSource().name());
 
     // Use real SCM timestamp if available, fallback to our detected update time
-    Date eventTime = prLifecycleInfo != null ? prLifecycleInfo.getMergedOrClosedDate()
+    Date eventTime = prLifecycleInfo != null
+        ? prLifecycleInfo.getMergedOrClosedDate()
         : pullRequest.getLastDetectedUpdateTime();
     if (eventTime == null) {
       eventTime = pullRequest.getLastDetectedUpdateTime();
@@ -458,7 +461,8 @@ public class PullRequestStateEventHandler
       telemetryData.put("event_type", "pr_merged");
     }
     else if (pullRequest.getState() == PullRequestState.CLOSED ||
-        pullRequest.getState() == PullRequestState.AUTO_CLOSED) {
+        pullRequest.getState() == PullRequestState.AUTO_CLOSED)
+    {
       telemetryData.put("event_type", "pr_closed_unmerged");
     }
 

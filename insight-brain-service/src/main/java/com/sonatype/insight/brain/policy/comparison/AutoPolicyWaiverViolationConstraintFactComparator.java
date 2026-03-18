@@ -16,25 +16,25 @@ import static com.sonatype.insight.brain.utils.CompareUtil.compareTo;
 /**
  * {@link Comparator} for {@link ConstraintFact} objects that compares them based on the following fields:
  * <ul>
- *   <li>constraintId</li>
- *   <li>constraintName</li>
- *   <li>operatorName</li>
- *   <li>conditionFacts</li>
- *  </ul>
+ * <li>constraintId</li>
+ * <li>constraintName</li>
+ * <li>operatorName</li>
+ * <li>conditionFacts</li>
+ * </ul>
  *
  * <p>
- *   The constraintId field is compared by its strings.
- *   <br>
- *   The constraintName field is compared by its strings.
- *   <br>
- *   The operatorName field is compared by its strings.
- *   <br>
- *   The conditionFacts field is compared by using the {@link AutoPolicyWaiverViolationConditionFactsListComparator}.
+ * The constraintId field is compared by its strings.
+ * <br>
+ * The constraintName field is compared by its strings.
+ * <br>
+ * The operatorName field is compared by its strings.
+ * <br>
+ * The conditionFacts field is compared by using the {@link AutoPolicyWaiverViolationConditionFactsListComparator}.
  * </p>
  *
  * <p>
- *   This comparison is done differently than in {@link ConstraintFactComparator} because the constraint facts
- *   here are checked for more than just conditionFacts and constraintId.
+ * This comparison is done differently than in {@link ConstraintFactComparator} because the constraint facts
+ * here are checked for more than just conditionFacts and constraintId.
  * </p>
  */
 public class AutoPolicyWaiverViolationConstraintFactComparator
@@ -71,7 +71,6 @@ public class AutoPolicyWaiverViolationConstraintFactComparator
 
     return CONDITION_FACTS_LIST_COMPARATOR.compare(
         constraintFact1.getConditionFacts(),
-        constraintFact2.getConditionFacts()
-    );
+        constraintFact2.getConditionFacts());
   }
 }

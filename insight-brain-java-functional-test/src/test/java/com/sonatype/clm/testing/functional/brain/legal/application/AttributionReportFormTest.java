@@ -50,7 +50,7 @@ public class AttributionReportFormTest
   private final String emptyValueValidationErrorMsg = "Report Title cannot be empty";
 
   private static final String UNSAVED_CHANGES_PROMPT =
-          "This template has unsaved changes. Are you sure you want to continue? All unsaved changes will be lost.";
+      "This template has unsaved changes. Are you sure you want to continue? All unsaved changes will be lost.";
 
   @BeforeClass
   public static void boot() {
@@ -64,25 +64,25 @@ public class AttributionReportFormTest
     final ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "033e7a20b23ea284d474", componentId);
     tempEntity.createNewAttributionReportTemplate(
-            "Template 1",
-            "Report Title 1",
-            "Header 1",
-            "Footer 1",
-            false,
-            false,
-            false,
-            true,
-            false);
+        "Template 1",
+        "Report Title 1",
+        "Header 1",
+        "Footer 1",
+        false,
+        false,
+        false,
+        true,
+        false);
     tempEntity.createNewAttributionReportTemplate(
-            "Template 2",
-            "Report Title 2",
-            "Header 2",
-            "Footer 2",
-            true,
-            false,
-            false,
-            false,
-            true);
+        "Template 2",
+        "Report Title 2",
+        "Header 2",
+        "Footer 2",
+        true,
+        false,
+        false,
+        false,
+        true);
   }
 
   @Test
@@ -115,8 +115,10 @@ public class AttributionReportFormTest
     SelenideElement titleInput = attrReportFormPage.getTitleInput();
     titleInput.setValue("a");
     titleInput.sendKeys(Keys.BACK_SPACE);
-    titleInput.parent().parent().$(".nx-field-validation-message")
-            .shouldHave(text(emptyValueValidationErrorMsg));
+    titleInput.parent()
+        .parent()
+        .$(".nx-field-validation-message")
+        .shouldHave(text(emptyValueValidationErrorMsg));
   }
 
   @Test
@@ -206,16 +208,16 @@ public class AttributionReportFormTest
 
   private void triggerFormSubmit(AttributionReportFormPage attrReportFormPage) {
     Wait<WebDriver> wait = new FluentWait<>(getWebDriver())
-            .withTimeout(Duration.ofSeconds(240))
-            .pollingEvery(Duration.ofSeconds(5))
-            .ignoring(NoSuchElementException.class);
+        .withTimeout(Duration.ofSeconds(240))
+        .pollingEvery(Duration.ofSeconds(5))
+        .ignoring(NoSuchElementException.class);
 
     attrReportFormPage.getFormSubmitBtn().click();
 
     wait.until(ExpectedConditions.numberOfWindowsToBe(2));
     switchTo().window(1);
     Assert.assertTrue(getWebDriver().getCurrentUrl()
-            .matches(".*licenseLegalMetadata/application/AttributionReportFormTest/stage/build/report"));
+        .matches(".*licenseLegalMetadata/application/AttributionReportFormTest/stage/build/report"));
   }
 
   @Test
@@ -288,7 +290,7 @@ public class AttributionReportFormTest
   @Test
   public void testUnsavedChangesModal() {
     AttributionReportFormPage.UnsavedChangesDialog unsavedChangesDialog =
-            new AttributionReportFormPage.UnsavedChangesDialog();
+        new AttributionReportFormPage.UnsavedChangesDialog();
     AttributionReportFormPage attrReportFormPage = new AttributionReportFormPage();
     refreshOrOpen(AttributionReportFormPage.url(app.getPublicId(), BuildStageType.ID));
     attrReportFormPage.getTitleInput().setValue("Another text");
@@ -334,7 +336,7 @@ public class AttributionReportFormTest
     AttributionReportFormPage attrReportFormPage = new AttributionReportFormPage();
     refreshOrOpen(AttributionReportFormPage.url(app.getPublicId(), BuildStageType.ID));
     AttributionReportFormPage.UnsavedChangesDialog unsavedChangesDialog =
-            new AttributionReportFormPage.UnsavedChangesDialog();
+        new AttributionReportFormPage.UnsavedChangesDialog();
     this.testCustomValuesToTemplate(attrReportFormPage);
 
     // selecting the same template should replace the existing changes with the default template values

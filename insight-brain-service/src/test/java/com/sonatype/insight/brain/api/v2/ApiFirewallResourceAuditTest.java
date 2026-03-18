@@ -41,23 +41,23 @@ public class ApiFirewallResourceAuditTest
 
   @Test
   public void testSetFirewallAutoUnquarantineConfig() throws Exception {
-    //setup: add new dto to list
+    // setup: add new dto to list
     List<ApiFirewallReleaseQuarantineConfigDTO> list = new ArrayList<>();
     ApiFirewallReleaseQuarantineConfigDTO dto = new ApiFirewallReleaseQuarantineConfigDTO();
     dto.autoReleaseQuarantineEnabled = true;
     dto.id = LicenseConditionType.ID;
     list.add(dto);
 
-    //when: setting firewall auto unquarantine config
+    // when: setting firewall auto unquarantine config
     HttpResponse response = restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
         ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).body(list).put();
     ApiFirewallReleaseQuarantineConfigDTO[] dtos = response.getBody(ApiFirewallReleaseQuarantineConfigDTO[].class);
     assertResponseStatus(200, response);
 
-    //then: expect returned dtos to be greater than zero
+    // then: expect returned dtos to be greater than zero
     assertThat(dtos).isNotNull().isNotEmpty();
 
-    //then: expect audit log entries to be created
+    // then: expect audit log entries to be created
     AuditDTO auditLog = awaitLogEntries(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, 1).get(0);
     assertRepositoryContainerData(auditLog);
     assertCustomData(auditLog, "stageId", StageTypes.PROXY.getId());
@@ -102,7 +102,8 @@ public class ApiFirewallResourceAuditTest
 
     HttpResponse response =
         restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGERS_PATH)
-            .body(apiRepositoryManagerDTO).post();
+            .body(apiRepositoryManagerDTO)
+            .post();
 
     assertResponseStatus(200, response);
     apiRepositoryManagerDTO = response.getBody(ApiRepositoryManagerDTO.class);
@@ -120,7 +121,9 @@ public class ApiFirewallResourceAuditTest
     apiRepositoryManagerDTO.productVersion = "testProductVersion";
 
     restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGERS_PATH)
-            .with(unauthorizedUser()).body(apiRepositoryManagerDTO).post();
+        .with(unauthorizedUser())
+        .body(apiRepositoryManagerDTO)
+        .post();
 
     assertAuditLog(AuditEvent.CREATE_REPOSITORY_MANAGER, "unauthorized");
   }
@@ -129,7 +132,8 @@ public class ApiFirewallResourceAuditTest
   public void testDeleteRepositoryManager() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGER_PATH)
-        .parameter(repositoryManager.getId()).delete();
+        .parameter(repositoryManager.getId())
+        .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_REPOSITORY_MANAGER, null /* error */);
     assertRepositoryManagerData(auditDTO, repositoryManager);
@@ -139,7 +143,9 @@ public class ApiFirewallResourceAuditTest
   public void testDeleteRepositoryManager_Unauthorized() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.REPOSITORY_MANAGER_PATH)
-        .parameter(repositoryManager.getId()).with(unauthorizedUser()).delete();
+        .parameter(repositoryManager.getId())
+        .with(unauthorizedUser())
+        .delete();
 
     assertAuditLog(AuditEvent.DELETE_REPOSITORY_MANAGER, "unauthorized");
   }

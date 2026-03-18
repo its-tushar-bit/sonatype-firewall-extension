@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.time.LocalDateTime;
@@ -180,7 +181,8 @@ public class SourceControlEventDAOTest
     // given: an event that satisfies the given parameters
     SourceControlEvent event = getNewSourceControlEvent()
         .setEventStatus(eventStatus)
-        .setInstanceId(isUnassigned ? null
+        .setInstanceId(isUnassigned
+            ? null
             : (isActiveInstance ? StaleEventTestData.activeInstanceId : StaleEventTestData.inactiveInstanceId));
 
     switch (eventStatus) {
@@ -217,8 +219,8 @@ public class SourceControlEventDAOTest
 
     // stale 'new' and 'in progress' events for non-active instances should be reset
     // as well as stale unassigned events stuck 'in progress'
-    final boolean expectReset = isStaleEvent && (
-        isInactiveAndResettable(isActiveInstance, eventStatus) || isUnassignedInProgress(isUnassigned, eventStatus));
+    final boolean expectReset = isStaleEvent && (isInactiveAndResettable(isActiveInstance, eventStatus)
+        || isUnassignedInProgress(isUnassigned, eventStatus));
 
     if (expectReset) {
       assertThat(fetchedEvent.getEventStatus()).isEqualTo(EVENT_STATUS_NEW);
@@ -293,7 +295,8 @@ public class SourceControlEventDAOTest
       assertThat(fetchedEvent.getScmUsername()).isEqualTo(event.getScmUsername());
 
       if ("user1".equalsIgnoreCase(event.getScmUsername())
-          && EVENT_STATUS_NEW.equalsIgnoreCase(event.getEventStatus())) {
+          && EVENT_STATUS_NEW.equalsIgnoreCase(event.getEventStatus()))
+      {
         assertThat(fetchedEvent.getInstanceId()).isNull();
       }
       else {
@@ -561,7 +564,7 @@ public class SourceControlEventDAOTest
     createNewSourceControlEvaluationEvent(app2.getId(), EVENT_STATUS_ERROR);
     createNewSourceControlEvents(3);
 
-    // when:  get new and in progress events
+    // when: get new and in progress events
     List<SourceControlEvent> events = sourceControlEventDAO.getPendingOrInProgressSourceControlEvaluationEvents();
 
     // then:
@@ -652,7 +655,7 @@ public class SourceControlEventDAOTest
     // then: should already exist
     assertThat(sourceControlEventDAO.hasRemediationEventForBranch(app.getId(), branchName)).isTrue();
 
-    //when: create a manual remediation event for the given branch
+    // when: create a manual remediation event for the given branch
     sourceControlEventDAO.delete(event);
     event = getNewSourceControlEvent();
     event.setBranchName(branchName);
@@ -898,15 +901,15 @@ public class SourceControlEventDAOTest
 
   @Test
   public void testClearEventsAndInsert() {
-    //Given: Application with 2 existing events
+    // Given: Application with 2 existing events
     createNewSourceControlEvents(2);
     assertThat(sourceControlEventDAO.getAllByApplicationId(app.getId())).hasSize(2);
 
-    //When: Clear and add new event
+    // When: Clear and add new event
     SourceControlEvent sourceControlEvent = getNewSourceControlEvent();
     sourceControlEventDAO.clearEventsAndInsert(sourceControlEvent);
 
-    //Then: existing events for application is cleared and new event inserted
+    // Then: existing events for application is cleared and new event inserted
     List<SourceControlEvent> sourceControlEvents = sourceControlEventDAO.getAllByApplicationId(app.getId());
     assertThat(sourceControlEvents).isNotNull();
     assertThat(sourceControlEvents).hasSize(1);
@@ -935,8 +938,9 @@ public class SourceControlEventDAOTest
         .getPendingOrInProgressUpdatedPullRequestEvents(Arrays.asList(app.getId(), app2.getId()), 1);
 
     // then:
-    assertThat(events).extracting(SourceControlEvent::getId).containsExactlyInAnyOrder(expectedEvent1.getId(),
-        expectedEvent2.getId(), expectedEvent3.getId(), expectedEvent4.getId());
+    assertThat(events).extracting(SourceControlEvent::getId)
+        .containsExactlyInAnyOrder(expectedEvent1.getId(),
+            expectedEvent2.getId(), expectedEvent3.getId(), expectedEvent4.getId());
   }
 
   @Test
@@ -1310,12 +1314,12 @@ public class SourceControlEventDAOTest
     List<SourceControlEvent> events = sourceControlEventDAO.getPullRequestStateUpdateEventsForApplication(app.getId());
 
     // then: only PR_STATE_UPDATE_EVENT and BATCH_PR_STATE_UPDATE_EVENT events for app1 should be returned
-    assertThat(events).extracting(SourceControlEvent::getId).containsExactlyInAnyOrder(
-        prStateUpdateEvent1.getId(),
-        prStateUpdateEvent2.getId(),
-        batchPrStateUpdateEvent1.getId(),
-        batchPrStateUpdateEvent2.getId()
-    );
+    assertThat(events).extracting(SourceControlEvent::getId)
+        .containsExactlyInAnyOrder(
+            prStateUpdateEvent1.getId(),
+            prStateUpdateEvent2.getId(),
+            batchPrStateUpdateEvent1.getId(),
+            batchPrStateUpdateEvent2.getId());
 
     // verify all retrieved events have the correct event type and application ID
     assertThat(events).allSatisfy(event -> {
@@ -1329,10 +1333,10 @@ public class SourceControlEventDAOTest
         sourceControlEventDAO.getPullRequestStateUpdateEventsForApplication(app2.getId());
 
     // then: only PR_STATE_UPDATE_EVENT and BATCH_PR_STATE_UPDATE_EVENT events for app2 should be returned
-    assertThat(eventsForApp2).extracting(SourceControlEvent::getId).containsExactlyInAnyOrder(
-        prStateUpdateEvent3.getId(),
-        batchPrStateUpdateEvent3.getId()
-    );
+    assertThat(eventsForApp2).extracting(SourceControlEvent::getId)
+        .containsExactlyInAnyOrder(
+            prStateUpdateEvent3.getId(),
+            batchPrStateUpdateEvent3.getId());
 
     // verify all retrieved events have the correct event type and application ID
     assertThat(eventsForApp2).allSatisfy(event -> {
@@ -1425,21 +1429,21 @@ public class SourceControlEventDAOTest
 
     // then: only completed events for app with the target component completed between veryPastDate and now
     // should be returned
-    assertThat(events).extracting(SourceControlEvent::getId).containsExactlyInAnyOrder(
-        completedEvent1.getId(),
-        completedEvent2.getId(),
-        tooEarlyEvent.getId()
-    );
+    assertThat(events).extracting(SourceControlEvent::getId)
+        .containsExactlyInAnyOrder(
+            completedEvent1.getId(),
+            completedEvent2.getId(),
+            tooEarlyEvent.getId());
 
     // Test with a narrower time range that excludes the very past event
     var eventsInNarrowerRange = sourceControlEventDAO.getCompletedRemediationPullRequestEventsForAppComponent(
         app.getId(), componentId, pastDate, now);
 
     // Only events completed between pastDate and now should be returned
-    assertThat(eventsInNarrowerRange).extracting(SourceControlEvent::getId).containsExactlyInAnyOrder(
-        completedEvent1.getId(),
-        completedEvent2.getId()
-    );
+    assertThat(eventsInNarrowerRange).extracting(SourceControlEvent::getId)
+        .containsExactlyInAnyOrder(
+            completedEvent1.getId(),
+            completedEvent2.getId());
 
     // verify all retrieved events have the correct properties
     assertThat(eventsInNarrowerRange).allSatisfy(event -> {
@@ -1589,8 +1593,7 @@ public class SourceControlEventDAOTest
             .setEventStatus(eventStatus)
             .setInstanceId(instanceId)
             .setEventStatusDetails(statusDetails)
-            .setCreateTime(new Date())
-    );
+            .setCreateTime(new Date()));
   }
 
   private Date toDate(final LocalDateTime localDateTime) {

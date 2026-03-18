@@ -33,7 +33,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Entity
 @Table(name = "source_control_event")
-public class  SourceControlEvent
+public class SourceControlEvent
     extends HasComponentId
     implements HasStringId
 {
@@ -72,8 +72,7 @@ public class  SourceControlEvent
       REPOSITORY_URL_UPDATED_EVENT,
       SOURCE_CONTROL_EVALUATION_EVENT,
       STATUS_UPDATE_EVENT,
-      UPDATED_PULL_REQUEST_EVENT
-  );
+      UPDATED_PULL_REQUEST_EVENT);
 
   public static final String EVENT_STATUS_NEW = "new";
 
@@ -90,8 +89,7 @@ public class  SourceControlEvent
       EVENT_STATUS_IN_PROGRESS,
       EVENT_STATUS_PARTIALLY_COMPLETE,
       EVENT_STATUS_COMPLETE,
-      EVENT_STATUS_ERROR
-  );
+      EVENT_STATUS_ERROR);
 
   public static final int EVENT_PRIORITY_HIGHER = 1;
 
@@ -198,7 +196,7 @@ public class  SourceControlEvent
 
   /**
    * The trigger type for the policy evaluation if the event triggers a policy evaluation, null otherwise.
-   * 
+   *
    * @since 1.105
    */
   @Column(name = "scan_trigger_type")

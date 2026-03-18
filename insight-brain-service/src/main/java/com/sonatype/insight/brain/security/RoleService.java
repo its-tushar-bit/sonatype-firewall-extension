@@ -163,8 +163,9 @@ public class RoleService
     return convertPermissionsToDTO(EnumSet.noneOf(Permission.class), true);
   }
 
-  private List<PermissionCategoryDTO> convertPermissionsToDTO(final Set<Permission> permissions,
-                                                              final boolean customRole)
+  private List<PermissionCategoryDTO> convertPermissionsToDTO(
+      final Set<Permission> permissions,
+      final boolean customRole)
   {
     ListMultimap<PermissionCategory, PermissionDTO> permissionsByCategoryMap = ArrayListMultimap.create();
     for (Permission perm : EnumSet.allOf(Permission.class)) {

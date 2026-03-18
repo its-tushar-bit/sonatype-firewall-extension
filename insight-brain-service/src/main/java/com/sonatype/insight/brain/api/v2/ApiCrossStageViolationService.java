@@ -81,8 +81,8 @@ public class ApiCrossStageViolationService
 
   /**
    * Throws an exception if there is a violation equivalent to baseViolation that is open at the time that baseViolation
-   * is opened.  This is done to keep the API clear: CrossStageViolation ids are defined as the ids of the _first_
-   * violation that they aggregate.  The id of a non-first violation in the aggregation should be treated the same as
+   * is opened. This is done to keep the API clear: CrossStageViolation ids are defined as the ids of the _first_
+   * violation that they aggregate. The id of a non-first violation in the aggregation should be treated the same as
    * any other invalid id
    */
   public ApiCrossStageViolationDTOV2 getCrossStageViolationById(String violationId) {
@@ -147,9 +147,7 @@ public class ApiCrossStageViolationService
 
     // separate violations into those before and those after baseViolation
     Map<Boolean, List<PolicyViolation>> groupedViolations = allViolationsForApp.stream()
-        .collect(Collectors.groupingBy(viol ->
-            DATE_COMPARATOR.compare(viol.getOpenTime(), baseOpenTime) >= 0)
-        );
+        .collect(Collectors.groupingBy(viol -> DATE_COMPARATOR.compare(viol.getOpenTime(), baseOpenTime) >= 0));
 
     List<PolicyViolation> allEarlierViolations = groupedViolations.getOrDefault(false, Collections.emptyList());
     List<PolicyViolation> allLaterViolations = groupedViolations.getOrDefault(true, Collections.emptyList());
@@ -208,7 +206,8 @@ public class ApiCrossStageViolationService
       Date violationFixOrWaiveTime = violation.getFixOrWaiveTime();
 
       if (DATE_COMPARATOR.compare(violationFixOrWaiveTime, openTime) > 0 &&
-          policyViolationComparator.compare(baseViolation, violation) == 0) {
+          policyViolationComparator.compare(baseViolation, violation) == 0)
+      {
         // prepend in order to preserve order
         retval.add(0, violation);
 
@@ -229,8 +228,7 @@ public class ApiCrossStageViolationService
         violation.getApplicationId(),
         violation.getStageTypeId(),
         violation.getOpenTime(),
-        maxDate
-    );
+        maxDate);
 
     return latestEvaluationForViolation;
   }
@@ -292,8 +290,7 @@ public class ApiCrossStageViolationService
         .collect(Collectors.toMap(
             PolicyEvaluation::getStageTypeId,
             eval -> createStageData(eval, violationsByStageTypeId.get(eval.getStageTypeId())),
-            (first, later) -> later
-        ));
+            (first, later) -> later));
     dto.constraintViolations = PolicyViolationAdapter.convert(firstViolation);
 
     return dto;

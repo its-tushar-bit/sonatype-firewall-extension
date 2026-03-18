@@ -24,7 +24,7 @@ public class SecurityIssue
       final String policyViolationDetailsLink)
   {
     this.threatLevel = threatLevel;
-    this.severityInfo = severityInfo; //nullable in-case its not Vulnerability related
+    this.severityInfo = severityInfo; // nullable in-case its not Vulnerability related
     this.description = description;
     this.policyViolationDetailsLink = checkDefined(policyViolationDetailsLink, "policyViolationDetailsLink");
   }

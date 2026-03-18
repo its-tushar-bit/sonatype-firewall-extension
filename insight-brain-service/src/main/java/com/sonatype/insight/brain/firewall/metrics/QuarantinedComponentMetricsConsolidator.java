@@ -41,8 +41,7 @@ public class QuarantinedComponentMetricsConsolidator
   public QuarantinedComponentMetricsConsolidator(
       RepositoryComponentDAO repositoryComponentDAO,
       FirewallMetricsDAO firewallMetricsDAO,
-      ApiFirewallMetricsService apiFirewallMetricsService
-  )
+      ApiFirewallMetricsService apiFirewallMetricsService)
   {
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.firewallMetricsDAO = firewallMetricsDAO;
@@ -70,12 +69,11 @@ public class QuarantinedComponentMetricsConsolidator
       quarantinedComponentsCount = repositoryComponentDAO
           .getConsolidatedQuarantinedComponentsMetricByDate(
               DateConverter.toDate(
-                  LocalDate.now().minusMonths(12)
-              )
-          );
+                  LocalDate.now().minusMonths(12)));
     }
 
-    quarantinedComponentsCount.entrySet().stream()
+    quarantinedComponentsCount.entrySet()
+        .stream()
         .map(entry -> new FirewallMetrics(entry.getKey(), COMPONENTS_QUARANTINED, entry.getValue().intValue()))
         .forEach(firewallMetricsDAO::insertUpdateFirewallMetrics);
 

@@ -254,13 +254,12 @@ public class LegacyDataStoreMigrator
     catch (Exception e) {
       throw new RuntimeException(
           "Failed to execute the " + PostIncrementalMigrator.class.getSimpleName() + " referenced in " +
-              postIncrementalMigratorFileName + ".", e);
+              postIncrementalMigratorFileName + ".",
+          e);
     }
   }
 
-  public void runScript(final String setSchemaSql, final String scriptName)
-      throws SQLException
-  {
+  public void runScript(final String setSchemaSql, final String scriptName) throws SQLException {
     ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
     resourceDatabasePopulator.addScript(loadIncrementalScriptResource(scriptName));
     try (Connection conn = dataStore.getDataSource().getConnection()) {
@@ -307,7 +306,8 @@ public class LegacyDataStoreMigrator
     }
 
     try (Connection connection = dataSource.getConnection();
-         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        PreparedStatement preparedStatement = connection.prepareStatement(sql))
+    {
       connection.setAutoCommit(true);
       preparedStatement.setInt(1, schemaVersion);
       if (preparedStatement.getParameterMetaData().getParameterCount() == 2) {

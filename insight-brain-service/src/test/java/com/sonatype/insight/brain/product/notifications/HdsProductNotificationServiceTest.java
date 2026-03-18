@@ -154,8 +154,9 @@ public class HdsProductNotificationServiceTest
     return expectedProductNotificationList;
   }
 
-  private void assertNotifications(final List<ProductNotification> retrievedNotifications,
-                                   final List<ProductNotification> expectedNotifications)
+  private void assertNotifications(
+      final List<ProductNotification> retrievedNotifications,
+      final List<ProductNotification> expectedNotifications)
   {
     assertThat(retrievedNotifications).hasSameSizeAs(expectedNotifications);
     for (int i = 0; i < retrievedNotifications.size(); i++) {

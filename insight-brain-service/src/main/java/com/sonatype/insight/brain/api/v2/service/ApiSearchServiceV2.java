@@ -175,7 +175,7 @@ public class ApiSearchServiceV2
         results.results.add(result);
         result.threatLevel = getMaxThreatLevel(
             policyViolationDAO.getActiveByApplicationIdAndStageIdAndHash(app.getId(), stageId, candidateHash));
-        result.dependencyData =  getApiDependencyDataDTO(app, eval, candidateHash);
+        result.dependencyData = getApiDependencyDataDTO(app, eval, candidateHash);
         if (hash != null) {
           break;
         }

@@ -28,8 +28,8 @@ import static com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.isOpe
  * <p>
  * The test fixtures encapsulated are:
  * <ul>
- *   <li>the {@link SearchIndexFixture} itself </li>
- *   <li>the {@link SearchIndexType} (i.e. Lucene (default), OpenSearch)</li>
+ * <li>the {@link SearchIndexFixture} itself</li>
+ * <li>the {@link SearchIndexType} (i.e. Lucene (default), OpenSearch)</li>
  * </ul>
  * <p>
  * For each test it will manage if a new fixture needs to be provisioned.
@@ -37,6 +37,7 @@ import static com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.isOpe
  *
  * <p>
  * Example:
+ *
  * <pre>
  * {@code
  * @Rule(order = 2)
@@ -48,14 +49,15 @@ import static com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.isOpe
  * <p>
  * Notes:
  * <ul>
- *   <li>The 'order' <strong>MUST</strong> be a value greater than 1 which is reserved for the database.</li>
- *   <li>The default search index is Lucene.</li>
- *   <li>Use the {@link LuceneTest} annotation for a Lucene search index. Passed to {@link LuceneSearchIndexFixture}.</li>
- *   <li>Use the {@link OpenSearchHttpTest} annotation for an OpenSearch http-based search index. Passed to {@link OpenSearchHttpSearchIndexFixture}.</li>
- *   <li>Each annotation has some common options as well as some custom ones. Common options:</li>
- *   <ul>
- *     <li>Use the `forceClean` value on the annotations to force a new clean fixture to be provisioned</li>
- *   </ul>
+ * <li>The 'order' <strong>MUST</strong> be a value greater than 1 which is reserved for the database.</li>
+ * <li>The default search index is Lucene.</li>
+ * <li>Use the {@link LuceneTest} annotation for a Lucene search index. Passed to {@link LuceneSearchIndexFixture}.</li>
+ * <li>Use the {@link OpenSearchHttpTest} annotation for an OpenSearch http-based search index. Passed to
+ * {@link OpenSearchHttpSearchIndexFixture}.</li>
+ * <li>Each annotation has some common options as well as some custom ones. Common options:</li>
+ * <ul>
+ * <li>Use the `forceClean` value on the annotations to force a new clean fixture to be provisioned</li>
+ * </ul>
  * </ul>
  * </p>
  */
@@ -74,9 +76,9 @@ public class SearchIndexRule
    * Return the singleton {@link SearchIndexRule}
    *
    * @param baseTestClassType Any class that uses this rule to manage the fixture, should pass in its class type here.
-   *                          The value is tracked between subsequent tests and when the value changes it is considered
-   *                          as making the currently active fixture NOT reusable and therefore a fresh fixture will be
-   *                          automatically be re-provisioned
+   *          The value is tracked between subsequent tests and when the value changes it is considered
+   *          as making the currently active fixture NOT reusable and therefore a fresh fixture will be
+   *          automatically be re-provisioned
    */
   public static SearchIndexRule getInstance(Class<?> baseTestClassType) {
     if (currentTestClassType != baseTestClassType) {
@@ -126,6 +128,7 @@ public class SearchIndexRule
 
   public enum SearchIndexType
   {
-    LUCENE, OPENSEARCH_HTTP
+    LUCENE,
+    OPENSEARCH_HTTP
   }
 }

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2.service;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.File;
@@ -261,7 +262,8 @@ public class ApiSbomServiceTest
     Response response = service.getSbomVersion(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(),
         ApiSbomService.SBOM_STATE_ORIGINAL, "cyclonedx1.5", "application/xml");
     String actualContent = new String((byte[]) response.getEntity());
-    XmlAssert.assertThat(actualContent).and(expectedContentIn("third-party-simple-bom.xml"))
+    XmlAssert.assertThat(actualContent)
+        .and(expectedContentIn("third-party-simple-bom.xml"))
         .areIdentical();
   }
 
@@ -339,8 +341,7 @@ public class ApiSbomServiceTest
       SbomSpecification inputSpec,
       SbomFormat inputFormat,
       SbomSpecification outputSpec,
-      SbomFormat outputFormat)
-      throws Exception
+      SbomFormat outputFormat) throws Exception
   {
     Application app = tempEntity.newApplicationWithParent();
     String inputFileName = "sboms/valid-" + inputSpec.name().toLowerCase() + "-bom." + inputFormat.name().toLowerCase();
@@ -374,14 +375,16 @@ public class ApiSbomServiceTest
     }
     else {
       if (outputSpec == SbomSpecification.CYCLONEDX) {
-        XmlAssert.assertThat(sbomContent).and(expectedContentIn(outputFileName))
+        XmlAssert.assertThat(sbomContent)
+            .and(expectedContentIn(outputFileName))
             .withNodeFilter(cycloneDxIgnoreNodesFilter())
             .withAttributeFilter(cycloneDxIgnoreAttributesFilter())
             .ignoreWhitespace()
             .areIdentical();
       }
       else {
-        XmlAssert.assertThat(sbomContent).and(expectedContentIn(outputFileName))
+        XmlAssert.assertThat(sbomContent)
+            .and(expectedContentIn(outputFileName))
             .withNodeFilter(spdxDxIgnoreNodesFilter())
             .ignoreWhitespace()
             .areIdentical();
@@ -421,8 +424,8 @@ public class ApiSbomServiceTest
   public void testGetSbomVersion_InvalidTargetSpecification() {
     Application app = tempEntity.newApplicationWithParent();
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> service.getSbomVersion(app.getId(), "some-version", ApiSbomService.SBOM_STATE_CURRENT,
-                "invalid-spec", MediaType.APPLICATION_JSON))
+        () -> service.getSbomVersion(app.getId(), "some-version", ApiSbomService.SBOM_STATE_CURRENT,
+            "invalid-spec", MediaType.APPLICATION_JSON))
         .withMessage("requested output specification invalid-spec not supported");
   }
 
@@ -430,8 +433,8 @@ public class ApiSbomServiceTest
   public void testGetSbomVersion_InvalidExportFormat() {
     Application app = tempEntity.newApplicationWithParent();
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> service.getSbomVersion(app.getId(), "some-version", ApiSbomService.SBOM_STATE_CURRENT, "spdx2.3",
-                MediaType.APPLICATION_SVG_XML))
+        () -> service.getSbomVersion(app.getId(), "some-version", ApiSbomService.SBOM_STATE_CURRENT, "spdx2.3",
+            MediaType.APPLICATION_SVG_XML))
         .withMessage("requested output format application/svg+xml not supported");
   }
 
@@ -442,8 +445,7 @@ public class ApiSbomServiceTest
         "2.3",
         "spdx2.2",
         "Unable to export lower SBOM specification version 2.2. " +
-            "The original SPDX SBOM was already in version 2.3"
-    );
+            "The original SPDX SBOM was already in version 2.3");
   }
 
   @Test
@@ -453,8 +455,7 @@ public class ApiSbomServiceTest
         "1.6",
         "cyclonedx1.5",
         "Unable to export lower SBOM specification version 1.5. " +
-            "The original CycloneDX SBOM was already in version 1.6"
-    );
+            "The original CycloneDX SBOM was already in version 1.6");
   }
 
   private void testExportToLowerVersion(
@@ -699,9 +700,11 @@ public class ApiSbomServiceTest
           assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
           assertThat(component.getLicenses())
-              .extracting(ResolvedLicenseDTO::licenseId).containsExactlyInAnyOrder("license-1", "license-2");
+              .extracting(ResolvedLicenseDTO::licenseId)
+              .containsExactlyInAnyOrder("license-1", "license-2");
           assertThat(component.getLicenses())
-              .extracting(ResolvedLicenseDTO::licenseName).containsExactlyInAnyOrder("License 1", "License 2");
+              .extracting(ResolvedLicenseDTO::licenseName)
+              .containsExactlyInAnyOrder("License 1", "License 2");
           assertThat(component.getPolicyViolationCount()).isEqualTo(1);
         });
 
@@ -904,9 +907,11 @@ public class ApiSbomServiceTest
           assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
           assertThat(component.getLicenses())
-              .extracting(ResolvedLicenseDTO::licenseId).containsExactlyInAnyOrder("license-1", "license-2");
+              .extracting(ResolvedLicenseDTO::licenseId)
+              .containsExactlyInAnyOrder("license-1", "license-2");
           assertThat(component.getLicenses())
-              .extracting(ResolvedLicenseDTO::licenseName).containsExactlyInAnyOrder("License 1", "License 2");
+              .extracting(ResolvedLicenseDTO::licenseName)
+              .containsExactlyInAnyOrder("License 1", "License 2");
           assertThat(component.getPolicyViolationCount()).isNull();
         });
   }
@@ -989,9 +994,11 @@ public class ApiSbomServiceTest
           assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
           assertThat(component.getLicenses())
-              .extracting(ResolvedLicenseDTO::licenseId).containsExactlyInAnyOrder("license-1", "license-2");
+              .extracting(ResolvedLicenseDTO::licenseId)
+              .containsExactlyInAnyOrder("license-1", "license-2");
           assertThat(component.getLicenses())
-              .extracting(ResolvedLicenseDTO::licenseName).containsExactlyInAnyOrder("License 1", "License 2");
+              .extracting(ResolvedLicenseDTO::licenseName)
+              .containsExactlyInAnyOrder("License 1", "License 2");
           assertThat(component.getPolicyViolationCount()).isEqualTo(0);
         });
   }
@@ -1163,7 +1170,7 @@ public class ApiSbomServiceTest
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-3", "SpecialChars %$3", "http://license3");
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-4", "Another 4", "http://license4");
 
-    //mimic license override
+    // mimic license override
     tempEntity.newLicenseOverride(application.getId(), packageUrlIdentifier2.toComponentIdentifier(),
         LicenseOverrideStatus.OVERRIDDEN,
         Set.of("3D-Slicer-UNSPECIFIED", "Aladdin"));
@@ -1182,14 +1189,16 @@ public class ApiSbomServiceTest
     assertThat(result.getTotalResultsCount()).isEqualTo(2);
     assertThat(
         result.getResults().stream().filter(r -> r.getComponentIdentifier().equals(componentIdentifier2)))
-        .hasSize(1)
-        .allSatisfy(dto -> {
-          assertThat(dto.getLicenses()).hasSize(expected.length).extracting(ResolvedLicenseDTO::licenseName)
-              .containsExactlyInAnyOrder(expected);
-          if (overrideStatus != null) {
-            assertThat(dto.getLicenses()).extracting(ResolvedLicenseDTO::overrideStatus).containsOnly(overrideStatus);
-          }
-        });
+            .hasSize(1)
+            .allSatisfy(dto -> {
+              assertThat(dto.getLicenses()).hasSize(expected.length)
+                  .extracting(ResolvedLicenseDTO::licenseName)
+                  .containsExactlyInAnyOrder(expected);
+              if (overrideStatus != null) {
+                assertThat(dto.getLicenses()).extracting(ResolvedLicenseDTO::overrideStatus)
+                    .containsOnly(overrideStatus);
+              }
+            });
   }
 
   @Test
@@ -1270,9 +1279,11 @@ public class ApiSbomServiceTest
           assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
           assertThat(component.getLicenses())
-              .extracting(ResolvedLicenseDTO::licenseId).containsExactlyInAnyOrder("license-1", "license-2");
+              .extracting(ResolvedLicenseDTO::licenseId)
+              .containsExactlyInAnyOrder("license-1", "license-2");
           assertThat(component.getLicenses())
-              .extracting(ResolvedLicenseDTO::licenseName).containsExactlyInAnyOrder("License 1", "License 2");
+              .extracting(ResolvedLicenseDTO::licenseName)
+              .containsExactlyInAnyOrder("License 1", "License 2");
         });
   }
 
@@ -1374,7 +1385,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/invalid-spdx.json")) {
+        "/" + getClass().getSimpleName() + "/invalid-spdx.json"))
+    {
       Response response = service.importSbom(app.getId(), inputStream, userFilename, false,
           DUMMY_USER_AGENT, null, true);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
@@ -1396,7 +1408,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
       Response response =
           service.importSbom(app.getId(), inputStream, userFilename, false, DUMMY_USER_AGENT, null,
               false);
@@ -1419,7 +1432,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
       Response response =
           service.importSbom(app.getId(), inputStream, userFilename, false, DUMMY_USER_AGENT, null,
               true);
@@ -1441,7 +1455,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
       String applicationVersion = "my_application_version";
       Response response =
           service.importSbom(app.getId(), inputStream, userFilename, false, DUMMY_USER_AGENT,
@@ -1465,7 +1480,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/invalid-third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/invalid-third-party-simple-bom.xml"))
+    {
       Response response =
           service.importSbom(app.getId(), inputStream, userFilename, false, DUMMY_USER_AGENT,
               null, true);
@@ -1482,15 +1498,15 @@ public class ApiSbomServiceTest
   public void testImportSbom_EmptyVersion() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
       assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.importSbom(
           app.getId(),
           inputStream,
           "third-party-simple-bom.xml",
           true,
           DUMMY_USER_AGENT,
-          "", false)
-      ).withMessage("applicationVersion cannot be blank and must be between 1 and 200 characters.");
+          "", false)).withMessage("applicationVersion cannot be blank and must be between 1 and 200 characters.");
     }
 
     assertExistingSbomFiles();
@@ -1500,15 +1516,15 @@ public class ApiSbomServiceTest
   public void testImportSbom_BlankVersion() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
       assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.importSbom(
           app.getId(),
           inputStream,
           "third-party-simple-bom.xml",
           true,
           DUMMY_USER_AGENT,
-          " ", false)
-      ).withMessage("applicationVersion cannot be blank and must be between 1 and 200 characters.");
+          " ", false)).withMessage("applicationVersion cannot be blank and must be between 1 and 200 characters.");
     }
 
     assertExistingSbomFiles();
@@ -1518,15 +1534,16 @@ public class ApiSbomServiceTest
   public void testImportSbom_TooLongVersion() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
       assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.importSbom(
           app.getId(),
           inputStream,
           "third-party-simple-bom.xml",
           true,
           DUMMY_USER_AGENT,
-          StringUtils.repeat('a', 201), false)
-      ).withMessage("applicationVersion cannot be blank and must be between 1 and 200 characters.");
+          StringUtils.repeat('a', 201), false))
+          .withMessage("applicationVersion cannot be blank and must be between 1 and 200 characters.");
     }
 
     assertExistingSbomFiles();
@@ -1540,7 +1557,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
       String applicationVersion = StringUtils.repeat('a', 200);
       Response response = service.importSbom(
           app.getId(),
@@ -1565,7 +1583,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
     testProductLicense.setMaxSbom(0);
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
       assertThatExceptionOfType(PaymentRequiredException.class)
           .isThrownBy(
               () -> service.importSbom(app.getId(), inputStream, "third-party-simple-bom.xml", true, DUMMY_USER_AGENT,
@@ -1586,7 +1605,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
       Response response =
           service.importSbom(app.getId(), inputStream, userFilename, false, DUMMY_USER_AGENT, null,
               false);
@@ -1610,7 +1630,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
       Response response =
           service.importSbom(app.getId(), inputStream, userFilename, false, DUMMY_USER_AGENT, null,
               false);
@@ -1634,7 +1655,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
       Response response =
           service.importSbom(app.getId(), inputStream, userFilename, false, DUMMY_USER_AGENT, null,
               false);
@@ -1656,7 +1678,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
 
       assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.importSbom(
           app.getId(),
@@ -1665,8 +1688,7 @@ public class ApiSbomServiceTest
           false,
           DUMMY_USER_AGENT,
           null,
-          false
-      ));
+          false));
     }
 
     assertExistingSbomFiles();
@@ -1679,7 +1701,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
 
       assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.importSbom(
           app.getId(),
@@ -1688,8 +1711,7 @@ public class ApiSbomServiceTest
           false,
           DUMMY_USER_AGENT,
           null,
-          false
-      ));
+          false));
     }
 
     assertExistingSbomFiles();
@@ -1702,7 +1724,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
 
       assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.importSbom(
           app.getId(),
@@ -1711,8 +1734,7 @@ public class ApiSbomServiceTest
           false,
           DUMMY_USER_AGENT,
           null,
-          false
-      ));
+          false));
     }
 
     assertExistingSbomFiles();
@@ -1725,7 +1747,8 @@ public class ApiSbomServiceTest
     SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(false);
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/index.html")) {
+        "/" + getClass().getSimpleName() + "/index.html"))
+    {
       assertThatExceptionOfType(BadRequestException.class)
           .isThrownBy(() -> service.importSbom(app.getId(), inputStream, "/index.html", true, DUMMY_USER_AGENT, null,
               false))
@@ -1740,7 +1763,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream =
-             getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/index.html")) {
+        getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/index.html"))
+    {
       assertThatExceptionOfType(BadRequestException.class)
           .isThrownBy(() -> service.importSbom(app.getId(), inputStream, "/index.html", false, DUMMY_USER_AGENT, null,
               false))
@@ -1827,7 +1851,7 @@ public class ApiSbomServiceTest
   public void testImportSbom_BinaryFile_WithDuplicateThirdPartyFiles() throws Exception {
     File binaryFileToScan = tempDir.newFile("scan-items.zip");
     Zipper.zipDirectory(new File(
-            getClass().getResource("/" + getClass().getSimpleName() + "/binary-scan-duplicates/scan-items").toURI()),
+        getClass().getResource("/" + getClass().getSimpleName() + "/binary-scan-duplicates/scan-items").toURI()),
         binaryFileToScan);
     mockHdsForImportWithDelayedReportDownload("/binary-scan-duplicates/report.zip", 50);
     Application app = tempEntity.newApplicationWithParent();
@@ -1855,7 +1879,7 @@ public class ApiSbomServiceTest
 
       List<ThirdPartyFileCoordinate> tpComponents =
           thirdPartyFileCoordinateDAO.getBySbomMetadataId(thirdPartySbomMetadata.getId());
-      //only 1 result should exist after merge
+      // only 1 result should exist after merge
       assertThat(tpComponents).hasSize(1);
       ThirdPartyFileCoordinate cp = tpComponents.get(0);
       assertThat(cp.getFormat()).isEqualTo("maven");
@@ -1912,16 +1936,20 @@ public class ApiSbomServiceTest
 
       List<ThirdPartyFileCoordinate> tpComponents =
           thirdPartyFileCoordinateDAO.getBySbomMetadataId(thirdPartySbomMetadata.getId());
-      //1 from clair file, 1 from cyclonedx file, 2 from spdx file
-      assertThat(tpComponents).hasSize(4).extracting("name")
+      // 1 from clair file, 1 from cyclonedx file, 2 from spdx file
+      assertThat(tpComponents).hasSize(4)
+          .extracting("name")
           .containsExactlyInAnyOrder("apt", "axis", "commons", "iq_application_SBOMTests");
 
       List<ThirdPartyCoordinateSecurity> tpVulnerabilities = coordinateSecurityDAO.getByFileCoordinateIds(
-          tpComponents.stream().map(ThirdPartyFileCoordinate::getId).collect(
-              Collectors.toList()));
-      //ne each from clair, cdx, and spdx
+          tpComponents.stream()
+              .map(ThirdPartyFileCoordinate::getId)
+              .collect(
+                  Collectors.toList()));
+      // ne each from clair, cdx, and spdx
       assertThat(tpVulnerabilities).hasSize(3)
-          .extracting("refId").containsExactlyInAnyOrder("CVE-2007-2353", "CVE-2019-3462", "CVE-2007-2353");
+          .extracting("refId")
+          .containsExactlyInAnyOrder("CVE-2007-2353", "CVE-2019-3462", "CVE-2007-2353");
 
       assertExistingSbomFiles("%s/%s".formatted(app.getId(), thirdPartySbomMetadata.getFilename()));
     }
@@ -2120,8 +2148,8 @@ public class ApiSbomServiceTest
   @Test
   public void testImport_Invalid_VersionFromFile_IgnoreValidationError() throws Exception {
     mockHdsForImportWithDelayedReportDownload(50);
-    assertThatNoException().isThrownBy(() ->
-        importInvalidSbom("cdx-invalid-with-version.xml", null, "a140fd3c3ded4bb0a640dc31e2904dc9", true));
+    assertThatNoException().isThrownBy(
+        () -> importInvalidSbom("cdx-invalid-with-version.xml", null, "a140fd3c3ded4bb0a640dc31e2904dc9", true));
   }
 
   private void importInvalidSbomWithExplicitVersion(
@@ -2147,7 +2175,8 @@ public class ApiSbomServiceTest
   {
     Application app = tempEntity.newApplicationWithParent();
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/sboms/" + fileName)) {
+        "/" + getClass().getSimpleName() + "/sboms/" + fileName))
+    {
       Response response = service.importSbom(
           app.getId(),
           inputStream,
@@ -2155,8 +2184,7 @@ public class ApiSbomServiceTest
           false,
           DUMMY_USER_AGENT,
           explicitVersion,
-          ignoreValidationError
-      );
+          ignoreValidationError);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
       assertThat(ticketDTO.statusUrl).isNotEmpty().startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
@@ -2202,7 +2230,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
       Response response =
           service.importSbom(app.getId(), inputStream, "third-party-simple-bom.xml", false, DUMMY_USER_AGENT, null,
               false);
@@ -2225,7 +2254,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
       Response response = service.importSbom(app.getId(), inputStream, "file.txt", false, DUMMY_USER_AGENT, null,
           false);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
@@ -2246,7 +2276,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     try (InputStream inputStream = getClass().getResourceAsStream(
-        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
+        "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml"))
+    {
       Response response =
           service.importSbom(app.getId(), inputStream, "file.txt", false, DUMMY_USER_AGENT, null, false);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
@@ -2263,16 +2294,19 @@ public class ApiSbomServiceTest
   private void mockHdsForImportWithDelayedReportDownload(String reportName, long delayInMs) throws IOException {
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("SCAN-ID");
-    doReturn(scanReceipt).when(mockHdsClient).put(any(), eq(ScanReceipt.class), eq(DUMMY_USER_AGENT),
-        eq(ScanUploader.HDS_PATH), any(ScanEntity.class), any());
+    doReturn(scanReceipt).when(mockHdsClient)
+        .put(any(), eq(ScanReceipt.class), eq(DUMMY_USER_AGENT),
+            eq(ScanUploader.HDS_PATH), any(ScanEntity.class), any());
 
     doReturn("")
-        .when(mockHdsClient).get(eq(String.class), eq("rest/productLicense/developer-upper-bound"));
+        .when(mockHdsClient)
+        .get(eq(String.class), eq("rest/productLicense/developer-upper-bound"));
 
     doAnswer(new AnswersWithDelay(delayInMs,
         new Returns(getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/" + reportName))))
-        .when(mockHdsClient).get(any(Retry.class), eq(InputStream.class), eq("rest/application/analysis/{scanId}"),
-            isNull(), eq("SCAN-ID"));
+            .when(mockHdsClient)
+            .get(any(Retry.class), eq(InputStream.class), eq("rest/application/analysis/{scanId}"),
+                isNull(), eq("SCAN-ID"));
   }
 
   private void mockHdsForImportWithDelayedReportDownload(long delayInMs) throws IOException {
@@ -2282,12 +2316,14 @@ public class ApiSbomServiceTest
   private void mockHdsForImportWithError() throws IOException {
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("SCAN-ID");
-    doReturn(scanReceipt).when(mockHdsClient).put(any(), eq(ScanReceipt.class), eq(DUMMY_USER_AGENT),
-        eq(ScanUploader.HDS_PATH), any(ScanEntity.class), any());
+    doReturn(scanReceipt).when(mockHdsClient)
+        .put(any(), eq(ScanReceipt.class), eq(DUMMY_USER_AGENT),
+            eq(ScanUploader.HDS_PATH), any(ScanEntity.class), any());
 
-    doThrow(new RuntimeException("Test error")).when(mockHdsClient).get(any(Retry.class), eq(InputStream.class),
-        eq("rest/application/analysis/{scanId}"),
-        isNull(), eq("SCAN-ID"));
+    doThrow(new RuntimeException("Test error")).when(mockHdsClient)
+        .get(any(Retry.class), eq(InputStream.class),
+            eq("rest/application/analysis/{scanId}"),
+            isNull(), eq("SCAN-ID"));
   }
 
   private static void assertContentHeader(
@@ -2304,8 +2340,7 @@ public class ApiSbomServiceTest
         sbomVersion +
         "_(\\d)+." +
         (sbomSpec.equals(SbomSpecification.SPDX) ? "spdx" : "cdx") +
-        specFormat
-    );
+        specFormat);
   }
 
   private void assertSuccessfulSBOMImportState(

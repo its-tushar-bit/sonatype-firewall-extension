@@ -48,8 +48,7 @@ public class ApiComponentVersionsResourceV2
 
   public List<String> getComponentVersions(
       @Parameter(description = "Possible values: Component identifier or packageURL (pURL) identifier in the " +
-          "correct format. Use a-name for JavaScript components.")
-      final ApiComponentOrPurlIdentifierDTOV2 componentOrPurlIdentifier)
+          "correct format. Use a-name for JavaScript components.") final ApiComponentOrPurlIdentifierDTOV2 componentOrPurlIdentifier)
   {
     return componentVersionsService.getComponentVersions(componentOrPurlIdentifier);
   }

@@ -94,72 +94,58 @@ public class ScmStatServiceTest
             new ApiIntegrationsScmFeedbackStatIncrementDto(
                 getDateFromOffset(fixedClock, -13).getTime(),
                 111,
-                65
-            ),
+                65),
             new ApiIntegrationsScmFeedbackStatIncrementDto(
                 getDateFromOffset(fixedClock, -12).getTime(),
                 111,
-                65
-            ),
+                65),
             new ApiIntegrationsScmFeedbackStatIncrementDto(
                 getDateFromOffset(fixedClock, -11).getTime(),
                 111,
-                65
-            ),
+                65),
             new ApiIntegrationsScmFeedbackStatIncrementDto(
                 getDateFromOffset(fixedClock, -10).getTime(),
                 111,
-                65
-            ),
+                65),
             new ApiIntegrationsScmFeedbackStatIncrementDto(
                 getDateFromOffset(fixedClock, -9).getTime(),
                 111,
-                65
-            ),
+                65),
             new ApiIntegrationsScmFeedbackStatIncrementDto(
                 getDateFromOffset(fixedClock, -8).getTime(),
                 111,
-                65
-            ),
+                65),
             new ApiIntegrationsScmFeedbackStatIncrementDto(
                 getDateFromOffset(fixedClock, -7).getTime(),
                 134,
-                61
-            ),
+                61),
             new ApiIntegrationsScmFeedbackStatIncrementDto(
                 getDateFromOffset(fixedClock, -6).getTime(),
                 134,
-                61
-            ),
+                61),
             new ApiIntegrationsScmFeedbackStatIncrementDto(
                 getDateFromOffset(fixedClock, -5).getTime(),
                 134,
-                61
-            ),
+                61),
             new ApiIntegrationsScmFeedbackStatIncrementDto(
                 getDateFromOffset(fixedClock, -4).getTime(),
                 134,
-                61
-            ),
+                61),
             new ApiIntegrationsScmFeedbackStatIncrementDto(
                 getDateFromOffset(fixedClock, -3).getTime(),
                 134,
-                61
-            ),
+                61),
             new ApiIntegrationsScmFeedbackStatIncrementDto(
                 getDateFromOffset(fixedClock, -2).getTime(),
                 134,
-                61
-            ),
+                61),
             new ApiIntegrationsScmFeedbackStatIncrementDto(
                 getDateFromOffset(fixedClock, -1).getTime(),
                 134,
-                61
-            ),
+                61),
             new ApiIntegrationsScmFeedbackStatIncrementDto(nowMs,
                 429,
-                84))
-    );
+                84)));
   }
 
   private Date getDateFromOffset(final Clock baseClock, final int numberOfDays) {

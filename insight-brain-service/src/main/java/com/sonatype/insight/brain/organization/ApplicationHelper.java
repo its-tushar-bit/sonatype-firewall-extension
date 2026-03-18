@@ -122,7 +122,8 @@ public class ApplicationHelper
     try (TransactionContext tx = applicationDAO.createTransactionContext()) {
       tx.begin();
       final Application app = applicationDAO.getByIdNotNull(tx, applicationId);
-      AuditData.get().setApplicationWithDetails(app)
+      AuditData.get()
+          .setApplicationWithDetails(app)
           .setParentOrganization(organizationDAO.getByIdNotNull(app.getParentOwnerId()));
       applicationCleaner.delete(tx, app);
 

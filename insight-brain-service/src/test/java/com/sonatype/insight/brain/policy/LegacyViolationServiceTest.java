@@ -109,11 +109,10 @@ public class LegacyViolationServiceTest
   @Test
   public void testRevokeLegacyViolationStatus_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.POLICY_GRANDFATHERING);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-        legacyViolationService.revokeLegacyViolationStatus("APPID")
-    );
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> legacyViolationService.revokeLegacyViolationStatus("APPID"));
   }
-  
+
   private Policy newPolicyAllowingLegacyViolations() {
     Policy policy = tempEntity.newPolicy();
     policy.setLegacyViolationAllowed(true);
@@ -194,12 +193,13 @@ public class LegacyViolationServiceTest
     assertThat(policyViolationDAO.getById(unfixedPolicyViolation2.getId()).isLegacyViolation()).isFalse();
   }
 
-  private void assertPolicyViolationsLogged(PolicyViolationLogEvent policyViolationLogEvent,
-                                            Application app,
-                                            Date before,
-                                            Date after,
-                                            List<PolicyViolation> policyViolations,
-                                            String userName) throws Exception
+  private void assertPolicyViolationsLogged(
+      PolicyViolationLogEvent policyViolationLogEvent,
+      Application app,
+      Date before,
+      Date after,
+      List<PolicyViolation> policyViolations,
+      String userName) throws Exception
   {
     policyViolationDAO.loadConstraintFacts(policyViolations);
     Organization org = organizationDAO.getById(app.getOrganizationId());
@@ -222,9 +222,7 @@ public class LegacyViolationServiceTest
   }
 
   @Test
-  public void testGrantLegacyViolationStatus_LegacyViolationsEnabledForApp_AppCanOverrideLegacyViolations()
-      throws Exception
-  {
+  public void testGrantLegacyViolationStatus_LegacyViolationsEnabledForApp_AppCanOverrideLegacyViolations() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Organization organization = tempEntity.newOrganization();
     organization.setLegacyViolationEnabled(false);
@@ -237,9 +235,7 @@ public class LegacyViolationServiceTest
   }
 
   @Test
-  public void testGrantLegacyViolationStatus_LegacyViolationsDisabledForApp_AppCanOverrideLegacyViolations()
-      throws Exception
-  {
+  public void testGrantLegacyViolationStatus_LegacyViolationsDisabledForApp_AppCanOverrideLegacyViolations() throws Exception {
     Organization organization = tempEntity.newOrganization();
     organization.setLegacyViolationEnabled(true);
     organization.setAllowLegacyViolationOverride(true);
@@ -251,9 +247,7 @@ public class LegacyViolationServiceTest
   }
 
   @Test
-  public void testGrantLegacyViolationStatus_LegacyViolationsEnabledForApp_DisabledForOrg_AppCannotOverrideLegacy()
-      throws Exception
-  {
+  public void testGrantLegacyViolationStatus_LegacyViolationsEnabledForApp_DisabledForOrg_AppCannotOverrideLegacy() throws Exception {
     Organization organization = tempEntity.newOrganization();
     organization.setLegacyViolationEnabled(false);
     organization.setAllowLegacyViolationOverride(false);
@@ -265,9 +259,7 @@ public class LegacyViolationServiceTest
   }
 
   @Test
-  public void testGrantLegacyViolationStatus_LegacyViolationDisabledForApp_EnabledForOrg_AppCannotOverrideLegacyStatus()
-      throws Exception
-  {
+  public void testGrantLegacyViolationStatus_LegacyViolationDisabledForApp_EnabledForOrg_AppCannotOverrideLegacyStatus() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Organization organization = tempEntity.newOrganization();
     organization.setLegacyViolationEnabled(true);
@@ -280,9 +272,7 @@ public class LegacyViolationServiceTest
   }
 
   @Test
-  public void testGrantLegacyViolationStatus_LegacyViolationsEnabledForApp_EnabledForOrg_AppCannotOverrideLegacyStatus()
-      throws Exception
-  {
+  public void testGrantLegacyViolationStatus_LegacyViolationsEnabledForApp_EnabledForOrg_AppCannotOverrideLegacyStatus() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Organization organization = tempEntity.newOrganization();
     organization.setLegacyViolationEnabled(true);
@@ -295,9 +285,7 @@ public class LegacyViolationServiceTest
   }
 
   @Test
-  public void testGrantLegacyViolationStatus_LegacyViolationsDisabledForApp_DisabledForOrg_AppCannotOverrideLegacy()
-      throws Exception
-  {
+  public void testGrantLegacyViolationStatus_LegacyViolationsDisabledForApp_DisabledForOrg_AppCannotOverrideLegacy() throws Exception {
     Organization organization = tempEntity.newOrganization();
     organization.setLegacyViolationEnabled(false);
     organization.setAllowLegacyViolationOverride(false);
@@ -384,19 +372,19 @@ public class LegacyViolationServiceTest
       LegacyViolationStatusDTO result =
           legacyViolationService.getLegacyViolationsStatus(OwnerType.ORGANIZATION, org.getId());
       assertLegacyViolationDTO(result, null, null, "Root Organization", false, false);
-  
+
       // The parent org allows override, legacy violations are not specified at any level.
       rootOrganization.setAllowLegacyViolationOverride(true);
       organizationDAO.update(rootOrganization);
       result = legacyViolationService.getLegacyViolationsStatus(OwnerType.ORGANIZATION, org.getId());
       assertLegacyViolationDTO(result, null, null, "Root Organization", false, true);
-  
+
       // The parent org allows override and legacy violations are specified at parent org level.
       rootOrganization.setLegacyViolationEnabled(true);
       organizationDAO.update(rootOrganization);
       result = legacyViolationService.getLegacyViolationsStatus(OwnerType.ORGANIZATION, org.getId());
       assertLegacyViolationDTO(result, true, true, rootOrganization.getName(), false, true);
-  
+
       // The parent org allows override and legacy violations are specified at this org level.
       org.setLegacyViolationEnabled(false);
       organizationDAO.update(org);
@@ -502,10 +490,9 @@ public class LegacyViolationServiceTest
   public void testSetLegacyViolationStatus_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.POLICY_GRANDFATHERING);
     Organization org = tempEntity.newOrganization();
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-        legacyViolationService.setLegacyViolationStatus(OwnerType.ORGANIZATION, org.getId(),
-            new LegacyViolationStatusDTO())
-    );
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> legacyViolationService.setLegacyViolationStatus(OwnerType.ORGANIZATION, org.getId(),
+            new LegacyViolationStatusDTO()));
   }
 
   @Test

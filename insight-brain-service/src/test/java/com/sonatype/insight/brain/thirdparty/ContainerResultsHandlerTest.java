@@ -112,7 +112,7 @@ public class ContainerResultsHandlerTest
             telemetryUtils, telemetrySender, null, null);
 
     ThirdPartyScanContext scanContext = new ThirdPartyScanContext("scan-request-id",
-            "app-id", null, null, "proxy");
+        "app-id", null, null, "proxy");
     scanContext.setContainerItemContentType(ItemContentType.CONTAINER_URI_SONATYPE);
     proxyContainerResultHandler =
         new ContainerResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
@@ -128,23 +128,27 @@ public class ContainerResultsHandlerTest
 
     ThirdPartyScanContent content =
         new ThirdPartyScanContent(
-                "container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
+            "container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String actualFilteredContent = proxyContainerResultHandler.handleAndFilterContents(
-            content, thirdPartyFile).getContent();
+        content, thirdPartyFile).getContent();
     String expectedFiltered = loadResource("alpine-3.6-expected-bom-proxy.json");
 
     assertThatJson(actualFilteredContent).whenIgnoringPaths("components[*].properties[*].value",
-            "components[*].bom-ref")
+        "components[*].bom-ref")
         .isEqualTo(expectedFiltered);
 
     assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()))
-        .isNotEmpty().allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
+        .isNotEmpty()
+        .allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
     Bom bom = SbomTestHelper.parseToCycloneDxBom(actualFilteredContent);
-    assertThat(bom.getComponents()).isNotEmpty().allSatisfy(component -> assertThat(component.getProperties().stream()
-        .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName())).findFirst()).isNotEmpty()
-        .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
+    assertThat(bom.getComponents()).isNotEmpty()
+        .allSatisfy(component -> assertThat(component.getProperties()
+            .stream()
+            .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName()))
+            .findFirst()).isNotEmpty()
+                .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
   }
 
   @Test
@@ -156,23 +160,27 @@ public class ContainerResultsHandlerTest
 
     ThirdPartyScanContent content =
         new ThirdPartyScanContent(
-                "container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
+            "container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String actualFilteredContent = proxyContainerResultHandler.handleAndFilterContents(
-            content, thirdPartyFile).getContent();
+        content, thirdPartyFile).getContent();
     String expectedFiltered = loadResource("alpine-3.6-expected-bom-generic.json");
 
     assertThatJson(actualFilteredContent).whenIgnoringPaths("components[*].properties[*].value",
-            "components[*].bom-ref")
+        "components[*].bom-ref")
         .isEqualTo(expectedFiltered);
 
     assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()))
-        .isNotEmpty().allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
+        .isNotEmpty()
+        .allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
     Bom bom = SbomTestHelper.parseToCycloneDxBom(actualFilteredContent);
-    assertThat(bom.getComponents()).isNotEmpty().allSatisfy(component -> assertThat(component.getProperties().stream()
-        .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName())).findFirst()).isNotEmpty()
-        .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
+    assertThat(bom.getComponents()).isNotEmpty()
+        .allSatisfy(component -> assertThat(component.getProperties()
+            .stream()
+            .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName()))
+            .findFirst()).isNotEmpty()
+                .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
   }
 
   @Test
@@ -183,24 +191,28 @@ public class ContainerResultsHandlerTest
     String json = loadResource("alpine-3.6-proxy.json");
 
     ThirdPartyScanContent content =
-            new ThirdPartyScanContent(
-                    "container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
+        new ThirdPartyScanContent(
+            "container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String actualFilteredContent = proxyContainerResultHandler.handleAndFilterContents(
-            content, thirdPartyFile).getContent();
+        content, thirdPartyFile).getContent();
     String expectedFiltered = loadResource("alpine-3.6-expected-bom-generic.json");
 
     assertThatJson(actualFilteredContent).whenIgnoringPaths("components[*].properties[*].value",
-                    "components[*].bom-ref")
-            .isEqualTo(expectedFiltered);
+        "components[*].bom-ref")
+        .isEqualTo(expectedFiltered);
 
     assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()))
-            .isNotEmpty().allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
+        .isNotEmpty()
+        .allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
     Bom bom = SbomTestHelper.parseToCycloneDxBom(actualFilteredContent);
-    assertThat(bom.getComponents()).isNotEmpty().allSatisfy(component -> assertThat(component.getProperties().stream()
-            .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName())).findFirst()).isNotEmpty()
-            .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
+    assertThat(bom.getComponents()).isNotEmpty()
+        .allSatisfy(component -> assertThat(component.getProperties()
+            .stream()
+            .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName()))
+            .findFirst()).isNotEmpty()
+                .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
   }
 
   @Test
@@ -232,15 +244,19 @@ public class ContainerResultsHandlerTest
     String expectedFiltered = loadResource("alpine-3.6-expected-bom.json");
 
     assertThatJson(actualFilteredContent).whenIgnoringPaths("components[*].properties[*].value",
-            "components[*].bom-ref")
+        "components[*].bom-ref")
         .isEqualTo(expectedFiltered);
 
     assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()))
-        .isNotEmpty().allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
+        .isNotEmpty()
+        .allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
     Bom bom = SbomTestHelper.parseToCycloneDxBom(actualFilteredContent);
-    assertThat(bom.getComponents()).isNotEmpty().allSatisfy(component -> assertThat(component.getProperties().stream()
-        .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName())).findFirst()).isNotEmpty()
-        .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
+    assertThat(bom.getComponents()).isNotEmpty()
+        .allSatisfy(component -> assertThat(component.getProperties()
+            .stream()
+            .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName()))
+            .findFirst()).isNotEmpty()
+                .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
   }
 
   @Test
@@ -377,7 +393,8 @@ public class ContainerResultsHandlerTest
     String cveThatIsMissingInformation = "CVE-2021-30139";
 
     List<ThirdPartyCoordinateSecurity> list =
-        coordinateSecurityList.stream().filter(p -> p.getRefId().equals(cveThatIsMissingInformation))
+        coordinateSecurityList.stream()
+            .filter(p -> p.getRefId().equals(cveThatIsMissingInformation))
             .collect(Collectors.toList());
     assertThat(list).isEmpty();
   }
@@ -480,7 +497,10 @@ public class ContainerResultsHandlerTest
       final String link,
       final double severity,
       final String source,
-      final String severityDescription, final String vector, final String recommendation, final String fixedBy)
+      final String severityDescription,
+      final String vector,
+      final String recommendation,
+      final String fixedBy)
   {
     assertThat(coordinateSecurity.getRefId()).isEqualTo(cve);
     assertThat(coordinateSecurity.getDescription()).startsWith(descriptionStartsWith);

@@ -79,7 +79,7 @@ public class ScanHandler
   public ScanReceipt handle(ScanRequest scanRequest) throws IOException {
     long start = System.currentTimeMillis();
     log.debug("Received {} scan for application public id {}.",
-              scanRequest.getClientScanType(), scanRequest.getApplication().getPublicId());
+        scanRequest.getClientScanType(), scanRequest.getApplication().getPublicId());
 
     try {
       ScanReceipt scanReceipt = scanUploadService.upload(
@@ -94,12 +94,12 @@ public class ScanHandler
           scanRequest.isWebUIRequest());
 
       scanPersistenceService.moveTempScan(scanRequest.getScanEntity(),
-                                          scanRequest.getApplication().getId(),
-                                          scanReceipt.getScanId());
+          scanRequest.getApplication().getId(),
+          scanReceipt.getScanId());
 
       log.debug("Handled {} scan id {} for application public id {} in {} ms.",
-                scanRequest.getClientScanType(), scanReceipt.getScanId(),
-                scanRequest.getApplication().getPublicId(), System.currentTimeMillis() - start);
+          scanRequest.getClientScanType(), scanReceipt.getScanId(),
+          scanRequest.getApplication().getPublicId(), System.currentTimeMillis() - start);
 
       return scanReceipt;
     }
@@ -171,7 +171,8 @@ public class ScanHandler
       this.stageTypeId = builder.stageTypeId;
       this.clientUserAgent = builder.clientUserAgent;
       this.scanRequestId = builder.scanRequestId;
-      this.scanContext = builder.scanContext != null ? builder.scanContext
+      this.scanContext = builder.scanContext != null
+          ? builder.scanContext
           : new ScanContext.Builder().isValid(true).build();
       this.httpRequest = builder.httpRequest;
       this.isWebUIRequest = builder.isWebUIRequest;

@@ -384,7 +384,7 @@ public class SidebarNavigationTest
         LicensedFeature.ADVANCED_LEGAL_PACK,
         LicensedFeature.ORGS_AND_APPS,
         LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
-    //setFeatures(LicensedFeature.FIREWALL);
+    // setFeatures(LicensedFeature.FIREWALL);
     // this is PRODUCT_FIREWALL V1
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
 

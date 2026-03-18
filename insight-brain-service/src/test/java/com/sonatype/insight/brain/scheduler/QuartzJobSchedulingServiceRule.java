@@ -46,7 +46,8 @@ public class QuartzJobSchedulingServiceRule
    */
   public void waitForRealSchedulingToComplete(final QuartzJobSchedulingService quartzJobSchedulingService) {
     log.info("Waiting for up to 1s to let jobs actually be scheduled with Quartz");
-    Awaitility.await().atMost(1, TimeUnit.SECONDS)
+    Awaitility.await()
+        .atMost(1, TimeUnit.SECONDS)
         .until(() -> !quartzJobSchedulingService.areJobsPending());
   }
 }

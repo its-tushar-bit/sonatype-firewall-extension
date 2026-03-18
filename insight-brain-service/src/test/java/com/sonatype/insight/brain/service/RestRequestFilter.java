@@ -29,7 +29,8 @@ public class RestRequestFilter
 
   public static void configure(final Environment env, BiConsumer<ServletRequest, ServletResponse> handler) {
     RestRequestFilter filter = new RestRequestFilter(handler);
-    env.servlets().addFilter("RestRequestFilter", filter)
+    env.servlets()
+        .addFilter("RestRequestFilter", filter)
         .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/rest/*");
   }
 
@@ -45,8 +46,7 @@ public class RestRequestFilter
   public void doFilter(
       final ServletRequest servletRequest,
       final ServletResponse servletResponse,
-      final FilterChain filterChain)
-      throws IOException, ServletException
+      final FilterChain filterChain) throws IOException, ServletException
   {
     if (handler != null) {
       handler.accept(servletRequest, servletResponse);

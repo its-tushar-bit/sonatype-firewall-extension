@@ -4,13 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.clm.testing.functional.elements;
+
 import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
-public class AgeInput extends BasicElement<AgeInput>
+public class AgeInput
+    extends BasicElement<AgeInput>
 {
   private String rootSelector;
 

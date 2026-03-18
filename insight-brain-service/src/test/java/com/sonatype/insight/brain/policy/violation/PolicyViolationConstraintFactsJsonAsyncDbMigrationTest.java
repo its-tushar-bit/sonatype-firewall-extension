@@ -122,7 +122,8 @@ public class PolicyViolationConstraintFactsJsonAsyncDbMigrationTest
     String updateQuery = "UPDATE " + operationalDataStore.getDatabaseSchema() + ".policy_violation"
         + " SET constraint_facts_id = NULL, constraint_facts_json = ? WHERE policy_violation_id = ?";
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-        PreparedStatement updateStmt = connection.prepareStatement(updateQuery)) {
+        PreparedStatement updateStmt = connection.prepareStatement(updateQuery))
+    {
       updateStmt.setString(1, policyViolation.getConstraintFactsJson());
       updateStmt.setString(2, policyViolation.getId());
       updateStmt.execute();

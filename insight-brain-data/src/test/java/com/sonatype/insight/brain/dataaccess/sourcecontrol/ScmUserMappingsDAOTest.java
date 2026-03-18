@@ -50,9 +50,11 @@ public class ScmUserMappingsDAOTest
     List<Entry<String, String>> mappings = getRandomMappings();
 
     ScmUserMappings scmUserMappings = new ScmUserMappingsBuilder()
-        .withId().withRoleId(Role.DEVELOPER_ROLE_ID)
+        .withId()
+        .withRoleId(Role.DEVELOPER_ROLE_ID)
         .withMappings(mappings)
-        .withOrganizationId(organization.getId()).build();
+        .withOrganizationId(organization.getId())
+        .build();
 
     scmUserMappingsDAO.addOrUpdate(scmUserMappings);
 
@@ -75,7 +77,8 @@ public class ScmUserMappingsDAOTest
         .withId(existingScmUserMappings.getId())
         .withMappings(newMappings)
         .withRoleId(Role.DEVELOPER_ROLE_ID)
-        .withOrganizationId(organization.getId()).build();
+        .withOrganizationId(organization.getId())
+        .build();
 
     scmUserMappingsDAO.addOrUpdate(scmUserMappings);
 

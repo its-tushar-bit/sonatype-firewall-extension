@@ -37,16 +37,16 @@ public class FIPSKeystorePasswordGeneratorTest
   @Test
   public void testGenerateDeterministicPassword_returnsValidBase64() throws Exception {
     File workDir = temporaryFolder.newFolder("sonatype-work");
-    
+
     String password = FIPSKeystorePasswordGenerator.generateDeterministicPassword(workDir);
 
     // Base64 encoded 256-bit key should be 44 characters (32 bytes * 4/3 + padding)
     assertThat(password).hasSize(44);
-    
+
     // Verify it's valid Base64 by decoding it (throws exception if invalid)
     assertThatCode(() -> Base64.getDecoder().decode(password))
         .doesNotThrowAnyException();
-    
+
     // Verify decoded length is 32 bytes (256 bits)
     byte[] decoded = Base64.getDecoder().decode(password);
     assertThat(decoded).hasSize(32);
@@ -56,10 +56,10 @@ public class FIPSKeystorePasswordGeneratorTest
   public void testGenerateDeterministicPassword_differentDirectoriesProduceDifferentPasswords() throws Exception {
     File workDir1 = temporaryFolder.newFolder("sonatype-work-1");
     File workDir2 = temporaryFolder.newFolder("sonatype-work-2");
-    
+
     String password1 = FIPSKeystorePasswordGenerator.generateDeterministicPassword(workDir1);
     String password2 = FIPSKeystorePasswordGenerator.generateDeterministicPassword(workDir2);
-    
+
     assertThat(password1).isNotEqualTo(password2);
   }
 
@@ -86,25 +86,25 @@ public class FIPSKeystorePasswordGeneratorTest
   @Test
   public void testGenerateDeterministicPassword_usesAbsolutePath() throws Exception {
     File workDir = temporaryFolder.newFolder("sonatype-work");
-    
+
     // Test that same directory accessed different ways produces same password
     File sameDirDifferentWay = new File(workDir.getAbsolutePath());
-    
+
     String password1 = FIPSKeystorePasswordGenerator.generateDeterministicPassword(workDir);
     String password2 = FIPSKeystorePasswordGenerator.generateDeterministicPassword(sameDirDifferentWay);
-    
+
     assertThat(password1).isEqualTo(password2);
   }
 
   @Test
   public void testGenerateDeterministicPassword_returnsSamePassword() throws Exception {
     File workDir = temporaryFolder.newFolder("sonatype-work");
-    
+
     // Test multiple calls to ensure stability
     String password1 = FIPSKeystorePasswordGenerator.generateDeterministicPassword(workDir);
     String password2 = FIPSKeystorePasswordGenerator.generateDeterministicPassword(workDir);
     String password3 = FIPSKeystorePasswordGenerator.generateDeterministicPassword(workDir);
-    
+
     assertThat(password1).isEqualTo(password2);
     assertThat(password2).isEqualTo(password3);
     assertThat(password1).isNotEmpty();

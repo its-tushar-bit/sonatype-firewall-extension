@@ -46,8 +46,10 @@ public class LicenseThreatGroupLevelConditionType
   }
 
   @Override
-  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
-      throws InvalidConditionException
+  public void validateCondition(
+      TransactionContext tx,
+      Condition condition,
+      String ownerId) throws InvalidConditionException
   {
     super.validateCondition(tx, condition, ownerId);
 
@@ -85,7 +87,8 @@ public class LicenseThreatGroupLevelConditionType
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
     TriggerLicenseThreatGroupWithThreatLevel conditionTrigger = (TriggerLicenseThreatGroupWithThreatLevel) matchFact
-        .getConditionTriggerByConditionIndex(condition.getConditionIndex()).getTrigger();
+        .getConditionTriggerByConditionIndex(condition.getConditionIndex())
+        .getTrigger();
     LicenseThreatGroup licenseThreatGroup = getLicenseThreatGroupById(matchFact.getComponent(), conditionTrigger.id);
     return "Found license threat group '" + licenseThreatGroup.getName() + "' with level "
         + condition.getOperator() + " " + condition.getValue() + " (level = " + conditionTrigger.threatLevel + ")";
@@ -108,8 +111,11 @@ public class LicenseThreatGroupLevelConditionType
   }
 
   private LicenseThreatGroup getLicenseThreatGroupById(Component component, String licenseThreatGroupId) {
-    return component.getLicenseThreatGroups().stream().filter(ltg -> ltg.getId().equals(licenseThreatGroupId))
-        .findFirst().get();
+    return component.getLicenseThreatGroups()
+        .stream()
+        .filter(ltg -> ltg.getId().equals(licenseThreatGroupId))
+        .findFirst()
+        .get();
   }
 
   @Override

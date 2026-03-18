@@ -76,7 +76,8 @@ public class NexusRepository3Client
     List<RepositoryComponentResult> results = new ArrayList<>();
     do {
       Result result = path("/service/rest/v1/search/assets")
-          .queryWithEmptyParams(toQueryParams(queryParams, continuationToken)).get();
+          .queryWithEmptyParams(toQueryParams(queryParams, continuationToken))
+          .get();
       if (result.status() != 200) {
         handleError(result);
       }
@@ -85,8 +86,9 @@ public class NexusRepository3Client
       continuationToken = searchResponse.continuationToken;
     }
     while (continuationToken != null);
-    results = results.stream().collect(Collectors.collectingAndThen(
-        Collectors.toCollection(() -> new TreeSet<>(REPOSITORY_COMPONENT_VERSION_COMPARATOR)), ArrayList::new));
+    results = results.stream()
+        .collect(Collectors.collectingAndThen(
+            Collectors.toCollection(() -> new TreeSet<>(REPOSITORY_COMPONENT_VERSION_COMPARATOR)), ArrayList::new));
     return new RepositoryAllVersionsResponse(results);
   }
 
@@ -147,21 +149,21 @@ public class NexusRepository3Client
   private ComponentIdentifier getComponentIdentifier(final NexusItem item) {
     String format = item.format;
     if (REPO_MAVEN_FORMAT.equals(format)) {
-      return item.maven2 != null ?
-          ComponentIdentifier.createMavenCoordinates(
+      return item.maven2 != null
+          ? ComponentIdentifier.createMavenCoordinates(
               item.maven2.get("groupId"),
               item.maven2.get("artifactId"),
               item.maven2.get(REPO_VERSION),
               item.maven2.get("classifier"),
-              item.maven2.get("extension")
-          ) : null;
+              item.maven2.get("extension"))
+          : null;
     }
     else if (REPO_NPM_FORMAT.equals(format)) {
-      return item.npm != null ?
-          ComponentIdentifier.createNpmCoordinates(
+      return item.npm != null
+          ? ComponentIdentifier.createNpmCoordinates(
               item.npm.get("name"),
-              item.npm.get(REPO_VERSION)
-          ) : null;
+              item.npm.get(REPO_VERSION))
+          : null;
     }
     return null;
   }

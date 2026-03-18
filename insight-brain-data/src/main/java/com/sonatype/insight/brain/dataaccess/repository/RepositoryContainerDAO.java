@@ -26,9 +26,8 @@ public class RepositoryContainerDAO
 
   @Inject
   public RepositoryContainerDAO(
-          final OperationalDataStore operationalDataStore,
-          final OrganizationDAO organizationDAO
-  )
+      final OperationalDataStore operationalDataStore,
+      final OrganizationDAO organizationDAO)
   {
     super(operationalDataStore);
     this.organizationDAO = organizationDAO;
@@ -71,8 +70,8 @@ public class RepositoryContainerDAO
     }
 
     String sQuery = "UPDATE RepositoryContainer entity" + //
-            " SET entity.relatedOrganizationId=?1" + //
-            " WHERE entity.id=?2";
+        " SET entity.relatedOrganizationId=?1" + //
+        " WHERE entity.id=?2";
 
     createQuery(tx, sQuery, organizationId, RepositoryContainer.REPOSITORY_CONTAINER_ID).executeUpdate();
   }

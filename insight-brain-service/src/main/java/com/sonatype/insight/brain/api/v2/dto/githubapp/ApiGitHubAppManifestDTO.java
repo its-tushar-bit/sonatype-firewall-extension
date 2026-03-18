@@ -7,5 +7,6 @@ package com.sonatype.insight.brain.api.v2.dto.githubapp;
 
 public record ApiGitHubAppManifestDTO(
     String state,
-    Manifest manifest
-) {}
+    Manifest manifest)
+{
+}

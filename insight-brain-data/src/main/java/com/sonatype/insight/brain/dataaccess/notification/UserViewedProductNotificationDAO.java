@@ -109,7 +109,7 @@ public class UserViewedProductNotificationDAO
    * not as it is stored in the authentication realm.
    * This means there may be multiple viewed notifications with the same notification ID and same case insensitive
    * username.
-   * 
+   *
    * This method tries first to find a match by username case sensitive, then by username case insensitive.
    * In both cases, if there are multiple viewed notifications, then this method will return only one of them.
    */

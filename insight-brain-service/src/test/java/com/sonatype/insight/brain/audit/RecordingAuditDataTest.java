@@ -28,7 +28,7 @@ public class RecordingAuditDataTest
       Thread.sleep(1);
     }
   }
-  
+
   @Test
   public void testForSubEvent_Dependent() throws Exception {
     List<AuditData> committed = new ArrayList<>();

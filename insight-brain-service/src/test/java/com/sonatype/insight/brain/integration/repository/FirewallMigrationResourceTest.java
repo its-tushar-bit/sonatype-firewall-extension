@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.integration.repository;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -52,7 +53,8 @@ public class FirewallMigrationResourceTest
     HttpResponse response = restRequest().path(FirewallMigrationResource.HISTORY_PATH)
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
         .query("sourceRepositoryManagerInstanceId", sourceRepositoryManager.getInstanceId())
-        .query("sourceRepositoryPublicId", sourceRepository.getPublicId()).post();
+        .query("sourceRepositoryPublicId", sourceRepository.getPublicId())
+        .post();
     assertResponseStatus(HttpStatus.SC_NO_CONTENT, response);
   }
 
@@ -62,7 +64,8 @@ public class FirewallMigrationResourceTest
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
 
     HttpResponse response = restRequest().path(FirewallMigrationResource.HISTORY_PATH)
-        .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).get();
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+        .get();
     assertResponseStatus(HttpStatus.SC_OK, response);
     MigrationDetails migrationDetails = response.getBody(MigrationDetails.class);
     assertThat(migrationDetails.getState()).isEqualTo(MigrationState.FAILED);

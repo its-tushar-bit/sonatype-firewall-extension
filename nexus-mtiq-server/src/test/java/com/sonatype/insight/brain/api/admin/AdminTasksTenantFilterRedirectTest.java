@@ -34,7 +34,8 @@ public class AdminTasksTenantFilterRedirectTest
 
   @Test
   public void testAdminTasksTenantFilter_redirectsTenantTasksUrls() throws Exception {
-    assertThat(adminRequest().path("api", "admin", "tenants", getTestTenant().tenantSlug, "tasks", "log-level").post()
+    assertThat(adminRequest().path("api", "admin", "tenants", getTestTenant().tenantSlug, "tasks", "log-level")
+        .post()
         .getStatusCode()).isEqualTo(200);
   }
 

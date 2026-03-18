@@ -139,8 +139,7 @@ public class CopyStorageService
         new ThreadFactoryBuilder().setNameFormat("CopyStorageService-%d").build(),
         new AbortPolicy(),
         "copy_storage_service",
-        getClass().getSimpleName()
-    )
+        getClass().getSimpleName())
     {
       @Override
       public void shutdown() {
@@ -370,15 +369,13 @@ public class CopyStorageService
     Phaser tenantPhaser = new Phaser(1);
     phasers.add(tenantPhaser);
     TenantScheduledThreadPoolExecutor logScheduler = new TenantScheduledThreadPoolExecutor(1,
-        new ThreadFactoryBuilder().setNameFormat("CopyStorageServiceLogger-%d").build()
-    );
+        new ThreadFactoryBuilder().setNameFormat("CopyStorageServiceLogger-%d").build());
     try {
       logScheduler.scheduleAtFixedRate(
           () -> log.debug("Copy of scans, reports, and SBOMs from '{}' to '{}': {}.", from, to, copyStorageResult),
           LOG_FREQUENCY.toMillis(),
           LOG_FREQUENCY.toMillis(),
-          TimeUnit.MILLISECONDS
-      );
+          TimeUnit.MILLISECONDS);
       String logStart = "Starting copy of {} from '{}' to '{}' for app '{}' with id '{}'.";
       String logEnd = "Finished copy of {} from '{}' to '{}' for app '{}' with id '{}'.";
       while (apps.hasNext()) {
@@ -535,7 +532,8 @@ public class CopyStorageService
       log.trace("Copying scan from '{}' to '{}'.", fromLocation, toLocation);
       targetTempScan = to.createTempScan(appId);
       try (InputStream inputStream = sourceScan.getInputStream();
-           OutputStream outputStream = targetTempScan.getOutputStream()) {
+          OutputStream outputStream = targetTempScan.getOutputStream())
+      {
         inputStream.transferTo(outputStream);
       }
       to.moveTempScan(targetTempScan, appId, scanId);
@@ -640,7 +638,8 @@ public class CopyStorageService
       ReportPdfEntity targetReportPdfEntity = to.getPdfEntity(appId, scanId);
       if (sourceReportPdfEntity.exists()) {
         try (InputStream inputStream = sourceReportPdfEntity.getInputStream();
-             OutputStream outputStream = targetReportPdfEntity.getOutputStream()) {
+            OutputStream outputStream = targetReportPdfEntity.getOutputStream())
+        {
           inputStream.transferTo(outputStream);
         }
       }
@@ -708,8 +707,8 @@ public class CopyStorageService
       log.trace("Copying sbom from '{}' to '{}'.", fromLocation, toLocation);
       try (
           InputStream inputStream = sourceSbom.getInputStream();
-          OutputStream outputStream = targetTempSbom.getOutputStream()
-      ) {
+          OutputStream outputStream = targetTempSbom.getOutputStream())
+      {
         inputStream.transferTo(outputStream);
       }
       to.moveSbomEntity(targetTempSbom, targetSbom);

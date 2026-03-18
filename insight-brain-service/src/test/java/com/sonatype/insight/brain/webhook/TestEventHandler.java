@@ -29,7 +29,7 @@ public class TestEventHandler<T extends WebhookEvent>
    * of event this class subscribes to.
    * Without any event type information available at runtime, the event bus will send all events to this subscriber,
    * which is undesired.
-   * 
+   *
    * The eventClass parameter was added to allow us to filter out undesired events in the handleEvent method. It must
    * match the class of the T parameter.
    */

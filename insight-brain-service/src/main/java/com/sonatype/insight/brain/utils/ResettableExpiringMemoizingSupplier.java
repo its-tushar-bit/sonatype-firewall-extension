@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * This is a copy of {@link  com.google.common.base.Suppliers.ExpiringMemoizingSupplier}
+ * This is a copy of {@link com.google.common.base.Suppliers.ExpiringMemoizingSupplier}
  * https://github.com/google/guava/blob/v33.1.0/guava/src/com/google/common/base/Suppliers.java#L271-L322 with a reset
  * method to allow us to have a cache with a single value that can be reset
  */

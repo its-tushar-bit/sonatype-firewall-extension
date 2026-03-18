@@ -286,7 +286,8 @@ public class RepositoryResourceAuditTest
 
   private HttpRequest configureRepositoriesRequest(String repositoryManagerId, List<Repository> repositories) {
     return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.CONFIGURE_REPOSITORIES_PATH)
-        .parameter(repositoryManagerId).body(repositories);
+        .parameter(repositoryManagerId)
+        .body(repositories);
   }
 
   private HttpRequest configureFirewallOnboardingRequest(FirewallOnboardingOptionsDTO firewallOnboardingOptionsDTO) {
@@ -381,9 +382,9 @@ public class RepositoryResourceAuditTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
 
     HttpResponse response1 = restRequest()
-            .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UPDATE_REPOSITORY_MANAGER_NAME_PATH)
-            .parameter(repositoryManager.getId(), "name2")
-            .put();
+        .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UPDATE_REPOSITORY_MANAGER_NAME_PATH)
+        .parameter(repositoryManager.getId(), "name2")
+        .put();
 
     assertResponseStatus(204, response1);
 
@@ -401,10 +402,10 @@ public class RepositoryResourceAuditTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
 
     HttpResponse response = restRequest()
-            .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UPDATE_REPOSITORY_MANAGER_NAME_PATH)
-            .parameter(repositoryManager.getId(), "name")
-            .with(unauthorizedUser())
-            .put();
+        .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UPDATE_REPOSITORY_MANAGER_NAME_PATH)
+        .parameter(repositoryManager.getId(), "name")
+        .with(unauthorizedUser())
+        .put();
 
     assertResponseStatus(403, response);
     assertAuditLog(AuditEvent.UPDATE_REPOSITORY_MANAGER, "unauthorized");
@@ -415,7 +416,10 @@ public class RepositoryResourceAuditTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
 
     restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
-        .parameter(repositoryManager.getId()).part("hasRobotSource", "true").part("hashcode", "").post();
+        .parameter(repositoryManager.getId())
+        .part("hasRobotSource", "true")
+        .part("hashcode", "")
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY_MANAGER_ICON, null);
     assertRepositoryManagerData(auditDTO, repositoryManager);
@@ -430,7 +434,8 @@ public class RepositoryResourceAuditTest
     restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
         .parameter(repositoryManager.getId())
         .part("hasRobotSource", "false")
-        .part("file", iconFilename, IconUtils.loadIconFromProductAssets("defaulticon_repository_manager.png")).post();
+        .part("file", iconFilename, IconUtils.loadIconFromProductAssets("defaulticon_repository_manager.png"))
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY_MANAGER_ICON, null);
     assertRepositoryManagerData(auditDTO, repositoryManager);
@@ -444,7 +449,8 @@ public class RepositoryResourceAuditTest
 
     restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
         .parameter(repositoryManager.getId())
-        .part("hasRobotSource", "false").post();
+        .part("hasRobotSource", "false")
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY_MANAGER_ICON, null);
     assertRepositoryManagerData(auditDTO, repositoryManager);
@@ -457,7 +463,9 @@ public class RepositoryResourceAuditTest
 
     restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
         .parameter(repositoryManager.getId())
-        .part("hasRobotSource", "false").with(unauthorizedUser()).post();
+        .part("hasRobotSource", "false")
+        .with(unauthorizedUser())
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY_MANAGER_ICON, "unauthorized");
     assertRepositoryManagerData(auditDTO, repositoryManager);

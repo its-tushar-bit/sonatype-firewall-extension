@@ -62,12 +62,14 @@ public class RoleTelemetryCollectorTest
       assertThat(telemetryData.getAttributes()).containsOnlyKeys(RoleTelemetryCollector.ROLE_NAME,
           RoleTelemetryCollector.ROLE_PERMISSIONS, RoleTelemetryCollector.ROLE_USER_COUNT,
           RoleTelemetryCollector.ROLE_GROUP_COUNT);
-    }).extracting(telemetryData -> telemetryData.getAttributes().get(RoleTelemetryCollector.ROLE_NAME))
+    })
+        .extracting(telemetryData -> telemetryData.getAttributes().get(RoleTelemetryCollector.ROLE_NAME))
         .containsExactlyInAnyOrderElementsOf(roleNames);
 
     TelemetryData telemetryData = allTelemetryData.stream()
         .filter(data -> obfuscatedCustomRoleName.equals(data.getAttributes().get(RoleTelemetryCollector.ROLE_NAME)))
-        .findFirst().get();
+        .findFirst()
+        .get();
     assertThat(telemetryData.getAttributes())
         .containsEntry(RoleTelemetryCollector.ROLE_PERMISSIONS, Collections.singleton(Permission.WRITE))
         .containsEntry(RoleTelemetryCollector.ROLE_USER_COUNT, 2)

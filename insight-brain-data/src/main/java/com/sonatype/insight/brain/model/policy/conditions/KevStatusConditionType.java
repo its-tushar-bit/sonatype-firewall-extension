@@ -57,7 +57,8 @@ public class KevStatusConditionType
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
     TriggerSecurityVulnerabilityWithKev conditionTrigger = (TriggerSecurityVulnerabilityWithKev) matchFact
-        .getConditionTriggerByConditionIndex(condition.getConditionIndex()).getTrigger();
+        .getConditionTriggerByConditionIndex(condition.getConditionIndex())
+        .getTrigger();
     if (conditionTrigger.isKev) {
       return "Vulnerability " + conditionTrigger.refId
           + " listed in the Known Exploited Vulnerabilities (KEV) database.";
@@ -80,8 +81,10 @@ public class KevStatusConditionType
   }
 
   @Override
-  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
-      throws InvalidConditionException
+  public void validateCondition(
+      TransactionContext tx,
+      Condition condition,
+      String ownerId) throws InvalidConditionException
   {
     super.validateCondition(tx, condition, ownerId);
 

@@ -23,5 +23,6 @@ public record ApplicationRiskDTO(
     int criticalPerStage,
     int severePerStage,
     int moderatePerStage,
-    int lowPerStage
-) { }
+    int lowPerStage)
+{
+}

@@ -10,10 +10,10 @@ package com.sonatype.insight.brain.security;
  * <p>
  * Strategy selection guidelines:
  * <ul>
- *   <li><strong>SEQUENTIAL</strong> - &lt;10k entities, minimal overhead (default)</li>
- *   <li><strong>PARALLEL</strong> - 10k-1M entities, good CPU utilization</li>
- *   <li><strong>EXECUTOR_FIXED</strong> - &gt;1M entities, maximum throughput</li>
- *   <li><strong>AUTO</strong> - Selects optimal strategy based on dataset size</li>
+ * <li><strong>SEQUENTIAL</strong> - &lt;10k entities, minimal overhead (default)</li>
+ * <li><strong>PARALLEL</strong> - 10k-1M entities, good CPU utilization</li>
+ * <li><strong>EXECUTOR_FIXED</strong> - &gt;1M entities, maximum throughput</li>
+ * <li><strong>AUTO</strong> - Selects optimal strategy based on dataset size</li>
  * </ul>
  * <p>
  * Configured via {@code AUTHORIZATION_PERMISSION_ENTITY_FILTER_STRATEGY} environment variable.

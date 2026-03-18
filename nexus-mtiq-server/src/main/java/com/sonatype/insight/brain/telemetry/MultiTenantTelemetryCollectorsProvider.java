@@ -29,8 +29,8 @@ public class MultiTenantTelemetryCollectorsProvider
 
   private static final List<Class> DISABLED_COLLECTORS =
       Arrays.asList(new Class[]{
-          SourceControlRateLimitTelemetryCollector.class,
-          SourceControlMetricsTelemetryCollector.class
+        SourceControlRateLimitTelemetryCollector.class,
+        SourceControlMetricsTelemetryCollector.class
       });
 
   @Inject

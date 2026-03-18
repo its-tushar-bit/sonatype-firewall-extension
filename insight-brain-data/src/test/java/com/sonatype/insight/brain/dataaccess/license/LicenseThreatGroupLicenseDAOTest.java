@@ -89,8 +89,8 @@ public class LicenseThreatGroupLicenseDAOTest
 
     assertThatThrownBy(() -> dao.insert(
         new LicenseThreatGroupLicense(application.getId(), group.getId(), licenseThreatGroupLicense.getLicenseId())))
-        .isInstanceOf(InvalidLicenseThreatGroupLicenseException.class)
-        .hasMessage("The license is already in the license threat group");
+            .isInstanceOf(InvalidLicenseThreatGroupLicenseException.class)
+            .hasMessage("The license is already in the license threat group");
   }
 
   @Test
@@ -188,10 +188,11 @@ public class LicenseThreatGroupLicenseDAOTest
     assertThat(licenseThreatGroupLicense1.getId()).isNotEqualTo(licenseThreatGroupLicense2.getId());
   }
 
-  private void assertLicenseThreatGroupLicense(String ownerId,
-                                               String licenseThreatGroupId,
-                                               String licenseId,
-                                               LicenseThreatGroupLicense actual)
+  private void assertLicenseThreatGroupLicense(
+      String ownerId,
+      String licenseThreatGroupId,
+      String licenseId,
+      LicenseThreatGroupLicense actual)
   {
     assertThat(actual.getOwnerId()).isEqualTo(ownerId);
     assertThat(actual.getLicenseThreatGroupId()).isEqualTo(licenseThreatGroupId);

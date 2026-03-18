@@ -54,7 +54,7 @@ public class MultiTenantAuth0ManagementService
 
   @VisibleForTesting
   public MultiTenantAuth0ManagementService() {
-    //no-op
+    // no-op
   }
 
   public User createOrUpdateUser(
@@ -101,8 +101,10 @@ public class MultiTenantAuth0ManagementService
   }
 
   private void sendResetPassword(
-      final String email, final String connectionName,
-      final String connectionId, final String applicationId,
+      final String email,
+      final String connectionName,
+      final String connectionId,
+      final String applicationId,
       final String organizationId)
   {
     try {
@@ -146,16 +148,16 @@ public class MultiTenantAuth0ManagementService
         log.debug("Deleting Auth0 client with ID: {}", applicationId);
         auth0ManagementAPI.clients().delete(applicationId).execute();
 
-        //Ignoring the deletion of the reused connection identifier - backwards compatibility
+        // Ignoring the deletion of the reused connection identifier - backwards compatibility
         if (CONNECTION_CREATION_SKIPPED.equals(connectionId)) {
           return true;
         }
 
-        //Only retrieving strategy field for the connection
+        // Only retrieving strategy field for the connection
         ConnectionFilter connectionFilter = new ConnectionFilter().withFields("strategy", true);
         Connection connection = auth0ManagementAPI.connections().get(connectionId, connectionFilter).execute();
 
-        //Only removing DB Auth0 connections
+        // Only removing DB Auth0 connections
         if (connection.getStrategy().equals(Auth0ManagementAPI.AUTH0_CONNECTION_STRATEGY)) {
           log.debug("Deleting Auth0 connection with ID: {}", connectionId);
           auth0ManagementAPI.connections().delete(connectionId).execute();

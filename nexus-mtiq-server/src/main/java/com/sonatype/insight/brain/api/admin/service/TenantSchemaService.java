@@ -72,7 +72,7 @@ public class TenantSchemaService
       databaseProvisioner.initializeDatabaseWithMigration();
     }
     catch (RuntimeException e) {
-      //we are passing up any exception when migrating a Tenant schema
+      // we are passing up any exception when migrating a Tenant schema
       log.warn("Failed to perform schema migration for tenant: {}. Exception message is: {}", tenantSlug,
           e.getMessage());
     }

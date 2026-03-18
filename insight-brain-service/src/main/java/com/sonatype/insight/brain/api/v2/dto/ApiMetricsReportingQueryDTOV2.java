@@ -34,11 +34,12 @@ public class ApiMetricsReportingQueryDTOV2
   public ApiMetricsReportingQueryDTOV2() {
   }
 
-  public ApiMetricsReportingQueryDTOV2(TimePeriod timePeriod,
-                                       String firstTimePeriod,
-                                       String lastTimePeriod,
-                                       Set<String> applicationIds,
-                                       Set<String> organizationIds)
+  public ApiMetricsReportingQueryDTOV2(
+      TimePeriod timePeriod,
+      String firstTimePeriod,
+      String lastTimePeriod,
+      Set<String> applicationIds,
+      Set<String> organizationIds)
   {
     this.timePeriod = timePeriod;
     this.firstTimePeriod = firstTimePeriod;

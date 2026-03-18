@@ -43,7 +43,7 @@ import static org.mockito.Mockito.verify;
 public class MultiTenantOpenSearchSearchIndexClientTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
-  private OpenSearchSearchIndexClient openSearchSearchIndexClient; //under test
+  private OpenSearchSearchIndexClient openSearchSearchIndexClient; // under test
 
   private IndexConfigProvider indexConfigProvider;
 
@@ -82,7 +82,7 @@ public class MultiTenantOpenSearchSearchIndexClientTest
   @Test
   @ManualIqServerInit
   public void testPopulateIndex_onTenantProvisioning() throws Exception {
-    //Tenant is already provisioned by the AbstractMultiTenantBaseIntegrationTest, including the index creation
+    // Tenant is already provisioned by the AbstractMultiTenantBaseIntegrationTest, including the index creation
     GetIndexRequest getIndexRequest = new GetIndexRequest.Builder()
         .index(indexConfig.getIndexName())
         .build();
@@ -124,7 +124,7 @@ public class MultiTenantOpenSearchSearchIndexClientTest
   @Test
   @ManualIqServerInit
   public void testPopulateIndex_IndexAlreadyExists() throws IOException {
-    //Tenant is already provisioned by the AbstractMultiTenantBaseIntegrationTest, including the index creation
+    // Tenant is already provisioned by the AbstractMultiTenantBaseIntegrationTest, including the index creation
     OpenSearchClient openSearchClient = spy(openSearchSearchIndexClient.getClient());
     OpenSearchIndicesClient openSearchIndicesClient = spy(openSearchClient.indices());
 

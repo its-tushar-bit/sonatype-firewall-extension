@@ -57,11 +57,11 @@ public class SbomManagerDashboardPageTest
   private final SbomManagerDashboardPage sbomManagerDashboardPage = new SbomManagerDashboardPage();
 
   private Organization org;
-  
+
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   long testDate = System.currentTimeMillis();
-  
+
   private final SimpleDateFormat testDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
   @Before
@@ -107,57 +107,66 @@ public class SbomManagerDashboardPageTest
 
     refreshOrOpen(SbomManagerDashboardPage.url());
     waitUntilUrl(LearnMoreSbomManagerPage.url());
-    
+
     LearnMoreSbomManagerPage learnMoreSbomManagerPage = new LearnMoreSbomManagerPage();
-    learnMoreSbomManagerPage.infoAlert().shouldHave(text("SBOM Manager is currently not enabled for your " +
-        "organization. Learn more about SBOM Manager."));
+    learnMoreSbomManagerPage.infoAlert()
+        .shouldHave(text("SBOM Manager is currently not enabled for your " +
+            "organization. Learn more about SBOM Manager."));
   }
 
   @Test
   public void testDashboard_AllTiles_ConfirmTooltipFunctionality() {
     refreshOrOpen(SbomManagerDashboardPage.url());
-    TotalSBOMsStoredTile totalStoreDashboardTile = 
+    TotalSBOMsStoredTile totalStoreDashboardTile =
         SbomManagerDashboardPage.totalSBOMsStoredTile();
-    ApplicationsHistoryTile applicationsHistoryTile = 
+    ApplicationsHistoryTile applicationsHistoryTile =
         SbomManagerDashboardPage.applicationsHistoryTile();
-    HighPriorityVulnerabilitiesTile highPriorityVulnerabilitiesTile = 
+    HighPriorityVulnerabilitiesTile highPriorityVulnerabilitiesTile =
         SbomManagerDashboardPage.highPriorityVulnerabilitiesTile();
-    SbomReleaseStatusTile sbomReleaseStatusTile = 
+    SbomReleaseStatusTile sbomReleaseStatusTile =
         SbomManagerDashboardPage.sbomReleaseStatusTile();
     RecentlyImportedSBOMsTile recentlyImportedSBOMsTile = SbomManagerDashboardPage.recentlyImportedSBOMsTile();
     NxSortingHeader applicationNameTableHeader = recentlyImportedSBOMsTile.sbomTable().applicationNameTableHeader();
 
     ElementsCollection totalStoreDashboardTileToolTips = totalStoreDashboardTile.allInfoIcons();
     totalStoreDashboardTileToolTips.get(0).hover();
-    sbomManagerDashboardPage.toolTip().shouldBe(visible)
-      .shouldHave(text("Each application version counts toward the total SBOMs Analyzed."));
+    sbomManagerDashboardPage.toolTip()
+        .shouldBe(visible)
+        .shouldHave(text("Each application version counts toward the total SBOMs Analyzed."));
     totalStoreDashboardTileToolTips.get(1).hover();
-    sbomManagerDashboardPage.toolTip().shouldBe(visible)
-      .shouldHave(text("Shows how many SBOMs you have analyzed within the limits of your purchased license."));
+    sbomManagerDashboardPage.toolTip()
+        .shouldBe(visible)
+        .shouldHave(text("Shows how many SBOMs you have analyzed within the limits of your purchased license."));
     applicationsHistoryTile.infoIcon().hover();
-    sbomManagerDashboardPage.toolTip().shouldBe(visible)
-      .shouldHave(text("Track the number of applications with updated SBOMs."));
+    sbomManagerDashboardPage.toolTip()
+        .shouldBe(visible)
+        .shouldHave(text("Track the number of applications with updated SBOMs."));
     highPriorityVulnerabilitiesTile.infoIcon().hover();
-    sbomManagerDashboardPage.toolTip().shouldBe(visible)
-      .shouldHave(text("High severity vulnerabilities found in the most recent SBOM scans or import."));
+    sbomManagerDashboardPage.toolTip()
+        .shouldBe(visible)
+        .shouldHave(text("High severity vulnerabilities found in the most recent SBOM scans or import."));
     sbomReleaseStatusTile.infoIcon().hover();
-    sbomManagerDashboardPage.toolTip().shouldBe(visible)
-      .shouldHave(text("Shows breakdown of SBOMs based on the annotations completed."));
+    sbomManagerDashboardPage.toolTip()
+        .shouldBe(visible)
+        .shouldHave(text("Shows breakdown of SBOMs based on the annotations completed."));
     applicationNameTableHeader.hover();
-    sbomManagerDashboardPage.toolTip().shouldBe(visible)
-      .shouldHave(text("Application Name unsorted"));
+    sbomManagerDashboardPage.toolTip()
+        .shouldBe(visible)
+        .shouldHave(text("Application Name unsorted"));
     applicationNameTableHeader.click();
-    sbomManagerDashboardPage.toolTip().shouldBe(visible)
-      .shouldHave(text("Application Name ascending"));
+    sbomManagerDashboardPage.toolTip()
+        .shouldBe(visible)
+        .shouldHave(text("Application Name ascending"));
     applicationNameTableHeader.click();
-    sbomManagerDashboardPage.toolTip().shouldBe(visible)
-      .shouldHave(text("Application Name descending"));
+    sbomManagerDashboardPage.toolTip()
+        .shouldBe(visible)
+        .shouldHave(text("Application Name descending"));
   }
 
   @Test
   public void testDashboard_ApplicationHistoryTile__Link() {
     refreshOrOpen(SbomManagerDashboardPage.url());
-    ApplicationsHistoryTile applicationsHistoryTile = 
+    ApplicationsHistoryTile applicationsHistoryTile =
         SbomManagerDashboardPage.applicationsHistoryTile();
 
     applicationsHistoryTile.link().click();
@@ -173,7 +182,7 @@ public class SbomManagerDashboardPageTest
   @Test
   public void testDashboard_VulnerabilitiesByThreatTile__Link() {
     refreshOrOpen(SbomManagerDashboardPage.url());
-    VulnerabilitiesThreatLevelTile vulnerabilitiesThreatLevelTile = 
+    VulnerabilitiesThreatLevelTile vulnerabilitiesThreatLevelTile =
         SbomManagerDashboardPage.vulnerabilitiesThreatLevelTile();
 
     vulnerabilitiesThreatLevelTile.link().click();
@@ -249,7 +258,7 @@ public class SbomManagerDashboardPageTest
     vulnerabilityList.listItem(2).shouldHaveCorrectSeverityAndName(9, "critical_vulnerability1", "a few seconds ago");
     vulnerabilityList.listItem(3).shouldHaveCorrectSeverityAndName(10, "critical_vulnerability2", "a few seconds ago");
   }
-  
+
   @Test
   public void testDashboard_HighPriorityVulnerabilitiesTile_ConfirmPageRedirect() {
     refreshOrOpen(SbomManagerDashboardPage.url());
@@ -327,8 +336,7 @@ public class SbomManagerDashboardPageTest
       String appId,
       String vulnerabilityName,
       int vulnerabilitySeverity,
-      Date creationDate
-  )
+      Date creationDate)
   {
     Application app = tempEntity.newApplication("test_app_" + appId, "test_app_" + appId, org.getId());
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan();
@@ -340,15 +348,13 @@ public class SbomManagerDashboardPageTest
         thirdPartyScan.getScanId(),
         SbomSpecification.CYCLONEDX.name(),
         SbomFormat.XML.name(),
-        "0.0"
-    );
+        "0.0");
     sbomMetadata.setCreatedAt(creationDate);
     thirdPartySbomMetadataDAO.update(sbomMetadata);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(
         thirdPartyScan.getThirdPartyFileId(),
         "s", "SPDX", "n" + appId, "v" + appId, "h" + appId, "u" + appId,
-        ThirdPartyDependencyType.DIRECT
-    );
+        ThirdPartyDependencyType.DIRECT);
     tempEntity.newThirdPartyCoordinateSecurity(
         thirdPartyFileCoordinate,
         vulnerabilityName,
@@ -356,7 +362,6 @@ public class SbomManagerDashboardPageTest
         "d" + appId, "l" + appId,
         vulnerabilitySeverity,
         "sd" + appId,
-        "f" + appId
-    );
+        "f" + appId);
   }
 }

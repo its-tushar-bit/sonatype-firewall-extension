@@ -76,8 +76,7 @@ public class FirewallAddContainerImageWaiverPageTest
         LicensedFeature.CONTAINER_IMAGES_EVALUATION,
         LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
         LicensedFeature.APPLICATION_EVALUATION,
-        LicensedFeature.APPLICATION_REPORTS
-    );
+        LicensedFeature.APPLICATION_REPORTS);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
 
     repositoryDAO = lookup(RepositoryDAO.class);

@@ -80,8 +80,8 @@ public class OAuth2GroupDAOTest
 
     assertThat(oAuth2GroupDAO.getByIds(
         new HashSet<>(Arrays.asList(oAuth2Group1.getId(), oAuth2Group2.getId()))))
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(oAuth2Group1, oAuth2Group2);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(oAuth2Group1, oAuth2Group2);
   }
 
   @Test
@@ -90,7 +90,8 @@ public class OAuth2GroupDAOTest
     tempEntity.newOAuth2Group();
 
     assertThat(oAuth2GroupDAO.getByName(oAuth2Group.getName())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(oAuth2Group);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(oAuth2Group);
   }
 
   @Test
@@ -106,8 +107,8 @@ public class OAuth2GroupDAOTest
 
     assertThat(oAuth2GroupDAO.getByNames(
         new HashSet<>(Arrays.asList(oAuth2Group1.getName(), oAuth2Group2.getName()))))
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(oAuth2Group1, oAuth2Group2);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(oAuth2Group1, oAuth2Group2);
   }
 
   @Test
@@ -130,7 +131,8 @@ public class OAuth2GroupDAOTest
     oAuth2GroupDAO.upsertByName(oAuth2Group);
 
     assertThat(oAuth2Group.getId()).isNotNull();
-    assertThat(oAuth2GroupDAO.getById(oAuth2Group.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(oAuth2GroupDAO.getById(oAuth2Group.getId())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(oAuth2Group);
   }
 

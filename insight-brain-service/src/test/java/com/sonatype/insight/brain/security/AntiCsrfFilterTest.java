@@ -121,7 +121,9 @@ public class AntiCsrfFilterTest
 
   @Test
   public void testRequestToIndexPageInitializesCsrfCookie() throws Exception {
-    HttpResponse response = super.restRequest().header("REMOTE_USER", "admin").noCsrfToken().path("/assets/index.html")
+    HttpResponse response = super.restRequest().header("REMOTE_USER", "admin")
+        .noCsrfToken()
+        .path("/assets/index.html")
         .get();
 
     HttpCookie csrfCookie = response.getCookie(AntiCsrfFilter.CSRF_COOKIE_NAME);
@@ -175,7 +177,7 @@ public class AntiCsrfFilterTest
     // since we aren't providing a proper app id, we will get an error message back from the DAO, which means the
     // request filter passed and endpoint mapping worked.
     assertThat(response.getBodyText()).isEqualTo("Could not find an application with public ID testApp.");
-    assertResponseStatus(404, response);  // 404 since we are providing an app id that can't be found.
+    assertResponseStatus(404, response); // 404 since we are providing an app id that can't be found.
   }
 
   private void assertCrossSiteRequestForgery(HttpResponse response) {

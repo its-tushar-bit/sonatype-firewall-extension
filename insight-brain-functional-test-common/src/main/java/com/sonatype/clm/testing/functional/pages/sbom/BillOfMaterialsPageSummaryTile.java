@@ -10,7 +10,8 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class BillOfMaterialsPageSummaryTile extends BasicElement<BillOfMaterialsPageSummaryTile>
+public class BillOfMaterialsPageSummaryTile
+    extends BasicElement<BillOfMaterialsPageSummaryTile>
 {
   public static String url(String applicationId, String versionId) {
     return BaseUrl.resolvePageUrl("/sbomManager/management/view/application/{applicationId}/bom/{versionId}",

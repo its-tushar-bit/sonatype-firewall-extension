@@ -46,7 +46,8 @@ public class CrowdConfigurationDAOTest
 
     // Read
     CrowdConfiguration storedCrowdConfiguration = dao.getById(crowdConfiguration.getId());
-    assertThat(storedCrowdConfiguration).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(storedCrowdConfiguration).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(crowdConfiguration);
 
     // Update
@@ -54,7 +55,8 @@ public class CrowdConfigurationDAOTest
     crowdConfiguration.setApplicationName("newApplicationName");
     crowdConfiguration.setApplicationPassword("newApplicationPassword".toCharArray());
     dao.update(crowdConfiguration);
-    assertThat(dao.getById(crowdConfiguration.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(dao.getById(crowdConfiguration.getId())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(crowdConfiguration);
 
     // Delete
@@ -67,8 +69,7 @@ public class CrowdConfigurationDAOTest
     CrowdConfiguration crowdConfiguration = new CrowdConfiguration(
         StringUtils.repeat("a", CrowdConfigurationDAO.MAX_SERVER_URL_SIZE),
         StringUtils.repeat("b", CrowdConfigurationDAO.MAX_APPLICATION_NAME_SIZE),
-        StringUtils.repeat("c", CrowdConfigurationDAO.MAX_APPLICATION_PASSWORD_SIZE).toCharArray()
-    );
+        StringUtils.repeat("c", CrowdConfigurationDAO.MAX_APPLICATION_PASSWORD_SIZE).toCharArray());
 
     dao.insert(crowdConfiguration);
 
@@ -102,7 +103,8 @@ public class CrowdConfigurationDAOTest
 
     dao.set(crowdConfiguration);
 
-    assertThat(dao.getById(crowdConfiguration.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(dao.getById(crowdConfiguration.getId())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(crowdConfiguration);
   }
 
@@ -116,7 +118,8 @@ public class CrowdConfigurationDAOTest
 
     dao.set(crowdConfiguration);
 
-    assertThat(dao.getById(crowdConfiguration.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(dao.getById(crowdConfiguration.getId())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(crowdConfiguration);
   }
 

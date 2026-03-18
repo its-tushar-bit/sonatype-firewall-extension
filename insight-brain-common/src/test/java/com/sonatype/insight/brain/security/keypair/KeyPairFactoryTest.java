@@ -99,9 +99,7 @@ public class KeyPairFactoryTest
   }
 
   @Test
-  public void testCreateKeyPair_WithFipsEnabled_AndRSAKeyPair_Throws_NoSuchProviderException()
-      throws NoSuchAlgorithmException
-  {
+  public void testCreateKeyPair_WithFipsEnabled_AndRSAKeyPair_Throws_NoSuchProviderException() throws NoSuchAlgorithmException {
     environmentVariables.set(FIPS_MODE_ENABLED_ENV, "true");
 
     KeyPair keyPair = generateRSAKeyPair();

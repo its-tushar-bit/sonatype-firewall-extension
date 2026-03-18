@@ -35,8 +35,9 @@ public class DirectoryAdminHealthCheckEndpointTest
     testIsHealthy(false, new HealthCheckResponse(false, "test is not a valid directory"));
   }
 
-  private void testIsHealthy(boolean validDirectory, HealthCheckResponse expectedHealthCheckResponse)
-      throws IOException
+  private void testIsHealthy(
+      boolean validDirectory,
+      HealthCheckResponse expectedHealthCheckResponse) throws IOException
   {
     File file;
     if (validDirectory) {
@@ -47,6 +48,7 @@ public class DirectoryAdminHealthCheckEndpointTest
     }
     directoryAdminHealthCheckEndpoint = new DirectoryAdminHealthCheckEndpoint("test", "test", file);
     assertThat(directoryAdminHealthCheckEndpoint.getHealthCheckResponse())
-        .usingRecursiveComparison().isEqualTo(expectedHealthCheckResponse);
+        .usingRecursiveComparison()
+        .isEqualTo(expectedHealthCheckResponse);
   }
 }

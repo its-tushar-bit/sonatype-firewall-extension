@@ -39,7 +39,8 @@ public class ApiPolicyViolationResourceV2AuditTest
     String unknownPolicyId = "unknownPolicyId";
 
     restRequest().path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
-        .query("p", policy1.getId(), policy2.getId(), unknownPolicyId).get();
+        .query("p", policy1.getId(), policy2.getId(), unknownPolicyId)
+        .get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_POLICY_VIOLATIONS, null);
     PolicyAuditDTO[] actuals = JSON.convertValue(auditDTO.data.get("selectedPolicies"), PolicyAuditDTO[].class);

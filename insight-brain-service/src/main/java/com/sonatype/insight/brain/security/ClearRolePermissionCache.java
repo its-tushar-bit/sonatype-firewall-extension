@@ -53,7 +53,7 @@ public class ClearRolePermissionCache
   public void execute(JobExecutionContext context) {
     execute(this::clearRolePermissionCache, log, "Failed to clear role permission cache");
   }
-  
+
   @Override
   public String getJobName() {
     return TASK_NAME;

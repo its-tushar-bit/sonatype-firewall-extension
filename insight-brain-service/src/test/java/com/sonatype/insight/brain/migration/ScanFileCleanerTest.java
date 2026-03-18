@@ -194,8 +194,9 @@ public class ScanFileCleanerTest
     scanFileCleaner.deleteScanFiles();
 
     assertThat(Files.list(scanDir)).containsExactly(oldScanFile1);
-    assertThat(logOutput).atWarnLevel().contains("Error deleting scan file '" + oldScanFile1.toAbsolutePath()
-        + "': java.lang.SecurityException: Test exception");
+    assertThat(logOutput).atWarnLevel()
+        .contains("Error deleting scan file '" + oldScanFile1.toAbsolutePath()
+            + "': java.lang.SecurityException: Test exception");
 
     assertMarkerExists();
   }
@@ -236,8 +237,9 @@ public class ScanFileCleanerTest
     scanFileCleaner.deleteScanFiles();
 
     assertThat(Files.list(scanDir)).containsExactly(oldScanFile1);
-    assertThat(logOutput).atWarnLevel().contains("Error accessing the last modified timestamp for scan file '"
-        + oldScanFile1.toAbsolutePath() + "': java.lang.SecurityException: Test exception");
+    assertThat(logOutput).atWarnLevel()
+        .contains("Error accessing the last modified timestamp for scan file '"
+            + oldScanFile1.toAbsolutePath() + "': java.lang.SecurityException: Test exception");
 
     assertMarkerExists();
   }

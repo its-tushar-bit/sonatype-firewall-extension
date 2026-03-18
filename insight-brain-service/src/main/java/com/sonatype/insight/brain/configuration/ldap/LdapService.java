@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Manages LDAP information.
- * 
+ *
  * @since 1.7
  */
 @Named
@@ -238,8 +238,9 @@ public class LdapService
     return newLdapQuery(ldapServer).getGroupsByName(groupNames);
   }
 
-  public List<LdapUser> getUsersByRealName(final LdapServer ldapServer, final String[] realNames)
-      throws NamingException
+  public List<LdapUser> getUsersByRealName(
+      final LdapServer ldapServer,
+      final String[] realNames) throws NamingException
   {
     return newLdapQuery(ldapServer).getUsersByRealName(realNames);
   }
@@ -250,7 +251,7 @@ public class LdapService
 
   /**
    * Find a list of users, searching the displayName attribute.
-   * 
+   *
    * @param ldapServer The LDAP server to query
    * @param query String to match against
    * @param maxResults Limit on the number of results to return
@@ -265,7 +266,7 @@ public class LdapService
    * Retrieve all users that are members of the specified group.
    *
    * @throws NamingException if there is a problem with the mapping or the credentials
-   * 
+   *
    * @since 1.14.0
    */
   public List<LdapUser> getUsersByGroup(LdapServer ldapServer, String groupDn) throws NamingException {
@@ -276,7 +277,7 @@ public class LdapService
    * Find a list of groups, searching the Group ID attribute.
    *
    * @param ldapServer The ldap server to query against
-   * @param query       String to match against
+   * @param query String to match against
    * @param maxResults Limit on the number of results to return
    * @return List of LdapGroup objects that match the search criteria
    */
@@ -292,7 +293,7 @@ public class LdapService
     return ldapConnectionDAO.getByServerId(ldapServer.getId()) != null
         && ldapUserMappingDAO.getByServerId(ldapServer.getId()) != null;
   }
-  
+
   /**
    * Indicates whether the ldapServer instance can be searched for groups.
    */
@@ -332,7 +333,7 @@ public class LdapService
 
   /**
    * Slower authentication check; short-circuits if connection or mapping are missing.
-   * 
+   *
    * @see LdapRealm#queryForAuthenticationInfo
    */
   public LdapUser authenticateUser(String username, char[] password) throws NamingException {
@@ -434,7 +435,7 @@ public class LdapService
     ldapConnection.setSystemPassword(passwordHandler.decryptPassword(ldapConnection.getSystemPassword()));
     return ldapConnection;
   }
-  
+
   /**
    * Returns a copy of the given connection for clients with the password faked-out.
    */
@@ -486,7 +487,8 @@ public class LdapService
       return; // A password has been given (else we get FAKE_PASSWORD), so it doesn't matter if host/port change
     }
     if (!storedLdapConnection.getHostname().equals(givenLdapConnection.getHostname()) ||
-        storedLdapConnection.getPort() != givenLdapConnection.getPort()) {
+        storedLdapConnection.getPort() != givenLdapConnection.getPort())
+    {
       throw new BadRequestException(
           "The password must be given when updating the hostname or port for a connection that uses authentication.");
     }
@@ -547,7 +549,8 @@ public class LdapService
 
   private void auditLdapConnection(LdapConnection ldapConnection) {
     auditLdapServer(ldapServerDAO.getByIdNotNull(ldapConnection.getServerId()));
-    AuditData.get().setData("ldapProtocol", ldapConnection.getProtocol().getProtocol()) //
+    AuditData.get()
+        .setData("ldapProtocol", ldapConnection.getProtocol().getProtocol()) //
         .setData("ldapHostname", ldapConnection.getHostname()) //
         .setData("ldapPort", ldapConnection.getPort()) //
         .setData("ldapSearchBaseDn", ldapConnection.getSearchBase()) //
@@ -561,7 +564,8 @@ public class LdapService
 
   private void auditLdapUserMapping(LdapUserMapping ldapUserMapping) {
     auditLdapServer(ldapServerDAO.getByIdNotNull(ldapUserMapping.getServerId()));
-    AuditData.get().setData("ldapUserBaseDn", ldapUserMapping.getUserBaseDN())
+    AuditData.get()
+        .setData("ldapUserBaseDn", ldapUserMapping.getUserBaseDN())
         .setData("ldapUserSubtree", ldapUserMapping.isUserSubtree() ? "enabled" : "disabled")
         .setData("ldapUserObjectClass", ldapUserMapping.getUserObjectClass())
         .setData("ldapUserFilter", ldapUserMapping.getUserFilter())
@@ -571,7 +575,8 @@ public class LdapService
         .setData("ldapUserPasswordAttribute", ldapUserMapping.getUserPasswordAttribute())
         .setEnum("ldapGroupType", ldapUserMapping.getGroupMappingType());
     if (ldapUserMapping.getGroupMappingType().equals(LdapGroupMappingType.STATIC)) {
-      AuditData.get().setData("ldapStaticGroupBaseDn", ldapUserMapping.getGroupBaseDN())
+      AuditData.get()
+          .setData("ldapStaticGroupBaseDn", ldapUserMapping.getGroupBaseDN())
           .setData("ldapStaticGroupSubtree", ldapUserMapping.isGroupSubtree() ? "enabled" : "disabled")
           .setData("ldapStaticGroupObjectClass", ldapUserMapping.getGroupObjectClass())
           .setData("ldapStaticGroupIdAttribute", ldapUserMapping.getGroupIDAttribute())
@@ -579,7 +584,8 @@ public class LdapService
           .setData("ldapStaticGroupMemberFormat", ldapUserMapping.getGroupMemberFormat());
     }
     else if (ldapUserMapping.getGroupMappingType().equals(LdapGroupMappingType.DYNAMIC)) {
-      AuditData.get().setData("ldapDynamicGroupMemberOfAttribute", ldapUserMapping.getUserMemberOfGroupAttribute())
+      AuditData.get()
+          .setData("ldapDynamicGroupMemberOfAttribute", ldapUserMapping.getUserMemberOfGroupAttribute())
           .setData("ldapDynamicGroupSearch", ldapUserMapping.isDynamicGroupSearchEnabled() ? "enabled" : "disabled");
     }
   }

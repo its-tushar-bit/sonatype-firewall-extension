@@ -70,7 +70,7 @@ public class SbomCycloneDxUtils
   public static final String VULNERABILITY_KEY = "vulnerabilities";
 
   private SbomCycloneDxUtils() {
-    //no-op
+    // no-op
   }
 
   public static String getApplicationNameSafely(Bom bomDocument) {
@@ -194,8 +194,7 @@ public class SbomCycloneDxUtils
         scan != null ? scan.getScanId() : null,
         sbomMetadata.getIsValid(),
         sbomMetadata.getOriginalBinaryFileName(),
-        migrationTrackerDAO.isTrackerPresent(DisplayNameForFileCoordinateAsyncDbMigration.class.getSimpleName())
-    );
+        migrationTrackerDAO.isTrackerPresent(DisplayNameForFileCoordinateAsyncDbMigration.class.getSimpleName()));
   }
 
   private static void buildCreators(SbomCreationDetails extractedMetadata, Metadata metadataFromSbomFile) {
@@ -212,8 +211,8 @@ public class SbomCycloneDxUtils
     List<OrganizationalContact> authorsFromSbomFile = metadataFromSbomFile.getAuthors();
     if (!CollectionUtils.isEmpty(authorsFromSbomFile)) {
       extractedMetadata.creators.addAll(authorsFromSbomFile.stream()
-          .map(organizationalContact ->
-              mapOrganizationalContactToCreator(organizationalContact, SbomCreationDetails.CreatorType.Author.name()))
+          .map(organizationalContact -> mapOrganizationalContactToCreator(organizationalContact,
+              SbomCreationDetails.CreatorType.Author.name()))
           .toList());
     }
   }
@@ -224,7 +223,8 @@ public class SbomCycloneDxUtils
   {
     OrganizationalEntity manufactureFromSbomFile = metadataFromSbomFile.getManufacture();
     if (manufactureFromSbomFile != null && CollectionUtils.isNotEmpty(manufactureFromSbomFile.getContacts())) {
-      extractedMetadata.creators.addAll(manufactureFromSbomFile.getContacts().stream()
+      extractedMetadata.creators.addAll(manufactureFromSbomFile.getContacts()
+          .stream()
           .map(contact -> mapOrganizationalContactToCreator(contact,
               SbomCreationDetails.CreatorType.Manufacturer.name(),
               manufactureFromSbomFile.getUrls()))
@@ -239,7 +239,8 @@ public class SbomCycloneDxUtils
   private static void buildCreatorsWithSupplier(SbomCreationDetails extractedMetadata, Metadata metadataFromSbomFile) {
     OrganizationalEntity supplierFromSbomFile = metadataFromSbomFile.getSupplier();
     if (supplierFromSbomFile != null && CollectionUtils.isNotEmpty(supplierFromSbomFile.getContacts())) {
-      extractedMetadata.creators.addAll(supplierFromSbomFile.getContacts().stream()
+      extractedMetadata.creators.addAll(supplierFromSbomFile.getContacts()
+          .stream()
           .map(contact -> mapOrganizationalContactToCreator(contact, CreatorType.Supplier.name(),
               supplierFromSbomFile.getUrls()))
           .toList());
@@ -396,16 +397,20 @@ public class SbomCycloneDxUtils
 
   /*
    * Currently used for backward compatibility SBOMs with a null componentRef
+   *
    * @deprecated search for a component by component-ref instead.
-   * */
+   */
   @Deprecated
   public static Optional<Component> findComponentByPackageUrl(String packageUrl, Bom bom) {
     if (packageUrl == null) {
       return Optional.empty();
     }
 
-    return bom.getComponents().stream().filter(
-        bc -> packageUrl.equals(bc.getPurl())).findFirst();
+    return bom.getComponents()
+        .stream()
+        .filter(
+            bc -> packageUrl.equals(bc.getPurl()))
+        .findFirst();
   }
 
   public static Method resolveRatingMethod(String text) {
@@ -444,7 +449,8 @@ public class SbomCycloneDxUtils
 
   public static Optional<Version> getVersionFromString(String versionString) {
     return Arrays.stream(Version.values())
-        .filter(cycloneDxVersion -> cycloneDxVersion.getVersionString().equalsIgnoreCase(versionString)).findFirst();
+        .filter(cycloneDxVersion -> cycloneDxVersion.getVersionString().equalsIgnoreCase(versionString))
+        .findFirst();
   }
 
   public static void addSonatypeTruncatedSha1(String sha1, Component component) {
@@ -456,9 +462,12 @@ public class SbomCycloneDxUtils
 
   public static String getSonatypeTruncatedSha1(Component component) {
     if (component != null && CollectionUtils.isNotEmpty(component.getProperties())) {
-      return component.getProperties().stream()
+      return component.getProperties()
+          .stream()
           .filter(p -> SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME.equals(p.getName()))
-          .findFirst().map(Property::getValue).orElse(null);
+          .findFirst()
+          .map(Property::getValue)
+          .orElse(null);
     }
     return null;
   }

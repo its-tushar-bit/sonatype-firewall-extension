@@ -55,7 +55,8 @@ public class IconDAOTest
     File iconDir = tmpDir.newFolder();
     ByteArrayInputStream byteArrayInputStream = getIconImageStream();
     assertThatThrownBy(() -> iconDAO.setIcon(BAD_OWNER_ID, iconDir, byteArrayInputStream))
-        .isInstanceOf(BadRequestException.class).hasMessage("Invalid value: " + BAD_OWNER_ID);
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Invalid value: " + BAD_OWNER_ID);
   }
 
   @Test

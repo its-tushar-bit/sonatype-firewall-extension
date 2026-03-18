@@ -12,7 +12,8 @@ public class LdapConnectionStatus
 {
   public static enum Status
   {
-    OK, FAILURE;
+    OK,
+    FAILURE;
   }
 
   public static final LdapConnectionStatus SUCCESS = new LdapConnectionStatus(Status.OK, null);

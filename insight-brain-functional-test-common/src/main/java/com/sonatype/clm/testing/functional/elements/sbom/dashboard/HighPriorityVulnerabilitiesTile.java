@@ -21,46 +21,44 @@ public class HighPriorityVulnerabilitiesTile
   public HighPriorityVulnerabilitiesTile() {
     super(ROOT);
   }
-  
+
   public VulnerabilityList vulnerabilityList() {
     return new VulnerabilityList();
   }
-  
+
   public class VulnerabilityList
       extends BasicElement<VulnerabilityList>
   {
     VulnerabilityList() {
       super(ROOT, ".sbom-manager-high-priority-vulnerabilities-tile-list");
     }
-        
+
     public ListItem listItem(int index) {
       return new ListItem(
-        childSelector(
-            createSelector(".sbom-manager-high-priority-vulnerabilities-tile-list-item", nthChild(index + 1))
-        )
-      );
+          childSelector(
+              createSelector(".sbom-manager-high-priority-vulnerabilities-tile-list-item", nthChild(index + 1))));
     }
   }
 
   public class ListItem
-      extends BasicElement<ListItem> 
+      extends BasicElement<ListItem>
   {
     public ListItem(String selector) {
       super(selector);
     }
-    
+
     public SelenideElement severity() {
       return child(".sbom-manager-high-priority-vulnerabilities-tile-list-item__severity");
     }
-    
+
     public SelenideElement vulnerabilityNameLink() {
       return child(".nx-text-link");
     }
-    
+
     public SelenideElement creationDate() {
       return child(".sbom-manager-high-priority-vulnerabilities-tile-list-item__date");
     }
-    
+
     public void shouldHaveCorrectSeverityAndName(int correctSeverity, String correctName, String correctDate) {
       this.severity().shouldHave(text(String.valueOf(correctSeverity)));
       this.vulnerabilityNameLink().shouldHave(text(correctName));

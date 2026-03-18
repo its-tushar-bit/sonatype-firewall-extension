@@ -37,11 +37,11 @@ public class OwnerHierarchyDTO
 
   @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
   @JsonSubTypes({
-      @Type(value = OwnerHierarchyApplicationDTO.class, name = "application"),
-      @Type(value = OwnerHierarchyOrganizationDTO.class, name = "organization"),
-      @Type(value = OwnerHierarchyRepositoryContainerDTO.class, name = "repository_container"),
-      @Type(value = OwnerHierarchyRepositoryManagerDTO.class, name = "repository_manager"),
-      @Type(value = OwnerHierarchyRepositoryDTO.class, name = "repository")
+    @Type(value = OwnerHierarchyApplicationDTO.class, name = "application"),
+    @Type(value = OwnerHierarchyOrganizationDTO.class, name = "organization"),
+    @Type(value = OwnerHierarchyRepositoryContainerDTO.class, name = "repository_container"),
+    @Type(value = OwnerHierarchyRepositoryManagerDTO.class, name = "repository_manager"),
+    @Type(value = OwnerHierarchyRepositoryDTO.class, name = "repository")
   })
 
   public abstract static class OwnerHierarchyEntityDTO
@@ -55,7 +55,7 @@ public class OwnerHierarchyDTO
     /**
      * The getParentId method is implemented for each owner type, usually returning the value from another field that
      * denotes the parent ID. For ex, the parent org ID for apps or the parent repository manager ID for repositories.
-     * 
+     *
      * @deprecated This method is declared here only to allow json deserialization of the parentId field.
      */
     @SuppressWarnings("unused")
@@ -110,8 +110,8 @@ public class OwnerHierarchyDTO
           return ownerHierarchyOrganizationDTO;
         };
 
-    public static Function<RepositoryManager, OwnerHierarchyRepositoryManagerDTO>
-        transformToSyntheticRepositoryManagerDTO = repositoryManager -> {
+    public static Function<RepositoryManager, OwnerHierarchyRepositoryManagerDTO> transformToSyntheticRepositoryManagerDTO =
+        repositoryManager -> {
           OwnerHierarchyRepositoryManagerDTO ownerHierarchyRepositoryManagerDTO =
               new OwnerHierarchyRepositoryManagerDTO();
           ownerHierarchyRepositoryManagerDTO.id = repositoryManager.getId();
@@ -136,7 +136,7 @@ public class OwnerHierarchyDTO
     @Override
     public void addChild(final OwnerHierarchyEntityDTO child) {
       if (child instanceof OwnerHierarchyApplicationDTO) {
-        applicationIds.add(((OwnerHierarchyApplicationDTO)child).publicId);
+        applicationIds.add(((OwnerHierarchyApplicationDTO) child).publicId);
       }
       else if (child instanceof OwnerHierarchyOrganizationDTO) {
         organizationIds.add(child.id);

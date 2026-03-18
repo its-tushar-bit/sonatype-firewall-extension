@@ -61,24 +61,26 @@ public class HybridSbomPersistenceService
     /*
      * The order of this collection is significant:
      * 1. The first element is the default storage mechanism.
-     *    - All writes are directed here.
+     * - All writes are directed here.
      * 2. The remaining elements act as backup storage mechanisms.
      *
      * Behavior:
      * - Reads are attempted in order, starting from the default.
      * - Writes go only to the default storage.
      * - Deletes are applied to all storage mechanisms unless an SBOM entity is specified, in this case,
-     *   the deletion is applied only to the storage mechanism that created the SBOM entity.
+     * the deletion is applied only to the storage mechanism that created the SBOM entity.
      */
     sbomPersistenceServices = types.stream()
-        .map(t -> sbomPersistenceServiceProviderProvider.get().get(t)).toList();
+        .map(t -> sbomPersistenceServiceProviderProvider.get().get(t))
+        .toList();
     sbomPersistenceServiceByClass = new HashMap<>();
     for (SbomPersistenceService sbomPersistenceService : sbomPersistenceServices) {
       sbomPersistenceServiceByClass.put(sbomPersistenceService.getClass(), sbomPersistenceService);
     }
     this.apiConfigurationServiceProvider = apiConfigurationServiceProvider;
-    warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get().getConfigurationNoAuthz(
-        SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
+    warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get()
+        .getConfigurationNoAuthz(
+            SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
   }
 
   @Override
@@ -86,7 +88,8 @@ public class HybridSbomPersistenceService
     SbomEntity sbomEntity = hybridDoGetSbom(appId, fileName);
     log.trace("Getting SBOM by app id and file name from {}.", sbomEntity.getLocation());
     if (warnOnNonPrimaryStorageAccess &&
-        !sbomPersistenceServices.get(0).getClass().equals(sbomEntity.getSbomPersistenceServiceClass())) {
+        !sbomPersistenceServices.get(0).getClass().equals(sbomEntity.getSbomPersistenceServiceClass()))
+    {
       log.warn("Non-primary storage access for SBOM by app id and file name from {}.", sbomEntity.getLocation());
     }
     return sbomEntity;
@@ -107,7 +110,8 @@ public class HybridSbomPersistenceService
     SbomEntity sbomEntity = hybridGetTemporarySbom(fileName, prefix);
     log.trace("Getting temporary SBOM by file name and prefix from {}.", sbomEntity.getLocation());
     if (warnOnNonPrimaryStorageAccess &&
-        !sbomPersistenceServices.get(0).getClass().equals(sbomEntity.getSbomPersistenceServiceClass())) {
+        !sbomPersistenceServices.get(0).getClass().equals(sbomEntity.getSbomPersistenceServiceClass()))
+    {
       log.warn("Non-primary storage access for temporary SBOM by file name and prefix from {}.",
           sbomEntity.getLocation());
     }
@@ -130,8 +134,10 @@ public class HybridSbomPersistenceService
   }
 
   @Override
-  public SbomEntity saveTemporarySbom(final SbomEntity sbomEntity, final String fileName, @Nullable final String prefix)
-      throws IOException
+  public SbomEntity saveTemporarySbom(
+      final SbomEntity sbomEntity,
+      final String fileName,
+      @Nullable final String prefix) throws IOException
   {
     SbomPersistenceService entityPersistenceService =
         sbomPersistenceServiceByClass.get(sbomEntity.getSbomPersistenceServiceClass());
@@ -202,8 +208,9 @@ public class HybridSbomPersistenceService
   @Override
   public void configurationChanged(final Set<String> propertyNames) {
     if (propertyNames.contains(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS)) {
-      warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get().getConfigurationNoAuthz(
-          SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
+      warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get()
+          .getConfigurationNoAuthz(
+              SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
     }
   }
 }

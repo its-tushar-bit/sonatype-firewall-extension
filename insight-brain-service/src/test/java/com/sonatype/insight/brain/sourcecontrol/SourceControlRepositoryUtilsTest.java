@@ -56,21 +56,21 @@ public class SourceControlRepositoryUtilsTest
   public void testGetRepositoryHttpUrlFromSshUrl() {
     assertThat(
         sourceControlRepositoryUtils.getRepositoryHttpUrlFromSshUrl("git@github.com:username/repo-name.git")).isEqualTo(
-        "https://github.com/username/repo-name.git");
+            "https://github.com/username/repo-name.git");
 
     assertThat(sourceControlRepositoryUtils.getRepositoryHttpUrlFromSshUrl(
         "git@gitlab.com:username/repository.git")).isEqualTo("https://gitlab.com/username/repository.git");
 
     assertThat(sourceControlRepositoryUtils.getRepositoryHttpUrlFromSshUrl(
         "git@gitlab.com:my-group1153/my-sub-group/my-sub-sub-group/my-sub-sub-group-project.git")).isEqualTo(
-        "https://gitlab.com/my-group1153/my-sub-group/my-sub-sub-group/my-sub-sub-group-project.git");
+            "https://gitlab.com/my-group1153/my-sub-group/my-sub-sub-group/my-sub-sub-group-project.git");
 
     assertThat(sourceControlRepositoryUtils.getRepositoryHttpUrlFromSshUrl(
         "git@bitbucket.org:username/repository.git")).isEqualTo("https://bitbucket.org/username/repository.git");
 
     assertThat(sourceControlRepositoryUtils.getRepositoryHttpUrlFromSshUrl(
         "git@ssh.dev.azure.com:v3/username/project/repository")).isEqualTo(
-        "https://dev.azure.com/username/project/_git/repository");
+            "https://dev.azure.com/username/project/_git/repository");
   }
 
   @Test

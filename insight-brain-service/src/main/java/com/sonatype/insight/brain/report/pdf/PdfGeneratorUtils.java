@@ -30,7 +30,8 @@ public final class PdfGeneratorUtils
 
   static PDType0Font loadPDType0Font(PDDocument pdDocument, String fontFileName) {
     try (InputStream inputStream = PdfGeneratorUtils.class.getClassLoader()
-        .getResourceAsStream("assets/fonts/" + fontFileName)) {
+        .getResourceAsStream("assets/fonts/" + fontFileName))
+    {
       return PDType0Font.load(pdDocument, inputStream);
     }
     catch (Exception e) {
@@ -115,8 +116,11 @@ public final class PdfGeneratorUtils
     pdPageContentStream.endText();
   }
 
-  public static void addText(PDPageContentStream pdPageContentStream, PDFont font, float fontSize, String text)
-      throws IOException
+  public static void addText(
+      PDPageContentStream pdPageContentStream,
+      PDFont font,
+      float fontSize,
+      String text) throws IOException
   {
     if (font instanceof PDFontList) {
       PDFontList pdFontList = (PDFontList) font;
@@ -206,11 +210,15 @@ public final class PdfGeneratorUtils
   }
 
   public static void addImage(
-      PDDocument pdDocument, PDPageContentStream pdPageContentStream,
-      float x, float y, String resourcePath)
+      PDDocument pdDocument,
+      PDPageContentStream pdPageContentStream,
+      float x,
+      float y,
+      String resourcePath)
   {
     try (InputStream inputStream = PdfGeneratorUtils.class.getClassLoader()
-        .getResourceAsStream(resourcePath)) {
+        .getResourceAsStream(resourcePath))
+    {
       byte[] data = IOUtils.toByteArray(inputStream);
       PDImageXObject pdImageXObject =
           PDImageXObject.createFromByteArray(pdDocument, data, null);

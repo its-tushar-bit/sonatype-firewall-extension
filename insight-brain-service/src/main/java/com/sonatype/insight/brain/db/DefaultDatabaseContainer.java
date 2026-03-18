@@ -61,8 +61,7 @@ public class DefaultDatabaseContainer
   public DefaultDatabaseContainer(
       final DataSourceProvider dataSourceProvider,
       final DataStoreProvider dataStoreProvider,
-      final DatabaseProvisioner databaseProvisioner
-  )
+      final DatabaseProvisioner databaseProvisioner)
   {
     this.dataSourceProvider = dataSourceProvider;
     this.databaseProvisioner = databaseProvisioner;

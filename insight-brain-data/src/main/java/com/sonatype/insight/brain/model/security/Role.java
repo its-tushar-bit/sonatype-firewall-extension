@@ -17,13 +17,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * A role a user might have.
- * 
+ *
  * @since 1.7
  */
-@JsonIgnoreProperties({ "nameLowercaseNoWhitespace"})
+@JsonIgnoreProperties({"nameLowercaseNoWhitespace"})
 @Entity
 @Table(name = "role")
-public class Role extends Nameable
+public class Role
+    extends Nameable
     implements HasStringId
 {
   /**

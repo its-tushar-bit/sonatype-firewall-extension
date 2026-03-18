@@ -76,7 +76,8 @@ public class ReportDataStore
 
   public void moveApplicationReport(
       final String appId,
-      final String sourceScanId, final String destinationScanId) throws IOException
+      final String sourceScanId,
+      final String destinationScanId) throws IOException
   {
     applicationReportPersistenceService.moveReport(appId, sourceScanId, destinationScanId);
   }

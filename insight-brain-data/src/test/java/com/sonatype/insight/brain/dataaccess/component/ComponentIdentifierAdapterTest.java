@@ -167,9 +167,10 @@ public class ComponentIdentifierAdapterTest
         ComponentIdentifierAdapter.toComponentIdentifier("pkg:maven/group/artifact@1.0?classifier=c1&type=jar");
 
     assertThat(identifier.getFormat()).isEqualTo("maven");
-    assertThat(identifier.getCoordinates()).hasSize(5).containsExactlyInAnyOrderEntriesOf(ImmutableMap
-        .of(MAVEN_GROUP_ID, "group", MAVEN_ARTIFACT_ID, "artifact", VERSION, "1.0", MAVEN_CLASSIFIER, "c1",
-            MAVEN_EXTENSION, "jar"));
+    assertThat(identifier.getCoordinates()).hasSize(5)
+        .containsExactlyInAnyOrderEntriesOf(ImmutableMap
+            .of(MAVEN_GROUP_ID, "group", MAVEN_ARTIFACT_ID, "artifact", VERSION, "1.0", MAVEN_CLASSIFIER, "c1",
+                MAVEN_EXTENSION, "jar"));
   }
 
   @Test
@@ -180,9 +181,10 @@ public class ComponentIdentifierAdapterTest
 
     assertThat(identifier).isNotNull();
     assertThat(identifier.getFormat()).isEqualTo(FORMAT_CPE);
-    assertThat(identifier.getCoordinates()).hasSize(5).containsExactlyInAnyOrderEntriesOf(ImmutableMap
-        .of(GENERIC_NAMESPACE, "acme", GENERIC_NAME, "application", VERSION, "9.1", CPE_EDITION, "en",
-            CPE_UPDATE, "beta"));
+    assertThat(identifier.getCoordinates()).hasSize(5)
+        .containsExactlyInAnyOrderEntriesOf(ImmutableMap
+            .of(GENERIC_NAMESPACE, "acme", GENERIC_NAME, "application", VERSION, "9.1", CPE_EDITION, "en",
+                CPE_UPDATE, "beta"));
   }
 
   @Test
@@ -193,9 +195,10 @@ public class ComponentIdentifierAdapterTest
 
     assertThat(identifier).isNotNull();
     assertThat(identifier.getFormat()).isEqualTo(FORMAT_SWID);
-    assertThat(identifier.getCoordinates()).hasSize(4).containsExactlyInAnyOrderEntriesOf(ImmutableMap
-        .of(GENERIC_NAMESPACE, "acme", GENERIC_NAME, "application", VERSION, "2.0",
-            SWID_TAG_ID, "1234-5678"));
+    assertThat(identifier.getCoordinates()).hasSize(4)
+        .containsExactlyInAnyOrderEntriesOf(ImmutableMap
+            .of(GENERIC_NAMESPACE, "acme", GENERIC_NAME, "application", VERSION, "2.0",
+                SWID_TAG_ID, "1234-5678"));
   }
 
   @Test
@@ -223,7 +226,7 @@ public class ComponentIdentifierAdapterTest
   @Test
   public void testToComponentIdentifier_FromFormatNameAndVersion() {
     final ComponentIdentifier identifier =
-        ComponentIdentifierAdapter.toComponentIdentifier("nuget", "package","2.0");
+        ComponentIdentifierAdapter.toComponentIdentifier("nuget", "package", "2.0");
 
     assertThat(identifier.getFormat()).isEqualTo("nuget");
     assertThat(identifier.getCoordinates()).hasSize(2)
@@ -233,7 +236,7 @@ public class ComponentIdentifierAdapterTest
   @Test
   public void testToComponentIdentifier_FromFormatNameAndVersion_UnknownFormat() {
     final ComponentIdentifier identifier =
-        ComponentIdentifierAdapter.toComponentIdentifier("deb-9", "glibc","f6536+45");
+        ComponentIdentifierAdapter.toComponentIdentifier("deb-9", "glibc", "f6536+45");
 
     assertThat(identifier.getFormat()).isEqualTo("deb-9");
     assertThat(identifier.getCoordinates()).hasSize(2)

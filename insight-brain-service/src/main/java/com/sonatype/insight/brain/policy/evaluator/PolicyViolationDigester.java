@@ -14,8 +14,9 @@ import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 
 public class PolicyViolationDigester
 {
-  private static <T extends PolicyViolationComparable> List<T> sort(Collection<? extends T> policyViolations,
-                                                                    Comparator<PolicyViolationComparable> comparator)
+  private static <T extends PolicyViolationComparable> List<T> sort(
+      Collection<? extends T> policyViolations,
+      Comparator<PolicyViolationComparable> comparator)
   {
     List<T> result = new ArrayList<>();
     result.addAll(policyViolations);

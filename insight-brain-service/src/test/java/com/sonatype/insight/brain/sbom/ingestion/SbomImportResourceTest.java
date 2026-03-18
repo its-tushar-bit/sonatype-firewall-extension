@@ -47,8 +47,7 @@ public class SbomImportResourceTest
   public void before() throws Exception {
 
     licenseManager.setProducts(
-        ProductLicenseDetails.PRODUCT_SBOM_MANAGER
-    );
+        ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
 
     installLicense();
 
@@ -416,7 +415,8 @@ public class SbomImportResourceTest
   public void testImportDetectedSbom_FailureAfterVersionOverride_ShouldRollback() throws Exception {
     SbomDetectionResultDTO detectionResult;
     try (InputStream sbomStream =
-             SbomImportResourceTest.class.getResourceAsStream("/SbomImportResourceTest/valid-cyclonedx-bom.xml")) {
+        SbomImportResourceTest.class.getResourceAsStream("/SbomImportResourceTest/valid-cyclonedx-bom.xml"))
+    {
       HttpResponse responseDetect = restRequest()
           .parameter(application.getId())
           .part("file", "valid-cyclonedx-bom.xml", sbomStream.readAllBytes())
@@ -431,8 +431,7 @@ public class SbomImportResourceTest
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        originalVersion
-    );
+        originalVersion);
     assertThat(sbomMetadata.getSbomVersion()).isEqualTo(originalVersion);
     assertThat(sbomMetadata.getStatus()).isEqualTo(ThirdPartySbomMetadataStatus.UPLOADED);
 
@@ -449,16 +448,14 @@ public class SbomImportResourceTest
 
     sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        originalVersion
-    );
+        originalVersion);
     assertThat(sbomMetadata).isNotNull();
     assertThat(sbomMetadata.getSbomVersion()).isEqualTo(originalVersion);
     assertThat(sbomMetadata.getStatus()).isEqualTo(ThirdPartySbomMetadataStatus.UPLOADED);
 
     var nonExistentMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),
-        overrideVersion
-    );
+        overrideVersion);
     assertThat(nonExistentMetadata).isNull();
   }
 

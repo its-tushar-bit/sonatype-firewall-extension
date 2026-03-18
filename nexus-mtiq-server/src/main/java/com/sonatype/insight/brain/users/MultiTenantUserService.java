@@ -57,7 +57,8 @@ public class MultiTenantUserService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Override
   public List<MtiqUserDTO> getAllUsers() {
-    return ssoUserService.getAll().stream()
+    return ssoUserService.getAll()
+        .stream()
         .map(MtiqUserDTO::ssoUserToMtiqUser)
         .collect(Collectors.toList());
   }

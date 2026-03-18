@@ -56,9 +56,10 @@ import static org.mockito.Mockito.when;
  * @since 1.9
  */
 @Category(SlowTest.class)
-public class TagDAOTest extends NameableDAOTest<Tag>
+public class TagDAOTest
+    extends NameableDAOTest<Tag>
 {
-  private  VulnerabilityCustomRemediationTagDAO vulnerabilityCustomRemediationTagDAO;
+  private VulnerabilityCustomRemediationTagDAO vulnerabilityCustomRemediationTagDAO;
 
   private VulnerabilityCustomCweTagDAO vulnerabilityCustomCweTagDAO;
 
@@ -581,21 +582,26 @@ public class TagDAOTest extends NameableDAOTest<Tag>
     when(dao.getInOperatorThreshold()).thenReturn(2);
 
     assertThat(dao.getByIds(Arrays.asList(tag1.getId(), tag2.getId(), tag3.getId())))
-        .usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(tag1, tag2, tag3);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(tag1, tag2, tag3);
   }
 
   private void assertInsertTagWithDuplicateName(String orgId, String tagName, Organization expectedOrg) {
     // Add a tag with a case-/whitespace-equivalent name
     Tag tag = new Tag(orgId, tagName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH), "description");
-    assertThatThrownBy(() -> dao.insert(tag)).isInstanceOf(InvalidNameException.class).hasMessage(
-        "An application category with the same name already exists for organization '" + expectedOrg.getName() + "'");
+    assertThatThrownBy(() -> dao.insert(tag)).isInstanceOf(InvalidNameException.class)
+        .hasMessage(
+            "An application category with the same name already exists for organization '" + expectedOrg.getName()
+                + "'");
   }
 
   private void assertUpdateTagWithDuplicateName(String orgId, String tagName, Organization expectedOrg) {
     // Add a tag with a case-/whitespace-equivalent name
     Tag tag = tempEntity.newTag(orgId, "another name");
     tag.setName(tagName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
-    assertThatThrownBy(() -> dao.update(tag)).isInstanceOf(InvalidNameException.class).hasMessage(
-        "An application category with the same name already exists for organization '" + expectedOrg.getName() + "'");
+    assertThatThrownBy(() -> dao.update(tag)).isInstanceOf(InvalidNameException.class)
+        .hasMessage(
+            "An application category with the same name already exists for organization '" + expectedOrg.getName()
+                + "'");
   }
 }

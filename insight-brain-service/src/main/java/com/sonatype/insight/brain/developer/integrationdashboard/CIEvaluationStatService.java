@@ -40,8 +40,7 @@ public class CIEvaluationStatService
   public CIEvaluationStatService(
       final PolicyEvaluationDAO policyEvaluationDAO,
       final ApplicationCountHistoryDAO applicationCountHistoryDAO,
-      final DateTimeService dateTimeService
-  )
+      final DateTimeService dateTimeService)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationCountHistoryDAO = applicationCountHistoryDAO;
@@ -50,8 +49,7 @@ public class CIEvaluationStatService
 
   List<ApiIntegrationsCiCdStatIncrementDto> getCiCdUsageStatsOverTime(
       final long incrementSizeMillis,
-      final int numberOfIncrements
-  )
+      final int numberOfIncrements)
   {
     checkReadPermission(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
 
@@ -85,7 +83,7 @@ public class CIEvaluationStatService
     // 84 days is meant to approximate 3 months, this is a falloff period. If an app is truly integrated and active
     // it should have evaluations done regularly, after 84 days if there have been no new evaluations it should no
     // longer count as integrated
-    final Date lowerBound = new Date(upperBound.getTime() -  CICD_TRIGGERED_EVALUATION_CUT_OFF_MS);
+    final Date lowerBound = new Date(upperBound.getTime() - CICD_TRIGGERED_EVALUATION_CUT_OFF_MS);
 
     return policyEvaluationDAO.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(lowerBound, upperBound);
   }

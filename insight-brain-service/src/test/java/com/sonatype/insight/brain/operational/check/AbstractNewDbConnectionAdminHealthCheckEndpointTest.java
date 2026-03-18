@@ -77,7 +77,8 @@ abstract class AbstractNewDbConnectionAdminHealthCheckEndpointTest
   @Test
   public void testIsHealthy_Healthy() {
     assertThat(databaseAdminHealthCheckEndpoint.getHealthCheckResponse())
-        .usingRecursiveComparison().isEqualTo(new HealthCheckResponse(true));
+        .usingRecursiveComparison()
+        .isEqualTo(new HealthCheckResponse(true));
   }
 
   @Test

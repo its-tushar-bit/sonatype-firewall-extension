@@ -7,10 +7,11 @@ package com.sonatype.insight.brain.model.security;
 
 /**
  * The type of a role member.
- * 
+ *
  * @since 1.7
  */
 public enum MemberType
 {
-  USER, GROUP
+  USER,
+  GROUP
 }

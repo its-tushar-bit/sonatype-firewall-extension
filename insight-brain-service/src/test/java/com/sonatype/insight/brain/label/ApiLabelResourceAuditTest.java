@@ -144,8 +144,10 @@ public class ApiLabelResourceAuditTest
   public void testDeleteLabel_AppLevel() throws Exception {
     Label toBeDeleted = tempEntity.newLabel(application.getId(), LABEL_NAME, LABEL_DESCRIPTION, fromValue(LABEL_COLOR));
 
-    restRequest().path(PublicApiPaths.LABEL_RESOURCE_PATH).parameter(OwnerType.APPLICATION, application.getPublicId())
-        .subpath(toBeDeleted.getId()).delete();
+    restRequest().path(PublicApiPaths.LABEL_RESOURCE_PATH)
+        .parameter(OwnerType.APPLICATION, application.getPublicId())
+        .subpath(toBeDeleted.getId())
+        .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_LABEL, null);
     assertApplicationData(auditDTO, application);
@@ -156,8 +158,10 @@ public class ApiLabelResourceAuditTest
   public void testDeleteLabel_OrgLevel() throws Exception {
     Label toBeDeleted = tempEntity.newLabel(organization.getId());
 
-    restRequest().path(PublicApiPaths.LABEL_RESOURCE_PATH).parameter(OwnerType.ORGANIZATION, organization.getPublicId())
-        .subpath(toBeDeleted.getId()).delete();
+    restRequest().path(PublicApiPaths.LABEL_RESOURCE_PATH)
+        .parameter(OwnerType.ORGANIZATION, organization.getPublicId())
+        .subpath(toBeDeleted.getId())
+        .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_LABEL, null);
     assertOrganizationData(auditDTO, organization);
@@ -166,8 +170,11 @@ public class ApiLabelResourceAuditTest
 
   @Test
   public void testDeleteLabel_Unauthorized() throws Exception {
-    restRequest().path(PublicApiPaths.LABEL_RESOURCE_PATH).parameter(OwnerType.APPLICATION, application.getPublicId())
-        .path("labelId").with(unauthorizedUser()).delete();
+    restRequest().path(PublicApiPaths.LABEL_RESOURCE_PATH)
+        .parameter(OwnerType.APPLICATION, application.getPublicId())
+        .path("labelId")
+        .with(unauthorizedUser())
+        .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_LABEL, "unauthorized");
     assertApplicationData(auditDTO, application);

@@ -121,10 +121,12 @@ public class CascadeReevaluationTask
       updateRequestStatus(ReevaluateCascadeRequestStatus.COMPLETED);
       log.info(
           "Completed cascade re-evaluation request {} for component {}. Processed {} components in {} repositories. " +
-              "Successes: {}, Failures: {}", cascadeRequestId, componentHash, totalComponents,
+              "Successes: {}, Failures: {}",
+          cascadeRequestId, componentHash, totalComponents,
           repositoryToComponents.size(), successfulEvaluations, failedEvaluations);
 
-      AuditData.get().setData("totalComponents", totalComponents)
+      AuditData.get()
+          .setData("totalComponents", totalComponents)
           .setData("successfulEvaluations", successfulEvaluations)
           .setData("failedEvaluations", failedEvaluations);
     }
@@ -167,7 +169,8 @@ public class CascadeReevaluationTask
   }
 
   private void processComponentsBatch(
-      final Repository repository, final List<RepositoryComponent> components,
+      final Repository repository,
+      final List<RepositoryComponent> components,
       final Map<String, ReevaluateCascadeProgress> progressByComponentId)
   {
     log.debug("Batch processing {} components for cascade re-evaluation in repository {}",

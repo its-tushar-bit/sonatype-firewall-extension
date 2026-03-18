@@ -53,8 +53,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
     "<p>" +
     "This is a 2-step process that involves: \n" +
     "1. Requesting a policy evaluation (POST) \n" +
-    "2. Checking the status and response of the evaluation request (GET)"
-)
+    "2. Checking the status and response of the evaluation request (GET)")
 public class ApiEvaluationResourceV2
 {
   public static final String PROMOTE_SCAN_PATH = "{applicationId}/promoteScan";
@@ -89,27 +88,23 @@ public class ApiEvaluationResourceV2
       "\n" +
       "Permissions Required: Evaluate Components",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description =
-                  "The JSON response contains resultId that will be assigned to the evaluation results, " +
-                      "timestamp when the component evaluation was requested, " +
-                      "the applicationId of the " +
-                      "component and the results URL. The resultId obtained from here can be used " +
-                      "to retrieve the evaluation result using the REST API or the result URL can be used in cURL. ",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The JSON response contains resultId that will be assigned to the evaluation results, " +
+                "timestamp when the component evaluation was requested, " +
+                "the applicationId of the " +
+                "component and the results URL. The resultId obtained from here can be used " +
+                "to retrieve the evaluation result using the REST API or the result URL can be used in cURL. ",
+            useReturnTypeSchema = true)
+      })
   @ProductLicenseEnforcementPoint(LicensedFeature.COMPONENT_EVALUATION)
   public ApiComponentEvaluationTicketDTOV2 evaluateComponents(
       @Parameter(description = "Enter the internal applicationId. Use the Applications REST API to retrieve the " +
-          "internal applicationId.", required = true)
-      @PathParam("applicationId") final String applicationId,
+          "internal applicationId.", required = true) @PathParam("applicationId") final String applicationId,
       @RequestBody(
           description = "The request JSON should contain component coordinates " +
               "or the hash (SHA1) for each component. You can provide the packageURL instead of component information" +
-              " or hash."
-      ) final ApiComponentEvaluationRequestDTOV2 evaluationRequest)
+              " or hash.") final ApiComponentEvaluationRequestDTOV2 evaluationRequest)
   {
     return componentEvaluationService.evaluateComponents(applicationId, evaluationRequest);
   }
@@ -124,27 +119,22 @@ public class ApiEvaluationResourceV2
       "\n" +
       "Permissions Required: Evaluate Components ",
       responses = {
-          @ApiResponse(
-              responseCode = "404",
-              description = "Response not ready "
-          ),
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains details for the policy evaluation request including " +
-                  "submitted date, evaluation date, applicationId and the results of the evaluation for " +
-                  "the component(s).",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "404",
+            description = "Response not ready "),
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains details for the policy evaluation request including " +
+                "submitted date, evaluation date, applicationId and the results of the evaluation for " +
+                "the component(s).",
+            useReturnTypeSchema = true)
       })
   @ProductLicenseEnforcementPoint(LicensedFeature.COMPONENT_EVALUATION)
   public ApiComponentEvaluationResultDTOV2 getComponentEvaluation(
       @Parameter(description = "Enter the internal applicationId (same as that sent in the POST request (step 1))",
-          required = true)
-      @PathParam("applicationId") final String applicationId,
+          required = true) @PathParam("applicationId") final String applicationId,
       @Parameter(description = "Enter the resultId obtained from the POST response (step 1) used for component " +
-          "evaluation.", required = true)
-      @PathParam("resultId") final String resultId)
-      throws IOException
+          "evaluation.", required = true) @PathParam("resultId") final String resultId) throws IOException
   {
     return componentEvaluationService.getComponentEvaluation(applicationId, resultId);
   }
@@ -162,26 +152,22 @@ public class ApiEvaluationResourceV2
       "\n" +
       "Permissions Required: Evaluate Applications",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response will contain the statusUrl to view the evaluation result using the " +
-                  "GET method (step 2)",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response will contain the statusUrl to view the evaluation result using the " +
+                "GET method (step 2)",
+            useReturnTypeSchema = true)
+      })
   @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
   public ApiApplicationEvaluationStatusDTOV2 promoteScan(
       @Parameter(description = "Enter the internal applicationId. Use the Applications REST API to retrieve the " +
-          "internal applicationId.", required = true)
-      @PathParam("applicationId") final String applicationId,
+          "internal applicationId.", required = true) @PathParam("applicationId") final String applicationId,
       @RequestBody(description = "You can provide either the scanId (reportId) of " +
           "the previous scan OR the source stageId (possible values " +
           "are 'build', 'stage-release', 'release' or 'operate'). When using the stageId, the latest scanId " +
           "for the application will be used. Enter the targetStageId for the new stage you want your scan to be " +
           "promoted to (possible values are 'build', 'stage-release', 'release' or 'operate'). Using the same value " +
-          "for source and target stage will resubmit the latest scan report.")
-      final ApiPromoteScanRequestDTOV2 promoteScanRequest,
+          "for source and target stage will resubmit the latest scan report.") final ApiPromoteScanRequestDTOV2 promoteScanRequest,
       @Context HttpServletRequest request)
   {
     return promoteScanService.promoteScan(applicationId, promoteScanRequest, HdsClient.getClientUserAgent(request));
@@ -201,29 +187,23 @@ public class ApiEvaluationResourceV2
       "\n" +
       "Permissions Required: Evaluate Applications",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description =
-                  "The response contains statusUrl. Use this statusUrl to check the evaluation status using " +
-                      "the GET method (step 2 of the evaluation process). ",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains statusUrl. Use this statusUrl to check the evaluation status using " +
+                "the GET method (step 2 of the evaluation process). ",
+            useReturnTypeSchema = true)
+      })
   @ProductLicenseEnforcementPoint(LicensedFeature.SOURCE_CONTROL)
   public ApiApplicationEvaluationStatusDTOV2 evaluateSourceControl(
       @Parameter(description = "Enter the internal applicationId. Use the Applications REST API to retrieve the " +
-          "internal applicationId.", required = true)
-      @PathParam("applicationId") String applicationId,
+          "internal applicationId.", required = true) @PathParam("applicationId") String applicationId,
       @RequestBody(description = "The request JSON should include the 1. branch name (name of the target branch in " +
           "the source control repository, 2. stageId (recommended values are 'develop' for feature branches, and " +
           "'source' for default branches. " +
           "Other stageIds that can be used are 'build', 'stage-release', 'release', 'operate' " +
           "but are not recommended), 3. scanTargets (optional, specify one or more paths inside the repository. " +
           "If not specified, the entire repository will be evaluated by default). Ensure that the repository paths " +
-          "are not relative and do not contain '../' or '..\\'."
-      )
-      ApiSourceControlEvaluationRequestDTO sourceControlEvaluationRequest,
+          "are not relative and do not contain '../' or '..\\'.") ApiSourceControlEvaluationRequestDTO sourceControlEvaluationRequest,
       @Context HttpServletRequest request)
   {
     return sourceControlEvaluationService.evaluateSourceControl(applicationId, sourceControlEvaluationRequest,
@@ -239,22 +219,20 @@ public class ApiEvaluationResourceV2
       "\n" +
       "Permissions Required: Evaluate Applications",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response will include one of the 3 possible status values: PENDING (indicates that " +
-                  "the evaluation is still in progress), FAILED or COMPLETED. For completed evaluations, " +
-                  "the response " +
-                  "will contain the URLs for evaluation report to view the evaluation results.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response will include one of the 3 possible status values: PENDING (indicates that " +
+                "the evaluation is still in progress), FAILED or COMPLETED. For completed evaluations, " +
+                "the response " +
+                "will contain the URLs for evaluation report to view the evaluation results.",
+            useReturnTypeSchema = true)
       })
-  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION) 
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
   public ApiApplicationEvaluationResultDTOV2 getApplicationEvaluationStatus(
       @Parameter(description = "Enter the applicationId, for the which policy evaluation was requested.",
-          required = true)
-      @PathParam("applicationId") String applicationId,
-      @Parameter(description = "Enter the statusId value obtained as response of the POST call in step 1.")
-      @PathParam("statusId") String statusId)
+          required = true) @PathParam("applicationId") String applicationId,
+      @Parameter(
+          description = "Enter the statusId value obtained as response of the POST call in step 1.") @PathParam("statusId") String statusId)
   {
     return promoteScanService.getApplicationEvaluationStatus(applicationId, statusId);
   }

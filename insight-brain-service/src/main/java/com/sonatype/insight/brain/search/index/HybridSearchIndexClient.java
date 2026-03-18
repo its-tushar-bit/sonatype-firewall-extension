@@ -26,9 +26,9 @@ import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
  * This client is designed to support the transition period when OpenSearch is performing its first full index.
  * During this time:
  * <ul>
- *   <li>Write operations are sent to both primary and secondary clients</li>
- *   <li>Read operations are attempted on the primary client first, falling back to secondary if primary fails</li>
- *   <li>Updates are paused when either client is performing a full re-index</li>
+ * <li>Write operations are sent to both primary and secondary clients</li>
+ * <li>Read operations are attempted on the primary client first, falling back to secondary if primary fails</li>
+ * <li>Updates are paused when either client is performing a full re-index</li>
  * </ul>
  * <p>
  * The primary client is typically OpenSearch (target state) and the secondary is Lucene (fallback).
@@ -283,7 +283,8 @@ public class HybridSearchIndexClient
     else {
       throw new SearchIndexException(
           "Search failed on both primary and secondary clients. " + "Primary error: " + primaryException.getMessage() +
-              ", Secondary error: " + secondaryException.getMessage(), secondaryException);
+              ", Secondary error: " + secondaryException.getMessage(),
+          secondaryException);
     }
   }
 

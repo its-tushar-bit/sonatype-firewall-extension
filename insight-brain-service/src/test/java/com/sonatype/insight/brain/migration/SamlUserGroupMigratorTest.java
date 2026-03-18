@@ -131,8 +131,10 @@ public class SamlUserGroupMigratorTest
 
   private List<SamlUserGroup> getExpectedSamlUserGroups(SamlUser... samlUsers) {
     List<SamlUserGroup> result = new ArrayList<>();
-    Arrays.stream(samlUsers).forEach(samlUser -> samlUser.getGroups().forEach(samlGroupName -> result.add(
-        new SamlUserGroup(samlUser.getId(), samlGroupDAO.getByName(samlGroupName).getId()))));
+    Arrays.stream(samlUsers)
+        .forEach(samlUser -> samlUser.getGroups()
+            .forEach(samlGroupName -> result.add(
+                new SamlUserGroup(samlUser.getId(), samlGroupDAO.getByName(samlGroupName).getId()))));
     return result;
   }
 

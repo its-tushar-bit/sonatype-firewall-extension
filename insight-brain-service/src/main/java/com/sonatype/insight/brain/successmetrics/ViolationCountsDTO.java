@@ -30,10 +30,11 @@ public class ViolationCountsDTO
     this.fixedCounts = allZeroCounts();
   }
 
-  public ViolationCountsDTO(String timePeriodName,
-                            Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> discoveredCounts,
-                            Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> fixedCounts,
-                            Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> waivedCounts)
+  public ViolationCountsDTO(
+      String timePeriodName,
+      Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> discoveredCounts,
+      Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> fixedCounts,
+      Map<PolicyThreatCategory, Map<ThreatLevel, Integer>> waivedCounts)
   {
     this.timePeriodName = timePeriodName;
     this.discoveredCounts = discoveredCounts;

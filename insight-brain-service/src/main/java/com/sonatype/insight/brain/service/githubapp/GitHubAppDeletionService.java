@@ -28,9 +28,9 @@ import org.slf4j.LoggerFactory;
  * Service for deleting GitHub App entities and cleaning up associated GitHub installations.
  *
  * <ol>
- *   <li>Deletes pending installation state records</li>
- *   <li>Attempts to delete the GitHub App installation via GitHub API (if installation ID exists)</li>
- *   <li>Deletes the GitHubApp database record</li>
+ * <li>Deletes pending installation state records</li>
+ * <li>Attempts to delete the GitHub App installation via GitHub API (if installation ID exists)</li>
+ * <li>Deletes the GitHubApp database record</li>
  * </ol>
  *
  */
@@ -54,21 +54,21 @@ public class GitHubAppDeletionService
 
   @Inject
   public GitHubAppDeletionService(
-          final GitHubAppDAO gitHubAppDAO,
-          final GitHubAppInstallationStateDAO installationStateDAO,
-          final PasswordHandler passwordHandler,
-          final InsightProxy insightProxy)
+      final GitHubAppDAO gitHubAppDAO,
+      final GitHubAppInstallationStateDAO installationStateDAO,
+      final PasswordHandler passwordHandler,
+      final InsightProxy insightProxy)
   {
     this(gitHubAppDAO, installationStateDAO, passwordHandler, insightProxy,
-            DEFAULT_GITHUB_API_BASE_URL);
+        DEFAULT_GITHUB_API_BASE_URL);
   }
 
   public GitHubAppDeletionService(
-          final GitHubAppDAO gitHubAppDAO,
-          final GitHubAppInstallationStateDAO installationStateDAO,
-          final PasswordHandler passwordHandler,
-          final InsightProxy insightProxy,
-          final String githubApiBaseUrl)
+      final GitHubAppDAO gitHubAppDAO,
+      final GitHubAppInstallationStateDAO installationStateDAO,
+      final PasswordHandler passwordHandler,
+      final InsightProxy insightProxy,
+      final String githubApiBaseUrl)
   {
     this.gitHubAppDAO = gitHubAppDAO;
     this.installationStateDAO = installationStateDAO;
@@ -97,13 +97,13 @@ public class GitHubAppDeletionService
   private void deleteGitHubAppInstallationViaApi(final GitHubApp gitHubApp) {
     if (gitHubApp.getInstallationId() == null) {
       log.debug("No installation ID found for GitHubApp {}, skipping API deletion",
-              gitHubApp.getId());
+          gitHubApp.getId());
       return;
     }
 
     try {
       log.info("Attempting to delete GitHub App installation {} via API for owner {}",
-              gitHubApp.getInstallationId(), gitHubApp.getOwnerId());
+          gitHubApp.getInstallationId(), gitHubApp.getOwnerId());
 
       GitHubApiClient apiClient = createGitHubApiClient(gitHubApp);
       apiClient.deleteInstallation(gitHubApp.getInstallationId());
@@ -126,8 +126,7 @@ public class GitHubAppDeletionService
     String decryptedBase64Key = passwordHandler.decryptPassword(gitHubApp.getPrivateKey());
     PrivateKey privateKey = GitHubAppKeyUtils.parsePrivateKeyFromBase64Pkcs8(decryptedBase64Key);
     return new GitHubAppJwtAuthStrategy(
-            privateKey,
-            gitHubApp.getAppId().longValue()
-    );
+        privateKey,
+        gitHubApp.getAppId().longValue());
   }
 }

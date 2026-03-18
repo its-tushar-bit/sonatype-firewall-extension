@@ -84,8 +84,7 @@ public class CopyStorageTask
         new ThreadFactoryBuilder().setNameFormat("CopyStorageTask-%d").build(),
         new AbortPolicy(),
         "copy_storage_task",
-        getClass().getSimpleName()
-    )
+        getClass().getSimpleName())
     {
       @Override
       public void shutdown() {
@@ -127,7 +126,8 @@ public class CopyStorageTask
   }
 
   private String getFirst(final Map<String, List<String>> map, final String key) {
-    return map.getOrDefault(key, List.of()).stream()
+    return map.getOrDefault(key, List.of())
+        .stream()
         .findFirst()
         .orElse(null);
   }

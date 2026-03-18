@@ -78,8 +78,15 @@ public class RelativePopularityConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Relative popularity was 30%");
   }
 
@@ -111,8 +118,15 @@ public class RelativePopularityConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Relative popularity was < 30% (relative popularity = 10%)");
   }
 
@@ -147,11 +161,25 @@ public class RelativePopularityConditionTypeTest
         policyAlerts);
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Relative popularity was <= 30% (relative popularity = 10%)");
-    actualReason = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(1)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Relative popularity was <= 30% (relative popularity = 30%)");
   }
 
@@ -183,8 +211,15 @@ public class RelativePopularityConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Relative popularity was > 30% (relative popularity = 50%)");
   }
 
@@ -219,11 +254,25 @@ public class RelativePopularityConditionTypeTest
         policyAlerts);
     assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, RelativePopularityConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Relative popularity was >= 30% (relative popularity = 30%)");
-    actualReason = policyAlerts.get(1).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    actualReason = policyAlerts.get(1)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Relative popularity was >= 30% (relative popularity = 50%)");
   }
 
@@ -232,8 +281,8 @@ public class RelativePopularityConditionTypeTest
     Condition condition = new Condition(RelativePopularityConditionType.ID, "=", "abc");
     assertThatThrownBy(
         () -> new RelativePopularityConditionType().validateCondition(null, condition, null /* applicationId */))
-        .isInstanceOf(InvalidConditionException.class)
-        .hasMessageEndingWith("Invalid relative popularity: abc");
+            .isInstanceOf(InvalidConditionException.class)
+            .hasMessageEndingWith("Invalid relative popularity: abc");
   }
 
   @Test
@@ -241,8 +290,8 @@ public class RelativePopularityConditionTypeTest
     Condition condition = new Condition(RelativePopularityConditionType.ID, "=", "-1");
     assertThatThrownBy(
         () -> new RelativePopularityConditionType().validateCondition(null, condition, null /* applicationId */))
-        .isInstanceOf(InvalidConditionException.class)
-        .hasMessageEndingWith("Relative popularity must be between 0 and 100");
+            .isInstanceOf(InvalidConditionException.class)
+            .hasMessageEndingWith("Relative popularity must be between 0 and 100");
   }
 
   @Test
@@ -250,6 +299,6 @@ public class RelativePopularityConditionTypeTest
     Condition condition = new Condition(RelativePopularityConditionType.ID, "=", "101");
     assertThatThrownBy(() -> new RelativePopularityConditionType().validateCondition(null, condition,
         null /* applicationId */)).isInstanceOf(InvalidConditionException.class)
-        .hasMessageEndingWith("Relative popularity must be between 0 and 100");
+            .hasMessageEndingWith("Relative popularity must be between 0 and 100");
   }
 }

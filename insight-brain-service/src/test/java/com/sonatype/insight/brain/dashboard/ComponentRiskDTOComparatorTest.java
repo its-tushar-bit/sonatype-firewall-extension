@@ -16,7 +16,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ComponentRiskDTOComparatorTest
 {
-  private ComponentRiskDTO newDTO(String derivedComponentName,
+  private ComponentRiskDTO newDTO(
+      String derivedComponentName,
       int affectedApplications,
       int total,
       int critical,
@@ -50,10 +51,11 @@ public class ComponentRiskDTOComparatorTest
     return dto;
   }
 
-  private void assertComparison(Comparator<ComponentRiskDTO> comparator,
-                                int expected,
-                                ComponentRiskDTO dto1,
-                                ComponentRiskDTO dto2)
+  private void assertComparison(
+      Comparator<ComponentRiskDTO> comparator,
+      int expected,
+      ComponentRiskDTO dto1,
+      ComponentRiskDTO dto2)
   {
     assertThat(comparator.compare(dto1, dto2)).isEqualTo(expected);
     assertThat(comparator.compare(dto2, dto1)).isEqualTo(-expected);
@@ -147,7 +149,8 @@ public class ComponentRiskDTOComparatorTest
   public void testCompare_InvalidOrderBy() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> assertComparison(new ComponentRiskDTOComparator("Invalid"), -1, newDTO("Name", 1, 0, 0, 0, 0, 5),
-            newDTO("Name", 1, 0, 0, 0, 0, 4))).withMessage("Invalid orderBy property.");
+            newDTO("Name", 1, 0, 0, 0, 0, 4)))
+        .withMessage("Invalid orderBy property.");
   }
 
   @Test
@@ -160,7 +163,8 @@ public class ComponentRiskDTOComparatorTest
   public void testCompare_EmptyOrderBy() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> assertComparison(new ComponentRiskDTOComparator(""), 0, newDTO("Name", 1, 0, 0, 0, 0, 5),
-            newDTO("Name1", 0, 1, 1, 1, 1, 4))).withMessage("Invalid orderBy property.");
+            newDTO("Name1", 0, 1, 1, 1, 1, 4)))
+        .withMessage("Invalid orderBy property.");
   }
 
   @Test

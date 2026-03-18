@@ -79,8 +79,7 @@ public class ConditionTypes
 
   public static VulnerabilityGroupConditionType VulnerabilityGroupConditionType;
 
-  public static SecurityVulnerabilityCustomCVSSVectorStringConditionType
-      SecurityVulnerabilityCustomCVSSVectorStringConditionType;
+  public static SecurityVulnerabilityCustomCVSSVectorStringConditionType SecurityVulnerabilityCustomCVSSVectorStringConditionType;
 
   public static ComponentEndOfLifeConditionType ComponentEndOfLifeConditionType;
 
@@ -125,8 +124,7 @@ public class ConditionTypes
       final SecurityVulnerabilityCustomRemediationConditionType securityVulnerabilityCustomRemediationConditionType,
       final IacControlConditionType iacControlConditionType,
       final VulnerabilityGroupConditionType vulnerabilityGroupConditionType,
-      final SecurityVulnerabilityCustomCVSSVectorStringConditionType
-          securityVulnerabilityCustomCVSSVectorStringConditionType,
+      final SecurityVulnerabilityCustomCVSSVectorStringConditionType securityVulnerabilityCustomCVSSVectorStringConditionType,
       final ComponentEndOfLifeConditionType componentEndOfLifeConditionType,
       final DerivativeAiModelConditionType derivativeAiModelConditionType,
       final AiModelContentConditionType aiModelContentConditionType,
@@ -214,7 +212,8 @@ public class ConditionTypes
 
   public static Collection<ConditionType> getAll() {
     // Return condition types sorted alphabetically by their display name
-    return allConditionTypes.values().stream()
+    return allConditionTypes.values()
+        .stream()
         .sorted((c1, c2) -> c1.getName().compareToIgnoreCase(c2.getName()))
         .collect(Collectors.toUnmodifiableList());
   }

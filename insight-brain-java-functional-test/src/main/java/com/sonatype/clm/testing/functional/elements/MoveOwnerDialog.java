@@ -70,4 +70,3 @@ public class MoveOwnerDialog
     return child(FOOTER_SELECTOR, BTN_BAR_SELECTOR, ".nx-btn--tertiary");
   }
 }
-

@@ -56,40 +56,38 @@ public class ApiSamlConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "404",
-              description = "SAML is not configured."
-          ),
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains:" +
-                  "<ul>" +
-                  "<li>`identityProviderName` the name of the Identity Provider that is displayed on the login page " +
-                  "when SAML is configured.</li>" +
-                  "<li>`entityId` is the URI that IQ Server uses to identify itself in requests to the SSO" +
-                  "service.</li>" +
-                  "<li>`firstNameAttribute` is the SAML attribute that IQ Server extracts from the login " +
-                  "response of the identity provider and uses as the user's first name.</li>" +
-                  "<li>`lastNameAttribute` is the SAML attribute that IQ Server extracts from the login " +
-                  "response of the identity provider and uses as the user's last name.</li>" +
-                  "<li>`emailAttributeName` is the SAML attribute that IQ Server extracts from the login " +
-                  "response of the identity provider to determine the user's email address.</li>" +
-                  "<li>`usernameAttributeName` is the SAML attribute that IQ Server extracts from the login " +
-                  "response of the identity provider to determine the username or id.</li>" +
-                  "<li>`groupAttributeName` is the SAML attribute that IQ Server extracts from the login " +
-                  "response of the identity provider to determine the groups the user belongs to.</li>" +
-                  "<li>`validateResponseSignature` indicates whether the SAML responses from the identity provider  " +
-                  "are cryptographically signed. A `null` value indicates that this setting is derived from the SAML " +
-                  "metadata from the identity provider performing signature validation if a signing key " +
-                  "(`KeyDescriptor`) is included." +
-                  "<li>`validateAssertionSignature` indicates whether the SAML assertions from the identity provider " +
-                  " are cryptographically signed. A `null` value indicates that this setting is derived from  " +
-                  "the SAML metadata from the identity provider performing signature validation if a signing key " +
-                  "(`KeyDescriptor`) is included.</li>" +
-                  "<li>`identityProviderMetadataXml` is the metadata of the identity provider.</li>" +
-                  "</ul>",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(responseCode = "404",
+            description = "SAML is not configured."),
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains:" +
+                "<ul>" +
+                "<li>`identityProviderName` the name of the Identity Provider that is displayed on the login page " +
+                "when SAML is configured.</li>" +
+                "<li>`entityId` is the URI that IQ Server uses to identify itself in requests to the SSO" +
+                "service.</li>" +
+                "<li>`firstNameAttribute` is the SAML attribute that IQ Server extracts from the login " +
+                "response of the identity provider and uses as the user's first name.</li>" +
+                "<li>`lastNameAttribute` is the SAML attribute that IQ Server extracts from the login " +
+                "response of the identity provider and uses as the user's last name.</li>" +
+                "<li>`emailAttributeName` is the SAML attribute that IQ Server extracts from the login " +
+                "response of the identity provider to determine the user's email address.</li>" +
+                "<li>`usernameAttributeName` is the SAML attribute that IQ Server extracts from the login " +
+                "response of the identity provider to determine the username or id.</li>" +
+                "<li>`groupAttributeName` is the SAML attribute that IQ Server extracts from the login " +
+                "response of the identity provider to determine the groups the user belongs to.</li>" +
+                "<li>`validateResponseSignature` indicates whether the SAML responses from the identity provider  " +
+                "are cryptographically signed. A `null` value indicates that this setting is derived from the SAML " +
+                "metadata from the identity provider performing signature validation if a signing key " +
+                "(`KeyDescriptor`) is included." +
+                "<li>`validateAssertionSignature` indicates whether the SAML assertions from the identity provider " +
+                " are cryptographically signed. A `null` value indicates that this setting is derived from  " +
+                "the SAML metadata from the identity provider performing signature validation if a signing key " +
+                "(`KeyDescriptor`) is included.</li>" +
+                "<li>`identityProviderMetadataXml` is the metadata of the identity provider.</li>" +
+                "</ul>",
+            useReturnTypeSchema = true)
+      })
   public ApiSamlConfigurationResponseDTO getSamlConfiguration() {
     return apiSamlConfigurationService.getSamlConfiguration();
   }
@@ -103,22 +101,18 @@ public class ApiSamlConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(
-              responseCode = "400",
-              description = "Invalid configuration."
-          ),
-          @ApiResponse(
-              responseCode = "204",
-              description = "Configuration successful."
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid configuration."),
+        @ApiResponse(
+            responseCode = "204",
+            description = "Configuration successful.")
+      })
   public void insertOrUpdateSamlConfiguration(
       @Parameter(description = "Enter the SAML metadata XML of your IdP. Refer to the IdP documentation to obtain " +
-          "this metadata.", schema = @Schema(type = "string", format = "binary"), required = true)
-      @FormDataParam("identityProviderXml") String identityProviderXml,
-      @Parameter(required = true)
-      @FormDataParam("samlConfiguration") ApiSamlConfigurationDTO samlConfiguration)
+          "this metadata.", schema = @Schema(type = "string", format = "binary"),
+          required = true) @FormDataParam("identityProviderXml") String identityProviderXml,
+      @Parameter(required = true) @FormDataParam("samlConfiguration") ApiSamlConfigurationDTO samlConfiguration)
   {
     apiSamlConfigurationService.insertOrUpdateSamlConfiguration(identityProviderXml, samlConfiguration);
   }
@@ -130,14 +124,12 @@ public class ApiSamlConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users.",
       responses = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "Successfully deleted the SAML configuration."
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "No SAML configuration found."
-          )
+        @ApiResponse(
+            responseCode = "204",
+            description = "Successfully deleted the SAML configuration."),
+        @ApiResponse(
+            responseCode = "404",
+            description = "No SAML configuration found.")
       })
   public void deleteSamlConfiguration() {
     apiSamlConfigurationService.deleteSamlConfiguration();
@@ -151,17 +143,14 @@ public class ApiSamlConfigurationResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(
-              responseCode = "404",
-              description = "SAML is not configured."
-          ),
-          @ApiResponse(
-              responseCode = "200",
-              description = "The IQ Server's metadata service provider descriptor in XML format.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "404",
+            description = "SAML is not configured."),
+        @ApiResponse(
+            responseCode = "200",
+            description = "The IQ Server's metadata service provider descriptor in XML format.",
+            useReturnTypeSchema = true)
+      })
   public String getMetadata() {
     return apiSamlConfigurationService.getMetadata();
   }

@@ -29,7 +29,8 @@ public class PolicyViolationTestHelper
 {
   public static RepositoryPolicyViolation createPolicyViolationFail(
       Policy policy,
-      RepositoryComponent component, final TemporaryEntity tempEntity)
+      RepositoryComponent component,
+      final TemporaryEntity tempEntity)
   {
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
     policyViolation.setRepositoryId(component.getRepositoryId());
@@ -48,7 +49,8 @@ public class PolicyViolationTestHelper
 
   public static RepositoryPolicyViolation createPolicyViolationWaived(
       Policy policy,
-      RepositoryComponent component, final TemporaryEntity tempEntity)
+      RepositoryComponent component,
+      final TemporaryEntity tempEntity)
   {
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
     policyViolation.setRepositoryId(component.getRepositoryId());

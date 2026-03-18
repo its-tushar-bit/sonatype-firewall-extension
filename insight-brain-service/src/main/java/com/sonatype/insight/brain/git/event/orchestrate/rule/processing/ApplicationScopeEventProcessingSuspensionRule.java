@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * certain processing errors should cause temporary suspension of events for the application to which the
- * errored event pertains;  for example, UnknownHostException could be due to a temporary problem resolving the
+ * errored event pertains; for example, UnknownHostException could be due to a temporary problem resolving the
  * host for the repo URL provided for the associated application (as experienced during load testing)
  */
 public class ApplicationScopeEventProcessingSuspensionRule
@@ -56,7 +56,8 @@ public class ApplicationScopeEventProcessingSuspensionRule
       errorType = "SocketTimeoutException";
     }
     else if (ExceptionHelper.hasCauseOrSuppressedOfType(e, HttpResponseException.class)
-        && ExceptionUtils.getStackTrace(e).contains("Bad Gateway")) {
+        && ExceptionUtils.getStackTrace(e).contains("Bad Gateway"))
+    {
       suspensionSeconds = networkingErrorSuspensionSeconds;
       errorType = "BadGateway";
     }

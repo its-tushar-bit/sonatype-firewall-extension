@@ -125,8 +125,8 @@ public class TenantSecurityConfigurationResourceTest
   private HttpRequest updateSamlConfiguration(String tenant) throws Exception {
     HttpRequest request = adminRestRequest(
         ADMIN_TENANT_SECURITY_CONFIG_PATH + TenantSecurityConfigurationResource.UPDATE_SAML_CONFIGURATION_PATH)
-        .parameter(tenant)
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
+            .parameter(tenant)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
 
     SecurityConfigurationDTO securityConfiguration = createSecurityConfigurationDTO();
 
@@ -136,8 +136,8 @@ public class TenantSecurityConfigurationResourceTest
   private HttpRequest grantAdminPermissionForAdmins(String tenant) throws Exception {
     HttpRequest request = adminRestRequest(
         ADMIN_TENANT_SECURITY_CONFIG_PATH + TenantSecurityConfigurationResource.GRANT_ADMIN_PERMISSIONS_PATH)
-        .parameter(tenant)
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
+            .parameter(tenant)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AuthorizationTestHelper.createJwt());
 
     List<String> emails = Arrays.asList("admin@local.com");
 

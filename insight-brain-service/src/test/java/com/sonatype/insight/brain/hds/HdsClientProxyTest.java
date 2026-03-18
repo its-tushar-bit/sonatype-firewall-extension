@@ -76,10 +76,12 @@ public class HdsClientProxyTest
 
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
     context.setContextPath("/");
-    context.addServlet(new ServletHolder(new HttpServlet() {
+    context.addServlet(new ServletHolder(new HttpServlet()
+    {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
+      protected void service(
+          HttpServletRequest request,
+          HttpServletResponse response) throws IOException, ServletException
       {
         if (handler != null) {
           handler.service(request, response);
@@ -164,9 +166,7 @@ public class HdsClientProxyTest
     handler = new HttpServlet()
     {
       @Override
-      protected void service(HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().print(proxyResponse);

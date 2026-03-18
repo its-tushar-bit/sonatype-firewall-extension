@@ -104,7 +104,8 @@ public class OriginalBomViewerTest
     page.originalBomViewerTree().shouldBe(visible);
 
     // Small SBOMs are auto-expanded, so collapse a node first to see preview
-    SelenideElement metadataItem = page.treeItemKeys().findBy(text("metadata"))
+    SelenideElement metadataItem = page.treeItemKeys()
+        .findBy(text("metadata"))
         .closest(".nx-tree__item");
     SelenideElement collapseIcon = metadataItem.$(".nx-tree__collapse-click");
     collapseIcon.click();
@@ -129,7 +130,8 @@ public class OriginalBomViewerTest
     page.originalBomViewerTree().shouldBe(visible);
 
     // Small SBOMs are auto-expanded, so collapse the node first
-    SelenideElement componentsItem = page.treeItemKeys().findBy(text("components"))
+    SelenideElement componentsItem = page.treeItemKeys()
+        .findBy(text("components"))
         .closest(".nx-tree__item");
     SelenideElement collapseIcon = componentsItem.$(".nx-tree__collapse-click");
     collapseIcon.click();
@@ -163,7 +165,8 @@ public class OriginalBomViewerTest
 
     // Small SBOMs are auto-expanded, so collapse a node first to see preview
     // Find metadata node and collapse it
-    SelenideElement metadataItem = page.treeItemKeys().findBy(text("metadata"))
+    SelenideElement metadataItem = page.treeItemKeys()
+        .findBy(text("metadata"))
         .closest(".nx-tree__item");
     SelenideElement collapseIcon = metadataItem.$(".nx-tree__collapse-click");
     collapseIcon.click();
@@ -189,7 +192,8 @@ public class OriginalBomViewerTest
 
     // Small SBOMs are auto-expanded, so collapse nodes to see previews
     // Collapse the components node which has multiple child components
-    SelenideElement componentsItem = page.treeItemKeys().findBy(text("components"))
+    SelenideElement componentsItem = page.treeItemKeys()
+        .findBy(text("components"))
         .closest(".nx-tree__item");
     SelenideElement collapseIcon = componentsItem.$(".nx-tree__collapse-click");
     collapseIcon.click();
@@ -219,7 +223,8 @@ public class OriginalBomViewerTest
     // SPDX fields like "creationInfo" or "packages" MUST have previews
     // Test will fail if SPDX preview feature is broken
     SelenideElement spdxNode = page.treeItemKeys()
-        .findBy(text("creationInfo").or(text("packages"))).parent();
+        .findBy(text("creationInfo").or(text("packages")))
+        .parent();
     SelenideElement preview = spdxNode.$(".iq-original-bom-viewer__preview");
     preview.shouldBe(visible);
     preview.shouldHave(Condition.not(Condition.empty));
@@ -302,8 +307,10 @@ public class OriginalBomViewerTest
   /**
    * Helper method to setup SBOM metadata with specified format and specification
    */
-  private void setupSbomWithFormat(String bomFileName, SbomFormat format, SbomSpecification specification)
-      throws Exception
+  private void setupSbomWithFormat(
+      String bomFileName,
+      SbomFormat format,
+      SbomSpecification specification) throws Exception
   {
     ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan scan = tempEntity.newThirdPartyScan(scannedFile);
@@ -319,8 +326,7 @@ public class OriginalBomViewerTest
     Path zippedBom = mockOriginalSbom(
         OriginalBomViewerTest.class,
         bomFileName,
-        insightWork.getSbomDir(application.getId()).toPath()
-    );
+        insightWork.getSbomDir(application.getId()).toPath());
 
     sbomMetadata = tempEntity.newThirdPartySbomMetadata(
         scan.getThirdPartyFileId(),
@@ -330,8 +336,7 @@ public class OriginalBomViewerTest
         zippedBom.getFileName().toString(),
         specification.toString(),
         format.name(),
-        specification == SbomSpecification.CYCLONEDX ? "1.5" : "2.3"
-    );
+        specification == SbomSpecification.CYCLONEDX ? "1.5" : "2.3");
 
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);

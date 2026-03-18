@@ -24,7 +24,7 @@ public class FirewallPolicyViolationsTable
   private FirewallPolicyViolationsTable(String selectorStringWithParent) {
     super(selectorStringWithParent);
   }
-  
+
   public ElementsCollection getRows() {
     return children("tbody > tr");
   }

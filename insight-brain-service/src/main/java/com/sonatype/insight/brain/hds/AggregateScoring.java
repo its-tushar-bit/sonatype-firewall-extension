@@ -40,8 +40,7 @@ class AggregateScoring
 
   private static double computeAggregateScore(
       final List<SecurityVulnerability> vulnerabilities,
-      final float maxScore
-  )
+      final float maxScore)
   {
     final double averageScore = getAverageSeverityScore(vulnerabilities);
     final int uniqueCWEs = getNumberOfUniqueCwes(vulnerabilities);
@@ -67,8 +66,7 @@ class AggregateScoring
   }
 
   private static double getAverageSeverityScore(
-      List<com.sonatype.clm.dto.model.SecurityVulnerability> vulnerabilities
-  )
+      List<com.sonatype.clm.dto.model.SecurityVulnerability> vulnerabilities)
   {
     return vulnerabilities.stream()
         .mapToDouble(SecurityVulnerability::getSeverity)

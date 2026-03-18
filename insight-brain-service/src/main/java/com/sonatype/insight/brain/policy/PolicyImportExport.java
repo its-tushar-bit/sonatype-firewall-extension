@@ -122,15 +122,16 @@ public class PolicyImportExport
    * imported data contains any LicenseThreatGroups with the same name as one in the parent hierarchy, then it will be
    * discarded and the existing one higher up in the hierarchy will be used in it's place
    * </p>
-   * 
+   *
    * @param organization org to import policy to
    * @param exportDTO data to import
    * @return result embedding the url of the organization
    */
   @Authorize(permission = Permission.WRITE)
   @VisibleForTesting
-  public PolicyImportResult importOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization,
-                                               PolicyExportResult exportDTO)
+  public PolicyImportResult importOrganization(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization,
+      PolicyExportResult exportDTO)
   {
     return importOrganizationWithoutAuthorizationCheck(organization, exportDTO);
   }
@@ -139,12 +140,14 @@ public class PolicyImportExport
    * Same as importOrganization, but without checking authorization first. This method is suitable for use outside
    * of a web request
    */
-  public PolicyImportResult importOrganizationWithoutAuthorizationCheck(Organization organization,
-                                                                        PolicyExportResult exportDTO)
+  public PolicyImportResult importOrganizationWithoutAuthorizationCheck(
+      Organization organization,
+      PolicyExportResult exportDTO)
   {
     checkOrgImportPreconditions(organization, exportDTO);
 
-    AuditData.get().setData("policyCount", exportDTO.policies.size())
+    AuditData.get()
+        .setData("policyCount", exportDTO.policies.size())
         .setData("componentLabelCount", exportDTO.labels.size())
         .setData("licenseThreatGroupCount", exportDTO.licenseThreatGroups.size())
         .setData("applicationCategoryCount", exportDTO.tags.size());
@@ -230,8 +233,11 @@ public class PolicyImportExport
   }
 
   private void auditLicenseThreatGroup(Owner owner, LicenseThreatGroup licenseThreatGroup) {
-    AuditData.get().setOwner(owner).setLicenseThreatGroup(licenseThreatGroup).setData("licenseThreatGroupThreatLevel",
-        licenseThreatGroup.getThreatLevel());
+    AuditData.get()
+        .setOwner(owner)
+        .setLicenseThreatGroup(licenseThreatGroup)
+        .setData("licenseThreatGroupThreatLevel",
+            licenseThreatGroup.getThreatLevel());
   }
 
   /**
@@ -251,7 +257,7 @@ public class PolicyImportExport
    * Will import LicenseThreatGroup and LicenseThreatGroupLicense information from the exportDTO.
    * If the imported data contains any LicenseThreatGroups with the same name as one in the parent hierarchy,
    * then it will be discarded and the existing one higher up in the hierarchy will be used in it's place
-   * 
+   *
    * @param tx tx for sharing transaction
    * @param exportDTO exportDTO modified by side-effect to update ids from newly saved objects
    * @param owner the organization to import to
@@ -277,15 +283,25 @@ public class PolicyImportExport
             licenseThreatGroupLicense.setLicenseThreatGroupId(licenseThreatGroup.getId());
             licenseThreatGroupLicenseDAO.insert(tx, licenseThreatGroupLicense);
           }
-          try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.IMPORT_LICENSE_THREAT_GROUP,
-              false)) {
+          try (AuditSession auditSession = AuditData.get()
+              .recordSubEvent(AuditEvent.IMPORT_LICENSE_THREAT_GROUP,
+                  false))
+          {
             auditLicenseThreatGroup(owner, licenseThreatGroup);
           }
           try (AuditSession auditSession = AuditData.get()
-              .recordSubEvent(AuditEvent.CONFIGURE_LICENSE_THREAT_GROUP_LICENSES, false)) {
-            AuditData.get().setOrganization(owner).setLicenseThreatGroup(licenseThreatGroup).setData("licenseNames",
-                licenses.stream().map(LicenseThreatGroupLicense::getLicenseId).map(licenseDAO::getByIdNotNull)
-                    .map(License::getShortDisplayName).sorted().collect(toList()));
+              .recordSubEvent(AuditEvent.CONFIGURE_LICENSE_THREAT_GROUP_LICENSES, false))
+          {
+            AuditData.get()
+                .setOrganization(owner)
+                .setLicenseThreatGroup(licenseThreatGroup)
+                .setData("licenseNames",
+                    licenses.stream()
+                        .map(LicenseThreatGroupLicense::getLicenseId)
+                        .map(licenseDAO::getByIdNotNull)
+                        .map(License::getShortDisplayName)
+                        .sorted()
+                        .collect(toList()));
           }
         }
         else {
@@ -308,16 +324,17 @@ public class PolicyImportExport
 
   /**
    * Will import and update existing labels or add new ones mentioned in the exportDTO.
-   * 
+   *
    * @param tx tx for sharing transaction
    * @param exportDTO exportDTO modified by side-effect to update ids from newly saved objects
    * @param oldLabels already persisted labels
    * @param organization the organization owning the labels
    */
-  void importAndMergeLabels(final TransactionContext tx,
-                            final PolicyExportResult exportDTO,
-                            final List<Label> oldLabels,
-                            final Organization organization)
+  void importAndMergeLabels(
+      final TransactionContext tx,
+      final PolicyExportResult exportDTO,
+      final List<Label> oldLabels,
+      final Organization organization)
   {
     if (!exportDTO.labels.isEmpty()) {
       Map<String, String> idMap = new HashMap<>();
@@ -361,17 +378,18 @@ public class PolicyImportExport
 
   /**
    * Import/merge the specified Tags.
-   * 
+   *
    * If the Tag already exists on the specified Org, it is updated to reflect the passed in Tag
    * If the Tag does not exist, it is created
-   * 
+   *
    * @param tx tx for sharing transaction
    * @param exportDTO exportDTO modified by side-effect to update ids from newly saved objects
    * @param organization the organization owning the tags
    */
-  void importAndMergeTags(final TransactionContext tx,
-                          final PolicyExportResult exportDTO,
-                          final Organization organization)
+  void importAndMergeTags(
+      final TransactionContext tx,
+      final PolicyExportResult exportDTO,
+      final Organization organization)
   {
     if (!exportDTO.tags.isEmpty()) {
       Map<String, String> idMap = new HashMap<>();
@@ -404,14 +422,15 @@ public class PolicyImportExport
 
   /**
    * Import the specified PolicyTags, using the specified policy id.
-   * 
+   *
    * The id on the passed in PolicyTags is no longer valid, since the policies
    * get new ids when imported
    */
-  private void importPolicyTags(TransactionContext tx,
-                                Organization organization,
-                                Policy policy,
-                                List<PolicyTag> policyTags)
+  private void importPolicyTags(
+      TransactionContext tx,
+      Organization organization,
+      Policy policy,
+      List<PolicyTag> policyTags)
   {
     List<Tag> tags = new ArrayList<>();
     for (PolicyTag policyTag : policyTags) {
@@ -425,7 +444,9 @@ public class PolicyImportExport
 
   private void auditPolicyTags(Organization organization, final Policy policy, final List<Tag> tags) {
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONFIGURE_POLICY_INHERITANCE, false)) {
-      AuditData.get().setOrganization(organization).setPolicy(policy)
+      AuditData.get()
+          .setOrganization(organization)
+          .setPolicy(policy)
           .setInheritanceScope(ApplicationCategoryAuditDTO.transcribe(tags));
     }
   }
@@ -433,7 +454,7 @@ public class PolicyImportExport
   /**
    * Search for label in the list, considering a match on case-insensitive comparison
    * of the label name only.
-   * 
+   *
    * @param labels search candidates
    * @param labelToFind label we're looking for
    */
@@ -505,26 +526,33 @@ public class PolicyImportExport
   }
 
   private void auditDeletePolicyWaiver(TransactionContext tx, Owner owner, PolicyWaiver policyWaiver) {
-    AuditData.get().setOwner(owner)
+    AuditData.get()
+        .setOwner(owner)
         .setData("policyWaiverId", policyWaiver.getId())
         .setPolicy(policyDAO.getById(tx, policyWaiver.getPolicyId()))
         .setComponentHash(policyWaiver.getHash());
     if (policyWaiver.getConstraintFacts() != null) {
-      AuditData.get().setData("policyConstraints",
-          policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
+      AuditData.get()
+          .setData("policyConstraints",
+              policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
     }
   }
 
   private void auditImportLabel(Organization organization, Label label) {
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.IMPORT_LABEL, false)) {
-      AuditData.get().setOrganization(organization).setLabel(label).setData("labelDescription", label.getDescription())
+      AuditData.get()
+          .setOrganization(organization)
+          .setLabel(label)
+          .setData("labelDescription", label.getDescription())
           .setEnum("labelColor", label.getColor());
     }
   }
 
   private void auditImportApplicationCategory(Organization organization, Tag tag) {
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.IMPORT_APPLICATION_CATEGORY, false)) {
-      AuditData.get().setOrganization(organization).setData("applicationCategoryId", tag.getId())
+      AuditData.get()
+          .setOrganization(organization)
+          .setData("applicationCategoryId", tag.getId())
           .setData("applicationCategoryName", tag.getName())
           .setData("applicationCategoryDescription", tag.getDescription())
           .setEnum("applicationCategoryColor", tag.getColor());

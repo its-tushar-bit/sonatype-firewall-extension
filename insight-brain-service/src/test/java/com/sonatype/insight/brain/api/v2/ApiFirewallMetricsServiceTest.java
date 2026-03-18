@@ -81,9 +81,9 @@ public class ApiFirewallMetricsServiceTest
 
   @Test
   public void testGetFirewallMetrics() {
-    LocalDate fiveDaysAgoLocalDate =  LocalDate.now().minusDays(5);
-    LocalDate oneYearAgoLocalDate =  LocalDate.now().minusMonths(12);
-    LocalDate twoYearsAgoLocalDate =  LocalDate.now().minusMonths(24);
+    LocalDate fiveDaysAgoLocalDate = LocalDate.now().minusDays(5);
+    LocalDate oneYearAgoLocalDate = LocalDate.now().minusMonths(12);
+    LocalDate twoYearsAgoLocalDate = LocalDate.now().minusMonths(24);
     tempEntity.newFirewallMetrics(WAIVED_COMPONENTS, 20, toDate(fiveDaysAgoLocalDate), fiveDaysAgoLocalDate);
     tempEntity.newFirewallMetrics(COMPONENTS_QUARANTINED, 10, toDate(oneYearAgoLocalDate), oneYearAgoLocalDate);
     tempEntity.newFirewallMetrics(NAMESPACE_ATTACKS_BLOCKED, 30, toDate(twoYearsAgoLocalDate), twoYearsAgoLocalDate);
@@ -456,11 +456,10 @@ public class ApiFirewallMetricsServiceTest
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
         15,
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
     tempEntity.newFirewallMetrics(SUPPLY_CHAIN_ATTACKS_BLOCKED, 10, new Date());
     tempEntity.newFirewallMetrics(NAMESPACE_ATTACKS_BLOCKED, 10, new Date());
-    tempEntity.newFirewallMetrics(SAFE_VERSIONS_SELECTED_AUTOMATICALLY, 10, new Date(),LocalDate.now());
+    tempEntity.newFirewallMetrics(SAFE_VERSIONS_SELECTED_AUTOMATICALLY, 10, new Date(), LocalDate.now());
     RoiFirewallMetricsDTO roiMetricsDTO = firewallMetricsService.getRoiFirewallMetrics(CurrencyTypes.USD);
     assertThat(roiMetricsDTO).isNotNull();
     assertThat(roiMetricsDTO.getCurrency()).isEqualTo(CurrencyTypes.USD);
@@ -477,8 +476,7 @@ public class ApiFirewallMetricsServiceTest
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
         15,
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
     RoiFirewallMetricsDTO roiMetricsDTO = firewallMetricsService.getRoiFirewallMetrics(CurrencyTypes.USD);
     assertThat(roiMetricsDTO).isNotNull();
     assertThat(roiMetricsDTO.getCurrency()).isEqualTo(CurrencyTypes.USD);
@@ -501,11 +499,10 @@ public class ApiFirewallMetricsServiceTest
         30,
         15,
         BigDecimal.valueOf(800),
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
     tempEntity.newFirewallMetrics(SUPPLY_CHAIN_ATTACKS_BLOCKED, 10, new Date());
     tempEntity.newFirewallMetrics(NAMESPACE_ATTACKS_BLOCKED, 10, new Date());
-    tempEntity.newFirewallMetrics(SAFE_VERSIONS_SELECTED_AUTOMATICALLY, 10, new Date(),LocalDate.now());
+    tempEntity.newFirewallMetrics(SAFE_VERSIONS_SELECTED_AUTOMATICALLY, 10, new Date(), LocalDate.now());
     RoiFirewallMetricsDTO roiMetricsDTO = firewallMetricsService.getRoiFirewallMetrics(CurrencyTypes.USD);
     assertThat(roiMetricsDTO).isNotNull();
     assertThat(roiMetricsDTO.getCurrency()).isEqualTo(CurrencyTypes.USD);

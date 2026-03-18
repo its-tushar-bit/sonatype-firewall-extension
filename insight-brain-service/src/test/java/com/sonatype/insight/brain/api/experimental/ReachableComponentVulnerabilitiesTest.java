@@ -21,8 +21,7 @@ public class ReachableComponentVulnerabilitiesTest
   @Test
   public void testReachableComponentVulnerabilities_NullVulnerabilitySignatures() {
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(
-        () -> new PresentReachableComponentVulnerabilities(null)
-    );
+        () -> new PresentReachableComponentVulnerabilities(null));
   }
 
   @Test
@@ -47,8 +46,7 @@ public class ReachableComponentVulnerabilitiesTest
         new PresentReachableComponentVulnerabilities(Set.of("v1"));
 
     assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(
-        () -> presentReachableComponentVulnerabilities.references().add("v2")
-    );
+        () -> presentReachableComponentVulnerabilities.references().add("v2"));
   }
 
   @Test

@@ -77,13 +77,13 @@ public class ApiThirdPartyScanResourceTest
     final Date AFTER_USERS = new Date();
 
     checkCountAtTimestamp(restRequest()
-            .query(SINCE_UTC_TIMESTAMP, BEFORE_USERS.getTime()), "IDE user count since before both users recorded",
+        .query(SINCE_UTC_TIMESTAMP, BEFORE_USERS.getTime()), "IDE user count since before both users recorded",
         2);
     checkCountAtTimestamp(restRequest()
-            .query(SINCE_UTC_TIMESTAMP, BETWEEN_USERS.getTime()), "IDE user count between two users recorded",
+        .query(SINCE_UTC_TIMESTAMP, BETWEEN_USERS.getTime()), "IDE user count between two users recorded",
         1);
     checkCountAtTimestamp(restRequest()
-            .query(SINCE_UTC_TIMESTAMP, AFTER_USERS.getTime()), "IDE user count after both users recorded",
+        .query(SINCE_UTC_TIMESTAMP, AFTER_USERS.getTime()), "IDE user count after both users recorded",
         0);
   }
 
@@ -105,7 +105,8 @@ public class ApiThirdPartyScanResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     assertThat(response.getBody(IdeUsersOverviewDTO.class).userCount)
-        .as(description).isEqualTo(expectedCount);
+        .as(description)
+        .isEqualTo(expectedCount);
   }
 
   public void testScanComponentAndGetScanStatus(String fileName, String mediaType) throws Exception {
@@ -153,8 +154,9 @@ public class ApiThirdPartyScanResourceTest
   }
 
   private ApiThirdPartyScanResultDTO getApiThirdPartyTicketResultDTO(String statusUrl) {
-    HttpResponse response = await().atMost(10, TimeUnit.SECONDS).until(() -> restRequest().path(statusUrl).get(),
-        resp -> resp.getStatusCode() == 200);
+    HttpResponse response = await().atMost(10, TimeUnit.SECONDS)
+        .until(() -> restRequest().path(statusUrl).get(),
+            resp -> resp.getStatusCode() == 200);
     return response.getBody(ApiThirdPartyScanResultDTO.class);
   }
 

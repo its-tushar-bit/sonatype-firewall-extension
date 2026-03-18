@@ -175,7 +175,8 @@ public class ApiArtifactoryConnectionService
 
   private void validateUpdateConnectionData(final ApiArtifactoryConnectionDTO dto) {
     if (dto == null || (dto.isAnonymous == null &&
-        StringUtils.isAllBlank(dto.baseUrl, dto.username, dto.password))) {
+        StringUtils.isAllBlank(dto.baseUrl, dto.username, dto.password)))
+    {
       throw new BadRequestException(MISSING_CONNECTION_DATA_ERROR);
     }
 
@@ -198,7 +199,8 @@ public class ApiArtifactoryConnectionService
         StringUtils.isNotEmpty(dto.baseUrl) &&
         !dto.baseUrl.equals(storedConnection.getBaseUrl()) &&
         StringUtils.isNotEmpty(storedConnection.getUsername()) &&
-        StringUtils.isAnyBlank(dto.username, dto.password)) {
+        StringUtils.isAnyBlank(dto.username, dto.password))
+    {
       throw new BadRequestException(MISSING_CREDENTIALS_ERROR);
     }
 
@@ -296,8 +298,10 @@ public class ApiArtifactoryConnectionService
           String.format(ARTIFACTORY_CONNECTION_NOT_FOUND_ERROR, artifactoryConnectionId, ownerType, internalOwnerId));
     }
     return testArtifactoryConnection(artifactoryConnection.getBaseUrl(), artifactoryConnection.getUsername(),
-        artifactoryConnection.getPassword() == null ? null : passwordHandler.decryptPassword(
-            artifactoryConnection.getPassword()));
+        artifactoryConnection.getPassword() == null
+            ? null
+            : passwordHandler.decryptPassword(
+                artifactoryConnection.getPassword()));
   }
 
   // Visible for testing
@@ -367,7 +371,8 @@ public class ApiArtifactoryConnectionService
     ApiArtifactoryConnectionDTO dto = new ApiArtifactoryConnectionDTO();
     dto.artifactoryConnectionId = artifactoryConnection.getId();
     dto.ownerType = Optional.ofNullable(ownerDAO.getById(artifactoryConnection.getOwnerId()))
-        .map(Owner::getType).orElse(null);
+        .map(Owner::getType)
+        .orElse(null);
     dto.ownerId = artifactoryConnection.getOwnerId();
     dto.baseUrl = artifactoryConnection.getBaseUrl();
     dto.username = artifactoryConnection.getUsername();
@@ -379,7 +384,7 @@ public class ApiArtifactoryConnectionService
     if (dto == null || StringUtils.isBlank(dto.baseUrl)) {
       throw new BadRequestException("missing artifactory base URL");
     }
-    //if a username is provided a password should be provided as well
+    // if a username is provided a password should be provided as well
     if (isNotCompleteAuthData(dto)) {
       throw new BadRequestException(MISSING_CREDENTIALS_ERROR);
     }

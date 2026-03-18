@@ -29,8 +29,7 @@ public class SolutionResolver
 
   private static final List<String> DEVELOPER_PRODUCTS = ImmutableList.of(
       ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT,
-      ProductLicenseDetails.PRODUCT_TEAMS_EDITION
-  );
+      ProductLicenseDetails.PRODUCT_TEAMS_EDITION);
 
   private static final List<String> FIREWALL_PRODUCTS = ImmutableList.of(
       ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD,
@@ -40,16 +39,14 @@ public class SolutionResolver
       ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY,
       ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2,
       ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD,
-      ProductLicenseDetails.PRODUCT_REPOSITORY_FIREWALL_SAAS
-      );
+      ProductLicenseDetails.PRODUCT_REPOSITORY_FIREWALL_SAAS);
 
   @VisibleForTesting
   static final List<String> IGNORED_PRODUCTS = ImmutableList.of(
       ProductLicenseDetails.PRODUCT_SONATYPE_LIFT_PREMIUM,
       ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE,
       ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE_CLOUD,
-      ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE_SAAS
-  );
+      ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE_SAAS);
 
   private static final List<String> LIFECYCLE_PRODUCTS = ImmutableList.of(
       ProductLicenseDetails.PRODUCT_ADVANCED_DEVELOPMENT_PACK,
@@ -63,17 +60,14 @@ public class SolutionResolver
       ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS,
       ProductLicenseDetails.PRODUCT_RISK,
       ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
-      ProductLicenseDetails.PRODUCT_TEAMS_EDITION
-  );
+      ProductLicenseDetails.PRODUCT_TEAMS_EDITION);
 
   private static final List<String> REPO_MANAGER_PRODUCTS = ImmutableList.of(
-      ProductLicenseDetails.PRODUCT_NEXUS
-  );
+      ProductLicenseDetails.PRODUCT_NEXUS);
 
   private static final List<String> SBOM_MANAGER_PRODUCTS = ImmutableList.of(
       ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
-      ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS
-  );
+      ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
 
   private final ProductLicense productLicense;
 
@@ -86,7 +80,7 @@ public class SolutionResolver
    * Get the set of solutions this instance of iq server is licensed for.
    *
    * @return Set containing Solution enum values that have been mapped over to product features or an empty set in
-   * case none of the licensed products map over to solutions
+   *         case none of the licensed products map over to solutions
    */
   public Set<Solution> getLicensedSolutions() {
     log.trace("Setting licensed solutions for the Solution Switcher");

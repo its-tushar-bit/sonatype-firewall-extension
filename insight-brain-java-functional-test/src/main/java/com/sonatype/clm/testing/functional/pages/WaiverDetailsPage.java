@@ -33,10 +33,9 @@ public class WaiverDetailsPage
       String ownerId,
       String waiverId,
       String type,
-      String sidebarReference
-  )
+      String sidebarReference)
   {
-    return urlWithQueryParams( ownerType, ownerId, waiverId, type, sidebarReference, null);
+    return urlWithQueryParams(ownerType, ownerId, waiverId, type, sidebarReference, null);
   }
 
   public static String urlWithQueryParams(
@@ -45,8 +44,7 @@ public class WaiverDetailsPage
       String waiverId,
       String type,
       String sidebarReference,
-      Integer page
-  )
+      Integer page)
   {
     String path = "/waiver/{ownerType}/{ownerId}/{waiverId}?type={type}&sidebarReference={sidebarReference}";
     if (page != null) {
@@ -57,8 +55,7 @@ public class WaiverDetailsPage
           waiverId,
           type,
           sidebarReference,
-          page
-      );
+          page);
     }
     return BaseUrl.resolvePageUrl(
         path,
@@ -66,8 +63,7 @@ public class WaiverDetailsPage
         ownerId,
         waiverId,
         type,
-        sidebarReference
-    );
+        sidebarReference);
   }
 
   public WaiverDetailsPage() {
@@ -150,7 +146,8 @@ public class WaiverDetailsPage
     return new SidebarNav("#sidebar-nav-list");
   }
 
-  public static class SidebarNav extends BasicElement<SidebarNav>
+  public static class SidebarNav
+      extends BasicElement<SidebarNav>
   {
     SidebarNav(String selector) {
       super(selector);
@@ -169,7 +166,8 @@ public class WaiverDetailsPage
     }
   }
 
-  public static class SidebarNavListItem extends BasicElement<SidebarNavListItem>
+  public static class SidebarNavListItem
+      extends BasicElement<SidebarNavListItem>
   {
     SidebarNavListItem(String selector) {
       super(selector);

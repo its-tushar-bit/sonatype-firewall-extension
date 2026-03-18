@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2.service;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.File;
@@ -195,16 +196,15 @@ public class ApiSourceControlServiceTest
   private void setupCustomGitHubAppCleanupService() {
     String wireMockBaseUrl = "http://localhost:" + githubMockServer.port();
     GitHubAppDeletionService gitHubAppDeletionService = new GitHubAppDeletionService(
-            gitHubAppDAO,
-            installationStateDAO,
-            passwordHandler,
-            insightProxy,
-            wireMockBaseUrl
-    );
+        gitHubAppDAO,
+        installationStateDAO,
+        passwordHandler,
+        insightProxy,
+        wireMockBaseUrl);
 
     try {
       Field field = sourceControlService.getClass()
-              .getDeclaredField("sourceControlAuthenticationTransitionHandler");
+          .getDeclaredField("sourceControlAuthenticationTransitionHandler");
       field.setAccessible(true);
       field.set(sourceControlService, new SourceControlAuthenticationTransitionHandler(gitHubAppDeletionService));
     }
@@ -262,7 +262,8 @@ public class ApiSourceControlServiceTest
   public void testAddOrUpdateSourceControl_MissingRepoUrl_QueryParam() {
     assertThatThrownBy(() -> sourceControlService
         .addOrUpdateSourceControl("hello", "", null))
-        .isInstanceOf(BadRequestException.class).hasMessage("Query parameter 'repositoryUrl' is required");
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Query parameter 'repositoryUrl' is required");
   }
 
   @Test
@@ -275,7 +276,8 @@ public class ApiSourceControlServiceTest
             publicId,
             null,
             apiSourceControlRepoUserDTO))
-        .isInstanceOf(BadRequestException.class).hasMessage("Query parameter 'repositoryUrl' is required");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Query parameter 'repositoryUrl' is required");
   }
 
   @Test
@@ -288,7 +290,8 @@ public class ApiSourceControlServiceTest
             publicId,
             null,
             apiSourceControlRepoUserDTO))
-        .isInstanceOf(BadRequestException.class).hasMessage("Query parameter 'repositoryUrl' is required");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Query parameter 'repositoryUrl' is required");
   }
 
   @Test
@@ -308,9 +311,7 @@ public class ApiSourceControlServiceTest
   private final GitApi mockGitApiInstance = mock(GitApi.class);
 
   @Test
-  public void testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControlDisabled_Create_Ssh()
-      throws Exception
-  {
+  public void testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControlDisabled_Create_Ssh() throws Exception {
     String httpUrl = "https://github.com/a/b.git";
     String sshUrl = "git@github.com:a/b.git";
 
@@ -323,15 +324,13 @@ public class ApiSourceControlServiceTest
     testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(true, null, sshUrl, httpUrl);
 
     // Verify ssh url also inserted in source control entity
-    SourceControl sourceControl
-        = sourceControlDAO.getAll().stream().filter(sc -> httpUrl.equals(sc.getRepositoryUrl())).findAny().get();
+    SourceControl sourceControl =
+        sourceControlDAO.getAll().stream().filter(sc -> httpUrl.equals(sc.getRepositoryUrl())).findAny().get();
     assertThat(sourceControl.getRepositorySshUrl()).isEqualTo(sshUrl);
   }
 
   @Test
-  public void testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControlDisabled_Create_Ssh_ExistsNot()
-      throws Exception
-  {
+  public void testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControlDisabled_Create_Ssh_ExistsNot() throws Exception {
     String httpUrl = "https://github.com/a/b.git";
     String sshUrl = "git@github.com:a/b.git";
 
@@ -448,7 +447,8 @@ public class ApiSourceControlServiceTest
   @Test
   public void testAddSourceControlByOwner_TokenEncryption() throws Exception {
     final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
+        new SourceControl.Builder().setOwnerId(org.getId())
+            .setToken(TOKEN)
             .build());
     final ApiSourceControlDTO sourceControl = sourceControlService.addSourceControlByOwner(
         OwnerType.ORGANIZATION, org.getId(), validSourceControl);
@@ -467,9 +467,9 @@ public class ApiSourceControlServiceTest
   @Test
   public void testUpdateSourceControlByOwner_TokenEncryption() throws Exception {
     final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-            .build()
-    );
+        new SourceControl.Builder().setOwnerId(org.getId())
+            .setToken(TOKEN)
+            .build());
 
     final ApiSourceControlDTO sourceControl =
         sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION,
@@ -497,18 +497,20 @@ public class ApiSourceControlServiceTest
   @Test
   public void testGetSourceControlByOwnerDecrypted_ForOrganization() {
     final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
+        new SourceControl.Builder().setOwnerId(org.getId())
+            .setToken(TOKEN)
             .build());
     sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
-            validSourceControl);
+        validSourceControl);
     assertThat(sourceControlService.getCompositeSourceControlByOwnerDecrypted(org.getId()).getToken()).isEqualTo(TOKEN);
   }
 
   @Test
   public void testAddSourceControlByOwner_CatersForBitbucketProvider() {
-    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-            .setProvider(SourceControlProvider.BITBUCKET)
-            .build();
+    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(org.getId())
+        .setToken(TOKEN)
+        .setProvider(SourceControlProvider.BITBUCKET)
+        .build();
 
     ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(sourceControl);
     sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), validSourceControl);
@@ -517,9 +519,10 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testAddSourceControlByOwner_CatersForAzureProvider() {
-    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-            .setProvider(SourceControlProvider.AZURE)
-            .build();
+    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(org.getId())
+        .setToken(TOKEN)
+        .setProvider(SourceControlProvider.AZURE)
+        .build();
 
     ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(sourceControl);
     sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), validSourceControl);
@@ -528,9 +531,10 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testAddSourceControlByOwner_CatersForGitlabProvider() {
-    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-            .setProvider(SourceControlProvider.BITBUCKET)
-            .build();
+    SourceControl sourceControl = new SourceControl.Builder().setOwnerId(org.getId())
+        .setToken(TOKEN)
+        .setProvider(SourceControlProvider.BITBUCKET)
+        .build();
 
     ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(sourceControl);
     sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), validSourceControl);
@@ -540,7 +544,9 @@ public class ApiSourceControlServiceTest
   @Test
   public void testGetSourceControlByOwnerDecrypted_ForApplication() {
     final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setRepositoryUrl(VALID_URL)
+            .setToken(TOKEN)
             .build());
     sourceControlService.addSourceControlByOwner(OwnerType.ORGANIZATION, app.getId(), validSourceControl);
     assertThat(sourceControlService.getCompositeSourceControlByOwnerDecrypted(app.getId()).getToken()).isEqualTo(TOKEN);
@@ -551,7 +557,8 @@ public class ApiSourceControlServiceTest
     setLicensedForSourceControlByNotifications();
 
     final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
+        new SourceControl.Builder().setOwnerId(org.getId())
+            .setToken(TOKEN)
             .build());
 
     final ApiSourceControlDTO sourceControl = sourceControlService
@@ -572,7 +579,9 @@ public class ApiSourceControlServiceTest
   public void testDeleteSourceControlByOwner_ForApplication_licensedByAutomation() {
     setLicensedForSourceControlByAutomation();
     final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setRepositoryUrl(VALID_URL)
+            .setToken(TOKEN)
             .build());
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
 
@@ -602,7 +611,8 @@ public class ApiSourceControlServiceTest
     final ApiSourceControlDTO sourceControl = sourceControlService
         .addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
             apiSourceControlAdapter.convertToDTO(
-                new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
+                new SourceControl.Builder().setOwnerId(org.getId())
+                    .setToken(TOKEN)
                     .build()));
     sourceControl.token = SourceControl.FAKE_SECRET_KEY;
     sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), sourceControl);
@@ -614,7 +624,8 @@ public class ApiSourceControlServiceTest
     final ApiSourceControlDTO sourceControl = sourceControlService
         .addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
             apiSourceControlAdapter.convertToDTO(
-                new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
+                new SourceControl.Builder().setOwnerId(org.getId())
+                    .setToken(TOKEN)
                     .build()));
     sourceControl.token = null;
     sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(),
@@ -626,10 +637,10 @@ public class ApiSourceControlServiceTest
   public void testUpdateSourceControlByOwner_WrongOwnerId() {
     final ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
         tempEntity.newSourceControl(org.getId(), null, "token", null));
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
-        sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION,
-            "foo", sourceControl)
-    ).withMessage("Cannot find SourceControl for organization with id: foo");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION,
+            "foo", sourceControl))
+        .withMessage("Cannot find SourceControl for organization with id: foo");
   }
 
   @Test
@@ -653,8 +664,7 @@ public class ApiSourceControlServiceTest
     ApiSourceControlDTO sourceControlDTO = sourceControlService.addSourceControlByOwner(
         OwnerType.APPLICATION,
         app.getId(),
-        createSourceControlDtoForTesting()
-    );
+        createSourceControlDtoForTesting());
     assertThat(sourceControlDTO).isNotNull();
     assertTelemetry(METHOD.ADD, app.getId(), sourceControlDTO.repositoryUrl,
         rootOrgSourcecontrol.getProvider().toString(), rootOrgSourcecontrol.getRemediationPullRequestsEnabled(),
@@ -672,8 +682,7 @@ public class ApiSourceControlServiceTest
     ApiSourceControlDTO sourceControlDTO = sourceControlService.addSourceControlByOwner(
         OwnerType.APPLICATION,
         app.getId(),
-        createSourceControlDtoForTesting()
-    );
+        createSourceControlDtoForTesting());
 
     // Then
     assertThat(sourceControlDTO).isNotNull();
@@ -687,11 +696,12 @@ public class ApiSourceControlServiceTest
   public void testUpdateSourceControlByOwner_unlicensed() {
     setUnlicensedForSourceControl();
     assertThatExceptionOfType(InvalidLicenseException.class)
-        .isThrownBy(() ->
-            sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION,
+        .isThrownBy(() -> sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION,
             "foo", apiSourceControlAdapter.convertToDTO(
-                    new SourceControl.Builder().setOwnerId(testName.getMethodName()).setRepositoryUrl(VALID_URL)
-                        .setToken("baz").build())));
+                new SourceControl.Builder().setOwnerId(testName.getMethodName())
+                    .setRepositoryUrl(VALID_URL)
+                    .setToken("baz")
+                    .build())));
   }
 
   @Test
@@ -725,8 +735,7 @@ public class ApiSourceControlServiceTest
     ApiSourceControlDTO updatedControlDTO = sourceControlService.updateSourceControlByOwner(
         OwnerType.APPLICATION,
         app.getId(),
-        sourceControlDTO
-    );
+        sourceControlDTO);
 
     SourceControl sourceControlAfterUpdate = sourceControlDAO.getByOwnerId(app.getId());
 
@@ -745,14 +754,16 @@ public class ApiSourceControlServiceTest
   public void testAddSourceControlByOwner_Duplicate() {
     // given an existing source control for an organization
     final ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
+        new SourceControl.Builder().setOwnerId(org.getId())
+            .setToken(TOKEN)
             .build());
     sourceControlService.addSourceControlByOwner(
         OwnerType.ORGANIZATION, org.getId(), sourceControl);
 
     // expect adding another for the same organization gives error
     final ApiSourceControlDTO sourceControlAgain = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
+        new SourceControl.Builder().setOwnerId(org.getId())
+            .setToken(TOKEN)
             .build());
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> sourceControlService.addSourceControlByOwner(
@@ -794,8 +805,8 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testGetSourceControlByOwner_DoesNotExist() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
-        sourceControlService.getSourceControlByOwner(OwnerType.ORGANIZATION,
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> sourceControlService.getSourceControlByOwner(OwnerType.ORGANIZATION,
             org.getId()));
   }
 
@@ -814,7 +825,8 @@ public class ApiSourceControlServiceTest
       for (final Boolean statusChecksEnabled : booleanOptions) {
         for (final String baseBranch : branchOptions) {
           final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
-              new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
+              new SourceControl.Builder().setOwnerId(org.getId())
+                  .setToken(TOKEN)
                   .setStatusChecksEnabled(statusChecksEnabled)
                   .setRemediationPullRequestsEnabled(remediationPullRequestsEnabled)
                   .setBaseBranch(baseBranch)
@@ -839,7 +851,9 @@ public class ApiSourceControlServiceTest
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
     when(mockGitApiClient.isRepositoryPrivate()).thenReturn(true);
     final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setRepositoryUrl(VALID_URL)
+            .setToken(TOKEN)
             .build());
 
     final ApiSourceControlDTO sourceControl = sourceControlService
@@ -856,7 +870,9 @@ public class ApiSourceControlServiceTest
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
     when(mockGitApiClient.isRepositoryPrivate()).thenReturn(true);
     final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setRepositoryUrl(VALID_URL)
+            .setToken(TOKEN)
             .build());
 
     final ApiSourceControlDTO sourceControl = sourceControlService
@@ -881,7 +897,9 @@ public class ApiSourceControlServiceTest
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
     when(mockGitApiClient.isRepositoryPrivate()).thenReturn(true);
     final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setRepositoryUrl(VALID_URL)
+            .setToken(TOKEN)
             .build());
 
     final ApiSourceControlDTO sourceControl = sourceControlService
@@ -905,7 +923,9 @@ public class ApiSourceControlServiceTest
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
     when(mockGitApiClient.isRepositoryPrivate()).thenThrow(IOException.class);
     final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setRepositoryUrl(VALID_URL)
+            .setToken(TOKEN)
             .build());
 
     final ApiSourceControlDTO sourceControl = sourceControlService
@@ -919,8 +939,10 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testGetSourceControlByOwnerDecrypted() {
-    final SourceControl sourceControl = new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL)
-        .setToken("token").build();
+    final SourceControl sourceControl = new SourceControl.Builder().setOwnerId(app.getId())
+        .setRepositoryUrl(VALID_URL)
+        .setToken("token")
+        .build();
     sourceControlService.encryptToken(sourceControl);
     tempEntity.newSourceControl(sourceControl.getOwnerId(), sourceControl.getRepositoryUrl(), sourceControl.getToken(),
         sourceControl.getProvider());
@@ -942,16 +964,22 @@ public class ApiSourceControlServiceTest
 
     // and a series of SourceControl records - for app2
     SourceControl sourceControl = new SourceControl.Builder()
-        .setOwnerId(app2.getId()).setRepositoryUrl(VALID_URL).build();
+        .setOwnerId(app2.getId())
+        .setRepositoryUrl(VALID_URL)
+        .build();
     tempEntity.newSourceControl(sourceControl);
     // for org2 - sets token
     sourceControl = new SourceControl.Builder()
-        .setOwnerId(org2.getId()).setToken("token2").build();
+        .setOwnerId(org2.getId())
+        .setToken("token2")
+        .build();
     sourceControlService.encryptToken(sourceControl);
     tempEntity.newSourceControl(sourceControl);
     // for org1 - disable RemediationPullRequests
     sourceControl = new SourceControl.Builder()
-        .setOwnerId(org1.getId()).setRemediationPullRequestsEnabled(false).build();
+        .setOwnerId(org1.getId())
+        .setRemediationPullRequestsEnabled(false)
+        .build();
     tempEntity.newSourceControl(sourceControl);
 
     // when:
@@ -974,15 +1002,16 @@ public class ApiSourceControlServiceTest
     assertThat(sourceControlByApplicationId).isNull();
   }
 
-  private void assertTelemetry(final METHOD method,
-                               final String ownerId,
-                               final String repositoryUrl,
-                               final String provider,
-                               final Boolean remediationPullRequestsEnabled,
-                               final Boolean statusChecksEnabled,
-                               final String baseBranch,
-                               final String repoVisibility,
-                               final String publicRepositoryUrl)
+  private void assertTelemetry(
+      final METHOD method,
+      final String ownerId,
+      final String repositoryUrl,
+      final String provider,
+      final Boolean remediationPullRequestsEnabled,
+      final Boolean statusChecksEnabled,
+      final String baseBranch,
+      final String repoVisibility,
+      final String publicRepositoryUrl)
   {
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
@@ -1094,24 +1123,22 @@ public class ApiSourceControlServiceTest
   public void testUpdateSourceControlByOwner_createsEventOnUrlChange() {
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
 
-    //given : Create sourcecontrol, with associated event
+    // given : Create sourcecontrol, with associated event
     ApiSourceControlDTO persistedSourceControlDTO = sourceControlService.addSourceControlByOwner(
         OwnerType.APPLICATION,
         app.getId(),
-        createSourceControlDtoForTesting()
-    );
+        createSourceControlDtoForTesting());
     assertThat(persistedSourceControlDTO).isNotNull();
     tempEntity.newSourceControlEvent(app, new PolicyEvaluation());
 
-    //when : repo url is updated
+    // when : repo url is updated
     persistedSourceControlDTO.repositoryUrl = "http://www.github.com/myOrg/myApp2";
     sourceControlService.updateSourceControlByOwner(
         OwnerType.APPLICATION,
         app.getId(),
-        persistedSourceControlDTO
-    );
+        persistedSourceControlDTO);
 
-    //then : events are cleared and new event added
+    // then : events are cleared and new event added
     List<SourceControlEvent> events = sourceControlEventDAO.getAllByApplicationId(app.getId());
     assertThat(events).hasSize(1);
     assertThat(events.get(0).getEventType()).isEqualTo(REPOSITORY_URL_UPDATED_EVENT);
@@ -1122,24 +1149,22 @@ public class ApiSourceControlServiceTest
   public void testUpdateSourceControlByOwner_doesNotCreateEventWhenUrlNotChanged() {
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
 
-    //given : Create sourcecontrol, with associated eval and comment
+    // given : Create sourcecontrol, with associated eval and comment
     ApiSourceControlDTO persistedSourceControlDTO = sourceControlService.addSourceControlByOwner(
         OwnerType.APPLICATION,
         app.getId(),
-        createSourceControlDtoForTesting()
-    );
+        createSourceControlDtoForTesting());
     assertThat(persistedSourceControlDTO).isNotNull();
     tempEntity.newSourceControlEvent(app, new PolicyEvaluation());
 
-    //when : update with constant repo url
+    // when : update with constant repo url
     persistedSourceControlDTO.remediationPullRequestsEnabled = true;
     sourceControlService.updateSourceControlByOwner(
         OwnerType.APPLICATION,
         app.getId(),
-        persistedSourceControlDTO
-    );
+        persistedSourceControlDTO);
 
-    //then : events are not cleared and new event not added
+    // then : events are not cleared and new event not added
     List<SourceControlEvent> events = sourceControlEventDAO.getAllByApplicationId(app.getId());
     assertThat(events).hasSize(1);
     assertThat(events.get(0).getEventType()).isEqualTo(DISCOVERED_PULL_REQUEST_EVENT);
@@ -1351,7 +1376,8 @@ public class ApiSourceControlServiceTest
     GeneralSCMApiClient mockGeneralSCMApiClient = createMockGeneralSCMApiClient();
     lenient().when(
         mockGitClientFactory.createGeneralApiClient(sourceControl.getProvider(), "https://github.com/orgName/repoName",
-            sourceControl.getUsername(), "token")).thenReturn(mockGeneralSCMApiClient);
+            sourceControl.getUsername(), "token"))
+        .thenReturn(mockGeneralSCMApiClient);
     GitApiClient mockGitApiClient = createMockGitApiClient("userId2");
     lenient().when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
 
@@ -1401,8 +1427,7 @@ public class ApiSourceControlServiceTest
         sourceControl.getOwnerId(),
         sourceControl.getRepositoryUrl(),
         sourceControl.getToken(),
-        sourceControl.getProvider()
-    );
+        sourceControl.getProvider());
 
     final SourceControl compositeSourceControl =
         sourceControlService.getCompositeSourceControlByApplicationId(app.getId());
@@ -1428,8 +1453,7 @@ public class ApiSourceControlServiceTest
         sourceControl.getOwnerId(),
         sourceControl.getRepositoryUrl(),
         sourceControl.getToken(),
-        sourceControl.getProvider()
-    );
+        sourceControl.getProvider());
 
     final SourceControl compositeSourceControl =
         sourceControlService.getCompositeSourceControlByApplicationId(app.getId());
@@ -1462,16 +1486,22 @@ public class ApiSourceControlServiceTest
 
     // Create a series of SourceControl records - for app2
     SourceControl sourceControl = new SourceControl.Builder()
-        .setOwnerId(app2.getId()).setRepositoryUrl(VALID_URL).build();
+        .setOwnerId(app2.getId())
+        .setRepositoryUrl(VALID_URL)
+        .build();
     tempEntity.newSourceControl(sourceControl);
     // for org2 - sets token
     sourceControl = new SourceControl.Builder()
-        .setOwnerId(org2.getId()).setToken("token2").build();
+        .setOwnerId(org2.getId())
+        .setToken("token2")
+        .build();
     sourceControlService.encryptToken(sourceControl);
     tempEntity.newSourceControl(sourceControl);
     // for org1 - disable RemediationPullRequests
     sourceControl = new SourceControl.Builder()
-        .setOwnerId(org1.getId()).setRemediationPullRequestsEnabled(false).build();
+        .setOwnerId(org1.getId())
+        .setRemediationPullRequestsEnabled(false)
+        .build();
     tempEntity.newSourceControl(sourceControl);
 
     // when:
@@ -1496,16 +1526,22 @@ public class ApiSourceControlServiceTest
 
     // Create a series of SourceControl records - for app2
     SourceControl sourceControl = new SourceControl.Builder()
-        .setOwnerId(app2.getId()).setRepositoryUrl(VALID_URL).build();
+        .setOwnerId(app2.getId())
+        .setRepositoryUrl(VALID_URL)
+        .build();
     tempEntity.newSourceControl(sourceControl);
     // for org2 - sets token
     sourceControl = new SourceControl.Builder()
-        .setOwnerId(org2.getId()).setToken("token2").build();
+        .setOwnerId(org2.getId())
+        .setToken("token2")
+        .build();
     sourceControlService.encryptToken(sourceControl);
     tempEntity.newSourceControl(sourceControl);
     // for org1 - disable RemediationPullRequests
     sourceControl = new SourceControl.Builder()
-        .setOwnerId(org1.getId()).setRemediationPullRequestsEnabled(false).build();
+        .setOwnerId(org1.getId())
+        .setRemediationPullRequestsEnabled(false)
+        .build();
     tempEntity.newSourceControl(sourceControl);
 
     // when:
@@ -1561,10 +1597,9 @@ public class ApiSourceControlServiceTest
 
     createAndInsertGitHubApp(app.getId());
     SourceControl sourceControl = createSourceControl(
-            app.getId(),
-            SourceControl.AuthenticationType.GITHUB_APP,
-            "http://example.com/test/test"
-    );
+        app.getId(),
+        SourceControl.AuthenticationType.GITHUB_APP,
+        "http://example.com/test/test");
     tempEntity.newSourceControl(sourceControl);
 
     stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
@@ -1583,10 +1618,9 @@ public class ApiSourceControlServiceTest
   @Test
   public void testUpdateSourceControlByOwner_AuthTypeChange_PatToGitHubApp_ClearsToken() {
     SourceControl sourceControl = createSourceControl(
-            app.getId(),
-            SourceControl.AuthenticationType.PAT,
-            "http://example.com/test/test"
-    );
+        app.getId(),
+        SourceControl.AuthenticationType.PAT,
+        "http://example.com/test/test");
     sourceControl.setToken(passwordHandler.encryptPassword("pat-token"));
     tempEntity.newSourceControl(sourceControl);
 
@@ -1605,10 +1639,9 @@ public class ApiSourceControlServiceTest
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
 
     SourceControl sourceControl = createSourceControl(
-            app.getId(),
-            SourceControl.AuthenticationType.GITHUB_APP,
-            "http://example.com/test/test"
-    );
+        app.getId(),
+        SourceControl.AuthenticationType.GITHUB_APP,
+        "http://example.com/test/test");
     tempEntity.newSourceControl(sourceControl);
 
     ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
@@ -1626,10 +1659,9 @@ public class ApiSourceControlServiceTest
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
     createAndInsertGitHubApp(app.getId());
     SourceControl sourceControl = createSourceControl(
-            app.getId(),
-            SourceControl.AuthenticationType.GITHUB_APP,
-            "https://bitbucket.example.com/scm/PROJECT/repo"
-    );
+        app.getId(),
+        SourceControl.AuthenticationType.GITHUB_APP,
+        "https://bitbucket.example.com/scm/PROJECT/repo");
     sourceControl.setProvider(SourceControlProvider.BITBUCKET);
     tempEntity.newSourceControl(sourceControl);
 
@@ -1649,10 +1681,9 @@ public class ApiSourceControlServiceTest
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
 
     SourceControl sourceControl = createSourceControl(
-            app.getId(),
-            SourceControl.AuthenticationType.PAT,
-            "http://example.com/test/test"
-    );
+        app.getId(),
+        SourceControl.AuthenticationType.PAT,
+        "http://example.com/test/test");
     String originalToken = passwordHandler.encryptPassword("original-token");
     sourceControl.setToken(originalToken);
     tempEntity.newSourceControl(sourceControl);
@@ -1673,10 +1704,9 @@ public class ApiSourceControlServiceTest
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
     createAndInsertGitHubApp(app.getId());
     SourceControl sourceControl = createSourceControl(
-            app.getId(),
-            SourceControl.AuthenticationType.GITHUB_APP,
-            "http://example.com/test/test"
-    );
+        app.getId(),
+        SourceControl.AuthenticationType.GITHUB_APP,
+        "http://example.com/test/test");
     tempEntity.newSourceControl(sourceControl);
 
     stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
@@ -1695,10 +1725,9 @@ public class ApiSourceControlServiceTest
     setupCustomGitHubAppCleanupService();
     createAndInsertGitHubApp(app.getId());
     SourceControl sourceControl = createSourceControl(
-            app.getId(),
-            SourceControl.AuthenticationType.GITHUB_APP,
-            "http://example.com/test/test"
-    );
+        app.getId(),
+        SourceControl.AuthenticationType.GITHUB_APP,
+        "http://example.com/test/test");
     tempEntity.newSourceControl(sourceControl);
     stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
     assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNotNull();
@@ -1717,10 +1746,9 @@ public class ApiSourceControlServiceTest
     tempEntity.newGitHubAppInstallationState("pending-state-2", gitHubApp.getId(), "code-verifier-2", expiresAt);
 
     SourceControl sourceControl = createSourceControl(
-            app.getId(),
-            SourceControl.AuthenticationType.GITHUB_APP,
-            "http://example.com/test/test"
-    );
+        app.getId(),
+        SourceControl.AuthenticationType.GITHUB_APP,
+        "http://example.com/test/test");
     tempEntity.newSourceControl(sourceControl);
     stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
 
@@ -1747,10 +1775,9 @@ public class ApiSourceControlServiceTest
   public void testDeleteSourceControlByOwner_NonGitHubProvider_SkipsGitHubAppDeletion() {
     GitHubApp gitHubApp = createAndInsertGitHubApp(app.getId());
     SourceControl sourceControl = createSourceControl(
-            app.getId(),
-            SourceControl.AuthenticationType.GITHUB_APP,
-            "https://bitbucket.example.com/scm/PROJECT/repo"
-    );
+        app.getId(),
+        SourceControl.AuthenticationType.GITHUB_APP,
+        "https://bitbucket.example.com/scm/PROJECT/repo");
     sourceControl.setProvider(SourceControlProvider.BITBUCKET);
     tempEntity.newSourceControl(sourceControl);
     assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNotNull();
@@ -1766,15 +1793,13 @@ public class ApiSourceControlServiceTest
   public void testDeleteSourceControlByOwner_PatAuthentication_NoGitHubAppCleanup() {
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
     SourceControl sourceControl = createSourceControl(
-            app.getId(),
-            SourceControl.AuthenticationType.PAT,
-            "http://example.com/test/test"
-    );
+        app.getId(),
+        SourceControl.AuthenticationType.PAT,
+        "http://example.com/test/test");
     sourceControl.setToken(passwordHandler.encryptPassword("pat-token"));
     tempEntity.newSourceControl(sourceControl);
-    assertThatNoException().isThrownBy(() ->
-            sourceControlService.deleteSourceControlByOwner(OwnerType.APPLICATION, app.getId())
-    );
+    assertThatNoException()
+        .isThrownBy(() -> sourceControlService.deleteSourceControlByOwner(OwnerType.APPLICATION, app.getId()));
     assertThat(sourceControlDAO.getByOwnerId(app.getId())).isNull();
   }
 
@@ -1788,7 +1813,7 @@ public class ApiSourceControlServiceTest
     newSourceControl.authenticationType = SourceControl.AuthenticationType.GITHUB_APP.name();
     newSourceControl.provider = SourceControlProvider.GITHUB.name().toLowerCase();
     ApiSourceControlDTO result = sourceControlService.addSourceControlByOwner(
-            OwnerType.APPLICATION, app.getId(), newSourceControl);
+        OwnerType.APPLICATION, app.getId(), newSourceControl);
     assertThat(result).isNotNull();
     SourceControl created = sourceControlDAO.getByOwnerId(app.getId());
     assertThat(created).isNotNull();
@@ -1803,10 +1828,9 @@ public class ApiSourceControlServiceTest
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
     createAndInsertGitHubApp(app.getId());
     SourceControl sourceControl = createSourceControl(
-            app.getId(),
-            SourceControl.AuthenticationType.GITHUB_APP,
-            "https://github.com/test/repo"
-    );
+        app.getId(),
+        SourceControl.AuthenticationType.GITHUB_APP,
+        "https://github.com/test/repo");
     tempEntity.newSourceControl(sourceControl);
     stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
     ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
@@ -1851,13 +1875,16 @@ public class ApiSourceControlServiceTest
 
   private void assertRateLimitResponses(ApiUserRateLimitsDTO dto) {
     assertThat(dto.rateLimits.get(0).category).isEqualTo("category1");
-    assertThat(dto.rateLimits.get(0)).usingRecursiveComparison().ignoringFields("category")
+    assertThat(dto.rateLimits.get(0)).usingRecursiveComparison()
+        .ignoringFields("category")
         .isEqualTo(ApiRateLimitDTO.convert(createGithubRateLimitResponse()));
     assertThat(dto.rateLimits.get(1).category).isEqualTo("category2");
-    assertThat(dto.rateLimits.get(1)).usingRecursiveComparison().ignoringFields("category")
+    assertThat(dto.rateLimits.get(1)).usingRecursiveComparison()
+        .ignoringFields("category")
         .isEqualTo(ApiRateLimitDTO.convert(createGithubRateLimitResponse()));
     assertThat(dto.rateLimits.get(2).category).isEqualTo("category3");
-    assertThat(dto.rateLimits.get(2)).usingRecursiveComparison().ignoringFields("category")
+    assertThat(dto.rateLimits.get(2)).usingRecursiveComparison()
+        .ignoringFields("category")
         .isEqualTo(ApiRateLimitDTO.convert(createGithubRateLimitResponse()));
   }
 
@@ -1867,8 +1894,7 @@ public class ApiSourceControlServiceTest
             .setOwnerId(testName.getMethodName())
             .setRepositoryUrl("http://www.github.com/myOrg/myApp")
             .setToken("baz")
-            .build()
-    );
+            .build());
   }
 
   private void setUnlicensedForSourceControl() {
@@ -1914,9 +1940,9 @@ public class ApiSourceControlServiceTest
   }
 
   private SourceControl createSourceControl(
-          String ownerId,
-          SourceControl.AuthenticationType authType,
-          String repositoryUrl)
+      String ownerId,
+      SourceControl.AuthenticationType authType,
+      String repositoryUrl)
   {
     SourceControl sourceControl = new SourceControl();
     sourceControl.setId(UUID.randomUUID().toString());
@@ -1931,18 +1957,18 @@ public class ApiSourceControlServiceTest
     if (shouldSucceed) {
       // GitHub API returns 204 No Content on successful deletion
       githubMockServer.stubFor(
-              delete(urlPathEqualTo("/app/installations/" + installationId))
-                      .willReturn(aResponse()
-                              .withStatus(204)));
+          delete(urlPathEqualTo("/app/installations/" + installationId))
+              .willReturn(aResponse()
+                  .withStatus(204)));
     }
     else {
       // Simulate GitHub API failure
       githubMockServer.stubFor(
-              delete(urlPathEqualTo("/app/installations/" + installationId))
-                      .willReturn(aResponse()
-                              .withStatus(500)
-                              .withHeader("Content-Type", "application/json")
-                              .withBody("{\"message\":\"Internal server error\"}")));
+          delete(urlPathEqualTo("/app/installations/" + installationId))
+              .willReturn(aResponse()
+                  .withStatus(500)
+                  .withHeader("Content-Type", "application/json")
+                  .withBody("{\"message\":\"Internal server error\"}")));
     }
   }
 }

@@ -16,7 +16,7 @@ public interface ReportPdfEntity
 {
   /**
    * @return true if PDF file does not exist and can be created, defined as follows: if the persisted file does not
-   * exist or is empty.
+   *         exist or is empty.
    */
   default boolean canCreate() throws IOException {
     return !exists() || length() == 0;

@@ -27,9 +27,9 @@ public class TenantTest
   public void allowsTenantCreationForValidSlugs() {
     /**
      * Valid tenant slugs should conform to both of the following:
-     *   i.   must only contain valid characters/length supported for URL subdomains.
-     *   ii.  must comply with naming of SQL identifiers/keywords.
-     *   iii. must not exceed 61 chars, as we append "t_" to slug for use as schema name which exceeds the 63 char limit
+     * i. must only contain valid characters/length supported for URL subdomains.
+     * ii. must comply with naming of SQL identifiers/keywords.
+     * iii. must not exceed 61 chars, as we append "t_" to slug for use as schema name which exceeds the 63 char limit
      */
     new Tenant("abc");
     new Tenant("a-b-c");

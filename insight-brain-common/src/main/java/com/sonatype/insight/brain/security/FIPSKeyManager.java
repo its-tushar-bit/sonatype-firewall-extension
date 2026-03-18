@@ -54,19 +54,19 @@ public class FIPSKeyManager
   private static final int AES_KEY_SIZE = 256;
 
   private final File keystoreFile;
-  
+
   private final File sonatypeWorkDirectory;
 
   public FIPSKeyManager(final File keystoreDirectory) {
     if (keystoreDirectory == null) {
       throw new IllegalArgumentException("Keystore directory cannot be null");
     }
-    
+
     this.keystoreFile = new File(keystoreDirectory, KEYSTORE_FILENAME);
-    
+
     // Derive sonatype work directory from keystoreDirectory path (fips -> data -> sonatype-work)
     this.sonatypeWorkDirectory = keystoreDirectory.getParentFile().getParentFile();
-    
+
     try {
       Files.createDirectories(keystoreDirectory.toPath());
     }
@@ -92,11 +92,11 @@ public class FIPSKeyManager
 
   private String generateAndStoreKey() throws FIPSKeyException {
     log.info("Generating new FIPS encryption key");
-    
+
     try {
       SecretKey secretKey = generateSecretKey();
       storeKey(secretKey);
-      
+
       String encodedKey = encodeKey(secretKey);
       log.info("Successfully generated and stored FIPS encryption key");
       return encodedKey;
@@ -108,15 +108,15 @@ public class FIPSKeyManager
 
   private String retrieveKey() throws FIPSKeyException {
     log.debug("Retrieving FIPS encryption key from keystore");
-    
+
     try {
       KeyStore keyStore = loadKeyStore();
       SecretKey secretKey = (SecretKey) keyStore.getKey(KEY_ALIAS, getKeystorePassword().toCharArray());
-      
+
       if (secretKey == null) {
         throw new FIPSKeyException("FIPS encryption key not found in keystore");
       }
-      
+
       return encodeKey(secretKey);
     }
     catch (IOException | GeneralSecurityException e) {
@@ -146,14 +146,14 @@ public class FIPSKeyManager
 
   private void storeKey(final SecretKey secretKey) throws GeneralSecurityException, IOException, FIPSKeyException {
     KeyStore keyStore = createNewKeyStore();
-    
+
     String keystorePassword = getKeystorePassword();
     KeyStore.SecretKeyEntry secretKeyEntry = new KeyStore.SecretKeyEntry(secretKey);
-    KeyStore.PasswordProtection passwordProtection = 
+    KeyStore.PasswordProtection passwordProtection =
         new KeyStore.PasswordProtection(keystorePassword.toCharArray());
-    
+
     keyStore.setEntry(KEY_ALIAS, secretKeyEntry, passwordProtection);
-    
+
     try (FileOutputStream fos = new FileOutputStream(keystoreFile)) {
       keyStore.store(fos, keystorePassword.toCharArray());
     }
@@ -163,11 +163,11 @@ public class FIPSKeyManager
 
   private KeyStore loadKeyStore() throws GeneralSecurityException, IOException, FIPSKeyException {
     KeyStore keyStore = KeyStore.getInstance(getFipsKeyStoreTypeOrDefault(), getFipsKeyStoreProviderOrDefault());
-    
+
     try (FileInputStream fis = new FileInputStream(keystoreFile)) {
       keyStore.load(fis, getKeystorePassword().toCharArray());
     }
-    
+
     return keyStore;
   }
 
@@ -195,8 +195,7 @@ public class FIPSKeyManager
     try {
       Set<PosixFilePermission> ownerOnly = EnumSet.of(
           PosixFilePermission.OWNER_READ,
-          PosixFilePermission.OWNER_WRITE
-      );
+          PosixFilePermission.OWNER_WRITE);
       Files.setPosixFilePermissions(keystoreFile.toPath(), ownerOnly);
       log.debug("Set secure file permissions (600) on keystore file");
     }
@@ -217,7 +216,7 @@ public class FIPSKeyManager
       }
 
       UserPrincipal owner = Files.getOwner(keystoreFile.toPath());
-      
+
       AclEntry ownerEntry = AclEntry.newBuilder()
           .setType(AclEntryType.ALLOW)
           .setPrincipal(owner)
@@ -227,8 +226,7 @@ public class FIPSKeyManager
               AclEntryPermission.READ_ATTRIBUTES,
               AclEntryPermission.WRITE_ATTRIBUTES,
               AclEntryPermission.READ_ACL,
-              AclEntryPermission.SYNCHRONIZE
-          )
+              AclEntryPermission.SYNCHRONIZE)
           .build();
 
       aclView.setAcl(Collections.singletonList(ownerEntry));
@@ -239,7 +237,8 @@ public class FIPSKeyManager
     }
   }
 
-  public static class FIPSKeyException extends Exception
+  public static class FIPSKeyException
+      extends Exception
   {
     public FIPSKeyException(final String message) {
       super(message);

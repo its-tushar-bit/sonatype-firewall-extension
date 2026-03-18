@@ -55,7 +55,8 @@ public class OrgsAndPoliciesTreeViewLimitedPermissionTest
 
     organizations = tempEntity.newRelatedOrganizationsAsList(2, 3, 3, new NameSupplierDictionary());
     syntheticOrgs =
-        organizations.stream().filter(org -> org.getParentOrganizationId().equals(Organization.ROOT_ORGANIZATION_ID))
+        organizations.stream()
+            .filter(org -> org.getParentOrganizationId().equals(Organization.ROOT_ORGANIZATION_ID))
             .collect(
                 Collectors.toList());
     for (Organization org : syntheticOrgs) {
@@ -67,8 +68,7 @@ public class OrgsAndPoliciesTreeViewLimitedPermissionTest
       tempEntity.newMembershipMapping(
           app.getId(),
           Role.DEVELOPER_ROLE_ID,
-          developerUser.getUsername()
-      );
+          developerUser.getUsername());
     });
 
     login(developerUser.getUsername(), developerUser.getPassword());

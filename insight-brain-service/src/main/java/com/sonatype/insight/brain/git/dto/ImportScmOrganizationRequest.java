@@ -14,14 +14,14 @@ public class ImportScmOrganizationRequest
   /**
    * limit the total number of repository imports for this request.
    * <ul>
-   *   <li> limit < 0 - unlimited (i.e. import all repositories) </li>
-   *   <li> limit = 0 - no repositories to import (invalid request)  </li>
+   * <li>limit < 0 - unlimited (i.e. import all repositories)</li>
+   * <li>limit = 0 - no repositories to import (invalid request)</li>
    * </ul>
    */
   public int importLimit = -1;
 
   public ImportScmOrganizationRequest() {
-    //no-op
+    // no-op
   }
 
   public ImportScmOrganizationRequest(

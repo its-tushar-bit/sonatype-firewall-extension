@@ -126,7 +126,7 @@ public class PolicyViolationLoaderTest
       assertThat(appStageView.getStageType()).isEqualTo(StageTypes.RELEASE);
       assertThat(appStageView.getFilteredViolations()).isEmpty();
 
-      //Since it's limited to 2 applications, this app should have violations in the stage that has an evaluation
+      // Since it's limited to 2 applications, this app should have violations in the stage that has an evaluation
       appView = appViewsIterator.next();
       assertThat(appView.getApplication()).isEqualTo(app2);
       assertThat(appView.getStageViews()).hasSize(2);
@@ -184,8 +184,8 @@ public class PolicyViolationLoaderTest
 
   private void testGetViolations_AllStageTypes(Collection<StageType> stageTypes) {
     StageType[] evaluatedStageTypes = {
-        StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
-        StageTypes.OPERATE
+      StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
+      StageTypes.OPERATE
     };
     Application app = createApplication(evaluatedStageTypes);
 

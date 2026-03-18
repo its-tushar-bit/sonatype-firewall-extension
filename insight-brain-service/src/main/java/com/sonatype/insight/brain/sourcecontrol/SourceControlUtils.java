@@ -132,10 +132,13 @@ public class SourceControlUtils
   }
 
   /**
-   * Determines if source control is enabled for an application. That is <code>true</code> if:<ul>
+   * Determines if source control is enabled for an application. That is <code>true</code> if:
+   * <ul>
    * <li>the app record exists and it has repository URL populated,
    * <li>the root org records exists and it has the provider populated,
-   * <li>there is a token provided somewhere in the hierarchy, starting from the app record.</ul>
+   * <li>there is a token provided somewhere in the hierarchy, starting from the app record.
+   * </ul>
+   *
    * @param applicationId application ID
    * @return <code>true</code> if all above conditions are met; <code>false</code> otherwise.
    */
@@ -145,12 +148,12 @@ public class SourceControlUtils
 
   public boolean isScmEnabled(GitRepositoryInfo gitRepositoryInfo) {
     if (null == gitRepositoryInfo || null == gitRepositoryInfo.provider ||
-        !AuthenticationValidator.hasValidCredentials(gitRepositoryInfo)) {
+        !AuthenticationValidator.hasValidCredentials(gitRepositoryInfo))
+    {
       return false;
     }
     return StringUtils.isNotBlank(gitRepositoryInfo.repositoryUrl)
-        && (!gitRepositoryInfo.provider.requiresUsername() || StringUtils.isNotBlank(gitRepositoryInfo.username))
-        ;
+        && (!gitRepositoryInfo.provider.requiresUsername() || StringUtils.isNotBlank(gitRepositoryInfo.username));
   }
 
   /**

@@ -41,7 +41,7 @@ public class ApplicationPolicyEditorTest
   public void init() {
     roleDAO = lookup(RoleDAO.class);
 
-    //note the ȧ being used to force a character to be encoded
+    // note the ȧ being used to force a character to be encoded
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
 

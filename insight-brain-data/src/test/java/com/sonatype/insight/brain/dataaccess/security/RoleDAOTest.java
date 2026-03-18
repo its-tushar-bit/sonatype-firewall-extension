@@ -39,7 +39,8 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class RoleDAOTest extends NameableDAOTest<Role>
+public class RoleDAOTest
+    extends NameableDAOTest<Role>
 {
   private RoleDAO roleDAO;
 
@@ -93,8 +94,10 @@ public class RoleDAOTest extends NameableDAOTest<Role>
   @Test
   public void testGetApplicationRoles() {
     List<Role> roles = roleDAO.getApplicationRoles();
-    assertThat(roles).noneMatch(Role::isGlobal).extracting(Role::getName).containsExactly("Application Evaluator",
-        "Component Evaluator", "Developer", "Legal Reviewer", "Owner");
+    assertThat(roles).noneMatch(Role::isGlobal)
+        .extracting(Role::getName)
+        .containsExactly("Application Evaluator",
+            "Component Evaluator", "Developer", "Legal Reviewer", "Owner");
   }
 
   @Test
@@ -120,10 +123,12 @@ public class RoleDAOTest extends NameableDAOTest<Role>
     Role other = newRole("other");
     tempEntity.newPolicy(organization);
     Policy policyWithNotifyActions = tempEntity.newPolicy(organization);
-    policyWithNotifyActions.getNotifications().add(
-        new RoleNotification(role.getId(), role.getName(), BuildStageType.ID, Notification.CONTINUOUS_MONITORING));
-    policyWithNotifyActions.getNotifications().add(
-        new RoleNotification(other.getId(), role.getName(), BuildStageType.ID, Notification.CONTINUOUS_MONITORING));
+    policyWithNotifyActions.getNotifications()
+        .add(
+            new RoleNotification(role.getId(), role.getName(), BuildStageType.ID, Notification.CONTINUOUS_MONITORING));
+    policyWithNotifyActions.getNotifications()
+        .add(
+            new RoleNotification(other.getId(), role.getName(), BuildStageType.ID, Notification.CONTINUOUS_MONITORING));
     Map<String, Notifications> policyNotificationsOverrides = new LinkedHashMap<>();
     Notifications orgNotificationsOverride = new Notifications();
     orgNotificationsOverride.add(new RoleNotification(role.getId(), role.getName(), ReleaseStageType.ID));

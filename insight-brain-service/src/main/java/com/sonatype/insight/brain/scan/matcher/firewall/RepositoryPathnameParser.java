@@ -16,7 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * Taken from <a
- * href="https://github.com/sonatype/hosted-data-services/blob/main/insight-portal-webapp/src/main/java/com/sonatype/insight/portal/rest/service/component/RepositoryPathnameParser.java">HDS</a>
+ * href=
+ * "https://github.com/sonatype/hosted-data-services/blob/main/insight-portal-webapp/src/main/java/com/sonatype/insight/portal/rest/service/component/RepositoryPathnameParser.java">HDS</a>
  */
 @Named
 @Singleton

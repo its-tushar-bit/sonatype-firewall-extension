@@ -54,7 +54,7 @@ public class RequestWaiverUpdateTest
   private PolicyViolation policyViolation;
 
   private PolicyWaiverRequest policyWaiverRequest;
-  
+
   private PolicyWaiverRequestDAO policyWaiverRequestDAO;
 
   private final Date now = new Date();
@@ -69,7 +69,7 @@ public class RequestWaiverUpdateTest
   public void init() {
     Date twoDaysAgo = DateUtils.addDays(now, -2);
     threeDaysFromNow = DateUtils.addDays(now, 3);
-    
+
     policyWaiverRequestDAO = lookup(PolicyWaiverRequestDAO.class);
 
     organization = tempEntity.newOrganization("Org 1");
@@ -78,7 +78,7 @@ public class RequestWaiverUpdateTest
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
         StageTypes.BUILD.getId(), SCAN_ID, false, false, twoDaysAgo);
-    
+
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "Version1", "", "jar");
     String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
@@ -86,7 +86,7 @@ public class RequestWaiverUpdateTest
         "sonatype-2017-0507");
 
     String waiverReasonIdOfAcknowledgedViolation = "9b704ef5bc064fc29d7fe08a251ee9a6";
-    
+
     policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
         .setHash("hash1")
         .setPolicyId(securityPolicy.getId())
@@ -120,7 +120,7 @@ public class RequestWaiverUpdateTest
     dashboardWaiverRequestTable.firstWaiverRequest().click();
 
     RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-    
+
     verifyWaiverRequestValues(
         requestWaiverPage,
         "Application - App 1",
@@ -128,10 +128,9 @@ public class RequestWaiverUpdateTest
         "Custom",
         threeDaysFromNow,
         "Comment 1",
-        "Note to Reviewer 1"
-    );
+        "Note to Reviewer 1");
   }
-  
+
   @Test
   public void testBackButton() {
     refreshOrOpen(DashboardPage.urlToWaiverRequests());
@@ -151,8 +150,7 @@ public class RequestWaiverUpdateTest
         "Test User 1",
         "Policy 1",
         "Application - App 1",
-        "Group1 : Artifact1 : Version1"
-    );
+        "Group1 : Artifact1 : Version1");
     waiverRequest.status().shouldHave(text("Requested"));
   }
 
@@ -175,21 +173,20 @@ public class RequestWaiverUpdateTest
         "Test User 1",
         "Policy 1",
         "Application - App 1",
-        "Group1 : Artifact1 : Version1"
-    );
+        "Group1 : Artifact1 : Version1");
     waiverRequest.status().shouldHave(text("Requested"));
   }
-  
+
   @Test
   public void testSubmitUpdatedValues() {
     refreshOrOpen(DashboardPage.urlToWaiverRequests());
     DashboardPage.waitUntilSpinnersGone();
-    
+
     DashboardPage.dashboardContainer().shouldBe(visible);
     dashboardWaiverRequestTable.firstWaiverRequest().click();
-    
+
     RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-    
+
     verifyWaiverRequestValues(
         requestWaiverPage,
         "Application - App 1",
@@ -197,16 +194,15 @@ public class RequestWaiverUpdateTest
         "Custom",
         threeDaysFromNow,
         "Comment 1",
-        "Note to Reviewer 1"
-    );
-    
+        "Note to Reviewer 1");
+
     String updatedScope = "Organization - Org 1";
     String updatedComponentMatcher = "All Components";
     String updatedExpiration = "Never";
     String updatedReason = "Other";
     String updatedComments = "Updated comments for testing";
     String updatedNoteToReviewer = "Updated note to reviewer";
-    
+
     updateWaiverRequestFormFields(
         requestWaiverPage,
         updatedScope,
@@ -214,20 +210,19 @@ public class RequestWaiverUpdateTest
         updatedExpiration,
         updatedReason,
         updatedComments,
-        updatedNoteToReviewer
-    );
-    
+        updatedNoteToReviewer);
+
     requestWaiverPage.saveButton().click();
-    
+
     DashboardPage.waitUntilSpinnersGone();
-    
+
     DashboardPage.dashboardContainer().shouldBe(visible);
-    
+
     dashboardWaiverRequestTable.firstWaiverRequest().click();
-    
+
     requestWaiverPage = new RequestWaiverPage();
     requestWaiverPage.root().shouldBe(visible);
-    
+
     verifyWaiverRequestValues(
         requestWaiverPage,
         updatedScope,
@@ -235,11 +230,10 @@ public class RequestWaiverUpdateTest
         updatedExpiration,
         null,
         updatedComments,
-        updatedNoteToReviewer
-    );
-    
+        updatedNoteToReviewer);
+
     PolicyWaiverRequest updatedRequest = policyWaiverRequestDAO.getById(policyWaiverRequest.getId());
-    
+
     assertThat(updatedRequest.getComment()).isEqualTo(updatedComments);
     assertThat(updatedRequest.getNoteToReviewer()).isEqualTo(updatedNoteToReviewer);
     assertThat(updatedRequest.getOwnerId()).isEqualTo(organization.getId());
@@ -253,7 +247,7 @@ public class RequestWaiverUpdateTest
   public void testErrorAlertWhenWaiverRequestIsRejected() {
     String rejectionReason = "This component violates security policies";
     String reviewerName = "Admin Reviewer";
-    
+
     policyWaiverRequest.setStatus(PolicyWaiverRequestStatus.REJECTED);
     policyWaiverRequest.setRejectionReason(rejectionReason);
     policyWaiverRequest.setReviewerId("admin");
@@ -262,7 +256,7 @@ public class RequestWaiverUpdateTest
 
     refreshOrOpen(DashboardPage.urlToWaiverRequests());
     DashboardPage.waitUntilSpinnersGone();
-    
+
     DashboardPage.dashboardContainer().shouldBe(visible);
     WaiverRequestTile waiverRequest = verifyDashboardWaiverRequests(
         0,
@@ -272,12 +266,11 @@ public class RequestWaiverUpdateTest
         "Test User 1",
         "Policy 1",
         "Application - App 1",
-        "Group1 : Artifact1 : Version1"
-    );
+        "Group1 : Artifact1 : Version1");
     waiverRequest.status().shouldHave(text("Rejected"));
-    
+
     dashboardWaiverRequestTable.firstWaiverRequest().click();
-    
+
     RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
 
     verifyWaiverRequestValues(
@@ -287,11 +280,10 @@ public class RequestWaiverUpdateTest
         "Custom",
         threeDaysFromNow,
         "Comment 1",
-        "Note to Reviewer 1"
-    );
+        "Note to Reviewer 1");
 
     requestWaiverPage.rejectionErrorAlert().shouldBe(visible);
-    
+
     String expectedText = "This Waiver Request was rejected by " + reviewerName + " for the following reason:";
     requestWaiverPage.rejectionErrorAlert().shouldHave(text(expectedText));
     requestWaiverPage.rejectionErrorAlert().shouldHave(text(rejectionReason));
@@ -300,7 +292,7 @@ public class RequestWaiverUpdateTest
   @Test
   public void testPageElementsReadOnlyIfRequestWasApproved() {
     String reviewerName = "Admin Reviewer";
-    
+
     policyWaiverRequest.setStatus(PolicyWaiverRequestStatus.APPROVED);
     policyWaiverRequest.setReviewerId("admin");
     policyWaiverRequest.setReviewerName(reviewerName);
@@ -308,7 +300,7 @@ public class RequestWaiverUpdateTest
 
     refreshOrOpen(DashboardPage.urlToWaiverRequests());
     DashboardPage.waitUntilSpinnersGone();
-    
+
     DashboardPage.dashboardContainer().shouldBe(visible);
     WaiverRequestTile waiverRequest = verifyDashboardWaiverRequests(
         0,
@@ -318,14 +310,13 @@ public class RequestWaiverUpdateTest
         "Test User 1",
         "Policy 1",
         "Application - App 1",
-        "Group1 : Artifact1 : Version1"
-    );
+        "Group1 : Artifact1 : Version1");
     waiverRequest.status().shouldHave(text("Approved"));
-    
+
     dashboardWaiverRequestTable.firstWaiverRequest().click();
 
     RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-    
+
     verifyWaiverRequestValues(
         requestWaiverPage,
         "Application - App 1",
@@ -333,22 +324,21 @@ public class RequestWaiverUpdateTest
         "Custom",
         threeDaysFromNow,
         "Comment 1",
-        "Note to Reviewer 1"
-    );
-    
+        "Note to Reviewer 1");
+
     verifyFormElementsAreReadOnly(requestWaiverPage);
   }
-  
+
   private void verifyFormElementsAreReadOnly(RequestWaiverPage requestWaiverPage) {
     requestWaiverPage.requestWaiverScopeSelect().shouldHave(Condition.attribute("disabled"));
-    
+
     requestWaiverPage.waiverExpirationSelect().shouldHave(Condition.attribute("disabled"));
-    
+
     requestWaiverPage.waiverReasonSelect().shouldHave(Condition.attribute("disabled"));
-    
+
     requestWaiverPage.requestWaiverComments().shouldHave(Condition.attribute("disabled"));
     requestWaiverPage.requestWaiverNoteToReviewer().shouldHave(Condition.attribute("disabled"));
-    
+
     requestWaiverPage.saveButton().shouldHave(Condition.cssClass("disabled"));
   }
 
@@ -357,8 +347,7 @@ public class RequestWaiverUpdateTest
     tempEntity.newMembershipMapping(
         Organization.ROOT_ORGANIZATION_ID,
         Role.DEVELOPER_ROLE_ID,
-        developerUser.getUsername()
-    );
+        developerUser.getUsername());
     login(developerUser.getUsername(), developerUser.getPassword());
   }
 
@@ -404,12 +393,12 @@ public class RequestWaiverUpdateTest
 
     requestWaiverPage.requestWaiverScope().shouldBe(visible);
     requestWaiverPage.requestWaiverScopeOptions().findBy(text(selectedScope)).shouldBe(selected);
-    
+
     requestWaiverPage.requestWaiverReasonOptions().findBy(text(selectedWaiverReason)).shouldBe(visible);
-    
+
     if ("Custom".equals(waiverExpirationSelection)) {
       requestWaiverPage.requestWaiverDateInput().shouldBe(visible);
-      
+
       if (waiverExpirationDate != null) {
         String formattedDate = formatDate(waiverExpirationDate);
         requestWaiverPage.requestWaiverDateInput().shouldHave(Condition.value(formattedDate));
@@ -418,15 +407,15 @@ public class RequestWaiverUpdateTest
     else {
       requestWaiverPage.requestWaiverExpiryTimeOptions().findBy(text(waiverExpirationSelection)).shouldBe(visible);
     }
-    
+
     if (comments != null && !comments.isEmpty()) {
       requestWaiverPage.requestWaiverComments().shouldHave(text(comments));
     }
-    
+
     if (noteToReviewer != null && !noteToReviewer.isEmpty()) {
       requestWaiverPage.requestWaiverNoteToReviewer().shouldHave(text(noteToReviewer));
     }
-    
+
     requestWaiverPage.saveButton().shouldBe(visible);
     requestWaiverPage.cancelButton().shouldBe(visible);
   }
@@ -443,25 +432,25 @@ public class RequestWaiverUpdateTest
     if (scopeText != null && !scopeText.isEmpty()) {
       requestWaiverPage.requestWaiverScopeSelect().selectOptionContainingText(scopeText);
     }
-    
+
     if (componentMatcherStrategy != null && !componentMatcherStrategy.isEmpty()) {
       requestWaiverPage.requestWaiverComponentsOptions()
           .findBy(text(componentMatcherStrategy))
           .click();
     }
-    
+
     if (expirationText != null && !expirationText.isEmpty()) {
       requestWaiverPage.waiverExpirationSelect().selectOptionContainingText(expirationText);
     }
-    
+
     if (reasonText != null && !reasonText.isEmpty()) {
       requestWaiverPage.waiverReasonSelect().selectOptionContainingText(reasonText);
     }
-    
+
     if (commentsText != null && !commentsText.isEmpty()) {
       requestWaiverPage.requestWaiverComments().setValue(commentsText);
     }
-    
+
     if (noteToReviewerText != null && !noteToReviewerText.isEmpty()) {
       requestWaiverPage.requestWaiverNoteToReviewer().setValue(noteToReviewerText);
     }

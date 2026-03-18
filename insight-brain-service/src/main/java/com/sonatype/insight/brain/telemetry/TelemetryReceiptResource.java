@@ -56,14 +56,16 @@ public class TelemetryReceiptResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Response getTelemetryReceipts(@QueryParam("detail") @DefaultValue("") String purposesToDetail) {
-    List<String> purposes = StringUtils.isEmpty(purposesToDetail) ? Collections.emptyList()
+    List<String> purposes = StringUtils.isEmpty(purposesToDetail)
+        ? Collections.emptyList()
         : Arrays.stream(purposesToDetail.split(","))
-        .map(p -> p.trim().toUpperCase())
-        .filter(s -> !s.isEmpty())
-        .toList();
+            .map(p -> p.trim().toUpperCase())
+            .filter(s -> !s.isEmpty())
+            .toList();
 
     var json = telemetryReceiptsToJson(receiptService.getReceipts(purposes));
-    return Response.ok().entity(json)
+    return Response.ok()
+        .entity(json)
         .header("Cache-Control", "no-cache")
         .build();
   }
@@ -168,7 +170,9 @@ public class TelemetryReceiptResource
           var attributeMap = new LinkedHashMap<String, Object>();
           detailedData.add(attributeMap);
 
-          data.getAttributes().entrySet().stream()
+          data.getAttributes()
+              .entrySet()
+              .stream()
               .sorted(Map.Entry.comparingByKey())
               .forEach(e -> attributeMap.put(e.getKey(), e.getValue()));
         }

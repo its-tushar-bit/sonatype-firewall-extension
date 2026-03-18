@@ -90,8 +90,8 @@ public class FirewallOnboardingPageTest
     // the firewall onboarding feature has been disabled by default. In order for this test to exercise the feature
     // we have to turn it on first
     systemConfigurationPropertyDAO.set(
-            SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getPropertyName(),
-            Boolean.TRUE.toString());
+        SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getPropertyName(),
+        Boolean.TRUE.toString());
   }
 
   @Test
@@ -834,8 +834,7 @@ public class FirewallOnboardingPageTest
 
   private static void expectAllRepositoriesToBeDisabled(
       final List<FirewallRepositoryList> firewallRepositoryLists,
-      final Predicate<SelenideElement> where
-  )
+      final Predicate<SelenideElement> where)
   {
     firewallRepositoryLists.forEach(firewallRepositoryList -> {
       for (int i = 0; i < firewallRepositoryList.rows().size(); i++) {

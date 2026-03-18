@@ -187,7 +187,8 @@ public class ComponentLoader
 
   private Map<String, LicenseThreatGroup> getLicenseThreatGroups() {
     if (licenseThreatGroupsById == null) {
-      licenseThreatGroupsById = licenseThreatGroupDAO.getByOwnerIds(getOwnerIds()).stream()
+      licenseThreatGroupsById = licenseThreatGroupDAO.getByOwnerIds(getOwnerIds())
+          .stream()
           .collect(toMap(LicenseThreatGroup::getId, Function.identity()));
     }
     return licenseThreatGroupsById;
@@ -288,10 +289,12 @@ public class ComponentLoader
   }
 
   private Set<String> getMultiLicenseIdsByNames(List<String> multiLicenseNames) {
-    return multiLicenseNames == null ? Collections.emptySet() : multiLicenseNames.stream()
-        .map(multiLicenseDAO::getByNameNotNull)
-        .map(MultiLicense::getId)
-        .collect(Collectors.toSet());
+    return multiLicenseNames == null
+        ? Collections.emptySet()
+        : multiLicenseNames.stream()
+            .map(multiLicenseDAO::getByNameNotNull)
+            .map(MultiLicense::getId)
+            .collect(Collectors.toSet());
   }
 
   private void loadLicenseOverride(Component component, boolean useLicensesJsonOverriddenLicenses) {
@@ -309,7 +312,8 @@ public class ComponentLoader
         licenseOverride = legacyLicenseOverride;
       }
       else if (legacyLicenseOverride != null && getOwnerIds()
-          .indexOf(legacyLicenseOverride.getOwnerId()) < getOwnerIds().indexOf(licenseOverride.getOwnerId())) {
+          .indexOf(legacyLicenseOverride.getOwnerId()) < getOwnerIds().indexOf(licenseOverride.getOwnerId()))
+      {
         licenseOverride = legacyLicenseOverride;
       }
     }
@@ -691,9 +695,9 @@ public class ComponentLoader
             securityVulnerability.setCwe(cweString);
             securityVulnerability.setVector(cvssVectorString);
             securityVulnerability.setVectorSource(cvssVectorSource);
-            //The Identification source Enum for vulnerability will be the same as the component initially,
-            //and it might be updated later. This is for consistency with what was done for SBOM manager,
-            //and a new Enum for vulnerability will be created in the future.
+            // The Identification source Enum for vulnerability will be the same as the component initially,
+            // and it might be updated later. This is for consistency with what was done for SBOM manager,
+            // and a new Enum for vulnerability will be created in the future.
             securityVulnerability.setIdentificationSource(IdentificationSource.getById(identificationSource));
             securityVulnerability.setKevData(toKevData(kevDataNode));
             securityVulnerability.setEpssData(toEpssData(epssDataNode));
@@ -824,7 +828,8 @@ public class ComponentLoader
       if (!isAlpObservedLicenseDetectionEnabled
           && License.isAlpObservedLicenseFormatHidden(componentInfo.getComponentIdentifier().getFormat())
           && CollectionUtils.isNotEmpty(observedMultiLicenseIds)
-          && !observedMultiLicenseIds.equals(notSupportedLicenseIdSet)) {
+          && !observedMultiLicenseIds.equals(notSupportedLicenseIdSet))
+      {
         observedMultiLicenseIds = notSupportedLicenseIdSet;
         component.setHiddenObservedLicenses(true);
       }
@@ -874,7 +879,8 @@ public class ComponentLoader
     }
     if (componentInfo.getComponentCategories() != null) {
       for (com.sonatype.clm.dto.model.component.ComponentCategory componentCategory : componentInfo
-          .getComponentCategories()) {
+          .getComponentCategories())
+      {
         component.addComponentCategory(new ComponentCategory(String.valueOf(componentCategory.getComponentCategoryId()),
             componentCategory.getPath()));
       }

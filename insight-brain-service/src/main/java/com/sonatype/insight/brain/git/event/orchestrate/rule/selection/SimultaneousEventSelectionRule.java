@@ -41,12 +41,12 @@ public class SimultaneousEventSelectionRule
 
   /**
    * determines whether or not the given event can be pushed using the simultaneous events allowed count for the
-   * given event's type.  However, there may be cases where the event types to process might be limited so we
-   * want to be able to take advantage of the available event processing bandwidth.  Therefore, the strict parameter
+   * given event's type. However, there may be cases where the event types to process might be limited so we
+   * want to be able to take advantage of the available event processing bandwidth. Therefore, the strict parameter
    * is made available to give the client the ability to process more events of the same type when conditions warrant.
    *
-   * @param useStrictCounts when true the defined maximum simultaneous event counts are used;  otherwise,
-   *                        some additional simultaneous events are allowed
+   * @param useStrictCounts when true the defined maximum simultaneous event counts are used; otherwise,
+   *          some additional simultaneous events are allowed
    */
   public boolean canPushEvent(
       SourceControlEvent event,
@@ -101,22 +101,28 @@ public class SimultaneousEventSelectionRule
     }
 
     /**
-     * defines the number of events of the given type that can be processed simultaneously;  this is an arbitrary
-     * number but is based on the cost for the given event type;  in other words, we want fewer higher cost events
+     * defines the number of events of the given type that can be processed simultaneously; this is an arbitrary
+     * number but is based on the cost for the given event type; in other words, we want fewer higher cost events
      * to run simultaneously
      */
     private void initialize() {
       limit(APPLICATION_EVALUATION_EVENT, 2, 2)
-          .limit(BATCH_PR_STATE_UPDATE_EVENT, 2, 1).adjust(GITHUB, 1, 1)
-          .limit(CLOSE_PULL_REQUEST_EVENT, 8, 2).adjust(GITHUB, 1, 1)
+          .limit(BATCH_PR_STATE_UPDATE_EVENT, 2, 1)
+          .adjust(GITHUB, 1, 1)
+          .limit(CLOSE_PULL_REQUEST_EVENT, 8, 2)
+          .adjust(GITHUB, 1, 1)
           .limit(DISCOVERED_PULL_REQUEST_EVENT, 2, 1)
-          .limit(MANUAL_REMEDIATION_PULL_REQUEST_EVENT, 4, 2).adjust(GITHUB, 1, 1)
-          .limit(PR_STATE_UPDATE_EVENT, 8, 2).adjust(GITHUB, 1, 1)
-          .limit(REMEDIATION_PULL_REQUEST_EVENT, 4, 2).adjust(GITHUB, 1, 1)
+          .limit(MANUAL_REMEDIATION_PULL_REQUEST_EVENT, 4, 2)
+          .adjust(GITHUB, 1, 1)
+          .limit(PR_STATE_UPDATE_EVENT, 8, 2)
+          .adjust(GITHUB, 1, 1)
+          .limit(REMEDIATION_PULL_REQUEST_EVENT, 4, 2)
+          .adjust(GITHUB, 1, 1)
           .limit(REPOSITORY_URL_UPDATED_EVENT, -1, -1)
           .limit(SOURCE_CONTROL_EVALUATION_EVENT, 8, 2)
           .limit(STATUS_UPDATE_EVENT, 8, 2)
-          .limit(UPDATED_PULL_REQUEST_EVENT, 1, 2).adjust(GITHUB, 1, 1);
+          .limit(UPDATED_PULL_REQUEST_EVENT, 1, 2)
+          .adjust(GITHUB, 1, 1);
     }
 
     int getAllowedEventCount(SourceControlEvent event, boolean useStrictCounts) {

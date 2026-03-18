@@ -135,7 +135,7 @@ public class PrioritiesPageTest
     ImmutablePair<Application, String> appAndScanId = setUpAppsWithPriorities();
     application = appAndScanId.getLeft();
     mockRemediationData();
-    //add inner source data
+    // add inner source data
     ComponentIdentifier innersourceDirectComponent =
         ComponentIdentifier.createMavenCoordinates("org.jclouds.driver", "jclouds-enterprise", "1.3.1", "", "jar");
     PackageUrlIdentifier versionlessPurl = InnerSourceUtils.getVersionlessPackageUrl(innersourceDirectComponent);
@@ -244,8 +244,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(false);
     lookup(SourceControlDAO.class).update(sourceControl);
     assertManualPullRequest("Manual Pull Requests are disabled");
@@ -293,8 +292,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -328,8 +326,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -363,8 +360,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -395,8 +391,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -440,7 +435,8 @@ public class PrioritiesPageTest
     // polling should end
     SelenideElement prLink =
         page.viewPullRequestLink(8)
-            .shouldBe(visible, TIMEOUT).shouldHave(text("PR #123"));
+            .shouldBe(visible, TIMEOUT)
+            .shouldHave(text("PR #123"));
     prLink.shouldBe(enabled);
     prLink.shouldHave(href("https://example.com/pull/123"));
   }
@@ -454,8 +450,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -497,8 +492,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -553,8 +547,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -618,8 +611,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -661,7 +653,8 @@ public class PrioritiesPageTest
         .until(webDriver -> sourceControlEventDAO.getAll().size() == 2);
 
     // change the status of the pull request event from new to in progress
-    pullRequestEvent = sourceControlEventDAO.getAll().stream()
+    pullRequestEvent = sourceControlEventDAO.getAll()
+        .stream()
         .filter(event -> SourceControlEvent.EVENT_STATUS_NEW.equals(event.getEventStatus()))
         .findFirst()
         .orElseThrow();
@@ -704,8 +697,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -776,8 +768,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     lookup(SourceControlDAO.class).update(sourceControl);
 
@@ -794,7 +785,8 @@ public class PrioritiesPageTest
     createPRModal.shouldBe(visible).shouldHave(text("Create Pull Request"));
     createPRModal.createPullRequestModalHeader().shouldBe(visible).shouldHave(text("Create Pull Request"));
     createPRModal.createPrModalPrTitle().shouldBe(visible).shouldHave(text("Bump commons-httpclient to 3.2"));
-    createPRModal.createPrModalComponentName().shouldBe(visible)
+    createPRModal.createPrModalComponentName()
+        .shouldBe(visible)
         .shouldHave(text("apache-httpclient : commons-httpclient : 3.1"));
     createPRModal.createPrModalCurrentVersion().shouldBe(visible).shouldHave(text("3.1"));
     createPRModal.createPrModalTargetVersion().shouldBe(visible).shouldHave(text("3.2"));
@@ -811,8 +803,7 @@ public class PrioritiesPageTest
         SourceControlProvider.GITHUB,
         null,
         null,
-        "my-branch"
-    );
+        "my-branch");
     sourceControl.setManualPullRequestsEnabled(true);
     lookup(SourceControlDAO.class).update(sourceControl);
 
@@ -829,7 +820,8 @@ public class PrioritiesPageTest
     createPRModal.shouldBe(visible).shouldHave(text("Create Pull Request"));
     createPRModal.createPullRequestModalHeader().shouldBe(visible).shouldHave(text("Create Pull Request"));
     createPRModal.createPrModalPrTitle().shouldBe(visible).shouldHave(text("Bump commons-httpclient to 3.2"));
-    createPRModal.createPrModalComponentName().shouldBe(visible)
+    createPRModal.createPrModalComponentName()
+        .shouldBe(visible)
         .shouldHave(text("apache-httpclient : commons-httpclient : 3.1"));
     createPRModal.createPrModalCurrentVersion().shouldBe(visible).shouldHave(text("3.1"));
     createPRModal.createPrModalTargetVersion().shouldBe(visible).shouldHave(text("3.2"));
@@ -843,8 +835,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     lookup(SourceControlDAO.class).update(sourceControl);
 
@@ -861,7 +852,8 @@ public class PrioritiesPageTest
     createPRModal.shouldBe(visible).shouldHave(text("Create Pull Request"));
     createPRModal.createPullRequestModalHeader().shouldBe(visible).shouldHave(text("Create Pull Request"));
     createPRModal.createPrModalPrTitle().shouldBe(visible).shouldHave(text("Bump commons-httpclient to 3.2"));
-    createPRModal.createPrModalComponentName().shouldBe(visible)
+    createPRModal.createPrModalComponentName()
+        .shouldBe(visible)
         .shouldHave(text("apache-httpclient : commons-httpclient : 3.1"));
     createPRModal.createPrModalCurrentVersion().shouldBe(visible).shouldHave(text("3.1"));
     createPRModal.createPrModalTargetVersion().shouldBe(visible).shouldHave(text("3.2"));
@@ -886,8 +878,7 @@ public class PrioritiesPageTest
         SourceControlProvider.GITHUB,
         null,
         null,
-        "my-parent-branch"
-    );
+        "my-parent-branch");
     parentSourceControl.setManualPullRequestsEnabled(true);
     lookup(SourceControlDAO.class).update(parentSourceControl);
 
@@ -898,8 +889,7 @@ public class PrioritiesPageTest
         SourceControlProvider.GITHUB,
         null,
         null,
-        null
-    );
+        null);
     sourceControl.setManualPullRequestsEnabled(true);
     lookup(SourceControlDAO.class).update(sourceControl);
 
@@ -916,7 +906,8 @@ public class PrioritiesPageTest
     createPRModal.shouldBe(visible).shouldHave(text("Create Pull Request"));
     createPRModal.createPullRequestModalHeader().shouldBe(visible).shouldHave(text("Create Pull Request"));
     createPRModal.createPrModalPrTitle().shouldBe(visible).shouldHave(text("Bump commons-httpclient to 3.2"));
-    createPRModal.createPrModalComponentName().shouldBe(visible)
+    createPRModal.createPrModalComponentName()
+        .shouldBe(visible)
         .shouldHave(text("apache-httpclient : commons-httpclient : 3.1"));
     createPRModal.createPrModalCurrentVersion().shouldBe(visible).shouldHave(text("3.1"));
     createPRModal.createPrModalTargetVersion().shouldBe(visible).shouldHave(text("3.2"));
@@ -935,8 +926,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -999,8 +989,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -1064,8 +1053,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -1091,7 +1079,8 @@ public class PrioritiesPageTest
     page.pullRequestCreationLoadingSpinner(8).shouldBe(visible).shouldHave(text("Creating PR…"));
 
     // change the status of the pull request event to error
-    SourceControlEvent pullRequestEvent = sourceControlEventDAO.getAll().stream()
+    SourceControlEvent pullRequestEvent = sourceControlEventDAO.getAll()
+        .stream()
         .filter(event -> SourceControlEvent.EVENT_STATUS_NEW.equals(event.getEventStatus()))
         .findFirst()
         .orElseThrow();
@@ -1112,7 +1101,8 @@ public class PrioritiesPageTest
         .withTimeout(TIMEOUT)
         .pollingEvery(POLL_FREQUENCY)
         .until(webDriver -> sourceControlEventDAO.getAll().size() == 2);
-    pullRequestEvent = sourceControlEventDAO.getAll().stream()
+    pullRequestEvent = sourceControlEventDAO.getAll()
+        .stream()
         .filter(event -> SourceControlEvent.EVENT_STATUS_NEW.equals(event.getEventStatus()))
         .findFirst()
         .orElseThrow();
@@ -1145,8 +1135,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControlDAO.update(sourceControl);
 
@@ -1234,7 +1223,7 @@ public class PrioritiesPageTest
     refresh();
     PrioritiesPage page = new PrioritiesPage();
     page.lastPageLink().shouldBe(visible).click();
-    //the transitive component should not be shown in the priorities table, so it has only 2 rows
+    // the transitive component should not be shown in the priorities table, so it has only 2 rows
     page.prioritiesTableRows().shouldHave(size(2));
     page.prioritiesTableCell(1, 0).shouldHave(text("17"));
     page.prioritiesTableCell(1, 1).shouldHave(text("org.jclouds.driver : jclouds-enterprise : 1.3.1"));
@@ -1249,8 +1238,7 @@ public class PrioritiesPageTest
         application.getId(),
         gitService.baseUrl() + "/someOrg/someRepo",
         lookup(PasswordHandler.class).encryptPassword("someToken"),
-        SourceControlProvider.GITHUB
-    );
+        SourceControlProvider.GITHUB);
     sourceControl.setManualPullRequestsEnabled(true);
     lookup(SourceControlDAO.class).update(sourceControl);
     mockInnerSourceRemediationData();
@@ -1260,22 +1248,23 @@ public class PrioritiesPageTest
 
     page.lastPageLink().shouldBe(visible).click();
 
-    //verify the direct component is shown in the priorities table
+    // verify the direct component is shown in the priorities table
     page.prioritiesTableCell(1, 0).shouldHave(text("17"));
     page.prioritiesTableCell(1, 1).shouldHave(text("org.jclouds.driver : jclouds-enterprise : 1.3.1"));
     page.directDependencyIndicator(1).shouldBe(visible);
     page.innerSourceDependencyIndicator(1).shouldBe(visible);
     page.prioritiesTableCell(1, 4).shouldHave(text("Upgrade to 1.4.0"));
-    //click the create pull request button
+    // click the create pull request button
     SelenideElement createPullRequestButton =
         page.createPullRequestButton(1).shouldBe(visible).shouldHave(text("Create PR"));
     createPullRequestButton.click();
 
-    //check the modal content
+    // check the modal content
     createPRModal.shouldBe(visible).shouldHave(text("Create Pull Request"));
     createPRModal.createPullRequestModalHeader().shouldBe(visible).shouldHave(text("Create Pull Request"));
     createPRModal.createPrModalPrTitle().shouldBe(visible).shouldHave(text("Bump jclouds-enterprise to 1.4.0"));
-    createPRModal.createPrModalComponentName().shouldBe(visible)
+    createPRModal.createPrModalComponentName()
+        .shouldBe(visible)
         .shouldHave(text("org.jclouds.driver : jclouds-enterprise : 1.3.1"));
     createPRModal.createPrModalCurrentVersion().shouldBe(visible).shouldHave(text("1.3.1"));
     createPRModal.createPrModalTargetVersion().shouldBe(visible).shouldHave(text("1.4.0"));
@@ -1389,10 +1378,9 @@ public class PrioritiesPageTest
     }
 
     PolicyThreats.Component component = policyThreats.aaData.stream()
-        .filter(c ->
-            componentIdentifier == null ?
-                c.componentIdentifier == null : componentIdentifier.equals(c.componentIdentifier)
-        )
+        .filter(c -> componentIdentifier == null
+            ? c.componentIdentifier == null
+            : componentIdentifier.equals(c.componentIdentifier))
         .findAny()
         .get();
 
@@ -1418,14 +1406,16 @@ public class PrioritiesPageTest
 
     testCLMServer.getHdsServer().respondWith(List.of()).atUri(HDS_BULK_SCORE_VERSIONING_PATH);
 
-    testCLMServer.getHdsServer().respondWith(ComponentSummary.create(true)).atUri(
-        UriBuilder.fromPath("rest/component/summary")
-            .queryParam("componentIdentifier",
-                URLEncoder.encode(new ObjectMapper().writeValueAsString(tomcatUtilCoordFromReport), "UTF-8"))
-            .build()
-    );
+    testCLMServer.getHdsServer()
+        .respondWith(ComponentSummary.create(true))
+        .atUri(
+            UriBuilder.fromPath("rest/component/summary")
+                .queryParam("componentIdentifier",
+                    URLEncoder.encode(new ObjectMapper().writeValueAsString(tomcatUtilCoordFromReport), "UTF-8"))
+                .build());
 
-    testCLMServer.getHdsServer().respondWith(new ComponentDependenciesDTO(Map.of(), Map.of()))
+    testCLMServer.getHdsServer()
+        .respondWith(new ComponentDependenciesDTO(Map.of(), Map.of()))
         .atUri("rest/component/dependencies");
 
     VersionScoringDTO versionScoringDTO = new VersionScoringDTO();
@@ -1435,7 +1425,8 @@ public class PrioritiesPageTest
     VersionScoringDTO.ToVersionData toVersionData = new ToVersionData();
     toVersionData.setBreakingChangeCount(0);
     versionScoringDTO.setToVersionsNonBreaking(Map.of("5.6.0", toVersionData));
-    testCLMServer.getHdsServer().respondWith(new VersionScoringDTO[]{versionScoringDTO})
+    testCLMServer.getHdsServer()
+        .respondWith(new VersionScoringDTO[]{versionScoringDTO})
         .atUri("rest/component/version-scoring/list");
   }
 
@@ -1454,14 +1445,16 @@ public class PrioritiesPageTest
 
     testCLMServer.getHdsServer().respondWith(List.of()).atUri(HDS_BULK_SCORE_VERSIONING_PATH);
 
-    testCLMServer.getHdsServer().respondWith(ComponentSummary.create(true)).atUri(
-        UriBuilder.fromPath("rest/component/summary")
-            .queryParam("componentIdentifier",
-                URLEncoder.encode(new ObjectMapper().writeValueAsString(logbackAccessCoordFromReport), "UTF-8"))
-            .build()
-    );
+    testCLMServer.getHdsServer()
+        .respondWith(ComponentSummary.create(true))
+        .atUri(
+            UriBuilder.fromPath("rest/component/summary")
+                .queryParam("componentIdentifier",
+                    URLEncoder.encode(new ObjectMapper().writeValueAsString(logbackAccessCoordFromReport), "UTF-8"))
+                .build());
 
-    testCLMServer.getHdsServer().respondWith(new ComponentDependenciesDTO(Map.of(), Map.of()))
+    testCLMServer.getHdsServer()
+        .respondWith(new ComponentDependenciesDTO(Map.of(), Map.of()))
         .atUri("rest/component/dependencies");
 
     VersionScoringDTO versionScoringDTO = new VersionScoringDTO();
@@ -1471,7 +1464,8 @@ public class PrioritiesPageTest
     VersionScoringDTO.ToVersionData toVersionData = new ToVersionData();
     toVersionData.setBreakingChangeCount(0);
     versionScoringDTO.setToVersionsNonBreaking(Map.of("3.2", toVersionData));
-    testCLMServer.getHdsServer().respondWith(new VersionScoringDTO[]{versionScoringDTO})
+    testCLMServer.getHdsServer()
+        .respondWith(new VersionScoringDTO[]{versionScoringDTO})
         .atUri("rest/component/version-scoring/list");
   }
 
@@ -1495,12 +1489,13 @@ public class PrioritiesPageTest
 
       testCLMServer.getHdsServer().respondWith(detailsList).atUri("rest/ci/componentDetails/list");
 
-      testCLMServer.getHdsServer().respondWith(ComponentSummary.create(true)).atUri(
-          UriBuilder.fromPath("rest/component/summary")
-              .queryParam("componentIdentifier",
-                  URLEncoder.encode(new ObjectMapper().writeValueAsString(innersourceDirectComponent), "UTF-8"))
-              .build()
-      );
+      testCLMServer.getHdsServer()
+          .respondWith(ComponentSummary.create(true))
+          .atUri(
+              UriBuilder.fromPath("rest/component/summary")
+                  .queryParam("componentIdentifier",
+                      URLEncoder.encode(new ObjectMapper().writeValueAsString(innersourceDirectComponent), "UTF-8"))
+                  .build());
 
       VersionScoringDTO versionScoringDTO = new VersionScoringDTO();
       versionScoringDTO.setComponentIdentifier(innersourceDirectComponent);
@@ -1509,7 +1504,8 @@ public class PrioritiesPageTest
       VersionScoringDTO.ToVersionData toVersionData = new ToVersionData();
       toVersionData.setBreakingChangeCount(0);
       versionScoringDTO.setToVersionsNonBreaking(Map.of("1.4.0", toVersionData));
-      testCLMServer.getHdsServer().respondWith(new VersionScoringDTO[]{versionScoringDTO})
+      testCLMServer.getHdsServer()
+          .respondWith(new VersionScoringDTO[]{versionScoringDTO})
           .atUri("rest/component/version-scoring/list");
     }
     catch (Exception e) {

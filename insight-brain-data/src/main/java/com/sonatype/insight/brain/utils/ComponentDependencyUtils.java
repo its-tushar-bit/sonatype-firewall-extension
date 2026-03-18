@@ -22,7 +22,8 @@ public class ComponentDependencyUtils
     }
     else {
       try {
-        PackageURL packageURL = PackageURLBuilder.aPackageURL().withType(fileCoordinate.getFormat())
+        PackageURL packageURL = PackageURLBuilder.aPackageURL()
+            .withType(fileCoordinate.getFormat())
             .withName(fileCoordinate.getName())
             .withVersion(fileCoordinate.getVersion())
             .build();

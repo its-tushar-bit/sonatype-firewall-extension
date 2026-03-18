@@ -63,8 +63,7 @@ public class CompleteOnGetFutureTest
 
   @Test
   public void testGet_Exception() {
-    CompleteOnGetFuture<Void> completeOnGetFuture = new CompleteOnGetFuture<>(() ->
-    {
+    CompleteOnGetFuture<Void> completeOnGetFuture = new CompleteOnGetFuture<>(() -> {
       throw new RuntimeException("some exception");
     });
 

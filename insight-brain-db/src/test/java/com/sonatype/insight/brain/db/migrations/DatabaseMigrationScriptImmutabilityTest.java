@@ -29,10 +29,10 @@ public class DatabaseMigrationScriptImmutabilityTest
   private static final Logger log = LoggerFactory.getLogger(DatabaseMigrationScriptImmutabilityTest.class);
 
   private static final String[] DATA_STORE_DIRS = {
-      AggregationDataStore.ID,
-      DataMartDataStore.ID,
-      OperationalDataStore.ID,
-      ThirdPartyScansDataStore.ID
+    AggregationDataStore.ID,
+    DataMartDataStore.ID,
+    OperationalDataStore.ID,
+    ThirdPartyScansDataStore.ID
   };
 
   private static final String DB_SCRIPT_PATH_FROM_ROOT = "insight-brain-db/src/main/resources/db";
@@ -62,8 +62,8 @@ public class DatabaseMigrationScriptImmutabilityTest
             "\n\n" +
             "Migration scripts must be immutable once committed to origin/main.\n" +
             "If you need to make a change, please create a NEW migration script instead.\n" +
-            "This ensures that existing deployments are not broken by schema changes."
-    ).isEmpty();
+            "This ensures that existing deployments are not broken by schema changes.")
+        .isEmpty();
 
     log.info("All migration scripts are unchanged - validation passed");
   }
@@ -132,8 +132,7 @@ public class DatabaseMigrationScriptImmutabilityTest
       String command,
       int exitCode,
       String stdout,
-      String stderr
-  )
+      String stderr)
   {
     boolean isSuccess() {
       return exitCode == 0;

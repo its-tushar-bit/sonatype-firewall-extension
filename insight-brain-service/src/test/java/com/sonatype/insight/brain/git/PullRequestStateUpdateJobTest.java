@@ -92,8 +92,7 @@ public class PullRequestStateUpdateJobTest
         new Date(),
         new Date(),
         PullRequestState.OPEN,
-        PullRequestSource.MANUAL
-    );
+        PullRequestSource.MANUAL);
 
     // Execute the job directly (without going through the scheduler)
     pullRequestStateUpdateJob.execute(mock(JobExecutionContext.class));

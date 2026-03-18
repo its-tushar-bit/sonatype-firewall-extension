@@ -66,34 +66,29 @@ public class ApiScmOnboardingResource
   @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
   @Operation(
       summary = "Import repositories for SCM organization",
-      description =
-          "Initiates the process to import repositories into a source control management (SCM) organization. " +
-              "This is an asynchronous operation that returns a ticket for tracking the import progress.",
+      description = "Initiates the process to import repositories into a source control management (SCM) organization. "
+          +
+          "This is an asynchronous operation that returns a ticket for tracking the import progress.",
       responses = {
-          @ApiResponse(
-              responseCode = "202",
-              description = "Import request accepted and processing started",
-              content = @Content(
-                  mediaType = MediaType.APPLICATION_JSON,
-                  schema = @Schema(implementation = ImportScmOrganizationTicket.class)
-              )
-          ),
-      }
-  )
+        @ApiResponse(
+            responseCode = "202",
+            description = "Import request accepted and processing started",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON,
+                schema = @Schema(implementation = ImportScmOrganizationTicket.class))),
+      })
   public Response importRepositories(
       @Parameter(
           description = "Organization ID",
-          required = true
-      )
-      @PathParam("organizationId") String organizationId,
+          required = true) @PathParam("organizationId") String organizationId,
       @RequestBody(
           description = "Configuration for the import",
           required = true,
-          useParameterTypeSchema = true
-      ) final ImportScmOrganizationRequest importRequest)
+          useParameterTypeSchema = true) final ImportScmOrganizationRequest importRequest)
   {
     return Response.status(Status.ACCEPTED)
-        .entity(scmOnboardingService.importScmOrganization(organizationId, importRequest)).build();
+        .entity(scmOnboardingService.importScmOrganization(organizationId, importRequest))
+        .build();
   }
 
   @Path(IMPORT_REPO_STATUS_PATH)
@@ -104,19 +99,15 @@ public class ApiScmOnboardingResource
       summary = "Get repository import status",
       description = "Retrieves the current status of a repository import operation",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Import status retrieved successfully",
-              useReturnTypeSchema = true
-          ),
-          @ApiResponse(responseCode = "404", description = "Import operation not found")
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Import status retrieved successfully",
+            useReturnTypeSchema = true),
+        @ApiResponse(responseCode = "404", description = "Import operation not found")
+      })
   public ImportScmOrganizationStatus getImportRepositoriesStatus(
-      @Parameter(description = "Organization ID", required = true)
-      @PathParam("organizationId") String organizationId,
-      @Parameter(description = "Import event ID", required = true)
-      @PathParam("eventId") String eventId)
+      @Parameter(description = "Organization ID", required = true) @PathParam("organizationId") String organizationId,
+      @Parameter(description = "Import event ID", required = true) @PathParam("eventId") String eventId)
   {
     return scmOnboardingService.getImportScmOrganizationStatus(organizationId, eventId);
   }

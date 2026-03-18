@@ -55,7 +55,8 @@ public class SamlMetadataToolTest
   public void testParseEntityDescriptor_UnknownElement() {
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> parse("unknown-element.xml"))
-        .withMessageStartingWith("Invalid SAML metadata").withMessageContaining("UnknownElement");
+        .withMessageStartingWith("Invalid SAML metadata")
+        .withMessageContaining("UnknownElement");
   }
 
   @Test
@@ -114,7 +115,8 @@ public class SamlMetadataToolTest
     assertThat(idpDescriptor.getKeyDescriptor()).extracting(KeyDescriptorType::getUse)
         .containsExactly(KeyTypes.SIGNING);
     assertThat(idpDescriptor.getKeyDescriptor())
-        .extracting(key -> key.getKeyInfo().getElementsByTagNameNS("*", "X509Certificate")).allSatisfy(nodes -> {
+        .extracting(key -> key.getKeyInfo().getElementsByTagNameNS("*", "X509Certificate"))
+        .allSatisfy(nodes -> {
           assertThat(nodes.getLength()).isEqualTo(1);
           assertThat(nodes.item(0).getTextContent()).matches("[0-9a-zA-Z+/=]+");
         });
@@ -127,6 +129,7 @@ public class SamlMetadataToolTest
   public void testParseEntityDescriptor_ExternalDTD() {
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> parse("external-dtd.xml"))
-        .withMessageStartingWith("Invalid SAML metadata").withMessageContaining("http", "accessExternalDTD");
+        .withMessageStartingWith("Invalid SAML metadata")
+        .withMessageContaining("http", "accessExternalDTD");
   }
 }

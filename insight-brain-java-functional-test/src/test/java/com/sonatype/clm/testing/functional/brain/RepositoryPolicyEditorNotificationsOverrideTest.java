@@ -43,7 +43,7 @@ public class RepositoryPolicyEditorNotificationsOverrideTest
   @Test
   public void testOverrideAddAndEdit_Repository() {
     Repository repository = tempEntity.newProxyRepository(repositoryManager, "npm-proxy", "npm",
-            true, true);
+        true, true);
     goToRepositorySummaryPage(repository);
     createTrivialPolicy(false);
     PolicyEditorPage.savePolicy();
@@ -63,8 +63,10 @@ public class RepositoryPolicyEditorNotificationsOverrideTest
     PolicyEditorPage.savePolicy();
 
     PolicyEditorPage.inheritanceSection().policyNotificationsOverrideCheckbox().input().shouldNotBe(checked);
-    PolicyEditorPage.inheritanceSection().policyNotificationsOverrideCheckbox().label()
-            .shouldHave(text("Allow notification overrides at repository level"));
+    PolicyEditorPage.inheritanceSection()
+        .policyNotificationsOverrideCheckbox()
+        .label()
+        .shouldHave(text("Allow notification overrides at repository level"));
     PolicyEditorPage.inheritanceSection().allChildrenInheritRadio().shouldNotBe(visible);
     PolicyEditorPage.inheritanceSection().specifiedChildrenInheritRadio().shouldNotBe(visible);
     OwnerDetailSidebar.policyGroup().entryItems().shouldHave(size(1));
@@ -72,8 +74,10 @@ public class RepositoryPolicyEditorNotificationsOverrideTest
 
     PolicyEditorPage.title().shouldHave(text("Edit Policy"));
     PolicyEditorPage.inheritanceSection().policyNotificationsOverrideCheckbox().input().shouldBe(checked);
-    PolicyEditorPage.inheritanceSection().policyNotificationsOverrideCheckbox().label()
-            .shouldHave(text("Allow notification overrides at repository level"));
+    PolicyEditorPage.inheritanceSection()
+        .policyNotificationsOverrideCheckbox()
+        .label()
+        .shouldHave(text("Allow notification overrides at repository level"));
   }
 
   @Test
@@ -83,7 +87,9 @@ public class RepositoryPolicyEditorNotificationsOverrideTest
     PolicyEditorPage.savePolicy();
 
     PolicyEditorPage.inheritanceSection().policyNotificationsOverrideCheckbox().input().shouldNotBe(checked);
-    PolicyEditorPage.inheritanceSection().policyNotificationsOverrideCheckbox().label()
+    PolicyEditorPage.inheritanceSection()
+        .policyNotificationsOverrideCheckbox()
+        .label()
         .shouldHave(text("Allow notification overrides at repository manager and repository levels"));
     PolicyEditorPage.inheritanceSection().allChildrenInheritRadio().shouldNotBe(visible);
     PolicyEditorPage.inheritanceSection().specifiedChildrenInheritRadio().shouldNotBe(visible);
@@ -92,7 +98,9 @@ public class RepositoryPolicyEditorNotificationsOverrideTest
 
     PolicyEditorPage.title().shouldHave(text("Edit Policy"));
     PolicyEditorPage.inheritanceSection().policyNotificationsOverrideCheckbox().input().shouldBe(checked);
-    PolicyEditorPage.inheritanceSection().policyNotificationsOverrideCheckbox().label()
+    PolicyEditorPage.inheritanceSection()
+        .policyNotificationsOverrideCheckbox()
+        .label()
         .shouldHave(text("Allow notification overrides at repository manager and repository levels"));
   }
 
@@ -123,7 +131,7 @@ public class RepositoryPolicyEditorNotificationsOverrideTest
   /**
    * Tests that the enableOverride checkbox enables the UI in the child to override the parent policy actions.
    *
-   * @param enableOverride  whether to enable the override checkbox
+   * @param enableOverride whether to enable the override checkbox
    * @param policyListIndex 0: local policy, 1: inherited policy from container, 2: inherited policy from root org
    */
   private void testOverride_inheritsFromPolicy(boolean enableOverride, int policyListIndex) {

@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * This class is intended for tenant-specific thread pools in which only one tenant (the tenant on the thread that
- * created it) will use.  This class must not be used for thread pools that would service more than one tenant.
+ * created it) will use. This class must not be used for thread pools that would service more than one tenant.
  */
 public class TenantScheduledThreadPoolExecutor
     extends ScheduledThreadPoolExecutor
@@ -90,7 +90,7 @@ public class TenantScheduledThreadPoolExecutor
 
     /**
      * This class is private as it's only intended to be used in this context where we know that the scheduled
-     * executor is ALWAYS invoked in the context of the given tenant.  In other contexts where the tenant on a
+     * executor is ALWAYS invoked in the context of the given tenant. In other contexts where the tenant on a
      * thread can change we would never allow or use a reusable tenant.
      */
     private class ReusableTenant

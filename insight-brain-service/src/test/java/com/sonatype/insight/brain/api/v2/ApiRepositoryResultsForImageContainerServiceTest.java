@@ -100,7 +100,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     containerOrganization = tempEntity.newOrganization("containerOrg");
     repositoryContainerDAO.setRelatedOrganizationIdNotNull(containerOrganization.getId());
 
-    //RepositoryManager setup
+    // RepositoryManager setup
     repositoryManager = tempEntity.newRepositoryManager();
     repositoryManagerOrganization = tempEntity.newOrganization("repositoryManagerOrg");
     repositoryManagerOrganization.setRelatedRepositoryManagerId(repositoryManager.getId());
@@ -109,7 +109,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     repositoryManagerDAO.update(repositoryManager);
     repository = tempEntity.newRepository(repositoryManager, "publicId");
 
-    //Repository setup
+    // Repository setup
     organization = tempEntity.newOrganization("org");
     organization.setRelatedRepositoryId(repository.getId());
     organization.setParentOrganizationId(repositoryManagerOrganization.getId());
@@ -126,14 +126,14 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     policyEvaluation1 = tempEntity.newPolicyEvaluation(application1.getId(), "proxy", "scanId1");
     policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), "proxy", "scanId2");
 
-    //last policy evaluation
+    // last policy evaluation
     lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application1.getId(), "proxy");
     lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application2.getId(), "proxy");
   }
 
   @Test
   public void testGetDetails_NonAggregated_SortByThreatLevelAndObjectName() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -141,7 +141,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy5 = tempEntity.newPolicy(application2.getId(), "policy5");
     Policy policy6 = tempEntity.newPolicy(application2.getId(), "policy6");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -225,7 +225,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
 
   @Test
   public void testGetDetails_Aggregated_SortByThreatLevelAndObjectName() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -233,7 +233,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy5 = tempEntity.newPolicy(application2.getId(), "policy5");
     Policy policy6 = tempEntity.newPolicy(application2.getId(), "policy6");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -305,7 +305,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     assertThat(repositoryResultsDetails.get(0).violationCount).isEqualTo(4);
     assertThat(repositoryResultsDetails.get(1).violationCount).isEqualTo(2);
 
-    //descending order
+    // descending order
     SortField sortField3 = new SortField();
     sortField3.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField3.sortPriority = 1;
@@ -351,7 +351,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
 
   @Test
   public void testGetDetails_NonAggregated_SortByQuarantineTime() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -359,7 +359,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy5 = tempEntity.newPolicy(application2.getId(), "policy5");
     Policy policy6 = tempEntity.newPolicy(application2.getId(), "policy6");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -426,7 +426,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     sortField3.sortableField = SortableField.OBJECT_NAME;
     sortField3.sortPriority = 3;
     sortField3.asc = true;
-    detailsRequest.threatLevelFilters = ImmutableList.of(1,10);
+    detailsRequest.threatLevelFilters = ImmutableList.of(1, 10);
 
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2, sortField3);
 
@@ -450,7 +450,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
 
   @Test
   public void testGetDetails_NonAggregated_ThreatLevelRange() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -458,7 +458,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy5 = tempEntity.newPolicy(application2.getId(), "policy5");
     Policy policy6 = tempEntity.newPolicy(application2.getId(), "policy6");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -499,7 +499,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     sortField3.sortableField = SortableField.OBJECT_NAME;
     sortField3.sortPriority = 3;
     sortField3.asc = true;
-    detailsRequest.threatLevelFilters = ImmutableList.of(7,10);
+    detailsRequest.threatLevelFilters = ImmutableList.of(7, 10);
 
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2, sortField3);
 
@@ -538,7 +538,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
 
   @Test
   public void testGetDetails_Aggregated_SearchByPolicyViolationCount() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -546,7 +546,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy5 = tempEntity.newPolicy(application1.getId(), "policy5");
     Policy policy6 = tempEntity.newPolicy(application1.getId(), "policy6");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -651,16 +651,16 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     detailsRequest.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_ALL);
 
     RepositoryResultsForImageContainerResponseDto responseDto =
-            repositoryResultsService.getDetails(OwnerType.REPOSITORY,
-                    repository1.getId(),
-                    detailsRequest);
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY,
+            repository1.getId(),
+            detailsRequest);
     List<RepositoryResultsForImageContainerDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
     assertThat(repositoryResultsDetails).hasSize(0);
   }
 
   @Test
   public void testGetDetails_Aggregated_ValidatePolicyEvaluationExist() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -671,14 +671,14 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Application application3 = tempEntity.newApplication("app3", "appPublicId3", organization.getId());
     Application application4 = tempEntity.newApplication("app4", "appPublicId4", organization.getId());
 
-    //should not appear in the details, does not have policy evaluation
+    // should not appear in the details, does not have policy evaluation
     tempEntity.newApplication("app5", "appPublicId5", organization.getId());
     tempEntity.newApplication("app6", "appPublicId6", organization.getId());
 
     tempEntity.newPolicyEvaluation(application3.getId(), "proxy", "scanId3");
     tempEntity.newPolicyEvaluation(application4.getId(), "proxy", "scanId4");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -708,7 +708,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     policyViolationDAO.update(policyViolation5);
     policyViolationDAO.update(policyViolation6);
 
-    //policyViolation thread level low are not counted
+    // policyViolation thread level low are not counted
     policyViolation7.setThreatLevel(1);
     policyViolation7.setActionTypeId(Action.ID_FAIL);
     policyViolation8.setThreatLevel(1);
@@ -753,7 +753,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
 
   @Test
   public void testGetDetails_NonAggregated_SearchByPolicyName() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -761,7 +761,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy5 = tempEntity.newPolicy(application1.getId(), "policy5");
     Policy policy6 = tempEntity.newPolicy(application1.getId(), "policy6");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -821,13 +821,13 @@ public class ApiRepositoryResultsForImageContainerServiceTest
 
   @Test
   public void testGetDetails_NonAggregated_NotViolating() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
     Policy policy4 = tempEntity.newPolicy(application1.getId(), "policy4");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -865,13 +865,13 @@ public class ApiRepositoryResultsForImageContainerServiceTest
             detailsRequest);
     List<RepositoryResultsForImageContainerDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
-    //application2 have no violations
+    // application2 have no violations
     assertThat(repositoryResultsDetails).hasSize(1);
   }
 
   @Test
   public void testGetDetails_NonAggregated_ViolationStateOpen() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -879,7 +879,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy5 = tempEntity.newPolicy(application2.getId(), "policy5");
     Policy policy6 = tempEntity.newPolicy(application2.getId(), "policy6");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -962,7 +962,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
 
   @Test
   public void testGetDetails_NonAggregated_ViolationStateQuarantined() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -970,7 +970,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy5 = tempEntity.newPolicy(application2.getId(), "policy5");
     Policy policy6 = tempEntity.newPolicy(application2.getId(), "policy6");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -1028,7 +1028,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
 
   @Test
   public void testGetDetails_NonAggregated_ViolationStateWaived() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -1036,7 +1036,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy5 = tempEntity.newPolicy(application2.getId(), "policy5");
     Policy policy6 = tempEntity.newPolicy(application2.getId(), "policy6");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -1093,7 +1093,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
 
   @Test
   public void testGetDetails_NonAggregated_OpenOrQuarantined() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -1101,7 +1101,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy5 = tempEntity.newPolicy(application2.getId(), "policy5");
     Policy policy6 = tempEntity.newPolicy(application2.getId(), "policy6");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -1155,7 +1155,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
 
   @Test
   public void testGetDetails_NonAggregated_OpenOrWaived() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -1163,7 +1163,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy5 = tempEntity.newPolicy(application2.getId(), "policy5");
     Policy policy6 = tempEntity.newPolicy(application2.getId(), "policy6");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -1214,7 +1214,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
 
   @Test
   public void testGetDetails_NonAggregated_QuarantinedOrWaived() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -1222,7 +1222,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy5 = tempEntity.newPolicy(application2.getId(), "policy5");
     Policy policy6 = tempEntity.newPolicy(application2.getId(), "policy6");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -1275,7 +1275,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
 
   @Test
   public void testGetDetails_NonAggregated_NonViolatingOrWaived() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -1283,7 +1283,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy5 = tempEntity.newPolicy(application2.getId(), "policy5");
     Policy policy6 = tempEntity.newPolicy(application2.getId(), "policy6");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -1339,7 +1339,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Repository repository1 = tempEntity.newRepository(repositoryManager, "publicId1");
     Repository repository2 = tempEntity.newRepository(repositoryManager, "publicId3");
 
-    //Repository organization1
+    // Repository organization1
     Organization organization1 = tempEntity.newOrganization("org1");
     organization1.setRelatedRepositoryId(repository1.getId());
     repository1.setRelatedOrganizationId(organization1.getId());
@@ -1358,7 +1358,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Application application5 = tempEntity.newApplication("app5", "appPublicId5", organization2.getId());
     Application application6 = tempEntity.newApplication("app6", "appPublicId6", organization2.getId());
 
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -1370,7 +1370,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy9 = tempEntity.newPolicy(application5.getId(), "policy9");
     Policy policy10 = tempEntity.newPolicy(application6.getId(), "policy10");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -1456,7 +1456,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Repository repository1 = tempEntity.newRepository(repositoryManager, "publicId1");
     Repository repository2 = tempEntity.newRepository(repositoryManager, "publicId3");
 
-    //Repository organization1
+    // Repository organization1
     Organization organization1 = tempEntity.newOrganization("org1");
     organization1.setRelatedRepositoryId(repository1.getId());
     repository1.setRelatedOrganizationId(organization1.getId());
@@ -1475,7 +1475,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Application application5 = tempEntity.newApplication("app5", "appPublicId5", organization2.getId());
     Application application6 = tempEntity.newApplication("app6", "appPublicId6", organization2.getId());
 
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -1492,7 +1492,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     tempEntity.newPolicyEvaluation(application5.getId(), "proxy", "scanId5");
     tempEntity.newPolicyEvaluation(application6.getId(), "proxy", "scanId6");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -1578,8 +1578,8 @@ public class ApiRepositoryResultsForImageContainerServiceTest
         () -> repositoryResultsService.getDetails(OwnerType.REPOSITORY,
             repository.getId(),
             detailsRequest))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("Page and Page size must be greater than 0");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Page and Page size must be greater than 0");
   }
 
   @Test
@@ -1605,8 +1605,8 @@ public class ApiRepositoryResultsForImageContainerServiceTest
         () -> repositoryResultsService.getDetails(OwnerType.REPOSITORY,
             repository.getId(),
             detailsRequest))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("sort priority cannot be the same for different fields");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("sort priority cannot be the same for different fields");
   }
 
   @Test
@@ -1614,12 +1614,13 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     assertThatThrownBy(() -> repositoryResultsService.getDetails(OwnerType.REPOSITORY,
         repository.getId(),
         null))
-        .isInstanceOf(BadRequestException.class).hasMessage("Missing request parameters");
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Missing request parameters");
   }
 
   @Test
   public void testGetDetails_NonAggregated_Pagination() {
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -1630,7 +1631,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy7 = tempEntity.newPolicy(application2.getId(), "policy7");
     Policy policy8 = tempEntity.newPolicy(application2.getId(), "policy8");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -1751,7 +1752,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Application application11 = tempEntity.newApplication("app11", "appPublicId11", organization.getId());
     Application application12 = tempEntity.newApplication("app12", "appPublicId12", organization.getId());
 
-    //policy evaluation
+    // policy evaluation
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application1.getId(), "proxy", "scanId1");
     PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), "proxy", "scanId2");
     PolicyEvaluation policyEvaluation3 = tempEntity.newPolicyEvaluation(application3.getId(), "proxy", "scanId1");
@@ -1765,7 +1766,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     PolicyEvaluation policyEvaluation11 = tempEntity.newPolicyEvaluation(application11.getId(), "proxy", "scanId1");
     PolicyEvaluation policyEvaluation12 = tempEntity.newPolicyEvaluation(application12.getId(), "proxy", "scanId2");
 
-    //last policy evaluation
+    // last policy evaluation
     lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application1.getId(), "proxy");
     lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application2.getId(), "proxy");
     lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application3.getId(), "proxy");
@@ -1779,7 +1780,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application11.getId(), "proxy");
     lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application12.getId(), "proxy");
 
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application2.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application3.getId(), "policy3");
@@ -1793,7 +1794,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy11 = tempEntity.newPolicy(application11.getId(), "policy11");
     Policy policy12 = tempEntity.newPolicy(application12.getId(), "policy12");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation2, policy3);

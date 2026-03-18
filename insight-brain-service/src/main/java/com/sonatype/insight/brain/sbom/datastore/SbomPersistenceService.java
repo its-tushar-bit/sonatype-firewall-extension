@@ -31,7 +31,7 @@ public abstract class SbomPersistenceService
   /**
    * Get a permanent SBOM entity by application ID and fileName.
    *
-   * @param appId    the application ID
+   * @param appId the application ID
    * @param fileName the file name
    * @return the SBOM entity
    */
@@ -42,8 +42,8 @@ public abstract class SbomPersistenceService
 
   /**
    * Implementation method for retrieving a permanent SBOM entity.
-   * 
-   * @param appId    the application ID
+   *
+   * @param appId the application ID
    * @param fileName the file name
    * @return the SBOM entity
    */
@@ -53,7 +53,7 @@ public abstract class SbomPersistenceService
    * Get a persistent temporary SBOM entity by file name.
    *
    * @param fileName the file name
-   * @param prefix   optional prefix that is added for additional namespacing
+   * @param prefix optional prefix that is added for additional namespacing
    * @return the persistent temporary SBOM entity
    */
   public abstract SbomEntity getTemporarySbom(String fileName, @Nullable String prefix);
@@ -72,8 +72,8 @@ public abstract class SbomPersistenceService
    * Save a SBOM entity to a persistent temporary location.
    *
    * @param sbomEntity the SBOM entity to save
-   * @param fileName   the file name where the SBOM will be saved
-   * @param prefix    optional prefix that is added for additional namespacing
+   * @param fileName the file name where the SBOM will be saved
+   * @param prefix optional prefix that is added for additional namespacing
    * @return the temporary SBOM entity
    * @throws IOException if an I/O error occurs
    */
@@ -93,7 +93,7 @@ public abstract class SbomPersistenceService
   /**
    * Delete a specific permanent SBOM by application ID and file name.
    *
-   * @param appId    the application ID
+   * @param appId the application ID
    * @param fileName the file name
    * @throws IOException if an I/O error occurs
    */

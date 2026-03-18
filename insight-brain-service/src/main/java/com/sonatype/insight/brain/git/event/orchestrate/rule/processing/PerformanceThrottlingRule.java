@@ -63,7 +63,7 @@ public class PerformanceThrottlingRule
       else if (eventDurationMs > getAcceptableDurationMilliseconds()) {
         eventSuspensionExpirationTime = LocalDateTime.now().plusSeconds(EVENT_SUSPENSION_SECONDS);
         log.debug("Commit status event duration of {} seconds exceeded canary limit of {} seconds.  " +
-                "Suspending event processing for {} seconds", durationToTimeStr(eventDurationMs),
+            "Suspending event processing for {} seconds", durationToTimeStr(eventDurationMs),
             getAcceptableDurationSeconds(), EVENT_SUSPENSION_SECONDS);
       }
       else {

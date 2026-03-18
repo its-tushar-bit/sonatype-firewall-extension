@@ -28,7 +28,9 @@ public class SbomComponentDTO
 {
   private static final Logger log = LoggerFactory.getLogger(SbomComponentDTO.class);
 
-  private static final TypeReference<Set<ResolvedLicenseDTO>> LICENSE_TYPE_REFERENCE = new TypeReference<>() { };
+  private static final TypeReference<Set<ResolvedLicenseDTO>> LICENSE_TYPE_REFERENCE = new TypeReference<>()
+  {
+  };
 
   private String hash;
 
@@ -94,8 +96,9 @@ public class SbomComponentDTO
     }
 
     String displayNameString = (String) array[5];
-    displayName = StringUtils.isNotBlank(displayNameString) ?
-        displayNameString : generateDisplayName(componentIdentifier, format, name, version);
+    displayName = StringUtils.isNotBlank(displayNameString)
+        ? displayNameString
+        : generateDisplayName(componentIdentifier, format, name, version);
 
     if (array.length > 6) {
       String licensesJson = (String) array[6];
@@ -113,7 +116,7 @@ public class SbomComponentDTO
       vulnerabilitySeverityHighCount = longToInt(array[10]);
       vulnerabilitySeverityCriticalCount = longToInt(array[11]);
       percentageAnnotated = bigDecimalToDouble(array[12]);
-      releaseStatusPercentage =  bigDecimalToDouble(array[13]);
+      releaseStatusPercentage = bigDecimalToDouble(array[13]);
 
       String dependencyTypeValue = (String) array[14];
       if (StringUtils.isNotBlank(dependencyTypeValue)) {
@@ -308,6 +311,6 @@ public class SbomComponentDTO
   }
 
   private double bigDecimalToDouble(Object number) {
-    return  number == null ? 0.0 : ((BigDecimal) number).doubleValue();
+    return number == null ? 0.0 : ((BigDecimal) number).doubleValue();
   }
 }

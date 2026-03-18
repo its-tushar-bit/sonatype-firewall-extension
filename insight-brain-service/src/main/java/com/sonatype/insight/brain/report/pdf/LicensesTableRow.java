@@ -12,7 +12,8 @@ public class LicensesTableRow
 {
   private static final Comparator<LicensesTableRow> COMPARATOR =
       Comparator
-          .comparingInt((LicensesTableRow row) -> row.threatLevel).reversed()
+          .comparingInt((LicensesTableRow row) -> row.threatLevel)
+          .reversed()
           .thenComparing(row -> row.effectiveLicenses, String::compareToIgnoreCase)
           .thenComparing(row -> row.declaredLicenses, Comparator.nullsLast(String::compareToIgnoreCase))
           .thenComparing(row -> row.observedLicenses, Comparator.nullsLast(String::compareToIgnoreCase))

@@ -69,55 +69,55 @@ public class PolicyInternalDAO
   List<PolicyInternal> getApplicableByOwnerIdWithHierarchy(TransactionContext tx, String ownerId) {
     String sQuery =
         "SELECT policy " +
-        "FROM PolicyInternal policy, OwnerAncestor oa " +
-        "WHERE oa.id = ?1 AND oa.ancestorId = policy.ownerId " +
-        "AND (" +
-        "  (" +
-        //   if owner is an application
-        "    oa.ownerType = com.sonatype.insight.brain.model.OwnerType.APPLICATION " +
-        ///  and the policy is attached to the parent org (not directly to an app)
-        "    AND oa.id <> oa.ancestorId" +
-        //   and the policy has tags (categories) attached, then only include the policy if the app also has at least
-        //   one of the tags
-        "    AND (EXISTS (" +
-        "            SELECT appTag.tagId" +
-        "            FROM ApplicationTag appTag, PolicyTag pTag" +
-        "            WHERE appTag.tagId = pTag.tagId" +
-        "              AND appTag.applicationId = oa.id" +
-        "              AND pTag.policyId = policy.id" +
-        "       )" +
-        //      or the policy does not have any tags
-        "       OR NOT EXISTS(" +
-        "           SELECT policyTag FROM PolicyTag policyTag WHERE policyTag.policyId = policy.id" +
-        "       )" +
-        "    )" +
-        "  ) " +
-        "  OR " +
-        "  (" +
-        //   if owner is a repo, policies attached to parent orgs only apply if the policy has no tags
-        "    ( " +
-        //     JPQL doesn't seem to support doing this with an IN clause
-        "      oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY " +
-        "      OR oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY_MANAGER " +
-        "      OR oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER " +
-        "    ) " +
-        "    AND oa.id <> oa.ancestorId AND NOT EXISTS (" +
-        "      SELECT policyTag " +
-        "      FROM PolicyTag policyTag " +
-        "      WHERE policyTag.policyId = policy.id" +
-        "    )" +
-        "  ) " +
-        // include all ancestor policies when type not app or repo
-        "  OR (" +
-        "    oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.APPLICATION " +
-        "    AND oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.REPOSITORY" +
-        "    AND oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.REPOSITORY_MANAGER" +
-        "    AND oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER" +
-        "  ) " +
-        // include all policies attached directly to the queried owner
-        "  OR oa.id = oa.ancestorId" +
-        ") " +
-        "ORDER BY oa.ancestorDistance";
+            "FROM PolicyInternal policy, OwnerAncestor oa " +
+            "WHERE oa.id = ?1 AND oa.ancestorId = policy.ownerId " +
+            "AND (" +
+            "  (" +
+            // if owner is an application
+            "    oa.ownerType = com.sonatype.insight.brain.model.OwnerType.APPLICATION " +
+            ///  and the policy is attached to the parent org (not directly to an app)
+            "    AND oa.id <> oa.ancestorId" +
+            // and the policy has tags (categories) attached, then only include the policy if the app also has at least
+            // one of the tags
+            "    AND (EXISTS (" +
+            "            SELECT appTag.tagId" +
+            "            FROM ApplicationTag appTag, PolicyTag pTag" +
+            "            WHERE appTag.tagId = pTag.tagId" +
+            "              AND appTag.applicationId = oa.id" +
+            "              AND pTag.policyId = policy.id" +
+            "       )" +
+            // or the policy does not have any tags
+            "       OR NOT EXISTS(" +
+            "           SELECT policyTag FROM PolicyTag policyTag WHERE policyTag.policyId = policy.id" +
+            "       )" +
+            "    )" +
+            "  ) " +
+            "  OR " +
+            "  (" +
+            // if owner is a repo, policies attached to parent orgs only apply if the policy has no tags
+            "    ( " +
+            // JPQL doesn't seem to support doing this with an IN clause
+            "      oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY " +
+            "      OR oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY_MANAGER " +
+            "      OR oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER " +
+            "    ) " +
+            "    AND oa.id <> oa.ancestorId AND NOT EXISTS (" +
+            "      SELECT policyTag " +
+            "      FROM PolicyTag policyTag " +
+            "      WHERE policyTag.policyId = policy.id" +
+            "    )" +
+            "  ) " +
+            // include all ancestor policies when type not app or repo
+            "  OR (" +
+            "    oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.APPLICATION " +
+            "    AND oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.REPOSITORY" +
+            "    AND oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.REPOSITORY_MANAGER" +
+            "    AND oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER" +
+            "  ) " +
+            // include all policies attached directly to the queried owner
+            "  OR oa.id = oa.ancestorId" +
+            ") " +
+            "ORDER BY oa.ancestorDistance";
 
     return getList(tx, sQuery, ownerId);
   }

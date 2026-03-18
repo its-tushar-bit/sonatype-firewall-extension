@@ -42,12 +42,13 @@ public final class DockerUtils
 
   public static String findHostIpAddress(int port) {
     try {
-      for (Enumeration<NetworkInterface> netInterfaces = NetworkInterface.getNetworkInterfaces();
-           netInterfaces.hasMoreElements(); ) {
+      for (Enumeration<NetworkInterface> netInterfaces = NetworkInterface.getNetworkInterfaces(); netInterfaces
+          .hasMoreElements();)
+      {
         NetworkInterface netInterface = netInterfaces.nextElement();
         try {
           if (netInterface.isUp() && !netInterface.isLoopback()) {
-            for (Enumeration<InetAddress> addresses = netInterface.getInetAddresses(); addresses.hasMoreElements(); ) {
+            for (Enumeration<InetAddress> addresses = netInterface.getInetAddresses(); addresses.hasMoreElements();) {
               InetAddress address = addresses.nextElement();
               try {
                 if (!address.isLoopbackAddress()) {

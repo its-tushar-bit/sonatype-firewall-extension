@@ -17,11 +17,12 @@ import static org.assertj.core.api.Assertions.fail;
 
 class PolicyViolationDTOTestUtils
 {
-  static void assertPolicyViolationDTO(List<PolicyViolationDTO> dtos,
-                                       PolicyViolation violation,
-                                       Application application,
-                                       PolicyEvaluation evaluation,
-                                       Policy policy)
+  static void assertPolicyViolationDTO(
+      List<PolicyViolationDTO> dtos,
+      PolicyViolation violation,
+      Application application,
+      PolicyEvaluation evaluation,
+      Policy policy)
   {
     for (PolicyViolationDTO dto : dtos) {
       if (dto.id.equals(violation.getId())) {

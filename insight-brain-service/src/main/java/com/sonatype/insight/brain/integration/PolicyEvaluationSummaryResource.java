@@ -49,8 +49,9 @@ public class PolicyEvaluationSummaryResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public PolicyEvaluationSummary getCurrentPolicyEvaluation(@PathParam("applicationId") final String applicationId,
-                                                            @PathParam("stageTypeId") final String stageTypeId)
+  public PolicyEvaluationSummary getCurrentPolicyEvaluation(
+      @PathParam("applicationId") final String applicationId,
+      @PathParam("stageTypeId") final String stageTypeId)
   {
     log.debug("Received request to get policy evaluation summary for app id {}, stageTypeId {}", applicationId,
         stageTypeId);

@@ -24,7 +24,8 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApiSecurityDataAdapterTest extends AbstractComponentTest
+public class ApiSecurityDataAdapterTest
+    extends AbstractComponentTest
 {
   @Inject
   private ApiSecurityDataAdapter adapter;

@@ -24,7 +24,8 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 @DisallowConcurrentExecution
-public class ApplicationCountHistoryKeeper implements InsightJob
+public class ApplicationCountHistoryKeeper
+    implements InsightJob
 {
   public static final String NAME = "ApplicationCountHistoryKeeper";
 
@@ -41,8 +42,7 @@ public class ApplicationCountHistoryKeeper implements InsightJob
   @Inject
   public ApplicationCountHistoryKeeper(
       ApplicationCountHistoryService applicationCountHistoryService,
-      TaskScheduler taskScheduler
-  )
+      TaskScheduler taskScheduler)
   {
     this.applicationCountHistoryService = applicationCountHistoryService;
     this.taskScheduler = taskScheduler;

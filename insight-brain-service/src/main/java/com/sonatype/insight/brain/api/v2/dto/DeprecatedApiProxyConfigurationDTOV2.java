@@ -12,7 +12,7 @@ import static java.util.Collections.unmodifiableList;
 
 /**
  * @since 1.65
- * 
+ *
  * @deprecated Replaced by {@link ApiProxyServerConfigurationDTO} in 1.84.
  */
 @Deprecated

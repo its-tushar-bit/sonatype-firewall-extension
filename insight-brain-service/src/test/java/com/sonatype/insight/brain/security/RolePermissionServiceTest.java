@@ -34,8 +34,8 @@ public class RolePermissionServiceTest
     Role role = roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID);
     assertThatThrownBy(
         () -> rolePermissionService.setPermissionsForRole(role.getId(), EnumSet.of(Permission.CONFIGURE_SYSTEM)))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("Cannot change permissions for built-in role '" + role.getName() + "'");
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Cannot change permissions for built-in role '" + role.getName() + "'");
     assertThat(rolePermissionService.getPermissionsForRole(role.getId())).hasSize(3);
   }
 
@@ -45,9 +45,10 @@ public class RolePermissionServiceTest
     assertThat(Permission.CONFIGURE_SYSTEM.isAllowedInCustomRoles()).isFalse();
     assertThatThrownBy(
         () -> rolePermissionService.setPermissionsForRole(role.getId(), EnumSet.of(Permission.CONFIGURE_SYSTEM)))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage(
-            "Cannot assign permission '" + Permission.CONFIGURE_SYSTEM + "' to custom role '" + role.getName() + "'");
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage(
+                "Cannot assign permission '" + Permission.CONFIGURE_SYSTEM + "' to custom role '" + role.getName()
+                    + "'");
     assertThat(rolePermissionService.getPermissionsForRole(role.getId())).isEmpty();
   }
 

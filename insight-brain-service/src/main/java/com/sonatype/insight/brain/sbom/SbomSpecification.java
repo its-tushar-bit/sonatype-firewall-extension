@@ -11,7 +11,8 @@ import com.sonatype.insight.scan.model.ItemContentType;
 
 public enum SbomSpecification
 {
-  CYCLONEDX("CycloneDx"), SPDX("SPDX");
+  CYCLONEDX("CycloneDx"),
+  SPDX("SPDX");
 
   private final String specification;
 

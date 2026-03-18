@@ -16,8 +16,11 @@ public class QuartzPostgreSQLDelegate
     extends PostgreSQLDelegate
 {
   @Override
-  public List<TriggerKey> selectTriggerToAcquire(Connection conn, long noLaterThan, long noEarlierThan, int maxCount)
-      throws SQLException
+  public List<TriggerKey> selectTriggerToAcquire(
+      Connection conn,
+      long noLaterThan,
+      long noEarlierThan,
+      int maxCount) throws SQLException
   {
     return StdJDBCDelegateUtils.selectTriggerToAcquire(this, conn, super.selectTriggerToAcquire(conn, noLaterThan,
         noEarlierThan, maxCount), instanceId);

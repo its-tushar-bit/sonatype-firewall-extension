@@ -14,4 +14,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @JacksonAnnotationsInside
 @Retention(RetentionPolicy.RUNTIME)
 @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
-public @interface ApiDateFormat {}
+public @interface ApiDateFormat
+{
+}

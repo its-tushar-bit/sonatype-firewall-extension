@@ -256,7 +256,7 @@ public class ApplicationService
      * that a user might not have permission for the parent org of given application.
      * However, we still want to show waivers being applied to that parent org
      * as they will also apply to given child application.
-     * */
+     */
     final Map<String, Organization> allOrganizations = organizationDAO.getAll()
         .stream()
         .collect(Collectors.toMap(Organization::getId, Function.identity()));
@@ -288,7 +288,7 @@ public class ApplicationService
    * Gets a list of filtered applications where the current user has permissions on using
    * {@link #getApplications(String)} and checks if that list contains all applications. Useful to determine if a user
    * has permissions in all applications so a filter might not be needed.
-   * 
+   *
    * @return {@link Pair} with the List of applications where the current user has permissions on as left value and as
    *         right value a flag indicating if that list contains all applications.
    */
@@ -355,7 +355,7 @@ public class ApplicationService
 
   public Set<String> getApplicationIdsByOrganizationIds(Set<String> organizationIds) {
     Set<String> applicationIds = new HashSet<>();
-    if (organizationIds != null  && !organizationIds.isEmpty()) {
+    if (organizationIds != null && !organizationIds.isEmpty()) {
       List<Application> applications = applicationDAO.getByOrganizationIds(organizationIds);
       for (Application application : applications) {
         applicationIds.add(application.getId());
@@ -367,7 +367,8 @@ public class ApplicationService
   public void validateIfDockerProxyApplication(Application application, Organization organization) {
     Repository repository = repositoryDAO.getById(organization.getRelatedRepositoryId());
     if (repository == null || repository.getRepositoryType() != RepositoryType.proxy
-            || !"docker".equals(repository.getFormat())) {
+        || !"docker".equals(repository.getFormat()))
+    {
       checkWritePermission(application);
     }
     else {
@@ -377,14 +378,14 @@ public class ApplicationService
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   void checkEvaluateComponentPermission(
-          @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION) Application application)
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION) Application application)
   {
     // actual work done by AOP interceptor
   }
 
   @Authorize(permission = Permission.WRITE)
   void checkWritePermission(
-          @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION) Application application)
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION) Application application)
   {
     // actual work done by AOP interceptor
   }

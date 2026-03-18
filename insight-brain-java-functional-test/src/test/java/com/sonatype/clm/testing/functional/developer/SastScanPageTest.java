@@ -58,7 +58,7 @@ public class SastScanPageTest
     SastScanPage.filterBySeverityDropdown().shouldBe(visible);
     SastScanPage.findingsTable().shouldBe(visible);
 
-    //test sast finding table
+    // test sast finding table
     SastScanPage.sastFindingTableDataRows().shouldHave(size(4));
     SastScanPage.sastFindingTableDataRows().get(0).shouldHave(text("CWE"));
     SastScanPage.sastFindingTableDataRows().get(0).shouldHave(text("someDescription"));
@@ -66,7 +66,7 @@ public class SastScanPageTest
     SastScanPage.sastFindingTableDataRows().get(0).shouldHave(text("Medium"));
     SastScanPage.sastFindingTableDataRows().get(0).shouldHave(text("Critical"));
 
-    //test sast finding table filter
+    // test sast finding table filter
     SastScanPage.filterBySeverityDropdown().click();
     ElementsCollection filterOptions = SastScanPage.filterBySeverityDropdown().findAll(".nx-checkbox");
     filterOptions.shouldHave(size(4));

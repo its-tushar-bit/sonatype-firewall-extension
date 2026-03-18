@@ -115,7 +115,7 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
     assertResponseStatus(204, response);
     assertThat(autoPolicyWaiverExclusionDAO.getById(autoPolicyWaiver.getId())).isNull();
 
-    //when feature flag is disabled
+    // when feature flag is disabled
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
 
     response = restRequest()
@@ -163,8 +163,7 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
 
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         identifier,
-        violation
-    );
+        violation);
 
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
@@ -193,8 +192,7 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
 
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         identifier,
-        violation
-    );
+        violation);
 
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
@@ -239,8 +237,7 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
 
     final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
         identifier,
-        violation
-    );
+        violation);
 
     when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
         createPolicyThreats(Lists.newArrayList(component1Threats)));
@@ -258,7 +255,7 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
             application.getId(), autoPolicyWaiver.getId(), violation.getHash());
     assertThat(resultingExclusion).isNotNull();
 
-    //when feature flag is disabled
+    // when feature flag is disabled
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
 
     response = restRequest()
@@ -407,7 +404,7 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
 
     assertResponseStatus(200, response);
 
-    //when feature flag is disabled
+    // when feature flag is disabled
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
 
     response = restRequest()
@@ -451,8 +448,7 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
 
   private PolicyThreats.Component createPolicyThreatsComponents(
       ComponentIdentifier componentIdentifier,
-      PolicyViolation violation
-  )
+      PolicyViolation violation)
   {
     PolicyThreats.PolicyViolation policyViolation = new PolicyThreats.PolicyViolation();
     policyViolation.policyThreatLevel = violation.getThreatLevel();

@@ -100,7 +100,8 @@ public abstract class AbstractPolicyEvaluationTest
 
   @Override
   protected Module getOverrideModule() {
-    return new AbstractModule() {
+    return new AbstractModule()
+    {
       @Override
       protected void configure() {
         bind(OperationalDataStore.class).toInstance(databaseRule.getOperationalDataStore());
@@ -109,7 +110,8 @@ public abstract class AbstractPolicyEvaluationTest
         bind(ThirdPartyScansDataStore.class).toInstance(databaseRule.getThirdPartyScansDataStore());
         // Bind ClusterLockManagerProvider so it can be injected, then use it as a provider
         bind(ClusterLockManagerProvider.class);
-        bind(ClusterLockManager.class).toProvider(new com.google.inject.Provider<>() {
+        bind(ClusterLockManager.class).toProvider(new com.google.inject.Provider<>()
+        {
           @Inject
           ClusterLockManagerProvider provider;
 
@@ -134,14 +136,15 @@ public abstract class AbstractPolicyEvaluationTest
   protected List<PolicyAlert> evaluate(Stage stage, Policy policy, List<Component> components) {
     DroolsGenerator.generate(policy, labelDAO);
     return componentPolicyEvaluator.evaluate(null /* applicationId */, stage, Collections.singletonList(policy),
-            components).getActiveAlerts();
+        components).getActiveAlerts();
   }
 
-  protected Constraint createConstraint(String constraintId,
-                                        String constraintName,
-                                        String conditionTypeId,
-                                        String operator,
-                                        String value)
+  protected Constraint createConstraint(
+      String constraintId,
+      String constraintName,
+      String conditionTypeId,
+      String operator,
+      String value)
   {
     Condition condition = new Condition(conditionTypeId, operator, value);
     Constraint constraint = new Constraint(constraintId, constraintName, LogicalOperator.AND);
@@ -149,9 +152,10 @@ public abstract class AbstractPolicyEvaluationTest
     return constraint;
   }
 
-  public static void assertFactCounts(int expectedConstraintFactCount,
-                                      int expectedComponentFactCount,
-                                      PolicyAlert actualPolicyAlert)
+  public static void assertFactCounts(
+      int expectedConstraintFactCount,
+      int expectedComponentFactCount,
+      PolicyAlert actualPolicyAlert)
   {
     List<ComponentFact> componentFacts = actualPolicyAlert.getTrigger().getComponentFacts();
     assertThat(componentFacts).hasSize(expectedComponentFactCount);
@@ -169,12 +173,13 @@ public abstract class AbstractPolicyEvaluationTest
         .isEqualTo(expectedConstraintFactCount);
   }
 
-  private static List<ConditionFact> findConditionFactsInPolicyAlerts(Component expectedComponent,
-                                                                      Policy expectedPolicy,
-                                                                      Constraint expectedConstraint,
-                                                                      String expectedActionTypeId,
-                                                                      String expectedConditionTypeId,
-                                                                      List<PolicyAlert> actual)
+  private static List<ConditionFact> findConditionFactsInPolicyAlerts(
+      Component expectedComponent,
+      Policy expectedPolicy,
+      Constraint expectedConstraint,
+      String expectedActionTypeId,
+      String expectedConditionTypeId,
+      List<PolicyAlert> actual)
   {
     List<ConditionFact> result = new ArrayList<>();
 
@@ -182,13 +187,16 @@ public abstract class AbstractPolicyEvaluationTest
       PolicyFact policyFact = actualPolicyAlert.getTrigger();
       if (expectedPolicy.getId().equals(policyFact.getPolicyId())
           && expectedPolicy.getName().equals(policyFact.getPolicyName())
-          && policyAlertContainsAction(actualPolicyAlert, expectedActionTypeId)) {
+          && policyAlertContainsAction(actualPolicyAlert, expectedActionTypeId))
+      {
         for (ComponentFact componentFact : policyFact.getComponentFacts()) {
           if (Objects.equals(expectedComponent.getComponentIdentifier(), componentFact.getComponentIdentifier())
-              && Objects.equals(expectedComponent.getHash(), componentFact.getHash())) {
+              && Objects.equals(expectedComponent.getHash(), componentFact.getHash()))
+          {
             for (ConstraintFact constraintFact : componentFact.getConstraintFacts()) {
               if (expectedConstraint.getId().equals(constraintFact.getConstraintId())
-                  && expectedConstraint.getName().equals(constraintFact.getConstraintName())) {
+                  && expectedConstraint.getName().equals(constraintFact.getConstraintName()))
+              {
                 for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
                   if (expectedConditionTypeId.equals(conditionFact.getConditionTypeId())) {
                     result.add(conditionFact);
@@ -204,12 +212,13 @@ public abstract class AbstractPolicyEvaluationTest
     return result;
   }
 
-  public static List<ConditionFact> assertContainsPolicyAlert(Component expectedComponent,
-                                                              Policy expectedPolicy,
-                                                              Constraint expectedConstraint,
-                                                              String expectedActionTypeId,
-                                                              String expectedConditionTypeId,
-                                                              List<PolicyAlert> actual)
+  public static List<ConditionFact> assertContainsPolicyAlert(
+      Component expectedComponent,
+      Policy expectedPolicy,
+      Constraint expectedConstraint,
+      String expectedActionTypeId,
+      String expectedConditionTypeId,
+      List<PolicyAlert> actual)
   {
     List<ConditionFact> conditionFacts = findConditionFactsInPolicyAlerts(expectedComponent, expectedPolicy,
         expectedConstraint, expectedActionTypeId, expectedConditionTypeId, actual);
@@ -220,13 +229,14 @@ public abstract class AbstractPolicyEvaluationTest
     return conditionFacts;
   }
 
-  public static List<ConditionFact> assertContainsPolicyAlert(Component expectedComponent,
-                                                              Policy expectedPolicy,
-                                                              Constraint expectedConstraint,
-                                                              String expectedActionTypeId,
-                                                              String expectedConditionTypeId,
-                                                              ConditionTrigger expectedConditionTrigger,
-                                                              List<PolicyAlert> actual)
+  public static List<ConditionFact> assertContainsPolicyAlert(
+      Component expectedComponent,
+      Policy expectedPolicy,
+      Constraint expectedConstraint,
+      String expectedActionTypeId,
+      String expectedConditionTypeId,
+      ConditionTrigger expectedConditionTrigger,
+      List<PolicyAlert> actual)
   {
     List<ConditionFact> conditionFacts = findConditionFactsInPolicyAlerts(expectedComponent, expectedPolicy,
         expectedConstraint, expectedActionTypeId, expectedConditionTypeId, actual);
@@ -243,12 +253,13 @@ public abstract class AbstractPolicyEvaluationTest
     return null; // unreachable, only needed to avoid warnings
   }
 
-  public static void assertNotContainsPolicyAlert(Component expectedComponent,
-                                                  Policy expectedPolicy,
-                                                  Constraint expectedConstraint,
-                                                  String expectedActionTypeId,
-                                                  String expectedConditionTypeId,
-                                                  List<PolicyAlert> actual)
+  public static void assertNotContainsPolicyAlert(
+      Component expectedComponent,
+      Policy expectedPolicy,
+      Constraint expectedConstraint,
+      String expectedActionTypeId,
+      String expectedConditionTypeId,
+      List<PolicyAlert> actual)
   {
     List<ConditionFact> conditionFacts = findConditionFactsInPolicyAlerts(expectedComponent, expectedPolicy,
         expectedConstraint, expectedActionTypeId, expectedConditionTypeId, actual);
@@ -336,7 +347,7 @@ public abstract class AbstractPolicyEvaluationTest
         componentIdentifier = createCondaIdentifier(coord);
         break;
       case ComponentIdentifier.FORMAT_COMPOSER:
-        componentIdentifier =  ComponentIdentifier.createComposerCoordinates(coord[0], coord[1], coord[2]);
+        componentIdentifier = ComponentIdentifier.createComposerCoordinates(coord[0], coord[1], coord[2]);
         break;
       default:
         componentIdentifier = createLqaComponentIdentifier(format, coord);

@@ -239,11 +239,14 @@ public class UserTokenDAOTest
     tempEntity.newUserToken("username1", "userCode3", "passCode", "other");
 
     assertThat(userTokenDAO.getByUsernameAndRealmId("USERNAME1", User.INTERNAL_REALM_ID))
-        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(internalUserToken1);
+        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .isEqualTo(internalUserToken1);
     assertThat(userTokenDAO.getByUsernameAndRealmId("username1", User.INTERNAL_REALM_ID))
-        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(internalUserToken1);
+        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .isEqualTo(internalUserToken1);
     assertThat(userTokenDAO.getByUsernameAndRealmId("UsErNaMe1", User.INTERNAL_REALM_ID))
-        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(internalUserToken1);
+        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .isEqualTo(internalUserToken1);
   }
 
   @Test
@@ -255,7 +258,8 @@ public class UserTokenDAOTest
 
     assertThat(userTokenDAO.getByUsernameAndRealmId("USERNAME1", SamlUser.SAML_REALM_ID)).isNull();
     assertThat(userTokenDAO.getByUsernameAndRealmId("username1", SamlUser.SAML_REALM_ID))
-        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(samlUserToken1);
+        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .isEqualTo(samlUserToken1);
     assertThat(userTokenDAO.getByUsernameAndRealmId("UsErNaMe1", SamlUser.SAML_REALM_ID)).isNull();
   }
 
@@ -268,7 +272,8 @@ public class UserTokenDAOTest
 
     assertThat(userTokenDAO.getByUsernameAndRealmId("USERNAME1", OAuth2User.OAUTH2_REALM_ID)).isNull();
     assertThat(userTokenDAO.getByUsernameAndRealmId("username1", OAuth2User.OAUTH2_REALM_ID))
-        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(samlUserToken1);
+        .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .isEqualTo(samlUserToken1);
     assertThat(userTokenDAO.getByUsernameAndRealmId("UsErNaMe1", OAuth2User.OAUTH2_REALM_ID)).isNull();
   }
 }

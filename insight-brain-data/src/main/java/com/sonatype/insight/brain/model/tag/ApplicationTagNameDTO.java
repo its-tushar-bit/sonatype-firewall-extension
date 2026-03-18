@@ -5,4 +5,6 @@
  */
 package com.sonatype.insight.brain.model.tag;
 
-public record ApplicationTagNameDTO(String applicationId, String tagName) { }
+public record ApplicationTagNameDTO(String applicationId, String tagName)
+{
+}

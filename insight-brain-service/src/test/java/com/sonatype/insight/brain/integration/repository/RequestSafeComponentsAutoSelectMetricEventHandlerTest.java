@@ -66,8 +66,9 @@ public class RequestSafeComponentsAutoSelectMetricEventHandlerTest
   public void testOnSafeComponentsAutoSelectMetricRequested_PolicyCompliantVersionCountIsGreaterThanZero() {
     handler.onSafeComponentsAutoSelectMetricRequested(new RequestSafeComponentsAutoSelectMetricEvent());
     assertThat(logOutput).contains("Request of safe components auto-selected for Firewall Metrics saved");
-    assertThat(firewallMetricsDAO.getAll()).isNotEmpty().filteredOn( firewallMetric ->
-        firewallMetric.getMetricsValue() == 1 && firewallMetric.getMetricsName()
-            .equals(FirewallMetricsName.SAFE_VERSIONS_SELECTED_AUTOMATICALLY)).hasSize(1);
+    assertThat(firewallMetricsDAO.getAll()).isNotEmpty()
+        .filteredOn(firewallMetric -> firewallMetric.getMetricsValue() == 1 && firewallMetric.getMetricsName()
+            .equals(FirewallMetricsName.SAFE_VERSIONS_SELECTED_AUTOMATICALLY))
+        .hasSize(1);
   }
 }

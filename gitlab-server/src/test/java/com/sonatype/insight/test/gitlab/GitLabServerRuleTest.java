@@ -67,4 +67,3 @@ public class GitLabServerRuleTest
     assertThat(gitLabServerRule.getGitLabServer()).isNull();
   }
 }
-

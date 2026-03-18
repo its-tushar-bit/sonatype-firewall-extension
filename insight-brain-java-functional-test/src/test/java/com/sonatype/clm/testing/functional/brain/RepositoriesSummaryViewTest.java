@@ -184,7 +184,8 @@ public class RepositoriesSummaryViewTest
     for (int i = 0; i < repositories.size(); i++) {
       Repository repository = repositories.get(i);
 
-      configurationTable.row(i + 1, 1).managerId()
+      configurationTable.row(i + 1, 1)
+          .managerId()
           .shouldHave(text(repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId()));
       configurationTable.row(i + 1, 2).publicId().shouldHave(text(repository.getPublicId()));
       if (repository.isAuditEnabled()) {
@@ -484,8 +485,8 @@ public class RepositoriesSummaryViewTest
   @Test
   public void testNamespaceConfusionProtection_sortTableByRepository() {
     String[] repositoryManagerInstanceIds = {
-        "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB",
-        "2E111629-6B9EDCBA-B5989887-132718F9-8C354DFB", "3E111629-6B9EDCBA-B5989887-132718F9-8C354DFB"
+      "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB",
+      "2E111629-6B9EDCBA-B5989887-132718F9-8C354DFB", "3E111629-6B9EDCBA-B5989887-132718F9-8C354DFB"
     };
     String[] repositoryPublicIds = {"my-hosted-maven", "hosted-npm", "custom-hosted-maven"};
 
@@ -540,8 +541,8 @@ public class RepositoriesSummaryViewTest
   public void testNamespaceConfusionProtection_sortTableByRepoManagerInstanceId() {
     String[] componentNamespaces = {"ant", "b-social", "moment"};
     String[] repositoryManagerInstanceIds = {
-        "2E111629-6B9EDCBA-B5989887-132718F9-8C354DFB",
-        "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB", "3E111629-6B9EDCBA-B5989887-132718F9-8C354DFB"
+      "2E111629-6B9EDCBA-B5989887-132718F9-8C354DFB",
+      "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB", "3E111629-6B9EDCBA-B5989887-132718F9-8C354DFB"
     };
     String[] repositoryPublicIds = {"custom-maven-hosted", "my-maven-hosted", "custom-npm-hosted"};
 
@@ -574,11 +575,14 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn()
         .shouldHave(attribute("aria-label", "Repository Manager ascending"));
 
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(0)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(0)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(1)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(1)
         .shouldHave(text(repositoryManagerInstanceIds[0]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(2)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(2)
         .shouldHave(text(repositoryManagerInstanceIds[2]));
 
     namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn().click();
@@ -586,11 +590,14 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn()
         .shouldHave(attribute("aria-label", "Repository Manager descending"));
 
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(0)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(0)
         .shouldHave(text(repositoryManagerInstanceIds[2]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(1)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(1)
         .shouldHave(text(repositoryManagerInstanceIds[0]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(2)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(2)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
   }
 
@@ -674,8 +681,8 @@ public class RepositoriesSummaryViewTest
   @Test
   public void testNamespaceConfusionProtection_Pagination() {
     String[] componentNamespaces = {
-        "@testing-library/react", "ant", "b-social", "express", "high-c", "itext", "jproc",
-        "lodash", "moment", "net.ju-n.compile-command-annotations", "underscore", "v-core", "z-com"
+      "@testing-library/react", "ant", "b-social", "express", "high-c", "itext", "jproc",
+      "lodash", "moment", "net.ju-n.compile-command-annotations", "underscore", "v-core", "z-com"
     };
     String mvnRepositoryManagerId = "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
     String npmRepositoryManagerId = "9E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
@@ -724,7 +731,8 @@ public class RepositoriesSummaryViewTest
 
     namespaceConfusionProtectionTile.nextPageBtn().click();
 
-    namespaceConfusionProtectionTile.previousPageBtn().shouldBe(visible)
+    namespaceConfusionProtectionTile.previousPageBtn()
+        .shouldBe(visible)
         .shouldHave(attribute("aria-label", "previous page"));
     namespaceConfusionProtectionTile.nextPageBtn().shouldBe(visible).shouldHave(attribute("aria-label", "next page"));
 
@@ -739,14 +747,16 @@ public class RepositoriesSummaryViewTest
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHave(size(1));
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[12]));
-    namespaceConfusionProtectionTile.previousPageBtn().shouldBe(visible)
+    namespaceConfusionProtectionTile.previousPageBtn()
+        .shouldBe(visible)
         .shouldHave(attribute("aria-label", "previous page"));
     namespaceConfusionProtectionTile.nextPageBtn().shouldNotBe(visible);
 
     namespaceConfusionProtectionTile.previousPageBtn().click();
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHave(size(6));
-    namespaceConfusionProtectionTile.previousPageBtn().shouldBe(visible)
+    namespaceConfusionProtectionTile.previousPageBtn()
+        .shouldBe(visible)
         .shouldHave(attribute("aria-label", "previous page"));
     namespaceConfusionProtectionTile.nextPageBtn().shouldBe(visible).shouldHave(attribute("aria-label", "next page"));
 
@@ -829,17 +839,23 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn()
         .shouldHave(attribute("aria-label", "Repository Manager ascending"));
 
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(0)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(0)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(1)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(1)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(2)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(2)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(3)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(3)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(4)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(4)
         .shouldHave(text(repositoryManagerInstanceIds[0]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(5)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(5)
         .shouldHave(text(repositoryManagerInstanceIds[0]));
 
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[1]));
@@ -853,17 +869,23 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn()
         .shouldHave(attribute("aria-label", "Repository Manager descending"));
 
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(0)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(0)
         .shouldHave(text(repositoryManagerInstanceIds[0]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(1)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(1)
         .shouldHave(text(repositoryManagerInstanceIds[0]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(2)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(2)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(3)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(3)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(4)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(4)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(5)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(5)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
 
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[0]));
@@ -887,17 +909,23 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(4).shouldHave(text(repositoryPublicIds[0]));
     namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(5).shouldHave(text(repositoryPublicIds[0]));
 
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(0)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(0)
         .shouldHave(text(repositoryManagerInstanceIds[0]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(1)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(1)
         .shouldHave(text(repositoryManagerInstanceIds[0]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(2)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(2)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(3)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(3)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(4)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(4)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(5)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(5)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
 
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[0]));
@@ -918,17 +946,23 @@ public class RepositoriesSummaryViewTest
     namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(4).shouldHave(text(repositoryPublicIds[1]));
     namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(5).shouldHave(text(repositoryPublicIds[1]));
 
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(0)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(0)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(1)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(1)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(2)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(2)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(3)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(3)
         .shouldHave(text(repositoryManagerInstanceIds[1]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(4)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(4)
         .shouldHave(text(repositoryManagerInstanceIds[0]));
-    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(5)
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells()
+        .get(5)
         .shouldHave(text(repositoryManagerInstanceIds[0]));
 
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[1]));
@@ -1010,9 +1044,10 @@ public class RepositoriesSummaryViewTest
 
     refreshOrOpen(RepositoryResultsSummaryPage.url());
 
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Repository ascending"));
-    assertRowOrder("De", "bb", "df", "ac", "ee","Ab");
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn()
+        .shouldHave(
+            attribute("aria-label", "Repository ascending"));
+    assertRowOrder("De", "bb", "df", "ac", "ee", "Ab");
   }
 
   @Test
@@ -1024,14 +1059,17 @@ public class RepositoriesSummaryViewTest
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldBe(visible);
     RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().shouldBe(visible);
     RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().shouldBe(visible);
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Repository ascending"));
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Format unsorted"));
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Type unsorted"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn()
+        .shouldHave(
+            attribute("aria-label", "Repository ascending"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn()
+        .shouldHave(
+            attribute("aria-label", "Format unsorted"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn()
+        .shouldHave(
+            attribute("aria-label", "Type unsorted"));
 
-    assertRowOrder("rm1", "b", "d", "e", "g", "i","rm2", "a", "c", "f", "h", "j");
+    assertRowOrder("rm1", "b", "d", "e", "g", "i", "rm2", "a", "c", "f", "h", "j");
   }
 
   @Test
@@ -1065,8 +1103,9 @@ public class RepositoriesSummaryViewTest
     refreshOrOpen(RepositoryResultsSummaryPage.url());
 
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().click();
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Repository descending"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn()
+        .shouldHave(
+            attribute("aria-label", "Repository descending"));
 
     assertRowOrder("rm1", "i", "g", "e", "d", "b", "rm2", "j", "h", "f", "c", "a");
   }
@@ -1083,27 +1122,27 @@ public class RepositoriesSummaryViewTest
     tempEntity.newProxyRepository(rm2, "d", "maven", true, false);
     tempEntity.newProxyRepository(rm2, "e", "maven", true, true);
     tempEntity.newProxyRepository(rm2, "f", "npm", false, false);
-    tempEntity.newRepositoryManager("instanceId3", "rmAE","repoProductName3",
+    tempEntity.newRepositoryManager("instanceId3", "rmAE", "repoProductName3",
         "repoProductVersion3");
-    RepositoryManager rm3 = tempEntity.newRepositoryManager("instanceId4", "rmBC","repoProductName4",
+    RepositoryManager rm3 = tempEntity.newRepositoryManager("instanceId4", "rmBC", "repoProductName4",
         "repoProductVersion4");
     tempEntity.newProxyRepository(rm3, "ad", "maven", true, false);
     tempEntity.newProxyRepository(rm3, "ae", "maven", true, true);
     tempEntity.newProxyRepository(rm3, "af", "npm", false, false);
-    tempEntity.newRepositoryManager("instanceId5", "emptyrmC","repoProductName5",
+    tempEntity.newRepositoryManager("instanceId5", "emptyrmC", "repoProductName5",
         "repoProductVersion5");
 
     refreshOrOpen(RepositoryResultsSummaryPage.url());
 
     assertRowOrder(
         "emptyrmC", "There are no repositories registered with the server.",
-        "rmA", "a", "b", "c","rmAE", "There are no repositories registered with the server.",
-        "rmB", "d", "e", "f","rmBC", "ad", "ae", "af"
-    );
+        "rmA", "a", "b", "c", "rmAE", "There are no repositories registered with the server.",
+        "rmB", "d", "e", "f", "rmBC", "ad", "ae", "af");
 
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().click();
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Repository descending"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn()
+        .shouldHave(
+            attribute("aria-label", "Repository descending"));
 
     RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
     ConfigurationTable configurationTable = configurationTile.configurationTable();
@@ -1111,9 +1150,8 @@ public class RepositoriesSummaryViewTest
 
     assertRowOrder(
         "emptyrmC", "There are no repositories registered with the server.",
-        "rmA", "c", "b", "a","rmAE", "There are no repositories registered with the server.",
-        "rmB", "f", "e", "d","rmBC", "af", "ae", "ad"
-    );
+        "rmA", "c", "b", "a", "rmAE", "There are no repositories registered with the server.",
+        "rmB", "f", "e", "d", "rmBC", "af", "ae", "ad");
   }
 
   @Test
@@ -1122,19 +1160,22 @@ public class RepositoriesSummaryViewTest
     refreshOrOpen(RepositoryResultsSummaryPage.url());
 
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().click();
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Repository descending"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn()
+        .shouldHave(
+            attribute("aria-label", "Repository descending"));
     RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().click();
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Format ascending"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn()
+        .shouldHave(
+            attribute("aria-label", "Format ascending"));
 
     assertRowOrder("rm1", "i", "e", "b", "g", "d", "rm2", "j", "f", "c", "h", "a");
 
     ScrollUtil.scrollIntoView(
         RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().getElement());
     RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().click();
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Format descending"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryFormatHeaderSortBtn()
+        .shouldHave(
+            attribute("aria-label", "Format descending"));
 
     assertRowOrder("rm1", "g", "d", "i", "e", "b", "rm2", "h", "a", "j", "f", "c");
   }
@@ -1145,18 +1186,21 @@ public class RepositoriesSummaryViewTest
     refreshOrOpen(RepositoryResultsSummaryPage.url());
 
     RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().click();
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Repository descending"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn()
+        .shouldHave(
+            attribute("aria-label", "Repository descending"));
     RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().click();
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Type ascending"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn()
+        .shouldHave(
+            attribute("aria-label", "Type ascending"));
 
     assertRowOrder("rm1", "e", "d", "i", "g", "b", "rm2", "j", "a", "h", "f", "c");
 
     ScrollUtil.scrollIntoView(RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().getElement());
     RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().click();
-    RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Type descending"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryTypeHeaderSortBtn()
+        .shouldHave(
+            attribute("aria-label", "Type descending"));
 
     assertRowOrder("rm1", "i", "g", "b", "e", "d", "rm2", "h", "f", "c", "j", "a");
   }
@@ -1350,8 +1394,9 @@ public class RepositoriesSummaryViewTest
 
     NxDeleteModal deleteModal = new NxDeleteModal("#owner-delete-modal");
     deleteModal.header().shouldHave(text("Delete Repository Manager"));
-    deleteModal.alertContent().shouldHave(text("You are about to permanently remove " +
-        repositoryManager.getInstanceId() + " and 0 descendants. This action cannot be undone."));
+    deleteModal.alertContent()
+        .shouldHave(text("You are about to permanently remove " +
+            repositoryManager.getInstanceId() + " and 0 descendants. This action cannot be undone."));
 
     deleteModal.submitButton().click();
     deleteModal.shouldNotBe(visible);
@@ -1374,8 +1419,9 @@ public class RepositoriesSummaryViewTest
 
     NxDeleteModal deleteModal = new NxDeleteModal("#owner-delete-modal");
     deleteModal.header().shouldHave(text("Delete Repository Manager"));
-    deleteModal.alertContent().shouldHave(text("You are about to permanently remove " +
-        repositoryManager.getInstanceId() + " and 0 descendants. This action cannot be undone."));
+    deleteModal.alertContent()
+        .shouldHave(text("You are about to permanently remove " +
+            repositoryManager.getInstanceId() + " and 0 descendants. This action cannot be undone."));
 
     deleteModal.closeButton().click();
     deleteModal.shouldNotBe(visible);
@@ -1406,7 +1452,8 @@ public class RepositoriesSummaryViewTest
 
     namespaceConfusionProtectionTile.tableBodyRows().shouldHave(size(1));
 
-    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0)
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells()
+        .get(0)
         .shouldHave(text(namePattern.getNamespacePattern()));
     namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().isEmpty();
     namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(0).shouldHave(text(repo.getPublicId()));
@@ -1496,7 +1543,8 @@ public class RepositoriesSummaryViewTest
     // 1 header row, 1 row for header filters, 2 repository rows
     configTable.rows().shouldHave(size(4));
 
-    configTable.repoManagerConfigTableRow(1).repoManagerConfigTablePublicId()
+    configTable.repoManagerConfigTableRow(1)
+        .repoManagerConfigTablePublicId()
         .shouldHave(text(hostedRepo.getPublicId()));
     configTable.repoManagerConfigTableRow(1).format().shouldHave(text(hostedRepo.getFormat()));
     configTable.repoManagerConfigTableRow(1).repositoryType().shouldHave(text(hostedRepo.getRepositoryType().name()));
@@ -1540,11 +1588,9 @@ public class RepositoriesSummaryViewTest
     tempEntity
         .newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, rootOrgReadRole.getId(), "Group", MemberType.GROUP);
     tempEntity.newMembershipMapping(
-        RepositoryContainer.REPOSITORY_CONTAINER_ID, repoContainerWriteRole.getId(), testUser.getUsername()
-    );
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, repoContainerWriteRole.getId(), testUser.getUsername());
     tempEntity.newMembershipMapping(
-        RepositoryContainer.REPOSITORY_CONTAINER_ID, repoContainerReadRole.getId(), "Group", MemberType.GROUP
-    );
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, repoContainerReadRole.getId(), "Group", MemberType.GROUP);
 
     refreshOrOpen(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
     waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repositoryManager.getId()));
@@ -1781,8 +1827,11 @@ public class RepositoriesSummaryViewTest
     breadcrumb.listItems().get(2).shouldHave(text(repositoryManager.getName()));
 
     RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
-    configurationTile.configurationTable().repoManagerConfigTableRow(1).editRepositoryButton()
-        .shouldBe(visible, enabled).click();
+    configurationTile.configurationTable()
+        .repoManagerConfigTableRow(1)
+        .editRepositoryButton()
+        .shouldBe(visible, enabled)
+        .click();
 
     waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(repository.getId()));
 

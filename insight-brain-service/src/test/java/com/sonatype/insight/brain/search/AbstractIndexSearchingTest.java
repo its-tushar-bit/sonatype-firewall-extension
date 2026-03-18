@@ -193,7 +193,9 @@ public abstract class AbstractIndexSearchingTest
 
   private List<SearchResultItemDTO> search(String query, boolean allComponents) throws Exception {
     return searchService.searchIndex(query, Integer.MAX_VALUE, 1, allComponents, null, null).groupingByDTOS.stream()
-        .map(groupDTO -> groupDTO.searchResultItemDTOS).flatMap(List::stream).collect(toList());
+        .map(groupDTO -> groupDTO.searchResultItemDTOS)
+        .flatMap(List::stream)
+        .collect(toList());
   }
 
   private List<SearchResultItemDTO> search(String query) throws Exception {
@@ -204,16 +206,19 @@ public abstract class AbstractIndexSearchingTest
     return search(fieldIdentifier + ":" + fieldValue, false);
   }
 
-  private List<SearchResultItemDTO> searchInAllComponents(FieldIdentifier fieldIdentifier, String fieldValue)
-      throws Exception
+  private List<SearchResultItemDTO> searchInAllComponents(
+      FieldIdentifier fieldIdentifier,
+      String fieldValue) throws Exception
   {
     return search(fieldIdentifier + ":" + fieldValue, true);
   }
 
   private List<SearchResultItemDTO> sbomManagerSearch(String query, boolean allComponents) throws Exception {
     return searchService.searchIndex(query, Integer.MAX_VALUE, 1, allComponents, ProductMode.SBOM_MANAGER,
-            null).groupingByDTOS.stream().map(groupDTO -> groupDTO.searchResultItemDTOS).flatMap(List::stream)
-        .collect(toList());
+        null).groupingByDTOS.stream()
+            .map(groupDTO -> groupDTO.searchResultItemDTOS)
+            .flatMap(List::stream)
+            .collect(toList());
   }
 
   private List<SearchResultItemDTO> sbomManagerSearch(
@@ -223,8 +228,9 @@ public abstract class AbstractIndexSearchingTest
     return sbomManagerSearch(fieldIdentifier + ":" + fieldValue, false);
   }
 
-  private List<SearchResultItemDTO> sbomManagerSearchInAllComponents(FieldIdentifier fieldIdentifier, String fieldValue)
-      throws Exception
+  private List<SearchResultItemDTO> sbomManagerSearchInAllComponents(
+      FieldIdentifier fieldIdentifier,
+      String fieldValue) throws Exception
   {
     return sbomManagerSearch(fieldIdentifier + ":" + fieldValue, true);
   }
@@ -240,8 +246,11 @@ public abstract class AbstractIndexSearchingTest
     return policyEval;
   }
 
-  private PolicyEvaluation newAppReport(String appId, String stageId, String reportId, String reportResourceName)
-      throws Exception
+  private PolicyEvaluation newAppReport(
+      String appId,
+      String stageId,
+      String reportId,
+      String reportResourceName) throws Exception
   {
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(appId, stageId, reportId);
     ReportTestUtils.createReportFile(policyEval.getApplicationId(), policyEval.getScanId(),
@@ -515,8 +524,7 @@ public abstract class AbstractIndexSearchingTest
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSbomEvaluation(app, appVersion, sbomSpecification,
         new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345", "deadbeef", true,
-        PENDING
-    );
+        PENDING);
 
     index();
     List<SearchResultItemDTO> results = sbomManagerSearch(FieldIdentifier.VULNERABILITY_ID, "someRefId");
@@ -580,9 +588,11 @@ public abstract class AbstractIndexSearchingTest
     tempEntity.newOrganization();
     index();
     assertThat(search(FieldIdentifier.ORGANIZATION_ID, org.getId().toLowerCase(Locale.ROOT)))
-        .extracting(dto -> dto.organizationId).containsExactlyInAnyOrder(org.getId());
+        .extracting(dto -> dto.organizationId)
+        .containsExactlyInAnyOrder(org.getId());
     assertThat(search(FieldIdentifier.ORGANIZATION_ID, org.getId().toUpperCase(Locale.ROOT)))
-        .extracting(dto -> dto.organizationId).containsExactlyInAnyOrder(org.getId());
+        .extracting(dto -> dto.organizationId)
+        .containsExactlyInAnyOrder(org.getId());
   }
 
   @Test
@@ -602,9 +612,11 @@ public abstract class AbstractIndexSearchingTest
         "search-test", tempEntity.newApplicationWithParent().getOrganizationId());
     index();
     assertThat(search(FieldIdentifier.APPLICATION_ID, app.getId().toLowerCase(Locale.ROOT)))
-        .extracting(dto -> dto.applicationId).containsExactlyInAnyOrder(app.getId());
+        .extracting(dto -> dto.applicationId)
+        .containsExactlyInAnyOrder(app.getId());
     assertThat(search(FieldIdentifier.APPLICATION_ID, app.getId().toUpperCase(Locale.ROOT)))
-        .extracting(dto -> dto.applicationId).containsExactlyInAnyOrder(app.getId());
+        .extracting(dto -> dto.applicationId)
+        .containsExactlyInAnyOrder(app.getId());
   }
 
   @Test
@@ -663,8 +675,7 @@ public abstract class AbstractIndexSearchingTest
           assertThat(result2.vulnerabilityId).isEqualTo("someRefId");
           assertThat(result2.vulnerabilityDescription).isEqualTo("someDescription");
           assertThat(result2.componentName).isEqualTo("com.h2database : h2 : 1.4.200");
-        }
-    );
+        });
   }
 
   @Test
@@ -690,8 +701,7 @@ public abstract class AbstractIndexSearchingTest
           assertThat(result2.vulnerabilityId).isEqualTo("someRefId");
           assertThat(result2.vulnerabilityDescription).isEqualTo("someDescription");
           assertThat(result2.componentName).isEqualTo("com.h2database : h2 : 1.4.200");
-        }
-    );
+        });
   }
 
   @Test
@@ -700,9 +710,11 @@ public abstract class AbstractIndexSearchingTest
     tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
     index();
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_ID, tag.getId().toLowerCase(Locale.ROOT)))
-        .extracting(dto -> dto.applicationCategoryId).containsExactlyInAnyOrder(tag.getId());
+        .extracting(dto -> dto.applicationCategoryId)
+        .containsExactlyInAnyOrder(tag.getId());
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_ID, tag.getId().toUpperCase(Locale.ROOT)))
-        .extracting(dto -> dto.applicationCategoryId).containsExactlyInAnyOrder(tag.getId());
+        .extracting(dto -> dto.applicationCategoryId)
+        .containsExactlyInAnyOrder(tag.getId());
   }
 
   @Test
@@ -711,7 +723,8 @@ public abstract class AbstractIndexSearchingTest
     tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID, "Search Test 2");
     index();
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_NAME, "\"search TEST\""))
-        .extracting(dto -> dto.applicationCategoryId).containsExactlyInAnyOrder(tag.getId());
+        .extracting(dto -> dto.applicationCategoryId)
+        .containsExactlyInAnyOrder(tag.getId());
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_NAME, "seaRCH")).isEmpty();
   }
 
@@ -721,7 +734,8 @@ public abstract class AbstractIndexSearchingTest
     tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID, "Search Test 2", Color.dark_blue);
     index();
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_COLOR, "DARK-red"))
-        .extracting(dto -> dto.applicationCategoryId).containsExactlyInAnyOrder(tag.getId());
+        .extracting(dto -> dto.applicationCategoryId)
+        .containsExactlyInAnyOrder(tag.getId());
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_COLOR, "daRK")).isEmpty();
   }
 
@@ -731,9 +745,11 @@ public abstract class AbstractIndexSearchingTest
     Tag tag2 = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID, "Category 2", "Search Testing 2", Color.dark_blue);
     index();
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION, "\"search TEST\""))
-        .extracting(dto -> dto.applicationCategoryId).containsExactlyInAnyOrder(tag1.getId());
+        .extracting(dto -> dto.applicationCategoryId)
+        .containsExactlyInAnyOrder(tag1.getId());
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION, "seaRCH"))
-        .extracting(dto -> dto.applicationCategoryId).containsExactlyInAnyOrder(tag1.getId(), tag2.getId());
+        .extracting(dto -> dto.applicationCategoryId)
+        .containsExactlyInAnyOrder(tag1.getId(), tag2.getId());
   }
 
   @Test
@@ -742,9 +758,11 @@ public abstract class AbstractIndexSearchingTest
     tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
     index();
     assertThat(search(FieldIdentifier.COMPONENT_LABEL_ID, label.getId().toLowerCase(Locale.ROOT)))
-        .extracting(dto -> dto.componentLabelId).containsExactlyInAnyOrder(label.getId());
+        .extracting(dto -> dto.componentLabelId)
+        .containsExactlyInAnyOrder(label.getId());
     assertThat(search(FieldIdentifier.COMPONENT_LABEL_ID, label.getId().toUpperCase(Locale.ROOT)))
-        .extracting(dto -> dto.componentLabelId).containsExactlyInAnyOrder(label.getId());
+        .extracting(dto -> dto.componentLabelId)
+        .containsExactlyInAnyOrder(label.getId());
   }
 
   @Test
@@ -774,7 +792,8 @@ public abstract class AbstractIndexSearchingTest
         tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "Category 2", "Search Testing 2", Color.dark_blue);
     index();
     assertThat(search(FieldIdentifier.COMPONENT_LABEL_DESCRIPTION, "\"search TEST\""))
-        .extracting(dto -> dto.componentLabelId).containsExactlyInAnyOrder(label1.getId());
+        .extracting(dto -> dto.componentLabelId)
+        .containsExactlyInAnyOrder(label1.getId());
     assertThat(search(FieldIdentifier.COMPONENT_LABEL_DESCRIPTION, "seaRCH")).extracting(dto -> dto.componentLabelId)
         .containsExactlyInAnyOrder(label1.getId(), label2.getId());
   }
@@ -785,9 +804,11 @@ public abstract class AbstractIndexSearchingTest
     tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
     index();
     assertThat(search(FieldIdentifier.POLICY_ID, policy.getId().toLowerCase(Locale.ROOT)))
-        .extracting(dto -> dto.policyId).containsExactlyInAnyOrder(policy.getId());
+        .extracting(dto -> dto.policyId)
+        .containsExactlyInAnyOrder(policy.getId());
     assertThat(search(FieldIdentifier.POLICY_ID, policy.getId().toUpperCase(Locale.ROOT)))
-        .extracting(dto -> dto.policyId).containsExactlyInAnyOrder(policy.getId());
+        .extracting(dto -> dto.policyId)
+        .containsExactlyInAnyOrder(policy.getId());
   }
 
   @Test
@@ -905,7 +926,8 @@ public abstract class AbstractIndexSearchingTest
     newAppReport(Stage.ID_RELEASE, "report-id");
     index();
     assertThat(search(FieldIdentifier.COMPONENT_COORDINATE + "PackageId:search.TEST"))
-        .extracting(dto -> dto.componentHash).containsExactlyInAnyOrder("1234567890abcdeABCDE");
+        .extracting(dto -> dto.componentHash)
+        .containsExactlyInAnyOrder("1234567890abcdeABCDE");
     assertThat(search(FieldIdentifier.COMPONENT_COORDINATE + "Version:1.2.3")).extracting(dto -> dto.componentHash)
         .containsExactlyInAnyOrder("1234567890abcdeABCDE");
   }
@@ -946,7 +968,8 @@ public abstract class AbstractIndexSearchingTest
     assertThat(search(FieldIdentifier.VULNERABILITY_DESCRIPTION, "xSs")).extracting(dto -> dto.vulnerabilityId)
         .containsOnly("CVE-8765-1234");
     assertThat(search(FieldIdentifier.VULNERABILITY_DESCRIPTION, "\"cross-site scripting\""))
-        .extracting(dto -> dto.vulnerabilityId).containsOnly("CVE-8765-1234");
+        .extracting(dto -> dto.vulnerabilityId)
+        .containsOnly("CVE-8765-1234");
   }
 
   @Test
@@ -1008,7 +1031,8 @@ public abstract class AbstractIndexSearchingTest
     newAppReport(Stage.ID_BUILD, "report-1");
     index();
     assertThat(search("CVE-8765-1234 AND " + FieldIdentifier.APPLICATION_ID + ":" + appId))
-        .extracting(dto -> dto.reportId).containsExactlyInAnyOrder("report-0");
+        .extracting(dto -> dto.reportId)
+        .containsExactlyInAnyOrder("report-0");
   }
 
   @Test
@@ -1017,8 +1041,9 @@ public abstract class AbstractIndexSearchingTest
     Tag tag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
     index();
     assertThat(search(FieldIdentifier.POLICY_ID + ":" + policy.getId() + " " + FieldIdentifier.APPLICATION_CATEGORY_ID
-        + ":" + tag.getId())).extracting(dto -> dto.itemType).containsExactlyInAnyOrder(ItemType.POLICY.name(),
-        ItemType.APPLICATION_CATEGORY.name());
+        + ":" + tag.getId())).extracting(dto -> dto.itemType)
+            .containsExactlyInAnyOrder(ItemType.POLICY.name(),
+                ItemType.APPLICATION_CATEGORY.name());
   }
 
   @Test
@@ -1034,9 +1059,11 @@ public abstract class AbstractIndexSearchingTest
     PolicyEvaluation newEval2 = newAppReport(eval.getApplicationId(), Stage.ID_RELEASE, "new-report-id-2");
     indexChanges();
     assertThat(search(FieldIdentifier.POLICY_EVALUATION_STAGE, newEval1.getStageTypeId()))
-        .extracting(dto -> dto.reportId).containsOnly(newEval1.getScanId());
+        .extracting(dto -> dto.reportId)
+        .containsOnly(newEval1.getScanId());
     assertThat(search(FieldIdentifier.POLICY_EVALUATION_STAGE, newEval2.getStageTypeId()))
-        .extracting(dto -> dto.reportId).containsOnly(newEval2.getScanId());
+        .extracting(dto -> dto.reportId)
+        .containsOnly(newEval2.getScanId());
   }
 
   @Test
@@ -1115,7 +1142,8 @@ public abstract class AbstractIndexSearchingTest
     // Wait for the import processing to complete
     int totalWait = 0;
     String scanRequestId = scanTicket.statusUrl.substring(scanTicket.statusUrl.lastIndexOf('/') + 1);
-    ApiThirdPartyScanResultDTO scanResult = await().atMost(30, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(1))
+    ApiThirdPartyScanResultDTO scanResult = await().atMost(30, TimeUnit.SECONDS)
+        .pollInterval(Duration.ofSeconds(1))
         .until(() -> {
           try {
             return apiThirdPartyScanService.getScanStatus(app.getId(), scanRequestId);
@@ -1127,7 +1155,7 @@ public abstract class AbstractIndexSearchingTest
 
     assertThat(scanResult.errorMessage).isBlank();
     assertThat(scanResult.isError).isFalse();
-    assertThat((long)totalWait).isLessThanOrEqualTo(Duration.ofSeconds(30).toMillis());
+    assertThat((long) totalWait).isLessThanOrEqualTo(Duration.ofSeconds(30).toMillis());
     assertThat(searchIndexChangeDAO.getAll()).filteredOn(change -> change.getChangeType() == ChangeType.SBOM)
         .isNotEmpty();
 
@@ -1217,8 +1245,7 @@ public abstract class AbstractIndexSearchingTest
           assertThat(hdsVuln6.sbomSpecification).isEqualTo("CycloneDx");
           assertThat(hdsVuln6.vulnerabilityId).isEqualTo("sonatype-2020-1579");
           assertThat(hdsVuln6.componentName).isEqualTo("prismjs : 1.27.0");
-        }
-    );
+        });
   }
 
   @Test

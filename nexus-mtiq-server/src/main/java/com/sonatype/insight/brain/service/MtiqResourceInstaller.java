@@ -14,8 +14,8 @@ import ru.vyarus.dropwizard.guice.module.installer.feature.jersey.ResourceInstal
  * ResourceInstaller is the part of dropwizard-guicey that detects jersey resource classes and registers
  * them in Jersey. This subclass avoids automatically registering:
  * <ul>
- *   <li>MTIQ admin endpoints (marked with @MtiqAdminEndpoint) - these go in the admin bundle</li>
- *   <li>IQ-only endpoints (marked with @IqOnlyEndpoint) - these should not be available in MTIQ</li>
+ * <li>MTIQ admin endpoints (marked with @MtiqAdminEndpoint) - these go in the admin bundle</li>
+ * <li>IQ-only endpoints (marked with @IqOnlyEndpoint) - these should not be available in MTIQ</li>
  * </ul>
  */
 public class MtiqResourceInstaller

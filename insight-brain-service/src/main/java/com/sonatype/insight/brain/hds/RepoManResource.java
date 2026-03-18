@@ -48,8 +48,9 @@ public class RepoManResource
   @PUT
   @Path(SCAN_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ScanReceipt uploadScan(@PathParam("applicationPublicId") final String applicationPublicId,
-                                @Context HttpServletRequest req) throws IOException
+  public ScanReceipt uploadScan(
+      @PathParam("applicationPublicId") final String applicationPublicId,
+      @Context HttpServletRequest req) throws IOException
   {
     return scanHandler.handle(req, applicationPublicId, ClientScanType.SONATYPE);
   }

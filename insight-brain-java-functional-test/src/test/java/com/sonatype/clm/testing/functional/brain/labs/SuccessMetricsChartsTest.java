@@ -169,7 +169,7 @@ public class SuccessMetricsChartsTest
     ApplicationComponent releaseComponent = tempEntity
         .newApplicationComponent(app2.getId(), ReleaseStageType.ID, "longnamehash",
             ComponentIdentifier.createMavenCoordinates("long.component.name.should.cause.tooltip", "artifact",
-              "1.2.3.4"));
+                "1.2.3.4"));
 
     // add a few violations
     tempEntity.newPolicyViolation(buildEval4MonthsAgo, licensePolicy, 7,
@@ -220,7 +220,8 @@ public class SuccessMetricsChartsTest
     Header.root().shouldBe(visible);
     eyesWatcher.eyesCheck();
     Header.title().shouldHave(text("Test"));
-    String reportUpdated = DateTimeFormat.forPattern("MMM d, YYYY").withLocale(Locale.ENGLISH)
+    String reportUpdated = DateTimeFormat.forPattern("MMM d, YYYY")
+        .withLocale(Locale.ENGLISH)
         .print(Ordering.natural().max(LocalDate.now().withDayOfMonth(1), LocalDate.now().withDayOfWeek(1)));
     Header.description()
         .shouldHave(text("This report contains data for 2 applications, evaluated over the"
@@ -337,74 +338,74 @@ public class SuccessMetricsChartsTest
     allViolationsDeltaPlot.bar(3).hover();
 
     verifyPlotTooltips(allViolationsDeltaPlot, new String[][]{
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"2", "4", "0", "2"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"1", "0", "0", "1"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"}});
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"2", "4", "0", "2"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"1", "0", "0", "1"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"}});
 
     verifyPlotTooltips(securityViolationsDeltaPlot, new String[][]{
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"1", "0", "0", "1"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"1", "0", "0", "1"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"}});
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"1", "0", "0", "1"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"1", "0", "0", "1"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"}});
 
     verifyPlotTooltips(licenseViolationsDeltaPlot, new String[][]{
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"1", "2", "0", "1"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"}});
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"1", "2", "0", "1"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"}});
 
     verifyPlotTooltips(qualityViolationsDeltaPlot, new String[][]{
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"1", "1", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"}});
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"1", "1", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"}});
 
     verifyPlotTooltips(otherViolationsDeltaPlot, new String[][]{
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"1", "1", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"},
-        new String[]{"0", "0", "0", "0"}});
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"1", "1", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"},
+      new String[]{"0", "0", "0", "0"}});
   }
 
   private void verifyPlotTooltips(BarPlot plot, String[][] tooltipValuesPerWeek) {
@@ -455,7 +456,7 @@ public class SuccessMetricsChartsTest
     ElementsCollection points = ViolationsByCategoryTile.points();
     points.shouldHave(size(12 * 5)); // 8 weeks times four categories plus totals
 
-    String[] expectedClassOrdering = { OTHER_CLASS, QUALITY_CLASS, LICENSE_CLASS, SECURITY_CLASS, TOTAL_CLASS };
+    String[] expectedClassOrdering = {OTHER_CLASS, QUALITY_CLASS, LICENSE_CLASS, SECURITY_CLASS, TOTAL_CLASS};
 
     for (int i = 0; i < points.size(); i++) {
       points.get(i).shouldBe(visible).shouldHave(cssClass(expectedClassOrdering[i / 12]));
@@ -472,8 +473,8 @@ public class SuccessMetricsChartsTest
     weeks.shouldHave(size(12));
 
     String[] expectedWeeks = {
-        "28 May", "04 Jun", "11 Jun", "18 Jun", "25 Jun", "02 Jul", "09 Jul", "16 Jul", "23 Jul", "30 Jul", "06 Aug",
-        "13 Aug"
+      "28 May", "04 Jun", "11 Jun", "18 Jun", "25 Jun", "02 Jul", "09 Jul", "16 Jul", "23 Jul", "30 Jul", "06 Aug",
+      "13 Aug"
     };
     for (int i = 0; i < 12; i++) {
       weeks.get(i).shouldBe(visible).shouldHave(text(expectedWeeks[i]));
@@ -493,9 +494,11 @@ public class SuccessMetricsChartsTest
     eyesWatcher.eyesCheck();
     ViolationAveragesTile.title()
         .shouldHave(text("Average Number of Violations Discovered Per Month, Per Application"));
-    ViolationAveragesTile.averages().shouldHave(text("Lifecycle performed an average of 1 evaluation per month on 2 " +
-        "applications over the past 4 months. Lifecycle found an average of 2 policy violations per application, 1 of" +
-        " which were critical."));
+    ViolationAveragesTile.averages()
+        .shouldHave(text("Lifecycle performed an average of 1 evaluation per month on 2 " +
+            "applications over the past 4 months. Lifecycle found an average of 2 policy violations per application, 1 of"
+            +
+            " which were critical."));
   }
 
   @Test
@@ -582,15 +585,17 @@ public class SuccessMetricsChartsTest
         texts(expectedApplicationText, expectedApplicationText));
 
     componentsInMostApplications.get(0)
-        .shouldHave(text("long.component.name.should.cause.tooltip : artifact : 1.2.3.4")).hover();
+        .shouldHave(text("long.component.name.should.cause.tooltip : artifact : 1.2.3.4"))
+        .hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("long.component.name.should.cause.tooltip : artifact : 1.2.3.4"));
     eyesWatcher.eyesCheck(null, false, false);
 
     componentsInMostApplications.get(1)
-        .shouldHave(text("short : name : 0.6")).hover();
+        .shouldHave(text("short : name : 0.6"))
+        .hover();
 
     // Tooltip is configured to appear after 300ms, so we need to wait at least that long to really make sure its
-    // not going to appear.  Without this sleep we'd just be testing that it hasn't appeared _yet_.
+    // not going to appear. Without this sleep we'd just be testing that it hasn't appeared _yet_.
     Selenide.sleep(1000);
     Tooltip.get().shouldBe(hidden);
 
@@ -631,12 +636,14 @@ public class SuccessMetricsChartsTest
   }
 
   private static WebElementCondition heightAttrStartingWith(final String value) {
-    return new WebElementCondition("heightAttrStartingWith") {
+    return new WebElementCondition("heightAttrStartingWith")
+    {
       @Override
       public CheckResult check(Driver driver, WebElement element) {
         var actual = element.getAttribute(HEIGHT_ATTR);
-        return actual.startsWith(value) ? CheckResult.accepted(actual) :
-          CheckResult.rejected("height attribute did not start with " + value, actual);
+        return actual.startsWith(value)
+            ? CheckResult.accepted(actual)
+            : CheckResult.rejected("height attribute did not start with " + value, actual);
       }
     };
   }

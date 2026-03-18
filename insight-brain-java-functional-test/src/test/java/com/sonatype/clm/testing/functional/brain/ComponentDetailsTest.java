@@ -185,7 +185,7 @@ public class ComponentDetailsTest
     testCLMServer.getHdsServer()
         .respondWith(IOUtils
             .toString(Objects.requireNonNull(
-                    this.getClass().getResourceAsStream("/legal/legalLicenseMetadataHdsResponse.json")),
+                this.getClass().getResourceAsStream("/legal/legalLicenseMetadataHdsResponse.json")),
                 StandardCharsets.UTF_8))
         .atUri("/rest/license/metadata");
     testCLMServer.getHdsServer()
@@ -197,7 +197,7 @@ public class ComponentDetailsTest
     testCLMServer.getHdsServer()
         .respondWith(IOUtils
             .toString(Objects.requireNonNull(this.getClass()
-                    .getResourceAsStream("/legal/ApplicationAttributionReportTest-legalFileHdsResponse.json")),
+                .getResourceAsStream("/legal/ApplicationAttributionReportTest-legalFileHdsResponse.json")),
                 StandardCharsets.UTF_8))
         .atUri("/rest/legal/file");
     testCLMServer.getHdsServer()
@@ -355,12 +355,14 @@ public class ComponentDetailsTest
 
     eyesWatcher.eyesCheck("component details Add Proprietary Component Matchers");
 
-    addProprietaryComponentMatchersPopover.alerts().first()
+    addProprietaryComponentMatchersPopover.alerts()
+        .first()
         .shouldHave(text("The following matchers will be added to the ApplicationReportTest Configuration (duplicates"
             + " will be ignored). The new matchers will be in effect for the next application analysis."));
     addProprietaryComponentMatchersPopover.matchers().shouldHave(size(1));
     FormUtils.getAlertElement(addProprietaryComponentMatchersPopover).shouldNotBe(visible);
-    addProprietaryComponentMatchersPopover.matchers().get(0)
+    addProprietaryComponentMatchersPopover.matchers()
+        .get(0)
         .shouldHave(text("full.jar/WebGoat-6.0.1/WEB-INF/classes/org/owasp/webgoat/lessons/instr"));
     addProprietaryComponentMatchersPopover.matchers().get(0).click();
     addProprietaryComponentMatchersPopover.addBtn().click();
@@ -798,8 +800,10 @@ public class ComponentDetailsTest
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
     navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
-    List<PolicyViolation> policyViolations = policyViolationDAO.getByApplicationId(app.getId()).stream()
-        .filter(policyViolation -> policyViolation.getHash().equals(HASH)).collect(
+    List<PolicyViolation> policyViolations = policyViolationDAO.getByApplicationId(app.getId())
+        .stream()
+        .filter(policyViolation -> policyViolation.getHash().equals(HASH))
+        .collect(
             Collectors.toList());
 
     // 1 app is needed per waiver for it to show in Similar waivers
@@ -918,27 +922,31 @@ public class ComponentDetailsTest
 
     requestWaiverPage.requestWaiverScope().shouldHave(text("Scope"));
     requestWaiverPage.requestWaiverScopeOptions().shouldHave(size(2));
-    requestWaiverPage.requestWaiverScopeOptions().shouldHave(
-        exactTexts("Application - ApplicationReportTest", "Organization - Test Organization"));
+    requestWaiverPage.requestWaiverScopeOptions()
+        .shouldHave(
+            exactTexts("Application - ApplicationReportTest", "Organization - Test Organization"));
     requestWaiverPage.requestWaiverScopeOptions().get(0).shouldBe(selected);
 
     requestWaiverPage.requestWaiverComponents().shouldHave(text("Components"));
     requestWaiverPage.requestWaiverComponentsOptions().shouldHave(size(3));
-    requestWaiverPage.requestWaiverComponentsOptions().shouldHave(
-        exactTexts("com.mycila : license-maven-plugin : 2.11", "com.mycila : license-maven-plugin (all versions)",
-            "All Components"));
+    requestWaiverPage.requestWaiverComponentsOptions()
+        .shouldHave(
+            exactTexts("com.mycila : license-maven-plugin : 2.11", "com.mycila : license-maven-plugin (all versions)",
+                "All Components"));
     requestWaiverPage.requestWaiverComponentsRadios().get(0).shouldBe(checked);
 
     requestWaiverPage.requestWaiverExpiryTime().shouldHave(text("Waiver Expiration"));
     requestWaiverPage.requestWaiverExpiryTimeOptions().shouldHave(size(8));
-    requestWaiverPage.requestWaiverExpiryTimeOptions().shouldHave(exactTexts("Never", "7 Days", "14 Days", "30 Days",
-        "60 Days", "90 Days", "120 Days", "Custom"));
+    requestWaiverPage.requestWaiverExpiryTimeOptions()
+        .shouldHave(exactTexts("Never", "7 Days", "14 Days", "30 Days",
+            "60 Days", "90 Days", "120 Days", "Custom"));
     requestWaiverPage.requestWaiverExpiryTimeOptions().get(0).shouldBe(selected);
 
     requestWaiverPage.requestWaiverReason().shouldHave(text("Reason"));
-    requestWaiverPage.requestWaiverReasonOptions().shouldHave(
-        exactTexts("Select a reason", "Acknowledged violation", "Evaluating component", "Mitigated externally",
-            "No upgrade path", "Not exploitable", "Not reachable", "Researching", "Other"));
+    requestWaiverPage.requestWaiverReasonOptions()
+        .shouldHave(
+            exactTexts("Select a reason", "Acknowledged violation", "Evaluating component", "Mitigated externally",
+                "No upgrade path", "Not exploitable", "Not reachable", "Researching", "Other"));
     requestWaiverPage.requestWaiverReasonOptions().get(0).shouldBe(selected);
 
     requestWaiverPage.requestWaiverComments().shouldBe(empty);
@@ -971,8 +979,9 @@ public class ComponentDetailsTest
     customizeButton.click();
 
     CustomizeVulnerabilityDetailsPage.refIdTitle().shouldBe(visible);
-    CustomizeVulnerabilityDetailsPage.refIdTitle().shouldBe(
-        text(refIdForFirstClickableTableRowInPolicyViolationTable));
+    CustomizeVulnerabilityDetailsPage.refIdTitle()
+        .shouldBe(
+            text(refIdForFirstClickableTableRowInPolicyViolationTable));
 
     NxBackButton backButton = CustomizeVulnerabilityDetailsPage.backButton();
     backButton.shouldBe(visible);
@@ -1008,9 +1017,9 @@ public class ComponentDetailsTest
     SelenideElement row1 = componentWaiversTable.getRow(1);
     ElementsCollection row1Cells = row1.findAll(".nx-cell");
     row1Cells.shouldHave(texts("Created\n" +
-            dateString + "\n" +
-            "Expiration\n" +
-            "Does not expire",
+        dateString + "\n" +
+        "Expiration\n" +
+        "Does not expire",
         "Scope\n" +
             "Application - ApplicationReportTest\n" +
             "Component\n" +
@@ -1129,8 +1138,9 @@ public class ComponentDetailsTest
     VulnerabilitiesTable vulnerabilitiesTable = componentDetailsPage.securityTabContent().vulnerabilitiesTable();
     vulnerabilitiesTable.shouldBe(visible);
 
-    vulnerabilitiesTable.getHeaderRow().findAll(By.tagName("th"))
-        .shouldHave(exactTexts("CVSS", "ISSUES","DATA ENRICHMENT", "STATUS", ""));
+    vulnerabilitiesTable.getHeaderRow()
+        .findAll(By.tagName("th"))
+        .shouldHave(exactTexts("CVSS", "ISSUES", "DATA ENRICHMENT", "STATUS", ""));
 
     vulnerabilitiesTable.getRows().shouldHave(size(3));
     ElementsCollection rowCells = vulnerabilitiesTable.getRows().first().findAll(By.tagName("td"));
@@ -1228,7 +1238,9 @@ public class ComponentDetailsTest
 
     vulnerabilityDetailsPopover.shouldNotBe(visible);
 
-    vulnerabilitiesTable.getRows().first().findAll(By.tagName("td"))
+    vulnerabilitiesTable.getRows()
+        .first()
+        .findAll(By.tagName("td"))
         .shouldHave(exactTexts("9", "CVE-1234-56789", "Sonatype Enhanced", "Confirmed", ""));
 
     firstRow.click();
@@ -1418,7 +1430,8 @@ public class ComponentDetailsTest
 
       LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
 
-      licenseDetectionsTile.shouldBe(visible).observedLicenses()
+      licenseDetectionsTile.shouldBe(visible)
+          .observedLicenses()
           .shouldHave(text("Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on."));
 
       licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses()).isEmpty();
@@ -1634,7 +1647,8 @@ public class ComponentDetailsTest
     eyesWatcher.eyesCheck("Add Label Modal");
     // Add and confirm
     manageLabels.addLabelModal().labelsScope(0).should(exist);
-    manageLabels.addLabelModal().labelsScopesDropdown()
+    manageLabels.addLabelModal()
+        .labelsScopesDropdown()
         .chooseOptionWithHidden(new Option(0, "Organization - Test Organization"));
     manageLabels.addLabelModal().submitButton().shouldBe(enabled).click();
     NxSubmitMask.seeAndWaitForDismissal();
@@ -1662,7 +1676,8 @@ public class ComponentDetailsTest
     manageLabels.addLabelModal().labelsScope(2).shouldHave(text("Organization - Parent Organization"));
     manageLabels.addLabelModal().labelsScope(3).shouldHave(text("Organization - Test Organization"));
     manageLabels.addLabelModal().labelsScope(4).shouldHave(text("Application - ApplicationReportTest"));
-    manageLabels.addLabelModal().labelsScopesDropdown()
+    manageLabels.addLabelModal()
+        .labelsScopesDropdown()
         .chooseOptionWithHidden(new Option(1, "Organization - Parent Organization"));
     manageLabels.addLabelModal().submitButton().shouldBe(enabled).click();
     NxSubmitMask.seeAndWaitForDismissal();
@@ -1690,7 +1705,7 @@ public class ComponentDetailsTest
     EditLicensesPopover editLicensesPopover = new EditLicensesPopover();
     editLicensesPopover.shouldBe(visible);
 
-    //Move some licenses' status so we can have some entries in audit log
+    // Move some licenses' status so we can have some entries in audit log
     editLicensesPopover.status().selectOption("Acknowledged");
     editLicensesPopover.comment().setValue("AAAA");
     editLicensesPopover.saveButton().shouldBe(enabled).click();
@@ -1821,7 +1836,7 @@ public class ComponentDetailsTest
       element.sendKeys("claimed");
     }
 
-    claimTabContent.createdTime().setValue("20102021"); //20.10.2021
+    claimTabContent.createdTime().setValue("20102021"); // 20.10.2021
   }
 
   private void checkFieldsValue(ClaimTabContent claimTabContent) {
@@ -1878,7 +1893,8 @@ public class ComponentDetailsTest
   }
 
   private Wait<WebDriver> getWebDriverAwait() {
-    return new FluentWait<>(getWebDriver()).withTimeout(Duration.ofSeconds(10)).pollingEvery(Duration.ofSeconds(2))
+    return new FluentWait<>(getWebDriver()).withTimeout(Duration.ofSeconds(10))
+        .pollingEvery(Duration.ofSeconds(2))
         .ignoring(NoSuchElementException.class);
   }
 }

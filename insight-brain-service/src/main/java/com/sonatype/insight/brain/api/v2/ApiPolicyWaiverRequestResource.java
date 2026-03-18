@@ -68,22 +68,18 @@ public class ApiPolicyWaiverRequestResource
           "\n" +
           "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200", description = "The new policy waiver request.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200", description = "The new policy waiver request.",
+            useReturnTypeSchema = true)
+      })
   public ApiPolicyWaiverRequestDTO addPolicyWaiverRequestByPolicyViolationId(
       @Parameter(description = "The scope of the policy waiver request. Possible values are application, " +
-          "organization, repository, repository_manager, repository_container.", required = true)
-      @PathParam("ownerType") OwnerType ownerType,
+          "organization, repository, repository_manager, repository_container.",
+          required = true) @PathParam("ownerType") OwnerType ownerType,
       @Parameter(description = "The id for the ownerType provided above. E.g. applicationId if the " +
-          "ownerType is application.", required = true)
-      @PathParam("ownerId") String ownerId,
+          "ownerType is application.", required = true) @PathParam("ownerId") String ownerId,
       @Parameter(description = "The policyViolationId for the policy violation on which you want to create a policy "
-          + "waiver request. Use the Policy Violation REST API or Reports REST API to obtain the policyViolationId.")
-      @PathParam("policyViolationId") String policyViolationId,
+          + "waiver request. Use the Policy Violation REST API or Reports REST API to obtain the policyViolationId.") @PathParam("policyViolationId") String policyViolationId,
       @RequestBody(description = "The request JSON can include the fields<ol>"
           + "<li>comment (optional, to indicate the reason of the waiver) default value is null</li>"
           + "<li>matcherStrategy (enumeration, required) can have values DEFAULT, EXACT_COMPONENT, ALL_COMPONENTS, "
@@ -92,8 +88,7 @@ public class ApiPolicyWaiverRequestResource
           + "<li>expireWhenRemediationAvailable (default false) to expire the waiver when a remediation is available."
           + "</li>"
           + "<li>noteToReviewer (optional) to add a note to the reviewer</li></ol>",
-          required = true)
-      ApiPolicyWaiverRequestOptionsDTO apiPolicyWaiverRequestOptionsDTO)
+          required = true) ApiPolicyWaiverRequestOptionsDTO apiPolicyWaiverRequestOptionsDTO)
   {
     return apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(ownerType, ownerId,
         policyViolationId, apiPolicyWaiverRequestOptionsDTO);
@@ -131,8 +126,7 @@ public class ApiPolicyWaiverRequestResource
           + "<li>expireWhenRemediationAvailable (default false) to expire the waiver when a remediation is available."
           + "</li>",
           required = true) //
-      ApiPolicyWaiverRequestReviewDTO apiPolicyWaiverRequestReviewDTO)
-  {
+      ApiPolicyWaiverRequestReviewDTO apiPolicyWaiverRequestReviewDTO) {
     return apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(ownerType, ownerId, policyWaiverRequestId,
         apiPolicyWaiverRequestReviewDTO);
   }

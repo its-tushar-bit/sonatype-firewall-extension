@@ -39,7 +39,7 @@ class AbstractApiApplicationEvaluationService
       String statusId)
   {
     Application application = applicationDAO.getById(applicationId);
-    PolicyEvaluationPollingResultDTO dto = 
+    PolicyEvaluationPollingResultDTO dto =
         policyEvaluateService.pollEvaluationResult(application.getPublicId(), statusId);
 
     ApiApplicationEvaluationResultDTOV2 result = new ApiApplicationEvaluationResultDTOV2();
@@ -64,7 +64,8 @@ class AbstractApiApplicationEvaluationService
   }
 
   protected static String getStatusUrl(String applicationId, String statusId) {
-    return UriBuilder.fromPath(PublicApiPaths.POLICY_EVALUATION_STATUS_PATH_V2).build(applicationId, statusId)
+    return UriBuilder.fromPath(PublicApiPaths.POLICY_EVALUATION_STATUS_PATH_V2)
+        .build(applicationId, statusId)
         .toString();
   }
 }

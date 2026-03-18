@@ -93,23 +93,19 @@ public class ApiComponentChangeDetectionResource
           "Use this endpoint to add component configurations for component change detection. " +
           "A list of hash and package URL for each component can be supplied.",
       responses = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "Components added successfully",
-              useReturnTypeSchema = true
-          ),
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains a list of hash and package URL for each component that have " +
-                  "been removed from the configuration when the maximum number of components has been exceeded.",
-              content = @Content(
-                  mediaType = MediaType.APPLICATION_JSON,
-                  schema = @Schema(implementation = ApiMalwareComponentEvaluationRequest.class),
-                  array = @ArraySchema(schema = @Schema(implementation = ApiMalwareComponentEvaluationRequest.class))
-              )
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "204",
+            description = "Components added successfully",
+            useReturnTypeSchema = true),
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains a list of hash and package URL for each component that have " +
+                "been removed from the configuration when the maximum number of components has been exceeded.",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON,
+                schema = @Schema(implementation = ApiMalwareComponentEvaluationRequest.class),
+                array = @ArraySchema(schema = @Schema(implementation = ApiMalwareComponentEvaluationRequest.class))))
+      })
   public Response addComponents(final List<ApiMalwareComponentEvaluationRequest> components) {
     List<ComponentChangeDetectionConfiguration> componentChangeDetectionConfigurationList =
         buildAndValidateConfigurationList(components);
@@ -162,13 +158,11 @@ public class ApiComponentChangeDetectionResource
           "<p>" +
           "Use this endpoint to get a list of component change detection events.",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Component change detection events.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Component change detection events.",
+            useReturnTypeSchema = true)
+      })
   public List<ComponentChangeDetectionEvent> getComponentChangeDetectionEvents() {
     return componentChangeDetectionEventDAO.getAll();
   }
@@ -182,15 +176,13 @@ public class ApiComponentChangeDetectionResource
           "Use this endpoint to delete component change detection events that have a timestamp " +
           "older than the provided timestamp.",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Events deleted successfully"
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Events deleted successfully")
+      })
   public Response acknowledgeEventsOlderThan(
-      @Parameter(description = "Enter the timestamp in `yyyy-MM-dd'T'HH:mm:ss'Z'` format", required = true)
-      @QueryParam("timestamp") String timestamp)
+      @Parameter(description = "Enter the timestamp in `yyyy-MM-dd'T'HH:mm:ss'Z'` format",
+          required = true) @QueryParam("timestamp") String timestamp)
   {
     apiComponentChangeDetectionService.acknowledgeEventsOlderThan(parse(timestamp));
     return Response.ok().build();

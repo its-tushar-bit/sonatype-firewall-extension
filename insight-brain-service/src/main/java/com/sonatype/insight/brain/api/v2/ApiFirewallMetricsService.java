@@ -91,7 +91,7 @@ public class ApiFirewallMetricsService
     checkProductLicense();
     checkReadPermission(RepositoryContainer.SINGLETON);
     Map<FirewallMetricsName, ApiFirewallMetricsResultDTO> resultMap = firewallMetricsDAO.getMetricsValueByName();
-    for (FirewallMetricsName firewallMetricsName: FirewallMetricsName.values()) {
+    for (FirewallMetricsName firewallMetricsName : FirewallMetricsName.values()) {
       resultMap.putIfAbsent(firewallMetricsName, new ApiFirewallMetricsResultDTO(0, null));
     }
     return resultMap;
@@ -136,17 +136,20 @@ public class ApiFirewallMetricsService
 
       for (Iterator<ConstraintFact> iterator = repositoryPolicyViolation.getConstraintFacts()
           .iterator(); (!hasProprietaryNameConflict || !hasSecurityVulnerabilityCategoryMaliciousCode)
-              && iterator.hasNext();) {
+              && iterator.hasNext();)
+      {
         ConstraintFact constraintFact = iterator.next();
 
         for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
 
           if (conditionFact.getConditionTypeId().equals(ProprietaryNameConflictConditionType.ID)
-              && conditionFact.getSummary().endsWith(ProprietaryNameConflictConditionType.OP_IS_PRESENT)) {
+              && conditionFact.getSummary().endsWith(ProprietaryNameConflictConditionType.OP_IS_PRESENT))
+          {
             hasProprietaryNameConflict = true;
           }
           else if (conditionFact.getConditionTypeId().equals(SecurityVulnerabilityCategoryConditionType.ID)
-              && conditionFact.getSummary().endsWith(maliciousCodeSummarySuffix)) {
+              && conditionFact.getSummary().endsWith(maliciousCodeSummarySuffix))
+          {
             hasSecurityVulnerabilityCategoryMaliciousCode = true;
           }
 
@@ -188,8 +191,9 @@ public class ApiFirewallMetricsService
       roiMetricsDTO.setCurrency(currencyType);
       roiMetricsDTO.setNamespaceAttacksPrevented(roiConfiguration.getNamespaceAttacksPrevented()
           .multiply(BigDecimal.valueOf(firewallMetrics.get(NAMESPACE_ATTACKS_BLOCKED).getFirewallMetricsValue())));
-      roiMetricsDTO.setSafeComponentsAutoSelected(roiConfiguration.getSafeComponentsAutoSelected().multiply(
-          BigDecimal.valueOf(firewallMetrics.get(SAFE_VERSIONS_SELECTED_AUTOMATICALLY).getFirewallMetricsValue())));
+      roiMetricsDTO.setSafeComponentsAutoSelected(roiConfiguration.getSafeComponentsAutoSelected()
+          .multiply(
+              BigDecimal.valueOf(firewallMetrics.get(SAFE_VERSIONS_SELECTED_AUTOMATICALLY).getFirewallMetricsValue())));
       roiMetricsDTO.setMalwareAttacksPrevented(roiConfiguration.getMalwareAttacksPrevented()
           .multiply(BigDecimal.valueOf(firewallMetrics.get(SUPPLY_CHAIN_ATTACKS_BLOCKED).getFirewallMetricsValue())));
     }
@@ -206,7 +210,8 @@ public class ApiFirewallMetricsService
           .multiply(BigDecimal.valueOf(firewallMetrics.get(SUPPLY_CHAIN_ATTACKS_BLOCKED).getFirewallMetricsValue())));
     }
     roiMetricsDTO.setTotalSaved(
-        roiMetricsDTO.getNamespaceAttacksPrevented().add(roiMetricsDTO.getSafeComponentsAutoSelected())
+        roiMetricsDTO.getNamespaceAttacksPrevented()
+            .add(roiMetricsDTO.getSafeComponentsAutoSelected())
             .add(roiMetricsDTO.getMalwareAttacksPrevented()));
     return roiMetricsDTO;
   }

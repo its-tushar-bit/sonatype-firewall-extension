@@ -74,11 +74,11 @@ public class ThirdPartyFileDAOTest
 
   @Test
   public void testDelete_Cascade() {
-    //one scan, two coordinates with each having some sec issues
+    // one scan, two coordinates with each having some sec issues
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan scan = tempEntity.newThirdPartyScan(thirdPartyFile);
-    ThirdPartyFileCoordinate coord1 = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1","f1","n1","v1");
-    ThirdPartyFileCoordinate coord2 = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1","f1","n2","v2");
+    ThirdPartyFileCoordinate coord1 = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
+    ThirdPartyFileCoordinate coord2 = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n2", "v2");
     ThirdPartyCoordinateSecurity tpcs11 =
         tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "d1", "l1", 5.5f, "Medium", "f1");
     ThirdPartyCoordinateSecurity tpcs12 =
@@ -195,7 +195,7 @@ public class ThirdPartyFileDAOTest
 
   @Test
   public void testDelete_CascadeByThirdPartyFileId() {
-    //one scan, two coordinates with each having some sec issues
+    // one scan, two coordinates with each having some sec issues
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan scan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartyFileCoordinate coord1 = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");

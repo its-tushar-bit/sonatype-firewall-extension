@@ -62,7 +62,7 @@ public class TenantSchemaResourceTest
   public void shouldMigrateTenantSchema() throws Exception {
     String tenantSlug = generateTestTenantName();
 
-    //Provisioning a tenant to execute the migration
+    // Provisioning a tenant to execute the migration
     provisionTenant(tenantSlug);
 
     HttpResponse response = callSchemaEndpoint(tenantSlug).put();
@@ -74,7 +74,7 @@ public class TenantSchemaResourceTest
   public void shouldMigrateTenantSchema_forGlobalTenant() throws Exception {
     String tenantSlug = generateTestTenantName();
 
-    //Provisioning a tenant to execute the migration
+    // Provisioning a tenant to execute the migration
     provisionTenant(tenantSlug);
 
     HttpResponse response = callSchemaEndpoint("global").put();
@@ -92,6 +92,6 @@ public class TenantSchemaResourceTest
 
   private HttpRequest callSchemaEndpoint(String tenant) {
     return adminRestRequest(ADMIN_TENANT_SCHEMA_PATH)
-          .parameter(tenant);
+        .parameter(tenant);
   }
 }

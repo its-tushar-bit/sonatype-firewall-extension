@@ -16,7 +16,8 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ComponentChangeDetectionEventDAOTest extends AbstractDbDAOTest
+public class ComponentChangeDetectionEventDAOTest
+    extends AbstractDbDAOTest
 {
   private ComponentChangeDetectionEventDAO underTest;
 
@@ -29,7 +30,8 @@ public class ComponentChangeDetectionEventDAOTest extends AbstractDbDAOTest
   public void test_CanAddToTable() {
     tempEntity.newComponentChangeDetectionEvent("purl1", "some data", new Date());
 
-    underTest.getAll().stream()
+    underTest.getAll()
+        .stream()
         .findFirst()
         .ifPresent(event -> {
           assert event.getPurl().equals("purl1");

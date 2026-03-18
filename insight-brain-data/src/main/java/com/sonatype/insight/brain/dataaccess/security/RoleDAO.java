@@ -150,7 +150,7 @@ public class RoleDAO
   }
 
   private boolean removeRoleNotificationsIfNeeded(Role roleToRemove, Notifications notifications) {
-    for (Iterator<RoleNotification> it = notifications.getRoleNotifications().iterator(); it.hasNext(); ) {
+    for (Iterator<RoleNotification> it = notifications.getRoleNotifications().iterator(); it.hasNext();) {
       RoleNotification notification = it.next();
       if (roleToRemove.getId().equals(notification.getRoleId())) {
         it.remove();
@@ -215,6 +215,7 @@ public class RoleDAO
   /**
    * Create a string like (?1, ?2, ?3) for use with a SQL IN clause. In raw SQL, the individual items in the IN
    * clause must be separate bound parameters.
+   *
    * @param size The number of items in the IN clause
    * @param initialArgIndex The index of the first bound parameter
    */

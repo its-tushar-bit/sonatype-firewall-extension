@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.sbom.dashboard;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Date;
@@ -40,7 +41,8 @@ import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.newSbomMetada
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTest.class)
-public class SbomDashboardServiceTest extends AbstractComponentTest
+public class SbomDashboardServiceTest
+    extends AbstractComponentTest
 {
   @Inject
   private SbomDashboardService service;
@@ -84,26 +86,47 @@ public class SbomDashboardServiceTest extends AbstractComponentTest
     Date twoDaysAgo = DateUtils.addDays(now, -2);
     Date fourHoursAgo = DateUtils.addHours(now, -4);
 
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(now).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan1.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneYearAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan2.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(sixMonthsAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan3.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(twoMonthsAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan4.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneMonthAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan5.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan6.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan7.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus(PENDING).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan8.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(twoDaysAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan9.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(fourHoursAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan10.getThirdPartyFileId()).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(now)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan1.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneYearAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan2.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(sixMonthsAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan3.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(twoMonthsAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan4.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneMonthAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan5.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan6.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan7.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday)
+        .withStatus(PENDING)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan8.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(twoDaysAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan9.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(fourHoursAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan10.getThirdPartyFileId())
+        .build();
 
     ThirdPartyFileCoordinate thirdPartyFileCoordinate1 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan1.getThirdPartyFileId(),
@@ -284,35 +307,56 @@ public class SbomDashboardServiceTest extends AbstractComponentTest
     Date fourHoursAgo = DateUtils.addHours(now, -4);
 
     ThirdPartySbomMetadata thirdPartySbomMetadata1 = newSbomMetadataBuilder(daoFactory)
-        .withCreatedAt(now).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan1.getThirdPartyFileId()).build();
+        .withCreatedAt(now)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan1.getThirdPartyFileId())
+        .build();
     ThirdPartySbomMetadata thirdPartySbomMetadata2 = newSbomMetadataBuilder(daoFactory)
-        .withCreatedAt(oneYearAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan2.getThirdPartyFileId()).build();
+        .withCreatedAt(oneYearAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan2.getThirdPartyFileId())
+        .build();
     ThirdPartySbomMetadata thirdPartySbomMetadata3 = newSbomMetadataBuilder(daoFactory)
-        .withCreatedAt(sixMonthsAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan3.getThirdPartyFileId()).build();
+        .withCreatedAt(sixMonthsAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan3.getThirdPartyFileId())
+        .build();
     ThirdPartySbomMetadata thirdPartySbomMetadata4 = newSbomMetadataBuilder(daoFactory)
-        .withCreatedAt(twoMonthsAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan4.getThirdPartyFileId()).build();
+        .withCreatedAt(twoMonthsAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan4.getThirdPartyFileId())
+        .build();
     ThirdPartySbomMetadata thirdPartySbomMetadata5 = newSbomMetadataBuilder(daoFactory)
-        .withCreatedAt(oneMonthAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan5.getThirdPartyFileId()).build();
+        .withCreatedAt(oneMonthAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan5.getThirdPartyFileId())
+        .build();
     ThirdPartySbomMetadata thirdPartySbomMetadata6 = newSbomMetadataBuilder(daoFactory)
-        .withCreatedAt(oneWeekAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan6.getThirdPartyFileId()).build();
+        .withCreatedAt(oneWeekAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan6.getThirdPartyFileId())
+        .build();
     ThirdPartySbomMetadata thirdPartySbomMetadata7 = newSbomMetadataBuilder(daoFactory)
-        .withCreatedAt(yesterday).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan7.getThirdPartyFileId()).build();
+        .withCreatedAt(yesterday)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan7.getThirdPartyFileId())
+        .build();
     ThirdPartySbomMetadata thirdPartySbomMetadata8 = newSbomMetadataBuilder(daoFactory)
-        .withCreatedAt(yesterday).withStatus(PENDING).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan8.getThirdPartyFileId()).build();
+        .withCreatedAt(yesterday)
+        .withStatus(PENDING)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan8.getThirdPartyFileId())
+        .build();
     ThirdPartySbomMetadata thirdPartySbomMetadata9 = newSbomMetadataBuilder(daoFactory)
-        .withCreatedAt(twoDaysAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan9.getThirdPartyFileId()).build();
+        .withCreatedAt(twoDaysAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan9.getThirdPartyFileId())
+        .build();
     ThirdPartySbomMetadata thirdPartySbomMetadata10 = newSbomMetadataBuilder(daoFactory)
-        .withCreatedAt(fourHoursAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan10.getThirdPartyFileId()).build();
+        .withCreatedAt(fourHoursAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan10.getThirdPartyFileId())
+        .build();
 
     ThirdPartyFileCoordinate thirdPartyFileCoordinate1 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan1.getThirdPartyFileId(),
@@ -450,26 +494,47 @@ public class SbomDashboardServiceTest extends AbstractComponentTest
     Date twoDaysAgo = DateUtils.addDays(now, -2);
     Date fourHoursAgo = DateUtils.addHours(now, -4);
 
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(now).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan1.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneYearAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan2.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(sixMonthsAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan3.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(twoMonthsAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan4.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneMonthAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan5.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan6.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan7.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus(PENDING).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan8.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(twoDaysAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan9.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(fourHoursAgo).withApplicationId(app.getId())
-        .withThirdPartyFileId(thirdPartyScan10.getThirdPartyFileId()).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(now)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan1.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneYearAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan2.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(sixMonthsAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan3.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(twoMonthsAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan4.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneMonthAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan5.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan6.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan7.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday)
+        .withStatus(PENDING)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan8.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(twoDaysAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan9.getThirdPartyFileId())
+        .build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(fourHoursAgo)
+        .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyScan10.getThirdPartyFileId())
+        .build();
 
     ThirdPartyFileCoordinate thirdPartyFileCoordinate1 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan1.getThirdPartyFileId(),

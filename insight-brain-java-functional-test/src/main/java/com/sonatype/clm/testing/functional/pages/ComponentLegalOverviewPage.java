@@ -34,7 +34,8 @@ public class ComponentLegalOverviewPage
   }
 
   public static String urlByComponentIdentifier(
-      ComponentIdentifier componentIdentifier, String repositoryId) throws UnsupportedEncodingException
+      ComponentIdentifier componentIdentifier,
+      String repositoryId) throws UnsupportedEncodingException
   {
     String componentIdentifierString =
         URLEncoder.encode(ComponentIdentifierAdapter.toJson(componentIdentifier), StandardCharsets.UTF_8.name());
@@ -220,7 +221,8 @@ public class ComponentLegalOverviewPage
   }
 
   public static Attribution attribution(String obligationName) {
-    return new Attribution(obligationName == null ? "#additional-attribution-tile"
+    return new Attribution(obligationName == null
+        ? "#additional-attribution-tile"
         : "#" + obligationName.toLowerCase(Locale.ROOT).replaceAll("\\s+", "-") + "-attribution-tile");
   }
 

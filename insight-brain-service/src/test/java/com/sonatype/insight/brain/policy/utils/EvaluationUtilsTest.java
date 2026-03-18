@@ -75,8 +75,7 @@ public class EvaluationUtilsTest
     PolicyViolation oldViolation = createPolicyViolationWithVersion("1.0.0");
     List<Component> foundComponents = List.of(
         createComponentWithVersion("2.0.0"),
-        createComponentWithVersion("3.0.0")
-    );
+        createComponentWithVersion("3.0.0"));
 
     boolean result = EvaluationUtils.isRemediatedByVersionChange(foundComponents, oldViolation);
 
@@ -88,8 +87,7 @@ public class EvaluationUtilsTest
     PolicyViolation oldViolation = createPolicyViolationWithVersion("1.0.0");
     List<Component> foundComponents = List.of(
         createComponentWithVersion("1.0.0"),
-        createComponentWithVersion("2.0.0")
-    );
+        createComponentWithVersion("2.0.0"));
 
     boolean result = EvaluationUtils.isRemediatedByVersionChange(foundComponents, oldViolation);
 

@@ -37,7 +37,7 @@ public class TenantThreadLocal
     }
   };
 
-  //Visible for testing
+  // Visible for testing
   static TenantUtil tenantUtil = new TenantUtil();
 
   public static void setDefaultTenantToGlobal() {
@@ -276,7 +276,7 @@ public class TenantThreadLocal
    * PACKAGE PRIVATE!!! Only trusted callers should be able to run code as a specific tenant. This method exists for
    * trusted code that does not need to care what the pre-existing thread-local tenancy situation is, it just
    * knows it needs to run the provided code in the provided tenant and then put things back the way they were
-   * afterwards.  In particular `TenantAwareRunnable` and similar operate this way.
+   * afterwards. In particular `TenantAwareRunnable` and similar operate this way.
    * Note: still checks that the new tenant isValid, but skips checks related to the previous tenant
    */
   static <T> T runAsWithoutValidation(Tenant tenant, Supplier<T> supplier) {
@@ -313,7 +313,7 @@ public class TenantThreadLocal
     clearLoggingContext();
   }
 
-  //Visible for test
+  // Visible for test
   static void resetTenantForTesting() {
     tenantThreadLocal.remove();
     TenantThreadLocal.setGlobalTenant();

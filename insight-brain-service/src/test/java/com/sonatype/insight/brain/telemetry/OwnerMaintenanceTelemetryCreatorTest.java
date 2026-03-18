@@ -132,7 +132,7 @@ public class OwnerMaintenanceTelemetryCreatorTest
     // Then
     assertTelemetry(application, maintenanceType);
   }
-  
+
   private void assertTelemetry(
       final Application application,
       final String maintenanceType)
@@ -143,16 +143,14 @@ public class OwnerMaintenanceTelemetryCreatorTest
             application.getName(),
             application.getParentOwnerId(),
             application.getType().toString(),
-            maintenanceType
-        );
+            maintenanceType);
     if (!configuration.getAdvanceReportingInsightsEnabled()) {
       ownerMaintenanceTelemetry = new OwnerMaintenanceTelemetry(
           telemetryUtils.obfuscate(application.getId()),
           telemetryUtils.obfuscate(application.getName()),
           telemetryUtils.obfuscate(application.getParentOwnerId()),
           application.getType().toString(),
-          maintenanceType
-      );
+          maintenanceType);
     }
 
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);

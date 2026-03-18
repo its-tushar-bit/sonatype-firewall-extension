@@ -68,8 +68,7 @@ public class ScmOnboardingResource
   @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
   public SCMRepositories loadRepositories(
       @QueryParam("orgId") String orgId,
-      @QueryParam("defaultHostUrl") String defaultHostUrl)
-      throws IOException
+      @QueryParam("defaultHostUrl") String defaultHostUrl) throws IOException
   {
     return scmOnboardingService.loadRepositories(orgId, defaultHostUrl);
   }

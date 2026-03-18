@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.organization;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -39,7 +40,8 @@ public class OrganizationResourceAuthzTest
   public void testSetIcon() throws Exception {
     grantWritePermission(org.getId());
 
-    HttpRequest request = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(org.getId())
+    HttpRequest request = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH)
+        .parameter(org.getId())
         .part("hasRobotSource", "false");
     testAuthzPost(request);
   }

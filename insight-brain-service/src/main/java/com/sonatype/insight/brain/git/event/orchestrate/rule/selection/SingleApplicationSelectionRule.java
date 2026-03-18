@@ -19,7 +19,7 @@ public class SingleApplicationSelectionRule
 
   /**
    * since the event processor enforces that multiple events for the same application execute sequentially it
-   * makes sense to only have one event per application in progress at any time;  this allows events for other
+   * makes sense to only have one event per application in progress at any time; this allows events for other
    * applications to run in parallel
    */
   public boolean canPushEvent(SourceControlEvent event, Map<String, SourceControlEvent> eventsInProgress) {

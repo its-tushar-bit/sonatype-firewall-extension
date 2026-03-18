@@ -100,8 +100,10 @@ public class TenantSecurityConfigurationService
 
     List<Role> roles = roleDAO.getGlobalRoles();
 
-    List<Member> adminMembers = admins.stream().map(admin -> new Member(MemberType.USER, admin, admin)).collect(
-        Collectors.toList());
+    List<Member> adminMembers = admins.stream()
+        .map(admin -> new Member(MemberType.USER, admin, admin))
+        .collect(
+            Collectors.toList());
 
     Map<String, List<Member>> roleToMembers = new HashMap<>();
     for (Role role : roles) {
@@ -112,8 +114,10 @@ public class TenantSecurityConfigurationService
   }
 
   private void validateCurrentTenant(final String tenantSlug) {
-    /* Proper validations for the tenant name were executed as part of the AdminTenantFilter.
-     * Here we are just checking we are not using the global tenant */
+    /*
+     * Proper validations for the tenant name were executed as part of the AdminTenantFilter.
+     * Here we are just checking we are not using the global tenant
+     */
     if (tenantUtil.isGlobalTenant()) {
       throw new BadRequestException("Invalid tenant");
     }
@@ -126,8 +130,10 @@ public class TenantSecurityConfigurationService
 
   private static String decodeIdentityProviderXml(final SecurityConfigurationDTO samlConfiguration) {
     byte[] decodedIdentityProviderXml =
-        Base64.getDecoder().decode(samlConfiguration.getBase64IdentityProviderXml().getBytes(
-            StandardCharsets.UTF_8));
+        Base64.getDecoder()
+            .decode(samlConfiguration.getBase64IdentityProviderXml()
+                .getBytes(
+                    StandardCharsets.UTF_8));
     return new String(decodedIdentityProviderXml);
   }
 }

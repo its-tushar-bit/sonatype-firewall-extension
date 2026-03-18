@@ -60,10 +60,10 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   /**
    * Constructor for DAOs that require the search index. These DAOs must override one of the methods:
    * <ul>
-   *   <li>{@link #newSearchIndexChange(HasStringId)}</li>
-   *   <li>{@link #newSearchIndexChangeForInsert(HasStringId)}</li>
-   *   <li>{@link #newSearchIndexChangeForUpdate(HasStringId)}</li>
-   *   <li>{@link #newSearchIndexChangeForDelete(HasStringId)}</li>
+   * <li>{@link #newSearchIndexChange(HasStringId)}</li>
+   * <li>{@link #newSearchIndexChangeForInsert(HasStringId)}</li>
+   * <li>{@link #newSearchIndexChangeForUpdate(HasStringId)}</li>
+   * <li>{@link #newSearchIndexChangeForDelete(HasStringId)}</li>
    * </ul>
    */
   protected AbstractSqlDAO(final SearchIndexManager searchIndexManager) {

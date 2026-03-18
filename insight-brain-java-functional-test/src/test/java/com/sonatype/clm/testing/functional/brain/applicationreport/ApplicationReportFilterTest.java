@@ -207,7 +207,7 @@ public class ApplicationReportFilterTest
     violations.shouldHave(size(EXPECTED_VIOLATIONS_COUNT));
     matchStateFilter.twisty().click();
 
-    //policy type filter
+    // policy type filter
     PolicyTypeFilter policyTypeFilter = reportPage.filterPanel().policyTypeFilter();
     policyTypeFilter.counter().shouldHave(exactText("4"));
     policyTypeFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
@@ -228,8 +228,7 @@ public class ApplicationReportFilterTest
     violations.shouldHave(texts(
         "com.mycila : license-maven-plugin : 2.11",
         "com.vaadin.addon : vaadin-touchkit-agpl : 3.0.0-beta1",
-        "xpp3 : xpp3_min : 1.1.4c"
-    ));
+        "xpp3 : xpp3_min : 1.1.4c"));
 
     policyTypeFilter.other().click();
     policyTypeFilter.other().shouldBe(selected);
@@ -240,8 +239,7 @@ public class ApplicationReportFilterTest
         "com.vaadin.addon : vaadin-touchkit-agpl : 3.0.0-beta1",
         "xpp3 : xpp3_min : 1.1.4c",
         "RegexMatch.dll",
-        "junit : junit : 4.8.1"
-    ));
+        "junit : junit : 4.8.1"));
 
     policyTypeFilter.security().click();
     policyTypeFilter.security().shouldBe(selected);

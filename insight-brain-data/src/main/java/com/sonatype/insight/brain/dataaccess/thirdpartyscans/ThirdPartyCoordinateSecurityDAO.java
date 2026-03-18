@@ -144,7 +144,8 @@ public class ThirdPartyCoordinateSecurityDAO
           createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
 
       List<RecentVulnerabilitiesDTO> dtos = ((Stream<Object[]>) query.getResultStream())
-          .map(RecentVulnerabilitiesDTO::new).collect(Collectors.toList());
+          .map(RecentVulnerabilitiesDTO::new)
+          .collect(Collectors.toList());
 
       return dtos;
     }
@@ -312,7 +313,8 @@ public class ThirdPartyCoordinateSecurityDAO
           createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
 
       return ((Stream<Object[]>) query.getResultStream())
-          .map(RecentImportedSbomsDTO::new).collect(Collectors.toList());
+          .map(RecentImportedSbomsDTO::new)
+          .collect(Collectors.toList());
     }
     catch (SQLException e) {
       throw new RuntimeException(e);

@@ -52,8 +52,7 @@ public class WaivedComponentMetricsConsolidator
       PolicyWaiverDAO policyWaiverDAO,
       FirewallMetricsDAO firewallMetricsDAO,
       RepositoryDAO repositoryDAO,
-      ApiFirewallMetricsService apiFirewallMetricsService
-  )
+      ApiFirewallMetricsService apiFirewallMetricsService)
   {
     this.policyWaiverDAO = policyWaiverDAO;
     this.firewallMetricsDAO = firewallMetricsDAO;
@@ -74,20 +73,22 @@ public class WaivedComponentMetricsConsolidator
         DateConverter.toDate(LocalDate.now().minusMonths(12)));
 
     List<List<FirewallMetrics>> allMetrics = CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> repositories
-          .parallelStream().map(new TenantAwareFunction<Repository, List<FirewallMetrics>>(repository -> {
-            List<FirewallMetrics> repositoryMetrics = new ArrayList<>();
+        .parallelStream()
+        .map(new TenantAwareFunction<Repository, List<FirewallMetrics>>(repository -> {
+          List<FirewallMetrics> repositoryMetrics = new ArrayList<>();
 
-            Map<LocalDate, Long> results = policyWaiverDAO.getCountByOwnerIdAndDate(repository.getId(),
-                mostRecentMetricDateFound);
+          Map<LocalDate, Long> results = policyWaiverDAO.getCountByOwnerIdAndDate(repository.getId(),
+              mostRecentMetricDateFound);
 
-            for (Entry<LocalDate, Long> entry : results.entrySet()) {
-              repositoryMetrics.add(new FirewallMetrics(entry.getKey(), WAIVED_COMPONENTS,
-                  entry.getValue().intValue()));
-            }
-            return repositoryMetrics;
-          })).collect(toList())), ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL)).join();
+          for (Entry<LocalDate, Long> entry : results.entrySet()) {
+            repositoryMetrics.add(new FirewallMetrics(entry.getKey(), WAIVED_COMPONENTS,
+                entry.getValue().intValue()));
+          }
+          return repositoryMetrics;
+        }))
+        .collect(toList())), ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL)).join();
 
-    for (List<FirewallMetrics> metricsList :  allMetrics) {
+    for (List<FirewallMetrics> metricsList : allMetrics) {
       for (FirewallMetrics fm : metricsList) {
         firewallMetricsDAO.insertUpdateFirewallMetrics(fm);
       }

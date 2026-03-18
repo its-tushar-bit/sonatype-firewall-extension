@@ -64,9 +64,9 @@ public class PolicyAlertScmNotifier
    * notifier for sending to hosted git source control manager service
    *
    * @param automatedPullRequestCreationService service for creating remediation pull request
-   * @param policyAlertSourceCodeOrganizer      service to aggregate policy alerts
-   * @param shutdownHandler                     shutdown handler
-   * @param reportComponentService              service to fetch components info from a report
+   * @param policyAlertSourceCodeOrganizer service to aggregate policy alerts
+   * @param shutdownHandler shutdown handler
+   * @param reportComponentService service to fetch components info from a report
    */
   @Inject
   public PolicyAlertScmNotifier(
@@ -74,8 +74,7 @@ public class PolicyAlertScmNotifier
       final PullRequestCommentingRemediationService pullRequestCommentingRemediationService,
       final PolicyAlertSourceCodeOrganizer policyAlertSourceCodeOrganizer,
       final ShutdownHandler shutdownHandler,
-      final ReportComponentService reportComponentService
-  )
+      final ReportComponentService reportComponentService)
   {
     this.automatedPullRequestCreationService = automatedPullRequestCreationService;
     this.pullRequestCommentingRemediationService = pullRequestCommentingRemediationService;
@@ -87,7 +86,7 @@ public class PolicyAlertScmNotifier
   /**
    * send a notification to git hosting service
    *
-   * @param app                 application with policy notifications
+   * @param app application with policy notifications
    * @param policyNotifications policy notifications
    */
   public void sendNotifications(

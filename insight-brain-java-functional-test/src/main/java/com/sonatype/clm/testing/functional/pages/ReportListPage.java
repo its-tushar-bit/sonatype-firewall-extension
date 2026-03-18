@@ -88,7 +88,7 @@ public class ReportListPage
   }
 
   public static ElementsCollection tableHeaders() {
-    return $$(SelectorUtils.createSelector(ROOT,"thead > tr > th"));
+    return $$(SelectorUtils.createSelector(ROOT, "thead > tr > th"));
   }
 
   public static class ReportListRow
@@ -148,20 +148,17 @@ public class ReportListPage
 
     public IQThreatIndicators buildReportThreatIndicators() {
       return new IQThreatIndicators(
-          TABLE_BODY_ROW_SELECTOR + " .nx-cell:nth-child(4) .nx-small-threat-counter-container"
-      );
+          TABLE_BODY_ROW_SELECTOR + " .nx-cell:nth-child(4) .nx-small-threat-counter-container");
     }
 
     public IQThreatIndicators stageReleaseReportThreatIndicators() {
       return new IQThreatIndicators(
-          TABLE_BODY_ROW_SELECTOR + " .nx-cell:nth-child(5) .nx-small-threat-counter-container"
-      );
+          TABLE_BODY_ROW_SELECTOR + " .nx-cell:nth-child(5) .nx-small-threat-counter-container");
     }
 
     public IQThreatIndicators releaseReportThreatIndicators() {
       return new IQThreatIndicators(
-          TABLE_BODY_ROW_SELECTOR + " .nx-cell:nth-child(6) .nx-small-threat-counter-container"
-      );
+          TABLE_BODY_ROW_SELECTOR + " .nx-cell:nth-child(6) .nx-small-threat-counter-container");
     }
   }
 

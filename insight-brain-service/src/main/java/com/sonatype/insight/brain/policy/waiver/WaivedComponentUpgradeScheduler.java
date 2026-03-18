@@ -23,7 +23,8 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 @Singleton
-public class WaivedComponentUpgradeScheduler implements TenantManaged
+public class WaivedComponentUpgradeScheduler
+    implements TenantManaged
 {
   private static final Logger log = LoggerFactory.getLogger(WaivedComponentUpgradeScheduler.class);
 

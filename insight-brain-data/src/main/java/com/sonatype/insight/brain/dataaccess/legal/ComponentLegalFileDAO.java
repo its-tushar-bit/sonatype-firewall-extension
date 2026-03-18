@@ -113,7 +113,8 @@ public class ComponentLegalFileDAO
   @Override
   public void insert(TransactionContext tx, ComponentLegalFile componentLegalFile) {
     if (getByOwnerIdAndComponentIdentifierAndType(tx, componentLegalFile.getOwnerId(),
-        componentLegalFile.getComponentIdentifier(), componentLegalFile.getType()) != null) {
+        componentLegalFile.getComponentIdentifier(), componentLegalFile.getType()) != null)
+    {
       throw new BadRequestException(
           "Component legal file already exists for owner with id " + componentLegalFile.getOwnerId() +
               " and component " + componentLegalFile.getComponentIdentifier() +
@@ -140,7 +141,8 @@ public class ComponentLegalFileDAO
     // Cascade to legal file overrides
     LegalFileOverrideDAO legalFileOverrideDAO = legalFileOverrideDAOProvider.get();
     for (LegalFileOverride legalFileOverride : legalFileOverrideDAO
-        .getByComponentLegalFileId(tx, componentLegalFile.getId())) {
+        .getByComponentLegalFileId(tx, componentLegalFile.getId()))
+    {
       legalFileOverrideDAO.delete(tx, legalFileOverride);
     }
     super.delete(tx, componentLegalFile);

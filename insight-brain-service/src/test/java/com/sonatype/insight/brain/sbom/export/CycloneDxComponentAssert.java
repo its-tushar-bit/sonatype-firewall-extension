@@ -25,8 +25,12 @@ public class CycloneDxComponentAssert
 
   public CycloneDxComponentAssert hasVulnerabilityCount(Bom bom, Integer expected) {
     isNotNull();
-    List<Vulnerability> vulnerabilities = bom.getVulnerabilities().stream().filter(it -> it.getAffects().stream()
-        .anyMatch(affect -> affect.getRef().equals(actual.getBomRef()))).collect(Collectors.toList());
+    List<Vulnerability> vulnerabilities = bom.getVulnerabilities()
+        .stream()
+        .filter(it -> it.getAffects()
+            .stream()
+            .anyMatch(affect -> affect.getRef().equals(actual.getBomRef())))
+        .collect(Collectors.toList());
     if (!expected.equals(vulnerabilities.size())) {
       failWithMessage("Expected vulnerability count to be %s but was %s", expected, vulnerabilities.size());
     }
@@ -50,9 +54,13 @@ public class CycloneDxComponentAssert
 
   public CycloneDxComponentAssert containsVulnerabilities(Bom bom, final String... refIds) {
     isNotNull();
-    List<String> vulnerabilities = bom.getVulnerabilities().stream().filter(it -> it.getAffects().stream()
-        .anyMatch(affect -> affect.getRef().equals(actual.getBomRef())))
-        .map(Vulnerability::getId).collect(Collectors.toList());
+    List<String> vulnerabilities = bom.getVulnerabilities()
+        .stream()
+        .filter(it -> it.getAffects()
+            .stream()
+            .anyMatch(affect -> affect.getRef().equals(actual.getBomRef())))
+        .map(Vulnerability::getId)
+        .collect(Collectors.toList());
     List<String> expectedRefs = Arrays.asList(refIds);
     if (!CollectionUtils.isSubCollection(expectedRefs, vulnerabilities)) {
       failWithMessage("Expected vulnerabilities %s to be a sub set of %s", expectedRefs, vulnerabilities);
@@ -62,7 +70,10 @@ public class CycloneDxComponentAssert
 
   public CycloneDxComponentAssert containsLicenses(final String... licenseIds) {
     isNotNull();
-    List<String> actuals = actual.getLicenses().getLicenses().stream().map(License::getId)
+    List<String> actuals = actual.getLicenses()
+        .getLicenses()
+        .stream()
+        .map(License::getId)
         .collect(Collectors.toList());
     List<String> expected = Arrays.asList(licenseIds);
     if (!CollectionUtils.isSubCollection(expected, actuals)) {
@@ -73,7 +84,10 @@ public class CycloneDxComponentAssert
 
   public CycloneDxComponentAssert containsNotListedLicenses(final String... licenseNames) {
     isNotNull();
-    List<String> actuals = actual.getLicenses().getLicenses().stream().map(License::getName)
+    List<String> actuals = actual.getLicenses()
+        .getLicenses()
+        .stream()
+        .map(License::getName)
         .collect(Collectors.toList());
     List<String> expected = Arrays.asList(licenseNames);
     if (!CollectionUtils.isSubCollection(expected, actuals)) {

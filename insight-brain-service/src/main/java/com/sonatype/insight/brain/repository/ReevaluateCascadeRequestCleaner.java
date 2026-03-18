@@ -92,7 +92,8 @@ public class ReevaluateCascadeRequestCleaner
         Set<String> requestIds = expiredRequests.stream()
             .peek(request -> {
               if (request.getStatus() == ReevaluateCascadeRequestStatus.PENDING ||
-                  request.getStatus() == ReevaluateCascadeRequestStatus.IN_PROGRESS) {
+                  request.getStatus() == ReevaluateCascadeRequestStatus.IN_PROGRESS)
+            {
                 log.warn("Re-evaluate cascade request with ID {} for component hash {} has not completed in {} hours " +
                     "and is being cleaned up. Status: {}, created at: {}",
                     request.getId(), request.getComponentReferenceHash(), LIFESPAN.toHours(),

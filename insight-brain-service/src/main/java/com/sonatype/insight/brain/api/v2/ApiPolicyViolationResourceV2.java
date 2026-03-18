@@ -56,8 +56,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
         "a violation." +
         "\n" +
         "\n" +
-        "Cross-stage policy violations are helpful in performance analysis like MTTR metrics."
-)
+        "Cross-stage policy violations are helpful in performance analysis like MTTR metrics.")
 @ProductLicenseEnforcementPoint(LicensedFeature.POLICY_VIOLATIONS)
 public class ApiPolicyViolationResourceV2
 {
@@ -115,27 +114,27 @@ public class ApiPolicyViolationResourceV2
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the details of the application that violates the policy/policies " +
-                  "and violation details grouped under the policyIds provided. It contains:" +
-                  "<ul>" +
-                  "<li>`openTime` indicates the date and time when the violation was first detected.</li>" +
-                  "<li>`waiveTime` indicates the date and time when the violation was waived.</li>" +
-                  "<li>`legacyTime` indicates the date and time when the violation was assigned as a legacy" +
-                  " violation.</li>" +
-                  "<li>`reference` is the reference data that triggered the violation.</li>" +
-                  "</ul>",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the details of the application that violates the policy/policies " +
+                "and violation details grouped under the policyIds provided. It contains:" +
+                "<ul>" +
+                "<li>`openTime` indicates the date and time when the violation was first detected.</li>" +
+                "<li>`waiveTime` indicates the date and time when the violation was waived.</li>" +
+                "<li>`legacyTime` indicates the date and time when the violation was assigned as a legacy" +
+                " violation.</li>" +
+                "<li>`reference` is the reference data that triggered the violation.</li>" +
+                "</ul>",
+            useReturnTypeSchema = true)
       })
   public ApiApplicationViolationListDTOV2 getPolicyViolations(
-      @Parameter(description = "Enter the policyIds to obtain the corresponding violation details", required = true)
-      @QueryParam("p") final Set<String> policyIds,
+      @Parameter(description = "Enter the policyIds to obtain the corresponding violation details",
+          required = true) @QueryParam("p") final Set<String> policyIds,
       @Parameter(description = "Enter the date (format YYYY-MM-DD) from which you want to retrieve" +
           " the violation details") @QueryParam("openTimeAfter") final String openTimeAfter,
       @Parameter(description = "Enter the date (format YYYY-MM-DD) until which you want to retrieve" +
           " the violation details") @QueryParam("openTimeBefore") final String openTimeBefore,
-      @Parameter(description = "Set one or more policy violation type (active, legacy, waived) to include")
-      @QueryParam("type") @DefaultValue("ACTIVE") final Set<PolicyViolationType> violationTypes)
+      @Parameter(
+          description = "Set one or more policy violation type (active, legacy, waived) to include") @QueryParam("type") @DefaultValue("ACTIVE") final Set<PolicyViolationType> violationTypes)
   {
     return apiPolicyViolationService.getPolicyViolations(policyIds, openTimeAfter, openTimeBefore,
         violationTypes);
@@ -161,11 +160,12 @@ public class ApiPolicyViolationResourceV2
       description = "The response contains violation details for all occurrences of the same policy violation " +
           "across multiple stages. `stageData` indicates the name of the stages where the violation" +
           "occurred, and `reportId` " +
-          "where it was reported and the policy action triggered due to the violation.", useReturnTypeSchema = true)
+          "where it was reported and the policy action triggered due to the violation.",
+      useReturnTypeSchema = true)
   public ApiCrossStageViolationDTOV2 getCrossStagePolicyViolationById(
       @Parameter(description = "Enter the policy `violationId`. Use the GET method described for the endpoint " +
-          "/api/v2/policyViolations to obtain the policy violationId. ", required = true) @PathParam("violationId")
-      final String violationId)
+          "/api/v2/policyViolations to obtain the policy violationId. ",
+          required = true) @PathParam("violationId") final String violationId)
   {
     return apiCrossStageViolationService.getCrossStageViolationById(violationId);
   }
@@ -182,8 +182,7 @@ public class ApiPolicyViolationResourceV2
       "Use this method to retrieve all cross-stage violations, irrespective of the time they were detected." +
       "\n" +
       "\n" +
-      "Permissions required: View IQ Elements"
-  )
+      "Permissions required: View IQ Elements")
   @ApiResponse(responseCode = "200",
       description = "The response contains violation details for all occurrences of the same policy violation, " +
           "across multiple stages. stageData indicates the name of the stages where the violation occurred, " +
@@ -191,8 +190,8 @@ public class ApiPolicyViolationResourceV2
       useReturnTypeSchema = true)
   public ApiCrossStageViolationDTOV2 getCrossStagePolicyViolationByConstituentId(
       @Parameter(description = "Enter the violationId. Use the GET method described for the endpoint " +
-          "/api/v2/policyViolations to obtain the policy violationId.", required = true) @QueryParam("constituentId")
-      final String constituentId)
+          "/api/v2/policyViolations to obtain the policy violationId.",
+          required = true) @QueryParam("constituentId") final String constituentId)
   {
     return apiCrossStageViolationService.getCrossStageViolationByConstituentId(constituentId);
   }
@@ -214,8 +213,7 @@ public class ApiPolicyViolationResourceV2
       "</ul>" +
       "\n" +
       "\n" +
-      "Permissions required: View IQ Elements"
-  )
+      "Permissions required: View IQ Elements")
   @ApiResponse(responseCode = "200",
       description = "The response contains details for all applicable waivers for the `violationId` specified. " +
           "It is grouped under 'activeWaivers' and 'expiredWaivers'. " +
@@ -274,8 +272,7 @@ public class ApiPolicyViolationResourceV2
       "violation." +
       "\n" +
       "\n" +
-      "Permissions required: View IQ Elements"
-  )
+      "Permissions required: View IQ Elements")
   @ApiResponse(responseCode = "200",
       description = "The response contains details for applicable auto waiver for the `violationId` specified. ",
       useReturnTypeSchema = true)
@@ -301,8 +298,8 @@ public class ApiPolicyViolationResourceV2
       description = "Successfully retrieved similar policy waivers for the given policy violation id.",
       useReturnTypeSchema = true)
   public List<ApiPolicyWaiverDTO> getSimilarWaivers(
-      @Parameter(description = "Policy violation id to find similar waivers for.", required = true)
-      @PathParam("violationId") final String violationId)
+      @Parameter(description = "Policy violation id to find similar waivers for.",
+          required = true) @PathParam("violationId") final String violationId)
   {
     return apiPolicyWaiverService.getSimilarWaivers(violationId);
   }
@@ -315,21 +312,19 @@ public class ApiPolicyViolationResourceV2
       "a specific stage. Transitive policy violations are violations caused by transitive dependencies." +
       "\n" +
       "\n" +
-      "Permissions required: View IQ Elements"
-  )
+      "Permissions required: View IQ Elements")
   @ApiResponse(responseCode = "204",
       description = "The response contains all transitive violations detected for the component specified. " +
           "In addition to the policy violation details like the name/id of the policy violated, threat level " +
           "threat category, etc. the response also indicates if the violation is due to an 'InnerSource' component.",
       useReturnTypeSchema = true)
   public ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolationsByOwnerStageComponent(
-      @Parameter(description = "Possible values are 'application' or 'organization'", required = true)
-      @PathParam("ownerType") final OwnerType ownerType,
-      @Parameter(description = "Possible values are applicationId, organizationId") @PathParam("ownerId")
-      final String ownerId,
+      @Parameter(description = "Possible values are 'application' or 'organization'",
+          required = true) @PathParam("ownerType") final OwnerType ownerType,
+      @Parameter(
+          description = "Possible values are applicationId, organizationId") @PathParam("ownerId") final String ownerId,
       @Parameter(description = "Possible values are 'develop', 'source', 'build', 'stage-release', 'release', and, " +
-          "'operate'.")
-      @PathParam("stageId") final String stageId,
+          "'operate'.") @PathParam("stageId") final String stageId,
       @Parameter(description = "Enter the component identifier and the coordinates of the component for which " +
           "you want to obtain the transitive violations. This is optional, not required if package URL or hash value " +
           "is provided.") @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier,
@@ -361,23 +356,18 @@ public class ApiPolicyViolationResourceV2
       useReturnTypeSchema = true)
   public ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolationsByAppScanComponent(
       @Parameter(description = "Enter the scope for this violation. " +
-          "Possible values are 'application'", required = true)
-      @PathParam("ownerType") final OwnerType ownerType,
+          "Possible values are 'application'", required = true) @PathParam("ownerType") final OwnerType ownerType,
       @Parameter(description = "Enter the identifier for the scope specified above. E.g. applicationId",
-          required = true)
-      @PathParam("ownerId") final String ownerId,
-      @Parameter(description = "Enter the scanId/reportId corresponding to the scan.", required = true)
-      @PathParam("scanId") final String scanId,
+          required = true) @PathParam("ownerId") final String ownerId,
+      @Parameter(description = "Enter the scanId/reportId corresponding to the scan.",
+          required = true) @PathParam("scanId") final String scanId,
       @Parameter(description = "Enter the component identifier and the coordinates of the component for which you" +
           " want to retrieve the transitive policy violations. " +
-          "This is optional, not required if package URL or hash value is provided.")
-      @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier,
+          "This is optional, not required if package URL or hash value is provided.") @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier,
       @Parameter(description = "Enter the package URL for the component for which you want to retrieve the " +
-          "transitive policy violations in the specific scan.")
-      @QueryParam("packageUrl") final String packageUrl,
+          "transitive policy violations in the specific scan.") @QueryParam("packageUrl") final String packageUrl,
       @Parameter(description = "Enter the hash value for the component for which you want to retrieve the " +
-          "transitive policy violations in the specific scan.")
-      @QueryParam("hash") final String hash)
+          "transitive policy violations in the specific scan.") @QueryParam("hash") final String hash)
   {
     apiPolicyViolationService.ensureInnerSourceTransitiveWaiverEnabled();
     return apiPolicyViolationService.getTransitivePolicyViolationsByAppScanComponent(ownerType, ownerId, scanId,

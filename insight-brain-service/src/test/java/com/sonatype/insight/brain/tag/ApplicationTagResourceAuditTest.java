@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.tag;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -63,7 +64,10 @@ public class ApplicationTagResourceAuditTest
   }
 
   private void updateApplicationTags(Consumer<HttpRequest> user, List<Tag> newTags) throws Exception {
-    restRequest().with(user).path(ApplicationTagResource.RESOURCE_PATH).parameter(application.getPublicId())
-        .body(newTags).put();
+    restRequest().with(user)
+        .path(ApplicationTagResource.RESOURCE_PATH)
+        .parameter(application.getPublicId())
+        .body(newTags)
+        .put();
   }
 }

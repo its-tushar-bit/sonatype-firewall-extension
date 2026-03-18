@@ -41,8 +41,8 @@ public class RoleManagementTest
 
   private static final boolean FIRST_COLUMN = true;
 
-  private static final String[] BUILTIN_ROLES = new String[] { "System Administrator", "Policy Administrator", "Owner",
-      "Developer", "Application Evaluator", "Component Evaluator" };
+  private static final String[] BUILTIN_ROLES = new String[]{"System Administrator", "Policy Administrator", "Owner",
+    "Developer", "Application Evaluator", "Component Evaluator"};
 
   private RoleDAO roleDAO;
 
@@ -108,7 +108,7 @@ public class RoleManagementTest
     assertPermission(roleEditorPage.permission(adminDisplayName, 0, !FIRST_COLUMN), !ON, !ENABLED,
         Permission.VIEW_ROLES);
     assertPermission(roleEditorPage.permission(adminDisplayName, 1, !FIRST_COLUMN), !ON, !ENABLED,
-            Permission.ACCESS_AUDIT_LOG);
+        Permission.ACCESS_AUDIT_LOG);
 
     // IQ permission category
     String iqDisplayName = PermissionCategory.IQ.getDisplayName();
@@ -186,9 +186,11 @@ public class RoleManagementTest
     roleEditorPage.nameEditor().val(newRoleName);
 
     roleEditorPage.save().scrollIntoView(true).shouldBe(visible).click();
-    FormUtils.getAlertElement(roleEditorPage).shouldBe(visible)
+    FormUtils.getAlertElement(roleEditorPage)
+        .shouldBe(visible)
         .shouldHave(
-          text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " Unable to submit: fields with invalid or missing data."));
+            text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX
+                + " Unable to submit: fields with invalid or missing data."));
 
     // enter the role description
     roleEditorPage.descriptionEditor().val(newRoleDescription);
@@ -272,7 +274,10 @@ public class RoleManagementTest
     unsavedModal.continueButton().click();
   }
 
-  private void assertPermission(NxToggle displayedPermission, boolean isOn, boolean isEnabled,
+  private void assertPermission(
+      NxToggle displayedPermission,
+      boolean isOn,
+      boolean isEnabled,
       Permission permission)
   {
     displayedPermission.label().scrollIntoView(true);
@@ -297,7 +302,8 @@ public class RoleManagementTest
     Role role = roleDAO.getByName(roleName);
     if (role != null) {
       for (com.sonatype.insight.brain.model.security.Permission perm : rolePermissionDAO
-          .getPermissionsForRole(role.getId())) {
+          .getPermissionsForRole(role.getId()))
+      {
         if (perm.getDescription().equals(permission)) {
           return true;
         }

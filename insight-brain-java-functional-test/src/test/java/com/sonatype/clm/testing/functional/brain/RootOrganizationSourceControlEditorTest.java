@@ -129,8 +129,9 @@ public class RootOrganizationSourceControlEditorTest
 
     DeleteModal.root().shouldBe(visible);
     DeleteModal.header().shouldHave(text("Reset Source Control"));
-    DeleteModal.body().shouldHave(text("You are about to reset the Source Control configuration for " +
-        "Root Organization. This action cannot be undone."));
+    DeleteModal.body()
+        .shouldHave(text("You are about to reset the Source Control configuration for " +
+            "Root Organization. This action cannot be undone."));
 
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
@@ -155,7 +156,8 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.baseBranchInput().shouldBe(enabled);
     SourceControlEditorPage.baseBranchInput().shouldHave(value("master"));
     SourceControlEditorPage.baseBranchInput().setValue("");
-    FormUtils.getAlertElement(SourceControlEditorPage.root()).shouldBe(visible)
+    FormUtils.getAlertElement(SourceControlEditorPage.root())
+        .shouldBe(visible)
         .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
 
     SourceControlEditorPage.baseBranchInput().setValue("develop");
@@ -268,8 +270,9 @@ public class RootOrganizationSourceControlEditorTest
 
     SourceControlEditorPage.root().shouldBe(visible);
     SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
-    SourceControlEditorPage.subTitle().shouldHave(text(String
-        .format("Configures the integration with an external SCM for %s", organization.getName())));
+    SourceControlEditorPage.subTitle()
+        .shouldHave(text(String
+            .format("Configures the integration with an external SCM for %s", organization.getName())));
     SourceControlEditorPage.form().shouldNotBe(visible);
     SourceControlEditorPage.notSupported().shouldBe(visible);
     SourceControlEditorPage.notSupported().shouldHave(text("Source Control is not supported by your license"));
@@ -296,7 +299,7 @@ public class RootOrganizationSourceControlEditorTest
     FormMask.seeAndWaitForDismissal();
     assertSourceControlManualPullRequest(organization.getId(), false);
 
-    //enable manual pull requests
+    // enable manual pull requests
     SourceControlEditorPage.manualPullRequestsFieldset().toggleControl().shouldBe(enabled).click();
 
     SourceControlEditorPage.saveButton().click();
@@ -312,7 +315,9 @@ public class RootOrganizationSourceControlEditorTest
 
     verifyStartNoSourceControl();
     SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().shouldBe(visible);
-    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().toggle().shouldBe(disabled)
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset()
+        .toggle()
+        .shouldBe(disabled)
         .shouldBe(selected);
     SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().labels().forEach(label -> label.shouldNotBe(visible));
 
@@ -323,7 +328,9 @@ public class RootOrganizationSourceControlEditorTest
     verifyStartWithSourceControl();
 
     SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().shouldBe(visible);
-    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().toggle().shouldBe(enabled)
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset()
+        .toggle()
+        .shouldBe(enabled)
         .shouldBe(selected);
     SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().labels().forEach(label -> label.shouldNotBe(visible));
     SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().toggleControl().shouldBe(enabled).click();
@@ -346,8 +353,9 @@ public class RootOrganizationSourceControlEditorTest
   protected void verifyStartNoSourceControl() {
     SourceControlEditorPage.root().shouldBe(visible);
     SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
-    SourceControlEditorPage.subTitle().shouldHave(
-        text(String.format("Configures the integration with an external SCM for %s", rootOrganization.getName())));
+    SourceControlEditorPage.subTitle()
+        .shouldHave(
+            text(String.format("Configures the integration with an external SCM for %s", rootOrganization.getName())));
     SourceControlEditorPage.providerSelect().shouldBe(visible, enabled);
     SourceControlEditorPage.providerSelect().chooseOption(new Option(0, "-- Not Configured --"));
     SourceControlEditorPage.token().shouldBe(visible, disabled);
@@ -359,7 +367,8 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.saveButton().shouldHave(text("Create"));
     SourceControlEditorPage.resetButton().shouldBe(disabled);
     SourceControlEditorPage.saveButton().click();
-    FormUtils.getAlertElement(SourceControlEditorPage.root()).shouldBe(visible)
+    FormUtils.getAlertElement(SourceControlEditorPage.root())
+        .shouldBe(visible)
         .shouldHave(text(
             FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
@@ -369,7 +378,9 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.sshEnabledFieldset().labels().forEach(label -> label.shouldNotBe(visible));
 
     SourceControlEditorPage.remediationPullRequestsFieldset().shouldBe(visible);
-    SourceControlEditorPage.remediationPullRequestsFieldset().toggle().shouldBe(disabled)
+    SourceControlEditorPage.remediationPullRequestsFieldset()
+        .toggle()
+        .shouldBe(disabled)
         .shouldNotBe(selected);
     SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldNotBe(visible);
     SourceControlEditorPage.remediationPullRequestsFieldset().labels().forEach(label -> label.shouldNotBe(visible));
@@ -409,8 +420,9 @@ public class RootOrganizationSourceControlEditorTest
   protected void verifyStartWithSourceControl() {
     SourceControlEditorPage.root().shouldBe(visible);
     SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
-    SourceControlEditorPage.subTitle().shouldHave(
-        text(String.format("Configures the integration with an external SCM for %s", rootOrganization.getName())));
+    SourceControlEditorPage.subTitle()
+        .shouldHave(
+            text(String.format("Configures the integration with an external SCM for %s", rootOrganization.getName())));
     SourceControlEditorPage.providerSelect().shouldBe(visible, enabled);
     SourceControlEditorPage.providerSelect().shouldHave(text("GitHub"));
     SourceControlEditorPage.token().shouldBe(visible, enabled);
@@ -423,7 +435,8 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.saveButton().shouldHave(text("Update"));
     SourceControlEditorPage.resetButton().shouldBe(enabled);
     SourceControlEditorPage.saveButton().click();
-    FormUtils.getAlertElement(SourceControlEditorPage.root()).shouldBe(visible)
+    FormUtils.getAlertElement(SourceControlEditorPage.root())
+        .shouldBe(visible)
         .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible);

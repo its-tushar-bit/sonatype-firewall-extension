@@ -89,10 +89,12 @@ public class SamlConfigurationPageTest
     Tooltip.get().shouldBe(visible).shouldBe(text("Nothing to download until a SAML configuration is saved"));
 
     // The links are as expected.
-    samlConfigurationPage.documentationLink().shouldBe(
-        attribute("href", "http://links.sonatype.com/products/nxiq/doc/saml-integration"));
-    samlConfigurationPage.feedbackWelcomeLink().shouldBe(
-        attribute("href", "http://links.sonatype.com/products/nxiq/feedback/saml"));
+    samlConfigurationPage.documentationLink()
+        .shouldBe(
+            attribute("href", "http://links.sonatype.com/products/nxiq/doc/saml-integration"));
+    samlConfigurationPage.feedbackWelcomeLink()
+        .shouldBe(
+            attribute("href", "http://links.sonatype.com/products/nxiq/feedback/saml"));
   }
 
   @Test
@@ -152,8 +154,9 @@ public class SamlConfigurationPageTest
     SamlConfigurationPage samlConfigurationPage = new SamlConfigurationPage();
     samlConfigurationPage.identityProviderName().clear();
     samlConfigurationPage.identityProviderName().sendKeys("My Awesome IdP");
-    samlConfigurationPage.loadXmlInput().uploadFromClasspath(
-        "com/sonatype/clm/testing/functional/brain/SamlConfigurationTest/identity-provider-metadata.xml");
+    samlConfigurationPage.loadXmlInput()
+        .uploadFromClasspath(
+            "com/sonatype/clm/testing/functional/brain/SamlConfigurationTest/identity-provider-metadata.xml");
     samlConfigurationPage.validateResponseSignatureDropdown().chooseOption(new Option(1, "True"));
     samlConfigurationPage.validateAssertionSignatureDropdown().chooseOption(new Option(2, "False"));
     samlConfigurationPage.scrollToBottom();
@@ -191,8 +194,9 @@ public class SamlConfigurationPageTest
 
     // Saving a new configuration requires Identity Provider XML.
     samlConfigurationPage.saveButton().shouldHave(DISABLED);
-    samlConfigurationPage.loadXmlInput().uploadFromClasspath(
-        "com/sonatype/clm/testing/functional/brain/SamlConfigurationTest/identity-provider-metadata.xml");
+    samlConfigurationPage.loadXmlInput()
+        .uploadFromClasspath(
+            "com/sonatype/clm/testing/functional/brain/SamlConfigurationTest/identity-provider-metadata.xml");
     samlConfigurationPage.saveButton().shouldHave(cssClass("iq-saml-configuration-save-button"));
 
     samlConfigurationPage.identityProviderName().clear();
@@ -253,8 +257,9 @@ public class SamlConfigurationPageTest
     assertThat(content.trim()).startsWith("<?xml").endsWith("EntityDescriptor>");
 
     // Loading an XML file for the identity provider xml works as expected and overwrites anything already in the box.
-    samlConfigurationPage.loadXmlInput().uploadFromClasspath(
-        "com/sonatype/clm/testing/functional/brain/SamlConfigurationTest/identity-provider-metadata-modified.xml");
+    samlConfigurationPage.loadXmlInput()
+        .uploadFromClasspath(
+            "com/sonatype/clm/testing/functional/brain/SamlConfigurationTest/identity-provider-metadata-modified.xml");
     assertThat(samlConfigurationPage.identityProviderMetadataXmlTextArea().getValue().trim())
         .endsWith("<!--modified-->");
 
@@ -281,10 +286,12 @@ public class SamlConfigurationPageTest
   @Test
   public void testIdentityProviderName_MaximumLength() {
     SamlConfigurationPage samlConfigurationPage = new SamlConfigurationPage();
-    samlConfigurationPage.loadXmlInput().uploadFromClasspath(
-        "com/sonatype/clm/testing/functional/brain/SamlConfigurationTest/identity-provider-metadata.xml");
-    samlConfigurationPage.identityProviderName().sendKeys(Keys.HOME, Keys.chord(Keys.SHIFT, Keys.END),
-        StringUtils.repeat('a', SamlConfiguration.IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH));
+    samlConfigurationPage.loadXmlInput()
+        .uploadFromClasspath(
+            "com/sonatype/clm/testing/functional/brain/SamlConfigurationTest/identity-provider-metadata.xml");
+    samlConfigurationPage.identityProviderName()
+        .sendKeys(Keys.HOME, Keys.chord(Keys.SHIFT, Keys.END),
+            StringUtils.repeat('a', SamlConfiguration.IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH));
     samlConfigurationPage.scrollToBottom();
     samlConfigurationPage.saveButton().shouldNotHave(DISABLED);
   }

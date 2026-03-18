@@ -36,7 +36,8 @@ public class FormUtils
   }
 
   public static SelenideElement getErrorElement(BasicElement<?> rootElement) {
-    return rootElement.getElement().$(VALIDATION_ERRORS_ERROR_CONTAINER_SELECTOR)
+    return rootElement.getElement()
+        .$(VALIDATION_ERRORS_ERROR_CONTAINER_SELECTOR)
         .$(VALIDATION_ERRORS_ALERT_CONTENT_SELECTOR);
   }
 
@@ -49,7 +50,8 @@ public class FormUtils
   }
 
   public static SelenideElement getAlertElement(BasicElement<?> rootElement) {
-    return rootElement.getElement().$(VALIDATION_ERRORS_ALERT_CONTAINER_SELECTOR)
+    return rootElement.getElement()
+        .$(VALIDATION_ERRORS_ALERT_CONTAINER_SELECTOR)
         .$(VALIDATION_ERRORS_ALERT_CONTENT_SELECTOR);
   }
 

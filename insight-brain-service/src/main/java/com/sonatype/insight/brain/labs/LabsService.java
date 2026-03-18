@@ -34,8 +34,9 @@ public class LabsService
     this.hdsClient = hdsClient;
   }
 
-  protected Response getLabsResponse(@Context final HttpServletRequest httpRequest, Map<String, String> params)
-      throws IOException
+  protected Response getLabsResponse(
+      @Context final HttpServletRequest httpRequest,
+      Map<String, String> params) throws IOException
   {
     HttpResponse httpResponseBack = hdsClient.forwardingProxy(httpRequest, params);
     return convertResponse(httpResponseBack);

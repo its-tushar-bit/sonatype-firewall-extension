@@ -507,7 +507,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_PathForward_NoVersionChanges() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
@@ -547,12 +548,14 @@ public class ScanPolicyEvaluatorTest
     tomcatComponentDetailsDTOV2.violatedPolicyCount = 0;
 
     doReturn(Pair.of(Arrays.asList(tomcatComponentDetailsDTOV1, tomcatComponentDetailsDTOV2), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), eq(tomcatComponentDetailsDTOV1.componentIdentifier), any(), any(), any(), any(), any(),
             anyBoolean());
 
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), not(eq(tomcatComponentDetailsDTOV1.componentIdentifier)), any(), any(), any(), any(), any(),
             anyBoolean());
 
@@ -574,7 +577,7 @@ public class ScanPolicyEvaluatorTest
 
     List<PolicyViolation> autoWaivedViolations = results.autoWaivedViolations;
     assertThat(autoWaivedViolations).hasSize(27);
-    //9 violations from tomcat has pathForward version
+    // 9 violations from tomcat has pathForward version
     assertThat(results.activeViolations).hasSize(9);
   }
 
@@ -609,7 +612,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_MultipleAutoWaivers() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
@@ -652,7 +656,7 @@ public class ScanPolicyEvaluatorTest
     securityPolicy.addConstraint(constraint);
     tempEntity.newPolicy(securityPolicy);
 
-    //auto policy waiver threat level to 7
+    // auto policy waiver threat level to 7
     tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
     ScanPolicyEvaluatorResults results =
         scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
@@ -681,7 +685,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ThreatLevelOnly_withPolicyWaiver() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     // Basic setup
@@ -745,7 +750,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_NoExclusions() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -781,8 +787,7 @@ public class ScanPolicyEvaluatorTest
         "pkg:maven/tomcat/servlets-default@5.5.4",
         "pkg:maven/org.openid4java/openid4java@0.9.5",
         "pkg:maven/tomcat/tomcat-util@5.4.23",
-        "pkg:maven/tomcat/tomcat-util@5.5.23"
-    );
+        "pkg:maven/tomcat/tomcat-util@5.5.23");
 
     addReachabilityMap(unreachableComponentList, reachableVulnMap);
 
@@ -812,8 +817,7 @@ public class ScanPolicyEvaluatorTest
         scanId,
         componentIdentifier,
         vulnerabilityIdentifier,
-        insightWork
-    );
+        insightWork);
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, analysisDTO, false);
@@ -848,8 +852,7 @@ public class ScanPolicyEvaluatorTest
         "pkg:maven/org.mortbay.jetty/jetty@6.1.15",
         "pkg:maven/tomcat/servlets-default@5.5.4",
         "pkg:maven/org.openid4java/openid4java@0.9.5",
-        "pkg:maven/tomcat/tomcat-util@5.4.23"
-    );
+        "pkg:maven/tomcat/tomcat-util@5.4.23");
 
     addReachabilityMap(unreachableComponentList, reachableVulnMap);
 
@@ -878,8 +881,7 @@ public class ScanPolicyEvaluatorTest
         scanId,
         componentIdentifier,
         reachableCVE,
-        insightWork
-    );
+        insightWork);
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, analysisDTO, false);
@@ -894,9 +896,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_Results_WithoutReachableVulnerability_ThenWithReachableVulnerability_UsingExistingViolation()
-      throws Exception
-  {
+  public void testEvaluate_Results_WithoutReachableVulnerability_ThenWithReachableVulnerability_UsingExistingViolation() throws Exception {
     doReturn(null)
         .when(apiVulnerabilityReachabilityStatusService)
         .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(), any(VulnerabilitySignatureAnalysisDTO.class));
@@ -922,8 +922,7 @@ public class ScanPolicyEvaluatorTest
         scanId,
         componentIdentifier,
         "",
-        insightWork
-    );
+        insightWork);
 
     // we run with all the details, but we have not data for reachability
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
@@ -950,8 +949,7 @@ public class ScanPolicyEvaluatorTest
         "pkg:maven/org.mortbay.jetty/jetty@6.1.15",
         "pkg:maven/tomcat/servlets-default@5.5.4",
         "pkg:maven/org.openid4java/openid4java@0.9.5",
-        "pkg:maven/tomcat/tomcat-util@5.4.23"
-    );
+        "pkg:maven/tomcat/tomcat-util@5.4.23");
 
     addReachabilityMap(unreachableComponentList, reachableVulnMap);
 
@@ -977,9 +975,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_Results_AutoWaivedViolations_PathForward_WithVersionChanges_WithReachableVuln_Reachable()
-      throws Exception
-  {
+  public void testEvaluate_Results_AutoWaivedViolations_PathForward_WithVersionChanges_WithReachableVuln_Reachable() throws Exception {
     String knownCVE = "CVE-2011-4314";
     Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableVulnMap = new HashMap();
 
@@ -993,8 +989,7 @@ public class ScanPolicyEvaluatorTest
         "pkg:maven/tomcat/catalina-host-manager@5.5.23",
         "pkg:maven/org.mortbay.jetty/jetty@6.1.15",
         "pkg:maven/tomcat/tomcat-util@5.5.23",
-        "pkg:maven/tomcat/servlets-default@5.5.4"
-    );
+        "pkg:maven/tomcat/servlets-default@5.5.4");
 
     addReachabilityMap(unreachableComponentList, reachableVulnMap);
 
@@ -1012,12 +1007,14 @@ public class ScanPolicyEvaluatorTest
     tomcatComponentDetailsDTOV2.violatedPolicyCount = 0;
 
     doReturn(Pair.of(Arrays.asList(tomcatComponentDetailsDTOV1, tomcatComponentDetailsDTOV2), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), eq(tomcatComponentDetailsDTOV1.componentIdentifier), any(), any(), any(), any(), any(),
             anyBoolean());
 
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), not(eq(tomcatComponentDetailsDTOV1.componentIdentifier)), any(), any(), any(), any(), any(),
             anyBoolean());
 
@@ -1043,8 +1040,7 @@ public class ScanPolicyEvaluatorTest
         scanId,
         componentIdentifier,
         vulnerabilityIdentifier,
-        insightWork
-    );
+        insightWork);
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, analysisDTO, false);
@@ -1069,12 +1065,14 @@ public class ScanPolicyEvaluatorTest
     tomcatComponentDetailsDTOV2.violatedPolicyCount = 0;
 
     doReturn(Pair.of(Arrays.asList(tomcatComponentDetailsDTOV1, tomcatComponentDetailsDTOV2), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), eq(tomcatComponentDetailsDTOV1.componentIdentifier), any(), any(), any(), any(), any(),
             anyBoolean());
 
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), not(eq(tomcatComponentDetailsDTOV1.componentIdentifier)), any(), any(), any(), any(), any(),
             anyBoolean());
 
@@ -1108,7 +1106,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_ExactComponent() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     // The exclusion will apply to tomcat-util version 5.5.23 only. The violation for v5.4.23 will be auto-waived
@@ -1152,7 +1151,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_AllVersions() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     // The exclusion will apply to all versions of tomcat-util. Report contains violations for 5.4.23 & 5.5.23
@@ -1188,8 +1188,7 @@ public class ScanPolicyEvaluatorTest
         null,
         null,
         componentIdentifier,
-        null
-    );
+        null);
 
     ScanPolicyEvaluatorResults results =
         scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
@@ -1205,7 +1204,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_PolicyViolation() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -1234,8 +1234,7 @@ public class ScanPolicyEvaluatorTest
         "fakeName",
         autoPolicyWaiver.getId(),
         scanIdOne,
-        targetViolation
-    );
+        targetViolation);
 
     ScanPolicyEvaluatorResults evalTwo =
         scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI,
@@ -1254,7 +1253,8 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_Results_AutoWaivedViolations_MultiExclusionsApply_PolicyViolation() throws Exception {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -1292,8 +1292,7 @@ public class ScanPolicyEvaluatorTest
         evalOne.autoWaivedViolations.stream()
             .filter(
                 policyViolation -> policyViolation.getPolicyId().equals(securityPolicyOne.getId()) &&
-                    policyViolation.getComponentIdentifier().compareTo(gsonComponentIdentifier) == 0
-            )
+                    policyViolation.getComponentIdentifier().compareTo(gsonComponentIdentifier) == 0)
             .findFirst();
 
     PolicyViolation rootTargetViolation = optionalRootTargetViolation.get();
@@ -1304,8 +1303,7 @@ public class ScanPolicyEvaluatorTest
         "fakeName",
         rootAutoPolicyWaiver.getId(),
         scanIdOne,
-        rootTargetViolation
-    );
+        rootTargetViolation);
 
     ComponentIdentifier jacksonDatabindComponentIdentifier = ComponentIdentifier
         .createMavenCoordinates("com.fasterxml.jackson.core", "jackson-databind", "2.9.8", "", "jar");
@@ -1313,8 +1311,7 @@ public class ScanPolicyEvaluatorTest
         evalOne.autoWaivedViolations.stream()
             .filter(
                 policyViolation -> policyViolation.getPolicyId().equals(securityPolicyTwo.getId()) &&
-                    policyViolation.getComponentIdentifier().compareTo(jacksonDatabindComponentIdentifier) == 0
-            )
+                    policyViolation.getComponentIdentifier().compareTo(jacksonDatabindComponentIdentifier) == 0)
             .findFirst();
 
     PolicyViolation targetViolation = optionalTargetViolation.get();
@@ -1325,8 +1322,7 @@ public class ScanPolicyEvaluatorTest
         "fakeName",
         autoPolicyWaiver.getId(),
         scanIdOne,
-        targetViolation
-    );
+        targetViolation);
 
     ScanPolicyEvaluatorResults evalTwo =
         scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI,
@@ -1349,7 +1345,8 @@ public class ScanPolicyEvaluatorTest
           assertThat(violation.getThreatLevel()).isEqualTo(rootExclusion.getThreatLevel());
           assertThat(violation.getComponentIdentifier()).isEqualTo(rootExclusion.getComponentIdentifier());
           assertThat(violation.getComponentIdentifier()).isEqualTo(gsonComponentIdentifier);
-        }).satisfiesOnlyOnce(violation -> {
+        })
+        .satisfiesOnlyOnce(violation -> {
           assertThat(violation.getPolicyId()).isEqualTo(exclusion.getPolicyId());
           assertThat(violation.getHash()).isEqualTo(exclusion.getHash());
           assertThat(violation.getThreatLevel()).isEqualTo(exclusion.getThreatLevel());
@@ -1359,11 +1356,10 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_PolicyViolation_incompleteComponent()
-      throws Exception
-  {
+  public void testEvaluate_Results_AutoWaivedViolations_ExclusionsApply_PolicyViolation_incompleteComponent() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -1392,8 +1388,7 @@ public class ScanPolicyEvaluatorTest
         "fakeName",
         autoPolicyWaiver.getId(),
         scanIdOne,
-        targetViolation
-    );
+        targetViolation);
 
     ScanPolicyEvaluatorResults evalTwo =
         scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI,
@@ -1407,7 +1402,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsDoNotApply_ExactComponent() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -1444,7 +1440,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsDoNotApply_AllVersions() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -1478,8 +1475,7 @@ public class ScanPolicyEvaluatorTest
         null,
         null,
         componentIdentifier,
-        null
-    );
+        null);
 
     ScanPolicyEvaluatorResults results =
         scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
@@ -1493,7 +1489,8 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_Results_AutoWaivedViolations_ExclusionsDoNotApply_PolicyViolation() throws Exception {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -1523,8 +1520,7 @@ public class ScanPolicyEvaluatorTest
         autoPolicyWaiver.getId(),
         scanIdOne,
         "someOtherHash",
-        targetViolation
-    );
+        targetViolation);
 
     ScanPolicyEvaluatorResults evalTwo =
         scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI,
@@ -1538,7 +1534,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testReEvaluate_Results_WithoutSkippingAutoWaivers() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -1629,8 +1626,8 @@ public class ScanPolicyEvaluatorTest
      */
     assertThatThrownBy(() -> scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, true))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("Auto-waivers can only be skipped in re-evaluations not primary policy evaluations.");
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Auto-waivers can only be skipped in re-evaluations not primary policy evaluations.");
   }
 
   @Test
@@ -1895,7 +1892,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_Results_NotifiableViolations_WithAutoWaiver_ThreatLevelOnly() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -1916,7 +1914,7 @@ public class ScanPolicyEvaluatorTest
         scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
             ClientScanType.SONATYPE, false);
 
-    //auto waived all the security violations
+    // auto waived all the security violations
     assertThat(results2.activeViolations).isEmpty();
     assertThat(results2.autoWaivedViolations).hasSize(36);
     assertThat(results2.notifiableViolations).isEmpty();
@@ -2125,7 +2123,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_UpdateAutoWaivedViolations_MultiplePolicies_NoPolicyWaiver() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -2196,7 +2195,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_AddAndRemoveAutoWaiver_SinglePolicy_NoPolicyWaiver() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -2269,7 +2269,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_AddAndRemovePolicyWaiver_SinglePolicy_WithAutoWaiver() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -2337,9 +2338,10 @@ public class ScanPolicyEvaluatorTest
       assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiver.getId());
     });
 
-    List<PolicyViolation> newlyAutoWaivedViolations = results3.autoWaivedViolations.stream().filter(
-        autoWaivedViolation -> !autoWaivedViolation.getOpenTime().equals(results1.evaluation.getTime())
-    ).toList();
+    List<PolicyViolation> newlyAutoWaivedViolations = results3.autoWaivedViolations.stream()
+        .filter(
+            autoWaivedViolation -> !autoWaivedViolation.getOpenTime().equals(results1.evaluation.getTime()))
+        .toList();
 
     assertThat(newlyAutoWaivedViolations).hasSize(3).allSatisfy(autoWaivedViolation -> {
       assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results3.evaluation.getTime());
@@ -2350,7 +2352,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_AddAndRemoveAutoWaiver_SinglePolicy_WithPolicyWaiver() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -2430,9 +2433,10 @@ public class ScanPolicyEvaluatorTest
       assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverTwo.getId());
     });
 
-    List<PolicyViolation> newlyAutoWaivedViolations = results5.autoWaivedViolations.stream().filter(
-        autoWaivedViolation -> autoWaivedViolation.getOpenTime().equals(results4.evaluation.getTime())
-    ).toList();
+    List<PolicyViolation> newlyAutoWaivedViolations = results5.autoWaivedViolations.stream()
+        .filter(
+            autoWaivedViolation -> autoWaivedViolation.getOpenTime().equals(results4.evaluation.getTime()))
+        .toList();
 
     assertThat(newlyAutoWaivedViolations).hasSize(3).allSatisfy(autoWaivedViolation -> {
       assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results4.evaluation.getTime());
@@ -2466,7 +2470,8 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_AddAndRemoveAutoWaiver_MultiplePolicies_NoPolicyWaiver() throws Exception {
     // setup
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
@@ -2517,9 +2522,10 @@ public class ScanPolicyEvaluatorTest
     assertThat(results3.autoWaivedViolations).isEmpty();
     assertThat(results3.activeViolations).hasSize(72);
 
-    List<PolicyViolation> unAutoWaivedViolations = results3.activeViolations.stream().filter(
-        unwaivedViolation -> unwaivedViolation.getOpenTime().equals(results3.evaluation.getTime())
-    ).toList();
+    List<PolicyViolation> unAutoWaivedViolations = results3.activeViolations.stream()
+        .filter(
+            unwaivedViolation -> unwaivedViolation.getOpenTime().equals(results3.evaluation.getTime()))
+        .toList();
     assertThat(unAutoWaivedViolations).hasSize(36);
 
     // add ineffective auto waiver and evaluate
@@ -2535,7 +2541,8 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_AddAndRemoveAutoWaiver_MultiplePolicies_WithPolicyWaiver() throws Exception {
     // setup
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
@@ -2606,7 +2613,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_UpdateAutoWaivedViolations_SinglePolicy_WithPolicyWaiver() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
@@ -2667,9 +2675,10 @@ public class ScanPolicyEvaluatorTest
       assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiver.getId());
     });
 
-    List<PolicyViolation> newlyAutoWaivedViolations = results3.autoWaivedViolations.stream().filter(
-        autoWaivedViolation -> !autoWaivedViolation.getOpenTime().equals(openTime)
-    ).toList();
+    List<PolicyViolation> newlyAutoWaivedViolations = results3.autoWaivedViolations.stream()
+        .filter(
+            autoWaivedViolation -> !autoWaivedViolation.getOpenTime().equals(openTime))
+        .toList();
 
     assertThat(newlyAutoWaivedViolations).hasSize(3).allSatisfy(autoWaivedViolation -> {
       assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results3.evaluation.getTime());
@@ -2680,7 +2689,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_UpdateAutoWaivedViolations_SinglePolicy_NoPolicyWaiver() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
@@ -2755,8 +2765,10 @@ public class ScanPolicyEvaluatorTest
 
     assertThat(results2.activeViolations).hasSize(33);
     List<PolicyViolation> waivedViolations = policyViolationDAO
-        .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId()).stream()
-        .filter(PolicyViolation::isWaived).toList();
+        .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId())
+        .stream()
+        .filter(PolicyViolation::isWaived)
+        .toList();
     assertThat(waivedViolations).hasSize(3).allSatisfy(waivedViolation -> {
       assertThat(waivedViolation.getHash()).isEqualTo(waiver.getHash());
       assertThat(waivedViolation.getOpenTime()).isEqualTo(openTime);
@@ -2777,7 +2789,8 @@ public class ScanPolicyEvaluatorTest
         .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId());
     assertThat(unfixedViolations.stream().filter(PolicyViolation::isWaived).toList()).isEmpty();
     List<PolicyViolation> unwaivedViolations = unfixedViolations.stream()
-        .filter(violation -> violation.getHash().equals(waiver.getHash())).toList();
+        .filter(violation -> violation.getHash().equals(waiver.getHash()))
+        .toList();
     assertThat(unwaivedViolations).hasSize(3).allSatisfy(unwaivedViolation -> {
       assertThat(unwaivedViolation.getHash()).isEqualTo(waiver.getHash());
       assertThat(unwaivedViolation.getOpenTime()).isEqualTo(results3.evaluation.getTime());
@@ -2815,8 +2828,10 @@ public class ScanPolicyEvaluatorTest
 
     assertThat(results2.activeViolations).hasSize(33);
     List<PolicyViolation> waivedViolations = policyViolationDAO
-        .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId()).stream()
-        .filter(PolicyViolation::isWaived).toList();
+        .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId())
+        .stream()
+        .filter(PolicyViolation::isWaived)
+        .toList();
     assertThat(waivedViolations).hasSize(3).allSatisfy(waivedViolation -> {
       assertThat(waivedViolation.getHash()).isEqualTo(waiver.getHash());
       assertThat(waivedViolation.getOpenTime()).isEqualTo(openTime);
@@ -2835,8 +2850,10 @@ public class ScanPolicyEvaluatorTest
 
     assertThat(results3.activeViolations).hasSize(33);
     waivedViolations = policyViolationDAO
-        .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId()).stream()
-        .filter(PolicyViolation::isWaived).toList();
+        .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId())
+        .stream()
+        .filter(PolicyViolation::isWaived)
+        .toList();
     assertThat(waivedViolations).hasSize(3).allSatisfy(waivedViolation -> {
       assertThat(waivedViolation.getHash()).isEqualTo(waiver2.getHash());
       assertThat(waivedViolation.getOpenTime()).isEqualTo(openTime);
@@ -2915,9 +2932,9 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testSendEvaluationTelemetry() {
     Object[] formatsAndCounts = new Object[]{
-        "unknown", 1, ComponentIdentifier.FORMAT_MAVEN, 2, ComponentIdentifier.FORMAT_NPM, 3,
-        ComponentIdentifier.FORMAT_NUGET, 4, ComponentIdentifier.FORMAT_ANAME, 5, ComponentIdentifier.FORMAT_PYPI, 6,
-        ComponentIdentifier.FORMAT_RPM, 7, ComponentIdentifier.FORMAT_RUBYGEMS, 8
+      "unknown", 1, ComponentIdentifier.FORMAT_MAVEN, 2, ComponentIdentifier.FORMAT_NPM, 3,
+      ComponentIdentifier.FORMAT_NUGET, 4, ComponentIdentifier.FORMAT_ANAME, 5, ComponentIdentifier.FORMAT_PYPI, 6,
+      ComponentIdentifier.FORMAT_RPM, 7, ComponentIdentifier.FORMAT_RUBYGEMS, 8
     };
 
     scanPolicyEvaluator.sendEvaluationTelemetry("scanId", "applicationId", "stageId",
@@ -3037,11 +3054,11 @@ public class ScanPolicyEvaluatorTest
       case ComponentIdentifier.FORMAT_NPM -> new Component(ComponentIdentifier.createNpmCoordinates("p", "v"));
       case ComponentIdentifier.FORMAT_NUGET -> new Component(ComponentIdentifier.createNugetCoordinates("p", "v"));
       case ComponentIdentifier.FORMAT_ANAME -> new Component(ComponentIdentifier.createAnameCoordinates("n", "q", "v"));
-      case ComponentIdentifier.FORMAT_PYPI ->
-          new Component(ComponentIdentifier.createPypiCoordinates("n", "v", "q", "e"));
+      case ComponentIdentifier.FORMAT_PYPI -> new Component(
+          ComponentIdentifier.createPypiCoordinates("n", "v", "q", "e"));
       case ComponentIdentifier.FORMAT_RPM -> new Component(ComponentIdentifier.createRpmCoordinates("n", "v", "a"));
-      case ComponentIdentifier.FORMAT_RUBYGEMS ->
-          new Component(ComponentIdentifier.createRubyGemsCoordinates("n", "v", "p"));
+      case ComponentIdentifier.FORMAT_RUBYGEMS -> new Component(
+          ComponentIdentifier.createRubyGemsCoordinates("n", "v", "p"));
       default -> new Component();
     };
   }
@@ -3157,9 +3174,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_LegacyViolationsEnabledForApp_DisabledForOrg_AppCannotOverrideLegacyViolations()
-      throws Exception
-  {
+  public void testEvaluate_LegacyViolationsEnabledForApp_DisabledForOrg_AppCannotOverrideLegacyViolations() throws Exception {
     organization.setLegacyViolationEnabled(false);
     organization.setAllowLegacyViolationOverride(false);
     organizationDAO.update(organization);
@@ -3170,9 +3185,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_LegacyViolationsDisabledForApp_DisabledForOrg_AppCannotOverrideLegacyViolations()
-      throws Exception
-  {
+  public void testEvaluate_LegacyViolationsDisabledForApp_DisabledForOrg_AppCannotOverrideLegacyViolations() throws Exception {
     organization.setLegacyViolationEnabled(false);
     organization.setAllowLegacyViolationOverride(false);
     organizationDAO.update(organization);
@@ -3183,9 +3196,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_LegacyViolationsEnabledForApp_EnabledForOrg_AppCannotOverrideLegacyViolations()
-      throws Exception
-  {
+  public void testEvaluate_LegacyViolationsEnabledForApp_EnabledForOrg_AppCannotOverrideLegacyViolations() throws Exception {
     organization.setLegacyViolationEnabled(true);
     organization.setAllowLegacyViolationOverride(false);
     organizationDAO.update(organization);
@@ -3196,9 +3207,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_LegacyViolationsDisabledForApp_EnabledForOrg_AppCannotOverrideLegacyViolations()
-      throws Exception
-  {
+  public void testEvaluate_LegacyViolationsDisabledForApp_EnabledForOrg_AppCannotOverrideLegacyViolations() throws Exception {
     organization.setLegacyViolationEnabled(true);
     organization.setAllowLegacyViolationOverride(false);
     organizationDAO.update(organization);
@@ -3353,7 +3362,8 @@ public class ScanPolicyEvaluatorTest
     List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByApplicationIdAndStageId(application.getId(),
         stage.getStageTypeId());
     assertThat(policyViolations).hasSize(3);
-    assertThat(policyViolations).filteredOn(violation -> componentHash.equals(violation.getHash())).hasSize(1)
+    assertThat(policyViolations).filteredOn(violation -> componentHash.equals(violation.getHash()))
+        .hasSize(1)
         .allSatisfy(policyViolation -> {
           assertThat(policyViolation.isWaived()).isTrue();
           assertThat(policyViolation.getPolicyWaiverId()).isEqualTo(policyWaiver.getId());
@@ -3853,7 +3863,7 @@ public class ScanPolicyEvaluatorTest
     testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
     testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
-    //We need to create an actual repository and set it in the organization
+    // We need to create an actual repository and set it in the organization
     Repository repository = createTestRepository();
     organization.setRelatedRepositoryId(repository.getId());
     organizationDAO.update(organization);
@@ -3881,7 +3891,7 @@ public class ScanPolicyEvaluatorTest
     testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
     testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
-    //We need to create an actual repository and set it in the organization
+    // We need to create an actual repository and set it in the organization
     Repository repository = createTestRepository();
     organization.setRelatedRepositoryId(repository.getId());
     organizationDAO.update(organization);
@@ -3961,7 +3971,8 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_PolicyViolationLogger_AutoWaiveAndUnAutoWaivePolicyViolations() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -4067,7 +4078,8 @@ public class ScanPolicyEvaluatorTest
       List<PolicyViolation> policyViolations,
       String policyId)
   {
-    return policyViolations.stream().filter(policyViolation -> policyViolation.getPolicyId().equals(policyId))
+    return policyViolations.stream()
+        .filter(policyViolation -> policyViolation.getPolicyId().equals(policyId))
         .toList();
   }
 
@@ -4119,10 +4131,9 @@ public class ScanPolicyEvaluatorTest
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     clearInvocations(mockTelemetrySender);
 
-    assertThatThrownBy(() ->
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
-            ClientScanType.SONATYPE, false))
-        .hasMessage(REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE);
+    assertThatThrownBy(() -> scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false))
+            .hasMessage(REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE);
 
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
@@ -4202,7 +4213,9 @@ public class ScanPolicyEvaluatorTest
     ConditionTypes.enableConditionType(ConditionTypes.IntegrityRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);
     try {
-      Set<String> expectedConditionTypeIds = ConditionTypes.getAll().stream().map(ConditionType::getId)
+      Set<String> expectedConditionTypeIds = ConditionTypes.getAll()
+          .stream()
+          .map(ConditionType::getId)
           .filter(id -> !ProprietaryNameConflictConditionType.ID.equals(id))
           .filter(id -> !IacControlConditionType.ID.equals(id))
           // Tested in testEvaluate_PolicyViolationLogger_DerivativeAiModelConditionType
@@ -4337,9 +4350,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_PolicyViolationLogger_LogsPolicyConditionTriggersForMultipleConstraintsConditions()
-      throws Exception
-  {
+  public void testEvaluate_PolicyViolationLogger_LogsPolicyConditionTriggersForMultipleConstraintsConditions() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Condition ageCondition1 = new Condition(AgeInDaysConditionType.ID, "older than", "1");
     Condition ageCondition2 = new Condition(AgeInDaysConditionType.ID, "younger than", "999999");
@@ -4413,7 +4424,8 @@ public class ScanPolicyEvaluatorTest
         applicationComponentDAO.getByApplicationId(application.getId());
     assertThat(applicationComponents).hasSize(2);
     ApplicationComponent aggregateComponent = applicationComponents.stream()
-        .filter(applicationComponent -> applicationComponent.getHash().equals("a567564b25bb307a55ef")).findFirst()
+        .filter(applicationComponent -> applicationComponent.getHash().equals("a567564b25bb307a55ef"))
+        .findFirst()
         .orElse(null);
     assertThat(aggregateComponent).isNotNull();
     List<AggregateFile> aggregateFiles = aggregateFileDAO.getByApplicationComponentId(aggregateComponent.getId());
@@ -4425,7 +4437,8 @@ public class ScanPolicyEvaluatorTest
         .containsExactlyInAnyOrder("hawkTest.zip/duplicate/server.js", "hawkTest.zip/nested/server/server.js",
             "hawkTest.zip/reversed/index.js", "hawkTest.zip/server.js");
     ApplicationComponent nonAggregateComponent = applicationComponents.stream()
-        .filter(applicationComponent -> applicationComponent.getHash().equals("ab4e6f3b97ec4831f018")).findFirst()
+        .filter(applicationComponent -> applicationComponent.getHash().equals("ab4e6f3b97ec4831f018"))
+        .findFirst()
         .orElse(null);
     assertThat(nonAggregateComponent).isNotNull();
     assertThat(aggregateFileDAO.getByApplicationComponentId(nonAggregateComponent.getId())).isEmpty();
@@ -4492,7 +4505,8 @@ public class ScanPolicyEvaluatorTest
     assertThat(telemetryDataList).hasSize(5);
     TelemetryData timeToWaiveTelemetryData = telemetryDataList.stream()
         .filter(telemetryData -> TIME_TO_WAIVE_POLICY_VIOLATION.equals(telemetryData.getPurpose()))
-        .findFirst().orElseThrow();
+        .findFirst()
+        .orElseThrow();
     assertThat(timeToWaiveTelemetryData.getAttributes().get(COUNT)).isEqualTo(1);
     clearInvocations(mockTelemetrySender);
 
@@ -4610,7 +4624,8 @@ public class ScanPolicyEvaluatorTest
 
     // Mock component info service to return empty results
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     // Capture telemetry data
@@ -4797,8 +4812,7 @@ public class ScanPolicyEvaluatorTest
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.performPolicyEvaluation(
         application, scanId, stage, ScanTriggerType.CLI, "testUserAgent", "testClientId",
-        false, ClientScanType.SONATYPE, reportComponentData, false
-    );
+        false, ClientScanType.SONATYPE, reportComponentData, false);
 
     assertNotNull(results);
     assertNotNull(results.evaluation);
@@ -4820,8 +4834,7 @@ public class ScanPolicyEvaluatorTest
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.performPolicyEvaluation(
         application, scanId, stage, ScanTriggerType.CLI, "testUserAgent", "testClientId",
-        false, ClientScanType.SONATYPE, reportComponentData, false
-    );
+        false, ClientScanType.SONATYPE, reportComponentData, false);
 
     assertNotNull(results);
     assertNotNull(results.evaluation);
@@ -4850,8 +4863,7 @@ public class ScanPolicyEvaluatorTest
         "pkg:maven/org.mortbay.jetty/jetty@6.1.15",
         "pkg:maven/tomcat/servlets-default@5.5.4",
         "pkg:maven/org.openid4java/openid4java@0.9.5",
-        "pkg:maven/tomcat/tomcat-util@5.4.23"
-    );
+        "pkg:maven/tomcat/tomcat-util@5.4.23");
 
     addReachabilityMap(unreachableComponentList, reachableVulnMap);
 
@@ -4880,16 +4892,14 @@ public class ScanPolicyEvaluatorTest
         scanId,
         componentIdentifier,
         reachableCVE,
-        insightWork
-    );
+        insightWork);
 
     ReportComponentData reportComponentData =
         reportComponentService.fetchReportAndComponents(application, scanId, stage.getStageTypeId());
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.performPolicyEvaluation(
         application, scanId, stage, ScanTriggerType.CLI, "testUserAgent", "testClientId",
-        false, ClientScanType.SONATYPE, reportComponentData, analysisDTO, false
-    );
+        false, ClientScanType.SONATYPE, reportComponentData, analysisDTO, false);
 
     assertThat(results.autoWaivedViolations).hasSize(35);
     assertThat(results.activeViolations).hasSize(1);
@@ -4953,9 +4963,9 @@ public class ScanPolicyEvaluatorTest
             new PresentReachableComponentVulnerabilities(Set.of(vulnerabilityIdentifier)),
             new PackageUrlIdentifier("pkg:maven/org.mortbay.jetty/jetty@6.1.15"),
             new PresentReachableComponentVulnerabilities(Set.of(vulnerabilityIdentifier2)))))
-        .when(apiVulnerabilityReachabilityStatusService)
-        .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(),
-            any(VulnerabilitySignatureAnalysisDTO.class));
+                .when(apiVulnerabilityReachabilityStatusService)
+                .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(),
+                    any(VulnerabilitySignatureAnalysisDTO.class));
 
     // Set up path forward:
     ComponentDetailsDTO tomcatComponentDetailsDTO = new ComponentDetailsDTO();
@@ -4967,11 +4977,13 @@ public class ScanPolicyEvaluatorTest
         ComponentIdentifier.createMavenCoordinates("org.mortbay.jetty", "jetty", "6.1.15");
     jettyComponentDetailsDTO.violatedPolicyCount = 0;
     doReturn(Pair.of(Arrays.asList(jettyComponentDetailsDTO, jettyComponentDetailsDTO), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), eq(jettyComponentDetailsDTO.componentIdentifier), any(), any(), any(), any(), any(),
             anyBoolean());
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), not(eq(jettyComponentDetailsDTO.componentIdentifier)), any(), any(), any(), any(), any(),
             anyBoolean());
 
@@ -4993,25 +5005,24 @@ public class ScanPolicyEvaluatorTest
         scanId,
         tomcatComponentDetailsDTO.componentIdentifier,
         vulnerabilityIdentifier,
-        insightWork
-    );
+        insightWork);
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, analysisDTO, false);
 
     /*
-    Total violations = 7
-    Security.REACHABLE violations = 1
-    Security.NON_REACHABLE violations = 6
-    Components with pathForward = 1 with 3 vulnerabilities
-
-    NOT AUTO WAIVED:
-    tomcat-util: 1/2 vulns with REACHABLE, no path forward
-    jetty: 3 vulns with NOT REACHABLE, has path forward
-
-    AUTO WAIVED:
-    tomcat-util: 1/2 vulns with NOT REACHABLE, no path forward
-    openid: 2 vulns with NOT REACHABLE, no path forward
-    */
+     * Total violations = 7
+     * Security.REACHABLE violations = 1
+     * Security.NON_REACHABLE violations = 6
+     * Components with pathForward = 1 with 3 vulnerabilities
+     *
+     * NOT AUTO WAIVED:
+     * tomcat-util: 1/2 vulns with REACHABLE, no path forward
+     * jetty: 3 vulns with NOT REACHABLE, has path forward
+     *
+     * AUTO WAIVED:
+     * tomcat-util: 1/2 vulns with NOT REACHABLE, no path forward
+     * openid: 2 vulns with NOT REACHABLE, no path forward
+     */
     PackageUrlIdentifier openId4JavaIdentifier = PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier
         .createMavenCoordinates("org.openid4java", "openid4java", "0.9.5"));
     PackageUrlIdentifier tomcatIdentifier =
@@ -5021,14 +5032,14 @@ public class ScanPolicyEvaluatorTest
 
     assertThat(results.autoWaivedViolations)
         .hasSize(3)
-        .extracting(policyViolation ->
-            PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()))
+        .extracting(
+            policyViolation -> PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()))
         .containsExactlyInAnyOrder(openId4JavaIdentifier, openId4JavaIdentifier, tomcatIdentifier);
 
     assertThat(results.activeViolations)
         .hasSize(4)
-        .extracting(policyViolation ->
-            PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()))
+        .extracting(
+            policyViolation -> PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()))
         .containsExactlyInAnyOrder(tomcatIdentifier, jettyIdentifier, jettyIdentifier, jettyIdentifier);
   }
 
@@ -5043,9 +5054,9 @@ public class ScanPolicyEvaluatorTest
             new PresentReachableComponentVulnerabilities(Set.of("73737")),
             new PackageUrlIdentifier("pkg:maven/org.mortbay.jetty/jetty@6.1.15"),
             new PresentReachableComponentVulnerabilities(Set.of("73737")))))
-        .when(apiVulnerabilityReachabilityStatusService)
-        .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(),
-            any(VulnerabilitySignatureAnalysisDTO.class));
+                .when(apiVulnerabilityReachabilityStatusService)
+                .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(),
+                    any(VulnerabilitySignatureAnalysisDTO.class));
     // Set up path forward:
     ComponentDetailsDTO tomcatComponentDetailsDTO = new ComponentDetailsDTO();
     tomcatComponentDetailsDTO.componentIdentifier =
@@ -5058,12 +5069,14 @@ public class ScanPolicyEvaluatorTest
     ComponentIdentifier openidComponentIdentifier =
         ComponentIdentifier.createMavenCoordinates("org.openid4java", "openid4java", "0.9.5");
     doReturn(Pair.of(Arrays.asList(tomcatComponentDetailsDTO, tomcatComponentDetailsDTO), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), eq(tomcatComponentDetailsDTO.componentIdentifier), any(), any(), any(), any(), any(), anyBoolean());
     // Don't need to mock path forward for jetty because path forward evaluation will not be reached because it is
     // not reachable, which satisfies the auto waiver condition
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), eq(openidComponentIdentifier), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -5084,26 +5097,25 @@ public class ScanPolicyEvaluatorTest
         scanId,
         tomcatComponentDetailsDTO.componentIdentifier,
         vulnerabilityIdentifier,
-        insightWork
-    );
+        insightWork);
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, analysisDTO, false);
 
     /*
-    Total violations = 7
-    Security.REACHABLE violations = 1
-    Security.NON_REACHABLE violations = 6
-    Components with pathForward = 2 with 5 combined vulnerabilities
-
-    NOT AUTO WAIVED:
-    tomcat-util: 1/2 vulns with REACHABLE, has path forward
-
-    AUTO WAIVED:
-    tomcat-util: 1/2 vulns with NOT REACHABLE, has path forward
-    jetty: 3 vulns with NOT REACHABLE, no path forward
-    openid: 1/2 vulns with NOT REACHABLE, no path forward
-    openid: 1/2 vulns with REACHABLE, no path forward
-    */
+     * Total violations = 7
+     * Security.REACHABLE violations = 1
+     * Security.NON_REACHABLE violations = 6
+     * Components with pathForward = 2 with 5 combined vulnerabilities
+     *
+     * NOT AUTO WAIVED:
+     * tomcat-util: 1/2 vulns with REACHABLE, has path forward
+     *
+     * AUTO WAIVED:
+     * tomcat-util: 1/2 vulns with NOT REACHABLE, has path forward
+     * jetty: 3 vulns with NOT REACHABLE, no path forward
+     * openid: 1/2 vulns with NOT REACHABLE, no path forward
+     * openid: 1/2 vulns with REACHABLE, no path forward
+     */
     PackageUrlIdentifier openId4JavaIdentifier =
         PackageUrlIdentifier.fromComponentIdentifier(openidComponentIdentifier);
     PackageUrlIdentifier tomcatIdentifier =
@@ -5112,15 +5124,15 @@ public class ScanPolicyEvaluatorTest
         PackageUrlIdentifier.fromComponentIdentifier(jettyComponentDetailsDTO.componentIdentifier);
     assertThat(results.autoWaivedViolations)
         .hasSize(6)
-        .extracting(policyViolation ->
-            PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()))
+        .extracting(
+            policyViolation -> PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()))
         .containsExactlyInAnyOrder(openId4JavaIdentifier, openId4JavaIdentifier, tomcatIdentifier, jettyIdentifier,
             jettyIdentifier, jettyIdentifier);
 
     assertThat(results.activeViolations)
         .hasSize(1)
-        .extracting(policyViolation ->
-            PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()))
+        .extracting(
+            policyViolation -> PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()))
         .containsExactly(tomcatIdentifier);
   }
 
@@ -5132,7 +5144,8 @@ public class ScanPolicyEvaluatorTest
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
     tomcatComponentDetailsDTO.violatedPolicyCount = 0;
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -5150,8 +5163,7 @@ public class ScanPolicyEvaluatorTest
         scanId,
         tomcatComponentDetailsDTO.componentIdentifier,
         "CVE-2007-3385",
-        insightWork
-    );
+        insightWork);
 
     final AutoPolicyWaiver notReachable =
         tempEntity.newAutoPolicyWaiver(application.getId(), 7, true, false);
@@ -5162,9 +5174,9 @@ public class ScanPolicyEvaluatorTest
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
         Map.of(new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
             new PresentReachableComponentVulnerabilities(Set.of("CVE-2007-3385")))))
-        .when(apiVulnerabilityReachabilityStatusService)
-        .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(),
-            any(VulnerabilitySignatureAnalysisDTO.class));
+                .when(apiVulnerabilityReachabilityStatusService)
+                .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(),
+                    any(VulnerabilitySignatureAnalysisDTO.class));
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, analysisDTO, false);
     assertThat(results.autoWaivedViolations)
@@ -5188,9 +5200,9 @@ public class ScanPolicyEvaluatorTest
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
         Map.of(new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
             new PresentReachableComponentVulnerabilities(Set.of("CVE-2007-3382")))))
-        .when(apiVulnerabilityReachabilityStatusService)
-        .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(),
-            any(VulnerabilitySignatureAnalysisDTO.class));
+                .when(apiVulnerabilityReachabilityStatusService)
+                .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(),
+                    any(VulnerabilitySignatureAnalysisDTO.class));
     results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, analysisDTO, false);
     assertThat(results.autoWaivedViolations)
@@ -5217,7 +5229,8 @@ public class ScanPolicyEvaluatorTest
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
     tomcatComponentDetailsDTO.violatedPolicyCount = 0;
     doReturn(Pair.of(Collections.emptyList(), null))
-        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+        .when(mockComponentInfoService)
+        .getComponentDetailsForAllVersionsNoAuth(
             any(), any(), any(), any(), any(), any(), any(), anyBoolean());
 
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -5235,8 +5248,7 @@ public class ScanPolicyEvaluatorTest
         scanId,
         tomcatComponentDetailsDTO.componentIdentifier,
         "CVE-2007-3385",
-        insightWork
-    );
+        insightWork);
 
     // Create NPF auto waiver
     tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, true);
@@ -5245,16 +5257,17 @@ public class ScanPolicyEvaluatorTest
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId",
         Map.of(new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
             new PresentReachableComponentVulnerabilities(Set.of("CVE-2007-3385")))))
-        .when(apiVulnerabilityReachabilityStatusService)
-        .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(),
-            any(VulnerabilitySignatureAnalysisDTO.class));
+                .when(apiVulnerabilityReachabilityStatusService)
+                .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(),
+                    any(VulnerabilitySignatureAnalysisDTO.class));
 
     scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE, analysisDTO,
         false);
 
     ArgumentCaptor<List<TelemetryData>> captor = ArgumentCaptor.forClass(List.class);
     verify(mockTelemetrySender, atLeastOnce()).send(captor.capture());
-    boolean foundAutoWaiverApplyTelemetry = captor.getAllValues().stream()
+    boolean foundAutoWaiverApplyTelemetry = captor.getAllValues()
+        .stream()
         .flatMap(List::stream)
         .anyMatch(td -> td.getPurpose() == TelemetryPurpose.AUTO_POLICY_WAIVER
             && "APPLY".equals(td.getAttributes().get("auto_policy_waiver_action")));
@@ -5394,7 +5407,8 @@ public class ScanPolicyEvaluatorTest
   {
     assertThat(findPolicyViolation(expectedComponentIdentifier, expectedHash, expectedPolicy, expectedConstraint,
         expectedActionTypeId, expectedConditionTypeId, actualPolicyViolations))
-        .as("Cannot find expected policy violation.").isNotNull();
+            .as("Cannot find expected policy violation.")
+            .isNotNull();
   }
 
   private static void assertNotContainsPolicyViolation(
@@ -5408,7 +5422,7 @@ public class ScanPolicyEvaluatorTest
   {
     assertThat(findPolicyViolation(expectedComponentIdentifier, expectedHash, expectedPolicy, expectedConstraint,
         expectedActionTypeId, expectedConditionTypeId, actualPolicyViolations)).as("Found unexpected policy violation.")
-        .isNull();
+            .isNull();
   }
 
   private static PolicyViolation findPolicyViolation(
@@ -5425,11 +5439,13 @@ public class ScanPolicyEvaluatorTest
           && actualPolicyViolation.getPolicyName().equals(expectedPolicy.getName())
           && actualPolicyViolation.getComponentIdentifier().equals(expectedComponentIdentifier)
           && actualPolicyViolation.getHash().equals(expectedHash)
-          && actualPolicyViolation.getActionTypeId().equals(expectedActionTypeId)) {
+          && actualPolicyViolation.getActionTypeId().equals(expectedActionTypeId))
+      {
         assertThat(actualPolicyViolation.getConstraintFacts()).hasSize(1);
         ConstraintFact actualConstraintFact = actualPolicyViolation.getConstraintFacts().get(0);
         if (actualConstraintFact.getConstraintId().equals(expectedConstraint.getId())
-            && actualConstraintFact.getConstraintName().equals(expectedConstraint.getName())) {
+            && actualConstraintFact.getConstraintName().equals(expectedConstraint.getName()))
+        {
           assertThat(actualConstraintFact.getConditionFacts()).hasSize(1);
           ConditionFact actualConditionFact = actualConstraintFact.getConditionFacts().get(0);
           if (actualConditionFact.getConditionTypeId().equals(expectedConditionTypeId)) {
@@ -5472,8 +5488,7 @@ public class ScanPolicyEvaluatorTest
         "pkg:maven/tomcat/servlets-default@5.5.4",
         "pkg:maven/org.openid4java/openid4java@0.9.5",
         "pkg:maven/tomcat/tomcat-util@5.4.23",
-        "pkg:maven/tomcat/tomcat-util@5.5.23"
-    );
+        "pkg:maven/tomcat/tomcat-util@5.5.23");
     addReachabilityMap(unreachableComponentList, reachableVulnMap);
 
     VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
@@ -5481,8 +5496,7 @@ public class ScanPolicyEvaluatorTest
         scanId,
         componentIdentifier,
         vulnerabilityIdentifier,
-        insightWork
-    );
+        insightWork);
 
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId", reachableVulnMap))
         .when(apiVulnerabilityReachabilityStatusService)
@@ -5511,9 +5525,8 @@ public class ScanPolicyEvaluatorTest
     assertThat(reevaluatedViolation.get().getReachabilityStatus()).isEqualTo(NON_REACHABLE);
 
     // Verify all auto-waived violations preserve their reachability status
-    reevaluationResults.autoWaivedViolations.forEach(violation ->
-        assertThat(violation.getReachabilityStatus()).isNotNull()
-    );
+    reevaluationResults.autoWaivedViolations
+        .forEach(violation -> assertThat(violation.getReachabilityStatus()).isNotNull());
   }
 
   @Test
@@ -5546,8 +5559,7 @@ public class ScanPolicyEvaluatorTest
         "pkg:maven/tomcat/servlets-default@5.5.4",
         "pkg:maven/org.openid4java/openid4java@0.9.5",
         "pkg:maven/tomcat/tomcat-util@5.4.23",
-        "pkg:maven/tomcat/tomcat-util@5.5.23"
-    );
+        "pkg:maven/tomcat/tomcat-util@5.5.23");
     addReachabilityMap(unreachableComponentList, initialReachableVulnMap);
 
     VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
@@ -5555,8 +5567,7 @@ public class ScanPolicyEvaluatorTest
         scanId,
         componentIdentifier,
         vulnerabilityIdentifier,
-        insightWork
-    );
+        insightWork);
 
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId", initialReachableVulnMap))
         .when(apiVulnerabilityReachabilityStatusService)
@@ -5573,8 +5584,7 @@ public class ScanPolicyEvaluatorTest
     Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> newReachableVulnMap = new HashMap<>();
     newReachableVulnMap.put(
         new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
-        new PresentReachableComponentVulnerabilities(Set.of(vulnerabilityIdentifier))
-    );
+        new PresentReachableComponentVulnerabilities(Set.of(vulnerabilityIdentifier)));
     // Other components remain unreachable
     List<String> stillUnreachableComponents = List.of(
         "pkg:maven/commons-httpclient/commons-httpclient@3.1",
@@ -5583,8 +5593,7 @@ public class ScanPolicyEvaluatorTest
         "pkg:maven/org.mortbay.jetty/jetty@6.1.15",
         "pkg:maven/tomcat/servlets-default@5.5.4",
         "pkg:maven/org.openid4java/openid4java@0.9.5",
-        "pkg:maven/tomcat/tomcat-util@5.4.23"
-    );
+        "pkg:maven/tomcat/tomcat-util@5.4.23");
     addReachabilityMap(stillUnreachableComponents, newReachableVulnMap);
 
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId", newReachableVulnMap))
@@ -5637,8 +5646,7 @@ public class ScanPolicyEvaluatorTest
         "pkg:maven/tomcat/servlets-default@5.5.4",
         "pkg:maven/org.openid4java/openid4java@0.9.5",
         "pkg:maven/tomcat/tomcat-util@5.4.23",
-        "pkg:maven/tomcat/tomcat-util@5.5.23"
-    );
+        "pkg:maven/tomcat/tomcat-util@5.5.23");
     addReachabilityMap(unreachableComponentList, reachableVulnMap);
 
     VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
@@ -5646,8 +5654,7 @@ public class ScanPolicyEvaluatorTest
         scanId,
         componentIdentifier,
         vulnerabilityIdentifier,
-        insightWork
-    );
+        insightWork);
 
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId", reachableVulnMap))
         .when(apiVulnerabilityReachabilityStatusService)
@@ -5680,9 +5687,8 @@ public class ScanPolicyEvaluatorTest
     assertThat(stillAutoWaivedViolation.get().isAutoWaived()).isTrue();
 
     // Verify all auto-waived violations maintained their reachability status
-    reevaluationResults.autoWaivedViolations.forEach(violation ->
-        assertThat(violation.getReachabilityStatus()).isEqualTo(NON_REACHABLE)
-    );
+    reevaluationResults.autoWaivedViolations
+        .forEach(violation -> assertThat(violation.getReachabilityStatus()).isEqualTo(NON_REACHABLE));
   }
 
   @Test
@@ -5715,8 +5721,7 @@ public class ScanPolicyEvaluatorTest
         "pkg:maven/tomcat/servlets-default@5.5.4",
         "pkg:maven/org.openid4java/openid4java@0.9.5",
         "pkg:maven/tomcat/tomcat-util@5.4.23",
-        "pkg:maven/tomcat/tomcat-util@5.5.23"
-    );
+        "pkg:maven/tomcat/tomcat-util@5.5.23");
     addReachabilityMap(unreachableComponentList, reachableVulnMap);
 
     VulnerabilitySignatureAnalysisDTO firstAnalysisDTO = createTestAnalysisDTO(
@@ -5724,8 +5729,7 @@ public class ScanPolicyEvaluatorTest
         firstScanId,
         componentIdentifier,
         vulnerabilityIdentifier,
-        insightWork
-    );
+        insightWork);
 
     doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), firstScanId, reachableVulnMap))
         .when(apiVulnerabilityReachabilityStatusService)
@@ -5785,7 +5789,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   private void waitForTimeAdvance() {
-    for (long start = System.currentTimeMillis(); System.currentTimeMillis() <= start; ) {
+    for (long start = System.currentTimeMillis(); System.currentTimeMillis() <= start;) {
     }
   }
 
@@ -6050,9 +6054,11 @@ public class ScanPolicyEvaluatorTest
     assertThat(auditTelemetryList).isNotEmpty();
 
     // Verify both use the same constraint structure (built by buildTelemetryConstraints)
-    List<Constraint> regularConstraints = (List<Constraint>) regularTelemetryList.get(0).getAttributes()
+    List<Constraint> regularConstraints = (List<Constraint>) regularTelemetryList.get(0)
+        .getAttributes()
         .get(PolicyViolationTelemetryCollector.POLICY_CONSTRAINTS);
-    List<Constraint> auditConstraints = (List<Constraint>) auditTelemetryList.get(0).getAttributes()
+    List<Constraint> auditConstraints = (List<Constraint>) auditTelemetryList.get(0)
+        .getAttributes()
         .get(PolicyViolationTelemetryCollector.POLICY_CONSTRAINTS);
 
     // Both should have constraint data
@@ -6128,7 +6134,7 @@ public class ScanPolicyEvaluatorTest
   /**
    * Adds a reachable component vulnerability to the map for each package URL identifier.
    *
-   * @param packageUrlIdentifiers                the list of package URL identifiers
+   * @param packageUrlIdentifiers the list of package URL identifiers
    * @param reachableComponentVulnerabilitiesMap the map to add the reachable component vulnerabilities to
    */
   private void addReachabilityMap(
@@ -6146,14 +6152,16 @@ public class ScanPolicyEvaluatorTest
       String conditionType,
       List<TelemetryData> telemetryDataList)
   {
-    return telemetryDataList.stream().anyMatch(
-        telemetryData -> {
-          List<Constraint> constraints = (List<Constraint>) telemetryData.getAttributes()
-              .get(PolicyViolationTelemetryCollector.POLICY_CONSTRAINTS);
-          return constraints.stream().anyMatch(c -> c.getConditions().stream().anyMatch(cond ->
-              cond.getConditionTypeId().equals(conditionType)));
-        }
-    );
+    return telemetryDataList.stream()
+        .anyMatch(
+            telemetryData -> {
+              List<Constraint> constraints = (List<Constraint>) telemetryData.getAttributes()
+                  .get(PolicyViolationTelemetryCollector.POLICY_CONSTRAINTS);
+              return constraints.stream()
+                  .anyMatch(c -> c.getConditions()
+                      .stream()
+                      .anyMatch(cond -> cond.getConditionTypeId().equals(conditionType)));
+            });
   }
 
   @Test
@@ -6161,8 +6169,7 @@ public class ScanPolicyEvaluatorTest
     // Components without any vulnerabilities
     List<Component> components = List.of(
         new Component(ComponentIdentifier.createMavenCoordinates("g", "a", "v")),
-        new Component(ComponentIdentifier.createNpmCoordinates("p", "v"))
-    );
+        new Component(ComponentIdentifier.createNpmCoordinates("p", "v")));
 
     scanPolicyEvaluator.sendMissingEpssScoreTelemetry("appId", "scanId", "stageId", components);
 
@@ -6251,7 +6258,7 @@ public class ScanPolicyEvaluatorTest
         violations,
         false,
         null,
-        false  // Skip loading total component count - optimization for /rest/application/services/summary
+        false // Skip loading total component count - optimization for /rest/application/services/summary
     );
 
     // Verify: Total component count should be 0 (not loaded), but result is valid

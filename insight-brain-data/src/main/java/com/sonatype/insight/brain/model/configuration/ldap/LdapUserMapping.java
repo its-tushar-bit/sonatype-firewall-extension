@@ -24,7 +24,7 @@ public class LdapUserMapping
 {
   /**
    * Internal id used to identify this LDAP configuration
-   * 
+   *
    * @since 1.7
    */
   @Id
@@ -33,7 +33,7 @@ public class LdapUserMapping
 
   /**
    * LdapServer id
-   * 
+   *
    * @since 1.7
    */
   @Column(name = "ldap_server_id")

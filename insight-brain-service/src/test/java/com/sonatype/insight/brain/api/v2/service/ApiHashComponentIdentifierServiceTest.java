@@ -243,8 +243,9 @@ public class ApiHashComponentIdentifierServiceTest
         "{\"format\":\"maven\",\"coordinates\":{\"unknown\":\"x\",\"artifactId\":\"a\",\"classifier\":\"c\"," +
             "\"extension\":\"e\",\"groupId\":\"g\",\"version\":\"v\"}}",
         ComponentIdentifier.class);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
-        apiHashComponentIdentifierService.set(newApiHashComponentIdentifierDTO("hash", componentIdentifier, null)))
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiHashComponentIdentifierService
+            .set(newApiHashComponentIdentifierDTO("hash", componentIdentifier, null)))
         .withMessageContaining("Coordinates contain the following incorrect entries for the given format: [unknown]");
   }
 
@@ -252,8 +253,9 @@ public class ApiHashComponentIdentifierServiceTest
   public void testSet_MissingCoordinates() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiHashComponentIdentifierService.set(
         newApiHashComponentIdentifierDTO("hash",
-            ComponentIdentifier.createMavenCoordinates("g", null, null, null, null), null))).withMessageContaining(
-        "The following coordinates are missing for given format: [artifactId, extension, version]");
+            ComponentIdentifier.createMavenCoordinates("g", null, null, null, null), null)))
+        .withMessageContaining(
+            "The following coordinates are missing for given format: [artifactId, extension, version]");
   }
 
   @Test
@@ -267,8 +269,9 @@ public class ApiHashComponentIdentifierServiceTest
   public void testSet_EmptyRequiredCoordinates() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiHashComponentIdentifierService.set(
         newApiHashComponentIdentifierDTO("hash",
-            ComponentIdentifier.createMavenCoordinates("", "", "", "", ""), null))).withMessageContaining(
-        "The following coordinates cannot be empty for given format: [extension, groupId, artifactId, version]");
+            ComponentIdentifier.createMavenCoordinates("", "", "", "", ""), null)))
+        .withMessageContaining(
+            "The following coordinates cannot be empty for given format: [extension, groupId, artifactId, version]");
   }
 
   @Test

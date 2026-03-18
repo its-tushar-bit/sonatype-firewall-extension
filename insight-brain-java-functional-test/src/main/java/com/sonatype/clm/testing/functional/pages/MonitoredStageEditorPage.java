@@ -47,7 +47,7 @@ public class MonitoredStageEditorPage
   }
 
   public static SelenideElement getStageByName(final String stageName) {
-    return $$( ".nx-radio__content").findBy(text(stageName)).parent();
+    return $$(".nx-radio__content").findBy(text(stageName)).parent();
   }
 
   public static SelenideElement updateButton() {

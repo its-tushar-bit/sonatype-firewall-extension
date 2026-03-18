@@ -205,7 +205,9 @@ public class SuccessMetricsReportResourceAuditTest
   @Test
   public void testDeleteSuccessMetricsReportForCurrentUser_Unauthorized() throws Exception {
     SuccessMetricsReport report = createSuccessMetricsReport(Collections.emptySet(), Collections.emptySet(), null);
-    successMetricsReportRequest().subpath("{successMetricsId}").parameter(report.getId()).with(unauthorizedUser())
+    successMetricsReportRequest().subpath("{successMetricsId}")
+        .parameter(report.getId())
+        .with(unauthorizedUser())
         .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_SUCCESS_METRICS_REPORT, "unauthorized",
@@ -218,8 +220,10 @@ public class SuccessMetricsReportResourceAuditTest
     SuccessMetricsReport report = createSuccessMetricsReport(null, Collections.singleton(app.getId()),
         getUnauthorizedUsername());
 
-    successMetricsReportRequest().path(resourceSubpath).with(unauthorizedUser())
-        .parameter(report.getId()).get();
+    successMetricsReportRequest().path(resourceSubpath)
+        .with(unauthorizedUser())
+        .parameter(report.getId())
+        .get();
 
     // user allowed to access resource but no apps included in report
     assertViewSuccessMetricsReport_Unauthorized(getUnauthorizedUsername());
@@ -242,9 +246,10 @@ public class SuccessMetricsReportResourceAuditTest
     assertThat(auditDTO.data).isNull();
   }
 
-  private void assertViewSuccessMetricsReport(final SuccessMetricsReport report,
-                                              final int includedApplicationCount,
-                                              final String username)
+  private void assertViewSuccessMetricsReport(
+      final SuccessMetricsReport report,
+      final int includedApplicationCount,
+      final String username)
   {
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_SUCCESS_METRICS_REPORT, null, username);
     assertCustomData(auditDTO, "reportId", report.getId());
@@ -263,9 +268,10 @@ public class SuccessMetricsReportResourceAuditTest
     return restRequest().path(SuccessMetricsReportResource.RESOURCE_PATH);
   }
 
-  private SuccessMetricsReport createSuccessMetricsReport(final Set<String> organizationIds,
-                                                          final Set<String> applicationIds,
-                                                          final String username)
+  private SuccessMetricsReport createSuccessMetricsReport(
+      final Set<String> organizationIds,
+      final Set<String> applicationIds,
+      final String username)
   {
     SuccessMetricsReportScopeDTO scope = new SuccessMetricsReportScopeDTO();
     scope.organizationIds = organizationIds;

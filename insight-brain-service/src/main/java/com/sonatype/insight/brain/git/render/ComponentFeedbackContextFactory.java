@@ -55,24 +55,24 @@ public class ComponentFeedbackContextFactory
         findComponentReportUrl(iqBaseUrl, violations, applicationPublicId, featureBranchScanId, provider)
             .orElse(null);
     final List<SecurityIssue> securityIssues =
-            securityIssueService.getSecurityIssuesFromViolations(iqBaseUrl, violations, provider);
+        securityIssueService.getSecurityIssuesFromViolations(iqBaseUrl, violations, provider);
     boolean hasSecurityIssues = hasSecurityIssuesWithSeverityInfo(securityIssues);
 
     return new ComponentFeedbackContext(
-            true, // Only HTML supported SCM providers are supported
-            ThreatLevelDisplay.fromValue(threatLevelValue),
-            componentDetailsLink,
-            displayName,
-            provider,
-            countBreakingChanges(remediationVersionDTO),
-            resolveSuggestedVersion(remediationVersionDTO),
-            resolveSuggestedVersionType(remediationVersionDTO),
-            hasRemediationForDependencies(remediationVersionDTO),
-            securityIssues,
-            //For now, we can only process Direct dependencies since
-            // there is no line number in the PR diff for the transitive dependency
-            DIRECT_DEP_LOGO,
-            codeSuggestion.orElse(null),
+        true, // Only HTML supported SCM providers are supported
+        ThreatLevelDisplay.fromValue(threatLevelValue),
+        componentDetailsLink,
+        displayName,
+        provider,
+        countBreakingChanges(remediationVersionDTO),
+        resolveSuggestedVersion(remediationVersionDTO),
+        resolveSuggestedVersionType(remediationVersionDTO),
+        hasRemediationForDependencies(remediationVersionDTO),
+        securityIssues,
+        // For now, we can only process Direct dependencies since
+        // there is no line number in the PR diff for the transitive dependency
+        DIRECT_DEP_LOGO,
+        codeSuggestion.orElse(null),
         hasSecurityIssues,
         hasReducedSecurityData);
   }
@@ -85,7 +85,7 @@ public class ComponentFeedbackContextFactory
   private static String resolveSuggestedVersion(final RemediationVersionDTO remediationVersionDTO) {
     return remediationVersionDTO == null ? "" : remediationVersionDTO.getVersion();
   }
-  
+
   private static String resolveSuggestedVersionType(final RemediationVersionDTO remediationVersionDTO) {
     if (remediationVersionDTO == null || remediationVersionDTO.getRemediationType() == null) {
       return "";
@@ -103,17 +103,17 @@ public class ComponentFeedbackContextFactory
   private static boolean hasRemediationForDependencies(final RemediationVersionDTO remediationVersionDTO) {
     if (remediationVersionDTO != null && remediationVersionDTO.getRemediationType() != null) {
       return ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
-              .equals(remediationVersionDTO.getRemediationType());
+          .equals(remediationVersionDTO.getRemediationType());
     }
     return false;
   }
 
   private static Optional<String> findComponentReportUrl(
-          final String baseUrl,
-          final List<PolicyViolation> violations,
-          final String applicationPublicId,
-          final String featureBranchScanId,
-          final SourceControlProvider provider)
+      final String baseUrl,
+      final List<PolicyViolation> violations,
+      final String applicationPublicId,
+      final String featureBranchScanId,
+      final SourceControlProvider provider)
   {
     final String reportPath = getReportUrl(applicationPublicId, featureBranchScanId);
     return extractComponentHash(violations)

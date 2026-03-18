@@ -52,13 +52,13 @@ public class ApiComponentsInQuarantineReportingResource
       "\n" +
       "Permissions required: View IQ Elements and access to the specific repository.",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The JSON response returns the component details and policy violation details that are " +
-                  "triggering the quarantine. If a quarantined component does not show any policy violation," +
-                  " it implies that " +
-                  "the policy violations have been waived, but the component has not been released from quarantine. ",
-              useReturnTypeSchema = true)
+        @ApiResponse(
+            responseCode = "200",
+            description = "The JSON response returns the component details and policy violation details that are " +
+                "triggering the quarantine. If a quarantined component does not show any policy violation," +
+                " it implies that " +
+                "the policy violations have been waived, but the component has not been released from quarantine. ",
+            useReturnTypeSchema = true)
       })
   public ApiComponentsInQuarantineDTO getComponentsInQuarantine() {
     return service.getComponentsInQuarantine();

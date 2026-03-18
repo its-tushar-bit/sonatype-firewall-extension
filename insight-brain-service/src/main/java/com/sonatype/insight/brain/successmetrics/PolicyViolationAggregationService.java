@@ -106,15 +106,16 @@ public class PolicyViolationAggregationService
    * time period that was already aggregated for each application and then creates all necessary aggregations
    * for the time periods since then.
    */
-  public void generatePolicyViolationAggregations(Set<String> applicationIds,
-                                           DateTime currentDateTime,
-                                           boolean includeLatestData)
+  public void generatePolicyViolationAggregations(
+      Set<String> applicationIds,
+      DateTime currentDateTime,
+      boolean includeLatestData)
   {
     log.debug("Starting update of Policy Violation Aggregations for {} applications", applicationIds.size());
 
     long start = System.currentTimeMillis();
 
-    final String configuredSuccessMetricsStageId =  configuration.getSuccessMetricsStageId();
+    final String configuredSuccessMetricsStageId = configuration.getSuccessMetricsStageId();
 
     // this is also validated when the user sets the value, but we'll check again, here, in case
     // the licensed stages changed after it was set
@@ -145,10 +146,11 @@ public class PolicyViolationAggregationService
   /**
    * Generate the newer PolicyViolationAggregation rows for the given application
    */
-  private void generatePolicyViolationAggregations(String applicationId,
-                                                   DateTime currentDateTime,
-                                                   Set<String> stageTypeIds,
-                                                   boolean includeLatestData)
+  private void generatePolicyViolationAggregations(
+      String applicationId,
+      DateTime currentDateTime,
+      Set<String> stageTypeIds,
+      boolean includeLatestData)
   {
     log.trace("Generating Violation Aggregations for {}", applicationId);
     LocalDate currentDate = currentDateTime.toLocalDate();
@@ -178,8 +180,10 @@ public class PolicyViolationAggregationService
         if (!upToDate) {
           aggregationStarts.put(timePeriod, startOfNewAggregation);
           Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts =
-              mostRecentPriorAggregation == null ? new EnumIntegerTable<>(PolicyThreatCategory.class,
-                  ThreatLevel.class) : mostRecentPriorAggregation.getOpenAsTable();
+              mostRecentPriorAggregation == null
+                  ? new EnumIntegerTable<>(PolicyThreatCategory.class,
+                      ThreatLevel.class)
+                  : mostRecentPriorAggregation.getOpenAsTable();
           openViolationCountsMap.put(timePeriod, openCounts);
         }
       }
@@ -237,9 +241,10 @@ public class PolicyViolationAggregationService
 
         // insert the last aggregation from the loop above and any others necessary to bring things up to the
         // start of the current time period
-        while (includeLatestData ?
-            startOfNewAggregation.compareTo(currentDate) <= 0 :
-            startOfNewAggregation.compareTo(startOfCurrentTimePeriod) < 0) {
+        while (includeLatestData
+            ? startOfNewAggregation.compareTo(currentDate) <= 0
+            : startOfNewAggregation.compareTo(startOfCurrentTimePeriod) < 0)
+        {
           DateTime endDateTime = null;
           if (includeLatestData && startOfCurrentTimePeriod.equals(startOfNewAggregation)) {
             endDateTime = currentDateTime;
@@ -256,16 +261,19 @@ public class PolicyViolationAggregationService
 
   /**
    * Get the date at which the first new aggregation of this application should start
+   *
    * @param timePeriod The TimePeriod in which to do the calculation (weeks or months)
    * @param mostRecentPriorAggregation The most recent existing PolicyViolationAggregation, if any
    * @param applicationId The id of the application to check
    * @return a LocalDate for the starting point of the first new aggregation that should be generated for this
-   * application, or null if this application has never had any evaluations, implying that no aggregations should
-   * be generated
+   *         application, or null if this application has never had any evaluations, implying that no aggregations
+   *         should
+   *         be generated
    */
-  private LocalDate getNewAggregationStartingPoint(TimePeriod timePeriod,
-                                                   PolicyViolationAggregation mostRecentPriorAggregation,
-                                                   String applicationId)
+  private LocalDate getNewAggregationStartingPoint(
+      TimePeriod timePeriod,
+      PolicyViolationAggregation mostRecentPriorAggregation,
+      String applicationId)
   {
     // start the next new aggregation at the beginning of the time period after the last aggregation, or at the
     // beginning of the time period of the first evaluation if there aren't any aggregations for this app yet
@@ -287,10 +295,11 @@ public class PolicyViolationAggregationService
     return startOfNewAggregation.orElse(null);
   }
 
-  private boolean isAggregationUpToDate(PolicyViolationAggregation mostRecentPriorAggregation,
-                                        LocalDate startOfNewAggregation,
-                                        LocalDate startOfCurrentTimePeriod,
-                                        boolean includeLatestData)
+  private boolean isAggregationUpToDate(
+      PolicyViolationAggregation mostRecentPriorAggregation,
+      LocalDate startOfNewAggregation,
+      LocalDate startOfCurrentTimePeriod,
+      boolean includeLatestData)
   {
     return includeLatestData && isPartial(mostRecentPriorAggregation) ||
         !includeLatestData && startOfNewAggregation.compareTo(startOfCurrentTimePeriod) >= 0;
@@ -312,12 +321,13 @@ public class PolicyViolationAggregationService
    * Updates the supplied partial aggregation with latest data. If we have a full month's worth of data then the
    * aggregation's timePeriodEnd will be removed, making it a regular aggregation.
    */
-  private PolicyViolationAggregation updatePartialAggregation(PolicyViolationAggregation partialAggregation,
-                                                              DateTime currentTime,
-                                                              String applicationId,
-                                                              Set<String> stageTypeIds,
-                                                              boolean includeLatestData,
-                                                              TimePeriod timePeriod)
+  private PolicyViolationAggregation updatePartialAggregation(
+      PolicyViolationAggregation partialAggregation,
+      DateTime currentTime,
+      String applicationId,
+      Set<String> stageTypeIds,
+      boolean includeLatestData,
+      TimePeriod timePeriod)
   {
     LocalDate startOfNextAggregation = withDayOfTimePeriod(
         plusTimePeriod(new LocalDate(partialAggregation.getTimePeriodStart()), timePeriod, 1), timePeriod, 1);
@@ -329,7 +339,8 @@ public class PolicyViolationAggregationService
 
     Date from = partialAggregation.getTimePeriodEnd();
     Date upTo = withDayOfTimePeriod(plusTimePeriod(new LocalDate(from), timePeriod, 1), timePeriod, 1)
-        .toDateTimeAtStartOfDay().toDate();
+        .toDateTimeAtStartOfDay()
+        .toDate();
     List<ProcessableEvaluationEvent> events = createSortedEvaluationEvents(applicationId, stageTypeIds, from, upTo);
 
     ResultsWrapper results = recreateResults(partialAggregation);
@@ -377,10 +388,11 @@ public class PolicyViolationAggregationService
     return result;
   }
 
-  private List<ProcessableEvaluationEvent> createSortedEvaluationEvents(String applicationId,
-                                                                        Set<String> stageTypeIds,
-                                                                        Date from,
-                                                                        Date upTo)
+  private List<ProcessableEvaluationEvent> createSortedEvaluationEvents(
+      String applicationId,
+      Set<String> stageTypeIds,
+      Date from,
+      Date upTo)
   {
     List<PolicyEvaluation> evaluations = policyEvaluationDAO.getBetweenDatesByApplicationIdAndStageIds(from, upTo,
         applicationId, stageTypeIds);
@@ -418,12 +430,12 @@ public class PolicyViolationAggregationService
 
       boolean isWaivedInTimeframe = violation.getWaiveTime() != null && violation.getWaiveTime().compareTo(upTo) < 0;
       boolean isFixedInTimeframe = violation.getFixTime() != null && violation.getFixTime().compareTo(upTo) < 0;
-      Date resolveTime = isWaivedInTimeframe ? violation.getWaiveTime() :
-          isFixedInTimeframe ? violation.getFixTime() :
-          null;
+      Date resolveTime =
+          isWaivedInTimeframe ? violation.getWaiveTime() : isFixedInTimeframe ? violation.getFixTime() : null;
 
       if (resolveTime != null &&
-          !isViolationWithUnresolvedDuplicate(violation, resolveTime, violationMap.get(violation))) {
+          !isViolationWithUnresolvedDuplicate(violation, resolveTime, violationMap.get(violation)))
+      {
         events.add(new ViolationResolvedInStageEvent(violation, resolveTime, isWaivedInTimeframe));
       }
     }
@@ -438,11 +450,12 @@ public class PolicyViolationAggregationService
    * ProcessableEvaluationEvents are passed through unchanged
    *
    * @param initialActiveViolations collection of PolicyViolations that are already active at the beginning of the
-   * time period that these evaluationEvents traverse
+   *          time period that these evaluationEvents traverse
    * @param evaluationEvents a chronologically ordered list of EvaluationEvents
    */
-  private List<ProcessableEvaluationEvent> handleViolationStages(Collection<PolicyViolation> initialActiveViolations,
-                                                                 List<EvaluationEvent> evaluationEvents)
+  private List<ProcessableEvaluationEvent> handleViolationStages(
+      Collection<PolicyViolation> initialActiveViolations,
+      List<EvaluationEvent> evaluationEvents)
   {
     // A map from violation to the stages in which that violation is currently active
     Multimap<PolicyViolation, String> violationActiveStages = createActiveStagesMap(initialActiveViolations);
@@ -486,8 +499,9 @@ public class PolicyViolationAggregationService
           }
           else {
             ProcessableViolationEvent outputEvent =
-                event.isWaived ? new ViolationWaivedEvent(violation, firstOccurrence, event.time) :
-                    new ViolationFixedEvent(violation, firstOccurrence, event.time);
+                event.isWaived
+                    ? new ViolationWaivedEvent(violation, firstOccurrence, event.time)
+                    : new ViolationFixedEvent(violation, firstOccurrence, event.time);
             retval.add(outputEvent);
           }
         }
@@ -517,7 +531,7 @@ public class PolicyViolationAggregationService
 
   /**
    * @return a map from violation to the earliest date at which it, or another comparator-equivalent violation in the
-   * collection, was opened
+   *         collection, was opened
    */
   private Map<PolicyViolation, Date> createFirstOccurrencesMap(Collection<PolicyViolation> violations) {
     Map<PolicyViolation, Date> retval = new TreeMap<>(PolicyViolationComparator.COMPARATOR);
@@ -548,13 +562,15 @@ public class PolicyViolationAggregationService
     return false;
   }
 
-  private boolean isViolationWithUnresolvedDuplicate(PolicyViolation violation,
-                                                     Date resolveTime,
-                                                     List<PolicyViolation> equalViolations)
+  private boolean isViolationWithUnresolvedDuplicate(
+      PolicyViolation violation,
+      Date resolveTime,
+      List<PolicyViolation> equalViolations)
   {
     for (PolicyViolation equalViolation : equalViolations) {
       if (violation != equalViolation && equalViolation.getStageTypeId().equals(violation.getStageTypeId())
-          && isViolationUnresolved(equalViolation, resolveTime)) {
+          && isViolationUnresolved(equalViolation, resolveTime))
+      {
         return true;
       }
     }
@@ -568,21 +584,23 @@ public class PolicyViolationAggregationService
     return date.toDateTimeAtStartOfDay().toDate();
   }
 
-  private PolicyViolationAggregation saveViolationAggregation(String applicationId,
-                                                              LocalDate timePeriodStart,
-                                                              DateTime timePeriodEnd,
-                                                              ResultsWrapper results,
-                                                              TimePeriod timePeriod)
+  private PolicyViolationAggregation saveViolationAggregation(
+      String applicationId,
+      LocalDate timePeriodStart,
+      DateTime timePeriodEnd,
+      ResultsWrapper results,
+      TimePeriod timePeriod)
   {
     return saveViolationAggregation(applicationId, timePeriodStart, timePeriodEnd, results, null, timePeriod);
   }
 
-  private PolicyViolationAggregation saveViolationAggregation(String applicationId,
-                                                              LocalDate timePeriodStart,
-                                                              DateTime timePeriodEnd,
-                                                              ResultsWrapper results,
-                                                              String aggregationToUpdateId,
-                                                              TimePeriod timePeriod)
+  private PolicyViolationAggregation saveViolationAggregation(
+      String applicationId,
+      LocalDate timePeriodStart,
+      DateTime timePeriodEnd,
+      ResultsWrapper results,
+      String aggregationToUpdateId,
+      TimePeriod timePeriod)
   {
     PolicyViolationAggregation aggregation = new PolicyViolationAggregation(applicationId, //
         localDateToTimestamp(timePeriodStart), //

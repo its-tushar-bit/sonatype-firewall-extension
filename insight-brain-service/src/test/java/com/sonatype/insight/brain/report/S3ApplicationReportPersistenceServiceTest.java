@@ -88,8 +88,7 @@ public class S3ApplicationReportPersistenceServiceTest
         .credentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create(
                 localstack.getContainer().getAccessKey(),
-                localstack.getContainer().getSecretKey()
-            )))
+                localstack.getContainer().getSecretKey())))
         .build();
   }
 
@@ -98,7 +97,9 @@ public class S3ApplicationReportPersistenceServiceTest
     s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
         .contents()
         .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
-            .bucket(BUCKET_NAME).key(obj.key()).build()));
+            .bucket(BUCKET_NAME)
+            .key(obj.key())
+            .build()));
   }
 
   @Inject
@@ -114,10 +115,10 @@ public class S3ApplicationReportPersistenceServiceTest
   @Parameters
   public static List<Object[]> prefixes() {
     return Arrays.asList(new Object[][]{
-        {null, ""},
-        {"", ""},
-        {"valid-prefix/with/path", "valid-prefix/with/path/"},
-        {"valid-prefix/with/path/ends-with-slash/", "valid-prefix/with/path/ends-with-slash/"}
+      {null, ""},
+      {"", ""},
+      {"valid-prefix/with/path", "valid-prefix/with/path/"},
+      {"valid-prefix/with/path/ends-with-slash/", "valid-prefix/with/path/ends-with-slash/"}
     });
   }
 
@@ -154,8 +155,7 @@ public class S3ApplicationReportPersistenceServiceTest
     super.configure(binder);
     AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
         localstack.getContainer().getAccessKey(),
-        localstack.getContainer().getSecretKey()
-    ));
+        localstack.getContainer().getSecretKey()));
     binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }
 
@@ -181,7 +181,8 @@ public class S3ApplicationReportPersistenceServiceTest
 
     // lenient because we are only mocking one of several calls to createMultipartUpload
     lenient().doThrow(S3Exception.builder().message("test exception").build())
-        .when(spyS3AsyncClient).putObject(argThat(indexHtmlMatcher), any(AsyncRequestBody.class));
+        .when(spyS3AsyncClient)
+        .putObject(argThat(indexHtmlMatcher), any(AsyncRequestBody.class));
 
     return new S3ApplicationReportPersistenceService(s3Client, spyS3AsyncClient, insightConfig);
   }
@@ -296,8 +297,7 @@ public class S3ApplicationReportPersistenceServiceTest
     // Third call with different attributes - should still use cache
     Optional<Metadata> metadata3 = entity.getMetadata(MetadataSource.CACHED,
         MetadataAttribute.LAST_MODIFIED_EPOCH_TIME,
-        MetadataAttribute.SIZE_IN_BYTES
-    );
+        MetadataAttribute.SIZE_IN_BYTES);
     assertThat(metadata3).isPresent();
     assertThat(metadata3.get().lastModifiedEpochTime()).isEqualTo(metadata1.get().lastModifiedEpochTime());
     assertThat(metadata3.get().sizeInBytes()).isGreaterThan(0);

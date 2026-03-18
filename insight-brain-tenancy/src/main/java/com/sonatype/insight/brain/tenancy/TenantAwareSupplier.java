@@ -7,7 +7,8 @@ package com.sonatype.insight.brain.tenancy;
 
 import java.util.function.Supplier;
 
-public class TenantAwareSupplier<T> implements Supplier<T>
+public class TenantAwareSupplier<T>
+    implements Supplier<T>
 {
   private final Supplier<T> wrapped;
 

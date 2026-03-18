@@ -16,7 +16,7 @@ import com.sonatype.insight.model.HasStringId;
 
 /**
  * An association between a role and permission. Each such association denotes a permission that is assigned to a role.
- * 
+ *
  * @since 1.7
  */
 @Entity

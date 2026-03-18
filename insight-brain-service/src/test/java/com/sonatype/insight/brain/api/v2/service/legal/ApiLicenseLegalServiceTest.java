@@ -174,27 +174,27 @@ public class ApiLicenseLegalServiceTest
     extends AbstractComponentTest
 {
   private static final String[] EXPECTED_LICENSE_IDS = new String[]{
-      "Apache-2.0",
-      "No-Source-License",
-      "BSD-3-Clause",
-      "BSD-2-Clause",
-      "CC0-1.0",
-      "PUBLIC-DOMAIN",
-      "CC-BY-2.5",
-      "MIT"
+    "Apache-2.0",
+    "No-Source-License",
+    "BSD-3-Clause",
+    "BSD-2-Clause",
+    "CC0-1.0",
+    "PUBLIC-DOMAIN",
+    "CC-BY-2.5",
+    "MIT"
   };
 
   private static final String[] EXPECTED_LICENSE_IDS_FOR_MULTILICENSE = new String[]{
-      "CDDL-1.0",
-      "GPL-2.0",
-      "No-Source-License",
-      "Apache-2.0",
-      "BSD-UNSPECIFIED",
-      "EPL-1.0",
-      "EPL-2.0",
-      "GPL-3.0",
-      "LGPL-2.1",
-      "LGPL-3.0"
+    "CDDL-1.0",
+    "GPL-2.0",
+    "No-Source-License",
+    "Apache-2.0",
+    "BSD-UNSPECIFIED",
+    "EPL-1.0",
+    "EPL-2.0",
+    "GPL-3.0",
+    "LGPL-2.1",
+    "LGPL-3.0"
   };
 
   private static final ComponentIdentifier INNER_SOURCE_COMPONENT_IDENTIFIER =
@@ -557,17 +557,21 @@ public class ApiLicenseLegalServiceTest
     List<String> licenses = Lists.newArrayList("MIT", "Apache-1.0", "Apache-2.0");
 
     List<LicenseMetadataDTO> licenseMetadataDTOs = createLicenseMetadataDTOs(licenses);
-    licenseMetadataDTOs.get(0).setLicenseObligations(new LinkedHashSet<>(Arrays
-        .asList(new LicenseObligationDTO("obligation1", Collections.emptySet()),
-            new LicenseObligationDTO("obligation2", Collections.emptySet()))));
-    licenseMetadataDTOs.get(1).setLicenseObligations(new LinkedHashSet<>(
-        Collections.singletonList(new LicenseObligationDTO("obligation3", Collections.emptySet()))));
-    licenseMetadataDTOs.get(2).setLicenseObligations(new LinkedHashSet<>(Arrays
-        .asList(new LicenseObligationDTO("obligation4", Collections.emptySet()),
-            new LicenseObligationDTO("obligation5", Collections.emptySet()))));
+    licenseMetadataDTOs.get(0)
+        .setLicenseObligations(new LinkedHashSet<>(Arrays
+            .asList(new LicenseObligationDTO("obligation1", Collections.emptySet()),
+                new LicenseObligationDTO("obligation2", Collections.emptySet()))));
+    licenseMetadataDTOs.get(1)
+        .setLicenseObligations(new LinkedHashSet<>(
+            Collections.singletonList(new LicenseObligationDTO("obligation3", Collections.emptySet()))));
+    licenseMetadataDTOs.get(2)
+        .setLicenseObligations(new LinkedHashSet<>(Arrays
+            .asList(new LicenseObligationDTO("obligation4", Collections.emptySet()),
+                new LicenseObligationDTO("obligation5", Collections.emptySet()))));
 
     doReturn(licenseMetadataDTOs)
-        .when(mockApiLicenseLegalHdsService).getLicenseMetadata(argThat(list -> list.containsAll(licenses)));
+        .when(mockApiLicenseLegalHdsService)
+        .getLicenseMetadata(argThat(list -> list.containsAll(licenses)));
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto =
         apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10);
@@ -589,7 +593,8 @@ public class ApiLicenseLegalServiceTest
 
     // No obligations will match the previous component licenses override
     doReturn(createLicenseMetadataDTOs(Sets.newHashSet("MIT")))
-        .when(mockApiLicenseLegalHdsService).getLicenseMetadata(any());
+        .when(mockApiLicenseLegalHdsService)
+        .getLicenseMetadata(any());
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto =
         apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10);
@@ -613,7 +618,8 @@ public class ApiLicenseLegalServiceTest
         Sets.newHashSet("MIT"));
 
     doReturn(createLicenseMetadataDTOs(Sets.newHashSet("MIT")))
-        .when(mockApiLicenseLegalHdsService).getLicenseMetadata(any());
+        .when(mockApiLicenseLegalHdsService)
+        .getLicenseMetadata(any());
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto =
         apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null,
@@ -800,7 +806,7 @@ public class ApiLicenseLegalServiceTest
     assertThat(resultDto.results.stream()
         .flatMap(dto -> dto.applicationTagNames.stream())
         .collect(Collectors.toList()))
-        .containsExactly("Tag1", "Tag2", "Tag3");
+            .containsExactly("Tag1", "Tag2", "Tag3");
 
     resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null,
         LicenseLegalResultsOrder.TAG_NAMES_DESC, 1, 10);
@@ -808,7 +814,7 @@ public class ApiLicenseLegalServiceTest
     assertThat(resultDto.results.stream()
         .flatMap(dto -> dto.applicationTagNames.stream())
         .collect(Collectors.toList()))
-        .containsExactly("Tag3", "Tag2", "Tag1");
+            .containsExactly("Tag3", "Tag2", "Tag1");
   }
 
   @Test
@@ -1131,20 +1137,23 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService.getLicenseLegalComponentsDashboard(
         new LicenseLegalFilterDTO(null, null, null, null, null, null, 1, 3, null));
-    assertThat(resultDto.results).extracting(dto -> dto.displayName).containsExactly("g1 : a1 : v1", "g2 : a2 : v2",
-        "g3 : a3 : v3");
+    assertThat(resultDto.results).extracting(dto -> dto.displayName)
+        .containsExactly("g1 : a1 : v1", "g2 : a2 : v2",
+            "g3 : a3 : v3");
 
     resultDto = apiLicenseLegalService.getLicenseLegalComponentsDashboard(
         new LicenseLegalFilterDTO(null, null, null, null, null,
             LicenseLegalResultsOrder.COMPONENT_NAME_ASC, 1, 3, null));
-    assertThat(resultDto.results).extracting(dto -> dto.displayName).containsExactly("g1 : a1 : v1", "g2 : a2 : v2",
-        "g3 : a3 : v3");
+    assertThat(resultDto.results).extracting(dto -> dto.displayName)
+        .containsExactly("g1 : a1 : v1", "g2 : a2 : v2",
+            "g3 : a3 : v3");
 
     resultDto = apiLicenseLegalService.getLicenseLegalComponentsDashboard(
         new LicenseLegalFilterDTO(null, null, null, null, null,
             LicenseLegalResultsOrder.COMPONENT_NAME_DESC, 1, 3, null));
-    assertThat(resultDto.results).extracting(dto -> dto.displayName).containsExactly("g3 : a3 : v3", "g2 : a2 : v2",
-        "g1 : a1 : v1");
+    assertThat(resultDto.results).extracting(dto -> dto.displayName)
+        .containsExactly("g3 : a3 : v3", "g2 : a2 : v2",
+            "g1 : a1 : v1");
 
     resultDto = apiLicenseLegalService.getLicenseLegalComponentsDashboard(
         new LicenseLegalFilterDTO(null, null, null, null, null, LicenseLegalResultsOrder.LICENSE_NAME_ASC, 1, 3, null));
@@ -1161,14 +1170,16 @@ public class ApiLicenseLegalServiceTest
     resultDto = apiLicenseLegalService.getLicenseLegalComponentsDashboard(
         new LicenseLegalFilterDTO(null, null, null, null, null,
             LicenseLegalResultsOrder.APPLICATION_COUNT_ASC, 1, 3, null));
-    assertThat(resultDto.results).extracting(dto -> dto.displayName).containsExactly("g1 : a1 : v1", "g3 : a3 : v3",
-        "g2 : a2 : v2");
+    assertThat(resultDto.results).extracting(dto -> dto.displayName)
+        .containsExactly("g1 : a1 : v1", "g3 : a3 : v3",
+            "g2 : a2 : v2");
 
     resultDto = apiLicenseLegalService.getLicenseLegalComponentsDashboard(
         new LicenseLegalFilterDTO(null, null, null, null, null,
             LicenseLegalResultsOrder.APPLICATION_COUNT_DESC, 1, 3, null));
-    assertThat(resultDto.results).extracting(dto -> dto.displayName).containsExactly("g2 : a2 : v2", "g3 : a3 : v3",
-        "g1 : a1 : v1");
+    assertThat(resultDto.results).extracting(dto -> dto.displayName)
+        .containsExactly("g2 : a2 : v2", "g3 : a3 : v3",
+            "g1 : a1 : v1");
   }
 
   @Test
@@ -1348,7 +1359,9 @@ public class ApiLicenseLegalServiceTest
     Optional<ApiReportRawDataDTOV2> lastRawReportForApplication =
         apiLicenseLegalService.getLastRawApplicationReport(app.getPublicId());
 
-    assertThat(lastRawReportForApplication).isPresent().get().usingRecursiveComparison()
+    assertThat(lastRawReportForApplication).isPresent()
+        .get()
+        .usingRecursiveComparison()
         .isEqualTo(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation3.getScanId()));
   }
 
@@ -1375,13 +1388,17 @@ public class ApiLicenseLegalServiceTest
     Optional<ApiReportRawDataDTOV2> lastRawReportForApplication =
         apiLicenseLegalService.getLastRawApplicationReportByStageId(app.getPublicId(), BuildStageType.ID);
 
-    assertThat(lastRawReportForApplication).isPresent().get().usingRecursiveComparison()
+    assertThat(lastRawReportForApplication).isPresent()
+        .get()
+        .usingRecursiveComparison()
         .isEqualTo(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation1.getScanId()));
 
     lastRawReportForApplication =
         apiLicenseLegalService.getLastRawApplicationReportByStageId(app.getPublicId(), ReleaseStageType.ID);
 
-    assertThat(lastRawReportForApplication).isPresent().get().usingRecursiveComparison()
+    assertThat(lastRawReportForApplication).isPresent()
+        .get()
+        .usingRecursiveComparison()
         .isEqualTo(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation3.getScanId()));
   }
 
@@ -1493,8 +1510,7 @@ public class ApiLicenseLegalServiceTest
       String licenseMetadataResource,
       String[] expectedLicenseFiles,
       String stageId,
-      boolean includeInnerSource)
-      throws Exception
+      boolean includeInnerSource) throws Exception
   {
     ComponentIdentifier[] expectedComponentIdentifiers = rawReport.components.stream()
         .filter(c -> c.componentIdentifier != null)
@@ -1529,11 +1545,12 @@ public class ApiLicenseLegalServiceTest
             });
     when(mockComponentLegalService.getSourceLinksOverridesFromComponentIdentifier(anyString(),
         any(ComponentIdentifier.class)))
-        .thenReturn(new LinkedHashSet<>(Arrays.asList(legalSourceLinks)));
+            .thenReturn(new LinkedHashSet<>(Arrays.asList(legalSourceLinks)));
 
     ApiLicenseLegalApplicationReportDTO licenseMetadataReport =
-        stageId == null ? apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app) :
-            apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app, stageId, includeInnerSource, false);
+        stageId == null
+            ? apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app)
+            : apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app, stageId, includeInnerSource, false);
 
     assertThat(licenseMetadataReport).isNotNull();
     assertLicenseLegalMetadata(licenseMetadataReport.components, licenseMetadataReport.licenseLegalMetadata, rawReport,
@@ -1555,9 +1572,12 @@ public class ApiLicenseLegalServiceTest
 
     Set<ComponentIdentifier> sourceLinkComponents = componentIdentifiersArgumentCaptorForSourceLinks.getValue();
     assertThat(sourceLinkComponents).containsExactlyInAnyOrder(expectedComponentIdentifiers);
-    assertThat(licenseMetadataReport.components.stream().flatMap(c -> c.licenseLegalData.sourceLinks.stream())
-        .collect(Collectors.toSet())).hasSize(3).map(sl -> sl.status).areExactly(3,
-          new Condition<>(status -> status == ComponentLegalPartStatus.ENABLED, "All source links are enabled"));
+    assertThat(licenseMetadataReport.components.stream()
+        .flatMap(c -> c.licenseLegalData.sourceLinks.stream())
+        .collect(Collectors.toSet())).hasSize(3)
+            .map(sl -> sl.status)
+            .areExactly(3,
+                new Condition<>(status -> status == ComponentLegalPartStatus.ENABLED, "All source links are enabled"));
 
     if (includeInnerSource) {
       assertThat(licenseMetadataReport.components)
@@ -1709,18 +1729,22 @@ public class ApiLicenseLegalServiceTest
         ComponentIdentifier.createMavenCoordinates("g", "a", "v", "componentIdentifier", "e");
     // Set the HDS data
     doReturn(createLicenseMetadataDTOs(Sets.newHashSet("MIT")))
-        .when(mockApiLicenseLegalHdsService).getLicenseMetadata(any());
+        .when(mockApiLicenseLegalHdsService)
+        .getLicenseMetadata(any());
     ComponentLegalCommentDTO componentLegalCommentDTO = createComponentLegalCommentDTO(componentIdentifier);
     Set<LegalCopyrightDTO> uniqueCopyrights = componentLegalCommentDTO.getUniqueCopyrights();
     ComponentLegalFileDTO componentLegalFileDTO = createComponentLegalFileDTO(componentIdentifier);
     doReturn(new LinkedHashSet<>(Collections.singletonList(componentLegalCommentDTO)))
-        .when(mockApiLicenseLegalHdsService).getComponentLegalComments(any());
+        .when(mockApiLicenseLegalHdsService)
+        .getComponentLegalComments(any());
     doReturn(new LinkedHashSet<>(Collections.singletonList(componentLegalFileDTO)))
-        .when(mockApiLicenseLegalHdsService).getComponentLegalFiles(any());
+        .when(mockApiLicenseLegalHdsService)
+        .getComponentLegalFiles(any());
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport = apiLicenseLegalService
         .getLicenseLegalComponentReport(application.getType(), application.getPublicId(), componentIdentifier, null,
@@ -1733,14 +1757,16 @@ public class ApiLicenseLegalServiceTest
                 ComponentLegalPartStatus.ENABLED))
             .toArray(ApiLicenseLegalCopyrightDTO[]::new));
     assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(f -> f.content)
-        .containsExactlyInAnyOrder(componentLegalFileDTO.getLegalFiles().stream()
+        .containsExactlyInAnyOrder(componentLegalFileDTO.getLegalFiles()
+            .stream()
             .filter(l -> l.getType().equals(LegalFileType.NOTICE.name()))
             .map(LegalFileDTO::getContent)
             .toArray(String[]::new));
     assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(f -> f.status)
         .containsOnly(ComponentLegalPartStatus.ENABLED);
     assertThat(licenseLegalComponentReport.component.licenseLegalData.licenseFiles).extracting(f -> f.content)
-        .containsExactlyInAnyOrder(componentLegalFileDTO.getLegalFiles().stream()
+        .containsExactlyInAnyOrder(componentLegalFileDTO.getLegalFiles()
+            .stream()
             .filter(l -> l.getType().equals(LegalFileType.LICENSE.name()))
             .map(LegalFileDTO::getContent)
             .toArray(String[]::new));
@@ -1772,10 +1798,10 @@ public class ApiLicenseLegalServiceTest
     // With overrides, we get the overridden data
     assertThat(licenseLegalComponentReport.component.licenseLegalData.copyrights)
         .containsExactly(new ApiLicenseLegalCopyrightDTO(
-                copyrightOverrideEnabled.getId(),
-                copyrightOverrideEnabled.getContent(),
-                copyrightOverrideEnabled.getOriginalContentHash(),
-                copyrightOverrideEnabled.getStatus()),
+            copyrightOverrideEnabled.getId(),
+            copyrightOverrideEnabled.getContent(),
+            copyrightOverrideEnabled.getOriginalContentHash(),
+            copyrightOverrideEnabled.getStatus()),
             new ApiLicenseLegalCopyrightDTO(
                 copyrightOverrideDisabled.getId(),
                 copyrightOverrideDisabled.getContent(),
@@ -1805,13 +1831,16 @@ public class ApiLicenseLegalServiceTest
 
     // Set the HDS data
     doReturn(createLicenseMetadataDTOs(Sets.newHashSet("MIT", "Apache-2.0")))
-        .when(mockApiLicenseLegalHdsService).getLicenseMetadata(any());
+        .when(mockApiLicenseLegalHdsService)
+        .getLicenseMetadata(any());
     ComponentLegalCommentDTO componentLegalCommentDTO = createComponentLegalCommentDTO(componentIdentifier);
     ComponentLegalFileDTO componentLegalFileDTO = createComponentLegalFileDTO(componentIdentifier);
     doReturn(new LinkedHashSet<>(Collections.singletonList(componentLegalCommentDTO)))
-        .when(mockApiLicenseLegalHdsService).getComponentLegalComments(any());
+        .when(mockApiLicenseLegalHdsService)
+        .getComponentLegalComments(any());
     doReturn(new LinkedHashSet<>(Collections.singletonList(componentLegalFileDTO)))
-        .when(mockApiLicenseLegalHdsService).getComponentLegalFiles(any());
+        .when(mockApiLicenseLegalHdsService)
+        .getComponentLegalFiles(any());
 
     // Set the overrides
     ComponentCopyright componentCopyright =
@@ -1842,8 +1871,11 @@ public class ApiLicenseLegalServiceTest
         apiLicenseLegalService.getLicenseLegalApplicationReport(application);
     ApiLicenseLegalComponentDTO apiLicenseLegalComponentDTO =
         apiLicenseLegalApplicationReportDTO.components.stream()
-            .filter(c -> c.componentIdentifier.toComponentIdentifier().equals(
-                componentIdentifier)).findFirst().get();
+            .filter(c -> c.componentIdentifier.toComponentIdentifier()
+                .equals(
+                    componentIdentifier))
+            .findFirst()
+            .get();
     assertThat(apiLicenseLegalComponentDTO).isNotNull();
     assertThat(apiLicenseLegalComponentDTO.licenseLegalData.componentCopyrightId).isEqualTo(componentCopyright.getId());
     assertThat(apiLicenseLegalComponentDTO.licenseLegalData.componentCopyrightScopeOwnerId)
@@ -1955,21 +1987,26 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier c = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     // Set the HDS data
     List<LicenseMetadataDTO> licenseMetadataDTOs = createLicenseMetadataDTOs(Sets.newHashSet("Beerware"));
-    licenseMetadataDTOs.get(0).setLicenseObligations(new LinkedHashSet<>(Arrays
-        .asList(new LicenseObligationDTO("name1", Collections.emptySet()),
-            new LicenseObligationDTO("name2", Collections.emptySet()),
-            new LicenseObligationDTO("name3", Collections.emptySet()),
-            new LicenseObligationDTO("name4", Collections.emptySet()))));
+    licenseMetadataDTOs.get(0)
+        .setLicenseObligations(new LinkedHashSet<>(Arrays
+            .asList(new LicenseObligationDTO("name1", Collections.emptySet()),
+                new LicenseObligationDTO("name2", Collections.emptySet()),
+                new LicenseObligationDTO("name3", Collections.emptySet()),
+                new LicenseObligationDTO("name4", Collections.emptySet()))));
     doReturn(licenseMetadataDTOs)
-        .when(mockApiLicenseLegalHdsService).getLicenseMetadata(any());
+        .when(mockApiLicenseLegalHdsService)
+        .getLicenseMetadata(any());
     doReturn(new LinkedHashSet<>(Collections.singletonList(createComponentLegalCommentDTO(c))))
-        .when(mockApiLicenseLegalHdsService).getComponentLegalComments(any());
+        .when(mockApiLicenseLegalHdsService)
+        .getComponentLegalComments(any());
     doReturn(new LinkedHashSet<>(Collections.singletonList(createComponentLegalFileDTO(c))))
-        .when(mockApiLicenseLegalHdsService).getComponentLegalFiles(any());
+        .when(mockApiLicenseLegalHdsService)
+        .getComponentLegalFiles(any());
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(c);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport = apiLicenseLegalService
         .getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), c, null, null, null, null);
@@ -2013,7 +2050,9 @@ public class ApiLicenseLegalServiceTest
         licenseLegalComponentReport.component.licenseLegalData.obligations;
     assertThat(obligationDTOS).isNotEmpty();
     ApiLicenseLegalObligationDTO obligation1 = obligationDTOS.stream()
-        .filter(o -> o.getName().equals(componentObligation1.getObligationName())).findFirst().orElse(null);
+        .filter(o -> o.getName().equals(componentObligation1.getObligationName()))
+        .findFirst()
+        .orElse(null);
     assertThat(obligation1).isNotNull();
     assertThat(obligation1.getId()).isEqualTo(componentObligation1.getId());
     assertThat(obligation1.getOwnerId()).isEqualTo(componentObligation1.getOwnerId());
@@ -2021,7 +2060,9 @@ public class ApiLicenseLegalServiceTest
     assertThat(obligation1.getComment()).isEqualTo(componentObligation1.getComment());
 
     ApiLicenseLegalObligationDTO obligation2 = obligationDTOS.stream()
-        .filter(o -> o.getName().equals(componentObligation2.getObligationName())).findFirst().orElse(null);
+        .filter(o -> o.getName().equals(componentObligation2.getObligationName()))
+        .findFirst()
+        .orElse(null);
     assertThat(obligation2).isNotNull();
     assertThat(obligation2.getId()).isEqualTo(componentObligation2.getId());
     assertThat(obligation2.getOwnerId()).isEqualTo(componentObligation2.getOwnerId());
@@ -2029,7 +2070,9 @@ public class ApiLicenseLegalServiceTest
     assertThat(obligation2.getComment()).isEqualTo(componentObligation2.getComment());
 
     ApiLicenseLegalObligationDTO obligation3 = obligationDTOS.stream()
-        .filter(o -> o.getName().equals(componentObligation3.getObligationName())).findFirst().orElse(null);
+        .filter(o -> o.getName().equals(componentObligation3.getObligationName()))
+        .findFirst()
+        .orElse(null);
     assertThat(obligation3).isNotNull();
     assertThat(obligation3.getId()).isEqualTo(componentObligation3.getId());
     assertThat(obligation3.getOwnerId()).isEqualTo(componentObligation3.getOwnerId());
@@ -2037,7 +2080,9 @@ public class ApiLicenseLegalServiceTest
     assertThat(obligation3.getComment()).isEqualTo(componentObligation3.getComment());
 
     ApiLicenseLegalObligationDTO obligation4 = obligationDTOS.stream()
-        .filter(o -> o.getName().equals(componentObligationAttribution4.getObligationName())).findFirst().orElse(null);
+        .filter(o -> o.getName().equals(componentObligationAttribution4.getObligationName()))
+        .findFirst()
+        .orElse(null);
     assertThat(obligation4).isNotNull();
     assertThat(obligation4.getId()).isNull();
     assertThat(obligation4.getOwnerId()).isNull();
@@ -2136,8 +2181,9 @@ public class ApiLicenseLegalServiceTest
     assertThat(licenseLegalComponent.hash).isEqualTo(namedComponentDetails.getHash());
     assertThat(licenseLegalComponent.packageUrl).isNotNull()
         .isEqualTo(PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl());
-    assertThat(licenseLegalComponent.displayName).isNotNull().isEqualTo(
-        ComponentDisplayNameUtil.fromIdentifier(component.getComponentIdentifier()).toString());
+    assertThat(licenseLegalComponent.displayName).isNotNull()
+        .isEqualTo(
+            ComponentDisplayNameUtil.fromIdentifier(component.getComponentIdentifier()).toString());
     assertThat(licenseLegalComponent.licenseLegalData).isNotNull();
     assertThat(licenseLegalComponent.licenseLegalData.effectiveLicenseStatus)
         .isEqualTo(expectedLicenseOverrideStatus.getName());
@@ -2154,24 +2200,25 @@ public class ApiLicenseLegalServiceTest
         .allMatch(licenseFile -> licenseFile.content.endsWith("contentLicense"));
     assertThat(licenseLegalComponent.licenseLegalData.noticeFiles).hasSize(4)
         .allMatch(noticeFile -> noticeFile.content.endsWith("contentNotice"));
-    assertThat(licenseLegalComponent.licenseLegalData.sourceLinks).hasSize(4).containsExactlyInAnyOrder(
-        new LegalSourceLinkDTO("contentC"), new LegalSourceLinkDTO(
-            "https://" + licenseLegalComponent.componentIdentifier.toComponentIdentifier()),
-        new LegalSourceLinkDTO(new SourceLinkOverride("content", ComponentLegalPartStatus.ENABLED, "1")),
-        new LegalSourceLinkDTO(new SourceLinkOverride("contentB", ComponentLegalPartStatus.ENABLED, "1")));
+    assertThat(licenseLegalComponent.licenseLegalData.sourceLinks).hasSize(4)
+        .containsExactlyInAnyOrder(
+            new LegalSourceLinkDTO("contentC"), new LegalSourceLinkDTO(
+                "https://" + licenseLegalComponent.componentIdentifier.toComponentIdentifier()),
+            new LegalSourceLinkDTO(new SourceLinkOverride("content", ComponentLegalPartStatus.ENABLED, "1")),
+            new LegalSourceLinkDTO(new SourceLinkOverride("contentB", ComponentLegalPartStatus.ENABLED, "1")));
 
     Map<ApiLicenseDTO, Set<com.sonatype.insight.brain.model.license.License>> multiLicenseToSingleLicense =
         Sets.newHashSet(Iterables.concat(
-                licenseLegalComponent.licenseLegalData.effectiveLicenses,
-                licenseLegalComponent.licenseLegalData.declaredLicenses,
-                licenseLegalComponent.licenseLegalData.observedLicenses)).stream()
+            licenseLegalComponent.licenseLegalData.effectiveLicenses,
+            licenseLegalComponent.licenseLegalData.declaredLicenses,
+            licenseLegalComponent.licenseLegalData.observedLicenses))
+            .stream()
             .map(multiLicenseDAO::getByIdNotNull)
             .collect(Collectors.toMap(
                 multiLicense -> new ApiLicenseDTO(multiLicense.getId(), multiLicense.getShortDisplayName()),
                 multiLicense -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicense.getId()),
                 (prev, next) -> next,
-                HashMap::new
-            ));
+                HashMap::new));
 
     ApiLicenseLegalMetadataDTO[] expectedLicenseLegalMetadata = legalReportBuilder
         .getLicenseLegalMetadata(
@@ -2196,8 +2243,8 @@ public class ApiLicenseLegalServiceTest
 
   private Set<String> getExpectedEffectiveLicenseIds(NamedComponentDetails namedComponentDetails) {
     return Sets.newHashSet(Iterables.concat(
-            namedComponentDetails.getEffectiveLicenses(),
-            namedComponentDetails.getOverriddenLicenses()))
+        namedComponentDetails.getEffectiveLicenses(),
+        namedComponentDetails.getOverriddenLicenses()))
         .stream()
         .map(License::getLicenseId)
         .collect(Collectors.toSet());
@@ -2287,7 +2334,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
     ComponentCopyright componentCopyright =
         tempEntity.newComponentCopyright(componentIdentifier, owner.getId(), "legalContentHash");
 
@@ -2309,7 +2357,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
     ComponentLegalFile componentLicense =
         tempEntity.newComponentLegalFile(componentIdentifier, org.getId(), LegalFileType.LICENSE, "legalContentHash");
     tempEntity.newLegalFileOverride(null, "hash2", "content2", ComponentLegalPartStatus.ENABLED,
@@ -2340,7 +2389,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
     LegalCopyrightDTO copyright1 = new LegalCopyrightDTO();
     copyright1.setAuthor("author");
     copyright1.setYear("year");
@@ -2354,7 +2404,8 @@ public class ApiLicenseLegalServiceTest
     legalCommentDTO.setCopyrights(Sets.newLinkedHashSet(Arrays.asList(copyright1, copyright2)));
     componentLegalCommentDTO.setComments(Sets.newHashSet(legalCommentDTO));
     doReturn(new LinkedHashSet<>(Collections.singletonList(componentLegalCommentDTO)))
-        .when(mockApiLicenseLegalHdsService).getComponentLegalComments(any());
+        .when(mockApiLicenseLegalHdsService)
+        .getComponentLegalComments(any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
@@ -2371,7 +2422,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
     ComponentCopyright componentCopyright =
         tempEntity.newComponentCopyright(componentIdentifier, owner.getId(), "legalContentHash1");
     tempEntity.newCopyrightOverride(null, "hash1", "y", ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
@@ -2396,7 +2448,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
     LegalFileDTO legalFile1 = new LegalFileDTO();
     legalFile1.setType("NOTICE");
     legalFile1.setContent("z");
@@ -2413,7 +2466,8 @@ public class ApiLicenseLegalServiceTest
     componentLegalFileDTO
         .setLegalFiles(Sets.newLinkedHashSet(Arrays.asList(legalFile1, legalFile2, legalFile3, legalFile4)));
     doReturn(new LinkedHashSet<>(Collections.singletonList(componentLegalFileDTO)))
-        .when(mockApiLicenseLegalHdsService).getComponentLegalFiles(any());
+        .when(mockApiLicenseLegalHdsService)
+        .getComponentLegalFiles(any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
@@ -2432,7 +2486,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
     ComponentLegalFile noticeLegalFile =
         tempEntity.newComponentLegalFile(componentIdentifier, owner.getId(), LegalFileType.NOTICE, "legalContentHash1");
     tempEntity.newLegalFileOverride(null,
@@ -2471,7 +2526,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
     LegalFileDTO legalFile1 = new LegalFileDTO();
     legalFile1.setType("NOTICE");
     legalFile1.setContent("a");
@@ -2483,7 +2539,8 @@ public class ApiLicenseLegalServiceTest
     componentLegalFileDTO
         .setLegalFiles(Sets.newLinkedHashSet(Arrays.asList(legalFile1, legalFile2)));
     doReturn(new LinkedHashSet<>(Collections.singletonList(componentLegalFileDTO)))
-        .when(mockApiLicenseLegalHdsService).getComponentLegalFiles(any());
+        .when(mockApiLicenseLegalHdsService)
+        .getComponentLegalFiles(any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
@@ -2505,7 +2562,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifierBinary);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
     LegalFileDTO legalFile1 = new LegalFileDTO();
     legalFile1.setRelPath("/a");
     legalFile1.setContentHash("aaa");
@@ -2537,8 +2595,9 @@ public class ApiLicenseLegalServiceTest
     componentLegalFileDTOSources.setComponentIdentifier(componentIdentifierSources);
     componentLegalFileDTOSources.setLegalFiles(Sets.newLinkedHashSet(Arrays.asList(legalFile2, legalFile4)));
 
-    doReturn(new LinkedHashSet<>(Arrays.asList( componentLegalFileDTOBinary, componentLegalFileDTOSources )))
-        .when(mockApiLicenseLegalHdsService).getComponentLegalFiles(any());
+    doReturn(new LinkedHashSet<>(Arrays.asList(componentLegalFileDTOBinary, componentLegalFileDTOSources)))
+        .when(mockApiLicenseLegalHdsService)
+        .getComponentLegalFiles(any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(),
@@ -2557,7 +2616,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
     LegalFileDTO legalFile1 = new LegalFileDTO();
     legalFile1.setType("NOTICE");
     legalFile1.setRelPath("/1");
@@ -2585,7 +2645,8 @@ public class ApiLicenseLegalServiceTest
         .setLegalFiles(Sets.newLinkedHashSet(Arrays.asList(legalFile1, legalFile2, legalFile3, legalFile4,
             legalFile5)));
     doReturn(new LinkedHashSet<>(Collections.singletonList(componentLegalFileDTO)))
-        .when(mockApiLicenseLegalHdsService).getComponentLegalFiles(any());
+        .when(mockApiLicenseLegalHdsService)
+        .getComponentLegalFiles(any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(),
@@ -2593,9 +2654,9 @@ public class ApiLicenseLegalServiceTest
             null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(c -> c.relPath)
-        .containsExactlyElementsOf(Arrays.asList("/1","/2","/3"));
+        .containsExactlyElementsOf(Arrays.asList("/1", "/2", "/3"));
     assertThat(licenseLegalComponentReport.component.licenseLegalData.licenseFiles).extracting(c -> c.relPath)
-        .containsExactlyElementsOf(Arrays.asList("/a","/b"));
+        .containsExactlyElementsOf(Arrays.asList("/a", "/b"));
   }
 
   @Test
@@ -2605,7 +2666,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
@@ -2616,7 +2678,8 @@ public class ApiLicenseLegalServiceTest
     expected.licenseThreatGroupName = "Non Standard";
     expected.licenseThreatGroupLevel = 6;
     assertThat(licenseLegalComponentReport.component.licenseLegalData.highestEffectiveLicenseThreatGroup)
-        .usingRecursiveComparison().isEqualTo(expected);
+        .usingRecursiveComparison()
+        .isEqualTo(expected);
   }
 
   @Test
@@ -2629,7 +2692,8 @@ public class ApiLicenseLegalServiceTest
 
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
@@ -2640,7 +2704,8 @@ public class ApiLicenseLegalServiceTest
     expected.licenseThreatGroupName = "Copyleft";
     expected.licenseThreatGroupLevel = 9;
     assertThat(licenseLegalComponentReport.component.licenseLegalData.highestEffectiveLicenseThreatGroup)
-        .usingRecursiveComparison().isEqualTo(expected);
+        .usingRecursiveComparison()
+        .isEqualTo(expected);
   }
 
   @Test
@@ -2653,24 +2718,26 @@ public class ApiLicenseLegalServiceTest
 
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
 
-    Set<String> licenses =  new LinkedHashSet<>(Arrays.asList("MIT", "BSD-3-Clause", "GPL-2.0"));
+    Set<String> licenses = new LinkedHashSet<>(Arrays.asList("MIT", "BSD-3-Clause", "GPL-2.0"));
     List<LicenseMetadataDTO> licenseMetadataDTOs = createLicenseMetadataDTOs(licenses);
-    licenseMetadataDTOs.get(0).setLicenseObligations(new LinkedHashSet<>(
-        Arrays.asList(
-            new LicenseObligationDTO("a", Collections.emptySet()),
-            new LicenseObligationDTO("b", Collections.emptySet()),
-            new LicenseObligationDTO("c", Collections.emptySet())
-        )));
-    licenseMetadataDTOs.get(1).setLicenseObligations(new LinkedHashSet<>(Arrays
-        .asList(
-            new LicenseObligationDTO("x", Collections.emptySet()),
-            new LicenseObligationDTO("y", Collections.emptySet())
-        )));
+    licenseMetadataDTOs.get(0)
+        .setLicenseObligations(new LinkedHashSet<>(
+            Arrays.asList(
+                new LicenseObligationDTO("a", Collections.emptySet()),
+                new LicenseObligationDTO("b", Collections.emptySet()),
+                new LicenseObligationDTO("c", Collections.emptySet()))));
+    licenseMetadataDTOs.get(1)
+        .setLicenseObligations(new LinkedHashSet<>(Arrays
+            .asList(
+                new LicenseObligationDTO("x", Collections.emptySet()),
+                new LicenseObligationDTO("y", Collections.emptySet()))));
     licenseMetadataDTOs.get(2).setLicenseObligations(Collections.emptySet());
     doReturn(licenseMetadataDTOs)
-        .when(mockApiLicenseLegalHdsService).getLicenseMetadata(argThat(list -> list.containsAll(licenses)));
+        .when(mockApiLicenseLegalHdsService)
+        .getLicenseMetadata(argThat(list -> list.containsAll(licenses)));
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
@@ -2681,7 +2748,7 @@ public class ApiLicenseLegalServiceTest
         .extracting(dto -> dto.licenseId)
         .containsExactlyInAnyOrder("MIT", "GPL-2.0", "BSD-3-Clause", "BSD-3-Clause-GPL-2.0");
 
-    licenseLegalComponentReport.licenseLegalMetadata.stream().map( l ->  {
+    licenseLegalComponentReport.licenseLegalMetadata.stream().map(l -> {
       LicenseObligationDTO[] tmpObligationDTOs = l.obligations
           .toArray(new LicenseObligationDTO[l.obligations.size()]);
       if (l.licenseId.equals("MIT")) {
@@ -2720,7 +2787,8 @@ public class ApiLicenseLegalServiceTest
         Collections.singletonList("MIT"));
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
@@ -2731,7 +2799,8 @@ public class ApiLicenseLegalServiceTest
     expected.licenseThreatGroupName = "Very Bad";
     expected.licenseThreatGroupLevel = 10;
     assertThat(licenseLegalComponentReport.component.licenseLegalData.highestEffectiveLicenseThreatGroup)
-        .usingRecursiveComparison().isEqualTo(expected);
+        .usingRecursiveComparison()
+        .isEqualTo(expected);
   }
 
   @Test
@@ -2742,7 +2811,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
@@ -2758,7 +2828,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
@@ -2781,7 +2852,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
     tempEntity.newApplicationComponent(owner.getId(), StageTypes.SOURCE.getId(), namedComponentDetails.getHash(),
         componentIdentifier);
     tempEntity.newApplicationComponent(owner.getId(), StageTypes.BUILD.getId(), namedComponentDetails.getHash(),
@@ -2827,7 +2899,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
     tempEntity.newApplicationComponent(owner.getId(), StageTypes.BUILD.getId(), "otherHash", componentIdentifier);
     PolicyEvaluation buildEval = tempEntity.newPolicyEvaluation(owner.getId(), StageTypes.BUILD.getId(), "scanIdBuild",
         new Date());
@@ -2853,7 +2926,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
     tempEntity.newApplicationComponent(owner.getId(), StageTypes.BUILD.getId(), namedComponentDetails.getHash(),
         componentIdentifier);
     PolicyEvaluation buildEval = tempEntity.newPolicyEvaluation(owner.getId(), StageTypes.BUILD.getId(), "scanIdBuild",
@@ -2880,20 +2954,22 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
     List<String> licenses = Collections.singletonList("Beerware");
     List<LicenseMetadataDTO> licenseMetadataDTOs = createLicenseMetadataDTOs(licenses);
-    licenseMetadataDTOs.get(0).setLicenseObligations(new LinkedHashSet<>(Arrays
-        .asList(
-            new LicenseObligationDTO("z", Collections.emptySet()),
-            new LicenseObligationDTO("k", Collections.emptySet()),
-            new LicenseObligationDTO("a", Collections.emptySet()),
-            new LicenseObligationDTO("y", Collections.emptySet()),
-            new LicenseObligationDTO("b", Collections.emptySet()),
-            new LicenseObligationDTO("x", Collections.emptySet())
-        )));
+    licenseMetadataDTOs.get(0)
+        .setLicenseObligations(new LinkedHashSet<>(Arrays
+            .asList(
+                new LicenseObligationDTO("z", Collections.emptySet()),
+                new LicenseObligationDTO("k", Collections.emptySet()),
+                new LicenseObligationDTO("a", Collections.emptySet()),
+                new LicenseObligationDTO("y", Collections.emptySet()),
+                new LicenseObligationDTO("b", Collections.emptySet()),
+                new LicenseObligationDTO("x", Collections.emptySet()))));
     doReturn(licenseMetadataDTOs)
-        .when(mockApiLicenseLegalHdsService).getLicenseMetadata(argThat(list -> list.containsAll(licenses)));
+        .when(mockApiLicenseLegalHdsService)
+        .getLicenseMetadata(argThat(list -> list.containsAll(licenses)));
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
@@ -2910,7 +2986,8 @@ public class ApiLicenseLegalServiceTest
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
     tempEntity.newComponentObligationAttribution(componentIdentifier, owner.getId(), "z", "content", "hash");
     tempEntity.newComponentObligationAttribution(componentIdentifier, owner.getId(), "k", "content", "hash");
     tempEntity.newComponentObligationAttribution(componentIdentifier, owner.getId(), "a", "content", "hash");
@@ -2924,7 +3001,7 @@ public class ApiLicenseLegalServiceTest
             null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.licenseLegalData.attributions).extracting(
-            ComponentObligationAttributionDTO::getObligationName)
+        ComponentObligationAttributionDTO::getObligationName)
         .containsExactly("a", "b", "k", "x", "y", "z", null);
   }
 
@@ -2936,7 +3013,8 @@ public class ApiLicenseLegalServiceTest
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     namedComponentDetails.setHash(null);
     doReturn(namedComponentDetails)
-        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+        .when(componentInfoServiceSpy)
+        .getComponentDetailsFromHDS(any(), any(), any(), any(), any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
@@ -2963,8 +3041,9 @@ public class ApiLicenseLegalServiceTest
     reportDto1.components.add(componentDto1);
 
     apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
-    doReturn(reportDto1).when(apiLicenseLegalServiceSpy).getApiReportRawDataForMultiApplicationReport(app1,
-        BuildStageType.ID);
+    doReturn(reportDto1).when(apiLicenseLegalServiceSpy)
+        .getApiReportRawDataForMultiApplicationReport(app1,
+            BuildStageType.ID);
 
     ApiReportRawDataDTOV2 reportDto2 = new ApiReportRawDataDTOV2();
     ApiReportComponentDTOV2 componentDto2 = new ApiReportComponentDTOV2();
@@ -2975,8 +3054,9 @@ public class ApiLicenseLegalServiceTest
     componentDto2.licenseData.effectiveLicenses.add(new ApiLicenseDTO("MIT", "MIT"));
     reportDto2.components.add(componentDto2);
 
-    doReturn(reportDto2).when(apiLicenseLegalServiceSpy).getApiReportRawDataForMultiApplicationReport(app2,
-        BuildStageType.ID);
+    doReturn(reportDto2).when(apiLicenseLegalServiceSpy)
+        .getApiReportRawDataForMultiApplicationReport(app2,
+            BuildStageType.ID);
 
     List<String> licenses = Collections.singletonList("MIT");
     List<LicenseMetadataDTO> licenseMetadataDTOs = createLicenseMetadataDTOs(licenses);
@@ -3017,8 +3097,7 @@ public class ApiLicenseLegalServiceTest
         ComponentIdentifier.CONAN_CHANNEL, "",
         ComponentIdentifier.CONAN_OWNER, "",
         ComponentIdentifier.CONAN_NAME, "bzip2",
-        ComponentIdentifier.VERSION, "1.0.8"
-    ));
+        ComponentIdentifier.VERSION, "1.0.8"));
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createConanCoordinates("bzip2", "1.0.8", null, null);
     List<String> licenseIds = Collections.singletonList("MIT");
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
@@ -3027,8 +3106,7 @@ public class ApiLicenseLegalServiceTest
         ObligationStatus.FULFILLED);
 
     ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService.getLicenseLegalComponentsDashboard(
-        new LicenseLegalFilterDTO(null, null, null, null, null, null, 1, 3, null)
-    );
+        new LicenseLegalFilterDTO(null, null, null, null, null, null, 1, 3, null));
 
     assertThat(resultDto.totalResultsCount).isEqualTo(1);
     assertThat(resultDto.results).hasSize(1);
@@ -3042,8 +3120,7 @@ public class ApiLicenseLegalServiceTest
         ComponentIdentifier.CONAN_CHANNEL, "",
         ComponentIdentifier.CONAN_OWNER, "",
         ComponentIdentifier.CONAN_NAME, "bzip2",
-        ComponentIdentifier.VERSION, "1.0.8"
-    ));
+        ComponentIdentifier.VERSION, "1.0.8"));
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createConanCoordinates("bzip2", "1.0.8", null, null);
     List<String> licenseIds = Collections.singletonList("MIT");
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
@@ -3163,7 +3240,7 @@ public class ApiLicenseLegalServiceTest
         .filter(c -> c.componentIdentifier != null)
         .filter(c -> !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
         .flatMap(component -> Stream.concat(Stream.concat(component.licenseData.declaredLicenses.stream(),
-                component.licenseData.observedLicenses.stream()),
+            component.licenseData.observedLicenses.stream()),
             component.licenseData.effectiveLicenses.stream()))
         .map(license -> license.licenseId)
         .collect(Collectors.toCollection(LinkedHashSet::new)));
@@ -3214,7 +3291,8 @@ public class ApiLicenseLegalServiceTest
             .filter(llo -> llo.getName().equals(lo.getName()))
             .findFirst();
         assertThat(legalLicenseObligation.isPresent())
-            .withFailMessage("Legal Report Data did not contain License Obligation: " + lo.getName()).isTrue();
+            .withFailMessage("Legal Report Data did not contain License Obligation: " + lo.getName())
+            .isTrue();
         assertThat(lo.getObligationTexts())
             .isEqualTo(legalLicenseObligation.get().getObligationTexts());
       });
@@ -3244,11 +3322,10 @@ public class ApiLicenseLegalServiceTest
                     LegalComponentIdentifierUtil
                         .removeClassifierAndExtension(lrc.componentIdentifier.toComponentIdentifier())))
             .flatMap(clc -> clc.getUniqueCopyrights().stream())
-            .map(legalCopyrightDTO ->
-                new ApiLicenseLegalCopyrightDTO(null,
-                    legalCopyrightDTO.getContent(),
-                    legalCopyrightDTO.getContentHash(),
-                    ComponentLegalPartStatus.ENABLED))
+            .map(legalCopyrightDTO -> new ApiLicenseLegalCopyrightDTO(null,
+                legalCopyrightDTO.getContent(),
+                legalCopyrightDTO.getContentHash(),
+                ComponentLegalPartStatus.ENABLED))
             .sorted(Comparator.comparing(lc -> lc.content))
             .toArray(ApiLicenseLegalCopyrightDTO[]::new)));
   }
@@ -3258,30 +3335,34 @@ public class ApiLicenseLegalServiceTest
       Set<ComponentLegalFileDTO> componentLegalFiles)
   {
     licenseLegalComponents.forEach(lrc -> {
-      assertThat(lrc.licenseLegalData.noticeFiles).usingRecursiveFieldByFieldElementComparator().containsExactly(
-          componentLegalFiles.stream()
-              .filter(clf -> LegalComponentIdentifierUtil.removeClassifierAndExtension(clf.getComponentIdentifier())
-                  .equals(
-                      LegalComponentIdentifierUtil
-                          .removeClassifierAndExtension(lrc.componentIdentifier.toComponentIdentifier())))
-              .flatMap(clf -> clf.getLegalFiles().stream())
-              .filter(c -> c.getType().equals("NOTICE"))
-              .map(
-                  legalFileDTO -> new ApiLicenseLegalFileDTO(null, legalFileDTO.getRelPath(), legalFileDTO.getContent(),
-                      legalFileDTO.getContentHash(), ComponentLegalPartStatus.ENABLED))
-              .toArray(ApiLicenseLegalFileDTO[]::new));
-      assertThat(lrc.licenseLegalData.licenseFiles).usingRecursiveFieldByFieldElementComparator().containsExactly(
-          componentLegalFiles.stream()
-              .filter(clf -> LegalComponentIdentifierUtil.removeClassifierAndExtension(clf.getComponentIdentifier())
-                  .equals(
-                      LegalComponentIdentifierUtil
-                          .removeClassifierAndExtension(lrc.componentIdentifier.toComponentIdentifier())))
-              .flatMap(clf -> clf.getLegalFiles().stream())
-              .filter(c -> c.getType().equals("LICENSE"))
-              .map(
-                  legalFileDTO -> new ApiLicenseLegalFileDTO(null, legalFileDTO.getRelPath(), legalFileDTO.getContent(),
-                      legalFileDTO.getContentHash(), ComponentLegalPartStatus.ENABLED))
-              .toArray(ApiLicenseLegalFileDTO[]::new));
+      assertThat(lrc.licenseLegalData.noticeFiles).usingRecursiveFieldByFieldElementComparator()
+          .containsExactly(
+              componentLegalFiles.stream()
+                  .filter(clf -> LegalComponentIdentifierUtil.removeClassifierAndExtension(clf.getComponentIdentifier())
+                      .equals(
+                          LegalComponentIdentifierUtil
+                              .removeClassifierAndExtension(lrc.componentIdentifier.toComponentIdentifier())))
+                  .flatMap(clf -> clf.getLegalFiles().stream())
+                  .filter(c -> c.getType().equals("NOTICE"))
+                  .map(
+                      legalFileDTO -> new ApiLicenseLegalFileDTO(null, legalFileDTO.getRelPath(),
+                          legalFileDTO.getContent(),
+                          legalFileDTO.getContentHash(), ComponentLegalPartStatus.ENABLED))
+                  .toArray(ApiLicenseLegalFileDTO[]::new));
+      assertThat(lrc.licenseLegalData.licenseFiles).usingRecursiveFieldByFieldElementComparator()
+          .containsExactly(
+              componentLegalFiles.stream()
+                  .filter(clf -> LegalComponentIdentifierUtil.removeClassifierAndExtension(clf.getComponentIdentifier())
+                      .equals(
+                          LegalComponentIdentifierUtil
+                              .removeClassifierAndExtension(lrc.componentIdentifier.toComponentIdentifier())))
+                  .flatMap(clf -> clf.getLegalFiles().stream())
+                  .filter(c -> c.getType().equals("LICENSE"))
+                  .map(
+                      legalFileDTO -> new ApiLicenseLegalFileDTO(null, legalFileDTO.getRelPath(),
+                          legalFileDTO.getContent(),
+                          legalFileDTO.getContentHash(), ComponentLegalPartStatus.ENABLED))
+                  .toArray(ApiLicenseLegalFileDTO[]::new));
     });
   }
 
@@ -3304,8 +3385,7 @@ public class ApiLicenseLegalServiceTest
     assertThat(component).satisfiesAnyOf(
         lrc -> assertThat(lrc.componentIdentifier).isNotNull(),
         lrc -> assertThat(lrc.packageUrl).isNotNull(),
-        lrc -> assertThat(lrc.hash).isNotNull()
-    );
+        lrc -> assertThat(lrc.hash).isNotNull());
   }
 
   private void validateLicenseData(
@@ -3339,14 +3419,17 @@ public class ApiLicenseLegalServiceTest
   }
 
   private void assertObligations(
-      final List<ApiLicenseLegalComponentDTO> components, final LicenseMetadataDTO[] licenseMetadata)
+      final List<ApiLicenseLegalComponentDTO> components,
+      final LicenseMetadataDTO[] licenseMetadata)
   {
     Map<String, LicenseMetadataDTO> licenseMetadataDTOMap = Arrays.stream(licenseMetadata)
         .collect(Collectors.toMap(LicenseMetadataDTO::getLicenseId, Function.identity()));
     for (ApiLicenseLegalComponentDTO componentDTO : components) {
       Set<String> obligationNames =
-          componentDTO.licenseLegalData.obligations.stream().map(ApiLicenseLegalObligationDTO::getName).collect(
-              Collectors.toSet());
+          componentDTO.licenseLegalData.obligations.stream()
+              .map(ApiLicenseLegalObligationDTO::getName)
+              .collect(
+                  Collectors.toSet());
       Set<String> expectedObligationNames = componentDTO.licenseLegalData.effectiveLicenses.stream()
           .flatMap(l -> licenseMetadataDTOMap.get(l).getLicenseObligations().stream())
           .map(LicenseObligationDTO::getName)
@@ -3368,8 +3451,7 @@ public class ApiLicenseLegalServiceTest
           tempDir,
           "/" + getClass().getSimpleName() + "/report/",
           evaluation.getApplicationId(),
-          evaluation.getScanId()
-      );
+          evaluation.getScanId());
     }
     catch (IOException e) {
       throw new RuntimeException(e);
@@ -3424,7 +3506,8 @@ public class ApiLicenseLegalServiceTest
     assertThat(telemetryData.getAttributes().keySet().iterator().next())
         .isEqualTo(expectedAttributes.keySet().iterator().next());
     assertThat((ApplicationLicenseUsageTelemetry) telemetryData.getAttributes().values().iterator().next())
-        .usingRecursiveComparison().isEqualTo(expectedAttributes.values().iterator().next());
+        .usingRecursiveComparison()
+        .isEqualTo(expectedAttributes.values().iterator().next());
   }
 
   private void setUnlicensedForAdvancedLegalPack() {
@@ -3510,8 +3593,7 @@ public class ApiLicenseLegalServiceTest
       int applicationOccurrences,
       int componentsReviewedCount,
       int componentsTotalCount,
-      String licenseThreatGroupName
-  )
+      String licenseThreatGroupName)
   {
     assertThat(dto.hash).isEqualTo(hash);
     assertThat(dto.displayName).isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
@@ -3546,7 +3628,8 @@ public class ApiLicenseLegalServiceTest
       licenseMetadataDTO.setLicenseObligations(obligationDtos);
     }
 
-    lenient().doReturn(licenseMetadataDTOs).when(mockApiLicenseLegalHdsService)
+    lenient().doReturn(licenseMetadataDTOs)
+        .when(mockApiLicenseLegalHdsService)
         .getLicenseMetadata(argThat(list -> list.containsAll(licenses)));
   }
 }

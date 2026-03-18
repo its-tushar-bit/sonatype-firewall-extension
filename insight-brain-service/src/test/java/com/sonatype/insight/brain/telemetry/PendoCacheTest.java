@@ -294,7 +294,7 @@ public class PendoCacheTest
   @Test
   public void testProductLicenseChanged_MultiTenant() throws Exception {
     // Initial values cached prior to the first `productLicenseChanged` call. The JS file is cached
-    // globally and does not get invalidated when the product license changes.  The telemetry properties
+    // globally and does not get invalidated when the product license changes. The telemetry properties
     // are cached per-tenant and do get invalidated when the product license changes.
     when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(BASIC_ENABLED_TELEMETRY_RESPONSE));

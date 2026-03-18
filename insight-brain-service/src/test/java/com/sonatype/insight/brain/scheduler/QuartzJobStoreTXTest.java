@@ -340,19 +340,25 @@ public class QuartzJobStoreTXTest
   public void testAquireNextTrigger() throws Exception {
     JobDetail job = JobBuilder.newJob(TestJob.class).build();
     quartzJobStoreTXSpy.storeJob(job, true);
-    OperableTrigger triggerForMe = (OperableTrigger) TriggerBuilder.newTrigger().forJob(job)
+    OperableTrigger triggerForMe = (OperableTrigger) TriggerBuilder.newTrigger()
+        .forJob(job)
         .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionIgnoreMisfires())
-        .usingJobData(TaskScheduler.QUARTZ_NODE_ID, quartzJobStoreTXSpy.getInstanceId()).build();
+        .usingJobData(TaskScheduler.QUARTZ_NODE_ID, quartzJobStoreTXSpy.getInstanceId())
+        .build();
     triggerForMe.setNextFireTime(new Date());
     quartzJobStoreTXSpy.storeTrigger(triggerForMe, true);
-    OperableTrigger triggerForOther = (OperableTrigger) TriggerBuilder.newTrigger().forJob(job)
+    OperableTrigger triggerForOther = (OperableTrigger) TriggerBuilder.newTrigger()
+        .forJob(job)
         .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionIgnoreMisfires())
-        .usingJobData(TaskScheduler.QUARTZ_NODE_ID, "other1").build();
+        .usingJobData(TaskScheduler.QUARTZ_NODE_ID, "other1")
+        .build();
     triggerForOther.setNextFireTime(new Date());
     quartzJobStoreTXSpy.storeTrigger(triggerForOther, true);
-    OperableTrigger staleTriggerForOther = (OperableTrigger) TriggerBuilder.newTrigger().forJob(job)
+    OperableTrigger staleTriggerForOther = (OperableTrigger) TriggerBuilder.newTrigger()
+        .forJob(job)
         .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionIgnoreMisfires())
-        .usingJobData(TaskScheduler.QUARTZ_NODE_ID, "other2").build();
+        .usingJobData(TaskScheduler.QUARTZ_NODE_ID, "other2")
+        .build();
     staleTriggerForOther
         .setNextFireTime(new Date(System.currentTimeMillis() - (StdJDBCDelegateUtils.ORPHANED_MILLIS + 1)));
     quartzJobStoreTXSpy.storeTrigger(staleTriggerForOther, true);
@@ -363,12 +369,14 @@ public class QuartzJobStoreTXTest
     assertThat(operableTriggers).hasSize(2);
     OperableTrigger actualTriggerForMe = operableTriggers.stream()
         .filter(operableTrigger -> operableTrigger.getKey().getName().equals(triggerForMe.getKey().getName()))
-        .findFirst().orElse(null);
+        .findFirst()
+        .orElse(null);
     assertThat(actualTriggerForMe).isNotNull();
     assertThat(actualTriggerForMe.getJobDataMap().getBoolean(QuartzTriggerListener.QUARTZ_VETO)).isFalse();
     OperableTrigger actualStaleTriggerForOther = operableTriggers.stream()
         .filter(operableTrigger -> operableTrigger.getKey().getName().equals(staleTriggerForOther.getKey().getName()))
-        .findFirst().orElse(null);
+        .findFirst()
+        .orElse(null);
     assertThat(actualStaleTriggerForOther).isNotNull();
     assertThat(actualStaleTriggerForOther.getJobDataMap().getBoolean(QuartzTriggerListener.QUARTZ_VETO)).isTrue();
   }
@@ -428,7 +436,8 @@ public class QuartzJobStoreTXTest
         "SCHED_TIME, PRIORITY, STATE, JOB_NAME, JOB_GROUP, IS_NONCONCURRENT, REQUESTS_RECOVERY) " + //
         " VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)";
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-         PreparedStatement statement = connection.prepareStatement(sQuery)) {
+        PreparedStatement statement = connection.prepareStatement(sQuery))
+    {
       statement.setString(1, taskScheduler.getScheduler().getSchedulerName());
       statement.setString(2, entryId);
       statement.setString(3, jobName);
@@ -460,7 +469,8 @@ public class QuartzJobStoreTXTest
         " (SCHED_NAME, INSTANCE_NAME, LAST_CHECKIN_TIME, CHECKIN_INTERVAL) " + //
         " VALUES (?1, ?2, ?3, ?4)";
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-         PreparedStatement statement = connection.prepareStatement(sQuery)) {
+        PreparedStatement statement = connection.prepareStatement(sQuery))
+    {
       statement.setString(1, taskScheduler.getScheduler().getSchedulerName());
       statement.setString(2, schedulerInstanceId);
       statement.setLong(3, checkinTimestamp);
@@ -472,7 +482,8 @@ public class QuartzJobStoreTXTest
   private void deleteAllSchedulerStateRecords() throws Exception {
     String sQuery = "DELETE FROM " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE";
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-         PreparedStatement statement = connection.prepareStatement(sQuery)) {
+        PreparedStatement statement = connection.prepareStatement(sQuery))
+    {
       statement.execute();
     }
   }
@@ -480,7 +491,8 @@ public class QuartzJobStoreTXTest
   private void deleteAllFiredTriggers() throws Exception {
     String sQuery = "DELETE FROM " + operationalDataStore.getDatabaseSchema() + ".QRTZ_FIRED_TRIGGERS";
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-         PreparedStatement statement = connection.prepareStatement(sQuery)) {
+        PreparedStatement statement = connection.prepareStatement(sQuery))
+    {
       statement.execute();
     }
   }
@@ -506,13 +518,15 @@ public class QuartzJobStoreTXTest
       // QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS
       long start = System.currentTimeMillis();
       while (!terminate
-          && System.currentTimeMillis() < start + QuartzJobStoreTX.FAILED_CLUSTER_CHECKIN_INTERVAL_MILLIS * 2) {
+          && System.currentTimeMillis() < start + QuartzJobStoreTX.FAILED_CLUSTER_CHECKIN_INTERVAL_MILLIS * 2)
+      {
         if (System.currentTimeMillis() >= lastCheckinTime + QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS) {
           lastCheckinTime = System.currentTimeMillis();
           String sQuery = "UPDATE " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE "
               + "SET LAST_CHECKIN_TIME = ?1 WHERE INSTANCE_NAME = ?2";
           try (Connection connection = operationalDataStore.getDataSource().getConnection();
-              PreparedStatement statement = connection.prepareStatement(sQuery)) {
+              PreparedStatement statement = connection.prepareStatement(sQuery))
+          {
             statement.setLong(1, lastCheckinTime);
             statement.setString(2, schedulerInstanceId);
             // If no records are updated, it means the scheduler state records were deleted in the after() method,

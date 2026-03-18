@@ -62,7 +62,8 @@ public class ImportSbomModal
     return $("#import-sbom-modal-info-alert");
   }
 
-  public static class ProgressBar extends BasicElement<ProgressBar>
+  public static class ProgressBar
+      extends BasicElement<ProgressBar>
   {
     public ProgressBar(String selector) {
       super(selector);

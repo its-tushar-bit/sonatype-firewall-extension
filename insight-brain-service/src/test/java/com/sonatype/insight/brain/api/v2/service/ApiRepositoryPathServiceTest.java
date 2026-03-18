@@ -60,13 +60,13 @@ public class ApiRepositoryPathServiceTest
     assertThat(dto.pathVersions.get(0).requestIndex).isEqualTo(0);
     assertThat(dto.pathVersions.get(0).repositoryComponentPaths).hasSize(2);
     assertPath(dto.pathVersions.get(0).repositoryComponentPaths.get(0), "comp1/-/comp1-1.tgz");
-    assertPath(dto.pathVersions.get(0).repositoryComponentPaths.get(1), "comp1/-/comp1-3.tgz" );
+    assertPath(dto.pathVersions.get(0).repositoryComponentPaths.get(1), "comp1/-/comp1-3.tgz");
     assertThat(dto.pathVersions.get(1).requestIndex).isEqualTo(1);
     assertThat(dto.pathVersions.get(1).repositoryComponentPaths).isEmpty();
     assertThat(dto.pathVersions.get(2).requestIndex).isEqualTo(2);
     assertThat(dto.pathVersions.get(2).repositoryComponentPaths).hasSize(2);
     assertPath(dto.pathVersions.get(2).repositoryComponentPaths.get(0), "@scope/comp3/-/comp3-1.tgz");
-    assertPath(dto.pathVersions.get(2).repositoryComponentPaths.get(1), "@scope/comp3/-/comp3-2.tgz" );
+    assertPath(dto.pathVersions.get(2).repositoryComponentPaths.get(1), "@scope/comp3/-/comp3-2.tgz");
   }
 
   @Test
@@ -118,8 +118,8 @@ public class ApiRepositoryPathServiceTest
         ComponentIdentifier.createNpmCoordinates("comp1", "1"), true);
 
     // using a maven path instead of an npm path
-    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() ->
-        apiRepositoryPathService.getQuarantinedByPathnames("repositoryManager1", repository.getPublicId(),
+    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(
+        () -> apiRepositoryPathService.getQuarantinedByPathnames("repositoryManager1", repository.getPublicId(),
             Collections.singletonList("g/a/v/a-v.jar")));
   }
 
@@ -129,8 +129,8 @@ public class ApiRepositoryPathServiceTest
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g/a/v/a-v.jar", "hash",
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), true);
 
-    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() ->
-        apiRepositoryPathService.getQuarantinedByPathnames("repositoryManager1", repository.getPublicId(),
+    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(
+        () -> apiRepositoryPathService.getQuarantinedByPathnames("repositoryManager1", repository.getPublicId(),
             Collections.singletonList("g/a/v/a-v.jar")));
   }
 

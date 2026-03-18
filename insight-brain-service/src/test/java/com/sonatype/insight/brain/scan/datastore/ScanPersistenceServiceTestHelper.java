@@ -38,7 +38,8 @@ public interface ScanPersistenceServiceTestHelper
 
   default void assertScanContents(ScanEntity entity, String expectedXml) throws IOException {
     try (var inputStream = entity.getInputStream();
-         var gzipInputStream = new java.util.zip.GZIPInputStream(inputStream)) {
+        var gzipInputStream = new java.util.zip.GZIPInputStream(inputStream))
+    {
       assertThat(inputStream).isNotNull();
       byte[] entityContents = gzipInputStream.readAllBytes();
       assertThat(new String(entityContents, StandardCharsets.UTF_8)).isEqualTo(expectedXml);

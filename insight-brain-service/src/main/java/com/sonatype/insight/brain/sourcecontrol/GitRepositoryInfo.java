@@ -15,20 +15,21 @@ public class GitRepositoryInfo
   public GitRepositoryInfo() {
   }
 
-  public GitRepositoryInfo(final String repositoryUrl,
-                           final String sshRepositoryUrl,
-                           final String username,
-                           final String token,
-                           final SourceControlProvider provider,
-                           final String baseBranch,
-                           final Boolean remediationPullRequestsEnabled,
-                           final Boolean manualPullRequestsEnabled,
-                           final Boolean innerSourceAutomatedUpdatesEnabled,
-                           final Boolean statusChecksEnabled,
-                           final Boolean pullRequestCommentingEnabled,
-                           final Boolean sourceControlEvaluationsEnabled,
-                           final Boolean sshEnabled,
-                           final String sourceControlScanTarget)
+  public GitRepositoryInfo(
+      final String repositoryUrl,
+      final String sshRepositoryUrl,
+      final String username,
+      final String token,
+      final SourceControlProvider provider,
+      final String baseBranch,
+      final Boolean remediationPullRequestsEnabled,
+      final Boolean manualPullRequestsEnabled,
+      final Boolean innerSourceAutomatedUpdatesEnabled,
+      final Boolean statusChecksEnabled,
+      final Boolean pullRequestCommentingEnabled,
+      final Boolean sourceControlEvaluationsEnabled,
+      final Boolean sshEnabled,
+      final String sourceControlScanTarget)
   {
     this(repositoryUrl, SourceControl.normalizeRepositoryUrl(repositoryUrl), sshRepositoryUrl, username, token,
         provider, baseBranch, remediationPullRequestsEnabled, manualPullRequestsEnabled,
@@ -37,23 +38,24 @@ public class GitRepositoryInfo
         null, null);
   }
 
-  public GitRepositoryInfo(final String repositoryUrl,
-                           final String normalizedRepositoryUrl,
-                           final String sshRepositoryUrl,
-                           final String username,
-                           final String token,
-                           final SourceControlProvider provider,
-                           final String baseBranch,
-                           final Boolean remediationPullRequestsEnabled,
-                           final Boolean manualPullRequestsEnabled,
-                           final Boolean innerSourceAutomatedUpdatesEnabled,
-                           final Boolean statusChecksEnabled,
-                           final Boolean pullRequestCommentingEnabled,
-                           final Boolean sourceControlEvaluationsEnabled,
-                           final Boolean sshEnabled,
-                           final String sourceControlScanTarget,
-                           final SourceControl.AuthenticationType authenticationType,
-                           final String authOwnerId)
+  public GitRepositoryInfo(
+      final String repositoryUrl,
+      final String normalizedRepositoryUrl,
+      final String sshRepositoryUrl,
+      final String username,
+      final String token,
+      final SourceControlProvider provider,
+      final String baseBranch,
+      final Boolean remediationPullRequestsEnabled,
+      final Boolean manualPullRequestsEnabled,
+      final Boolean innerSourceAutomatedUpdatesEnabled,
+      final Boolean statusChecksEnabled,
+      final Boolean pullRequestCommentingEnabled,
+      final Boolean sourceControlEvaluationsEnabled,
+      final Boolean sshEnabled,
+      final String sourceControlScanTarget,
+      final SourceControl.AuthenticationType authenticationType,
+      final String authOwnerId)
   {
     this.repositoryUrl = repositoryUrl;
     this.normalizedRepositoryUrl = normalizedRepositoryUrl;

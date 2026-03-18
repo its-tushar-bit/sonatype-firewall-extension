@@ -51,11 +51,11 @@ public class CertificateFactory
    *
    * @param keyPair - the {@link KeyPair} to use for signing the certificate
    * @return an array of X.509 certificates
-   * @throws CertificateException      - if an error occurs while creating the certificate
+   * @throws CertificateException - if an error occurs while creating the certificate
    * @throws OperatorCreationException - if an error occurs while creating the content signer
    */
-  public static X509Certificate[] createCertificate(final KeyPair keyPair)
-      throws CertificateException, OperatorCreationException
+  public static X509Certificate[] createCertificate(
+      final KeyPair keyPair) throws CertificateException, OperatorCreationException
   {
     if (FIPSModeDetector.isEnabled()) {
       return createBcFipsCertificate(keyPair);
@@ -69,11 +69,11 @@ public class CertificateFactory
    *
    * @param keyPair - the {@link KeyPair} to use for signing the certificate
    * @return an array of X.509 certificates
-   * @throws CertificateException      - if an error occurs while creating the certificate
+   * @throws CertificateException - if an error occurs while creating the certificate
    * @throws OperatorCreationException - if an error occurs while creating the content signer
    */
-  public static X509Certificate[] createBcFipsCertificate(final KeyPair keyPair)
-      throws OperatorCreationException, CertificateException
+  public static X509Certificate[] createBcFipsCertificate(
+      final KeyPair keyPair) throws OperatorCreationException, CertificateException
   {
     X500Name issuerAndSubject = new X500Name(getFipsCertificateCNX500NameOrDefault());
 
@@ -83,8 +83,7 @@ public class CertificateFactory
         new Date(),
         dateXYearsFromNow(getFipsCertificateSignatureValidityYearsOrDefault()),
         issuerAndSubject,
-        SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded())
-    );
+        SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
 
     ContentSigner contentSigner = new JcaContentSignerBuilder(getFipsCertificateSignerAlgorithmOrDefault())
         .setProvider(getFipsCertificateSignerProviderOrDefault())
@@ -104,11 +103,11 @@ public class CertificateFactory
    *
    * @param keyPair - the {@link KeyPair} to use for signing the certificate
    * @return an array of X.509 certificates
-   * @throws CertificateException      - if an error occurs while creating the certificate
+   * @throws CertificateException - if an error occurs while creating the certificate
    * @throws OperatorCreationException - if an error occurs while creating the content signer
    */
-  public static X509Certificate[] createX509Certificate(final KeyPair keyPair)
-      throws OperatorCreationException, CertificateException
+  public static X509Certificate[] createX509Certificate(
+      final KeyPair keyPair) throws OperatorCreationException, CertificateException
   {
     X500Name issuerAndSubject = new X500Name(CN_X500_NAME);
 
@@ -118,8 +117,7 @@ public class CertificateFactory
         new Date(),
         getDateOfCertificateExpiry(),
         issuerAndSubject,
-        SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded())
-    );
+        SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
 
     ContentSigner contentSigner = new JcaContentSignerBuilder(getSignatureAlgorithm()).build(keyPair.getPrivate());
     X509CertificateHolder certificateHolder = certificateBuilder.build(contentSigner);

@@ -25,9 +25,9 @@ import org.opensearch.client.transport.httpclient5.ApacheHttpClient5TransportBui
  * <p>
  * <b>When to use this utility:</b>
  * <ul>
- *   <li>Tests that use OpenSearch testcontainers (@ClassRule with OpensearchContainer)</li>
- *   <li>Tests that need to close transports for cleanup</li>
- *   <li>Tests that should not share connection state with other tests</li>
+ * <li>Tests that use OpenSearch testcontainers (@ClassRule with OpensearchContainer)</li>
+ * <li>Tests that need to close transports for cleanup</li>
+ * <li>Tests that should not share connection state with other tests</li>
  * </ul>
  * <p>
  * <b>Note:</b> This is a test-only utility and should not be used in production code.

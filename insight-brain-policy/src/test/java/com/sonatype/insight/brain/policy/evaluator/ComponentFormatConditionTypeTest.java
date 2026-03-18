@@ -61,8 +61,15 @@ public class ComponentFormatConditionTypeTest
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, ComponentFormatConditionType.ID,
         policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Component format is 'maven'");
   }
 
@@ -93,8 +100,15 @@ public class ComponentFormatConditionTypeTest
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, ComponentFormatConditionType.ID,
         policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Component format is 'npm', not 'maven'");
   }
 
@@ -115,14 +129,14 @@ public class ComponentFormatConditionTypeTest
     Condition conditionIs = new Condition(ComponentFormatConditionType.ID, "is", "noSuchFormat");
     assertThatThrownBy(
         () -> new ComponentFormatConditionType().validateCondition(null /* tx */, conditionIs, null /* ownerId */))
-        .isInstanceOf(InvalidConditionException.class)
-        .hasMessageEndingWith("Unsupported component format: 'noSuchFormat'");
+            .isInstanceOf(InvalidConditionException.class)
+            .hasMessageEndingWith("Unsupported component format: 'noSuchFormat'");
 
     Condition conditionIsNot = new Condition(ComponentFormatConditionType.ID, "is not", "noSuchFormat");
     assertThatThrownBy(
         () -> new ComponentFormatConditionType().validateCondition(null /* tx */, conditionIsNot, null /* ownerId */))
-        .isInstanceOf(InvalidConditionException.class)
-        .hasMessageEndingWith("Unsupported component format: 'noSuchFormat'");
+            .isInstanceOf(InvalidConditionException.class)
+            .hasMessageEndingWith("Unsupported component format: 'noSuchFormat'");
   }
 
   @Test
@@ -130,7 +144,8 @@ public class ComponentFormatConditionTypeTest
     Condition condition = new Condition(ComponentFormatConditionType.ID, "is", null /* value */);
     assertThatThrownBy(
         () -> new ComponentFormatConditionType().validateCondition(null /* tx */, condition, null /* ownerId */))
-        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Component format is required");
+            .isInstanceOf(InvalidConditionException.class)
+            .hasMessageEndingWith("Component format is required");
   }
 
   @Test
@@ -138,7 +153,8 @@ public class ComponentFormatConditionTypeTest
     Condition condition = new Condition(ComponentFormatConditionType.ID, "is", "" /* value */);
     assertThatThrownBy(
         () -> new ComponentFormatConditionType().validateCondition(null /* tx */, condition, null /* ownerId */))
-        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Component format is required");
+            .isInstanceOf(InvalidConditionException.class)
+            .hasMessageEndingWith("Component format is required");
   }
 
   @Test
@@ -146,7 +162,7 @@ public class ComponentFormatConditionTypeTest
     Condition condition = new Condition(ComponentFormatConditionType.ID, "is", " " /* value */);
     assertThatThrownBy(() -> new ComponentFormatConditionType().validateCondition(null /* tx */, condition,
         null /* ownerId */)).isInstanceOf(InvalidConditionException.class)
-        .hasMessageEndingWith("Component format is required");
+            .hasMessageEndingWith("Component format is required");
   }
 
   @Test
@@ -196,8 +212,15 @@ public class ComponentFormatConditionTypeTest
     assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, ComponentFormatConditionType.ID,
         policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Component format is 'maven'");
   }
 }

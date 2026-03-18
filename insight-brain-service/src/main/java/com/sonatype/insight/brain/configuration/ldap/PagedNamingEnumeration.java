@@ -44,8 +44,12 @@ class PagedNamingEnumeration
 
   private byte[] cookie;
 
-  public PagedNamingEnumeration(LdapContext ctx, String name, String filter, SearchControls controls, int pageSize)
-      throws NamingException
+  public PagedNamingEnumeration(
+      LdapContext ctx,
+      String name,
+      String filter,
+      SearchControls controls,
+      int pageSize) throws NamingException
   {
     this.ctx = ctx;
     this.name = name;
@@ -81,7 +85,7 @@ class PagedNamingEnumeration
     catch (IOException e) {
       throw (NamingException) new NamingException("Failed to create request controls for paged search").initCause(e);
     }
-    return new Control[] { control };
+    return new Control[]{control};
   }
 
   private void executeSearchForNextPage() throws NamingException {

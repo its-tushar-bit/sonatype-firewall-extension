@@ -290,7 +290,8 @@ public class SystemInfoTest
     entryApplicationConnectors = (Map<String, Object>) ((ArrayList<Object>) entryServer
         .get("applicationConnectors")).get(1);
     assertThat(entryApplicationConnectors).containsEntry("keyStorePassword", SystemInfo.MASK)
-        .containsEntry("trustStorePassword", SystemInfo.MASK).containsEntry("keyManagerPassword", SystemInfo.MASK);
+        .containsEntry("trustStorePassword", SystemInfo.MASK)
+        .containsEntry("keyManagerPassword", SystemInfo.MASK);
 
     final Map<String, Object> entryHttpRequest = (Map<String, Object>) entryServer.get("requestLog");
     final ArrayList<Object> entryHttpRequestAppenders = (ArrayList<Object>) entryHttpRequest.get("appenders");
@@ -299,7 +300,8 @@ public class SystemInfoTest
 
     assertThat(entryFileHttpRequestAppender).containsEntry("type", "file")
         .containsEntry("currentLogFilename", "./log/request.log")
-        .containsEntry("archivedLogFilenamePattern", "./log/request-%d.log.gz").containsEntry("archivedFileCount", 50)
+        .containsEntry("archivedLogFilenamePattern", "./log/request-%d.log.gz")
+        .containsEntry("archivedFileCount", 50)
         .hasSize(4);
 
     // validate obfuscation
@@ -426,7 +428,8 @@ public class SystemInfoTest
     final SortedMap<String, Object> entries = entry.getValue();
     assertThat(entries).isNotEmpty();
 
-    @SuppressWarnings("unchecked") final Map<String, Object> fileStoresEntry = (Map<String, Object>) entries
+    @SuppressWarnings("unchecked")
+    final Map<String, Object> fileStoresEntry = (Map<String, Object>) entries
         .get(entries.firstKey());
     assertThat(fileStoresEntry.get("description")).isNotNull();
     assertThat(fileStoresEntry.get("type")).isNotNull();
@@ -532,8 +535,9 @@ public class SystemInfoTest
   @Test
   public void testGetSystemInfo() {
     final List<Entry<String, SortedMap<String, Object>>> list = systemInfo.getSystemInfo(null);
-    assertThat(list).extracting(Entry::getKey).containsExactly("system-time", "install-info", "system-properties",
-        "system-environment", "system-runtime", "system-network", "system-filestores", "client-info");
+    assertThat(list).extracting(Entry::getKey)
+        .containsExactly("system-time", "install-info", "system-properties",
+            "system-environment", "system-runtime", "system-network", "system-filestores", "client-info");
   }
 
   @Test
@@ -603,8 +607,7 @@ public class SystemInfoTest
     List<String> licensingModels = Arrays.asList(
         ProductLicenseDetails.LICENSING_SBOM_BASED,
         ProductLicenseDetails.LICENSING_APP_BASED,
-        ProductLicenseDetails.LICENSING_USER_BASED
-    );
+        ProductLicenseDetails.LICENSING_USER_BASED);
 
     String licensingModelsString = String.join(",", licensingModels);
     licenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL, licensingModelsString);

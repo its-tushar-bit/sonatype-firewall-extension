@@ -32,8 +32,7 @@ public class SupportZipLicenseInfo
       Set<String> features,
       Set<String> stageIds,
       Set<String> licensingModels,
-      Integer applicationCountLimit
-  )
+      Integer applicationCountLimit)
   {
     this.licenseInfo = licenseInfo;
     this.features = features;

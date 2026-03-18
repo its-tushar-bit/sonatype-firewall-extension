@@ -23,7 +23,7 @@ public class PerpetualLockDAO
 {
   private static final String RESERVE_QUERY =
       "UPDATE PerpetualLock entity SET entity.owner = ?2, entity.expirationTime = ?3 " +
-      " WHERE entity.id = ?1 AND (entity.owner = ?2 OR entity.owner IS NULL OR entity.expirationTime < ?4)";
+          " WHERE entity.id = ?1 AND (entity.owner = ?2 OR entity.owner IS NULL OR entity.expirationTime < ?4)";
 
   @Inject
   public PerpetualLockDAO(OperationalDataStore operationalDataStore) {
@@ -44,7 +44,8 @@ public class PerpetualLockDAO
         "SELECT entity FROM PerpetualLock entity " +
             "WHERE entity.category = ?1 " +
             "  AND entity.expirationTime > ?2 " +
-            "ORDER BY entity.expirationTime ASC", category, currentTime);
+            "ORDER BY entity.expirationTime ASC",
+        category, currentTime);
 
     return sQuery.getList();
   }
@@ -59,7 +60,7 @@ public class PerpetualLockDAO
   public PerpetualLock getPerpetualLockByIdForUpdate(TransactionContext txn, String perpetualLockId) {
     Query<PerpetualLock> sQuery = createQuery(
         "SELECT entity FROM PerpetualLock entity WHERE entity.id = ?1", perpetualLockId)
-        .setLockModeType(LockModeType.PESSIMISTIC_WRITE);
+            .setLockModeType(LockModeType.PESSIMISTIC_WRITE);
 
     return sQuery.get(txn);
   }
@@ -76,7 +77,7 @@ public class PerpetualLockDAO
    * Only the current owner of the lock can proactively release the lock
    *
    * @param perpetualLockId ID of perpetual lock to release
-   * @param owner           current owner of the lock (only the current owner would/should know this)
+   * @param owner current owner of the lock (only the current owner would/should know this)
    */
   public void releasePerpetualLockForOwner(String perpetualLockId, String owner) {
     final String sQuery = "UPDATE PerpetualLock entity SET entity.owner = null, entity.expirationTime = null" +

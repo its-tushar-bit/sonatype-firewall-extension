@@ -59,13 +59,11 @@ public class S3ApplicationReportPersistenceServiceTestHelper
             expectedEffectivePrefix.get(),
             APPLICATION_ID,
             SCAN_ID,
-            name
-        );
+            name);
 
         s3Client.putObject(
             PutObjectRequest.builder().bucket(getBucketName()).key(key).build(),
-            file
-        );
+            file);
       });
     }
   }
@@ -75,13 +73,11 @@ public class S3ApplicationReportPersistenceServiceTestHelper
     String key = "%sreport/%s/%s/report.files/index.html".formatted(
         expectedEffectivePrefix.get(),
         APPLICATION_ID,
-        scanId
-    );
+        scanId);
 
     s3Client.putObject(
         PutObjectRequest.builder().bucket(getBucketName()).key(key).build(),
-        RequestBody.fromString("<html></html>")
-    );
+        RequestBody.fromString("<html></html>"));
   }
 
   @Override
@@ -147,8 +143,7 @@ public class S3ApplicationReportPersistenceServiceTestHelper
     String key = "report/%s/%s/report.zip".formatted(applicationId, scanId);
     s3Client.putObject(
         PutObjectRequest.builder().bucket(getBucketName()).key(expectedEffectivePrefix.get() + key).build(),
-        RequestBody.fromBytes(zipContent)
-    );
+        RequestBody.fromBytes(zipContent));
   }
 
   public boolean zipFileExists(String applicationId, String scanId) {
@@ -172,8 +167,8 @@ public class S3ApplicationReportPersistenceServiceTestHelper
           GetObjectRequest.builder()
               .bucket(getBucketName())
               .key(expectedEffectivePrefix.get() + key)
-              .build()
-      ).asByteArray();
+              .build())
+          .asByteArray();
 
       return new String(responseContents, StandardCharsets.UTF_8);
     }
@@ -185,7 +180,6 @@ public class S3ApplicationReportPersistenceServiceTestHelper
   private void writeKey(String key, String content) {
     s3Client.putObject(
         PutObjectRequest.builder().bucket(getBucketName()).key(expectedEffectivePrefix.get() + key).build(),
-        RequestBody.fromString(content)
-    );
+        RequestBody.fromString(content));
   }
 }

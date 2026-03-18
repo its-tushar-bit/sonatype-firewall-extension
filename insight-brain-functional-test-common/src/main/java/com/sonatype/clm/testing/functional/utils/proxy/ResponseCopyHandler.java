@@ -50,9 +50,7 @@ public class ResponseCopyHandler
   }
 
   @Override
-  public void handle(HttpServletRequest request, HttpServletResponse response)
-      throws IOException
-  {
+  public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
     HttpServletResponseCopier copier = new HttpServletResponseCopier(response);
     reverseProxy.handle(new JakartaToJavaxBridge.RequestAdapter(request),
         new JakartaToJavaxBridge.ResponseAdapter(copier));

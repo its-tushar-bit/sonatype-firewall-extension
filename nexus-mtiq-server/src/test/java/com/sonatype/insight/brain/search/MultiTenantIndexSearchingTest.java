@@ -116,8 +116,9 @@ public class MultiTenantIndexSearchingTest
   private List<SearchResultItemDTO> search(String query, boolean allComponents) {
     return getCLMServer().getInstance(SearchService.class)
         .searchIndex(query, Integer.MAX_VALUE, 1, allComponents, null, null).groupingByDTOS
-        .stream()
-        .map(groupDTO -> groupDTO.searchResultItemDTOS).flatMap(List::stream)
-        .toList();
+            .stream()
+            .map(groupDTO -> groupDTO.searchResultItemDTOS)
+            .flatMap(List::stream)
+            .toList();
   }
 }

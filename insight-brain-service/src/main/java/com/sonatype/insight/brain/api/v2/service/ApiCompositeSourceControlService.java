@@ -107,10 +107,11 @@ public class ApiCompositeSourceControlService
 
   /**
    * Retrieves the composite source control, given an owner (org or app)
+   *
    * @param ownerType type of owner (org or app)
    * @param ownerId internal ID of the owner
    * @param obscureToken true if the token should be obscured, ie: if it is returned to the frontend
-   *                     or anywhere outside of IQ
+   *          or anywhere outside of IQ
    * @return the populated DTO
    */
   @Authorize(permission = Permission.READ)
@@ -134,8 +135,7 @@ public class ApiCompositeSourceControlService
         ownerType,
         ownerId,
         hierarchy.subList(1, hierarchy.size()),
-        obscureToken
-    );
+        obscureToken);
   }
 
   private ApiCompositeSourceControlDTO getCompositeSourceControlFromHierarchyIds(
@@ -196,7 +196,7 @@ public class ApiCompositeSourceControlService
       final OwnerType ownerType)
   {
 
-    //If parent and grandParent are set, this means it is an application.
+    // If parent and grandParent are set, this means it is an application.
     if (ownerType.equals(OwnerType.APPLICATION)) {
       dto.repositoryUrl = sourceControl.getRepositoryUrl();
     }
@@ -205,125 +205,108 @@ public class ApiCompositeSourceControlService
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        sc -> sc.getProvider() == null ? null : sc.getProvider().toString()
-    );
+        sc -> sc.getProvider() == null ? null : sc.getProvider().toString());
 
     dto.username = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        SourceControl::getUsername
-    );
+        SourceControl::getUsername);
 
     dto.token = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        SourceControl::getToken
-    );
+        SourceControl::getToken);
 
     dto.baseBranch = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        SourceControl::getBaseBranch
-    );
+        SourceControl::getBaseBranch);
 
     dto.remediationPullRequestsEnabled = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        SourceControl::getRemediationPullRequestsEnabled
-    );
+        SourceControl::getRemediationPullRequestsEnabled);
 
     dto.statusChecksEnabled = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        SourceControl::getStatusChecksEnabled
-    );
+        SourceControl::getStatusChecksEnabled);
 
     dto.pullRequestCommentingEnabled = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        SourceControl::getPullRequestCommentingEnabled
-    );
+        SourceControl::getPullRequestCommentingEnabled);
 
     dto.sourceControlEvaluationsEnabled = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        SourceControl::getSourceControlEvaluationsEnabled
-    );
+        SourceControl::getSourceControlEvaluationsEnabled);
 
     dto.sourceControlScanTarget = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        SourceControl::getSourceControlScanTarget
-    );
+        SourceControl::getSourceControlScanTarget);
 
     dto.sshEnabled = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        SourceControl::getSshEnabled
-    );
+        SourceControl::getSshEnabled);
 
     dto.commitStatusEnabled = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        SourceControl::getCommitStatusEnabled
-    );
+        SourceControl::getCommitStatusEnabled);
 
     dto.manualPullRequestsEnabled = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        SourceControl::getManualPullRequestsEnabled
-    );
+        SourceControl::getManualPullRequestsEnabled);
 
     dto.innerSourceAutomatedUpdatesEnabled = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        SourceControl::getInnerSourceAutomatedUpdatesEnabled
-    );
+        SourceControl::getInnerSourceAutomatedUpdatesEnabled);
 
     dto.closePrOnFailedChecksEnabled = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        SourceControl::getClosePrOnFailedChecksEnabled
-    );
+        SourceControl::getClosePrOnFailedChecksEnabled);
 
     dto.closePrAfterDaysOpenEnabled = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        SourceControl::getClosePrAfterDaysOpenEnabled
-    );
+        SourceControl::getClosePrAfterDaysOpenEnabled);
 
     dto.closePrAfterDays = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        SourceControl::getClosePrAfterDays
-    );
+        SourceControl::getClosePrAfterDays);
 
     dto.authenticationType = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,
         ancestorsSourceControl,
-        sc -> sc.getAuthenticationType() == null ? null : sc.getAuthenticationType().name()
-    );
+        sc -> sc.getAuthenticationType() == null ? null : sc.getAuthenticationType().name());
 
     dto.githubApp = collateGitHubAppCompositeDTO(
-      dto.ownerId,
-      ancestorsNameHierarchy,
-      ancestorsGitHubApp);
+        dto.ownerId,
+        ancestorsNameHierarchy,
+        ancestorsGitHubApp);
   }
 
   private ApiCompositeValueDTO<ApiCompositeSourceControlDTO.GitHubAppInfo> collateGitHubAppCompositeDTO(
@@ -388,9 +371,9 @@ public class ApiCompositeSourceControlService
   }
 
   private void setTokenValueForReturn(final SourceControl sourceControl, boolean obscureToken) {
-    sourceControl.setToken(Strings.isNullOrEmpty(sourceControl.getToken()) ?
-        null :
-        obscureToken ? FAKE_SECRET_KEY : decrypt(sourceControl.getToken()));
+    sourceControl.setToken(Strings.isNullOrEmpty(sourceControl.getToken())
+        ? null
+        : obscureToken ? FAKE_SECRET_KEY : decrypt(sourceControl.getToken()));
   }
 
   private String decrypt(String value) {

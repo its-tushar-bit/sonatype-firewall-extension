@@ -35,7 +35,8 @@ public class PolicyWaiverRequestMatcherWrapper
 
   public boolean matchesComponent(ComponentFact componentFact) {
     ComponentMatcherStrategyForWaiver componentMatcherStrategy =
-        policyWaiverRequest.getComponentMatchStrategy() == null ? ComponentMatcherStrategyForWaiver.DEFAULT
+        policyWaiverRequest.getComponentMatchStrategy() == null
+            ? ComponentMatcherStrategyForWaiver.DEFAULT
             : policyWaiverRequest.getComponentMatchStrategy();
 
     switch (componentMatcherStrategy) {
@@ -80,7 +81,8 @@ public class PolicyWaiverRequestMatcherWrapper
     ComponentIdentifier componentFactComponentIdentifier = componentFact.getComponentIdentifier();
 
     if (policyWaiverRequestComponentIdentifier == null || componentFactComponentIdentifier == null
-        || isDifferentFormat(componentFactComponentIdentifier, policyWaiverRequestComponentIdentifier)) {
+        || isDifferentFormat(componentFactComponentIdentifier, policyWaiverRequestComponentIdentifier))
+    {
       return false;
     }
 
@@ -121,7 +123,8 @@ public class PolicyWaiverRequestMatcherWrapper
 
   private boolean matchesAllVersionsOfComponent(ComponentFact componentFact) {
     if (policyWaiverRequest.getComponentIdentifier() == null || componentFact.getComponentIdentifier() == null
-        || isDifferentFormat(componentFact.getComponentIdentifier(), policyWaiverRequest.getComponentIdentifier())) {
+        || isDifferentFormat(componentFact.getComponentIdentifier(), policyWaiverRequest.getComponentIdentifier()))
+    {
       return false;
     }
 
@@ -160,7 +163,9 @@ public class PolicyWaiverRequestMatcherWrapper
       ComponentIdentifier waiverRequestIdentifier,
       ComponentIdentifier componentIdentifier)
   {
-    return componentIdentifier.getCoordinates().entrySet().stream()
+    return componentIdentifier.getCoordinates()
+        .entrySet()
+        .stream()
         .allMatch(compCoord -> compCoord.getValue().equals(waiverRequestIdentifier.get(compCoord.getKey())));
   }
 

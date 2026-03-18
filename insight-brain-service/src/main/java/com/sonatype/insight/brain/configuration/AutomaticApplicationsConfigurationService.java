@@ -74,7 +74,8 @@ public class AutomaticApplicationsConfigurationService
 
   private void auditAutomaticApplicationConfiguration(AutomaticApplicationsConfiguration configuration) {
     if (configuration.isEnabled()) {
-      AuditData.get().setData("automaticApplicationCreation", "enabled")
+      AuditData.get()
+          .setData("automaticApplicationCreation", "enabled")
           .setParentOrganization(organizationDAO.getByIdNotNull(configuration.getParentOrganizationId()));
     }
     else {

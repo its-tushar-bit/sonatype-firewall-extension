@@ -21,19 +21,16 @@ public class IgnoreXmlListOrderMatcher
         .whenElementIsNamed("externalRefs")
         .thenUse(ElementSelectors.and(
             ElementSelectors.byName,
-            ElementSelectors.byXPath("./referenceLocator", ElementSelectors.byNameAndText)
-        ))
+            ElementSelectors.byXPath("./referenceLocator", ElementSelectors.byNameAndText)))
         // relationships: match by the tuple (spdxElementId, relationshipType, relatedSpdxElement)
         .whenElementIsNamed("relationships")
         .thenUse(ElementSelectors.and(
             ElementSelectors.byName,
             ElementSelectors.byXPath("./spdxElementId", ElementSelectors.byNameAndText),
             ElementSelectors.byXPath("./relationshipType", ElementSelectors.byNameAndText),
-            ElementSelectors.byXPath("./relatedSpdxElement", ElementSelectors.byNameAndText)
-        ))
+            ElementSelectors.byXPath("./relatedSpdxElement", ElementSelectors.byNameAndText)))
         // default: name-based matching
         .elseUse(ElementSelectors.byName)
-        .build()
-    );
+        .build());
   }
 }

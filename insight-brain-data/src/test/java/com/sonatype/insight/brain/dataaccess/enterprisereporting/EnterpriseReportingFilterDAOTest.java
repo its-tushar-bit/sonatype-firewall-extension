@@ -18,7 +18,8 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class EnterpriseReportingFilterDAOTest extends AbstractDbDAOTest
+public class EnterpriseReportingFilterDAOTest
+    extends AbstractDbDAOTest
 {
   private EnterpriseReportingFilterDAO filterDao;
 
@@ -33,7 +34,7 @@ public class EnterpriseReportingFilterDAOTest extends AbstractDbDAOTest
   public void testCRUD() {
     User user = tempEntity.newUser();
     final var userId = user.getId();
-  
+
     // Add filter
     var expectedFilter = createFilter(userId, "Filter A", "{\"k\":\"v\"}");
     filterDao.insert(expectedFilter);
@@ -112,7 +113,7 @@ public class EnterpriseReportingFilterDAOTest extends AbstractDbDAOTest
   public void testGetFilterByUserIdAndName_notFoundReturnsNull() {
     User user = tempEntity.newUser();
     final var userId = user.getId();
-  
+
     // No filters created for this user with name "absent"
     assertThat(filterDao.getFilterByUserIdAndName(userId, "absent")).isNull();
   }
@@ -121,9 +122,9 @@ public class EnterpriseReportingFilterDAOTest extends AbstractDbDAOTest
   public void testGetFilterByUserIdAndName_noNameThrowsError() {
     User user = tempEntity.newUser();
     final var userId = user.getId();
-  
+
     assertThatExceptionOfType(InvalidNameException.class)
-      .isThrownBy(() -> filterDao.getFilterByUserIdAndName(userId, null))
+        .isThrownBy(() -> filterDao.getFilterByUserIdAndName(userId, null))
         .withMessageContaining("Filter name is required");
   }
 
@@ -165,4 +166,3 @@ public class EnterpriseReportingFilterDAOTest extends AbstractDbDAOTest
     assertThat(persisted.getFilter()).isEqualTo(expected.getFilter());
   }
 }
-

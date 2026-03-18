@@ -130,7 +130,8 @@ public class OAuth2SsoUserProvider
       List<OAuth2UserGroup> oAuth2UserGroups = oAuth2UserGroupDAO.getByOAuth2GroupId(tx, oAuth2Group.getId());
 
       List<OAuth2User> users = oAuth2UserDAO.getByIds(tx,
-          oAuth2UserGroups.stream().map(OAuth2UserGroup::getOAuth2UserId)
+          oAuth2UserGroups.stream()
+              .map(OAuth2UserGroup::getOAuth2UserId)
               .collect(Collectors.toCollection(LinkedHashSet::new)));
 
       return users.stream().map(SsoUser::fromOAuth2User).collect(Collectors.toList());
@@ -139,8 +140,11 @@ public class OAuth2SsoUserProvider
 
   @Override
   public Set<String> filterExistingSsoGroupNames(Set<String> groupNames) {
-    return oAuth2GroupDAO.getByNames(groupNames).stream().map(OAuth2Group::getName).collect(Collectors.toCollection(
-        LinkedHashSet::new));
+    return oAuth2GroupDAO.getByNames(groupNames)
+        .stream()
+        .map(OAuth2Group::getName)
+        .collect(Collectors.toCollection(
+            LinkedHashSet::new));
   }
 
   @Override

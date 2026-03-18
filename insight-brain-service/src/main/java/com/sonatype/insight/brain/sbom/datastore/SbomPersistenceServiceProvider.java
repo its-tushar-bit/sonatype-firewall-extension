@@ -23,7 +23,7 @@ public class SbomPersistenceServiceProvider
     implements Provider<SbomPersistenceService>
 {
   private static final Logger log = LoggerFactory.getLogger(SbomPersistenceServiceProvider.class);
-  
+
   private final InsightConfig insightConfig;
 
   private final Provider<S3SbomPersistenceService> s3SbomPersistenceServiceProvider;

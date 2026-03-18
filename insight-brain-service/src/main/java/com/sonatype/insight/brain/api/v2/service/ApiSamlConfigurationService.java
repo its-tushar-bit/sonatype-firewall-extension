@@ -279,8 +279,11 @@ public class ApiSamlConfigurationService
   }
 
   private String defaultEntityId() {
-    return UriBuilder.fromUri(this.baseUrl.get()).path(PublicApiPaths.SAML_CONFIG_RESOURCE_PATH_V2).path("metadata")
-        .build().toString();
+    return UriBuilder.fromUri(this.baseUrl.get())
+        .path(PublicApiPaths.SAML_CONFIG_RESOURCE_PATH_V2)
+        .path("metadata")
+        .build()
+        .toString();
   }
 
   private void audit(SamlConfiguration samlConfiguration) {

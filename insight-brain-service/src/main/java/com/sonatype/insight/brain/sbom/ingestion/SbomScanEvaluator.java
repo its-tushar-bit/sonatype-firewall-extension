@@ -89,8 +89,7 @@ public class SbomScanEvaluator
         ScannerDriver.SBOM_API.getValue(),
         clientUserAgent,
         null,
-        new ScanContext.Builder().applicationVersion(sbomMetadata.getSbomVersion()).isValid(true).build()
-    );
+        new ScanContext.Builder().applicationVersion(sbomMetadata.getSbomVersion()).isValid(true).build());
 
     return scanTicketDTO;
   }
@@ -113,8 +112,7 @@ public class SbomScanEvaluator
           thirdPartyPersistenceService.getSbomContentsInputStream(sbomMetadata),
           sbomFormat,
           contentType,
-          ScannerDriver.SBOM_API
-      );
+          ScannerDriver.SBOM_API);
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);
@@ -136,8 +134,7 @@ public class SbomScanEvaluator
             .applicationVersion(sbomMetadata.getSbomVersion())
             .sbomMetadataId(sbomMetadata.getId())
             .isValid(sbomMetadata.getIsValid())
-            .build()
-    );
+            .build());
     return importTicket;
   }
 

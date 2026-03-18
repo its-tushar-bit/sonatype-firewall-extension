@@ -172,10 +172,11 @@ public class RepositoryPolicyViolationLoggerTest
     return PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(logOutput, expected);
   }
 
-  private void assertPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
-                                         PolicyViolationLogEvent policyViolationLogEvent,
-                                         RepositoryPolicyViolation policyViolation,
-                                         String userName) throws Exception
+  private void assertPolicyViolationData(
+      PolicyViolationLogDTO policyViolationLogDTO,
+      PolicyViolationLogEvent policyViolationLogEvent,
+      RepositoryPolicyViolation policyViolation,
+      String userName) throws Exception
   {
     policyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent,
         repository, evaluationTime, evaluationTime, policyViolation, userName);

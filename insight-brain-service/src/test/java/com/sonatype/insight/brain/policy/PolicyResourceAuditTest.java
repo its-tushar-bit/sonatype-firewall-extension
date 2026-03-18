@@ -97,7 +97,8 @@ public class PolicyResourceAuditTest
     policyExportResult.licenseThreatGroups = Collections.singletonList(licenseThreatGroup());
     policyExportResult.tags = Arrays.asList(tag(), tag(), tag(), tag());
 
-    policyResourceRequest(organization).path("import").part("file", "file", policyExportResult)
+    policyResourceRequest(organization).path("import")
+        .part("file", "file", policyExportResult)
         .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, null);
@@ -110,8 +111,10 @@ public class PolicyResourceAuditTest
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.policies = Collections.singletonList(policy());
 
-    policyResourceRequest(organization).with(unauthorizedUser()).path("import")
-        .part("file", "file", policyExportResult).post();
+    policyResourceRequest(organization).with(unauthorizedUser())
+        .path("import")
+        .part("file", "file", policyExportResult)
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "unauthorized");
     assertOrganizationData(auditDTO, organization);
@@ -370,8 +373,10 @@ public class PolicyResourceAuditTest
     Policy policy = aComplexPolicy();
 
     HttpResponse response =
-        restRequest().path(PolicyResource.RESOURCE_PATH).parameter(repository.getType(), repository.getId())
-            .body(policy).post();
+        restRequest().path(PolicyResource.RESOURCE_PATH)
+            .parameter(repository.getType(), repository.getId())
+            .body(policy)
+            .post();
     assertResponseStatus(200, response);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, null);
@@ -452,7 +457,9 @@ public class PolicyResourceAuditTest
     Policy policy = aComplexPolicy();
     policy.setId(existingPolicyId);
 
-    restRequest().path(PolicyResource.RESOURCE_PATH).parameter(repository.getType(), repository.getId()).body(policy)
+    restRequest().path(PolicyResource.RESOURCE_PATH)
+        .parameter(repository.getType(), repository.getId())
+        .body(policy)
         .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, null);
@@ -559,8 +566,11 @@ public class PolicyResourceAuditTest
     Policy policy = aComplexPolicy();
     policy.setId(existingPolicy.getId());
 
-    restRequest().path(PolicyResource.RESOURCE_PATH).path(NOTIFICATIONS_PATH)
-        .parameter(repository.getType(), repository.getId()).body(policy).put();
+    restRequest().path(PolicyResource.RESOURCE_PATH)
+        .path(NOTIFICATIONS_PATH)
+        .parameter(repository.getType(), repository.getId())
+        .body(policy)
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, null);
     assertCustomData(auditDTO, "repositoryId", repository.getId());
@@ -579,7 +589,9 @@ public class PolicyResourceAuditTest
     Policy policy = aComplexPolicy();
     policy.setId(existingPolicyId);
 
-    policyResourceRequest(organization).path(PolicyResource.NOTIFICATIONS_PATH).with(unauthorizedUser()).body(policy)
+    policyResourceRequest(organization).path(PolicyResource.NOTIFICATIONS_PATH)
+        .with(unauthorizedUser())
+        .body(policy)
         .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, "unauthorized");
@@ -648,8 +660,10 @@ public class PolicyResourceAuditTest
     policy.setOwnerId(repository.getId());
     tempEntity.newPolicy(policy);
 
-    restRequest().path(PolicyResource.RESOURCE_PATH).parameter(repository.getType(), repository.getId())
-        .path(policy.getId()).delete();
+    restRequest().path(PolicyResource.RESOURCE_PATH)
+        .parameter(repository.getType(), repository.getId())
+        .path(policy.getId())
+        .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_POLICY, null);
     assertCustomData(auditDTO, "repositoryId", repository.getId());
@@ -677,7 +691,8 @@ public class PolicyResourceAuditTest
     actionsOverride.put("stage-release", "fail");
     actionsOverride.put("release", "fail");
     actionsOverride.put("build", "warn");
-    policyResourceRequest(app).path(policy.getId(), "overrides").body(new PolicyOverridesDTO(actionsOverride))
+    policyResourceRequest(app).path(policy.getId(), "overrides")
+        .body(new PolicyOverridesDTO(actionsOverride))
         .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, null);
@@ -694,7 +709,8 @@ public class PolicyResourceAuditTest
 
     Notifications notificationsOverride = new Notifications();
     notificationsOverride.add(new UserNotification("app@domain.com", BuildStageType.ID));
-    policyResourceRequest(app).path(policy.getId(), "overrides").body(new PolicyOverridesDTO(notificationsOverride))
+    policyResourceRequest(app).path(policy.getId(), "overrides")
+        .body(new PolicyOverridesDTO(notificationsOverride))
         .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, null);
@@ -704,13 +720,14 @@ public class PolicyResourceAuditTest
 
   @Test
   public void testUpdateOverrides_Add_ForActions_Organization() throws Exception {
-    //Root Organization is the owner
+    // Root Organization is the owner
     Policy policy = tempEntity.newPolicy();
     policy.setPolicyActionsOverrideAllowed(true);
     policyDAO.update(policy);
 
     policyResourceRequest(organization).path(policy.getId(), "overrides")
-        .body(new PolicyOverridesDTO(new LinkedHashMap<>())).put();
+        .body(new PolicyOverridesDTO(new LinkedHashMap<>()))
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, null);
     assertOrganizationData(auditDTO, organization);
@@ -719,13 +736,14 @@ public class PolicyResourceAuditTest
 
   @Test
   public void testUpdateOverrides_Add_ForNotifications_Organization() throws Exception {
-    //Root Organization is the owner
+    // Root Organization is the owner
     Policy policy = tempEntity.newPolicy();
     policy.setPolicyNotificationsOverrideAllowed(true);
     policyDAO.update(policy);
 
     policyResourceRequest(organization).path(policy.getId(), "overrides")
-        .body(new PolicyOverridesDTO(new Notifications())).put();
+        .body(new PolicyOverridesDTO(new Notifications()))
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, null);
     assertOrganizationData(auditDTO, organization);
@@ -807,8 +825,10 @@ public class PolicyResourceAuditTest
   public void testUpdateOverrides_Delete_ForActions_Unauthorized() throws Exception {
     Policy policy = tempEntity.newPolicy();
 
-    policyResourceRequest(organization).path(policy.getId(), "overrides").body(createDeleteBody(true, false))
-        .with(unauthorizedUser()).put();
+    policyResourceRequest(organization).path(policy.getId(), "overrides")
+        .body(createDeleteBody(true, false))
+        .with(unauthorizedUser())
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, "unauthorized");
     assertOrganizationData(auditDTO, organization);
@@ -818,8 +838,10 @@ public class PolicyResourceAuditTest
   public void testUpdateOverrides_Delete_ForNotifications_Unauthorized() throws Exception {
     Policy policy = tempEntity.newPolicy();
 
-    policyResourceRequest(organization).path(policy.getId(), "overrides").body(createDeleteBody(false, true))
-        .with(unauthorizedUser()).put();
+    policyResourceRequest(organization).path(policy.getId(), "overrides")
+        .body(createDeleteBody(false, true))
+        .with(unauthorizedUser())
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_OVERRIDES, "unauthorized");
     assertOrganizationData(auditDTO, organization);
@@ -927,7 +949,8 @@ public class PolicyResourceAuditTest
   private void assertAuditedTags(final AuditDTO auditDTO, final List<Tag> tags) {
     List<ApplicationCategoryAuditDTO> auditedTags =
         ((Collection<?>) auditDTO.data.get("applicationCategories")).stream()
-            .map(p -> JSON.convertValue(p, ApplicationCategoryAuditDTO.class)).collect(Collectors.toList());
+            .map(p -> JSON.convertValue(p, ApplicationCategoryAuditDTO.class))
+            .collect(Collectors.toList());
     TagDAO tagDAO = this.tagDAO;
 
     assertThat(auditedTags).hasSameSizeAs(tags);
@@ -954,8 +977,10 @@ public class PolicyResourceAuditTest
       List<AuditDTO> auditLogs,
       Owner owner)
   {
-    AuditDTO foundDTO = auditLogs.stream().filter(auditDTO -> auditDTO.data.get("policyId").equals(policy.getId()))
-        .findFirst().get();
+    AuditDTO foundDTO = auditLogs.stream()
+        .filter(auditDTO -> auditDTO.data.get("policyId").equals(policy.getId()))
+        .findFirst()
+        .get();
     assertStandardData(foundDTO, AuditEvent.DELETE_POLICY, null);
     if (owner.getType().equals(OwnerType.APPLICATION)) {
       assertApplicationData(foundDTO, (Application) owner);

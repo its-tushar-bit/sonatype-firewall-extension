@@ -28,7 +28,7 @@ import static java.util.Objects.isNull;
 public class ReferenceIdParser
 {
   private static final List<String> SECURITY_CONDITIONS = ImmutableList
-          .of(SecurityVulnerabilitySeverityConditionType.ID, SecurityVulnerabilityStatusConditionType.ID);
+      .of(SecurityVulnerabilitySeverityConditionType.ID, SecurityVulnerabilityStatusConditionType.ID);
 
   private static final Pattern REF_ID_REGEX_PATTERN = Pattern.compile("((CVE|SONATYPE|sonatype)-\\d+-\\d+)");
 
@@ -50,7 +50,8 @@ public class ReferenceIdParser
   private static String extractTriggerReferenceValue(final ConditionFact conditionFact) {
     if (isNull(conditionFact)
         || isNull(conditionFact.getReference())
-        || isNull(conditionFact.getReference().getValue())) {
+        || isNull(conditionFact.getReference().getValue()))
+    {
       return null;
     }
     return conditionFact.getReference().getValue();

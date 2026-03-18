@@ -52,8 +52,8 @@ public class ApiReverseProxyAuthenticationConfigurationServiceTest
   @Override
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    Multibinder<ReverseProxyAuthenticationConfigurationListener>
-        multiBinder = newSetBinder(binder, ReverseProxyAuthenticationConfigurationListener.class);
+    Multibinder<ReverseProxyAuthenticationConfigurationListener> multiBinder =
+        newSetBinder(binder, ReverseProxyAuthenticationConfigurationListener.class);
     multiBinder.addBinding().toInstance(mockReverseProxyAuthenticationConfigurationListener);
 
     super.configure(binder);
@@ -159,7 +159,8 @@ public class ApiReverseProxyAuthenticationConfigurationServiceTest
 
   @Test
   public void testDisallowConcurrentExecution() {
-    assertThat(JobBuilder.newJob(ApiReverseProxyAuthenticationConfigurationService.class).build()
+    assertThat(JobBuilder.newJob(ApiReverseProxyAuthenticationConfigurationService.class)
+        .build()
         .isConcurrentExectionDisallowed()).isTrue();
   }
 }

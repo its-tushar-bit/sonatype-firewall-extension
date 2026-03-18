@@ -62,7 +62,7 @@ public class DropwizardAwareAggregatingModule<C extends Configuration>
   private void forAllDropwizardAwareModules(Consumer<DropwizardAwareModule<C>> fn) {
     for (Module module : modules) {
       if (module instanceof DropwizardAwareModule) {
-        fn.accept((DropwizardAwareModule<C>)module);
+        fn.accept((DropwizardAwareModule<C>) module);
       }
     }
   }

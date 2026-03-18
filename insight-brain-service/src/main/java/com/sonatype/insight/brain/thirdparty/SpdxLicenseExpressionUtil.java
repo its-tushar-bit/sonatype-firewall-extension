@@ -60,8 +60,7 @@ public class SpdxLicenseExpressionUtil
   private void processConjunctiveLicenseSet(
       ConjunctiveLicenseSet licenseSet,
       Map<String, String> processedLicenses,
-      String packageUrl)
-      throws InvalidSPDXAnalysisException
+      String packageUrl) throws InvalidSPDXAnalysisException
   {
     // process the members as individual licenses
     for (AnyLicenseInfo licenseInfo : licenseSet.getMembers()) {
@@ -72,8 +71,7 @@ public class SpdxLicenseExpressionUtil
   private void processDisjunctiveLicenseSet(
       DisjunctiveLicenseSet licenseSet,
       Map<String, String> processedLicenses,
-      String packageUrl)
-      throws InvalidSPDXAnalysisException
+      String packageUrl) throws InvalidSPDXAnalysisException
   {
     // check if the disjunctive license set is one of Sonatype's multi-licenses
     MultiLicense sonatypeLicense = getMultiLicenseIfAny(licenseSet);
@@ -109,8 +107,8 @@ public class SpdxLicenseExpressionUtil
     }
   }
 
-  private MultiLicense getMultiLicenseIfAny(final DisjunctiveLicenseSet licenseSet)
-      throws InvalidSPDXAnalysisException
+  private MultiLicense getMultiLicenseIfAny(
+      final DisjunctiveLicenseSet licenseSet) throws InvalidSPDXAnalysisException
   {
     // build a possible license name by adding member license IDs (sorted) joined by "or" operator
     List<String> sortedLicenseIds =

@@ -212,7 +212,8 @@ public class LicenseFileDetailsTest
     licenseFiles.all().shouldHave(sizeGreaterThan(0));
     licenseFiles.at(0).viewMoreDetailsLink().click();
     ComponentLicenseFileDetailsPage.licenseFileOverview().shouldBe(visible);
-    ComponentLicenseFileDetailsPage.licenseFileOverview().getLicenseText()
+    ComponentLicenseFileDetailsPage.licenseFileOverview()
+        .getLicenseText()
         .shouldHave(text("Apache ServiceComb"));
   }
 
@@ -224,7 +225,8 @@ public class LicenseFileDetailsTest
     licenseFiles.all().shouldHave(sizeGreaterThan(0));
     licenseFiles.at(0).viewMoreDetailsLink().click();
     ComponentLicenseFileDetailsPage.licenseFileOverview().shouldBe(visible);
-    ComponentLicenseFileDetailsPage.licenseFileOverview().getLicenseText()
+    ComponentLicenseFileDetailsPage.licenseFileOverview()
+        .getLicenseText()
         .shouldHave(text("Apache ServiceComb"));
   }
 }

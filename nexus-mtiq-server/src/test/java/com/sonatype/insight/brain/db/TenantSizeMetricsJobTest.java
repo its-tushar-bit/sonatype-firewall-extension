@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.db;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.sql.Connection;
@@ -56,8 +57,9 @@ public class TenantSizeMetricsJobTest
   private void assertViewExists(final boolean exists) {
     String sql = "SELECT COUNT(*) FROM pg_matviews WHERE matviewname = 'schema_size'";
     try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection();
-         Statement statement = connection.createStatement();
-         ResultSet result = statement.executeQuery(sql)) {
+        Statement statement = connection.createStatement();
+        ResultSet result = statement.executeQuery(sql))
+    {
       assertThat(result.next()).isTrue();
       Integer count = result.getInt(1);
       assertThat(count == (exists ? 1 : 0)).isTrue();
@@ -70,8 +72,9 @@ public class TenantSizeMetricsJobTest
   private void assertSchemaResults(boolean testTenantExists, final String tenantSchemaName) {
     String sql = "SELECT * FROM public.schema_size";
     try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection();
-         Statement statement = connection.createStatement();
-         ResultSet results = statement.executeQuery(sql)) {
+        Statement statement = connection.createStatement();
+        ResultSet results = statement.executeQuery(sql))
+    {
       boolean foundTestTenant = false;
       while (results.next()) {
         String schemaName = results.getString("schema_name");

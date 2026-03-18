@@ -18,7 +18,7 @@ public interface ShutdownRequest<T>
 
   /**
    * @return the order of the shutdown request. Requests are handled in ascending order, and requests with the same
-   * order are handled simultaneously.
+   *         order are handled simultaneously.
    */
   int getOrder();
 
@@ -33,9 +33,9 @@ public interface ShutdownRequest<T>
    * returned when waiting for the item shutdown can happen in the current thread.
    *
    * @param executorService an {@link ExecutorService} that should be used to execute any blocking item shutdown
-   *                        initiation actions in other threads.
+   *          initiation actions in other threads.
    * @return a {@link Future} to indicate if the item shutdown is complete. {@link Future#get()} should block until the
-   * item shutdown is complete, ideally in the current thread using a {@link CompleteOnGetFuture}.
+   *         item shutdown is complete, ideally in the current thread using a {@link CompleteOnGetFuture}.
    */
   Future<?> execute(final ExecutorService executorService) throws Exception;
 

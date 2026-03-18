@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.telemetry;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -42,8 +43,7 @@ public class MultiTenantRealmTelemetryCollectorTest
 
     samlConfigurationService = new SamlConfigurationService(
         daoFactory.createSamlConfigurationInternalDAO(),
-        new TestSamlFactory().createSamlConfigurationAdapter()
-    );
+        new TestSamlFactory().createSamlConfigurationAdapter());
     telemetryCollector = new RealmTelemetryCollector(samlConfigurationService);
   }
 
@@ -74,7 +74,7 @@ public class MultiTenantRealmTelemetryCollectorTest
   private String getSamlMetadata(String resourceName) {
     try {
       return Resources.toString(MultiTenantRealmTelemetryCollectorTest.class.getResource(
-              "/" + MultiTenantRealmTelemetryCollectorTest.class.getSimpleName() + "/" + resourceName),
+          "/" + MultiTenantRealmTelemetryCollectorTest.class.getSimpleName() + "/" + resourceName),
           StandardCharsets.UTF_8);
     }
     catch (IOException e) {

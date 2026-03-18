@@ -72,11 +72,10 @@ public class ApiUserTokenResource
       "\n" +
       "Permissions required: None ",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains a `userTokenExists` field.",
-              useReturnTypeSchema = true)
-      }
-  )
+        @ApiResponse(responseCode = "200",
+            description = "The response contains a `userTokenExists` field.",
+            useReturnTypeSchema = true)
+      })
   public ApiUserTokenExistsDTO getUserTokenExistsForCurrentUser() {
     return userTokenService.userTokenExistsForCurrentUser();
   }
@@ -93,11 +92,11 @@ public class ApiUserTokenResource
       "\n" +
       "Permissions required: None",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the token creation time in ISO format.",
-              useReturnTypeSchema = true),
-          @ApiResponse(responseCode = "404",
-              description = "User token does not exist for the current user.")
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the token creation time in ISO format.",
+            useReturnTypeSchema = true),
+        @ApiResponse(responseCode = "404",
+            description = "User token does not exist for the current user.")
       })
   public Date getCurrentUserTokenCreateTime() {
     return userTokenService.getCurrentUserTokenCreateTime();
@@ -106,7 +105,7 @@ public class ApiUserTokenResource
   /**
    * Only returns ApiUserTokenDTO#userCode populated - passCode is not returned.
    *
-   * @param createdAfter  Expected format: yyyy-MM-dd (For example: 2019-09-03)
+   * @param createdAfter Expected format: yyyy-MM-dd (For example: 2019-09-03)
    * @param createdBefore Expected format: yyyy-MM-dd (For example: 2019-09-03)
    * @since 1.87
    */
@@ -118,19 +117,18 @@ public class ApiUserTokenResource
       "\n" +
       "Permissions required: Edit System Configuration and Users.",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains a list of user tokens, each containing a `userCode`, `username` " +
-                  "and the name of the IQ server `realm`.",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains a list of user tokens, each containing a `userCode`, `username` " +
+                "and the name of the IQ server `realm`.",
+            useReturnTypeSchema = true)
       })
   public List<ApiUserTokenDTO> getUserTokensByCreatedBetweenAndRealmId(
-      @Parameter(description = "Enter the start date for the date range in `yyyy-mm-dd` format.")
-      @QueryParam("createdAfter") String createdAfter,
-      @Parameter(description = "Enter the end date for the date range in `yyyy-mm-dd` format.")
-      @QueryParam("createdBefore") String createdBefore,
+      @Parameter(
+          description = "Enter the start date for the date range in `yyyy-mm-dd` format.") @QueryParam("createdAfter") String createdAfter,
+      @Parameter(
+          description = "Enter the end date for the date range in `yyyy-mm-dd` format.") @QueryParam("createdBefore") String createdBefore,
       @Parameter(description = "Enter the `realmId`. Possible values are `Internal`, `SAML` , `OAUTH2`, and " +
-          "`Crowd`.")
-      @DefaultValue(User.INTERNAL_REALM_ID) @QueryParam("realm") String realmId)
+          "`Crowd`.") @DefaultValue(User.INTERNAL_REALM_ID) @QueryParam("realm") String realmId)
   {
     return userTokenService.getUserTokensCreatedBetweenAndRealmId(createdAfter, createdBefore, realmId);
   }
@@ -146,17 +144,15 @@ public class ApiUserTokenResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the `userCode`, `username` " +
-                  "and the name of the IQ server `realm`.",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the `userCode`, `username` " +
+                "and the name of the IQ server `realm`.",
+            useReturnTypeSchema = true)
       })
   public ApiUserTokenDTO getUserTokenByUsernameAndRealmId(
-      @Parameter(description = "Enter the username.", required = true)
-      @PathParam("username") String username,
+      @Parameter(description = "Enter the username.", required = true) @PathParam("username") String username,
       @Parameter(description = "Enter the realmId. Possible values are `Internal`, `SAML` , `OAUTH2` , and " +
-          "`Crowd`.")
-      @QueryParam("realm") @DefaultValue("Internal") String realmId)
+          "`Crowd`.") @QueryParam("realm") @DefaultValue("Internal") String realmId)
   {
     return userTokenService.getUserTokenByUsernameAndRealmId(username, realmId);
   }
@@ -170,10 +166,10 @@ public class ApiUserTokenResource
       "\n" +
       "Permissions required: None",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the generated user token consisting of `userCode`, `username` " +
-                  "`passCode`, and the IQ Server `realm`.",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the generated user token consisting of `userCode`, `username` " +
+                "`passCode`, and the IQ Server `realm`.",
+            useReturnTypeSchema = true)
       })
   public ApiUserTokenDTO createUserToken() {
     return userTokenService.createUserToken();
@@ -187,8 +183,8 @@ public class ApiUserTokenResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "User tokens purged successfully.")
+        @ApiResponse(responseCode = "204",
+            description = "User tokens purged successfully.")
       })
   public void purgeUserTokens() throws NamingException {
     userTokenService.purgeUserTokens();
@@ -202,8 +198,8 @@ public class ApiUserTokenResource
       "\n" +
       "Permissions required: None",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "User token deleted successfully.")
+        @ApiResponse(responseCode = "204",
+            description = "User token deleted successfully.")
       })
   public void deleteCurrentUserToken() {
     userTokenService.deleteCurrentUserToken();
@@ -220,12 +216,11 @@ public class ApiUserTokenResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "User token deleted successfully.")
+        @ApiResponse(responseCode = "204",
+            description = "User token deleted successfully.")
       })
   public void deleteUserTokenByUserCode(
-      @Parameter(description = "Enter the `userCode` to be deleted.")
-      @PathParam("userCode") String userCode)
+      @Parameter(description = "Enter the `userCode` to be deleted.") @PathParam("userCode") String userCode)
   {
     userTokenService.deleteUserTokenByUserCode(userCode);
   }

@@ -60,8 +60,10 @@ public interface AuditTestSupport
   }
 
   default List<AuditDTO> getLogEntries(AuditEvent auditEvent) {
-    return getLogOutput().getInfoMessages(AuditRecorder.toLoggerName(auditEvent.getDomain())).stream()
-        .map(AuditTestSupport::parseAuditLog).filter(dto -> auditEvent.getType().equals(dto.type))
+    return getLogOutput().getInfoMessages(AuditRecorder.toLoggerName(auditEvent.getDomain()))
+        .stream()
+        .map(AuditTestSupport::parseAuditLog)
+        .filter(dto -> auditEvent.getType().equals(dto.type))
         .collect(toCollection(ArrayList::new));
   }
 
@@ -180,10 +182,11 @@ public interface AuditTestSupport
     }
   }
 
-  default void assertApplicationData(AuditDTO auditDTO,
-                                     String applicationId,
-                                     String applicationPublicId,
-                                     String applicationName)
+  default void assertApplicationData(
+      AuditDTO auditDTO,
+      String applicationId,
+      String applicationPublicId,
+      String applicationName)
   {
     assertCustomData(auditDTO, "applicationId", applicationId);
     assertCustomData(auditDTO, "applicationPublicId", applicationPublicId);
@@ -211,40 +214,43 @@ public interface AuditTestSupport
     assertThat(auditDTO.data).containsEntry("scope", "global");
   }
 
-  default void assertEvaluationAuditLog(String error,
-                                        String applicationId,
-                                        String applicationPublicId,
-                                        String applicationName,
-                                        String stageId,
-                                        String scanId,
-                                        Boolean isReevaluation)
+  default void assertEvaluationAuditLog(
+      String error,
+      String applicationId,
+      String applicationPublicId,
+      String applicationName,
+      String stageId,
+      String scanId,
+      Boolean isReevaluation)
   {
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), error, applicationId,
         applicationPublicId, applicationName, stageId, scanId, isReevaluation);
   }
 
-  default void assertEvaluationAuditLog(AuditDTO auditDTO,
-                                        String error,
-                                        String applicationId,
-                                        String applicationPublicId,
-                                        String applicationName,
-                                        String stageId,
-                                        String scanId,
-                                        Boolean isReevaluation)
+  default void assertEvaluationAuditLog(
+      AuditDTO auditDTO,
+      String error,
+      String applicationId,
+      String applicationPublicId,
+      String applicationName,
+      String stageId,
+      String scanId,
+      Boolean isReevaluation)
   {
     assertEvaluationAuditLog(auditDTO, error, applicationId, applicationPublicId, applicationName, stageId, scanId,
         isReevaluation, null);
   }
 
-  default void assertEvaluationAuditLog(AuditDTO auditDTO,
-                                        String error,
-                                        String applicationId,
-                                        String applicationPublicId,
-                                        String applicationName,
-                                        String stageId,
-                                        String scanId,
-                                        Boolean isReevaluation,
-                                        String username)
+  default void assertEvaluationAuditLog(
+      AuditDTO auditDTO,
+      String error,
+      String applicationId,
+      String applicationPublicId,
+      String applicationName,
+      String stageId,
+      String scanId,
+      Boolean isReevaluation,
+      String username)
   {
     assertStandardData(auditDTO, AuditEvent.EVALUATE_APPLICATION, error, username);
     assertApplicationData(auditDTO, applicationId, applicationPublicId, applicationName);

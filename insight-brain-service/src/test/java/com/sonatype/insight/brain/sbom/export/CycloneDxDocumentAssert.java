@@ -24,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import static org.assertj.core.api.Assertions.within;
 
 public class CycloneDxDocumentAssert
-      extends AbstractAssert<CycloneDxDocumentAssert, Bom>
+    extends AbstractAssert<CycloneDxDocumentAssert, Bom>
 {
   public CycloneDxDocumentAssert(final Bom bom, final Class<?> selfType) {
     super(bom, selfType);
@@ -94,7 +94,9 @@ public class CycloneDxDocumentAssert
 
   public CycloneDxDocumentAssert creationDateCloseTo(LocalDateTime other) {
     isNotNull();
-    LocalDateTime actualDate = actual.getMetadata().getTimestamp().toInstant()
+    LocalDateTime actualDate = actual.getMetadata()
+        .getTimestamp()
+        .toInstant()
         .atZone(ZoneOffset.UTC)
         .toLocalDateTime();
     Assertions.assertThat(actualDate).isCloseTo(other, within(1, ChronoUnit.MINUTES));

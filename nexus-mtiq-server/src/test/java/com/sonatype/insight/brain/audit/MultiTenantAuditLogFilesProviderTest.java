@@ -20,6 +20,7 @@ public class MultiTenantAuditLogFilesProviderTest
     MultiTenantAuditLogFilesProvider multiTenantAuditLogFilesProvider = new MultiTenantAuditLogFilesProvider();
 
     assertThatThrownBy(() -> multiTenantAuditLogFilesProvider.getAuditLogFiles(LocalDate.MIN, LocalDate.MAX))
-        .isInstanceOf(InternalServerException.class).hasMessage("Cannot get the audit log path.");
+        .isInstanceOf(InternalServerException.class)
+        .hasMessage("Cannot get the audit log path.");
   }
 }

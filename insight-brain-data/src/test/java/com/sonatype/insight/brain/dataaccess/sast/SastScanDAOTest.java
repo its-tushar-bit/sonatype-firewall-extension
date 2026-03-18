@@ -218,8 +218,7 @@ public class SastScanDAOTest
         "commit-hash",
         "content-hash",
         "discussion_r1450570374",
-        0
-    );
+        0);
 
     sastPullRequestCommentDAO.insert(sastPullRequestComment);
     String sastPullRequestCommentId = sastPullRequestComment.getId();

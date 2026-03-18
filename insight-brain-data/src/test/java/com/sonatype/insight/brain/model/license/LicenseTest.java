@@ -18,11 +18,13 @@ public class LicenseTest
     for (String format : ComponentIdentifier.getFormatsSupportedByHds()) {
       if (ComponentIdentifier.FORMAT_MAVEN.equals(format)) {
         assertThat(License.isAlpObservedLicenseFormatHidden(format))
-            .withFailMessage("Expected isAlpObservedLicenseFormatHidden to be false for format 'maven':").isFalse();
+            .withFailMessage("Expected isAlpObservedLicenseFormatHidden to be false for format 'maven':")
+            .isFalse();
       }
       else {
         assertThat(License.isAlpObservedLicenseFormatHidden(format))
-            .withFailMessage("Expected isAlpObservedLicenseFormatHidden to be true for format '%s':", format).isTrue();
+            .withFailMessage("Expected isAlpObservedLicenseFormatHidden to be true for format '%s':", format)
+            .isTrue();
       }
     }
   }

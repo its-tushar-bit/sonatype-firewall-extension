@@ -40,9 +40,7 @@ public class FIPSKeystorePasswordGenerator
    * @return deterministically-generated keystore password
    * @throws GeneralSecurityException if key derivation fails
    */
-  public static String generateDeterministicPassword(final File sonatypeWorkDirectory)
-      throws GeneralSecurityException
-  {
+  public static String generateDeterministicPassword(final File sonatypeWorkDirectory) throws GeneralSecurityException {
     String systemIdentifiers = collectSystemIdentifiers(sonatypeWorkDirectory);
     return derivePassword(systemIdentifiers);
   }
@@ -80,8 +78,7 @@ public class FIPSKeystorePasswordGenerator
         input.toCharArray(),
         getFipsKeystoreSaltOrDefault().getBytes(StandardCharsets.UTF_8),
         getFipsKeystorePbkdf2IterationsOrDefault(),
-        getFipsKeystoreKeyLengthBitsOrDefault()
-    );
+        getFipsKeystoreKeyLengthBitsOrDefault());
     byte[] derivedKey = factory.generateSecret(spec).getEncoded();
     return Base64.getEncoder().encodeToString(derivedKey);
   }

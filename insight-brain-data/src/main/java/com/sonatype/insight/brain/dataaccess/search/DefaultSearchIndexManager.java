@@ -17,7 +17,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 /**
  * Encapsulates the insertion of search index events to the database via the {@link SearchIndexChangeDAO}. This is
  * because currently the DAO layer (specifically {@link AbstractOperationalSqlDAO}) is responsible for inserting these
- * search events and {@link SearchIndexChangeDAO} is itself a {@link AbstractOperationalSqlDAO}. This class simply puts an
+ * search events and {@link SearchIndexChangeDAO} is itself a {@link AbstractOperationalSqlDAO}. This class simply puts
+ * an
  * abstraction between that.
  */
 @Singleton

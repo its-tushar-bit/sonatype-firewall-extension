@@ -46,10 +46,11 @@ public class HashComponentIdentifierService
   private final CurrentUser currentUser;
 
   @Inject
-  public HashComponentIdentifierService(final HdsClient hdsClient,
-                                        final HashComponentIdentifierDAO hashComponentIdentifierDAO,
-                                        final LicenseOverrideDAO licenseOverrideDAO,
-                                        final CurrentUser currentUser)
+  public HashComponentIdentifierService(
+      final HdsClient hdsClient,
+      final HashComponentIdentifierDAO hashComponentIdentifierDAO,
+      final LicenseOverrideDAO licenseOverrideDAO,
+      final CurrentUser currentUser)
   {
     this.client = hdsClient;
     this.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
@@ -97,7 +98,7 @@ public class HashComponentIdentifierService
 
     HashComponentIdentifier existingHashComponentIdentifier = hashComponentIdentifierDAO
         .getByHashNotNull(hashComponentIdentifier.getHash());
-        
+
     UserPrincipal userPrincipal = currentUser.getUserPrincipal();
     hashComponentIdentifier.setClaimerId(userPrincipal.getUsername());
     hashComponentIdentifier.setClaimerName(userPrincipal.getDisplayName());
@@ -151,7 +152,8 @@ public class HashComponentIdentifierService
 
   private void auditHashComponentIdentifier(HashComponentIdentifier hashComponentIdentifier) {
     if (hashComponentIdentifier != null) {
-      AuditData.get().setComponentHash(hashComponentIdentifier.getHash())
+      AuditData.get()
+          .setComponentHash(hashComponentIdentifier.getHash())
           .setComponentIdentifier(hashComponentIdentifier.getComponentIdentifier())
           .setComment(hashComponentIdentifier.getComment());
     }

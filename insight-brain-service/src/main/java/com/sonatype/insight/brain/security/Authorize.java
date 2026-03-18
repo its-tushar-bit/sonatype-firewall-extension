@@ -14,11 +14,11 @@ import com.sonatype.insight.brain.model.security.Permission;
 
 /**
  * Marks a method requiring authorization checks.
- * 
+ *
  * @since 1.7
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.METHOD })
+@Target({ElementType.METHOD})
 public @interface Authorize
 {
   /**

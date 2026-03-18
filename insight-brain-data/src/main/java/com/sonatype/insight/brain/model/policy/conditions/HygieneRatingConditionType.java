@@ -64,8 +64,9 @@ public class HygieneRatingConditionType
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
     return "Hygiene Rating was " + matchFact.getComponent().getHygieneRating().getName()
-        + ("is not".equals(condition.getOperator()) ?
-        ", not " + HygieneRating.getById(condition.getValue()).getName() : "");
+        + ("is not".equals(condition.getOperator())
+            ? ", not " + HygieneRating.getById(condition.getValue()).getName()
+            : "");
   }
 
   @Override
@@ -74,8 +75,10 @@ public class HygieneRatingConditionType
   }
 
   @Override
-  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
-      throws InvalidConditionException
+  public void validateCondition(
+      TransactionContext tx,
+      Condition condition,
+      String ownerId) throws InvalidConditionException
   {
     super.validateCondition(tx, condition, ownerId);
 

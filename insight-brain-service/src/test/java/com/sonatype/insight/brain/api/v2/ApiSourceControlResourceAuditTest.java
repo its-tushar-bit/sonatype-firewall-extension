@@ -102,10 +102,12 @@ public class ApiSourceControlResourceAuditTest
 
   @Test
   public void testAuditForCRUD() throws Exception {
-    //CREATE
+    // CREATE
     String repositoryUrl = String.format("%s/organization/project", gitService.baseUrl());
     ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(repositoryUrl).setToken("token")
+        new SourceControl.Builder().setOwnerId(app.getId())
+            .setRepositoryUrl(repositoryUrl)
+            .setToken("token")
             .build());
 
     HttpResponse response =
@@ -122,7 +124,7 @@ public class ApiSourceControlResourceAuditTest
     assertCustomData(auditDTO, "provider", result.provider);
     assertApplicationData(auditDTO, app);
 
-    //UPDATE
+    // UPDATE
     String updatedUrl = sourceControl.repositoryUrl + ".1";
     result.repositoryUrl = updatedUrl;
     response = restRequest().path(SOURCE_CONTROL_PATH_V2)
@@ -137,7 +139,7 @@ public class ApiSourceControlResourceAuditTest
     assertCustomData(auditDTO, "provider", result.provider);
     assertApplicationData(auditDTO, app);
 
-    //DELETE
+    // DELETE
     response = restRequest().path(SOURCE_CONTROL_PATH_V2)
         .path(OwnerType.APPLICATION.toString(), app.getId())
         .delete();
@@ -154,7 +156,7 @@ public class ApiSourceControlResourceAuditTest
     // make sure automatic source control is on
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
-    //CREATE
+    // CREATE
     HttpResponse response = restRequest().path(SOURCE_CONTROL_PATH_V2)
         .query("publicId", app.getPublicId())
         .query("repositoryUrl", repositoryUrl)
@@ -166,7 +168,7 @@ public class ApiSourceControlResourceAuditTest
     assertCustomData(auditDTO, "repositoryUrl", repositoryUrl);
     assertCustomData(auditDTO, "sourceControlId", result.id);
 
-    //UPDATE
+    // UPDATE
     String updatedUrl = repositoryUrl + ".1";
     result.repositoryUrl = updatedUrl;
     response = restRequest().path(SOURCE_CONTROL_PATH_V2)
@@ -262,7 +264,9 @@ public class ApiSourceControlResourceAuditTest
     assertThat(auditDTO.data).containsKey("roleMembers");
     assertThat(auditDTO.data.get("roleMembers")).isInstanceOf(List.class);
     List<String> roleMembers = ((List<LinkedHashMap<String, String>>) auditDTO.data.get("roleMembers"))
-        .stream().map(username -> username.get("username")).collect(Collectors.toList());
+        .stream()
+        .map(username -> username.get("username"))
+        .collect(Collectors.toList());
     assertThat(roleMembers).containsExactlyInAnyOrderElementsOf(members);
   }
 

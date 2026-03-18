@@ -313,7 +313,8 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
 
     return super.adminRequest()
         .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt)
-        .path("api/").path(path);
+        .path("api/")
+        .path(path);
   }
 
   @Override

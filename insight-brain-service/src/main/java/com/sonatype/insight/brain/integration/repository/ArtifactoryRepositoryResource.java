@@ -105,10 +105,11 @@ public class ArtifactoryRepositoryResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_REPOSITORY)
   @Timed
-  public void evaluateComponents(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-                                 @PathParam("repositoryPublicId") String repositoryPublicId,
-                                 RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
-                                 @Context final HttpServletRequest request)
+  public void evaluateComponents(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      @Context final HttpServletRequest request)
   {
     repositoryService
         .evaluateComponents(repositoryManagerInstanceId, repositoryPublicId, componentEvaluationDataRequestList, false,
@@ -212,12 +213,12 @@ public class ArtifactoryRepositoryResource
    * Evaluates policies on variants of the same component.
    * The specified componentEvaluationDataRequestList must contain only variants of the same component
    * Only the npm and pypi formats are supported.
-   * 
+   *
    * It is very important for performance to minimize the number of round trips between:
    * - IQ and HDS
    * - IQ and the IQ ODS db
    * - HDS and HDS dm db
-   * 
+   *
    * How it works:
    * - Artifactory sends a list of hash+pathname pairs (all for the same component name) to IQ for policy evaluation.
    * - IQ picks up one hash+pathname pair and sends it to HDS.
@@ -225,7 +226,7 @@ public class ArtifactoryRepositoryResource
    * retrieves all variants for the component name and all the data associated with the variants (licenses, SVs, etc).
    * - IQ matches the data from HDS to the data from Artifactory by hash+filename, runs policy evaluation for all
    * variants, determines which components would be quarantined and returns the results to Artifactory.
-   * 
+   *
    * @since 1.145
    */
   @POST

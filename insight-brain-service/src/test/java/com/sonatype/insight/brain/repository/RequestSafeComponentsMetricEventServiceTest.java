@@ -19,7 +19,8 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RequestSafeComponentsMetricEventServiceTest extends AbstractComponentTest
+public class RequestSafeComponentsMetricEventServiceTest
+    extends AbstractComponentTest
 {
   @Rule
   public LogOutput logOutput = new LogOutput(RequestSafeComponentsMetricEventService.class);

@@ -46,7 +46,8 @@ public class WaivedComponentsUpgradePageTest
   public void testNoChangesError() {
     WaivedComponentsUpgradePage waivedComponentsUpgradePage = new WaivedComponentsUpgradePage();
     waivedComponentsUpgradePage.update().click();
-    waivedComponentsUpgradePage.validationErrors().shouldBe(visible)
+    waivedComponentsUpgradePage.validationErrors()
+        .shouldBe(visible)
         .shouldHave(text("There were validation errors. There are no changes to update"));
     waivedComponentsUpgradePage.update().shouldNotBe(visible);
   }

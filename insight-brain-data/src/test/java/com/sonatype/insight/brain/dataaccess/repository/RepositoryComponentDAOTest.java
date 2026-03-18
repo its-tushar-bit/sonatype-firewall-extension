@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess.repository;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.text.ParseException;
@@ -898,12 +899,12 @@ public class RepositoryComponentDAOTest
 
   @Test
   public void testGetFirewallRepositoryComponents_AllExcluded() {
-    //Setup: Filter with component state set to null
+    // Setup: Filter with component state set to null
     FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 2, null, null, true, Collections.emptyList());
 
-    //When: executing 'getFirewallRepositoryComponents'
-    //Then: expect exception to be thrown
+    // When: executing 'getFirewallRepositoryComponents'
+    // Then: expect exception to be thrown
     assertThatThrownBy(() -> dao.getFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
         .hasMessage("firewallComponentFilterState is required and cannot be null.");
 
@@ -913,13 +914,13 @@ public class RepositoryComponentDAOTest
 
   @Test
   public void testGetFirewallRepositoryComponents_AuditWithQuarantineOrder() {
-    //Setup: Filter with component state set to null
+    // Setup: Filter with component state set to null
     FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.AUDIT,
             FirewallSortableField.QUARANTINE_TIME, true, Collections.emptyList());
 
-    //When: executing 'getFirewallRepositoryComponents'
-    //Then: expect exception to be thrown
+    // When: executing 'getFirewallRepositoryComponents'
+    // Then: expect exception to be thrown
     assertThatThrownBy(() -> dao.getFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
         .hasMessage("Sortable field cannot be specified for component state AUDIT");
 
@@ -929,13 +930,13 @@ public class RepositoryComponentDAOTest
 
   @Test
   public void testGetFirewallRepositoryComponents_AuditWithReleaseQuarantineOrder() {
-    //Setup: Filter with component state set to null
+    // Setup: Filter with component state set to null
     FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.AUDIT,
             FirewallSortableField.RELEASE_QUARANTINE_TIME, true, Collections.emptyList());
 
-    //When: executing 'getFirewallRepositoryComponents'
-    //Then: expect exception to be thrown
+    // When: executing 'getFirewallRepositoryComponents'
+    // Then: expect exception to be thrown
     assertThatThrownBy(() -> dao.getFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
         .hasMessage("Sortable field cannot be specified for component state AUDIT");
 
@@ -945,13 +946,13 @@ public class RepositoryComponentDAOTest
 
   @Test
   public void testGetFirewallRepositoryComponents_AllWithQuarantineOrder() {
-    //Setup: Filter with component state set to null
+    // Setup: Filter with component state set to null
     FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.ALL,
             FirewallSortableField.QUARANTINE_TIME, true, Collections.emptyList());
 
-    //When: executing 'getFirewallRepositoryComponents'
-    //Then: expect exception to be thrown
+    // When: executing 'getFirewallRepositoryComponents'
+    // Then: expect exception to be thrown
     assertThatThrownBy(() -> dao.getFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
         .hasMessage("Sortable field cannot be specified for component state ALL");
 
@@ -961,13 +962,13 @@ public class RepositoryComponentDAOTest
 
   @Test
   public void testGetFirewallRepositoryComponents_AllWithReleaseQuarantineOrder() {
-    //Setup: Filter with component state set to null
+    // Setup: Filter with component state set to null
     FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.ALL,
             FirewallSortableField.RELEASE_QUARANTINE_TIME, true, Collections.emptyList());
 
-    //When: executing 'getFirewallRepositoryComponents'
-    //Then: expect exception to be thrown
+    // When: executing 'getFirewallRepositoryComponents'
+    // Then: expect exception to be thrown
     assertThatThrownBy(() -> dao.getFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
         .hasMessage("Sortable field cannot be specified for component state ALL");
 
@@ -977,13 +978,13 @@ public class RepositoryComponentDAOTest
 
   @Test
   public void testGetFirewallRepositoryComponents_QuarantineWithReleaseQuarantineOrder() {
-    //Setup: Filter with component state set to null
+    // Setup: Filter with component state set to null
     FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.QUARANTINE,
             FirewallSortableField.RELEASE_QUARANTINE_TIME, true, Collections.emptyList());
 
-    //When: executing 'getFirewallRepositoryComponents'
-    //Then: expect exception to be thrown
+    // When: executing 'getFirewallRepositoryComponents'
+    // Then: expect exception to be thrown
     assertThatThrownBy(() -> dao.getFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
         .hasMessage("Sortable field releaseQuarantineTime is not applicable to component state QUARANTINE");
 
@@ -1074,7 +1075,10 @@ public class RepositoryComponentDAOTest
       assertThat(result.keySet()).extracting(Repository::getId).containsExactlyInAnyOrder(repo1.getId(), repo2.getId());
 
       // Verify repo1 has 2 components
-      Repository foundRepo1 = result.keySet().stream().filter(r -> r.getId().equals(repo1.getId())).findFirst()
+      Repository foundRepo1 = result.keySet()
+          .stream()
+          .filter(r -> r.getId().equals(repo1.getId()))
+          .findFirst()
           .orElseThrow(() -> new AssertionError("Repository 1 not found in results"));
       List<RepositoryComponent> repo1Components = result.get(foundRepo1);
       assertThat(repo1Components).hasSize(2);
@@ -1083,7 +1087,10 @@ public class RepositoryComponentDAOTest
       assertThat(repo1Components).allMatch(c -> c.getHash().equals(targetHash));
 
       // Verify repo2 has 1 component
-      Repository foundRepo2 = result.keySet().stream().filter(r -> r.getId().equals(repo2.getId())).findFirst()
+      Repository foundRepo2 = result.keySet()
+          .stream()
+          .filter(r -> r.getId().equals(repo2.getId()))
+          .findFirst()
           .orElseThrow(() -> new AssertionError("Repository 2 not found in results"));
       List<RepositoryComponent> repo2Components = result.get(foundRepo2);
       assertThat(repo2Components).hasSize(1);
@@ -1183,12 +1190,14 @@ public class RepositoryComponentDAOTest
       // Verify quarantine status is preserved
       RepositoryComponent foundQuarantined = components.stream()
           .filter(c -> c.getId().equals(quarantinedComponent.getId()))
-          .findFirst().orElseThrow(() -> new AssertionError("Quarantined component not found"));
+          .findFirst()
+          .orElseThrow(() -> new AssertionError("Quarantined component not found"));
       assertThat(foundQuarantined.getQuarantineTime()).isNotNull();
 
       RepositoryComponent foundNonQuarantined = components.stream()
           .filter(c -> c.getId().equals(nonQuarantinedComponent.getId()))
-          .findFirst().orElseThrow(() -> new AssertionError("Non-quarantined component not found"));
+          .findFirst()
+          .orElseThrow(() -> new AssertionError("Non-quarantined component not found"));
       assertThat(foundNonQuarantined.getQuarantineTime()).isNull();
     }
   }

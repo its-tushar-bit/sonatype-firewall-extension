@@ -370,8 +370,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
         LicensedFeature.WAIVER_REPORTS,
         LicensedFeature.ROI_CONFIGURATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION
-    );
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
   }
 
   @Test
@@ -420,8 +419,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
         LicensedFeature.WAIVER_REPORTS,
         LicensedFeature.ROI_CONFIGURATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION
-    );
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
   }
 
   @Test
@@ -473,8 +471,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
         LicensedFeature.WAIVER_REPORTS,
         LicensedFeature.ROI_CONFIGURATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION
-    );
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
   }
 
   @Test
@@ -880,8 +877,7 @@ public class CLMLicenseManagerTest
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
         LicensedFeature.API_PAGE,
-        LicensedFeature.DEVELOPER_DASHBOARD
-    );
+        LicensedFeature.DEVELOPER_DASHBOARD);
   }
 
   @Test
@@ -1112,11 +1108,11 @@ public class CLMLicenseManagerTest
   public void testUpdateLicenseCacheFromDatabase() {
     CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
 
-    //before
+    // before
     assertThat(productLicense.getMaxApplications()).isEqualTo(100);
     assertThat(productLicense.getMaxSboms()).isEqualTo(50);
 
-    //set database license
+    // set database license
     SignedProductLicenseDetailsDTO licenseDetails = new SignedProductLicenseDetailsDTO();
     licenseDetails.features = new TreeSet<>();
     licenseDetails.stageIds = new TreeSet<>();
@@ -1127,7 +1123,7 @@ public class CLMLicenseManagerTest
 
     clmLicenseManagerSpy.updateLicenseCacheFromDatabase();
 
-    //after
+    // after
     assertThat(productLicense.getMaxApplications()).isEqualTo(12345);
     assertThat(productLicense.getMaxSboms()).isEqualTo(100);
     verify(clmLicenseManagerSpy, never()).loadLicense();
@@ -1138,7 +1134,7 @@ public class CLMLicenseManagerTest
   public void testUpdateLicenseCacheFromDatabase_ClearsCacheNoDatabaseRecord() {
     CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
 
-    //before
+    // before
     assertThat(productLicense.isValid()).isTrue();
     assertThat(productLicense.getMaxApplications()).isEqualTo(100);
     assertThat(productLicense.getMaxSboms()).isEqualTo(50);
@@ -1146,7 +1142,7 @@ public class CLMLicenseManagerTest
     productLicenseDetailsCache.saveJson(null);
     clmLicenseManagerSpy.updateLicenseCacheFromDatabase();
 
-    //after
+    // after
     assertThat(productLicense.isValid()).isFalse();
     assertThat(productLicense.getMaxApplications()).isZero();
     assertThat(productLicense.getMaxSboms()).isZero();
@@ -2157,8 +2153,7 @@ public class CLMLicenseManagerTest
     List<String> licensingModels = Arrays.asList(
         ProductLicenseDetails.LICENSING_SBOM_BASED,
         ProductLicenseDetails.LICENSING_APP_BASED,
-        ProductLicenseDetails.LICENSING_USER_BASED
-    );
+        ProductLicenseDetails.LICENSING_USER_BASED);
 
     String licensingModelsString = String.join(",", licensingModels);
     licenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL, licensingModelsString);
@@ -2468,8 +2463,8 @@ public class CLMLicenseManagerTest
   @Test
   public void testHasLifecycleProduct() {
     Stream.of(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
-            ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD,
-            ProductLicenseDetails.PRODUCT_TEAMS_EDITION)
+        ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD,
+        ProductLicenseDetails.PRODUCT_TEAMS_EDITION)
         .forEach(product -> {
           licenseManager.setProducts(product);
           assertThat(CLMLicenseManager.hasLifecycleProduct(productLicense)).isTrue();
@@ -2482,7 +2477,7 @@ public class CLMLicenseManagerTest
   @Test
   public void testHasSbomManagerProduct() {
     Stream.of(ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
-            ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS)
+        ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS)
         .forEach(product -> {
           licenseManager.setProducts(product);
           assertThat(CLMLicenseManager.hasSbomManagerProduct(productLicense)).isTrue();
@@ -2501,7 +2496,7 @@ public class CLMLicenseManagerTest
   {
     @Override
     public void productLicenseChanged() {
-      //no-op
+      // no-op
     }
   }
 }

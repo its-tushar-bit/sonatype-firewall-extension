@@ -8,5 +8,8 @@ package com.sonatype.insight.brain.developer.integrationdashboard;
 
 public enum IntegrationStatusOrderByEnum
 {
-  NAME, COMMIT, EVALUATION, TOTAL_RISK
+  NAME,
+  COMMIT,
+  EVALUATION,
+  TOTAL_RISK
 }

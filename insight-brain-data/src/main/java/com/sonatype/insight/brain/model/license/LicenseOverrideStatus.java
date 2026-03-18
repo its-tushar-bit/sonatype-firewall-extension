@@ -11,7 +11,11 @@ package com.sonatype.insight.brain.model.license;
 public enum LicenseOverrideStatus
 {
   // Note: The order the statuses are defined here determines the order they are displayed in the UI
-  OPEN("Open"), ACKNOWLEDGED("Acknowledged"), OVERRIDDEN("Overridden"), SELECTED("Selected"), CONFIRMED("Confirmed");
+  OPEN("Open"),
+  ACKNOWLEDGED("Acknowledged"),
+  OVERRIDDEN("Overridden"),
+  SELECTED("Selected"),
+  CONFIRMED("Confirmed");
 
   private final String name;
 

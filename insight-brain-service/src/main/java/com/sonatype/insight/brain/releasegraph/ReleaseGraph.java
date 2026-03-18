@@ -43,10 +43,10 @@ public class ReleaseGraph
   private static final IndexColorModel COLOR_MODEL;
 
   static {
-    byte[] r = new byte[] { 0, (byte) 255, (byte) 145, (byte) 189, (byte) 110 };
-    byte[] g = new byte[] { 0, (byte) 255, (byte) 196, (byte) 189, (byte) 156 };
-    byte[] b = new byte[] { 0, (byte) 255, (byte) 74, (byte) 189, (byte) 206 };
-    byte[] a = new byte[] { (byte) 255, (byte) 0.0, (byte) 255, (byte) 255, (byte) 255 };
+    byte[] r = new byte[]{0, (byte) 255, (byte) 145, (byte) 189, (byte) 110};
+    byte[] g = new byte[]{0, (byte) 255, (byte) 196, (byte) 189, (byte) 156};
+    byte[] b = new byte[]{0, (byte) 255, (byte) 74, (byte) 189, (byte) 206};
+    byte[] a = new byte[]{(byte) 255, (byte) 0.0, (byte) 255, (byte) 255, (byte) 255};
     COLOR_MODEL = new IndexColorModel( /* r.length < 2^3 */3, r.length, r, g, b, a);
   }
 

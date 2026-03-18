@@ -16,7 +16,7 @@ public class NamedDashboardFilterDTO
 
   /**
    * If true, the user needs to acknowledge the filter before being able to see any data in the dashboard.
-   * 
+   *
    * @since 1.29
    */
   public boolean needsAcknowledgement;

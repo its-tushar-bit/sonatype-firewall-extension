@@ -15,7 +15,7 @@ public class DatabasePreferences
 {
   // cf. de.schlichtherle.license.LicenseManager.PREFERENCES_KEY
   public static final String LICENSE_KEY = "license";
-  
+
   public static final String LICENSE_DETAILS_KEY = "licenseDetails";
 
   private final ProductLicenseDAO productLicenseDAO;

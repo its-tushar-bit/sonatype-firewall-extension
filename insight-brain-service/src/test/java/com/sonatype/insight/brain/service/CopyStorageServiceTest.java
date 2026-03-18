@@ -150,9 +150,9 @@ public class CopyStorageServiceTest
   @Parameters
   public static List<Object[]> dataStoreTypes() {
     return Arrays.asList(new Object[][]{
-        {List.of(DataStoreType.S3, DataStoreType.FILE)},
-        {List.of(DataStoreType.FILE, DataStoreType.S3)},
-        });
+      {List.of(DataStoreType.S3, DataStoreType.FILE)},
+      {List.of(DataStoreType.FILE, DataStoreType.S3)},
+    });
   }
 
   private final List<DataStoreType> dataStoreTypes;
@@ -167,8 +167,7 @@ public class CopyStorageServiceTest
     super.configure(binder);
     AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
         localstack.getContainer().getAccessKey(),
-        localstack.getContainer().getSecretKey()
-    ));
+        localstack.getContainer().getSecretKey()));
     binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }
 
@@ -201,8 +200,7 @@ public class CopyStorageServiceTest
         .credentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create(
                 localstack.getContainer().getAccessKey(),
-                localstack.getContainer().getSecretKey()
-            )))
+                localstack.getContainer().getSecretKey())))
         .build();
   }
 
@@ -211,7 +209,9 @@ public class CopyStorageServiceTest
     s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
         .contents()
         .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
-            .bucket(BUCKET_NAME).key(obj.key()).build()));
+            .bucket(BUCKET_NAME)
+            .key(obj.key())
+            .build()));
   }
 
   @Test
@@ -235,7 +235,7 @@ public class CopyStorageServiceTest
         .isThrownBy(() -> copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0)))
         .withMessageContaining(("Primary storage type is '%s' but copy is targeting '%s'," +
             " scans, reports, and/or SBOMs written during copy may be missed.").formatted(dataStoreTypes.get(1),
-            dataStoreTypes.get(0)));
+                dataStoreTypes.get(0)));
 
     storageConfig.setType(DataStoreType.HYBRID);
     storageConfig.getHybridConfig()
@@ -244,7 +244,7 @@ public class CopyStorageServiceTest
         .isThrownBy(() -> copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0)))
         .withMessageContaining(("Primary storage type is '%s' but copy is targeting '%s'," +
             " scans, reports, and/or SBOMs written during copy may be missed.").formatted(dataStoreTypes.get(1),
-            dataStoreTypes.get(0)));
+                dataStoreTypes.get(0)));
   }
 
   @Test
@@ -260,10 +260,11 @@ public class CopyStorageServiceTest
   public void testExecute_NoApps() {
     copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
 
-    logOutput.assertThat().atInfoLevel().contains(
-        String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s': CopyStorageResult",
-            dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name())
-    );
+    logOutput.assertThat()
+        .atInfoLevel()
+        .contains(
+            String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s': CopyStorageResult",
+                dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name()));
   }
 
   @Test
@@ -272,10 +273,11 @@ public class CopyStorageServiceTest
 
     copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
 
-    logOutput.assertThat().atInfoLevel().contains(
-        String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s': CopyStorageResult",
-            dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name())
-    );
+    logOutput.assertThat()
+        .atInfoLevel()
+        .contains(
+            String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s': CopyStorageResult",
+                dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name()));
   }
 
   @Test
@@ -316,7 +318,7 @@ public class CopyStorageServiceTest
         ThirdPartySbomMetadataStatus.ACTIVE, "someFileName4.json.gz");
     createSbom(app2Sbom2);
 
-    // These should be ignored - we should already be using hybrid storage at this point,  
+    // These should be ignored - we should already be using hybrid storage at this point,
     // so any new SBOMs should already be going to the primary storage backend
     ThirdPartySbomMetadata uploadedSbom = tempEntity.newThirdPartySbomMetadata(app2.getId(),
         ThirdPartySbomMetadataStatus.UPLOADED, "someFileName5.json.gz");
@@ -343,13 +345,17 @@ public class CopyStorageServiceTest
     assertSbomCopied(app2Sbom2);
 
     assertThat(sbomPersistenceServiceProvider.get(dataStoreTypes.get(1))
-        .getPermanentSbom(app1.getId(), uploadedSbom.getFilename()).exists()).isFalse();
+        .getPermanentSbom(app1.getId(), uploadedSbom.getFilename())
+        .exists()).isFalse();
     assertThat(sbomPersistenceServiceProvider.get(dataStoreTypes.get(1))
-        .getPermanentSbom(app1.getId(), pendingSbom.getFilename()).exists()).isFalse();
+        .getPermanentSbom(app1.getId(), pendingSbom.getFilename())
+        .exists()).isFalse();
 
-    logOutput.assertThat().atInfoLevel().contains(
-        String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s': CopyStorageResult",
-            dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name()));
+    logOutput.assertThat()
+        .atInfoLevel()
+        .contains(
+            String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s': CopyStorageResult",
+                dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name()));
   }
 
   @Test
@@ -378,7 +384,8 @@ public class CopyStorageServiceTest
     // Check that the report and copy marker do not exist
     assertThat(reportPersistenceService.reportExists(eval2.getApplicationId(), eval2.getScanId())).isFalse();
     try (Stream<ReportEntity> reportEntities = reportPersistenceService.getAllReportEntities(eval2.getApplicationId(),
-        eval2.getScanId())) {
+        eval2.getScanId()))
+    {
       assertThat(reportEntities.toList()).isEmpty();
     }
   }
@@ -521,9 +528,11 @@ public class CopyStorageServiceTest
     assertSbomCopied(app4Sbom2);
 
     // Verify summary log message
-    logOutput.assertThat().atInfoLevel().contains(
-        String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s': CopyStorageResult",
-            dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name()));
+    logOutput.assertThat()
+        .atInfoLevel()
+        .contains(
+            String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s': CopyStorageResult",
+                dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name()));
   }
 
   @Test
@@ -542,9 +551,11 @@ public class CopyStorageServiceTest
     spyCopyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
 
     waiting.countDown();
-    logOutput.assertThat().atInfoLevel().contains(
-        String.format("Request for copy of scans, reports, and SBOMs from '%s' to '%s' is already active.",
-            dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name()));
+    logOutput.assertThat()
+        .atInfoLevel()
+        .contains(
+            String.format("Request for copy of scans, reports, and SBOMs from '%s' to '%s' is already active.",
+                dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name()));
   }
 
   @Test
@@ -586,7 +597,7 @@ public class CopyStorageServiceTest
         .isThrownBy(() -> copyStorageService.checkPrimaryStorageIsTarget(dataStoreTypes.get(1)))
         .withMessageContaining(("Primary storage type is '%s' but copy is targeting '%s'," +
             " scans, reports, and/or SBOMs written during copy may be missed.").formatted(dataStoreTypes.get(0),
-            dataStoreTypes.get(1)));
+                dataStoreTypes.get(1)));
   }
 
   @Test
@@ -650,9 +661,11 @@ public class CopyStorageServiceTest
     // Copy again - should skip
     copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
 
-    logOutput.assertThat().atTraceLevel().contains(
-        String.format("Skipping scan copying for app id '%s' scan id '%s' since it is already done.",
-            eval.getApplicationId(), eval.getScanId()));
+    logOutput.assertThat()
+        .atTraceLevel()
+        .contains(
+            String.format("Skipping scan copying for app id '%s' scan id '%s' since it is already done.",
+                eval.getApplicationId(), eval.getScanId()));
   }
 
   @Test
@@ -669,9 +682,11 @@ public class CopyStorageServiceTest
         applicationReportPersistenceServiceProvider.get(dataStoreTypes.get(0));
     assertThat(reportPersistenceService.reportExists(eval.getApplicationId(), eval.getScanId())).isFalse();
 
-    logOutput.assertThat().atTraceLevel().contains(
-        String.format("Skipping report copying for app id '%s' scan id '%s' since it does not exist.",
-            eval.getApplicationId(), eval.getScanId()));
+    logOutput.assertThat()
+        .atTraceLevel()
+        .contains(
+            String.format("Skipping report copying for app id '%s' scan id '%s' since it does not exist.",
+                eval.getApplicationId(), eval.getScanId()));
   }
 
   @Test
@@ -687,9 +702,11 @@ public class CopyStorageServiceTest
     // Copy again - should skip
     copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
 
-    logOutput.assertThat().atTraceLevel().contains(
-        String.format("Skipping report copying for app id '%s' scan id '%s' since it is already done.",
-            eval.getApplicationId(), eval.getScanId()));
+    logOutput.assertThat()
+        .atTraceLevel()
+        .contains(
+            String.format("Skipping report copying for app id '%s' scan id '%s' since it is already done.",
+                eval.getApplicationId(), eval.getScanId()));
   }
 
   @Test
@@ -738,9 +755,11 @@ public class CopyStorageServiceTest
         sbomMetadata.getFilename());
     assertThat(sbomEntity.exists()).isFalse();
 
-    logOutput.assertThat().atTraceLevel().contains(
-        String.format("Skipping sbom copying for app id '%s' file name '%s' since it does not exist.",
-            sbomMetadata.getApplicationId(), sbomMetadata.getFilename()));
+    logOutput.assertThat()
+        .atTraceLevel()
+        .contains(
+            String.format("Skipping sbom copying for app id '%s' file name '%s' since it does not exist.",
+                sbomMetadata.getApplicationId(), sbomMetadata.getFilename()));
   }
 
   @Test
@@ -757,9 +776,11 @@ public class CopyStorageServiceTest
     // Copy again - should skip
     copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
 
-    logOutput.assertThat().atTraceLevel().contains(
-        String.format("Skipping sbom copying for app id '%s' file name '%s' since it is already done.",
-            sbomMetadata.getApplicationId(), sbomMetadata.getFilename()));
+    logOutput.assertThat()
+        .atTraceLevel()
+        .contains(
+            String.format("Skipping sbom copying for app id '%s' file name '%s' since it is already done.",
+                sbomMetadata.getApplicationId(), sbomMetadata.getFilename()));
   }
 
   @Test
@@ -768,8 +789,7 @@ public class CopyStorageServiceTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
         app.getId(),
         BuildStageType.ID,
-        TemporaryEntity.uuid()
-    );
+        TemporaryEntity.uuid());
     createScan(eval, (int) (120 * MB));
 
     copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
@@ -805,8 +825,7 @@ public class CopyStorageServiceTest
         PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
             app.getId(),
             BuildStageType.ID,
-            TemporaryEntity.uuid()
-        );
+            TemporaryEntity.uuid());
         // Create some large files
         createScan(eval, reportIdx % 20 == 0 ? (int) (20 * MB) : 1024);
         createReport(applicationReportPersistenceServiceProvider.get(dataStoreTypes.get(1)), eval,
@@ -815,8 +834,7 @@ public class CopyStorageServiceTest
         ThirdPartySbomMetadata sbom = tempEntity.newThirdPartySbomMetadata(
             app.getId(),
             ThirdPartySbomMetadataStatus.ACTIVE,
-            String.format("app%d-sbom%d.json.gz", appIdx, reportIdx)
-        );
+            String.format("app%d-sbom%d.json.gz", appIdx, reportIdx));
         createSbom(sbom, reportIdx % 20 == 0 ? (int) (20 * MB) : 1024);
       }
     }
@@ -884,7 +902,9 @@ public class CopyStorageServiceTest
       s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
           .contents()
           .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
-              .bucket(BUCKET_NAME).key(obj.key()).build()));
+              .bucket(BUCKET_NAME)
+              .key(obj.key())
+              .build()));
     }
     else if (dataStoreType == DataStoreType.FILE) {
       log.debug("Skipping file storage cleanup - not implemented for this test");
@@ -931,7 +951,8 @@ public class CopyStorageServiceTest
     ReportPdfEntity toReportPdfEntity = to.getPdfEntity(eval.getApplicationId(), eval.getScanId());
     assertThat(toReportPdfEntity.exists()).isTrue();
     try (InputStream fromIs = fromReportPdfEntity.getInputStream();
-         InputStream toIs = toReportPdfEntity.getInputStream()) {
+        InputStream toIs = toReportPdfEntity.getInputStream())
+    {
       assertThat(IOUtils.contentEquals(fromIs, toIs)).isTrue();
     }
   }
@@ -941,7 +962,8 @@ public class CopyStorageServiceTest
       final Callable<Stream<ReportEntity>> toStreamSupplier) throws Exception
   {
     try (Stream<ReportEntity> fromStream = fromStreamSupplier.call();
-         Stream<ReportEntity> toStream = toStreamSupplier.call()) {
+        Stream<ReportEntity> toStream = toStreamSupplier.call())
+    {
       Map<String, ReportEntity> fromReportEntityByName = fromStream
           .collect(Collectors.toMap(ReportEntity::getName, Function.identity()));
       Map<String, ReportEntity> toReportEntityByName = toStream
@@ -953,7 +975,8 @@ public class CopyStorageServiceTest
         ReportEntity fromReportEntity = fromReportEntityByName.get(key);
         ReportEntity toReportEntity = toReportEntityByName.get(key);
         try (InputStream fromIs = fromReportEntity.getInputStream();
-             InputStream toIs = toReportEntity.getInputStream()) {
+            InputStream toIs = toReportEntity.getInputStream())
+        {
           assertThat(IOUtils.contentEquals(fromIs, toIs)).isTrue();
         }
       }
@@ -970,7 +993,8 @@ public class CopyStorageServiceTest
     assertThat(toSbomEntity.exists()).isTrue();
 
     try (InputStream fromIs = fromSbomEntity.getInputStream();
-         InputStream toIs = toSbomEntity.getInputStream()) {
+        InputStream toIs = toSbomEntity.getInputStream())
+    {
       assertThat(IOUtils.contentEquals(fromIs, toIs)).isTrue();
     }
   }
@@ -987,7 +1011,8 @@ public class CopyStorageServiceTest
     ScanPersistenceService service = scanPersistenceServiceProvider.get(dataStoreTypes.get(1));
     ScanEntity scanEntity = service.getScan(eval.getApplicationId(), eval.getScanId());
     try (InputStream inputStream = new FileInputStream(zipPath.toFile());
-         OutputStream outputStream = scanEntity.getOutputStream()) {
+        OutputStream outputStream = scanEntity.getOutputStream())
+    {
       inputStream.transferTo(outputStream);
     }
   }
@@ -1000,9 +1025,7 @@ public class CopyStorageServiceTest
     createSbom(sbomMetadata, 1024);
   }
 
-  private void createSbom(final ThirdPartySbomMetadata sbomMetadata, final int contentSizeInBytes)
-      throws Exception
-  {
+  private void createSbom(final ThirdPartySbomMetadata sbomMetadata, final int contentSizeInBytes) throws Exception {
     String sbomFileName = sbomMetadata.getFilename();
     Path zipPath = tempDir.getRoot().toPath().resolve(sbomFileName);
     ReportHelper.createEmptyZip(zipPath);
@@ -1011,7 +1034,8 @@ public class CopyStorageServiceTest
     SbomPersistenceService service = sbomPersistenceServiceProvider.get(dataStoreTypes.get(1));
     SbomEntity sbomEntity = service.getPermanentSbom(sbomMetadata.getApplicationId(), sbomFileName);
     try (InputStream inputStream = new FileInputStream(zipPath.toFile());
-         OutputStream outputStream = sbomEntity.getOutputStream()) {
+        OutputStream outputStream = sbomEntity.getOutputStream())
+    {
       inputStream.transferTo(outputStream);
     }
   }

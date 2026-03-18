@@ -93,7 +93,7 @@ public class SourceControlPullRequestMetricsTest
     assertThat(stats.getApplicationPRStats()).hasSize(2);
     assertThat(
         stats.getApplicationPRStats().stream().map(ApplicationPRStats::getApplicationId).collect(Collectors.toList()))
-        .contains(foo.getId(), bar.getId());
+            .contains(foo.getId(), bar.getId());
     assertThat(stats.getTotalRaisedExceptions()).isEqualTo(1);
 
     stats.getApplicationPRStats().forEach(applicationPRStats -> {
@@ -112,7 +112,7 @@ public class SourceControlPullRequestMetricsTest
       }
     });
 
-    //ensure that stats are cleared when dumped
+    // ensure that stats are cleared when dumped
     AggregatedPRStats cleared = metrics.computeStatsAndReset();
     assertThat(cleared.getTotalTime()).isEqualTo(0L);
     assertThat(cleared.getTotalSuggestedPRs()).isEqualTo(0L);
@@ -122,7 +122,7 @@ public class SourceControlPullRequestMetricsTest
 
   @Test
   public void test_metricsForApplication() {
-    //given: an application with available metrics
+    // given: an application with available metrics
     PullRequestResult success = new PullRequestResult();
     success.setCheckoutTime(1L);
     success.setRemediationTime(1L);
@@ -146,31 +146,33 @@ public class SourceControlPullRequestMetricsTest
         MAVEN_COORDINATES, "Bump bar to 1.2", true);
     metrics.addResult(applicationId, enhancedFail);
 
-    //when: we request metrics for that application
+    // when: we request metrics for that application
     List<EnhancedPullRequestResult> results = metrics.metricsForApplication(applicationId);
 
-    //then: results are returned as expected
+    // then: results are returned as expected
     assertThat(results).hasSize(2);
     assertThat(results.get(0)).extracting(EnhancedPullRequestResult::getTarget).isEqualTo(MAVEN_COORDINATES);
     assertThat(results.get(0)).extracting(EnhancedPullRequestResult::getStartTime).isEqualTo(start);
     assertThat(results.get(0)).extracting(EnhancedPullRequestResult::getTitle).isEqualTo("Bump bar to 1.1");
-    assertThat(results.get(0)).extracting(EnhancedPullRequestResult::getReasoning).isEqualTo(
-        "A pull request was successfully created to remediate policy violations related to \"foo : bar : 1.0\".");
+    assertThat(results.get(0)).extracting(EnhancedPullRequestResult::getReasoning)
+        .isEqualTo(
+            "A pull request was successfully created to remediate policy violations related to \"foo : bar : 1.0\".");
 
     assertThat(results.get(1)).extracting(EnhancedPullRequestResult::getTarget).isEqualTo(MAVEN_COORDINATES);
     assertThat(results.get(1)).extracting(EnhancedPullRequestResult::getStartTime).isEqualTo(failStart);
     assertThat(results.get(1)).extracting(EnhancedPullRequestResult::getTitle).isEqualTo("Bump bar to 1.2");
-    assertThat(results.get(1)).extracting(EnhancedPullRequestResult::getReasoning).isEqualTo(
-        "An error happened trying to create this PR, look in server logs for more information.");
+    assertThat(results.get(1)).extracting(EnhancedPullRequestResult::getReasoning)
+        .isEqualTo(
+            "An error happened trying to create this PR, look in server logs for more information.");
   }
 
   @Test
   public void test_metricsForApplication_doesNotExist() {
-    //given: an application without available metrics
-    //when: we request metrics for that application
+    // given: an application without available metrics
+    // when: we request metrics for that application
     List<EnhancedPullRequestResult> results = metrics.metricsForApplication("foo");
 
-    //then: results are empty as expected
+    // then: results are empty as expected
     assertThat(results).isEmpty();
   }
 
@@ -187,7 +189,7 @@ public class SourceControlPullRequestMetricsTest
 
   @Test
   public void testMetricsForApplication_hasBothPRTypes() {
-    //an application with both automated and manual PRs
+    // an application with both automated and manual PRs
     PullRequestResult automatedPr = new PullRequestResult();
     automatedPr.setSuccessful(true);
     EnhancedPullRequestResult automatedResult = new EnhancedPullRequestResult(automatedPr, new Date(),

@@ -66,8 +66,7 @@ public class ComponentMatchDtoBuilder
         "",
         isWaived,
         hasViolation,
-        evaluation.getScanId()
-    );
+        evaluation.getScanId());
 
     match.setBaseUrl(baseUrl.get());
     return match;
@@ -82,8 +81,7 @@ public class ComponentMatchDtoBuilder
 
     return new ComponentDisplayInfo(
         packageUrl != null ? packageUrl : "",
-        displayName
-    );
+        displayName);
   }
 
   private String stripVersionFromDisplayName(final String displayName) {

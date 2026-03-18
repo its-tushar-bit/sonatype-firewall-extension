@@ -82,7 +82,8 @@ public class LegacyViolationResourceAuditTest
     // Policy violation that is not in legacy status - is counted
     tempEntity.newPolicyViolation(policyEvaluation, policyLegacyAllowed);
 
-    restRequest().path(LegacyViolationResource.GRANT_PATH).parameter(application.getPublicId())
+    restRequest().path(LegacyViolationResource.GRANT_PATH)
+        .parameter(application.getPublicId())
         .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.APPLY_LEGACY_VIOLATION_STATUS, null);
@@ -92,8 +93,10 @@ public class LegacyViolationResourceAuditTest
 
   @Test
   public void testGrantLegacyViolationStatus_Unauthorized() throws Exception {
-    restRequest().with(unauthorizedUser()).path(LegacyViolationResource.GRANT_PATH)
-        .parameter(application.getPublicId()).put();
+    restRequest().with(unauthorizedUser())
+        .path(LegacyViolationResource.GRANT_PATH)
+        .parameter(application.getPublicId())
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.APPLY_LEGACY_VIOLATION_STATUS, "unauthorized");
     assertApplicationData(auditDTO, application);
@@ -117,7 +120,9 @@ public class LegacyViolationResourceAuditTest
     legacyViolationStatusDTO.enabled = null;
 
     restRequest().path(LegacyViolationResource.GET_PATH)
-        .parameter(OwnerType.APPLICATION, application.getPublicId()).body(legacyViolationStatusDTO).put();
+        .parameter(OwnerType.APPLICATION, application.getPublicId())
+        .body(legacyViolationStatusDTO)
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_LEGACY_VIOLATION_STATUS, null);
     assertApplicationData(auditDTO, application);
@@ -131,7 +136,9 @@ public class LegacyViolationResourceAuditTest
     legacyViolationStatusDTO.allowOverride = true;
 
     restRequest().path(LegacyViolationResource.GET_PATH)
-        .parameter(OwnerType.ORGANIZATION, organization.getId()).body(legacyViolationStatusDTO).put();
+        .parameter(OwnerType.ORGANIZATION, organization.getId())
+        .body(legacyViolationStatusDTO)
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_LEGACY_VIOLATION_STATUS, null);
     assertOrganizationData(auditDTO, organization);
@@ -144,7 +151,9 @@ public class LegacyViolationResourceAuditTest
     legacyViolationStatusDTO.enabled = false;
 
     restRequest().path(LegacyViolationResource.GET_PATH)
-        .parameter(OwnerType.ORGANIZATION, organization.getId()).body(legacyViolationStatusDTO).put();
+        .parameter(OwnerType.ORGANIZATION, organization.getId())
+        .body(legacyViolationStatusDTO)
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_LEGACY_VIOLATION_STATUS, null);
     assertOrganizationData(auditDTO, organization);

@@ -141,8 +141,10 @@ public class TelemetrySender
   }
 
   private byte[] createZip(TelemetryHeader telemetryHeader, List<TelemetryData> telemetryData) throws IOException {
-    try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ZipOutputStream zipOutput = new ZipOutputStream(
-        bos)) {
+    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ZipOutputStream zipOutput = new ZipOutputStream(
+            bos))
+    {
       ZipEntry zipEntryHeader = new ZipEntry(HEADER_ENTRY_NAME);
       zipOutput.putNextEntry(zipEntryHeader);
       zipOutput.write(JsonUtils.generate(telemetryHeader));
@@ -213,7 +215,7 @@ public class TelemetrySender
     catch (Exception e) {
       telemetryReceipt.markInError(e);
       log.error("Failed to send telemetry.", e);
-      throw(e);
+      throw (e);
     }
   }
 }

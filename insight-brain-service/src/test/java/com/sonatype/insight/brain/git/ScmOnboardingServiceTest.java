@@ -321,7 +321,7 @@ public class ScmOnboardingServiceTest
     assertThat(repositories.availableRepositories.stream()
         .map(scmRepo -> scmRepo.getHttpCloneUrl().toLowerCase(Locale.ENGLISH))
         .anyMatch(url -> url.contains("mixedcase")))
-        .isFalse();
+            .isFalse();
 
     // and: no source control evaluation events
     verifyNoSourceControlEvaluationEventsCreated();
@@ -340,7 +340,7 @@ public class ScmOnboardingServiceTest
     assertThat(repositories.availableRepositories.stream() //
         .map(SCMRepository::getHttpCloneUrl) //
         .anyMatch(url -> url.contains("MixedCase"))) //
-        .isTrue();
+            .isTrue();
 
     // when the repo is added with lower-case
     String repoUrl = String.format("%s/org/mixedcase.git", gitService.baseUrl());
@@ -355,7 +355,7 @@ public class ScmOnboardingServiceTest
     assertThat(repositories.availableRepositories.stream() //
         .map(SCMRepository::getHttpCloneUrl) //
         .anyMatch(url -> url.contains("MixedCase"))) //
-        .isFalse();
+            .isFalse();
 
     // and: no source control evaluation events
     verifyNoSourceControlEvaluationEventsCreated();
@@ -370,11 +370,13 @@ public class ScmOnboardingServiceTest
     // then the repository listing will strip out this embedded information to ensure it doesn't leak
     SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     Optional<SCMRepository> createReactApp = repositories.availableRepositories.stream()
-        .filter(repository -> repository.getProject().equals("create-react-app")).findFirst();
+        .filter(repository -> repository.getProject().equals("create-react-app"))
+        .findFirst();
     assertThat(createReactApp.get().getHttpCloneUrl())
         .isEqualTo(String.format("%s/depshield-ci/create-react-app", gitService.baseUrl()));
     Optional<SCMRepository> nxrmP2 = repositories.availableRepositories.stream()
-        .filter(repository -> repository.getProject().equals("nexus-repository-p2")).findFirst();
+        .filter(repository -> repository.getProject().equals("nexus-repository-p2"))
+        .findFirst();
     assertThat(nxrmP2.get().getHttpCloneUrl())
         .isEqualTo(String.format("%s/sonatype-nexus-community/nexus-repository-p2", gitService.baseUrl()));
 
@@ -553,16 +555,14 @@ public class ScmOnboardingServiceTest
     sourceControlDAO.insert(new SourceControl.Builder()
         .setOwnerId(orgCustom.getId())
         .setToken("token")
-        .build()
-    );
+        .build());
 
     // given an app with a non-github repo URL
     Application appCustom = tempEntity.newApplication(orgCustom.getId());
     sourceControlDAO.insert(new SourceControl.Builder()
         .setOwnerId(appCustom.getId())
         .setRepositoryUrl("http://example.com/owner/app")
-        .build())
-    ;
+        .build());
 
     // when we get the host URL for an org without SCMs defined
     String defaultHostUrl = scmOnboardingService.getDefaultHostUrl("github", org.getId());
@@ -591,15 +591,15 @@ public class ScmOnboardingServiceTest
     String repo4URL = String.format("%s/org/repo4", gitService.baseUrl());
     // given a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, repo1URL,
-            "git@localhost:org/repo1.git", false, "org", "repo1", ""),
-        new SCMRepository(SourceControlProvider.GITHUB, repo2URL,
-            "git@localhost:org/repo2.git", false, "org", "repo2", ""),
-        new SCMRepository(SourceControlProvider.GITHUB, repo3URL,
-            "git@localhost:org/repo3.git", false, "org", "repo3", ""),
-        // use org & app names with IQ app name restrictions
-        new SCMRepository(SourceControlProvider.GITHUB, repo4URL,
-            "git@localhost:org/repo4.git", false, "--bad-__-org", "--bad_name_99--", ""),
+      new SCMRepository(SourceControlProvider.GITHUB, repo1URL,
+          "git@localhost:org/repo1.git", false, "org", "repo1", ""),
+      new SCMRepository(SourceControlProvider.GITHUB, repo2URL,
+          "git@localhost:org/repo2.git", false, "org", "repo2", ""),
+      new SCMRepository(SourceControlProvider.GITHUB, repo3URL,
+          "git@localhost:org/repo3.git", false, "org", "repo3", ""),
+      // use org & app names with IQ app name restrictions
+      new SCMRepository(SourceControlProvider.GITHUB, repo4URL,
+          "git@localhost:org/repo4.git", false, "--bad-__-org", "--bad_name_99--", ""),
     };
     int totalRepoCount = 50;
     int prevImportedCount = 10;
@@ -624,7 +624,8 @@ public class ScmOnboardingServiceTest
     assertThat(response.getFailedRepositories()).isEmpty();
 
     // and they exist in the DB
-    List<Application> allApps = sourceControlDAO.getAll().stream()
+    List<Application> allApps = sourceControlDAO.getAll()
+        .stream()
         .filter(sc -> !sc.getOwnerId().equals(ROOT_ORGANIZATION_ID))
         .map(sc -> applicationDAO.getById(sc.getOwnerId()))
         .collect(Collectors.toList());
@@ -634,15 +635,17 @@ public class ScmOnboardingServiceTest
         .containsExactlyInAnyOrder("Repo1 - Org", "Repo2 - Org", "Repo3 - Org", "Bad Name 99 - Bad Org");
 
     // and that all the clone URLs were added
-    assertThat(sourceControlDAO.getAll().stream()
+    assertThat(sourceControlDAO.getAll()
+        .stream()
         .filter(sc -> !ROOT_ORGANIZATION_ID.equals(sc.getOwnerId()))
         .map(SourceControl::getRepositoryUrl)).containsExactly(repo1URL, repo2URL, repo3URL, repo4URL);
 
     // and that all the clone URLs were added
-    assertThat(sourceControlDAO.getAll().stream()
+    assertThat(sourceControlDAO.getAll()
+        .stream()
         .filter(sc -> !ROOT_ORGANIZATION_ID.equals(sc.getOwnerId()))
         .map(SourceControl::getRepositorySshUrl)).containsExactly("git@localhost:org/repo1.git",
-        "git@localhost:org/repo2.git", "git@localhost:org/repo3.git", "git@localhost:org/repo4.git");
+            "git@localhost:org/repo2.git", "git@localhost:org/repo3.git", "git@localhost:org/repo4.git");
 
     // and: source control evaluation request events were created
     verifySourceControlEvaluationEventsCreated(imported.size());
@@ -650,7 +653,7 @@ public class ScmOnboardingServiceTest
     // and the telemetry was sent properly
     int batchPercent = 8;
     int batchCount = reposToImport.length;
-    int totalPercent = (int)((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
+    int totalPercent = (int) ((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
     assertTelemetry(batchPercent, batchCount, totalPercent, batchCount, batchCount);
 
     final var mappedMemberships = tempEntity.getMembershipMappings(RoleDAO.DEVELOPER);
@@ -690,16 +693,16 @@ public class ScmOnboardingServiceTest
     // given a list of repos to import
     String repo1URL = String.format("%s/scm/org/repo1", gitService.baseUrl());
     String repo2URL = String.format("%s/scm/org/repo2", gitService.baseUrl());
-    SCMRepository[] reposToImport = new SCMRepository[] {
-        // existing repository on BB with unknown default branch
-        // should get default branch from SCM
-        new SCMRepository(SourceControlProvider.BITBUCKET, repo1URL, null,
-            false, "org", "repo1", "", GeneralSCMApiClient.UNKNOWN_DEFAULT_BRANCH),
-        // empty repository on BB with unknown default branch
-        // should get null default branch
-        new SCMRepository(SourceControlProvider.BITBUCKET, repo2URL, null,
-            false, "org", "repo2", "", GeneralSCMApiClient.UNKNOWN_DEFAULT_BRANCH)
-        };
+    SCMRepository[] reposToImport = new SCMRepository[]{
+      // existing repository on BB with unknown default branch
+      // should get default branch from SCM
+      new SCMRepository(SourceControlProvider.BITBUCKET, repo1URL, null,
+          false, "org", "repo1", "", GeneralSCMApiClient.UNKNOWN_DEFAULT_BRANCH),
+      // empty repository on BB with unknown default branch
+      // should get null default branch
+      new SCMRepository(SourceControlProvider.BITBUCKET, repo2URL, null,
+          false, "org", "repo2", "", GeneralSCMApiClient.UNKNOWN_DEFAULT_BRANCH)
+    };
     int totalRepoCount = 50;
     int prevImportedCount = 10;
 
@@ -721,7 +724,8 @@ public class ScmOnboardingServiceTest
     WireMock.verify(1, getRequestedFor(urlPathEqualTo(repo2GetDefaultBranchURL)));
 
     // and they exist in the DB
-    List<Application> allApps = sourceControlDAO.getAll().stream()
+    List<Application> allApps = sourceControlDAO.getAll()
+        .stream()
         .filter(sc -> !sc.getOwnerId().equals(ROOT_ORGANIZATION_ID))
         .map(sc -> applicationDAO.getById(sc.getOwnerId()))
         .collect(Collectors.toList());
@@ -731,10 +735,11 @@ public class ScmOnboardingServiceTest
         .containsExactlyInAnyOrder("Repo1 - Org", "Repo2 - Org");
 
     // and the default branches are stored on DB
-    assertThat(sourceControlDAO.getAll().stream()
+    assertThat(sourceControlDAO.getAll()
+        .stream()
         .filter(sc -> !ROOT_ORGANIZATION_ID.equals(sc.getOwnerId()))
         .map(SourceControl::getBaseBranch))
-        .containsExactly(MAIN_BRANCH,null);
+            .containsExactly(MAIN_BRANCH, null);
   }
 
   private void mockGetRequest(WireMockRule gitService, String urlPath, String json, int status) {
@@ -756,8 +761,8 @@ public class ScmOnboardingServiceTest
     String repo1URL = String.format("%s/org/repo1", gitService.baseUrl());
     // and a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, repo1URL, null, false, "org", "repo1",
-            "a description")
+      new SCMRepository(SourceControlProvider.GITHUB, repo1URL, null, false, "org", "repo1",
+          "a description")
     };
     int totalRepoCount = 50;
     int prevImportedCount = 8;
@@ -786,7 +791,8 @@ public class ScmOnboardingServiceTest
         .containsExactlyInAnyOrder("repo1__org", "repo1__org_2", app.getPublicId());
 
     // and the source control entries was created on the new application
-    List<Application> allSourceControlApps = sourceControlDAO.getAll().stream()
+    List<Application> allSourceControlApps = sourceControlDAO.getAll()
+        .stream()
         .filter(sc -> !sc.getOwnerId().equals(ROOT_ORGANIZATION_ID))
         .map(sc -> applicationDAO.getById(sc.getOwnerId()))
         .collect(Collectors.toList());
@@ -799,7 +805,7 @@ public class ScmOnboardingServiceTest
     // and the telemetry was sent properly indicating no items were imported
     int batchPercent = reposToImport.length * 2;
     int batchCount = reposToImport.length;
-    int totalPercent = (int)((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
+    int totalPercent = (int) ((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
     assertTelemetry(batchPercent, batchCount, totalPercent, reposToImport.length, reposToImport.length);
 
     // should create 2 memberships for the single created app
@@ -827,8 +833,8 @@ public class ScmOnboardingServiceTest
 
     // and a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1",
-            "a description")
+      new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1",
+          "a description")
     };
 
     // when the repos are imported
@@ -851,8 +857,8 @@ public class ScmOnboardingServiceTest
 
     // and a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, repoUrl, null, false, "org", "repo1",
-            "foo")
+      new SCMRepository(SourceControlProvider.GITHUB, repoUrl, null, false, "org", "repo1",
+          "foo")
     };
     int totalRepoCount = 50;
     int prevImportedCount = 8;
@@ -881,7 +887,8 @@ public class ScmOnboardingServiceTest
         .containsExactlyInAnyOrder("repo1__org", app.getPublicId());
 
     // and all the source control entries were created
-    List<Application> allSourceControlApps = sourceControlDAO.getAll().stream()
+    List<Application> allSourceControlApps = sourceControlDAO.getAll()
+        .stream()
         .filter(sc -> !ROOT_ORGANIZATION_ID.equals(sc.getOwnerId()))
         .map(sc -> applicationDAO.getById(sc.getOwnerId()))
         .collect(Collectors.toList());
@@ -897,7 +904,7 @@ public class ScmOnboardingServiceTest
     // note that the totalPercent goes up (because we return the repo that we attempted to import but
     // which was not changed so that the UI can remove it) but updatedApps is 0 (because no actual
     // DB changes were made)
-    int totalPercent = (int)((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
+    int totalPercent = (int) ((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
     int updatedApps = 0;
     int roleAssignmentCount = 1;
     assertTelemetry(batchPercent, batchCount, totalPercent, updatedApps, roleAssignmentCount);
@@ -936,7 +943,7 @@ public class ScmOnboardingServiceTest
     String repo1URL = String.format("%s/org/repo1", gitService.baseUrl());
     // given a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, repo1URL, null, false, "org", "repo1", "")
+      new SCMRepository(SourceControlProvider.GITHUB, repo1URL, null, false, "org", "repo1", "")
     };
 
     // and we call import
@@ -1116,8 +1123,10 @@ public class ScmOnboardingServiceTest
     assertThat(ticket.statusUrl).matches(STATUS_URL_PATTERN);
     String eventId = extractEventId(ticket);
 
-    await().atMost(10, TimeUnit.SECONDS).until(
-        () -> ImportStatus.COMPLETE.equals(sourceControlOrganizationImportEventDAO.getById(eventId).getImportStatus()));
+    await().atMost(10, TimeUnit.SECONDS)
+        .until(
+            () -> ImportStatus.COMPLETE
+                .equals(sourceControlOrganizationImportEventDAO.getById(eventId).getImportStatus()));
 
     SourceControlOrganizationImportEvent updatedEvent = sourceControlOrganizationImportEventDAO.getById(eventId);
     assertThat(updatedEvent.getImportStatus()).isEqualTo(ImportStatus.COMPLETE);
@@ -1163,15 +1172,16 @@ public class ScmOnboardingServiceTest
     });
 
     List<Integer> importedAppCountsPerOrg =
-        childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+        childOrgsAfterImport.stream()
+            .map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
             .collect(Collectors.toList());
     assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(5, 4, 4);
     assertThat(importedAppCountsPerOrg.stream().mapToInt(i -> i).sum()).isEqualTo(13);
 
-    //verify source control evaluations triggered for all imported apps
+    // verify source control evaluations triggered for all imported apps
     verifySourceControlEvaluationEventsCreated(13);
 
-    //check the telemetry was sent properly
+    // check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock, times(29)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
@@ -1229,7 +1239,8 @@ public class ScmOnboardingServiceTest
     assertThat(childOrgsAfterImport).hasSize(6);
 
     List<Integer> importedAppCountsPerOrg =
-        childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+        childOrgsAfterImport.stream()
+            .map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
             .collect(Collectors.toList());
     assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(3, 2, 2, 2, 2, 2);
     assertThat(importedAppCountsPerOrg.stream().mapToInt(i -> i).sum()).isEqualTo(13);
@@ -1263,13 +1274,14 @@ public class ScmOnboardingServiceTest
 
     assertThat(childOrgsAfterImport).hasSize(3);
     List<Integer> importedAppCountsPerOrg =
-        childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+        childOrgsAfterImport.stream()
+            .map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
             .collect(Collectors.toList());
     assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(4, 3, 3);
     assertThat(importedAppCountsPerOrg.stream().mapToInt(i -> i).sum()).isEqualTo(10);
     verifySourceControlEvaluationEventsCreated(10);
 
-    //check the telemetry was sent properly
+    // check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock, times(23)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
@@ -1406,7 +1418,7 @@ public class ScmOnboardingServiceTest
 
     ImportScmOrganizationRequest importRequest = new ImportScmOrganizationRequest();
     importRequest.scmHostUrl = gitService.baseUrl();
-    importRequest.desiredSubOrganizationCount = 50; //should only import the available 13 repos
+    importRequest.desiredSubOrganizationCount = 50; // should only import the available 13 repos
 
     SourceControlOrganizationImportEvent importEvent =
         tempEntity.newSourceControlOrganizationImportEvent(org.getId(), gitService.baseUrl(), -1, 50);
@@ -1427,7 +1439,8 @@ public class ScmOnboardingServiceTest
 
     assertThat(childOrgsAfterImport).hasSize(13);
     List<Integer> importedAppCountsPerOrg =
-        childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+        childOrgsAfterImport.stream()
+            .map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
             .collect(Collectors.toList());
     assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
     assertThat(importedAppCountsPerOrg.stream().mapToInt(i -> i).sum()).isEqualTo(13);
@@ -1501,7 +1514,7 @@ public class ScmOnboardingServiceTest
     assertThat(importStatus.errors).isEqualTo("runtime exception");
   }
 
-  @Test (expected = NotFoundException.class)
+  @Test(expected = NotFoundException.class)
   public void testGetImportScmOrganizationStatus_NotFound() {
     SourceControlOrganizationImportEvent event = tempEntity.newSourceControlOrganizationImportEvent();
     scmOnboardingService.getImportScmOrganizationStatus("orgId", event.getId());
@@ -1515,9 +1528,10 @@ public class ScmOnboardingServiceTest
     String name = scmApplicationNameConverter.buildName(scmRepository);
     Application app = scmOnboardingService.createNewApplication(org.getId(), publicId, name);
 
-    assertThat(logOutput).atDebugLevel().contains(
-        String.format("Resulted app name %s conflicts with an existing app. Randomizing name and retrying",
-            existingApp.getName()));
+    assertThat(logOutput).atDebugLevel()
+        .contains(
+            String.format("Resulted app name %s conflicts with an existing app. Randomizing name and retrying",
+                existingApp.getName()));
     assertThat(app.getName().length()).isGreaterThan(existingApp.getName().length());
     assertThat(app.getName()).startsWith(existingApp.getName());
   }
@@ -1534,7 +1548,7 @@ public class ScmOnboardingServiceTest
   }
 
   private void assertScmImportTelemetries(int batchCount, int updatedApps) {
-    //calculation mentioned here for clarification only
+    // calculation mentioned here for clarification only
     int totalRepoCount = 13;
     int prevImportedCount = 0;
     int batchPercent = (int) Math.round(batchCount * 100.0 / totalRepoCount);
@@ -1584,7 +1598,8 @@ public class ScmOnboardingServiceTest
     assertThat(importedSCMRepository.getDescription()).isEqualTo(scmRepository.getDescription());
 
     // and the repo exists in the DB
-    List<Application> allApps = sourceControlDAO.getAll().stream() //
+    List<Application> allApps = sourceControlDAO.getAll()
+        .stream() //
         .filter(sc -> !sc.getOwnerId().equals(ROOT_ORGANIZATION_ID)) //
         .map(sc -> applicationDAO.getById(sc.getOwnerId())) //
         .collect(Collectors.toList());
@@ -1593,7 +1608,8 @@ public class ScmOnboardingServiceTest
     assertThat(allApps.get(0).getName()).isEqualTo("Repo - Org");
 
     // and that all of the clone URLs were added
-    assertThat(sourceControlDAO.getAll().stream() //
+    assertThat(sourceControlDAO.getAll()
+        .stream() //
         .filter(sc -> !ROOT_ORGANIZATION_ID.equals(sc.getOwnerId())) //
         .map(SourceControl::getRepositoryUrl)).containsExactly(repoUrl);
 
@@ -1616,13 +1632,13 @@ public class ScmOnboardingServiceTest
       ArgumentCaptor<SourceControlEvent> eventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
       verify(mockSourceControlEventPublisher, times(count)).publishEvent(eventCaptor.capture());
       assertThat(eventCaptor.getAllValues().size()).isEqualTo(count);
-      eventCaptor.getAllValues().forEach(
-          event -> {
-            assertThat(event.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
-            assertThat(event.getScanTriggerType())
-                .isEqualTo(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
-          }
-      );
+      eventCaptor.getAllValues()
+          .forEach(
+              event -> {
+                assertThat(event.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
+                assertThat(event.getScanTriggerType())
+                    .isEqualTo(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+              });
     }
     else {
       verify(mockSourceControlEventPublisher, never()).publishEvent(any());
@@ -1639,11 +1655,12 @@ public class ScmOnboardingServiceTest
     assertTelemetry(batchPercent, batchCount, totalPercent, updateCount, 0);
   }
 
-  private void assertTelemetry(final int batchPercent,
-                               final int batchCount,
-                               final int totalPercent,
-                               int updateCount,
-                               int roleAssignmentCount)
+  private void assertTelemetry(
+      final int batchPercent,
+      final int batchCount,
+      final int totalPercent,
+      int updateCount,
+      int roleAssignmentCount)
   {
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock, times(1 + (updateCount * 2) + roleAssignmentCount)).send(
@@ -1730,24 +1747,22 @@ public class ScmOnboardingServiceTest
 
     // Given: List of repositories to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(
-            SourceControlProvider.GITHUB,
-            repo1URL,
-            "git@github.com:github-org/repo1.git",
-            false,
-            "github-org",
-            "repo1",
-            "Test repository 1"
-        ),
-        new SCMRepository(
-            SourceControlProvider.GITHUB,
-            repo2URL,
-            "git@github.com:github-org/repo2.git",
-            false,
-            "github-org",
-            "repo2",
-            "Test repository 2"
-        )
+      new SCMRepository(
+          SourceControlProvider.GITHUB,
+          repo1URL,
+          "git@github.com:github-org/repo1.git",
+          false,
+          "github-org",
+          "repo1",
+          "Test repository 1"),
+      new SCMRepository(
+          SourceControlProvider.GITHUB,
+          repo2URL,
+          "git@github.com:github-org/repo2.git",
+          false,
+          "github-org",
+          "repo2",
+          "Test repository 2")
     };
 
     int totalRepoCount = 50;
@@ -1758,8 +1773,7 @@ public class ScmOnboardingServiceTest
     // When: Repositories are imported using GitHub App authentication
     ImportResults response = scmOnboardingService.importRepositories(
         testOrg.getId(),
-        new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount)
-    );
+        new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount));
 
     // Then: All repositories should be successfully imported
     List<SCMRepository> imported = response.getImportedRepositories();
@@ -1798,7 +1812,8 @@ public class ScmOnboardingServiceTest
     assertThat(appPublicIds).containsExactly("repo1__github-org", "repo2__github-org");
 
     // And: Verify repository URLs are correctly stored
-    List<SourceControl> appSourceControls = sourceControlDAO.getAll().stream()
+    List<SourceControl> appSourceControls = sourceControlDAO.getAll()
+        .stream()
         .filter(sc -> !sc.getOwnerId().equals(ROOT_ORGANIZATION_ID) && !sc.getOwnerId().equals(testOrg.getId()))
         .collect(Collectors.toList());
     assertThat(appSourceControls).hasSize(2);

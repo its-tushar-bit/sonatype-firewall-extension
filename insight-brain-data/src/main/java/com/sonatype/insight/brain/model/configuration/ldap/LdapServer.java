@@ -18,12 +18,13 @@ import com.sonatype.insight.model.HasStringId;
  */
 @Entity
 @Table(name = "ldap_server")
-public class LdapServer extends Nameable
+public class LdapServer
+    extends Nameable
     implements HasStringId
 {
   /**
    * Internal id used to identify this LDAP server
-   * 
+   *
    * @since 1.7
    */
   @Id

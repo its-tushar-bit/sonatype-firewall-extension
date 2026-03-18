@@ -20,7 +20,9 @@ public class ImportRestrictionsTest
   public void testCodeShouldNotImportJavaxInject() {
     JavaClasses classes = new ClassFileImporter().importPackages("com.sonatype.insight.brain");
     ArchRule rule = ArchRuleDefinition.noClasses()
-        .should().dependOnClassesThat().resideInAPackage("javax.inject..")
+        .should()
+        .dependOnClassesThat()
+        .resideInAPackage("javax.inject..")
         .because("we use jakarta.inject instead of javax.inject");
 
     rule.check(classes);

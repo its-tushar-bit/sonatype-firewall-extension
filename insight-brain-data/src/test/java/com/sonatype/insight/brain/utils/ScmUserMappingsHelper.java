@@ -20,10 +20,11 @@ public class ScmUserMappingsHelper
         "GITLOG_EMAIL", "GITLOG_FULLNAME");
     List<String> toStrings = Arrays.asList("IQ_USERNAME", "IQ_EMAIL", "IQ_FULLNAME");
 
-    return IntStream.range(0, new Random().nextInt(10)).mapToObj(num ->
-        getMappingForScmUserJsonStorage(fromStrings.get(new Random().nextInt(fromStrings.size() - 1)),
-            toStrings.get(new Random().nextInt(toStrings.size() - 1)))
-    ).distinct().collect(Collectors.toList());
+    return IntStream.range(0, new Random().nextInt(10))
+        .mapToObj(num -> getMappingForScmUserJsonStorage(fromStrings.get(new Random().nextInt(fromStrings.size() - 1)),
+            toStrings.get(new Random().nextInt(toStrings.size() - 1))))
+        .distinct()
+        .collect(Collectors.toList());
   }
 
   public static Map.Entry<String, String> getMappingForScmUserJsonStorage(

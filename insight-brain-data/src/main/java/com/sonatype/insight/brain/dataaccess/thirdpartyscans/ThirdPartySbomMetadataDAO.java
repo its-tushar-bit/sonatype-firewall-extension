@@ -318,19 +318,19 @@ public class ThirdPartySbomMetadataDAO
         " COALESCE(ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END))" +
         "* 100 / NULLIF(COUNT(CASE WHEN (cs.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END)" +
         "::decimal, 0), 1), 100) as releaseStatusPercentage" + //
-        " FROM " +  databaseSchema + ".sbom_metadata sm " + //
+        " FROM " + databaseSchema + ".sbom_metadata sm " + //
         " JOIN " + //
         "  (SELECT  application_id, max(created_at) as created_at " + //
-        "   FROM " +  databaseSchema + ".sbom_metadata " + //
+        "   FROM " + databaseSchema + ".sbom_metadata " + //
         "   WHERE status = ?10 " + //
         "   GROUP BY application_id) sm2 " + //
         " ON sm.application_id = sm2.application_id " + //
         " AND sm.created_at = sm2.created_at " + //
         " JOIN " + operationalDataStore.getDatabaseSchema() + ".application app" + //
         " ON app.application_id = sm.application_id" + //
-        " LEFT JOIN " +  databaseSchema + ".coordinate_security cs" + //
+        " LEFT JOIN " + databaseSchema + ".coordinate_security cs" + //
         " ON cs.sbom_metadata_id = sm.sbom_metadata_id" + //
-        " LEFT JOIN " +  databaseSchema + ".vulnerability_exploitability vex" + //
+        " LEFT JOIN " + databaseSchema + ".vulnerability_exploitability vex" + //
         " ON cs.coordinate_security_id = vex.coordinate_security_id" + //
         " WHERE sm.status = ?10";
 
@@ -338,7 +338,7 @@ public class ThirdPartySbomMetadataDAO
       sQuery += " AND sm.application_id = ANY(array[?11])";
     }
     sQuery += " GROUP BY sm.application_id, sm.sbom_version, sm.created_at, app.public_id, app.name" +
-    generateOrderBySortFieldSelected(sortBy, asc);
+        generateOrderBySortFieldSelected(sortBy, asc);
 
     int offset = (page - 1) * pageSize;
 
@@ -354,22 +354,22 @@ public class ThirdPartySbomMetadataDAO
           ((Stream<Object[]>) paginationQuery.getResultStream())
               .peek(array -> {
                 if (result.getTotalCount() == 0) {
-                  result.setTotalCount(( (Long) array[10]).intValue());
+                  result.setTotalCount(((Long) array[10]).intValue());
                 }
               })
               .map(SbomApplicationSummaryDTO::new)
-          .collect(Collectors.toList());
+              .collect(Collectors.toList());
       List<String> applicationIdsForPolicyViolation = applicationPageApplicationSummaryDTOList.stream()
           .map(SbomApplicationSummaryDTO::getApplicationInternalId)
           .collect(Collectors.toList());
 
-      //policy violation query results
+      // policy violation query results
       Map<String, SbomPolicyViolationSummaryDTO> policyViolationSummaryMap;
       policyViolationSummaryMap = policyViolationDAO
           .getSbomPolicyViolationSummaryForAnApplication(applicationIdsForPolicyViolation);
 
-      //combine results
-      for (SbomApplicationSummaryDTO applicationSummary: applicationPageApplicationSummaryDTOList) {
+      // combine results
+      for (SbomApplicationSummaryDTO applicationSummary : applicationPageApplicationSummaryDTOList) {
         applicationSummary.setPolicyViolationSummary(
             policyViolationSummaryMap.get(applicationSummary.getApplicationInternalId()));
       }
@@ -425,10 +425,14 @@ public class ThirdPartySbomMetadataDAO
         query.append(" ORDER BY applicationName " + order);
         break;
       case VULNERABILITY:
-        query.append(" ORDER BY vulnerabilityCritical ").append(order)
-            .append(" , vulnerabilityHigh ").append(order)
-            .append(" , vulnerabilityMedium ").append(order)
-            .append(" , vulnerabilityLow ").append(order);
+        query.append(" ORDER BY vulnerabilityCritical ")
+            .append(order)
+            .append(" , vulnerabilityHigh ")
+            .append(order)
+            .append(" , vulnerabilityMedium ")
+            .append(order)
+            .append(" , vulnerabilityLow ")
+            .append(order);
         break;
       default:
         break;
@@ -457,17 +461,17 @@ public class ThirdPartySbomMetadataDAO
         "       COUNT(*) OVER() AS full_count," + //
         "       COALESCE(ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL" + //
         "           AND cs.severity >= ?6) THEN 1 END)) * 100 / NULLIF(COUNT(CASE WHEN " + //
-        "           (cs.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END)"  + //
+        "           (cs.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END)" + //
         "           ::decimal, 0), 1), 100) as releaseStatusPercentage" + //
         " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
         "  LEFT JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
         "    ON cs.sbom_metadata_id = sm.sbom_metadata_id" + //
-        "  LEFT JOIN " +  getDatabaseSchema() + ".vulnerability_exploitability vex" + //
+        "  LEFT JOIN " + getDatabaseSchema() + ".vulnerability_exploitability vex" + //
         "    ON cs.coordinate_security_id = vex.coordinate_security_id" + //
         " WHERE sm.application_id = ?10" + //
         "   AND sm.status = ?11" + //
         " GROUP BY sm.sbom_version, sm.spec, sm.spec_version, sm.created_at, sm.is_valid";
-    sQuery += generateOrderBySortFieldSelectedSbomsByApplication(sortBy , asc);
+    sQuery += generateOrderBySortFieldSelectedSbomsByApplication(sortBy, asc);
 
     int offset = (page - 1) * pageSize;
     ThirdPartySbomMetadataSummaryListDTO result = new ThirdPartySbomMetadataSummaryListDTO();
@@ -523,10 +527,14 @@ public class ThirdPartySbomMetadataDAO
         query.append(" ORDER BY releaseStatusPercentage " + order);
         break;
       case VULNERABILITY:
-        query.append(" ORDER BY vulnerabilityCritical ").append(order)
-            .append(" , vulnerabilityHigh ").append(order)
-            .append(" , vulnerabilityMedium ").append(order)
-            .append(" , vulnerabilityLow ").append(order);
+        query.append(" ORDER BY vulnerabilityCritical ")
+            .append(order)
+            .append(" , vulnerabilityHigh ")
+            .append(order)
+            .append(" , vulnerabilityMedium ")
+            .append(order)
+            .append(" , vulnerabilityLow ")
+            .append(order);
         break;
       default:
         break;

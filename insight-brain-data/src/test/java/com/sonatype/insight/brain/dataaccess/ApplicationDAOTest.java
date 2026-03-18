@@ -214,9 +214,8 @@ public class ApplicationDAOTest
     // 2. The app created with a related repository manager.
     assertThat(apps).hasSize(appCount + 2);
     assertThat(
-      apps.stream()
-        .anyMatch(app -> app.getOrganizationId().equals(orgWithRepoManager.getId()))
-    ).isTrue();
+        apps.stream()
+            .anyMatch(app -> app.getOrganizationId().equals(orgWithRepoManager.getId()))).isTrue();
   }
 
   @Test
@@ -234,9 +233,7 @@ public class ApplicationDAOTest
             "Application A2",
             "Application A3",
             "Application M1",
-            "Application Z1"
-        )
-    );
+            "Application Z1"));
   }
 
   @Test
@@ -259,8 +256,7 @@ public class ApplicationDAOTest
             "Application A2",
             "Application A3",
             "Application M1",
-            "Application Z1"
-        );
+            "Application Z1");
   }
 
   @Test
@@ -560,7 +556,7 @@ public class ApplicationDAOTest
     for (char invalidChar : PUBLIC_ID_WHITESPACE_CHARS) {
       app.setPublicId("foo" + invalidChar + "bar");
       assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOfAny(InvalidApplicationException.class,
-              InvalidNameException.class)
+          InvalidNameException.class)
           .satisfies(e -> assertThat(e.getMessage()).isIn("Public ID cannot contain whitespaces.",
               String.format(NameHelper.INVALID_CHAR_MESSAGE, "Public ID", invalidChar)));
     }
@@ -571,7 +567,7 @@ public class ApplicationDAOTest
     for (char invalidChar : PUBLIC_ID_WHITESPACE_CHARS) {
       application.setPublicId("foo" + invalidChar + "bar");
       assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOfAny(InvalidApplicationException.class,
-              InvalidNameException.class)
+          InvalidNameException.class)
           .satisfies(e -> assertThat(e.getMessage()).isIn("Public ID cannot contain whitespaces.",
               String.format(NameHelper.INVALID_CHAR_MESSAGE, "Public ID", invalidChar)));
     }
@@ -671,7 +667,7 @@ public class ApplicationDAOTest
   public void testInsert_DuplicatePublicId() {
     assertThatThrownBy(() -> tempEntity.newApplication(TemporaryEntity.uuid(), application.getPublicId(),
         organization.getId())).isInstanceOf(InvalidApplicationException.class)
-        .hasMessage(application.getPublicId() + " is already used as an ID.");
+            .hasMessage(application.getPublicId() + " is already used as an ID.");
   }
 
   @Test
@@ -1060,8 +1056,7 @@ public class ApplicationDAOTest
         true,
         "creatorId",
         "creatorName",
-        new Date()
-    );
+        new Date());
     AutoPolicyWaiver autoPolicyWaiverTwo = new AutoPolicyWaiver(
         "otherApp",
         7,
@@ -1069,8 +1064,7 @@ public class ApplicationDAOTest
         true,
         "creatorId",
         "creatorName",
-        new Date()
-    );
+        new Date());
     AutoPolicyWaiver autoPolicyWaiverThree = new AutoPolicyWaiver(
         "otherApp",
         7,
@@ -1078,8 +1072,7 @@ public class ApplicationDAOTest
         true,
         "creatorId",
         "creatorName",
-        new Date()
-    );
+        new Date());
     AutoPolicyWaiver autoPolicyWaiverFour = new AutoPolicyWaiver(
         application.getId(),
         7,
@@ -1087,8 +1080,7 @@ public class ApplicationDAOTest
         true,
         "creatorId",
         "creatorName",
-        new Date()
-    );
+        new Date());
     AutoPolicyWaiverDAO autoPolicyWaiverDAO = daoFactory.createAutoPolicyWaiverDAO();
     autoPolicyWaiverDAO.insert(autoPolicyWaiverOne);
     autoPolicyWaiverDAO.insert(autoPolicyWaiverTwo);
@@ -1359,13 +1351,13 @@ public class ApplicationDAOTest
   @Test
   public void testDelete_CascadesToSourceControlPullRequestComments() {
     Application application = tempEntity.newApplicationWithParent();
-    
+
     // Create policy evaluations (required for SourceControlPullRequestComment foreign keys)
     PolicyEvaluation sourcePolicyEvaluation = tempEntity.newPolicyEvaluation(
         application.getId(), BuildStageType.ID, "scanId1", ClientScanType.SONATYPE);
     PolicyEvaluation targetPolicyEvaluation = tempEntity.newPolicyEvaluation(
         application.getId(), BuildStageType.ID, "scanId2", ClientScanType.SONATYPE);
-    
+
     // Create SourceControlPullRequestComment entities
     tempEntity.newSourceControlPullRequestComment(
         application.getId(),
@@ -1389,7 +1381,7 @@ public class ApplicationDAOTest
 
     // Verify the comments exist
     SourceControlPullRequestCommentDAO pullRequestCommentDAO = daoFactory.createSourceControlPullRequestCommentDAO();
-    List<SourceControlPullRequestComment> commentsBeforeDelete = 
+    List<SourceControlPullRequestComment> commentsBeforeDelete =
         pullRequestCommentDAO.getByApplicationId(application.getId());
     assertThat(commentsBeforeDelete).hasSize(2);
 
@@ -1397,7 +1389,7 @@ public class ApplicationDAOTest
     applicationDAO.delete(application);
 
     // Verify the comments were deleted
-    List<SourceControlPullRequestComment> commentsAfterDelete = 
+    List<SourceControlPullRequestComment> commentsAfterDelete =
         pullRequestCommentDAO.getByApplicationId(application.getId());
     assertThat(commentsAfterDelete).isEmpty();
   }
@@ -1502,7 +1494,7 @@ public class ApplicationDAOTest
 
     assertThat(applicationDAO.getIdsByAncestorIds(
         new HashSet<>(Arrays.asList(org3.getId(), org31.getId(), app11.getId(), app31.getId(), app311.getId()))))
-        .containsExactlyInAnyOrder(app11.getId(), app31.getId(), app311.getId(), app312.getId(), app32.getId());
+            .containsExactlyInAnyOrder(app11.getId(), app31.getId(), app311.getId(), app312.getId(), app32.getId());
 
     applicationDAO.delete(application);
 
@@ -1512,8 +1504,8 @@ public class ApplicationDAOTest
 
     assertThat(applicationDAO.getIdsByAncestorIds(
         new HashSet<>(Arrays.asList(ROOT_ORGANIZATION_ID, org31.getId(), app11.getId()))))
-        .containsExactlyInAnyOrder(app11.getId(), app12.getId(), app211.getId(), app212.getId(), app31.getId(),
-            app311.getId(), app312.getId(), app32.getId());
+            .containsExactlyInAnyOrder(app11.getId(), app12.getId(), app211.getId(), app212.getId(), app31.getId(),
+                app311.getId(), app312.getId(), app32.getId());
   }
 
   @Test
@@ -1548,7 +1540,7 @@ public class ApplicationDAOTest
 
     assertThat(applicationDAO.getIdsByAncestorIds(Sets.union(new LinkedHashSet<>(
         Arrays.asList(app2.getId(), app3.getId(), app1.getId())), ids)))
-        .containsExactlyInAnyOrder(app1.getId(), app2.getId(), app3.getId());
+            .containsExactlyInAnyOrder(app1.getId(), app2.getId(), app3.getId());
   }
 
   @Test
@@ -1600,20 +1592,20 @@ public class ApplicationDAOTest
 
     assertThat(applicationDAO.getByAncestorIds(new LinkedHashSet<>(
         Arrays.asList(app2.getId(), app3.getId(), app1.getId())), 1, 10))
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(app1, app2, app3);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(app1, app2, app3);
 
     assertThat(applicationDAO.getByAncestorIds(new LinkedHashSet<>(
         Arrays.asList(app2.getId(), app3.getId(), app1.getId())), 1, 2))
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(app1, app2);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(app1, app2);
     assertThat(applicationDAO.getByAncestorIds(new LinkedHashSet<>(
         Arrays.asList(app2.getId(), app3.getId(), app1.getId())), 2, 2))
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(app3);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(app3);
     assertThat(applicationDAO.getByAncestorIds(new LinkedHashSet<>(
         Arrays.asList(app2.getId(), app3.getId(), app1.getId())), 3, 2))
-        .isEmpty();
+            .isEmpty();
   }
 
   @Test
@@ -1671,8 +1663,8 @@ public class ApplicationDAOTest
 
     assertThat(applicationDAO.getByAncestorIds(
         new HashSet<>(Arrays.asList(org3.getId(), org31.getId(), app11.getId(), app31.getId(), app311.getId())), 1, 10))
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(app11, app31, app311, app312, app32);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(app11, app31, app311, app312, app32);
 
     applicationDAO.delete(application);
 
@@ -1683,8 +1675,8 @@ public class ApplicationDAOTest
     assertThat(
         applicationDAO.getByAncestorIds(
             new HashSet<>(Arrays.asList(ROOT_ORGANIZATION_ID, org31.getId(), app11.getId())), 1, 10))
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(app11, app12, app211, app212, app31, app311, app312, app32);
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactly(app11, app12, app211, app212, app31, app311, app312, app32);
   }
 
   @Test
@@ -1725,20 +1717,20 @@ public class ApplicationDAOTest
 
     assertThat(applicationDAO.getByAncestorIds(Sets.union(new LinkedHashSet<>(
         Arrays.asList(app2.getId(), app3.getId(), app1.getId())), ids), 1, 10))
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(app1, app2, app3);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(app1, app2, app3);
 
     assertThat(applicationDAO.getByAncestorIds(Sets.union(new LinkedHashSet<>(
         Arrays.asList(app2.getId(), app3.getId(), app1.getId())), ids), 1, 2))
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(app1, app2);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(app1, app2);
     assertThat(applicationDAO.getByAncestorIds(Sets.union(new LinkedHashSet<>(
         Arrays.asList(app2.getId(), app3.getId(), app1.getId())), ids), 2, 2))
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(app3);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(app3);
     assertThat(applicationDAO.getByAncestorIds(Sets.union(new LinkedHashSet<>(
         Arrays.asList(app2.getId(), app3.getId(), app1.getId())), ids), 3, 2))
-        .isEmpty();
+            .isEmpty();
   }
 
   @Test
@@ -1795,10 +1787,10 @@ public class ApplicationDAOTest
   public void testGetDashboardApplicationRisk_H2DatabaseNotSupported() {
     assertThatThrownBy(
         () -> applicationDAO.getDashboardApplicationRisk(Collections.emptySet(), Collections.emptySet(),
-            Collections.emptySet(),1, 10, Collections.emptySet(),
+            Collections.emptySet(), 1, 10, Collections.emptySet(),
             "total_risk_per_stage_unique", "DESC", 0, 100))
-        .hasMessage("This operation is only supported for PostgreSQL databases")
-        .isInstanceOf(UnsupportedOperationException.class);
+                .hasMessage("This operation is only supported for PostgreSQL databases")
+                .isInstanceOf(UnsupportedOperationException.class);
   }
 
   @Test
@@ -1984,8 +1976,7 @@ public class ApplicationDAOTest
 
     // when: Get application IDs for multiple repository URLs
     Map<String, SortedSet<String>> urlToAppIdsMap = applicationDAO.getApplicationIdsByNormalizedRepositoryUrls(
-        Set.of(normalizedURL1, normalizedURL2, normalizedURL3)
-    );
+        Set.of(normalizedURL1, normalizedURL2, normalizedURL3));
 
     // then: Verify the mapping is correct
     assertThat(urlToAppIdsMap).hasSize(3);
@@ -2047,16 +2038,16 @@ public class ApplicationDAOTest
 
     assertThat(applicationDAO.getCountWithoutRelatedRepositories()).isEqualTo(2);
   }
-  
+
   @Test
   public void testGetApplicationsCountByOrganizationIds() {
     Organization org1 = tempEntity.newOrganization();
     Organization org2 = tempEntity.newOrganization();
-    
+
     tempEntity.newApplication(org1.getId());
     tempEntity.newApplication(org1.getId());
     tempEntity.newApplication(org2.getId());
-    
+
     assertThat(applicationDAO.getApplicationsCountByOrganizationId(org1.getId())).isEqualTo(2);
   }
 

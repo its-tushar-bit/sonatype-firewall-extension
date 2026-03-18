@@ -50,8 +50,7 @@ public class FirewallMetricsComponentsAutoReleasedConsolidatorCronJob
   @Inject
   public FirewallMetricsComponentsAutoReleasedConsolidatorCronJob(
       TaskScheduler taskScheduler,
-      ComponentsAutoReleasedMetricsConsolidator consolidator
-  )
+      ComponentsAutoReleasedMetricsConsolidator consolidator)
   {
     this.taskScheduler = taskScheduler;
     this.consolidator = consolidator;

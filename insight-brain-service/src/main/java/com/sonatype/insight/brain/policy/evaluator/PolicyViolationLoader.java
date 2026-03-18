@@ -88,10 +88,11 @@ public class PolicyViolationLoader
         policyThreatLevelFilter, policyThreatCategoryFilter, policyViolationStateFilter);
   }
 
-  public Collection<ApplicationView> getViolations(Collection<Application> applications,
-                                                   Collection<StageType> stageTypes,
-                                                   boolean activeViolationsOnly,
-                                                   Predicate<? super PolicyViolation> violationFilter)
+  public Collection<ApplicationView> getViolations(
+      Collection<Application> applications,
+      Collection<StageType> stageTypes,
+      boolean activeViolationsOnly,
+      Predicate<? super PolicyViolation> violationFilter)
   {
     return getViolations(applications, stageTypes, activeViolationsOnly, violationFilter, null, null, null, null);
   }
@@ -110,7 +111,8 @@ public class PolicyViolationLoader
 
     Set<String> applicationIds = applications.stream().map(Application::getId).collect(toSet());
 
-    Set<String> stageTypeIds = stageTypes == null ? Collections.emptySet()
+    Set<String> stageTypeIds = stageTypes == null
+        ? Collections.emptySet()
         : stageTypes.stream().map(StageType::getId).collect(toSet());
 
     Collection<PolicyEvaluation> evaluations = loadEvaluations(applicationIds, stageTypeIds, minDate);
@@ -118,8 +120,11 @@ public class PolicyViolationLoader
     final int maxApplications = configuration.getMaxApplicationsToQueryOnDashboard();
     if (maxApplications > 0) {
       // find most recent evaluations and put out appIds until limit
-      applicationIds = evaluations.stream().sorted(Comparator.comparing(PolicyEvaluation::getTime).reversed())
-          .map(PolicyEvaluation::getApplicationId).distinct().limit(maxApplications)
+      applicationIds = evaluations.stream()
+          .sorted(Comparator.comparing(PolicyEvaluation::getTime).reversed())
+          .map(PolicyEvaluation::getApplicationId)
+          .distinct()
+          .limit(maxApplications)
           .collect(toSet());
     }
     else {
@@ -127,7 +132,8 @@ public class PolicyViolationLoader
     }
 
     CompletableFuture<Map<String, ApplicationView>> appViewsByAppIdFuture = CompletableFuture.supplyAsync(() -> {
-      Collection<StageType> stageTypesToFill = stageTypes == null || stageTypes.isEmpty() ? StageTypes.getAll()
+      Collection<StageType> stageTypesToFill = stageTypes == null || stageTypes.isEmpty()
+          ? StageTypes.getAll()
           : stageTypes;
       Map<String, ApplicationView> appViewsByAppId = new LinkedHashMap<>();
       for (Application application : applications) {
@@ -188,15 +194,15 @@ public class PolicyViolationLoader
       log.debug("Loading violations without a filter on policy violation states.");
     }
 
-    Collection<PolicyViolation> violations = minDate != null ?
-        loadViolationsAfter(applicationIds, stageTypeIds, minDate, activeViolationsOnly, minimumThreatLevel,
+    Collection<PolicyViolation> violations = minDate != null
+        ? loadViolationsAfter(applicationIds, stageTypeIds, minDate, activeViolationsOnly, minimumThreatLevel,
             maximumThreatLevel, policyThreatCategories, violationStateOpen, violationStateWaived,
             violationStateLegacyViolation)
         : loadViolations(applicationIds, stageTypeIds, activeViolationsOnly, minimumThreatLevel, maximumThreatLevel,
-        policyThreatCategories, violationStateOpen, violationStateWaived, violationStateLegacyViolation);
+            policyThreatCategories, violationStateOpen, violationStateWaived, violationStateLegacyViolation);
     if (DashboardUtils.shouldOnlyShowWaivedViolations(policyViolationStateFilter)) {
       violations = violations.stream()
-          .filter(violation ->  !dashboardUtils.hasExistingAutoWaiverExclusion(violation.getApplicationId(),
+          .filter(violation -> !dashboardUtils.hasExistingAutoWaiverExclusion(violation.getApplicationId(),
               violation.getAutoPolicyWaiverId(), violation.getId()))
           .toList();
     }
@@ -215,8 +221,11 @@ public class PolicyViolationLoader
 
   private void sortViolations(Map<String, ApplicationView> appViewsByAppId) {
     List<PolicyViolation> allPolicyViolations =
-        appViewsByAppId.values().stream().flatMap(appView -> appView.getStageViews().stream())
-            .flatMap(appStageView -> appStageView.getFilteredViolations().stream()).toList();
+        appViewsByAppId.values()
+            .stream()
+            .flatMap(appView -> appView.getStageViews().stream())
+            .flatMap(appStageView -> appStageView.getFilteredViolations().stream())
+            .toList();
     policyViolationDAO.loadConstraintFacts(allPolicyViolations);
     for (ApplicationView appView : appViewsByAppId.values()) {
       for (ApplicationStageView appStageView : appView.stageViewsByStageTypeId.values()) {
@@ -225,9 +234,10 @@ public class PolicyViolationLoader
     }
   }
 
-  private Collection<PolicyEvaluation> loadEvaluations(Set<String> applicationIds,
-                                                       Set<String> stageTypeIds,
-                                                       Date minDate)
+  private Collection<PolicyEvaluation> loadEvaluations(
+      Set<String> applicationIds,
+      Set<String> stageTypeIds,
+      Date minDate)
   {
     long start = System.currentTimeMillis();
     Collection<PolicyEvaluation> evaluations;
@@ -331,9 +341,10 @@ public class PolicyViolationLoader
     return violations;
   }
 
-  private void filterViolations(Collection<PolicyViolation> violations,
-                                Predicate<? super PolicyViolation> violationFilter,
-                                Map<String, ApplicationView> appViewsByAppId)
+  private void filterViolations(
+      Collection<PolicyViolation> violations,
+      Predicate<? super PolicyViolation> violationFilter,
+      Map<String, ApplicationView> appViewsByAppId)
   {
     long start = System.currentTimeMillis();
     int filtered = 0;

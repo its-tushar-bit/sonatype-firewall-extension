@@ -67,15 +67,17 @@ public class HdsProductNotificationService
     react2ShellNotification.setSummaryUrl(react2ShellUrl);
     react2ShellNotification.setDetailHtml(
         "<p>A new React2Shell Impact report is now available. This report provides detailed information about " +
-        "the React2Shell vulnerability affecting your applications.</p>" +
-        "<p><a href=\"" + react2ShellUrl + "\">View the React2Shell Impact Report</a></p>");
+            "the React2Shell vulnerability affecting your applications.</p>" +
+            "<p><a href=\"" + react2ShellUrl + "\">View the React2Shell Impact Report</a></p>");
     react2ShellNotification.setType(com.sonatype.clm.dto.model.notification.ProductNotificationType.DEFAULT);
     react2ShellNotification.setDateCreated(System.currentTimeMillis());
     productNotifications.add(0, react2ShellNotification);
 
     productNotifications.sort((o1, o2) -> Long.compare(o2.getDateCreated(), o1.getDateCreated()));
-    deleteOldUserViewedProductNotification(productNotifications.stream().map(ProductNotification::getId).collect(
-        Collectors.toSet()));
+    deleteOldUserViewedProductNotification(productNotifications.stream()
+        .map(ProductNotification::getId)
+        .collect(
+            Collectors.toSet()));
     return productNotifications;
   }
 

@@ -70,7 +70,8 @@ public class RepositoryReevaluationTask
             repositoryComponentDAO.getByRepositoryId(repository.getId());
         Iterator<RepositoryComponent> repositoryComponents = repositoryComponentsList.iterator();
 
-        AuditData.get().setData("componentCount", repositoryComponentsList.size())
+        AuditData.get()
+            .setData("componentCount", repositoryComponentsList.size())
             .setData("evaluationCause", RepositoryComponentEvaluationDataRequestList.REEVALUATION);
 
         if (!repositoryComponents.hasNext()) {
@@ -86,7 +87,9 @@ public class RepositoryReevaluationTask
           activeTasks.incrementAndGet();
 
           try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.EVALUATE_REPOSITORY, true)) {
-            AuditData.get().setRepository(repository).setData("componentCount", request.components.size())
+            AuditData.get()
+                .setRepository(repository)
+                .setData("componentCount", request.components.size())
                 .setData("evaluationCause", RepositoryComponentEvaluationDataRequestList.REEVALUATION)
                 .continueAsync(executor, new PolicyEvaluationTask(request, activeTasks, clusterLock));
           }

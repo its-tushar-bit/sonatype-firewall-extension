@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.experimental.legal;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -142,21 +143,17 @@ public class ComponentLegalServiceAuthzTest
         null,
         componentIdentifier,
         Lists.newArrayList(new CopyrightOverrideDTO(
-                null,
-                "originalContentHash",
-                "content",
-                ComponentLegalPartStatus.ENABLED
-            ),
+            null,
+            "originalContentHash",
+            "content",
+            ComponentLegalPartStatus.ENABLED),
             new CopyrightOverrideDTO(
                 null,
                 "originalContentHash2",
                 "content2",
-                ComponentLegalPartStatus.DISABLED
-            )
-        ),
+                ComponentLegalPartStatus.DISABLED)),
         null,
-        null
-    );
+        null);
   }
 
   @Test(expected = UnauthenticatedException.class)

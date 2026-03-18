@@ -76,10 +76,10 @@ public abstract class AbstractHttpRequest<T extends AbstractHttpRequest<T, R>, R
   private static final ObjectMapper JSON = new ObjectMapper();
 
   private static final DefaultAsyncHttpClient CLIENT = new DefaultAsyncHttpClient(
-          new DefaultAsyncHttpClientConfig.Builder()
-                  .setCookieStore(null)
-                  .setUseInsecureTrustManager(true)
-                  .build());
+      new DefaultAsyncHttpClientConfig.Builder()
+          .setCookieStore(null)
+          .setUseInsecureTrustManager(true)
+          .build());
 
   private Url url;
 
@@ -375,7 +375,7 @@ public abstract class AbstractHttpRequest<T extends AbstractHttpRequest<T, R>, R
     if (auth.username != null) {
       builder.setHeader(HttpHeaderNames.AUTHORIZATION.toString(),
           "Basic " + Base64.getEncoder()
-                  .encodeToString((auth.username + ":" + auth.password).getBytes(StandardCharsets.UTF_8)));
+              .encodeToString((auth.username + ":" + auth.password).getBytes(StandardCharsets.UTF_8)));
     }
 
     for (Entry<String, String> header : headers.entrySet()) {

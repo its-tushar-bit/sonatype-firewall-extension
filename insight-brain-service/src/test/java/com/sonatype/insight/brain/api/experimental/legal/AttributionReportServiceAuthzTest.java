@@ -39,7 +39,7 @@ public class AttributionReportServiceAuthzTest
   public void testSaveAttributionReportTemplate_Authorized() {
     grantLegalReviewerPermission(ROOT_ORGANIZATION_ID);
     AttributionReportTemplateDTO reportTemplateDTO = new AttributionReportTemplateDTO();
-    //Setters used to pass validations
+    // Setters used to pass validations
     reportTemplateDTO.setTemplateName("Template Name");
     reportTemplateDTO.setDocumentTitle("Test Report");
     reportTemplateDTO.setHeader("Test header");

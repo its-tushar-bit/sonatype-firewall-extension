@@ -63,6 +63,6 @@ public class ApiActivityEventDTO
         : "";
 
     return joiner.join(escapedUsername, escapedTimestamp, escapedDomain, escapedType, escapedMethod, escapedUri,
-                      escapedIpAddress, escapedUserAgent, escapedErrorType);
+        escapedIpAddress, escapedUserAgent, escapedErrorType);
   }
 }

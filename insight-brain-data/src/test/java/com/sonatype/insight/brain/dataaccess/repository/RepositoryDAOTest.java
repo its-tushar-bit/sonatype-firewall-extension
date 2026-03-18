@@ -130,7 +130,8 @@ public class RepositoryDAOTest
   @Test
   public void testInsert_ValidateNullPublicId() {
     assertThatThrownBy(() -> tempEntity.newRepository((String) null /* publicId */))
-        .isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
+        .isInstanceOf(InvalidRepositoryException.class)
+        .hasMessage("The repository public ID cannot be null or empty.");
   }
 
   @Test
@@ -138,13 +139,15 @@ public class RepositoryDAOTest
     Repository repository = tempEntity.newRepository("Some Public ID");
     repository.setPublicId(null);
     assertThatThrownBy(() -> dao.update(repository))
-        .isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
+        .isInstanceOf(InvalidRepositoryException.class)
+        .hasMessage("The repository public ID cannot be null or empty.");
   }
 
   @Test
   public void testInsert_ValidateEmptyPublicId() {
     assertThatThrownBy(() -> tempEntity.newRepository(" " /* publicId */))
-        .isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
+        .isInstanceOf(InvalidRepositoryException.class)
+        .hasMessage("The repository public ID cannot be null or empty.");
   }
 
   @Test
@@ -152,7 +155,8 @@ public class RepositoryDAOTest
     Repository repository = tempEntity.newRepository("Some Public ID");
     repository.setPublicId(" ");
     assertThatThrownBy(() -> dao.update(repository))
-        .isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
+        .isInstanceOf(InvalidRepositoryException.class)
+        .hasMessage("The repository public ID cannot be null or empty.");
   }
 
   @Test
@@ -238,7 +242,8 @@ public class RepositoryDAOTest
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
     RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
     tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setOwnerId(repository.getId())
-        .setPolicyId(policy.getId()).setPolicyViolationId(policyViolation.getId()));
+        .setPolicyId(policy.getId())
+        .setPolicyViolationId(policyViolation.getId()));
 
     // sanity check
     PolicyWaiverRequestDAO policyWaiverRequestDAO = daoFactory.createPolicyWaiverRequestDAO();
@@ -297,8 +302,8 @@ public class RepositoryDAOTest
     final String publicId = "publicId";
     assertThatThrownBy(
         () -> dao.getByRepositoryManagerInstanceIdAndPublicIdNotNull(repositoryManagerInstanceId, publicId))
-        .isInstanceOf(NotFoundException.class)
-        .hasMessage(RepositoryDAO.getErrMsgMissingRepo(repositoryManagerInstanceId, publicId));
+            .isInstanceOf(NotFoundException.class)
+            .hasMessage(RepositoryDAO.getErrMsgMissingRepo(repositoryManagerInstanceId, publicId));
   }
 
   @Test
@@ -730,11 +735,11 @@ public class RepositoryDAOTest
   @Test
   public void testGetCountByRepositoryType() {
     tempEntity.newProxyRepository(tempEntity.newRepositoryManager(), "proxyRepo1", "maven", true, true);
-    tempEntity.newProxyRepository(tempEntity.newRepositoryManager(), "proxyRepo2", "npm",true, false);
+    tempEntity.newProxyRepository(tempEntity.newRepositoryManager(), "proxyRepo2", "npm", true, false);
     tempEntity.newHostedRepository(tempEntity.newRepositoryManager(), "hostedRepo2", "maven", false);
     tempEntity.newHostedRepository(tempEntity.newRepositoryManager(), "hostedRepo1", "npm", true);
 
-    //AbstractDbDAOTest.setup() creates one proxy repo, so count should be 3
+    // AbstractDbDAOTest.setup() creates one proxy repo, so count should be 3
     assertThat(dao.getCountByRepositoryType(RepositoryType.proxy)).isEqualTo(3);
     assertThat(dao.getCountByRepositoryType(RepositoryType.hosted)).isEqualTo(2);
   }

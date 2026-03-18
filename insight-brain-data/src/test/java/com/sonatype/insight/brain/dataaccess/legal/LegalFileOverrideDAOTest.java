@@ -56,7 +56,8 @@ public class LegalFileOverrideDAOTest
         "legalContentHash2");
     legalFileOverride.setComponentLegalFileId(componentLegalFile2.getId());
     dao.update(legalFileOverride);
-    assertThat(dao.getById(legalFileOverride.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(dao.getById(legalFileOverride.getId())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(legalFileOverride);
 
     // Delete
@@ -105,7 +106,7 @@ public class LegalFileOverrideDAOTest
 
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndType(organization.getId(), componentIdentifier,
         LegalFileType.NOTICE)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactlyInAnyOrder(legalFileOverride1, legalFileOverride2);
+            .containsExactlyInAnyOrder(legalFileOverride1, legalFileOverride2);
   }
 
   @Test
@@ -122,15 +123,15 @@ public class LegalFileOverrideDAOTest
 
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(Organization.ROOT_ORGANIZATION_ID,
         componentIdentifier, LegalFileType.NOTICE)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(legalFileOverrideForRootOrganization);
+            .containsExactly(legalFileOverrideForRootOrganization);
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(organization.getId(), componentIdentifier,
             LegalFileType.NOTICE)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(legalFileOverrideForRootOrganization);
+                .containsExactly(legalFileOverrideForRootOrganization);
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(application.getId(), componentIdentifier,
             LegalFileType.NOTICE)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(legalFileOverrideForRootOrganization);
+                .containsExactly(legalFileOverrideForRootOrganization);
 
     // Add another legal file override at the org level
     ComponentLegalFile componentLegalFileForOrganization =
@@ -142,15 +143,15 @@ public class LegalFileOverrideDAOTest
 
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(Organization.ROOT_ORGANIZATION_ID,
         componentIdentifier, LegalFileType.NOTICE)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(legalFileOverrideForRootOrganization);
+            .containsExactly(legalFileOverrideForRootOrganization);
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(organization.getId(), componentIdentifier,
             LegalFileType.NOTICE)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(legalFileOverrideForOrganization);
+                .containsExactly(legalFileOverrideForOrganization);
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(application.getId(), componentIdentifier,
             LegalFileType.NOTICE)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(legalFileOverrideForOrganization);
+                .containsExactly(legalFileOverrideForOrganization);
 
     // Add another legal file override at the app level
     ComponentLegalFile componentLegalFileForApplication =
@@ -162,15 +163,15 @@ public class LegalFileOverrideDAOTest
 
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(Organization.ROOT_ORGANIZATION_ID,
         componentIdentifier, LegalFileType.NOTICE)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(legalFileOverrideForRootOrganization);
+            .containsExactly(legalFileOverrideForRootOrganization);
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(organization.getId(), componentIdentifier,
             LegalFileType.NOTICE)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(legalFileOverrideForOrganization);
+                .containsExactly(legalFileOverrideForOrganization);
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(application.getId(), componentIdentifier,
             LegalFileType.NOTICE)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(legalFileOverrideForApplication);
+                .containsExactly(legalFileOverrideForApplication);
   }
 
   @Test

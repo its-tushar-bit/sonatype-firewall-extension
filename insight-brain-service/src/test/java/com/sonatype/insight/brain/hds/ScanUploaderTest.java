@@ -140,7 +140,7 @@ public class ScanUploaderTest
         any(ScanEntity.class), anyMap(), any(String[].class))).thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext, false );
+    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext, false);
     HdsClientAnalytics analytics = analyticsArg.getValue();
     assertThat(analytics).isEqualTo(expectedAnalyticsData);
   }
@@ -155,10 +155,10 @@ public class ScanUploaderTest
     ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
     when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), clientUserAgentArgCaptor.capture(),
         any(String.class), any(ScanEntity.class), anyMap(), any(String[].class))) //
-        .thenReturn(receipt);
+            .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, null, testClientUserAgent, thirdPartyScanContext, false );
+    scanUploader.upload(scanEntity, app, null, testClientUserAgent, thirdPartyScanContext, false);
     assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
   }
 
@@ -173,10 +173,10 @@ public class ScanUploaderTest
 
     when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
         any(ScanEntity.class), metadataArgs.capture(), any(String[].class))) //
-        .thenReturn(receipt);
+            .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext, false );
+    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext, false);
 
     assertThat(metadataArgs.getValue()).containsAllEntriesOf(matcherConfigs);
   }
@@ -193,10 +193,10 @@ public class ScanUploaderTest
 
     when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
         any(ScanEntity.class), queryParamsCaptor.capture(), any(String[].class))) //
-        .thenReturn(receipt);
+            .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext, false );
+    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext, false);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isTrue();
@@ -220,16 +220,14 @@ public class ScanUploaderTest
             .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext, false );
+    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext, false);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isTrue();
   }
 
   @Test
-  public void testUpload_SendUploadIdToHds_CpeDataMatchingDisabledWithScannerNotSonatype()
-      throws Exception
-  {
+  public void testUpload_SendUploadIdToHds_CpeDataMatchingDisabledWithScannerNotSonatype() throws Exception {
     Application app = tempEntity.newApplicationWithParent("test-app-id");
     testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
@@ -246,7 +244,7 @@ public class ScanUploaderTest
             .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext, false );
+    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext, false);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
@@ -254,9 +252,7 @@ public class ScanUploaderTest
   }
 
   @Test
-  public void testUpload_SendUploadIdToHds_CpeDataMatchingDisabledForContainerScansNoScanner()
-      throws Exception
-  {
+  public void testUpload_SendUploadIdToHds_CpeDataMatchingDisabledForContainerScansNoScanner() throws Exception {
     Application app = tempEntity.newApplicationWithParent("test-app-id");
     testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
@@ -273,16 +269,14 @@ public class ScanUploaderTest
             .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext, false );
+    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext, false);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
   }
 
   @Test
-  public void testUpload_SendUploadIdToHds_CpeDataMatchingEnabledWithFirewallForContainerImages_NoProductLicense()
-      throws Exception
-  {
+  public void testUpload_SendUploadIdToHds_CpeDataMatchingEnabledWithFirewallForContainerImages_NoProductLicense() throws Exception {
     Application app = tempEntity.newApplicationWithParent("test-app-id");
     testProductLicense.setMissingFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
@@ -299,7 +293,7 @@ public class ScanUploaderTest
             .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext, false );
+    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext, false);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
@@ -307,9 +301,7 @@ public class ScanUploaderTest
   }
 
   @Test
-  public void testUpload_SendUploadIdToHds_CpeDataMatchingEnabledWithFirewallForContainerImages_NoFeatureFlag()
-      throws Exception
-  {
+  public void testUpload_SendUploadIdToHds_CpeDataMatchingEnabledWithFirewallForContainerImages_NoFeatureFlag() throws Exception {
     Application app = tempEntity.newApplicationWithParent("test-app-id");
     testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
@@ -326,7 +318,7 @@ public class ScanUploaderTest
             .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext, false );
+    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext, false);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
@@ -334,9 +326,7 @@ public class ScanUploaderTest
   }
 
   @Test
-  public void testUpload_SendUploadIdToHds_CpeDataMatchingEnabledWithFirewallForContainerImages_NoProxyStage()
-      throws Exception
-  {
+  public void testUpload_SendUploadIdToHds_CpeDataMatchingEnabledWithFirewallForContainerImages_NoProxyStage() throws Exception {
     Application app = tempEntity.newApplicationWithParent("test-app-id");
     testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
@@ -353,7 +343,7 @@ public class ScanUploaderTest
             .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext, false );
+    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext, false);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isTrue();
@@ -407,8 +397,7 @@ public class ScanUploaderTest
     List<IqIntegrationVersion> supportedVersions = List.of(
         new IqIntegrationVersion("Maven_Plugin", "1.3.0"),
         new IqIntegrationVersion("Maven_Plugin", "1.2.0"),
-        new IqIntegrationVersion("Maven_Plugin", "1.1.0")
-    );
+        new IqIntegrationVersion("Maven_Plugin", "1.1.0"));
     when(mockIntegrationVersionCache.get("Maven_Plugin", 3)).thenReturn(supportedVersions);
 
     ScanReceipt receipt = new ScanReceipt();
@@ -434,8 +423,7 @@ public class ScanUploaderTest
     List<IqIntegrationVersion> supportedVersions = List.of(
         new IqIntegrationVersion("Maven_Plugin", "1.3.0"),
         new IqIntegrationVersion("Maven_Plugin", "1.2.0"),
-        new IqIntegrationVersion("Maven_Plugin", "1.1.0")
-    );
+        new IqIntegrationVersion("Maven_Plugin", "1.1.0"));
     when(mockIntegrationVersionCache.get("Maven_Plugin", 3)).thenReturn(supportedVersions);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());

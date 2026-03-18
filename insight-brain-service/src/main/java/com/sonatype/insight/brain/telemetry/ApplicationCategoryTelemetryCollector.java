@@ -60,8 +60,7 @@ public class ApplicationCategoryTelemetryCollector
     log.trace("Collected {} application tags for page {} and aggregated them into {} entries",
         applicationTagPage.size(),
         pageNumber,
-        applicationTagData.size()
-    );
+        applicationTagData.size());
 
     return applicationTagData;
   }

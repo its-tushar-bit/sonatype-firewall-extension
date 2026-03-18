@@ -263,11 +263,13 @@ public class ApiPolicyWaiverRequestService
     }
 
     if (policyWaiverRequest.getConstraintFacts() != null) {
-      policyWaiverRequest.getConstraintFacts().stream()
+      policyWaiverRequest.getConstraintFacts()
+          .stream()
           .flatMap(constraintFact -> constraintFact.getConditionFacts().stream().map(ConditionFact::getReference))
           .filter(Objects::nonNull)
           .filter(triggerReference -> triggerReference.getType().equals(SECURITY_VULNERABILITY_REFID))
-          .map(TriggerReference::getValue).findFirst()
+          .map(TriggerReference::getValue)
+          .findFirst()
           .ifPresent(vulnerabilityId -> dto.vulnerabilityId = vulnerabilityId);
     }
     dto.constraintFactsJson = policyWaiverRequest.getConstraintFactsJson();
@@ -297,7 +299,8 @@ public class ApiPolicyWaiverRequestService
 
   private void validateExpiryTime(Date expiryTime) {
     if (expiryTime != null
-        && !expiryTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(LocalDate.now())) {
+        && !expiryTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(LocalDate.now()))
+    {
       throw new BadRequestException("Expiration date must be in the future.");
     }
   }
@@ -329,12 +332,15 @@ public class ApiPolicyWaiverRequestService
   }
 
   private void auditPolicyWaiverRequest(PolicyWaiverRequest policyWaiverRequest) {
-    AuditData.get().setData("policyWaiverRequestId", policyWaiverRequest.getId())
-        .setPolicy(policyDAO.getById(policyWaiverRequest.getPolicyId())).setComment(policyWaiverRequest.getComment())
+    AuditData.get()
+        .setData("policyWaiverRequestId", policyWaiverRequest.getId())
+        .setPolicy(policyDAO.getById(policyWaiverRequest.getPolicyId()))
+        .setComment(policyWaiverRequest.getComment())
         .setComponentHash(policyWaiverRequest.getHash());
     if (policyWaiverRequest.getConstraintFacts() != null) {
-      AuditData.get().setData("policyConstraints",
-          policyWaiverRequest.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(toList()));
+      AuditData.get()
+          .setData("policyConstraints",
+              policyWaiverRequest.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(toList()));
     }
     AuditData.get().setData("status", policyWaiverRequest.getStatus());
   }
@@ -397,8 +403,8 @@ public class ApiPolicyWaiverRequestService
     String reasonText = policyWaiverReason != null ? policyWaiverReason.getReasonText() : null;
     TelemetryData telemetryData = new PolicyViolationTelemetryBuilder(
         (PolicyViolation) policyViolation, POLICY_WAIVER_REQUEST, telemetryUtils, licenseNameProvider)
-        .build()
-        .put(WAIVER_REASON, reasonText);
+            .build()
+            .put(WAIVER_REASON, reasonText);
 
     telemetrySender.send(telemetryData);
   }
@@ -467,7 +473,8 @@ public class ApiPolicyWaiverRequestService
     validatePolicyWaiverReasonId(apiPolicyWaiverRequestReviewDTO.waiverReasonId);
 
     ComponentMatcherStrategyForWaiver matcherStrategy =
-        apiPolicyWaiverRequestReviewDTO.matcherStrategy != null ? apiPolicyWaiverRequestReviewDTO.matcherStrategy
+        apiPolicyWaiverRequestReviewDTO.matcherStrategy != null
+            ? apiPolicyWaiverRequestReviewDTO.matcherStrategy
             : EXACT_COMPONENT;
 
     validateExpiryTime(apiPolicyWaiverRequestReviewDTO.expiryTime);
@@ -595,7 +602,7 @@ public class ApiPolicyWaiverRequestService
 
     return policyWaiverRequestMatcherWrapper.matchesComponent(componentFact)
         && (policyWaiverRequestMatcherWrapper.matchesConstraintFactsJson(constraintFactsJson)
-        || policyWaiverRequestMatcherWrapper.matchesConstraintFacts(constraintFacts));
+            || policyWaiverRequestMatcherWrapper.matchesConstraintFacts(constraintFacts));
   }
 
   private static boolean isExpired(Date expiryTime) {

@@ -89,8 +89,7 @@ public class EventProcessingErrorRetryRuleTest
     List<Exception> retryExceptions = ImmutableList.of(
         new UnknownHostException(),
         new ExclusiveAccessRequestTimeoutException("for testing"),
-        new Exception("blah abuse detection blah")
-    );
+        new Exception("blah abuse detection blah"));
     retryExceptions.forEach(e -> {
       SourceControlEvent event = createEvent();
       SourceControlEvent event2 = createEvent();

@@ -138,8 +138,8 @@ public class SpdxResultHandler
                 SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled(), isValid);
         telemetrySender.send(thirdPartyScanComponentInfoTelemetryData);
 
-        String sbomContent = CollectionUtils.isEmpty(targetBom.getComponents()) ?
-            content.getContent() : generateFilteredSbom(targetBom);
+        String sbomContent =
+            CollectionUtils.isEmpty(targetBom.getComponents()) ? content.getContent() : generateFilteredSbom(targetBom);
         return new FilteredThirdPartyContent(sbomContent, moduleDependencies, !isValid);
       }
 
@@ -150,8 +150,8 @@ public class SpdxResultHandler
     }
   }
 
-  private Pair<SpdxDocument, Boolean> parseSpdxContent(final ThirdPartyScanContent content)
-      throws SbomProcessingException
+  private Pair<SpdxDocument, Boolean> parseSpdxContent(
+      final ThirdPartyScanContent content) throws SbomProcessingException
   {
     String extension = FilenameUtils.getExtension(content.getPath());
     SbomFormat sbomFormat = SbomFormat.forString(extension.toLowerCase(Locale.ROOT));
@@ -224,12 +224,12 @@ public class SpdxResultHandler
     }
   }
 
-  private List<? extends ModelObject> getSpdxPackages(final SpdxDocument spdxDocument)
-      throws InvalidSPDXAnalysisException
+  private List<? extends ModelObject> getSpdxPackages(
+      final SpdxDocument spdxDocument) throws InvalidSPDXAnalysisException
   {
-    return
-        Read.getAllItems(spdxDocument.getModelStore(), spdxDocument.getDocumentUri(), SpdxConstants.CLASS_SPDX_PACKAGE)
-            .collect(Collectors.toList());
+    return Read
+        .getAllItems(spdxDocument.getModelStore(), spdxDocument.getDocumentUri(), SpdxConstants.CLASS_SPDX_PACKAGE)
+        .collect(Collectors.toList());
   }
 
   private void processSpdxPackage(
@@ -328,8 +328,7 @@ public class SpdxResultHandler
       final SpdxPackage spdxPackage,
       final String fileCoordinateId,
       final String packageUrl,
-      final TransactionContext tx)
-      throws InvalidSPDXAnalysisException
+      final TransactionContext tx) throws InvalidSPDXAnalysisException
   {
     Collection<ExternalRef> externalRefs = spdxPackage.getExternalRefs();
     Set<String> processedVulnerabilityIds = new HashSet<>();
@@ -354,8 +353,7 @@ public class SpdxResultHandler
 
   private ThirdPartyCoordinateSecurity parseVulnerability(
       final ExternalRef externalRef,
-      final String fileCoordinateId)
-      throws InvalidSPDXAnalysisException
+      final String fileCoordinateId) throws InvalidSPDXAnalysisException
   {
     Pair<String, String> vulnSource = SbomSpdxUtils.getRefIdAndSourceForVulnerability(externalRef);
     if (vulnSource != null) {
@@ -421,8 +419,7 @@ public class SpdxResultHandler
 
   private Pair<ComponentIdentifier, Component> getResolvedComponent(
       final SpdxPackage spdxPackage,
-      final String rootPackageId)
-      throws InvalidSPDXAnalysisException, MalformedPackageURLException
+      final String rootPackageId) throws InvalidSPDXAnalysisException, MalformedPackageURLException
   {
     Optional<String> purlOptional = getPurl(spdxPackage);
     String cpe = SbomSpdxUtils.getCpe(spdxPackage);
@@ -484,12 +481,12 @@ public class SpdxResultHandler
       setSha1Property(sha1Optional.get(), component);
     }
 
-    ComponentIdentifier componentIdentifier =  SbomCommonUtils.getComponentIdentifier(packageUrlIdentifier, component);
+    ComponentIdentifier componentIdentifier = SbomCommonUtils.getComponentIdentifier(packageUrlIdentifier, component);
     // Process sha-256 only when BFS is enabled
     if (SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled()) {
-      SbomSpdxUtils.getChecksum(spdxPackage, ChecksumAlgorithm.SHA256).ifPresent(
-          v -> component.addHash(new Hash(Algorithm.SHA_256, v))
-      );
+      SbomSpdxUtils.getChecksum(spdxPackage, ChecksumAlgorithm.SHA256)
+          .ifPresent(
+              v -> component.addHash(new Hash(Algorithm.SHA_256, v)));
     }
     return Pair.of(componentIdentifier, component);
   }
@@ -499,8 +496,7 @@ public class SpdxResultHandler
    */
   private Pair<ComponentIdentifier, Component> processComponentFromHashOrCoordinates(
       final SpdxPackage spdxPackage,
-      final String rootPackageId)
-      throws InvalidSPDXAnalysisException, MalformedPackageURLException
+      final String rootPackageId) throws InvalidSPDXAnalysisException, MalformedPackageURLException
   {
     boolean isRootPackage = spdxPackage.getId().equals(rootPackageId);
 
@@ -529,8 +525,10 @@ public class SpdxResultHandler
     return null;
   }
 
-  private String getPackageUrlFromCoordinates(String  name, final String version, boolean isRootPackage)
-      throws MalformedPackageURLException
+  private String getPackageUrlFromCoordinates(
+      String name,
+      final String version,
+      boolean isRootPackage) throws MalformedPackageURLException
   {
     String group = null;
     if (name.contains(":")) {
@@ -548,7 +546,8 @@ public class SpdxResultHandler
     if (StringUtils.isNotBlank(group)) {
       packageURLBuilder.withNamespace(group);
     }
-    packageURLBuilder.withQualifier(PURL_BOM_TYPE, isRootPackage ? Type.APPLICATION.getTypeName()
+    packageURLBuilder.withQualifier(PURL_BOM_TYPE, isRootPackage
+        ? Type.APPLICATION.getTypeName()
         : Type.LIBRARY.getTypeName());
     return packageURLBuilder.build().toString();
   }
@@ -592,7 +591,8 @@ public class SpdxResultHandler
       Collection<Relationship> relationships = spdxPackage.getRelationships();
       for (Relationship relationship : relationships) {
         if (relationship.getRelationshipType() == RelationshipType.DESCRIBES ||
-            relationship.getRelatedSpdxElement().isEmpty()) {
+            relationship.getRelatedSpdxElement().isEmpty())
+        {
           continue;
         }
         String refId1 = spdxPackage.getId();
@@ -622,10 +622,12 @@ public class SpdxResultHandler
 
   /**
    * Collects metadata
+   *
    * @return the ID of the root package, if any; otherwise, it returns an empty string.
    */
-  private String collectFilteredMetadata(final SpdxDocument spdxDocument, final Bom targetBom)
-      throws InvalidSPDXAnalysisException
+  private String collectFilteredMetadata(
+      final SpdxDocument spdxDocument,
+      final Bom targetBom) throws InvalidSPDXAnalysisException
   {
     String rootElementId = "";
     Metadata metadata = new Metadata();
@@ -665,13 +667,12 @@ public class SpdxResultHandler
     return rootElementId;
   }
 
-  private Optional<String> getPurl(final SpdxPackage spdxPackage)
-      throws InvalidSPDXAnalysisException
-  {
+  private Optional<String> getPurl(final SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException {
     final Collection<ExternalRef> externalRefs = spdxPackage.getExternalRefs();
     for (ExternalRef externalRef : externalRefs) {
       if (externalRef.getReferenceCategory() == ReferenceCategory.PACKAGE_MANAGER &&
-          externalRef.getReferenceType().getIndividualURI().endsWith("/purl")) {
+          externalRef.getReferenceType().getIndividualURI().endsWith("/purl"))
+      {
         return Optional.of(externalRef.getReferenceLocator());
       }
     }
@@ -681,12 +682,13 @@ public class SpdxResultHandler
   @VisibleForTesting
   @Override
   String determineThirdPartyIdentificationSource(final String contentPath) {
-    String fileName = StringUtils.contains(contentPath, "/") ?
-        StringUtils.substringAfterLast(contentPath, "/") : contentPath;
+    String fileName =
+        StringUtils.contains(contentPath, "/") ? StringUtils.substringAfterLast(contentPath, "/") : contentPath;
     String thirdPartyIdentificationSource = RegExUtils.removePattern(fileName, "\\.(?i)spdx\\.(xml|json)(?i)$");
     if (StringUtils.isBlank(thirdPartyIdentificationSource) ||
         StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "spdx.xml") ||
-        StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "spdx.json")) {
+        StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "spdx.json"))
+    {
       return "Third-Party";
     }
     else {

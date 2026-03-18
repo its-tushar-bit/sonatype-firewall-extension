@@ -170,7 +170,8 @@ public class MultiTenantAuditLogAppenderFactory
   public static List<File> getAuditLogFiles(final LocalDate startUtcDate, final LocalDate endUtcDate) {
     String auditLogParentFolder = getAuditLogParentFolder();
     if (auditLogParentFolder == null || auditLogParentFolder.contains("null") ||
-        auditLogParentFolder.contains("notused")) {
+        auditLogParentFolder.contains("notused"))
+    {
       throw new InternalServerException("Cannot get the audit log path.");
     }
 

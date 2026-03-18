@@ -103,9 +103,7 @@ public class ApiUserTokenResourceTest
   }
 
   @Test
-  public void testGetUserTokensByCreatedBetweenAndRealmId_CrowdIntegrationDisabled()
-      throws Exception
-  {
+  public void testGetUserTokensByCreatedBetweenAndRealmId_CrowdIntegrationDisabled() throws Exception {
     SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
     tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID, december01);
     UserToken userToken = tempEntity.newUserToken("marcus.miller", User.INTERNAL_REALM_ID, december15);
@@ -121,9 +119,9 @@ public class ApiUserTokenResourceTest
 
   @Test
   public void testGetUserTokensByCreatedBetweenAndRealmId() throws Exception {
-    tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID , december01);
+    tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID, december01);
     UserToken internalToken = tempEntity.newUserToken("marcus.miller", User.INTERNAL_REALM_ID, december15);
-    tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID ,december31);
+    tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID, december31);
     UserToken samlToken = tempEntity.newUserToken("zak.crawly", SamlRealm.ID, december15);
     UserToken oauth2Token = tempEntity.newUserToken("john.doe", OAuth2Realm.ID, december15);
 
@@ -136,9 +134,9 @@ public class ApiUserTokenResourceTest
   @Test
   public void testGetUserTokensByCreatedBetweenAndRealmId_CrowdIntegrationFeatureDisabled() throws Exception {
     SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
-    tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID , december01);
+    tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID, december01);
     UserToken userToken = tempEntity.newUserToken("marcus.miller", User.INTERNAL_REALM_ID, december15);
-    tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID ,december31);
+    tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID, december31);
     tempEntity.newUserToken("zak.crawly", CrowdRealm.ID, december15);
 
     assertUserToken(userToken, null);
@@ -148,9 +146,9 @@ public class ApiUserTokenResourceTest
 
   @Test
   public void testGetUserTokensByCreatedBetweenAndRealmId_CrowdIntegrationFeatureEnabled() throws Exception {
-    tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID , december01);
+    tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID, december01);
     UserToken internalToken = tempEntity.newUserToken("marcus.miller", User.INTERNAL_REALM_ID, december15);
-    tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID ,december31);
+    tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID, december31);
     UserToken crowdToken = tempEntity.newUserToken("zak.crawly", CrowdRealm.ID, december15);
 
     assertUserToken(internalToken, null);
@@ -237,9 +235,7 @@ public class ApiUserTokenResourceTest
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_CrowdIntegrationDisabled_Unknown()
-      throws Exception
-  {
+  public void testGetUserTokenByUsernameAndRealmId_CrowdIntegrationDisabled_Unknown() throws Exception {
     SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
 
     HttpResponse httpResponse = restRequest().path(ApiUserTokenResource.USERNAME).parameter("unknown").get();
@@ -316,8 +312,9 @@ public class ApiUserTokenResourceTest
     testGetUserTokenByUsernameAndRealmId_Crowd(false, "OaUth2");
   }
 
-  private void testGetUserTokenByUsernameAndRealmId_Crowd(boolean isCrowdIntegrationFeatureEnabled, String realmId)
-      throws Exception
+  private void testGetUserTokenByUsernameAndRealmId_Crowd(
+      boolean isCrowdIntegrationFeatureEnabled,
+      String realmId) throws Exception
   {
     testGetUserTokenByUsernameAndRealmId(isCrowdIntegrationFeatureEnabled, realmId);
   }

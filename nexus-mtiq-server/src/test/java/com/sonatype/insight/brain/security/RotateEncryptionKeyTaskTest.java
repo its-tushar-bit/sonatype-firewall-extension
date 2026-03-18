@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.security;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -101,8 +102,7 @@ public class RotateEncryptionKeyTaskTest
         tenantMetadataDAO,
         tenantUtil,
         taskScheduler,
-        multiTenantEncryptionKeyStore
-    );
+        multiTenantEncryptionKeyStore);
   }
 
   @Test
@@ -152,7 +152,7 @@ public class RotateEncryptionKeyTaskTest
       String oldEncryptedSecret = passwordHandler.encryptPassword(testSecretValue, oldEncryptionKeyValue);
       assertThat(
           passwordHandler.decryptPassword(secretRotator.apply(oldEncryptedSecret), newEncryptionKeyValue)).isEqualTo(
-          testSecretValue);
+              testSecretValue);
 
       assertThat(secretRotator.apply(null)).isEqualTo(null);
       assertThat(secretRotator.apply("")).isEqualTo("");
@@ -258,15 +258,19 @@ public class RotateEncryptionKeyTaskTest
       when(awsSecretsManagerClient.getSecret(oldEncryptionKeyName)).thenReturn(oldEncryptionKeyValue);
       when(awsSecretsManagerClient.getSecret(newEncryptionKeyName)).thenReturn(newEncryptionKeyValue);
 
-      doThrow(IllegalStateException.class).doNothing().when(spyDaoSecretRotator)
+      doThrow(IllegalStateException.class).doNothing()
+          .when(spyDaoSecretRotator)
           .rotateEncryptedSecrets(isA(SourceControlDAO.class), isA(Function.class));
 
       underTest.rotateEncryptionKey(newEncryptionKeyName);
 
-      assertThat(logOutput).atErrorLevel().contains(
-          "Tenant encryption key rotation failed. Unable to rotate encrypted secrets using new tenant encryption key " +
-              newEncryptionKeyName).contains(
-          "Failed to rotate secrets for: class com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO");
+      assertThat(logOutput).atErrorLevel()
+          .contains(
+              "Tenant encryption key rotation failed. Unable to rotate encrypted secrets using new tenant encryption key "
+                  +
+                  newEncryptionKeyName)
+          .contains(
+              "Failed to rotate secrets for: class com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO");
 
       assertThat(tenantMetadataDAO.get().getEncryptionKeyName()).isEqualTo(oldEncryptionKeyName);
       assertThat(multiTenantEncryptionKeyStore.getKey()).isEqualTo(oldEncryptionKeyValue);
@@ -286,15 +290,19 @@ public class RotateEncryptionKeyTaskTest
       when(awsSecretsManagerClient.getSecret(oldEncryptionKeyName)).thenReturn(oldEncryptionKeyValue);
       when(awsSecretsManagerClient.getSecret(newEncryptionKeyName)).thenReturn(newEncryptionKeyValue);
 
-      doThrow(SQLException.class).doNothing().when(spyDaoSecretRotator)
+      doThrow(SQLException.class).doNothing()
+          .when(spyDaoSecretRotator)
           .rotateEncryptedSecrets(isA(SourceControlDAO.class), isA(Function.class));
 
       underTest.rotateEncryptionKey(newEncryptionKeyName);
 
-      assertThat(logOutput).atErrorLevel().contains(
-          "Tenant encryption key rotation failed. Unable to rotate encrypted secrets using new tenant encryption key " +
-              newEncryptionKeyName).contains(
-          "Failed to rotate secrets for: class com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO");
+      assertThat(logOutput).atErrorLevel()
+          .contains(
+              "Tenant encryption key rotation failed. Unable to rotate encrypted secrets using new tenant encryption key "
+                  +
+                  newEncryptionKeyName)
+          .contains(
+              "Failed to rotate secrets for: class com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO");
 
       assertThat(tenantMetadataDAO.get().getEncryptionKeyName()).isEqualTo(oldEncryptionKeyName);
       assertThat(multiTenantEncryptionKeyStore.getKey()).isEqualTo(oldEncryptionKeyValue);

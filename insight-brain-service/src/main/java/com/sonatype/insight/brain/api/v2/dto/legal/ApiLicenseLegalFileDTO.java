@@ -22,7 +22,7 @@ public class ApiLicenseLegalFileDTO
   public ComponentLegalPartStatus status;
 
   public ApiLicenseLegalFileDTO() {
-    //for jackson
+    // for jackson
   }
 
   public ApiLicenseLegalFileDTO(

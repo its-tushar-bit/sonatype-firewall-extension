@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -55,9 +56,7 @@ public class ScmUserMappingServiceTest
   }
 
   @Test
-  public void testAddUserMappingByOrg_NoExistingMapping_WithRoleId()
-      throws Exception
-  {
+  public void testAddUserMappingByOrg_NoExistingMapping_WithRoleId() throws Exception {
     ScmUserMappings existingUserMappings = scmUserMappingsDAO.getByOrganizationId(org.getId());
     assertThat(existingUserMappings).isNull();
     List<UserMapping> userMappings =
@@ -67,17 +66,15 @@ public class ScmUserMappingServiceTest
     scmUserMappingService.addOrUpdateUserMappingByOrg(org.getId(), scmUserMappingsDTO);
 
     existingUserMappings = scmUserMappingsDAO.getByOrganizationId(org.getId());
-    List<Entry<String, String>>
-        userMappingsAsEntries = SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
+    List<Entry<String, String>> userMappingsAsEntries =
+        SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
     assertThat(existingUserMappings).isNotNull();
     assertThat(existingUserMappings.getMappings()).containsExactlyElementsOf(userMappingsAsEntries);
     assertThat(existingUserMappings.getRoleId()).isEqualTo(Role.DEVELOPER_ROLE_ID);
   }
 
   @Test
-  public void testAddUserMappingByOrg_NoExistingMapping_WithoutRoleId()
-      throws Exception
-  {
+  public void testAddUserMappingByOrg_NoExistingMapping_WithoutRoleId() throws Exception {
     ScmUserMappings existingUserMappings = scmUserMappingsDAO.getByOrganizationId(org.getId());
     assertThat(existingUserMappings).isNull();
     List<UserMapping> userMappings =
@@ -87,22 +84,20 @@ public class ScmUserMappingServiceTest
     scmUserMappingService.addOrUpdateUserMappingByOrg(org.getId(), scmUserMappingsDTO);
 
     existingUserMappings = scmUserMappingsDAO.getByOrganizationId(org.getId());
-    List<Entry<String, String>>
-        userMappingsAsEntries = SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
+    List<Entry<String, String>> userMappingsAsEntries =
+        SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
     assertThat(existingUserMappings).isNotNull();
     assertThat(existingUserMappings.getMappings()).containsExactlyElementsOf(userMappingsAsEntries);
     assertThat(existingUserMappings.getRoleId()).isEqualTo(Role.DEVELOPER_ROLE_ID);
   }
 
   @Test
-  public void testAddUserMappingByOrg_ExistingMapping_WithRoleId()
-      throws Exception
-  {
+  public void testAddUserMappingByOrg_ExistingMapping_WithRoleId() throws Exception {
     List<UserMapping> userMappings =
         Arrays.asList(new UserMapping(FromMappingEnum.GITLOG_EMAIL, ToMappingEnum.IQ_EMAIL));
     SCMUserMappingsDTO scmUserMappingsDTO = new SCMUserMappingsDTO(null, userMappings);
-    List<Entry<String, String>>
-        userMappingsAsEntries = SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
+    List<Entry<String, String>> userMappingsAsEntries =
+        SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
     tempEntity.createScmUserMappings(org.getId(), userMappingsAsEntries);
     ScmUserMappings existingUserMappings = scmUserMappingsDAO.getByOrganizationId(org.getId());
     userMappingsAsEntries = SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
@@ -126,14 +121,12 @@ public class ScmUserMappingServiceTest
   }
 
   @Test
-  public void testAddUserMappingByOrg_ExistingMapping_WithoutRoleId()
-      throws Exception
-  {
+  public void testAddUserMappingByOrg_ExistingMapping_WithoutRoleId() throws Exception {
     List<UserMapping> userMappings =
         Arrays.asList(new UserMapping(FromMappingEnum.GITLOG_EMAIL, ToMappingEnum.IQ_EMAIL));
     SCMUserMappingsDTO scmUserMappingsDTO = new SCMUserMappingsDTO("developer", userMappings);
-    List<Entry<String, String>>
-        userMappingsAsEntries = SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
+    List<Entry<String, String>> userMappingsAsEntries =
+        SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
     tempEntity.createScmUserMappings("developer", org.getId(), userMappingsAsEntries);
     ScmUserMappings existingUserMappings = scmUserMappingsDAO.getByOrganizationId(org.getId());
     userMappingsAsEntries = SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
@@ -161,8 +154,8 @@ public class ScmUserMappingServiceTest
     List<UserMapping> userMappings =
         Arrays.asList(new UserMapping(FromMappingEnum.GITLOG_EMAIL, ToMappingEnum.IQ_EMAIL));
     SCMUserMappingsDTO scmUserMappingsDTO = new SCMUserMappingsDTO(null, userMappings);
-    List<Entry<String, String>>
-        userMappingsAsEntries = SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
+    List<Entry<String, String>> userMappingsAsEntries =
+        SCMUserMappingsDTO.userMappingsAsEntries(scmUserMappingsDTO.mappings());
     tempEntity.createScmUserMappings(org.getId(), userMappingsAsEntries);
 
     ScmUserMappings existingUserMappings = scmUserMappingsDAO.getByOrganizationId(org.getId());
@@ -338,7 +331,8 @@ public class ScmUserMappingServiceTest
     Repository repository = tempEntity.newRepository();
 
     assertThatThrownBy(() -> scmUserMappingService.getUserMappingsByOwner(OwnerType.REPOSITORY, repository.getId()))
-        .isInstanceOf(BadRequestException.class).hasMessage("OwnerType not supported: "
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("OwnerType not supported: "
             + OwnerType.REPOSITORY);
   }
 }

@@ -48,9 +48,9 @@ public class TenantAwareOneTimeRunnable
   private final Tenant tenant;
 
   /*
-    In Shiro 2.0.4+ a change removed the InheritableThreadLocal approach from ThreadContext
-    (it was causing nasty classloader/thread-local cleanup problems in app servers when apps spawned threads)
-  */
+   * In Shiro 2.0.4+ a change removed the InheritableThreadLocal approach from ThreadContext
+   * (it was causing nasty classloader/thread-local cleanup problems in app servers when apps spawned threads)
+   */
   private final Subject subject;
 
   private boolean previouslyRun = false;
@@ -69,8 +69,8 @@ public class TenantAwareOneTimeRunnable
   public void run() {
     if (previouslyRun) {
       /*
-        This is to fail fast. The request will fail when the wrapped runnable is called and gets the tenant anyway but
-        by failing fast we get a better stack trace, making it easier to find and resolve the problem.
+       * This is to fail fast. The request will fail when the wrapped runnable is called and gets the tenant anyway but
+       * by failing fast we get a better stack trace, making it easier to find and resolve the problem.
        */
       throw new RuntimeException("TenantAwareOneTimeRunnable cannot be reused");
     }

@@ -28,7 +28,8 @@ import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_N
 import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class LegalReportResourceTest extends AbstractResourceTest
+public class LegalReportResourceTest
+    extends AbstractResourceTest
 {
   private static final String EMPTY_JSON_ARRAY = "[]";
 

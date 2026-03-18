@@ -210,10 +210,11 @@ public class LabelDAO
     }
   }
 
-  private void getDuplicateLabels(final TransactionContext tx,
-                                  final Map<OwnerType, Set<String>> childrenWithDuplicatesByType,
-                                  final Owner owner,
-                                  final Label label)
+  private void getDuplicateLabels(
+      final TransactionContext tx,
+      final Map<OwnerType, Set<String>> childrenWithDuplicatesByType,
+      final Owner owner,
+      final Label label)
   {
 
     if (!owner.canHaveChildren()) {

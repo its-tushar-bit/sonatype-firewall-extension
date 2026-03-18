@@ -43,15 +43,16 @@ public class KeyPairFactory
    * configuration. One such configuration is the checking of FIPS mode. If FIPS mode is enabled, the key pair is
    * created using the FIPS permitted values.
    *
-   * @param publicKey  - the public key
+   * @param publicKey - the public key
    * @param privateKey - the private key
    * @return a new {@link KeyPair} instance
    * @throws NoSuchAlgorithmException - if the algorithm is not found
-   * @throws InvalidKeySpecException  - if the key specification is invalid
-   * @throws NoSuchProviderException  - if the provider is not found
+   * @throws InvalidKeySpecException - if the key specification is invalid
+   * @throws NoSuchProviderException - if the provider is not found
    */
-  public static KeyPair createKeyPair(final PublicKey publicKey, final PrivateKey privateKey)
-      throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException
+  public static KeyPair createKeyPair(
+      final PublicKey publicKey,
+      final PrivateKey privateKey) throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException
   {
     if (FIPSModeDetector.isEnabled()) {
       return createFipsKeyPair(publicKey, privateKey);
@@ -62,25 +63,24 @@ public class KeyPairFactory
   /**
    * Creates a {@link KeyPair} instance, using the provided public and private keys, based on the FIPS configuration.
    *
-   * @param publicKey  - the public key
+   * @param publicKey - the public key
    * @param privateKey - the private key
    * @return a new {@link KeyPair} instance
    * @throws NoSuchAlgorithmException - if the algorithm is not found
-   * @throws InvalidKeySpecException  - if the key specification is invalid
-   * @throws NoSuchProviderException  - if the provider is not found
+   * @throws InvalidKeySpecException - if the key specification is invalid
+   * @throws NoSuchProviderException - if the provider is not found
    */
-  public static KeyPair createFipsKeyPair(final PublicKey publicKey, final PrivateKey privateKey)
-      throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException
+  public static KeyPair createFipsKeyPair(
+      final PublicKey publicKey,
+      final PrivateKey privateKey) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException
   {
     KeyFactory keyFactory = KeyFactory.getInstance(
         getFipsKeyPairGeneratorAlgorithmOrDefault(),
-        getFipsKeyPairGeneratorProviderOrDefault()
-    );
+        getFipsKeyPairGeneratorProviderOrDefault());
 
     return new KeyPair(
         keyFactory.generatePublic(new X509EncodedKeySpec(publicKey.getEncoded())),
-        keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKey.getEncoded()))
-    );
+        keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKey.getEncoded())));
   }
 
   /**
@@ -89,7 +89,7 @@ public class KeyPairFactory
    *
    * @return a new {@link KeyPair} instance
    * @throws NoSuchAlgorithmException - if the algorithm is not found
-   * @throws NoSuchProviderException  - if the provider is not found
+   * @throws NoSuchProviderException - if the provider is not found
    */
   public static KeyPair generateKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
     if (FIPSModeDetector.isEnabled()) {
@@ -104,7 +104,7 @@ public class KeyPairFactory
    *
    * @return a new {@link KeyPair} instance
    * @throws NoSuchAlgorithmException - if the algorithm is not found
-   * @throws NoSuchProviderException  - if the provider is not found
+   * @throws NoSuchProviderException - if the provider is not found
    */
   public static KeyPair generatFipsKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
     SecureRandom secureRandom = createFipsSecureRandom();
@@ -130,7 +130,7 @@ public class KeyPairFactory
    *
    * @return a new {@link SecureRandom} instance
    * @throws NoSuchAlgorithmException - if the algorithm is not found
-   * @throws NoSuchProviderException  - if the provider is not found
+   * @throws NoSuchProviderException - if the provider is not found
    */
   public static SecureRandom createFipsSecureRandom() throws NoSuchAlgorithmException, NoSuchProviderException {
     return SecureRandom.getInstance(getFipsKeyPairSecureAlgorithmOrDefault(), getFipsKeyPairSecureProviderOrDefault());
@@ -141,12 +141,11 @@ public class KeyPairFactory
    *
    * @return a new {@link KeyPairGenerator} instance
    * @throws NoSuchAlgorithmException - if the algorithm is not found
-   * @throws NoSuchProviderException  - if the provider is not found
+   * @throws NoSuchProviderException - if the provider is not found
    */
   public static KeyPairGenerator createFipsKeyPairGenerator() throws NoSuchAlgorithmException, NoSuchProviderException {
     return KeyPairGenerator.getInstance(
         getFipsKeyPairGeneratorAlgorithmOrDefault(),
-        getFipsKeyPairGeneratorProviderOrDefault()
-    );
+        getFipsKeyPairGeneratorProviderOrDefault());
   }
 }

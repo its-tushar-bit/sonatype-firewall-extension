@@ -155,10 +155,10 @@ public class NoticeDetailsTest
     noticeOverview.shouldNotHave(text("content"));
 
     componentNoticeFile =
-            tempEntity.newComponentLegalFile(componentId, rootOrg.getId(), LegalFileType.NOTICE, "noticeContentHash");
+        tempEntity.newComponentLegalFile(componentId, rootOrg.getId(), LegalFileType.NOTICE, "noticeContentHash");
     LegalFileOverride noticeFileOverride = tempEntity.newLegalFileOverride(
-            "ceeb94cfb8ad27ae26ad0703a3e46babb828499fee29ff036b7eb9c80cd659e4", "hash", "added notice",
-            ComponentLegalPartStatus.ENABLED, componentNoticeFile.getId());
+        "ceeb94cfb8ad27ae26ad0703a3e46babb828499fee29ff036b7eb9c80cd659e4", "hash", "added notice",
+        ComponentLegalPartStatus.ENABLED, componentNoticeFile.getId());
     return noticeFileOverride;
   }
 

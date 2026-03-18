@@ -157,7 +157,7 @@ public class PullRequestCodeInsightsDetailsTest
 
   @Test
   public void testPullRequestCodeInsights_addedOnly() throws Exception {
-    //setup test data
+    // setup test data
     setupTestData();
     createTestData_Policies(true);
 
@@ -166,12 +166,12 @@ public class PullRequestCodeInsightsDetailsTest
     RankedSourceLocation sourceLocation2 = new RankedSourceLocation("/pom.xml", 30, "456", 2);
     locationDiscoveryResult.getLocationMap().put(ci, Arrays.asList(sourceLocation1, sourceLocation2));
 
-    //when
+    // when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false);
 
-    //then assert that created contents match expected
+    // then assert that created contents match expected
     assertThat(details.getReportDetails())
         .isEqualTo("On " + bomTimestamp +
             ", Sonatype Lifecycle found 39 new policy violations affecting 4 components.");
@@ -199,7 +199,7 @@ public class PullRequestCodeInsightsDetailsTest
 
   @Test
   public void testPullRequestCodeInsights_addedOnly_OutcomePass() throws Exception {
-    //setup test data
+    // setup test data
     setupTestData();
     createTestData_Policies(false);
 
@@ -208,7 +208,7 @@ public class PullRequestCodeInsightsDetailsTest
     RankedSourceLocation sourceLocation2 = new RankedSourceLocation("/pom.xml", 30, "456", 2);
     locationDiscoveryResult.getLocationMap().put(ci, Arrays.asList(sourceLocation1, sourceLocation2));
 
-    //when
+    // when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false);
@@ -246,15 +246,15 @@ public class PullRequestCodeInsightsDetailsTest
 
   @Test
   public void testPullRequestCodeInsights_clearedOnly() throws Exception {
-    //setup test data (reversed)
+    // setup test data (reversed)
     setupTestData("/PullRequestCodeInsightsDetailsTest/to-report", "/PullRequestCodeInsightsDetailsTest/from-report");
 
-    //when
+    // when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false);
 
-    //then assert that created contents match expected
+    // then assert that created contents match expected
     assertThat(details.getReportDetails()).isEqualTo("Sonatype Lifecycle found no new policy violations on " +
         bomTimestamp + ". 39 outstanding policy violations fixed, affecting 4 components");
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
@@ -280,12 +280,12 @@ public class PullRequestCodeInsightsDetailsTest
     diff.getCleared().add(policyViolation);
     sourceControlComponentLoader.enhanceSourceControlComponentDetails(componentDetails, diff.getCleared());
 
-    //when
+    // when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false);
 
-    //then assert that created contents match expected
+    // then assert that created contents match expected
     assertThat(details.getReportDetails()).isEqualTo("On " + bomTimestamp +
         ", Sonatype Lifecycle found 39 new policy violations affecting 4 components. " +
         "1 outstanding policy violation fixed, affecting 1 component");
@@ -312,16 +312,16 @@ public class PullRequestCodeInsightsDetailsTest
 
   @Test
   public void testPullRequestCodeInsights_noAddedOrCleared() throws Exception {
-    //setup test data
+    // setup test data
     setupTestData();
     diff.getAppeared().clear();
 
-    //when
+    // when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false);
 
-    //then assert that created contents match expected
+    // then assert that created contents match expected
     assertThat(details.getReportDetails())
         .isEqualTo("Sonatype Lifecycle found no new policy violations on " + bomTimestamp + ".");
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
@@ -332,7 +332,7 @@ public class PullRequestCodeInsightsDetailsTest
 
   @Test
   public void testPullRequestCodeInsights_singlePolicyViolationPlurality() throws IOException, URISyntaxException {
-    //setup test data
+    // setup test data
     setupTestData();
     createTestData_Policies(true);
 
@@ -340,12 +340,12 @@ public class PullRequestCodeInsightsDetailsTest
     diff.getAppeared().clear();
     diff.getAppeared().add(first);
 
-    //when
+    // when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false);
 
-    //then assert that created contents has singular violation in heading
+    // then assert that created contents has singular violation in heading
     assertThat(details.getReportDetails())
         .startsWith("On " + bomTimestamp + ", Sonatype Lifecycle found 1 new policy violation affecting 1 component.");
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.FAIL);
@@ -361,7 +361,7 @@ public class PullRequestCodeInsightsDetailsTest
 
   @Test
   public void testPullRequestCodeInsights_singleClearedViolationPlurality() throws IOException, URISyntaxException {
-    //setup test data
+    // setup test data
     setupTestData();
 
     final PolicyViolation first = diff.getAppeared().get(0);
@@ -369,12 +369,12 @@ public class PullRequestCodeInsightsDetailsTest
     diff.getCleared().add(first);
     sourceControlComponentLoader.enhanceSourceControlComponentDetails(componentDetails, diff.getCleared());
 
-    //when
+    // when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false);
 
-    //then assert that created contents has singular violation in heading
+    // then assert that created contents has singular violation in heading
     assertThat(details.getReportDetails()).contains("Sonatype Lifecycle found no new policy violations on " +
         bomTimestamp + ". 1 outstanding policy violation fixed, affecting 1 component");
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
@@ -385,16 +385,16 @@ public class PullRequestCodeInsightsDetailsTest
 
   @Test
   public void testPullRequestCodeInsights_emptyBomData() throws IOException, URISyntaxException {
-    //setup test data
+    // setup test data
     setupTestData("/PullRequestCodeInsightsDetailsTest/from-report",
         "/PullRequestCodeInsightsDetailsTest/to-report-empty-bom");
 
-    //when
+    // when
     PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
         bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false);
 
-    //then assert that created contents is not available
+    // then assert that created contents is not available
     String contents = details.getReportDetails();
     assertThat(contents).isEqualTo("Sonatype Lifecycle found no new policy violations on " + bomTimestamp + ".");
   }
@@ -402,60 +402,54 @@ public class PullRequestCodeInsightsDetailsTest
   @Test
   public void testPullRequestCodeInsights_nullBom() throws IOException, URISyntaxException {
     setupTestData();
-    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestCodeInsightsDetails(
-            bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, null, featureBranchPolicyEvaluation, diff,
-            lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false))
+    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> new PullRequestCodeInsightsDetails(
+        bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, null, featureBranchPolicyEvaluation, diff,
+        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false))
         .withMessage("sourceControlComponentDetails is required and cannot be null");
   }
 
   @Test
   public void testPullRequestCodeInsights_nullDiff() throws IOException, URISyntaxException {
     setupTestData();
-    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestCodeInsightsDetails(
-            bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation,
-            null, lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false))
+    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> new PullRequestCodeInsightsDetails(
+        bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation,
+        null, lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false))
         .withMessage("policyViolationDiff is required and cannot be null");
   }
 
   @Test
   public void testPullRequestCodeInsights_nullApp() throws URISyntaxException, IOException {
     setupTestData();
-    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestCodeInsightsDetails(
-            bitbucketGitRepositoryInfo.normalizedRepositoryUrl, null, componentDetails, featureBranchPolicyEvaluation,
-            diff, lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false))
+    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> new PullRequestCodeInsightsDetails(
+        bitbucketGitRepositoryInfo.normalizedRepositoryUrl, null, componentDetails, featureBranchPolicyEvaluation,
+        diff, lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false))
         .withMessage("app is required and cannot be null");
   }
 
   @Test
   public void testPullRequestCodeInsights_nullRepoUrl() throws URISyntaxException, IOException {
     setupTestData();
-    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestCodeInsightsDetails(
-            null, app, componentDetails, featureBranchPolicyEvaluation, diff,
-            lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false))
+    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> new PullRequestCodeInsightsDetails(
+        null, app, componentDetails, featureBranchPolicyEvaluation, diff,
+        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false))
         .withMessage("repositoryUrl is required and cannot be null");
   }
 
   @Test
   public void testPullRequestCodeInsights_nullFeatureBranchEvaluation() throws IOException, URISyntaxException {
     setupTestData();
-    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestCodeInsightsDetails(
-            bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, null, diff,
-            lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false))
+    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> new PullRequestCodeInsightsDetails(
+        bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, null, diff,
+        lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false))
         .withMessage("featureBranchEvaluation is required and cannot be null");
   }
 
   @Test
   public void testPullRequestCodeInsights_nullBaseUrl() throws IOException, URISyntaxException {
     setupTestData();
-    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-        new PullRequestCodeInsightsDetails(
-            bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation,
-            diff, null, locationDiscoveryResult, policyDAO, organizationDAO, false))
+    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> new PullRequestCodeInsightsDetails(
+        bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation,
+        diff, null, locationDiscoveryResult, policyDAO, organizationDAO, false))
         .withMessage("baseUrl is required and cannot be null");
   }
 
@@ -463,49 +457,52 @@ public class PullRequestCodeInsightsDetailsTest
     setupTestData("/PullRequestCodeInsightsDetailsTest/from-report", "/PullRequestCodeInsightsDetailsTest/to-report");
   }
 
-  private void setupTestData(final String defaultBranchReportLocation, final String featureBranchReportLocation)
-      throws IOException, URISyntaxException
+  private void setupTestData(
+      final String defaultBranchReportLocation,
+      final String featureBranchReportLocation) throws IOException, URISyntaxException
   {
-    //setup reports
+    // setup reports
     createReportFile(app.getId(), FROM_SCAN_ID, zipReportDir(defaultBranchReportLocation, tempDir),
         insightWork);
     createReportFile(app.getId(), TO_SCAN_ID, zipReportDir(featureBranchReportLocation, tempDir),
         insightWork);
 
-    //setup evaluations
+    // setup evaluations
     defaultBranchPolicyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID);
     featureBranchPolicyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID);
     featureBranchPolicyEvaluation.setTime(new GregorianCalendar(2020, Calendar.JUNE, 21, 9, 15, 32).getTime());
 
-    //setup diff
+    // setup diff
     diff = policyEvaluationDiffService.createPolicyViolationDiff(defaultBranchPolicyEvaluation,
         featureBranchPolicyEvaluation).get();
 
-    //setup remediationVersionMap
+    // setup remediationVersionMap
     remediationVersionMap = new HashMap<>();
     ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("com.h2database", "h2", "1.4.190", "", "jar");
     remediationVersionMap.put(ci, "1.4.200");
 
-    //setup pullRequestLineComments
+    // setup pullRequestLineComments
     pullRequestLineComments = new ArrayList<>();
     PullRequestLineCommentDTO lineCommentDTO = new PullRequestLineCommentDTO(ci, new DiffPosition("path",
-            1, 0, 1, "456", 1));
+        1, 0, 1, "456", 1));
     lineCommentDTO.setScmId(12345L);
     pullRequestLineComments.add(lineCommentDTO);
 
-    //setup gitRepositoryInfo
+    // setup gitRepositoryInfo
     bitbucketGitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, null, "user", "token",
-        SourceControlProvider.BITBUCKET, "master", true, true,true, true, true, true, false, null);
+        SourceControlProvider.BITBUCKET, "master", true, true, true, true, true, true, false, null);
 
-    //setup source control component details
+    // setup source control component details
     componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
         featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
 
     bomTimestamp = DATE_TIME_FORMATTER.format(
         ZonedDateTime.ofInstant(featureBranchPolicyEvaluation.getTime().toInstant(), ZoneId.systemDefault()));
 
-    Mockito.lenient().when(pullRequestLocationDiscoveryService.doLocationDiscovery(anyList(),
-        any(GitRepositoryInfo.class), anyString(), anyString())).thenReturn(locationDiscoveryResult);
+    Mockito.lenient()
+        .when(pullRequestLocationDiscoveryService.doLocationDiscovery(anyList(),
+            any(GitRepositoryInfo.class), anyString(), anyString()))
+        .thenReturn(locationDiscoveryResult);
   }
 
   private void createTestData_Policies(boolean failInRelease) {
@@ -536,8 +533,10 @@ public class PullRequestCodeInsightsDetailsTest
   private void assertAnnotation(
       final List<CodeInsightAnnotation> annotations,
       final BitbucketCodeInsightSeverity severity,
-      final String message, final String detail,
-      final String path, final Integer lineNumber,
+      final String message,
+      final String detail,
+      final String path,
+      final Integer lineNumber,
       final int index)
   {
     CodeInsightAnnotation annotation;
@@ -560,7 +559,8 @@ public class PullRequestCodeInsightsDetailsTest
   private void assertAnnotation(
       final List<CodeInsightAnnotation> annotations,
       final BitbucketCodeInsightSeverity severity,
-      final String message, final String detail,
+      final String message,
+      final String detail,
       final int index)
   {
     assertAnnotation(annotations, severity, message, detail, null, null, index);

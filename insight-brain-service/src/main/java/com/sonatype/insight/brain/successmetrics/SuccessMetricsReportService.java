@@ -112,11 +112,14 @@ public class SuccessMetricsReportService
     return successMetricsReport;
   }
 
-  private void auditSuccessMetricsReport(final SuccessMetricsReport report,
-                                         final Set<String> applicationIds,
-                                         final Set<String> organizationIds)
+  private void auditSuccessMetricsReport(
+      final SuccessMetricsReport report,
+      final Set<String> applicationIds,
+      final Set<String> organizationIds)
   {
-    AuditData.get().setSuccessMetricsReport(report).setData("selectedOrganizations",
+    AuditData.get()
+        .setSuccessMetricsReport(report)
+        .setData("selectedOrganizations",
             auditService.getSelectedOrganizationsById(organizationIds))
         .setData("selectedApplications", auditService.getSelectedApplicationsById(applicationIds, organizationIds));
   }

@@ -53,7 +53,7 @@ public class AutoPolicyWaiverViolationConditionFactsListComparatorTest
 
     conditionFacts2.add(conditionFact1);
     assertThat(conditionFactsListComparator.compare(conditionFacts1, conditionFacts2)).isEqualTo(-1);
-    
+
     conditionFacts1.add(conditionFact2);
     assertThat(conditionFactsListComparator.compare(conditionFacts1, conditionFacts2)).isEqualTo(0);
   }

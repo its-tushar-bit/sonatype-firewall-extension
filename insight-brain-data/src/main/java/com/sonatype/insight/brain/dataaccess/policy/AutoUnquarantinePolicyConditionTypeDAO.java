@@ -40,7 +40,8 @@ public class AutoUnquarantinePolicyConditionTypeDAO
 
   @Override
   public void insert(
-      final TransactionContext tx, final AutoUnquarantinePolicyConditionType entity)
+      final TransactionContext tx,
+      final AutoUnquarantinePolicyConditionType entity)
   {
     // will throw IllegalArgumentException if the id is not a valid ConditionType
     final ConditionType conditionType = ConditionTypes.getById(entity.getId());

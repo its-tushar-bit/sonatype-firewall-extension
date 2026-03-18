@@ -38,7 +38,8 @@ public class NxRadio
   private SelenideElement elementFor(WebElementCondition condition) {
     if (selected.equals(condition) ||
         Condition.enabled.equals(condition) ||
-        Condition.disabled.equals(condition)) {
+        Condition.disabled.equals(condition))
+    {
       return input();
     }
     else {

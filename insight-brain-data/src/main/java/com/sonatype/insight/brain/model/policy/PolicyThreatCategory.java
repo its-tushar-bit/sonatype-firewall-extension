@@ -9,16 +9,19 @@ import java.util.SortedSet;
 
 /**
  * The threat category for a policy is based on the conditions in the constraints of that policy.
- * 
+ *
  * @see Policy#getThreatCategory
- * 
+ *
  * @since 1.11
  */
 public enum PolicyThreatCategory
 {
   // The order the policy threat categories are declared here is used when the threat category for a policy is
   // determined. Changing the order here changes the category for policies.
-  SECURITY("security"), LICENSE("license"), QUALITY("quality"), OTHER("other");
+  SECURITY("security"),
+  LICENSE("license"),
+  QUALITY("quality"),
+  OTHER("other");
 
   private final String name;
 

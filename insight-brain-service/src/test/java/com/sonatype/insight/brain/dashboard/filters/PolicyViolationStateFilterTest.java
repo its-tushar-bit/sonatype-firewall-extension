@@ -54,8 +54,8 @@ public class PolicyViolationStateFilterTest
 
   @Test
   public void testLegacyViolationAndWaivedSet() {
-    PolicyViolationStateFilter legacyViolationFilter
-        = new PolicyViolationStateFilter(PolicyViolationState.LEGACY_VIOLATION);
+    PolicyViolationStateFilter legacyViolationFilter =
+        new PolicyViolationStateFilter(PolicyViolationState.LEGACY_VIOLATION);
     PolicyViolationStateFilter waivedFilter = new PolicyViolationStateFilter(PolicyViolationState.WAIVED);
     PolicyViolationStateFilter bothFilter = new PolicyViolationStateFilter(PolicyViolationState.WAIVED,
         PolicyViolationState.LEGACY_VIOLATION);

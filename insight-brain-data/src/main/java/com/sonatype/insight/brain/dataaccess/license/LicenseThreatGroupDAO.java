@@ -86,11 +86,11 @@ public class LicenseThreatGroupDAO
    * Queries the {@link LicenseThreatGroup}s for a given set of license IDs for a given list of owner IDs and its
    * hierarchy.
    *
-   * @param tx         Current transaction.
-   * @param ownerIds   Owner IDs in which the hierarchical query should start from.
+   * @param tx Current transaction.
+   * @param ownerIds Owner IDs in which the hierarchical query should start from.
    * @param licenseIds License IDs to check.
    * @return A {@link Map} where the key is each license ID and as the value is the list of {@link LicenseThreatGroup}
-   * containing that license ID.
+   *         containing that license ID.
    */
   public Map<String, List<LicenseThreatGroup>> getLicenseIdThreatGroupsByOwnerIdsAndLicenseIds(
       TransactionContext tx,
@@ -149,8 +149,9 @@ public class LicenseThreatGroupDAO
     super.insert(tx, licenseThreatGroup);
   }
 
-  public LicenseThreatGroup getInheritedByName(final TransactionContext tx,
-                                               final LicenseThreatGroup licenseThreatGroup)
+  public LicenseThreatGroup getInheritedByName(
+      final TransactionContext tx,
+      final LicenseThreatGroup licenseThreatGroup)
   {
     String name = licenseThreatGroup.getName();
     Owner owner = ownerDAO.getById(tx, licenseThreatGroup.getOwnerId());
@@ -260,7 +261,8 @@ public class LicenseThreatGroupDAO
   {
     return getByOwnerIdAndLicenseIdsWithHierarchy(tx, ownerId, licenseIds).stream()
         .sorted(Comparator.comparing(LicenseThreatGroup::getNameLowercaseNoWhitespace))
-        .max(Comparator.comparingInt(LicenseThreatGroup::getThreatLevel)).orElse(null);
+        .max(Comparator.comparingInt(LicenseThreatGroup::getThreatLevel))
+        .orElse(null);
   }
 
   /**
@@ -293,7 +295,7 @@ public class LicenseThreatGroupDAO
   /**
    * Returns a map of threat levels by (simple) license id for the specified application.
    * The threat levels are determined from the License Threat Groups in the app/org hierarchy.
-   * 
+   *
    * @since 1.91
    */
   public Map<String, Integer> getLicenseThreatLevelsByApplication(Application application) {
@@ -305,7 +307,8 @@ public class LicenseThreatGroupDAO
     Map<String, Integer> threatLevelsByLicenseId = new HashMap<>();
     LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = licenseThreatGroupLicenseDAOProvider.get();
     for (LicenseThreatGroupLicense licenseThreatGroupLicense : licenseThreatGroupLicenseDAO
-        .getByLicenseThreatGroupIds(threatLevelsByLicenseThreatGroupId.keySet())) {
+        .getByLicenseThreatGroupIds(threatLevelsByLicenseThreatGroupId.keySet()))
+    {
       String licenseId = licenseThreatGroupLicense.getLicenseId();
       threatLevelsByLicenseId.merge(licenseId,
           threatLevelsByLicenseThreatGroupId.get(licenseThreatGroupLicense.getLicenseThreatGroupId()), Math::max);

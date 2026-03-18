@@ -92,7 +92,8 @@ public class ApiPolicyViolationResourceV2Test
     PolicyViolation pv1App1 = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
 
     HttpResponse response = restRequest().path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
-        .query("p", orgPolicy.getId()).get();
+        .query("p", orgPolicy.getId())
+        .get();
 
     assertResponseStatus(200, response);
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = response
@@ -318,33 +319,64 @@ public class ApiPolicyViolationResourceV2Test
     Date expiringInFutureExpiryTime = DateUtils.addMinutes(now, 1);
 
     PolicyWaiverRequest policyWaiverRequest1 =
-        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hashX").setPolicyId(policyIdOrg)
-            .setOwnerId(orgId).setConstraintFacts(constraintFacts).setAssociatedPackageUrl(packageUrlAllVersions1)
-            .setComponentMatchStrategy(ALL_VERSIONS).setRequestTime(DateUtils.addDays(now, -10)));
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hashX")
+            .setPolicyId(policyIdOrg)
+            .setOwnerId(orgId)
+            .setConstraintFacts(constraintFacts)
+            .setAssociatedPackageUrl(packageUrlAllVersions1)
+            .setComponentMatchStrategy(ALL_VERSIONS)
+            .setRequestTime(DateUtils.addDays(now, -10)));
     PolicyWaiverRequest policyWaiverRequest2 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
-        .setHash(null).setPolicyId(policyIdOrg).setOwnerId(orgId).setConstraintFacts(constraintFacts)
-        .setComponentMatchStrategy(ALL_COMPONENTS).setRequestTime(DateUtils.addDays(now, -9)));
+        .setHash(null)
+        .setPolicyId(policyIdOrg)
+        .setOwnerId(orgId)
+        .setConstraintFacts(constraintFacts)
+        .setComponentMatchStrategy(ALL_COMPONENTS)
+        .setRequestTime(DateUtils.addDays(now, -9)));
     PolicyWaiverRequest policyWaiverRequest3 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
-        .setHash("hash").setPolicyId(policyIdOrg).setOwnerId(appId).setConstraintFacts(constraintFacts)
-        .setAssociatedPackageUrl(packageUrlAllVersions1).setComponentMatchStrategy(EXACT_COMPONENT)
-        .setExpiryTime(expiredExpiryTime).setRequestTime(DateUtils.addDays(now, -8)));
+        .setHash("hash")
+        .setPolicyId(policyIdOrg)
+        .setOwnerId(appId)
+        .setConstraintFacts(constraintFacts)
+        .setAssociatedPackageUrl(packageUrlAllVersions1)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setExpiryTime(expiredExpiryTime)
+        .setRequestTime(DateUtils.addDays(now, -8)));
     PolicyWaiverRequest policyWaiverRequest4 =
-        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash(null).setPolicyId(policyIdOrg)
-            .setOwnerId(appId).setConstraintFacts(constraintFacts).setComponentMatchStrategy(ALL_COMPONENTS)
-            .setExpiryTime(expiringInFutureExpiryTime).setRequestTime(DateUtils.addDays(now, -7)));
-    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash2").setPolicyId(policyIdApp)
-        .setOwnerId(appId).setConstraintFacts(null).setAssociatedPackageUrl(packageUrlAllVersions2)
-        .setComponentMatchStrategy(ALL_VERSIONS).setRequestTime(DateUtils.addDays(now, -2)));
-    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash(null).setPolicyId(policyIdApp)
-        .setOwnerId(appId).setConstraintFacts(null).setComponentMatchStrategy(ALL_COMPONENTS)
-        .setExpiryTime(expiringInFutureExpiryTime).setRequestTime(DateUtils.addDays(now, -1)));
-    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash").setPolicyId(policyIdApp)
-        .setOwnerId(appId).setConstraintFacts(constraintFacts).setAssociatedPackageUrl(packageUrlAllVersions1)
-        .setComponentMatchStrategy(EXACT_COMPONENT).setExpiryTime(expiredExpiryTime).setRequestTime(now));
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash(null)
+            .setPolicyId(policyIdOrg)
+            .setOwnerId(appId)
+            .setConstraintFacts(constraintFacts)
+            .setComponentMatchStrategy(ALL_COMPONENTS)
+            .setExpiryTime(expiringInFutureExpiryTime)
+            .setRequestTime(DateUtils.addDays(now, -7)));
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash2")
+        .setPolicyId(policyIdApp)
+        .setOwnerId(appId)
+        .setConstraintFacts(null)
+        .setAssociatedPackageUrl(packageUrlAllVersions2)
+        .setComponentMatchStrategy(ALL_VERSIONS)
+        .setRequestTime(DateUtils.addDays(now, -2)));
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash(null)
+        .setPolicyId(policyIdApp)
+        .setOwnerId(appId)
+        .setConstraintFacts(null)
+        .setComponentMatchStrategy(ALL_COMPONENTS)
+        .setExpiryTime(expiringInFutureExpiryTime)
+        .setRequestTime(DateUtils.addDays(now, -1)));
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash")
+        .setPolicyId(policyIdApp)
+        .setOwnerId(appId)
+        .setConstraintFacts(constraintFacts)
+        .setAssociatedPackageUrl(packageUrlAllVersions1)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setExpiryTime(expiredExpiryTime)
+        .setRequestTime(now));
 
     HttpResponse response = restRequest().path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
         .path(ApiPolicyViolationResourceV2.VIOLATIONID + ApiPolicyViolationResourceV2.APPLICABLE_WAIVER_REQUESTS_PATH)
-        .parameter(violation.getId()).get();
+        .parameter(violation.getId())
+        .get();
 
     assertResponseStatus(200, response);
     ApiPolicyWaiverRequestsApplicableToViolationDTO apiPolicyWaiverRequests =
@@ -352,7 +384,8 @@ public class ApiPolicyViolationResourceV2Test
 
     List<ApiPolicyWaiverRequestDTO> activeApplicableWaiverRequests =
         apiPolicyWaiverRequests.activeWaiverRequests.stream()
-            .sorted(Comparator.comparing(apiPolicyWaiverRequestDTO -> apiPolicyWaiverRequestDTO.requestTime)).toList();
+            .sorted(Comparator.comparing(apiPolicyWaiverRequestDTO -> apiPolicyWaiverRequestDTO.requestTime))
+            .toList();
 
     assertThat(activeApplicableWaiverRequests).hasSize(3);
     assertPolicyWaiverRequestDTO(activeApplicableWaiverRequests.get(0), policyWaiverRequest1);
@@ -361,7 +394,8 @@ public class ApiPolicyViolationResourceV2Test
 
     List<ApiPolicyWaiverRequestDTO> expiredApplicableWaiverRequests =
         apiPolicyWaiverRequests.expiredWaiverRequests.stream()
-            .sorted(Comparator.comparing(apiPolicyWaiverRequestDTO -> apiPolicyWaiverRequestDTO.requestTime)).toList();
+            .sorted(Comparator.comparing(apiPolicyWaiverRequestDTO -> apiPolicyWaiverRequestDTO.requestTime))
+            .toList();
 
     assertThat(expiredApplicableWaiverRequests).hasSize(1);
     assertPolicyWaiverRequestDTO(expiredApplicableWaiverRequests.get(0), policyWaiverRequest3);
@@ -432,8 +466,7 @@ public class ApiPolicyViolationResourceV2Test
         getCLMServer().getInstance(InsightWork.class),
         application.getId(),
         scanId,
-        Collections.singletonList(policyViolation)
-    );
+        Collections.singletonList(policyViolation));
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
@@ -455,9 +488,10 @@ public class ApiPolicyViolationResourceV2Test
     Component expectedComponent = new Component();
     expectedComponent.setHash("hash2");
     expectedComponent.setDisplayName("g : transitive : v");
-    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator().containsExactly(
-        ApiStagePolicyViolationComponentDTO
-            .fromPolicyViolationAndComponent(Pair.of(policyViolation, expectedComponent)));
+    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(
+            ApiStagePolicyViolationComponentDTO
+                .fromPolicyViolationAndComponent(Pair.of(policyViolation, expectedComponent)));
   }
 
   @Test
@@ -476,8 +510,7 @@ public class ApiPolicyViolationResourceV2Test
         getCLMServer().getInstance(InsightWork.class),
         application.getId(),
         scanId,
-        Collections.singletonList(policyViolation)
-    );
+        Collections.singletonList(policyViolation));
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
@@ -499,9 +532,10 @@ public class ApiPolicyViolationResourceV2Test
     Component expectedComponent = new Component();
     expectedComponent.setHash("hash2");
     expectedComponent.setDisplayName("g : transitive : v");
-    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator().containsExactly(
-        ApiStagePolicyViolationComponentDTO
-            .fromPolicyViolationAndComponent(Pair.of(policyViolation, expectedComponent)));
+    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(
+            ApiStagePolicyViolationComponentDTO
+                .fromPolicyViolationAndComponent(Pair.of(policyViolation, expectedComponent)));
   }
 
   @Test
@@ -636,7 +670,7 @@ public class ApiPolicyViolationResourceV2Test
 
     assertResponseStatus(204, response);
 
-    //remove exclusion
+    // remove exclusion
     autoPolicyWaiverExclusionDAO.delete(autoPolicyWaiverExclusion);
 
     response = restRequest()
@@ -670,7 +704,7 @@ public class ApiPolicyViolationResourceV2Test
     ComponentIdentifier identifier =
         ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
     String ownerId = newOrg.getId();
-    //org level auto policy waiver
+    // org level auto policy waiver
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(ownerId);
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "hash");
     violation.setConstraintFacts(constraintFacts);
@@ -697,11 +731,9 @@ public class ApiPolicyViolationResourceV2Test
     assertResponseStatus(204, response);
   }
 
-  //ALL VERSIONS
+  // ALL VERSIONS
   @Test
-  public void testGetApplicableAutoWaiver_ALL_VERSION_whenExclusionAppliedOnAppLevelAutoPolicyWaiver()
-      throws Exception
-  {
+  public void testGetApplicableAutoWaiver_ALL_VERSION_whenExclusionAppliedOnAppLevelAutoPolicyWaiver() throws Exception {
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
     Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
@@ -717,7 +749,7 @@ public class ApiPolicyViolationResourceV2Test
 
     policyViolationDAO.update(violation);
 
-    //different version with no policy violation id
+    // different version with no policy violation id
     ComponentIdentifier diffVersionIdentifier =
         ComponentIdentifier.createMavenCoordinates("group", "artifact", "2.0", "c1", "jar");
 
@@ -737,8 +769,7 @@ public class ApiPolicyViolationResourceV2Test
         null,
         null,
         diffVersionIdentifier,
-        null
-    );
+        null);
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
         .path(ApiPolicyViolationResourceV2.VIOLATIONID +
@@ -795,7 +826,7 @@ public class ApiPolicyViolationResourceV2Test
 
     PolicyViolation legacyPv = tempEntity.newLegacyPolicyViolation(pe1App1, orgPolicy);
 
-    //Default
+    // Default
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
         .query("p", orgPolicy.getId())
@@ -809,7 +840,7 @@ public class ApiPolicyViolationResourceV2Test
         .extracting(pv -> pv.policyViolationId)
         .containsExactly(activePv.getId());
 
-    //explicit active
+    // explicit active
     response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
         .query("p", orgPolicy.getId())
@@ -822,8 +853,8 @@ public class ApiPolicyViolationResourceV2Test
         .hasSize(1)
         .extracting(pv -> pv.policyViolationId)
         .containsExactly(activePv.getId());
-    
-    //Waived and Legacy only
+
+    // Waived and Legacy only
     response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
         .query("p", orgPolicy.getId())
@@ -837,7 +868,7 @@ public class ApiPolicyViolationResourceV2Test
     List<ApiEnhancedPolicyViolationDTOV2> violations = result.applicationViolations.get(0).policyViolations;
     assertThat(violations).hasSize(2);
 
-    //waived violation
+    // waived violation
     assertThat(violations)
         .filteredOn(v -> v.policyViolationId.equals(waivedPv.getId()))
         .hasSize(1)
@@ -846,7 +877,7 @@ public class ApiPolicyViolationResourceV2Test
           assertThat(v.isLegacy).isFalse();
         });
 
-    //legacy violation
+    // legacy violation
     assertThat(violations)
         .filteredOn(v -> v.policyViolationId.equals(legacyPv.getId()))
         .hasSize(1)

@@ -96,9 +96,12 @@ public class Scanner
    *          When the binary to be scanned is uploaded via the UI, it is saved in a temporary file (this is the target
    *          that will be scanned). The filename parameter holds the name of the file that was uploaded via the UI.
    * @param appId The application the scan is associated with.
-   * */
-  public ScanResult scan(File scanTarget, String filename, String appId, ProprietaryConfig proprietaryConfig)
-      throws IOException
+   */
+  public ScanResult scan(
+      File scanTarget,
+      String filename,
+      String appId,
+      ProprietaryConfig proprietaryConfig) throws IOException
   {
     return scan(Collections.singletonList(scanTarget), filename, appId, proprietaryConfig,
         null /* scanConfiguration */, null /* scanMetadata */);
@@ -113,8 +116,7 @@ public class Scanner
       String appId,
       ProprietaryConfig proprietaryConfig,
       ScanConfiguration inputScanConfiguration,
-      ScanMetadata scanMetadata)
-      throws IOException
+      ScanMetadata scanMetadata) throws IOException
   {
     return scan(scanTargets, null /* filename */, appId, proprietaryConfig, inputScanConfiguration, scanMetadata);
   }

@@ -58,7 +58,8 @@ public class SourceControlConfigurationMigratorTest
   public void configure(Binder binder) {
     // Add the mock listener to the multibinder set
     Multibinder.newSetBinder(binder, SourceControlConfigurationListener.class)
-        .addBinding().toInstance(mockSourceControlConfigurationListener);
+        .addBinding()
+        .toInstance(mockSourceControlConfigurationListener);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     super.configure(binder);
   }
@@ -118,8 +119,10 @@ public class SourceControlConfigurationMigratorTest
     sourceControlConfigurationMigrator.migrate();
 
     SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
-    assertThat(sourceControlConfiguration).usingRecursiveComparison().ignoringExpectedNullFields()
-        .ignoringFields("cloneDirectory", "gitImplementation").isEqualTo(sourceControlConfig);
+    assertThat(sourceControlConfiguration).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
+        .ignoringFields("cloneDirectory", "gitImplementation")
+        .isEqualTo(sourceControlConfig);
     assertThat(sourceControlConfiguration.getCloneDirectory()).isEqualTo(
         sourceControlConfig.getCloneDirectory().getAbsolutePath());
     assertThat(sourceControlConfiguration.getGitImplementation()).hasToString(
@@ -152,8 +155,10 @@ public class SourceControlConfigurationMigratorTest
     sourceControlConfigurationMigrator.migrate();
 
     SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
-    assertThat(sourceControlConfiguration).usingRecursiveComparison().ignoringExpectedNullFields()
-        .ignoringFields("cloneDirectory", "gitImplementation").isEqualTo(sourceControlConfig);
+    assertThat(sourceControlConfiguration).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
+        .ignoringFields("cloneDirectory", "gitImplementation")
+        .isEqualTo(sourceControlConfig);
     assertThat(sourceControlConfiguration.getCloneDirectory()).isEqualTo(
         sourceControlConfig.getCloneDirectory().getAbsolutePath());
     assertThat(sourceControlConfiguration.getGitImplementation()).hasToString(
@@ -176,9 +181,11 @@ public class SourceControlConfigurationMigratorTest
     sourceControlConfigurationMigrator.migrate();
 
     SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
-    assertThat(sourceControlConfiguration).usingRecursiveComparison().ignoringExpectedNullFields()
+    assertThat(sourceControlConfiguration).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
         .ignoringFields("defaultBranchMonitoringStartTimeString", "defaultBranchMonitoringStartTime",
-            "defaultBranchMonitoringIntervalHours").isEqualTo(new SourceControlConfiguration());
+            "defaultBranchMonitoringIntervalHours")
+        .isEqualTo(new SourceControlConfiguration());
     assertThat(sourceControlConfiguration.getDefaultBranchMonitoringStartTimeString()).isEqualTo(
         defaultBranchMonitoringConfig.getStartTime());
     assertThat(sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours()).isEqualTo(

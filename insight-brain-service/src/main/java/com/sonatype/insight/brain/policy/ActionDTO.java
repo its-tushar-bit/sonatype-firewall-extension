@@ -24,7 +24,8 @@ public class ActionDTO
   }
 
   public static List<ActionDTO> transcribe(final Map<String, String> actions) {
-    return StageTypes.getAll().stream()
+    return StageTypes.getAll()
+        .stream()
         .map(stageType -> new ActionDTO(stageType.getId(), actions.getOrDefault(stageType.getId(), "none")))
         .collect(toList());
   }

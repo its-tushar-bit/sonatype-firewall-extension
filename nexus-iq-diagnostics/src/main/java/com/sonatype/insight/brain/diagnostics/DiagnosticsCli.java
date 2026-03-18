@@ -112,16 +112,19 @@ public class DiagnosticsCli
 
   private void logSchemaVersionFromDatabase(String dbUrl) throws Exception {
     try (Connection connection = DriverManager.getConnection(dbUrl, DB_USERNAME, DB_PASSWORD)) {
-      try (Statement statement = connection.createStatement(); ResultSet result = statement.executeQuery(
-          "SELECT * FROM INFORMATION_SCHEMA.TABLES " +
-              "WHERE TABLE_SCHEMA = 'insight_brain_ods' AND TABLE_NAME = 'schema_version'")) {
+      try (Statement statement = connection.createStatement();
+          ResultSet result = statement.executeQuery(
+              "SELECT * FROM INFORMATION_SCHEMA.TABLES " +
+                  "WHERE TABLE_SCHEMA = 'insight_brain_ods' AND TABLE_NAME = 'schema_version'"))
+      {
         if (!result.next()) {
           log.info("Schema version from database: {}", "(unknown - insight_brain_ods version table missing)");
           return;
         }
       }
       try (Statement statement = connection.createStatement();
-           ResultSet result = statement.executeQuery("SELECT * FROM insight_brain_ods.schema_version")) {
+          ResultSet result = statement.executeQuery("SELECT * FROM insight_brain_ods.schema_version"))
+      {
         if (result.last() && result.getRow() == 1) {
           log.info("Schema version from database: {}", result.getInt("schema_version"));
         }
@@ -156,12 +159,13 @@ public class DiagnosticsCli
   private void logRowCounts(Connection connection) throws Exception {
     log.info("Row counts:");
     String[] tables = {"organization", "application", "policy", "policy_evaluation", "last_policy_evaluation",
-        "policy_violation", "first_occurrence_policy_violation", "waived_policy_violation", "application_component",
-        "repository_manager", "repository", "repository_component", "repository_policy_violation",
-        "proprietary_component_name_pattern"};
+      "policy_violation", "first_occurrence_policy_violation", "waived_policy_violation", "application_component",
+      "repository_manager", "repository", "repository_component", "repository_policy_violation",
+      "proprietary_component_name_pattern"};
     for (String table : tables) {
       try (Statement statement = connection.createStatement();
-          ResultSet result = statement.executeQuery("SELECT COUNT(*) FROM " + table)) {
+          ResultSet result = statement.executeQuery("SELECT COUNT(*) FROM " + table))
+      {
         while (result.next()) {
           log.info("  {}: {}", table, result.getLong(1));
         }
@@ -178,12 +182,13 @@ public class DiagnosticsCli
   private void logTableSizes(Connection connection) throws Exception {
     log.info("Table sizes:");
     String[] tables = {"organization", "application", "policy", "policy_evaluation", "last_policy_evaluation",
-        "policy_violation", "first_occurrence_policy_violation", "waived_policy_violation", "application_component",
-        "repository_manager", "repository", "repository_component", "repository_policy_violation",
-        "proprietary_component_name_pattern"};
+      "policy_violation", "first_occurrence_policy_violation", "waived_policy_violation", "application_component",
+      "repository_manager", "repository", "repository_component", "repository_policy_violation",
+      "proprietary_component_name_pattern"};
     for (String table : tables) {
       try (Statement statement = connection.createStatement();
-          ResultSet result = statement.executeQuery("SELECT DISK_SPACE_USED('" + table + "')")) {
+          ResultSet result = statement.executeQuery("SELECT DISK_SPACE_USED('" + table + "')"))
+      {
         while (result.next()) {
           log.info("  {}: {}", table, result.getLong(1));
         }
@@ -199,7 +204,8 @@ public class DiagnosticsCli
 
   private void logOldestEvaluation(Connection connection) throws Exception {
     try (Statement statement = connection.createStatement();
-        ResultSet result = statement.executeQuery("SELECT MIN(time) FROM policy_evaluation")) {
+        ResultSet result = statement.executeQuery("SELECT MIN(time) FROM policy_evaluation"))
+    {
       while (result.next()) {
         log.info("Oldest policy evaluation: {}", result.getDate(1));
       }
@@ -208,11 +214,12 @@ public class DiagnosticsCli
 
   private void logUniqueCoordinates(Connection connection) throws Exception {
     log.info("Unique coordinates:");
-    String[] tables = { "policy_violation", "application_component" };
+    String[] tables = {"policy_violation", "application_component"};
     for (String table : tables) {
       try (Statement statement = connection.createStatement();
           ResultSet result = query(statement, "SELECT COUNT(DISTINCT component_id_coordinates_json) FROM " + table,
-              "SELECT COUNT(DISTINCT CONCAT(group_id, artifact_id, version)) FROM " + table)) {
+              "SELECT COUNT(DISTINCT CONCAT(group_id, artifact_id, version)) FROM " + table))
+      {
         while (result.next()) {
           log.info("  {}: {}", table, result.getLong(1));
         }
@@ -229,20 +236,23 @@ public class DiagnosticsCli
         }
       }
       try (ResultSet result =
-          statement.executeQuery("SELECT AVG(LENGTH(constraint_facts_json)) FROM policy_violation")) {
+          statement.executeQuery("SELECT AVG(LENGTH(constraint_facts_json)) FROM policy_violation"))
+      {
         while (result.next()) {
           log.info("  constraints: {}", result.getLong(1));
         }
       }
       try (ResultSet result = query(statement, "SELECT AVG(LENGTH(pathnames)) FROM policy_violation",
-          "SELECT AVG(LENGTH(filename)) FROM policy_violation")) {
+          "SELECT AVG(LENGTH(filename)) FROM policy_violation"))
+      {
         while (result.next()) {
           log.info("  path-/filename: {}", result.getLong(1));
         }
       }
       try (
           ResultSet result = query(statement, "SELECT AVG(LENGTH(component_id_coordinates_json)) FROM policy_violation",
-              "SELECT AVG(LENGTH(CONCAT(group_id, artifact_id, version))) FROM policy_violation")) {
+              "SELECT AVG(LENGTH(CONCAT(group_id, artifact_id, version))) FROM policy_violation"))
+      {
         while (result.next()) {
           log.info("  coordinates: {}", result.getLong(1));
         }
@@ -273,7 +283,8 @@ public class DiagnosticsCli
   private void logDatabaseSettings(Connection connection) {
     try (Statement statement = connection.createStatement();
         ResultSet result =
-            statement.executeQuery("SELECT NAME, VALUE FROM INFORMATION_SCHEMA.SETTINGS ORDER BY NAME")) {
+            statement.executeQuery("SELECT NAME, VALUE FROM INFORMATION_SCHEMA.SETTINGS ORDER BY NAME"))
+    {
       log.info("Database settings:");
       while (result.next()) {
         String name = result.getString(1);

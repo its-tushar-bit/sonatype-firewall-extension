@@ -149,8 +149,8 @@ public class PostgresTestCluster
 
   protected ExecResult runCommand(final String command) throws Exception {
     String[] cmd = {
-        "/usr/local/bin/psql", "--variable", "ON_ERROR_STOP=1", "--dbname", postgresTestContainer.getDatabaseName(),
-        "--username", postgresTestContainer.getUsername(), "--command", command
+      "/usr/local/bin/psql", "--variable", "ON_ERROR_STOP=1", "--dbname", postgresTestContainer.getDatabaseName(),
+      "--username", postgresTestContainer.getUsername(), "--command", command
     };
 
     ExecResult execResult = postgresTestContainer.execInContainer(cmd);
@@ -173,7 +173,9 @@ public class PostgresTestCluster
   protected void maybeHandlePsqlError(final ExecResult execResult) throws Exception {
     if (execResult.getExitCode() != 0) {
       String message = new StringJoiner(", ").add("psql returned exit code " + execResult.getExitCode())
-          .add("stdout='" + execResult.getStdout() + "'").add("stderr='" + execResult.getStderr() + "'").toString();
+          .add("stdout='" + execResult.getStdout() + "'")
+          .add("stderr='" + execResult.getStderr() + "'")
+          .toString();
       throw new Exception(message);
     }
   }
@@ -205,8 +207,8 @@ public class PostgresTestCluster
     try {
       postgresTestContainer.copyFileToContainer(MountableFile.forHostPath(sqlFile), "/tmp/" + sqlFile.getFileName());
       String[] cmd = {
-          "/usr/local/bin/psql", "--variable", "ON_ERROR_STOP=1", "--dbname", databaseName,
-          "--username", getUsername(), "--file", "/tmp/" + sqlFile.getFileName()
+        "/usr/local/bin/psql", "--variable", "ON_ERROR_STOP=1", "--dbname", databaseName,
+        "--username", getUsername(), "--file", "/tmp/" + sqlFile.getFileName()
       };
       ExecResult execResult = postgresTestContainer.execInContainer(cmd);
       if (execResult.getExitCode() != 0) {
@@ -224,7 +226,7 @@ public class PostgresTestCluster
       String connectionUrl =
           String.format("postgresql://%s:%s@%s:%s/%s", getUsername(), getPassword(), "127.0.0.1", "5432", databaseName);
       String[] cmd = {
-          "/usr/local/bin/pg_dump", "--schema-only", "--schema=" + schema, "--dbname=" + connectionUrl
+        "/usr/local/bin/pg_dump", "--schema-only", "--schema=" + schema, "--dbname=" + connectionUrl
       };
       ExecResult execResult = postgresTestContainer.execInContainer(cmd);
       if (execResult.getExitCode() != 0) {

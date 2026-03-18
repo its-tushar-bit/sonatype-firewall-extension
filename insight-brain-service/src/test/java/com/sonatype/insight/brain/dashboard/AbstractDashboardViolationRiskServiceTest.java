@@ -118,7 +118,7 @@ abstract class AbstractDashboardViolationRiskServiceTest
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(
             () -> getDashboardViolationRiskService().get(null, null, null, null, null, null, null, null,
-            DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100));
+                DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100));
   }
 
   @Test
@@ -173,7 +173,8 @@ abstract class AbstractDashboardViolationRiskServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> getDashboardViolationRiskService()
         .get(null, null, Collections.singleton(DevelopStageType.ID), null, null, null, null,
-            null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100)).withMessage("Invalid stage type: develop.");
+            null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100))
+        .withMessage("Invalid stage type: develop.");
   }
 
   @Test
@@ -259,7 +260,8 @@ abstract class AbstractDashboardViolationRiskServiceTest
 
     result = getDashboardViolationRiskService().get(null, null, null, null, null, null,
         new PolicyViolationStateFilter(PolicyViolationState.WAIVED, PolicyViolationState.LEGACY_VIOLATION,
-            PolicyViolationState.OPEN), "-AGE,-THREAT_LEVEL", DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
+            PolicyViolationState.OPEN),
+        "-AGE,-THREAT_LEVEL", DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0, 100);
     assertThat(result.dashboardResults).hasSize(5);
     assertThat(result.hasNextPage).isEqualTo(false);
     assertDashboardViolationRiskDTO(result.dashboardResults.get(0), app2, org2, app2PolicyViolation,
@@ -545,7 +547,7 @@ abstract class AbstractDashboardViolationRiskServiceTest
 
     assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> getDashboardViolationRiskService()
         .get(null, null, null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0,
-                100))
+            100))
         .withMessage("The dashboard feature has been disabled.");
   }
 
@@ -646,11 +648,18 @@ abstract class AbstractDashboardViolationRiskServiceTest
     assertThat(actual.filename).isEqualTo(policyViolation.getFilename());
 
     Optional<ConditionFact> conditionFact =
-        policyViolation.getConstraintFacts().isEmpty() ? Optional.empty() : policyViolation.getConstraintFacts().get(0)
-            .getConditionFacts().stream().filter(
-                Objects::nonNull).findFirst();
+        policyViolation.getConstraintFacts().isEmpty()
+            ? Optional.empty()
+            : policyViolation.getConstraintFacts()
+                .get(0)
+                .getConditionFacts()
+                .stream()
+                .filter(
+                    Objects::nonNull)
+                .findFirst();
     if (conditionFact.filter(condition -> condition.getReference() != null &&
-        Type.SECURITY_VULNERABILITY_REFID.equals(condition.getReference().getType())).isPresent()) {
+        Type.SECURITY_VULNERABILITY_REFID.equals(condition.getReference().getType())).isPresent())
+    {
       assertThat(actual.referenceId).isEqualTo(conditionFact.get().getReference().getValue());
     }
     else {

@@ -69,7 +69,7 @@ public class Retry
   public <R, T extends Exception> R executeCallable(RetryableCallable<R, T> callable) throws T {
     long start = System.currentTimeMillis();
     int ignored = 0;
-    for (int retry = 0; ; ) {
+    for (int retry = 0;;) {
       try {
         return callable.call();
       }

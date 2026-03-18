@@ -64,8 +64,7 @@ public abstract class AbstractSourceControlEventLogger
   {
     this.enabled = TENANT_UTIL.isMultiTenant() && SCM_EVENT_LOGGER.isInfoEnabled();
     this.formattedLogTimestamp = ofInstant(
-        ofEpochMilli(logTimestamp.getTime()), systemDefault()
-    ).format(ISO_OFFSET_DATE_TIME);
+        ofEpochMilli(logTimestamp.getTime()), systemDefault()).format(ISO_OFFSET_DATE_TIME);
     this.application = application;
     this.organization = organization;
     this.gitRepositoryInfo = gitRepositoryInfo;

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.experimental.resultsview;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -65,7 +66,8 @@ public class RepositoryResultsResourceTest
     HttpResponse response = restRequest()
         .path(RepositoryResultsResource.RESOURCE_PATH, RepositoryResultsResource.DETAILS_BY_OWNER_PATH)
         .parameter("repository_container", RepositoryContainer.REPOSITORY_CONTAINER_ID)
-        .body(request).post();
+        .body(request)
+        .post();
 
     assertResponseStatus(200, response);
     RepositoryResultsDetailsResponseDto responseDto = response.getBody(RepositoryResultsDetailsResponseDto.class);
@@ -108,7 +110,8 @@ public class RepositoryResultsResourceTest
     response = restRequest()
         .path(RepositoryResultsResource.RESOURCE_PATH, RepositoryResultsResource.DETAILS_BY_OWNER_PATH)
         .parameter("repository_manager", repositoryManager2.getId())
-        .body(request).post();
+        .body(request)
+        .post();
 
     assertResponseStatus(200, response);
     responseDto = response.getBody(RepositoryResultsDetailsResponseDto.class);
@@ -140,7 +143,8 @@ public class RepositoryResultsResourceTest
     response = restRequest()
         .path(RepositoryResultsResource.RESOURCE_PATH, RepositoryResultsResource.DETAILS_BY_OWNER_PATH)
         .parameter("repository", repository1.getId())
-        .body(request).post();
+        .body(request)
+        .post();
 
     assertResponseStatus(200, response);
     responseDto = response.getBody(RepositoryResultsDetailsResponseDto.class);

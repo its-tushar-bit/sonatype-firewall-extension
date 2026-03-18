@@ -133,8 +133,7 @@ public class ApiComponentsWithWaiversReportingService
   ApiComponentWaiversDTO getComponentsWithWaivers(
       Map<String, PolicyWaiverReason> waiverReasonIdToReasonMap,
       String format,
-      int appBatchSize
-  )
+      int appBatchSize)
   {
     final AtomicInteger componentsWithWaiversCount = new AtomicInteger(0);
     final AtomicInteger applicationComponentsWithWaiversCount = new AtomicInteger(0);
@@ -158,18 +157,17 @@ public class ApiComponentsWithWaiversReportingService
           policyViolationLoader.getViolations(applications, null, false, overallPredicate),
           componentsWithWaiversCount,
           applicationComponentsWithWaiversCount,
-          componentWaiversDTO.applicationWaivers::add
-      );
+          componentWaiversDTO.applicationWaivers::add);
     }
 
     final List<RepositoryDTO> repositoryDTOs = repositoryService.getRepositories().repositories;
 
     componentWaiversDTO.repositoryWaivers =
-            buildRepositoryWaiverDTOs(
-                waiverReasonIdToReasonMap,
-                repositoryDTOs,
-                overallPredicate,
-                componentsWithWaiversCount);
+        buildRepositoryWaiverDTOs(
+            waiverReasonIdToReasonMap,
+            repositoryDTOs,
+            overallPredicate,
+            componentsWithWaiversCount);
 
     log.debug("getComponentsWithWaivers: Processed {} components with waived policy violations.",
         componentsWithWaiversCount);
@@ -221,7 +219,8 @@ public class ApiComponentsWithWaiversReportingService
                */
               List<PolicyViolation> filteredPolicyViolations = policyViolations
                   .stream()
-                  .filter(p -> p.getComponentIdentifier() != null).toList();
+                  .filter(p -> p.getComponentIdentifier() != null)
+                  .toList();
               policyViolationDao.loadConstraintFacts(filteredPolicyViolations);
               filteredPolicyViolations
                   .stream()
@@ -234,13 +233,13 @@ public class ApiComponentsWithWaiversReportingService
                         policyViolationsByComponent,
                         componentIdentifier,
                         policyViolationsByComponent.get(0).getHash(),
-                        app.getId()
-                    ));
+                        app.getId()));
                   });
 
               // Filter and group policy violations by hash where the component identifier is null but does have a hash
               filteredPolicyViolations = policyViolations.stream()
-                  .filter(p -> p.getComponentIdentifier() == null && p.getHash() != null).toList();
+                  .filter(p -> p.getComponentIdentifier() == null && p.getHash() != null)
+                  .toList();
               policyViolationDao.loadConstraintFacts(filteredPolicyViolations);
               filteredPolicyViolations
                   .stream()
@@ -253,8 +252,7 @@ public class ApiComponentsWithWaiversReportingService
                         policyViolationsByHash,
                         null,
                         hash,
-                        app.getId()
-                    ));
+                        app.getId()));
                   });
             }
 
@@ -434,7 +432,9 @@ public class ApiComponentsWithWaiversReportingService
       // Walking the hierarchy to determine if the policy waiver scope is still visible to the current owner's location.
       // This can occur if an app is moved to a different org than the original policy waiver was defined for.
       Owner waiverOwner = StreamSupport.stream(ownerDAO.walkHierarchy(ownerId).spliterator(), false /* parallel */)
-          .filter(owner -> owner.getId().equals(policyWaiver.getOwnerId())).findFirst().orElse(null);
+          .filter(owner -> owner.getId().equals(policyWaiver.getOwnerId()))
+          .findFirst()
+          .orElse(null);
 
       if (waiverOwner != null) {
         policyWaiverDTO = ApiPolicyWaiverDTO.toDto(
@@ -468,8 +468,7 @@ public class ApiComponentsWithWaiversReportingService
     return policyViolationStageDTO;
   }
 
-  private Map<ComponentIdentifier, List<RepositoryPolicyViolation>>
-        getGroupedRepositoryPolicyViolationsByComponentIdentifier(
+  private Map<ComponentIdentifier, List<RepositoryPolicyViolation>> getGroupedRepositoryPolicyViolationsByComponentIdentifier(
       List<RepositoryPolicyViolation> repositoryPolicyViolations)
   {
     return repositoryPolicyViolations.stream()
@@ -477,8 +476,8 @@ public class ApiComponentsWithWaiversReportingService
         .collect(Collectors.groupingBy(RepositoryPolicyViolation::getComponentIdentifier));
   }
 
-  private Map<String, List<RepositoryPolicyViolation>>
-      getGroupedRepositoryPolicyViolationsByHash(List<RepositoryPolicyViolation> repositoryPolicyViolations)
+  private Map<String, List<RepositoryPolicyViolation>> getGroupedRepositoryPolicyViolationsByHash(
+      List<RepositoryPolicyViolation> repositoryPolicyViolations)
   {
     return repositoryPolicyViolations.stream()
         .filter(r -> r.getComponentIdentifier() == null)

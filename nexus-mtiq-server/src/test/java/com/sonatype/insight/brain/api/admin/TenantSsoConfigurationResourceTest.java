@@ -175,8 +175,9 @@ public class TenantSsoConfigurationResourceTest
     assertThat(user.getGroups()).containsAll(samlUserGroups);
   }
 
-  private HttpRequest updateSsoConfiguration(String tenant, final SsoConfigurationDTO ssoConfigurationDTO)
-      throws Exception
+  private HttpRequest updateSsoConfiguration(
+      String tenant,
+      final SsoConfigurationDTO ssoConfigurationDTO) throws Exception
   {
     return adminRestRequest(ADMIN_TENANT_SSO_CONFIGURATION_PATH)
         .parameter(tenant)

@@ -68,7 +68,7 @@ public class ThirdPartyFileCoordinateDAO
     if (StringUtils.isBlank(entity.getDisplayName())) {
       entity.setDisplayName(
           FileCoordinateDisplayNameGenerator.generateDisplayName(entity.getPackageUrl(), entity.getFormat(),
-          entity.getName(), entity.getVersion()));
+              entity.getName(), entity.getVersion()));
     }
     super.insert(tx, entity);
   }
@@ -101,16 +101,16 @@ public class ThirdPartyFileCoordinateDAO
 
   /**
    * @deprecated instead use either
-   * <ul>
-   *   <li>
-   *  {@link #getByHashOrComponentRefForThirdPartyFileId(String, String, String)} (String, String)} or
-   *  </li>
-   *  <li>
-   *  {@link #getByPackageUrlAndScanId(String, String)}
-   *  </li>
-   *  </ul>
-   *  does not guarantee unique records for new scans.
-   *  keeping only for historical sbom records (for backward compatibility)
+   *             <ul>
+   *             <li>
+   *             {@link #getByHashOrComponentRefForThirdPartyFileId(String, String, String)} (String, String)} or
+   *             </li>
+   *             <li>
+   *             {@link #getByPackageUrlAndScanId(String, String)}
+   *             </li>
+   *             </ul>
+   *             does not guarantee unique records for new scans.
+   *             keeping only for historical sbom records (for backward compatibility)
    *
    * @param purl
    * @param hash
@@ -127,16 +127,16 @@ public class ThirdPartyFileCoordinateDAO
 
   /**
    * @deprecated instead use either
-   * <ul>
-   *   <li>
-   *  {@link #getByHashOrComponentRefForThirdPartyFileId(String, String, String)} (String, String)} or
-   *  </li>
-   *  <li>
-   *  {@link #getByPackageUrlAndScanId(String, String)}
-   *  </li>
-   *  </ul>
-   *  does not guarantee unique records for new scans.
-   *  keeping only for historical sbom records (for backward compatibility)
+   *             <ul>
+   *             <li>
+   *             {@link #getByHashOrComponentRefForThirdPartyFileId(String, String, String)} (String, String)} or
+   *             </li>
+   *             <li>
+   *             {@link #getByPackageUrlAndScanId(String, String)}
+   *             </li>
+   *             </ul>
+   *             does not guarantee unique records for new scans.
+   *             keeping only for historical sbom records (for backward compatibility)
    *
    * @param format
    * @param name
@@ -145,10 +145,11 @@ public class ThirdPartyFileCoordinateDAO
    * @return
    */
   @Deprecated
-  public ThirdPartyFileCoordinate getByFormatNameVersionAndScanID(String format,
-                                                                 String name,
-                                                                 String version,
-                                                                 String scanId)
+  public ThirdPartyFileCoordinate getByFormatNameVersionAndScanID(
+      String format,
+      String name,
+      String version,
+      String scanId)
   {
     String sQuery = "SELECT TPF FROM ThirdPartyScan TPS," + //
         " ThirdPartyFileCoordinate TPF" + //
@@ -172,15 +173,15 @@ public class ThirdPartyFileCoordinateDAO
 
   /**
    * @deprecated instead use either
-   * <ul>
-   *   <li>
-   *  {@link #getByHashOrComponentRefForThirdPartyFileId(String, String, String)} (String, String)} or
-   *  </li>
-   *  <li>
-   *  {@link #getByPackageUrlAndScanId(String, String)}
-   *  </li>
-   *  </ul>
-   *  for guarantee unique records for new scans.
+   *             <ul>
+   *             <li>
+   *             {@link #getByHashOrComponentRefForThirdPartyFileId(String, String, String)} (String, String)} or
+   *             </li>
+   *             <li>
+   *             {@link #getByPackageUrlAndScanId(String, String)}
+   *             </li>
+   *             </ul>
+   *             for guarantee unique records for new scans.
    */
   @Deprecated
   public ThirdPartyFileCoordinate getByThirdPartyFileIdAndPackageUrl(
@@ -214,9 +215,10 @@ public class ThirdPartyFileCoordinateDAO
     }
   }
 
-  public ThirdPartyFileCoordinate getBySbomMetadataIdAndComponentHash(TransactionContext tx,
-                                                                            String sbomMetadataId,
-                                                                            String componentHash)
+  public ThirdPartyFileCoordinate getBySbomMetadataIdAndComponentHash(
+      TransactionContext tx,
+      String sbomMetadataId,
+      String componentHash)
   {
     String sQuery = "SELECT entity FROM ThirdPartyFileCoordinate entity, ThirdPartySbomMetadata sbomMetadata" +
         " WHERE sbomMetadata.id = ?1 AND entity.thirdPartyFileId = sbomMetadata.thirdPartyFileId" +
@@ -254,7 +256,7 @@ public class ThirdPartyFileCoordinateDAO
         "       ROUND(COUNT(ve) * 100.0 / GREATEST(COUNT(cs), 1), 1) as percentage, " + //
         "       COALESCE(ROUND((COUNT(CASE WHEN (ve.coordinate_security_id IS NOT NULL" + //
         "           AND cs.severity >= ?6) THEN 1 END)) * 100 / NULLIF(COUNT(CASE WHEN " + //
-        "           (cs.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END)"  + //
+        "           (cs.coordinate_security_id IS NOT NULL AND cs.severity >= ?6) THEN 1 END)" + //
         "           ::decimal, 0), 1), 100) as release_status_percentage, " + //
         "       fc.dependency_type," + //
         "       fc.file_coordinate_id," + //
@@ -504,8 +506,9 @@ public class ThirdPartyFileCoordinateDAO
     return "";
   }
 
-  private String applyFilter(String filterText,
-                             int index)
+  private String applyFilter(
+      String filterText,
+      int index)
   {
     if (!filterText.isEmpty()) {
       String query = " AND ((lower(fc.package_url) ~ lower(?" + index++ + "))" + //
@@ -517,8 +520,9 @@ public class ThirdPartyFileCoordinateDAO
     return "";
   }
 
-  private String applyFilterArray(String filterText,
-                                  int index)
+  private String applyFilterArray(
+      String filterText,
+      int index)
   {
     if (!filterText.isEmpty()) {
       return " (lower(fc.package_url) ~ lower(?" + index + ") OR lower(lic.licenses::TEXT) LIKE lower(?" + index + "))";
@@ -530,8 +534,8 @@ public class ThirdPartyFileCoordinateDAO
     if (filterText != null && !filterText.isEmpty()) {
       if (filterText.contains(" : ") || filterText.contains(" ")) {
         long count = Arrays.stream(filterText.split("\\s+:\\s+|\\s+"))
-                .filter(s -> !s.isEmpty())
-                .count();
+            .filter(s -> !s.isEmpty())
+            .count();
         int i = 0;
         sQuery += " AND (";
         while (i < count) {
@@ -571,15 +575,17 @@ public class ThirdPartyFileCoordinateDAO
       String filterTextQuoted = urlEncodeCoordinate(filterText);
 
       paginationQuery.setParameter(11, "((?<=\\/)(.*" + filterTextQuoted + ".*)(?=\\@))|((?<=@)(.*"
-              + filterTextQuoted + "[^=]*)(?=(\\?|&|$)))");
-      paginationQuery.setParameter(12,'%' + filterText + '%');
+          + filterTextQuoted + "[^=]*)(?=(\\?|&|$)))");
+      paginationQuery.setParameter(12, '%' + filterText + '%');
     }
   }
 
   private String urlEncodeCoordinate(String coordinate) {
     try {
-      return URLEncoder.encode(coordinate, StandardCharsets.UTF_8.toString()).replace("%2F", "(/|%2F)").replace(".",
-          "\\.");
+      return URLEncoder.encode(coordinate, StandardCharsets.UTF_8.toString())
+          .replace("%2F", "(/|%2F)")
+          .replace(".",
+              "\\.");
     }
     catch (UnsupportedEncodingException e) {
       throw new InternalServerException(e);
@@ -590,13 +596,13 @@ public class ThirdPartyFileCoordinateDAO
     String parameter;
     if (i == 0 || i == coordinates.length - 1) {
       parameter = "(^.*" + coordinates[i].trim() + ".*)(?=\\@)|((?<=\\/)(.*"
-              + coordinates[i].trim() + ".*)(?=\\@))|((?<=@)(.*"
-              + coordinates[i].trim() + "[^=]*)(?=(\\?|&|$)))";
+          + coordinates[i].trim() + ".*)(?=\\@))|((?<=@)(.*"
+          + coordinates[i].trim() + "[^=]*)(?=(\\?|&|$)))";
     }
     else {
       parameter = "(^.*" + coordinates[i].trim() + ")(?=\\@)|((?<=\\/)(^"
-              + coordinates[i].trim() + ")(?=\\@))|((?<=@)(^"
-              + coordinates[i].trim() + ")(?=(\\?|&|$)))";
+          + coordinates[i].trim() + ")(?=\\@))|((?<=@)(^"
+          + coordinates[i].trim() + ")(?=(\\?|&|$)))";
     }
     return parameter;
   }
@@ -639,7 +645,8 @@ public class ThirdPartyFileCoordinateDAO
    * In theory, there should be only one record for a given hash or componentRef for a given thirdPartyFileId so this
    * should return a single record. But (unfortunately) we already have some customers that has SBOMs
    * (imported via binary scans) that have multiple records for the same hash.
-   *</p>
+   * </p>
+   *
    * @param thirdPartyFileId
    * @param hash
    * @param componentRef
@@ -658,6 +665,7 @@ public class ThirdPartyFileCoordinateDAO
   /**
    * This method is identical to the one above
    * {@link #getByHashOrComponentRefForThirdPartyFileId(String, String, String)} but it uses a transaction context.
+   *
    * @return
    */
   public List<ThirdPartyFileCoordinate> getByHashOrComponentRefForThirdPartyFileId(

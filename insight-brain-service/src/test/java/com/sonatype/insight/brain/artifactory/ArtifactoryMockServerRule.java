@@ -89,9 +89,9 @@ public class ArtifactoryMockServerRule
             .withRequestBody(equalTo(ArtifactoryQueryLanguageUtils
                 .createChecksumSearch(checksumType, checksums, repositories)))
             .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
-                    ARTIFACTORY_ID_HEADER_MOCK_VALUE)
-                .withBody(JsonUtils.format(createAQLResults(results))).withStatus(200))
-    );
+                ARTIFACTORY_ID_HEADER_MOCK_VALUE)
+                .withBody(JsonUtils.format(createAQLResults(results)))
+                .withStatus(200)));
   }
 
   public void mockSearchByChecksumsUsingAQLError(
@@ -108,10 +108,9 @@ public class ArtifactoryMockServerRule
             .withRequestBody(equalTo(ArtifactoryQueryLanguageUtils
                 .createChecksumSearch(checksumType, checksums, Collections.emptySet())))
             .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
-                    ARTIFACTORY_ID_HEADER_MOCK_VALUE)
+                ARTIFACTORY_ID_HEADER_MOCK_VALUE)
                 .withStatus(status)
-                .withBody(error))
-    );
+                .withBody(error)));
   }
 
   public static JsonNode createAQLResult(
@@ -141,9 +140,9 @@ public class ArtifactoryMockServerRule
         get(urlPathMatching(getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH)))
             .withQueryParam(checksumType.name().toLowerCase(Locale.ROOT), equalTo(checksum))
             .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
-                    ARTIFACTORY_ID_HEADER_MOCK_VALUE)
-                .withBody(JsonUtils.format(results)).withStatus(200))
-    );
+                ARTIFACTORY_ID_HEADER_MOCK_VALUE)
+                .withBody(JsonUtils.format(results))
+                .withStatus(200)));
   }
 
   public void mockSearchChecksum(
@@ -160,9 +159,9 @@ public class ArtifactoryMockServerRule
             .withQueryParam(checksumType.name().toLowerCase(Locale.ROOT), equalTo(checksum))
             .withQueryParam("repos", equalTo(repos))
             .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
-                    ARTIFACTORY_ID_HEADER_MOCK_VALUE)
-                .withBody(JsonUtils.format(results)).withStatus(200))
-    );
+                ARTIFACTORY_ID_HEADER_MOCK_VALUE)
+                .withBody(JsonUtils.format(results))
+                .withStatus(200)));
   }
 
   public void mockSearchChecksumError(
@@ -174,9 +173,9 @@ public class ArtifactoryMockServerRule
         get(urlPathMatching(getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH)))
             .withQueryParam(checksumType.name().toLowerCase(Locale.ROOT), equalTo(checksum))
             .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
-                    ARTIFACTORY_ID_HEADER_MOCK_VALUE)
-                .withBody(JsonUtils.format(errors)).withStatus(errors.errors.get(0).status))
-    );
+                ARTIFACTORY_ID_HEADER_MOCK_VALUE)
+                .withBody(JsonUtils.format(errors))
+                .withStatus(errors.errors.get(0).status)));
   }
 
   public void mockSearchChecksumError(ChecksumType checksumType, String checksum, int status) {
@@ -184,7 +183,6 @@ public class ArtifactoryMockServerRule
         get(urlPathMatching(getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH)))
             .withQueryParam(checksumType.name().toLowerCase(Locale.ROOT), equalTo(checksum))
             .willReturn(aResponse().withHeader(ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
-                ARTIFACTORY_ID_HEADER_MOCK_VALUE).withStatus(status))
-    );
+                ARTIFACTORY_ID_HEADER_MOCK_VALUE).withStatus(status)));
   }
 }

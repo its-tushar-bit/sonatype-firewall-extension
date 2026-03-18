@@ -37,7 +37,7 @@ public class KeyStoreFactory
    * values.
    *
    * @return a new instance of {@link KeyStore}
-   * @throws KeyStoreException       - if the key store type is not available
+   * @throws KeyStoreException - if the key store type is not available
    * @throws NoSuchProviderException - if the key store provider is not available
    */
   public static KeyStore createKeyStore() throws KeyStoreException, NoSuchProviderException {
@@ -61,7 +61,7 @@ public class KeyStoreFactory
    * Creates a new instance of {@link KeyStore} with the BCFIPS type.
    *
    * @return a new instance of {@link KeyStore}
-   * @throws KeyStoreException       - if the key store type is not available
+   * @throws KeyStoreException - if the key store type is not available
    * @throws NoSuchProviderException - if the key store provider is not available
    */
   public static KeyStore createBcFipsKeyStore() throws KeyStoreException, NoSuchProviderException {
@@ -76,8 +76,8 @@ public class KeyStoreFactory
    * @return the encryption key store key
    * @throws FIPSKeyManager.FIPSKeyException if FIPS key generation or retrieval fails
    */
-  public static String getDefaultEncryptionKeyStoreKey(final File sonatypeWorkDirectory)
-      throws FIPSKeyManager.FIPSKeyException
+  public static String getDefaultEncryptionKeyStoreKey(
+      final File sonatypeWorkDirectory) throws FIPSKeyManager.FIPSKeyException
   {
     if (FIPSModeDetector.isEnabled()) {
       return getFipsKeyStoreKey(sonatypeWorkDirectory);
@@ -104,15 +104,11 @@ public class KeyStoreFactory
    * @return the deterministically generated FIPS keystore password
    * @throws GeneralSecurityException if password generation fails
    */
-  public static String getFipsKeystorePassword(final File sonatypeWorkDirectory) 
-      throws GeneralSecurityException
-  {
+  public static String getFipsKeystorePassword(final File sonatypeWorkDirectory) throws GeneralSecurityException {
     return FIPSKeystorePasswordGenerator.generateDeterministicPassword(sonatypeWorkDirectory);
   }
 
-  private static String getFipsKeyStoreKey(final File sonatypeWorkDirectory)
-      throws FIPSKeyManager.FIPSKeyException
-  {
+  private static String getFipsKeyStoreKey(final File sonatypeWorkDirectory) throws FIPSKeyManager.FIPSKeyException {
     File dataDirectory = new File(sonatypeWorkDirectory, "data");
     File fipsDirectory = new File(dataDirectory, "fips");
     FIPSKeyManager keyManager = new FIPSKeyManager(fipsDirectory);

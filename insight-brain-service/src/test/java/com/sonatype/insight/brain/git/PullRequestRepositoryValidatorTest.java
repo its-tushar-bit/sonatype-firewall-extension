@@ -63,7 +63,7 @@ public class PullRequestRepositoryValidatorTest
 
     assertThat(
         pullRequestRepositoryValidator.isRepoValidForPRs(gitRepositoryInfo))
-        .isFalse();
+            .isFalse();
 
     assertThat(listAppender.list.size()).isEqualTo(1);
     assertThat(listAppender.list.get(0).getLevel()).isEqualTo(Level.DEBUG);
@@ -79,7 +79,7 @@ public class PullRequestRepositoryValidatorTest
     when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo))).thenReturn(true);
     assertThat(pullRequestRepositoryValidator
         .isRepoValidForPRs(gitRepositoryInfo))
-        .isTrue();
+            .isTrue();
   }
 
   @Test
@@ -87,7 +87,7 @@ public class PullRequestRepositoryValidatorTest
     String repoName = String.format(TEST_REPO_URL, "https://NOTgitlab.com/");
     assertThat(pullRequestRepositoryValidator
         .isRepoValidForPRs(newGitRepositoryInfo(repoName, GITLAB)))
-        .isFalse();
+            .isFalse();
   }
 
   @Test
@@ -96,7 +96,7 @@ public class PullRequestRepositoryValidatorTest
     GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo(repoName, BITBUCKET);
 
     boolean[] isPrivateValues = {true, false};
-    for (boolean isPrivate: isPrivateValues) {
+    for (boolean isPrivate : isPrivateValues) {
       when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo)))
           .thenReturn(isPrivate);
       assertThat(pullRequestRepositoryValidator.isRepoValidForPRs(gitRepositoryInfo))
@@ -124,7 +124,7 @@ public class PullRequestRepositoryValidatorTest
     GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo(repoName, GITLAB);
 
     boolean[] isPrivateValues = {true, false};
-    for (boolean isPrivate: isPrivateValues) {
+    for (boolean isPrivate : isPrivateValues) {
       when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo)))
           .thenReturn(isPrivate);
       assertThat(pullRequestRepositoryValidator.isRepoValidForPRs(gitRepositoryInfo))
@@ -138,10 +138,8 @@ public class PullRequestRepositoryValidatorTest
     when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo)))
         .thenThrow(UncheckedIOException.class);
 
-    assertThatExceptionOfType(UncheckedIOException.class).isThrownBy(() ->
-        pullRequestRepositoryValidator
-            .isRepoValidForPRs(gitRepositoryInfo)
-    );
+    assertThatExceptionOfType(UncheckedIOException.class).isThrownBy(() -> pullRequestRepositoryValidator
+        .isRepoValidForPRs(gitRepositoryInfo));
   }
 
   private GitRepositoryInfo newGitRepositoryInfo(final String repoUrl, final SourceControlProvider provider) {

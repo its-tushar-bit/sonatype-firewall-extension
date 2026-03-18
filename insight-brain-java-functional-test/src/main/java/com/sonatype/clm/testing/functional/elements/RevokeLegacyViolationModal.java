@@ -21,7 +21,7 @@ public class RevokeLegacyViolationModal
   public SelenideElement header() {
     return child(".nx-modal-header");
   }
-  
+
   public SelenideElement body() {
     return child(".nx-modal-content");
   }

@@ -33,7 +33,7 @@ public class QuartzShiroSessionValidationScheduler
 {
   private static final Logger log = LoggerFactory.getLogger(QuartzShiroSessionValidationScheduler.class);
 
-  //Visible for testing
+  // Visible for testing
   static final String TASK_NAME = "QuartzShiroSessionValidationScheduler";
 
   private final TaskScheduler taskScheduler;

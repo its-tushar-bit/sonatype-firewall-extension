@@ -114,7 +114,9 @@ public class ApiRoleResourceAuditTest
       final Permission... permissions)
   {
     List<String> permissionNames = Arrays.stream(permissions)
-        .map(permission -> permission.getDisplayName() + ' ' + permission.getDescription()).sorted().toList();
+        .map(permission -> permission.getDisplayName() + ' ' + permission.getDescription())
+        .sorted()
+        .toList();
     assertCustomData(auditDTO, "roleId", id);
     assertCustomData(auditDTO, "roleName", name);
     assertCustomData(auditDTO, "roleDescription", description);

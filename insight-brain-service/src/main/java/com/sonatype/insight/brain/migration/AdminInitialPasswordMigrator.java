@@ -31,7 +31,7 @@ public class AdminInitialPasswordMigrator
 
   static final String ADMIN_PASSWORD_MIGRATOR_ID = "admin-initial-password";
 
-  //visible for testing
+  // visible for testing
   public static final String NXIQ_INITIAL_ADMIN_PASSWORD = "NXIQ_INITIAL_ADMIN_PASSWORD";
 
   private final MigrationTrackerDAO migrationTrackerDAO;

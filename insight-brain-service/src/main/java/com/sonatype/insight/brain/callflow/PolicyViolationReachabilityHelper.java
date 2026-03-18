@@ -74,7 +74,7 @@ public class PolicyViolationReachabilityHelper
    *
    * @param policyViolation - the {@link PolicyEvaluation} to update
    * @param purlIdentifiers - {@link Map} of {@link PackageUrlIdentifier} mapped to a set of vulnerabilities to map the
-   *                        reachability status of the policy violation.
+   *          reachability status of the policy violation.
    */
   public static void updateReachabilityStatus(
       final PolicyViolation policyViolation,
@@ -100,7 +100,7 @@ public class PolicyViolationReachabilityHelper
    * Helper method to see whether the {@link PolicyViolation} was collected within
    * {@link PurlIdentifiersWithVulnerabilities}
    *
-   * @param policyViolation                    - the {@link PolicyViolation} to find
+   * @param policyViolation - the {@link PolicyViolation} to find
    * @param purlIdentifiersWithVulnerabilities - the {@link PurlIdentifiersWithVulnerabilities} to check
    * @return true if the {@link PolicyViolation} was found in the {@link PurlIdentifiersWithVulnerabilities}
    */
@@ -120,7 +120,8 @@ public class PolicyViolationReachabilityHelper
       final PolicyViolation policyViolation,
       final Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> purlIdentifiers)
   {
-    return ReachabilityStatus.combine(policyViolation.getConstraintFacts().stream()
+    return ReachabilityStatus.combine(policyViolation.getConstraintFacts()
+        .stream()
         .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
         .map(ConditionFact::getReference)
         .filter(Objects::nonNull)
@@ -140,8 +141,7 @@ public class PolicyViolationReachabilityHelper
       final Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> vulnerabilitiesByPurlIdentifiers)
   {
     ReachableComponentVulnerabilities reachableSignatures = vulnerabilitiesByPurlIdentifiers.get(
-        fromComponentIdentifier(policyViolation.getComponentIdentifier())
-    );
+        fromComponentIdentifier(policyViolation.getComponentIdentifier()));
 
     if (reachableSignatures == null || reachableSignatures instanceof MissingReachableComponentVulnerabilities) {
       return UNKNOWN;
@@ -166,7 +166,8 @@ public class PolicyViolationReachabilityHelper
 
   public static boolean supportsReachabilityAnalysis(final PolicyViolation policyViolation) {
     if (policyViolation == null || policyViolation.getComponentIdentifier() == null ||
-        policyViolation.getThreatCategory() == null) {
+        policyViolation.getThreatCategory() == null)
+    {
       return false;
     }
     return supportsReachabilityAnalysis(policyViolation.getThreatCategory().toString(),

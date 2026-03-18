@@ -43,7 +43,8 @@ public class FileCoordinateDisplayNameGenerator
       if (componentIdentifier == null &&
           StringUtils.isNotBlank(format) &&
           StringUtils.isNotBlank(name) &&
-          StringUtils.isNotBlank(version)) {
+          StringUtils.isNotBlank(version))
+      {
         componentIdentifier =
             ComponentIdentifierAdapter.toComponentIdentifier(format, name, version);
       }

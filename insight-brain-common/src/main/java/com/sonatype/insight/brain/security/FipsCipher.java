@@ -25,7 +25,8 @@ import static com.sonatype.insight.brain.security.FIPSConfig.getFipsEncryptionAl
 import static com.sonatype.insight.brain.security.FIPSConfig.getFipsEncryptionMode;
 import static com.sonatype.insight.brain.security.FIPSConfig.getFipsIVLength;
 
-public class FipsCipher implements PlexusCipher
+public class FipsCipher
+    implements PlexusCipher
 {
   private static final Pattern ENCRYPTED_STRING_PATTERN = Pattern.compile(".*?[^\\\\]?\\{(.*?[^\\\\])}.*");
 

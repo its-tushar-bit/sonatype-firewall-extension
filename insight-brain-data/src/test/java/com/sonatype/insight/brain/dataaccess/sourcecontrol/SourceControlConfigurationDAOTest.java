@@ -84,7 +84,8 @@ public class SourceControlConfigurationDAOTest
     SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
     dao.insert(sourceControlConfiguration);
 
-    assertThat(dao.getNotNull()).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(dao.getNotNull()).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(sourceControlConfiguration);
   }
 

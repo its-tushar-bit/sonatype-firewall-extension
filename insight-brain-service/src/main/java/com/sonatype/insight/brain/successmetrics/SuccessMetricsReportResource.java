@@ -47,8 +47,9 @@ public class SuccessMetricsReportResource
   private final SuccessMetricsReportDataService successMetricsReportDataService;
 
   @Inject
-  public SuccessMetricsReportResource(SuccessMetricsReportService successMetricsReportService,
-                                      SuccessMetricsReportDataService successMetricsReportDataService)
+  public SuccessMetricsReportResource(
+      SuccessMetricsReportService successMetricsReportService,
+      SuccessMetricsReportDataService successMetricsReportDataService)
   {
     this.successMetricsReportService = successMetricsReportService;
     this.successMetricsReportDataService = successMetricsReportDataService;

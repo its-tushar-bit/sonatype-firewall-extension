@@ -26,10 +26,10 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.*;
 
 public class FirewallContainerRepositoryResultsPageTest
-        extends AbstractFunctionalTest
+    extends AbstractFunctionalTest
 {
-  private final FirewallContainerRepositoryResultsPage containerRepositoryResultsPage
-        = new FirewallContainerRepositoryResultsPage();
+  private final FirewallContainerRepositoryResultsPage containerRepositoryResultsPage =
+      new FirewallContainerRepositoryResultsPage();
 
   private PolicyViolationDAO policyViolationDAO;
 
@@ -47,13 +47,12 @@ public class FirewallContainerRepositoryResultsPageTest
     policyViolationDAO = lookup(PolicyViolationDAO.class);
 
     setFeatures(
-            LicensedFeature.CONTAINER_IMAGES_EVALUATION,
-            LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
-            LicensedFeature.APPLICATION_EVALUATION,
-            LicensedFeature.APPLICATION_REPORTS,
-            LicensedFeature.POLICY_MANAGEMENT,
-            LicensedFeature.SUCCESS_METRICS
-    );
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION,
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.SUCCESS_METRICS);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
 
     hardreset();
@@ -119,7 +118,7 @@ public class FirewallContainerRepositoryResultsPageTest
     containerRepositoryResultsPage.title().shouldHave(text("Repository Results"));
 
     FirewallContainerRepositoryResultsPage.ContainerRepositoryResultsTable resultsTable =
-            new FirewallContainerRepositoryResultsPage.ContainerRepositoryResultsTable();
+        new FirewallContainerRepositoryResultsPage.ContainerRepositoryResultsTable();
     resultsTable.table().shouldBe(visible);
   }
 }

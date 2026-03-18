@@ -90,7 +90,8 @@ public class PullRequestCommentingService
 
         if (existingPullRequestComment == null) { // new PR comment
           if (policyViolationDiff.get().hasAppeared() || policyViolationDiff.get().hasCleared() ||
-              SourceControlProvider.BITBUCKET == dto.getGitRepositoryInfo().getProvider()) {
+              SourceControlProvider.BITBUCKET == dto.getGitRepositoryInfo().getProvider())
+          {
             pullRequestCommentCreator
                 .createPullRequestComment(dto, policyViolationDiff.get(), remediationVersionMap, contentHash);
           }
@@ -110,7 +111,8 @@ public class PullRequestCommentingService
 
             // CLM-35694: handle unchanged content for Bitbucket
             if (null != dto.getGitRepositoryInfo()
-                && SourceControlProvider.BITBUCKET == dto.getGitRepositoryInfo().getProvider()) {
+                && SourceControlProvider.BITBUCKET == dto.getGitRepositoryInfo().getProvider())
+            {
               handleBitbucketPullRequestWhenContentUnchanged(dto, existingPullRequestComment,
                   policyViolationDiff.get(), remediationVersionMap, contentHash);
             }
@@ -155,7 +157,7 @@ public class PullRequestCommentingService
               dto.getFeatureBranchPolicyEvaluation().getScanId());
 
       // Invoke post-comment actions without updating pull request comments
-      pullRequestCommentCreator.handlePostCommentActions( dto, policyViolationDiff, componentDetails, null);
+      pullRequestCommentCreator.handlePostCommentActions(dto, policyViolationDiff, componentDetails, null);
 
     }
     catch (Exception e) {

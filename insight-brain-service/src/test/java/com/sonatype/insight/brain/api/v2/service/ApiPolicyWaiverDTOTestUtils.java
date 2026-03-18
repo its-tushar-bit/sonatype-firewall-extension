@@ -28,8 +28,7 @@ public class ApiPolicyWaiverDTOTestUtils
       String associatedPackageUrl,
       String reasonText,
       String policyWaiverReasonId,
-      ApiPolicyWaiverDTO actual
-  )
+      ApiPolicyWaiverDTO actual)
   {
     assertThat(actual.hash).isEqualTo(hash);
     assertThat(actual.policyId).isEqualTo(policyId);

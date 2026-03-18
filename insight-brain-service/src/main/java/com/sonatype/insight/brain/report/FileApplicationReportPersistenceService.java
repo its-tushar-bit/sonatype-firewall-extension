@@ -116,14 +116,14 @@ public class FileApplicationReportPersistenceService
       if (metadataAttributes.length == 0) {
         return Optional.of(new Metadata(null, null));
       }
-      String attributeNames = Set.of(metadataAttributes).stream()
+      String attributeNames = Set.of(metadataAttributes)
+          .stream()
           .map(MetadataAttribute::getFileAttributeName)
           .collect(Collectors.joining(","));
       Map<String, Object> fileAttributes = Files.readAttributes(entityPath, attributeNames);
       return Optional.of(new Metadata(
           ((FileTime) fileAttributes.get(MetadataAttribute.LAST_MODIFIED_EPOCH_TIME.getFileAttributeName())).toMillis(),
-          (Long) fileAttributes.get(MetadataAttribute.SIZE_IN_BYTES.getFileAttributeName())
-      ));
+          (Long) fileAttributes.get(MetadataAttribute.SIZE_IN_BYTES.getFileAttributeName())));
     }
 
     @Override
@@ -201,8 +201,7 @@ public class FileApplicationReportPersistenceService
       Set<MetadataAttribute> metadataAttributesSet = Set.of(metadataAttributes);
       return Optional.of(new Metadata(
           metadataAttributesSet.contains(MetadataAttribute.LAST_MODIFIED_EPOCH_TIME) ? getTime() : null,
-          metadataAttributesSet.contains(MetadataAttribute.SIZE_IN_BYTES) ? length() : null
-      ));
+          metadataAttributesSet.contains(MetadataAttribute.SIZE_IN_BYTES) ? length() : null));
     }
 
     @Override
@@ -283,15 +282,14 @@ public class FileApplicationReportPersistenceService
         additionalEntities.stream(),
         Stream.concat(
             localEntities.stream(),
-            getOriginalEntities(applicationId, scanId, namesAlreadySeen)
-        )
-    );
+            getOriginalEntities(applicationId, scanId, namesAlreadySeen)));
   }
 
   @Override
   @Trace
-  public Stream<ReportEntity> getOriginalReportEntities(final String applicationId, final String scanId)
-      throws IOException
+  public Stream<ReportEntity> getOriginalReportEntities(
+      final String applicationId,
+      final String scanId) throws IOException
   {
     return getOriginalEntities(applicationId, scanId, Collections.emptySet());
   }
@@ -369,8 +367,10 @@ public class FileApplicationReportPersistenceService
 
   @Override
   @Trace
-  public void moveReport(final String appId, final String sourceScanId, final String destinationScanId)
-      throws IOException
+  public void moveReport(
+      final String appId,
+      final String sourceScanId,
+      final String destinationScanId) throws IOException
   {
     final Path sourceReportDirPath = getReportDirPath(appId, sourceScanId);
     final Path destinationReportDirPath = getReportDirPath(appId, destinationScanId);
@@ -612,7 +612,8 @@ public class FileApplicationReportPersistenceService
             .map(entry -> {
               ReportEntity entity = new ZipFileReportEntity(pathToZip, zipFile, entry);
               return entity;
-            }).onClose(() -> {
+            })
+            .onClose(() -> {
               try {
                 zipFile.close();
               }

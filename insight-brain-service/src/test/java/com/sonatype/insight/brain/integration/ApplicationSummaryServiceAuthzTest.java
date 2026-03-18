@@ -147,7 +147,7 @@ public class ApplicationSummaryServiceAuthzTest
     ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT, org.getId(), null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId)
-            .containsExactly(app0.getId());
+        .containsExactly(app0.getId());
   }
 
   @Test
@@ -267,7 +267,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testVerifyOrCreateApplication_Unauthorized_VIEW_CIP() {
     login();
-    assertThat(service.verifyOrCreateApplication(app.getPublicId(),null, Goal.VIEW_CIP, "ua/1.0")).isFalse();
+    assertThat(service.verifyOrCreateApplication(app.getPublicId(), null, Goal.VIEW_CIP, "ua/1.0")).isFalse();
   }
 
   @Test

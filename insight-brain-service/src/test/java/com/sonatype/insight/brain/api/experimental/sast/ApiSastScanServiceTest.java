@@ -127,8 +127,7 @@ public class ApiSastScanServiceTest
     tempEntity.newApplicationWithParent("myApp");
 
     // Expect a NotFoundException to be thrown when getting a non-existent sast scan
-    assertThatThrownBy(() ->
-        apiSastScanService.getSastScan("myApp", "someNonExistingSastScanId"))
+    assertThatThrownBy(() -> apiSastScanService.getSastScan("myApp", "someNonExistingSastScanId"))
         .isInstanceOf(NotFoundException.class)
         .hasMessage("SastScan with ID someNonExistingSastScanId does not exist.");
   }
@@ -146,8 +145,7 @@ public class ApiSastScanServiceTest
 
     // Expect getSastScan to throw an exception when an existing App public id
     // does not match the one associated with the sast scan
-    assertThatThrownBy(() ->
-        apiSastScanService.getSastScan("testApp2", createSastScanResult.sastScanId))
+    assertThatThrownBy(() -> apiSastScanService.getSastScan("testApp2", createSastScanResult.sastScanId))
         .isInstanceOf(NotFoundException.class)
         .hasMessage("Could not find SastScan");
   }
@@ -336,8 +334,7 @@ public class ApiSastScanServiceTest
         "https://github.com/sonatype/insight-brain/pull/10894",
         "commit-hash",
         "content-hash",
-        "discussion_r1450570374"
-    );
+        "discussion_r1450570374");
 
     // Assert that PR URL exists
     final SastScanResponseDTO getSastScanResult = apiSastScanService.getSastScan("myApp",

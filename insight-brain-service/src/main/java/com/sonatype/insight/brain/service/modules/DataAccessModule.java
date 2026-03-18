@@ -174,7 +174,8 @@ import com.google.inject.Scopes;
 /**
  * Guice module that explicitly binds all DAO classes from the data access layer as singletons.
  *
- * <p>All 172 DAO classes that have @Named or @Singleton annotations are explicitly bound here.
+ * <p>
+ * All 172 DAO classes that have @Named or @Singleton annotations are explicitly bound here.
  * When adding a new DAO, simply add a new bind() statement in the appropriate section below.
  */
 public final class DataAccessModule

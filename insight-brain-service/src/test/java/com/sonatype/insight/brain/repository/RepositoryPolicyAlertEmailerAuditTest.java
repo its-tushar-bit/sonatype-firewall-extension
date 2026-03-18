@@ -112,10 +112,11 @@ public class RepositoryPolicyAlertEmailerAuditTest
     return new PolicyNotification(policyFact, policy.getNotifications());
   }
 
-  private void assertRepositoryPolicyNotificationAuditData(AuditDTO auditDTO,
-                                                           int totalPolicyViolationCount,
-                                                           String email,
-                                                           String error)
+  private void assertRepositoryPolicyNotificationAuditData(
+      AuditDTO auditDTO,
+      int totalPolicyViolationCount,
+      String email,
+      String error)
   {
     assertStandardData(auditDTO, AuditEvent.SEND_MAIL, error, SYSTEM_USER);
     assertRepositoryData(auditDTO, repository);

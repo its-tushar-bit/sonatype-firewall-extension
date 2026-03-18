@@ -207,7 +207,7 @@ public class PullRequestPollingTrackerTest
   @Test
   public void testVisitAndCheckKeyAlreadyUsed() {
     // when: visit and key combo used for first time
-    boolean visited = pollingTracker.visitAndCheckKeyAlreadyUsed("org", "repo","token");
+    boolean visited = pollingTracker.visitAndCheckKeyAlreadyUsed("org", "repo", "token");
 
     // then: shouldn't have been visited yet
     assertThat(visited).isFalse();
@@ -241,13 +241,13 @@ public class PullRequestPollingTrackerTest
 
     Tenant tenant1 = testAsNewTenant(testName, t1 -> {
       // The initial fetch of a key will add it to the cache for this tenant
-      Date cachedCutoffTime = pollingTracker.getCachedCutoffTime("org", "repo","token", date);
+      Date cachedCutoffTime = pollingTracker.getCachedCutoffTime("org", "repo", "token", date);
 
       assertThat(cachedCutoffTime).isEqualTo(date);
     });
 
     testAsNewTenant(testName, t2 -> {
-      Date cachedCutoffTime = pollingTracker.getCachedCutoffTime("org", "repo","token", oldDate);
+      Date cachedCutoffTime = pollingTracker.getCachedCutoffTime("org", "repo", "token", oldDate);
 
       // cutOffTime should be unique for each tenant therefore the date passed in here should be used
       assertThat(cachedCutoffTime).isEqualTo(oldDate);
@@ -255,7 +255,7 @@ public class PullRequestPollingTrackerTest
 
     testAsTenant(tenant1, t -> {
       // Ensure the original tenant cache is not overridden
-      Date cachedCutoffTime = pollingTracker.getCachedCutoffTime("org", "repo","token", date);
+      Date cachedCutoffTime = pollingTracker.getCachedCutoffTime("org", "repo", "token", date);
       assertThat(cachedCutoffTime).isEqualTo(date);
     });
   }

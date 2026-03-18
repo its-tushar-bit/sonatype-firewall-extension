@@ -34,8 +34,10 @@ public class Assert
     assertThat(actual.getColor()).isEqualTo(expected.getColor());
   }
 
-  public static void assertNotifications(List<Message> notifications, int notificationCount, long timeoutMillisecs)
-      throws InterruptedException
+  public static void assertNotifications(
+      List<Message> notifications,
+      int notificationCount,
+      long timeoutMillisecs) throws InterruptedException
   {
     if (notificationCount == 0) {
       Thread.sleep(timeoutMillisecs);

@@ -56,13 +56,14 @@ public class ApiSearchResourceV2Test
     return httpRequest -> httpRequest.query("packageUrl", packageUrl);
   }
 
-  private void assertSearchResult(ApiSearchResultDTOV2 result,
-                                  String appId,
-                                  String appName,
-                                  String hash,
-                                  String packageUrl,
-                                  ComponentIdentifier componentIdentifier,
-                                  Integer threatLevel) throws Exception
+  private void assertSearchResult(
+      ApiSearchResultDTOV2 result,
+      String appId,
+      String appName,
+      String hash,
+      String packageUrl,
+      ComponentIdentifier componentIdentifier,
+      Integer threatLevel) throws Exception
   {
     assertThat(result.applicationId).isEqualTo(appId);
     assertThat(result.applicationName).isEqualTo(appName);
@@ -333,7 +334,7 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"), "scanId");
     mockReport("scanId", "/" + getClass().getSimpleName() + "/report");
 
-    //With Purl we cannot represent an empty query param (which will be dropped/ignored by PackageURL constructor
+    // With Purl we cannot represent an empty query param (which will be dropped/ignored by PackageURL constructor
     // (inline with purl-spec). So effectively this is treated it as no classifier (null)
     // which will be wildcarded for the search query.
     String packageUrl = "pkg:maven/tomcat/tomcat-util@*?type=jar&classifier=";

@@ -22,7 +22,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Maven requires both a namespace and name.
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "maven", "p1", "v1"))
-        .isEqualTo("p1 : v1");
+            .isEqualTo("p1 : v1");
   }
 
   @Test
@@ -30,7 +30,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines from component identifier the same as default with name and format
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "generic", "p1", "v1"))
-        .isEqualTo("p1 : v1");
+            .isEqualTo("p1 : v1");
   }
 
   @Test
@@ -38,7 +38,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "nuget", "p1", "v1"))
-        .isEqualTo("p1 v1");
+            .isEqualTo("p1 v1");
   }
 
   @Test
@@ -46,7 +46,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "a-name", "p1", "v1"))
-        .isEqualTo("p1 v1");
+            .isEqualTo("p1 v1");
   }
 
   @Test
@@ -54,7 +54,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "pypi", "p1", "v1"))
-        .isEqualTo("p1 v1");
+            .isEqualTo("p1 v1");
   }
 
   @Test
@@ -62,7 +62,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "rpm", "p1", "v1"))
-        .isEqualTo("p1-v1");
+            .isEqualTo("p1-v1");
   }
 
   @Test
@@ -70,7 +70,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "gem", "p1", "v1"))
-        .isEqualTo("p1 v1");
+            .isEqualTo("p1 v1");
   }
 
   @Test
@@ -78,7 +78,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "golang", "p1", "v1"))
-        .isEqualTo("p1 v1");
+            .isEqualTo("p1 v1");
   }
 
   @Test
@@ -86,7 +86,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "pecoff", "p1", "v1"))
-        .isEqualTo("p1 v1");
+            .isEqualTo("p1 v1");
   }
 
   @Test
@@ -94,7 +94,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "swift", "p1", "v1"))
-        .isEqualTo("p1 v1");
+            .isEqualTo("p1 v1");
   }
 
   @Test
@@ -102,7 +102,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "terraform", "p1", "v1"))
-        .isEqualTo(" : p1 : v1");
+            .isEqualTo(" : p1 : v1");
   }
 
   @Test
@@ -110,7 +110,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "cocoapods", "p1", "v1"))
-        .isEqualTo("p1 : v1");
+            .isEqualTo("p1 : v1");
   }
 
   @Test
@@ -118,7 +118,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "conan", "p1", "v1"))
-        .isEqualTo("p1 : v1");
+            .isEqualTo("p1 : v1");
   }
 
   @Test
@@ -126,7 +126,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "container", "p1", "v1"))
-        .isEqualTo(" : p1 : v1");
+            .isEqualTo(" : p1 : v1");
   }
 
   @Test
@@ -134,7 +134,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "iac", "p1", "v1"))
-        .isEqualTo("p1");
+            .isEqualTo("p1");
   }
 
   @Test
@@ -142,7 +142,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "cargo", "p1", "v1"))
-        .isEqualTo("p1 : v1");
+            .isEqualTo("p1 : v1");
   }
 
   @Test
@@ -150,7 +150,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "cran", "p1", "v1"))
-        .isEqualTo("p1 : v1");
+            .isEqualTo("p1 : v1");
   }
 
   @Test
@@ -158,7 +158,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "conda", "p1", "v1"))
-        .isEqualTo("p1/v1");
+            .isEqualTo("p1/v1");
   }
 
   @Test
@@ -166,7 +166,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "composer", "p1", "v1"))
-        .isEqualTo("/p1/v1");
+            .isEqualTo("/p1/v1");
   }
 
   @Test
@@ -174,7 +174,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "cpe", "p1", "v1"))
-        .isEqualTo(" : p1 : v1");
+            .isEqualTo(" : p1 : v1");
   }
 
   @Test
@@ -182,7 +182,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "swid", "p1", "v1"))
-        .isEqualTo("p1 : v1");
+            .isEqualTo("p1 : v1");
   }
 
   @Test
@@ -192,7 +192,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // format: [name]
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "hf-repo", "p1", "v1"))
-        .isEqualTo("p1 : v1");
+            .isEqualTo("p1 : v1");
   }
 
   @Test
@@ -200,7 +200,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "hf-model", "p1", "v1"))
-        .isEqualTo("p1 : v1 : (Hugging Face Repo)");
+            .isEqualTo("p1 : v1 : (Hugging Face Repo)");
   }
 
   @Test
@@ -208,7 +208,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     // Determines the display name from component identifier created with the format, name and version
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(componentIdentifier, "npm", "p1", "v1"))
-        .isEqualTo("p1 : v1");
+            .isEqualTo("p1 : v1");
   }
 
   @Test
@@ -216,7 +216,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName("pkg:maven/org.apache.commons/commons-lang3@3.12" +
             ".0?classifier=javadoc&extension=jar", null, null, null))
-        .isEqualTo("org.apache.commons : commons-lang3 :  : javadoc : 3.12.0");
+                .isEqualTo("org.apache.commons : commons-lang3 :  : javadoc : 3.12.0");
   }
 
   @Test
@@ -225,7 +225,7 @@ public class FileCoordinateDisplayNameGeneratorTest
         FileCoordinateDisplayNameGenerator.generateDisplayName(
             "pkg:generic/example-component@1.0.0?arch=x86&os=linux", null,
             null, null))
-        .isEqualTo("example-component : 1.0.0 : x86 : linux");
+                .isEqualTo("example-component : 1.0.0 : x86 : linux");
   }
 
   @Test
@@ -233,7 +233,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(
             "pkg:nuget/Newtonsoft.Json@13.0.1?repository=https://api.nuget.org/v3/index.json", null, null, null))
-        .isEqualTo("Newtonsoft.Json 13.0.1");
+                .isEqualTo("Newtonsoft.Json 13.0.1");
   }
 
   @Test
@@ -242,7 +242,7 @@ public class FileCoordinateDisplayNameGeneratorTest
         FileCoordinateDisplayNameGenerator.generateDisplayName(
             "pkg:aname/example-component@1.2.3#/path/to/submodule", null,
             null, null))
-        .isEqualTo("example-component : 1.2.3");
+                .isEqualTo("example-component : 1.2.3");
   }
 
   @Test
@@ -251,7 +251,7 @@ public class FileCoordinateDisplayNameGeneratorTest
         FileCoordinateDisplayNameGenerator.generateDisplayName(
             "pkg:pypi/requests@2.26.0?environment=python_version%3C3.10",
             null, null, null))
-        .isEqualTo("requests 2.26.0");
+                .isEqualTo("requests 2.26.0");
   }
 
   @Test
@@ -260,7 +260,7 @@ public class FileCoordinateDisplayNameGeneratorTest
         FileCoordinateDisplayNameGenerator.generateDisplayName("pkg:rpm/openssl@1.1.1g?repository=base", null,
             null,
             null))
-        .isEqualTo("openssl-1.1.1g");
+                .isEqualTo("openssl-1.1.1g");
   }
 
   @Test
@@ -269,7 +269,7 @@ public class FileCoordinateDisplayNameGeneratorTest
         FileCoordinateDisplayNameGenerator.generateDisplayName("pkg:gem/rails@6.1.4?source=https://rubygems.org",
             null,
             null, null))
-        .isEqualTo("rails 6.1.4");
+                .isEqualTo("rails 6.1.4");
   }
 
   @Test
@@ -278,7 +278,7 @@ public class FileCoordinateDisplayNameGeneratorTest
         FileCoordinateDisplayNameGenerator.generateDisplayName(
             "pkg:golang/github.com/gin-gonic/gin@v1.7.4?arch=amd64",
             null, null, null))
-        .isEqualTo("github.com/gin-gonic/gin v1.7.4");
+                .isEqualTo("github.com/gin-gonic/gin v1.7.4");
   }
 
   @Test
@@ -286,7 +286,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(
             "pkg:pecoff/example-software@1.0.0", null, null, null))
-        .isEqualTo("example-software 1.0.0");
+                .isEqualTo("example-software 1.0.0");
   }
 
   @Test
@@ -295,7 +295,7 @@ public class FileCoordinateDisplayNameGeneratorTest
         FileCoordinateDisplayNameGenerator.generateDisplayName("pkg:swift/apple/swift@5.7.0?platform=macos", null,
             null,
             null))
-        .isEqualTo("apple/swift 5.7.0");
+                .isEqualTo("apple/swift 5.7.0");
   }
 
   @Test
@@ -304,7 +304,7 @@ public class FileCoordinateDisplayNameGeneratorTest
         FileCoordinateDisplayNameGenerator.generateDisplayName(
             "pkg:terraform/hashicorp/consul@1.14.0?repository=https://github.com/hashicorp/consul", null, null,
             null))
-        .isEqualTo("hashicorp : consul : 1.14.0");
+                .isEqualTo("hashicorp : consul : 1.14.0");
   }
 
   @Test
@@ -313,7 +313,7 @@ public class FileCoordinateDisplayNameGeneratorTest
         FileCoordinateDisplayNameGenerator.generateDisplayName("pkg:cocoapods/Alamofire@5.4.3?platform=ios", null,
             null,
             null))
-        .isEqualTo("Alamofire : 5.4.3");
+                .isEqualTo("Alamofire : 5.4.3");
   }
 
   @Test
@@ -321,7 +321,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName("pkg:conan/boost/1.75.0?compiler=gcc", null, null,
             null))
-        .isEqualTo("1.75.0 :  : boost");
+                .isEqualTo("1.75.0 :  : boost");
   }
 
   @Test
@@ -330,7 +330,7 @@ public class FileCoordinateDisplayNameGeneratorTest
         FileCoordinateDisplayNameGenerator.generateDisplayName("pkg:docker/library/ubuntu@20.04?platform=linux",
             null, null,
             null))
-        .isEqualTo("ubuntu : library : linux : 20.04");
+                .isEqualTo("ubuntu : library : linux : 20.04");
   }
 
   @Test
@@ -339,14 +339,14 @@ public class FileCoordinateDisplayNameGeneratorTest
         FileCoordinateDisplayNameGenerator.generateDisplayName(
             "pkg:iac/terraform/hashicorp/consul@1.14.0?arch=x86_64", null,
             null, null))
-        .isEqualTo("consul");
+                .isEqualTo("consul");
   }
 
   @Test
   public void testCalculateDisplayNameFromPackageUrl_Cargo() {
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName("pkg:cargo/serde@1.0.130", null, null, null))
-        .isEqualTo("serde : 1.0.130");
+            .isEqualTo("serde : 1.0.130");
   }
 
   @Test
@@ -354,7 +354,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName("pkg:cran/ggplot2@3.3.5?platform=linux", null, null,
             null))
-        .isEqualTo("ggplot2 : 3.3.5");
+                .isEqualTo("ggplot2 : 3.3.5");
   }
 
   @Test
@@ -363,7 +363,7 @@ public class FileCoordinateDisplayNameGeneratorTest
         FileCoordinateDisplayNameGenerator.generateDisplayName(
             "pkg:conda/anaconda/requests@2.25.1?channel=defaults", null,
             null, null))
-        .isEqualTo("defaults/requests/2.25.1");
+                .isEqualTo("defaults/requests/2.25.1");
   }
 
   @Test
@@ -372,7 +372,7 @@ public class FileCoordinateDisplayNameGeneratorTest
         FileCoordinateDisplayNameGenerator.generateDisplayName("pkg:composer/monolog/monolog@2.3.5?arch=x86_64",
             null, null,
             null))
-        .isEqualTo("monolog/monolog/2.3.5");
+                .isEqualTo("monolog/monolog/2.3.5");
   }
 
   @Test
@@ -381,7 +381,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(
             "cpe:2.3:a:microsoft:internet_explorer:11:*:*:*:*:*:*:*", null, "internet_explorer", "11"))
-        .isEqualTo("internet_explorer : 11");
+                .isEqualTo("internet_explorer : 11");
   }
 
   @Test
@@ -390,7 +390,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(
             "pkg:swid:oracle/java@1.8.0_281", null, "java", "1.8.0_281"))
-        .isEqualTo("java : 1.8.0_281");
+                .isEqualTo("java : 1.8.0_281");
   }
 
   @Test
@@ -398,7 +398,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(
             "pkg:huggingface/models/bert-base-uncased@v1.0.0?platform=cpu", null, null, null))
-        .isEqualTo("models/bert-base-uncased : v1.0.0 : (Hugging Face Repo)");
+                .isEqualTo("models/bert-base-uncased : v1.0.0 : (Hugging Face Repo)");
   }
 
   @Test
@@ -406,7 +406,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName(
             "pkg:huggingface/models/bert-base-uncased@v2.1.0?platform=cpu", null, null, null))
-        .isEqualTo("models/bert-base-uncased : v2.1.0 : (Hugging Face Repo)");
+                .isEqualTo("models/bert-base-uncased : v2.1.0 : (Hugging Face Repo)");
   }
 
   @Test
@@ -414,7 +414,7 @@ public class FileCoordinateDisplayNameGeneratorTest
     assertThat(
         FileCoordinateDisplayNameGenerator.generateDisplayName("pkg:npm/lodash@4.17.21?platform=browser", null,
             null, null))
-        .isEqualTo("lodash : 4.17.21");
+                .isEqualTo("lodash : 4.17.21");
   }
 
   @Test
@@ -424,6 +424,6 @@ public class FileCoordinateDisplayNameGeneratorTest
         FileCoordinateDisplayNameGenerator.generateDisplayName(
             "pkg:pypi/requests@2.26.0?environment=python_version<3.10",
             null, "requests", "2.26.0"))
-        .isEqualTo("requests : 2.26.0");
+                .isEqualTo("requests : 2.26.0");
   }
 }

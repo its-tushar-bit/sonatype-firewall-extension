@@ -332,11 +332,11 @@ public class ReportServiceTest
     tempEntity.newThirdPartyCoordinateSecurity(tpFileCoord, "CVE-22024-123456", "some description",
         "https://example.com", 5.5d, "high", "2.0");
 
-    //when
+    // when
     ReportService reportService = createReportService();
     ApplicationReport report = reportService.fetchReport(app, scanId, StageTypes.COMPLIANCE.getId());
 
-    //Then
+    // Then
     assertThat(report).isNotNull();
     assertThat(report.exists()).isTrue();
 
@@ -384,14 +384,16 @@ public class ReportServiceTest
     assertComponent(components.get(1), "37b3ce40791bc2dd8068",
         new ComponentIdentifier("debian-9", ImmutableMap.of("name", "glibc", "version", "2.24-11+deb9u3")),
         "dependency:/test/clair-scanner-output.json/glibc:2.24-11+deb9u3", IdentificationSource.CLAIR);
-    assertThat(components.get(1).getAnalyzerFeatures()).usingRecursiveComparison().isEqualTo(
-        new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "cli", false, false, false));
+    assertThat(components.get(1).getAnalyzerFeatures()).usingRecursiveComparison()
+        .isEqualTo(
+            new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "cli", false, false, false));
     assertComponent(components.get(2), "cf085cd08ee27334c573",
         ComponentIdentifier.createPypiCoordinates("altgraph", "0.10.2", null, null),
         "dependency:/pkg:pypi\\altgraph@0.10.2", IdentificationSource.getOrMake("cyclonedx"));
-    assertThat(components.get(2).getAnalyzerFeatures()).usingRecursiveComparison().isEqualTo(
-        new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "cli", false, false, false,
-            ItemContentType.SBOM.name()));
+    assertThat(components.get(2).getAnalyzerFeatures()).usingRecursiveComparison()
+        .isEqualTo(
+            new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "cli", false, false, false,
+                ItemContentType.SBOM.name()));
 
     // Verify security.json
     assertSecurityVulnerability(components.get(0), "cve", "CVE-2012-5783", 5.8F,
@@ -536,11 +538,11 @@ public class ReportServiceTest
 
     Policy appPolicy1 = tempEntity.newPolicy(app.getId(), "app owned policy1", 5);
     tempEntity.newPolicyViolation(eval1, appPolicy1, appPolicy1.getThreatLevel() + 1,
-            PolicyThreatCategory.SECURITY, "Group1", "Artifact1", "Version1");
+        PolicyThreatCategory.SECURITY, "Group1", "Artifact1", "Version1");
 
     Policy appPolicy2 = tempEntity.newPolicy(app.getId(), "app owned policy2", 8);
     tempEntity.newPolicyViolation(eval2, appPolicy2, appPolicy2.getThreatLevel() + 1,
-            PolicyThreatCategory.SECURITY, "Group1", "Artifact1", "Version1");
+        PolicyThreatCategory.SECURITY, "Group1", "Artifact1", "Version1");
 
     ReportService reportService = createReportService();
 
@@ -859,8 +861,11 @@ public class ReportServiceTest
     tempEntity.newThirdPartyScan("scanRequestId", scanId, thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile, PENDING);
-    String sbomApplicationPath = tempDir.getRoot().toPath()
-        .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath()).normalize().toString();
+    String sbomApplicationPath = tempDir.getRoot()
+        .toPath()
+        .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath())
+        .normalize()
+        .toString();
     File sbomFile = tempDir.newFile(sbomApplicationPath + File.separator + sbomMetadata.getFilename());
     sbomFile.deleteOnExit();
     assertThat(sbomFile).exists();
@@ -893,8 +898,11 @@ public class ReportServiceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan("scanRequestId", scanId, thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile, PENDING);
-    String sbomApplicationPath = tempDir.getRoot().toPath()
-        .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath()).normalize().toString();
+    String sbomApplicationPath = tempDir.getRoot()
+        .toPath()
+        .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath())
+        .normalize()
+        .toString();
     File sbomFile = tempDir.newFile(sbomApplicationPath + File.separator + sbomMetadata.getFilename());
     sbomFile.deleteOnExit();
     assertThat(sbomFile).exists();
@@ -960,16 +968,13 @@ public class ReportServiceTest
     final ReportService reportService = createReportService();
     final String expectedErrorMessage = "Could not find a report with ID " + scanId;
 
-    assertThatThrownBy(() ->
-        reportService.getPolicyThreats(app.getPublicId(), scanId))
+    assertThatThrownBy(() -> reportService.getPolicyThreats(app.getPublicId(), scanId))
         .isInstanceOf(NotFoundException.class)
         .hasMessage(expectedErrorMessage);
   }
 
   @Test
-  public void testGetPolicyThreats_shouldThrowNotFoundExceptionGivenNoReportEntryForPolicyThreatFounds()
-      throws Exception
-  {
+  public void testGetPolicyThreats_shouldThrowNotFoundExceptionGivenNoReportEntryForPolicyThreatFounds() throws Exception {
     final ReportService reportService = createReportService();
     final String expectedErrorMessage = String.format("Report policy threats entry is missing for the requested " +
         "application [%s] and scan ID [%s]", app.getPublicId(), scanId);
@@ -981,8 +986,7 @@ public class ReportServiceTest
     doReturn(applicationReport).when(reportDataStoreSpy)
         .getApplicationReport(argThat(application -> application.getId().equals(app.getId())), eq(scanId));
 
-    assertThatThrownBy(() ->
-        reportService.getPolicyThreats(app.getPublicId(), scanId))
+    assertThatThrownBy(() -> reportService.getPolicyThreats(app.getPublicId(), scanId))
         .isInstanceOf(NotFoundException.class)
         .hasMessage(expectedErrorMessage);
 
@@ -1073,7 +1077,7 @@ public class ReportServiceTest
   public static PolicyThreats.Component createComponent() {
     final PolicyThreats.Component component = new PolicyThreats.Component();
     component.hash = "aaa";
-    final Map<String, String > coordinate = new HashMap<>();
+    final Map<String, String> coordinate = new HashMap<>();
     coordinate.put("extension", "jar");
     coordinate.put("groupId", "com.sonatype");
     coordinate.put("artifactId", "test");
@@ -1278,17 +1282,17 @@ public class ReportServiceTest
     String newScanId = "newScanId";
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(newScanId);
-    doReturn(scanReceipt).when(mockScanUploadService).upload(
-        any(),
-        any(),
-        eq(StageTypes.BUILD.getId()),
-        any(),
-        eq(clientUserAgent),
-        any(),
-        any(),
-        any(),
-        anyBoolean()
-    );
+    doReturn(scanReceipt).when(mockScanUploadService)
+        .upload(
+            any(),
+            any(),
+            eq(StageTypes.BUILD.getId()),
+            any(),
+            eq(clientUserAgent),
+            any(),
+            any(),
+            any(),
+            anyBoolean());
     // Mock the new report so we don't have to get it from the real HDS
     ReportHelper.saveMockReport(insightWork, tempDir,
         "/ApplicationReportPersistenceServiceTest/report", app.getId(), newScanId);
@@ -1321,17 +1325,17 @@ public class ReportServiceTest
     String newScanId = "newScanId";
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(newScanId);
-    doReturn(scanReceipt).when(mockScanUploadService).upload(
-        any(),
-        any(),
-        eq(StageTypes.BUILD.getId()),
-        any(),
-        eq(browserUserAgent),
-        any(),
-        any(),
-        any(),
-        eq(true)
-    );
+    doReturn(scanReceipt).when(mockScanUploadService)
+        .upload(
+            any(),
+            any(),
+            eq(StageTypes.BUILD.getId()),
+            any(),
+            eq(browserUserAgent),
+            any(),
+            any(),
+            any(),
+            eq(true));
     ReportHelper.saveMockReport(insightWork, tempDir,
         "/ApplicationReportPersistenceServiceTest/report", app.getId(), newScanId);
 
@@ -1346,8 +1350,7 @@ public class ReportServiceTest
         any(),
         any(),
         any(),
-        eq(true)
-    );
+        eq(true));
   }
 
   @Test
@@ -1362,17 +1365,17 @@ public class ReportServiceTest
     String newScanId = "newScanId";
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(newScanId);
-    doReturn(scanReceipt).when(mockScanUploadService).upload(
-        any(),
-        any(),
-        eq(StageTypes.BUILD.getId()),
-        any(),
-        eq(clientUserAgent),
-        any(),
-        any(),
-        any(),
-        eq(true)
-    );
+    doReturn(scanReceipt).when(mockScanUploadService)
+        .upload(
+            any(),
+            any(),
+            eq(StageTypes.BUILD.getId()),
+            any(),
+            eq(clientUserAgent),
+            any(),
+            any(),
+            any(),
+            eq(true));
     ReportHelper.saveMockReport(insightWork, tempDir,
         "/ApplicationReportPersistenceServiceTest/report", app.getId(), newScanId);
 
@@ -1388,8 +1391,7 @@ public class ReportServiceTest
         any(),
         argThat(scanContext -> scanContext != null &&
             scanContext.containerImageSbomSpecification() == SbomSpecification.CYCLONEDX),
-        eq(true)
-    );
+        eq(true));
   }
 
   @Test
@@ -1404,17 +1406,17 @@ public class ReportServiceTest
     String newScanId = "newScanId";
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(newScanId);
-    doReturn(scanReceipt).when(mockScanUploadService).upload(
-        any(),
-        any(),
-        eq(StageTypes.BUILD.getId()),
-        any(),
-        eq(clientUserAgent),
-        any(),
-        any(),
-        any(),
-        eq(true)
-    );
+    doReturn(scanReceipt).when(mockScanUploadService)
+        .upload(
+            any(),
+            any(),
+            eq(StageTypes.BUILD.getId()),
+            any(),
+            eq(clientUserAgent),
+            any(),
+            any(),
+            any(),
+            eq(true));
     ReportHelper.saveMockReport(insightWork, tempDir,
         "/ApplicationReportPersistenceServiceTest/report", app.getId(), newScanId);
 
@@ -1430,8 +1432,7 @@ public class ReportServiceTest
         any(),
         argThat(scanContext -> scanContext != null &&
             scanContext.containerImageSbomSpecification() == null),
-        eq(true)
-    );
+        eq(true));
   }
 
   @Test
@@ -1471,8 +1472,7 @@ public class ReportServiceTest
             eq(component),
             argThat(remediationMatches(remediationVersionDTO)),
             eq(Collections.emptyList()),
-            eq(true)
-        );
+            eq(true));
   }
 
   @Test
@@ -1512,8 +1512,7 @@ public class ReportServiceTest
             eq(component),
             argThat(remediationMatches(remediationVersionDTO)),
             eq(Collections.emptyList()),
-            eq(true)
-        );
+            eq(true));
   }
 
   @Test

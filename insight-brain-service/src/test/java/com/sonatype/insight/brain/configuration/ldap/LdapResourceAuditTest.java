@@ -112,8 +112,11 @@ public class LdapResourceAuditTest
   @Test
   public void testUpsertLdapConnection_Unauthorized() throws Exception {
     LdapConnection ldapConnection = createLdapConnection(LdapAuthenticationMethod.NONE);
-    ldapRequest().path(LdapResource.CONNECTION_PATH).parameter(ldapServer.getId()).with(unauthorizedUser())
-        .body(ldapConnection).put();
+    ldapRequest().path(LdapResource.CONNECTION_PATH)
+        .parameter(ldapServer.getId())
+        .with(unauthorizedUser())
+        .body(ldapConnection)
+        .put();
 
     assertAuditLog(AuditEvent.CONFIGURE_LDAP_CONNECTION, "unauthorized");
   }
@@ -151,8 +154,11 @@ public class LdapResourceAuditTest
   @Test
   public void testUpsertUserMapping_Unauthorized() throws Exception {
     LdapUserMapping ldapUserMapping = newUserMapping(LdapGroupMappingType.NONE, false);
-    ldapRequest().path(LdapResource.USER_MAPPING_PATH).parameter(ldapServer.getId()).with(unauthorizedUser())
-        .body(ldapUserMapping).put();
+    ldapRequest().path(LdapResource.USER_MAPPING_PATH)
+        .parameter(ldapServer.getId())
+        .with(unauthorizedUser())
+        .body(ldapUserMapping)
+        .put();
 
     assertAuditLog(AuditEvent.CONFIGURE_LDAP_USER_MAPPING, "unauthorized");
   }
@@ -163,7 +169,8 @@ public class LdapResourceAuditTest
     LdapServer ldapServer3 = tempEntity.newLdapServer("server 3");
     List<LdapServer> servers = asList(ldapServer3, ldapServer2, ldapServer);
     ldapRequest().path(LdapResource.PRIORITY_PATH)
-        .body(servers.stream().map(LdapServer::getId).collect(Collectors.toList())).put();
+        .body(servers.stream().map(LdapServer::getId).collect(Collectors.toList()))
+        .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.PRIORITIZE_LDAP, null);
     assertCustomObject(auditDTO, "ldapServerOrder",
@@ -172,8 +179,11 @@ public class LdapResourceAuditTest
 
   @Test
   public void testUpdatePriority_Unauthorized() throws Exception {
-    ldapRequest().path(LdapResource.PRIORITY_PATH).with(unauthorizedUser()).body(
-        Collections.singletonList(ldapServer.getId())).put();
+    ldapRequest().path(LdapResource.PRIORITY_PATH)
+        .with(unauthorizedUser())
+        .body(
+            Collections.singletonList(ldapServer.getId()))
+        .put();
 
     assertAuditLog(AuditEvent.PRIORITIZE_LDAP, "unauthorized");
   }
@@ -224,9 +234,10 @@ public class LdapResourceAuditTest
     assertLdapConnectionData(auditDTO, ldapConnection, expectedAuthMethodOutput);
   }
 
-  private void assertLdapConnectionData(final AuditDTO auditDTO,
-                                        final LdapConnection ldapConnection,
-                                        String expectedAuthMethodOutput)
+  private void assertLdapConnectionData(
+      final AuditDTO auditDTO,
+      final LdapConnection ldapConnection,
+      String expectedAuthMethodOutput)
   {
     assertCustomData(auditDTO, "ldapProtocol", ldapConnection.getProtocol().getProtocol());
     assertCustomData(auditDTO, "ldapHostname", ldapConnection.getHostname());
@@ -249,7 +260,7 @@ public class LdapResourceAuditTest
   }
 
   private void cleanUp(final LdapServer ldapServer) {
-    ldapServerDAO.delete(ldapServer); //to avoid conflicts with other tests relies on order
+    ldapServerDAO.delete(ldapServer); // to avoid conflicts with other tests relies on order
   }
 
   private LdapConnection createLdapConnection(LdapAuthenticationMethod ldapAuthenticationMethod) {

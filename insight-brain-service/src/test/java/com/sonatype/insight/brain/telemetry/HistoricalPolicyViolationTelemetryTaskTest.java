@@ -164,7 +164,8 @@ public class HistoricalPolicyViolationTelemetryTaskTest
     final long nowMs = 1737335615000L;
     final long taskStartUpDelayMinutes = 15L;
     final Clock fixedClock = Clock.fixed(Instant.ofEpochMilli(nowMs), ZoneId.systemDefault());
-    ZonedDateTime expectedStartTime = fixedClock.instant().atZone(ZoneId.systemDefault())
+    ZonedDateTime expectedStartTime = fixedClock.instant()
+        .atZone(ZoneId.systemDefault())
         .plusMinutes(taskStartUpDelayMinutes);
 
     Date startTime = task.getStartTime(fixedClock.instant().atZone(ZoneId.systemDefault()).toLocalDateTime());
@@ -181,8 +182,12 @@ public class HistoricalPolicyViolationTelemetryTaskTest
 
     tempEntity.newSystemConfigurationProperty(HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, String.valueOf(startHour));
     configuration.configurationChanged(Sets.newHashSet(HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR));
-    ZonedDateTime expectedStartTime = fixedClock.instant().atZone(ZoneId.systemDefault())
-        .withHour(startHour).withMinute(0).withSecond(0).withNano(0);
+    ZonedDateTime expectedStartTime = fixedClock.instant()
+        .atZone(ZoneId.systemDefault())
+        .withHour(startHour)
+        .withMinute(0)
+        .withSecond(0)
+        .withNano(0);
 
     Date startTime = task.getStartTime(fixedClock.instant().atZone(ZoneId.systemDefault()).toLocalDateTime());
 
@@ -198,8 +203,13 @@ public class HistoricalPolicyViolationTelemetryTaskTest
 
     tempEntity.newSystemConfigurationProperty(HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, String.valueOf(startHour));
     configuration.configurationChanged(Sets.newHashSet(HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR));
-    ZonedDateTime expectedStartTime = fixedClock.instant().atZone(ZoneId.systemDefault())
-        .plusDays(1).withHour(startHour).withMinute(0).withSecond(0).withNano(0);
+    ZonedDateTime expectedStartTime = fixedClock.instant()
+        .atZone(ZoneId.systemDefault())
+        .plusDays(1)
+        .withHour(startHour)
+        .withMinute(0)
+        .withSecond(0)
+        .withNano(0);
 
     Date startTime = task.getStartTime(fixedClock.instant().atZone(ZoneId.systemDefault()).toLocalDateTime());
 

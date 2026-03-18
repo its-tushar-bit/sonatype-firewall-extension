@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.component;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
@@ -103,9 +104,10 @@ public class HashComponentIdentifierResourceAuditTest
     assertHashComponentIdentifierData(assertAuditLog(AuditEvent.SET_COMPONENT_IDENTITY, null), hashComponentIdentifier);
   }
 
-  private HashComponentIdentifier hashComponentIdentifier(String componentHash,
-                                                          ComponentIdentifier componentIdentifier,
-                                                          String comment)
+  private HashComponentIdentifier hashComponentIdentifier(
+      String componentHash,
+      ComponentIdentifier componentIdentifier,
+      String comment)
   {
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(componentHash, componentIdentifier);
     hashComponentIdentifier.setComment(comment);

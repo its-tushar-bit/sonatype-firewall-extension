@@ -80,8 +80,8 @@ public class SamlGroupDAOTest
 
     assertThat(samlGroupDAO.getByIds(
         new HashSet<>(Arrays.asList(samlGroup1.getId(), samlGroup2.getId()))))
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(samlGroup1, samlGroup2);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(samlGroup1, samlGroup2);
   }
 
   @Test
@@ -90,7 +90,8 @@ public class SamlGroupDAOTest
     tempEntity.newSamlGroup();
 
     assertThat(samlGroupDAO.getByName(samlGroup.getName())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(samlGroup);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(samlGroup);
   }
 
   @Test
@@ -106,8 +107,8 @@ public class SamlGroupDAOTest
 
     assertThat(samlGroupDAO.getByNames(
         new HashSet<>(Arrays.asList(samlGroup1.getName(), samlGroup2.getName()))))
-        .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(samlGroup1, samlGroup2);
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(samlGroup1, samlGroup2);
   }
 
   @Test
@@ -130,7 +131,8 @@ public class SamlGroupDAOTest
     samlGroupDAO.upsertByName(samlGroup);
 
     assertThat(samlGroup.getId()).isNotNull();
-    assertThat(samlGroupDAO.getById(samlGroup.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(samlGroupDAO.getById(samlGroup.getId())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(samlGroup);
   }
 

@@ -104,10 +104,11 @@ public class HashComponentIdentifierDAOTest
     assertHashComponentIdentifier(hash, componentIdentifier, createTime, actualHashComponentIdentifier);
   }
 
-  private void assertHashComponentIdentifier(String hash,
-                                             ComponentIdentifier componentIdentifier,
-                                             Date createTime,
-                                             HashComponentIdentifier hashComponentIdentifier)
+  private void assertHashComponentIdentifier(
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      Date createTime,
+      HashComponentIdentifier hashComponentIdentifier)
   {
     assertThat(hashComponentIdentifier.getHash()).isEqualTo(hash);
     assertThat(hashComponentIdentifier.getComponentIdentifier()).isEqualTo(componentIdentifier);

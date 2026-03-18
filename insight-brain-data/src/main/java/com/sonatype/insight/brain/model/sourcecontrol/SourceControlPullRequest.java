@@ -61,7 +61,7 @@ public class SourceControlPullRequest
   private PullRequestState state;
 
   // Note that prior to SDEV-1952 all SourceControlPullRequest were external
-  // and when this column was added, it was allowed to be nullable to avoid any migration cost, 
+  // and when this column was added, it was allowed to be nullable to avoid any migration cost,
   // which means that a null value means external
   @Column(name = "source")
   @Enumerated(EnumType.STRING)

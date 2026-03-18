@@ -423,8 +423,10 @@ public class FIPSConfig
    */
   public static int getFipsCertificateSignatureValidityYearsOrDefault(final int defaultValue) {
     String fipsCertificateSignatureValidityYears = System.getenv(FIPS_CERTIFICATE_SIGNATURE_VALIDITY_YEARS_ENV);
-    return isNotBlank(fipsCertificateSignatureValidityYears) ? Integer.parseInt(
-        fipsCertificateSignatureValidityYears) : defaultValue;
+    return isNotBlank(fipsCertificateSignatureValidityYears)
+        ? Integer.parseInt(
+            fipsCertificateSignatureValidityYears)
+        : defaultValue;
   }
 
   /**

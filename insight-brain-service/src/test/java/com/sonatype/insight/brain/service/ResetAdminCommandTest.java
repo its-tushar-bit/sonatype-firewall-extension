@@ -89,9 +89,11 @@ public class ResetAdminCommandTest
   }
 
   private List<String> getMembers(String roleId) {
-    return membershipMappingDAO.getByContextIdAndRoleId(MembershipMapping.GLOBAL_CONTEXT_ID, roleId).stream()
+    return membershipMappingDAO.getByContextIdAndRoleId(MembershipMapping.GLOBAL_CONTEXT_ID, roleId)
+        .stream()
         .filter(membershipMapping -> membershipMapping.getMemberType().equals(MemberType.USER))
-        .map(MembershipMapping::getMemberName).collect(Collectors.toList());
+        .map(MembershipMapping::getMemberName)
+        .collect(Collectors.toList());
   }
 
   private void assertAdmin() {

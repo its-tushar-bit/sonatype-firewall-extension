@@ -34,8 +34,8 @@ public class CrowdRealm
   }
 
   @Override
-  protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken)
-      throws AuthenticationException
+  protected AuthenticationInfo doGetAuthenticationInfo(
+      AuthenticationToken authenticationToken) throws AuthenticationException
   {
     CrowdClient crowdClient = crowdClientFactory.createCrowdClient();
 

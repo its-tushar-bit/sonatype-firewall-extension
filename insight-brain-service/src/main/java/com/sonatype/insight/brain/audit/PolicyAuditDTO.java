@@ -20,7 +20,7 @@ public class PolicyAuditDTO
   public String policyName;
 
   public PolicyAuditDTO() {
-    //for jackson
+    // for jackson
   }
 
   public PolicyAuditDTO(final String policyId, final Policy policy) {

@@ -14,7 +14,7 @@ public class PolicyEvaluationTimestampsDTO
   public Date latestPolicyEvaluationTime;
 
   public Date quarantineTime;
-  
+
   public Date unquarantineTime;
 
   public Boolean autoUnquarantined;

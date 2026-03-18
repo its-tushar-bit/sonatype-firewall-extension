@@ -57,7 +57,7 @@ public class OwnerSummaryPageWithLimitedVisibility
   public static SelenideElement titleDescription() {
     return $(".nx-page-title__description");
   }
-    
+
   public static NxAlert notification() {
     return NxAlert.getInfoAlert();
   }

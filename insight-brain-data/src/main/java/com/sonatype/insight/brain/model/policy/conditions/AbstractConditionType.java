@@ -20,8 +20,10 @@ public abstract class AbstractConditionType
   private final TenantReference<Boolean> enabled = new TenantReference<>(() -> true);
 
   @Override
-  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
-      throws InvalidConditionException
+  public void validateCondition(
+      TransactionContext tx,
+      Condition condition,
+      String ownerId) throws InvalidConditionException
   {
     if (condition.getOperator() == null) {
       throw new InvalidConditionException(condition, "Operator is null");

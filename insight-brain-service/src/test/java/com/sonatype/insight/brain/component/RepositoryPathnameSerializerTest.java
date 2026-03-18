@@ -86,10 +86,10 @@ public class RepositoryPathnameSerializerTest
   public void testToPathname_Conda() {
     assertThat(toPathname(
         ComponentIdentifier.createCondaCoordinates("name1", "version1", "path", "build", "arch", "conda")))
-        .isEqualTo("path/arch/name1-version1-build.conda");
+            .isEqualTo("path/arch/name1-version1-build.conda");
     assertThat(toPathname(
         ComponentIdentifier.createCondaCoordinates("name1", "version1", null, "build", "arch", "conda")))
-        .isEqualTo("arch/name1-version1-build.conda");
+            .isEqualTo("arch/name1-version1-build.conda");
   }
 
   @Test
@@ -128,35 +128,35 @@ public class RepositoryPathnameSerializerTest
   public void testToPathname_Debian() {
     assertThat(toPathname(
         new ComponentIdentifier("deb", createMap("namespace", "ubuntu", "name", "vim", "version", "8.0.1453"))))
-        .isEqualTo("path/vim_8.0.1453-ubuntu_amd64.deb");
+            .isEqualTo("path/vim_8.0.1453-ubuntu_amd64.deb");
   }
 
   @Test
   public void testToPathname_Cargo() {
     assertThat(toPathname(
         ComponentIdentifier.createCargoCoordinates("name1", "version1", null)))
-        .isEqualTo("crates/name1/version1/download");
+            .isEqualTo("crates/name1/version1/download");
   }
 
   @Test
   public void testToPathname_PackageUrl() {
     assertThat(toPathname(PackageUrlIdentifier.toPackageUrl(
         ComponentIdentifier.createMavenCoordinates("com.sonatype", "test", "1.0", "uber", "jar"))))
-        .isEqualTo("com/sonatype/test/1.0/test-1.0-uber.jar");
+            .isEqualTo("com/sonatype/test/1.0/test-1.0-uber.jar");
   }
 
   @Test
   public void testToPathname_HuggingfaceRepo() {
     assertThat(toPathname(
         ComponentIdentifier.createHuggingfaceRepoCoordinates("org/name", "version1")))
-        .isEqualTo("org/name/resolve/version1");
+            .isEqualTo("org/name/resolve/version1");
   }
 
   @Test
   public void testToPathname_HuggingfaceModel() {
     assertThat(toPathname(
         ComponentIdentifier.createHuggingfaceModelCoordinates("org/name", "model", "version1", "fmt", "extension")))
-        .isEqualTo("org/name/resolve/version1/model.extension");
+            .isEqualTo("org/name/resolve/version1/model.extension");
   }
 
   private Map<String, String> createMap(String... keysAndValues) {

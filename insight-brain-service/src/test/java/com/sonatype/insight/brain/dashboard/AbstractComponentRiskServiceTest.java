@@ -114,7 +114,7 @@ public abstract class AbstractComponentRiskServiceTest
         .isThrownBy(
             () -> getComponentRiskService()
                 .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0,
-                100));
+                    100));
   }
 
   @Test
@@ -228,7 +228,7 @@ public abstract class AbstractComponentRiskServiceTest
         .isThrownBy(
             () -> getComponentRiskService()
                 .getComponentRisks(null, null, Collections.singleton(DevelopStageType.ID), null,
-                null, null, null, "-TOTAL_RISK", 0, 100))
+                    null, null, null, "-TOTAL_RISK", 0, 100))
         .withMessage("Invalid stage type: develop.");
   }
 
@@ -516,7 +516,7 @@ public abstract class AbstractComponentRiskServiceTest
     tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
 
     assertThatExceptionOfType(ConflictException.class).isThrownBy(
-            () -> getComponentRiskService().getComponentRisks(null, null, null, null, null, null, null, "NAME", 0, 100))
+        () -> getComponentRiskService().getComponentRisks(null, null, null, null, null, null, null, "NAME", 0, 100))
         .withMessage("The dashboard feature has been disabled.");
   }
 }

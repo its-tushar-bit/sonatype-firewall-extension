@@ -121,7 +121,7 @@ public class RepositoryMatcherTest
 
   @Inject
   private ApplicationDAO applicationDAO;
-  
+
   @Inject
   private ApiConfigurationService apiConfigurationService;
 
@@ -192,13 +192,14 @@ public class RepositoryMatcherTest
         ArgumentCaptor.forClass(ArtifactoryConnection.class);
     verify(spyRepositoryMatcher).identify(connectionArgumentCaptor.capture(), eq(bomJson));
     assertThat(connectionArgumentCaptor.getValue().getId()).isEqualTo(artifactoryConnection.getId());
-    artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+    artifactoryMockServer.getWireMockServer()
+        .verify(1, anyRequestedFor(
+            urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
     verify(spyRepositoryMatcher).getEvaluationByIdentifier(Collections.singletonList(identifier));
     verify(mockApiComponentDetailsServiceV2).getComponentDetailsListFromHds(
         Collections.singletonList(identifier), ApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
     verify(spyRepositoryMatcher).updateJsonFiles(eq(application), eq(bomJson), eq(dataJson), eq(summaryJson),
-            eq(licensesJson), eq(securityJson), any(), any());
+        eq(licensesJson), eq(securityJson), any(), any());
     assertThat(logOutput).atDebugLevel().contains("Artifactory search for 1 checksum(s) resulted in 1 match(es).");
     assertThat(logOutput).atErrorLevel().isEmpty();
   }
@@ -239,8 +240,7 @@ public class RepositoryMatcherTest
         ChecksumType.SHA256,
         Collections.singleton("eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941"),
         401,
-        error
-    );
+        error);
     ObjectNode bomJson = (ObjectNode) readJsonFile("match-sha256/bom.json");
     ObjectNode dataJson = objectMapper.createObjectNode();
     ObjectNode summaryJson = objectMapper.createObjectNode();
@@ -291,8 +291,9 @@ public class RepositoryMatcherTest
         readJsonFile("match-sha256/bom.json"));
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
-    artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+    artifactoryMockServer.getWireMockServer()
+        .verify(1, anyRequestedFor(
+            urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
     assertThat(logOutput).atDebugLevel().contains("Artifactory search for 1 checksum(s) resulted in 1 match(es).");
   }
 
@@ -303,7 +304,7 @@ public class RepositoryMatcherTest
     ComponentIdentifier id1 =
         ComponentIdentifier.createMavenCoordinates("g.org", "a", "1.1-SNAPSHOT", null, "jar");
 
-    ArtifactoryChecksumSearchResults mockResult = new ArtifactoryChecksumSearchResults(); //empty result
+    ArtifactoryChecksumSearchResults mockResult = new ArtifactoryChecksumSearchResults(); // empty result
     artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256,
         "44ba611acde81de4319b2c4412d3379c74527bf4f433d78f89b213e08f7e6419", mockResult);
     artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256,
@@ -337,8 +338,9 @@ public class RepositoryMatcherTest
         matcher.match(application, bomJson, dataJson, summaryJson, licenseJson, securityJson);
     assertThat(identified).hasSize(1);
 
-    artifactoryMockServer.getWireMockServer().verify(3, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+    artifactoryMockServer.getWireMockServer()
+        .verify(3, anyRequestedFor(
+            urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
 
     ObjectNode expectedBomJson = (ObjectNode) readJsonFile("sbom/outcome/bom.json");
     ObjectNode expectedSecurityJson = (ObjectNode) readJsonFile("sbom/outcome/security.json");
@@ -361,8 +363,7 @@ public class RepositoryMatcherTest
     ComponentIdentifier id2 =
         ComponentIdentifier.createMavenCoordinates("g2.org", "a2", "5.0", null, "jar");
     mockArtifactoryResponse("8c7ac48903b2a4382561321e5c25913960007a65d0f5e4a167a80d41984092c9",
-        "http://localhost/artifactory/api/storage/reponame2/g2/org/a2/5.0/a2-5.0.jar"
-    );
+        "http://localhost/artifactory/api/storage/reponame2/g2/org/a2/5.0/a2-5.0.jar");
 
     Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(artifactoryConnection,
         readJsonFile("match-state/bom.json"));
@@ -381,8 +382,9 @@ public class RepositoryMatcherTest
         readJsonFile("match-extension/bom.json"));
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
-    artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+    artifactoryMockServer.getWireMockServer()
+        .verify(1, anyRequestedFor(
+            urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
   }
 
   @Test
@@ -395,8 +397,9 @@ public class RepositoryMatcherTest
         readJsonFile("match-proprietary/bom.json"));
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
-    artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+    artifactoryMockServer.getWireMockServer()
+        .verify(1, anyRequestedFor(
+            urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
   }
 
   @Test
@@ -412,8 +415,9 @@ public class RepositoryMatcherTest
         readJsonFile("match-proprietary/bom.json"));
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
-    artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+    artifactoryMockServer.getWireMockServer()
+        .verify(1, anyRequestedFor(
+            urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
   }
 
   @Test
@@ -426,8 +430,9 @@ public class RepositoryMatcherTest
         readJsonFile("match-proprietary/bom.json"));
 
     assertThat(sha256Matches).hasSize(0);
-    artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+    artifactoryMockServer.getWireMockServer()
+        .verify(1, anyRequestedFor(
+            urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
   }
 
   @Test
@@ -445,8 +450,9 @@ public class RepositoryMatcherTest
         matcher.identify(artifactoryConnection, readJsonFile("match-proprietary/bom.json"));
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
-    artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+    artifactoryMockServer.getWireMockServer()
+        .verify(1, anyRequestedFor(
+            urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
     assertThat(repositoryIdentifiedComponentCache.get(sha256)).isEqualTo(identifier);
     RepositoryIdentifiedComponent repositoryIdentifiedComponent = repositoryIdentifiedComponentDAO.getByHash(sha256);
     assertThat(repositoryIdentifiedComponent).isNotNull();
@@ -500,8 +506,9 @@ public class RepositoryMatcherTest
         readJsonFile("match-proprietary/bom.json"));
 
     assertThat(sha256Matches).isEmpty();
-    artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+    artifactoryMockServer.getWireMockServer()
+        .verify(1, anyRequestedFor(
+            urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
   }
 
   @Test
@@ -513,14 +520,15 @@ public class RepositoryMatcherTest
         readJsonFile("match-state/bom.json"));
 
     assertThat(sha256Matches).hasSize(0);
-    //although 2 matching components, only 1 search is attempted due to connection error
-    artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+    // although 2 matching components, only 1 search is attempted due to connection error
+    artifactoryMockServer.getWireMockServer()
+        .verify(1, anyRequestedFor(
+            urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
   }
 
   @Test
   public void testIdentify_NoArtifactoryMatches() throws Exception {
-    ArtifactoryChecksumSearchResults mockResult = new ArtifactoryChecksumSearchResults(); //empty result
+    ArtifactoryChecksumSearchResults mockResult = new ArtifactoryChecksumSearchResults(); // empty result
     artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256,
         "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941", mockResult);
 
@@ -654,8 +662,7 @@ public class RepositoryMatcherTest
         ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256a, "r1", "g1/a1/v1", "x1.jar"),
         ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256a, "r2", "g2/a2/v2", "x1.jar"),
         ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256b, "r3", "g3/a3/v3", "x2.jar"),
-        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256b, "r4", "g4/a4/v4", "x2.jar")
-    );
+        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256b, "r4", "g4/a4/v4", "x2.jar"));
     assertThat(repositoryIdentifiedComponentCache.get(sha256a)).isNull();
     assertThat(repositoryIdentifiedComponentDAO.getByHash(sha256a)).isNull();
     assertThat(repositoryIdentifiedComponentCache.get(sha256b)).isNull();
@@ -699,8 +706,7 @@ public class RepositoryMatcherTest
         Collections.singleton(sha256a),
         repos,
         ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256a, "r1", "g1/a1/v1", "x1.jar"),
-        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256a, "r2", "g2/a2/v2", "x1.jar")
-    );
+        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256a, "r2", "g2/a2/v2", "x1.jar"));
 
     Map<ComponentIdentifier, ObjectNode> sha256Matches =
         matcher.identify(artifactoryConnection, readJsonFile("match-multiple/bom.json"));
@@ -731,8 +737,9 @@ public class RepositoryMatcherTest
     ComponentIdentifier componentIdentifier1 =
         ComponentIdentifier.createMavenCoordinates("g.org", "a", "1.1-SNAPSHOT", null, "jar");
     assertThat(sha256Matches).containsOnlyKeys(componentIdentifier1);
-    artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
-        urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+    artifactoryMockServer.getWireMockServer()
+        .verify(1, anyRequestedFor(
+            urlPathEqualTo(artifactoryMockServer.getRelativePath(ArtifactoryClient.CHECKSUM_SEARCH_PATH))));
     assertThat(logOutput).atDebugLevel()
         .contains("Artifactory search, limited to 1 queries, for 2 checksum(s), resulted in 1 match(es).");
   }
@@ -781,8 +788,7 @@ public class RepositoryMatcherTest
         new HashSet<>(Arrays.asList(sha256a, sha256b)),
         repos,
         ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256a, "repo1", "g1/a1/v1", "x1.jar"),
-        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256b, "repo2", "g2/a2/v2", "x2.jar")
-    );
+        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256b, "repo2", "g2/a2/v2", "x2.jar"));
 
     Map<ComponentIdentifier, ObjectNode> sha256Matches =
         matcher.identify(artifactoryConnection, readJsonFile("match-multiple/bom.json"));
@@ -947,7 +953,8 @@ public class RepositoryMatcherTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
 
     try (MockedStatic<RepositoryMatcher> repositoryMatcher = Mockito.mockStatic(RepositoryMatcher.class,
-        CALLS_REAL_METHODS)) {
+        CALLS_REAL_METHODS))
+    {
       RepositoryMatcher.updateBomJson(bomJson, componentIdentifier, bomNode, false, new ComponentEvaluationData(),
           false);
 
@@ -1148,7 +1155,8 @@ public class RepositoryMatcherTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
 
     try (MockedStatic<RepositoryMatcher> repositoryMatcher = Mockito.mockStatic(RepositoryMatcher.class,
-        CALLS_REAL_METHODS)) {
+        CALLS_REAL_METHODS))
+    {
       RepositoryMatcher.updateLicensesJson(licensesNode, componentIdentifier, hash, false, evaluation, false);
 
       assertThat(arrayNode).hasSize(1);
@@ -1261,12 +1269,10 @@ public class RepositoryMatcherTest
     evaluation.hash = hash;
     evaluation.declaredLicenses = new LinkedHashSet<>(Arrays.asList(
         new License("id1", "d1"),
-        new License("id2", "d2")
-    ));
+        new License("id2", "d2")));
     evaluation.observedLicenses = new LinkedHashSet<>(Arrays.asList(
         new License("id3", "o1"),
-        new License("id4", "o2")
-    ));
+        new License("id4", "o2")));
     evaluation.catalogDate = 7L;
 
     RepositoryMatcher.updateLicensesJson(licensesNode, componentIdentifier, hash, false, evaluation, false);
@@ -1301,7 +1307,8 @@ public class RepositoryMatcherTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
 
     try (MockedStatic<RepositoryMatcher> repositoryMatcher = Mockito.mockStatic(RepositoryMatcher.class,
-        CALLS_REAL_METHODS)) {
+        CALLS_REAL_METHODS))
+    {
       RepositoryMatcher.updateSecurityJson(securityNode, componentIdentifier, hash, false, evaluation, false);
 
       assertThat(arrayNode).hasSize(2);
@@ -1551,7 +1558,8 @@ public class RepositoryMatcherTest
     securityJson.putArray("aaData");
 
     try (MockedStatic<RepositoryMatcher> mockedRepositoryMatcher = Mockito.mockStatic(RepositoryMatcher.class,
-        CALLS_REAL_METHODS)) {
+        CALLS_REAL_METHODS))
+    {
       Set<ComponentIdentifier> componentIdentifiers =
           matcher.updateJsonFiles(application, bomJson, dataJson, summaryJson, licensesJson,
               securityJson, bomNodeByIdentifier, evaluationByIdentifier);
@@ -1605,7 +1613,8 @@ public class RepositoryMatcherTest
     securityJson.putArray("aaData");
 
     try (MockedStatic<RepositoryMatcher> mockedRepositoryMatcher = Mockito.mockStatic(RepositoryMatcher.class,
-        CALLS_REAL_METHODS)) {
+        CALLS_REAL_METHODS))
+    {
       Set<ComponentIdentifier> componentIdentifiers =
           matcher.updateJsonFiles(application, bomJson, dataJson, summaryJson, licensesJson,
               securityJson, bomNodeByIdentifier, evaluationByIdentifier);
@@ -1648,8 +1657,9 @@ public class RepositoryMatcherTest
   public void testCreateAnalyzerFeatures_Supported_NoLicense() {
     String scanClient = "someScanClient";
     for (String format : ComponentIdentifier.NO_LICENSE_FORMATS) {
-      assertThat(RepositoryMatcher.createAnalyzerFeatures(format, scanClient)).usingRecursiveComparison().isEqualTo(
-          new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.COORDINATE, scanClient, false, true, true));
+      assertThat(RepositoryMatcher.createAnalyzerFeatures(format, scanClient)).usingRecursiveComparison()
+          .isEqualTo(
+              new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.COORDINATE, scanClient, false, true, true));
     }
   }
 
@@ -1659,8 +1669,9 @@ public class RepositoryMatcherTest
     Set<String> formats = new HashSet<>(ComponentIdentifier.getFormatsSupportedByHds());
     ComponentIdentifier.NO_LICENSE_FORMATS.forEach(formats::remove);
     for (String format : formats) {
-      assertThat(RepositoryMatcher.createAnalyzerFeatures(format, scanClient)).usingRecursiveComparison().isEqualTo(
-          new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.COORDINATE, scanClient, true, true, true));
+      assertThat(RepositoryMatcher.createAnalyzerFeatures(format, scanClient)).usingRecursiveComparison()
+          .isEqualTo(
+              new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.COORDINATE, scanClient, true, true, true));
     }
   }
 
@@ -1692,8 +1703,7 @@ public class RepositoryMatcherTest
 
   private void mockArtifactoryResponse() {
     mockArtifactoryResponse("eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941",
-        "http://localhost/artifactory/api/storage/reponame/g/org/a/1.1-SNAPSHOT/a-1.1-SNAPSHOT.jar"
-    );
+        "http://localhost/artifactory/api/storage/reponame/g/org/a/1.1-SNAPSHOT/a-1.1-SNAPSHOT.jar");
   }
 
   private void mockArtifactoryResponse(String sha256, String... uris) {

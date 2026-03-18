@@ -81,7 +81,7 @@ public class StageTypeService
   /**
    * Using details here https://docs.sonatype.com/display/ProdMgmt/Product+Licensing to map the product to
    * available StageTypes
-   * 
+   *
    * @return all StageType objects allowed by the current license in natural order of occurrence during the component
    *         lifecycle filtered by the supplied context.
    * @since 1.13

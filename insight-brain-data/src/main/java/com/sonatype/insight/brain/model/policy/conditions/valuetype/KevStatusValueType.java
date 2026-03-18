@@ -10,7 +10,8 @@ import com.sonatype.insight.brain.model.vulnerability.KevStatus;
 
 import java.util.List;
 
-public class KevStatusValueType implements ConditionValueType<KevStatus>
+public class KevStatusValueType
+    implements ConditionValueType<KevStatus>
 {
   public static final String ID = "KevStatusValueType";
 

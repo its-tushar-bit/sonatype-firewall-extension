@@ -43,7 +43,8 @@ public class ApiStagePolicyViolationComponentDTOTest
     assertThat(result.policyViolationId).isEqualTo(policyViolation.getId());
     assertThat(result.action).isEqualTo(policyViolation.getActionTypeId());
     assertThat(result.componentIdentifier)
-        .usingRecursiveComparison().isEqualTo(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+        .usingRecursiveComparison()
+        .isEqualTo(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
     assertThat(result.packageUrl).isEqualTo(PackageUrlIdentifier.toPackageUrl(componentIdentifier));
     assertThat(result.hash).isEqualTo(component.getHash());
     assertThat(result.displayName).isEqualTo(component.getDisplayName());

@@ -44,7 +44,8 @@ public class SpdxDocumentAssert
       .appendPattern("yyyy-MM-dd")
       .appendLiteral('T')
       .appendPattern("HH:mm:ss")
-      .appendLiteral('Z').toFormatter();
+      .appendLiteral('Z')
+      .toFormatter();
 
   private final SbomFormat sbomFormat;
 

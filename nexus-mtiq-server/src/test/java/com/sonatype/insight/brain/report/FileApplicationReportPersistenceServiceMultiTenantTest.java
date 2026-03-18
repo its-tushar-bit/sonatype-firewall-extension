@@ -22,7 +22,8 @@ public class FileApplicationReportPersistenceServiceMultiTenantTest
 {
   @Before
   public void setup() throws Exception {
-    var configurator = new MtiqDatabaseConfigurator() {
+    var configurator = new MtiqDatabaseConfigurator()
+    {
       @Override
       public boolean isReusable() {
         // do not reuse the server as we assume a clean work directory for each test

@@ -133,7 +133,9 @@ public class OidcConfiguration
     if (StringUtils.isBlank(authorizationCustomParamsJson)) {
       return new HashMap<>();
     }
-    return JsonUtils.asType(authorizationCustomParamsJson, new TypeReference<Map<String, String>>() { });
+    return JsonUtils.asType(authorizationCustomParamsJson, new TypeReference<Map<String, String>>()
+    {
+    });
   }
 
   public void setTokenRequestCustomParams(final Map<String, String> tokenRequestCustomParams) {
@@ -144,6 +146,8 @@ public class OidcConfiguration
     if (StringUtils.isBlank(tokenRequestCustomParamsJson)) {
       return new HashMap<>();
     }
-    return JsonUtils.asType(tokenRequestCustomParamsJson, new TypeReference<Map<String, String>>() { });
+    return JsonUtils.asType(tokenRequestCustomParamsJson, new TypeReference<Map<String, String>>()
+    {
+    });
   }
 }

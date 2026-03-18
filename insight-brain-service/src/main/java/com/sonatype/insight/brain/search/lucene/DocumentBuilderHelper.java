@@ -176,8 +176,7 @@ public class DocumentBuilderHelper
           EVAL_THREADS_MIN,
           EVAL_THREADS_MAX,
           EVAL_THREADS_DEFAULT,
-          ADVANCED_SEARCH_CREATE_SEARCH_INDEX_EVAL
-      );
+          ADVANCED_SEARCH_CREATE_SEARCH_INDEX_EVAL);
       TenantThreadPoolExecutor tenantThreadPoolExecutor = new TenantThreadPoolExecutor(
           evalThreadCount,
           evalThreadCount,
@@ -187,8 +186,7 @@ public class DocumentBuilderHelper
           new ThreadFactoryBuilder().setNameFormat("DocumentBuilderHelper-eval-%d").build(),
           new AbortPolicy(),
           "advanced_search_indexing_eval",
-          getClass().getSimpleName()
-      );
+          getClass().getSimpleName());
       tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
       shutdownHandler.add(tenantThreadPoolExecutor);
       return tenantThreadPoolExecutor;
@@ -202,8 +200,7 @@ public class DocumentBuilderHelper
           COMPONENT_THREADS_MIN,
           COMPONENT_THREADS_MAX,
           COMPONENT_THREADS_DEFAULT,
-          ADVANCED_SEARCH_CREATE_SEARCH_INDEX_COMPONENT
-      );
+          ADVANCED_SEARCH_CREATE_SEARCH_INDEX_COMPONENT);
       TenantThreadPoolExecutor tenantThreadPoolExecutor = new TenantThreadPoolExecutor(
           componentThreadCount,
           componentThreadCount,
@@ -213,8 +210,7 @@ public class DocumentBuilderHelper
           new ThreadFactoryBuilder().setNameFormat("DocumentBuilderHelper-component-%d").build(),
           new AbortPolicy(),
           "advanced_search_indexing_component",
-          getClass().getSimpleName()
-      );
+          getClass().getSimpleName());
       tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
       shutdownHandler.add(tenantThreadPoolExecutor);
       return tenantThreadPoolExecutor;
@@ -331,7 +327,8 @@ public class DocumentBuilderHelper
   }
 
   public List<Document> buildSbomDocs(IndexingContext indexingContext) {
-    return thirdPartySbomMetadataDAO.getAll().stream()
+    return thirdPartySbomMetadataDAO.getAll()
+        .stream()
         .map(sbomMetadata -> buildDocument(indexingContext, sbomMetadata))
         .toList();
   }
@@ -369,17 +366,16 @@ public class DocumentBuilderHelper
     if (parentOrgsMap == null || organization == null || application == null) {
       return Collections.emptyList();
     }
-    return StageTypes.getAll().stream()
+    return StageTypes.getAll()
+        .stream()
         .map(stageType -> CompletableFuture.supplyAsync(
             () -> buildApplicationStageSVDocs(
                 indexingContext,
                 organization,
                 application,
                 stageType,
-                parentOrgsMap.get(organization)
-            ),
-            getEvalExecutor()
-        ))
+                parentOrgsMap.get(organization)),
+            getEvalExecutor()))
         .collect(Collectors.collectingAndThen(
             Collectors.toList(),
             futures -> {
@@ -388,8 +384,7 @@ public class DocumentBuilderHelper
                   .map(CompletableFuture::join)
                   .flatMap(List::stream)
                   .toList();
-            }
-        ));
+            }));
   }
 
   public List<Document> buildApplicationStageSVDocs(
@@ -419,7 +414,8 @@ public class DocumentBuilderHelper
       ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON.getName());
       ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON.getName());
       if (licenseReportEntry == null || securityReportEntry == null || bomReportEntry == null ||
-          dependenciesReportEntry == null) {
+          dependenciesReportEntry == null)
+      {
         return Collections.emptyList();
       }
 
@@ -428,8 +424,7 @@ public class DocumentBuilderHelper
               licenseReportEntry.buf,
               securityReportEntry.buf,
               bomReportEntry.buf,
-              dependenciesReportEntry.buf
-          )
+              dependenciesReportEntry.buf)
           .stream()
           .map(component -> CompletableFuture.supplyAsync(
               () -> buildApplicationComponentVulnerabilityDocuments(
@@ -439,10 +434,8 @@ public class DocumentBuilderHelper
                   application,
                   stageType,
                   scanId,
-                  component
-              ),
-              getComponentExecutor()
-          ))
+                  component),
+              getComponentExecutor()))
           .collect(Collectors.collectingAndThen(
               Collectors.toList(),
               futures -> {
@@ -451,8 +444,7 @@ public class DocumentBuilderHelper
                     .map(CompletableFuture::join)
                     .flatMap(List::stream)
                     .toList();
-              }
-          ));
+              }));
     }
     catch (UncheckedIOException e) {
       log.error("Error parsing report files at {}",
@@ -464,7 +456,8 @@ public class DocumentBuilderHelper
     catch (Exception e) {
       Throwable rootCause = ExceptionUtils.getRootCause(e);
       if (rootCause instanceof UncheckedIOException || rootCause instanceof IOException ||
-          rootCause instanceof NotFoundException || rootCause instanceof InvalidComponentIdentifierException) {
+          rootCause instanceof NotFoundException || rootCause instanceof InvalidComponentIdentifierException)
+      {
         log.error(e.getMessage(), e);
       }
       else {
@@ -487,7 +480,8 @@ public class DocumentBuilderHelper
       return Collections.emptyList();
     }
     if (CollectionUtils.isNotEmpty(component.getSecurityVulnerabilities())) {
-      return component.getSecurityVulnerabilities().stream()
+      return component.getSecurityVulnerabilities()
+          .stream()
           .map(
               vulnerability -> buildDocument(indexingContext, organization, application, stageType, reportId, component,
                   vulnerability, parentOrganizations))
@@ -539,7 +533,8 @@ public class DocumentBuilderHelper
       Collection<Organization> parentOrganizations)
   {
     if (parentOrganizations == null || organization == null || application == null || component == null ||
-        vulnerability == null) {
+        vulnerability == null)
+    {
       return null;
     }
     return new DocumentBuilder(ItemType.SECURITY_VULNERABILITY)
@@ -566,7 +561,8 @@ public class DocumentBuilderHelper
       final SecurityVulnerability vulnerability)
   {
     if (IdentificationSource.SONATYPE_IAC.getId().equals(vulnerability.getSource())
-        || "Sonatype-C".equals(vulnerability.getSource())) {
+        || "Sonatype-C".equals(vulnerability.getSource()))
+    {
       return getThirdPartyVulnerabilityDescription(vulnDescByVulnId, vulnerability);
     }
     try {
@@ -617,10 +613,8 @@ public class DocumentBuilderHelper
                 organization,
                 application,
                 sbomMetadata,
-                parentOrgsMap.get(organization)
-            ),
-            getEvalExecutor()
-        ))
+                parentOrgsMap.get(organization)),
+            getEvalExecutor()))
         .collect(Collectors.collectingAndThen(
             Collectors.toList(),
             futures -> {
@@ -629,8 +623,7 @@ public class DocumentBuilderHelper
                   .map(CompletableFuture::join)
                   .flatMap(List::stream)
                   .toList();
-            }
-        ));
+            }));
   }
 
   public List<Document> buildSbomVersionSVDocs(
@@ -650,10 +643,8 @@ public class DocumentBuilderHelper
                 application,
                 sbomMetadata,
                 parentOrganizations,
-                fileCoord
-            ),
-            getComponentExecutor()
-        ))
+                fileCoord),
+            getComponentExecutor()))
         .collect(Collectors.collectingAndThen(
             Collectors.toList(),
             futures -> {
@@ -662,8 +653,7 @@ public class DocumentBuilderHelper
                   .map(CompletableFuture::join)
                   .flatMap(List::stream)
                   .toList();
-            }
-        ));
+            }));
   }
 
   public List<Document> buildSbomFileCoordinateSVDocs(
@@ -674,12 +664,12 @@ public class DocumentBuilderHelper
       ThirdPartyFileCoordinate thirdPartyFileCoord)
   {
     if (parentOrganizations == null || organization == null || application == null || sbomMetadata == null ||
-        thirdPartyFileCoord == null) {
+        thirdPartyFileCoord == null)
+    {
       return Collections.emptyList();
     }
     List<ThirdPartyCoordinateSecurity> vulns = thirdPartyCoordinateSecurityDAO.getByFileCoordinateIds(
-        Collections.singletonList(thirdPartyFileCoord.getId())
-    );
+        Collections.singletonList(thirdPartyFileCoord.getId()));
 
     if (CollectionUtils.isNotEmpty(vulns)) {
       return vulns.stream()
@@ -704,7 +694,8 @@ public class DocumentBuilderHelper
       Collection<Organization> parentOrganizations)
   {
     if (parentOrganizations == null || organization == null || application == null || sbomMetadata == null ||
-        thirdPartyFileCoord == null) {
+        thirdPartyFileCoord == null)
+    {
       return null;
     }
     DocumentBuilder documentBuilder = new DocumentBuilder(ItemType.NON_VULNERABLE_COMPONENT);
@@ -736,7 +727,8 @@ public class DocumentBuilderHelper
       Collection<Organization> parentOrganizations)
   {
     if (parentOrganizations == null || organization == null || application == null || sbomMetadata == null ||
-        thirdPartyFileCoord == null || thirdPartyCoordinateSecurity == null) {
+        thirdPartyFileCoord == null || thirdPartyCoordinateSecurity == null)
+    {
       return null;
     }
     DocumentBuilder documentBuilder = new DocumentBuilder(ItemType.SECURITY_VULNERABILITY);
@@ -756,7 +748,8 @@ public class DocumentBuilderHelper
         .setComponentHash(thirdPartyFileCoord.getHash())
         .setVulnerabilityId(thirdPartyCoordinateSecurity.getRefId())
         .setVulnerabilitySeverity(
-            BigDecimal.valueOf(thirdPartyCoordinateSecurity.getSeverity()).setScale(2, RoundingMode.HALF_EVEN)
+            BigDecimal.valueOf(thirdPartyCoordinateSecurity.getSeverity())
+                .setScale(2, RoundingMode.HALF_EVEN)
                 .floatValue())
         .setVulnerabilityDescription(thirdPartyCoordinateSecurity.getDescription())
         .setParentOrganizationNames(parentOrganizations)
@@ -784,12 +777,13 @@ public class DocumentBuilderHelper
         packageUrlIdentifier = new PackageUrlIdentifier(PackageURLBuilder.aPackageURL()
             .withType(thirdPartyFileCoordinate.getFormat())
             .withName(thirdPartyFileCoordinate.getName())
-            .withVersion(thirdPartyFileCoordinate.getVersion()).build()
+            .withVersion(thirdPartyFileCoordinate.getVersion())
+            .build()
             .canonicalize());
       }
       catch (Exception e) {
         log.warn("Unable to create PackageUrlIdentifier from ThirdPartyFileCoordinate with " +
-                "id: '{}', format: '{}', name: '{}', and version: '{}'.", thirdPartyFileCoordinate.getId(),
+            "id: '{}', format: '{}', name: '{}', and version: '{}'.", thirdPartyFileCoordinate.getId(),
             thirdPartyFileCoordinate.getFormat(), thirdPartyFileCoordinate.getName(),
             thirdPartyFileCoordinate.getVersion());
       }
@@ -802,14 +796,14 @@ public class DocumentBuilderHelper
       }
       catch (Exception e) {
         log.error("Unable to convert PackageUrlIdentifier from ThirdPartyFileCoordinate with id: " +
-                "'{}', and pURL: '{}' to ComponentIdentifier.", thirdPartyFileCoordinate.getId(),
+            "'{}', and pURL: '{}' to ComponentIdentifier.", thirdPartyFileCoordinate.getId(),
             packageUrlIdentifier.getPackageUrl());
       }
     }
 
     // If none of the above worked, log and return null
     log.error("Unable to create ComponentIdentifier from ThirdPartyFileCoordinate with id: " +
-            "'{}', pURL: '{}', format: '{}', name: '{}', version: '{}'.",
+        "'{}', pURL: '{}', format: '{}', name: '{}', version: '{}'.",
         thirdPartyFileCoordinate.getId(), thirdPartyFileCoordinate.getPackageUrl(),
         thirdPartyFileCoordinate.getFormat(), thirdPartyFileCoordinate.getName(),
         thirdPartyFileCoordinate.getVersion());

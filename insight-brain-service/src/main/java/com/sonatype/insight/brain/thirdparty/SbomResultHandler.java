@@ -197,8 +197,9 @@ public class SbomResultHandler
                 SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled(), isValid);
         telemetrySender.send(thirdPartyScanComponentInfoTelemetryData);
 
-        String sbomContent = targetBom.getComponents() != null && targetBom.getComponents().isEmpty() ?
-            content.getContent() : generateFilteredSbom(targetBom);
+        String sbomContent = targetBom.getComponents() != null && targetBom.getComponents().isEmpty()
+            ? content.getContent()
+            : generateFilteredSbom(targetBom);
         return new FilteredThirdPartyContent(sbomContent, moduleDependencies, !isValid);
       }
 
@@ -209,7 +210,7 @@ public class SbomResultHandler
     }
   }
 
-  //visible for testing
+  // visible for testing
   Pair<Bom, Boolean> parseBom(final ThirdPartyScanContent content) throws SbomProcessingException {
     String extension = FilenameUtils.getExtension(content.getPath());
     SbomFormat sbomFormat = SbomFormat.forString(extension.toLowerCase(Locale.ROOT));
@@ -250,8 +251,8 @@ public class SbomResultHandler
         getTruncatedThirdPartyIdentificationSource(determineThirdPartyIdentificationSource(contentPath));
 
     if (sourceBom.getMetadata() != null && sourceBom.getMetadata().getProperties() != null) {
-      String  originalFileNameProperty = this.getPropertyAsString(sourceBom.getMetadata().getProperties(), SbomTaxonomy
-          .CDX_ORIGINAL_FILE_PROPERTY_NAME);
+      String originalFileNameProperty = this.getPropertyAsString(sourceBom.getMetadata().getProperties(),
+          SbomTaxonomy.CDX_ORIGINAL_FILE_PROPERTY_NAME);
       if (StringUtils.isNotEmpty(originalFileNameProperty)) {
         ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFile.getId());
         if (sbomMetadata != null) {
@@ -305,7 +306,8 @@ public class SbomResultHandler
       final TransactionContext tx)
   {
     if (CollectionUtils.isNotEmpty(targetBom.getComponents()) &&
-        CollectionUtils.isNotEmpty(sourceBom.getVulnerabilities()) && !componentRefs.isEmpty()) {
+        CollectionUtils.isNotEmpty(sourceBom.getVulnerabilities()) && !componentRefs.isEmpty())
+    {
       for (Vulnerability vulnerability : sourceBom.getVulnerabilities()) {
         try {
           List<Affect> affects = vulnerability.getAffects();
@@ -355,10 +357,10 @@ public class SbomResultHandler
     }
   }
 
-  //visible for testing
+  // visible for testing
   String determineThirdPartyIdentificationSource(final String contentPath) {
-    String fileName = StringUtils.contains(contentPath, "/") ?
-        StringUtils.substringAfterLast(contentPath, "/") : contentPath;
+    String fileName =
+        StringUtils.contains(contentPath, "/") ? StringUtils.substringAfterLast(contentPath, "/") : contentPath;
     String thirdPartyIdentificationSource = RegExUtils.removePattern(fileName,
         "(-(?i)bom\\.(xml|json)(?i)|\\.(?i)(cdx|spdx)\\.(xml|json)(?i))$");
     if (StringUtils.isBlank(thirdPartyIdentificationSource) ||
@@ -367,7 +369,8 @@ public class SbomResultHandler
         StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "cdx.xml") ||
         StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "cdx.json") ||
         StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "spdx.xml") ||
-        StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "spdx.json")) {
+        StringUtils.endsWithIgnoreCase(thirdPartyIdentificationSource, "spdx.json"))
+    {
       return "Third-Party";
     }
     else {
@@ -401,8 +404,9 @@ public class SbomResultHandler
           log.debug("Component filtered for matching only with hash information {}", resolvedComponent.getRight());
         }
         else if (!resolvedComponents.contains(componentIdentifier) ||
-            //we only allow duplicate purls if they have different sonatype truncated sha1 hashes
-            (StringUtils.isNotBlank(sonatypeSha1) && resolvedComponentsByHash.add(sonatypeSha1))) {
+        // we only allow duplicate purls if they have different sonatype truncated sha1 hashes
+            (StringUtils.isNotBlank(sonatypeSha1) && resolvedComponentsByHash.add(sonatypeSha1)))
+        {
           resolvedComponents.add(componentIdentifier);
           PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).ensureCompleteIdentifier();
           String coordinateId =
@@ -429,8 +433,8 @@ public class SbomResultHandler
     }
   }
 
-  private Pair<ComponentIdentifier, Component> getResolvedComponent(final Component sourceComponent)
-      throws MalformedPackageURLException
+  private Pair<ComponentIdentifier, Component> getResolvedComponent(
+      final Component sourceComponent) throws MalformedPackageURLException
   {
     String packageUrl = sourceComponent.getPurl();
     try {
@@ -504,9 +508,7 @@ public class SbomResultHandler
     return null;
   }
 
-  private String getPackageUrlFromCoordinates(Component component, String name)
-      throws MalformedPackageURLException
-  {
+  private String getPackageUrlFromCoordinates(Component component, String name) throws MalformedPackageURLException {
     String group = component.getGroup();
     String publisher = component.getPublisher();
 
@@ -599,7 +601,8 @@ public class SbomResultHandler
       Map<String, String> qualifiers = sourcePurl.getQualifiers();
 
       if (sourcePurl.getFormat().equalsIgnoreCase(ComponentIdentifier.FORMAT_MAVEN) &&
-          StringUtils.isBlank(qualifiers.get(PackageUrlIdentifier.PURL_MAVEN_EXTENSION))) {
+          StringUtils.isBlank(qualifiers.get(PackageUrlIdentifier.PURL_MAVEN_EXTENSION)))
+      {
         qualifiers.put(PackageUrlIdentifier.PURL_MAVEN_EXTENSION, "jar");
       }
 
@@ -648,7 +651,8 @@ public class SbomResultHandler
     }
     fileCoordinate.setIdentificationSources(SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE);
     if (sourceComponent.getEvidence() != null &&
-        CollectionUtils.isNotEmpty(sourceComponent.getEvidence().getOccurrences())) {
+        CollectionUtils.isNotEmpty(sourceComponent.getEvidence().getOccurrences()))
+    {
       fileCoordinate.setOccurrencesList(
           sourceComponent.getEvidence().getOccurrences().stream().map(Occurrence::getLocation).toList());
     }
@@ -673,9 +677,12 @@ public class SbomResultHandler
   }
 
   private String getComponentPropertyAsString(Component component, String propertyName) {
-    return component.getProperties().stream()
+    return component.getProperties()
+        .stream()
         .filter(property -> propertyName.equals(property.getName()))
-        .map(Property::getValue).findFirst().orElse(null);
+        .map(Property::getValue)
+        .findFirst()
+        .orElse(null);
   }
 
   protected String getOrCreateFakeHash(Component component, ComponentIdentifier componentIdentifier) {
@@ -695,9 +702,10 @@ public class SbomResultHandler
       final String bomVersion,
       final TransactionContext tx)
   {
-    //Vulnerability extension is unsupported from 1.4+
+    // Vulnerability extension is unsupported from 1.4+
     if (MapUtils.isNotEmpty(extensions) &&
-        (!Version.VERSION_14.getVersionString().equals(bomVersion) || StringUtils.isBlank(bomVersion))) {
+        (!Version.VERSION_14.getVersionString().equals(bomVersion) || StringUtils.isBlank(bomVersion)))
+    {
       Extension vulnerabilityExtension = extensions.get(SbomCycloneDxUtils.VULNERABILITY_KEY);
       if (vulnerabilityExtension != null && CollectionUtils.isNotEmpty(vulnerabilityExtension.getExtensions())) {
         Set<String> vulnerabilityMap = new HashSet<>();
@@ -738,7 +746,7 @@ public class SbomResultHandler
     }
   }
 
-  //Visible for testing
+  // Visible for testing
   ThirdPartyCoordinateSecurity parseVulnerabilityExtension(
       final Vulnerability10 vulnerability,
       final String fileCoordinateId)
@@ -763,17 +771,24 @@ public class SbomResultHandler
         coordinateSecurity.setFileCoordinateId(fileCoordinateId);
         if (vulnerability.getCwes() != null) {
           coordinateSecurity.setCwes(
-              vulnerability.getCwes().stream().filter(cwe -> cwe.getText() != null).map(cwe -> cwe.getText().toString())
+              vulnerability.getCwes()
+                  .stream()
+                  .filter(cwe -> cwe.getText() != null)
+                  .map(cwe -> cwe.getText().toString())
                   .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR)));
         }
         if (vulnerability.getRecommendations() != null) {
           coordinateSecurity.setRecommendations(
-              vulnerability.getRecommendations().stream().map(Recommendation::getText)
+              vulnerability.getRecommendations()
+                  .stream()
+                  .map(Recommendation::getText)
                   .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR)));
         }
         if (vulnerability.getAdvisories() != null) {
           coordinateSecurity.setAdvisories(
-              vulnerability.getAdvisories().stream().map(Advisory::getText)
+              vulnerability.getAdvisories()
+                  .stream()
+                  .map(Advisory::getText)
                   .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR)));
         }
         Source source = vulnerability.getSource();
@@ -821,7 +836,10 @@ public class SbomResultHandler
           }
           coordinateSecurity.setFileCoordinateId(fileCoordinateId);
           if (vulnerability.getCwes() != null) {
-            coordinateSecurity.setCwes(vulnerability.getCwes().stream().filter(Objects::nonNull).map(Object::toString)
+            coordinateSecurity.setCwes(vulnerability.getCwes()
+                .stream()
+                .filter(Objects::nonNull)
+                .map(Object::toString)
                 .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR)));
           }
           if (vulnerability.getRecommendation() != null) {
@@ -859,7 +877,8 @@ public class SbomResultHandler
 
   @VisibleForTesting
   ThirdPartyVulnerabilityExploitabilityExchange parseVulnerabilityExploitability(
-      final Vulnerability vulnerability, final String coordinateSecurityId)
+      final Vulnerability vulnerability,
+      final String coordinateSecurityId)
   {
 
     Vulnerability.Analysis analysis = vulnerability.getAnalysis();
@@ -901,7 +920,8 @@ public class SbomResultHandler
           validRating = rating;
           if (source.getName().toLowerCase(Locale.ROOT).equals("nvd") &&
               (rating.getMethod() == Method.CVSSV31 || rating.getMethod() == Method.CVSSV3 ||
-                  rating.getMethod() == Method.CVSSV4)) {
+                  rating.getMethod() == Method.CVSSV4))
+          {
             break;
           }
         }
@@ -1014,7 +1034,7 @@ public class SbomResultHandler
     thirdPartyCoordinateLicenseDAO.insertSafely(tx, coordinateLicense);
   }
 
-  //visible for testing
+  // visible for testing
   void processDependencyGraph(
       final Bom sourceBom,
       final Bom targetBom,
@@ -1075,7 +1095,7 @@ public class SbomResultHandler
         new HashMap<>();
 
     for (Dependency dependency : rootDependency.getDependencies()) {
-      //only dependencies that has a component with a valid purl are loaded
+      // only dependencies that has a component with a valid purl are loaded
       String purl = getPurlForDependency(dependency, bomRefsToPurls, targetBom);
       if (purl != null) {
         directDeps.put(purl, Pair.of(true, new ArrayList<>()));
@@ -1154,7 +1174,7 @@ public class SbomResultHandler
   }
 
   private Metadata getFilteredMetadata(final Bom sourceBom) {
-    //making sure we copy only identity data and nothing else
+    // making sure we copy only identity data and nothing else
     Metadata filtered = null;
     Metadata metadata = sourceBom.getMetadata();
     if (metadata != null && metadata.getComponent() != null) {
@@ -1179,7 +1199,8 @@ public class SbomResultHandler
     else if (StringUtils.isNoneBlank(componentSource.getName(), componentSource.getVersion())) {
       try {
         PackageURLBuilder builder = PackageURLBuilder.aPackageURL();
-        builder.withType(ComponentIdentifier.FORMAT_GENERIC).withName(componentSource.getName())
+        builder.withType(ComponentIdentifier.FORMAT_GENERIC)
+            .withName(componentSource.getName())
             .withVersion(componentSource.getVersion());
         if (StringUtils.isNotBlank(componentSource.getGroup())) {
           builder.withNamespace(componentSource.getGroup());
@@ -1196,8 +1217,9 @@ public class SbomResultHandler
       final Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph,
       final ProjectScanItem project)
   {
-    for (Entry<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> depEntry :
-        dependencyGraph.entrySet()) {
+    for (Entry<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> depEntry : dependencyGraph
+        .entrySet())
+    {
       com.sonatype.insight.scan.model.Dependency dependency = new com.sonatype.insight.scan.model.Dependency();
       dependency.setId(depEntry.getKey());
       dependency.setDirect(depEntry.getValue().getLeft());
@@ -1297,7 +1319,7 @@ public class SbomResultHandler
   }
 
   String generateFilteredSbom(Bom sbom) {
-    String defaultVersionString =  SbomExportParams.ExportSpecification.DEFAULT.getVersion();
+    String defaultVersionString = SbomExportParams.ExportSpecification.DEFAULT.getVersion();
     Optional<Version> defaultVersionOptional = SbomCycloneDxUtils.getVersionFromString(defaultVersionString);
     Version defaultVersion = defaultVersionOptional.orElse(Version.VERSION_16);
     try {
@@ -1312,7 +1334,9 @@ public class SbomResultHandler
     if (listProperties != null && !listProperties.isEmpty()) {
       return listProperties.stream()
           .filter(property -> propertyName.equals(property.getName()))
-          .map(Property::getValue).findFirst().orElse(null);
+          .map(Property::getValue)
+          .findFirst()
+          .orElse(null);
     }
     else {
       return null;

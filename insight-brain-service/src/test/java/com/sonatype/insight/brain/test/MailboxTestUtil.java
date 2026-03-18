@@ -48,7 +48,7 @@ public final class MailboxTestUtil
    * Add a message to the mailbox for a given email address.
    *
    * @param emailAddress the email address
-   * @param message      the message to add
+   * @param message the message to add
    */
   public static void add(String emailAddress, Message message) {
     mailboxes.computeIfAbsent(emailAddress, k -> new ArrayList<>()).add(message);

@@ -14,7 +14,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 public class TileSimpleList
 {
   public static final WebElementCondition CLICKABLE = cssClass("iq-list--clickable");
-  
+
   public SelenideElement root;
 
   public TileSimpleList(SelenideElement root) {

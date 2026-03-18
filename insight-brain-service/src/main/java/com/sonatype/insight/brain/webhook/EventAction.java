@@ -7,5 +7,7 @@ package com.sonatype.insight.brain.webhook;
 
 public enum EventAction
 {
-  CREATED, UPDATED, DELETED
+  CREATED,
+  UPDATED,
+  DELETED
 }

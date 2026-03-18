@@ -15,7 +15,8 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 
 @Named
 @Singleton
-public class NonBreakingRecommendationTelemetryCollector implements TelemetryCollector
+public class NonBreakingRecommendationTelemetryCollector
+    implements TelemetryCollector
 {
   private final NonBreakingRecommendationTelemetryMetrics metrics;
 

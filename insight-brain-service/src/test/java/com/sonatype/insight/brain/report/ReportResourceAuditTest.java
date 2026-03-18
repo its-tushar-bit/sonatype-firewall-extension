@@ -51,8 +51,11 @@ public class ReportResourceAuditTest
     final Stage stage = new Stage(Stage.ID_BUILD);
 
     // Evaluate policy the first time
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
-        .query("scanId", SCAN_ID).body(stage).post();
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .parameter(app.getPublicId())
+        .query("scanId", SCAN_ID)
+        .body(stage)
+        .post();
     assertResponseStatus(200, response);
 
     // Re-evaluate
@@ -131,8 +134,11 @@ public class ReportResourceAuditTest
     mockReport(SCAN_ID, "/ReportResourceTest/report");
     createScanFile(app.getId(), SCAN_ID);
 
-    restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
-        .query("scanId", SCAN_ID).body(new Stage(Stage.ID_BUILD)).post();
+    restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .parameter(app.getPublicId())
+        .query("scanId", SCAN_ID)
+        .body(new Stage(Stage.ID_BUILD))
+        .post();
     restRequest(app.getPublicId(), SCAN_ID).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, null);

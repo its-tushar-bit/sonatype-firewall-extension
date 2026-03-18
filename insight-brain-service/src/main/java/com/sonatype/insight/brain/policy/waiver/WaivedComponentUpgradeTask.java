@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Runs a scheduled or manually triggered Waived Component Upgrade Inspector task.
- * 
+ *
  * The @DisallowConcurrentExecution annotation on this class can be confusing/misleading, especially when combined with
  * the @Singleton annotation.
  * Here is how it works:

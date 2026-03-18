@@ -200,7 +200,7 @@ public class PullRequestFeedbackMarkupServiceTest
     final String FROM_SCAN_ID = "fromScanId";
     final String TO_SCAN_ID = "toScanId";
     Application app = tempEntity.newApplicationWithParent("TEST_APP_PUBLIC_ID", "TEST APP", "TEST ORG");
-    //setup reports
+    // setup reports
     createReportFile(app.getId(), FROM_SCAN_ID,
         zipReportDir("/PullRequestFeedbackMarkupServiceTest/from-report", tempDir),
         insightWork);
@@ -208,37 +208,37 @@ public class PullRequestFeedbackMarkupServiceTest
         insightWork);
 
     int pullRequestNumber = 10;
-    //setup evaluations
+    // setup evaluations
     PolicyEvaluation defaultBranchPolicyEvaluation =
         tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID);
     PolicyEvaluation featureBranchPolicyEvaluation =
         tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID);
     featureBranchPolicyEvaluation.setTime(new GregorianCalendar(2020, Calendar.JUNE, 21, 9, 15, 32).getTime());
 
-    //setup diff
+    // setup diff
     PolicyViolationDiff<PolicyViolation> diff =
         policyEvaluationDiffService.createPolicyViolationDiffByComponents(defaultBranchPolicyEvaluation,
             featureBranchPolicyEvaluation, MINIMUM_THREAT_LEVEL).get();
 
-    //setup remediationVersionMap
+    // setup remediationVersionMap
     Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = new HashMap<>();
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("com.h2database", "h2", "1.4.190", "", "jar");
     remediationVersionMap.put(componentIdentifier, new RemediationVersionDTO("1.4.200",
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS));
 
-    //setup pullRequestLineComments
+    // setup pullRequestLineComments
     List<PullRequestLineCommentDTO> pullRequestLineComments = new ArrayList<>();
     PullRequestLineCommentDTO lineCommentDTO =
         new PullRequestLineCommentDTO(componentIdentifier, new DiffPosition("path", 1, 0, 1, null, 1));
     lineCommentDTO.setScmId(12345L);
     pullRequestLineComments.add(lineCommentDTO);
 
-    //setup gitRepositoryInfo
+    // setup gitRepositoryInfo
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("http://example.com/project/repository", null, null,
         "token", GITHUB, "master", true, true, true, true, true, true, false, null);
 
-    //setup source control component details
+    // setup source control component details
     SourceControlComponentDetails componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
         featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
 
@@ -265,8 +265,7 @@ public class PullRequestFeedbackMarkupServiceTest
         componentDetails,
         commentTelemetry,
         enableUxImprovement,
-        developmentPrioritiesUtilsService
-    );
+        developmentPrioritiesUtilsService);
 
     // then: markup is created and telemetry information updated
     final String expectedContent = readResource(getClass(), expectedMarkupOutputFile);
@@ -278,8 +277,7 @@ public class PullRequestFeedbackMarkupServiceTest
 
   private void runCreateLineMarkupTest(
       final SourceControlProvider provider,
-      final boolean scmUxImprovementFeatureEnabled
-  ) throws Exception
+      final boolean scmUxImprovementFeatureEnabled) throws Exception
   {
     runCreateLineMarkupTest(provider, scmUxImprovementFeatureEnabled, DEFAULT_SCM_URL);
   }
@@ -319,15 +317,15 @@ public class PullRequestFeedbackMarkupServiceTest
     final Optional<String> contents = pullRequestFeedbackMarkupService.createLineMarkup(
         policyViolations,
         "Test Component",
-            new RemediationVersionDTO(
-                "123",
-                ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
-            Optional.ofNullable(null),
-            provider,
-            scmUrl,
-            evaluation.getApplicationId(),
-            evaluation.getScanId(),
-            scmUxImprovementFeatureEnabled);
+        new RemediationVersionDTO(
+            "123",
+            ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
+        Optional.ofNullable(null),
+        provider,
+        scmUrl,
+        evaluation.getApplicationId(),
+        evaluation.getScanId(),
+        scmUxImprovementFeatureEnabled);
 
     // then: markup is generated
     assertRenderedOutput(contents, this.getClass(), expectedRenderedOutputFilename);

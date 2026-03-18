@@ -156,8 +156,7 @@ public class DevelopmentPrioritiesService
       final int pageSize,
       final String componentNameFilter,
       final boolean includeRemediation,
-      final boolean filterOnPolicyActions
-  )
+      final boolean filterOnPolicyActions)
   {
     final int skipCount = (page - 1) * pageSize;
 
@@ -165,22 +164,23 @@ public class DevelopmentPrioritiesService
         policyEvaluationDAO.getLastByApplicationIdAndStageId(
             applicationDAO.getByPublicId(applicationPublicId).getId(), "build");
 
-    String scanIdFromLatestBuildStageEvaluation = latestBuildStageEvaluation != null ?
-        latestBuildStageEvaluation.getScanId() : "";
+    String scanIdFromLatestBuildStageEvaluation =
+        latestBuildStageEvaluation != null ? latestBuildStageEvaluation.getScanId() : "";
 
     boolean hasAutoWaiversConfigured = autoPolicyWaiverDAO.getCount() > 0 ? true : false;
 
     final List<PrioritizedComponent> allPrioritizedFindings =
-        includeRemediation ?
-            getAllPrioritizedFindings(applicationPublicId, scanId, skipCount, pageSize) :
-            getAllPrioritizedFindings(applicationPublicId, scanId, null, null);
+        includeRemediation
+            ? getAllPrioritizedFindings(applicationPublicId, scanId, skipCount, pageSize)
+            : getAllPrioritizedFindings(applicationPublicId, scanId, null, null);
 
     final List<PrioritizedComponent> filteredByNameAndAction = allPrioritizedFindings.stream()
         .filter(prioritizedComponent -> StringUtils.isEmpty(componentNameFilter) ||
             matchesFilter(prioritizedComponent.getDisplayName(), componentNameFilter))
-        .filter(prioritizedComponent ->
-            !filterOnPolicyActions || Action.ID_FAIL.equals(prioritizedComponent.getAction()) ||
-                Action.ID_WARN.equals(prioritizedComponent.getAction())).toList();
+        .filter(
+            prioritizedComponent -> !filterOnPolicyActions || Action.ID_FAIL.equals(prioritizedComponent.getAction()) ||
+                Action.ID_WARN.equals(prioritizedComponent.getAction()))
+        .toList();
 
     // get total size before for pagination
     final long totalSize = filteredByNameAndAction.size();
@@ -205,8 +205,7 @@ public class DevelopmentPrioritiesService
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
       final String scanId,
       final Integer remediationSkip,
-      final Integer remediationLimit
-  )
+      final Integer remediationLimit)
   {
     throwErrorIfDevelopmentNotEnabledByLicense();
 
@@ -238,9 +237,8 @@ public class DevelopmentPrioritiesService
               getMatchingViolations(policyThreats.aaData, component);
 
           // Component identifier can be null for unknown components
-          final ComponentIdentifier componentIdentifier = component.componentIdentifier != null ?
-              component.componentIdentifier.toComponentIdentifier() :
-              null;
+          final ComponentIdentifier componentIdentifier =
+              component.componentIdentifier != null ? component.componentIdentifier.toComponentIdentifier() : null;
           final PolicyViolation highestPolicyViolation = getHighestThreat(policyViolations, false);
           final int highestThreatLevel;
           final String policyName;
@@ -339,14 +337,14 @@ public class DevelopmentPrioritiesService
             waiverExpirationDetails = soonestToExpireDays == 0
                 ? "Applied waiver will expire today"
                 : String.format("Applied waiver will expire in %d %s",
-                soonestToExpireDays, soonestToExpireDays == 1 ? "day" : "days");
+                    soonestToExpireDays, soonestToExpireDays == 1 ? "day" : "days");
           }
 
           else if (!isAllViolationsWaived && hasExpiredWaiver) {
             waiverExpirationDetails = oldestHasExpiredDays == 0
                 ? "Applied waiver expired today"
                 : String.format("Applied waiver expired %d %s ago",
-                oldestHasExpiredDays, oldestHasExpiredDays == 1 ? "day" : "days");
+                    oldestHasExpiredDays, oldestHasExpiredDays == 1 ? "day" : "days");
           }
 
           return new UnprioritizedComponent(
@@ -367,8 +365,7 @@ public class DevelopmentPrioritiesService
               isAllViolationsWaived,
               waiverExpirationDetails,
               waivedViolationsCount,
-              hasAutoWaiver
-          );
+              hasAutoWaiver);
         })
         .filter(unprioritizedComponent -> unprioritizedComponent.isAllViolationsWaived
             || unprioritizedComponent.highestThreat > 0 || hasUpgradePathOfInnerSource(unprioritizedComponent))
@@ -381,8 +378,7 @@ public class DevelopmentPrioritiesService
         scanId,
         policyEvaluationStage,
         remediationSkip,
-        remediationLimit
-    );
+        remediationLimit);
 
     // If skipCount and limit are not provided, return all sorted components without remediation
     return addPrioritiesToSortedList(sortedComponentsWithRemediation);
@@ -449,8 +445,11 @@ public class DevelopmentPrioritiesService
     return sortedComponents;
   }
 
-  private UnprioritizedComponent loadRemediation(UnprioritizedComponent unprioritizedComponent,
-                                                 String applicationPublicId, String scanId, String stageId)
+  private UnprioritizedComponent loadRemediation(
+      UnprioritizedComponent unprioritizedComponent,
+      String applicationPublicId,
+      String scanId,
+      String stageId)
   {
 
     ComponentIdentifier componentIdentifier = unprioritizedComponent.getComponentIdentifier();
@@ -465,8 +464,7 @@ public class DevelopmentPrioritiesService
                 null,
                 scanId,
                 false,
-                true
-            );
+                true);
 
         if (apiComponentRemediationDTO != null) {
           PrioritizationRemediationVersionDTO remediationVersionDTO =
@@ -529,7 +527,8 @@ public class DevelopmentPrioritiesService
     }
 
     final List<PolicyThreats.PolicyViolation> violationsWithWarns = activeViolations
-        .stream().filter(policyViolation -> {
+        .stream()
+        .filter(policyViolation -> {
           if (policyViolation.actions == null) {
             return false;
           }
@@ -571,8 +570,8 @@ public class DevelopmentPrioritiesService
     Stream<PolicyViolation> violationsStream = activeViolations.stream();
     if (securityViolationsOnly) {
       violationsStream =
-          violationsStream.filter(policyViolation ->
-              SECURITY.getName().equalsIgnoreCase(policyViolation.policyThreatCategory));
+          violationsStream
+              .filter(policyViolation -> SECURITY.getName().equalsIgnoreCase(policyViolation.policyThreatCategory));
     }
     final List<PolicyThreats.PolicyViolation> violations = violationsStream
         .sorted((violationA, violationB) -> {
@@ -596,14 +595,12 @@ public class DevelopmentPrioritiesService
 
     return activeViolations
         .stream()
-        .anyMatch(policyViolation ->
-            SECURITY.getName().equalsIgnoreCase(policyViolation.policyThreatCategory));
+        .anyMatch(policyViolation -> SECURITY.getName().equalsIgnoreCase(policyViolation.policyThreatCategory));
   }
 
   private List<PolicyThreats.PolicyViolation> getMatchingViolations(
       final List<Component> policyThreatsComponents,
-      final ApiReportComponentDTOV2 component
-  )
+      final ApiReportComponentDTOV2 component)
   {
     return policyThreatsComponents.stream()
         .filter(policyThreatComponent -> policyThreatComponent.hash.equals(component.hash))
@@ -614,8 +611,7 @@ public class DevelopmentPrioritiesService
   }
 
   private List<PrioritizedComponent> addPrioritiesToSortedList(
-      final List<UnprioritizedComponent> sortedComponents
-  )
+      final List<UnprioritizedComponent> sortedComponents)
   {
     final List<PrioritizedComponent> prioritizedComponents = new ArrayList<>();
 
@@ -674,8 +670,7 @@ public class DevelopmentPrioritiesService
 
   private Component getPolicyThreatComponent(
       final List<Component> policyThreatsComponents,
-      final ApiReportComponentDTOV2 component
-  )
+      final ApiReportComponentDTOV2 component)
   {
     return policyThreatsComponents.stream()
         .filter(policyThreatComponent -> policyThreatComponent.hash.equals(component.hash))
@@ -809,8 +804,7 @@ public class DevelopmentPrioritiesService
         boolean isAllViolationsWaived,
         final String waiverExpirationDetails,
         final int waivedViolationsCount,
-        final boolean hasAutoWaiver
-    )
+        final boolean hasAutoWaiver)
     {
       this.dependencyType = dependencyType;
       this.hasFailActionOnComponent = hasFailActionOnComponent;
@@ -858,15 +852,12 @@ public class DevelopmentPrioritiesService
     }
 
     private ComponentIdentifier getComponentIdentifier() {
-      return component.componentIdentifier != null ?
-          component.componentIdentifier.toComponentIdentifier() :
-          null;
+      return component.componentIdentifier != null ? component.componentIdentifier.toComponentIdentifier() : null;
     }
 
     private String getComponentVersion() {
       ComponentIdentifier componentIdentifier = getComponentIdentifier();
-      return componentIdentifier != null ?
-          componentIdentifier.get(ComponentIdentifier.VERSION) : null;
+      return componentIdentifier != null ? componentIdentifier.get(ComponentIdentifier.VERSION) : null;
     }
   }
 }

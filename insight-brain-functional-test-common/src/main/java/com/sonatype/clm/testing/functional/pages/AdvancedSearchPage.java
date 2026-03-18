@@ -102,25 +102,25 @@ public class AdvancedSearchPage
   public SelenideElement firstResultCardOrgName() {
     return child(
         ".iq-adv-search__results-container > section:nth-child(1) >" +
-        " div > table > tbody > tr:nth-child(1) > td:nth-child(3) > a");
+            " div > table > tbody > tr:nth-child(1) > td:nth-child(3) > a");
   }
 
   public SelenideElement firstResultCardAppName() {
     return child(
-        ".iq-adv-search__results-container > section:nth-child(1) >" + 
-        " div > table > tbody > tr:nth-child(2) > td:nth-child(3) > a");
+        ".iq-adv-search__results-container > section:nth-child(1) >" +
+            " div > table > tbody > tr:nth-child(2) > td:nth-child(3) > a");
   }
 
   public SelenideElement secondResultCardOrgName() {
     return child(
-        ".iq-adv-search__results-container > section:nth-child(2) >" + 
-        " div > table > tbody > tr:nth-child(1) > td:nth-child(3) > a");
+        ".iq-adv-search__results-container > section:nth-child(2) >" +
+            " div > table > tbody > tr:nth-child(1) > td:nth-child(3) > a");
   }
 
   public SelenideElement secondResultCardAppName() {
     return child(
-        ".iq-adv-search__results-container > section:nth-child(2) >" + 
-        " div > table > tbody > tr:nth-child(2) > td:nth-child(3) > a");
+        ".iq-adv-search__results-container > section:nth-child(2) >" +
+            " div > table > tbody > tr:nth-child(2) > td:nth-child(3) > a");
   }
 
   // Query Builder Elements

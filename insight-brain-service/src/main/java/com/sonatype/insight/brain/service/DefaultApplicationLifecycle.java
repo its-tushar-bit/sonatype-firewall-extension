@@ -157,7 +157,7 @@ public class DefaultApplicationLifecycle
 
   @Override
   public void start() throws Exception {
-    //noop
+    // noop
   }
 
   @Override

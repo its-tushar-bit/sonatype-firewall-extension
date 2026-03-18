@@ -140,8 +140,9 @@ public class PolicyEvaluationDAO
   /**
    * H2-specific optimization, see comment on {@link #getLastByApplicationIdsManualFilter(Set)} for more details.
    */
-  private List<PolicyEvaluation> getLastByApplicationIdsAndStageIdsManualFilter(Set<String> appIds,
-                                                                                Set<String> stageTypeIds)
+  private List<PolicyEvaluation> getLastByApplicationIdsAndStageIdsManualFilter(
+      Set<String> appIds,
+      Set<String> stageTypeIds)
   {
     String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
         " LastPolicyEvaluation lpe" + //
@@ -165,9 +166,10 @@ public class PolicyEvaluationDAO
   /**
    * Returns the last primary evaluation (i.e. not a reevaluation) for the given application and stage.
    */
-  public PolicyEvaluation getLastPrimaryByApplicationIdAndStageId(TransactionContext tx,
-                                                                  String appId,
-                                                                  String stageTypeId)
+  public PolicyEvaluation getLastPrimaryByApplicationIdAndStageId(
+      TransactionContext tx,
+      String appId,
+      String stageTypeId)
   {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 AND entity.isReevaluation=false" + //
@@ -219,7 +221,8 @@ public class PolicyEvaluationDAO
     String stageTypeId = policyEvaluation.getStageTypeId();
     PolicyEvaluation lastPolicyEvaluation = getLastByApplicationIdAndStageId(tx, appId, stageTypeId);
     if (lastPolicyEvaluation == null
-        || lastPolicyEvaluation.getTime().getTime() < policyEvaluation.getTime().getTime()) {
+        || lastPolicyEvaluation.getTime().getTime() < policyEvaluation.getTime().getTime())
+    {
 
       // Delete the current last policy evaluation record for this app and stage type
       if (lastPolicyEvaluation != null) {
@@ -234,10 +237,11 @@ public class PolicyEvaluationDAO
   /**
    * @since 1.39
    */
-  public List<PolicyEvaluation> getBetweenDatesByApplicationIdAndStageIds(Date sinceDate,
-                                                                          Date toDate,
-                                                                          String appId,
-                                                                          Set<String> stageTypeIds)
+  public List<PolicyEvaluation> getBetweenDatesByApplicationIdAndStageIds(
+      Date sinceDate,
+      Date toDate,
+      String appId,
+      Set<String> stageTypeIds)
   {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId = ?1 AND entity.stageTypeId IN (?2) AND entity.time >= ?3" + //
@@ -481,8 +485,8 @@ public class PolicyEvaluationDAO
   }
 
   public int getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(
-      final Date lowerBound, final Date upperBoundDate
-  )
+      final Date lowerBound,
+      final Date upperBoundDate)
   {
     // we do not allow new entries to be created with isForObsolete scan to be true unless isReevaluation is
     // also true, so in most cases entity.isForObsoleteScan = false should be redundant

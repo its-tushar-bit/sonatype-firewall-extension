@@ -208,7 +208,8 @@ public class LdapServiceAuthzTest
     LdapServer ldapServer = tempEntity.newLdapServer("test");
     assertThatThrownBy(() -> ldapService
         .testLdapUserMapping(ldapServer.getId(), tempEntity.newLdapUserMapping(ldapServer.getId()), 20))
-        .isInstanceOf(BadRequestException.class).hasMessageContaining("LDAP connection is not configured");
+            .isInstanceOf(BadRequestException.class)
+            .hasMessageContaining("LDAP connection is not configured");
   }
 
   @Test(expected = UnauthorizedException.class)

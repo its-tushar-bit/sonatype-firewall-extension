@@ -58,21 +58,21 @@ public class PolicyEvaluationDiffServiceTest
 
   @Test
   public void testCreatePolicyViolationDiff() throws URISyntaxException, IOException {
-    //setup reports
+    // setup reports
     createReportFile(app.getId(), FROM_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/from-report", tempDir),
         insightWork);
     createReportFile(app.getId(), TO_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/to-report", tempDir),
         insightWork);
 
-    //setup evaluations
+    // setup evaluations
     PolicyEvaluation from = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID);
     PolicyEvaluation to = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID);
 
-    //create diff
+    // create diff
     Optional<PolicyViolationDiff<PolicyViolation>> diffOptional =
         policyEvaluationDiffService.createPolicyViolationDiff(from, to);
 
-    //assert added, same and cleared are correct
+    // assert added, same and cleared are correct
     assertThat(diffOptional).isNotEmpty();
     assertThat(diffOptional.get().getSame()).isNotNull();
     assertThat(diffOptional.get().getAppeared()).isNotNull();
@@ -137,15 +137,15 @@ public class PolicyEvaluationDiffServiceTest
 
   @Test
   public void testCreatePolicyViolationDiff_FromReportDoesNotExist() {
-    //setup evaluations
+    // setup evaluations
     PolicyEvaluation from = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID);
     PolicyEvaluation to = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID);
 
-    //create diff
-    Optional<PolicyViolationDiff<PolicyViolation>>
-        diffOptional = policyEvaluationDiffService.createPolicyViolationDiff(from, to);
+    // create diff
+    Optional<PolicyViolationDiff<PolicyViolation>> diffOptional =
+        policyEvaluationDiffService.createPolicyViolationDiff(from, to);
 
-    //assert empty optional
+    // assert empty optional
     assertThat(diffOptional).isEmpty();
     assertLogDebug(String.format(
         "Could not find report file for 'from' scan report with commit %s, " +
@@ -155,19 +155,19 @@ public class PolicyEvaluationDiffServiceTest
 
   @Test
   public void testCreatePolicyViolationDiff_ToReportDoesNotExist() throws URISyntaxException, IOException {
-    //setup from report
+    // setup from report
     createReportFile(app.getId(), FROM_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/from-report", tempDir),
         insightWork);
 
-    //setup evaluations
+    // setup evaluations
     PolicyEvaluation from = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID);
     PolicyEvaluation to = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID);
 
-    //create diff
-    Optional<PolicyViolationDiff<PolicyViolation>>
-        diffOptional = policyEvaluationDiffService.createPolicyViolationDiff(from, to);
+    // create diff
+    Optional<PolicyViolationDiff<PolicyViolation>> diffOptional =
+        policyEvaluationDiffService.createPolicyViolationDiff(from, to);
 
-    //assert empty optional
+    // assert empty optional
     assertThat(diffOptional).isEmpty();
     assertLogDebug(String.format(
         "Could not find report file for 'to' scan report with commit %s, " +
@@ -177,21 +177,21 @@ public class PolicyEvaluationDiffServiceTest
 
   @Test
   public void testCreatePolicyViolationDiff_FromReportMissingAlerts() throws URISyntaxException, IOException {
-    //setup reports (no policy alerts for from)
+    // setup reports (no policy alerts for from)
     createReportFile(app.getId(), FROM_SCAN_ID,
         zipReportDir("/PolicyEvaluationDiffServiceTest/report-missing-policyalerts", tempDir), insightWork);
     createReportFile(app.getId(), TO_SCAN_ID,
         zipReportDir("/PolicyEvaluationDiffServiceTest/to-report", tempDir), insightWork);
 
-    //setup evaluations
+    // setup evaluations
     PolicyEvaluation from = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID);
     PolicyEvaluation to = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID);
 
-    //create diff
-    Optional<PolicyViolationDiff<PolicyViolation>>
-        diffOptional = policyEvaluationDiffService.createPolicyViolationDiff(from, to);
+    // create diff
+    Optional<PolicyViolationDiff<PolicyViolation>> diffOptional =
+        policyEvaluationDiffService.createPolicyViolationDiff(from, to);
 
-    //assert empty optional
+    // assert empty optional
     assertThat(diffOptional).isEmpty();
     assertLogDebug(String.format(
         "Could not find policy alerts for 'from' scan report with commit %s, " +
@@ -201,21 +201,21 @@ public class PolicyEvaluationDiffServiceTest
 
   @Test
   public void testCreatePolicyViolationDiff_ToReportMissingAlerts() throws URISyntaxException, IOException {
-    //setup reports (no policy alerts for to)
+    // setup reports (no policy alerts for to)
     createReportFile(app.getId(), FROM_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/from-report", tempDir),
         insightWork);
     createReportFile(app.getId(), TO_SCAN_ID,
         zipReportDir("/PolicyEvaluationDiffServiceTest/report-missing-policyalerts", tempDir), insightWork);
 
-    //setup evaluations
+    // setup evaluations
     PolicyEvaluation from = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID);
     PolicyEvaluation to = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID);
 
-    //create diff
-    Optional<PolicyViolationDiff<PolicyViolation>>
-        diffOptional = policyEvaluationDiffService.createPolicyViolationDiff(from, to);
+    // create diff
+    Optional<PolicyViolationDiff<PolicyViolation>> diffOptional =
+        policyEvaluationDiffService.createPolicyViolationDiff(from, to);
 
-    //assert empty optional
+    // assert empty optional
     assertThat(diffOptional).isEmpty();
     assertLogDebug(String.format(
         "Could not find policy alerts for 'to' scan report with commit %s, " +

@@ -62,8 +62,15 @@ public class PolicyWaiverResourceTest
   }
 
   private void assertWaiversByOwner(
-      Owner owner, String policyId, String waiverComment, String constraintFactsJson,
-      List<ConstraintFact> constraints, String creatorId, String creatorName, String reasonText, WaiversByOwner actual)
+      Owner owner,
+      String policyId,
+      String waiverComment,
+      String constraintFactsJson,
+      List<ConstraintFact> constraints,
+      String creatorId,
+      String creatorName,
+      String reasonText,
+      WaiversByOwner actual)
   {
     String expectedOwnerId = OwnerType.APPLICATION.equals(owner.getType()) ? owner.getPublicId() : owner.getId();
     assertThat(actual.ownerId).isEqualTo(expectedOwnerId);
@@ -159,7 +166,7 @@ public class PolicyWaiverResourceTest
         ownerWaiver.getConstraintFacts(),
         "testuser",
         "Test User",
-            null, waivers.waiversByOwner.get(0));
+        null, waivers.waiversByOwner.get(0));
     response = restRequest(parent.getType(), parent.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
@@ -469,7 +476,7 @@ public class PolicyWaiverResourceTest
         policyWaiver.getConstraintFacts(),
         "testuser",
         "Test User",
-            null, waivers.waiversByOwner.get(0));
+        null, waivers.waiversByOwner.get(0));
   }
 
   @Test
@@ -482,7 +489,7 @@ public class PolicyWaiverResourceTest
 
     PolicyWaiver policyWaiver =
         tempEntity.newWaiverWithReason("hash", policy.getId(), app.getId(), null, "Test Comment", "Test Comment",
-                "Reason");
+            "Reason");
 
     HttpResponse response = restRequest(OwnerType.APPLICATION, app.getPublicId()).path("component", "hash").get();
     assertResponseStatus(200, response);
@@ -495,14 +502,25 @@ public class PolicyWaiverResourceTest
         policyWaiver.getConstraintFacts(),
         "testuser",
         "Test User",
-            "Reason", waivers.waiversByOwner.get(0));
+        "Reason", waivers.waiversByOwner.get(0));
   }
 
   private void assertPolicyWaiverDTO(
-      String policyId, String ownerId, String comment, String constraintFactsJson,
-      List<ConstraintFact> constraints, String creatorId, String creatorName, String reasonText, Date createTime,
-      String hash, String associatedPackageUrl, PolicyWaiver.ComponentMatcherStrategyForWaiver componentMatchStrategy,
-      boolean expireWhenRemediationAvailable, Date expiryTime, PolicyWaiverDTO actual)
+      String policyId,
+      String ownerId,
+      String comment,
+      String constraintFactsJson,
+      List<ConstraintFact> constraints,
+      String creatorId,
+      String creatorName,
+      String reasonText,
+      Date createTime,
+      String hash,
+      String associatedPackageUrl,
+      PolicyWaiver.ComponentMatcherStrategyForWaiver componentMatchStrategy,
+      boolean expireWhenRemediationAvailable,
+      Date expiryTime,
+      PolicyWaiverDTO actual)
   {
     assertPolicyWaiver(policyId, ownerId, comment, constraintFactsJson, constraints, creatorId, creatorName, null,
         createTime, hash, associatedPackageUrl, componentMatchStrategy, expireWhenRemediationAvailable, expiryTime,
@@ -518,8 +536,15 @@ public class PolicyWaiverResourceTest
   }
 
   private void assertPolicyWaiverDTO(
-      String policyId, String ownerId, String comment, String constraintFactsJson,
-      List<ConstraintFact> constraints, String creatorId, String creatorName, String reasonText, PolicyWaiverDTO actual)
+      String policyId,
+      String ownerId,
+      String comment,
+      String constraintFactsJson,
+      List<ConstraintFact> constraints,
+      String creatorId,
+      String creatorName,
+      String reasonText,
+      PolicyWaiverDTO actual)
   {
     assertPolicyWaiver(policyId, ownerId, comment, constraintFactsJson, constraints, creatorId, creatorName, null,
         actual);

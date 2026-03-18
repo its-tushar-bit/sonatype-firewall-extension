@@ -368,8 +368,7 @@ public class OpenSearchIndexingContextTest
         batchDelayMs,
         maxRetries,
         retryBackoffMs,
-        maxRetryBackoffMs
-    );
+        maxRetryBackoffMs);
   }
 
   private List<Document> createDocuments(int count) {
@@ -401,13 +400,11 @@ public class OpenSearchIndexingContextTest
   private OpenSearchException createOpenSearchException(String message, int status) {
     ErrorCause errorCause = ErrorCause.of(builder -> builder
         .type("error")
-        .reason(message)
-    );
+        .reason(message));
 
     ErrorResponse errorResponse = ErrorResponse.of(builder -> builder
         .error(errorCause)
-        .status(status)
-    );
+        .status(status));
 
     return new OpenSearchException(errorResponse);
   }

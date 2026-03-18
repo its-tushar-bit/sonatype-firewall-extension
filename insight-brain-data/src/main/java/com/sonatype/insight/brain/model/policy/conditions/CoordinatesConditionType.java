@@ -190,8 +190,10 @@ public class CoordinatesConditionType
   }
 
   @Override
-  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
-      throws InvalidConditionException
+  public void validateCondition(
+      TransactionContext tx,
+      Condition condition,
+      String ownerId) throws InvalidConditionException
   {
     String value = condition.getValue();
     if (StringUtils.isBlank(value)) {

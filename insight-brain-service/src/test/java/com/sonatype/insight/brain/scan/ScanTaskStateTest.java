@@ -44,9 +44,9 @@ import static org.mockito.Mockito.when;
 
 /**
  * Verifies that the scan state reflects the orchestrated action within the {@link ScanTask} being executed.
- * 
+ *
  * Uses Mockito's stubbing to capture the state and verify, see {@link TaskStateCapturer}.
- * 
+ *
  * Refer to {@link ScanStateToTicketTranslatorTest} for translation from state to ticket steps.
  */
 @RunWith(MockitoJUnitRunner.class)

@@ -54,9 +54,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformDefaultBranchPolicyEvaluation_noExistingPolicyEvaluation()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformDefaultBranchPolicyEvaluation_noExistingPolicyEvaluation() throws GitException, IOException {
     // setup
     final String applicationId = "app1";
     final String commit = "commit-123";
@@ -74,9 +72,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformDefaultBranchPolicyEvaluation_noExistingPolicyEvaluation_externalEvaluationsExist()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformDefaultBranchPolicyEvaluation_noExistingPolicyEvaluation_externalEvaluationsExist() throws GitException, IOException {
     // setup
     final String applicationId = "app1";
     final String commit = "commit-123";
@@ -98,9 +94,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformDefaultBranchPolicyEvaluation_externalPolicyEvaluation()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformDefaultBranchPolicyEvaluation_externalPolicyEvaluation() throws GitException, IOException {
     // setup
     final String applicationId = "app1";
     final String commit = "commit-123";
@@ -126,9 +120,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformDefaultBranchPolicyEvaluation_buildAndReleaseStagePolicyEvaluations()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformDefaultBranchPolicyEvaluation_buildAndReleaseStagePolicyEvaluations() throws GitException, IOException {
     // setup
     final String applicationId = "app1";
     final String commit = "commit-123";
@@ -156,9 +148,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformDefaultBranchPolicyEvaluation_buildAndSourceStagePolicyEvaluations()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformDefaultBranchPolicyEvaluation_buildAndSourceStagePolicyEvaluations() throws GitException, IOException {
     // setup
     final String applicationId = "app1";
     final String commit = "commit-123";
@@ -187,9 +177,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformDefaultBranchPolicyEvaluation_sourceAndReleaseStagePolicyEvaluations()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformDefaultBranchPolicyEvaluation_sourceAndReleaseStagePolicyEvaluations() throws GitException, IOException {
     // setup
     final String applicationId = "app1";
     final String commit = "commit-123";
@@ -218,9 +206,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformDefaultBranchPolicyEvaluation_internalPolicyEvaluation()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformDefaultBranchPolicyEvaluation_internalPolicyEvaluation() throws GitException, IOException {
     // setup
     final String applicationId = "app1";
     final String commit = "commit-123";
@@ -246,9 +232,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformDefaultBranchPolicyEvaluation_staleInternalPolicyEvaluation()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformDefaultBranchPolicyEvaluation_staleInternalPolicyEvaluation() throws GitException, IOException {
     // setup
     final String applicationId = "app1";
     final String commit = "commit-123";
@@ -272,9 +256,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformDefaultBranchPolicyEvaluation_staleInternalPolicyEvaluation_externalEvaluationsExist()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformDefaultBranchPolicyEvaluation_staleInternalPolicyEvaluation_externalEvaluationsExist() throws GitException, IOException {
     // setup
     final String applicationId = "app1";
     final String commit = "commit-123";

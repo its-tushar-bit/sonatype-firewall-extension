@@ -74,7 +74,9 @@ public class AuditContainerRequestFilter
         // resource classes using AOP (e.g. for @Authorize) get subclassed but the generated subclasses miss the
         // annotations so we have to manually inspect the original class
         try {
-          audited = method.getDeclaringClass().getSuperclass().getMethod(method.getName(), method.getParameterTypes())
+          audited = method.getDeclaringClass()
+              .getSuperclass()
+              .getMethod(method.getName(), method.getParameterTypes())
               .getAnnotation(Audited.class);
         }
         catch (NoSuchMethodException e) {
@@ -180,7 +182,8 @@ public class AuditContainerRequestFilter
   }
 
   private void setByApplicationPublicId(String applicationPublicId) {
-    AuditData.get().setApplicationPublicId(applicationPublicId)
+    AuditData.get()
+        .setApplicationPublicId(applicationPublicId)
         .setApplication(applicationDAO.getByPublicId(applicationPublicId));
   }
 
@@ -201,12 +204,15 @@ public class AuditContainerRequestFilter
   }
 
   private void setByRepositoryPublicId(String repositoryPublicId, String repositoryManagerInstanceId) {
-    AuditData.get().setRepositoryPublicId(repositoryPublicId).setRepository(
-        repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, repositoryPublicId));
+    AuditData.get()
+        .setRepositoryPublicId(repositoryPublicId)
+        .setRepository(
+            repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, repositoryPublicId));
   }
 
   private void setByRepositoryManagerId(String repositoryManagerId) {
-    AuditData.get().setRepositoryManagerId(repositoryManagerId)
+    AuditData.get()
+        .setRepositoryManagerId(repositoryManagerId)
         .setRepositoryManager(repositoryManagerDAO.getById(repositoryManagerId));
   }
 }

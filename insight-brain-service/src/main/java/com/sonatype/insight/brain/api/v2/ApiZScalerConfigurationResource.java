@@ -68,8 +68,7 @@ public class ApiZScalerConfigurationResource
       "Permissions required: Edit System Configuration and Users")
   @ApiResponse(
       responseCode = "404",
-      description = "No Zscaler server is currently configured with the IQ Server."
-  )
+      description = "No Zscaler server is currently configured with the IQ Server.")
   @ApiResponse(
       responseCode = "200",
       description = "The response contains:" +
@@ -79,8 +78,7 @@ public class ApiZScalerConfigurationResource
           "<li>`hostname` is the hostname or IP address of the Zscaler server.</li>" +
           "<li>`apiKey` is the apiKey used for communicating with the Zscaler service.</li>" +
           "</ul>",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   public ApiZScalerConfigurationDTO getConfiguration() {
     return zScalerConfigurationService.getConfiguration();
   }
@@ -94,13 +92,11 @@ public class ApiZScalerConfigurationResource
       "Permissions required: Edit System Configuration and Users")
   @ApiResponse(
       responseCode = "400",
-      description = "Missing or invalid values provided."
-  )
+      description = "Missing or invalid values provided.")
   @ApiResponse(
       responseCode = "204",
       description = "Zscaler server configuration was updated successfully.",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   public String setConfiguration(
       @RequestBody(description = "Provide one or more values for the following in the JSON payload:" +
           "<ul>" +
@@ -114,8 +110,7 @@ public class ApiZScalerConfigurationResource
           "<li>`pypiFormatEnabled` - is the flag to enable or disable the Pypi format for Zscaler.</li>" +
           "<li>`nugetFormatEnabled` - is the flag to enable or disable the Nuget format for Zscaler.</li>" +
           "</ul>",
-          useParameterTypeSchema = true)
-      ApiZScalerConfigurationDTO configurationDTO)
+          useParameterTypeSchema = true) ApiZScalerConfigurationDTO configurationDTO)
   {
     return zScalerConfigurationService.setConfiguration(configurationDTO);
   }
@@ -128,13 +123,11 @@ public class ApiZScalerConfigurationResource
   @ApiResponse(
       responseCode = "204",
       description = "Zscaler configuration was removed successfully.",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   @ApiResponse(
       responseCode = "404",
       description = "Zscaler server configuration does not exist.",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   public void deleteConfiguration() {
     zScalerConfigurationService.deleteConfiguration();
   }
@@ -147,12 +140,10 @@ public class ApiZScalerConfigurationResource
       "Permissions required: Edit System Configuration and Users")
   @ApiResponse(
       responseCode = "400",
-      description = "Missing or invalid values provided."
-  )
+      description = "Missing or invalid values provided.")
   @ApiResponse(
       responseCode = "204",
-      description = "Test Zscaler server configuration was successful."
-  )
+      description = "Test Zscaler server configuration was successful.")
   public void testConfiguration(
       @RequestBody(description = "Provide one or more values for the following in the JSON payload:" +
           "<ul>" +
@@ -161,8 +152,7 @@ public class ApiZScalerConfigurationResource
           "<li>`hostname` - is the hostname or IP address of the Zscaler server.</li>" +
           "<li>`apiKey` - is the apiKey for the Zscaler Server.</li>" +
           "</ul>",
-          useParameterTypeSchema = true)
-      ApiZScalerConfigurationDTO configurationDTO)
+          useParameterTypeSchema = true) ApiZScalerConfigurationDTO configurationDTO)
   {
     zScalerService.authenticateAndValidatePermissions(configurationDTO.getHostname(),
         configurationDTO.getUsername(), configurationDTO.getPassword(), configurationDTO.getApiKey());
@@ -175,13 +165,11 @@ public class ApiZScalerConfigurationResource
       description = "Returns the current Zscaler quota." +
           "\n" +
           "\n" +
-          "Permissions required: None"
-  )
+          "Permissions required: None")
   @ApiResponse(
       responseCode = "200",
       description = "Successfully retrieved the Zscaler quota.",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   public ApiZScalerQuotaDTO getQuota() {
     return zScalerService.getQuota();
   }
@@ -195,13 +183,11 @@ public class ApiZScalerConfigurationResource
   @ApiResponse(
       responseCode = "204",
       description = "Zscaler updated custom urls for format.",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   @ApiResponse(
       responseCode = "404",
       description = "Zscaler unable to update custom urls for format.",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   public void triggerUpdate(@PathParam("format") ZScalerSupportedFormat format) {
     zScalerUpdater.updateZScalerMaliciousCategory(format);
   }
@@ -215,13 +201,11 @@ public class ApiZScalerConfigurationResource
   @ApiResponse(
       responseCode = "204",
       description = "Zscaler updated custom urls successfully.",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   @ApiResponse(
       responseCode = "404",
       description = "Zscaler unable to update custom urls",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   public void triggerUpdateAll() {
     zScalerUpdater.updateAllZScalerMaliciousCategories();
   }
@@ -235,13 +219,11 @@ public class ApiZScalerConfigurationResource
   @ApiResponse(
       responseCode = "204",
       description = "Zscaler deleted custom urls.",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   @ApiResponse(
       responseCode = "404",
       description = "Zscaler unable to remove custom urls",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   public void deleteAllCategories() {
     zScalerUpdater.deleteAllZScalerMaliciousUrlCategories();
   }
@@ -255,13 +237,11 @@ public class ApiZScalerConfigurationResource
   @ApiResponse(
       responseCode = "204",
       description = "Zscaler updating a format was successful.",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   @ApiResponse(
       responseCode = "404",
       description = "Zscaler updating a format was not successful",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   public void deleteCategory(@PathParam("format") ZScalerSupportedFormat format) {
     zScalerUpdater.deleteZScalerMaliciousUrlCategory(format);
   }

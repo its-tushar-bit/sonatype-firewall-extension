@@ -102,8 +102,7 @@ public class ScanService
           threadFactory,
           new AbortPolicy(),
           "scan",
-          "ScanService"
-      );
+          "ScanService");
       tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
       shutdownHandler.add(tenantThreadPoolExecutor);
       return tenantThreadPoolExecutor;

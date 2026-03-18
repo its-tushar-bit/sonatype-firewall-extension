@@ -85,8 +85,8 @@ public class ApiScmOnboardingResourceTest
     assertThat(importTicket.statusUrl).matches(STATUS_URL_PATTERN);
     String eventId = extractEventId(importTicket);
 
-    await().atMost(10, TimeUnit.SECONDS).until(() ->
-        ImportStatus.COMPLETE.equals(scmImportEventDAO.getById(eventId).getImportStatus()));
+    await().atMost(10, TimeUnit.SECONDS)
+        .until(() -> ImportStatus.COMPLETE.equals(scmImportEventDAO.getById(eventId).getImportStatus()));
 
     List<Organization> childOrgs = organizationDAO.getByParentOrganizationId(org.getId());
     assertThat(childOrgs).hasSize(3);
@@ -97,7 +97,8 @@ public class ApiScmOnboardingResourceTest
     assertThat(importResults.failures).isEmpty();
 
     List<Integer> importedAppCountsPerOrg =
-        childOrgs.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+        childOrgs.stream()
+            .map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
             .collect(Collectors.toList());
     assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(5, 4, 4);
   }
@@ -125,8 +126,8 @@ public class ApiScmOnboardingResourceTest
     assertThat(importTicket.statusUrl).matches(STATUS_URL_PATTERN);
     String eventId = extractEventId(importTicket);
 
-    await().atMost(10, TimeUnit.SECONDS).until(() ->
-        ImportStatus.COMPLETE.equals(scmImportEventDAO.getById(eventId).getImportStatus()));
+    await().atMost(10, TimeUnit.SECONDS)
+        .until(() -> ImportStatus.COMPLETE.equals(scmImportEventDAO.getById(eventId).getImportStatus()));
     SourceControlOrganizationImportEvent importEvent = scmImportEventDAO.getById(eventId);
     assertThat(importEvent.getLastUpdatedTime()).isAfter(importEvent.getStartTime());
 
@@ -143,7 +144,8 @@ public class ApiScmOnboardingResourceTest
 
     HttpResponse response = restRequest()
         .path(UriBuilder.fromPath(ApiScmOnboardingResource.IMPORT_REPO_PATH)
-            .build("orgThatDoesNotExist").toString())
+            .build("orgThatDoesNotExist")
+            .toString())
         .body(importRequest)
         .post();
 
@@ -174,12 +176,13 @@ public class ApiScmOnboardingResourceTest
     assertThat(importTicket.statusUrl).matches(STATUS_URL_PATTERN);
     String eventId = extractEventId(importTicket);
 
-    await().atMost(10, TimeUnit.SECONDS).until(() ->
-        ImportStatus.COMPLETE.equals(scmImportEventDAO.getById(eventId).getImportStatus()));
+    await().atMost(10, TimeUnit.SECONDS)
+        .until(() -> ImportStatus.COMPLETE.equals(scmImportEventDAO.getById(eventId).getImportStatus()));
 
     HttpResponse statusResponse = restRequest()
         .path(UriBuilder.fromPath(ApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH)
-            .build(org.getId(), eventId).toString())
+            .build(org.getId(), eventId)
+            .toString())
         .get();
 
     assertResponseStatus(200, statusResponse);
@@ -204,7 +207,8 @@ public class ApiScmOnboardingResourceTest
 
     HttpResponse statusResponse = restRequest()
         .path(UriBuilder.fromPath(ApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH)
-            .build(org.getId(), importEvent.getId()).toString())
+            .build(org.getId(), importEvent.getId())
+            .toString())
         .get();
 
     assertResponseStatus(200, statusResponse);
@@ -223,7 +227,8 @@ public class ApiScmOnboardingResourceTest
   public void testGetImportRepositoriesStatus_NotFound() throws Exception {
     HttpResponse statusResponse = restRequest()
         .path(UriBuilder.fromPath(ApiScmOnboardingResource.IMPORT_REPO_STATUS_PATH)
-            .build(org.getId(), "nonExistentId").toString())
+            .build(org.getId(), "nonExistentId")
+            .toString())
         .get();
 
     assertResponseStatus(404, statusResponse);

@@ -49,8 +49,7 @@ public class RoiConfigurationResourceTest
         30,
         15,
         BigDecimal.valueOf(800),
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
   }
 
   @Test
@@ -61,8 +60,7 @@ public class RoiConfigurationResourceTest
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
         15,
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
     HttpResponse response = restRequest()
         .parameter("usd")
         .path(RoiConfigurationResource.ROI_CONFIGURATION_CURRENCY_PATH)
@@ -94,11 +92,11 @@ public class RoiConfigurationResourceTest
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
         30,
-        BigDecimal.valueOf(800)
-    );
+        BigDecimal.valueOf(800));
 
     HttpResponse response = restRequest()
-        .body(roiConfigurationDTO).post();
+        .body(roiConfigurationDTO)
+        .post();
     assertResponseStatus(402, response);
   }
 
@@ -111,10 +109,10 @@ public class RoiConfigurationResourceTest
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
         30,
-        BigDecimal.valueOf(800)
-    );
+        BigDecimal.valueOf(800));
     HttpResponse response = restRequest()
-        .body(roiConfigurationDTO).post();
+        .body(roiConfigurationDTO)
+        .post();
     assertResponseStatus(200, response);
     RoiConfigurationCurrentAndMinimumValuesDTO roiConfigurationActual =
         response.getBody(RoiConfigurationCurrentAndMinimumValuesDTO.class);
@@ -135,8 +133,7 @@ public class RoiConfigurationResourceTest
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
         15,
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
     roiConfigurationDAO.getByCurrencyType(CurrencyTypes.USD);
     RoiConfigurationDTO roiConfigurationDTO = new RoiConfigurationDTO(
         null,
@@ -145,10 +142,10 @@ public class RoiConfigurationResourceTest
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
         30,
-        BigDecimal.valueOf(800)
-    );
+        BigDecimal.valueOf(800));
     HttpResponse response = restRequest()
-        .body(roiConfigurationDTO).post();
+        .body(roiConfigurationDTO)
+        .post();
     assertResponseStatus(200, response);
     RoiConfigurationCurrentAndMinimumValuesDTO roiConfigurationActual =
         response.getBody(RoiConfigurationCurrentAndMinimumValuesDTO.class);

@@ -156,10 +156,10 @@ public class PullRequestCommentCreator
    * Ability to handle invoke post-comment actions (like Code Insights) without updating PR comments. This is useful
    * when policy evaluations haven't changed, but we still want to post Code Insights for a new commit.
    *
-   * @param prPolicyEvaluationsDTO        the PR and policy evaluation context
-   * @param policyViolationDiff           the diff between source and target evaluations
+   * @param prPolicyEvaluationsDTO the PR and policy evaluation context
+   * @param policyViolationDiff the diff between source and target evaluations
    * @param sourceControlComponentDetails component details needed for Code Insights
-   * @param locationDiscoveryResult       location discovery result (can be null if not available)
+   * @param locationDiscoveryResult location discovery result (can be null if not available)
    * @see <a href="https://sonatype.atlassian.net/browse/CLM-35694">CLM-35694</a>
    */
   public void handlePostCommentActions(
@@ -235,7 +235,8 @@ public class PullRequestCommentCreator
       if (policyEvaluationDiffMarkup.isPresent()) {
         Optional<CommentResponse> response = Optional.empty();
         if (existingPullRequestComment != null || policyViolationDiff.hasAppeared() ||
-            policyViolationDiff.hasCleared()) {
+            policyViolationDiff.hasCleared())
+        {
           response = pullRequestCommentingClient.createOrUpdateCommentInGitSCM(
               prPolicyEvaluationsDTO.getApplicationId(),
               prPolicyEvaluationsDTO.getGitRepositoryInfo(),
@@ -246,7 +247,8 @@ public class PullRequestCommentCreator
         }
 
         if (response.isPresent() ||
-            SourceControlProvider.BITBUCKET == prPolicyEvaluationsDTO.getGitRepositoryInfo().getProvider()) {
+            SourceControlProvider.BITBUCKET == prPolicyEvaluationsDTO.getGitRepositoryInfo().getProvider())
+        {
           if (response.isPresent()) {
             CommentResponse commentResponse = response.get();
             recordCommentInDatabase(
@@ -280,7 +282,8 @@ public class PullRequestCommentCreator
           prCommentingMetricsService.sendTelemetry(telemetry);
 
           AuditEvent auditEvent = existingPullRequestComment == null
-              ? AuditEvent.CREATE_PULL_REQUEST_COMMENT : AuditEvent.UPDATE_PULL_REQUEST_COMMENT;
+              ? AuditEvent.CREATE_PULL_REQUEST_COMMENT
+              : AuditEvent.UPDATE_PULL_REQUEST_COMMENT;
           prCommentingMetricsService.addAuditRecord(
               auditEvent, prPolicyEvaluationsDTO.getApplicationId(),
               prPolicyEvaluationsDTO.getGitRepositoryInfo().normalizedRepositoryUrl,
@@ -351,7 +354,8 @@ public class PullRequestCommentCreator
   {
     LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
     if (pullRequestCommentingEligibilityValidator.isLocationDiscoveryNeededAndAllowed(
-        pullRequestPolicyEvaluationsDTO.getSourceControlProvider(), policyViolationDiff)) {
+        pullRequestPolicyEvaluationsDTO.getSourceControlProvider(), policyViolationDiff))
+    {
       locationDiscoveryResult = locationDiscoveryService.doLocationDiscovery(
           policyViolationDiff.getAppeared(),
           pullRequestPolicyEvaluationsDTO.getGitRepositoryInfo(),
@@ -380,8 +384,7 @@ public class PullRequestCommentCreator
               commentVersion,
               contentHash,
               pullRequestPolicyEvaluationsDTO.getFeatureBranchPolicyEvaluationId(),
-              pullRequestPolicyEvaluationsDTO.getTargetPolicyEvaluationId()
-          );
+              pullRequestPolicyEvaluationsDTO.getTargetPolicyEvaluationId());
       pullRequestCommentDAO.insert(pullRequestComment);
     }
     else {

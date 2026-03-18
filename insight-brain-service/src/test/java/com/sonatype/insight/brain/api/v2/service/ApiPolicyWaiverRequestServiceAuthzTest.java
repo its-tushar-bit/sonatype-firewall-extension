@@ -104,7 +104,9 @@ public class ApiPolicyWaiverRequestServiceAuthzTest
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
     PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
-        .setPolicyId(policy.getId()).setOwnerId(ownerId).setPolicyViolationId(policyViolation.getId()));
+        .setPolicyId(policy.getId())
+        .setOwnerId(ownerId)
+        .setPolicyViolationId(policyViolation.getId()));
     apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(ownerType, ownerId, policyWaiverRequest.getId(),
         new ApiPolicyWaiverRequestReviewDTO(null, DEFAULT, null, null, false,
             PolicyWaiverRequestStatus.REJECTED.name()));
@@ -134,7 +136,9 @@ public class ApiPolicyWaiverRequestServiceAuthzTest
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
     PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
-        .setPolicyId(policy.getId()).setOwnerId(app.getId()).setPolicyViolationId(policyViolation.getId()));
+        .setPolicyId(policy.getId())
+        .setOwnerId(app.getId())
+        .setPolicyViolationId(policyViolation.getId()));
     apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.APPLICATION, app.getPublicId(),
         policyWaiverRequest.getId(), new ApiPolicyWaiverRequestReviewDTO(null, DEFAULT, null, null, false,
             PolicyWaiverRequestStatus.REJECTED.name()));
@@ -173,7 +177,9 @@ public class ApiPolicyWaiverRequestServiceAuthzTest
     grantPermission(app.getId(), Permission.READ);
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
     PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
-        .setPolicyId(policy.getId()).setOwnerId(app.getId()).setPolicyViolationId("policyViolationId"));
+        .setPolicyId(policy.getId())
+        .setOwnerId(app.getId())
+        .setPolicyViolationId("policyViolationId"));
     apiPolicyWaiverRequestService.getPolicyWaiverRequest(OwnerType.APPLICATION, app.getPublicId(),
         policyWaiverRequest.getId());
   }
@@ -192,7 +198,9 @@ public class ApiPolicyWaiverRequestServiceAuthzTest
   private void getPolicyWaiverRequest(OwnerType ownerType, String ownerId) {
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
     PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
-        .setPolicyId(policy.getId()).setOwnerId(ownerId).setPolicyViolationId("policyViolationId"));
+        .setPolicyId(policy.getId())
+        .setOwnerId(ownerId)
+        .setPolicyViolationId("policyViolationId"));
     apiPolicyWaiverRequestService.getPolicyWaiverRequest(ownerType, ownerId, policyWaiverRequest.getId());
   }
 
@@ -211,8 +219,10 @@ public class ApiPolicyWaiverRequestServiceAuthzTest
           tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
     }
     tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
-        .setPolicyId(policy.getId()).setOwnerId(ownerId)
-        .setHash(policyViolation.getHash()).setConstraintFacts(policyViolation.getConstraintFacts())
+        .setPolicyId(policy.getId())
+        .setOwnerId(ownerId)
+        .setHash(policyViolation.getHash())
+        .setConstraintFacts(policyViolation.getConstraintFacts())
         .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
         .setPolicyViolationId(policyViolation.getId()));
     return apiPolicyWaiverRequestService.getApplicableWaiverRequests(policyViolation.getId());
@@ -314,7 +324,8 @@ public class ApiPolicyWaiverRequestServiceAuthzTest
     PolicyViolation policyViolation = createApplicationPolicyViolation();
     PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(
         new PolicyWaiverRequest().setPolicyId(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID).getId())
-            .setOwnerId(app.getId()).setPolicyViolationId(policyViolation.getId()));
+            .setOwnerId(app.getId())
+            .setPolicyViolationId(policyViolation.getId()));
 
     grantPermission(app.getId(), Permission.READ);
     updatePolicyWaiverRequestWithDefaultOptions(OwnerType.APPLICATION, app.getId(), policyWaiverRequest.getId());
@@ -336,7 +347,8 @@ public class ApiPolicyWaiverRequestServiceAuthzTest
     PolicyViolation policyViolation = createApplicationPolicyViolation();
     PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(
         new PolicyWaiverRequest().setPolicyId(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID).getId())
-            .setOwnerId(app.getId()).setPolicyViolationId(policyViolation.getId()));
+            .setOwnerId(app.getId())
+            .setPolicyViolationId(policyViolation.getId()));
 
     grantPermission(app.getId(), Permission.READ);
     updatePolicyWaiverRequestWithDefaultOptions(OwnerType.APPLICATION, app.getPublicId(), policyWaiverRequest.getId());

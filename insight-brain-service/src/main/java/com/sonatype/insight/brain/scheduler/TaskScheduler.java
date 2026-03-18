@@ -125,7 +125,8 @@ public class TaskScheduler
     try {
       String schedulerInstanceId = UUID.randomUUID().toString().replace("-", "");
       // This reuses the schedulerName and schedulerInstanceId for the Scheduler, ThreadPool, and JobStore
-      DirectSchedulerFactory.getInstance().createScheduler(schedulerName, schedulerInstanceId, createThreadPool(),
+      DirectSchedulerFactory.getInstance()
+          .createScheduler(schedulerName, schedulerInstanceId, createThreadPool(),
               jobStoreTX, null, 0, IDLE_WAIT_TIME, -1);
       Scheduler scheduler = DirectSchedulerFactory.getInstance().getScheduler(schedulerName);
       scheduler.setJobFactory(jobFactory);
@@ -347,7 +348,8 @@ public class TaskScheduler
   Set<String> getOtherNodeIds() {
     Set<String> otherNodeIds;
     try {
-      otherNodeIds = quartzJobStoreTX.getSchedulerStateRecords().stream()
+      otherNodeIds = quartzJobStoreTX.getSchedulerStateRecords()
+          .stream()
           .map(SchedulerStateRecord::getSchedulerInstanceId)
           .collect(Collectors.toSet());
     }
@@ -392,8 +394,7 @@ public class TaskScheduler
         4,
         null,
         e -> e.getMessage().contains("Unable to unschedule trigger"),
-        Duration::ofSeconds
-    );
+        Duration::ofSeconds);
     try {
       return retry.executeCallable(() -> quartzJobSchedulingService.unscheduleTask(scheduler, jobKey));
     }

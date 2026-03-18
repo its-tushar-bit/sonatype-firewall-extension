@@ -57,7 +57,7 @@ public class EnterpriseReportingFilterDAO
 
   public EnterpriseReportingFilter getFilterByUserAndFilterId(TransactionContext tx, String userId, String filterId) {
     String sQuery = "SELECT entity FROM EnterpriseReportingFilter entity " +
-            "WHERE entity.id=?1 AND entity.userId=?2";
+        "WHERE entity.id=?1 AND entity.userId=?2";
     List<EnterpriseReportingFilter> filters = getList(tx, sQuery, filterId, userId);
     return filters.isEmpty() ? null : filters.get(0);
   }

@@ -114,8 +114,7 @@ public class PullRequestTask
         new Date(),
         pullRequestRemediationDetails.getApp(),
         pullRequestRemediationDetails.getApp().getOrganization(),
-        gitRepositoryInfo
-    );
+        gitRepositoryInfo);
 
     File checkoutDir = null;
     Date start = new Date();
@@ -152,8 +151,7 @@ public class PullRequestTask
           pullRequestRemediationDetails.getToBeRemediated(),
           pullRequestRemediationDetails.getTitle(),
           false,
-          pullRequestRemediationDetails.isManualPullRequest()
-      );
+          pullRequestRemediationDetails.isManualPullRequest());
 
       metrics.addResult(applicationId, enhancedResult);
 
@@ -240,7 +238,8 @@ public class PullRequestTask
     // This is designed for the Bitbucket Server 'Verified Committer' feature but is ultimately an agnostic way to add
     // the username to the repo URL. Only will work on SCMs that require username.
     if (gitRepositoryInfo.getProvider().requiresUsername() &&
-        sourceControlConfiguration.isUseUsernameInRepositoryCloneUrl()) {
+        sourceControlConfiguration.isUseUsernameInRepositoryCloneUrl())
+    {
       try {
         gitRepositoryInfo.repositoryUrl = setUserInfoToUrl(gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.username);
         gitRepositoryInfo.normalizedRepositoryUrl =

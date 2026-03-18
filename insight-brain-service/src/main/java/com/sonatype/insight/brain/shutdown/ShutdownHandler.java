@@ -30,20 +30,25 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class helps orchestrate an orderly shutdown.
- * <br /><br />
+ * <br />
+ * <br />
  * {@link ShutdownRequest}s can be added via one of the {@link ShutdownHandler#add} methods for various supported items.
- * <br /><br />
+ * <br />
+ * <br />
  * Each {@link ShutdownRequest} has an {@code order}.
- * <br /><br />
+ * <br />
+ * <br />
  * When {@link ShutdownHandler#trigger} is called, {@link ShutdownRequest}s will begin to be processed according to
  * their natural ordering (i.e. in ascending {@link ShutdownRequest#getOrder()}). Those with the same
  * {@link ShutdownRequest#getOrder()} will be processed in parallel.
- * <br /><br />
- * {@link ShutdownRequest}s can be added at any point, even whilst shutdown is happening. However, to guarantee a 
+ * <br />
+ * <br />
+ * {@link ShutdownRequest}s can be added at any point, even whilst shutdown is happening. However, to guarantee a
  * {@link ShutdownRequest} is processed, it should be added by something which is also blocking shutdown. Additionally,
  * if item1 invokes item2 asynchronously, then a {@link ShutdownRequest} for item1 should have a lower {@code order}
  * than a {@link ShutdownRequest} for item2.
- * <br /><br />
+ * <br />
+ * <br />
  * The current ordering can be seen in {@link ShutdownPriority}.
  */
 @Named

@@ -24,9 +24,10 @@ class MttrStats
 
   final DescriptiveStatistics mttrCriticalThreatStats = new DescriptiveStatistics();
 
-  void addViolation(PolicyViolationComparable violation,
-                    Date violationFirstOccurrenceTimestamp,
-                    Date violationResolutionTimestamp)
+  void addViolation(
+      PolicyViolationComparable violation,
+      Date violationFirstOccurrenceTimestamp,
+      Date violationResolutionTimestamp)
   {
     long timeToResolve = violationResolutionTimestamp.getTime() - violationFirstOccurrenceTimestamp.getTime();
     int threatLevel = violation.getThreatLevel();

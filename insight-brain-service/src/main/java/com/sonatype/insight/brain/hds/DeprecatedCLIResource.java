@@ -27,7 +27,7 @@ import com.codahale.metrics.annotation.Timed;
 
 /**
  * @deprecated Last used by IQ CLI 68 (July 2019)
- * 
+ *
  * @since 1.19.0
  */
 @Deprecated
@@ -52,15 +52,16 @@ public class DeprecatedCLIResource
 
   /**
    * Used to upload a scan from the CLI scanner.
-   * 
+   *
    * @param clientScanType null if the CLI scanner that uploads the scan is 1.23 or earlier.
    */
   @PUT
   @Path(SCAN_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ScanReceipt putScan(@PathParam("applicationPublicId") final String applicationPublicId,
-                             @QueryParam("scanType") ClientScanType clientScanType,
-                             @Context HttpServletRequest req) throws IOException
+  public ScanReceipt putScan(
+      @PathParam("applicationPublicId") final String applicationPublicId,
+      @QueryParam("scanType") ClientScanType clientScanType,
+      @Context HttpServletRequest req) throws IOException
   {
     productLicense.validateFeature(LicensedFeature.CLI_INTEGRATION);
     return scanHandler.handle(req, applicationPublicId, clientScanType);

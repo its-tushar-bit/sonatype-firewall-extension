@@ -162,6 +162,8 @@ public class OAuth2Configuration
     if (StringUtils.isBlank(exactMatchClaimsJson)) {
       return new HashMap<>();
     }
-    return JsonUtils.asType(exactMatchClaimsJson, new TypeReference<Map<String, String>>() { });
+    return JsonUtils.asType(exactMatchClaimsJson, new TypeReference<Map<String, String>>()
+    {
+    });
   }
 }

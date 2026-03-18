@@ -73,7 +73,8 @@ public class OrganizationAncestorInitialPopulationMigratorTest
   @Test
   public void testUpgrade336() throws Exception {
     assertThatThrownBy(this::queryOrgAncestors)
-        .isInstanceOf(SQLException.class).hasMessageContaining("Table \"organization_ancestor\" not found");
+        .isInstanceOf(SQLException.class)
+        .hasMessageContaining("Table \"organization_ancestor\" not found");
 
     // Update to the latest schema. The expectation is that this will create the organization_ancestor
     // table and populate it using the OrganizationAncestorInitialPopulationMigrator
@@ -96,21 +97,20 @@ public class OrganizationAncestorInitialPopulationMigratorTest
         row -> assertThat(row).containsExactly("2", "2", 0),
         row -> assertThat(row).containsExactly("11", "11", 0),
         row -> assertThat(row).containsExactly("12", "12", 0),
-        row -> assertThat(row).containsExactly("111", "111", 0)
-    );
+        row -> assertThat(row).containsExactly("111", "111", 0));
   }
 
   protected void populate() throws Exception {
     try (Statement statement = connection.createStatement()) {
       statement.execute(
           "INSERT INTO insight_brain_ods.organization " +
-          "(organization_id, parent_organization_id, name, name_lowercase_no_whitespace) " +
-          "VALUES " +
-          "('1', 'ROOT_ORGANIZATION_ID', 'org1', 'org1'), " +
-          "('2', 'ROOT_ORGANIZATION_ID', 'org2', 'org2'), " +
-          "('11', '1', 'org11', 'org11'), " +
-          "('12', '1', 'org12', 'org12'), " +
-          "('111', '11', 'org111', 'org111')");
+              "(organization_id, parent_organization_id, name, name_lowercase_no_whitespace) " +
+              "VALUES " +
+              "('1', 'ROOT_ORGANIZATION_ID', 'org1', 'org1'), " +
+              "('2', 'ROOT_ORGANIZATION_ID', 'org2', 'org2'), " +
+              "('11', '1', 'org11', 'org11'), " +
+              "('12', '1', 'org12', 'org12'), " +
+              "('111', '11', 'org111', 'org111')");
     }
   }
 

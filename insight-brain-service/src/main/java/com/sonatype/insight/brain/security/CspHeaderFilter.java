@@ -58,8 +58,10 @@ public class CspHeaderFilter
   }
 
   @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
-      throws IOException, ServletException
+  public void doFilter(
+      ServletRequest request,
+      ServletResponse response,
+      FilterChain filterChain) throws IOException, ServletException
   {
     if (configuration.isCspEnabled()) {
       HttpServletResponse httpResponse = (HttpServletResponse) response;
@@ -68,14 +70,14 @@ public class CspHeaderFilter
           "default-src 'self'; " + getFrameSrc() + "style-src 'self' 'unsafe-inline'; img-src 'self' data:");
 
       // This header guards against server-reflected XSS attacks (not that our architecture is really at risk
-      // of having any).  It is redundant with the CSP header but applicable for browsers that don't fully support CSP
+      // of having any). It is redundant with the CSP header but applicable for browsers that don't fully support CSP
       httpResponse.setHeader("X-XSS-Protection", "1; mode=block");
     }
 
     filterChain.doFilter(request, response);
   }
 
-  //visible for testing
+  // visible for testing
   String getFrameSrc() {
     String lookerHost = null;
     if (productLicense.isValid()) {
@@ -95,7 +97,7 @@ public class CspHeaderFilter
       return url.getHost();
     }
     catch (MalformedURLException e) {
-      //in an unlikely case of a wrong config we don't want to break the filter
+      // in an unlikely case of a wrong config we don't want to break the filter
       return null;
     }
   }

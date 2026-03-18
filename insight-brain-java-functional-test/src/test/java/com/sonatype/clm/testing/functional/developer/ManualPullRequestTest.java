@@ -118,7 +118,7 @@ public class ManualPullRequestTest
   @Test
   public void testGitLabManualPullRequest() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
-    //add inner source data
+    // add inner source data
     ComponentIdentifier innersourceDirectComponent =
         ComponentIdentifier.createMavenCoordinates("org.jclouds.driver", "jclouds-enterprise", "1.3.1", "", "jar");
     PackageUrlIdentifier versionlessPurl = InnerSourceUtils.getVersionlessPackageUrl(innersourceDirectComponent);
@@ -129,8 +129,7 @@ public class ManualPullRequestTest
         application.getId(),
         gitLabServer.getProject().getWebUrl(),
         lookup(PasswordHandler.class).encryptPassword(gitLabServer.getAdminToken()),
-        SourceControlProvider.GITLAB
-    );
+        SourceControlProvider.GITLAB);
     sourceControl.setManualPullRequestsEnabled(true);
     lookup(SourceControlDAO.class).update(sourceControl);
     String scanId = "scanId";
@@ -158,7 +157,8 @@ public class ManualPullRequestTest
     createPRModal.shouldBe(visible).shouldHave(text("Create Pull Request"));
     createPRModal.createPullRequestModalHeader().shouldBe(visible).shouldHave(text("Create Pull Request"));
     createPRModal.createPrModalPrTitle().shouldBe(visible).shouldHave(text("Bump commons-httpclient to 3.2"));
-    createPRModal.createPrModalComponentName().shouldBe(visible)
+    createPRModal.createPrModalComponentName()
+        .shouldBe(visible)
         .shouldHave(text("apache-httpclient : commons-httpclient : 3.1"));
     createPRModal.createPrModalCurrentVersion().shouldBe(visible).shouldHave(text("3.1"));
     createPRModal.createPrModalTargetVersion().shouldBe(visible).shouldHave(text("3.2"));
@@ -169,9 +169,9 @@ public class ManualPullRequestTest
     createPRModal.createPullRequestModalCreateButton().shouldBe(visible, enabled).click();
 
     // Wait for the PR to be created
-    await().atMost(10, TimeUnit.MINUTES).until(
-        () -> !gitLabApi.getMergeRequestApi().getMergeRequests(gitLabServer.getProject().getId()).isEmpty()
-    );
+    await().atMost(10, TimeUnit.MINUTES)
+        .until(
+            () -> !gitLabApi.getMergeRequestApi().getMergeRequests(gitLabServer.getProject().getId()).isEmpty());
 
     // Check the PR is correct
     MergeRequest mergeRequest =
@@ -227,14 +227,16 @@ public class ManualPullRequestTest
 
     testCLMServer.getHdsServer().respondWith(detailsList).atUri("rest/ci/componentDetails/list");
     testCLMServer.getHdsServer().respondWith(List.of()).atUri(HDS_BULK_SCORE_VERSIONING_PATH);
-    testCLMServer.getHdsServer().respondWith(ComponentSummary.create(true)).atUri(
-        UriBuilder.fromPath("rest/component/summary")
-            .queryParam("componentIdentifier",
-                URLEncoder.encode(new ObjectMapper().writeValueAsString(componentFromReport),
-                    StandardCharsets.UTF_8))
-            .build()
-    );
-    testCLMServer.getHdsServer().respondWith(new ComponentDependenciesDTO(Map.of(), Map.of()))
+    testCLMServer.getHdsServer()
+        .respondWith(ComponentSummary.create(true))
+        .atUri(
+            UriBuilder.fromPath("rest/component/summary")
+                .queryParam("componentIdentifier",
+                    URLEncoder.encode(new ObjectMapper().writeValueAsString(componentFromReport),
+                        StandardCharsets.UTF_8))
+                .build());
+    testCLMServer.getHdsServer()
+        .respondWith(new ComponentDependenciesDTO(Map.of(), Map.of()))
         .atUri("rest/component/dependencies");
 
     VersionScoringDTO versionScoringDTO = new VersionScoringDTO();
@@ -244,7 +246,8 @@ public class ManualPullRequestTest
     VersionScoringDTO.ToVersionData toVersionData = new ToVersionData();
     toVersionData.setBreakingChangeCount(0);
     versionScoringDTO.setToVersionsNonBreaking(Map.of("3.2", toVersionData));
-    testCLMServer.getHdsServer().respondWith(new VersionScoringDTO[]{versionScoringDTO})
+    testCLMServer.getHdsServer()
+        .respondWith(new VersionScoringDTO[]{versionScoringDTO})
         .atUri("rest/component/version-scoring/list");
   }
 

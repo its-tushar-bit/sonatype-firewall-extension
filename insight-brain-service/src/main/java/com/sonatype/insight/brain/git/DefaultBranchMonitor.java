@@ -84,7 +84,8 @@ public class DefaultBranchMonitor
     execute(() -> {
       if (apiConfigFeaturesService.isDefaultBranchMonitoringEnabled() &&
           apiConfigFeaturesService.isSaasLifecycleScmEnabled() &&
-          licenseChecker.isIqForScmSupported()) {
+          licenseChecker.isIqForScmSupported())
+      {
         branchMonitorExecutor.performScan(this);
       }
       else {

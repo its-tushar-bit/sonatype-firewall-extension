@@ -31,7 +31,8 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
-public class SbomComponentsResourceAuditTest extends AbstractAuditTest
+public class SbomComponentsResourceAuditTest
+    extends AbstractAuditTest
 {
   private Application app;
 
@@ -60,14 +61,15 @@ public class SbomComponentsResourceAuditTest extends AbstractAuditTest
     ThirdPartyCoordinateSecurity vulnerability =
         tempEntity.newThirdPartyCoordinateSecurity(component, "cve", "d1", "l1", 9, "d1", "f1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerability, "cve", "resolved",
-            "code_not_reachable", "response", "details");
+        "code_not_reachable", "response", "details");
     testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
     FileUtils.copyURLToFile(ReportHelper
         .zipReport("/SbomComponentsResourceTest", tempDir), reportFile);
     HttpResponse response = restRequest().path(SbomComponentsResource.COMPONENT_DETAILS_PATH)
-        .parameter(app.getId(),sbomMetadata.getSbomVersion(), component.getHash()).get();
+        .parameter(app.getId(), sbomMetadata.getSbomVersion(), component.getHash())
+        .get();
 
     assertResponseStatus(200, response);
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_SBOM_COMPONENT_DETAILS, null);
@@ -78,7 +80,8 @@ public class SbomComponentsResourceAuditTest extends AbstractAuditTest
   public void testGetComponentsDetails_NotFound() throws Exception {
     testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
     HttpResponse response = restRequest().path(SbomComponentsResource.COMPONENT_DETAILS_PATH)
-        .parameter(app.getId(),"any", "any").get();
+        .parameter(app.getId(), "any", "any")
+        .get();
 
     assertResponseStatus(404, response);
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_SBOM_COMPONENT_DETAILS, "not-found");
@@ -88,7 +91,8 @@ public class SbomComponentsResourceAuditTest extends AbstractAuditTest
   @Test
   public void testGetComponentsDetails_unlicensed() throws Exception {
     HttpResponse response = restRequest().path(SbomComponentsResource.COMPONENT_DETAILS_PATH)
-        .parameter(app.getId(),"any", "any").get();
+        .parameter(app.getId(), "any", "any")
+        .get();
 
     assertResponseStatus(402, response);
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_SBOM_COMPONENT_DETAILS, "unlicensed");

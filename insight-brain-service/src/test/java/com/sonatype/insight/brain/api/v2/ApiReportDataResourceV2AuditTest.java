@@ -35,8 +35,11 @@ public class ApiReportDataResourceV2AuditTest
   public void testGetRawData() throws Exception {
     createScanFile(app.getId(), SCAN_ID);
     mockReport(SCAN_ID, "/ReportResourceTest/report");
-    restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
-        .query("scanId", SCAN_ID).body(new Stage(Stage.ID_BUILD)).post();
+    restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .parameter(app.getPublicId())
+        .query("scanId", SCAN_ID)
+        .body(new Stage(Stage.ID_BUILD))
+        .post();
 
     reportDataRequest(app.getPublicId(), SCAN_ID, ApiReportDataResourceV2.RAW_DATA_PATH).get();
 
@@ -48,7 +51,8 @@ public class ApiReportDataResourceV2AuditTest
   @Test
   public void testGetRawData_Unauthorized() throws Exception {
     reportDataRequest(app.getPublicId(), SCAN_ID, ApiReportDataResourceV2.RAW_DATA_PATH)
-        .with(unauthorizedUser()).get();
+        .with(unauthorizedUser())
+        .get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, "unauthorized");
     assertApplicationData(auditDTO, app);
@@ -89,8 +93,11 @@ public class ApiReportDataResourceV2AuditTest
   public void testGetPolicyViolations() throws Exception {
     createScanFile(app.getId(), SCAN_ID);
     mockReport(SCAN_ID, "/ReportResourceTest/report");
-    restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())
-        .query("scanId", SCAN_ID).body(new Stage(Stage.ID_BUILD)).post();
+    restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+        .parameter(app.getPublicId())
+        .query("scanId", SCAN_ID)
+        .body(new Stage(Stage.ID_BUILD))
+        .post();
 
     reportDataRequest(app.getPublicId(), SCAN_ID, ApiReportDataResourceV2.POLICY_DATA_PATH).get();
 
@@ -102,14 +109,17 @@ public class ApiReportDataResourceV2AuditTest
   @Test
   public void testGetPolicyViolations_Unauthorized() throws Exception {
     reportDataRequest(app.getPublicId(), SCAN_ID, ApiReportDataResourceV2.POLICY_DATA_PATH)
-        .with(unauthorizedUser()).get();
+        .with(unauthorizedUser())
+        .get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, "unauthorized");
     assertApplicationData(auditDTO, app);
   }
 
   private HttpRequest reportDataRequest(String appId, String scanId, String reportTypePath) {
-    return restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).path(SCAN_PATH).path(reportTypePath)
+    return restRequest().path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(reportTypePath)
         .parameter(appId, scanId);
   }
 }

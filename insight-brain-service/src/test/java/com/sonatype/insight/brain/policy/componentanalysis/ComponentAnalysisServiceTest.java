@@ -122,9 +122,9 @@ public class ComponentAnalysisServiceTest
     final Stage unsupportedStage = new Stage(Stage.ID_COMPLIANCE);
     assertThatThrownBy(() -> componentAnalysisService.analyzeComponentsWithPolling(INTEGRATION_TYPE, "appId",
         ClientScanType.SONATYPE, httpRequest, unsupportedStage))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("Compliance scans are not supported for component analysis. " +
-            "Please use the policy evaluation endpoint.");
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Compliance scans are not supported for component analysis. " +
+                "Please use the policy evaluation endpoint.");
   }
 
   @Test
@@ -132,8 +132,8 @@ public class ComponentAnalysisServiceTest
     final String invalidStage = "invalid-stage";
     assertThatThrownBy(() -> componentAnalysisService.analyzeComponentsWithPolling(INTEGRATION_TYPE, "appId",
         ClientScanType.SONATYPE, httpRequest, new Stage(invalidStage)))
-        .isInstanceOf(InvalidStageException.class)
-        .hasMessage("Invalid stage id=" + invalidStage);
+            .isInstanceOf(InvalidStageException.class)
+            .hasMessage("Invalid stage id=" + invalidStage);
   }
 
   @Test
@@ -144,8 +144,8 @@ public class ComponentAnalysisServiceTest
     final Stage unlicensedStage = new Stage(Stage.ID_BUILD);
     assertThatThrownBy(() -> componentAnalysisService.analyzeComponentsWithPolling(INTEGRATION_TYPE, "appId",
         ClientScanType.SONATYPE, httpRequest, unlicensedStage))
-        .isInstanceOf(InvalidLicenseException.class)
-        .hasMessage("Stage '" + unlicensedStage.getStageTypeId() + "' is not supported by your license.");
+            .isInstanceOf(InvalidLicenseException.class)
+            .hasMessage("Stage '" + unlicensedStage.getStageTypeId() + "' is not supported by your license.");
   }
 
   @Test
@@ -153,8 +153,8 @@ public class ComponentAnalysisServiceTest
     productLicense.clear();
     assertThatThrownBy(() -> componentAnalysisService.analyzeComponentsWithPolling(INTEGRATION_TYPE, "appId",
         ClientScanType.SONATYPE, httpRequest, STAGE))
-        .isInstanceOf(InvalidLicenseException.class)
-        .hasMessage("Your IQ Server license does not enable this feature.");
+            .isInstanceOf(InvalidLicenseException.class)
+            .hasMessage("Your IQ Server license does not enable this feature.");
   }
 
   @Test
@@ -243,8 +243,7 @@ public class ComponentAnalysisServiceTest
       final String scanId,
       final String applicationId,
       final String numberOfMavenComponents,
-      final String numberOfComponents
-  )
+      final String numberOfComponents)
   {
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("scan_id", scanId);

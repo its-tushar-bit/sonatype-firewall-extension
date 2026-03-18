@@ -10,7 +10,7 @@ import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 
 /**
  * <p>
- *   Encapsulate all the database layer objects.
+ * Encapsulate all the database layer objects.
  * </p>
  * <p>
  * The application performs all database connection and initialization before the Guice injection occurs. We need some

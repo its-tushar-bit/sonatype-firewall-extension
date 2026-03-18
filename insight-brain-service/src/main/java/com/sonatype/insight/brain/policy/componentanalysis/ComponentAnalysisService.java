@@ -86,8 +86,7 @@ public class ComponentAnalysisService
       final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO,
       final ErrorResponseGenerator errorResponseGenerator,
       final TelemetryUtils telemetryUtils,
-      final TelemetrySender telemetrySender
-  )
+      final TelemetrySender telemetrySender)
   {
     this.executor = buildExecutorService();
     this.policyEvaluationUtil = policyEvaluationUtil;
@@ -190,21 +189,20 @@ public class ComponentAnalysisService
             + "The status ID of the operation is {}.",
         app.getPublicId(), clientScanType, stage.getStageTypeId(), statusId);
 
-    AuditData.get().continueAsync(
-        new ComponentAnalysisTask(
-            app,
-            clientScanType,
-            scanTriggerType,
-            statusId,
-            stage,
-            tempScanEntity,
-            thirdPartyScanTelemetryData,
-            persistedPolicyEvaluationPollingResult,
-            clientUserAgent,
-            scanContext
-        ),
-        executor::submit
-    );
+    AuditData.get()
+        .continueAsync(
+            new ComponentAnalysisTask(
+                app,
+                clientScanType,
+                scanTriggerType,
+                statusId,
+                stage,
+                tempScanEntity,
+                thirdPartyScanTelemetryData,
+                persistedPolicyEvaluationPollingResult,
+                clientUserAgent,
+                scanContext),
+            executor::submit);
   }
 
   private void sendEvaluationTelemetry(
@@ -222,8 +220,7 @@ public class ComponentAnalysisService
         scanTriggerType,
         clientUserAgent,
         null,
-        singletonMap("component_counts", getTelemetryComponentCounts(components))
-    );
+        singletonMap("component_counts", getTelemetryComponentCounts(components)));
     telemetrySender.send(telemetryData);
   }
 
@@ -316,7 +313,8 @@ public class ComponentAnalysisService
 
         log.debug(
             "Loading report component data for app public id {}, scan id {}, stageTypeId {}. The status ID of the " +
-                "operation is {}.", app.getPublicId(), scanId, stage.getStageTypeId(), statusId);
+                "operation is {}.",
+            app.getPublicId(), scanId, stage.getStageTypeId(), statusId);
 
         // HDS will asynchronously write the report data to the report JSON files
         ReportComponentData reportComponentData =
@@ -336,8 +334,7 @@ public class ComponentAnalysisService
             stage.getStageTypeId(),
             scanTriggerType,
             reportComponentData.components,
-            clientUserAgent
-        );
+            clientUserAgent);
       }
       catch (Exception e) {
         log.error(

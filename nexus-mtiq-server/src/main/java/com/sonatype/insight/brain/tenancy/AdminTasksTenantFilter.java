@@ -43,8 +43,10 @@ public class AdminTasksTenantFilter
   private static final Pattern TENANT_TASKS_URL_REGEX = Pattern.compile("^/api/admin/tenants/[^/]+(/tasks/.+)");
 
   @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-      throws IOException, ServletException
+  public void doFilter(
+      ServletRequest request,
+      ServletResponse response,
+      FilterChain chain) throws IOException, ServletException
   {
     HttpServletRequest req = (HttpServletRequest) request;
     String requestURI = req.getRequestURI();

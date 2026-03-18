@@ -43,8 +43,11 @@ public class NgUploadResponseGenerator
    * Generates a response for Ajax and ngUpload iFrame posts. Callable can return null which will be deserialized by
    * ngUpload into empty content.
    */
-  public Response run(String csrfToken, HttpHeaders httpHeaders, boolean noFormData, Callable<?> apply)
-      throws Exception
+  public Response run(
+      String csrfToken,
+      HttpHeaders httpHeaders,
+      boolean noFormData,
+      Callable<?> apply) throws Exception
   {
     try {
       antiCsrfFilter.validate(csrfToken, httpHeaders);

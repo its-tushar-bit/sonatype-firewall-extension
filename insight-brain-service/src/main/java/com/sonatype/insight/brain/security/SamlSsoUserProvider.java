@@ -126,7 +126,8 @@ public class SamlSsoUserProvider
       List<SamlUserGroup> samlUserGroups = samlUserGroupDAO.getBySamlGroupId(tx, samlGroup.getId());
 
       List<SamlUser> users = samlUserDAO.getByIds(tx,
-          samlUserGroups.stream().map(SamlUserGroup::getSamlUserId)
+          samlUserGroups.stream()
+              .map(SamlUserGroup::getSamlUserId)
               .collect(Collectors.toCollection(LinkedHashSet::new)));
 
       return users.stream().map(SsoUser::fromSamlUser).collect(Collectors.toList());
@@ -135,8 +136,11 @@ public class SamlSsoUserProvider
 
   @Override
   public Set<String> filterExistingSsoGroupNames(Set<String> groupNames) {
-    return samlGroupDAO.getByNames(groupNames).stream().map(SamlGroup::getName).collect(Collectors.toCollection(
-        LinkedHashSet::new));
+    return samlGroupDAO.getByNames(groupNames)
+        .stream()
+        .map(SamlGroup::getName)
+        .collect(Collectors.toCollection(
+            LinkedHashSet::new));
   }
 
   @Override

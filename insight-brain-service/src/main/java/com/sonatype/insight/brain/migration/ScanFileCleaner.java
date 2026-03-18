@@ -127,7 +127,8 @@ public class ScanFileCleaner
       log.info("Deleting obsolete scan files for application '{}' with ID {}.", app.getName(), appId);
 
       Set<ScanEntity> lastPolicyEvaluationScanFiles =
-          policyEvaluationDAO.getLastByApplicationIds(Collections.singleton(appId)).stream() //
+          policyEvaluationDAO.getLastByApplicationIds(Collections.singleton(appId))
+              .stream() //
               .map(PolicyEvaluation::getScanId) //
               .map(scanId -> scanPersistenceService.getScan(appId, scanId)) //
               .collect(Collectors.toSet());

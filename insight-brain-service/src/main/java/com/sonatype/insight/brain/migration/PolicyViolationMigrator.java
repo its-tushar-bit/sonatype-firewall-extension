@@ -80,7 +80,8 @@ public class PolicyViolationMigrator
    * It is important to keep it unchanged in order to not change the semantics of "same policy violation" when we
    * migrate from the old model to the new model.
    */
-  private static class PolicyViolationComparator implements Comparator<PolicyViolationComparable>
+  private static class PolicyViolationComparator
+      implements Comparator<PolicyViolationComparable>
   {
     public static final Comparator<PolicyViolationComparable> COMPARATOR = new PolicyViolationComparator();
 
@@ -173,8 +174,10 @@ public class PolicyViolationMigrator
           + SCHEMA + ".policy_evaluation WHERE application_id = ?1 AND stage_type_id = ?2 AND for_obsolete_scan=false");
     }
 
-    static List<PolicyEvaluation> query(PreparedStatement statement, String applicationId, String stageTypeId)
-        throws SQLException
+    static List<PolicyEvaluation> query(
+        PreparedStatement statement,
+        String applicationId,
+        String stageTypeId) throws SQLException
     {
       statement.setString(1, applicationId);
       statement.setString(2, stageTypeId);
@@ -213,12 +216,12 @@ public class PolicyViolationMigrator
 
     private ComponentIdentifier componentIdentifier;
 
-    NewPolicyViolation(String applicationId,
-                       String stageTypeId,
-                       PolicyEvaluation evaluation,
-                       OldPolicyViolation oldViolation,
-                       PreparedStatement selectWaivedViolation)
-        throws SQLException
+    NewPolicyViolation(
+        String applicationId,
+        String stageTypeId,
+        PolicyEvaluation evaluation,
+        OldPolicyViolation oldViolation,
+        PreparedStatement selectWaivedViolation) throws SQLException
     {
       this.applicationId = applicationId;
       this.stageTypeId = stageTypeId;
@@ -315,8 +318,10 @@ public class PolicyViolationMigrator
       fixTime = evaluation.time;
     }
 
-    void update(PolicyEvaluation evaluation, OldPolicyViolation oldViolation, PreparedStatement selectWaivedViolation)
-        throws SQLException
+    void update(
+        PolicyEvaluation evaluation,
+        OldPolicyViolation oldViolation,
+        PreparedStatement selectWaivedViolation) throws SQLException
     {
       this.oldViolation = oldViolation;
       boolean waived = oldViolation.isWaived();
@@ -542,7 +547,8 @@ public class PolicyViolationMigrator
       try (Connection connection = context.dataSource.getConnection();
           PreparedStatement selectEvaluations = PolicyEvaluation.queryStatement(connection);
           PreparedStatement selectViolations = OldPolicyViolation.queryStatement(connection);
-          PreparedStatement selectWaivedViolation = WaivedViolation.queryStatement(connection)) {
+          PreparedStatement selectWaivedViolation = WaivedViolation.queryStatement(connection))
+      {
         while (context.throwableRef.get() == null) {
           Application application = context.applications.poll();
           if (application == null) {
@@ -575,7 +581,9 @@ public class PolicyViolationMigrator
                 unfixedViolations.add(newViolation);
               }
               for (Map.Entry<? extends PolicyViolationComparable, ? extends PolicyViolationComparable> entry : diff
-                  .getSame().entrySet()) {
+                  .getSame()
+                  .entrySet())
+              {
                 NewPolicyViolation existingViolation = (NewPolicyViolation) entry.getKey();
                 OldPolicyViolation latestViolation = (OldPolicyViolation) entry.getValue();
                 if (existingViolation.isWaived() && !latestViolation.isWaived()) {
@@ -623,7 +631,8 @@ public class PolicyViolationMigrator
     log.info("Migrating policy violation data for {} applications", applications.size());
     MigrationContext context = new MigrationContext(dataSource, applications);
     try (Connection connection = dataSource.getConnection();
-        PreparedStatement insertViolation = NewPolicyViolation.insertStatement(connection)) {
+        PreparedStatement insertViolation = NewPolicyViolation.insertStatement(connection))
+    {
       ViolationMigrator[] migrators = new ViolationMigrator[4];
       for (int i = 0; i < migrators.length; i++) {
         migrators[i] = new ViolationMigrator(context);
@@ -669,7 +678,8 @@ public class PolicyViolationMigrator
 
   private Collection<Application> getApplications(DataSource dataSource) throws SQLException {
     try (Connection connection = dataSource.getConnection();
-        PreparedStatement statement = Application.queryStatement(connection)) {
+        PreparedStatement statement = Application.queryStatement(connection))
+    {
       return Application.query(statement);
     }
   }

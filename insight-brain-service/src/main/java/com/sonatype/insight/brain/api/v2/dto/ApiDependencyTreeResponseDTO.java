@@ -5,14 +5,14 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-public class ApiDependencyTreeResponseDTO 
+public class ApiDependencyTreeResponseDTO
 {
   private ApiDependencyTreeNodeDTO dependencyTree;
-  
+
   public ApiDependencyTreeResponseDTO(ApiDependencyTreeNodeDTO dependencyTree) {
     this.dependencyTree = dependencyTree;
   }
-  
+
   public ApiDependencyTreeResponseDTO() {
     this.dependencyTree = new ApiDependencyTreeNodeDTO();
   }

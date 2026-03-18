@@ -36,7 +36,7 @@ public class ZScalerMetricsTelemetryCollectorTest
 
   @Before
   public void setup() {
-    underTest = new  ZScalerMetricsTelemetryCollector(zScalerMetricsDAO, productLicense);
+    underTest = new ZScalerMetricsTelemetryCollector(zScalerMetricsDAO, productLicense);
   }
 
   @Test

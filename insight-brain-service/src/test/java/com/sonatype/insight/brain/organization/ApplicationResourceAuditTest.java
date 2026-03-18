@@ -102,8 +102,11 @@ public class ApplicationResourceAuditTest
 
   @Test
   public void testSetIcon_Robot() throws Exception {
-    applicationRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(application.getId())
-        .part("hasRobotSource", "true").part("hashcode", "").post();
+    applicationRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH)
+        .parameter(application.getId())
+        .part("hasRobotSource", "true")
+        .part("hashcode", "")
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_ICON, null);
     assertApplicationData(auditDTO, application);
@@ -114,9 +117,11 @@ public class ApplicationResourceAuditTest
   public void testSetIcon_File() throws Exception {
     String iconFilename = "defaulticon_application.png";
 
-    applicationRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(application.getId())
+    applicationRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH)
+        .parameter(application.getId())
         .part("hasRobotSource", "false")
-        .part("file", iconFilename, IconUtils.loadIconFromProductAssets("defaulticon_application.png")).post();
+        .part("file", iconFilename, IconUtils.loadIconFromProductAssets("defaulticon_application.png"))
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_ICON, null);
     assertApplicationData(auditDTO, application);
@@ -126,8 +131,10 @@ public class ApplicationResourceAuditTest
 
   @Test
   public void testSetIcon_Default() throws Exception {
-    applicationRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(application.getId())
-        .part("hasRobotSource", "false").post();
+    applicationRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH)
+        .parameter(application.getId())
+        .part("hasRobotSource", "false")
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_ICON, null);
     assertApplicationData(auditDTO, application);
@@ -136,16 +143,20 @@ public class ApplicationResourceAuditTest
 
   @Test
   public void testSetIcon_Unauthorized() throws Exception {
-    applicationRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(application.getId())
-        .part("hasRobotSource", "false").with(unauthorizedUser()).post();
+    applicationRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH)
+        .parameter(application.getId())
+        .part("hasRobotSource", "false")
+        .with(unauthorizedUser())
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_APPLICATION_ICON, "unauthorized");
     assertApplicationData(auditDTO, application);
   }
 
-  private void assertDetailedApplicationData(final Application application,
-                                             final AuditDTO auditDTO,
-                                             final String contactInternalName)
+  private void assertDetailedApplicationData(
+      final Application application,
+      final AuditDTO auditDTO,
+      final String contactInternalName)
   {
     assertApplicationData(auditDTO, application);
     assertCustomData(auditDTO, "contactUsername", contactInternalName);

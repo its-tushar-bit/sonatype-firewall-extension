@@ -52,13 +52,13 @@ public class DeleteTenantsJob
 {
   private static final Logger log = LoggerFactory.getLogger(DeleteTenantsJob.class);
 
-  //Visible for testing
+  // Visible for testing
   static final String TENANT_RETENTION_PERIOD_CONFIG_KEY = "TenantRetentionPeriodInHours";
 
-  //Visible for testing
+  // Visible for testing
   static final long DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS = 96L;
 
-  //Visible for testing
+  // Visible for testing
   static final long JOB_FREQUENCY_IN_HOURS = 24L;
 
   static final String JOB_NAME = "DeleteTenantJob";
@@ -241,7 +241,8 @@ public class DeleteTenantsJob
     boolean success = false;
 
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-         Statement statement = connection.createStatement()) {
+        Statement statement = connection.createStatement())
+    {
       connection.setAutoCommit(true);
 
       String tenantSchema = new Tenant(deletedTenant.getId()).databaseSchema;
@@ -292,7 +293,7 @@ public class DeleteTenantsJob
       }
       catch (NumberFormatException e) {
         log.error("Failed to parse DeleteTenantJob configuration for Job Frequency. Configured value = {}. Using " +
-                "default value instead. Default = {}", configuration.getValue(),
+            "default value instead. Default = {}", configuration.getValue(),
             DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS, e);
       }
     }

@@ -59,11 +59,10 @@ public class QuarantinedComponentMetricsConsolidatorTest
     List<FirewallMetrics> allMetrics = firewallMetricsDAOTest.getAll();
     // Check initial data length
     assertThat(allMetrics).hasSize(5);
-    // Check a record that is  at least 1 year old
+    // Check a record that is at least 1 year old
     LocalDate overAYearOldDateStr = LocalDate.of(2019, 12, 30);
     assertThat(findMetricByDate(overAYearOldDateStr,
-        allMetrics).getMetricsDate()
-    ).isEqualTo(overAYearOldDateStr);
+        allMetrics).getMetricsDate()).isEqualTo(overAYearOldDateStr);
 
     consolidator.consolidate();
 
@@ -75,12 +74,12 @@ public class QuarantinedComponentMetricsConsolidatorTest
   @Test
   public void consolidateTest_insertRecord() {
     LocalDate today = LocalDate.now();
-    LocalDate past300 = today.plusDays( -300);
-    LocalDate past301 = today.plusDays( -301);
+    LocalDate past300 = today.plusDays(-300);
+    LocalDate past301 = today.plusDays(-301);
     String past300Str = formatAsISOString(past300);
     String past301Str = formatAsISOString(past301);
 
-    LocalDate repoQuarantinedComponentDateFound = today.plusDays( -30);
+    LocalDate repoQuarantinedComponentDateFound = today.plusDays(-30);
     initRepositoryComponentData(DateConverter.toDate(repoQuarantinedComponentDateFound));
     testLastUpdateDates.set(1, DateConverter.toDate(past300));
     // Most recent date
@@ -94,7 +93,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
     // Check a record that is at least less than 1 year old
     assertThat(formatAsISOString(
         findMetricByDate(past300, allMetrics)
-        .getMetricsDate())).isEqualTo(past300Str);
+            .getMetricsDate())).isEqualTo(past300Str);
     assertThat(formatAsISOString(findMetricByDate(past301, allMetrics)
         .getMetricsDate())).isEqualTo(past301Str);
     // New quarantined Component metric found
@@ -109,9 +108,9 @@ public class QuarantinedComponentMetricsConsolidatorTest
   @Test
   public void consolidateTest_updateRecord() {
     LocalDate today = LocalDate.now();
-    LocalDate past300 = today.plusDays( -300);
-    LocalDate past301 = today.plusDays( -301);
-    LocalDate past302 = today.plusDays( -302);//302 is the oldest date in this test
+    LocalDate past300 = today.plusDays(-300);
+    LocalDate past301 = today.plusDays(-301);
+    LocalDate past302 = today.plusDays(-302);// 302 is the oldest date in this test
     String past300Str = formatAsISOString(past300);
     String past301Str = formatAsISOString(past301);
     String past302Str = formatAsISOString(past302);
@@ -125,7 +124,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
     testLastUpdateDates.set(2, DateConverter.toDate(past302));
     initTestData();
 
-    //Check initial value of  past301
+    // Check initial value of past301
     List<FirewallMetrics> allMetrics = firewallMetricsDAOTest.getAll();
     FirewallMetrics fmInitDb301 = findMetricByDate(past301, allMetrics);
     assertThat(formatAsISOString(fmInitDb301.getMetricsDate())).isEqualTo(past301Str);
@@ -143,7 +142,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
     FirewallMetrics fmDb301 = findMetricByDate(past301, allMetrics);
     assertThat(formatAsISOString(fmDb301.getMetricsDate()))
         .isEqualTo(past301Str);
-    //This was the record updated. Initially 3 now 5
+    // This was the record updated. Initially 3 now 5
     assertThat(fmDb301.getMetricsValue()).isEqualTo(5);
 
     FirewallMetrics fmDb302 = findMetricByDate(past302, allMetrics);
@@ -155,7 +154,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
   @Test
   public void consolidateTest_updateRecordWithTodayDateCase() {
     LocalDate today = LocalDate.now();
-    LocalDate past300 = today.plusDays( -300);
+    LocalDate past300 = today.plusDays(-300);
     String past300Str = formatAsISOString(past300);
     String todayStr = formatAsISOString(today);
 
@@ -167,7 +166,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
     testLastUpdateDates.set(2, DateConverter.toDate(today));
     initTestData();
 
-    //Check before consolidation
+    // Check before consolidation
     List<FirewallMetrics> allMetrics = firewallMetricsDAOTest.getAll();
     FirewallMetrics fmInitDb300 = findMetricByDate(past300, allMetrics);
     assertThat(formatAsISOString(fmInitDb300.getMetricsDate()))
@@ -183,7 +182,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
 
     allMetrics = firewallMetricsDAOTest.getAll();
 
-    //Check after consolidation
+    // Check after consolidation
     FirewallMetrics fmDb300 = findMetricByDate(past300, allMetrics);
     assertThat(formatAsISOString(fmDb300.getMetricsDate()))
         .isEqualTo(past300Str);
@@ -191,31 +190,31 @@ public class QuarantinedComponentMetricsConsolidatorTest
 
     FirewallMetrics fmDbToday = findMetricByDate(today, allMetrics);
     assertThat(formatAsISOString(
-        fmDbToday.getMetricsDate()
-    )).isEqualTo(todayStr);
-    //This was the record updated. Initially 3 now 6
+        fmDbToday.getMetricsDate())).isEqualTo(todayStr);
+    // This was the record updated. Initially 3 now 6
     assertThat(fmDbToday.getMetricsValue()).isEqualTo(6);
   }
 
   private FirewallMetrics findMetricByDate(
-      LocalDate needle, List<FirewallMetrics> haystack)
+      LocalDate needle,
+      List<FirewallMetrics> haystack)
   {
     List<FirewallMetrics> found = haystack.stream()
-        .filter( fm -> fm.getMetricsDate().isEqual(needle))
+        .filter(fm -> fm.getMetricsDate().isEqual(needle))
         .collect(Collectors.toList());
     return !found.isEmpty() ? found.get(0) : null;
   }
 
   private void initTestDates() {
-    Date today =  DateUtil.now();
+    Date today = DateUtil.now();
     Date lastYearFromToday = DateUtils.addMonths(today, -12);
 
     Date date2019 = new GregorianCalendar(2019, Calendar.DECEMBER, 30, 18,
-        23, 12 ).getTime();
+        23, 12).getTime();
     Date date2015 = new GregorianCalendar(2015, Calendar.DECEMBER, 30, 18,
-        23, 12 ).getTime();
+        23, 12).getTime();
     Date date2017 = new GregorianCalendar(2017, Calendar.DECEMBER, 30, 18,
-        23, 12 ).getTime();
+        23, 12).getTime();
     testLastUpdateDates.add(date2019);
     testLastUpdateDates.add(today);
     testLastUpdateDates.add(lastYearFromToday);
@@ -224,16 +223,18 @@ public class QuarantinedComponentMetricsConsolidatorTest
   }
 
   private void initTestData() {
-    testLastUpdateDates.forEach( date -> tempEntity.newFirewallMetrics(
+    testLastUpdateDates.forEach(date -> tempEntity.newFirewallMetrics(
         FirewallMetricsName.COMPONENTS_QUARANTINED,
-        testLastUpdateDates.indexOf(date) + 1 ,
+        testLastUpdateDates.indexOf(date) + 1,
         date,
-        toLocalDate(date)
-    ));
+        toLocalDate(date)));
   }
 
-  private GregorianCalendar newDateWithTime(Date initDate,
-                                            int hour, int minutes, int seconds)
+  private GregorianCalendar newDateWithTime(
+      Date initDate,
+      int hour,
+      int minutes,
+      int seconds)
   {
     GregorianCalendar gc = new GregorianCalendar();
     gc.setTime(initDate);
@@ -245,12 +246,11 @@ public class QuarantinedComponentMetricsConsolidatorTest
 
   private void initRepositoryComponentData(Date dateInThePast) {
     List<Date> hoursForDateInThePast = Arrays.asList(
-        newDateWithTime(dateInThePast, 4,23,12).getTime(),
-        newDateWithTime(dateInThePast, 10,1,22).getTime(),
-        newDateWithTime(dateInThePast, 11,2,14).getTime()
-    );
+        newDateWithTime(dateInThePast, 4, 23, 12).getTime(),
+        newDateWithTime(dateInThePast, 10, 1, 22).getTime(),
+        newDateWithTime(dateInThePast, 11, 2, 14).getTime());
 
-    hoursForDateInThePast.forEach( dateTime -> {
+    hoursForDateInThePast.forEach(dateTime -> {
       Repository newRepo = tempEntity.newRepository();
       RepositoryComponent newRepositoryComponent = tempEntity
           .newRepositoryComponent(newRepo.getId());

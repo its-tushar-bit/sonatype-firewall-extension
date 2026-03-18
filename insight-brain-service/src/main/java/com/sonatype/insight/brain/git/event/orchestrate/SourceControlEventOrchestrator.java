@@ -41,11 +41,11 @@ import org.slf4j.LoggerFactory;
 import static com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer.SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS;
 
 /**
- * This orchestrator is the central hub for event processing and acts sort of like a router for events.  This class
+ * This orchestrator is the central hub for event processing and acts sort of like a router for events. This class
  * does not directly process events, but rather pushes events to the classes that do.
  *
  * This class also implements the event processing solution for multi-node IQ, in conjunction with the
- * #SourceControlInstanceManager. Currently, only one instance of IQ is allowed to process events.  Any instance
+ * #SourceControlInstanceManager. Currently, only one instance of IQ is allowed to process events. Any instance
  * can create events.
  *
  * The event flow looks like this:
@@ -188,15 +188,15 @@ public class SourceControlEventOrchestrator
     log.debug("Routing event '{}' for application {} for processing", event.getEventType(), event.getApplicationId());
     GitRepositoryInfo gitRepositoryInfo =
         sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
-    UserEventManager userEventManager = userEventManagerMap.get().computeIfAbsent(event.getScmUsername(),
-        k -> new UserEventManager(
-            sourceControlEventDAO,
-            sourceControlLoadBalancer,
-            sourceControlEventProcessor,
-            gitRepositoryInfo.getProvider(),
-            sourceControlUtils,
-            shutdownHandler)
-    );
+    UserEventManager userEventManager = userEventManagerMap.get()
+        .computeIfAbsent(event.getScmUsername(),
+            k -> new UserEventManager(
+                sourceControlEventDAO,
+                sourceControlLoadBalancer,
+                sourceControlEventProcessor,
+                gitRepositoryInfo.getProvider(),
+                sourceControlUtils,
+                shutdownHandler));
     userEventManager.addEvent(event);
   }
 
@@ -246,7 +246,7 @@ public class SourceControlEventOrchestrator
         otherInstanceEventProcessingStartupDelaySeconds, otherInstanceEventProcessingIntervalSeconds,
         TimeUnit.SECONDS);
     log.info("Scheduled possible processing of events coming from other IQ instances to run every {} second(s) " +
-            "starting in {} second(s)",
+        "starting in {} second(s)",
         otherInstanceEventProcessingIntervalSeconds, otherInstanceEventProcessingStartupDelaySeconds);
   }
 

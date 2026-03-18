@@ -349,9 +349,9 @@ public class DbMigrationCommandTest
     assertThat(readDatabaseVersion(getDatabaseVersionFile(databaseContainerRule.getDataMartDataStore()))).isEqualTo(
         String.valueOf(1));
     // TODO why does the 3rd party scans not have a ver file
-    //assertThat(
-    //    readDatabaseVersion(getDatabaseVersionFile(databaseContainerRule.getThirdPartyScansDataStore()))).isEqualTo(
-    //    String.valueOf(1));
+    // assertThat(
+    // readDatabaseVersion(getDatabaseVersionFile(databaseContainerRule.getThirdPartyScansDataStore()))).isEqualTo(
+    // String.valueOf(1));
 
     when(dbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
@@ -446,7 +446,7 @@ public class DbMigrationCommandTest
         LegacyDataStoreMigrator.determineDesiredVersion(DataMartDataStore.ID));
     assertThat(
         DatabaseUtil.getLegacyDatabaseSchemaVersion(databaseContainerRule.getThirdPartyScansDataStore())).isEqualTo(
-        LegacyDataStoreMigrator.determineDesiredVersion(ThirdPartyScansDataStore.ID));
+            LegacyDataStoreMigrator.determineDesiredVersion(ThirdPartyScansDataStore.ID));
   }
 
   private void createSchedulerStateRecord(long checkinTimestamp) throws Exception {
@@ -455,7 +455,8 @@ public class DbMigrationCommandTest
         " (SCHED_NAME, INSTANCE_NAME, LAST_CHECKIN_TIME, CHECKIN_INTERVAL) " + //
         " VALUES (?, ?, ?, ?)";
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-         PreparedStatement statement = connection.prepareStatement(sQuery)) {
+        PreparedStatement statement = connection.prepareStatement(sQuery))
+    {
       statement.setString(1, TaskScheduler.DEFAULT_SCHEDULER_NAME);
       statement.setString(2, "instanceId");
       statement.setLong(3, checkinTimestamp);
@@ -471,8 +472,9 @@ public class DbMigrationCommandTest
   private void deleteTable(String tableName) throws Exception {
     OperationalDataStore operationalDataStore = databaseContainerRule.getOperationalDataStore();
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-         PreparedStatement statement = connection.prepareStatement(
-             "DROP TABLE " + operationalDataStore.getDatabaseSchema() + "." + tableName)) {
+        PreparedStatement statement = connection.prepareStatement(
+            "DROP TABLE " + operationalDataStore.getDatabaseSchema() + "." + tableName))
+    {
       statement.execute();
     }
   }

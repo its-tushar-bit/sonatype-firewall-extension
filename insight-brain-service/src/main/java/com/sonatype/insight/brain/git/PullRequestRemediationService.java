@@ -60,7 +60,7 @@ public class PullRequestRemediationService
   private final SourceControlEventDAO sourceControlEventDAO;
 
   private final ScmReducedSecurityService scmReducedSecurityService;
-  
+
   private final InnerSourceApplicationDAO innerSourceApplicationDAO;
 
   private final TelemetrySender telemetrySender;
@@ -106,8 +106,7 @@ public class PullRequestRemediationService
       log.info("Branch already exists on remote server for remediation [{}]", event.getBranchName());
 
       throw new SourceControlException(
-          "Branch already exists on remote server for remediation: " + event.getBranchName()
-      );
+          "Branch already exists on remote server for remediation: " + event.getBranchName());
     }
     else {
       sourceControlSshService.verifySshUrlAndUpdateIfNeeded(event.getApplicationId());
@@ -126,8 +125,7 @@ public class PullRequestRemediationService
           SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT.equals(event.getEventType()),
           reducedSecurityData,
           innerSourceApplicationDAO.getByPackageUrl(PackageUrlIdentifier.fromComponentIdentifier(
-              event.getComponentIdentifier().createAlternativeVersion(null))) != null
-      );
+              event.getComponentIdentifier().createAlternativeVersion(null))) != null);
 
       PullRequestTask pullRequestTask = pullRequestTaskProvider.get();
       PullRequestResult pullRequestResult =
@@ -162,8 +160,7 @@ public class PullRequestRemediationService
     else {
       log.info("Branch {} does not exist on remote server for remediation closing.", event.getBranchName());
       throw new SourceControlException(
-          "Branch does not exist on remote server for remediation closing: " + event.getBranchName()
-      );
+          "Branch does not exist on remote server for remediation closing: " + event.getBranchName());
     }
   }
 
@@ -172,7 +169,7 @@ public class PullRequestRemediationService
    * pull requests.
    *
    * @return true if the given component identifier is for a format that is supported for automated remediation pull
-   * requests; false otherwise
+   *         requests; false otherwise
    */
   public boolean isFormatSupportedForPullRequestRemediation(final String format) {
     return isNotBlank(format) && pullRequestExecutor.isSupportedFormat(format);
@@ -187,8 +184,7 @@ public class PullRequestRemediationService
    */
   private boolean isBranchOnServer(
       final GitRepositoryInfo gitRepositoryInfo,
-      final String branchName)
-      throws IOException
+      final String branchName) throws IOException
   {
     return gitClientFactory.createApiClient(gitRepositoryInfo).isBranchOnServer(branchName);
   }

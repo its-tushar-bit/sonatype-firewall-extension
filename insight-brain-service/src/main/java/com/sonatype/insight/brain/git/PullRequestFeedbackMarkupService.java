@@ -115,33 +115,33 @@ public class PullRequestFeedbackMarkupService
     final boolean supportsHtml = provider.supportsEmbeddedHtmlInMarkdown(scmBaseUrl);
     // Refer to https://sonatype.atlassian.net/browse/SDEV-365 for why we need the `supportsHtml` condition
     if (supportsHtml &&
-            (provider == GITHUB || provider == GITLAB)) {
+        (provider == GITHUB || provider == GITLAB))
+    {
       final ComponentFeedbackContext context = contextFactory.build(provider,
-              violations,
-              componentNameAndVersion,
-              remediationVersion,
-              applicationPublicId,
-              featureBranchScanId,
-              iqBaseUrl.getConfigured(),
-              scmImprovementsEnabled ? codeSuggestion : Optional.empty(),
-              reducedSecurityData
-      );
+          violations,
+          componentNameAndVersion,
+          remediationVersion,
+          applicationPublicId,
+          featureBranchScanId,
+          iqBaseUrl.getConfigured(),
+          scmImprovementsEnabled ? codeSuggestion : Optional.empty(),
+          reducedSecurityData);
       return ComponentFeedbackMDRenderer.render(context);
     }
     else {
       PullRequestLineFeedback details =
-              new PullRequestLineFeedback(
-                      violations,
-                      componentNameAndVersion,
-                      iqBaseUrl.getConfigured(),
-                      remediationVersion,
-                      scmBaseUrl,
-                      applicationPublicId,
-                      featureBranchScanId,
-                      codeSuggestion,
-                      scmImprovementsEnabled,
-                      organizationDAO,
-                      reducedSecurityData);
+          new PullRequestLineFeedback(
+              violations,
+              componentNameAndVersion,
+              iqBaseUrl.getConfigured(),
+              remediationVersion,
+              scmBaseUrl,
+              applicationPublicId,
+              featureBranchScanId,
+              codeSuggestion,
+              scmImprovementsEnabled,
+              organizationDAO,
+              reducedSecurityData);
       return details.renderTemplateAndGetContents(provider);
     }
   }

@@ -148,7 +148,8 @@ public class ReportBundleUpdaterTest
   @Test
   public void testOverwrite_WithFilenameMapping() throws Exception {
     try (ReportBundleUpdater updater = new ReportBundleUpdater(originalReportEntities, updatedFile, new FilenameMapping(
-        ".*\\.txt", "data/$0"))) {
+        ".*\\.txt", "data/$0")))
+    {
       updater.add("data/one.txt", tmpDir.newFile());
     }
     assertThat(read(updatedFile).get("data/one.txt")).isEqualTo("");
@@ -166,7 +167,8 @@ public class ReportBundleUpdaterTest
   @Test
   public void testRemove_WithFilenameMapping() throws Exception {
     try (ReportBundleUpdater updater = new ReportBundleUpdater(originalReportEntities, updatedFile, new FilenameMapping(
-        ".*\\.txt", "data/$0"))) {
+        ".*\\.txt", "data/$0")))
+    {
       updater.remove("data/one.txt");
     }
     assertThat(read(updatedFile).keySet()).containsExactlyInAnyOrder("two.html");

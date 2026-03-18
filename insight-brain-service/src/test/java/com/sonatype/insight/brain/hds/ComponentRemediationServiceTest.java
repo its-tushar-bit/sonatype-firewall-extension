@@ -409,7 +409,7 @@ public class ComponentRemediationServiceTest
   }
 
   /*
-   --- Advanced strategies = false ---
+   * --- Advanced strategies = false ---
    */
 
   /**
@@ -510,7 +510,7 @@ public class ComponentRemediationServiceTest
   }
 
   /*
-   --- Advanced strategies = true ---
+   * --- Advanced strategies = true ---
    */
 
   /**
@@ -1105,7 +1105,7 @@ public class ComponentRemediationServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> componentRemediationService.getSuggestedRemediation(currentComponent,
             allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org),
-        SourceEndpoint.API_COMPONENT_REMEDIATION));
+            SourceEndpoint.API_COMPONENT_REMEDIATION));
   }
 
   @Test
@@ -1121,7 +1121,7 @@ public class ComponentRemediationServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> componentRemediationService.getSuggestedRemediation(currentComponent,
             allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org),
-        SourceEndpoint.API_COMPONENT_REMEDIATION));
+            SourceEndpoint.API_COMPONENT_REMEDIATION));
   }
 
   @Test
@@ -1160,7 +1160,8 @@ public class ComponentRemediationServiceTest
     assertThat(apiVersionChangeOptionDTO.getDirectDependency()).isFalse();
     assertThat(apiVersionChangeOptionDTO.getType()).isEqualTo(
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
-    assertThat(apiVersionChangeOptionDTO.getDirectDependencyData().get(0)
+    assertThat(apiVersionChangeOptionDTO.getDirectDependencyData()
+        .get(0)
         .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(detailsDtoA1V11.componentIdentifier);
 
     apiVersionChangeOptionDTO = dto.versionChanges.get(1);
@@ -1168,7 +1169,8 @@ public class ComponentRemediationServiceTest
     assertThat(apiVersionChangeOptionDTO.getDirectDependency()).isFalse();
     assertThat(apiVersionChangeOptionDTO.getType()).isEqualTo(
         ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
-    assertThat(apiVersionChangeOptionDTO.getDirectDependencyData().get(0)
+    assertThat(apiVersionChangeOptionDTO.getDirectDependencyData()
+        .get(0)
         .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(detailsDtoA1V5.componentIdentifier);
   }
 
@@ -1206,8 +1208,7 @@ public class ComponentRemediationServiceTest
       final String groupId,
       final String artifactId,
       final String version,
-      final float highestSecuritySeverity
-  )
+      final float highestSecuritySeverity)
   {
     final ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version, null, "any-ext");
@@ -1259,8 +1260,8 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   *   Without advanced strategies, we are unable to suggest RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES
-   *   Only RECOMMENDED_NON_BREAKING could be calculated.
+   * Without advanced strategies, we are unable to suggest RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES
+   * Only RECOMMENDED_NON_BREAKING could be calculated.
    */
   @Test
   public void testGetSuggestedRemediation_suggestNonBreakingVersion_topOneHasFailAlert_noAdvanced() {
@@ -1291,7 +1292,7 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   *   If we exhausted all the non-breaking versions, but they all have fail alerts, we should not suggest any version.
+   * If we exhausted all the non-breaking versions, but they all have fail alerts, we should not suggest any version.
    */
   @Test
   public void testGetSuggestedRemediation_suggestNonBreakingVersion_allHaveFailAlert_noAdvanced() {
@@ -1318,7 +1319,7 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   *   With advanced strategies, we are able to suggest RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES, if there are any.
+   * With advanced strategies, we are able to suggest RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES, if there are any.
    */
   @Test
   public void testGetSuggestedRemediation_suggestGoldenVersion_goldenAvailable_advanced() {
@@ -1354,8 +1355,8 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   *   If we are unable to find a RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES version after exhausting the list,
-   *   we suggest the best RECOMMENDED_NON_BREAKING version instead.
+   * If we are unable to find a RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES version after exhausting the list,
+   * we suggest the best RECOMMENDED_NON_BREAKING version instead.
    */
   @Test
   public void testGetSuggestedRemediation_suggestGoldenVersion_goldenUnavailable_advanced() {
@@ -1394,22 +1395,22 @@ public class ComponentRemediationServiceTest
   }
 
   /**
-   *   | Version | Dependencies | Alerts |
-   *   |---------|--------------|--------|
-   *   | a1v1    | None         | Failing|
-   *   | a1v2    | a2v1, a2v2   | Warning|
-   *   | a1v3    | a2v2, a2v3   | None   |
-   *   | a1v4    | a2v3, a2v4   | None   |
+   * | Version | Dependencies | Alerts |
+   * |---------|--------------|--------|
+   * | a1v1 | None | Failing|
+   * | a1v2 | a2v1, a2v2 | Warning|
+   * | a1v3 | a2v2, a2v3 | None |
+   * | a1v4 | a2v3, a2v4 | None |
    *
-   *   | Dependency | Alerts |
-   *   |------------|--------|
-   *   | a2v1       | Failing|
-   *   | a2v2       | Warning|
-   *   | a2v3       | None   |
-   *   | a2v4       | None   |
+   * | Dependency | Alerts |
+   * |------------|--------|
+   * | a2v1 | Failing|
+   * | a2v2 | Warning|
+   * | a2v3 | None |
+   * | a2v4 | None |
    *
-   *   If we can find a golden version (v4 in this case),
-   *   even if it has a lower score than the non-golden non-breaking version, we suggest it.
+   * If we can find a golden version (v4 in this case),
+   * even if it has a lower score than the non-golden non-breaking version, we suggest it.
    */
   @Test
   public void testGetSuggestedRemediation_suggestGoldenVersion_goldenTakesPriority_advanced() {
@@ -1449,66 +1450,66 @@ public class ComponentRemediationServiceTest
         ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES);
     assertThat(dto.suggestedVersionChange.getIsGolden()).isTrue();
   }
-  
+
   @Test
   public void testSortAndDeduplicateVersionChanges_deduplicateShouldKeepDesirableOrder() {
     ApiVersionChangeOptionDTO v11NextNoViolations =
         buildChangeDto(
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, componentDtoA1V11);
+            ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, componentDtoA1V11);
     ApiVersionChangeOptionDTO v11NextNoViolationsWithDependencies =
         buildChangeDto(
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V11);
+            ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V11);
     ApiVersionChangeOptionDTO v11NextNonFailing =
         buildChangeDto(
-        ApiVersionChangeOptionType.NEXT_NON_FAILING, componentDtoA1V11);
+            ApiVersionChangeOptionType.NEXT_NON_FAILING, componentDtoA1V11);
     ApiVersionChangeOptionDTO v11NextNonFailingWithDependencies =
         buildChangeDto(
-        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V11);
+            ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V11);
 
     assertThat(ComponentRemediationService.sortAndDeduplicateVersionChanges(
         List.of(v11NextNoViolations,
             v11NextNoViolationsWithDependencies,
             v11NextNonFailing,
             v11NextNonFailingWithDependencies)))
-        .hasSize(1)
-        .containsExactly(v11NextNoViolationsWithDependencies);
+                .hasSize(1)
+                .containsExactly(v11NextNoViolationsWithDependencies);
 
     assertThat(ComponentRemediationService.sortAndDeduplicateVersionChanges(
         List.of(v11NextNoViolations,
             v11NextNonFailing,
             v11NextNonFailingWithDependencies)))
-        .hasSize(1)
-        .containsExactly(v11NextNoViolations);
+                .hasSize(1)
+                .containsExactly(v11NextNoViolations);
 
     assertThat(ComponentRemediationService.sortAndDeduplicateVersionChanges(
         List.of(v11NextNonFailing,
             v11NextNonFailingWithDependencies)))
-        .hasSize(1)
-        .containsExactly(v11NextNonFailingWithDependencies);
+                .hasSize(1)
+                .containsExactly(v11NextNonFailingWithDependencies);
   }
 
   @Test
   public void testSortAndDeduplicateVersionChanges_deduplicateAndSortingShouldBothWork() {
     ApiVersionChangeOptionDTO v5NextNonFailing =
         buildChangeDto(
-        ApiVersionChangeOptionType.NEXT_NON_FAILING, componentDtoA1V5);
+            ApiVersionChangeOptionType.NEXT_NON_FAILING, componentDtoA1V5);
     ApiVersionChangeOptionDTO v6NextNoViolations =
         buildChangeDto(
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, componentDtoA1V6);
+            ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, componentDtoA1V6);
     ApiVersionChangeOptionDTO v11NextNoViolationsWithDependencies =
         buildChangeDto(
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V11);
+            ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V11);
     ApiVersionChangeOptionDTO v11NextNonFailingWithDependencies =
         buildChangeDto(
-        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V11);
+            ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V11);
 
     assertThat(ComponentRemediationService.sortAndDeduplicateVersionChanges(
         Arrays.asList(v5NextNonFailing,
             v6NextNoViolations,
             v11NextNoViolationsWithDependencies,
             v11NextNonFailingWithDependencies)))
-        .hasSize(3)
-        .containsExactly(v11NextNoViolationsWithDependencies, v6NextNoViolations, v5NextNonFailing);
+                .hasSize(3)
+                .containsExactly(v11NextNoViolationsWithDependencies, v6NextNoViolations, v5NextNonFailing);
   }
 
   @Test
@@ -1718,7 +1719,7 @@ public class ComponentRemediationServiceTest
     PackageUrlIdentifier packageUrl = InnerSourceUtils.getVersionlessPackageUrl(innerSourceComponent);
     InnerSourceApplication innerSourceApp =
         tempEntity.newInnerSourceApplication(packageUrl.getPackageUrl(), application);
-    //in the build stage
+    // in the build stage
     tempEntity.newInnerSourceVersion(innerSourceApp, "2.0.0", StageTypes.BUILD.getId());
 
     ApiComponentRemediationValueDTO remediationDto = componentRemediationService
@@ -1868,7 +1869,6 @@ public class ComponentRemediationServiceTest
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
         ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES,
-        ApiVersionChangeOptionType.NEXT_NON_FAILING
-    );
+        ApiVersionChangeOptionType.NEXT_NON_FAILING);
   }
 }

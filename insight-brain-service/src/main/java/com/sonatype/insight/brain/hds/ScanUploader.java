@@ -79,8 +79,7 @@ public class ScanUploader
       String stageTypeId,
       String clientUserAgent,
       ThirdPartyScanContext thirdPartyScanContext,
-      boolean isWebUIRequest)
-      throws IOException
+      boolean isWebUIRequest) throws IOException
   {
     HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(application);
 
@@ -105,7 +104,8 @@ public class ScanUploader
     if (thirdPartyScanContext != null
         && thirdPartyScanContext.getContainerItemContentType() == ItemContentType.CONTAINER_URI_SONATYPE
         && SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()
-        && productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)) {
+        && productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION))
+    {
       isCpeDataMatchingEnabled = true;
     }
     else if (thirdPartyScanContext == null || thirdPartyScanContext.getContainerItemContentType() == null) {

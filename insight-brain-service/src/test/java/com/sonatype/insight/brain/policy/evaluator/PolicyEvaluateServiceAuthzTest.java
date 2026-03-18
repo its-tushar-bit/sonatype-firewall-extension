@@ -117,7 +117,7 @@ public class PolicyEvaluateServiceAuthzTest
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
     grantPermission(application.getId(), Permission.EVALUATE_COMPONENT);
     policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, application.getPublicId(), ClientScanType.SONATYPE,
-            null, new Stage(ProxyStageType.ID));
+        null, new Stage(ProxyStageType.ID));
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -127,7 +127,7 @@ public class PolicyEvaluateServiceAuthzTest
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
     grantPermission(application.getId(), Permission.EVALUATE_APPLICATION);
     policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, application.getPublicId(), ClientScanType.SONATYPE,
-            null, new Stage(ProxyStageType.ID));
+        null, new Stage(ProxyStageType.ID));
   }
 
   @Test(expected = BadRequestException.class)
@@ -135,7 +135,7 @@ public class PolicyEvaluateServiceAuthzTest
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
     policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
-            new Stage(ProxyStageType.ID));
+        new Stage(ProxyStageType.ID));
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -184,14 +184,14 @@ public class PolicyEvaluateServiceAuthzTest
     Application application = tempEntity.newApplication("app", organization.getId());
 
     String statusId = TemporaryEntity.uuid();
-    insertPersistedPolicyEvaluationPollingResult(statusId,application.getId());
+    insertPersistedPolicyEvaluationPollingResult(statusId, application.getId());
     policyEvaluateService.pollEvaluationResult(application.getPublicId(), statusId);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testPollEvaluationResult_Unauthenticated() {
     String statusId = TemporaryEntity.uuid();
-    insertPersistedPolicyEvaluationPollingResult(statusId,app.getId());
+    insertPersistedPolicyEvaluationPollingResult(statusId, app.getId());
     policyEvaluateService.pollEvaluationResult(app.getPublicId(), statusId);
   }
 
@@ -263,7 +263,7 @@ public class PolicyEvaluateServiceAuthzTest
     PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
     policyEvaluationPollingResult.setReason("reason");
     PersistedPolicyEvaluationPollingResult expected =
-            new PersistedPolicyEvaluationPollingResult(appId, statusId, policyEvaluationPollingResult);
+        new PersistedPolicyEvaluationPollingResult(appId, statusId, policyEvaluationPollingResult);
     persistedPolicyEvaluationPollingResultDAO.insert(expected);
   }
 }

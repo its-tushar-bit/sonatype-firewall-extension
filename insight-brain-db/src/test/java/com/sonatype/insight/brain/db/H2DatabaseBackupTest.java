@@ -34,8 +34,7 @@ public class H2DatabaseBackupTest
   @Test
   @H2DiskTest(
       suppressMigrations = true,
-      copyExistingDatabase = "H2DatabaseBackupTest/testBackupOperationalDataStore"
-  )
+      copyExistingDatabase = "H2DatabaseBackupTest/testBackupOperationalDataStore")
   @Category(SlowTest.class)
   public void testBackup() throws Exception {
     DatabaseConfig databaseConfig = getDatabaseConfig("ods");

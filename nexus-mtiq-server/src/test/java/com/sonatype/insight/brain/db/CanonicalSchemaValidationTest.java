@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.db;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -35,25 +36,30 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <h1>tl;dr</h1>
  * <ol>
- *   <li>The canonical schema (i.e. the one true schema) is defined as the current contents of the four `schema.sql` files.</li>
- *   <li>
- *      The <strong>base</strong> canonical schema, from which we will be applying the incremental scripts is defined
- *      as the `schema.sql` files as of <a href="https://github.com/sonatype/insight-brain/commit/3098e603667094c408ff6150b463a3fa31e2a42e">commit 3098e60</a>
- *      on June 26th, 2023.
- *   </li>
- *   <li>
- *     These tests verify that a database from the original base canonical schema from commit 3098e60, with migrations
- *     applied, <strong>MUST EXACTLY MATCH</strong> the current canonical schema.
- *   </li>
+ * <li>The canonical schema (i.e. the one true schema) is defined as the current contents of the four `schema.sql`
+ * files.</li>
+ * <li>
+ * The <strong>base</strong> canonical schema, from which we will be applying the incremental scripts is defined
+ * as the `schema.sql` files as of
+ * <a href="https://github.com/sonatype/insight-brain/commit/3098e603667094c408ff6150b463a3fa31e2a42e">commit
+ * 3098e60</a>
+ * on June 26th, 2023.
+ * </li>
+ * <li>
+ * These tests verify that a database from the original base canonical schema from commit 3098e60, with migrations
+ * applied, <strong>MUST EXACTLY MATCH</strong> the current canonical schema.
+ * </li>
  * </ol>
  *
  * <h1>Background</h1>
  * <p>
- * For the SaaS world and for MTIQ in particular, there are big challenges with DB migrations, most of which are described in
+ * For the SaaS world and for MTIQ in particular, there are big challenges with DB migrations, most of which are
+ * described in
  * <a href="https://sonatype.atlassian.net/wiki/spaces/MTIQ/pages/36318368/SaaS+Friendly+IQ+Database+Migrations">
  * SaaS Friendly IQ Database Migrations<a/>. To handle these challenges, troubleshooting tools and techniques become
  * critical to be able to detect and fix any migrations problems on the contexts for MTIQ, so we have documented some of
- * those tools and techniques in <a href="https://sonatype.atlassian.net/wiki/spaces/MTIQ/pages/79626270/Addressing+Database+Migration+Failures">
+ * those tools and techniques in
+ * <a href="https://sonatype.atlassian.net/wiki/spaces/MTIQ/pages/79626270/Addressing+Database+Migration+Failures">
  * Addressing Database Migration Failures<a/>. That page describes a key aspect which is having a consistent schema for
  * tenants so we can easily spot differences in a reliable way. For example to know if a particular migration script was
  * executed on a tenant but not in another tenant.
@@ -62,22 +68,29 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>
  * The tests in this class will help ensure we maintain a consistent schema. This means we try to ensure that the schema
  * of a new tenant will be the same as the one for an old tenant that is being migrated using the incremental scripts.
- * We do this by defining a base canonical schema, which is a snapshot of a schema for a tenant, in particular, the canonical
- * schema was obtained from <a href="https://github.com/sonatype/insight-brain/commit/3098e603667094c408ff6150b463a3fa31e2a42e">commit 3098e60</a>.
+ * We do this by defining a base canonical schema, which is a snapshot of a schema for a tenant, in particular, the
+ * canonical
+ * schema was obtained from
+ * <a href="https://github.com/sonatype/insight-brain/commit/3098e603667094c408ff6150b463a3fa31e2a42e">commit
+ * 3098e60</a>.
  * The precise schema versions for the different data stores are:
  * <table border="1">
- *   <tr>
- *     <td> Data Store </td> <td> Schema Version </td>
- *   </tr>
- *   <tr>
- *     <td> insight_brain_third_party_scans </td> <td> 13 </td>
- *   </tr>
- *   <tr>
- *     <td> insight_brain_aggregation </td> <td> 13 </td>
- *   </tr>
- *   <tr>
- *     <td> insight_brain_ods </td> <td> 303 </td>
- *   </tr>
+ * <tr>
+ * <td>Data Store</td>
+ * <td>Schema Version</td>
+ * </tr>
+ * <tr>
+ * <td>insight_brain_third_party_scans</td>
+ * <td>13</td>
+ * </tr>
+ * <tr>
+ * <td>insight_brain_aggregation</td>
+ * <td>13</td>
+ * </tr>
+ * <tr>
+ * <td>insight_brain_ods</td>
+ * <td>303</td>
+ * </tr>
  * </table>
  * The idea is to use this base canonical schema to run the migrations over it and confirm there are no differences
  * between a tenant that is being migrated to the latest version and a new tenant created with the latest schema.sql
@@ -86,13 +99,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <br/>
  * <strong>Notes:</strong>
  * <ul>
- *   <li>The canonical schemas are the <strong>src/main/resources/db/insight_brain-&#42;/schema.sql</strong> files.</li>
- *   <li>The base canonical schema is the <strong>src/test/resources/CanonicalSchemaValidationTest/canonical-schema-from-commit-3098e6.sql</strong> file.</li>
- *   <li>
- *     Keep in mind the canonical schema from commit 3098e6 schema should not be modified unless there is a good reason
- *     for that. Over this schema we will apply the different incremental scripts to move an older tenant to the latest
- *     schema version.
- *   </li>
+ * <li>The canonical schemas are the <strong>src/main/resources/db/insight_brain-&#42;/schema.sql</strong> files.</li>
+ * <li>The base canonical schema is the
+ * <strong>src/test/resources/CanonicalSchemaValidationTest/canonical-schema-from-commit-3098e6.sql</strong> file.</li>
+ * <li>
+ * Keep in mind the canonical schema from commit 3098e6 schema should not be modified unless there is a good reason
+ * for that. Over this schema we will apply the different incremental scripts to move an older tenant to the latest
+ * schema version.
+ * </li>
  * </ul>
  */
 @Category(SlowTest.class)
@@ -134,7 +148,7 @@ public class CanonicalSchemaValidationTest
 
       assertTenantsSchemasAreTheExpected(newTenant, tenant, (schema1, schema2) -> {
         assertThat(schema1).as("The database schemas did not exactly match. " +
-                "Verify that the migration SQL is written such that a migrated database exactly matches a new database")
+            "Verify that the migration SQL is written such that a migrated database exactly matches a new database")
             .isEqualTo(schema2);
       });
     });

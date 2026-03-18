@@ -115,8 +115,7 @@ public class ApplicationCountHistoryServiceTest
     assertThat(rowsAfterFirstRecording).hasSize(2);
     assertApplicationHistoryCountEqual(
         rowsAfterFirstRecording.get(1),
-        new ApplicationCountHistory(firstRecording, 10, 0, 0, 0, 0)
-    );
+        new ApplicationCountHistory(firstRecording, 10, 0, 0, 0, 0));
 
     // === Then Second Recording ===
     when(dateTimeService.getCurrentDate()).thenReturn(secondRecording);
@@ -127,8 +126,7 @@ public class ApplicationCountHistoryServiceTest
     assertThat(rowsAfterSecondRecording).hasSize(3);
     assertApplicationHistoryCountEqual(
         rowsAfterSecondRecording.get(2),
-        new ApplicationCountHistory(secondRecording, 44, 0, 0, 0, 0)
-    );
+        new ApplicationCountHistory(secondRecording, 44, 0, 0, 0, 0));
   }
 
   @Test
@@ -149,8 +147,7 @@ public class ApplicationCountHistoryServiceTest
     assertThat(rowsAfterFirstRecording).hasSize(2);
     assertApplicationHistoryCountEqual(
         rowsAfterFirstRecording.get(1),
-        new ApplicationCountHistory(firstRecording, 7, 2, 0, 0, 0)
-    );
+        new ApplicationCountHistory(firstRecording, 7, 2, 0, 0, 0));
 
     // === Then Second Recording ===
     when(dateTimeService.getCurrentDate()).thenReturn(secondRecording);
@@ -164,8 +161,7 @@ public class ApplicationCountHistoryServiceTest
     assertThat(rowsAfterSecondRecording).hasSize(3);
     assertApplicationHistoryCountEqual(
         rowsAfterSecondRecording.get(2),
-        new ApplicationCountHistory(secondRecording, 7, 5, 0, 0, 0)
-    );
+        new ApplicationCountHistory(secondRecording, 7, 5, 0, 0, 0));
   }
 
   @Test
@@ -183,7 +179,8 @@ public class ApplicationCountHistoryServiceTest
     final List<ApplicationCountHistory> rowsAfterFirstRecording = tempEntity.getAllApplicationHistoryCountRows();
     assertThat(rowsAfterFirstRecording)
         .last()
-        .extracting(ach -> ach.getScmFeedbackEnabledCount()).isEqualTo(0);
+        .extracting(ach -> ach.getScmFeedbackEnabledCount())
+        .isEqualTo(0);
 
     // === Then Second Recording ===
     when(dateTimeService.getCurrentDate()).thenReturn(secondRecording);
@@ -199,7 +196,8 @@ public class ApplicationCountHistoryServiceTest
     final List<ApplicationCountHistory> rowsAfterSecondRecording = tempEntity.getAllApplicationHistoryCountRows();
     assertThat(rowsAfterSecondRecording)
         .last()
-        .extracting(ach -> ach.getScmFeedbackEnabledCount()).isEqualTo(1);
+        .extracting(ach -> ach.getScmFeedbackEnabledCount())
+        .isEqualTo(1);
   }
 
   @Test
@@ -240,8 +238,7 @@ public class ApplicationCountHistoryServiceTest
     assertThat(rowsAfterFirstRecording).hasSize(2);
     assertApplicationHistoryCountEqual(
         rowsAfterFirstRecording.get(1),
-        new ApplicationCountHistory(firstRecording, 3, 0, 2, 0, 0)
-    );
+        new ApplicationCountHistory(firstRecording, 3, 0, 2, 0, 0));
 
     // === Then Second Recording ===
     when(dateTimeService.getCurrentDate()).thenReturn(secondRecording);
@@ -255,8 +252,7 @@ public class ApplicationCountHistoryServiceTest
     assertThat(rowsAfterSecondRecording).hasSize(3);
     assertApplicationHistoryCountEqual(
         rowsAfterSecondRecording.get(2),
-        new ApplicationCountHistory(secondRecording, 3, 0, 3, 0, 0)
-    );
+        new ApplicationCountHistory(secondRecording, 3, 0, 3, 0, 0));
   }
 
   @Test
@@ -286,8 +282,7 @@ public class ApplicationCountHistoryServiceTest
     assertThat(rowsAfterFirstRecording).hasSize(2);
     assertApplicationHistoryCountEqual(
         rowsAfterFirstRecording.get(1),
-        new ApplicationCountHistory(firstRecording, 1, 0, 0, 3, 0)
-    );
+        new ApplicationCountHistory(firstRecording, 1, 0, 0, 3, 0));
 
     // === Then Second Recording ===
     when(dateTimeService.getCurrentDate()).thenReturn(secondRecording);
@@ -302,8 +297,7 @@ public class ApplicationCountHistoryServiceTest
     assertThat(rowsAfterSecondRecording).hasSize(3);
     assertApplicationHistoryCountEqual(
         rowsAfterSecondRecording.get(2),
-        new ApplicationCountHistory(secondRecording, 1, 0, 0, 5, 0)
-    );
+        new ApplicationCountHistory(secondRecording, 1, 0, 0, 5, 0));
   }
 
   @Test
@@ -389,15 +383,13 @@ public class ApplicationCountHistoryServiceTest
         policyEvaluation,
         policy,
         new Date(),
-        1L
-    );
+        1L);
 
     tempEntity.createFixedPolicyViolation(
         policyEvaluation,
         policy,
         new Date(),
-        5L
-    );
+        5L);
 
     applicationCountHistoryService.recordApplicationCount();
 
@@ -463,7 +455,7 @@ public class ApplicationCountHistoryServiceTest
     final Date fiveWeeksAgo = getDateFromOffset(fixedClock, Duration.ofDays(-35));
 
     final Date fourWeeksAgo = getDateFromOffset(fixedClock, Duration.ofDays(-28));
-    tempEntity.newApplicationCountHistoryEntry(fourWeeksAgo, 42,20, 33, 21, 3);
+    tempEntity.newApplicationCountHistoryEntry(fourWeeksAgo, 42, 20, 33, 21, 3);
 
     final Date threeWeeksAgo = getDateFromOffset(fixedClock, Duration.ofDays(-21));
     tempEntity.newApplicationCountHistoryEntry(threeWeeksAgo, 62, 63, 42, 29, 55);
@@ -484,7 +476,7 @@ public class ApplicationCountHistoryServiceTest
         Pair.of(fiveWeeksAgo, 0),
         Pair.of(fourWeeksAgo, 5),
         Pair.of(threeWeeksAgo, 55),
-        Pair.of(twoWeeksAgo,100),
+        Pair.of(twoWeeksAgo, 100),
         Pair.of(getDateFromOffset(fixedClock, -13), 34),
         Pair.of(getDateFromOffset(fixedClock, -12), 45),
         Pair.of(getDateFromOffset(fixedClock, -11), 23),
@@ -498,8 +490,7 @@ public class ApplicationCountHistoryServiceTest
         Pair.of(getDateFromOffset(fixedClock, -3), 200),
         Pair.of(getDateFromOffset(fixedClock, -2), 144),
         Pair.of(getDateFromOffset(fixedClock, -1), 102),
-        Pair.of(current, 103)
-    );
+        Pair.of(current, 103));
 
     // === Then ===
     final List<ApiUsageIncrementDto> fiveWeeksByWeeklyIncrements =
@@ -509,8 +500,8 @@ public class ApplicationCountHistoryServiceTest
         Lists.newArrayList(
             new ApiUsageIncrementDto(fiveWeeksAgo.getTime(), 0, 0, 0, 0, 0, 0),
             new ApiUsageIncrementDto(fourWeeksAgo.getTime(), 42, 20, 33, 21, 3, 5),
-            new ApiUsageIncrementDto(threeWeeksAgo.getTime(), 62, 63,42, 29, 55, 55),
-            new ApiUsageIncrementDto(twoWeeksAgo.getTime(), 111, 65,21, 15, 74, 100),
+            new ApiUsageIncrementDto(threeWeeksAgo.getTime(), 62, 63, 42, 29, 55, 55),
+            new ApiUsageIncrementDto(twoWeeksAgo.getTime(), 111, 65, 21, 15, 74, 100),
             new ApiUsageIncrementDto(oneWeekAgo.getTime(), 134, 61, 100, 51, 38, 101),
             new ApiUsageIncrementDto(nowMs, 429, 84, 135, 76, 93, 103)));
 
@@ -527,8 +518,7 @@ public class ApplicationCountHistoryServiceTest
                 21,
                 15,
                 74,
-                34
-            ),
+                34),
             new ApiUsageIncrementDto(
                 getDateFromOffset(fixedClock, -12).getTime(),
                 111,
@@ -536,8 +526,7 @@ public class ApplicationCountHistoryServiceTest
                 21,
                 15,
                 74,
-                45
-            ),
+                45),
             new ApiUsageIncrementDto(
                 getDateFromOffset(fixedClock, -11).getTime(),
                 111,
@@ -545,8 +534,7 @@ public class ApplicationCountHistoryServiceTest
                 21,
                 15,
                 74,
-                23
-            ),
+                23),
             new ApiUsageIncrementDto(
                 getDateFromOffset(fixedClock, -10).getTime(),
                 111,
@@ -554,8 +542,7 @@ public class ApplicationCountHistoryServiceTest
                 21,
                 15,
                 74,
-                88
-            ),
+                88),
             new ApiUsageIncrementDto(
                 getDateFromOffset(fixedClock, -9).getTime(),
                 111,
@@ -563,8 +550,7 @@ public class ApplicationCountHistoryServiceTest
                 21,
                 15,
                 74,
-                122
-            ),
+                122),
             new ApiUsageIncrementDto(
                 getDateFromOffset(fixedClock, -8).getTime(),
                 111,
@@ -572,8 +558,7 @@ public class ApplicationCountHistoryServiceTest
                 21,
                 15,
                 74,
-                111
-            ),
+                111),
             new ApiUsageIncrementDto(
                 getDateFromOffset(fixedClock, -7).getTime(),
                 134,
@@ -581,8 +566,7 @@ public class ApplicationCountHistoryServiceTest
                 100,
                 51,
                 38,
-                101
-            ),
+                101),
             new ApiUsageIncrementDto(
                 getDateFromOffset(fixedClock, -6).getTime(),
                 134,
@@ -590,8 +574,7 @@ public class ApplicationCountHistoryServiceTest
                 100,
                 51,
                 38,
-                78
-            ),
+                78),
             new ApiUsageIncrementDto(
                 getDateFromOffset(fixedClock, -5).getTime(),
                 134,
@@ -599,8 +582,7 @@ public class ApplicationCountHistoryServiceTest
                 100,
                 51,
                 38,
-                34
-            ),
+                34),
             new ApiUsageIncrementDto(
                 getDateFromOffset(fixedClock, -4).getTime(),
                 134,
@@ -608,8 +590,7 @@ public class ApplicationCountHistoryServiceTest
                 100,
                 51,
                 38,
-                22
-            ),
+                22),
             new ApiUsageIncrementDto(
                 getDateFromOffset(fixedClock, -3).getTime(),
                 134,
@@ -617,8 +598,7 @@ public class ApplicationCountHistoryServiceTest
                 100,
                 51,
                 38,
-                200
-            ),
+                200),
             new ApiUsageIncrementDto(
                 getDateFromOffset(fixedClock, -2).getTime(),
                 134,
@@ -626,8 +606,7 @@ public class ApplicationCountHistoryServiceTest
                 100,
                 51,
                 38,
-                144
-            ),
+                144),
             new ApiUsageIncrementDto(
                 getDateFromOffset(fixedClock, -1).getTime(),
                 134,
@@ -635,16 +614,14 @@ public class ApplicationCountHistoryServiceTest
                 100,
                 51,
                 38,
-                102
-            ),
+                102),
             new ApiUsageIncrementDto(nowMs,
                 429,
                 84,
                 135,
                 76,
                 93,
-                103))
-    );
+                103)));
   }
 
   private Date getDateFromOffset(final Clock baseClock, final int numberOfDays) {
@@ -658,8 +635,7 @@ public class ApplicationCountHistoryServiceTest
   // ignore id equality
   private void assertApplicationHistoryCountEqual(
       final ApplicationCountHistory actual,
-      final ApplicationCountHistory expected
-  )
+      final ApplicationCountHistory expected)
   {
     assertThat(actual.getApplicationCount()).isEqualTo(expected.getApplicationCount());
     assertThat(actual.getScmFeedbackEnabledCount()).isEqualTo(expected.getScmFeedbackEnabledCount());
@@ -694,8 +670,7 @@ public class ApplicationCountHistoryServiceTest
         true,
         commitStatusEnabled,
         false,
-        false
-    );
+        false);
   }
 
   @SafeVarargs

@@ -263,8 +263,9 @@ public class ApiZScalerConfigurationResourceTest
         .verify(postRequestedFor(urlPathMatching("/api/v1/authenticatedSession")));
     zScalerMockServer.getWireMockServer()
         .verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories/urlQuota")));
-    zScalerMockServer.getWireMockServer().verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories"))
-        .withQueryParam("customOnly", equalTo("true")));
+    zScalerMockServer.getWireMockServer()
+        .verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories"))
+            .withQueryParam("customOnly", equalTo("true")));
     zScalerMockServer.getWireMockServer().verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories/.*")));
     zScalerMockServer.getWireMockServer().verify(postRequestedFor(urlPathMatching("/api/v1/status/activate")));
   }
@@ -366,14 +367,16 @@ public class ApiZScalerConfigurationResourceTest
         .verify(postRequestedFor(urlPathMatching("/api/v1/authenticatedSession")));
     zScalerMockServer.getWireMockServer()
         .verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories/urlQuota")));
-    zScalerMockServer.getWireMockServer().verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories"))
-        .withQueryParam("customOnly", equalTo("true")));
+    zScalerMockServer.getWireMockServer()
+        .verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories"))
+            .withQueryParam("customOnly", equalTo("true")));
 
     // Account for:
     // - 4 POSTs from update operation (update configured format and delete of MAVEN/NPM/PYPI with real URLs)
     // Note: Functional permission test no longer runs during update operations
-    zScalerMockServer.getWireMockServer().verify(4, postRequestedFor(urlPathMatching("/api/v1/urlCategories"))
-        .withRequestBody(new NegativeRegexPattern(".*placeholder.*")));
+    zScalerMockServer.getWireMockServer()
+        .verify(4, postRequestedFor(urlPathMatching("/api/v1/urlCategories"))
+            .withRequestBody(new NegativeRegexPattern(".*placeholder.*")));
     // Account for delete of NUGET format only (uses placeholder)
     zScalerMockServer.getWireMockServer()
         .verify(1, postRequestedFor(urlPathMatching("/api/v1/urlCategories"))
@@ -392,8 +395,9 @@ public class ApiZScalerConfigurationResourceTest
         .verify(postRequestedFor(urlPathMatching("/api/v1/authenticatedSession")));
     zScalerMockServer.getWireMockServer()
         .verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories/urlQuota")));
-    zScalerMockServer.getWireMockServer().verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories"))
-        .withQueryParam("customOnly", equalTo("true")));
+    zScalerMockServer.getWireMockServer()
+        .verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories"))
+            .withQueryParam("customOnly", equalTo("true")));
 
     // Account for delete of format
     zScalerMockServer.getWireMockServer()
@@ -414,8 +418,9 @@ public class ApiZScalerConfigurationResourceTest
         .verify(postRequestedFor(urlPathMatching("/api/v1/authenticatedSession")));
     zScalerMockServer.getWireMockServer()
         .verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories/urlQuota")));
-    zScalerMockServer.getWireMockServer().verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories"))
-        .withQueryParam("customOnly", equalTo("true")));
+    zScalerMockServer.getWireMockServer()
+        .verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories"))
+            .withQueryParam("customOnly", equalTo("true")));
 
     // Account for:
     // - 3 POSTs from delete operation (delete of MAVEN/NPM/PYPI formats with real URLs)

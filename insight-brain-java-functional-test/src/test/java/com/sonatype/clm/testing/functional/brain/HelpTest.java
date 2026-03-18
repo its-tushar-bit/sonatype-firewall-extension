@@ -40,10 +40,14 @@ public class HelpTest
     HelpMenu help = MainHeader.helpMenu();
 
     help.dropdownToggle().shouldBe(visible).click();
-    help.documentationLink().shouldBe(visible).shouldHave(attribute("target", "_blank"),
-        attribute("href", "http://links.sonatype.com/products/clm/doc/" + getProductMajorMinorVersion()));
-    help.supportLink().shouldBe(visible).shouldHave(attribute("target", "_blank"),
-        attribute("href", "http://links.sonatype.com/products/clm/support"));
+    help.documentationLink()
+        .shouldBe(visible)
+        .shouldHave(attribute("target", "_blank"),
+            attribute("href", "http://links.sonatype.com/products/clm/doc/" + getProductMajorMinorVersion()));
+    help.supportLink()
+        .shouldBe(visible)
+        .shouldHave(attribute("target", "_blank"),
+            attribute("href", "http://links.sonatype.com/products/clm/support"));
     help.gettingStartedLink().shouldBe(visible).shouldNotHave(attribute("target", "_blank"));
     eyesWatcher.eyesCheck();
 

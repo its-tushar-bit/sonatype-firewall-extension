@@ -170,16 +170,19 @@ public class ApiConfigurationService
     Set<Triple<OwnerType, String, Set<Permission>>> permissionsToCheck =
         ConfigurationProperty.additionalPermissionsPerProperty.getOrDefault(propertyName, new HashSet<>());
 
-    // By default all properties can be accessed with the admin (global)  CONFIGURE_SYSTEM permission
+    // By default all properties can be accessed with the admin (global) CONFIGURE_SYSTEM permission
     permissionsToCheck.add(Triple.of(OwnerType.GLOBAL, null, Collections.singleton(Permission.CONFIGURE_SYSTEM)));
 
     // We are authorized if PermissionService.validatePermission returns a non-empty value for any triplet
     // since we pass it a singleton containing our desired permission on each iteration
     // (i.e. permissionA OR permissionB or ...)
-    return permissionsToCheck.stream().anyMatch(
-        permissionGroup -> !permissionService.validatePermission(SecurityUtils.getSubject(), permissionGroup.getLeft(),
-            permissionGroup.getMiddle(),
-            permissionGroup.getRight()).isEmpty());
+    return permissionsToCheck.stream()
+        .anyMatch(
+            permissionGroup -> !permissionService
+                .validatePermission(SecurityUtils.getSubject(), permissionGroup.getLeft(),
+                    permissionGroup.getMiddle(),
+                    permissionGroup.getRight())
+                .isEmpty());
   }
 
   public Map<String, Object> getConfigurationNoAuthz(Set<String> propertyNames) {
@@ -199,7 +202,8 @@ public class ApiConfigurationService
     Map<String, Object> result = new HashMap<>();
     for (String propertyName : propertyNames) {
       validatePropertyName(propertyName);
-      result.put(propertyName, ConfigurationProperty.PROPERTY_BY_NAME.get(propertyName).getStringToValue()
+      result.put(propertyName, ConfigurationProperty.PROPERTY_BY_NAME.get(propertyName)
+          .getStringToValue()
           .apply(new Object[]{insightConfig}, systemConfigurationPropertyDAO.get(tx, propertyName)));
     }
     return result;
@@ -245,7 +249,8 @@ public class ApiConfigurationService
       throw new BadRequestException(NO_PROPERTIES_ERROR_MSG);
     }
     if (properties.containsKey(SystemConfigurationProperty.ACCESS_ALLOWLIST) && !productLicense.hasFeature(
-        LicensedFeature.IP_ALLOWLIST)) {
+        LicensedFeature.IP_ALLOWLIST))
+    {
       throw new InvalidLicenseException();
     }
     for (Entry<String, Object> property : properties.entrySet()) {
@@ -258,7 +263,8 @@ public class ApiConfigurationService
 
       AuditData.get().setData(property.getKey(), property.getValue());
       systemConfigurationPropertyDAO.set(tx, property.getKey(),
-          ConfigurationProperty.PROPERTY_BY_NAME.get(property.getKey()).getValueToString()
+          ConfigurationProperty.PROPERTY_BY_NAME.get(property.getKey())
+              .getValueToString()
               .apply(new Object[]{tx}, property.getValue()));
       sendTelemetryForIntegrationsSupportedVersionCount(property.getKey(), property.getValue(), action);
     }
@@ -358,8 +364,7 @@ public class ApiConfigurationService
             INVALID_SUCCESS_METRIC_STAGE_ID_ERROR_MSG,
             propertyValue,
             SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID,
-            validStageIds
-        ));
+            validStageIds));
       }
     }
   }
@@ -391,8 +396,9 @@ public class ApiConfigurationService
         String[] properties = StringUtils.split(context.getMergedJobDataMap().getString(TASK_PARAM_PROPERTIES),
             TASK_PARAM_PROPERTIES_DELIMITER);
         systemConfigurationPropertyDAO.clearQueryCache();
-        Arrays.stream(properties).forEach(property -> systemConfigurationPropertyDAO.removeEntityFromCache(
-            systemConfigurationPropertyDAO.getByName(property)));
+        Arrays.stream(properties)
+            .forEach(property -> systemConfigurationPropertyDAO.removeEntityFromCache(
+                systemConfigurationPropertyDAO.getByName(property)));
         applyConfigurationToClients(properties);
       }
     }, log, CONFIG_APPLY_ERROR);

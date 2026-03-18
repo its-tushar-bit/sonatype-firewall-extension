@@ -11,7 +11,9 @@ import org.apache.commons.lang3.StringUtils;
 
 public enum PolicyWaiverRequestStatus
 {
-  APPROVED, REJECTED, REQUESTED;
+  APPROVED,
+  REJECTED,
+  REQUESTED;
 
   public static PolicyWaiverRequestStatus fromString(String name) {
     if (StringUtils.isBlank(name)) {

@@ -44,7 +44,7 @@ public class ShiroSessionTimeoutHandler
   public void configurationChanged(Set<String> propertyNames) {
     if (propertyNames.contains(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES)) {
       int sessionTimeout = (int) configurationService.getConfigurationNoAuthz(
-              Collections.singleton(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES))
+          Collections.singleton(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES))
           .get(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES);
       insightSessionManager.setTenantSessionTimeout(sessionTimeout * 60000L);
     }

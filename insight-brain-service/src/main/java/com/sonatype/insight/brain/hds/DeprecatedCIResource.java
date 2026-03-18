@@ -50,8 +50,9 @@ public class DeprecatedCIResource
   @PUT
   @Path(SCAN_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ScanReceipt putScan(@PathParam("applicationPublicId") final String applicationPublicId,
-                             @Context HttpServletRequest req) throws IOException
+  public ScanReceipt putScan(
+      @PathParam("applicationPublicId") final String applicationPublicId,
+      @Context HttpServletRequest req) throws IOException
   {
     return scanHandler.handle(req, applicationPublicId, ClientScanType.SONATYPE);
   }

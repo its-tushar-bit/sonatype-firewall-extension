@@ -67,19 +67,17 @@ public class ApiFirewallContainerImageResource
       "\n" +
       "Permissions required: Read",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "Container images in quarantine.",
-              content = @Content(
-                  mediaType = MediaType.APPLICATION_JSON,
-                  schema = @Schema(implementation = ContainerImageInQuarantineDataResult.class)
-              ),
-              headers = {
-                  @Header(name = "Link",
-                      description = "Pagination links (first, last, next, prev)",
-                      schema = @Schema(type = "string"))
-              }
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Container images in quarantine.",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON,
+                schema = @Schema(implementation = ContainerImageInQuarantineDataResult.class)),
+            headers = {
+              @Header(name = "Link",
+                  description = "Pagination links (first, last, next, prev)",
+                  schema = @Schema(type = "string"))
+            })
       })
   public Response getContainerImagesInQuarantine(
       @Context UriInfo uriInfo,
@@ -90,6 +88,6 @@ public class ApiFirewallContainerImageResource
         policyViolationService.getContainerImagesInQuarantine(page, pageSize);
     return new PaginationResponseBuilder<>(uriInfo.getAbsolutePath().getPath(), page, pageSize,
         containerImagesInQuarantine)
-        .build();
+            .build();
   }
 }

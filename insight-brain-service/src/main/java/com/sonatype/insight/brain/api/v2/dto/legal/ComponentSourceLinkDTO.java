@@ -60,8 +60,7 @@ public class ComponentSourceLinkDTO
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentSourceLink.getComponentIdentifier()),
         sourceLinkOverrideDTOS,
         componentSourceLink.getLastUpdatedByUsername(),
-        componentSourceLink.getLastUpdatedAt()
-    );
+        componentSourceLink.getLastUpdatedAt());
   }
 
   public String getId() {

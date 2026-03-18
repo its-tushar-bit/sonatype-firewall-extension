@@ -21,7 +21,7 @@ public class ApiDependencyTreeSearcher
   /**
    * Finds all direct parent nodes of a given target identifier.
    *
-   * @param root             the root of the dependency tree.
+   * @param root the root of the dependency tree.
    * @param targetIdentifier the component identifier to search for.
    * @return a set of direct parent nodes.
    */
@@ -50,10 +50,10 @@ public class ApiDependencyTreeSearcher
   /**
    * Recursively searches for direct parent nodes of a given target identifier.
    *
-   * @param currentNode      the current node in the traversal.
+   * @param currentNode the current node in the traversal.
    * @param targetIdentifier the component identifier to search for.
-   * @param path             the path from the root to the current node.
-   * @param directParents    the set to collect direct parent nodes.
+   * @param path the path from the root to the current node.
+   * @param directParents the set to collect direct parent nodes.
    */
   private void findDirectParentsRecursive(
       ApiDependencyTreeNodeDTO currentNode,

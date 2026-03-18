@@ -77,11 +77,11 @@ public class ApplicationServiceAuthzTest
   @Test
   public void testDeleteApplicationById_DockerProxyAuthorized() throws Exception {
     Organization organization = tempEntity.newOrgWithRepoManagerAndProxyRepo(
-            "My Organization",
-            "dockerOrg",
-            "docker",
-            true,
-            true);
+        "My Organization",
+        "dockerOrg",
+        "docker",
+        true,
+        true);
     Application application = tempEntity.newApplication(organization.getId());
     grantEvaluateComponentPermission(application.getId());
     applicationService.deleteApplicationByPublicId(application.getPublicId());

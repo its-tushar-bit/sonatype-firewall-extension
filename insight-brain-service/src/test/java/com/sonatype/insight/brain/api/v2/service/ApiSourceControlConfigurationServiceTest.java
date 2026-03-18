@@ -65,8 +65,8 @@ public class ApiSourceControlConfigurationServiceTest
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
 
-    Multibinder<SourceControlConfigurationListener>
-        multiBinder = newSetBinder(binder, SourceControlConfigurationListener.class);
+    Multibinder<SourceControlConfigurationListener> multiBinder =
+        newSetBinder(binder, SourceControlConfigurationListener.class);
     multiBinder.addBinding().toInstance(mockSourceControlConfigurationListener);
     super.configure(binder);
   }
@@ -84,7 +84,8 @@ public class ApiSourceControlConfigurationServiceTest
     ApiSourceControlConfigurationDTO configuration = service.getConfiguration();
 
     assertThat(configuration).usingRecursiveComparison()
-        .ignoringFields("defaultBranchMonitoringStartTime").isEqualTo(config);
+        .ignoringFields("defaultBranchMonitoringStartTime")
+        .isEqualTo(config);
     assertThat(configuration.defaultBranchMonitoringStartTime).isEqualTo(
         config.getDefaultBranchMonitoringStartTimeString());
   }
@@ -120,7 +121,8 @@ public class ApiSourceControlConfigurationServiceTest
     spy.setConfiguration(new ObjectMapper().createObjectNode());
 
     SourceControlConfiguration sourceControlConfiguration = dao.get();
-    assertThat(sourceControlConfiguration).usingRecursiveComparison().ignoringExpectedNullFields()
+    assertThat(sourceControlConfiguration).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
         .ignoringFields("defaultBranchMonitoringStartTime")
         .isEqualTo(new ApiSourceControlConfigurationDTO());
     assertThat(sourceControlConfiguration.getDefaultBranchMonitoringStartTimeString()).isEqualTo(
@@ -150,8 +152,10 @@ public class ApiSourceControlConfigurationServiceTest
     spy.setConfiguration(JsonUtils.asTree(dto));
 
     SourceControlConfiguration sourceControlConfiguration = dao.get();
-    assertThat(sourceControlConfiguration).usingRecursiveComparison().ignoringExpectedNullFields()
-        .ignoringFields("defaultBranchMonitoringStartTime", "gpgPassphrase").isEqualTo(dto);
+    assertThat(sourceControlConfiguration).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
+        .ignoringFields("defaultBranchMonitoringStartTime", "gpgPassphrase")
+        .isEqualTo(dto);
     assertThat(sourceControlConfiguration.getDefaultBranchMonitoringStartTimeString()).isEqualTo(
         dto.defaultBranchMonitoringStartTime);
     assertThat(sourceControlConfiguration.getGpgPassphrase()).isNotNull();
@@ -267,7 +271,8 @@ public class ApiSourceControlConfigurationServiceTest
 
     String fieldName = objectNode.fieldNames().next();
     SourceControlConfiguration sourceControlConfiguration = dao.get();
-    assertThat(sourceControlConfiguration).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(sourceControlConfiguration).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .ignoringFields(fieldName, "defaultBranchMonitoringStartTimeString", "defaultBranchMonitoringStartTime")
         .isEqualTo(existing);
     if (!fieldName.equals("defaultBranchMonitoringStartTime")) {
@@ -300,8 +305,10 @@ public class ApiSourceControlConfigurationServiceTest
     spy.setConfiguration(JsonUtils.asTree(dto));
 
     SourceControlConfiguration sourceControlConfiguration = dao.get();
-    assertThat(sourceControlConfiguration).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
-        .ignoringExpectedNullFields().ignoringFields("defaultBranchMonitoringStartTime", "gpgPassphrase")
+    assertThat(sourceControlConfiguration).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .ignoringExpectedNullFields()
+        .ignoringFields("defaultBranchMonitoringStartTime", "gpgPassphrase")
         .isEqualTo(dto);
     assertThat(sourceControlConfiguration.getDefaultBranchMonitoringStartTimeString()).isEqualTo(
         dto.defaultBranchMonitoringStartTime);
@@ -361,7 +368,8 @@ public class ApiSourceControlConfigurationServiceTest
 
   @Test
   public void testDisallowConcurrentExecution() {
-    assertThat(JobBuilder.newJob(ApiSourceControlConfigurationService.class).build()
+    assertThat(JobBuilder.newJob(ApiSourceControlConfigurationService.class)
+        .build()
         .isConcurrentExectionDisallowed()).isTrue();
   }
 

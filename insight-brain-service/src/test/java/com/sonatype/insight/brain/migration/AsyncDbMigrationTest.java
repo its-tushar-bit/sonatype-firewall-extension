@@ -55,7 +55,7 @@ public class AsyncDbMigrationTest
     when(insightConfig.isDatabaseEmbedded()).thenReturn(true);
 
     underTest = spy(new TestAsyncDbMigration<>(applicationDAO, migrationTrackerDAO, "test DB Migration", insightConfig,
-            "TestMigration", 1));
+        "TestMigration", 1));
 
     createApplication();
 

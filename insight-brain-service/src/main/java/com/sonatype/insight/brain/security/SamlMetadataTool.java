@@ -69,13 +69,21 @@ public class SamlMetadataTool
       throw new IllegalArgumentException("Invalid SAML metadata type: " + metadata.getClass());
     }
     List<IDPSSODescriptorType> idpDescriptors =
-        entityDescriptor.getChoiceType().stream().flatMap(choiceType -> choiceType.getDescriptors().stream())
-            .map(EDTDescriptorChoiceType::getIdpDescriptor).filter(Objects::nonNull).collect(toList());
+        entityDescriptor.getChoiceType()
+            .stream()
+            .flatMap(choiceType -> choiceType.getDescriptors().stream())
+            .map(EDTDescriptorChoiceType::getIdpDescriptor)
+            .filter(Objects::nonNull)
+            .collect(toList());
     if (idpDescriptors.size() != 1) {
       throw new IllegalArgumentException("Invalid SAML identity provider count: " + idpDescriptors.size());
     }
-    if (idpDescriptors.get(0).getSingleSignOnService().stream().map(EndpointType::getBinding)
-        .noneMatch(binding -> POST_BINDING.equals(binding) || REDIRECT_BINDING.equals(binding))) {
+    if (idpDescriptors.get(0)
+        .getSingleSignOnService()
+        .stream()
+        .map(EndpointType::getBinding)
+        .noneMatch(binding -> POST_BINDING.equals(binding) || REDIRECT_BINDING.equals(binding)))
+    {
       throw new IllegalArgumentException("SAML identity provider supports neither POST nor Redirect binding for SSO");
     }
     return entityDescriptor;

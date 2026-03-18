@@ -132,8 +132,9 @@ public class ApiSpdxServiceTest
     verifyCpeAndSwidValuesForPackage(document, "org.apache.logging.log4j:log4j-core");
   }
 
-  private static void verifyCpeAndSwidValuesForPackage(final SpdxDocument document, String packageName)
-      throws InvalidSPDXAnalysisException
+  private static void verifyCpeAndSwidValuesForPackage(
+      final SpdxDocument document,
+      String packageName) throws InvalidSPDXAnalysisException
   {
     List<? extends ModelObject> items =
         Read.getAllItems(document.getModelStore(), document.getDocumentUri(), SpdxConstants.CLASS_SPDX_PACKAGE)
@@ -144,13 +145,16 @@ public class ApiSpdxServiceTest
       if (spdxPackage.getName().orElse("notFound").equals(packageName)) {
         for (ExternalRef externalRef : spdxPackage.getExternalRefs()) {
           if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY &&
-              externalRef.getReferenceType().getIndividualURI()
-                  .equals(SpdxConstants.SPDX_LISTED_REFERENCE_TYPES_PREFIX + "cpe23Type")) {
+              externalRef.getReferenceType()
+                  .getIndividualURI()
+                  .equals(SpdxConstants.SPDX_LISTED_REFERENCE_TYPES_PREFIX + "cpe23Type"))
+          {
             assertThat(externalRef.getReferenceLocator()).startsWith("cpe:2.3:");
             cpeSwidCount++;
           }
           if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY &&
-              externalRef.getReferenceType().getIndividualURI().endsWith("swid")) {
+              externalRef.getReferenceType().getIndividualURI().endsWith("swid"))
+          {
             assertThat(externalRef.getReferenceLocator()).startsWith("swid:");
             cpeSwidCount++;
           }
@@ -265,8 +269,9 @@ public class ApiSpdxServiceTest
     String cdxFilename = null;
     File inFile = (File) response.getEntity();
     try (InputStream inputStream = Files.newInputStream(inFile.toPath());
-         GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(inputStream);
-         TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
+        GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(inputStream);
+        TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn))
+    {
       TarArchiveEntry tarEntry = tarIn.getNextEntry();
       assertThat(tarEntry).isNotNull();
       if (tarEntry.getName().contains(".spdx.")) {
@@ -365,7 +370,7 @@ public class ApiSpdxServiceTest
   @Test
   public void testGetLatestForStage_invalidSpdxVersion() {
     assertThatExceptionOfType(UnsupportedSbomException.class).isThrownBy(
-            () -> service.getLatestForStage(application.getId(), BuildStageType.ID, "xml", false, "2.1"))
+        () -> service.getLatestForStage(application.getId(), BuildStageType.ID, "xml", false, "2.1"))
         .withMessageContaining("SPDX 2.1 version is not valid. Supported SPDX versions: " +
             ThirdPartyUtils.SPDX_ACCEPTED_VERSIONS.values());
   }
@@ -421,8 +426,7 @@ public class ApiSpdxServiceTest
       "org.apache.logging.log4j:log4j-core", "org.apache.logging.log4j:log4j-api",
       "com.fasterxml.jackson.core:jackson-databind", "com.fasterxml.jackson.core:jackson-annotations",
       "com.fasterxml.jackson.core:jackson-core", "com.sonatype.testing:pr-comment-02",
-      "net.sf.ehcache:ehcache", "org.slf4j:slf4j-api", "net.sf.ehcache:sizeof-agent"
-  );
+      "net.sf.ehcache:ehcache", "org.slf4j:slf4j-api", "net.sf.ehcache:sizeof-agent");
 
   private static final Set<String> expectedVersions = ImmutableSet.of(
       "2.14.0", "2.16.0", "1.7.25", "1.0.1", "2.10.7", "1.0-SNAPSHOT");
@@ -436,8 +440,7 @@ public class ApiSpdxServiceTest
       "pkg:maven/com.sonatype.testing/pr-comment-02@1.0-SNAPSHOT?type=jar",
       "pkg:maven/net.sf.ehcache/ehcache@2.10.7?type=jar",
       "pkg:maven/org.slf4j/slf4j-api@1.7.25?type=jar",
-      "pkg:maven/net.sf.ehcache/sizeof-agent@1.0.1?type=jar"
-  );
+      "pkg:maven/net.sf.ehcache/sizeof-agent@1.0.1?type=jar");
 
   private void assertPackages(SpdxDocument document, boolean isSage, final String spdxVersion) throws Exception {
     List<? extends ModelObject> items =
@@ -470,8 +473,8 @@ public class ApiSpdxServiceTest
           assertThat(externalRef.getReferenceLocator()).isIn(expectedPurls);
         }
         if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY &&
-            (!externalRef.getComment().isPresent() || !"type: CycloneDX".equals(externalRef.getComment().get()))
-        ) {
+            (!externalRef.getComment().isPresent() || !"type: CycloneDX".equals(externalRef.getComment().get())))
+        {
           securityRefCount++;
         }
       }
@@ -509,8 +512,7 @@ public class ApiSpdxServiceTest
       "com.fasterxml.jackson.core:jackson-databind -> 0",
       "com.fasterxml.jackson.core:jackson-annotations -> 0",
       "net.sf.ehcache:ehcache -> 66",
-      "net.sf.ehcache:sizeof-agent -> 0"
-  );
+      "net.sf.ehcache:sizeof-agent -> 0");
 
   private static final Set<String> sageSecurityRefs = ImmutableSet.of(
       "com.sonatype.testing:pr-comment-02 -> 0",
@@ -521,8 +523,7 @@ public class ApiSpdxServiceTest
       "com.fasterxml.jackson.core:jackson-databind -> 0",
       "com.fasterxml.jackson.core:jackson-annotations -> 0",
       "net.sf.ehcache:ehcache -> 66",
-      "net.sf.ehcache:sizeof-agent -> 0"
-  );
+      "net.sf.ehcache:sizeof-agent -> 0");
 
   private static final Set<String> expectedLicenses = ImmutableSet.of(
       "NOASSERTION", "Apache-2.0", "MIT", "(Apache-2.0 AND MIT)",
@@ -530,8 +531,7 @@ public class ApiSpdxServiceTest
       "(Apache-2.0 AND LicenseRef-COMMERCIAL AND LicenseRef-No-Source-License)",
       "((Apache-2.0 OR EPL-1.0) AND (Apache-2.0 OR LGPL-2.1 OR LGPL-3.0 OR MPL-1.1) AND " +
           "(GPL-2.0-with-classpath-exception OR LicenseRef-CDDL-UNSPECIFIED) AND Apache-2.0 AND CC0-1.0 AND " +
-          "EPL-1.0 AND LicenseRef-PUBLIC-DOMAIN AND LicenseRef-See-License-Clause AND MIT)"
-  );
+          "EPL-1.0 AND LicenseRef-PUBLIC-DOMAIN AND LicenseRef-See-License-Clause AND MIT)");
 
   private void assertLicenses(final SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException {
     AnyLicenseInfo licenseDeclared = spdxPackage.getLicenseDeclared();
@@ -592,8 +592,7 @@ public class ApiSpdxServiceTest
       "com.fasterxml.jackson.core:jackson-databind -> com.fasterxml.jackson.core:jackson-core",
       "com.sonatype.testing:pr-comment-02 -> net.sf.ehcache:ehcache",
       "com.sonatype.testing:pr-comment-02 -> net.sf.ehcache:sizeof-agent",
-      "net.sf.ehcache:ehcache -> org.slf4j:slf4j-api"
-  );
+      "net.sf.ehcache:ehcache -> org.slf4j:slf4j-api");
 
   private void assertRelationships(SpdxPackage spdxPackage) throws Exception {
     final Collection<Relationship> relationships = spdxPackage.getRelationships();
@@ -622,14 +621,13 @@ public class ApiSpdxServiceTest
         "sonatype:iq_application_Test App");
   }
 
-  private SpdxDocument deserialize(String content, String format)
-      throws Exception
-  {
+  private SpdxDocument deserialize(String content, String format) throws Exception {
     String uri;
     IModelStore modelStore = new InMemSpdxStore();
     try (MultiFormatStore multiFormatStore =
-             new MultiFormatStore(modelStore, "json".equals(format) ? Format.JSON : Format.XML, Verbose.COMPACT);
-         InputStream in = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))) {
+        new MultiFormatStore(modelStore, "json".equals(format) ? Format.JSON : Format.XML, Verbose.COMPACT);
+        InputStream in = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)))
+    {
       uri = multiFormatStore.deSerialize(in, true);
     }
     return new SpdxDocument(modelStore, uri, DefaultModelStore.getDefaultCopyManager(), true);

@@ -45,7 +45,7 @@ public class VersionScoringService
   /**
    * @param componentIdentifiers a list of components with "from-versions"
    * @return a map whose keys are each of the "from-version" from input,
-   * values are their corresponding "to-versions", sorted by scores, from highest to lowest.
+   *         values are their corresponding "to-versions", sorted by scores, from highest to lowest.
    */
   public Map<ComponentIdentifier, List<String>> getSortedNonBreakingVersionsNoAuth(
       Collection<ComponentIdentifier> componentIdentifiers)
@@ -53,12 +53,13 @@ public class VersionScoringService
     Map<ComponentIdentifier, List<String>> result = new HashMap<>();
     if (MAVEN_VERSION_SCORE_ONLY) {
       componentIdentifiers = componentIdentifiers.stream()
-        .filter(ComponentIdentifier::isMaven)
-        .toList();
+          .filter(ComponentIdentifier::isMaven)
+          .toList();
     }
     for (VersionScoringDTO versionScoringDTO : getVersionScoringNoAuth(componentIdentifiers)) {
       Map<String, ToVersionData> toVersionsNonBreaking = versionScoringDTO.getToVersionsNonBreaking();
-      List<String> versionSortedByScore = toVersionsNonBreaking.entrySet().parallelStream()
+      List<String> versionSortedByScore = toVersionsNonBreaking.entrySet()
+          .parallelStream()
           .sorted(Entry.comparingByValue(Comparator.comparingInt(ToVersionData::getToComponentVersionScore).reversed()))
           .map(Entry::getKey)
           .toList();
@@ -70,8 +71,7 @@ public class VersionScoringService
   private Collection<VersionScoringDTO> getVersionScoringNoAuth(Collection<ComponentIdentifier> componentIdentifiers) {
     final Map<String, String> queryParams = Map.of("stableVersionsOnly", "true");
     final List<VersionScoringDTO> versionScoringData = List.of(
-        hdsClient.post(VersionScoringDTO[].class, HDS_BULK_SCORE_VERSIONING_PATH, componentIdentifiers, queryParams)
-    );
+        hdsClient.post(VersionScoringDTO[].class, HDS_BULK_SCORE_VERSIONING_PATH, componentIdentifiers, queryParams));
     log.debug("Received {} version scoring entries from HDS", versionScoringData.size());
     return versionScoringData;
   }

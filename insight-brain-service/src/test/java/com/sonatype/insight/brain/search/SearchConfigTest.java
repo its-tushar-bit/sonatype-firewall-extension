@@ -111,8 +111,8 @@ public class SearchConfigTest
   @Test
   public void testAwsConfig_VariousValidRegions() throws Exception {
     String[] validRegions = {
-        "us-east-1", "us-west-2", "eu-west-1", "eu-central-1",
-        "ap-south-1", "ap-northeast-1", "ca-central-1", "sa-east-1"
+      "us-east-1", "us-west-2", "eu-west-1", "eu-central-1",
+      "ap-south-1", "ap-northeast-1", "ca-central-1", "sa-east-1"
     };
 
     for (String region : validRegions) {

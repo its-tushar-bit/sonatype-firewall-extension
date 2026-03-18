@@ -85,7 +85,7 @@ public class User
    * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
    * usernameLowercase field. If this method is not defined, jackson will set/access the
    * usernameLowercase field directly via reflection, possibly setting it to an incorrect value.
-   * 
+   *
    * @deprecated This method should not be used explicitly.
    */
   @Deprecated

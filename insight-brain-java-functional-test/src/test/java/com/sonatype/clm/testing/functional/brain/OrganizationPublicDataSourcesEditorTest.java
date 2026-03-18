@@ -45,7 +45,7 @@ public class OrganizationPublicDataSourcesEditorTest
 
   @Test
   public void testEditPublicDataSourceConfiguration_updateConfig_forRoot() {
-    //Enabled in db by default
+    // Enabled in db by default
     currentOwner = ownerDao.getById(Organization.ROOT_ORGANIZATION_ID);
     initPublicDataConfiguration(currentOwner, true, true);
 
@@ -121,8 +121,9 @@ public class OrganizationPublicDataSourcesEditorTest
     assertThat(inheritedRadioInput.text().contains(" (Disabled)")).isTrue();
     inheritedRadioInput.shouldHave(cssClass(RADIO_SELECTED_CSS_CLASS));
 
-    PublicDataSourcesEditorPage.radioInputs().forEach(input -> input.shouldHave(
-        attribute("disabled", "")));
+    PublicDataSourcesEditorPage.radioInputs()
+        .forEach(input -> input.shouldHave(
+            attribute("disabled", "")));
     PublicDataSourcesEditorPage.allowOverridesCheckbox().shouldHave(attribute("disabled", ""));
   }
 }

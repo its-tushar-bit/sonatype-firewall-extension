@@ -82,8 +82,9 @@ public class LicenseThreatGroupConditionTypeTest
 
   @Test
   public void testEvaluateIs_Declared() {
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0").get(
-        0);
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0")
+        .get(
+            0);
 
     // Create policy constraints
     Constraint constraint = createConstraint("is", licenseThreatGroup.getId());
@@ -117,16 +118,24 @@ public class LicenseThreatGroupConditionTypeTest
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
 
     assertThat(actualReason).isEqualTo("Found licenses in the 'Copyleft' license threat group ('GPL-2.0')");
   }
 
   @Test
   public void testEvaluateIsNot_Declared() {
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0").get(
-        0);
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0")
+        .get(
+            0);
 
     // Create policy constraints
     Constraint constraint = createConstraint("is not", licenseThreatGroup.getId());
@@ -160,16 +169,24 @@ public class LicenseThreatGroupConditionTypeTest
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
 
     assertThat(actualReason).isEqualTo("Did not find a license in the 'Copyleft' license threat group");
   }
 
   @Test
   public void testEvaluateIs_Observed() {
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0").get(
-        0);
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0")
+        .get(
+            0);
 
     // Create policy constraints
     Constraint constraint = createConstraint("is", licenseThreatGroup.getId());
@@ -203,16 +220,24 @@ public class LicenseThreatGroupConditionTypeTest
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
 
     assertThat(actualReason).isEqualTo("Found licenses in the 'Copyleft' license threat group ('GPL-2.0')");
   }
 
   @Test
   public void testEvaluateIsNot_Observed() {
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0").get(
-        0);
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0")
+        .get(
+            0);
 
     // Create policy constraints
     Constraint constraint = createConstraint("is not", licenseThreatGroup.getId());
@@ -246,8 +271,15 @@ public class LicenseThreatGroupConditionTypeTest
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
 
     assertThat(actualReason).isEqualTo("Did not find a license in the 'Copyleft' license threat group");
   }
@@ -293,16 +325,24 @@ public class LicenseThreatGroupConditionTypeTest
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
 
     assertThat(actualReason).isEqualTo("Found licenses in the 'Copyleft' license threat group ('GPL-2.0')");
   }
 
   @Test
   public void testEvaluateIsNot_Overridden() {
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0").get(
-        0);
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0")
+        .get(
+            0);
 
     // Create policy constraints
     Constraint constraint = createConstraint("is not", licenseThreatGroup.getId());
@@ -340,8 +380,15 @@ public class LicenseThreatGroupConditionTypeTest
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
 
     assertThat(actualReason).isEqualTo("Did not find a license in the 'Copyleft' license threat group");
   }
@@ -351,8 +398,8 @@ public class LicenseThreatGroupConditionTypeTest
     Condition condition = new Condition(LicenseThreatGroupConditionType.ID, "is", "abc");
     assertThatThrownBy(
         () -> ConditionTypes.LicenseThreatGroupConditionType.validateCondition(null, condition, app.getId()))
-        .isInstanceOf(InvalidConditionException.class)
-        .hasMessageEndingWith("Invalid license threat group id: abc");
+            .isInstanceOf(InvalidConditionException.class)
+            .hasMessageEndingWith("Invalid license threat group id: abc");
   }
 
   @Test
@@ -400,8 +447,15 @@ public class LicenseThreatGroupConditionTypeTest
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
 
     assertThat(actualReason).isEqualTo("Found licenses in the 'testEvaluate-LicenseThreatGroupFromOrganization' "
         + "license threat group ('Apache-2.0')");
@@ -529,8 +583,15 @@ public class LicenseThreatGroupConditionTypeTest
     assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
 
     assertThat(actualReason).isEqualTo("Found licenses in the 'Copyleft' license threat group ('GPL-2.0')");
   }
@@ -590,8 +651,15 @@ public class LicenseThreatGroupConditionTypeTest
     assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, LicenseThreatGroupConditionType.ID,
         expectedConditionTrigger, policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason)
         .isEqualTo("Found licenses in the 'TestLTG' license threat group ('Apache-2.0', 'GPL-2.0')");
   }

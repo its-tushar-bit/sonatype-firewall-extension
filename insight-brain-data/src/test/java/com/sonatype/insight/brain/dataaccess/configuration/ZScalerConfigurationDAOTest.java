@@ -129,7 +129,8 @@ public class ZScalerConfigurationDAOTest
     config.setId("not-singleton-id");
     dao.update(config);
     assertThat(dao.createQuery("SELECT entity FROM ZScalerConfiguration entity").getList())
-        .extracting(ZScalerConfiguration::getId).containsExactly(SINGLETON_ENTITY_ID);
+        .extracting(ZScalerConfiguration::getId)
+        .containsExactly(SINGLETON_ENTITY_ID);
   }
 
   @Test

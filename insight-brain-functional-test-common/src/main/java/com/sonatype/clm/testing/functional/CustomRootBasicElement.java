@@ -15,7 +15,7 @@ import com.codeborne.selenide.SelenideElement;
  * @param <T>
  */
 public class CustomRootBasicElement<T extends BasicElement<T>>
-    extends BasicElement <T>
+    extends BasicElement<T>
 {
   protected CustomRootBasicElement(SelenideElement element) {
     super("");

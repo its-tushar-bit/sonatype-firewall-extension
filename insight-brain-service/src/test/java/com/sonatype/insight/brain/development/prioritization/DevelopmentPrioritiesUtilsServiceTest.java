@@ -90,8 +90,7 @@ public class DevelopmentPrioritiesUtilsServiceTest
             componentIdentifier1),
         createVersionChangeOption(ApiVersionChangeOptionType.NEXT_NON_FAILING, componentIdentifier2),
         createVersionChangeOption(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
-            componentIdentifier3)
-    );
+            componentIdentifier3));
 
     ComponentIdentifier componentIdentifier5 = ComponentIdentifier.createMavenCoordinates("g4",
         "a4", "v4");
@@ -108,7 +107,7 @@ public class DevelopmentPrioritiesUtilsServiceTest
 
     assertThat(developmentPrioritiesUtilsService.getPrioritizationRemediation(remediation, "1.0" +
         ".0")).isEqualTo(new PrioritizationRemediationVersionDTO("v4",
-        ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES));
+            ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES));
   }
 
   @Test
@@ -125,12 +124,11 @@ public class DevelopmentPrioritiesUtilsServiceTest
             componentIdentifier1),
         createVersionChangeOption(ApiVersionChangeOptionType.NEXT_NON_FAILING, componentIdentifier2),
         createVersionChangeOption(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
-            componentIdentifier3)
-    );
+            componentIdentifier3));
 
     assertThat(developmentPrioritiesUtilsService.getPrioritizationRemediation(remediation, "1.0" +
         ".0")).isEqualTo(new PrioritizationRemediationVersionDTO("v3",
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES));
+            ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES));
   }
 
   @Test
@@ -147,12 +145,11 @@ public class DevelopmentPrioritiesUtilsServiceTest
             componentIdentifier1),
         createVersionChangeOption(ApiVersionChangeOptionType.NEXT_NON_FAILING, componentIdentifier2),
         createVersionChangeOption(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
-            componentIdentifier3)
-    );
+            componentIdentifier3));
 
     assertThat(developmentPrioritiesUtilsService.getPrioritizationRemediation(remediation, "1.0" +
         ".0")).isEqualTo(new PrioritizationRemediationVersionDTO("v3",
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS));
+            ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS));
   }
 
   @Test
@@ -165,12 +162,11 @@ public class DevelopmentPrioritiesUtilsServiceTest
     remediation.versionChanges = List.of(
         createVersionChangeOption(ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES,
             componentIdentifier1),
-        createVersionChangeOption(ApiVersionChangeOptionType.NEXT_NON_FAILING, componentIdentifier2)
-    );
+        createVersionChangeOption(ApiVersionChangeOptionType.NEXT_NON_FAILING, componentIdentifier2));
 
     assertThat(developmentPrioritiesUtilsService.getPrioritizationRemediation(remediation, "1.0" +
         ".0")).isEqualTo(new PrioritizationRemediationVersionDTO("v1",
-        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES));
+            ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES));
   }
 
   @Test
@@ -181,18 +177,16 @@ public class DevelopmentPrioritiesUtilsServiceTest
         "a1", "v1");
 
     remediation.versionChanges = List.of(
-        createVersionChangeOption(ApiVersionChangeOptionType.NEXT_NON_FAILING, componentIdentifier)
-    );
+        createVersionChangeOption(ApiVersionChangeOptionType.NEXT_NON_FAILING, componentIdentifier));
 
     assertThat(developmentPrioritiesUtilsService.getPrioritizationRemediation(remediation, "1.0" +
         ".0")).isEqualTo(new PrioritizationRemediationVersionDTO("v1",
-        ApiVersionChangeOptionType.NEXT_NON_FAILING));
+            ApiVersionChangeOptionType.NEXT_NON_FAILING));
   }
 
   private ApiVersionChangeOptionDTO createVersionChangeOption(
       final ApiVersionChangeOptionType type,
-      final ComponentIdentifier componentIdentifier
-  )
+      final ComponentIdentifier componentIdentifier)
   {
     final ApiVersionChangeOptionDTO versionChangeOption = new ApiVersionChangeOptionDTO();
     versionChangeOption.setType(type);

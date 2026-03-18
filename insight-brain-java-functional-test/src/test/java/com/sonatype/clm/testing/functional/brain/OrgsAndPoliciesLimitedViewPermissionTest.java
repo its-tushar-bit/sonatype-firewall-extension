@@ -75,8 +75,7 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
     tempEntity.newMembershipMapping(
         organizationWithPermissions.getId(),
         Role.DEVELOPER_ROLE_ID,
-        developerUser.getUsername()
-    );
+        developerUser.getUsername());
 
     login(developerUser.getUsername(), developerUser.getPassword());
     waitUntilUrl(OwnerSummaryPage.url(OwnerType.ORGANIZATION, commonAncestorOwner.getId()));
@@ -103,8 +102,7 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
       tempEntity.newMembershipMapping(
           app.getId(),
           Role.DEVELOPER_ROLE_ID,
-          developerUser.getUsername()
-      );
+          developerUser.getUsername());
     });
 
     List<Organization> childOrgs = organizationDAO.getByParentOrganizationId(commonAncestorOwner.getId());
@@ -131,8 +129,7 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
       tempEntity.newMembershipMapping(
           app.getId(),
           Role.DEVELOPER_ROLE_ID,
-          developerUser.getUsername()
-      );
+          developerUser.getUsername());
     });
 
     tempEntity
@@ -162,19 +159,17 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
     tempEntity.newMembershipMapping(
         parentOrg1.getId(),
         Role.DEVELOPER_ROLE_ID,
-        developerUser.getUsername()
-    );
+        developerUser.getUsername());
 
     tempEntity.newMembershipMapping(
         parentOrg2.getId(),
         Role.DEVELOPER_ROLE_ID,
-        developerUser.getUsername()
-    );
+        developerUser.getUsername());
 
     tempEntity
         .newMembershipMapping(RepositoryContainer.REPOSITORY_CONTAINER_ID, Role.DEVELOPER_ROLE_ID,
             developerUser.getUsername());
-    
+
     commonAncestorOwner = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
 
     login(developerUser.getUsername(), developerUser.getPassword());
@@ -195,8 +190,7 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
       tempEntity.newMembershipMapping(
           app.getId(),
           Role.DEVELOPER_ROLE_ID,
-          developerUser.getUsername()
-      );
+          developerUser.getUsername());
     });
 
     List<Organization> childOrgs = Collections.emptyList();
@@ -226,14 +220,12 @@ public class OrgsAndPoliciesLimitedViewPermissionTest
     tempEntity.newMembershipMapping(
         parentOrg1.getId(),
         Role.DEVELOPER_ROLE_ID,
-        developerUser.getUsername()
-    );
+        developerUser.getUsername());
 
     tempEntity.newMembershipMapping(
         parentOrg2.getId(),
         Role.DEVELOPER_ROLE_ID,
-        developerUser.getUsername()
-    );
+        developerUser.getUsername());
 
     List<Application> childApps = Collections.emptyList();
     commonAncestorOwner = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);

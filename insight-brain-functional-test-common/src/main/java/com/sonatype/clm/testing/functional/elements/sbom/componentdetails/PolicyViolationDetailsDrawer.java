@@ -11,7 +11,8 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
-public class PolicyViolationDetailsDrawer extends BasicElement<PolicyViolationDetailsDrawer>
+public class PolicyViolationDetailsDrawer
+    extends BasicElement<PolicyViolationDetailsDrawer>
 {
   static final String ROOT_SELECTOR = "#sbom-manager-policy-violation-details-drawer";
 
@@ -26,7 +27,7 @@ public class PolicyViolationDetailsDrawer extends BasicElement<PolicyViolationDe
   public SelenideElement closeButton() {
     return child("header .nx-btn--close");
   }
-  
+
   public static SbomManagerViolationDetailsTile sbomManagerViolationDetailsTile() {
     return new SbomManagerViolationDetailsTile();
   }
@@ -34,18 +35,18 @@ public class PolicyViolationDetailsDrawer extends BasicElement<PolicyViolationDe
   public static PolicyViolationConstraintInfo policyViolationConstraintInfo() {
     return new PolicyViolationConstraintInfo();
   }
-  
+
   public static class SbomManagerViolationDetailsTile
       extends BasicElement<SbomManagerViolationDetailsTile>
   {
     public SbomManagerViolationDetailsTile() {
       super("#sbom-manager-violation-details-tile");
     }
-    
+
     public SelenideElement threatLevelValue() {
       return child(".sbom-manager-violation-details__threat-level dd");
     }
-    
+
     public SelenideElement policyTypeValue() {
       return child(".sbom-manager-violation-details__policy-type dd");
     }
@@ -63,7 +64,7 @@ public class PolicyViolationDetailsDrawer extends BasicElement<PolicyViolationDe
     }
 
     public SelenideElement reasons() {
-      return child("#policy-violation-reasons"); 
+      return child("#policy-violation-reasons");
     }
 
     public SelenideElement packageUrl() {
@@ -88,12 +89,12 @@ public class PolicyViolationDetailsDrawer extends BasicElement<PolicyViolationDe
 
     public SelenideElement getVulnerabilityDetailsContentByFirstColumnIdx(int num) {
       return child(".sbom-vulnerability-details .nx-grid-col", nthChild(1), ".nx-read-only",
-              nthChild(num + 1), ".nx-read-only__data");
+          nthChild(num + 1), ".nx-read-only__data");
     }
 
     public SelenideElement getVulnerabilityDetailsContentBySecondColumnIdx(int num) {
       return child(".sbom-vulnerability-details .nx-grid-col", nthChild(2), ".nx-read-only",
-              nthChild(num), ".nx-read-only__data");
+          nthChild(num), ".nx-read-only__data");
     }
   }
 }

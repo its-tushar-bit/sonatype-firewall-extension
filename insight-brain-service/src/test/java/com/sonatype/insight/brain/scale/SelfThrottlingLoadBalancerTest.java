@@ -73,8 +73,7 @@ public class SelfThrottlingLoadBalancerTest
     // given: a partition assigned to some other instance
     Date futureDate = new Date(System.currentTimeMillis() + 60_000);
     List<PerpetualLock> perpetualLocks = ImmutableList.of(
-        new PerpetualLock(TEST_CATEGORY, "somePartition").setOwner("otherInstance").setExpirationTime(futureDate)
-    );
+        new PerpetualLock(TEST_CATEGORY, "somePartition").setOwner("otherInstance").setExpirationTime(futureDate));
     when(mockPerpetualLockManager.getAllActivePerpetualLocksForCategory(TEST_CATEGORY)).thenReturn(perpetualLocks);
 
     // when: try to use that partition
@@ -91,8 +90,7 @@ public class SelfThrottlingLoadBalancerTest
     List<PerpetualLock> perpetualLocks = ImmutableList.of(
         new PerpetualLock(TEST_CATEGORY, "somePartition")
             .setOwner(testableSelfThrottlingLoadBalancer.getInstanceId())
-            .setExpirationTime(futureDate)
-    );
+            .setExpirationTime(futureDate));
     when(mockPerpetualLockManager.getAllActivePerpetualLocksForCategory(TEST_CATEGORY)).thenReturn(perpetualLocks);
     when(mockPerpetualLockManager.tryAcquireLock(
         "somePartition",
@@ -114,8 +112,7 @@ public class SelfThrottlingLoadBalancerTest
     List<PerpetualLock> perpetualLocks = ImmutableList.of(
         new PerpetualLock(TEST_CATEGORY, "somePartition")
             .setOwner(testableSelfThrottlingLoadBalancer.getInstanceId())
-            .setExpirationTime(futureDate)
-    );
+            .setExpirationTime(futureDate));
     when(mockPerpetualLockManager.getAllActivePerpetualLocksForCategory(TEST_CATEGORY)).thenReturn(perpetualLocks);
     when(mockPerpetualLockManager.tryAcquireLock(
         "somePartition",

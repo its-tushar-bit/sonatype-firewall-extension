@@ -44,7 +44,8 @@ public class ApiComponentReleaseQuarantineResourceTest
 
     HttpResponse response = restRequest().path(PublicApiPaths.COMPONENT_QUARANTINE_RELEASE_PATH_V2)
         .parameter(repositoryComponent.getId())
-        .body("waiver comment", MediaType.TEXT_PLAIN).post();
+        .body("waiver comment", MediaType.TEXT_PLAIN)
+        .post();
     assertResponseStatus(200, response);
 
     ApiComponentReleasedFromQuarantineDTO result = response.getBody(ApiComponentReleasedFromQuarantineDTO.class);

@@ -106,8 +106,7 @@ public class ApiReportServiceV2
           REPORT_HISTORY_THREADS_MIN,
           REPORT_HISTORY_THREADS_MAX,
           REPORT_HISTORY_THREADS_DEFAULT,
-          REPORT_HISTORY_THREADS
-      );
+          REPORT_HISTORY_THREADS);
       TenantThreadPoolExecutor tenantThreadPoolExecutor = new TenantThreadPoolExecutor(
           reportHistoryThreadCount,
           reportHistoryThreadCount,
@@ -117,8 +116,7 @@ public class ApiReportServiceV2
           new ThreadFactoryBuilder().setNameFormat("ReportHistory-%d").build(),
           new AbortPolicy(),
           "report_history",
-          getClass().getSimpleName()
-      );
+          getClass().getSimpleName());
       tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
       shutdownHandler.add(tenantThreadPoolExecutor);
       return tenantThreadPoolExecutor;
@@ -142,7 +140,9 @@ public class ApiReportServiceV2
 
   @Authorize(permission = Permission.READ)
   public ApiReportHistoryDTO getReportHistoryForApplication(
-      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId, String stage, Integer limit)
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
+      String stage,
+      Integer limit)
   {
     Application application = applicationDAO.getByIdNotNull(applicationId);
 
@@ -154,8 +154,7 @@ public class ApiReportServiceV2
       throw new BadRequestException("Limit must be positive integer.");
     }
 
-    final ApiReportHistoryDTO
-        apiReportHistoryDTO = new ApiReportHistoryDTO();
+    final ApiReportHistoryDTO apiReportHistoryDTO = new ApiReportHistoryDTO();
     apiReportHistoryDTO.applicationId = applicationId;
     apiReportHistoryDTO.reports = new CopyOnWriteArrayList<>();
     loadReportHistory(apiReportHistoryDTO, application, stage, limit);
@@ -241,8 +240,7 @@ public class ApiReportServiceV2
           policyEvaluation,
           scanPolicyEvaluator.createPolicyEvaluationResult(policyEvaluation, policyViolations, false,
               summaryReportEntry),
-          getScannerVersion(summaryReportEntry)
-      );
+          getScannerVersion(summaryReportEntry));
       populateReportDTO(apiReportResultsDTO, application, policyEvaluation);
       apiReportHistoryDTO.reports.add(apiReportResultsDTO);
     }

@@ -16,10 +16,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class DoubleColumnPickerTestHelper
 {
-  public static void assertDoubleColumnPickerDefaultState(DoubleColumnPicker picker,
-                                                          int numAvailableItems,
-                                                          int numPickedItems,
-                                                          boolean filterOn)
+  public static void assertDoubleColumnPickerDefaultState(
+      DoubleColumnPicker picker,
+      int numAvailableItems,
+      int numPickedItems,
+      boolean filterOn)
   {
     picker.shouldBe(visible);
 
@@ -44,9 +45,10 @@ public class DoubleColumnPickerTestHelper
     picker.availableItems().shouldHave(size(numAvailableItems));
   }
 
-  public static void assertDoubleColumnPickerDefaultState(DoubleColumnPicker picker,
-                                                          int numAvailableItems,
-                                                          boolean filterOn)
+  public static void assertDoubleColumnPickerDefaultState(
+      DoubleColumnPicker picker,
+      int numAvailableItems,
+      boolean filterOn)
   {
     assertDoubleColumnPickerDefaultState(picker, numAvailableItems, 0, filterOn);
   }

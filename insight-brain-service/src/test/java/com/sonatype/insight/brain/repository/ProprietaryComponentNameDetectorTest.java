@@ -129,7 +129,7 @@ public class ProprietaryComponentNameDetectorTest
             .withNamespacePattern("@sonatype");
     assertThat(
         proprietaryComponentNameDetector.addPatterns(ComponentIdentifier.FORMAT_NPM, Arrays.asList(pattern1, pattern2)))
-        .isEqualTo(2);
+            .isEqualTo(2);
 
     verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(proprietaryComponentNameDetector);
     Mockito.reset(mockTaskScheduler);
@@ -140,10 +140,12 @@ public class ProprietaryComponentNameDetectorTest
 
     assertMatch(proprietaryComponentNameDetector
         .findProprietaryComponentName(
-            ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999")), "sonatype*");
+            ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999")),
+        "sonatype*");
     assertMatch(proprietaryComponentNameDetector
         .findProprietaryComponentName(
-            ComponentIdentifier.createNpmCoordinates("@sonatype/cli", "999")), "@sonatype/*");
+            ComponentIdentifier.createNpmCoordinates("@sonatype/cli", "999")),
+        "@sonatype/*");
     assertThat(proprietaryComponentNameDetector
         .findProprietaryComponentName(
             ComponentIdentifier.createNpmCoordinates("NOTsonatype-cli", "99"))).isNull();

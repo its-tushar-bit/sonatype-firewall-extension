@@ -86,29 +86,37 @@ public class OrganizationResourceTest
 
     // Add invalid icon
     byte[] defaultIconByteArray = IconUtils.loadInvalidIcon();
-    response = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organizationId)
-        .part("hasRobotSource", "false").part("file", "defaulticon_organization.png", defaultIconByteArray).post();
+    response = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH)
+        .parameter(organizationId)
+        .part("hasRobotSource", "false")
+        .part("file", "defaulticon_organization.png", defaultIconByteArray)
+        .post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("defaulticon_organization.png is not a valid image."
         + " Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.");
 
     // Get icon (default icon)
     HttpResponse iconResponse = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH)
-        .parameter(organizationId).get();
+        .parameter(organizationId)
+        .get();
     assertResponseStatus(307, iconResponse);
     assertThat(iconResponse.getHeader("Location"))
         .isEqualTo(getRestBaseUrl() + "assets/img/defaulticon_organization.png");
 
     // Get icon (default Root Org icon)
     iconResponse = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH)
-        .parameter(Organization.ROOT_ORGANIZATION_ID).get();
+        .parameter(Organization.ROOT_ORGANIZATION_ID)
+        .get();
     assertResponseStatus(307, iconResponse);
     assertThat(iconResponse.getHeader("Location")).isEqualTo(getRestBaseUrl() + "assets/img/defaulticon_root_org.png");
 
     // Add icon
     defaultIconByteArray = loadDefaultIcon();
-    response = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organizationId)
-        .part("hasRobotSource", "false").part("file", "defaulticon_organization.png", defaultIconByteArray).post();
+    response = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH)
+        .parameter(organizationId)
+        .part("hasRobotSource", "false")
+        .part("file", "defaulticon_organization.png", defaultIconByteArray)
+        .post();
     assertResponseStatus(200, response);
 
     // Get icon
@@ -132,8 +140,10 @@ public class OrganizationResourceTest
     assertThat(organization.getName()).isEqualTo("OrganizationResourceTest updated");
 
     // Update icon
-    response = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organizationId)
-        .part("hasRobotSource", "false").post();
+    response = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH)
+        .parameter(organizationId)
+        .part("hasRobotSource", "false")
+        .post();
     assertResponseStatus(200, response);
 
     // now create related objects to test delete cascades
@@ -238,7 +248,8 @@ public class OrganizationResourceTest
   public void testGetOrganization() throws Exception {
     Organization testOrg = tempEntity.newOrganization();
     HttpResponse response = restRequest().path(OrganizationResource.GET_ORGANIZATION_PATH)
-        .parameter(testOrg.getId()).get();
+        .parameter(testOrg.getId())
+        .get();
     assertResponseStatus(200, response);
 
     Organization responseOrg = response.getBody(Organization.class);
@@ -250,7 +261,8 @@ public class OrganizationResourceTest
   @Test
   public void testGetOrganization_idDoesNotExist() throws Exception {
     HttpResponse response = restRequest().path(OrganizationResource.GET_ORGANIZATION_PATH)
-        .parameter("ID_IS_NOT_REAL").get();
+        .parameter("ID_IS_NOT_REAL")
+        .get();
     assertResponseStatus(404, response);
   }
 
@@ -268,7 +280,7 @@ public class OrganizationResourceTest
     Application application = tempEntity.newApplication(organizations.get(0).getId());
 
     // create a bunch of validation errors to assert in csv
-    //tags
+    // tags
     Tag tag1 = tempEntity.newTag(organizations.get(1).getId());
     Tag tag2 = tempEntity.newTag(organizations.get(1).getId());
     tempEntity.newApplicationTag(application.getId(), tag1.getId());

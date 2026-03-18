@@ -272,12 +272,14 @@ public class FirewallComponentDetailsPageTest
 
     try {
       // Used when componentDetails are requested
-      testCLMServer.getHdsServer().respondWith(mainComponentDetail)
+      testCLMServer.getHdsServer()
+          .respondWith(mainComponentDetail)
           .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
               + URLEncoder.encode(JsonUtils.format(mainComponentDetail.getComponentIdentifier()), "UTF-8") + "&hash="
               + mainComponentDetail.getHash());
       // Used when multi license details are requested
-      testCLMServer.getHdsServer().respondWith(mainComponentDetail)
+      testCLMServer.getHdsServer()
+          .respondWith(mainComponentDetail)
           .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
               + URLEncoder.encode(JsonUtils.format(mainComponentDetail.getComponentIdentifier()), "UTF-8"));
     }
@@ -310,22 +312,26 @@ public class FirewallComponentDetailsPageTest
 
     try {
       // Used when componentDetails are requested
-      testCLMServer.getHdsServer().respondWith(mainComponentDetail)
+      testCLMServer.getHdsServer()
+          .respondWith(mainComponentDetail)
           .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
               + URLEncoder.encode(JsonUtils.format(mainComponentDetail.getComponentIdentifier()), "UTF-8") + "&hash="
               + mainComponentDetail.getHash());
       // Used when multi license details are requested
-      testCLMServer.getHdsServer().respondWith(mainComponentDetail)
+      testCLMServer.getHdsServer()
+          .respondWith(mainComponentDetail)
           .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
               + URLEncoder.encode(JsonUtils.format(mainComponentDetail.getComponentIdentifier()), "UTF-8"));
       // Used when componentDetails are requested
-      testCLMServer.getHdsServer().respondWith(secondaryComponentDetail)
+      testCLMServer.getHdsServer()
+          .respondWith(secondaryComponentDetail)
           .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
               + URLEncoder.encode(JsonUtils.format(secondaryComponentDetail.getComponentIdentifier()), "UTF-8")
               + "&hash="
               + secondaryComponentDetail.getHash());
       // Used when multi license details are requested
-      testCLMServer.getHdsServer().respondWith(secondaryComponentDetail)
+      testCLMServer.getHdsServer()
+          .respondWith(secondaryComponentDetail)
           .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
               + URLEncoder.encode(JsonUtils.format(secondaryComponentDetail.getComponentIdentifier()), "UTF-8"));
     }
@@ -635,7 +641,8 @@ public class FirewallComponentDetailsPageTest
   }
 
   private Wait<WebDriver> getWebDriverAwait() {
-    return new FluentWait<>(getWebDriver()).withTimeout(Duration.ofSeconds(240)).pollingEvery(Duration.ofSeconds(2))
+    return new FluentWait<>(getWebDriver()).withTimeout(Duration.ofSeconds(240))
+        .pollingEvery(Duration.ofSeconds(2))
         .ignoring(NoSuchElementException.class);
   }
 
@@ -656,7 +663,9 @@ public class FirewallComponentDetailsPageTest
     waitUntilSpinnersGone();
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0).get(0).shouldBe(text("2"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0).get(1).shouldBe(text("Component-Unknown"));
-    firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0).get(3)
+    firewallPage.firewallQuarantineTable()
+        .tableBodyCellsFromRow(0)
+        .get(3)
         .shouldBe(text("unknownComponent (unknownComponent)"));
     firewallPage.firewallQuarantineTable().tableBodyCellsFromRow(0).get(4).shouldBe(text("repositoryPublicId"));
 
@@ -1337,9 +1346,11 @@ public class FirewallComponentDetailsPageTest
     testCLMServer.getHdsServer()
         .respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails_CVE-1234-56789.json"))
         .atUri("rest/vulnerability/details/json/CVE-1234-56789");
-    testCLMServer.getHdsServer().respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails2.json"))
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails2.json"))
         .atUri("rest/vulnerability/details/json/sonatype-2017-0507");
-    testCLMServer.getHdsServer().respondWith(Collections.emptyMap())
+    testCLMServer.getHdsServer()
+        .respondWith(Collections.emptyMap())
         .atUri("rest/vulnerability/details/json");
   }
 
@@ -1458,20 +1469,22 @@ public class FirewallComponentDetailsPageTest
     ElementsCollection waiversTableCells = componentWaiversTable.getCellsByNthRow(1);
 
     waiversTableCells.shouldHave(size(3));
-    waiversTableCells.get(0).shouldHave(text("Created\n" +
-        waiverCreateDateString + "\n" +
-        "Expiration\n" +
-        "Does not expire"));
-    waiversTableCells.get(1).shouldHave(Condition.text("Scope\n" +
-        "Organization - Root Organization\n" +
-        "Component\n" +
-        "unknownComponent (unknownComponent)\n" +
-        "Reason\n" +
-        "—\n" +
-        "Comment\n" +
-        "Test comment for waiver\n" +
-        "Author\n" +
-        "Test User"));
+    waiversTableCells.get(0)
+        .shouldHave(text("Created\n" +
+            waiverCreateDateString + "\n" +
+            "Expiration\n" +
+            "Does not expire"));
+    waiversTableCells.get(1)
+        .shouldHave(Condition.text("Scope\n" +
+            "Organization - Root Organization\n" +
+            "Component\n" +
+            "unknownComponent (unknownComponent)\n" +
+            "Reason\n" +
+            "—\n" +
+            "Comment\n" +
+            "Test comment for waiver\n" +
+            "Author\n" +
+            "Test User"));
   }
 
   public void testViolationTabWaiverTable(String url) {
@@ -1495,20 +1508,22 @@ public class FirewallComponentDetailsPageTest
     ElementsCollection waiversTableCells = componentWaiversTable.getCellsByNthRow(1);
 
     waiversTableCells.shouldHave(size(3));
-    waiversTableCells.get(0).shouldHave(text("Created\n" +
-        waiverCreateDateString + "\n" +
-        "Expiration\n" +
-        "Does not expire"));
-    waiversTableCells.get(1).shouldHave(text("Scope\n" +
-        "Organization - Root Organization\n" +
-        "Component\n" +
-        "com.lingocoder : abi.cli : 0.5.2\n" +
-        "Reason\n" +
-        "—\n" +
-        "Comment\n" +
-        "Test comment for waiver\n" +
-        "Author\n" +
-        "Test User"));
+    waiversTableCells.get(0)
+        .shouldHave(text("Created\n" +
+            waiverCreateDateString + "\n" +
+            "Expiration\n" +
+            "Does not expire"));
+    waiversTableCells.get(1)
+        .shouldHave(text("Scope\n" +
+            "Organization - Root Organization\n" +
+            "Component\n" +
+            "com.lingocoder : abi.cli : 0.5.2\n" +
+            "Reason\n" +
+            "—\n" +
+            "Comment\n" +
+            "Test comment for waiver\n" +
+            "Author\n" +
+            "Test User"));
   }
 
   private void testLegalTabPolicyViolationsTable() {
@@ -1663,7 +1678,8 @@ public class FirewallComponentDetailsPageTest
       ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
       LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
 
-      licenseDetectionsTile.shouldBe(visible).observedLicenses()
+      licenseDetectionsTile.shouldBe(visible)
+          .observedLicenses()
           .shouldHave(text("Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on."));
 
       licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses()).isEmpty();
@@ -2845,7 +2861,9 @@ public class FirewallComponentDetailsPageTest
     modal.yesButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
 
-    policyViolationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable().noWaiversMessage()
+    policyViolationDetailPopover.applicableWaiversInfoTile()
+        .getApplicableWaiversTable()
+        .noWaiversMessage()
         .shouldBe(visible);
   }
 
@@ -3054,7 +3072,7 @@ public class FirewallComponentDetailsPageTest
     policyViolationDetailPopover.shouldBe(visible);
     policyViolationDetailPopover.headerPopoverTitle().shouldHave(text(policyName));
 
-    //waitUntilSpinnersGone();
+    // waitUntilSpinnersGone();
     policyViolationDetailPopover.getAddWaiversButton().click();
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.shouldBe(visible);
@@ -3112,8 +3130,10 @@ public class FirewallComponentDetailsPageTest
     waitUntilSpinnersGone();
 
     RepositoryResultDetailPage.table().policyName().input().shouldHave(attribute("value", "Security"));
-    RepositoryResultDetailPage.table().quarantinedHeaderSortButton().shouldHave(
-        attribute("aria-label", "QUARANTINE TIME ascending"));
+    RepositoryResultDetailPage.table()
+        .quarantinedHeaderSortButton()
+        .shouldHave(
+            attribute("aria-label", "QUARANTINE TIME ascending"));
 
     RepositoryResultDetailPage.table().row(1).component().click();
     waitUntilSpinnersGone();
@@ -3126,14 +3146,16 @@ public class FirewallComponentDetailsPageTest
 
     RepositoryResultDetailPage.page().shouldBe(visible);
     RepositoryResultDetailPage.table().policyName().input().shouldHave(attribute("value", "Security"));
-    RepositoryResultDetailPage.table().quarantinedHeaderSortButton().shouldHave(
-        attribute("aria-label", "QUARANTINE TIME ascending"));
+    RepositoryResultDetailPage.table()
+        .quarantinedHeaderSortButton()
+        .shouldHave(
+            attribute("aria-label", "QUARANTINE TIME ascending"));
 
     String repositoryResultsViewCDPUrl = FirewallComponentDetailsPage.defaultUrlFromRepositoryResultsView(component);
 
     testTabs(repositoryResultsViewCDPUrl, component);
 
-    //overview tab
+    // overview tab
     testComponentOverviewTile(repositoryResultsViewCDPUrl);
     testRiskRemediationTile_VersionGraphExplorer(repositoryResultsViewCDPUrl);
     testRiskRemediationTile_RecommendedVersions_NoRecommendation(repositoryResultsViewCDPUrl);

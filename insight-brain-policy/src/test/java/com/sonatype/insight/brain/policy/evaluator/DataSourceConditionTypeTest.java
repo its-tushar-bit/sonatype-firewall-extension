@@ -85,9 +85,10 @@ public class DataSourceConditionTypeTest
   public void testValidateCondition_InvalidValue() {
     Condition condition = new Condition(DataSourceConditionType.ID, HAS_SUPPORT_FOR, "abc");
     assertThatThrownBy(() -> new DataSourceConditionType().validateCondition(null, condition, null /* applicationId */))
-        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
+        .isInstanceOf(InvalidConditionException.class)
+        .hasMessageEndingWith("Value not supported: abc");
   }
-  
+
   @Test
   public void testEvaluate_unknownComponent_HDS() {
     Constraint constraint = createConstraint(HAS_SUPPORT_FOR, IDENTITY.getId());
@@ -113,8 +114,15 @@ public class DataSourceConditionTypeTest
     assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, DataSourceConditionType.ID,
         policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Data Source has support for Identity");
   }
 
@@ -167,7 +175,7 @@ public class DataSourceConditionTypeTest
   @Test
   public void testEvaluatehasNoSupportForLicense_NoMetadata_License_Maven() {
     Constraint constraint = createConstraint(HAS_NO_SUPPORT_FOR, LICENSE.getId());
-    assertNoViolations(ComponentIdentifier.FORMAT_MAVEN, constraint,null);
+    assertNoViolations(ComponentIdentifier.FORMAT_MAVEN, constraint, null);
   }
 
   private void testEvaluateDataSource(
@@ -200,8 +208,15 @@ public class DataSourceConditionTypeTest
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, DataSourceConditionType.ID,
         policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo(expectedConditionMessage);
   }
 

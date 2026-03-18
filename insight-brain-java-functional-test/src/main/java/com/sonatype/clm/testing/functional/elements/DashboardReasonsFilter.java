@@ -14,7 +14,8 @@ import org.openqa.selenium.By;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
-public class DashboardReasonsFilter extends BasicElement<DashboardReasonsFilter>
+public class DashboardReasonsFilter
+    extends BasicElement<DashboardReasonsFilter>
 {
   public DashboardReasonsFilter(final String selector) {
     super(selector);
@@ -29,7 +30,7 @@ public class DashboardReasonsFilter extends BasicElement<DashboardReasonsFilter>
   }
 
   public SelenideElement acknowledgedViolationRiskCheck() {
-    return  child(".reason-9b704ef5bc064fc29d7fe08a251ee9a6");
+    return child(".reason-9b704ef5bc064fc29d7fe08a251ee9a6");
   }
 
   public NxCheckbox checkboxItem(int index) {

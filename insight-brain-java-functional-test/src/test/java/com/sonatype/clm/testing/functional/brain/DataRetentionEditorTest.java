@@ -88,7 +88,9 @@ public class DataRetentionEditorTest
     // Delete any DataRetentionPolicy created by the tests for the root org.
     Set<String> rootOrgDataRetentionPolicyIds =
         rootOrgDataRetentionPolicies.stream().map(DataRetentionPolicy::getId).collect(toSet());
-    dataRetentionPolicyDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).values().stream()
+    dataRetentionPolicyDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)
+        .values()
+        .stream()
         .filter(dataRetentionPolicy -> !rootOrgDataRetentionPolicyIds.contains(dataRetentionPolicy.getId()))
         .forEach(dataRetentionPolicyDAO::delete);
 
@@ -236,7 +238,9 @@ public class DataRetentionEditorTest
     RetentionEditor editor = EDITORS.get(contextId);
     editor.scrollIntoView();
     editor.inheritRadioButton()
-            .shouldBe(visible).shouldHave(cssClass("tm-checked")).shouldHave(textCaseSensitive(inheritText));
+        .shouldBe(visible)
+        .shouldHave(cssClass("tm-checked"))
+        .shouldHave(textCaseSensitive(inheritText));
     editor.disableRadioButton().shouldBe(visible).shouldNotHave(cssClass("tm-checked"));
     editor.customRadioButton().shouldBe(visible).shouldNotHave(cssClass("tm-checked"));
     editor.customRow().shouldNot(exist);
@@ -246,7 +250,9 @@ public class DataRetentionEditorTest
     RetentionEditor editor = EDITORS.get(contextId);
     editor.scrollIntoView();
     editor.inheritRadioButton()
-            .shouldBe(visible).shouldNotHave(cssClass("tm-checked")).shouldHave(textCaseSensitive(inheritText));
+        .shouldBe(visible)
+        .shouldNotHave(cssClass("tm-checked"))
+        .shouldHave(textCaseSensitive(inheritText));
     editor.disableRadioButton().shouldBe(visible).shouldHave(cssClass("tm-checked"));
     editor.customRadioButton().shouldBe(visible).shouldNotHave(cssClass("tm-checked"));
     editor.customRow().shouldNot(exist);
@@ -260,7 +266,9 @@ public class DataRetentionEditorTest
     RetentionEditor editor = EDITORS.get(contextId);
     editor.scrollIntoView();
     editor.inheritRadioButton()
-            .shouldBe(visible).shouldNotHave(cssClass("tm-checked")).shouldHave(textCaseSensitive(inheritText));
+        .shouldBe(visible)
+        .shouldNotHave(cssClass("tm-checked"))
+        .shouldHave(textCaseSensitive(inheritText));
     editor.disableRadioButton().shouldBe(visible).shouldNotHave(cssClass("tm-checked"));
     editor.customRadioButton().shouldBe(visible).shouldHave(cssClass("tm-checked"));
     editor.customRow().shouldBe(visible);
@@ -271,11 +279,12 @@ public class DataRetentionEditorTest
     checkCustom(contextId, "Inherit", maxAgeValue);
   }
 
-  private void checkCustom(String contextId,
-                           String inheritText,
-                           String maxAgeValue,
-                           String maxAgeTimeUnit,
-                           String maxCount)
+  private void checkCustom(
+      String contextId,
+      String inheritText,
+      String maxAgeValue,
+      String maxAgeTimeUnit,
+      String maxCount)
   {
     checkCustom(contextId, inheritText, maxAgeValue);
     ApplicationReportRetentionEditor appEditor = (ApplicationReportRetentionEditor) EDITORS.get(contextId);
@@ -284,20 +293,22 @@ public class DataRetentionEditorTest
     appEditor.maxCountInput().shouldBe(visible).shouldHave(value(maxCount));
   }
 
-  private void checkCustom(String contextId,
-                           String maxAgeValue,
-                           String maxAgeTimeUnit,
-                           String maxCount)
+  private void checkCustom(
+      String contextId,
+      String maxAgeValue,
+      String maxAgeTimeUnit,
+      String maxCount)
   {
     checkCustom(contextId, "Inherit", maxAgeValue, maxAgeTimeUnit, maxCount);
   }
 
-  private void validateCustom(String contextId,
-                              String maxAgeValue,
-                              String maxAgeTimeUnit,
-                              String maxCount,
-                              String maxAgeExpectedError,
-                              String maxCountExpectedError)
+  private void validateCustom(
+      String contextId,
+      String maxAgeValue,
+      String maxAgeTimeUnit,
+      String maxCount,
+      String maxAgeExpectedError,
+      String maxCountExpectedError)
   {
     setCustom(contextId, maxAgeValue, maxAgeTimeUnit, maxCount);
     RetentionEditor editor = EDITORS.get(contextId);
@@ -346,10 +357,11 @@ public class DataRetentionEditorTest
     editor.maxAgeInput().setValue(maxAgeValue);
   }
 
-  private void setCustom(String contextId,
-                         String maxAgeValue,
-                         String maxAgeTimeUnit,
-                         String maxCount)
+  private void setCustom(
+      String contextId,
+      String maxAgeValue,
+      String maxAgeTimeUnit,
+      String maxCount)
   {
     ApplicationReportRetentionEditor appEditor = (ApplicationReportRetentionEditor) EDITORS.get(contextId);
     appEditor.scrollIntoView();

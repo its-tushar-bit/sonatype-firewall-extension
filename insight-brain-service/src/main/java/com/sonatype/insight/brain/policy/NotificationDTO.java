@@ -23,8 +23,9 @@ public abstract class NotificationDTO
 
   public final Set<String> stageIds = new TreeSet<>();
 
-  NotificationDTO(final String notificationType,
-                  final Set<String> stageIds)
+  NotificationDTO(
+      final String notificationType,
+      final Set<String> stageIds)
   {
     this.notificationType = notificationType;
     this.stageIds.addAll(stageIds);

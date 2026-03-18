@@ -174,15 +174,16 @@ public class ApiFirewallServiceAuthzTest
 
     grantReadPermission(repositoryManager1.getId());
     result = apiFirewallService.getRepositoryManagers();
-    assertThat(result.repositoryManagers).extracting(rm -> rm.id).containsExactlyInAnyOrder(repositoryManager.getId(),
-        repositoryManager1.getId());
+    assertThat(result.repositoryManagers).extracting(rm -> rm.id)
+        .containsExactlyInAnyOrder(repositoryManager.getId(),
+            repositoryManager1.getId());
   }
 
   @Test
   public void testGetConfiguredRepositories_Authorized() {
     grantReadPermission(repository.getRepositoryManagerId());
     apiFirewallService
-            .getConfiguredRepositories(repository.getRepositoryManagerId(), 0L);
+        .getConfiguredRepositories(repository.getRepositoryManagerId(), 0L);
   }
 
   @Test(expected = UnauthenticatedException.class)

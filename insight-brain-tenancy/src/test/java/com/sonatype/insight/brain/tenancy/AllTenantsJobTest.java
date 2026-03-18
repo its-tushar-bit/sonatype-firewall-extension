@@ -26,7 +26,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AllTenantsJobTest extends MultiTenantTestSupport
+public class AllTenantsJobTest
+    extends MultiTenantTestSupport
 {
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();
@@ -126,7 +127,8 @@ public class AllTenantsJobTest extends MultiTenantTestSupport
     });
   }
 
-  private class StubbedAllTenantsJob implements AllTenantsJob
+  private class StubbedAllTenantsJob
+      implements AllTenantsJob
   {
     private final boolean licensed;
 

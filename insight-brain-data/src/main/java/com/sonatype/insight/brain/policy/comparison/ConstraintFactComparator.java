@@ -11,7 +11,8 @@ import java.util.List;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 
-class ConstraintFactComparator implements Comparator<ConstraintFact>
+class ConstraintFactComparator
+    implements Comparator<ConstraintFact>
 {
   static final Comparator<List<ConditionFact>> CONDITION_FACTS_LIST_COMPARATOR = new ConditionFactsListComparator();
 

@@ -71,11 +71,11 @@ public class PullRequestFeedbackDetails
   private static final String T_LOGO = "t-logo.png";
 
   private static final String[] THREAT_IMAGE_ARRAY = new String[]{
-      LIGHT_BLUE_BAR, // 0
-      DARK_BLUE_BAR, // 1
-      YELLOW_BAR, YELLOW_BAR, // 2 - 3
-      ORANGE_BAR, ORANGE_BAR, ORANGE_BAR, ORANGE_BAR, // 4 - 7
-      RED_BAR, RED_BAR, RED_BAR // 8 - 10
+    LIGHT_BLUE_BAR, // 0
+    DARK_BLUE_BAR, // 1
+    YELLOW_BAR, YELLOW_BAR, // 2 - 3
+    ORANGE_BAR, ORANGE_BAR, ORANGE_BAR, ORANGE_BAR, // 4 - 7
+    RED_BAR, RED_BAR, RED_BAR // 8 - 10
   };
 
   private static final int MAX_BITBUCKET_DESCRIPTION_COMPONENTS = 10;
@@ -169,7 +169,7 @@ public class PullRequestFeedbackDetails
    * Renders the template and returns the content
    *
    * @return An optional variable containing the Markdown-formatted contents of the Pull Request Comment, will be empty
-   * if no new violations or no components available
+   *         if no new violations or no components available
    */
   public Optional<String> renderTemplateAndGetContents() throws IOException {
     final String contents = constructContents();
@@ -186,25 +186,27 @@ public class PullRequestFeedbackDetails
     final List<PolicyViolation> introducedPolicyViolations = getIntroducedPolicyViolations();
     final List<PolicyViolation> fixedPolicyViolations = getFixedPolicyViolations();
 
-    //Policy violations grouped by component hash, any component not in the bom will not be considered
-    final Map<String, List<PolicyViolation>> componentPolicyViolationsMap = !introducedPolicyViolations.isEmpty() ?
-        getComponentPolicyViolationsMap(introducedPolicyViolations) : Collections.emptyMap();
+    // Policy violations grouped by component hash, any component not in the bom will not be considered
+    final Map<String, List<PolicyViolation>> componentPolicyViolationsMap = !introducedPolicyViolations.isEmpty()
+        ? getComponentPolicyViolationsMap(introducedPolicyViolations)
+        : Collections.emptyMap();
 
-    //Get a map containing the PR feedback for each of the components
+    // Get a map containing the PR feedback for each of the components
     final List<Map<String, Object>> newComponentFeedbackList = getNewComponentFeedbackList(componentPolicyViolationsMap,
         remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, iqBaseUrl);
     newViolationsComponentCount = newComponentFeedbackList.size();
 
-    final Map<String, List<PolicyViolation>> fixedComponentPolicyViolationsMap = !fixedPolicyViolations.isEmpty() ?
-        getComponentPolicyViolationsMap(fixedPolicyViolations) : Collections.emptyMap();
-    //Get a map containing the PR feedback for each of the components
+    final Map<String, List<PolicyViolation>> fixedComponentPolicyViolationsMap = !fixedPolicyViolations.isEmpty()
+        ? getComponentPolicyViolationsMap(fixedPolicyViolations)
+        : Collections.emptyMap();
+    // Get a map containing the PR feedback for each of the components
     final List<Map<String, Object>> fixedComponentFeedbackList =
         getFixedComponentFeedbackList(fixedComponentPolicyViolationsMap, iqBaseUrl);
     clearedViolationsComponentCount = fixedComponentFeedbackList.size();
 
     final boolean hasNoViolationsInPR = CollectionUtils.isEmpty(diff.getAppeared());
 
-    //Get a map containing all model values to be used in the template
+    // Get a map containing all model values to be used in the template
     final Map<String, Object> modelMap =
         getModelMap(
             newComponentFeedbackList,
@@ -221,10 +223,9 @@ public class PullRequestFeedbackDetails
     return diff.getCleared()
         .stream()
         .filter(policyViolationA -> diff
-              .getAppeared()
-              .stream()
-              .noneMatch(policyViolationB -> policyViolationsTheSame(policyViolationA, policyViolationB))
-        )
+            .getAppeared()
+            .stream()
+            .noneMatch(policyViolationB -> policyViolationsTheSame(policyViolationA, policyViolationB)))
         .collect(toList());
   }
 
@@ -232,10 +233,9 @@ public class PullRequestFeedbackDetails
     return diff.getAppeared()
         .stream()
         .filter(policyViolationA -> diff
-              .getCleared()
-              .stream()
-              .noneMatch(policyViolationB -> policyViolationsTheSame(policyViolationA, policyViolationB))
-        )
+            .getCleared()
+            .stream()
+            .noneMatch(policyViolationB -> policyViolationsTheSame(policyViolationA, policyViolationB)))
         .collect(toList());
   }
 
@@ -285,7 +285,7 @@ public class PullRequestFeedbackDetails
    * @param componentPolicyViolationsMap A map containing policy violations for each component
    * @param baseUrl The baseUrl of the IQ server
    * @return A list of maps, each containing the feedback for a specific component, the components are sorted according
-   * to highest threat level on the component
+   *         to highest threat level on the component
    */
   @VisibleForTesting
   List<Map<String, Object>> getFixedComponentFeedbackList(
@@ -317,7 +317,7 @@ public class PullRequestFeedbackDetails
    * @param pullRequestLineComments A list of newly created line comment details
    * @param baseUrl The baseUrl of the IQ server
    * @return A list of maps, each containing the feedback for a specific component, the components are sorted according
-   * to highest threat level on the component
+   *         to highest threat level on the component
    */
   @VisibleForTesting
   List<Map<String, Object>> getNewComponentFeedbackList(
@@ -354,11 +354,11 @@ public class PullRequestFeedbackDetails
               .put("componentNameAndVersion",
                   sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDisplayName())
               .put("dependencyLogo",
-                  sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDirectDependency() ==
-                      null ? BLANK_LOGO :
-                      sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDirectDependency() ?
-                          D_LOGO : T_LOGO
-              )
+                  sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDirectDependency() == null
+                      ? BLANK_LOGO
+                      : sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDirectDependency()
+                          ? D_LOGO
+                          : T_LOGO)
               .put("highestThreatLevel",
                   getHighestThreatLevel(componentEntry.getValue()))
               .put("suggestedVersion", suggestedVersion)
@@ -453,9 +453,10 @@ public class PullRequestFeedbackDetails
 
   /**
    * Gets the main model map needed to render the template
-   * @param newComponentFeedbackList     The list containing mappings of feedback for components introducing violations
-   * @param fixedComponentFeedbackList   The list containing mappings of feedback for components fixing violations
-   * @param baseUrl                      The baseUrl of the IQ server
+   *
+   * @param newComponentFeedbackList The list containing mappings of feedback for components introducing violations
+   * @param fixedComponentFeedbackList The list containing mappings of feedback for components fixing violations
+   * @param baseUrl The baseUrl of the IQ server
    */
   private Map<String, Object> getModelMap(
       final List<Map<String, Object>> newComponentFeedbackList,
@@ -486,12 +487,10 @@ public class PullRequestFeedbackDetails
         .put("shouldIncludePrioritiesReport", shouldIncludePrioritiesReport())
         .put("baseIqUrl", baseUrl)
         .put("policiesViolatedCount",
-            newComponentFeedbackList.stream().mapToInt(item -> ((List<?>) item.get("policiesViolated")).size()).sum()
-        )
+            newComponentFeedbackList.stream().mapToInt(item -> ((List<?>) item.get("policiesViolated")).size()).sum())
         .put("fixedComponentList", fixedComponentFeedbackList)
         .put("fixedPolicyViolationsCount",
-            fixedComponentFeedbackList.stream().mapToInt(item -> ((List<?>) item.get("policiesViolated")).size()).sum()
-        )
+            fixedComponentFeedbackList.stream().mapToInt(item -> ((List<?>) item.get("policiesViolated")).size()).sum())
         .put("threatImageArray", THREAT_IMAGE_ARRAY)
         .put("provider", provider)
         .put("scmChangesEnabled", scmImprovementsEnabled)
@@ -520,7 +519,7 @@ public class PullRequestFeedbackDetails
       final List<PolicyViolation> policyViolations)
   {
     extractFirstComponentHash(policyViolations)
-        .ifPresent(hash -> modelMapBuilder.put( "componentScanHash" , hash));
+        .ifPresent(hash -> modelMapBuilder.put("componentScanHash", hash));
   }
 
   private static Optional<String> extractFirstComponentHash(final List<PolicyViolation> violations) {

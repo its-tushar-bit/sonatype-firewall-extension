@@ -79,12 +79,12 @@ public class FIPSKeyManagerTest
   @Test
   public void testGetOrGenerateKey_GeneratesUniqueKeys() throws Exception {
     String firstKey = keyManager.getOrGenerateKey();
-    
+
     File secondTempDir = Files.createTempDirectory("fips-key-manager-test-2").toFile();
     try {
       FIPSKeyManager secondManager = new FIPSKeyManager(secondTempDir);
       String secondKey = secondManager.getOrGenerateKey();
-      
+
       assertThat(secondKey).isNotEqualTo(firstKey);
     }
     finally {
@@ -95,11 +95,11 @@ public class FIPSKeyManagerTest
   @Test
   public void testGetOrGenerateKey_RetrievesExistingKey() throws Exception {
     String originalKey = keyManager.getOrGenerateKey();
-    
+
     // Test that subsequent calls return the same key
     String secondCall = keyManager.getOrGenerateKey();
     assertThat(secondCall).isEqualTo(originalKey);
-    
+
     // Test that new manager instance retrieves the same key
     FIPSKeyManager secondManager = new FIPSKeyManager(tempDirectory);
     String retrievedKey = secondManager.getOrGenerateKey();
@@ -111,9 +111,9 @@ public class FIPSKeyManagerTest
     File readOnlyDir = Files.createTempDirectory("fips-readonly-test").toFile();
     try {
       readOnlyDir.setWritable(false);
-      
+
       FIPSKeyManager readOnlyManager = new FIPSKeyManager(readOnlyDir);
-      
+
       assertThatThrownBy(readOnlyManager::getOrGenerateKey)
           .isInstanceOf(FIPSKeyManager.FIPSKeyException.class)
           .hasMessageContaining("Failed to generate and store FIPS encryption key");
@@ -128,7 +128,7 @@ public class FIPSKeyManagerTest
   public void testGetOrGenerateKey_CorruptedKeystoreFile_ThrowsException() throws Exception {
     File keystoreFile = new File(tempDirectory, "fips-encryption.keystore");
     Files.write(keystoreFile.toPath(), "corrupted keystore content".getBytes());
-    
+
     assertThatThrownBy(() -> keyManager.getOrGenerateKey())
         .isInstanceOf(FIPSKeyManager.FIPSKeyException.class)
         .hasMessageContaining("Failed to retrieve FIPS encryption key from keystore");
@@ -139,9 +139,9 @@ public class FIPSKeyManagerTest
     // Create a file where the directory should be to simulate creation failure
     File conflictingFile = new File(tempDirectory, "subdir");
     Files.write(conflictingFile.toPath(), "blocking file".getBytes());
-    
+
     File dir = new File(conflictingFile, "nested");
-    
+
     assertThatThrownBy(() -> new FIPSKeyManager(dir))
         .isInstanceOf(IllegalStateException.class)
         .hasMessageContaining("Failed to create keystore directory");
@@ -156,13 +156,12 @@ public class FIPSKeyManagerTest
 
       Set<PosixFilePermission> expectedPermissions = EnumSet.of(
           PosixFilePermission.OWNER_READ,
-          PosixFilePermission.OWNER_WRITE
-      );
+          PosixFilePermission.OWNER_WRITE);
       filesMock.when(() -> Files.getPosixFilePermissions(any(Path.class)))
           .thenReturn(expectedPermissions);
-      
+
       keyManager.getOrGenerateKey();
-      
+
       File keystoreFile = new File(tempDirectory, "fips-encryption.keystore");
       assertThat(keystoreFile).exists();
 
@@ -181,13 +180,13 @@ public class FIPSKeyManagerTest
 
       AclFileAttributeView mockAclView = mock(AclFileAttributeView.class);
       UserPrincipal mockOwner = mock(UserPrincipal.class);
-      
+
       filesMock.when(() -> Files.getFileAttributeView(any(Path.class), eq(AclFileAttributeView.class)))
           .thenReturn(mockAclView);
       filesMock.when(() -> Files.getOwner(any(Path.class))).thenReturn(mockOwner);
-      
+
       String key = keyManager.getOrGenerateKey();
-      
+
       File keystoreFile = new File(tempDirectory, "fips-encryption.keystore");
       assertThat(keystoreFile).exists();
       assertThat(keystoreFile).canRead().canWrite();
@@ -195,7 +194,7 @@ public class FIPSKeyManagerTest
 
       // Verify POSIX was attempted first
       filesMock.verify(() -> Files.setPosixFilePermissions(any(Path.class), any(Set.class)));
-      
+
       // Verify Windows ACL operations were called
       filesMock.verify(() -> Files.getFileAttributeView(any(Path.class), eq(AclFileAttributeView.class)));
       filesMock.verify(() -> Files.getOwner(any(Path.class)));
@@ -209,8 +208,8 @@ public class FIPSKeyManagerTest
     }
     try (var paths = Files.walk(directory.toPath())) {
       paths.sorted(Comparator.reverseOrder())
-           .map(Path::toFile)
-           .forEach(File::delete);
+          .map(Path::toFile)
+          .forEach(File::delete);
     }
     catch (IOException e) {
       throw new RuntimeException("Failed to delete directory: " + directory, e);

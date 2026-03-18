@@ -34,7 +34,8 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class ApiFirewallCascadeServiceTest extends AbstractComponentTest
+public class ApiFirewallCascadeServiceTest
+    extends AbstractComponentTest
 {
   @Inject
   private ApiFirewallCascadeService cascadeService;
@@ -354,8 +355,8 @@ public class ApiFirewallCascadeServiceTest extends AbstractComponentTest
     assertThat(result.pending).hasSize(2);
 
     // All should be in pending list
-    assertThat(result.pending.stream().allMatch(c ->
-        c.repositoryId.equals(repository.getId()) && c.componentId.equals(component.getId()))).isTrue();
+    assertThat(result.pending.stream()
+        .allMatch(c -> c.repositoryId.equals(repository.getId()) && c.componentId.equals(component.getId()))).isTrue();
   }
 
   @Test

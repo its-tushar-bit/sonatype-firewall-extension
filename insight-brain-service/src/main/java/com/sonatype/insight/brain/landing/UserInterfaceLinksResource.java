@@ -305,7 +305,8 @@ public class UserInterfaceLinksResource
   public Response linkToRepositoryReport(@PathParam("repositoryId") String repositoryId) {
     Repository repository = repositoryDAO.getById(repositoryId);
     if (repository != null && "docker".equals(repository.getFormat())
-        && repository.getRepositoryType() == RepositoryType.proxy) {
+        && repository.getRepositoryType() == RepositoryType.proxy)
+    {
       UriBuilder uriBuilder = baseUrl.redirect();
       uriBuilder.path(ASSET_INDEX_PATH).fragment("/firewall/container/repository/{repositoryId}/results");
       return redirect(uriBuilder, repositoryId);
@@ -365,8 +366,9 @@ public class UserInterfaceLinksResource
   @Path(LATEST_VERSION_SBOM_REPORT_PATH)
   public Response linkToSbom(@PathParam("applicationId") String applicationId, @PathParam("scanId") String scanId) {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(PublicApiPaths.CYCLONE_DX_RESOURCE_PATH).path(DEFAULT_CDX_BOM_SPECIFICATION +
-        "/{applicationId}/reports/{reportId}");
+    uriBuilder.path(PublicApiPaths.CYCLONE_DX_RESOURCE_PATH)
+        .path(DEFAULT_CDX_BOM_SPECIFICATION +
+            "/{applicationId}/reports/{reportId}");
     return redirect(uriBuilder, applicationId, scanId);
   }
 
@@ -385,8 +387,9 @@ public class UserInterfaceLinksResource
   @Path(QUARANTINED_COMPONENT_REPORT_PATH)
   public Response linkToQuarantinedComponentReport(@PathParam("token") String token) {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(ASSET_INDEX_PATH).fragment("/" +
-        QUARANTINED_COMPONENT_REPORT_PATH);
+    uriBuilder.path(ASSET_INDEX_PATH)
+        .fragment("/" +
+            QUARANTINED_COMPONENT_REPORT_PATH);
     return redirect(uriBuilder, token);
   }
 
@@ -483,10 +486,10 @@ public class UserInterfaceLinksResource
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK);
 
     Map<String, Object> telemetryAttributes = Stream.of(
-            new AbstractMap.SimpleImmutableEntry<>("source", source.toLowerCase(Locale.ENGLISH)),
-            new AbstractMap.SimpleImmutableEntry<>("application_id", telemetryUtils.obfuscate(applicationId)),
-            new AbstractMap.SimpleImmutableEntry<>("scan_id", telemetryUtils.obfuscate(scanId)),
-            new AbstractMap.SimpleImmutableEntry<>("is_logged_in", !currentUser.isAnonymous()))
+        new AbstractMap.SimpleImmutableEntry<>("source", source.toLowerCase(Locale.ENGLISH)),
+        new AbstractMap.SimpleImmutableEntry<>("application_id", telemetryUtils.obfuscate(applicationId)),
+        new AbstractMap.SimpleImmutableEntry<>("scan_id", telemetryUtils.obfuscate(scanId)),
+        new AbstractMap.SimpleImmutableEntry<>("is_logged_in", !currentUser.isAnonymous()))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     telemetryUtils.includeRealApplicationId(telemetryAttributes, applicationId);
     telemetryData.setAttributes(telemetryAttributes);

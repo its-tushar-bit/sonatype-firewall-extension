@@ -131,9 +131,10 @@ public class PullRequestLineCommentingService
 
             // Filter out unsuccessful comment attempts
             lineCommentCreationResult.setPullRequestLineCommentDtoList(
-                lineCommentCreationResult.getPullRequestLineCommentDtoList().stream().filter(i -> i.getScmId() != null)
-                    .collect(Collectors.toList())
-            );
+                lineCommentCreationResult.getPullRequestLineCommentDtoList()
+                    .stream()
+                    .filter(i -> i.getScmId() != null)
+                    .collect(Collectors.toList()));
           }
         }
       }
@@ -164,7 +165,8 @@ public class PullRequestLineCommentingService
         totalCount++;
         try {
           if (createLineComment(applicationId, gitApiClient, commitHash, pullRequestId, sourcePolicyEvaluationId,
-              basePolicyEvaluationId, lineCommentDTO)) {
+              basePolicyEvaluationId, lineCommentDTO))
+          {
             successfulCount++;
           }
         }
@@ -186,8 +188,7 @@ public class PullRequestLineCommentingService
       final int pullRequestId,
       final String sourcePolicyEvaluationId,
       final String basePolicyEvaluationId,
-      final PullRequestLineCommentDTO lineCommentDTO)
-      throws IOException
+      final PullRequestLineCommentDTO lineCommentDTO) throws IOException
   {
     boolean wasCreated = false;
 
@@ -199,7 +200,7 @@ public class PullRequestLineCommentingService
       lineCommentDTO.setScmId(response.getId());
       lineCommentDTO.setScmVersion(response.getVersion());
 
-      //Add the line comment details to the database
+      // Add the line comment details to the database
       SourceControlPullRequestComment pullRequestComment = new SourceControlPullRequestComment(
           applicationId, //
           lineCommentDTO.getHash(), //
@@ -230,13 +231,12 @@ public class PullRequestLineCommentingService
       ComponentIdentifier componentIdentifier = lineCommentDTO.getComponentIdentifier();
       RemediationVersionDTO remediationVersion = remediationVersionMap.get(componentIdentifier);
       Optional<String> codeSuggestion = createCodeSuggestion(
-              provider,
-              componentIdentifier,
-              remediationVersion,
-              lineCommentDTO.getDiffPosition().getNewLineContent(),
-              lineCommentDTO.getDiffPosition().getFilePath()
-      );
-      //Create the line comment body, if possible
+          provider,
+          componentIdentifier,
+          remediationVersion,
+          lineCommentDTO.getDiffPosition().getNewLineContent(),
+          lineCommentDTO.getDiffPosition().getFilePath());
+      // Create the line comment body, if possible
       Optional<String> markupOptional = pullRequestFeedbackMarkupService.createLineMarkup(
           lineCommentDTO.getPolicyViolations(), ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString(),
           remediationVersion, codeSuggestion, provider, scmBaseUrl, applicationId, featureBranchScanId,
@@ -246,12 +246,11 @@ public class PullRequestLineCommentingService
   }
 
   private Optional<String> createCodeSuggestion(
-          SourceControlProvider provider,
-          ComponentIdentifier componentIdentifier,
-          RemediationVersionDTO remediationVersion,
-          String existingContent,
-          String filePath
-  )
+      SourceControlProvider provider,
+      ComponentIdentifier componentIdentifier,
+      RemediationVersionDTO remediationVersion,
+      String existingContent,
+      String filePath)
   {
     String codeSuggestion = null;
     String componentVersion = componentIdentifier.get("version");
@@ -275,7 +274,8 @@ public class PullRequestLineCommentingService
       final Map<ComponentIdentifier, List<DiffPosition>> diffPositionMap,
       final List<PolicyViolation> violationList)
   {
-    List<PullRequestLineCommentDTO> lineCommentDTOList = diffPositionMap.entrySet().stream()
+    List<PullRequestLineCommentDTO> lineCommentDTOList = diffPositionMap.entrySet()
+        .stream()
         .flatMap(e -> {
           List<PullRequestLineCommentDTO> list = new LinkedList<>();
           for (DiffPosition diffPosition : e.getValue()) {
@@ -301,9 +301,9 @@ public class PullRequestLineCommentingService
    * Deletes all existing line comments for a given PR from the DB and SCM if they exists
    *
    * @param lineCommentCreationResult Collects operation result details
-   * @param applicationId             The application the PR relates to
-   * @param gitRepositoryInfo         The repository info the PR relates to
-   * @param pullRequestId             The pull request id
+   * @param applicationId The application the PR relates to
+   * @param gitRepositoryInfo The repository info the PR relates to
+   * @param pullRequestId The pull request id
    */
   private void deleteExistingLineCommentsIfExists(
       final PullRequestLineCommentCreationResult lineCommentCreationResult,
@@ -317,7 +317,7 @@ public class PullRequestLineCommentingService
     if (!existingLineComments.isEmpty()) {
       GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
       for (SourceControlPullRequestComment comment : existingLineComments) {
-        //Users can delete comments, which will result in 404 on delete, we should handle this and continue
+        // Users can delete comments, which will result in 404 on delete, we should handle this and continue
         try {
           pullRequestCommentDAO.delete(comment);
           gitApiClient.deletePullRequestLineComment(comment.getPullRequestCommentId(), pullRequestId,
@@ -325,7 +325,8 @@ public class PullRequestLineCommentingService
         }
         catch (IOException e) {
           if (e instanceof HttpResponseException &&
-              HttpStatus.SC_NOT_FOUND == ((HttpResponseException) e).getStatusCode()) {
+              HttpStatus.SC_NOT_FOUND == ((HttpResponseException) e).getStatusCode())
+          {
             log.debug("Deleting pull request line comment with id {} on application {} returned 404, skipping",
                 comment.getPullRequestCommentId(), applicationId);
           }

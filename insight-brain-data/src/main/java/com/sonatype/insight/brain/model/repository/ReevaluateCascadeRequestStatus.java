@@ -33,7 +33,7 @@ public enum ReevaluateCascadeRequestStatus
   public static ReevaluateCascadeRequestStatus fromString(String status) {
     return Arrays.stream(ReevaluateCascadeRequestStatus.values())
         .filter(requestStatus -> requestStatus.name().equalsIgnoreCase(status))
-        .findFirst().orElseThrow(() ->
-            new NotFoundException(String.format("Provided status %s is not found", status)));
+        .findFirst()
+        .orElseThrow(() -> new NotFoundException(String.format("Provided status %s is not found", status)));
   }
 }

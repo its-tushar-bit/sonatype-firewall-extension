@@ -80,7 +80,7 @@ public class AuditRecorderTest
 
   @Test
   public void testRecordSystemEvent() {
-    AuditEvent auditEvent = AuditEvent.LOGIN;  // may not be a proper system event
+    AuditEvent auditEvent = AuditEvent.LOGIN; // may not be a proper system event
     AuditRecorder auditRecorder = mock(AuditRecorder.class, Mockito.CALLS_REAL_METHODS);
     doNothing().when(auditRecorder).recordAuditData(isA(RecordingAuditData.class), isNull());
     try (AuditSession auditSession = auditRecorder.recordSystemEvent(auditEvent)) {
@@ -265,10 +265,11 @@ public class AuditRecorderTest
         null);
   }
 
-  private void runRecordUserEventTest(Consumer<RecordingAuditData> recordingAuditDataConsumer,
-                                      Consumer<HttpServletRequest> servletRequestConsumer,
-                                      AuditEvent expectedEvent,
-                                      String expectedStatus)
+  private void runRecordUserEventTest(
+      Consumer<RecordingAuditData> recordingAuditDataConsumer,
+      Consumer<HttpServletRequest> servletRequestConsumer,
+      AuditEvent expectedEvent,
+      String expectedStatus)
   {
     AuditRecorder auditRecorder = spy(new AuditRecorder(new ErrorResponseGenerator()));
     HttpServletRequest httpRequest = mockHttpServletRequest();
@@ -448,9 +449,9 @@ public class AuditRecorderTest
         .thenReturn(Collections.enumeration(Arrays.asList("forwarded1", "forwarded2", "forwarded3")));
     when(mockHttpServletRequest.getHeader(HttpHeaders.USER_AGENT)).thenReturn("userAgent");
     when(mockHttpServletRequest.getCookies()).thenReturn(new Cookie[]{
-        new Cookie("cookieName1", "cookieValue1"),
-        new Cookie(SecurityModule.SESSION_COOKIE_NAME, "sessionId"),
-        new Cookie("cookieName3", "cookieValue3")
+      new Cookie("cookieName1", "cookieValue1"),
+      new Cookie(SecurityModule.SESSION_COOKIE_NAME, "sessionId"),
+      new Cookie("cookieName3", "cookieValue3")
     });
     return RequestData.newInstance(mockHttpServletRequest);
   }

@@ -98,8 +98,7 @@ public class CycloneDxToSpdxExporterTest
         idUtils,
         versionService,
         thirdPartyLicenseResolver,
-        buildThirdPartyPersistenceService()
-    );
+        buildThirdPartyPersistenceService());
   }
 
   @Test
@@ -107,7 +106,8 @@ public class CycloneDxToSpdxExporterTest
     File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_XML_SBOM));
     String exportedBomStr =
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.XML, ExportSpecification.SPDX_23);
-    XmlAssert.assertThat(exportedBomStr).and(readFileToString("outputs/2_3/webgoat-from-xml-to-spdx.xml"))
+    XmlAssert.assertThat(exportedBomStr)
+        .and(readFileToString("outputs/2_3/webgoat-from-xml-to-spdx.xml"))
         .withNodeFilter(spdxDxIgnoreNodesFilter())
         .withNodeMatcher(new IgnoreXmlListOrderMatcher())
         .ignoreWhitespace()
@@ -119,7 +119,8 @@ public class CycloneDxToSpdxExporterTest
     File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_XML_SBOM));
     String exportedBomStr =
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.XML, ExportSpecification.SPDX_22);
-    XmlAssert.assertThat(exportedBomStr).and(readFileToString("outputs/2_2/webgoat-from-xml-to-spdx.xml"))
+    XmlAssert.assertThat(exportedBomStr)
+        .and(readFileToString("outputs/2_2/webgoat-from-xml-to-spdx.xml"))
         .withNodeFilter(spdxDxIgnoreNodesFilter())
         .withNodeMatcher(new IgnoreXmlListOrderMatcher())
         .ignoreWhitespace()
@@ -153,7 +154,8 @@ public class CycloneDxToSpdxExporterTest
     File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_JSON_SBOM));
     String exportedBomStr =
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.XML, ExportSpecification.SPDX_23);
-    XmlAssert.assertThat(exportedBomStr).and(readFileToString("outputs/2_3/webgoat-from-json-to-spdx.xml"))
+    XmlAssert.assertThat(exportedBomStr)
+        .and(readFileToString("outputs/2_3/webgoat-from-json-to-spdx.xml"))
         .withNodeFilter(spdxDxIgnoreNodesFilter())
         .withNodeMatcher(new IgnoreXmlListOrderMatcher())
         .ignoreWhitespace()
@@ -165,7 +167,8 @@ public class CycloneDxToSpdxExporterTest
     File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_JSON_SBOM));
     String exportedBomStr =
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.XML, ExportSpecification.SPDX_22);
-    XmlAssert.assertThat(exportedBomStr).and(readFileToString("outputs/2_2/webgoat-from-json-to-spdx.xml"))
+    XmlAssert.assertThat(exportedBomStr)
+        .and(readFileToString("outputs/2_2/webgoat-from-json-to-spdx.xml"))
         .withNodeFilter(spdxDxIgnoreNodesFilter())
         .withNodeMatcher(new IgnoreXmlListOrderMatcher())
         .ignoreWhitespace()
@@ -320,8 +323,7 @@ public class CycloneDxToSpdxExporterTest
         "log4j",
         "1.2.8",
         "3640dd71069d7986c9a1",
-        "pkg:maven/log4j/log4j@1.2.8?type=jar"
-    );
+        "pkg:maven/log4j/log4j@1.2.8?type=jar");
 
     defineDbTestDataNullVulnerabilityField(nullField, fileCoordinate);
     tempEntity.newThirdPartyCoordinateSecurity(fileCoordinate,

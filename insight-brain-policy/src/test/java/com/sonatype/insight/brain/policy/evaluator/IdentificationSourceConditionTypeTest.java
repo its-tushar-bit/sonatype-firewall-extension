@@ -59,8 +59,15 @@ public class IdentificationSourceConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, IdentificationSourceConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Identification Source was Sonatype");
   }
 
@@ -90,8 +97,15 @@ public class IdentificationSourceConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, IdentificationSourceConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Identification Source was Manual, not Sonatype");
   }
 
@@ -100,6 +114,7 @@ public class IdentificationSourceConditionTypeTest
     Condition condition = new Condition(IdentificationSourceConditionType.ID, "is", "abc");
     assertThatThrownBy(
         () -> new IdentificationSourceConditionType().validateCondition(null, condition, null /* applicationId */))
-        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
+            .isInstanceOf(InvalidConditionException.class)
+            .hasMessageEndingWith("Value not supported: abc");
   }
 }

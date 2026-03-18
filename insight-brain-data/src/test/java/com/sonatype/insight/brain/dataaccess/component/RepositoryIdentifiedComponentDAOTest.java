@@ -117,7 +117,8 @@ public class RepositoryIdentifiedComponentDAOTest
     Date date = new Date();
     RepositoryIdentifiedComponent updated = dao.getByHashNotNullAndUpdateLastAccessTime(initial.getHash());
     assertThat(updated).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .ignoringFields("lastAccessTime").isEqualTo(initial);
+        .ignoringFields("lastAccessTime")
+        .isEqualTo(initial);
     assertThat(updated.getLastAccessTime()).isAfterOrEqualTo(date);
   }
 

@@ -62,25 +62,35 @@ public class ShiroSessionDAOTest
     assertThat(shiroSessionDAO.doCreate(session)).isNotNull().isEqualTo(session.getId());
 
     // Read
-    assertThat(shiroSessionDAO.doReadSession(session.getId())).usingRecursiveComparison().ignoringCollectionOrder()
+    assertThat(shiroSessionDAO.doReadSession(session.getId())).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
-    assertThat(getSessionFromCache(session.getId()).getSession()).usingRecursiveComparison().ignoringCollectionOrder()
+    assertThat(getSessionFromCache(session.getId()).getSession()).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
     assertThat(PersistedUserSession.simpleSessionFromJson(getSessionFromCache(session.getId()).getStoredSessionJson()))
-        .usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(session);
-    assertThat(getSessionFromDatabase(session.getId())).usingRecursiveComparison().ignoringCollectionOrder()
+        .usingRecursiveComparison()
+        .ignoringCollectionOrder()
+        .isEqualTo(session);
+    assertThat(getSessionFromDatabase(session.getId())).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
 
     // Update
     session.setAttribute("key3", "value3");
     shiroSessionDAO.update(session);
-    assertThat(shiroSessionDAO.doReadSession(session.getId())).usingRecursiveComparison().ignoringCollectionOrder()
+    assertThat(shiroSessionDAO.doReadSession(session.getId())).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
-    assertThat(getSessionFromCache(session.getId()).getSession()).usingRecursiveComparison().ignoringCollectionOrder()
+    assertThat(getSessionFromCache(session.getId()).getSession()).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
     assertThat(PersistedUserSession.simpleSessionFromJson(getSessionFromCache(session.getId()).getStoredSessionJson()))
-        .usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(session);
-    assertThat(getSessionFromDatabase(session.getId())).usingRecursiveComparison().ignoringCollectionOrder()
+        .usingRecursiveComparison()
+        .ignoringCollectionOrder()
+        .isEqualTo(session);
+    assertThat(getSessionFromDatabase(session.getId())).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
 
     // Delete
@@ -163,12 +173,16 @@ public class ShiroSessionDAOTest
     ShiroSessionDAO.SESSION_CACHE.get()
         .put(session.getId(), new SessionAndStoredJson(session, PersistedUserSession.simpleSessionToJson(session)));
 
-    assertThat(shiroSessionDAO.doReadSession(session.getId())).usingRecursiveComparison().ignoringCollectionOrder()
+    assertThat(shiroSessionDAO.doReadSession(session.getId())).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
-    assertThat(getSessionFromCache(session.getId()).getSession()).usingRecursiveComparison().ignoringCollectionOrder()
+    assertThat(getSessionFromCache(session.getId()).getSession()).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
     assertThat(PersistedUserSession.simpleSessionFromJson(getSessionFromCache(session.getId()).getStoredSessionJson()))
-        .usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(session);
+        .usingRecursiveComparison()
+        .ignoringCollectionOrder()
+        .isEqualTo(session);
     assertThat(getSessionFromDatabase(session.getId())).isNull();
   }
 
@@ -179,13 +193,18 @@ public class ShiroSessionDAOTest
     session.setLastAccessTime(new Date(System.currentTimeMillis() - ShiroSessionDAO.CACHE_DURATION.toMillis() - 1));
     persistedUserSessionDAO.insert(new PersistedUserSession(session));
 
-    assertThat(shiroSessionDAO.doReadSession(session.getId())).usingRecursiveComparison().ignoringCollectionOrder()
+    assertThat(shiroSessionDAO.doReadSession(session.getId())).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
-    assertThat(getSessionFromCache(session.getId()).getSession()).usingRecursiveComparison().ignoringCollectionOrder()
+    assertThat(getSessionFromCache(session.getId()).getSession()).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
     assertThat(PersistedUserSession.simpleSessionFromJson(getSessionFromCache(session.getId()).getStoredSessionJson()))
-        .usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(session);
-    assertThat(getSessionFromDatabase(session.getId())).usingRecursiveComparison().ignoringCollectionOrder()
+        .usingRecursiveComparison()
+        .ignoringCollectionOrder()
+        .isEqualTo(session);
+    assertThat(getSessionFromDatabase(session.getId())).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
   }
 
@@ -195,13 +214,18 @@ public class ShiroSessionDAOTest
     session.setId("doesNotExistInCacheAndYoung");
     persistedUserSessionDAO.insert(new PersistedUserSession(session));
 
-    assertThat(shiroSessionDAO.doReadSession(session.getId())).usingRecursiveComparison().ignoringCollectionOrder()
+    assertThat(shiroSessionDAO.doReadSession(session.getId())).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
-    assertThat(getSessionFromCache(session.getId()).getSession()).usingRecursiveComparison().ignoringCollectionOrder()
+    assertThat(getSessionFromCache(session.getId()).getSession()).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
     assertThat(PersistedUserSession.simpleSessionFromJson(getSessionFromCache(session.getId()).getStoredSessionJson()))
-        .usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(session);
-    assertThat(getSessionFromDatabase(session.getId())).usingRecursiveComparison().ignoringCollectionOrder()
+        .usingRecursiveComparison()
+        .ignoringCollectionOrder()
+        .isEqualTo(session);
+    assertThat(getSessionFromDatabase(session.getId())).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
   }
 
@@ -260,11 +284,15 @@ public class ShiroSessionDAOTest
 
     shiroSessionDAO.update(session);
 
-    assertThat(getSessionFromCache(session.getId()).getSession()).usingRecursiveComparison().ignoringCollectionOrder()
+    assertThat(getSessionFromCache(session.getId()).getSession()).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
     assertThat(PersistedUserSession.simpleSessionFromJson(getSessionFromCache(session.getId()).getStoredSessionJson()))
-        .usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(session);
-    assertThat(getSessionFromDatabase(session.getId())).usingRecursiveComparison().ignoringCollectionOrder()
+        .usingRecursiveComparison()
+        .ignoringCollectionOrder()
+        .isEqualTo(session);
+    assertThat(getSessionFromDatabase(session.getId())).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
   }
 

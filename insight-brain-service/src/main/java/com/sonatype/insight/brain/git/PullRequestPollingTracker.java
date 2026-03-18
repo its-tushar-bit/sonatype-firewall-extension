@@ -29,7 +29,7 @@ class PullRequestPollingTracker
   // keep track of cutoff times at the appropriate level as multiple repos can share a token and we need to make sure
   // the cutoff time keeps advancing
   private static final TenantReference<Map<String, Date>> keyCutoffTimes = new TenantReference<>(HashMap::new);
-  
+
   private static final Joiner KEY_JOINER = Joiner.on("::").skipNulls();
 
   private final SourceControlDAO sourceControlDAO;
@@ -37,7 +37,7 @@ class PullRequestPollingTracker
   // keep track of which repositories (by internal id) we've polled and which ones we haven't
   private final TenantReference<Set<String>> repositoriesPolled = new TenantReference<>(HashSet::new);
 
-  // the org/repo/api key (token) combo is really what drives our SCM pull request checks;  once we've checked a given 
+  // the org/repo/api key (token) combo is really what drives our SCM pull request checks; once we've checked a given
   // combo for this polling cycle there is no need to check it again until the next polling cycle
   private final TenantReference<Set<String>> alreadyCheckedKeys = new TenantReference<>(HashSet::new);
 
@@ -63,9 +63,9 @@ class PullRequestPollingTracker
 
   /**
    * In the event of an error processing PRs we need to do the following for all records with the same repository URL:
-   *   1 - update the error count
-   *   2 - update the poll time based on the error count
-   *   3 - NOT update the cutoff time
+   * 1 - update the error count
+   * 2 - update the poll time based on the error count
+   * 3 - NOT update the cutoff time
    *
    * @param sourceControl source control entry for which the error occurred
    * @return String representing the delay being applied to the next poll time
@@ -120,11 +120,12 @@ class PullRequestPollingTracker
 
   /**
    * All records with the same repository URL have to be updated; otherwise the PR polling cycle finishes prematurely.
+   *
    * @param sourceControl the sourceControl we are processing PRs for
-   * @param org   organization processing PRs
-   * @param repo  repo processing PRs, may be null if polling can take place organization wide
+   * @param org organization processing PRs
+   * @param repo repo processing PRs, may be null if polling can take place organization wide
    * @param token token used for processing PRs
-   * @param cutoffTime next time to use for polling cutoff  
+   * @param cutoffTime next time to use for polling cutoff
    */
   void onPullRequestProcessed(SourceControl sourceControl, String org, String repo, String token, Date cutoffTime) {
     List<SourceControl> sourceControlList = sourceControlDAO.getByRepositoryUrl(sourceControl.getRepositoryUrl());

@@ -50,8 +50,10 @@ public class AdminTenantFilter
 
   @Override
   @Trace(operationName = "admin.request")
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-      throws IOException, ServletException
+  public void doFilter(
+      ServletRequest request,
+      ServletResponse response,
+      FilterChain chain) throws IOException, ServletException
   {
     final String tenantName = getTenantParameter(request);
 

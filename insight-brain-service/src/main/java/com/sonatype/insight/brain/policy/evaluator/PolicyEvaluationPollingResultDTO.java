@@ -27,6 +27,6 @@ public class PolicyEvaluationPollingResultDTO
   public ScanReceipt scanReceipt;
 
   public String statusId;
-  
+
   public int nextPollingIntervalInSeconds;
 }

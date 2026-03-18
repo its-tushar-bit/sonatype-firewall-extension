@@ -102,7 +102,8 @@ public class OrganizationResourceAuditTest
   public void testDeleteOrganization_NLevel_WithoutChildApplications() throws Exception {
     List<Organization> testOrgs = tempEntity.newRelatedOrganizationsAsList(1, 7, 0);
     organizationRequest().path(OrganizationResource.DELETE_ORGANIZATION_PATH)
-        .parameter(testOrgs.get(testOrgs.size() - 1).getId()).delete();
+        .parameter(testOrgs.get(testOrgs.size() - 1).getId())
+        .delete();
 
     List<AuditDTO> deletedOrgsAuditEvents = assertAuditLogs(AuditEvent.DELETE_ORGANIZATION, testOrgs.size(), null);
     for (Organization currentOrg : testOrgs) {
@@ -123,14 +124,15 @@ public class OrganizationResourceAuditTest
 
   @Test
   public void testDeleteOrganization_NLevel_WithChildApplications() throws Exception {
-    List<Organization> testOrgs = tempEntity.newRelatedOrganizationsAsList(organization,1, 6, 0);
+    List<Organization> testOrgs = tempEntity.newRelatedOrganizationsAsList(organization, 1, 6, 0);
     List<Application> testApps = new LinkedList<>();
     testOrgs.add(organization);
 
     testOrgs.forEach(currentOrg -> testApps.add(tempEntity.newApplicationWithParent(currentOrg)));
 
     organizationRequest().path(OrganizationResource.DELETE_ORGANIZATION_PATH)
-        .parameter(organization.getId()).delete();
+        .parameter(organization.getId())
+        .delete();
 
     List<AuditDTO> deletedOrgsAuditEvents = assertAuditLogs(AuditEvent.DELETE_ORGANIZATION, testOrgs.size(), null);
     List<AuditDTO> deletedAppsAuditEvents = assertAuditLogs(AuditEvent.DELETE_APPLICATION, testApps.size(), null);
@@ -157,16 +159,21 @@ public class OrganizationResourceAuditTest
 
   @Test
   public void testDeleteOrganization_Unauthorized() throws Exception {
-    organizationRequest().path(OrganizationResource.DELETE_ORGANIZATION_PATH).parameter(organization.getId())
-        .with(unauthorizedUser()).delete();
+    organizationRequest().path(OrganizationResource.DELETE_ORGANIZATION_PATH)
+        .parameter(organization.getId())
+        .with(unauthorizedUser())
+        .delete();
 
     assertAuditLog(AuditEvent.DELETE_ORGANIZATION, "unauthorized");
   }
 
   @Test
   public void testSetIcon_Robot() throws Exception {
-    organizationRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organization.getId())
-        .part("hasRobotSource", "true").part("hashcode", "").post();
+    organizationRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH)
+        .parameter(organization.getId())
+        .part("hasRobotSource", "true")
+        .part("hashcode", "")
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_ORGANIZATION_ICON, null);
     assertOrganizationData(auditDTO, organization);
@@ -177,9 +184,11 @@ public class OrganizationResourceAuditTest
   public void testSetIcon_File() throws Exception {
     String iconFilename = "defaulticon_application.png";
 
-    organizationRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organization.getId())
+    organizationRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH)
+        .parameter(organization.getId())
         .part("hasRobotSource", "false")
-        .part("file", iconFilename, IconUtils.loadIconFromProductAssets("defaulticon_application.png")).post();
+        .part("file", iconFilename, IconUtils.loadIconFromProductAssets("defaulticon_application.png"))
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_ORGANIZATION_ICON, null);
     assertOrganizationData(auditDTO, organization);
@@ -189,8 +198,10 @@ public class OrganizationResourceAuditTest
 
   @Test
   public void testSetIcon_Default() throws Exception {
-    organizationRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organization.getId())
-        .part("hasRobotSource", "false").post();
+    organizationRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH)
+        .parameter(organization.getId())
+        .part("hasRobotSource", "false")
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_ORGANIZATION_ICON, null);
     assertOrganizationData(auditDTO, organization);
@@ -199,8 +210,11 @@ public class OrganizationResourceAuditTest
 
   @Test
   public void testSetIcon_Unauthorized() throws Exception {
-    organizationRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH).parameter(organization.getId())
-        .part("hasRobotSource", "false").with(unauthorizedUser()).post();
+    organizationRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH)
+        .parameter(organization.getId())
+        .part("hasRobotSource", "false")
+        .with(unauthorizedUser())
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_ORGANIZATION_ICON, "unauthorized");
     assertOrganizationData(auditDTO, organization);

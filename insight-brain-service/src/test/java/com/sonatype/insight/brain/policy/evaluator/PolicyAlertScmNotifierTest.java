@@ -128,8 +128,9 @@ public class PolicyAlertScmNotifierTest
 
     assertShutDownEventAndJoin(1000);
 
-    assertThat(logOutput).atDebugLevel().contains(
-        "No remediation options found for component [maven: {artifactId=Package1, groupId=groupid, version=1.2.3}]");
+    assertThat(logOutput).atDebugLevel()
+        .contains(
+            "No remediation options found for component [maven: {artifactId=Package1, groupId=groupid, version=1.2.3}]");
   }
 
   @Test
@@ -143,7 +144,7 @@ public class PolicyAlertScmNotifierTest
 
     assertShutDownEventAndJoin(1000);
 
-    //verify that the event did create
+    // verify that the event did create
     List<SourceControlEvent> all = sourceControlEventDAO.getAll();
     assertThat(all).hasSize(1);
     SourceControlEvent event = all.get(0);
@@ -162,8 +163,7 @@ public class PolicyAlertScmNotifierTest
 
     List<PolicyNotification> notifications = List.of(
         buildPolicyNotification(component1),
-        buildPolicyNotification(component2)
-    );
+        buildPolicyNotification(component2));
 
     RemediationVersionDTO remediationVersionDTO1 =
         new RemediationVersionDTO("1.1.0", ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES);
@@ -208,7 +208,7 @@ public class PolicyAlertScmNotifierTest
         new RemediationVersionDTO("1.1.0", ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES);
     when(mockPullRequestCommentingRemediationService.getRemediationVersion(eq(directDependency),
         eq(application.getId())))
-        .thenReturn(Optional.of(remediationVersionDTO));
+            .thenReturn(Optional.of(remediationVersionDTO));
 
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications);
 
@@ -256,7 +256,7 @@ public class PolicyAlertScmNotifierTest
         new RemediationVersionDTO("3.1.0", ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES);
     when(mockPullRequestCommentingRemediationService.getRemediationVersion(eq(missingDependencyType),
         eq(application.getId())))
-        .thenReturn(Optional.of(remediationVersionDTO));
+            .thenReturn(Optional.of(remediationVersionDTO));
 
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications);
 
@@ -301,8 +301,9 @@ public class PolicyAlertScmNotifierTest
     assertThat(event.getEventType()).isEqualTo(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
   }
 
-  private void mockDependencyType(ComponentIdentifier componentIdentifier, Boolean isDirectDependency)
-      throws IOException
+  private void mockDependencyType(
+      ComponentIdentifier componentIdentifier,
+      Boolean isDirectDependency) throws IOException
   {
     if (isDirectDependency == null) {
       when(mockReportComponentService.fetchReportAndComponents(eq(application), any(), any()))
@@ -342,9 +343,10 @@ public class PolicyAlertScmNotifierTest
     assertThat(all).isEmpty();
 
     assertShutDownEventAndJoin(1000);
-    assertThat(logOutput).atDebugLevel().contains(
-        "Component '" + unsupportedComponent + "' in application '" + application.getPublicId() +
-            "' is not eligible for automated PR");
+    assertThat(logOutput).atDebugLevel()
+        .contains(
+            "Component '" + unsupportedComponent + "' in application '" + application.getPublicId() +
+                "' is not eligible for automated PR");
   }
 
   private List<PolicyNotification> buildPolicyNotification() {
@@ -356,8 +358,7 @@ public class PolicyAlertScmNotifierTest
     policyFact1.addComponentFact(new ComponentFact(componentIdentifier, randomString()));
 
     Notifications notifications = new Notifications(
-        new UserNotification("foo@mail.com", "release")
-    );
+        new UserNotification("foo@mail.com", "release"));
     return new PolicyNotification(policyFact1, notifications);
   }
 

@@ -225,7 +225,7 @@ public class ScmStatusHelperTest
     ArgumentCaptor<String> description = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<String> targetUrl = ArgumentCaptor.forClass(String.class);
     verify(mockGitApiClient, times(1)).createStatusRequest(state.capture(),
-        context.capture(),description.capture(),targetUrl.capture());
+        context.capture(), description.capture(), targetUrl.capture());
     assertThat(state.getValue()).isEqualTo(expectedState);
     assertThat(context.getValue()).isEqualTo(ScmStatusHelper.IQ_POLICY_EVALUATION);
     assertThat(description.getValue()).isEqualTo(expectedDescription);

@@ -14,7 +14,8 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
-public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
+public class LegalDashboardPage
+    extends BasicElement<LegalDashboardPage>
 {
   public static final String ROOT = "#legal-dashboard-container";
 

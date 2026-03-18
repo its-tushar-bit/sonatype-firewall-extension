@@ -85,8 +85,8 @@ public class PolicyEvaluationUtilTest
   public void testValidateEvaluationTypeAndFeature_CLI_ProxyWithCorrectFeatureOnly() {
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
 
-    Stage stage = new Stage(Stage.ID_PROXY);    
-    
+    Stage stage = new Stage(Stage.ID_PROXY);
+
     policyEvaluationUtil.validateEvaluationTypeAndFeature(IntegrationType.CLI, stage);
 
     verify(mockStageTypeService).getLicensedStageTypes();
@@ -109,8 +109,8 @@ public class PolicyEvaluationUtilTest
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
     lenient().when(mockProductLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)).thenReturn(true);
 
-    Stage stage = new Stage(Stage.ID_PROXY);    
-    
+    Stage stage = new Stage(Stage.ID_PROXY);
+
     policyEvaluationUtil.validateEvaluationTypeAndFeature(IntegrationType.CLI, stage);
 
     verify(mockStageTypeService).getLicensedStageTypes();
@@ -122,8 +122,8 @@ public class PolicyEvaluationUtilTest
     lenient().when(mockProductLicense.hasFeature(LicensedFeature.CI_INTEGRATION)).thenReturn(false);
     lenient().when(mockProductLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)).thenReturn(true);
 
-    Stage stage = new Stage(Stage.ID_PROXY);    
-    
+    Stage stage = new Stage(Stage.ID_PROXY);
+
     policyEvaluationUtil.validateEvaluationTypeAndFeature(IntegrationType.CLI, stage);
 
     verify(mockStageTypeService).getLicensedStageTypes();
@@ -179,8 +179,9 @@ public class PolicyEvaluationUtilTest
   @Test(expected = InvalidLicenseException.class)
   public void testValidateEvaluationTypeAndFeature_FeatureNotLicensed() {
     Stage stage = new Stage(Stage.ID_BUILD);
-    doThrow(new InvalidLicenseException("Feature not licensed")).when(mockProductLicense).validateFeature(
-        LicensedFeature.CLI_INTEGRATION);
+    doThrow(new InvalidLicenseException("Feature not licensed")).when(mockProductLicense)
+        .validateFeature(
+            LicensedFeature.CLI_INTEGRATION);
 
     policyEvaluationUtil.validateEvaluationTypeAndFeature(IntegrationType.CLI, stage);
   }

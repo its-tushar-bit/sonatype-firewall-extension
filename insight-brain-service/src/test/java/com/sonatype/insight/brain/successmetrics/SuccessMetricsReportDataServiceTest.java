@@ -107,10 +107,11 @@ public class SuccessMetricsReportDataServiceTest
     }
   }
 
-  private SuccessMetricsReport createSuccessMetricsReport(Set<String> organizationIds,
-                                                          Set<String> applicationIds,
-                                                          String reportName,
-                                                          boolean includeLatestData)
+  private SuccessMetricsReport createSuccessMetricsReport(
+      Set<String> organizationIds,
+      Set<String> applicationIds,
+      String reportName,
+      boolean includeLatestData)
   {
     SuccessMetricsReportScopeDTO scope = new SuccessMetricsReportScopeDTO();
     scope.organizationIds = organizationIds;
@@ -152,7 +153,7 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newPolicyEvaluation(appId2, stageType.getId(), "app2Eval2", app2Eval2Date);
     tempEntity.newPolicyViolation(app2Eval1, app2Policy);
 
-    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(ORG_ID), 
+    SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(Collections.singleton(ORG_ID),
         new HashSet<>());
     List<MttrDTO> results = service.getChartData(successMetricsReport.getId()).mttrs;
 
@@ -901,10 +902,10 @@ public class SuccessMetricsReportDataServiceTest
     DateTimeUtils.setCurrentMillisFixed(firstGenerationTime.toDateTimeAtStartOfDay().getMillis());
 
     tempEntity.newPolicyViolationAggregation(app.getId(), firstGenerationTime.withDayOfMonth(1).toDate(), MONTH,
-        new DescriptiveStatistics(new double[] {}), //
-        new DescriptiveStatistics(new double[] {}), //
-        new DescriptiveStatistics(new double[] {}), //
-        new DescriptiveStatistics(new double[] {}), //
+        new DescriptiveStatistics(new double[]{}), //
+        new DescriptiveStatistics(new double[]{}), //
+        new DescriptiveStatistics(new double[]{}), //
+        new DescriptiveStatistics(new double[]{}), //
         discovered().get(), //
         fixed().get(), //
         waived().get(), //
@@ -917,10 +918,10 @@ public class SuccessMetricsReportDataServiceTest
     DateTimeUtils.setCurrentMillisFixed(secondGenerationTime.toDateTimeAtStartOfDay().getMillis());
 
     tempEntity.newPolicyViolationAggregation(app.getId(), secondGenerationTime.withDayOfMonth(1).toDate(), MONTH,
-        new DescriptiveStatistics(new double[] { 1000 }), //
-        new DescriptiveStatistics(new double[] {}), //
-        new DescriptiveStatistics(new double[] {}), //
-        new DescriptiveStatistics(new double[] {}), //
+        new DescriptiveStatistics(new double[]{1000}), //
+        new DescriptiveStatistics(new double[]{}), //
+        new DescriptiveStatistics(new double[]{}), //
+        new DescriptiveStatistics(new double[]{}), //
         discovered().security(1, 0, 0, 0).get(),
         fixed().security(1, 0, 0, 0).get(),
         waived().get(),
@@ -966,10 +967,10 @@ public class SuccessMetricsReportDataServiceTest
     DateTimeUtils.setCurrentMillisFixed(firstRunTime.toDateTimeAtStartOfDay().getMillis());
 
     tempEntity.newPolicyViolationAggregation(app.getId(), firstRunTime.withDayOfMonth(1).toDate(), MONTH,
-        new DescriptiveStatistics(new double[] { 1000 }), //
-        new DescriptiveStatistics(new double[] {}), //
-        new DescriptiveStatistics(new double[] {}), //
-        new DescriptiveStatistics(new double[] {}),
+        new DescriptiveStatistics(new double[]{1000}), //
+        new DescriptiveStatistics(new double[]{}), //
+        new DescriptiveStatistics(new double[]{}), //
+        new DescriptiveStatistics(new double[]{}),
         discovered().security(1, 0, 0, 0).get(),
         fixed().security(1, 0, 0, 0).get(),
         waived().get(),
@@ -1033,9 +1034,13 @@ public class SuccessMetricsReportDataServiceTest
     assertThat(isReportDataOutOfDate(reportData, true, reportLastUpdated, moreApplicationIds)).isTrue();
 
     // test timeliness when includeLatestData is false
-    DateTime lastInstantOfReportMonth = reportLastUpdated.dayOfMonth().withMaximumValue().millisOfDay()
+    DateTime lastInstantOfReportMonth = reportLastUpdated.dayOfMonth()
+        .withMaximumValue()
+        .millisOfDay()
         .withMaximumValue();
-    DateTime lastInstantOfReportWeek = reportLastUpdated.dayOfWeek().withMaximumValue().millisOfDay()
+    DateTime lastInstantOfReportWeek = reportLastUpdated.dayOfWeek()
+        .withMaximumValue()
+        .millisOfDay()
         .withMaximumValue();
     DateTime firstInstantOfNextMonth = reportLastUpdated.plusMonths(1).withDayOfMonth(1).withTimeAtStartOfDay();
     DateTime firstInstantOfNextWeek = reportLastUpdated.plusWeeks(1).withDayOfWeek(1).withTimeAtStartOfDay();
@@ -1328,9 +1333,8 @@ public class SuccessMetricsReportDataServiceTest
         createEmptyViolationsByCategoryDTO("02 Oct"),
         createEmptyViolationsByCategoryDTO("09 Oct"),
         createEmptyViolationsByCategoryDTO("16 Oct"),
-        new ViolationsByCategoryDTO("23 Oct", 0, 0, 0, 0)
-    );
-    
+        new ViolationsByCategoryDTO("23 Oct", 0, 0, 0, 0));
+
     assertAggregationViolationTotalsByCategoryHistory(result, expectedDTOs);
 
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), stageId, "scan2", now.minusWeeks(6).toDate());
@@ -1385,8 +1389,7 @@ public class SuccessMetricsReportDataServiceTest
         createEmptyViolationsByCategoryDTO("09 Oct"),
         createEmptyViolationsByCategoryDTO("16 Oct"),
         new ViolationsByCategoryDTO("23 Oct", 0, 0, 0, 0),
-        new ViolationsByCategoryDTO("now", 0, 0, 0, 0)
-    );
+        new ViolationsByCategoryDTO("now", 0, 0, 0, 0));
 
     assertAggregationViolationTotalsByCategoryHistory(result, expectedDTOs);
 
@@ -1435,7 +1438,7 @@ public class SuccessMetricsReportDataServiceTest
     tempEntity.newPolicyViolation(eval, policy);
 
     SuccessMetricsReport successMetricsReport = createSuccessMetricsReport(null, null);
-    
+
     // Since we don't have a full week, no data is returned
     assertThat(service.getChartData(successMetricsReport.getId()).violationsByCategoryWeeks).isEmpty();
 
@@ -1463,7 +1466,7 @@ public class SuccessMetricsReportDataServiceTest
 
   /**
    * @return an ApplicationCountsDTO with the expected values from the
-   * PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory method
+   *         PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory method
    */
   private ApplicationCountsDTO makeAggregationHistoryCountsDTO() {
     ApplicationCountsDTO dto = new ApplicationCountsDTO();
@@ -1706,8 +1709,7 @@ public class SuccessMetricsReportDataServiceTest
         new ViolationCountsDTO("Week of December 4th",
             discovered().security(0, 0, 8, 0).license(0, 0, 0, 4).quality(3, 0, 1, 4).other(0, 0, 0, 12).asMap(),
             fixed().security(1, 1, 0, 0).license(0, 0, 0, 0).quality(2, 2, 1, 1).other(0, 0, 0, 0).asMap(),
-            waived().security(0, 0, 2, 2).license(0, 0, 0, 0).quality(1, 1, 1, 1).other(0, 0, 0, 0).asMap())
-        );
+            waived().security(0, 0, 2, 2).license(0, 0, 0, 0).quality(1, 1, 1, 1).other(0, 0, 0, 0).asMap()));
     assertThat(actualDTOs).hasSameSizeAs(expectedDTOs);
     for (int i = 0; i < expectedDTOs.size(); i++) {
       assertViolationCountsDTO(expectedDTOs.get(i), actualDTOs.get(i));
@@ -1751,8 +1753,7 @@ public class SuccessMetricsReportDataServiceTest
         new ViolationCountsDTO("Week of December 4th",
             discovered().security(0, 0, 2, 0).license(0, 0, 0, 3).quality(0, 0, 1, 0).other(0, 0, 0, 5).asMap(),
             fixed().security(1, 1, 0, 0).license(0, 0, 0, 0).quality(0, 0, 0, 0).other(0, 0, 0, 0).asMap(),
-            waived().security(0, 0, 1, 1).license(0, 0, 0, 0).quality(0, 0, 0, 0).other(0, 0, 0, 0).asMap())
-    );
+            waived().security(0, 0, 1, 1).license(0, 0, 0, 0).quality(0, 0, 0, 0).other(0, 0, 0, 0).asMap()));
     assertThat(actualDTOs).hasSameSizeAs(expectedDTOs);
     for (int i = 0; i < expectedDTOs.size(); i++) {
       assertViolationCountsDTO(expectedDTOs.get(i), actualDTOs.get(i));
@@ -1780,8 +1781,7 @@ public class SuccessMetricsReportDataServiceTest
         new ViolationsByCategoryDTO("20 Nov", 12, 24, 20, 20),
         new ViolationsByCategoryDTO("27 Nov", 12, 24, 20, 20),
         new ViolationsByCategoryDTO("04 Dec", 12, 24, 20, 20),
-        new ViolationsByCategoryDTO("11 Dec", 12, 24, 20, 20)
-    );
+        new ViolationsByCategoryDTO("11 Dec", 12, 24, 20, 20));
     assertAggregationViolationTotalsByCategoryHistory(actualDTOs, expectedDTOs);
   }
 
@@ -1800,8 +1800,7 @@ public class SuccessMetricsReportDataServiceTest
         new ViolationsByCategoryDTO("27 Nov", 12, 24, 20, 20),
         new ViolationsByCategoryDTO("04 Dec", 12, 24, 20, 20),
         new ViolationsByCategoryDTO("11 Dec", 12, 24, 20, 20),
-        new ViolationsByCategoryDTO("now", 12, 24, 20, 20)
-    );
+        new ViolationsByCategoryDTO("now", 12, 24, 20, 20));
     assertAggregationViolationTotalsByCategoryHistory(actualDTOs, expectedDTOs);
   }
 
@@ -1818,13 +1817,13 @@ public class SuccessMetricsReportDataServiceTest
         new ViolationsByCategoryDTO("20 Nov", 3, 6, 5, 5),
         new ViolationsByCategoryDTO("27 Nov", 3, 6, 5, 5),
         new ViolationsByCategoryDTO("04 Dec", 3, 6, 5, 5),
-        new ViolationsByCategoryDTO("11 Dec", 3, 6, 5, 5)
-    );
+        new ViolationsByCategoryDTO("11 Dec", 3, 6, 5, 5));
     assertAggregationViolationTotalsByCategoryHistory(actualDTOs, expectedDTOs);
   }
 
-  private void assertAggregationViolationTotalsByCategoryHistory(List<ViolationsByCategoryDTO> actualDTOs,
-                                                                 List<ViolationsByCategoryDTO> expectedDTOs)
+  private void assertAggregationViolationTotalsByCategoryHistory(
+      List<ViolationsByCategoryDTO> actualDTOs,
+      List<ViolationsByCategoryDTO> expectedDTOs)
   {
     assertThat(actualDTOs).hasSameSizeAs(expectedDTOs);
     for (int i = 0; i < expectedDTOs.size(); i++) {
@@ -1832,8 +1831,9 @@ public class SuccessMetricsReportDataServiceTest
     }
   }
 
-  private void assertViolationTotalsByCategoryDTO(ViolationsByCategoryDTO expectedDTO,
-                                                  ViolationsByCategoryDTO actualDTO)
+  private void assertViolationTotalsByCategoryDTO(
+      ViolationsByCategoryDTO expectedDTO,
+      ViolationsByCategoryDTO actualDTO)
   {
     assertThat(actualDTO.timePeriodName).as("Time Period Name").isEqualTo(expectedDTO.timePeriodName);
     assertThat(actualDTO.security).as("Security").isEqualTo(expectedDTO.security);
@@ -1864,14 +1864,15 @@ public class SuccessMetricsReportDataServiceTest
 
   private void assertMttrDTOs(List<MttrDTO> actual, List<MttrDTO> expected) {
     Comparator<MttrDTO> mttrDTOComparator = Comparator
-        .<MttrDTO, String> comparing(dto -> dto.timePeriodName, Comparator.nullsFirst(Comparator.naturalOrder()))
+        .<MttrDTO, String>comparing(dto -> dto.timePeriodName, Comparator.nullsFirst(Comparator.naturalOrder()))
         .thenComparing(dto -> dto.mttrInSeconds, Comparator.nullsFirst(Comparator.naturalOrder()))
         .thenComparing(dto -> dto.criticalMttrInSeconds, Comparator.nullsFirst(Comparator.naturalOrder()));
     assertThat(actual).usingElementComparator(mttrDTOComparator).isEqualTo(expected);
   }
 
-  private void assertAverageDTO(AverageDiscoveredPolicyViolationsDTO actualDTO,
-                                AverageDiscoveredPolicyViolationsDTO expectedDTO)
+  private void assertAverageDTO(
+      AverageDiscoveredPolicyViolationsDTO actualDTO,
+      AverageDiscoveredPolicyViolationsDTO expectedDTO)
   {
     assertThat(actualDTO.evaluationCount).isCloseTo(expectedDTO.evaluationCount, offset(TOLERANCE));
 
@@ -1942,7 +1943,7 @@ public class SuccessMetricsReportDataServiceTest
     ComponentCountsDTO componentDetailsDTO = service.getComponentCounts(createSuccessMetricsReport(null, null).getId());
     assertThat(componentDetailsDTO).isNotNull();
 
-    //app1=2 components, app2=1 component, app3=0 components
+    // app1=2 components, app2=1 component, app3=0 components
     assertThat(componentDetailsDTO.componentsPerApplication).isEqualTo(1);
     assertThat(componentDetailsDTO.componentsInTheMostApplications).hasSize(2);
     assertThat(componentDetailsDTO.componentsInTheMostApplications.get(0).count).isEqualTo(2);
@@ -2225,13 +2226,13 @@ public class SuccessMetricsReportDataServiceTest
      * The first component has a component identifier and the display name should come from that. Present in one
      * app with one violation
      *
-     * The second component has no component identifier but has a variety of pathnames.  Present in three apps with
+     * The second component has no component identifier but has a variety of pathnames. Present in three apps with
      * three total violations
      *
      * The third component has no component identifier but has a variety of pathnames which test the tie-breaking
-     * logic for pathname selection.  Present in two apps with two total violations
+     * logic for pathname selection. Present in two apps with two total violations
      *
-     * The fourth component has no component id nor pathnames so it should show up as "Unknown".  Present in one
+     * The fourth component has no component id nor pathnames so it should show up as "Unknown". Present in one
      * app with one total violation
      */
     Organization org = tempEntity.newOrganization();
@@ -2313,7 +2314,8 @@ public class SuccessMetricsReportDataServiceTest
     // on first getById call, data isn't saved yet. Then an insert will be attempted but will, as if another thread
     // inserted first, fail. Then another getById call should be made which should return the mocked data object
     // (ie the object created supposedly created by the other thread)
-    when(mockDAO.getById(reportId)).thenAnswer(new Answer<SuccessMetricsReportData>() {
+    when(mockDAO.getById(reportId)).thenAnswer(new Answer<SuccessMetricsReportData>()
+    {
       private int callCount = 0;
 
       @Override

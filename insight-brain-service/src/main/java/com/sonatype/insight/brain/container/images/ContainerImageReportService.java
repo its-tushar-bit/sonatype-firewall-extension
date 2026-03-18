@@ -49,22 +49,22 @@ public class ContainerImageReportService
   public ContainerImageSummaryDTO getContainerImagesSummaryNoAuthz(String repositoryId) {
 
     ContainerImageSummaryDTO summary = new ContainerImageSummaryDTO();
-    
+
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
-    
-    if (repository.getRepositoryType() != RepositoryType.proxy || !"docker".equals(repository.getFormat())) { 
-      throw new BadRequestException("Repository must be of type proxy and format docker"); 
+
+    if (repository.getRepositoryType() != RepositoryType.proxy || !"docker".equals(repository.getFormat())) {
+      throw new BadRequestException("Repository must be of type proxy and format docker");
     }
-    
-    long repositoryContainerImageCount = 
+
+    long repositoryContainerImageCount =
         applicationDAO.getApplicationsCountByOrganizationId(repository.getRelatedOrganizationId());
-    
+
     ContainerImagePolicyViolationSummaryDTO result =
         policyViolationDAO.getContainerImagePolicyViolationSummaryForRepository(repositoryId);
 
     summary.totalContainerImageCount = repositoryContainerImageCount;
-    summary.totalContainerImageViolationCount = result.getCriticalPolicyViolationsCount() + 
-        result.getSeverePolicyViolationsCount() + 
+    summary.totalContainerImageViolationCount = result.getCriticalPolicyViolationsCount() +
+        result.getSeverePolicyViolationsCount() +
         result.getModeratePolicyViolationsCount();
     summary.criticalViolationCount = result.getCriticalPolicyViolationsCount();
     summary.severeViolationCount = result.getSeverePolicyViolationsCount();
@@ -73,7 +73,7 @@ public class ContainerImageReportService
     summary.quarantinedContainerImageCount = repository.isQuarantineEnabled()
         ? result.getQuarantinedContainerImagesCount()
         : 0;
-    
+
     return summary;
   }
 }

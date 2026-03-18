@@ -99,7 +99,7 @@ public class MultiTenantTelemetrySenderLicenseFingerprintTest
 
     testProductLicenseManager = new TestProductLicenseManager();
     productLicense = new MultiTenantProductLicense(mock(DeveloperEnablementService.class));
-    HdsClient hdsClient = new HdsClient(proxy, productLicense, configuration, versionService, telemetryId,  null);
+    HdsClient hdsClient = new HdsClient(proxy, productLicense, configuration, versionService, telemetryId, null);
     telemetrySender =
         new TelemetrySender(hdsClient, versionService, telemetryId, tenantUtil, mockTelemetryReceiptService);
 
@@ -138,7 +138,8 @@ public class MultiTenantTelemetrySenderLicenseFingerprintTest
       TelemetryData telemetryDataSend = new TelemetryData(TelemetryPurpose.DATABASE);
       telemetryDataSend.put("test-key", "test-value");
       doReturn(new TelemetryReceipt(List.of(telemetryDataSend)))
-          .when(mockTelemetryReceiptService).onTelemetrySubmitted(anyList());
+          .when(mockTelemetryReceiptService)
+          .onTelemetrySubmitted(anyList());
       telemetrySender.send(telemetryDataSend);
     });
 

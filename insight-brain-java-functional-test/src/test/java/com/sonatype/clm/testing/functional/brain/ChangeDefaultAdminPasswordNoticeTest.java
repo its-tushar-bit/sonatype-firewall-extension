@@ -27,10 +27,10 @@ import static com.sonatype.insight.brain.model.security.MembershipMapping.GLOBAL
 public class ChangeDefaultAdminPasswordNoticeTest
     extends AbstractFunctionalTest
 {
-  private static final String[] URLs = new String[] {
-      DashboardPage.url(),
-      ReportListPage.url(),
-      RoleManagementPage.url()
+  private static final String[] URLs = new String[]{
+    DashboardPage.url(),
+    ReportListPage.url(),
+    RoleManagementPage.url()
   };
 
   private UserDAO userDAO;

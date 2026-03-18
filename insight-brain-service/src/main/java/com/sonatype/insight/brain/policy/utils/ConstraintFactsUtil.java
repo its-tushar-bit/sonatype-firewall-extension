@@ -174,15 +174,15 @@ public final class ConstraintFactsUtil
    * @param cveNumber CVE identifier (e.g., "CVE-2023-12345" or "sonatype-...")
    * @param cvssScore CVSS severity score (for CVEs)
    * @param vulnerabilityCategory CVE vulnerability category
-   *        (e.g., "ARBITRARY_CODE_EXECUTION", "DENIAL_OF_SERVICE")
+   *          (e.g., "ARBITRARY_CODE_EXECUTION", "DENIAL_OF_SERVICE")
    * @param malwareSeverity Malware severity description (e.g., "Malicious", "Moderate")
-   *        from ThirdPartyVulnerability
+   *          from ThirdPartyVulnerability
    * @param malwareAttackVector Malware attack vector (e.g., "Trojan", "Brandjack", "Hijack")
-   *        from ThirdPartyVulnerability
+   *          from ThirdPartyVulnerability
    * @param cvssAttackVector CVSS attack vector (e.g., "Network", "Adjacent", "Local", "Physical")
-   *        parsed from CVSS vectorString
+   *          parsed from CVSS vectorString
    * @param threatTypes List of threat type classifications
-   *        (e.g., ["secrets_exfiltration", "backdoor", "crypto_miner"]) - populated from HDS
+   *          (e.g., ["secrets_exfiltration", "backdoor", "crypto_miner"]) - populated from HDS
    */
   public record CveData(
       String cveNumber,

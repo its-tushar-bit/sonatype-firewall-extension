@@ -170,8 +170,10 @@ public class QuarantinedComponentService
     repositoryPolicyViolationDAO.loadConstraintFacts(policyViolations);
 
     List<RepositoryPolicyViolationDTO> repositoryPolicyViolationDTOs =
-        policyViolations.stream().sorted(Comparator.comparingInt(RepositoryPolicyViolation::getThreatLevel).reversed())
-            .map(repositoryService::toRepositoryPolicyViolationDTO).collect(Collectors.toList());
+        policyViolations.stream()
+            .sorted(Comparator.comparingInt(RepositoryPolicyViolation::getThreatLevel).reversed())
+            .map(repositoryService::toRepositoryPolicyViolationDTO)
+            .collect(Collectors.toList());
 
     return repositoryPolicyViolationDTOs;
   }
@@ -206,7 +208,8 @@ public class QuarantinedComponentService
     String hash = repositoryComponent.getHash();
 
     if (!StringUtils.isBlank(version)
-        && !version.equals(repositoryComponent.getComponentIdentifier().get(ComponentIdentifier.VERSION))) {
+        && !version.equals(repositoryComponent.getComponentIdentifier().get(ComponentIdentifier.VERSION)))
+    {
       // The request is for a different version than the quarantined component's version
       componentIdentifier = repositoryComponent.getComponentIdentifier().createAlternativeVersion(version);
       hash = null;
@@ -217,7 +220,10 @@ public class QuarantinedComponentService
   }
 
   public ApiPageResult<String> getQuarantinedComponentOtherVersions(
-      final String token, int page, int pageSize, boolean asc)
+      final String token,
+      int page,
+      int pageSize,
+      boolean asc)
   {
     if (page <= 0 || pageSize <= 0) {
       throw new BadRequestException("Page and Page size must be greater than 0");
@@ -236,9 +242,10 @@ public class QuarantinedComponentService
 
     List<RepositoryComponent> otherVersionComponents = repositoryComponentDAO
         .getOtherVersionRepositoryComponentsByPathnameFilter(repositoryId, pathnamePrefix, pathname)
-          .stream()
-          .filter(component -> filterAllowedVersions(repositoryComponent.getComponentIdentifier(),
-                  component.getComponentIdentifier())).collect(Collectors.toList());
+        .stream()
+        .filter(component -> filterAllowedVersions(repositoryComponent.getComponentIdentifier(),
+            component.getComponentIdentifier()))
+        .collect(Collectors.toList());
 
     Comparator<RepositoryComponent> comparator = Comparator.comparing(component -> new ComparableVersion(
         component.getComponentIdentifier().get(ComponentIdentifier.VERSION)));
@@ -251,7 +258,9 @@ public class QuarantinedComponentService
         otherVersionComponents.stream()
             .sorted(comparator)
             .map(RepositoryComponent::getDisplayName)
-            .skip(skipCount).limit(pageSize).collect(Collectors.toList());
+            .skip(skipCount)
+            .limit(pageSize)
+            .collect(Collectors.toList());
 
     return new ApiPageResult<>(otherVersionComponents.size(), page, pageSize, otherVersionComponentDisplayNames);
   }

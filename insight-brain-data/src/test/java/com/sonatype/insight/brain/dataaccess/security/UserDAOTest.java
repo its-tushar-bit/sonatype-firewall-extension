@@ -237,7 +237,7 @@ public class UserDAOTest
   public void testValidateUsernameSpaces_Update() {
     User user = createUser("testValidateUsernameSpaces");
 
-    String[] invalidSpacingNames = { " leadingSpace", "trailingSpace ", "space in", "double  space" };
+    String[] invalidSpacingNames = {" leadingSpace", "trailingSpace ", "space in", "double  space"};
     for (String username : invalidSpacingNames) {
       user.setUsername(username);
       assertThatThrownBy(() -> userDAO.update(user)).isInstanceOf(InvalidNameException.class)
@@ -271,7 +271,7 @@ public class UserDAOTest
   public void testValidateNullFirstName_Insert() {
     assertThatThrownBy(
         () -> createUser("username", "password", null /* firstName */, "lastName", "email@localhost")).isInstanceOf(
-        InvalidNameException.class).hasMessage("The first name is required.");
+            InvalidNameException.class).hasMessage("The first name is required.");
   }
 
   @Test
@@ -336,8 +336,9 @@ public class UserDAOTest
       assertThatThrownBy(() -> {
         user.setFirstName(name);
         userDAO.update(user);
-      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "The first name",
-          name.charAt(0));
+      }).isInstanceOf(InvalidNameException.class)
+          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "The first name",
+              name.charAt(0));
     }
   }
 
@@ -360,8 +361,8 @@ public class UserDAOTest
     String firstName = StringUtils.repeat("a", UserDAO.MAX_FIRST_NAME_SIZE);
     assertThatThrownBy(
         () -> createUser("username", "password", firstName + "a", "lastName", "email@localhost"))
-        .isInstanceOf(InvalidNameException.class)
-        .hasMessage("The first name must be " + UserDAO.MAX_FIRST_NAME_SIZE + " characters or less.");
+            .isInstanceOf(InvalidNameException.class)
+            .hasMessage("The first name must be " + UserDAO.MAX_FIRST_NAME_SIZE + " characters or less.");
 
     createUser("username", "password", firstName, "lastName", "email@localhost");
   }
@@ -418,7 +419,8 @@ public class UserDAOTest
   @Test
   public void testValidateNullLastName_Insert() {
     assertThatThrownBy(() -> createUser("username", "password", "firstName", null, "email@localhost"))
-        .isInstanceOf(InvalidNameException.class).hasMessage("The last name is required.");
+        .isInstanceOf(InvalidNameException.class)
+        .hasMessage("The last name is required.");
   }
 
   @Test
@@ -453,7 +455,8 @@ public class UserDAOTest
   @Test
   public void testValidateEmptyLastName_Insert() {
     assertThatThrownBy(() -> createUser("username", "password", "firstName", "", "email@localhost"))
-        .isInstanceOf(InvalidNameException.class).hasMessage("The last name is required.");
+        .isInstanceOf(InvalidNameException.class)
+        .hasMessage("The last name is required.");
   }
 
   @Test
@@ -514,7 +517,8 @@ public class UserDAOTest
   public void testValidateNullEmail_Insert() {
     assertThatThrownBy(
         () -> createUser("username", "password", "firstname", "lastName", null /* email */))
-        .isInstanceOf(InvalidUserException.class).hasMessage("The email is required.");
+            .isInstanceOf(InvalidUserException.class)
+            .hasMessage("The email is required.");
   }
 
   @Test
@@ -545,7 +549,8 @@ public class UserDAOTest
   public void testValidateNullPassword_Insert() {
     assertThatThrownBy(
         () -> createUser("username", null /* password */, "firstname", "lastName", "username@localhost"))
-        .isInstanceOf(InvalidUserException.class).hasMessage("The password is required.");
+            .isInstanceOf(InvalidUserException.class)
+            .hasMessage("The password is required.");
   }
 
   @Test
@@ -560,7 +565,8 @@ public class UserDAOTest
   @Test
   public void testValidateEmptyPassword_Insert() {
     assertThatThrownBy(() -> createUser("username", " " /* password */, "firstname", "lastName", "username@localhost"))
-        .isInstanceOf(InvalidUserException.class).hasMessage("The password is required.");
+        .isInstanceOf(InvalidUserException.class)
+        .hasMessage("The password is required.");
   }
 
   @Test

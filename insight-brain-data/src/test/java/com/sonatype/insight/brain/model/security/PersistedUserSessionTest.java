@@ -43,20 +43,25 @@ public class PersistedUserSessionTest
     SimpleSession session = new SimpleSession();
     PersistedUserSession persistedUserSession = new PersistedUserSession(session);
 
-    assertThat(persistedUserSession.getSession()).usingRecursiveComparison().ignoringCollectionOrder()
+    assertThat(persistedUserSession.getSession()).usingRecursiveComparison()
+        .ignoringCollectionOrder()
         .isEqualTo(session);
 
     session = createSession();
     persistedUserSession.setSession(session);
 
-    assertThat(persistedUserSession.getSession()).usingRecursiveComparison().ignoringCollectionOrder()
-        .ignoringFields("attributes.org.keycloak.adapters.saml.SamlSession.principal.assertion").isEqualTo(session);
+    assertThat(persistedUserSession.getSession()).usingRecursiveComparison()
+        .ignoringCollectionOrder()
+        .ignoringFields("attributes.org.keycloak.adapters.saml.SamlSession.principal.assertion")
+        .isEqualTo(session);
 
     session.setAttribute(DefaultSubjectContext.PRINCIPALS_SESSION_KEY, createPrincipalCollection());
     persistedUserSession.setSession(session);
 
-    assertThat(persistedUserSession.getSession()).usingRecursiveComparison().ignoringCollectionOrder()
-        .ignoringFields("attributes.org.keycloak.adapters.saml.SamlSession.principal.assertion").isEqualTo(session);
+    assertThat(persistedUserSession.getSession()).usingRecursiveComparison()
+        .ignoringCollectionOrder()
+        .ignoringFields("attributes.org.keycloak.adapters.saml.SamlSession.principal.assertion")
+        .isEqualTo(session);
   }
 
   @Test

@@ -67,8 +67,8 @@ public class ApiLegalReportResourceV2Test
             .get();
 
     assertResponseStatus(200, response);
-    ApiLicenseLegalApplicationReportDTO
-        apiLicenseLegalApplicationReportDTO = response.getBody(ApiLicenseLegalApplicationReportDTO.class);
+    ApiLicenseLegalApplicationReportDTO apiLicenseLegalApplicationReportDTO =
+        response.getBody(ApiLicenseLegalApplicationReportDTO.class);
     assertThat(apiLicenseLegalApplicationReportDTO).isNotNull();
     assertThat(apiLicenseLegalApplicationReportDTO.components).hasSize(14);
     assertThat(apiLicenseLegalApplicationReportDTO.licenseLegalMetadata).hasSize(8);
@@ -89,8 +89,8 @@ public class ApiLegalReportResourceV2Test
             .get();
 
     assertResponseStatus(200, response);
-    ApiLicenseLegalApplicationReportDTO
-        apiLicenseLegalApplicationReportDTO = response.getBody(ApiLicenseLegalApplicationReportDTO.class);
+    ApiLicenseLegalApplicationReportDTO apiLicenseLegalApplicationReportDTO =
+        response.getBody(ApiLicenseLegalApplicationReportDTO.class);
     assertThat(apiLicenseLegalApplicationReportDTO).isNotNull();
     assertThat(apiLicenseLegalApplicationReportDTO.components).hasSize(14);
     assertThat(apiLicenseLegalApplicationReportDTO.licenseLegalMetadata).hasSize(8);
@@ -166,7 +166,8 @@ public class ApiLegalReportResourceV2Test
 
     HttpResponse response = restRequest().path(ApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_PATH)
         .part("applications", applications.get(0).getPublicId() + "," + applications.get(1).getPublicId())
-        .part("stages", BuildStageType.ID + "," + BuildStageType.ID).post();
+        .part("stages", BuildStageType.ID + "," + BuildStageType.ID)
+        .post();
 
     assertResponseStatus(200, response);
     assertThat(response.getBodyText())
@@ -729,9 +730,7 @@ public class ApiLegalReportResourceV2Test
   }
 
   @Test
-  public void testPostLicenseLegalMultiApplicationReportFromActiveUserFilter_FromTemplate_contentLengthTooLarge()
-      throws Exception
-  {
+  public void testPostLicenseLegalMultiApplicationReportFromActiveUserFilter_FromTemplate_contentLengthTooLarge() throws Exception {
     List<Application> applications = prepareApplications(2);
     List<PolicyEvaluation> evaluations = prepareEvaluations(applications, BuildStageType.ID);
     mockReport(evaluations.get(0), getClass().getSimpleName());
@@ -751,9 +750,7 @@ public class ApiLegalReportResourceV2Test
   }
 
   @Test
-  public void testPostLicenseLegalMultiApplicationReportFromActiveUserFilter_FromTemplate_requestTooLarge()
-      throws Exception
-  {
+  public void testPostLicenseLegalMultiApplicationReportFromActiveUserFilter_FromTemplate_requestTooLarge() throws Exception {
     List<Application> applications = prepareApplications(2);
     List<PolicyEvaluation> evaluations = prepareEvaluations(applications, BuildStageType.ID);
     mockReport(evaluations.get(0), getClass().getSimpleName());
@@ -779,9 +776,7 @@ public class ApiLegalReportResourceV2Test
   }
 
   @Test
-  public void testPostLicenseLegalMultiApplicationReportFromActiveUserFilter_FromTemplate_noticeFileTooLarge()
-      throws Exception
-  {
+  public void testPostLicenseLegalMultiApplicationReportFromActiveUserFilter_FromTemplate_noticeFileTooLarge() throws Exception {
     List<Application> applications = prepareApplications(2);
     List<PolicyEvaluation> evaluations = prepareEvaluations(applications, BuildStageType.ID);
     mockReport(evaluations.get(0), getClass().getSimpleName());
@@ -982,9 +977,9 @@ public class ApiLegalReportResourceV2Test
     return file;
   }
 
-  //To emulate a large request based on the MAX_REQUEST_PART_SIZE, we add a high number of parts to the request
+  // To emulate a large request based on the MAX_REQUEST_PART_SIZE, we add a high number of parts to the request
   private void addLargeRequestPart(HttpRequest request) {
-    int partBytes = 102400; //100 kb each part added
+    int partBytes = 102400; // 100 kb each part added
     for (int i = 0; i < (MAX_REQUEST_SIZE / partBytes) + 1; i++) {
       request.part(String.valueOf(i), StringUtils.repeat('a', partBytes));
     }
@@ -1000,7 +995,7 @@ public class ApiLegalReportResourceV2Test
         throw e;
       }
       // ChannelOutputShutdownException can surface because the request size validation logic can throw a
-      // bad request  exception even when the client is not done writing a large request
+      // bad request exception even when the client is not done writing a large request
       System.out.println(
           "ChannelOutputShutdownException can surface because the request size validation logic can throw a" +
               " bad request exception even when the client is not done writing a large request " + e.getMessage());

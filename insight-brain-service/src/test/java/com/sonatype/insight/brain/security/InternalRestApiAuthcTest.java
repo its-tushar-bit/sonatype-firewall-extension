@@ -166,7 +166,8 @@ public class InternalRestApiAuthcTest
     HttpRequest request = restRequest().auth().noCsrfToken();
 
     HttpResponse response = request.subpath(PolicyEvaluationSummaryResource.RESOURCE_PATH)
-        .parameter("appId", "stageId").get();
+        .parameter("appId", "stageId")
+        .get();
     assertResponseStatus(400, response);
     assertThat(response.getSessionCookie()).isNull();
 
@@ -179,7 +180,8 @@ public class InternalRestApiAuthcTest
     assertThat(response.getSessionCookie()).isNull();
 
     response = request.subpath(ReportResource.RESOURCE_PATH, ReportResource.DOWNLOAD_BUNDLE_PATH)
-        .parameter("appId", "scanId").get();
+        .parameter("appId", "scanId")
+        .get();
     assertResponseStatus(404, response);
     assertThat(response.getSessionCookie()).isNull();
 
@@ -196,7 +198,8 @@ public class InternalRestApiAuthcTest
     assertThat(response.getSessionCookie()).isNull();
 
     response = request.subpath(RepositoryResource.RESOURCE_PATH, RepositoryResource.AUDIT_ENABLE_PATH)
-        .parameter(tempEntity.newRepositoryManager().getInstanceId(), "repo", "true").post();
+        .parameter(tempEntity.newRepositoryManager().getInstanceId(), "repo", "true")
+        .post();
     assertResponseStatus(200, response);
     assertThat(response.getSessionCookie()).isNull();
 
@@ -204,7 +207,8 @@ public class InternalRestApiAuthcTest
     assertResponseStatus(200, response);
     assertThat(response.getSessionCookie()).isNull();
 
-    response = request.subpath(ApplicationResource.RESOURCE_PATH, ApplicationResource.VALIDATE_PATH).parameter("appId")
+    response = request.subpath(ApplicationResource.RESOURCE_PATH, ApplicationResource.VALIDATE_PATH)
+        .parameter("appId")
         .get();
     assertResponseStatus(200, response);
     assertThat(response.getSessionCookie()).isNull();

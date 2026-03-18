@@ -60,8 +60,7 @@ public class ReportDataReader
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   // For testing visibility
-  final TenantReference<Cache<String, Table<String, ComponentIdentifier, ReportComponentDTO>>>
-      componentCache;
+  final TenantReference<Cache<String, Table<String, ComponentIdentifier, ReportComponentDTO>>> componentCache;
 
   private final Provider<ReportService> reportServiceProvider;
 
@@ -74,8 +73,7 @@ public class ReportDataReader
     componentCache = new TenantReference<>(() -> CacheBuilder.newBuilder()
         .expireAfterAccess(1, TimeUnit.DAYS)
         .maximumWeight(100000)
-        .weigher((Weigher<String, Table<String, ComponentIdentifier, ReportComponentDTO>>) (key, value) ->
-            value.size())
+        .weigher((Weigher<String, Table<String, ComponentIdentifier, ReportComponentDTO>>) (key, value) -> value.size())
         .build());
   }
 
@@ -97,18 +95,23 @@ public class ReportDataReader
     try {
       final ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON.getName());
       final List<BillOfMaterialsRowDTO> bomRows =
-          readData(bomEntry, new TypeReference<>() { });
+          readData(bomEntry, new TypeReference<>()
+          {
+          });
       if (bomRows != null && !bomRows.isEmpty()) {
         Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
             SECURITY_JSON.getName(),
-            LICENSES_JSON.getName()
-        ));
+            LICENSES_JSON.getName()));
         ReportEntry securityReportEntry = entries.get(SECURITY_JSON.getName());
         final List<HealthCheckReportSecurityRowDTO> securityRows =
-            readData(securityReportEntry, new TypeReference<>() { });
+            readData(securityReportEntry, new TypeReference<>()
+            {
+            });
         ReportEntry licenseReportEntry = entries.get(LICENSES_JSON.getName());
         final List<HealthCheckReportRowDTO> licenseRows =
-            readData(licenseReportEntry, new TypeReference<>() { });
+            readData(licenseReportEntry, new TypeReference<>()
+            {
+            });
         prepareComponentData(bomRows, securityRows, licenseRows, reportData);
       }
     }
@@ -136,7 +139,7 @@ public class ReportDataReader
 
       scannedComponents = HashBasedTable.create();
       for (Entry<String, ReportComponentDTO> dataEntry : data.entrySet()) {
-        //only known components need to be cached
+        // only known components need to be cached
         if (dataEntry.getValue().componentIdentifier != null) {
           scannedComponents.put(dataEntry.getKey(), dataEntry.getValue().componentIdentifier,
               dataEntry.getValue());
@@ -179,16 +182,20 @@ public class ReportDataReader
   }
 
   private Set<License> toLicenses(final Set<String> licenses) {
-    return licenses != null ? licenses.stream()
-        .filter(license -> !SbomCommonUtils.isUnsupportedLicenseId(license))
-        .map(this::getLicense)
-        .collect(Collectors.toCollection(HashSet::new)) : new HashSet<>();
+    return licenses != null
+        ? licenses.stream()
+            .filter(license -> !SbomCommonUtils.isUnsupportedLicenseId(license))
+            .map(this::getLicense)
+            .collect(Collectors.toCollection(HashSet::new))
+        : new HashSet<>();
   }
 
   private License getLicense(String licenseId) {
     MultiLicense multiLicense = multiLicenseDAO.getById(licenseId);
-    return multiLicense != null ? new License(multiLicense.getId(), multiLicense.getShortDisplayName()) : new License(
-        licenseId, licenseId);
+    return multiLicense != null
+        ? new License(multiLicense.getId(), multiLicense.getShortDisplayName())
+        : new License(
+            licenseId, licenseId);
   }
 
   private void prepareComponentData(
@@ -204,7 +211,9 @@ public class ReportDataReader
             securityRows.stream().filter(row -> row.componentIdentifier.equals(dto.componentIdentifier)).toList());
       }
       if (licenseRows != null && !licenseRows.isEmpty()) {
-        licenseRows.stream().filter(row -> row.componentIdentifier.equals(dto.componentIdentifier)).findFirst()
+        licenseRows.stream()
+            .filter(row -> row.componentIdentifier.equals(dto.componentIdentifier))
+            .findFirst()
             .ifPresent(license -> dto.licenseRow = license);
       }
       reportData.put(bomRow.hash, dto);

@@ -87,20 +87,27 @@ public class SbomManagerApplicationSummaryPageTest
     sbomsTile.shouldBe(visible);
     sbomsTile.importButton().shouldBe(visible);
     sbomsTile.header().shouldHave(text("SBOMS"));
-    sbomsTile.tableHeaders().shouldHave(CollectionCondition
-        .size(6));
-    sbomsTile.columnHeader(0).shouldHave(
-        text("VERSIONS"));
-    sbomsTile.columnHeader(1).shouldHave(
-        text("VULNERABILITIES"));
-    sbomsTile.columnHeader(2).shouldHave(
-        text("RELEASE STATUS"));
-    sbomsTile.columnHeader(3).shouldHave(
-        text("BOM FORMAT"));
-    sbomsTile.columnHeader(4).shouldHave(
-        text("IMPORT DATE"));
-    sbomsTile.columnHeader(5).shouldHave(
-        text("ACTIONS"));
+    sbomsTile.tableHeaders()
+        .shouldHave(CollectionCondition
+            .size(6));
+    sbomsTile.columnHeader(0)
+        .shouldHave(
+            text("VERSIONS"));
+    sbomsTile.columnHeader(1)
+        .shouldHave(
+            text("VULNERABILITIES"));
+    sbomsTile.columnHeader(2)
+        .shouldHave(
+            text("RELEASE STATUS"));
+    sbomsTile.columnHeader(3)
+        .shouldHave(
+            text("BOM FORMAT"));
+    sbomsTile.columnHeader(4)
+        .shouldHave(
+            text("IMPORT DATE"));
+    sbomsTile.columnHeader(5)
+        .shouldHave(
+            text("ACTIONS"));
     ElementsCollection tableRows = sbomsTile.tableRows();
     tableRows.first().shouldBe(visible);
     tableRows.shouldHave(size(2));
@@ -240,7 +247,11 @@ public class SbomManagerApplicationSummaryPageTest
   }
 
   private void createSbomMetadata(
-      String thirdPartyFileId, String fileName, Date createdAt, String sbomVersion, boolean isValid)
+      String thirdPartyFileId,
+      String fileName,
+      Date createdAt,
+      String sbomVersion,
+      boolean isValid)
   {
     sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(thirdPartyFileId, application.getId(), sbomVersion, ACTIVE, fileName,
@@ -319,7 +330,7 @@ public class SbomManagerApplicationSummaryPageTest
     SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
     sbomsTile.table().shouldBe(visible);
     sbomsTile.columnHeader(2).shouldHave(text("RELEASE STATUS")).click();
-    verifySortOrderReleaseStatus(true, sbomsTile); //verify asc
+    verifySortOrderReleaseStatus(true, sbomsTile); // verify asc
     sbomsTile.columnHeader(2).shouldHave(text("RELEASE STATUS")).click();
     verifySortOrderReleaseStatus(false, sbomsTile);
   }
@@ -392,8 +403,7 @@ public class SbomManagerApplicationSummaryPageTest
                   "link7",
                   10,
                   "severity",
-                  "fix7"
-              );
+                  "fix7");
           if (j <= 7) {
             insertVEXToThirdPartyCoordinateSecurity(coordinateSecurity);
           }

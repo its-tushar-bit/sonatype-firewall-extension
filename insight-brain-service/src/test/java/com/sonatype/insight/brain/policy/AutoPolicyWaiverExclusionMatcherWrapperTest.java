@@ -138,11 +138,13 @@ public class AutoPolicyWaiverExclusionMatcherWrapperTest
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app.getOrganizationId());
     ComponentIdentifier componentIdentifier = new ComponentIdentifier(FORMAT_PYPI, new TreeMap<String, String>()
-    {{
+    {
+      {
         this.put("name", "name");
         this.put("extension", "e");
         this.put("qualifier", "q");
-      }});
+      }
+    });
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
     PolicyViolation policyViolation =
         tempEntity.newPolicyViolation(eval, policy, componentIdentifier, "fakeHash", "fake");
@@ -199,12 +201,14 @@ public class AutoPolicyWaiverExclusionMatcherWrapperTest
 
     Policy policy = tempEntity.newPolicy(app.getOrganizationId());
     ComponentIdentifier identifier = new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>()
-    {{
+    {
+      {
         this.put("artifactId", "artifact");
         this.put("groupId", "group");
         this.put("version", "1.0");
         this.put("classifier", "");
-      }});
+      }
+    });
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(eval, policy, identifier, "otherHash", "fake");
 
@@ -260,19 +264,23 @@ public class AutoPolicyWaiverExclusionMatcherWrapperTest
   public void testMatcherWrapper_CompareWhenMissingRequiredCoordinates() {
     ComponentIdentifier componentIdentifierSame =
         new ComponentIdentifier(FORMAT_MAVEN, new TreeMap()
-        {{
+        {
+          {
             this.put("artifactId", "artifact");
             this.put("groupId", "group");
             this.put("version", "*");
-          }});
+          }
+        });
 
     ComponentIdentifier componentIdentifierOther =
         new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>()
-        {{
+        {
+          {
             this.put("artifactId", "otherArtifact");
             this.put("groupId", "group");
             this.put("version", "*");
-          }});
+          }
+        });
 
     Application app = tempEntity.newApplicationWithParent();
 
@@ -284,10 +292,12 @@ public class AutoPolicyWaiverExclusionMatcherWrapperTest
 
     Assertions.assertThat(wrapper
         .compareWhenMissingRequiredCoordinates(exclusion
-            .getComponentIdentifier(), componentIdentifierSame)).isTrue();
+            .getComponentIdentifier(), componentIdentifierSame))
+        .isTrue();
     Assertions.assertThat(wrapper
         .compareWhenMissingRequiredCoordinates(exclusion
-            .getComponentIdentifier(), componentIdentifierOther)).isFalse();
+            .getComponentIdentifier(), componentIdentifierOther))
+        .isFalse();
   }
 
   @Test

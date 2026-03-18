@@ -137,8 +137,9 @@ public class QuarantinedComponentServiceTest
     String encodedToken = encodeToken("token");
 
     assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOverview(encodedToken)).isInstanceOf(
-        NotFoundException.class).hasMessage(
-        "The quarantined component view for the blocked component you are trying to view could not be found.");
+        NotFoundException.class)
+        .hasMessage(
+            "The quarantined component view for the blocked component you are trying to view could not be found.");
   }
 
   @Test
@@ -151,7 +152,7 @@ public class QuarantinedComponentServiceTest
 
   @Test
   public void testGetQuarantinedComponentOverview_Quarantined() {
-    //setup
+    // setup
     Date date = new Date();
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.2", null /* classifier */, "jar");
@@ -161,13 +162,14 @@ public class QuarantinedComponentServiceTest
         new DbQuarantinedComponentAccessManager(quarantinedComponentAccessDAO, configuration);
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
-    //when
+    // when
     QuarantinedComponentOverviewDto quarantinedComponentOverviewDto =
         quarantinedComponentService.getQuarantinedComponentOverview(encodedToken);
 
-    //then
-    assertThat(quarantinedComponentOverviewDto.componentIdentifier).usingRecursiveComparison().isEqualTo(
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    // then
+    assertThat(quarantinedComponentOverviewDto.componentIdentifier).usingRecursiveComparison()
+        .isEqualTo(
+            ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
     assertThat(quarantinedComponentOverviewDto.componentHash).isEqualTo("testHash");
     assertThat(quarantinedComponentOverviewDto.matchState).isEqualTo(MatchState.EXACT.toString());
     assertThat(quarantinedComponentOverviewDto.pathname).isEqualTo("com/lingocoder/abi.cli/0.5.2/abi.cli-0.5.2.jar");
@@ -184,7 +186,7 @@ public class QuarantinedComponentServiceTest
 
   @Test
   public void testGetQuarantinedComponentOverview_NotQuarantined() {
-    //setup
+    // setup
     Date date = new Date();
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.2", null /* classifier */, "jar");
@@ -194,13 +196,14 @@ public class QuarantinedComponentServiceTest
         new DbQuarantinedComponentAccessManager(quarantinedComponentAccessDAO, configuration);
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
-    //when
+    // when
     QuarantinedComponentOverviewDto quarantinedComponentOverviewDto =
         quarantinedComponentService.getQuarantinedComponentOverview(encodedToken);
 
-    //then
-    assertThat(quarantinedComponentOverviewDto.componentIdentifier).usingRecursiveComparison().isEqualTo(
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    // then
+    assertThat(quarantinedComponentOverviewDto.componentIdentifier).usingRecursiveComparison()
+        .isEqualTo(
+            ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
     assertThat(quarantinedComponentOverviewDto.componentHash).isEqualTo("testHash");
     assertThat(quarantinedComponentOverviewDto.matchState).isEqualTo(MatchState.EXACT.toString());
     assertThat(quarantinedComponentOverviewDto.pathname).isEqualTo("com/lingocoder/abi.cli/0.5.2/abi.cli-0.5.2.jar");
@@ -217,7 +220,7 @@ public class QuarantinedComponentServiceTest
 
   @Test
   public void testGetQuarantinedComponentOverview_Unquarantined() {
-    //setup
+    // setup
     Date date = new Date();
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.2", null /* classifier */, "jar");
@@ -227,13 +230,14 @@ public class QuarantinedComponentServiceTest
         new DbQuarantinedComponentAccessManager(quarantinedComponentAccessDAO, configuration);
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
-    //when
+    // when
     QuarantinedComponentOverviewDto quarantinedComponentOverviewDto =
         quarantinedComponentService.getQuarantinedComponentOverview(encodedToken);
 
-    //then
-    assertThat(quarantinedComponentOverviewDto.componentIdentifier).usingRecursiveComparison().isEqualTo(
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    // then
+    assertThat(quarantinedComponentOverviewDto.componentIdentifier).usingRecursiveComparison()
+        .isEqualTo(
+            ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
     assertThat(quarantinedComponentOverviewDto.componentHash).isEqualTo("testHash");
     assertThat(quarantinedComponentOverviewDto.matchState).isEqualTo(MatchState.EXACT.toString());
     assertThat(quarantinedComponentOverviewDto.pathname).isEqualTo("com/lingocoder/abi.cli/0.5.2/abi.cli-0.5.2.jar");
@@ -594,24 +598,24 @@ public class QuarantinedComponentServiceTest
     Date date = new Date();
     // Quarantined component
     RepositoryComponent repositoryComponent =
-            tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
-                    "com/lingocoder/abi.cli/0.5.1/abi.cli-0.5.1.jar", "hash", ComponentIdentifier
-                            .createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.1", null /* classifier */, "jar"),
-                    date, new DateTime(date).minusDays(1).toDate(), null);
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+            "com/lingocoder/abi.cli/0.5.1/abi.cli-0.5.1.jar", "hash", ComponentIdentifier
+                .createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.1", null /* classifier */, "jar"),
+            date, new DateTime(date).minusDays(1).toDate(), null);
     // Never quarantined component
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
-            "com/lingocoder/abi.cli/0.5.3/abi.cli-0.5.3-sources.jar", "hash",
-            ComponentIdentifier
-                    .createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.3", "source" /* classifier */, "jar"),
-            date, null);
+        "com/lingocoder/abi.cli/0.5.3/abi.cli-0.5.3-sources.jar", "hash",
+        ComponentIdentifier
+            .createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.3", "source" /* classifier */, "jar"),
+        date, null);
     QuarantinedComponentAccess quarantinedComponentAccess =
-            tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), date);
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), date);
 
     String encodedToken = encodeToken(quarantinedComponentAccess);
 
     // when
     ApiPageResult<String> result =
-            quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 5, true /* asc */);
+        quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 5, true /* asc */);
 
     // then
     assertThat(result.getTotal()).isEqualTo(0);
@@ -624,26 +628,28 @@ public class QuarantinedComponentServiceTest
 
   @Test
   public void testGetQuarantinedComponentOtherVersions_npm() {
-    //given
+    // given
     Date date = new Date();
     // Quarantined component
     RepositoryComponent repositoryComponent =
-            tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
-                    "comp1/-/comp1-1.tgz", "hash1-1", ComponentIdentifier
-                            .createNpmCoordinates("comp1", "3"), true);
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+            "comp1/-/comp1-1.tgz", "hash1-1", ComponentIdentifier
+                .createNpmCoordinates("comp1", "3"),
+            true);
     // Never quarantined component
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
-            "comp1/-/comp1-2.tgz", "hash1-2", ComponentIdentifier
-                    .createNpmCoordinates("comp1", "2"), false);
+        "comp1/-/comp1-2.tgz", "hash1-2", ComponentIdentifier
+            .createNpmCoordinates("comp1", "2"),
+        false);
 
     QuarantinedComponentAccess quarantinedComponentAccess =
-            tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), date);
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), date);
 
     String encodedToken = encodeToken(quarantinedComponentAccess);
 
     // when
     ApiPageResult<String> result =
-            quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 5, true /* asc */);
+        quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 5, true /* asc */);
 
     // then
     assertThat(result.getTotal()).isEqualTo(1);
@@ -742,7 +748,7 @@ public class QuarantinedComponentServiceTest
 
     assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 0, 5,
         true /* asc */)).isInstanceOf(BadRequestException.class)
-        .hasMessage("Page and Page size must be greater than 0");
+            .hasMessage("Page and Page size must be greater than 0");
   }
 
   @Test
@@ -761,7 +767,7 @@ public class QuarantinedComponentServiceTest
 
     assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 0,
         true /* asc */)).isInstanceOf(BadRequestException.class)
-        .hasMessage("Page and Page size must be greater than 0");
+            .hasMessage("Page and Page size must be greater than 0");
   }
 
   @Test
@@ -772,8 +778,9 @@ public class QuarantinedComponentServiceTest
     String encodedToken = encodeToken(expiredQuarantinedComponentAccess);
 
     assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 5,
-        true /* asc */)).isInstanceOf(NotFoundException.class).hasMessageStartingWith("This report expired on ")
-        .hasMessageEndingWith("You may generate a new report by requesting the blocked component again.");
+        true /* asc */)).isInstanceOf(NotFoundException.class)
+            .hasMessageStartingWith("This report expired on ")
+            .hasMessageEndingWith("You may generate a new report by requesting the blocked component again.");
   }
 
   @Test
@@ -782,8 +789,8 @@ public class QuarantinedComponentServiceTest
 
     assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 5,
         true /* asc */)).isInstanceOf(NotFoundException.class)
-        .hasMessage(
-            "The quarantined component view for the blocked component you are trying to view could not be found.");
+            .hasMessage(
+                "The quarantined component view for the blocked component you are trying to view could not be found.");
   }
 
   @Test
@@ -791,7 +798,8 @@ public class QuarantinedComponentServiceTest
     // The token is not base64 encoded
     assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOtherVersions("token", 1, 5,
         true /* asc */)).isInstanceOf(BadRequestException.class)
-        .hasMessage("The quarantined component view cannot be retrieved because the URL contains invalid characters.");
+            .hasMessage(
+                "The quarantined component view cannot be retrieved because the URL contains invalid characters.");
   }
 
   @Test
@@ -909,8 +917,9 @@ public class QuarantinedComponentServiceTest
 
     assertThatThrownBy(
         () -> quarantinedComponentService.getQuarantinedComponentVersionDetails(encodedToken, httpRequestMock, "1.0.0"))
-        .isInstanceOf(NotFoundException.class).hasMessageStartingWith("This report expired on ")
-        .hasMessageEndingWith("You may generate a new report by requesting the blocked component again.");
+            .isInstanceOf(NotFoundException.class)
+            .hasMessageStartingWith("This report expired on ")
+            .hasMessageEndingWith("You may generate a new report by requesting the blocked component again.");
   }
 
   @Test
@@ -919,9 +928,9 @@ public class QuarantinedComponentServiceTest
 
     assertThatThrownBy(
         () -> quarantinedComponentService.getQuarantinedComponentVersionDetails(encodedToken, httpRequestMock, "1.0.0"))
-        .isInstanceOf(NotFoundException.class)
-        .hasMessage(
-            "The quarantined component view for the blocked component you are trying to view could not be found.");
+            .isInstanceOf(NotFoundException.class)
+            .hasMessage(
+                "The quarantined component view for the blocked component you are trying to view could not be found.");
   }
 
   @Test
@@ -929,8 +938,9 @@ public class QuarantinedComponentServiceTest
     // The token is not base64 encoded
     assertThatThrownBy(
         () -> quarantinedComponentService.getQuarantinedComponentVersionDetails("token", httpRequestMock, "1.0.0"))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("The quarantined component view cannot be retrieved because the URL contains invalid characters.");
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage(
+                "The quarantined component view cannot be retrieved because the URL contains invalid characters.");
   }
 
   private Map<String, String> newCoordinatesQueryParam(NamedComponentDetails componentDetails) {

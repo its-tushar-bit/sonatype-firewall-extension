@@ -75,8 +75,9 @@ public class CrowdRealmTest
     when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
 
     assertThatExceptionOfType(AuthenticationException.class).isThrownBy(
-        () -> crowdRealm.doGetAuthenticationInfo(usernamePasswordToken)).withMessageContaining(
-        String.format("Could not authenticate the '%s' Crowd user.", usernamePasswordToken.getUsername()));
+        () -> crowdRealm.doGetAuthenticationInfo(usernamePasswordToken))
+        .withMessageContaining(
+            String.format("Could not authenticate the '%s' Crowd user.", usernamePasswordToken.getUsername()));
   }
 
   private UserPrincipal getUserPrincipal(AuthenticationInfo authenticationInfo) {

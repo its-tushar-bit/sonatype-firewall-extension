@@ -55,7 +55,8 @@ public class ApiProductLicenseResourceAuditTest
     assertCustomData(auditDTO, "productLicenseFilename", filename);
     String productLicenseExpiry = ZonedDateTime
         .ofInstant(Instant.ofEpochMilli(getTestProductLicenseManager().getExpirationDate().getTime()),
-            ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE);
+            ZoneId.systemDefault())
+        .format(DateTimeFormatter.ISO_LOCAL_DATE);
     assertCustomData(auditDTO, "productLicenseExpiry", productLicenseExpiry);
   }
 }

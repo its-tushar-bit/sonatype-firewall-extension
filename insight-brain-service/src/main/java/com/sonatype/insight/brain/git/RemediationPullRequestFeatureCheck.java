@@ -37,7 +37,7 @@ public class RemediationPullRequestFeatureCheck
   /**
    * Determine if the pull request feature is supported for this application and repository.
    *
-   * @param app         Application
+   * @param app Application
    * @param gitRepoInfo GitRepositoryRepo from configurations
    * @return true/false if supported
    */

@@ -73,7 +73,8 @@ public class ApiSbomResourceAuditTest
         .build();
 
     HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VERSION_PATH)
-        .parameter(thirdPartySbomMetadata.getApplicationId(), thirdPartySbomMetadata.getSbomVersion()).delete();
+        .parameter(thirdPartySbomMetadata.getApplicationId(), thirdPartySbomMetadata.getSbomVersion())
+        .delete();
     assertResponseStatus(204, response);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_SBOM_VERSION, null);
@@ -87,8 +88,10 @@ public class ApiSbomResourceAuditTest
     ThirdPartySbomMetadata thirdPartySbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
         .build();
-    HttpResponse response = restRequest().with(unauthorizedUser()).path(ApiSbomResource.SBOM_VERSION_PATH)
-        .parameter(thirdPartySbomMetadata.getApplicationId(), thirdPartySbomMetadata.getSbomVersion()).delete();
+    HttpResponse response = restRequest().with(unauthorizedUser())
+        .path(ApiSbomResource.SBOM_VERSION_PATH)
+        .parameter(thirdPartySbomMetadata.getApplicationId(), thirdPartySbomMetadata.getSbomVersion())
+        .delete();
     assertResponseStatus(403, response);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_SBOM_VERSION, "unauthorized");
@@ -130,8 +133,7 @@ public class ApiSbomResourceAuditTest
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ThirdPartySbomMetadataStatus.ACTIVE,
             "file.tgz");
-    ThirdPartyFileCoordinate
-        component =
+    ThirdPartyFileCoordinate component =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "ThirdParty", "npm", "bloom", "1.0", "hash001",
             "pkg:npm/bloom@1.0");
     tempEntity.newThirdPartyCoordinateSecurity(component, refId, "description", "link", 8.1, "Critical",
@@ -229,14 +231,18 @@ public class ApiSbomResourceAuditTest
   }
 
   private ApiSbomStatusDTO getStatusResponse(String statusUrl) {
-    HttpResponse response = await().atMost(10, TimeUnit.SECONDS).until(() -> super.restRequest().path(statusUrl).get(),
-        resp -> resp.getStatusCode() == 200);
+    HttpResponse response = await().atMost(10, TimeUnit.SECONDS)
+        .until(() -> super.restRequest().path(statusUrl).get(),
+            resp -> resp.getStatusCode() == 200);
     return response.getBody(ApiSbomStatusDTO.class);
   }
 
   private void assertVulnerabilityAnalysisAuditData(
-      AuditDTO auditDTO, Application app, String componentHash,
-      String componentPurl, String refId)
+      AuditDTO auditDTO,
+      Application app,
+      String componentHash,
+      String componentPurl,
+      String refId)
   {
     assertThat(auditDTO.data).containsEntry("applicationId", app.getId());
     assertThat(auditDTO.data).containsEntry("applicationPublicId", app.getPublicId());

@@ -39,15 +39,17 @@ public class FirewallMetricsComponentQuarantinedConsolidatorCronJobTest
   @Override
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    binder.bind(QuarantinedComponentMetricsConsolidator.class).toInstance(
-        quarantinedComponentMetricsConsolidatorMock);
+    binder.bind(QuarantinedComponentMetricsConsolidator.class)
+        .toInstance(
+            quarantinedComponentMetricsConsolidatorMock);
     super.configure(binder);
   }
 
   @Test
   public void testDisallowConcurrentExecution() {
-    assertThat(JobBuilder.newJob(FirewallMetricsComponentQuarantinedConsolidatorCronJob.class).build()
-      .isConcurrentExectionDisallowed()).isTrue();
+    assertThat(JobBuilder.newJob(FirewallMetricsComponentQuarantinedConsolidatorCronJob.class)
+        .build()
+        .isConcurrentExectionDisallowed()).isTrue();
   }
 
   @Test
@@ -72,4 +74,3 @@ public class FirewallMetricsComponentQuarantinedConsolidatorCronJobTest
     verify(quarantinedComponentMetricsConsolidatorMock).consolidate();
   }
 }
-

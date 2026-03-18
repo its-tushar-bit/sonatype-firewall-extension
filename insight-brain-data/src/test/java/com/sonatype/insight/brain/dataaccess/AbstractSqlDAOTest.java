@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -46,7 +47,8 @@ public class AbstractSqlDAOTest
   }
 
   // We use MigrationTracker here because we need an entity and this is a simple table / class
-  private static final class StubbedAbstractSqlDAO extends AbstractSqlDAO<MigrationTracker>
+  private static final class StubbedAbstractSqlDAO
+      extends AbstractSqlDAO<MigrationTracker>
   {
     private final DataStore dataStore;
 

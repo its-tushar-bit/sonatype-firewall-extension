@@ -88,8 +88,7 @@ public class OrganizationService
       final ManagementEventService managementEventService,
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
       final OrganizationApplicationManagementEventService organizationApplicationManagementEventService,
-      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator
-  )
+      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator)
   {
     this.work = work;
     this.applicationCleaner = applicationCleaner;

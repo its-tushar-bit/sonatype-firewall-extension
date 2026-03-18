@@ -70,9 +70,7 @@ public class S3OutputStream
   }
 
   @Override
-  public void write(final byte[] b, final int off, final int len)
-      throws IOException
-  {
+  public void write(final byte[] b, final int off, final int len) throws IOException {
     wrapS3Exception(this::initializeOutputStreamIfNeeded);
     outputStream.write(b, off, len);
   }

@@ -104,67 +104,54 @@ public class CIEvaluationStatServiceTest
             new ApiIntegrationsCiCdStatIncrementDto(
                 getDateFromOffset(fixedClock, -13).getTime(),
                 102,
-                20
-            ),
+                20),
             new ApiIntegrationsCiCdStatIncrementDto(
                 getDateFromOffset(fixedClock, -12).getTime(),
                 102,
-                20
-            ),
+                20),
             new ApiIntegrationsCiCdStatIncrementDto(
                 getDateFromOffset(fixedClock, -11).getTime(),
-                102, 20
-            ),
+                102, 20),
             new ApiIntegrationsCiCdStatIncrementDto(
                 getDateFromOffset(fixedClock, -10).getTime(),
                 102,
-                20
-            ),
+                20),
             new ApiIntegrationsCiCdStatIncrementDto(
                 getDateFromOffset(fixedClock, -9).getTime(),
                 102,
-                20
-            ),
+                20),
             new ApiIntegrationsCiCdStatIncrementDto(
                 getDateFromOffset(fixedClock, -8).getTime(),
                 102,
-                20
-            ),
+                20),
             new ApiIntegrationsCiCdStatIncrementDto(
                 getDateFromOffset(fixedClock, -7).getTime(),
                 100,
-                22
-            ),
+                22),
             new ApiIntegrationsCiCdStatIncrementDto(
                 getDateFromOffset(fixedClock, -6).getTime(),
                 100,
-                22
-            ),
+                22),
             new ApiIntegrationsCiCdStatIncrementDto(
                 getDateFromOffset(fixedClock, -5).getTime(),
                 100,
-                22
-            ),
+                22),
             new ApiIntegrationsCiCdStatIncrementDto(
                 getDateFromOffset(fixedClock, -4).getTime(),
                 100,
-                22
-            ),
+                22),
             new ApiIntegrationsCiCdStatIncrementDto(
                 getDateFromOffset(fixedClock, -3).getTime(),
                 100,
-                22
-            ),
+                22),
             new ApiIntegrationsCiCdStatIncrementDto(
                 getDateFromOffset(fixedClock, -2).getTime(),
                 100,
-                22
-            ),
+                22),
             new ApiIntegrationsCiCdStatIncrementDto(
                 getDateFromOffset(fixedClock, -1).getTime(),
                 100,
-                22
-            ),
+                22),
             new ApiIntegrationsCiCdStatIncrementDto(nowMs, 123, 23)));
   }
 
@@ -306,8 +293,7 @@ public class CIEvaluationStatServiceTest
           false,
           date,
           TemporaryEntity.uuid(),
-          ScanTriggerType.CONTINUOUS_INTEGRATION
-      );
+          ScanTriggerType.CONTINUOUS_INTEGRATION);
     });
   }
 

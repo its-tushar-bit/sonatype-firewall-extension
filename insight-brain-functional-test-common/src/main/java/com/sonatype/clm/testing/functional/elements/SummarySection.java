@@ -19,7 +19,7 @@ public class SummarySection
   public SummarySection() {
     super(ROOT);
   }
-  
+
   public SelenideElement title() {
     return child("h2");
   }

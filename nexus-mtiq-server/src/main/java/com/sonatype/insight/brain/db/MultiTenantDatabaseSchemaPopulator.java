@@ -35,9 +35,10 @@ public class MultiTenantDatabaseSchemaPopulator
 
     // multi-tenant requires a second check, to see if there is an entry for the schema in schema_version
     try (Connection connection = dataSource.getConnection();
-         Statement statement = connection.createStatement();
-         ResultSet result = statement.executeQuery("SELECT * FROM " + schemaName +
-             ".schema_version WHERE data_store_id = '" + dataStoreId + "'")) {
+        Statement statement = connection.createStatement();
+        ResultSet result = statement.executeQuery("SELECT * FROM " + schemaName +
+            ".schema_version WHERE data_store_id = '" + dataStoreId + "'"))
+    {
       return result.next() && result.isLast();
     }
     catch (Exception e) {

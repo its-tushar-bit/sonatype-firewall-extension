@@ -47,7 +47,7 @@ public class ApiComponentVersionsServiceV2Test
 
     when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
         Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier))))
-        .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
+            .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
 
     ApiComponentOrPurlIdentifierDTOV2 apiComponentOrPurlIdentifierDTOV2 =
         ApiComponentOrPurlIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
@@ -63,7 +63,7 @@ public class ApiComponentVersionsServiceV2Test
 
     when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
         Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier))))
-        .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
+            .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
 
     ApiComponentOrPurlIdentifierDTOV2 apiComponentOrPurlIdentifierDTOV2 = new ApiComponentOrPurlIdentifierDTOV2();
     apiComponentOrPurlIdentifierDTOV2.setPackageUrl("pkg:maven/g1/a1@v1?classifier=c1&type=e1");
@@ -79,7 +79,7 @@ public class ApiComponentVersionsServiceV2Test
 
     when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
         Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier))))
-        .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
+            .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
 
     ApiComponentOrPurlIdentifierDTOV2 apiComponentOrPurlIdentifierDTOV2 =
         ApiComponentOrPurlIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
@@ -95,7 +95,7 @@ public class ApiComponentVersionsServiceV2Test
 
     when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
         Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier))))
-        .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
+            .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
 
     ApiComponentOrPurlIdentifierDTOV2 apiComponentOrPurlIdentifierDTOV2 = new ApiComponentOrPurlIdentifierDTOV2();
     apiComponentOrPurlIdentifierDTOV2.setPackageUrl("pkg:maven/g1/a1@");
@@ -111,7 +111,7 @@ public class ApiComponentVersionsServiceV2Test
 
     when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
         Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier))))
-        .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
+            .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
 
     ApiComponentOrPurlIdentifierDTOV2 apiComponentOrPurlIdentifierDTOV2 =
         ApiComponentOrPurlIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
@@ -127,7 +127,7 @@ public class ApiComponentVersionsServiceV2Test
 
     when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
         Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier))))
-        .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
+            .thenReturn(Arrays.asList("v1", "v2", "v3", "v4"));
 
     ApiComponentOrPurlIdentifierDTOV2 apiComponentOrPurlIdentifierDTOV2 = new ApiComponentOrPurlIdentifierDTOV2();
     apiComponentOrPurlIdentifierDTOV2.setPackageUrl("pkg:maven/g1/a1");

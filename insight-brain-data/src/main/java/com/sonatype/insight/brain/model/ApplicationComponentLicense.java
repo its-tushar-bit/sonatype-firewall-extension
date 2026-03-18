@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 
 /**
  * Association between components in applications scans and licenses.
- * 
+ *
  * @since 1.104
  */
 @Entity

@@ -14,7 +14,7 @@ import com.sonatype.insight.model.HasStringId;
 
 /**
  * Represents a tag that has been applied to a policy (many-to-many association between policies and tags).
- * 
+ *
  * @since 1.9
  */
 @Entity

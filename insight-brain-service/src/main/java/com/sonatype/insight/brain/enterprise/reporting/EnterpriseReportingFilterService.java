@@ -45,10 +45,11 @@ public class EnterpriseReportingFilterService
   private final UserDirectory userDirectory;
 
   @Inject
-  public EnterpriseReportingFilterService(EnterpriseReportingFilterDAO enterpriseReportingFilterDAO,
-                                          EnterpriseReportingDefaultFilterDAO enterpriseReportingDefaultFilterDAO,
-                                          CurrentUser currentUser,
-                                          UserDirectory userDirectory)
+  public EnterpriseReportingFilterService(
+      EnterpriseReportingFilterDAO enterpriseReportingFilterDAO,
+      EnterpriseReportingDefaultFilterDAO enterpriseReportingDefaultFilterDAO,
+      CurrentUser currentUser,
+      UserDirectory userDirectory)
   {
     this.enterpriseReportingFilterDAO = enterpriseReportingFilterDAO;
     this.enterpriseReportingDefaultFilterDAO = enterpriseReportingDefaultFilterDAO;
@@ -141,7 +142,7 @@ public class EnterpriseReportingFilterService
       throw new BadRequestException("Filter ID cannot be null.");
     }
     String userId = getCurrentUserId();
-    
+
     EnterpriseReportingFilter existingFilter =
         enterpriseReportingFilterDAO.getFilterByUserAndFilterId(userId, filterId);
     if (existingFilter == null) {
@@ -222,18 +223,19 @@ public class EnterpriseReportingFilterService
    * The corresponding filter in the enterprise_reporting_filter table will not be removed, only its
    * assignment as the user's default. The purpose of this service is to reset the user's default to
    * a "Sonatype Default" filter defined in the FE.
+   *
    * @throws NotFoundException if the filter does not exist for the user, or if the user doesn't exist in DB
    */
   public void deleteDefaultFilterForCurrentUser() {
     String userId = getCurrentUserId();
-    
+
     EnterpriseReportingDefaultFilter existingFilter =
         enterpriseReportingDefaultFilterDAO.getDefaultFilterByUserId(userId);
     if (existingFilter != null) {
       enterpriseReportingDefaultFilterDAO.delete(existingFilter);
     }
   }
-  
+
   private String getCurrentUserId() {
     String username = currentUser.getUsername();
     UserDirectory.QueryResult result = userDirectory.getUsersByNames(Set.of(username));
@@ -295,6 +297,6 @@ public class EnterpriseReportingFilterService
       if (!Objects.equals(existingFilterId, sameNameFilter.getId())) {
         throw new InvalidNameException(filterName + " is already used as a name.");
       }
-    }    
+    }
   }
 }

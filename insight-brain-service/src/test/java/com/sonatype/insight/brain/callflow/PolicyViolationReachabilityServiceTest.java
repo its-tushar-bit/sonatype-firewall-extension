@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.callflow;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -75,8 +76,7 @@ public class PolicyViolationReachabilityServiceTest
     Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> map = new HashMap<>();
     map.put(
         PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()),
-        new PresentReachableComponentVulnerabilities(Set.of(CVE_REF_ID))
-    );
+        new PresentReachableComponentVulnerabilities(Set.of(CVE_REF_ID)));
 
     policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId, map,
         reportZip);
@@ -92,9 +92,7 @@ public class PolicyViolationReachabilityServiceTest
   }
 
   @Test
-  public void testUpdateReachabilityStatusForPolicyViolations_updateOnFileSystemIncludingWaivedPolicy()
-      throws IOException
-  {
+  public void testUpdateReachabilityStatusForPolicyViolations_updateOnFileSystemIncludingWaivedPolicy() throws IOException {
     String scanId = "test-scanid";
     Application application = tempEntity.newApplicationWithParent("test-app");
     Policy policy = tempEntity.newPolicy(application);
@@ -113,8 +111,7 @@ public class PolicyViolationReachabilityServiceTest
     Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> map = new HashMap<>();
     map.put(
         PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()),
-        new PresentReachableComponentVulnerabilities(Set.of(CVE_REF_ID))
-    );
+        new PresentReachableComponentVulnerabilities(Set.of(CVE_REF_ID)));
 
     policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId, map,
         reportZip);
@@ -129,7 +126,7 @@ public class PolicyViolationReachabilityServiceTest
     PolicyThreats policyThreats = JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
     assertThat(policyThreats.aaData.get(0).activeViolations.get(0).reachabilityStatus).isEqualTo(
         ReachabilityStatus.REACHABLE);
-    //make sure it includes the waived policy violation
+    // make sure it includes the waived policy violation
     assertThat(policyThreats.aaData.get(0).allViolations.size()).isEqualTo(2);
   }
 
@@ -145,8 +142,7 @@ public class PolicyViolationReachabilityServiceTest
     Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> map = new HashMap<>();
     map.put(
         PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()),
-        new PresentReachableComponentVulnerabilities(Set.of())
-    );
+        new PresentReachableComponentVulnerabilities(Set.of()));
 
     policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId,
         map, reportFile);
@@ -170,8 +166,7 @@ public class PolicyViolationReachabilityServiceTest
         new HashMap<>();
     reachableVulnerabilitiesByPurlIdentifiers.put(
         PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier()),
-        MissingReachableComponentVulnerabilities.INSTANCE
-    );
+        MissingReachableComponentVulnerabilities.INSTANCE);
 
     policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId,
         reachableVulnerabilitiesByPurlIdentifiers, reportFile);

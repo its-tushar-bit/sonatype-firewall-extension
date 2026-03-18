@@ -60,7 +60,8 @@ public class ScanResourceUnitTest
     ScanResource scanResource = new ScanResource(scanService, errorResponseGenerator, antiCsrfFilter);
 
     FormDataContentDisposition formDataContentDisposition = FormDataContentDisposition.name("test")
-        .fileName("Content-Disposition-Filename").build();
+        .fileName("Content-Disposition-Filename")
+        .build();
     scanResource
         .uploadBinary(appPublicId, is, formDataContentDisposition, filename, "csrfToken", null, Stage.ID_BUILD,
             false, false, httpServletRequest);
@@ -77,7 +78,8 @@ public class ScanResourceUnitTest
 
     ScanResource scanResource = new ScanResource(scanService, errorResponseGenerator, antiCsrfFilter);
 
-    FormDataContentDisposition formDataContentDisposition = FormDataContentDisposition.name("test").fileName(filename)
+    FormDataContentDisposition formDataContentDisposition = FormDataContentDisposition.name("test")
+        .fileName(filename)
         .build();
     scanResource
         .uploadBinary(appPublicId, is, formDataContentDisposition, null, "csrfToken", null, Stage.ID_BUILD,

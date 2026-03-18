@@ -66,8 +66,9 @@ public class ShiroSessionDAO
   protected Session doReadSession(Serializable sessionId) {
     SessionAndStoredJson cachedSession = SESSION_CACHE.get().get(sessionId);
     if (cachedSession != null &&
-        System.currentTimeMillis() - cachedSession.getSession().getLastAccessTime().getTime() <=
-            CACHE_DURATION.toMillis()) {
+        System.currentTimeMillis() - cachedSession.getSession().getLastAccessTime().getTime() <= CACHE_DURATION
+            .toMillis())
+    {
       return cachedSession.getSession();
     }
     uncacheSession(sessionId);
@@ -87,7 +88,8 @@ public class ShiroSessionDAO
     SessionAndStoredJson cachedSession = SESSION_CACHE.get().get(session.getId());
     if (cachedSession != null &&
         isOnlyLastAccessTimeUpdate((SimpleSession) session, cachedSession.getStoredSessionJson()) &&
-        isLastAccessTimeUpdatedRecently(session, cachedSession.getStoredSessionJson())) {
+        isLastAccessTimeUpdatedRecently(session, cachedSession.getStoredSessionJson()))
+    {
       return;
     }
     PersistedUserSession persistedUserSession = new PersistedUserSession((SimpleSession) session);
@@ -115,8 +117,8 @@ public class ShiroSessionDAO
 
   private boolean isLastAccessTimeUpdatedRecently(Session session, String storedSessionJson) {
     SimpleSession storedSession = PersistedUserSession.simpleSessionFromJson(storedSessionJson);
-    return session.getLastAccessTime().getTime() - DELAY_BETWEEN_LAST_ACCESS_TIME_UPDATES <=
-        storedSession.getLastAccessTime().getTime();
+    return session.getLastAccessTime().getTime()
+        - DELAY_BETWEEN_LAST_ACCESS_TIME_UPDATES <= storedSession.getLastAccessTime().getTime();
   }
 
   @Override

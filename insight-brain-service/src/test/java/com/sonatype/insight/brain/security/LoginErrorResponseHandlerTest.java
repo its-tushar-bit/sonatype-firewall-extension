@@ -54,8 +54,7 @@ public class LoginErrorResponseHandlerTest
       final HttpServletResponse response,
       final int expectedStatusCode,
       final PrintWriter writer,
-      final String errMessage)
-      throws IOException
+      final String errMessage) throws IOException
   {
     verify(response).setStatus(expectedStatusCode);
     verify(response).setContentType(ErrorResponse.CONTENT_TYPE);

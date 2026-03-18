@@ -60,7 +60,8 @@ public class WebhookResourceTest
     tempEntity.newWebhook(Collections.singleton(POLICY_MANAGEMENT));
 
     HttpResponse response = restRequest().path(WebhookResource.POLICY_NOTIFICATION_WEBHOOKS_PATH)
-        .parameter(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).get();
+        .parameter(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID)
+        .get();
     assertResponseStatus(200, response);
 
     Webhook[] results = response.getBody(Webhook[].class);
@@ -73,7 +74,8 @@ public class WebhookResourceTest
     tempEntity.newWebhook(Collections.singleton(POLICY_MANAGEMENT));
 
     HttpResponse response = restRequest().path(WebhookResource.POLICY_NOTIFICATION_WEBHOOKS_PATH)
-        .parameter(OwnerType.APPLICATION, tempEntity.newApplicationWithParent().getPublicId()).get();
+        .parameter(OwnerType.APPLICATION, tempEntity.newApplicationWithParent().getPublicId())
+        .get();
     assertResponseStatus(200, response);
 
     Webhook[] results = response.getBody(Webhook[].class);
@@ -100,8 +102,9 @@ public class WebhookResourceTest
 
     Webhook[] results = response.getBody(Webhook[].class);
 
-    assertThat(results).extracting(Webhook::getId).containsExactly(webhook1.getId(), webhook2.getId(),
-        webhook3.getId());
+    assertThat(results).extracting(Webhook::getId)
+        .containsExactly(webhook1.getId(), webhook2.getId(),
+            webhook3.getId());
   }
 
   @Test

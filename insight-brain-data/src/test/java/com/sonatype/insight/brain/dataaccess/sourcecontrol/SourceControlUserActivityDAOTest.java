@@ -70,11 +70,13 @@ public class SourceControlUserActivityDAOTest
 
     List<SourceControlUserActivity> storedActivities = sourceControlUserActivityDAO.getAll();
     assertThat(storedActivities.stream()
-        .map(SourceControlUserActivity::getId).collect(Collectors.toList()))
-        .hasSize(5)
-        .containsOnly(
-            sourceControlUserActivities.stream()
-                .map(SourceControlUserActivity::getId).toArray(String[]::new));
+        .map(SourceControlUserActivity::getId)
+        .collect(Collectors.toList()))
+            .hasSize(5)
+            .containsOnly(
+                sourceControlUserActivities.stream()
+                    .map(SourceControlUserActivity::getId)
+                    .toArray(String[]::new));
   }
 
   @Test

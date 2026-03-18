@@ -83,11 +83,12 @@ public class QuartzPostgreSQLDelegateTest
       StdJDBCDelegate stdJDBCDelegate,
       JobDetail job,
       String instanceId,
-      Date nextFireTime)
-      throws Exception
+      Date nextFireTime) throws Exception
   {
-    Trigger trigger = TriggerBuilder.newTrigger().forJob(job)
-        .usingJobData(TaskScheduler.QUARTZ_NODE_ID, instanceId).build();
+    Trigger trigger = TriggerBuilder.newTrigger()
+        .forJob(job)
+        .usingJobData(TaskScheduler.QUARTZ_NODE_ID, instanceId)
+        .build();
     assertThat(trigger).isInstanceOf(OperableTrigger.class);
     OperableTrigger operableTrigger = (OperableTrigger) trigger;
     operableTrigger.setNextFireTime(nextFireTime);

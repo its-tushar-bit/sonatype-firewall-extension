@@ -56,7 +56,8 @@ public class RepositoryConfigurationCollector
 
     // Only collect telemetry if a Firewall license is present
     if (productLicense.hasFeature(LicensedFeature.FIREWALL) ||
-        productLicense.hasFeature(LicensedFeature.FIREWALL_FOR_ARTIFACTORY)) {
+        productLicense.hasFeature(LicensedFeature.FIREWALL_FOR_ARTIFACTORY))
+    {
       telemetryData = new TelemetryData(TelemetryPurpose.REPOSITORY_CONFIGURATION);
 
       List<RepositoryTelemetry> repositoryTelemetries =
@@ -96,8 +97,7 @@ public class RepositoryConfigurationCollector
         userAgent != null ? userAgent.os : null,
         userAgent != null ? userAgent.osVersion : null,
         userAgent != null ? userAgent.product : null,
-        userAgent != null ? userAgent.version : null
-    );
+        userAgent != null ? userAgent.version : null);
   }
 
   private SonatypeUserAgentUtil.UserAgent getUserAgent(final Repository repository) {
@@ -152,8 +152,7 @@ public class RepositoryConfigurationCollector
         final String os,
         final String osVersion,
         final String pluginName,
-        final String pluginVersion
-    )
+        final String pluginVersion)
     {
       this.repositoryManagerId = repositoryManagerId;
       this.repositoryId = repositoryId;

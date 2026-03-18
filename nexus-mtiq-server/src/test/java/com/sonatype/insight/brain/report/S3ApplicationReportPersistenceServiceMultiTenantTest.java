@@ -65,10 +65,10 @@ public class S3ApplicationReportPersistenceServiceMultiTenantTest
   @Parameters
   public static List<Object[]> prefixes() {
     return Arrays.asList(new Object[][]{
-        {null, ""},
-        {"", ""},
-        {"valid-prefix/with/path", "valid-prefix/with/path/"},
-        {"valid-prefix/with/path/ends-with-slash/", "valid-prefix/with/path/ends-with-slash/"}
+      {null, ""},
+      {"", ""},
+      {"valid-prefix/with/path", "valid-prefix/with/path/"},
+      {"valid-prefix/with/path/ends-with-slash/", "valid-prefix/with/path/ends-with-slash/"}
     });
   }
 
@@ -86,8 +86,7 @@ public class S3ApplicationReportPersistenceServiceMultiTenantTest
         .credentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create(
                 localstack.getContainer().getAccessKey(),
-                localstack.getContainer().getSecretKey()
-            )))
+                localstack.getContainer().getSecretKey())))
         .build();
   }
 
@@ -97,7 +96,9 @@ public class S3ApplicationReportPersistenceServiceMultiTenantTest
     s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
         .contents()
         .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
-            .bucket(BUCKET_NAME).key(obj.key()).build()));
+            .bucket(BUCKET_NAME)
+            .key(obj.key())
+            .build()));
   }
 
   public S3ApplicationReportPersistenceServiceMultiTenantTest(String configuredPrefix, String expectedPrefix) {
@@ -139,8 +140,7 @@ public class S3ApplicationReportPersistenceServiceMultiTenantTest
     super.configure(binder);
     AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
         localstack.getContainer().getAccessKey(),
-        localstack.getContainer().getSecretKey()
-    ));
+        localstack.getContainer().getSecretKey()));
     binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }
 

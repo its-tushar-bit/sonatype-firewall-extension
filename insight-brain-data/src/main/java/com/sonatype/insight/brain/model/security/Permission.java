@@ -24,7 +24,7 @@ public enum Permission
   VIEW_ROLES("View", PermissionCategory.ADMINISTRATOR, "All Roles", true /* global */, true /* allowedInCustomRoles */),
 
   ACCESS_AUDIT_LOG("Access", PermissionCategory.ADMINISTRATOR, "Audit Log",
-          true /* global */, true /* allowedInCustomRoles */),
+      true /* global */, true /* allowedInCustomRoles */),
 
   WAIVE_POLICY_VIOLATIONS("Waive", PermissionCategory.REMEDIATION, "Policy Violations", false /* global */,
       true /* allowedInCustomRoles */),
@@ -54,7 +54,7 @@ public enum Permission
       true /* allowedInCustomRoles */),
 
   ADD_APPLICATION("Add", PermissionCategory.IQ, "Applications", false /* global */, true /* allowedInCustomRoles */),
-  
+
   MANAGE_AUTOMATIC_APPLICATION_CREATION("Manage", PermissionCategory.IQ, "Automatic Application Creation",
       true /* global */, true /* allowedInCustomRoles */),
 

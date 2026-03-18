@@ -110,7 +110,8 @@ public class DashboardPolicyWaiverRequestServiceTest
     policy = tempEntity.newPolicy(org.getId(), "A test policy");
 
     risksFilterDTOBuilder = new RisksFilterDTOBuilder().withApplicationIds(Collections.emptySet())
-        .withOrganizationIds(Collections.emptySet()).withPageSize(1);
+        .withOrganizationIds(Collections.emptySet())
+        .withPageSize(1);
   }
 
   @Test
@@ -138,8 +139,10 @@ public class DashboardPolicyWaiverRequestServiceTest
 
     Set<String> apps = new HashSet<>(Arrays.asList(app1.getId(), app2.getId()));
     String orderBy = DashboardPolicyWaiverRequestOrderByEnum.POLICY_NAME.toString();
-    risksFilterDTOBuilder.withOrganizationIds(Collections.singleton(org.getId())).withApplicationIds(apps)
-        .withOrderBy(orderBy).withPageSize(10);
+    risksFilterDTOBuilder.withOrganizationIds(Collections.singleton(org.getId()))
+        .withApplicationIds(apps)
+        .withOrderBy(orderBy)
+        .withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverRequestDTO> dashboardPolicyWaiverRequests =
         dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
 
@@ -214,14 +217,18 @@ public class DashboardPolicyWaiverRequestServiceTest
         tempEntity.newPolicy(new TestPolicyBuilder().withSampleTestValues().withOwnerId(org.getId()).build());
 
     PolicyWaiverRequest policyWaiverRequest =
-        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5)).setPolicyId(policy.getId())
-            .setOwnerId(repository.getId()).setExpiryTime(DateUtils.addDays(new Date(), 11));
+        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5))
+            .setPolicyId(policy.getId())
+            .setOwnerId(repository.getId())
+            .setExpiryTime(DateUtils.addDays(new Date(), 11));
 
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
 
     PolicyWaiverRequest policyWaiverRequest1 =
-        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5)).setPolicyId(policy.getId())
-            .setOwnerId(app1.getId()).setExpiryTime(DateUtils.addDays(new Date(), 11));
+        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5))
+            .setPolicyId(policy.getId())
+            .setOwnerId(app1.getId())
+            .setExpiryTime(DateUtils.addDays(new Date(), 11));
 
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest1);
 
@@ -237,8 +244,10 @@ public class DashboardPolicyWaiverRequestServiceTest
         repository);
 
     PolicyWaiverRequest policyWaiverRequest2 =
-        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5)).setPolicyId(policy.getId())
-            .setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID).setExpiryTime(DateUtils.addDays(new Date(), 5));
+        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5))
+            .setPolicyId(policy.getId())
+            .setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID)
+            .setExpiryTime(DateUtils.addDays(new Date(), 5));
 
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest2);
 
@@ -261,56 +270,64 @@ public class DashboardPolicyWaiverRequestServiceTest
 
     // add app 1 waiver request
     PolicyWaiverRequest policyWaiverRequestApp1 = new PolicyWaiverRequest().setHash("testHash")
-        .setPolicyId(policy.getId()).setOwnerId(app1.getId());
+        .setPolicyId(policy.getId())
+        .setOwnerId(app1.getId());
     tempEntity.newPolicyWaiverRequest(policyWaiverRequestApp1);
 
     // add app 3 waiver request
     Organization org2 = tempEntity.newOrganization("Org3");
     Application application3 = tempEntity.newApplication("Application-3", " Applicatin-3", org2.getId());
     PolicyWaiverRequest policyWaiverRequestOrg2 = new PolicyWaiverRequest().setHash("testHash")
-        .setPolicyId(policy.getId()).setOwnerId(application3.getId());
+        .setPolicyId(policy.getId())
+        .setOwnerId(application3.getId());
     tempEntity.newPolicyWaiverRequest(policyWaiverRequestOrg2);
 
     // add waiver request for empty org
     Organization org3 = tempEntity.newOrganization("Org4");
     PolicyWaiverRequest policyWaiverRequestOrg3 = new PolicyWaiverRequest().setHash("testHash")
-        .setPolicyId(policy.getId()).setOwnerId(org3.getId());
+        .setPolicyId(policy.getId())
+        .setOwnerId(org3.getId());
     tempEntity.newPolicyWaiverRequest(policyWaiverRequestOrg3);
 
     // add waiver request for repo container
     PolicyWaiverRequest policyWaiverRequestRepoContainer = new PolicyWaiverRequest().setHash("testHash")
-        .setPolicyId(policy.getId()).setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+        .setPolicyId(policy.getId())
+        .setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     tempEntity.newPolicyWaiverRequest(policyWaiverRequestRepoContainer);
 
     DashboardResultsDTO<DashboardPolicyWaiverRequestDTO> dashboardPolicyWaiverRequests =
         dashboardPolicyWaiverRequestService
             .getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.withPageSize(10).build());
 
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(dto -> dto.id).containsExactlyInAnyOrder(
-        policyWaiverRequestApp1.getId(), policyWaiverRequestOrg2.getId(), policyWaiverRequestOrg3.getId(),
-        policyWaiverRequestRepoContainer.getId());
+    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(dto -> dto.id)
+        .containsExactlyInAnyOrder(
+            policyWaiverRequestApp1.getId(), policyWaiverRequestOrg2.getId(), policyWaiverRequestOrg3.getId(),
+            policyWaiverRequestRepoContainer.getId());
     assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
 
     // added afterwards to make sure that repo container still shows even with no repo waiver requests
     // add waiver request for repo manager
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     PolicyWaiverRequest policyWaiverRequestRepoManager = new PolicyWaiverRequest().setHash("testHash")
-        .setPolicyId(policy.getId()).setOwnerId(repoManager.getId());
+        .setPolicyId(policy.getId())
+        .setOwnerId(repoManager.getId());
     tempEntity.newPolicyWaiverRequest(policyWaiverRequestRepoManager);
 
     // add repo waiver request
     Repository repository = tempEntity.newRepository();
     PolicyWaiverRequest policyWaiverRequestRepo = new PolicyWaiverRequest().setHash("testHash")
-        .setPolicyId(policy.getId()).setOwnerId(repository.getId());
+        .setPolicyId(policy.getId())
+        .setOwnerId(repository.getId());
     tempEntity.newPolicyWaiverRequest(policyWaiverRequestRepo);
 
     dashboardPolicyWaiverRequests = dashboardPolicyWaiverRequestService
         .getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.withPageSize(10).build());
 
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(dto -> dto.id).containsExactlyInAnyOrder(
-        policyWaiverRequestApp1.getId(), policyWaiverRequestOrg2.getId(), policyWaiverRequestOrg3.getId(),
-        policyWaiverRequestRepoContainer.getId(), policyWaiverRequestRepoManager.getId(),
-        policyWaiverRequestRepo.getId());
+    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(dto -> dto.id)
+        .containsExactlyInAnyOrder(
+            policyWaiverRequestApp1.getId(), policyWaiverRequestOrg2.getId(), policyWaiverRequestOrg3.getId(),
+            policyWaiverRequestRepoContainer.getId(), policyWaiverRequestRepoManager.getId(),
+            policyWaiverRequestRepo.getId());
     assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
   }
 
@@ -347,7 +364,8 @@ public class DashboardPolicyWaiverRequestServiceTest
 
     PolicyThreatCategoryFilter threatCategoryFilter = new PolicyThreatCategoryFilter(PolicyThreatCategory.SECURITY);
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app2.getId()))
-        .withPolicyThreatCategories(threatCategoryFilter).withPageSize(10);
+        .withPolicyThreatCategories(threatCategoryFilter)
+        .withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverRequestDTO> dashboardPolicyWaiverRequests =
         dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
 
@@ -366,7 +384,8 @@ public class DashboardPolicyWaiverRequestServiceTest
 
     PolicyThreatLevelFilter threatLevelFilter = new PolicyThreatLevelFilter(7, 9);
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app2.getId()))
-        .withPolicyThreatLevelRange(threatLevelFilter).withPageSize(10);
+        .withPolicyThreatLevelRange(threatLevelFilter)
+        .withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverRequestDTO> dashboardPolicyWaiverRequests =
         dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
 
@@ -388,7 +407,8 @@ public class DashboardPolicyWaiverRequestServiceTest
     createPolicyWaiverRequest("hash2", policy.getId(), app1.getId(), "", DateUtils.addDays(now, 40));
 
     risksFilterDTOBuilder.withApplicationIds(new HashSet<>(Arrays.asList(app1.getId(), app2.getId())))
-        .withExpirationDate(IN_7_DAYS).withPageSize(10);
+        .withExpirationDate(IN_7_DAYS)
+        .withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverRequestDTO> dashboardPolicyWaiverRequests =
         dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
     assertThat(dashboardPolicyWaiverRequests.dashboardResults).hasSize(1);
@@ -516,7 +536,9 @@ public class DashboardPolicyWaiverRequestServiceTest
       Policy testPolicy = tempEntity.newPolicy(org.getId());
       Date waiverRequestDate = DateUtils.addDays(now, -value);
       PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest().setHash("hash")
-          .setPolicyId(testPolicy.getId()).setOwnerId(app1.getId()).setRequestTime(waiverRequestDate);
+          .setPolicyId(testPolicy.getId())
+          .setOwnerId(app1.getId())
+          .setRequestTime(waiverRequestDate);
       tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
     };
     IntStream.rangeClosed(1, 3).forEach(intConsumer);
@@ -560,8 +582,10 @@ public class DashboardPolicyWaiverRequestServiceTest
     DashboardResultsDTO<DashboardPolicyWaiverRequestDTO> dashboardPolicyWaiverRequests =
         dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(row -> row.status).containsExactly(
-        PolicyWaiverRequestStatus.APPROVED, PolicyWaiverRequestStatus.REJECTED, PolicyWaiverRequestStatus.REQUESTED);
+    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(row -> row.status)
+        .containsExactly(
+            PolicyWaiverRequestStatus.APPROVED, PolicyWaiverRequestStatus.REJECTED,
+            PolicyWaiverRequestStatus.REQUESTED);
     assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
 
     // desc
@@ -570,8 +594,10 @@ public class DashboardPolicyWaiverRequestServiceTest
     dashboardPolicyWaiverRequests =
         dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(row -> row.status).containsExactly(
-        PolicyWaiverRequestStatus.REQUESTED, PolicyWaiverRequestStatus.REJECTED, PolicyWaiverRequestStatus.APPROVED);
+    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(row -> row.status)
+        .containsExactly(
+            PolicyWaiverRequestStatus.REQUESTED, PolicyWaiverRequestStatus.REJECTED,
+            PolicyWaiverRequestStatus.APPROVED);
     assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
   }
 
@@ -689,8 +715,10 @@ public class DashboardPolicyWaiverRequestServiceTest
 
     Set<String> apps = new HashSet<>(Arrays.asList(app1.getId(), app2.getId()));
     String orderBy = DashboardPolicyWaiverRequestOrderByEnum.POLICY_NAME.toString();
-    risksFilterDTOBuilder.withOrganizationIds(Collections.singleton(org.getId())).withApplicationIds(apps)
-        .withPageSize(Integer.MAX_VALUE).withOrderBy(orderBy);
+    risksFilterDTOBuilder.withOrganizationIds(Collections.singleton(org.getId()))
+        .withApplicationIds(apps)
+        .withPageSize(Integer.MAX_VALUE)
+        .withOrderBy(orderBy);
     DashboardResultsDTO<DashboardPolicyWaiverRequestDTO> dashboardPolicyWaiverRequests =
         dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequestsForExport(risksFilterDTOBuilder.build());
 
@@ -714,20 +742,28 @@ public class DashboardPolicyWaiverRequestServiceTest
         tempEntity.newPolicy(new TestPolicyBuilder().withSampleTestValues().withOwnerId(app1.getId()).build());
 
     PolicyWaiverRequest policyWaiverRequest1App1 =
-        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5)).setPolicyId(policy1.getId())
-            .setOwnerId(app1.getId()).setExpiryTime(DateUtils.addDays(new Date(), 11));
+        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5))
+            .setPolicyId(policy1.getId())
+            .setOwnerId(app1.getId())
+            .setExpiryTime(DateUtils.addDays(new Date(), 11));
 
     PolicyWaiverRequest policyWaiverRequest2App1 =
-        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5)).setPolicyId(policy2.getId())
-            .setOwnerId(app1.getId()).setExpiryTime(DateUtils.addDays(new Date(), 7));
+        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5))
+            .setPolicyId(policy2.getId())
+            .setOwnerId(app1.getId())
+            .setExpiryTime(DateUtils.addDays(new Date(), 7));
 
     PolicyWaiverRequest policyWaiverRequest1App2 =
-        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5)).setPolicyId(policy1.getId())
-            .setOwnerId(app2.getId()).setExpiryTime(DateUtils.addDays(new Date(), 1));
+        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5))
+            .setPolicyId(policy1.getId())
+            .setOwnerId(app2.getId())
+            .setExpiryTime(DateUtils.addDays(new Date(), 1));
 
     PolicyWaiverRequest policyWaiverRequest2App2 =
-        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5)).setPolicyId(policy1.getId())
-            .setOwnerId(app2.getId()).setExpiryTime(DateUtils.addDays(new Date(), 2));
+        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5))
+            .setPolicyId(policy1.getId())
+            .setOwnerId(app2.getId())
+            .setExpiryTime(DateUtils.addDays(new Date(), 2));
 
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest1App1);
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest2App1);
@@ -744,7 +780,8 @@ public class DashboardPolicyWaiverRequestServiceTest
     assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
 
     assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(0).hash)
-        .as("Waiver with closest expiry date should come first").isEqualTo(policyWaiverRequest2App1.getHash());
+        .as("Waiver with closest expiry date should come first")
+        .isEqualTo(policyWaiverRequest2App1.getHash());
 
     assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(2).hash)
         .as("Irrespective of the expiry dates, "
@@ -766,13 +803,19 @@ public class DashboardPolicyWaiverRequestServiceTest
         new TestPolicyBuilder().withSampleTestValues().withName("A-Policy-Name").withOwnerId(app2.getId()).build());
 
     PolicyWaiverRequest policyWaiverRequest1App1 = new PolicyWaiverRequest().setHash("hash1")
-        .setPolicyId(policy1.getId()).setOwnerId(app1.getId()).setExpiryTime(DateUtils.addDays(now, 11));
+        .setPolicyId(policy1.getId())
+        .setOwnerId(app1.getId())
+        .setExpiryTime(DateUtils.addDays(now, 11));
 
     PolicyWaiverRequest policyWaiverRequest2App1 = new PolicyWaiverRequest().setHash("hash2")
-        .setPolicyId(policy2.getId()).setOwnerId(app1.getId()).setExpiryTime(DateUtils.addDays(now, 7));
+        .setPolicyId(policy2.getId())
+        .setOwnerId(app1.getId())
+        .setExpiryTime(DateUtils.addDays(now, 7));
 
     PolicyWaiverRequest policyWaiverRequest1App2 = new PolicyWaiverRequest().setHash("hash3")
-        .setPolicyId(policy3.getId()).setOwnerId(app2.getId()).setExpiryTime(DateUtils.addDays(now, 1));
+        .setPolicyId(policy3.getId())
+        .setOwnerId(app2.getId())
+        .setExpiryTime(DateUtils.addDays(now, 1));
 
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest1App1);
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest2App1);
@@ -806,16 +849,22 @@ public class DashboardPolicyWaiverRequestServiceTest
         new TestPolicyBuilder().withSampleTestValues().withName("A-Policy-Name").withOwnerId(app1.getId()).build());
 
     PolicyWaiverRequest expiredPolicyWaiverRequestApp1 =
-        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5)).setPolicyId(policy1.getId())
-            .setOwnerId(app1.getId()).setExpiryTime(DateUtils.addDays(new Date(), 11));
+        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5))
+            .setPolicyId(policy1.getId())
+            .setOwnerId(app1.getId())
+            .setExpiryTime(DateUtils.addDays(new Date(), 11));
 
     PolicyWaiverRequest activePolicyWaiverRequestApp1 =
-        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5)).setPolicyId(policy2.getId())
-            .setOwnerId(app1.getId()).setExpiryTime(DateUtils.addDays(new Date(), 5));
+        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5))
+            .setPolicyId(policy2.getId())
+            .setOwnerId(app1.getId())
+            .setExpiryTime(DateUtils.addDays(new Date(), 5));
 
     PolicyWaiverRequest activePolicyWaiverRequestApp2 =
-        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5)).setPolicyId(policy2.getId())
-            .setOwnerId(app2.getId()).setExpiryTime(DateUtils.addDays(new Date(), 3));
+        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5))
+            .setPolicyId(policy2.getId())
+            .setOwnerId(app2.getId())
+            .setExpiryTime(DateUtils.addDays(new Date(), 3));
 
     tempEntity.newPolicyWaiverRequest(expiredPolicyWaiverRequestApp1);
     tempEntity.newPolicyWaiverRequest(activePolicyWaiverRequestApp1);
@@ -826,7 +875,8 @@ public class DashboardPolicyWaiverRequestServiceTest
             risksFilterDTOBuilder.withExpirationDate(IN_7_DAYS).withPageSize(10).build());
 
     assertThat(dashboardPolicyWaiverRequests.dashboardResults)
-        .as("It should not add expired waiver request to the result").hasSize(2);
+        .as("It should not add expired waiver request to the result")
+        .hasSize(2);
     assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
 
     List<String> actualHashList =
@@ -844,16 +894,22 @@ public class DashboardPolicyWaiverRequestServiceTest
         new TestPolicyBuilder().withSampleTestValues().withName("A-Policy-Name").withOwnerId(app1.getId()).build());
 
     PolicyWaiverRequest expiredPolicyWaiverRequestApp1 =
-        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5)).setPolicyId(policy1.getId())
-            .setOwnerId(app1.getId()).setExpiryTime(DateUtils.addDays(new Date(), 11));
+        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5))
+            .setPolicyId(policy1.getId())
+            .setOwnerId(app1.getId())
+            .setExpiryTime(DateUtils.addDays(new Date(), 11));
 
     PolicyWaiverRequest activePolicyWaiverRequestApp1 =
-        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5)).setPolicyId(policy2.getId())
-            .setOwnerId(app1.getId()).setExpiryTime(DateUtils.addDays(new Date(), 5));
+        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5))
+            .setPolicyId(policy2.getId())
+            .setOwnerId(app1.getId())
+            .setExpiryTime(DateUtils.addDays(new Date(), 5));
 
     PolicyWaiverRequest activePolicyWaiverRequestApp2 =
-        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5)).setPolicyId(policy2.getId())
-            .setOwnerId(app2.getId()).setExpiryTime(DateUtils.addDays(new Date(), 3));
+        new PolicyWaiverRequest().setHash(TemporaryEntity.uuid().substring(0, 5))
+            .setPolicyId(policy2.getId())
+            .setOwnerId(app2.getId())
+            .setExpiryTime(DateUtils.addDays(new Date(), 3));
 
     tempEntity.newPolicyWaiverRequest(expiredPolicyWaiverRequestApp1);
     tempEntity.newPolicyWaiverRequest(activePolicyWaiverRequestApp1);
@@ -894,7 +950,8 @@ public class DashboardPolicyWaiverRequestServiceTest
             risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withPageSize(10).build());
 
     assertThat(dashboardPolicyWaiverRequests.dashboardResults)
-        .as("It should get the app and all the parent orgs including the root org").hasSize(7);
+        .as("It should get the app and all the parent orgs including the root org")
+        .hasSize(7);
     assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
   }
 
@@ -902,8 +959,11 @@ public class DashboardPolicyWaiverRequestServiceTest
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
     PolicyWaiverRequest policyWaiverRequest =
-        new PolicyWaiverRequest().setHash("hash").setPolicyId(policy.getId()).setOwnerId(ownerId)
-            .setComponentMatchStrategy(EXACT_COMPONENT).setPolicyViolationId(policyViolation.getId());
+        new PolicyWaiverRequest().setHash("hash")
+            .setPolicyId(policy.getId())
+            .setOwnerId(ownerId)
+            .setComponentMatchStrategy(EXACT_COMPONENT)
+            .setPolicyViolationId(policyViolation.getId());
     return tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
   }
 
@@ -915,8 +975,12 @@ public class DashboardPolicyWaiverRequestServiceTest
       Date expiryTime)
   {
     PolicyWaiverRequest policyWaiverRequest =
-        new PolicyWaiverRequest().setHash(hash).setPolicyId(policyId).setOwnerId(ownerId)
-            .setComponentMatchStrategy(EXACT_COMPONENT).setComment(comment).setExpiryTime(expiryTime);
+        new PolicyWaiverRequest().setHash(hash)
+            .setPolicyId(policyId)
+            .setOwnerId(ownerId)
+            .setComponentMatchStrategy(EXACT_COMPONENT)
+            .setComment(comment)
+            .setExpiryTime(expiryTime);
     return tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
   }
 
@@ -928,8 +992,11 @@ public class DashboardPolicyWaiverRequestServiceTest
       String reasonType,
       String reasonText)
   {
-    PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest().setHash(hash).setPolicyId(policyId)
-        .setOwnerId(ownerId).setComponentMatchStrategy(EXACT_COMPONENT).setComment(comment)
+    PolicyWaiverRequest policyWaiverRequest = new PolicyWaiverRequest().setHash(hash)
+        .setPolicyId(policyId)
+        .setOwnerId(ownerId)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment(comment)
         .setWaiverReasonId(newWaiverReason(reasonType, reasonText).getId());
     return tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
   }
@@ -966,10 +1033,16 @@ public class DashboardPolicyWaiverRequestServiceTest
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
     PolicyWaiverRequest policyWaiverRequest =
-        new PolicyWaiverRequest().setHash("hash").setPolicyId(highThreatPolicy.getId())
-            .setOwnerId(application.getId()).setConstraintFacts(singletonList(constraintFact))
-            .setAssociatedPackageUrl(purl).setComponentMatchStrategy(EXACT_COMPONENT).setComment("a comment")
-            .setRequestTime(today).setExpiryTime(aWeekFromNow).setComponentUpgradeAvailable(true)
+        new PolicyWaiverRequest().setHash("hash")
+            .setPolicyId(highThreatPolicy.getId())
+            .setOwnerId(application.getId())
+            .setConstraintFacts(singletonList(constraintFact))
+            .setAssociatedPackageUrl(purl)
+            .setComponentMatchStrategy(EXACT_COMPONENT)
+            .setComment("a comment")
+            .setRequestTime(today)
+            .setExpiryTime(aWeekFromNow)
+            .setComponentUpgradeAvailable(true)
             .setPolicyViolationId(policyViolation.getId());
 
     return tempEntity.newPolicyWaiverRequest(policyWaiverRequest);

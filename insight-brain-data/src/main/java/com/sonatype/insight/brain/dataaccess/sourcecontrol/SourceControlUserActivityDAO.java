@@ -79,7 +79,8 @@ public class SourceControlUserActivityDAO
     }
     String dbSchema = getDatabaseSchema();
     SourceControlUserActivityDAOQueryBuilder queryBuilder =
-        isDatabasePostgresql() ? new PostgresqlSourceControlUserActivityDAOQueryBuilder(dbSchema)
+        isDatabasePostgresql()
+            ? new PostgresqlSourceControlUserActivityDAOQueryBuilder(dbSchema)
             : new DefaultSourceControlUserActivityDAOQueryBuilder(dbSchema);
 
     List<SourceControlUserActivity> batchActivities = new ArrayList<>(queryBuilder.getBatchLimit());
@@ -104,7 +105,8 @@ public class SourceControlUserActivityDAO
       int i = 0;
       for (SourceControlUserActivity userActivity : batchActivities) {
         query.setParameter(++i, StringUtils.isNotBlank(userActivity.getId())
-                ? userActivity.getId() : UUID.randomUUID().toString().replace("-", ""))
+            ? userActivity.getId()
+            : UUID.randomUUID().toString().replace("-", ""))
             .setParameter(++i, userActivity.getSourceControlUserId())
             .setParameter(++i, userActivity.getCommitYearMonth());
       }
@@ -218,7 +220,8 @@ public class SourceControlUserActivityDAO
     }
     String dbSchema = getDatabaseSchema();
     SourceControlUserActivityDAOQueryBuilder queryBuilder =
-        isDatabasePostgresql() ? new PostgresqlSourceControlUserActivityDAOQueryBuilder(dbSchema)
+        isDatabasePostgresql()
+            ? new PostgresqlSourceControlUserActivityDAOQueryBuilder(dbSchema)
             : new DefaultSourceControlUserActivityDAOQueryBuilder(dbSchema);
     Set<String> batchActivityIds = new HashSet<>(queryBuilder.getUpdateBatchLimit());
     for (final String userActivityId : sourceControlUserActivityIds) {

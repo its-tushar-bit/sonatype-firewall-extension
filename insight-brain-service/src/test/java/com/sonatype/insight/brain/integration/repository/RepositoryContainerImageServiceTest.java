@@ -466,7 +466,7 @@ public class RepositoryContainerImageServiceTest
     Repository repository = tempEntity.newRepository(repositoryManager, "docker-repo", RepositoryType.hosted, "docker");
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service
-            .getContainerImageReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "fake-image"))
+        .getContainerImageReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "fake-image"))
         .withMessage("The repository must be of type proxy and format docker");
   }
 
@@ -476,7 +476,7 @@ public class RepositoryContainerImageServiceTest
     Repository repository = tempEntity.newRepository(repositoryManager, "docker-repo", RepositoryType.proxy, "maven2");
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service
-            .getContainerImageReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "fake-image"))
+        .getContainerImageReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "fake-image"))
         .withMessage("The repository must be of type proxy and format docker");
   }
 
@@ -486,7 +486,7 @@ public class RepositoryContainerImageServiceTest
     Repository repository = tempEntity.newRepository(repositoryManager, "docker-repo", RepositoryType.proxy, "docker");
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> service
-            .getContainerImageReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "fake-image"))
+        .getContainerImageReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "fake-image"))
         .withMessage("No container image was found with ID fake-image");
   }
 

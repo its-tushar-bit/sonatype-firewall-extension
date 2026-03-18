@@ -19,7 +19,9 @@ import java.util.stream.Collectors;
 
 @Named
 @Singleton
-public class OrganizationTelemetryCollector extends OwnerTelemetryCollector implements TelemetryCollector
+public class OrganizationTelemetryCollector
+    extends OwnerTelemetryCollector
+    implements TelemetryCollector
 {
   private final OrganizationDAO organizationDAO;
 
@@ -32,7 +34,8 @@ public class OrganizationTelemetryCollector extends OwnerTelemetryCollector impl
   @Override
   public TelemetryData collectData() {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REAL_OWNER_IDS);
-    List<OwnerTelemetryCollector.OwnerData> ownerData = organizationDAO.getAll().stream()
+    List<OwnerTelemetryCollector.OwnerData> ownerData = organizationDAO.getAll()
+        .stream()
         .map(this::createOwnerData)
         .collect(Collectors.toList());
     telemetryData.put(ALL_OWNER_IDS_NAMES, ownerData);

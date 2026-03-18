@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
- * events with certain errors during processing should be retried;  this rule defines those errors and the number
- * of retries to apply;  other rules may enforce processing suspension periods (delays) between the retries
+ * events with certain errors during processing should be retried; this rule defines those errors and the number
+ * of retries to apply; other rules may enforce processing suspension periods (delays) between the retries
  */
 public class EventProcessingErrorRetryRule
     implements EventProcessedListener

@@ -149,7 +149,8 @@ public class BitbucketCodeInsightsService
       catch (HttpResponseException e) {
         // Known issue by Bitbucket and it is harmless
         if (e.getMessage() == null ||
-            !e.getMessage().contains("The field 'annotations' must be present and have at least 1 annotation")) {
+            !e.getMessage().contains("The field 'annotations' must be present and have at least 1 annotation"))
+        {
           throw e;
         }
       }

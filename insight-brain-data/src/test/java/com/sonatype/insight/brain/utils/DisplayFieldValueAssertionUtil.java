@@ -21,18 +21,20 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class DisplayFieldValueAssertionUtil
 {
-  public static void assertDisplayFieldValue(final ComponentDisplayNamePart displayFieldValue,
-                                             final String field,
-                                             final String value)
+  public static void assertDisplayFieldValue(
+      final ComponentDisplayNamePart displayFieldValue,
+      final String field,
+      final String value)
   {
     assertThat(displayFieldValue.field).isEqualTo(field);
     assertThat(displayFieldValue.value).isEqualTo(value);
   }
 
-  public static void assertDisplayFieldValuesForGAV(List<ComponentDisplayNamePart> displayName,
-                                                    String groupId,
-                                                    String artifactId,
-                                                    String version)
+  public static void assertDisplayFieldValuesForGAV(
+      List<ComponentDisplayNamePart> displayName,
+      String groupId,
+      String artifactId,
+      String version)
   {
     assertThat(displayName).hasSize(5);
     assertDisplayFieldValue(displayName.get(0), "Group", groupId);
@@ -42,8 +44,9 @@ public class DisplayFieldValueAssertionUtil
     assertDisplayFieldValue(displayName.get(4), "Version", version);
   }
 
-  public static void assertDisplayFieldValues(final List<ComponentDisplayNamePart> displayName,
-                                              final PolicyViolation policyViolation)
+  public static void assertDisplayFieldValues(
+      final List<ComponentDisplayNamePart> displayName,
+      final PolicyViolation policyViolation)
   {
     ComponentIdentifier componentIdentifier = policyViolation.getComponentIdentifier();
     assertThat(componentIdentifier).isNotNull();

@@ -72,8 +72,8 @@ public class QuartzConcurrencyListenerTest
     when(mockTrigger.getKey()).thenReturn(triggerKey);
 
     // Use thenAnswer to avoid generic type issues with TriggerBuilder
-    when(mockTrigger.getTriggerBuilder()).thenAnswer(invocation ->
-        TriggerBuilder.newTrigger().withIdentity(triggerKey));
+    when(mockTrigger.getTriggerBuilder())
+        .thenAnswer(invocation -> TriggerBuilder.newTrigger().withIdentity(triggerKey));
   }
 
   @Test

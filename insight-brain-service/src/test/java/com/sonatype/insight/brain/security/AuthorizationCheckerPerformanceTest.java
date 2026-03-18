@@ -70,20 +70,19 @@ public class AuthorizationCheckerPerformanceTest
   @Parameters(name = "iterations={0}, applications={1}, memberships={2}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-            {10, 50, 1},
-            {10, 50, 100},
-            {10, 50, 1000},
-            {10, 50, 10_000},
-            {10, 50, 100_000},
-            {10, 50, 100_000_000},
-            {10, 100, 100},
-            {10, 500, 1000},
-            {10, 1000, 10_000},
-            {10, 10_000, 100_000_000},
-            {50, 10_000, 100_000_000},
-            {100, 10_000, 100_000_000}
-        }
-    );
+      {10, 50, 1},
+      {10, 50, 100},
+      {10, 50, 1000},
+      {10, 50, 10_000},
+      {10, 50, 100_000},
+      {10, 50, 100_000_000},
+      {10, 100, 100},
+      {10, 500, 1000},
+      {10, 1000, 10_000},
+      {10, 10_000, 100_000_000},
+      {50, 10_000, 100_000_000},
+      {100, 10_000, 100_000_000}
+    });
   }
 
   @Rule(order = 3)
@@ -162,8 +161,9 @@ public class AuthorizationCheckerPerformanceTest
     String bestConfiguration = "";
     Map<String, Long> allResults = new HashMap<>();
 
-    for (AuthorizationPermissionEntityFilterStrategy filterStrategy :
-        AuthorizationPermissionEntityFilterStrategy.values()) {
+    for (AuthorizationPermissionEntityFilterStrategy filterStrategy : AuthorizationPermissionEntityFilterStrategy
+        .values())
+    {
       for (AuthorizationMembershipQueryStrategy queryStrategy : AuthorizationMembershipQueryStrategy.values()) {
         long time = timeFilterWithConfiguration(principal, applications, filterStrategy, queryStrategy);
         double timeMs = time / NANOSECONDS_TO_MILLISECONDS;
@@ -184,8 +184,10 @@ public class AuthorizationCheckerPerformanceTest
   }
 
   private long timeFilterWithConfiguration(
-      UserPrincipal principal, List<Application> applications,
-      AuthorizationPermissionEntityFilterStrategy filterStrategy, AuthorizationMembershipQueryStrategy queryStrategy)
+      UserPrincipal principal,
+      List<Application> applications,
+      AuthorizationPermissionEntityFilterStrategy filterStrategy,
+      AuthorizationMembershipQueryStrategy queryStrategy)
   {
     environmentVariables.set(AUTHORIZATION_PERMISSION_ENTITY_FILTER_STRATEGY_ENV, filterStrategy.name());
     environmentVariables.set(AUTHORIZATION_CHECKER_MEMBERSHIP_QUERY_STRATEGY_ENV, queryStrategy.name());
@@ -207,14 +209,15 @@ public class AuthorizationCheckerPerformanceTest
     long toleranceThreshold = (long) (sequentialTraditional * 1.25);
     assertThat(autoOptimized)
         .as("AUTO+DIRECT_CONTEXT_ID should be reasonably fast compared to" +
-                " SEQUENTIAL+FULL_MEMBERSHIP_MAPPING_CONTEXT_ID" +
-                " (auto: %d ns, sequential: %d ns, threshold: %d ns)",
-            autoOptimized, sequentialTraditional, toleranceThreshold
-        )
+            " SEQUENTIAL+FULL_MEMBERSHIP_MAPPING_CONTEXT_ID" +
+            " (auto: %d ns, sequential: %d ns, threshold: %d ns)",
+            autoOptimized, sequentialTraditional, toleranceThreshold)
         .isLessThan(toleranceThreshold);
   }
 
-  private record PerformanceResults(long bestTime, String bestConfiguration, Map<String, Long> allResults) { }
+  private record PerformanceResults(long bestTime, String bestConfiguration, Map<String, Long> allResults)
+  {
+  }
 
   private UserPrincipal newPrincipal(User user, String... groups) {
     return new UserPrincipal(user.getUsername(), user.calculateDisplayName(), InternalRealm.ID,

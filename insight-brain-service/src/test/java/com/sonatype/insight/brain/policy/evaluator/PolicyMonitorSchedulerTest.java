@@ -79,7 +79,7 @@ public class PolicyMonitorSchedulerTest
 
     LocalTime policyMonitoringHour = LocalTime.of(configuration.getPolicyMonitoringHour(), 0);
     assertThat(startTimeCaptor.getValue()).isBetween(LocalTime.of(configuration.getPolicyMonitoringHour(), 0),
-            policyMonitoringHour.plusMinutes(120));
+        policyMonitoringHour.plusMinutes(120));
   }
 
   @Test
@@ -98,7 +98,7 @@ public class PolicyMonitorSchedulerTest
 
     LocalTime policyMonitoringHour = LocalTime.of(configuration.getPolicyMonitoringHour(), 0);
     assertThat(startTimeCaptor.getValue()).isBetween(LocalTime.of(configuration.getPolicyMonitoringHour(), 0),
-            policyMonitoringHour.plusMinutes(120));
+        policyMonitoringHour.plusMinutes(120));
   }
 
   @Test

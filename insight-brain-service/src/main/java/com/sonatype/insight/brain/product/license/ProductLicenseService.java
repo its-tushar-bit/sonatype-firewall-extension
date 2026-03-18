@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 public class ProductLicenseService
 {
   private final CLMLicenseManager licenseManager;
-  
+
   private final ProductLicense productLicense;
 
   private final Logger log = LoggerFactory.getLogger(ProductLicenseService.class);

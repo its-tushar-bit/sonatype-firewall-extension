@@ -69,7 +69,7 @@ public class PullRequestTaskTest
       ComponentIdentifier.createMavenCoordinates("foo", "bar", "1.0.0", "", "jar");
 
   public static final GitRepositoryInfo INFO = new GitRepositoryInfo("localhost", null, null, "token",
-      SourceControlProvider.GITHUB, "master", true,true, true, true, true, true, false, null);
+      SourceControlProvider.GITHUB, "master", true, true, true, true, true, true, false, null);
 
   private static final String BRANCH = "testBranch";
 
@@ -124,7 +124,7 @@ public class PullRequestTaskTest
   @Mock
   private PullRequestExecutor mockPullRequestExecutor;
 
-  //Subject
+  // Subject
   @Inject
   private PullRequestTask pullRequestTask;
 
@@ -159,7 +159,7 @@ public class PullRequestTaskTest
   @Before
   public void before() {
     gitRepositoryInfo = new GitRepositoryInfo("http://localhost", null, null, "token", SourceControlProvider.GITHUB,
-        "master", true, true, true, true,true, true, false, null);
+        "master", true, true, true, true, true, true, false, null);
   }
 
   @Test(expected = IllegalArgumentException.class)

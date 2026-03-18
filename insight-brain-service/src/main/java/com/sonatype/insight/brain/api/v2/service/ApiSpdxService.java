@@ -224,8 +224,7 @@ public class ApiSpdxService
       final Map<String, SpdxPackage> purlElementMap,
       final String applicationName,
       final String scanId,
-      final String spdxVersion)
-      throws InvalidSPDXAnalysisException
+      final String spdxVersion) throws InvalidSPDXAnalysisException
   {
     String packageUrl = rootNodeDTO.getPackageUrl();
     if (StringUtils.isBlank(packageUrl)) {
@@ -293,10 +292,9 @@ public class ApiSpdxService
       final List<ApiReportComponentDTOV2> reportComponents,
       final SpdxDocument document,
       final Map<String, SpdxPackage> purlElementMap,
-      final String spdxVersion)
-      throws InvalidSPDXAnalysisException
+      final String spdxVersion) throws InvalidSPDXAnalysisException
   {
-    Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap =  new HashMap<>();
+    Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap = new HashMap<>();
     for (ApiReportComponentDTOV2 reportComponent : reportComponents) {
       if (!MatchState.UNKNOWN.getId().equals(reportComponent.matchState)) {
         addPackage(reportComponent, document, purlElementMap, extractedLicenseInfoMap, spdxVersion);
@@ -312,8 +310,7 @@ public class ApiSpdxService
       final SpdxDocument document,
       final Map<String, SpdxPackage> purlElementMap,
       final Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap,
-      final String spdxVersion)
-      throws InvalidSPDXAnalysisException
+      final String spdxVersion) throws InvalidSPDXAnalysisException
   {
     String packageUrl = getPackageUrl(reportComponent);
     if (packageUrl == null) {
@@ -363,8 +360,9 @@ public class ApiSpdxService
         document, purlElementMap, spdxVersion);
   }
 
-  private List<ExternalRef> addVulnerabilities(ApiReportComponentDTOV2 component, SpdxDocument document)
-      throws InvalidSPDXAnalysisException
+  private List<ExternalRef> addVulnerabilities(
+      ApiReportComponentDTOV2 component,
+      SpdxDocument document) throws InvalidSPDXAnalysisException
   {
     if (component.securityData == null || CollectionUtils.isEmpty(component.securityData.securityIssues)) {
       return new ArrayList<>();
@@ -375,8 +373,9 @@ public class ApiSpdxService
       if (StringUtils.isNotBlank(securityUrl)) {
         String comment = null;
         if (StringUtils.isNotBlank(securityIssue.source)) {
-          comment = CVE.equals(securityIssue.source) ? "source: " + NVD :
-              "source: " + securityIssue.source.toUpperCase(Locale.ROOT);
+          comment = CVE.equals(securityIssue.source)
+              ? "source: " + NVD
+              : "source: " + securityIssue.source.toUpperCase(Locale.ROOT);
         }
         ExternalRef externalRef = document.createExternalRef(ReferenceCategory.SECURITY,
             new ReferenceType("advisory"), securityUrl, comment);
@@ -386,8 +385,9 @@ public class ApiSpdxService
     return externalRefs;
   }
 
-  private AnyLicenseInfo createLicenseInfo(Set<AnyLicenseInfo> licenses, SpdxDocument document)
-      throws InvalidSPDXAnalysisException
+  private AnyLicenseInfo createLicenseInfo(
+      Set<AnyLicenseInfo> licenses,
+      SpdxDocument document) throws InvalidSPDXAnalysisException
   {
     if (licenses.isEmpty()) {
       return new SpdxNoAssertionLicense();
@@ -401,8 +401,7 @@ public class ApiSpdxService
   private AnyLicenseInfo createLicenseInfo(
       ApiLicenseDTO apiLicense,
       SpdxDocument document,
-      Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap)
-      throws InvalidSPDXAnalysisException
+      Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap) throws InvalidSPDXAnalysisException
   {
     final Set<License> licenseSet = multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(apiLicense.licenseId);
     if (licenseSet.isEmpty()) {
@@ -421,16 +420,16 @@ public class ApiSpdxService
 
   private AnyLicenseInfo createLicenseObject(
       String licenseId,
-      Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap)
-      throws InvalidSPDXAnalysisException
+      Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap) throws InvalidSPDXAnalysisException
   {
     if (ListedLicenses.getListedLicenses().isSpdxListedLicenseId(licenseId)) {
-      //Recover valid SPDX license ID here respecting the case instead of trusting original value which might not
+      // Recover valid SPDX license ID here respecting the case instead of trusting original value which might not
       // be an exact match. As a fallback we use the original value
       Optional<String> foundSpdxLicenseIdCaseSensitiveOptional = ListedLicenses.getListedLicenses()
           .listedLicenseIdCaseSensitive(licenseId);
-      return ListedLicenses.getListedLicenses().getListedLicenseById(foundSpdxLicenseIdCaseSensitiveOptional
-          .orElse(licenseId));
+      return ListedLicenses.getListedLicenses()
+          .getListedLicenseById(foundSpdxLicenseIdCaseSensitiveOptional
+              .orElse(licenseId));
     }
     if (extractedLicenseInfoMap.containsKey(licenseId)) {
       return extractedLicenseInfoMap.get(licenseId);
@@ -449,8 +448,7 @@ public class ApiSpdxService
       final List<ExternalRef> additionalExternalRefs,
       final SpdxDocument document,
       final Map<String, SpdxPackage> purlElementMap,
-      String spdxVersion)
-      throws InvalidSPDXAnalysisException
+      String spdxVersion) throws InvalidSPDXAnalysisException
   {
     if (purlElementMap.containsKey(packageUrl)) {
       return; // avoids duplicates
@@ -467,10 +465,10 @@ public class ApiSpdxService
 
     SpdxPackageBuilder packageBuilder =
         document.createPackage(generateSpdxId(packageUrl),
-                createSpdxNameFromPurl(packageUrl),
-                concludedLicenseInfo,
-                copyrightText,
-                declaredLicenseInfo)
+            createSpdxNameFromPurl(packageUrl),
+            concludedLicenseInfo,
+            copyrightText,
+            declaredLicenseInfo)
             .setFilesAnalyzed(false)
             .setDownloadLocation(SpdxConstants.NOASSERTION_VALUE)
             .addExternalRef(purlRef);
@@ -534,14 +532,16 @@ public class ApiSpdxService
     }
     String version = purl.substring(index + 1);
     index = version.indexOf('?');
-    if (index >  -1) {
+    if (index > -1) {
       version = version.substring(0, index);
     }
     return version;
   }
 
-  private SpdxDocument createDocument(String spdxVersion, String uri, ApiReportRawDataDTOV2 data)
-      throws InvalidSPDXAnalysisException
+  private SpdxDocument createDocument(
+      String spdxVersion,
+      String uri,
+      ApiReportRawDataDTOV2 data) throws InvalidSPDXAnalysisException
   {
     DefaultModelStore.reset();
     SpdxDocument spdxDocument = new SpdxDocument(uri);
@@ -586,8 +586,9 @@ public class ApiSpdxService
     String spdxContent;
     Format spdxFormat = "json".equals(format) ? Format.JSON_PRETTY : Format.XML;
     try (MultiFormatStore multiFormatStore =
-             new MultiFormatStore(document.getModelStore(), spdxFormat, Verbose.STANDARD);
-         ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+        new MultiFormatStore(document.getModelStore(), spdxFormat, Verbose.STANDARD);
+        ByteArrayOutputStream out = new ByteArrayOutputStream())
+    {
       multiFormatStore.serialize(document.getDocumentUri(), out);
       spdxContent = out.toString(StandardCharsets.UTF_8);
     }
@@ -619,8 +620,9 @@ public class ApiSpdxService
     File outputFile = Files.createTempFile("spdx-", ".tar.gz").toFile();
     outputFile.deleteOnExit();
     try (OutputStream outputStream = Files.newOutputStream(outputFile.toPath());
-         GzipCompressorOutputStream gzipOut = new GzipCompressorOutputStream(outputStream);
-         TarArchiveOutputStream tarOut = new TarArchiveOutputStream(gzipOut)) {
+        GzipCompressorOutputStream gzipOut = new GzipCompressorOutputStream(outputStream);
+        TarArchiveOutputStream tarOut = new TarArchiveOutputStream(gzipOut))
+    {
       // SPDX entry
       TarArchiveEntry spdxEntry = new TarArchiveEntry(spdxFilename);
       spdxEntry.setSize(spdxContent.length());
@@ -639,8 +641,9 @@ public class ApiSpdxService
     return outputFile;
   }
 
-  private void addCycloneDxExternalRef(final SpdxDocument document, final String cdxFilename)
-      throws InvalidSPDXAnalysisException
+  private void addCycloneDxExternalRef(
+      final SpdxDocument document,
+      final String cdxFilename) throws InvalidSPDXAnalysisException
   {
     Collection<SpdxElement> documentDescribes = document.getDocumentDescribes();
     if (!documentDescribes.isEmpty()) {

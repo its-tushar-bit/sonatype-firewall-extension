@@ -69,8 +69,8 @@ public class EnterpriseReportingDashboardPageTest
   @Test
   public void testFeatureDisabled_RendersError() {
     DashboardsVersionDTO version = new DashboardsVersionDTO(1);
-    //The current page's dashboardMetadata must be mocked in this and subsequent tests to prevent navigation to
-    //the landing page
+    // The current page's dashboardMetadata must be mocked in this and subsequent tests to prevent navigation to
+    // the landing page
     DashboardMetadataDTO dashboardMetadataCurrentPage =
         createDashboardMetadata(3, NO_IQ_VERSION);
     DashboardMetadataListDTO dashboardList =
@@ -98,8 +98,7 @@ public class EnterpriseReportingDashboardPageTest
         List.of(
             dashboardMetadataGrouped,
             dashboardMetadataCurrentPage,
-            dashboardMetadataActive
-        ),
+            dashboardMetadataActive),
         List.of(dashboardGroupMetadata));
     setupTests(dashboardList, version);
     refreshOrOpen(EnterpriseReportingDashboardPage.url(URL_DASHBOARD_ID));
@@ -125,11 +124,11 @@ public class EnterpriseReportingDashboardPageTest
     activeGroupLink.shouldBe(visible);
     activeGroupLink.shouldHave(text(dashboardGroupMetadata.title));
 
-    //a link with a matching group-id will not render in the nav bar
+    // a link with a matching group-id will not render in the nav bar
     NavigationListItem hiddenLinkItem = page.navigationListItem(dashboardMetadataGrouped.dashboardId);
     hiddenLinkItem.shouldBe(hidden);
 
-    //assert that the <li> representing the current page's dashboard is a <span> instead of an <a>
+    // assert that the <li> representing the current page's dashboard is a <span> instead of an <a>
     NavigationListItem currentPageListItem = page.navigationListItem(dashboardMetadataCurrentPage.dashboardId);
     currentPageListItem.currentPageLink().shouldBe(visible);
 
@@ -149,8 +148,7 @@ public class EnterpriseReportingDashboardPageTest
             dashboardMetadataDisabled,
             dashboardMetadataActiveWithVersion,
             dashboardMetadataCurrentPage,
-            dashboardMetadataActive
-        ),
+            dashboardMetadataActive),
         List.of());
     setupTests(dashboardList, version);
     refreshOrOpen(EnterpriseReportingDashboardPage.url(URL_DASHBOARD_ID));
@@ -162,12 +160,12 @@ public class EnterpriseReportingDashboardPageTest
       DashboardMetadataDTO dashboard = dashboardList.dashboardMetadata.get(i);
       NavigationListItem listItem = page.navigationListItem(dashboard.dashboardId);
 
-      //only test links, do not test current page's <span> element
+      // only test links, do not test current page's <span> element
       if (!StringUtils.equals(dashboard.dashboardId, URL_DASHBOARD_ID)) {
         SelenideElement textLink = listItem.activeLink();
         Boolean isDisabled =
-            StringUtils.isNotBlank(dashboard.sinceIQVersion) 
-            && userVersion < Integer.parseInt(dashboard.sinceIQVersion);
+            StringUtils.isNotBlank(dashboard.sinceIQVersion)
+                && userVersion < Integer.parseInt(dashboard.sinceIQVersion);
         assertLinkState(textLink, isDisabled, "", dashboard.dashboardId);
       }
     }
@@ -176,7 +174,7 @@ public class EnterpriseReportingDashboardPageTest
   @Test
   public void testNavigationLinkState_DashboardGroup() {
     DashboardsVersionDTO version = new DashboardsVersionDTO(3);
-    DashboardMetadataDTO dashboardMetadataCurrentPage = createDashboardMetadata(3,"188");
+    DashboardMetadataDTO dashboardMetadataCurrentPage = createDashboardMetadata(3, "188");
     DashboardMetadataDTO dashboardMetadataEnabledGroupFirst =
         createDashboardMetadataWithGroup(1, "400", "group-id");
     DashboardMetadataDTO dashboardMetadataEnabledGroupSecond =
@@ -184,7 +182,7 @@ public class EnterpriseReportingDashboardPageTest
     DashboardMetadataDTO dashboardMetadataDisabledGroupFirst =
         createDashboardMetadataWithGroup(4, "400", "disabled-group-id");
     DashboardMetadataDTO dashboardMetadataDisabledGroupSecond =
-        createDashboardMetadataWithGroup(5,"405", "disabled-group-id");
+        createDashboardMetadataWithGroup(5, "405", "disabled-group-id");
     DashboardGroupMetadataDTO dashboardGroupMetadataEnabled = createDashboardGroupMetadata("group-id");
     DashboardGroupMetadataDTO dashboardGroupMetadataDisabled = createDashboardGroupMetadata("disabled-group-id");
     DashboardMetadataListDTO dashboardList = new DashboardMetadataListDTO(
@@ -194,34 +192,31 @@ public class EnterpriseReportingDashboardPageTest
             dashboardMetadataEnabledGroupFirst,
             dashboardMetadataEnabledGroupSecond,
             dashboardMetadataDisabledGroupFirst,
-            dashboardMetadataDisabledGroupSecond
-        ),
+            dashboardMetadataDisabledGroupSecond),
         List.of(dashboardGroupMetadataEnabled, dashboardGroupMetadataDisabled));
     setupTests(dashboardList, version);
     refreshOrOpen(EnterpriseReportingDashboardPage.url(URL_DASHBOARD_ID));
 
     String fullVersion = testCLMServer.getCLMServer().getInstance(VersionService.class).getLogDisplayVersion();
     int userVersion = Integer.parseInt(fullVersion.substring(0, fullVersion.indexOf("-")).replace(".0", ""));
-    
+
     for (int i = 0; i < dashboardList.dashboardGroupMetadata.size(); i++) {
       DashboardGroupMetadataDTO dashboardGroup = dashboardList.dashboardGroupMetadata.get(i);
       NavigationListItem listItem = page.navigationListItem(dashboardGroup.groupId);
       SelenideElement textLink = listItem.activeLink();
 
-      //dashboardGroup links should only be disabled if the user's IQ version is less than the sinceIQVersion of
+      // dashboardGroup links should only be disabled if the user's IQ version is less than the sinceIQVersion of
       // ALL dashboards in dashboardMetadata with matching 'groupId'
       boolean allDashboardVersionsGreater = dashboardList.dashboardMetadata.stream()
-                .filter(d -> Objects.equals(d.groupId, dashboardGroup.groupId))
-                .map(d -> d.sinceIQVersion)
-                .allMatch(sinceIQVersion ->
-                    StringUtils.isNotBlank(sinceIQVersion) && userVersion < Integer.parseInt(sinceIQVersion)
-                );
+          .filter(d -> Objects.equals(d.groupId, dashboardGroup.groupId))
+          .map(d -> d.sinceIQVersion)
+          .allMatch(sinceIQVersion -> StringUtils.isNotBlank(sinceIQVersion)
+              && userVersion < Integer.parseInt(sinceIQVersion));
 
       assertLinkState(textLink,
-                      allDashboardVersionsGreater,
-                      dashboardGroup.groupId,
-                      dashboardMetadataEnabledGroupSecond.dashboardId
-                      );
+          allDashboardVersionsGreater,
+          dashboardGroup.groupId,
+          dashboardMetadataEnabledGroupSecond.dashboardId);
     }
   }
 
@@ -234,8 +229,7 @@ public class EnterpriseReportingDashboardPageTest
         version,
         List.of(
             dashboardMetadataMatchingVersion,
-            dashboardMetadataCurrentPage
-        ),
+            dashboardMetadataCurrentPage),
         List.of());
     setupTests(dashboardList, version);
     VersionService versionService = testCLMServer.getCLMServer().getInstance(VersionService.class);
@@ -278,7 +272,7 @@ public class EnterpriseReportingDashboardPageTest
     // when navigating to a Dashboard "Group" Page, the url takes 2 parameters: the dashboardGroupMetadata
     // groupId and a dashboardMetadata dashboardId
     waitUntilUrl(EnterpriseReportingDashboardPage.groupUrl(dashboardGroupMetadata.groupId,
-                                                           dashboardMetadataEnterpriseGrouped.dashboardId));
+        dashboardMetadataEnterpriseGrouped.dashboardId));
   }
 
   @Test
@@ -305,7 +299,7 @@ public class EnterpriseReportingDashboardPageTest
     dropdownItemButton.click();
 
     waitUntilUrl(EnterpriseReportingDashboardPage.groupUrl(dashboardGroupMetadata.groupId,
-                                                           dashboardMetadataSecondGrouped.dashboardId));
+        dashboardMetadataSecondGrouped.dashboardId));
     ElementsCollection groupTabs = page.groupTabs();
     groupTabs.shouldHave(size(2));
 
@@ -316,7 +310,7 @@ public class EnterpriseReportingDashboardPageTest
     dashboardCard.dashboardGroupButton().click();
 
     waitUntilUrl(EnterpriseReportingDashboardPage.groupUrl(dashboardGroupMetadata.groupId,
-                                                           dashboardMetadataFirstGrouped.dashboardId));
+        dashboardMetadataFirstGrouped.dashboardId));
     SelenideElement firstDashboardTab = groupTabs.get(0);
     firstDashboardTab.shouldHave(attribute("aria-selected", "true"));
   }
@@ -330,7 +324,7 @@ public class EnterpriseReportingDashboardPageTest
         createDashboardMetadataWithGroup(2, NO_IQ_VERSION, "group-id");
     DashboardMetadataDTO dashboardMetadataIndividual =
         createDashboardMetadata(3, "188");
-    DashboardGroupMetadataDTO dashboardGroupMetadata = 
+    DashboardGroupMetadataDTO dashboardGroupMetadata =
         createDashboardGroupMetadata("group-id");
     DashboardMetadataListDTO dashboardList = new DashboardMetadataListDTO(version,
         List.of(
@@ -345,14 +339,14 @@ public class EnterpriseReportingDashboardPageTest
     page.groupTabs().shouldHave(size(0));
 
     refreshOrOpen(EnterpriseReportingDashboardPage.groupUrl(dashboardGroupMetadata.groupId,
-                                                            dashboardMetadataSecondGrouped.dashboardId));
+        dashboardMetadataSecondGrouped.dashboardId));
     SelenideElement pageTitle = page.pageTitle();
     pageTitle.shouldBe(visible);
     pageTitle.shouldHave(text(dashboardGroupMetadata.title));
 
     ElementsCollection groupTabs = page.groupTabs();
     groupTabs.shouldHave(size(2));
-    //both dashboards mocked with same accessButtonText
+    // both dashboards mocked with same accessButtonText
     String tabText = dashboardMetadataFirstGrouped.accessButtonText.replaceFirst("view ", "");
 
     SelenideElement firstDashboardTab = groupTabs.get(0);
@@ -393,8 +387,8 @@ public class EnterpriseReportingDashboardPageTest
   @Test
   public void testCopyToClipboard__Success() {
     refreshOrOpen(EnterpriseReportingDashboardPage.url(URL_DASHBOARD_ID));
-    //need to mock the ClipboardApi writeText() function which needs to resolve before success message renders
-    executeJavaScript( "navigator.clipboard = { writeText: function() { return Promise.resolve(); } }" );
+    // need to mock the ClipboardApi writeText() function which needs to resolve before success message renders
+    executeJavaScript("navigator.clipboard = { writeText: function() { return Promise.resolve(); } }");
     page.copyToClipboard().shouldBe(visible);
     page.copySuccessMessage().shouldBe(hidden);
 
@@ -442,19 +436,21 @@ public class EnterpriseReportingDashboardPageTest
         false, "dashboards/rolling_recap::rolling_recap", null, null, sinceIqVersion);
   }
 
-  private static DashboardMetadataDTO createDashboardMetadataWithGroup(int order,
-                                                                       String sinceIqVersion,
-                                                                       String groupId) 
+  private static DashboardMetadataDTO createDashboardMetadataWithGroup(
+      int order,
+      String sinceIqVersion,
+      String groupId)
   {
     return new DashboardMetadataDTO("dashboard-id-" + order, groupId, "title" + order, "dataInsight", "description",
         Arrays.asList("feature 1", "feature 2"), "view dashboard", "rolling-recap.svg", "faBrain", order,
         false, "dashboards/rolling_recap::rolling_recap", null, null, sinceIqVersion);
   }
 
-  private static DashboardMetadataDTO createDashboardMetadataWithCategoryAndGroup(String category,
-                                                                                  int order,
-                                                                                  String sinceIqVersion,
-                                                                                  String groupId) 
+  private static DashboardMetadataDTO createDashboardMetadataWithCategoryAndGroup(
+      String category,
+      int order,
+      String sinceIqVersion,
+      String groupId)
   {
     return new DashboardMetadataDTO("dashboard-id-" + order, groupId, "title" + order, category, "description",
         Arrays.asList("feature 1", "feature 2"), "view dashboard", "rolling-recap.svg", "faBrain", order,

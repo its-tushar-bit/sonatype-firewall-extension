@@ -22,7 +22,7 @@ public enum ReevaluateCascadeProgressStatus
   public static ReevaluateCascadeProgressStatus fromString(String status) {
     return Arrays.stream(ReevaluateCascadeProgressStatus.values())
         .filter(progressStatus -> progressStatus.name().equalsIgnoreCase(status))
-        .findFirst().orElseThrow(() ->
-            new NotFoundException(String.format("Provided status %s is not found", status)));
+        .findFirst()
+        .orElseThrow(() -> new NotFoundException(String.format("Provided status %s is not found", status)));
   }
 }

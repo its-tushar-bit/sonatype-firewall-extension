@@ -75,7 +75,8 @@ public class PolicyAlertEventService
               .buildEvent(policyEvaluation, policyEvaluationResult, currentUser, application);
 
       // group by target
-      Map<String, List<PolicyFact>> groupedAlerts = policyEvaluationResult.getAlerts().stream()
+      Map<String, List<PolicyFact>> groupedAlerts = policyEvaluationResult.getAlerts()
+          .stream()
           .flatMap(this::getPolicyFactsByWebhookTarget)
           .collect(groupingBy(SimpleEntry::getKey, mapping(SimpleEntry::getValue, toList())));
 
@@ -91,7 +92,8 @@ public class PolicyAlertEventService
       groupedFixedAlerts.forEach((key, value) -> groupedAlerts.putIfAbsent(key, Collections.emptyList()));
 
       // post events
-      groupedAlerts.entrySet().stream()
+      groupedAlerts.entrySet()
+          .stream()
           .map(entry -> createPolicyAlertEvent(applicationSummary, applicationEvaluationEvent, entry))
           .forEach(asyncEventBus::post);
     }
@@ -101,7 +103,8 @@ public class PolicyAlertEventService
   }
 
   private Stream<SimpleEntry<String, PolicyFact>> getPolicyFactsByWebhookTarget(final PolicyAlert alert) {
-    return alert.getActions().stream()
+    return alert.getActions()
+        .stream()
         .filter(action -> Objects.equals(action.getTargetType(), NotifyActionType.TARGET_TYPE_WEBHOOK))
         .map(action -> new SimpleEntry<>(action.getTarget(), alert.getTrigger()));
   }

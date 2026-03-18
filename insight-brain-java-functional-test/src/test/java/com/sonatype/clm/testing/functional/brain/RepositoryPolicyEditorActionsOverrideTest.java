@@ -43,7 +43,7 @@ public class RepositoryPolicyEditorActionsOverrideTest
   @Test
   public void testOverrideAddAndEdit_Repository() {
     Repository repository = tempEntity.newProxyRepository(repositoryManager, "npm-proxy", "npm",
-            true, true);
+        true, true);
     goToRepositorySummaryPage(repository);
     createTrivialPolicy(false);
     PolicyEditorPage.savePolicy();
@@ -67,8 +67,10 @@ public class RepositoryPolicyEditorActionsOverrideTest
     PolicyEditorPage.savePolicy();
 
     PolicyEditorPage.inheritanceSection().policyActionsOverrideCheckbox().input().shouldNotBe(checked);
-    PolicyEditorPage.inheritanceSection().policyActionsOverrideCheckbox().label()
-            .shouldHave(text("Allow action overrides at repository level"));
+    PolicyEditorPage.inheritanceSection()
+        .policyActionsOverrideCheckbox()
+        .label()
+        .shouldHave(text("Allow action overrides at repository level"));
     PolicyEditorPage.inheritanceSection().allChildrenInheritRadio().shouldNotBe(visible);
     PolicyEditorPage.inheritanceSection().specifiedChildrenInheritRadio().shouldNotBe(visible);
     OwnerDetailSidebar.policyGroup().entryItems().shouldHave(size(1));
@@ -76,8 +78,10 @@ public class RepositoryPolicyEditorActionsOverrideTest
 
     PolicyEditorPage.title().shouldHave(text("Edit Policy"));
     PolicyEditorPage.inheritanceSection().policyActionsOverrideCheckbox().input().shouldBe(checked);
-    PolicyEditorPage.inheritanceSection().policyActionsOverrideCheckbox().label()
-            .shouldHave(text("Allow action overrides at repository level"));
+    PolicyEditorPage.inheritanceSection()
+        .policyActionsOverrideCheckbox()
+        .label()
+        .shouldHave(text("Allow action overrides at repository level"));
   }
 
   @Test
@@ -87,7 +91,9 @@ public class RepositoryPolicyEditorActionsOverrideTest
     PolicyEditorPage.savePolicy();
 
     PolicyEditorPage.inheritanceSection().policyActionsOverrideCheckbox().input().shouldNotBe(checked);
-    PolicyEditorPage.inheritanceSection().policyActionsOverrideCheckbox().label()
+    PolicyEditorPage.inheritanceSection()
+        .policyActionsOverrideCheckbox()
+        .label()
         .shouldHave(text("Allow action overrides at repository manager and repository levels"));
     PolicyEditorPage.inheritanceSection().allChildrenInheritRadio().shouldNotBe(visible);
     PolicyEditorPage.inheritanceSection().specifiedChildrenInheritRadio().shouldNotBe(visible);
@@ -96,7 +102,9 @@ public class RepositoryPolicyEditorActionsOverrideTest
 
     PolicyEditorPage.title().shouldHave(text("Edit Policy"));
     PolicyEditorPage.inheritanceSection().policyActionsOverrideCheckbox().input().shouldBe(checked);
-    PolicyEditorPage.inheritanceSection().policyActionsOverrideCheckbox().label()
+    PolicyEditorPage.inheritanceSection()
+        .policyActionsOverrideCheckbox()
+        .label()
         .shouldHave(text("Allow action overrides at repository manager and repository levels"));
   }
 
@@ -127,7 +135,7 @@ public class RepositoryPolicyEditorActionsOverrideTest
   /**
    * Tests that the enableOverride checkbox enables the UI in the child to override the parent policy actions.
    *
-   * @param enableOverride  whether to enable the override checkbox
+   * @param enableOverride whether to enable the override checkbox
    * @param policyListIndex 0: local policy, 1: inherited policy from container, 2: inherited policy from root org
    */
   private void testOverride_inheritsFromPolicy(boolean enableOverride, int policyListIndex) {

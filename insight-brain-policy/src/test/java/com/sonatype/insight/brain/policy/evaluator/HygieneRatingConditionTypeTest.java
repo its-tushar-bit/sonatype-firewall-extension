@@ -62,8 +62,15 @@ public class HygieneRatingConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, HygieneRatingConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Hygiene Rating was Laggard");
   }
 
@@ -93,8 +100,15 @@ public class HygieneRatingConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, HygieneRatingConditionType.ID,
         policyAlerts);
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Hygiene Rating was Laggard, not Exemplar");
   }
 
@@ -103,6 +117,7 @@ public class HygieneRatingConditionTypeTest
     Condition condition = new Condition(HygieneRatingConditionType.ID, "is", "abc");
     assertThatThrownBy(
         () -> new HygieneRatingConditionType().validateCondition(null, condition, null /* applicationId */))
-        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
+            .isInstanceOf(InvalidConditionException.class)
+            .hasMessageEndingWith("Value not supported: abc");
   }
 }

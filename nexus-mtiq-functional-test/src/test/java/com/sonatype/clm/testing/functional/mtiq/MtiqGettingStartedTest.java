@@ -87,8 +87,7 @@ public class MtiqGettingStartedTest
     licenseTile.daysToExpiration().shouldBe(visible).shouldHave(matchText("[0-1]"));
     licenseTile.products()
         .shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype Developer", "Sonatype Lifecycle",
-            "Sonatype Repository Firewall"
-            ));
+            "Sonatype Repository Firewall"));
     // NOTE: the emdashes are added in CSS and apparently don't show up here
     licenseTile.licensedDevelopersRows().shouldHave(texts("Lifecycle50", "Firewall45"));
   }

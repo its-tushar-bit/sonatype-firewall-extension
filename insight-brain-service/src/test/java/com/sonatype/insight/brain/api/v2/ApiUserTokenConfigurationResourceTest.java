@@ -39,7 +39,7 @@ public class ApiUserTokenConfigurationResourceTest
   public void testGetConfiguration_NotConfigured() throws Exception {
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
-    
+
     ApiUserTokenConfigurationDTO config = response.getBody(ApiUserTokenConfigurationDTO.class);
     assertThat(config).isNotNull();
     assertThat(config.userTokenDefaultExpirationDays()).isNull();
@@ -51,7 +51,7 @@ public class ApiUserTokenConfigurationResourceTest
 
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
-    
+
     ApiUserTokenConfigurationDTO config = response.getBody(ApiUserTokenConfigurationDTO.class);
     assertThat(config).isNotNull();
     assertThat(config.userTokenDefaultExpirationDays()).isEqualTo(90);
@@ -75,7 +75,7 @@ public class ApiUserTokenConfigurationResourceTest
 
     HttpResponse response = restRequest().body(config).put();
     assertResponseStatus(400, response);
-    
+
     assertThat(response.getBodyText()).contains("Expiration days must be between 1 and 365");
   }
 
@@ -85,7 +85,7 @@ public class ApiUserTokenConfigurationResourceTest
 
     HttpResponse response = restRequest().body(config).put();
     assertResponseStatus(400, response);
-    
+
     assertThat(response.getBodyText()).contains("Expiration days must be between 1 and 365");
   }
 
@@ -121,7 +121,7 @@ public class ApiUserTokenConfigurationResourceTest
   public void testResetConfiguration_NoProperties() throws Exception {
     HttpResponse response = restRequest().delete();
     assertResponseStatus(400, response);
-    
+
     assertThat(response.getBodyText()).contains("No properties specified for reset");
   }
 

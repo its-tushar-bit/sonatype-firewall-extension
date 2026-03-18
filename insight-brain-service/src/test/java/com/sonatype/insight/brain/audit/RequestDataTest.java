@@ -87,8 +87,8 @@ public class RequestDataTest
   public void testNewInstance_SessionId() {
     HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
     when(mockHttpServletRequest.getCookies()).thenReturn(new Cookie[]{
-        new Cookie("cookieName1", "cookieValue1"), new Cookie(SecurityModule.SESSION_COOKIE_NAME, "sessionId"),
-        new Cookie("cookieName3", "cookieValue3")
+      new Cookie("cookieName1", "cookieValue1"), new Cookie(SecurityModule.SESSION_COOKIE_NAME, "sessionId"),
+      new Cookie("cookieName3", "cookieValue3")
     });
 
     assertThat(RequestData.newInstance(mockHttpServletRequest).getSessionId()).isEqualTo("sessionId");

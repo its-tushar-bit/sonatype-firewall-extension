@@ -102,7 +102,8 @@ public class ApiRepositoryConnectionService
     if (repositoryConnectionDTO.format == null) {
       repositoryConnectionDTO.format = RepositoryFormat.GENERIC;
     }
-    AuditData.get().setData(REPOSITORY_URL_AUDIT_KEY, repositoryConnectionDTO.baseUrl)
+    AuditData.get()
+        .setData(REPOSITORY_URL_AUDIT_KEY, repositoryConnectionDTO.baseUrl)
         .setData(REPOSITORY_FORMAT_AUDIT_KEY, repositoryConnectionDTO.format);
     if (repositoryConnectionDAO.getByOwnerIdAndFormat(ownerId, repositoryConnectionDTO.format) != null) {
       throw new ConflictException(
@@ -125,7 +126,8 @@ public class ApiRepositoryConnectionService
       ApiRepositoryConnectionDTO dto)
   {
     validateUpdateConnectionData(dto);
-    AuditData.get().setData(REPOSITORY_URL_AUDIT_KEY, dto.baseUrl)
+    AuditData.get()
+        .setData(REPOSITORY_URL_AUDIT_KEY, dto.baseUrl)
         .setData(REPOSITORY_FORMAT_AUDIT_KEY, dto.format);
     dto.ownerType = ownerType;
     dto.ownerId = internalOwnerId;
@@ -185,7 +187,8 @@ public class ApiRepositoryConnectionService
 
   private void validateUpdateConnectionData(final ApiRepositoryConnectionDTO dto) {
     if (dto == null || (dto.format == null && dto.isAnonymous == null &&
-        StringUtils.isAllBlank(dto.baseUrl, dto.username, dto.password))) {
+        StringUtils.isAllBlank(dto.baseUrl, dto.username, dto.password)))
+    {
       throw new BadRequestException("missing repository connection data for update");
     }
 
@@ -206,8 +209,9 @@ public class ApiRepositoryConnectionService
     if (!Boolean.TRUE.equals(dto.isAnonymous) &&
         StringUtils.isNotEmpty(dto.baseUrl) &&
         !dto.baseUrl.equals(storedConnection.getBaseUrl()) &&
-        StringUtils.isNotEmpty(storedConnection.getUsername())) {
-      //the existing connection has auth config. so new auth data must be provided
+        StringUtils.isNotEmpty(storedConnection.getUsername()))
+    {
+      // the existing connection has auth config. so new auth data must be provided
       if (StringUtils.isAnyBlank(dto.username, dto.password)) {
         throw new BadRequestException("missing username/password for repository connection");
       }
@@ -268,7 +272,8 @@ public class ApiRepositoryConnectionService
     result.repositoryConnectionStatus = getOwnerRepositoryConnectionStatus(ownerType, internalOwnerId);
     result.ownerDTO = ApiOwnerDTO.fromOwner(ownerDAO.getById(internalOwnerId));
     String effectiveOwnerId = resolveEffectiveOwnerId(internalOwnerId, inherit, result);
-    result.repositoryConnections = repositoryConnectionDAO.getByOwnerId(effectiveOwnerId).stream()
+    result.repositoryConnections = repositoryConnectionDAO.getByOwnerId(effectiveOwnerId)
+        .stream()
         .map(this::toRepositoryConnectionDTO)
         .collect(Collectors.toList());
     return result;
@@ -311,8 +316,10 @@ public class ApiRepositoryConnectionService
     }
     return testRepositoryConnection(repositoryConnection.getBaseUrl(), repositoryConnection.getFormat(),
         repositoryConnection.getUsername(),
-        repositoryConnection.getPassword() == null ? null : passwordHandler.decryptPassword(
-            repositoryConnection.getPassword()));
+        repositoryConnection.getPassword() == null
+            ? null
+            : passwordHandler.decryptPassword(
+                repositoryConnection.getPassword()));
   }
 
   // Visible for testing
@@ -367,7 +374,8 @@ public class ApiRepositoryConnectionService
       String username,
       char[] password)
   {
-    AuditData.get().setData(REPOSITORY_URL_AUDIT_KEY, baseUrl)
+    AuditData.get()
+        .setData(REPOSITORY_URL_AUDIT_KEY, baseUrl)
         .setData(REPOSITORY_FORMAT_AUDIT_KEY, format);
     RepositoryClient client = repositoryClientFactory.create()
         .forNexus3(baseUrl, username, password);
@@ -397,7 +405,7 @@ public class ApiRepositoryConnectionService
     if (dto == null || StringUtils.isBlank(dto.baseUrl)) {
       throw new BadRequestException("missing repository base URL");
     }
-    //if a username is provided a password should be provided as well
+    // if a username is provided a password should be provided as well
     if (isNotCompleteAuthData(dto)) {
       throw new BadRequestException("missing username/password for repository connection");
     }

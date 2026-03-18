@@ -180,13 +180,15 @@ abstract class AbstractNewDbOperationalCheckTest
       setPathReadOnly(getH2DBPath(unhealthyDataStore));
 
       try (Connection connection = unhealthyDataStore.getDataSource().getConnection();
-           Statement statement = connection.createStatement()) {
+          Statement statement = connection.createStatement())
+      {
         statement.execute("SHUTDOWN");
       }
     }
     else {
       try (Connection connection = unhealthyDataStore.getDataSource().getConnection();
-           Statement statement = connection.createStatement()) {
+          Statement statement = connection.createStatement())
+      {
         statement.execute("ALTER DATABASE " + connection.getCatalog() + " SET default_transaction_read_only = on;");
       }
     }

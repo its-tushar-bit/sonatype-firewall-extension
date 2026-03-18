@@ -19,9 +19,10 @@ import jakarta.persistence.Table;
  * <p>
  * It IS NOT intended to:
  * <ul>
- *   <li>Store an excessive number of rows - instead prefer a dedicated database table.</li>
- *   <li>Store configuration - instead prefer {@link SystemConfigurationProperty} which backs configuration and feature flags.</li>
- *   <li>Be searchable - rows are only intended to be managed by their key/id one at a time.</li>
+ * <li>Store an excessive number of rows - instead prefer a dedicated database table.</li>
+ * <li>Store configuration - instead prefer {@link SystemConfigurationProperty} which backs configuration and feature
+ * flags.</li>
+ * <li>Be searchable - rows are only intended to be managed by their key/id one at a time.</li>
  * </ul>
  * The key/id must be unique and non-null, the value must be non-null.
  * <p>

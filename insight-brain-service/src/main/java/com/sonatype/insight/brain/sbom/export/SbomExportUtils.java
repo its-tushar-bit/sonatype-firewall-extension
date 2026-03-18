@@ -94,8 +94,9 @@ public class SbomExportUtils
         updateVulnerabilityRatingWithSonatypeData(new Rating(), sonatypeVulnerability)));
 
     String vulnerabilityIdentificationSource =
-        IDENTIFICATION_SOURCE_SONATYPE_CONTAINER.equals(sonatypeVulnerability.getVulnerabilitySource()) ?
-        IDENTIFICATION_SOURCE_SONATYPE_CONTAINER : sonatypeVulnerability.getIdentificationSources();
+        IDENTIFICATION_SOURCE_SONATYPE_CONTAINER.equals(sonatypeVulnerability.getVulnerabilitySource())
+            ? IDENTIFICATION_SOURCE_SONATYPE_CONTAINER
+            : sonatypeVulnerability.getIdentificationSources();
 
     bomVulnerability.setProperties(addOrUpdateBomElementProperty(bomVulnerability.getProperties(),
         SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, vulnerabilityIdentificationSource));
@@ -165,8 +166,10 @@ public class SbomExportUtils
       }
     }
     else {
-      Optional<Property> existingProperty = properties.stream().filter(
-          property -> property.getName().equals(propName)).findFirst();
+      Optional<Property> existingProperty = properties.stream()
+          .filter(
+              property -> property.getName().equals(propName))
+          .findFirst();
       if (existingProperty.isPresent()) {
         if (StringUtils.isNotEmpty(propValue)) {
           existingProperty.get().setValue(propValue);
@@ -190,13 +193,17 @@ public class SbomExportUtils
     return property;
   }
 
-  public static boolean updateCycloneDxLegacyPropertyIfPresent(List<Property> properties,
-                                                            String propName, String propValue)
+  public static boolean updateCycloneDxLegacyPropertyIfPresent(
+      List<Property> properties,
+      String propName,
+      String propValue)
   {
     if (SbomUtils.getLegacyPropertyForCdxProperty(propName) != null) {
       if (CollectionUtils.isNotEmpty(properties)) {
-        Optional<Property> legacyProperty = properties.stream().filter(
-            property -> property.getName().equals(SbomUtils.getLegacyPropertyForCdxProperty(propName))).findFirst();
+        Optional<Property> legacyProperty = properties.stream()
+            .filter(
+                property -> property.getName().equals(SbomUtils.getLegacyPropertyForCdxProperty(propName)))
+            .findFirst();
         if (legacyProperty.isPresent()) {
           legacyProperty.get().setName(propName);
           if (StringUtils.isNotEmpty(propValue)) {
@@ -206,8 +213,10 @@ public class SbomExportUtils
         }
         // Check for identificationSources, another legacy property specific to SBOM Manager
         else if (propName.equals(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME)) {
-          Optional<Property> identificationSourcesProperty = properties.stream().filter(
-              property -> property.getName().equals("identificationSources")).findFirst();
+          Optional<Property> identificationSourcesProperty = properties.stream()
+              .filter(
+                  property -> property.getName().equals("identificationSources"))
+              .findFirst();
           if (identificationSourcesProperty.isPresent()) {
             identificationSourcesProperty.get().setName(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME);
             return true;
@@ -219,8 +228,8 @@ public class SbomExportUtils
   }
 
   private static Rating updateVulnerabilityRatingWithSonatypeData(
-      Rating bomRating, ThirdPartyCoordinateSecurity
-      sonatypeVulnerability)
+      Rating bomRating,
+      ThirdPartyCoordinateSecurity sonatypeVulnerability)
   {
     Severity bomSeverity = null;
     if (StringUtils.isNotBlank(sonatypeVulnerability.getSeverityDescription())) {
@@ -256,7 +265,8 @@ public class SbomExportUtils
   }
 
   private static Analysis updateVexAnalysisWithSonatypeData(
-      Analysis bomAnalysis, ThirdPartyVulnerabilityExploitabilityExchange sonatypeVexInformation)
+      Analysis bomAnalysis,
+      ThirdPartyVulnerabilityExploitabilityExchange sonatypeVexInformation)
   {
     bomAnalysis.setDetail(sonatypeVexInformation.getDetail());
     bomAnalysis.setJustification(Justification.fromString(sonatypeVexInformation.getJustification()));
@@ -269,11 +279,14 @@ public class SbomExportUtils
 
     if (StringUtils.isNotBlank(sonatypeVexInformation.getResponse())) {
       sonatypeResponses =
-          Arrays.stream(sonatypeVexInformation.getResponse().split(",")).filter(Objects::nonNull).map(String::trim)
-              .map(Response::fromString).collect(Collectors.toList());
+          Arrays.stream(sonatypeVexInformation.getResponse().split(","))
+              .filter(Objects::nonNull)
+              .map(String::trim)
+              .map(Response::fromString)
+              .collect(Collectors.toList());
     }
 
-    //Always override existing responses. Empty sonatypeResponses means the original VEX responses are empty as well.
+    // Always override existing responses. Empty sonatypeResponses means the original VEX responses are empty as well.
     if (CollectionUtils.isNotEmpty(sonatypeResponses)) {
       bomAnalysis.setResponses(sonatypeResponses);
     }

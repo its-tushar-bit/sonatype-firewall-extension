@@ -27,7 +27,7 @@ public class DevelopmentPrioritiesReportServiceAuthzTest
   public void getDependencyInformation_Anon() {
     assertThatThrownBy(
         () -> developmentPrioritiesReportService.getDependencyInformation(app.getPublicId(), "irrelevant"))
-        .isInstanceOf(UnauthenticatedException.class);
+            .isInstanceOf(UnauthenticatedException.class);
   }
 
   @Test
@@ -35,7 +35,7 @@ public class DevelopmentPrioritiesReportServiceAuthzTest
     login();
     assertThatThrownBy(
         () -> developmentPrioritiesReportService.getDependencyInformation(app.getPublicId(), "irrelevant"))
-        .isInstanceOf(UnauthorizedException.class);
+            .isInstanceOf(UnauthorizedException.class);
   }
 
   @Test
@@ -43,6 +43,6 @@ public class DevelopmentPrioritiesReportServiceAuthzTest
     grantReadPermission(app.getId());
     assertThatThrownBy(
         () -> developmentPrioritiesReportService.getDependencyInformation(app.getPublicId(), "irrelevant"))
-        .isInstanceOf(NotFoundException.class);
+            .isInstanceOf(NotFoundException.class);
   }
 }

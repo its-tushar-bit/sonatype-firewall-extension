@@ -87,7 +87,8 @@ public class HdsClientProxyTimeOutTest
     try (ServerSocket serverSocket = new ServerSocket(port)) {
       countDownLatch.countDown();
       try (Socket socket = serverSocket.accept();
-           BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+          BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream())))
+      {
 
         requestMethod = br.readLine();
         while ((br.readLine()) != null) {

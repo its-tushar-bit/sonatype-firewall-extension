@@ -60,14 +60,14 @@ public class AdministratorsEditPage
   }
 
   public static class AddMembersForm
-          extends BasicElement<AddMembersForm>
+      extends BasicElement<AddMembersForm>
   {
     private AddMembersForm(String selector) {
       super(selector);
     }
 
     public static final String DISABLED_GROUP_SEARCH_WARNING = "One or more LDAP servers have group search " +
-            "disabled, which will affect your results";
+        "disabled, which will affect your results";
 
     public SelenideElement removeAll() {
       return this.child(".nx-transfer-list__move-all");

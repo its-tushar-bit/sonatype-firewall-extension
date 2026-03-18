@@ -37,17 +37,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PullRequestCommentingHashBuilderTest
 {
   private final ComponentIdentifier[] identifiers = new ComponentIdentifier[]{
-      ComponentIdentifier.createNpmCoordinates("comp-1", "1.1.0"),
-      ComponentIdentifier.createNpmCoordinates("comp-2", "1.2.0"),
-      ComponentIdentifier.createNpmCoordinates("comp-3", "1.3.0"),
-      ComponentIdentifier.createNpmCoordinates("comp-4", "1.4.0")
+    ComponentIdentifier.createNpmCoordinates("comp-1", "1.1.0"),
+    ComponentIdentifier.createNpmCoordinates("comp-2", "1.2.0"),
+    ComponentIdentifier.createNpmCoordinates("comp-3", "1.3.0"),
+    ComponentIdentifier.createNpmCoordinates("comp-4", "1.4.0")
   };
 
   private final String[] componentHashes = new String[]{
-      "HASH_0",
-      "HASH_1",
-      "HASH_2",
-      "HASH_3"
+    "HASH_0",
+    "HASH_1",
+    "HASH_2",
+    "HASH_3"
   };
 
   private PolicyEvaluation evaluation;
@@ -426,7 +426,8 @@ public class PullRequestCommentingHashBuilderTest
             .withHash(hash)
             .withConstraintFacts(constraintFactsPerViolation)
             .withConditionFacts(conditionFactsPerConstraintFact)
-            .withConditionFactReference(conditionFactsHaveReferences).build());
+            .withConditionFactReference(conditionFactsHaveReferences)
+            .build());
       }
       if (reverseOrder) {
         k = addedCount + removedCount - 1;
@@ -445,7 +446,8 @@ public class PullRequestCommentingHashBuilderTest
             .withHash(hash)
             .withConstraintFacts(constraintFactsPerViolation)
             .withConditionFacts(conditionFactsPerConstraintFact)
-            .withConditionFactReference(conditionFactsHaveReferences).build());
+            .withConditionFactReference(conditionFactsHaveReferences)
+            .build());
       }
     }
   }

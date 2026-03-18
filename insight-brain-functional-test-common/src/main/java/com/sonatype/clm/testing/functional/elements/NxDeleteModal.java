@@ -4,11 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.clm.testing.functional.elements;
+
 import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class NxDeleteModal extends BasicElement<NxDeleteModal>
+public class NxDeleteModal
+    extends BasicElement<NxDeleteModal>
 {
   public NxDeleteModal(String selector) {
     super(selector);

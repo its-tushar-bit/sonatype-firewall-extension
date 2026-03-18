@@ -56,7 +56,8 @@ public class AutomaticApplicationsConfigurationDAO
 
   public String getOrganizationId(TransactionContext tx) {
     return configPropertyDAO
-        .getByNameNotNull(tx, SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID).getValue();
+        .getByNameNotNull(tx, SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ORGANIZATION_ID)
+        .getValue();
   }
 
   public void setOrganizationId(String orgId) {

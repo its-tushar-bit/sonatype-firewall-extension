@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.utils;
 
 /**
  * Like IllegalArgumentException, but for when the situation is caused by bad user input and thus should be
- * checked.  Also conceptually similar to BadRequestException, but not REST-specific
+ * checked. Also conceptually similar to BadRequestException, but not REST-specific
  */
 public class CheckedIllegalArgumentException
     extends Exception

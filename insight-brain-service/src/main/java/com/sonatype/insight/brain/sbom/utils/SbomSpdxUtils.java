@@ -93,7 +93,7 @@ public final class SbomSpdxUtils
   private static final String SWID_URI_PREFIX = "swid:";
 
   private SbomSpdxUtils() {
-    //no-op
+    // no-op
   }
 
   public static SpdxDocument parseContentNoValidation(String content, SbomFormat sbomFormat) {
@@ -114,8 +114,9 @@ public final class SbomSpdxUtils
     }
   }
 
-  public static void validateDocument(SbomFormat format, SpdxDocument spdxDocument)
-      throws UnsupportedSbomException, SbomValidationException
+  public static void validateDocument(
+      SbomFormat format,
+      SpdxDocument spdxDocument) throws UnsupportedSbomException, SbomValidationException
   {
     if (format != null) {
       try {
@@ -138,7 +139,8 @@ public final class SbomSpdxUtils
   }
 
   private static void validateSpdx(SpdxDocument spdxDocument) throws SbomValidationException {
-    List<String> verificationErrors = spdxDocument.verify().stream()
+    List<String> verificationErrors = spdxDocument.verify()
+        .stream()
         .filter(s -> !DEPRECATION_PATTERN.matcher(s).matches())
         .toList();
 
@@ -162,14 +164,14 @@ public final class SbomSpdxUtils
     return null;
   }
 
-  public static SpdxPackage getRootPackage(SpdxDocument document)
-      throws InvalidSPDXAnalysisException
-  {
+  public static SpdxPackage getRootPackage(SpdxDocument document) throws InvalidSPDXAnalysisException {
     if (document != null) {
       Collection<SpdxElement> describes = document.getDocumentDescribes();
       if (!describes.isEmpty()) {
-        Optional<SpdxPackage> documentDescribesPackage = describes.stream().filter(Objects::nonNull)
-            .filter(spdxElement -> spdxElement instanceof SpdxPackage).map(spdxElement -> (SpdxPackage) spdxElement)
+        Optional<SpdxPackage> documentDescribesPackage = describes.stream()
+            .filter(Objects::nonNull)
+            .filter(spdxElement -> spdxElement instanceof SpdxPackage)
+            .map(spdxElement -> (SpdxPackage) spdxElement)
             .findFirst();
         if (documentDescribesPackage.isPresent()) {
           return documentDescribesPackage.get();
@@ -183,36 +185,39 @@ public final class SbomSpdxUtils
     return null;
   }
 
-  public static List<SpdxPackage> getAllPackages(SpdxDocument document)
-      throws InvalidSPDXAnalysisException
-  {
+  public static List<SpdxPackage> getAllPackages(SpdxDocument document) throws InvalidSPDXAnalysisException {
     if (document != null) {
       return Read.getAllPackages(document.getModelStore(), document.getDocumentUri()).collect(Collectors.toList());
     }
     return null;
   }
 
-  public static SpdxPackage getPackageById(SpdxDocument document, String packageId)
-      throws InvalidSPDXAnalysisException
+  public static SpdxPackage getPackageById(
+      SpdxDocument document,
+      String packageId) throws InvalidSPDXAnalysisException
   {
     if (document != null) {
-      return Read.getAllPackages(document.getModelStore(), document.getDocumentUri()).filter(it -> it.getId()
-          .equals(packageId)).findAny().orElse(null);
+      return Read.getAllPackages(document.getModelStore(), document.getDocumentUri())
+          .filter(it -> it.getId()
+              .equals(packageId))
+          .findAny()
+          .orElse(null);
     }
     return null;
   }
 
   public static String getPurl(final SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException {
-    //try resolve from external refs first
+    // try resolve from external refs first
     for (ExternalRef externalRef : spdxPackage.getExternalRefs()) {
       if (externalRef.getReferenceCategory() == ReferenceCategory.PACKAGE_MANAGER &&
-          externalRef.getReferenceType().getIndividualURI().endsWith("/purl")) {
+          externalRef.getReferenceType().getIndividualURI().endsWith("/purl"))
+      {
         if (StringUtils.isNotBlank(externalRef.getReferenceLocator())) {
           return externalRef.getReferenceLocator();
         }
       }
     }
-    //fallback to cpe
+    // fallback to cpe
     String cpe = getCpe(spdxPackage);
     PackageUrlIdentifier packageUrlIdentifier = SbomCommonUtils.getPackageUrlIdentifierFromCpe(cpe);
     if (packageUrlIdentifier != null) {
@@ -221,15 +226,14 @@ public final class SbomSpdxUtils
     return null;
   }
 
-  public static String getCpe(final SpdxPackage spdxPackage)
-      throws InvalidSPDXAnalysisException
-  {
+  public static String getCpe(final SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException {
     for (ExternalRef externalRef : spdxPackage.getExternalRefs()) {
       if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY) {
         String referenceType = externalRef.getReferenceType().getIndividualURI();
         if (referenceType.endsWith("cpe23Type") || referenceType.endsWith("cpe22Type") ||
             (referenceType.equals(ReferenceType.MISSING_REFERENCE_TYPE_URI) &&
-                externalRef.getReferenceLocator().startsWith("cpe"))) {
+                externalRef.getReferenceLocator().startsWith("cpe")))
+        {
           if (Validate.cpe(externalRef.getReferenceLocator()).isValid()) {
             return externalRef.getReferenceLocator();
           }
@@ -242,8 +246,8 @@ public final class SbomSpdxUtils
     return null;
   }
 
-  public static Map<String, ExternalRef> getVulnerabilitiesForPackage(final SpdxPackage pkg)
-      throws InvalidSPDXAnalysisException
+  public static Map<String, ExternalRef> getVulnerabilitiesForPackage(
+      final SpdxPackage pkg) throws InvalidSPDXAnalysisException
   {
     Map<String, ExternalRef> vulnerabilityMap = new HashMap<>();
     for (ExternalRef externalRef : pkg.getExternalRefs()) {
@@ -257,9 +261,7 @@ public final class SbomSpdxUtils
     return vulnerabilityMap;
   }
 
-  public static List<ExternalRef> getAllVulnerabilities(SpdxDocument document)
-      throws InvalidSPDXAnalysisException
-  {
+  public static List<ExternalRef> getAllVulnerabilities(SpdxDocument document) throws InvalidSPDXAnalysisException {
     if (document != null) {
       List<ExternalRef> vulnerabilities = new ArrayList<>();
       for (SpdxPackage spdxPackage : getAllPackages(document)) {
@@ -274,8 +276,8 @@ public final class SbomSpdxUtils
     return null;
   }
 
-  public static Pair<String, String> getRefIdAndSourceForVulnerability(final ExternalRef externalRef)
-      throws InvalidSPDXAnalysisException
+  public static Pair<String, String> getRefIdAndSourceForVulnerability(
+      final ExternalRef externalRef) throws InvalidSPDXAnalysisException
   {
     String link = externalRef.getReferenceLocator();
     if (StringUtils.isBlank(link)) {
@@ -422,19 +424,20 @@ public final class SbomSpdxUtils
         : spdxDocument.getDocumentUri();
   }
 
-  public static Optional<Swid> getSwid(final SpdxPackage spdxPackage)
-      throws InvalidSPDXAnalysisException
-  {
+  public static Optional<Swid> getSwid(final SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException {
     for (ExternalRef externalRef : spdxPackage.getExternalRefs()) {
       if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY) {
         String referenceType = externalRef.getReferenceType().getIndividualURI();
         String referenceLocator = externalRef.getReferenceLocator();
         if (referenceType.endsWith("swid") ||
             (referenceType.equals(ReferenceType.MISSING_REFERENCE_TYPE_URI) &&
-                referenceLocator.startsWith(SWID_URI_PREFIX))) {
+                referenceLocator.startsWith(SWID_URI_PREFIX)))
+        {
           Swid swid = new Swid();
-          String tagId = referenceLocator.startsWith(SWID_URI_PREFIX) ? referenceLocator.substring(
-              SWID_URI_PREFIX.length()) : referenceLocator;
+          String tagId = referenceLocator.startsWith(SWID_URI_PREFIX)
+              ? referenceLocator.substring(
+                  SWID_URI_PREFIX.length())
+              : referenceLocator;
           swid.setTagId(tagId);
           return Optional.of(swid);
         }
@@ -443,8 +446,9 @@ public final class SbomSpdxUtils
     return Optional.empty();
   }
 
-  public static Optional<String> getChecksum(final SpdxPackage spdxPackage, ChecksumAlgorithm algorithm)
-      throws InvalidSPDXAnalysisException
+  public static Optional<String> getChecksum(
+      final SpdxPackage spdxPackage,
+      ChecksumAlgorithm algorithm) throws InvalidSPDXAnalysisException
   {
     final Collection<Checksum> checksums = spdxPackage.getChecksums();
     for (Checksum checksum : checksums) {
@@ -483,7 +487,7 @@ public final class SbomSpdxUtils
     if (StringUtils.isEmpty(spdxDocument)) {
       return false;
     }
-    return spdxDocument.contains("SPDXRef-DOCUMENT") && 
+    return spdxDocument.contains("SPDXRef-DOCUMENT") &&
         (spdxDocument.contains("<SPDXID>") || spdxDocument.contains("\"SPDXID\""));
   }
 

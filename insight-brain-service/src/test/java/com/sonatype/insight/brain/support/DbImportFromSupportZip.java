@@ -76,16 +76,16 @@ import org.apache.commons.io.FileUtils;
 /**
  * Utility class to import the db data dump from a support.zip file.
  * Useful when working on customer tickets (aka zendesk) that have a support.zip file with db data dump.
- * 
+ *
  * It extends InsightBrainService, so it can be run just like InsightBrainService.
  * This is helpful because you can just run InsightBrainService after the data is imported to start debugging with the
  * newly imported data.
- * 
+ *
  * To run it provide these params:
  * import-db <my-config.yml>
- * 
+ *
  * You will be prompted to enter the path for the unzipped db data.
- * 
+ *
  * Hint:
  * You can use the same config.yml you use to run InsightBrainService to import the customer data into the same db.
  */

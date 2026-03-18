@@ -24,9 +24,12 @@ public class MultiTenantPasswordServiceTest
     JavaClasses importedClasses = new ClassFileImporter().importPackages("com.sonatype.insight.brain");
 
     ArchRule rule = ArchRuleDefinition.noClasses()
-        .that().areNotAssignableTo(DefaultTestInsightBrainService.class)
-        .and().areNotAssignableTo(TestMultiTenantInsightBrainService.class)
-        .should().callMethod(PasswordService.class, "useWeakHashIterationForTestsOnly");
+        .that()
+        .areNotAssignableTo(DefaultTestInsightBrainService.class)
+        .and()
+        .areNotAssignableTo(TestMultiTenantInsightBrainService.class)
+        .should()
+        .callMethod(PasswordService.class, "useWeakHashIterationForTestsOnly");
 
     rule.check(importedClasses);
   }

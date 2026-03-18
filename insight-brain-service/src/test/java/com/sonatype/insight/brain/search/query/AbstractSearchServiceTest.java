@@ -133,8 +133,10 @@ public abstract class AbstractSearchServiceTest
   }
 
   private TelemetryData collectSearchTelemetry() {
-    return advancedSearchTelemetryCollector.collectAllData().stream()
-        .filter(telemetryData -> TelemetryPurpose.ADVANCED_SEARCH.equals(telemetryData.getPurpose())).findAny()
+    return advancedSearchTelemetryCollector.collectAllData()
+        .stream()
+        .filter(telemetryData -> TelemetryPurpose.ADVANCED_SEARCH.equals(telemetryData.getPurpose()))
+        .findAny()
         .orElse(null);
   }
 
@@ -351,7 +353,7 @@ public abstract class AbstractSearchServiceTest
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(3); // 2 orgs + the Root org = 3
 
     searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false, null, null);
-    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);  // 4 applications owned by 2 organizations
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4); // 4 applications owned by 2 organizations
   }
 
   @Test
@@ -413,14 +415,14 @@ public abstract class AbstractSearchServiceTest
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(3);
 
     searchResultDTO = searchService.searchIndex("organizationName:org-02", 10, 0, true, null, null);
-    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(0);  // insufficient permissions
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(0); // insufficient permissions
 
     tempEntity.newMembershipMapping(org2.getId(), role.getId(), userPrincipal.getUsername());
     searchResultDTO = searchService.searchIndex("CVE-2022-25857 AND organizationName:org-02", 10, 0, true, null, null);
-    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1);  // sufficient permissions
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1); // sufficient permissions
 
     searchResultDTO = searchService.searchIndex("CVE-2022-25857", 10, 0, true, null, null);
-    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);  // no org filter
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4); // no org filter
   }
 
   @Test
@@ -479,11 +481,11 @@ public abstract class AbstractSearchServiceTest
 
     tempEntity.newMembershipMapping(org2.getId(), role.getId(), userPrincipal.getUsername());
     searchResultDTO = searchService.searchIndex("CVE-2022-25857", 10, 0, true, null, null);
-    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(2);  // insufficient permissions
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(2); // insufficient permissions
 
     tempEntity.newMembershipMapping(org1.getId(), role.getId(), userPrincipal.getUsername());
     searchResultDTO = searchService.searchIndex("CVE-2022-25857", 10, 0, true, null, null);
-    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(5);  // sufficient permissions
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(5); // sufficient permissions
   }
 
   @Test
@@ -575,12 +577,11 @@ public abstract class AbstractSearchServiceTest
     assertThat(export.size() - 1).isEqualTo(results.size());
     assertThat(export.get(0).split(",")).hasSize(16);
 
-    Map<String, List<List<String>>> items = export.stream().skip(1)
+    Map<String, List<List<String>>> items = export.stream()
+        .skip(1)
         .map(s -> Arrays.stream(s.split(",")).collect(toList()))
         .collect(groupingBy(l -> l.get(0)));
-    items.values().forEach(list ->
-        list.sort(Comparator.comparing(Object::toString))
-    );
+    items.values().forEach(list -> list.sort(Comparator.comparing(Object::toString)));
 
     assertThat(items.get(ItemType.ORGANIZATION.name()).get(0).get(1)).isEqualTo(org1.getName());
     assertThat(items.get(ItemType.APPLICATION.name()).get(0).get(3)).isEqualTo(app1.getName());
@@ -800,9 +801,7 @@ public abstract class AbstractSearchServiceTest
         .skip(1)
         .map(s -> Arrays.stream(s.split(",")).collect(toList()))
         .collect(groupingBy(l -> l.get(0)));
-    items.values().forEach(list ->
-        list.sort(Comparator.comparing(Object::toString))
-    );
+    items.values().forEach(list -> list.sort(Comparator.comparing(Object::toString)));
     assertThat(rows).hasSize(8);
     assertThat(rows.size() - 1).isEqualTo(results.size());
     assertThat(items).hasSize(5);
@@ -880,9 +879,7 @@ public abstract class AbstractSearchServiceTest
         .skip(1)
         .map(s -> Arrays.stream(s.split(",")).collect(toList()))
         .collect(groupingBy(l -> l.get(0)));
-    items.values().forEach(list ->
-        list.sort(Comparator.comparing(Object::toString))
-    );
+    items.values().forEach(list -> list.sort(Comparator.comparing(Object::toString)));
     assertThat(rows).hasSize(10);
     assertThat(rows.size() - 1).isEqualTo(results.size());
     assertThat(items).hasSize(7);
@@ -988,8 +985,11 @@ public abstract class AbstractSearchServiceTest
         applicationVersion);
   }
 
-  protected PolicyEvaluation newAppReport(String appId, String stageId, String reportId, String reportResourceName)
-      throws Exception
+  protected PolicyEvaluation newAppReport(
+      String appId,
+      String stageId,
+      String reportId,
+      String reportResourceName) throws Exception
   {
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(appId, stageId, reportId);
     ReportTestUtils.createReportFile(policyEval.getApplicationId(), policyEval.getScanId(),

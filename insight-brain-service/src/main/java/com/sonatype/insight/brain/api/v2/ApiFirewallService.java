@@ -174,7 +174,8 @@ public class ApiFirewallService
 
   private void executeWithAuditSession(Runnable runnable) {
     try (AuditSession auditSession = AuditData.get()
-        .recordSubEvent(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, false)) {
+        .recordSubEvent(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, false))
+    {
       AuditData.get().setOwner(ownerDAO.getById(REPOSITORY_CONTAINER_ID)).setStageId(StageTypes.PROXY.getId());
       runnable.run();
     }
@@ -216,7 +217,8 @@ public class ApiFirewallService
   private List<ApiFirewallReleaseQuarantineConfigDTO> getReleaseQuarantineConfig_NoChecks() {
     final Set<String> enabledPolicyConditionTypes = getAutoUnquarantineEnabledPolicyConditionTypesIds();
 
-    return ConditionTypes.getAllWithAutoUnquarantineSupported().stream()
+    return ConditionTypes.getAllWithAutoUnquarantineSupported()
+        .stream()
         .map(conditionType -> generateReleaseQuarantineConfigDto(enabledPolicyConditionTypes, conditionType))
         .collect(Collectors.toList());
   }
@@ -236,11 +238,13 @@ public class ApiFirewallService
     if (!apiFirewallReleaseQuarantineConfigDTOS.isEmpty()) {
       executeWithAuditSession(() -> {
         disablePolicyConditionTypesForMonitoring(apiFirewallReleaseQuarantineConfigDTOS.stream()
-            .filter(conditionType -> !conditionType.autoReleaseQuarantineEnabled).collect(
+            .filter(conditionType -> !conditionType.autoReleaseQuarantineEnabled)
+            .collect(
                 Collectors.toList()));
 
         enablePolicyConditionTypesForMonitoring(apiFirewallReleaseQuarantineConfigDTOS.stream()
-            .filter(conditionType -> conditionType.autoReleaseQuarantineEnabled).collect(
+            .filter(conditionType -> conditionType.autoReleaseQuarantineEnabled)
+            .collect(
                 Collectors.toList()));
       });
     }
@@ -309,7 +313,8 @@ public class ApiFirewallService
   }
 
   public Set<String> getAutoUnquarantineEnabledPolicyConditionTypesIds() {
-    return autoUnquarantinePolicyConditionTypeDAO.getAll().stream()
+    return autoUnquarantinePolicyConditionTypeDAO.getAll()
+        .stream()
         .map(AutoUnquarantinePolicyConditionType::getId)
         .collect(Collectors.toSet());
   }
@@ -330,7 +335,8 @@ public class ApiFirewallService
 
   private void checkProductLicense() {
     if (!productLicense.hasFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE) ||
-        !productLicense.hasFeature(LicensedFeature.RELEASE_INTEGRITY)) {
+        !productLicense.hasFeature(LicensedFeature.RELEASE_INTEGRITY))
+    {
       throw new InvalidLicenseException();
     }
   }
@@ -344,8 +350,8 @@ public class ApiFirewallService
     final Date startOfCurYear =
         Date.from((LocalDate.now().withDayOfYear(1)).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
-    final ApiFirewallReleaseQuarantineSummaryDTO
-        apiFirewallReleaseQuarantineSummaryDTO = new ApiFirewallReleaseQuarantineSummaryDTO();
+    final ApiFirewallReleaseQuarantineSummaryDTO apiFirewallReleaseQuarantineSummaryDTO =
+        new ApiFirewallReleaseQuarantineSummaryDTO();
 
     apiFirewallReleaseQuarantineSummaryDTO.autoReleaseQuarantineCountMTD =
         repositoryComponentDAO.getAutoReleaseQuarantinedCountByDate(startOfCurMonth);
@@ -468,7 +474,8 @@ public class ApiFirewallService
     Map<String, Repository> repositoryMap = new HashMap<>();
 
     final Set<String> repositoryIds = components.stream()
-        .map(RepositoryComponent::getRepositoryId).collect(Collectors.toSet());
+        .map(RepositoryComponent::getRepositoryId)
+        .collect(Collectors.toSet());
 
     for (String repositoryId : repositoryIds) {
       final Repository repository = repositoryDAO.getById(repositoryId);
@@ -498,7 +505,8 @@ public class ApiFirewallService
     List<RepositoryManager> repositoryManagersWithReadPermission =
         filterRepositoryManagersWithReadPermission(repositoryManagerDAO.getAll());
     List<ApiRepositoryManagerDTO> apiRepositoryManagerDTOS = repositoryManagersWithReadPermission.stream()
-        .map(ApiFirewallService::fromRepositoryManager).collect(Collectors.toList());
+        .map(ApiFirewallService::fromRepositoryManager)
+        .collect(Collectors.toList());
 
     return new ApiRepositoryManagerListDTO(apiRepositoryManagerDTOS);
   }
@@ -560,7 +568,8 @@ public class ApiFirewallService
       throw new BadRequestException("The repository type must be proxy or hosted.");
     }
     if (dto.format != null &&
-        !getSupportedFormats().contains(AbstractRepositoryService.translateRepositoryFormat(dto.format))) {
+        !getSupportedFormats().contains(AbstractRepositoryService.translateRepositoryFormat(dto.format)))
+    {
       throw new BadRequestException(String.format("Unrecognized format '%s'.", dto.format));
     }
     Repository repository = ApiRepositoryDTO.toRepository(dto);
@@ -571,7 +580,8 @@ public class ApiFirewallService
       repositoryDAO.validateUpdate(existingRepository, repository);
     }
     if (repository.getRepositoryType() == RepositoryType.proxy && repository.isQuarantineEnabled() &&
-        !repository.isAuditEnabled()) {
+        !repository.isAuditEnabled())
+    {
       throw new InvalidRepositoryException("Quarantine requires Audit to be enabled.");
     }
     repositoryDAO.validateEnabledFeatures(repository);
@@ -653,8 +663,8 @@ public class ApiFirewallService
         else if (!ComponentFormatConstants.isCoordinateBasedFormat(dto.format)) {
           throw new BadRequestException(
               "The hash must be specified for '" + dto.format + "' format. " +
-              "Hash is only optional for coordinate-based formats: " +
-              String.join(", ", ComponentFormatConstants.COORDINATE_BASED_FORMATS) + ".");
+                  "Hash is only optional for coordinate-based formats: " +
+                  String.join(", ", ComponentFormatConstants.COORDINATE_BASED_FORMATS) + ".");
         }
       }
 

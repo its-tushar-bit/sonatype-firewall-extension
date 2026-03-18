@@ -60,8 +60,9 @@ public class LabelDAOTest
     for (String labelName : NameHelperTest.INVALID_CHARACTERS) {
       assertThatThrownBy(
           () -> labelDAO.insert(new Label(application.getId(), labelName, Color.light_green))).isInstanceOf(
-          InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Label name",
-          labelName.charAt(0));
+              InvalidNameException.class)
+              .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Label name",
+                  labelName.charAt(0));
     }
   }
 
@@ -241,8 +242,8 @@ public class LabelDAOTest
     // Insert
     for (Color color : legacyColors) {
       label.setColor(color);
-      assertThatThrownBy(() -> labelDAO.insert(label)
-      ).isInstanceOf(InvalidLabelException.class).hasMessage("The label color " + color.toValue() + " is invalid.");
+      assertThatThrownBy(() -> labelDAO.insert(label)).isInstanceOf(InvalidLabelException.class)
+          .hasMessage("The label color " + color.toValue() + " is invalid.");
     }
 
     // Update
@@ -324,8 +325,9 @@ public class LabelDAOTest
     label.setOwnerId(application.getId());
     label.setColor(Color.dark_blue);
     label.setLabel("MyLabel");
-    assertThatThrownBy(() -> labelDAO.insert(label)).isInstanceOf(InvalidLabelException.class).hasMessage(
-        "A label with name '%s' already exists in application '%s'.", label.getLabel(), application.getName());
+    assertThatThrownBy(() -> labelDAO.insert(label)).isInstanceOf(InvalidLabelException.class)
+        .hasMessage(
+            "A label with name '%s' already exists in application '%s'.", label.getLabel(), application.getName());
   }
 
   @Test
@@ -351,8 +353,9 @@ public class LabelDAOTest
 
     // Update with a conflicting name
     label2.setLabel(label1.getLabel());
-    assertThatThrownBy(() -> labelDAO.update(label2)).isInstanceOf(InvalidLabelException.class).hasMessage(
-        "A label with name '%s' already exists in application '%s'.", label1.getLabel(), application.getName());
+    assertThatThrownBy(() -> labelDAO.update(label2)).isInstanceOf(InvalidLabelException.class)
+        .hasMessage(
+            "A label with name '%s' already exists in application '%s'.", label1.getLabel(), application.getName());
   }
 
   @Test
@@ -365,14 +368,14 @@ public class LabelDAOTest
 
     // direct insert of duplicate label
     assertThatThrownBy(() -> {
-          Label label2 = new Label();
-          label2.setOwnerId(organization.getId());
-          label2.setLabel("MyLabel");
-          label2.setColor(Color.dark_blue);
-          labelDAO.insert(label2);
-        }
-    ).isInstanceOf(InvalidLabelException.class).hasMessage(
-        "A label with name '%s' already exists in application(s) '%s'.", label1.getLabel(), application.getName());
+      Label label2 = new Label();
+      label2.setOwnerId(organization.getId());
+      label2.setLabel("MyLabel");
+      label2.setColor(Color.dark_blue);
+      labelDAO.insert(label2);
+    }).isInstanceOf(InvalidLabelException.class)
+        .hasMessage(
+            "A label with name '%s' already exists in application(s) '%s'.", label1.getLabel(), application.getName());
 
     // rename label to become a duplicate
     Label label2 = new Label();
@@ -383,8 +386,9 @@ public class LabelDAOTest
     assertThatThrownBy(() -> {
       label2.setLabel("MyLabel");
       labelDAO.update(label2);
-    }).isInstanceOf(InvalidLabelException.class).hasMessage(
-        "A label with name '%s' already exists in application(s) '%s'.", label1.getLabel(), application.getName());
+    }).isInstanceOf(InvalidLabelException.class)
+        .hasMessage(
+            "A label with name '%s' already exists in application(s) '%s'.", label1.getLabel(), application.getName());
   }
 
   @Test
@@ -402,8 +406,9 @@ public class LabelDAOTest
       label2.setLabel("MyLabel");
       label2.setColor(Color.dark_blue);
       labelDAO.insert(label2);
-    }).isInstanceOf(InvalidLabelException.class).hasMessage(
-        "A label with name '%s' already exists in organization '%s'.", label1.getLabel(), organization.getName());
+    }).isInstanceOf(InvalidLabelException.class)
+        .hasMessage(
+            "A label with name '%s' already exists in organization '%s'.", label1.getLabel(), organization.getName());
 
     // rename label to become a duplicate
     Label label2 = new Label();
@@ -414,8 +419,9 @@ public class LabelDAOTest
     assertThatThrownBy(() -> {
       label2.setLabel("MyLabel");
       labelDAO.update(label2);
-    }).isInstanceOf(InvalidLabelException.class).hasMessage(
-        "A label with name '%s' already exists in organization '%s'.", label1.getLabel(), organization.getName());
+    }).isInstanceOf(InvalidLabelException.class)
+        .hasMessage(
+            "A label with name '%s' already exists in organization '%s'.", label1.getLabel(), organization.getName());
   }
 
   @Test
@@ -432,9 +438,11 @@ public class LabelDAOTest
     label4.setOwnerId(org1.getParentOrganizationId());
     label4.setLabel("MyLabel");
     label4.setColor(Color.dark_blue);
-    assertThatThrownBy(() -> labelDAO.insert(label4)).isInstanceOf(InvalidLabelException.class).hasMessage(
-        "A label with name '%s' already exists in application(s) '%s' organization(s) '%s' '%s'.", label1.getLabel(),
-        application.getName(), org1.getName(), org2.getName());
+    assertThatThrownBy(() -> labelDAO.insert(label4)).isInstanceOf(InvalidLabelException.class)
+        .hasMessage(
+            "A label with name '%s' already exists in application(s) '%s' organization(s) '%s' '%s'.",
+            label1.getLabel(),
+            application.getName(), org1.getName(), org2.getName());
   }
 
   @Test

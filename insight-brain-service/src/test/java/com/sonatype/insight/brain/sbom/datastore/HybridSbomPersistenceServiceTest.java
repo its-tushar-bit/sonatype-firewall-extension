@@ -109,9 +109,9 @@ public class HybridSbomPersistenceServiceTest
   @Parameters
   public static List<Object[]> dataStoreTypes() {
     return Arrays.asList(new Object[][]{
-        {new LinkedHashSet<>(List.of(DataStoreType.S3, DataStoreType.FILE))},
-        {new LinkedHashSet<>(List.of(DataStoreType.FILE, DataStoreType.S3))},
-        });
+      {new LinkedHashSet<>(List.of(DataStoreType.S3, DataStoreType.FILE))},
+      {new LinkedHashSet<>(List.of(DataStoreType.FILE, DataStoreType.S3))},
+    });
   }
 
   private final LinkedHashSet<DataStoreType> dataStoreTypes;
@@ -125,8 +125,7 @@ public class HybridSbomPersistenceServiceTest
     super.configure(binder);
     AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
         localstack.getContainer().getAccessKey(),
-        localstack.getContainer().getSecretKey()
-    ));
+        localstack.getContainer().getSecretKey()));
     binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }
 
@@ -137,8 +136,7 @@ public class HybridSbomPersistenceServiceTest
         .credentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create(
                 localstack.getContainer().getAccessKey(),
-                localstack.getContainer().getSecretKey()
-            )))
+                localstack.getContainer().getSecretKey())))
         .build();
   }
 
@@ -169,15 +167,13 @@ public class HybridSbomPersistenceServiceTest
         insightConfig,
         () -> s3SbomPersistenceServiceSpy,
         () -> fileSbomPersistenceServiceSpy,
-        () -> hybridSbomPersistenceService
-    );
+        () -> hybridSbomPersistenceService);
 
     // Create a new HybridSbomPersistenceService with the spied provider
     hybridSbomPersistenceService = new HybridSbomPersistenceService(
         insightConfig,
         () -> spiedProvider,
-        () -> apiConfigurationService
-    );
+        () -> apiConfigurationService);
   }
 
   @BeforeClass
@@ -192,7 +188,9 @@ public class HybridSbomPersistenceServiceTest
     s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
         .contents()
         .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
-            .bucket(BUCKET_NAME).key(obj.key()).build()));
+            .bucket(BUCKET_NAME)
+            .key(obj.key())
+            .build()));
   }
 
   @Test

@@ -41,11 +41,11 @@ public class OrganizationAncestorDAOTest
       results = dao.getByOrganizationId(tx, "orgId");
     }
 
-    assertThat(results).extracting("organizationId", "ancestorId", "ancestorDistance").containsExactlyInAnyOrder(
-        tuple("orgId", "orgId", 0),
-        tuple("orgId", "ancestorId", 1),
-        tuple("orgId", "ROOT_ORGANIZATION_ID", 2)
-    );
+    assertThat(results).extracting("organizationId", "ancestorId", "ancestorDistance")
+        .containsExactlyInAnyOrder(
+            tuple("orgId", "orgId", 0),
+            tuple("orgId", "ancestorId", 1),
+            tuple("orgId", "ROOT_ORGANIZATION_ID", 2));
 
     assertThat(results).extracting("id").allMatch(Objects::nonNull);
 

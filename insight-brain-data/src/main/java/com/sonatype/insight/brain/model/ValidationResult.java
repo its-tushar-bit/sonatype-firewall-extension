@@ -14,7 +14,7 @@ public class ValidationResult
 
   /**
    * An instance that can be used to indicate that the ValidationResult has no errors, instead of returning null values.
-   * 
+   *
    * Note that errors can be added to this in subsequent calls.
    */
   public static ValidationResult noErrors() {

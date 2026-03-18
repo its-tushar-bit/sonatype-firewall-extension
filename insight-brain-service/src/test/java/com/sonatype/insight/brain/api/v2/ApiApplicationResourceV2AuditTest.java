@@ -153,19 +153,21 @@ public class ApiApplicationResourceV2AuditTest
     assertApplicationData(auditDTO, application);
   }
 
-  private void assertDetailedApplicationData(final AuditDTO auditDTO,
-                                             final Application application,
-                                             final String contactInternalName)
+  private void assertDetailedApplicationData(
+      final AuditDTO auditDTO,
+      final Application application,
+      final String contactInternalName)
   {
     assertDetailedApplicationData(auditDTO, application.getId(), application.getPublicId(), application.getName(),
         contactInternalName);
   }
 
-  private void assertDetailedApplicationData(final AuditDTO auditDTO,
-                                             final String id,
-                                             final String publicId,
-                                             final String name,
-                                             final String contactInternalName)
+  private void assertDetailedApplicationData(
+      final AuditDTO auditDTO,
+      final String id,
+      final String publicId,
+      final String name,
+      final String contactInternalName)
   {
     assertApplicationData(auditDTO, id, publicId, name);
     assertCustomData(auditDTO, "contactUsername", contactInternalName);
@@ -200,8 +202,11 @@ public class ApiApplicationResourceV2AuditTest
   @Test
   public void testCloneApplication() throws Exception {
     ApiApplicationDTO applicationDTO = applicationRequest().path(ApiApplicationResourceV2.CLONE_PATH)
-        .parameter(application.getId()).query("clonedApplicationName", "newAppName")
-        .query("clonedApplicationPublicId", "newAppId").post().getBody(ApiApplicationDTO.class);
+        .parameter(application.getId())
+        .query("clonedApplicationName", "newAppName")
+        .query("clonedApplicationPublicId", "newAppId")
+        .post()
+        .getBody(ApiApplicationDTO.class);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, null);
     assertDetailedApplicationData(auditDTO, applicationDTO);
@@ -210,8 +215,10 @@ public class ApiApplicationResourceV2AuditTest
 
   @Test
   public void testCloneApplication_Unauthorized() throws Exception {
-    applicationRequest().path(ApiApplicationResourceV2.CLONE_PATH).parameter(application.getId())
-        .with(unauthorizedUser()).post();
+    applicationRequest().path(ApiApplicationResourceV2.CLONE_PATH)
+        .parameter(application.getId())
+        .with(unauthorizedUser())
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_APPLICATION, "unauthorized");
     assertParentOrganizationData(auditDTO, organization);
@@ -256,6 +263,7 @@ public class ApiApplicationResourceV2AuditTest
 
   private HttpRequest moveRequest(String applicationId, String targetOrganizationId) {
     return restRequest().path(PublicApiPaths.APP_RESOURCE_PATH)
-        .path(ApiApplicationResourceV2.MOVE_PATH).parameter(applicationId, targetOrganizationId);
+        .path(ApiApplicationResourceV2.MOVE_PATH)
+        .parameter(applicationId, targetOrganizationId);
   }
 }

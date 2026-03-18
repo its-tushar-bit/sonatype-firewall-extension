@@ -63,7 +63,8 @@ public class AccessEditorPage
         childSelector("#access-add-members-form"));
   }
 
-  public class AddMembersForm extends BasicElement<AddMembersForm>
+  public class AddMembersForm
+      extends BasicElement<AddMembersForm>
   {
     private AddMembersForm(String selector) {
       super(selector);

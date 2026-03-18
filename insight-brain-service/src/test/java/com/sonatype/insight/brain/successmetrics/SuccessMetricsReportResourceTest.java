@@ -71,7 +71,7 @@ public class SuccessMetricsReportResourceTest
     SuccessMetricsReportScopeDTO successMetricsScopeDTO = new SuccessMetricsReportScopeDTO(
         new HashSet<>(Collections.singletonList(app.getId())), null);
     SuccessMetricsReportDTO successMetricsDTO = new SuccessMetricsReportDTO(metricsName, successMetricsScopeDTO);
-    
+
     // Create
     HttpRequest request = restRequest().auth(tempUser);
     HttpResponse response = request.body(successMetricsDTO).post();
@@ -80,7 +80,7 @@ public class SuccessMetricsReportResourceTest
     assertThat(result).isNotNull();
     assertThat(result.id).isNotNull();
     assertThat(result.name).isEqualTo(successMetricsDTO.name);
-    
+
     // Get the SuccessMetricsReport
     response = request.get();
     assertResponseStatus(200, response);
@@ -137,7 +137,8 @@ public class SuccessMetricsReportResourceTest
 
     SuccessMetricsReport report = createSuccessMetricsReport(null, Collections.singleton(appId1));
 
-    HttpResponse response = restRequest().path(SuccessMetricsReportResource.CHART_DATA_PATH).parameter(report.getId())
+    HttpResponse response = restRequest().path(SuccessMetricsReportResource.CHART_DATA_PATH)
+        .parameter(report.getId())
         .get();
 
     SuccessMetricsChartDataDTO chartDto = response.getBody(SuccessMetricsChartDataDTO.class);
@@ -217,7 +218,8 @@ public class SuccessMetricsReportResourceTest
     SuccessMetricsReport report = createSuccessMetricsReport(orgIds, appIds);
 
     HttpResponse response = restRequest().path(SuccessMetricsReportResource.COMPONENT_COUNTS_PATH)
-        .parameter(report.getId()).get();
+        .parameter(report.getId())
+        .get();
 
     assertResponseStatus(200, response);
     assertGetComponentCountResponse(response, component1);

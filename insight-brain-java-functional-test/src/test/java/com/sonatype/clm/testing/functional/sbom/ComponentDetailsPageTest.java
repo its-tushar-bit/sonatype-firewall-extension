@@ -92,8 +92,7 @@ public class ComponentDetailsPageTest
         new DeleteAnnotationModal(),
         new CopyAnnotationModal(),
         new PolicyViolationsTile(),
-        new PolicyViolationDetailsDrawer()
-    );
+        new PolicyViolationDetailsDrawer());
 
     refreshOrOpen(IndexPage.url());
     loginAsAdmin();
@@ -141,7 +140,8 @@ public class ComponentDetailsPageTest
     // Component Summary
     sbomManagerComponentDetailsPage.componentSummary().header().shouldHave(text("Component Summary"));
     sbomManagerComponentDetailsPage.componentSummary().highestScoreLabel().shouldHave(text("Highest CVSS Score"));
-    sbomManagerComponentDetailsPage.componentSummary().vulnerabilitiesVerifiedLabel()
+    sbomManagerComponentDetailsPage.componentSummary()
+        .vulnerabilitiesVerifiedLabel()
         .shouldHave(text("Vulnerabilities Verified"));
     sbomManagerComponentDetailsPage.componentSummary().policyViolationsLabel().shouldHave(text("Policy Violations"));
     sbomManagerComponentDetailsPage.componentSummary().highestScoreValue().shouldHave(text("9.6"));
@@ -179,7 +179,7 @@ public class ComponentDetailsPageTest
 
   @Test
   public void testFeatureEnabled_policyViolationsTile_fileCoordinateId() {
-    //Use of fileCoordinateId is deprecated. But keeping this test to ensure backward compatibility
+    // Use of fileCoordinateId is deprecated. But keeping this test to ensure backward compatibility
     setTestData(false);
 
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
@@ -192,12 +192,15 @@ public class ComponentDetailsPageTest
     sbomManagerComponentDetailsPage.policyViolationsTile().header().shouldHave(text("Policy Violations"));
     sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 0).shouldHave(text("9"));
     sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 1).shouldHave(text("Security-High"));
-    sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 2)
+    sbomManagerComponentDetailsPage.policyViolationsTile()
+        .getColumnData(0, 2)
         .shouldHave(text("Medium risk CVSS score"));
-    sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 3).shouldHave(text(
-        "Found security vulnerability CVE-4812 with severity 5.3.\n"
-            + "Found security vulnerability CVE-4812 with severity 5.3.\n"
-            + "Found security vulnerability CVE-4812 with status 'Open', not 'Not Applicable'."));
+    sbomManagerComponentDetailsPage.policyViolationsTile()
+        .getColumnData(0, 3)
+        .shouldHave(text(
+            "Found security vulnerability CVE-4812 with severity 5.3.\n"
+                + "Found security vulnerability CVE-4812 with severity 5.3.\n"
+                + "Found security vulnerability CVE-4812 with status 'Open', not 'Not Applicable'."));
   }
 
   @Test
@@ -214,12 +217,15 @@ public class ComponentDetailsPageTest
     sbomManagerComponentDetailsPage.policyViolationsTile().header().shouldHave(text("Policy Violations"));
     sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 0).shouldHave(text("9"));
     sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 1).shouldHave(text("Security-High"));
-    sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 2)
+    sbomManagerComponentDetailsPage.policyViolationsTile()
+        .getColumnData(0, 2)
         .shouldHave(text("Medium risk CVSS score"));
-    sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 3).shouldHave(text(
-        "Found security vulnerability CVE-4812 with severity 5.3.\n"
-            + "Found security vulnerability CVE-4812 with severity 5.3.\n"
-            + "Found security vulnerability CVE-4812 with status 'Open', not 'Not Applicable'."));
+    sbomManagerComponentDetailsPage.policyViolationsTile()
+        .getColumnData(0, 3)
+        .shouldHave(text(
+            "Found security vulnerability CVE-4812 with severity 5.3.\n"
+                + "Found security vulnerability CVE-4812 with severity 5.3.\n"
+                + "Found security vulnerability CVE-4812 with status 'Open', not 'Not Applicable'."));
   }
 
   @Test
@@ -240,16 +246,17 @@ public class ComponentDetailsPageTest
 
     sbomManagerComponentDetailsPage.policyViolationDetailsDrawer.shouldBe(visible);
 
-    PolicyViolationDetailsDrawer.PolicyViolationConstraintInfo policyViolationConstraintInfo
-        = PolicyViolationDetailsDrawer.policyViolationConstraintInfo();
+    PolicyViolationDetailsDrawer.PolicyViolationConstraintInfo policyViolationConstraintInfo =
+        PolicyViolationDetailsDrawer.policyViolationConstraintInfo();
     policyViolationConstraintInfo.title().shouldHave(text("Policy Constraint"));
-    policyViolationConstraintInfo.reasons().shouldHave(text(
-        "Found security vulnerability CVE-4812 with severity 5.3.\n"
-            + "Found security vulnerability CVE-4812 with severity 5.3.\n"
-            + "Found security vulnerability CVE-4812 with status 'Open', not 'Not Applicable'."));
+    policyViolationConstraintInfo.reasons()
+        .shouldHave(text(
+            "Found security vulnerability CVE-4812 with severity 5.3.\n"
+                + "Found security vulnerability CVE-4812 with severity 5.3.\n"
+                + "Found security vulnerability CVE-4812 with status 'Open', not 'Not Applicable'."));
 
-    PolicyViolationDetailsDrawer.VulnerabilityDetails vulnerabilityDetails
-        = PolicyViolationDetailsDrawer.vulnerabilityDetails();
+    PolicyViolationDetailsDrawer.VulnerabilityDetails vulnerabilityDetails =
+        PolicyViolationDetailsDrawer.vulnerabilityDetails();
 
     assertVulnerabilityDetailsInsidePolicyViolationDetailsDrawer(vulnerabilityDetails);
   }
@@ -270,8 +277,8 @@ public class ComponentDetailsPageTest
 
     sbomManagerComponentDetailsPage.policyViolationDetailsDrawer.shouldBe(visible);
 
-    PolicyViolationDetailsDrawer.SbomManagerViolationDetailsTile sbomManagerViolationDetailsTile
-        = PolicyViolationDetailsDrawer.sbomManagerViolationDetailsTile();
+    PolicyViolationDetailsDrawer.SbomManagerViolationDetailsTile sbomManagerViolationDetailsTile =
+        PolicyViolationDetailsDrawer.sbomManagerViolationDetailsTile();
 
     sbomManagerViolationDetailsTile.shouldBe(visible);
 
@@ -465,13 +472,17 @@ public class ComponentDetailsPageTest
     editAnnotationButton.shouldHave(text("Edit Annotation"));
 
     sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 0).shouldHave(text("1.6"));
+        .getColumnData(1, 0)
+        .shouldHave(text("1.6"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 1).shouldHave(text("DEF-456"));
+        .getColumnData(1, 1)
+        .shouldHave(text("DEF-456"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 4).shouldHave(text("exploitable"));
+        .getColumnData(1, 4)
+        .shouldHave(text("exploitable"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 5).shouldHave(text("Code not present"));
+        .getColumnData(1, 5)
+        .shouldHave(text("Code not present"));
 
     editAnnotationButton.click();
 
@@ -496,9 +507,11 @@ public class ComponentDetailsPageTest
     actionButtonFirstRowColumn.shouldHave(text("Edit"));
 
     sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 4).shouldHave(text("In triage"));
+        .getColumnData(1, 4)
+        .shouldHave(text("In triage"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 5).shouldHave(text("Protected at perimeter"));
+        .getColumnData(1, 5)
+        .shouldHave(text("Protected at perimeter"));
 
     editAnnotationButton.click();
 
@@ -533,7 +546,8 @@ public class ComponentDetailsPageTest
     deleteModal.shouldBe(visible);
 
     deleteModal.header().shouldBe(visible).shouldHave(text("Delete annotation for DEF-456"));
-    deleteModal.body().shouldBe(visible)
+    deleteModal.body()
+        .shouldBe(visible)
         .shouldHave(text("Are you sure you want to delete \"exploitable\" annotation for DEF-456?"));
     deleteModal.cancelButton().shouldBe(visible).shouldHave(text("Cancel"));
     deleteModal.submitButton().shouldBe(visible).shouldHave(text("Delete"));
@@ -553,8 +567,7 @@ public class ComponentDetailsPageTest
     lookup(SbomComponentsService.class).getSbomComponentDetails(
         testApplication.getId(),
         thirdPartySbomMetadata.getSbomVersion(),
-        thirdPartyFileCoordinate.getHash()
-    );
+        thirdPartyFileCoordinate.getHash());
 
     navigateToComponentDetailsPage();
 
@@ -579,9 +592,10 @@ public class ComponentDetailsPageTest
     copyModal.shouldBe(visible);
 
     copyModal.header().shouldBe(visible).shouldHave(text("Copy annotation for DEF-456"));
-    copyModal.body().shouldBe(visible).shouldHave(text(
-        "Are you sure you want to copy \"Exploitable\" annotation for DEF-456 from previous version mockVersionId_2?"
-    ));
+    copyModal.body()
+        .shouldBe(visible)
+        .shouldHave(text(
+            "Are you sure you want to copy \"Exploitable\" annotation for DEF-456 from previous version mockVersionId_2?"));
     copyModal.cancelButton().shouldBe(visible).shouldHave(text("Cancel"));
     copyModal.submitButton().shouldBe(visible).shouldHave(text("Copy"));
     copyModal.cancelButton().click();
@@ -600,8 +614,7 @@ public class ComponentDetailsPageTest
     lookup(SbomComponentsService.class).getSbomComponentDetails(
         testApplication.getId(),
         thirdPartySbomMetadata.getSbomVersion(),
-        thirdPartyFileCoordinate.getHash()
-    );
+        thirdPartyFileCoordinate.getHash());
 
     navigateToComponentDetailsPage();
 
@@ -623,9 +636,10 @@ public class ComponentDetailsPageTest
     copyModal.shouldBe(visible);
 
     copyModal.header().shouldBe(visible).shouldHave(text("Copy annotation for DEF-456"));
-    copyModal.body().shouldBe(visible).shouldHave(text(
-        "Are you sure you want to copy \"Exploitable\" annotation for DEF-456 from previous version mockVersionId_2?"
-    ));
+    copyModal.body()
+        .shouldBe(visible)
+        .shouldHave(text(
+            "Are you sure you want to copy \"Exploitable\" annotation for DEF-456 from previous version mockVersionId_2?"));
     copyModal.cancelButton().shouldBe(visible).shouldHave(text("Cancel"));
     copyModal.submitButton().shouldBe(visible).shouldHave(text("Copy"));
     copyModal.cancelButton().click();
@@ -664,9 +678,10 @@ public class ComponentDetailsPageTest
     copyModal.shouldBe(visible);
 
     copyModal.header().shouldBe(visible).shouldHave(text("Copy annotation for DEF-456"));
-    copyModal.body().shouldBe(visible).shouldHave(text(
-        "Are you sure you want to copy \"Exploitable\" annotation for DEF-456 from previous version mockVersionId_2?"
-    ));
+    copyModal.body()
+        .shouldBe(visible)
+        .shouldHave(text(
+            "Are you sure you want to copy \"Exploitable\" annotation for DEF-456 from previous version mockVersionId_2?"));
     copyModal.cancelButton().shouldBe(visible).shouldHave(text("Cancel"));
     copyModal.submitButton().shouldBe(visible).shouldHave(text("Copy"));
     copyModal.cancelButton().click();
@@ -689,7 +704,7 @@ public class ComponentDetailsPageTest
   }
 
   private void navigateToComponentDetailsPage() {
-    //component details page state depends on bill of materials page state, so loading the bom page first
+    // component details page state depends on bill of materials page state, so loading the bom page first
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
         .getSbomVersion()));
     billOfMaterialsPageSummaryTile.componentSummaryChartAndProgress().shouldBe(visible, Duration.ofSeconds(20));
@@ -731,12 +746,10 @@ public class ComponentDetailsPageTest
         file.getFilename(),
         "cycloneDX",
         "json",
-        "1.5"
-    );
+        "1.5");
 
     ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(
-        file, "SBOM", "maven", "testComponent", "1.2", TEST_COMPONENT_HASH, TEST_COMPONENT_PURL
-    );
+        file, "SBOM", "maven", "testComponent", "1.2", TEST_COMPONENT_HASH, TEST_COMPONENT_PURL);
 
     setVulnerabilityTablesData(fileCoordinate, true, "SBOM", multipleResponsesInVexAnnotation,
         withNullResponseInVexAnnotation);
@@ -755,16 +768,14 @@ public class ComponentDetailsPageTest
         file.getFilename(),
         "cycloneDX",
         "json",
-        "1.5"
-    );
+        "1.5");
 
     ThirdPartyScan scan = tempEntity.newThirdPartyScan(file);
 
     ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = lookup(ThirdPartyFileCoordinateDAO.class);
 
     ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(
-        TEST_COMPONENT_HASH, "SBOM", "maven", "testComponent", "1.2", file.getId()
-    );
+        TEST_COMPONENT_HASH, "SBOM", "maven", "testComponent", "1.2", file.getId());
     fileCoordinate.setPackageUrl(TEST_COMPONENT_PURL);
     fileCoordinate.setId("86163fcc32524261bfd2bdbedb7eae43");
     String reportResourceName = "/sbom/ComponentDetailsTest/report";
@@ -809,8 +820,9 @@ public class ComponentDetailsPageTest
     if (withVexAnnotations) {
       tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityDEF456, "DEF-456", "exploitable",
           "code_not_present",
-          withMultipleResponsesInVexAnnotation ? "rollback,update" :
-              (withNullResponseInVexAnnotation ? null : "rollback"),
+          withMultipleResponsesInVexAnnotation
+              ? "rollback,update"
+              : (withNullResponseInVexAnnotation ? null : "rollback"),
           "test vex detail");
     }
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "CVE-4812", null, "test vulnerability",
@@ -835,42 +847,66 @@ public class ComponentDetailsPageTest
 
   private void checkDisclosedVulnerabilitiesTableHeader() {
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().tableHeaders().shouldHave(size(7));
-    sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(0).shouldHave(
-        text("CVSS SCORE"));
-    sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(1).shouldHave(
-        text("ISSUE"));
-    sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(2).shouldHave(
-        text("VERIFICATION"));
-    sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(3).shouldHave(
-        text("DATA ENRICHMENT"));
-    sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(4).shouldHave(
-        text("ANALYSIS STATE"));
-    sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(5).shouldHave(
-        text("JUSTIFICATION"));
-    sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(6).shouldHave(
-        text("ACTIONS"));
+    sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnHeader(0)
+        .shouldHave(
+            text("CVSS SCORE"));
+    sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnHeader(1)
+        .shouldHave(
+            text("ISSUE"));
+    sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnHeader(2)
+        .shouldHave(
+            text("VERIFICATION"));
+    sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnHeader(3)
+        .shouldHave(
+            text("DATA ENRICHMENT"));
+    sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnHeader(4)
+        .shouldHave(
+            text("ANALYSIS STATE"));
+    sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnHeader(5)
+        .shouldHave(
+            text("JUSTIFICATION"));
+    sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnHeader(6)
+        .shouldHave(
+            text("ACTIONS"));
   }
 
   private void checkSonatypeVulnerabilitiesTableHeader(VulnerabilitiesTableTile table) {
     table.tableHeaders().shouldHave(size(6));
-    table.getColumnHeader(0).shouldHave(
-        text("CVSS SCORE"));
-    table.getColumnHeader(1).shouldHave(
-        text("ISSUE"));
-    table.getColumnHeader(2).shouldHave(
-        text("DATA ENRICHMENT"));
-    table.getColumnHeader(3).shouldHave(
-        text("ANALYSIS STATE"));
-    table.getColumnHeader(4).shouldHave(
-        text("JUSTIFICATION"));
-    table.getColumnHeader(5).shouldHave(
-        text("ACTIONS"));
+    table.getColumnHeader(0)
+        .shouldHave(
+            text("CVSS SCORE"));
+    table.getColumnHeader(1)
+        .shouldHave(
+            text("ISSUE"));
+    table.getColumnHeader(2)
+        .shouldHave(
+            text("DATA ENRICHMENT"));
+    table.getColumnHeader(3)
+        .shouldHave(
+            text("ANALYSIS STATE"));
+    table.getColumnHeader(4)
+        .shouldHave(
+            text("JUSTIFICATION"));
+    table.getColumnHeader(5)
+        .shouldHave(
+            text("ACTIONS"));
   }
 
   private void assertVulnerabilityTableRowContent(
       VulnerabilitiesTableTile table,
-      String cvssScore, String issue, String verification, String dataEnrichment,
-      String analysisStatus, String justification)
+      String cvssScore,
+      String issue,
+      String verification,
+      String dataEnrichment,
+      String analysisStatus,
+      String justification)
   {
     table.getColumnData(0, 0).shouldHave(text(cvssScore));
     table.getColumnData(0, 1).shouldHave(text(issue));
@@ -887,10 +923,17 @@ public class ComponentDetailsPageTest
   }
 
   public void assertVexAnnotationForm(
-      VexAnnotationDrawer vexAnnotationDrawer, String issue, String purl,
-      String cvssScore, String verificationStatus, String vulnerabilityDescription,
-      String analysisStatusDropdown, String justificationDropdown,
-      String responseDropdown, String submitButtonText, String annotationDetails)
+      VexAnnotationDrawer vexAnnotationDrawer,
+      String issue,
+      String purl,
+      String cvssScore,
+      String verificationStatus,
+      String vulnerabilityDescription,
+      String analysisStatusDropdown,
+      String justificationDropdown,
+      String responseDropdown,
+      String submitButtonText,
+      String annotationDetails)
   {
     vexAnnotationDrawer.header().shouldBe(visible);
     vexAnnotationDrawer.closeButton().shouldBe(visible);
@@ -909,8 +952,7 @@ public class ComponentDetailsPageTest
   }
 
   public void assertVulnerabilityDetailsInsidePolicyViolationDetailsDrawer(
-      PolicyViolationDetailsDrawer.VulnerabilityDetails vulnerabilityDetails
-  )
+      PolicyViolationDetailsDrawer.VulnerabilityDetails vulnerabilityDetails)
   {
     vulnerabilityDetails.packageUrl().shouldHave(text("pkg:maven/2/3@1.1"));
     vulnerabilityDetails.vulnerabilityId().shouldHave(text("CVE-4812"));
@@ -1082,7 +1124,8 @@ public class ComponentDetailsPageTest
     cvssDetailsContent.shouldHave(text("CVE CVSS 31.5"));
     cvssDetailsContent.shouldHave(text("CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"));
 
-    vulnerabilityDetailsPopover.getResearchMetadataHeader().shouldHave(text("Vulnerability Research Metadata"))
+    vulnerabilityDetailsPopover.getResearchMetadataHeader()
+        .shouldHave(text("Vulnerability Research Metadata"))
         .shouldBe(visible);
     vulnerabilityDetailsPopover.getResearchMetadataHeader().click();
     SelenideElement researchMetadataContent = vulnerabilityDetailsPopover.getResearchMetadataContent();
@@ -1142,7 +1185,8 @@ public class ComponentDetailsPageTest
     // Verify unsaved changes modal appears
     vexDrawer.unsavedChangesModal().shouldBe(visible);
     vexDrawer.unsavedChangesModalHeader().shouldBe(visible).shouldHave(text("Unsaved Changes"));
-    vexDrawer.unsavedChangesModalBody().shouldBe(visible)
+    vexDrawer.unsavedChangesModalBody()
+        .shouldBe(visible)
         .shouldHave(partialText("The page may contain unsaved changes; continuing will discard them."));
   }
 

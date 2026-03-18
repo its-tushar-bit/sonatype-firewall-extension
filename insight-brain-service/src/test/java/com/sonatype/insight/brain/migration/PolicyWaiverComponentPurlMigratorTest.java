@@ -85,7 +85,8 @@ public class PolicyWaiverComponentPurlMigratorTest
   public void testMigrate_alreadyMigrated() {
     migrationTrackerDAO.insertTracker(PolicyWaiverComponentPurlMigrator.MIGRATION_ID);
     policyWaiverComponentPurlMigrator.migrate();
-    logOutput.assertThat().atDebugLevel()
+    logOutput.assertThat()
+        .atDebugLevel()
         .contains("policy waivers are already migrated to contain purl where possible.");
   }
 

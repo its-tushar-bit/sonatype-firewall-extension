@@ -12,10 +12,10 @@ import java.util.stream.Collectors;
 
 public record SCMUserMappingsDTO(String role, List<UserMapping> mappings)
 {
-  public static List<Entry<String, String>>
-      userMappingsAsEntries(List<UserMapping> mappings)
-  {
-    return mappings.stream().map(userMapping -> userMapping.toSimpleEntry()).collect(
-        Collectors.toList());
+  public static List<Entry<String, String>> userMappingsAsEntries(List<UserMapping> mappings) {
+    return mappings.stream()
+        .map(userMapping -> userMapping.toSimpleEntry())
+        .collect(
+            Collectors.toList());
   }
 }

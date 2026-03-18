@@ -5,6 +5,7 @@
  */
 
 package com.sonatype.insight.brain.developer.integrationdashboard;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -49,7 +50,9 @@ public class IntegrationResourceTest
     assertResponseStatus(200, httpResponse);
 
     final ApiPageResult<IntegrationStatusDTO> response = getBodyByTypeReference(httpResponse.getBodyBytes(),
-        new TypeReference<ApiPageResult<IntegrationStatusDTO>>() { });
+        new TypeReference<ApiPageResult<IntegrationStatusDTO>>()
+        {
+        });
     assertThat(response)
         .isNotNull();
     assertThat(response.getPage())
@@ -83,7 +86,9 @@ public class IntegrationResourceTest
     assertResponseStatus(200, httpResponse);
 
     final ApiPageResult<IntegrationStatusDTO> response = getBodyByTypeReference(httpResponse.getBodyBytes(),
-        new TypeReference<ApiPageResult<IntegrationStatusDTO>>() { });
+        new TypeReference<ApiPageResult<IntegrationStatusDTO>>()
+        {
+        });
     assertThat(response)
         .isNotNull();
     assertThat(response.getPage())
@@ -104,7 +109,9 @@ public class IntegrationResourceTest
     assertResponseStatus(200, httpResponse);
 
     final List<ApiIntegrationsCiCdStatIncrementDto> response = getBodyByTypeReference(httpResponse.getBodyBytes(),
-        new TypeReference<List<ApiIntegrationsCiCdStatIncrementDto>>() { });
+        new TypeReference<List<ApiIntegrationsCiCdStatIncrementDto>>()
+        {
+        });
 
     assertThat(response).isNotNull();
     assertThat(response.size()).isEqualTo(12);
@@ -120,7 +127,9 @@ public class IntegrationResourceTest
     assertResponseStatus(200, httpResponse);
 
     final List<ApiIntegrationsCiCdStatIncrementDto> response = getBodyByTypeReference(httpResponse.getBodyBytes(),
-        new TypeReference<List<ApiIntegrationsCiCdStatIncrementDto>>() { });
+        new TypeReference<List<ApiIntegrationsCiCdStatIncrementDto>>()
+        {
+        });
 
     assertThat(response).isNotNull();
     assertThat(response.size()).isEqualTo(24);
@@ -135,9 +144,7 @@ public class IntegrationResourceTest
   }
 
   @Test
-  public void testGetCiCdUsageStatIncrementsOverTime_ReturnsBadRequest_WhenParametersAreOutsideBounds()
-      throws Exception
-  {
+  public void testGetCiCdUsageStatIncrementsOverTime_ReturnsBadRequest_WhenParametersAreOutsideBounds() throws Exception {
     final HttpResponse givenQueryAskTooSmallOfIncrementSize =
         restRequest().path(GET_CI_CD_USAGE_PATH)
             .query("incrementSizeMillis", 0)
@@ -170,7 +177,9 @@ public class IntegrationResourceTest
     assertResponseStatus(200, httpResponse);
 
     final List<ApiUsageIncrementDto> response = getBodyByTypeReference(httpResponse.getBodyBytes(),
-        new TypeReference<List<ApiUsageIncrementDto>>() { });
+        new TypeReference<List<ApiUsageIncrementDto>>()
+        {
+        });
 
     assertThat(response)
         .isNotNull()
@@ -187,7 +196,9 @@ public class IntegrationResourceTest
     assertResponseStatus(200, httpResponse);
 
     final List<ApiUsageIncrementDto> response = getBodyByTypeReference(httpResponse.getBodyBytes(),
-        new TypeReference<List<ApiUsageIncrementDto>>() { });
+        new TypeReference<List<ApiUsageIncrementDto>>()
+        {
+        });
 
     assertThat(response)
         .isNotNull()
@@ -203,9 +214,7 @@ public class IntegrationResourceTest
   }
 
   @Test
-  public void testGetApplicationCountHistoryOverTime_ReturnsBadRequest_WhenParametersAreOutsideBounds()
-      throws Exception
-  {
+  public void testGetApplicationCountHistoryOverTime_ReturnsBadRequest_WhenParametersAreOutsideBounds() throws Exception {
     final HttpResponse givenQueryAskTooSmallOfIncrementSize =
         restRequest().path(GET_APPLICATION_COUNT_HISTORY_OVER_TIME_PATH)
             .query("incrementSizeMillis", 0)

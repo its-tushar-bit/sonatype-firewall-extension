@@ -35,11 +35,11 @@ public class SbomManagerDashboardPage
   public SelenideElement errorAlert() {
     return child(".nx-alert--error");
   }
-  
+
   public SelenideElement toolTip() {
     return child(".nx-tooltip");
   }
-  
+
   public static RecentlyImportedSBOMsTile recentlyImportedSBOMsTile() {
     return new RecentlyImportedSBOMsTile();
   }
@@ -47,19 +47,19 @@ public class SbomManagerDashboardPage
   public static TotalSBOMsStoredTile totalSBOMsStoredTile() {
     return new TotalSBOMsStoredTile();
   }
-  
+
   public static ApplicationsHistoryTile applicationsHistoryTile() {
     return new ApplicationsHistoryTile();
   }
-  
+
   public static HighPriorityVulnerabilitiesTile highPriorityVulnerabilitiesTile() {
     return new HighPriorityVulnerabilitiesTile();
   }
-  
+
   public static VulnerabilitiesThreatLevelTile vulnerabilitiesThreatLevelTile() {
     return new VulnerabilitiesThreatLevelTile();
   }
-  
+
   public static SbomReleaseStatusTile sbomReleaseStatusTile() {
     return new SbomReleaseStatusTile();
   }

@@ -10,7 +10,7 @@ import java.util.Comparator;
 /**
  * Compares policy violations by threat level (descending), policy name, application name, coordinates, and then
  * hashes.
- * 
+ *
  * @since 1.11.0
  */
 public class PolicyViolationDTOComparator

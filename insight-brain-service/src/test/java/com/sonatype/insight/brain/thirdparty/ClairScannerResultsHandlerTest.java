@@ -264,12 +264,12 @@ public class ClairScannerResultsHandlerTest
     vulnerability = buildVulnerability("fn", "fv", "nm", "test", "CSV-test", "www.test.com", null);
     assertThat(clairHandler.getSeverity(vulnerability.getSeverity())).isEqualTo(0f);
   }
-  
+
   @Test
   public void testHandleAndFilterContents_clairFormat_length() throws Exception {
     assertClairFormatLength("ubuntu-16.04");
   }
-  
+
   @Test
   public void testHandleAndFilterContents_clairFormat_lengthTruncate() throws Exception {
     assertClairFormatLength("long_format_third_party_scans_truncation_request_test");

@@ -40,7 +40,7 @@ public class NewDbConnectionOperationalCheck
 
   /**
    * @see <a href="https://www.postgresql.org/docs/17/runtime-config-client.html#GUC-TRANSACTION-READ-ONLY">PostgreSQL
-   * show readonly statement</a>
+   *      show readonly statement</a>
    */
   private static final String SHOW_TRANSACTION_READ_ONLY = "SHOW transaction_read_only";
 
@@ -56,7 +56,7 @@ public class NewDbConnectionOperationalCheck
 
   /**
    * @see <a href="https://www.h2database.com/javadoc/org/h2/api/ErrorCode.html#DATABASE_IS_READ_ONLY">H2 Read Only
-   * Error Code</a>
+   *      Error Code</a>
    */
   private static final String H2_READ_ONLY_SQL_STATE = "90097";
 
@@ -85,7 +85,8 @@ public class NewDbConnectionOperationalCheck
     try (
         BasicDataSource tempDataSource =
             (BasicDataSource) dataStore.getDataSourceProvider().createNewDataSource(dataStore.getDatabaseConfig());
-        Connection tempConnection = tempDataSource.getConnection()) {
+        Connection tempConnection = tempDataSource.getConnection())
+    {
       long start = System.currentTimeMillis();
       boolean isValidConnection = tempConnection.isValid(5 /* timeout in seconds */);
       long duration = System.currentTimeMillis() - start;
@@ -130,9 +131,9 @@ public class NewDbConnectionOperationalCheck
 
   // Visible for testing
   Boolean isConnectionReadOnlyViaQuery(final Connection connection, final DataStore dataStore) {
-    return dataStore.isDatabaseEmbedded() ?
-        isConnectionReadOnlyViaQueryForEmbeddedDatabase(connection, dataStore) :
-        isConnectionReadOnlyViaQueryForExternalDatabase(connection, dataStore);
+    return dataStore.isDatabaseEmbedded()
+        ? isConnectionReadOnlyViaQueryForEmbeddedDatabase(connection, dataStore)
+        : isConnectionReadOnlyViaQueryForExternalDatabase(connection, dataStore);
   }
 
   // Visible for testing
@@ -173,7 +174,8 @@ public class NewDbConnectionOperationalCheck
       final DataStore dataStore)
   {
     try (Statement stmt = connection.createStatement();
-         ResultSet rs = stmt.executeQuery(CALL_READONLY)) {
+        ResultSet rs = stmt.executeQuery(CALL_READONLY))
+    {
       if (rs.next()) {
         String readOnlyValue = rs.getString(1);
 
@@ -198,7 +200,8 @@ public class NewDbConnectionOperationalCheck
       final DataStore dataStore)
   {
     try (Statement stmt = connection.createStatement();
-         ResultSet rs = stmt.executeQuery(SHOW_TRANSACTION_READ_ONLY)) {
+        ResultSet rs = stmt.executeQuery(SHOW_TRANSACTION_READ_ONLY))
+    {
       if (rs.next()) {
         String readOnlyValue = rs.getString(1);
 

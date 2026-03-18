@@ -309,8 +309,7 @@ public class RepositoryPolicyEvaluatorTest
       Repository repository,
       Date before,
       Date after,
-      List<RepositoryPolicyViolation> policyViolations)
-      throws Exception
+      List<RepositoryPolicyViolation> policyViolations) throws Exception
   {
     repositoryPolicyViolationDAO.loadConstraintFacts(policyViolations);
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
@@ -362,7 +361,8 @@ public class RepositoryPolicyEvaluatorTest
     policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(policyViolations).hasSize(4);
     List<RepositoryPolicyViolation> newPolicyViolations =
-        policyViolations.stream().filter(policyViolation -> policyViolation.getPolicyId().equals(newPolicy.getId()))
+        policyViolations.stream()
+            .filter(policyViolation -> policyViolation.getPolicyId().equals(newPolicy.getId()))
             .collect(Collectors.toList());
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before2, after2, newPolicyViolations);
     assertRepositoryComponent(repository, 2);
@@ -414,7 +414,7 @@ public class RepositoryPolicyEvaluatorTest
           .flatExtracting(ConstraintFact::getConditionFacts)
           .extracting(ConditionFact::getReference)
           .extracting(TriggerReference::getValue)
-          .containsExactlyInAnyOrder("cve-2019-1234","cve-2019-5678");
+          .containsExactlyInAnyOrder("cve-2019-1234", "cve-2019-5678");
     }
     finally {
       mockEventBus.unregister(handler);
@@ -544,7 +544,8 @@ public class RepositoryPolicyEvaluatorTest
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before1, after1, activeViolations);
     // ... and one logged as waived
     List<RepositoryPolicyViolation> waivedViolations = activeViolations.stream()
-        .filter(RepositoryPolicyViolation::isWaived).collect(toList());
+        .filter(RepositoryPolicyViolation::isWaived)
+        .collect(toList());
     assertThat(waivedViolations).hasSize(1);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, repository, before1, after1, waivedViolations);
 
@@ -563,12 +564,14 @@ public class RepositoryPolicyEvaluatorTest
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before2, after2, Collections.emptyList());
     // ... but one logged as unwaived
     List<RepositoryPolicyViolation> unwaivedViolations = activeViolations.stream()
-        .filter(violation -> policy2.getId().equals(violation.getPolicyId())).collect(toList());
+        .filter(violation -> policy2.getId().equals(violation.getPolicyId()))
+        .collect(toList());
     assertThat(unwaivedViolations).hasSize(1);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.UNWAIVE, repository, before2, after2, unwaivedViolations);
     // ... and one logged as freshly waived
     waivedViolations = activeViolations.stream()
-        .filter(violation -> policy1.getId().equals(violation.getPolicyId())).collect(toList());
+        .filter(violation -> policy1.getId().equals(violation.getPolicyId()))
+        .collect(toList());
     assertThat(waivedViolations).hasSize(1);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, repository, before2, after2, waivedViolations);
     assertRepositoryComponent(repository, 1);
@@ -626,16 +629,21 @@ public class RepositoryPolicyEvaluatorTest
     assertThat(activeViolations).hasSize(2);
 
     // ... and two ARE waived
-    waivedViolations = activeViolations.stream().filter(RepositoryPolicyViolation::isWaived)
+    waivedViolations = activeViolations.stream()
+        .filter(RepositoryPolicyViolation::isWaived)
         .collect(toList());
     assertThat(waivedViolations).hasSize(2);
 
     RepositoryPolicyViolation waivedViolation1 = waivedViolations.stream()
-        .filter(violation -> violation.getPolicyId().equals(policy1.getId())).findFirst().orElse(null);
+        .filter(violation -> violation.getPolicyId().equals(policy1.getId()))
+        .findFirst()
+        .orElse(null);
     assertThat(waivedViolation1).isNotNull();
 
     RepositoryPolicyViolation waivedViolation2 = waivedViolations.stream()
-        .filter(violation -> violation.getPolicyId().equals(policy2.getId())).findFirst().orElse(null);
+        .filter(violation -> violation.getPolicyId().equals(policy2.getId()))
+        .findFirst()
+        .orElse(null);
     assertThat(waivedViolation2).isNotNull();
 
     // first waived violation should still use the original evaluation time
@@ -658,7 +666,8 @@ public class RepositoryPolicyEvaluatorTest
 
     // first violation is no longer waived
     List<RepositoryPolicyViolation> unwaivedViolations =
-        activeViolations.stream().filter(violation -> policy1.getId().equals(violation.getPolicyId()))
+        activeViolations.stream()
+            .filter(violation -> policy1.getId().equals(violation.getPolicyId()))
             .collect(toList());
     assertThat(unwaivedViolations).hasSize(1);
     assertThat(unwaivedViolations.get(0).getPolicyWaiverId()).isNull();
@@ -666,7 +675,8 @@ public class RepositoryPolicyEvaluatorTest
     assertThat(unwaivedViolations.get(0).getWaiveTime()).isNull();
 
     // ... second violation is still waived... waive time should be preserved
-    waivedViolations = activeViolations.stream().filter(violation -> policy2.getId().equals(violation.getPolicyId()))
+    waivedViolations = activeViolations.stream()
+        .filter(violation -> policy2.getId().equals(violation.getPolicyId()))
         .collect(toList());
     assertThat(waivedViolations).hasSize(1);
     assertViolationWaiverDetails(waivedViolations.get(0), policyWaiver2, policy2ViolationWaiveTime);
@@ -803,7 +813,8 @@ public class RepositoryPolicyEvaluatorTest
     assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), unignorableRequest.pathname))
         .isNotNull();
     assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId()))
-        .extracting(RepositoryPolicyViolation::getPathname).containsExactly(unignorableRequest.pathname);
+        .extracting(RepositoryPolicyViolation::getPathname)
+        .containsExactly(unignorableRequest.pathname);
 
     verify(repositoryComponentTelemetryCreator, times(1))
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
@@ -1050,10 +1061,13 @@ public class RepositoryPolicyEvaluatorTest
   }
 
   private boolean getQuarantineStatusOfRequestIndex(
-      RepositoryComponentEvaluationDataList repositoryComponentEvaluationResult, int requestIndex)
+      RepositoryComponentEvaluationDataList repositoryComponentEvaluationResult,
+      int requestIndex)
   {
     return repositoryComponentEvaluationResult.componentEvalResults.stream()
-        .filter(component -> component.requestIndex == requestIndex).findFirst().get().quarantine;
+        .filter(component -> component.requestIndex == requestIndex)
+        .findFirst()
+        .get().quarantine;
   }
 
   @Test

@@ -100,9 +100,10 @@ public final class ManageTemplatesPage
     return new DeleteDialog();
   }
 
-  public static class UnsavedChangesDialog extends BasicElement<UnsavedChangesDialog> 
+  public static class UnsavedChangesDialog
+      extends BasicElement<UnsavedChangesDialog>
   {
-    private static  final String UNSAVED_DIALOG_SELECTOR = "#attribution-report-unsaved-dialog";
+    private static final String UNSAVED_DIALOG_SELECTOR = "#attribution-report-unsaved-dialog";
 
     public UnsavedChangesDialog() {
       super(UNSAVED_DIALOG_SELECTOR);
@@ -121,9 +122,10 @@ public final class ManageTemplatesPage
     }
   }
 
-  public static class DeleteDialog extends BasicElement<UnsavedChangesDialog> 
+  public static class DeleteDialog
+      extends BasicElement<UnsavedChangesDialog>
   {
-    private static  final String DELETE_DIALOG_SELECTOR = "#attribution-report-delete-confirmation-dialog";
+    private static final String DELETE_DIALOG_SELECTOR = "#attribution-report-delete-confirmation-dialog";
 
     public DeleteDialog() {
       super(DELETE_DIALOG_SELECTOR);

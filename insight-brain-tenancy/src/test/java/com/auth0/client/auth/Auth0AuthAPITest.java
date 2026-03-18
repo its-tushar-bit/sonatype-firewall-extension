@@ -108,8 +108,7 @@ public class Auth0AuthAPITest
       final String email,
       final String connectionName,
       final String applicationClientId,
-      final String organizationId)
-      throws IOException
+      final String organizationId) throws IOException
   {
     verify(client).newCall(requestCaptor.capture());
     verify(call).execute();

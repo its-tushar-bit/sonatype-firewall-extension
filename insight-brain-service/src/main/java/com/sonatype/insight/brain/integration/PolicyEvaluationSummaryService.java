@@ -38,10 +38,11 @@ public class PolicyEvaluationSummaryService
   private final ProductLicense productLicense;
 
   @Inject
-  public PolicyEvaluationSummaryService(final ApplicationDAO applicationDAO,
-                                        final ScanPolicyEvaluator scanPolicyEvaluator,
-                                        final PolicyEvaluationDAO policyEvaluationDAO,
-                                        final ProductLicense productLicense)
+  public PolicyEvaluationSummaryService(
+      final ApplicationDAO applicationDAO,
+      final ScanPolicyEvaluator scanPolicyEvaluator,
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final ProductLicense productLicense)
   {
     this.applicationDAO = applicationDAO;
     this.scanPolicyEvaluator = scanPolicyEvaluator;

@@ -15,7 +15,7 @@ import org.junit.runners.model.Statement;
 /**
  * Embedded LDAP server meant to facilitate unit testing of LDAP integration. The LDAP server instance must be started
  * explicitly, but it is stopped automatically by junit.
- * 
+ *
  * @since 1.7
  */
 public class TestLdapServer

@@ -20,7 +20,7 @@ public class OrganizationAuditDTO
   public String organizationName;
 
   public OrganizationAuditDTO() {
-    //for jackson
+    // for jackson
   }
 
   public OrganizationAuditDTO(String organizationId, Organization organization) {

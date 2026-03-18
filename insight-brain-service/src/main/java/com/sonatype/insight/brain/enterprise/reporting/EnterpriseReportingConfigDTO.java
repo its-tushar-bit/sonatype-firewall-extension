@@ -12,7 +12,7 @@ public class EnterpriseReportingConfigDTO
   public String baseUrl;
 
   public EnterpriseReportingConfigDTO() {
-    //for jackson
+    // for jackson
   }
 
   public EnterpriseReportingConfigDTO(@JsonProperty("baseUrl") final String baseUrl) {

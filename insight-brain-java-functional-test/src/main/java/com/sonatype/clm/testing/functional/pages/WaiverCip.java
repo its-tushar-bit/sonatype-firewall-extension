@@ -171,10 +171,11 @@ public class WaiverCip
       return $(createSelector(selector, ".btn-secondary"));
     }
 
-    public void shouldBe(String cssClass,
-                         String policyName,
-                         String[] expectedConstraints,
-                         String[] expectedConditions)
+    public void shouldBe(
+        String cssClass,
+        String policyName,
+        String[] expectedConstraints,
+        String[] expectedConditions)
     {
       policyName().shouldHave(text(policyName));
       constraints().shouldHave(texts(expectedConstraints));
@@ -212,7 +213,7 @@ public class WaiverCip
   }
 
   private static String[] getRowSelector() {
-    return new String[] { CONTAINER_ID, ".cip-policy-table tbody tr" };
+    return new String[]{CONTAINER_ID, ".cip-policy-table tbody tr"};
   }
 
   public static PolicyWaiverRow row(int num) {

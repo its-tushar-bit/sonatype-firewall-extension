@@ -75,7 +75,8 @@ public class PolicyViolationLoggerFactory
 
   private void logPotentialMisconfiguration() {
     if (LoggerFactory.getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME).isInfoEnabled()
-        && !productLicense.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS)) {
+        && !productLicense.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS))
+    {
       if (!productLicense.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES)) {
         log.warn(
             "Disabling policy violation logging for logger {}."

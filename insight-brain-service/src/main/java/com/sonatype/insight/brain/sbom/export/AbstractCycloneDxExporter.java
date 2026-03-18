@@ -138,8 +138,7 @@ public abstract class AbstractCycloneDxExporter
         idUtils,
         versionService,
         thirdPartyLicenseResolver,
-        thirdPartyPersistenceService
-    );
+        thirdPartyPersistenceService);
     this.multiLicenseDAO = multiLicenseDAO;
     this.spdxLicenseExpressionUtil = new SpdxLicenseExpressionUtil(multiLicenseDAO);
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
@@ -151,13 +150,14 @@ public abstract class AbstractCycloneDxExporter
   protected Bom mergeCurrentDatabaseState(Bom bom, Map<String, Component> componentRefToComponents) {
     String oldBomComponentRef = "";
     if (bom.getMetadata() != null && bom.getMetadata().getComponent() != null &&
-        bom.getMetadata().getComponent().getBomRef() != null) {
+        bom.getMetadata().getComponent().getBomRef() != null)
+    {
       oldBomComponentRef = bom.getMetadata().getComponent().getBomRef();
     }
     generateNewBomMetadata(bom);
     updateDependenciesWithNewBomComponentRef(bom, oldBomComponentRef);
-    Map<String, Component> componentRefToBomComponentsMap = componentRefToComponents == null ?
-        generateComponentRefMap(bom) : componentRefToComponents;
+    Map<String, Component> componentRefToBomComponentsMap =
+        componentRefToComponents == null ? generateComponentRefMap(bom) : componentRefToComponents;
     List<ThirdPartyFileCoordinate> sonatypeComponents = thirdPartyFileCoordinateDAO.getByThirdPartyFileId(
         exportParams.sbomMetadata.getThirdPartyFileId());
 
@@ -175,7 +175,8 @@ public abstract class AbstractCycloneDxExporter
     if (CollectionUtils.isNotEmpty(sonatypeComponents)) {
       Map<String, List<ThirdPartyCoordinateSecurity>> vulnerabilities = thirdPartyCoordinateSecurityDAO
           .getByFileCoordinateIds(sonatypeComponents.stream().map(ThirdPartyFileCoordinate::getId).toList())
-          .stream().collect(Collectors.groupingBy(ThirdPartyCoordinateSecurity::getFileCoordinateId));
+          .stream()
+          .collect(Collectors.groupingBy(ThirdPartyCoordinateSecurity::getFileCoordinateId));
       Application app = applicationDAO.getByIdNotNull(exportParams.sbomMetadata.getApplicationId());
 
       for (ThirdPartyFileCoordinate sonatypeComponent : sonatypeComponents) {
@@ -206,8 +207,9 @@ public abstract class AbstractCycloneDxExporter
                 SbomTaxonomy.CDX_MATCH_FILENAMES_PROPERTY_NAME,
                 String.join(",", sonatypeComponent.getFilenamesList())));
           }
-          String identificationSource = sonatypeComponent.getSource().equals(IDENTIFICATION_SOURCE_SONATYPE_CONTAINER) ?
-              IDENTIFICATION_SOURCE_SONATYPE_CONTAINER : sonatypeComponent.getIdentificationSources();
+          String identificationSource = sonatypeComponent.getSource().equals(IDENTIFICATION_SOURCE_SONATYPE_CONTAINER)
+              ? IDENTIFICATION_SOURCE_SONATYPE_CONTAINER
+              : sonatypeComponent.getIdentificationSources();
           bomComponent.setProperties(addOrUpdateBomElementProperty(bomComponent.getProperties(),
               SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, identificationSource));
 
@@ -229,7 +231,8 @@ public abstract class AbstractCycloneDxExporter
           // Update any legacy property names in the current licenses
           if (CollectionUtils.isEmpty(resolvedLicenseDTOS)) {
             if (bomComponent.getLicenses() != null &&
-                CollectionUtils.isNotEmpty(bomComponent.getLicenses().getLicenses())) {
+                CollectionUtils.isNotEmpty(bomComponent.getLicenses().getLicenses()))
+            {
               for (License license : bomComponent.getLicenses().getLicenses()) {
                 updateCycloneDxLegacyPropertyIfPresent(license.getProperties(),
                     SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, null);
@@ -239,12 +242,12 @@ public abstract class AbstractCycloneDxExporter
           }
           LicenseChoice bomLicenseChoice = getBomComponentLicenses(bomComponent);
 
-          //Merge new licenses here
+          // Merge new licenses here
           updateOrGenerateNewLicenseChoices(resolvedLicenseDTOS, bomLicenseChoice);
 
           // Final verification on resulting licenses
           if (bomLicenseChoice != null && CollectionUtils.isEmpty(bomLicenseChoice.getLicenses())) {
-            // 1.6+ new library won't validate/generate  an empty array of licenses and a null expression on a component
+            // 1.6+ new library won't validate/generate an empty array of licenses and a null expression on a component
             bomComponent.setLicenses(null);
           }
         }
@@ -252,7 +255,7 @@ public abstract class AbstractCycloneDxExporter
     }
     bomVulnerabilitiesList.addAll(newBomVulnerabilities.values());
 
-    //1.6 requires properties tag to be a non-empty array for xml exports
+    // 1.6 requires properties tag to be a non-empty array for xml exports
     if (CollectionUtils.isEmpty(bom.getProperties())) {
       bom.setProperties(null);
     }
@@ -307,7 +310,8 @@ public abstract class AbstractCycloneDxExporter
   {
     List<Affect> affects = bomVulnerability.getAffects();
     if (CollectionUtils.size(affects) == 1 ||
-        (sonatypeVexInformation == null && bomVulnerability.getAnalysis() == null)) {
+        (sonatypeVexInformation == null && bomVulnerability.getAnalysis() == null))
+    {
       // there is only 1 affect (which is this component with possibly VEX) or
       // there are multiple affecting components but no existing bom VEX or sonatype VEX
       // just update the vulnerability data
@@ -329,7 +333,7 @@ public abstract class AbstractCycloneDxExporter
     if (sonatypeVexInformation == null) {
       for (Vulnerability vulnerability : newBomVulnerabilities.get(sonatypeVulnerability.getRefId())) {
         if (vulnerability.getAnalysis() == null) {
-          //if there's no vex in either (bom, db) we can combine this
+          // if there's no vex in either (bom, db) we can combine this
           Affect affect = SbomExportUtils.newAffectLinkingComponent(bomComponent);
           vulnerability.getAffects().add(affect);
           return;
@@ -349,7 +353,8 @@ public abstract class AbstractCycloneDxExporter
     for (Vulnerability bomVulnerability : bomVulnerabilities) {
       Set<String> affectRefs = bomVulnerability.getAffects().stream().map(Affect::getRef).collect(Collectors.toSet());
       if (affectRefs.contains(bomComponent.getBomRef()) &&
-          bomVulnerability.getId().equals(sonatypeVulnerability.getRefId())) {
+          bomVulnerability.getId().equals(sonatypeVulnerability.getRefId()))
+      {
         return Optional.of(bomVulnerability);
       }
     }
@@ -362,18 +367,21 @@ public abstract class AbstractCycloneDxExporter
   {
     boolean resetLicenseChoice = false;
     for (ResolvedLicenseDTO resolvedLicense : resolvedLicenses) {
-      //in case we have overridden licenses for this component we should only export the overridden licenses
+      // in case we have overridden licenses for this component we should only export the overridden licenses
       // so need to reset/empty any existing collection once if there are
       if (CollectionUtils.isEmpty(bomLicenseChoice.getLicenses()) ||
-          (!resetLicenseChoice && resolvedLicense.overrideStatus() != null)) {
+          (!resetLicenseChoice && resolvedLicense.overrideStatus() != null))
+      {
         resetLicenseChoice = true;
         bomLicenseChoice.setLicenses(new ArrayList<>());
       }
 
-      //merge only if not overridden
+      // merge only if not overridden
       if (resolvedLicense.overrideStatus() == null) {
-        Optional<License> licenseFromBom = bomLicenseChoice.getLicenses().stream()
-            .filter(it -> doLicensesMatch(resolvedLicense, it)).findFirst();
+        Optional<License> licenseFromBom = bomLicenseChoice.getLicenses()
+            .stream()
+            .filter(it -> doLicensesMatch(resolvedLicense, it))
+            .findFirst();
         if (licenseFromBom.isPresent()) {
           SbomExportUtils.updateCycloneDxLicenseAttributes(licenseFromBom.get(), resolvedLicense.licenseUrl(),
               resolvedLicense.identificationSources());
@@ -385,9 +393,11 @@ public abstract class AbstractCycloneDxExporter
   }
 
   private boolean doLicensesMatch(ResolvedLicenseDTO sonatypeComponentLicense, License bomComponentLicense) {
-    return bomComponentLicense.getId() != null && bomComponentLicense.getId().equals(sonatypeComponentLicense
-        .licenseId()) || (bomComponentLicense.getName() != null && bomComponentLicense.getName()
-        .equals(sonatypeComponentLicense.licenseName()));
+    return bomComponentLicense.getId() != null && bomComponentLicense.getId()
+        .equals(sonatypeComponentLicense
+            .licenseId())
+        || (bomComponentLicense.getName() != null && bomComponentLicense.getName()
+            .equals(sonatypeComponentLicense.licenseName()));
   }
 
   private LicenseChoice getBomComponentLicenses(Component bomComponent) {
@@ -398,12 +408,15 @@ public abstract class AbstractCycloneDxExporter
       bomComponent.setLicenses(licenseChoice);
     }
     else if (bomComponent.getLicenses().getExpression() != null &&
-        StringUtils.isNotEmpty(bomComponent.getLicenses().getExpression().getValue())) {
+        StringUtils.isNotEmpty(bomComponent.getLicenses().getExpression().getValue()))
+    {
       Expression bomComponentLicenseExpression = bomComponent.getLicenses().getExpression();
       bomComponent.getLicenses().setLicenses(new ArrayList<>());
       String purl = bomComponent.getPurl() != null ? bomComponent.getPurl() : "";
-      bomComponent.getLicenses().getLicenses().addAll(
-          parseLicenseChoiceExpression(bomComponentLicenseExpression.getValue(), purl));
+      bomComponent.getLicenses()
+          .getLicenses()
+          .addAll(
+              parseLicenseChoiceExpression(bomComponentLicenseExpression.getValue(), purl));
     }
     return bomComponent.getLicenses();
   }
@@ -476,8 +489,10 @@ public abstract class AbstractCycloneDxExporter
     if (StringUtils.isNotEmpty(oldBomComponentRef)) {
       String newBomComponentRef = bom.getMetadata().getComponent().getBomRef();
       if (CollectionUtils.isNotEmpty(bom.getDependencies())) {
-        Optional<Dependency> rootDependencyOptional = bom.getDependencies().stream()
-            .filter(it -> it.getRef().equals(oldBomComponentRef)).findFirst();
+        Optional<Dependency> rootDependencyOptional = bom.getDependencies()
+            .stream()
+            .filter(it -> it.getRef().equals(oldBomComponentRef))
+            .findFirst();
         if (rootDependencyOptional.isPresent()) {
           Dependency rootDependency = rootDependencyOptional.get();
           int rootDependencyIndex = bom.getDependencies().indexOf(rootDependency);
@@ -544,7 +559,8 @@ public abstract class AbstractCycloneDxExporter
 
     for (ApiReportComponentDTOV2 component : reportRawData.components) {
       if (component.packageUrl != null && component.licenseData != null &&
-          component.licenseData.effectiveLicenseThreats != null) {
+          component.licenseData.effectiveLicenseThreats != null)
+      {
         result.put(component.packageUrl, component.licenseData.effectiveLicenseThreats);
       }
     }
@@ -573,7 +589,7 @@ public abstract class AbstractCycloneDxExporter
       return SbomCycloneDxUtils.buildBomPageMetadataDTO(metadataEntity, scanEntity, migrationTrackerDAO);
     }
     catch (IllegalStateException e) {
-      //in a most unlikely event of malformed metadata json
+      // in a most unlikely event of malformed metadata json
       log.debug("Failed to parse sbom metadata json for application {}, version {}, and scanId {}",
           metadataEntity.getApplicationId(), metadataEntity.getSbomVersion(),
           metadataEntity.getThirdPartyFileId());
@@ -622,7 +638,7 @@ public abstract class AbstractCycloneDxExporter
     if (prop != null) {
       return prop.getValue();
     }
-    //fallback to legacy prop
+    // fallback to legacy prop
     prop = findPropertyWithName(component, SbomTaxonomy.LEGACY_SONATYPE_SHA1_PROPERTY_NAME);
     if (prop != null) {
       return prop.getValue();
@@ -645,8 +661,10 @@ public abstract class AbstractCycloneDxExporter
   private List<PdfComponentLicense> getLicensesData(final Component component) {
     LicenseChoice licenseChoice = component.getLicenses();
     if (licenseChoice != null &&
-        org.apache.commons.collections4.CollectionUtils.isNotEmpty(licenseChoice.getLicenses())) {
-      return licenseChoice.getLicenses().stream()
+        org.apache.commons.collections4.CollectionUtils.isNotEmpty(licenseChoice.getLicenses()))
+    {
+      return licenseChoice.getLicenses()
+          .stream()
           .map(l -> {
             PdfComponentLicense lic = new PdfComponentLicense();
             if (StringUtils.isNotEmpty(l.getName())) {
@@ -656,7 +674,8 @@ public abstract class AbstractCycloneDxExporter
               lic.name = l.getId();
             }
             return lic;
-          }).collect(Collectors.toList());
+          })
+          .collect(Collectors.toList());
     }
     else {
       return Collections.emptyList();
@@ -678,7 +697,9 @@ public abstract class AbstractCycloneDxExporter
 
     List<PdfComponentSecurityIssue> pdfVulns = new ArrayList<>();
     for (Vulnerability vulnerability : vulns) {
-      Optional.ofNullable(vulnerability.getRatings()).orElse(Collections.emptyList()).stream()
+      Optional.ofNullable(vulnerability.getRatings())
+          .orElse(Collections.emptyList())
+          .stream()
           .filter(rating -> rating.getScore() != null)
           .findFirst()
           .ifPresent(rating -> {
@@ -759,9 +780,10 @@ public abstract class AbstractCycloneDxExporter
 
   protected void cleanupLegacyVulnerabilitiesFromBomComponents(Bom bom) {
     if (bom.getComponents() != null) {
-      bom.getComponents().stream()
-              .filter(c -> c.getExtensions() != null && c.getExtensions().containsKey("vulnerabilities"))
-              .forEach(c -> c.getExtensions().remove("vulnerabilities"));
+      bom.getComponents()
+          .stream()
+          .filter(c -> c.getExtensions() != null && c.getExtensions().containsKey("vulnerabilities"))
+          .forEach(c -> c.getExtensions().remove("vulnerabilities"));
     }
     else {
       bom.setComponents(Collections.emptyList());

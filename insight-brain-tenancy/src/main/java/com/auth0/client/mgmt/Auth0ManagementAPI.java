@@ -457,9 +457,15 @@ public class Auth0ManagementAPI
 
     try {
       UserFilter filter = new UserFilter().withFields("email,user_id,identities,user_metadata", true);
-      return users().listByEmail(email, filter).execute().stream()
-          .filter(user -> user.getIdentities().stream().map(Identity::getConnection)
-              .anyMatch(connectionName::equals)).findFirst().orElse(null);
+      return users().listByEmail(email, filter)
+          .execute()
+          .stream()
+          .filter(user -> user.getIdentities()
+              .stream()
+              .map(Identity::getConnection)
+              .anyMatch(connectionName::equals))
+          .findFirst()
+          .orElse(null);
     }
     catch (Auth0Exception e) {
       throw new RuntimeException(e);
@@ -498,7 +504,8 @@ public class Auth0ManagementAPI
     Collections.shuffle(pwdChars);
     return pwdChars.stream()
         .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
-        .toString().toCharArray();
+        .toString()
+        .toCharArray();
   }
 
   public PasswordChangeTicket createPasswordChangeTicket(
@@ -586,8 +593,7 @@ public class Auth0ManagementAPI
   private Organization updateOrganization(
       final List<EnabledConnection> connectionsToEnable,
       final String orgId,
-      final Organization organization)
-      throws Auth0Exception
+      final Organization organization) throws Auth0Exception
   {
     updateOrganizationConnections(connectionsToEnable, orgId);
     return organizations().update(orgId, organization).execute();
@@ -595,8 +601,7 @@ public class Auth0ManagementAPI
 
   private Organization createOrganization(
       final List<EnabledConnection> connectionsToEnable,
-      final Organization organization)
-      throws Auth0Exception
+      final Organization organization) throws Auth0Exception
   {
     organization.setEnabledConnections(connectionsToEnable);
     return organizations().create(organization).execute();
@@ -604,8 +609,7 @@ public class Auth0ManagementAPI
 
   private void updateOrganizationConnections(
       final List<EnabledConnection> connectionsToEnable,
-      final String orgId)
-      throws Auth0Exception
+      final String orgId) throws Auth0Exception
   {
     List<EnabledConnection> enabledConnections = getEnabledConnections(orgId);
 
@@ -638,9 +642,10 @@ public class Auth0ManagementAPI
       return true;
     }
 
-    return enabledConnections.stream().noneMatch(
-        enabledConnection -> enabledConnection.getConnectionId()
-            .equalsIgnoreCase(connectionToEnable.getConnectionId()));
+    return enabledConnections.stream()
+        .noneMatch(
+            enabledConnection -> enabledConnection.getConnectionId()
+                .equalsIgnoreCase(connectionToEnable.getConnectionId()));
   }
 
   private Organization getOrganizationByName(String name) {

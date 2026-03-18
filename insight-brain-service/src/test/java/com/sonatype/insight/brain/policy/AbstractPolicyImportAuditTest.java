@@ -80,8 +80,7 @@ public abstract class AbstractPolicyImportAuditTest
     policy.setNotifications(new Notifications(
         new UserNotification("name@email.com", Stage.ID_BUILD, Stage.ID_STAGE_RELEASE, Stage.ID_OPERATE),
         new RoleNotification(role.getId(), role.getName(), Stage.ID_BUILD),
-        new JiraNotification("p1", 123L, Stage.ID_DEVELOP)
-    ));
+        new JiraNotification("p1", 123L, Stage.ID_DEVELOP)));
     return policy;
   }
 
@@ -107,11 +106,12 @@ public abstract class AbstractPolicyImportAuditTest
     return tag;
   }
 
-  protected void assertPolicyImportData(AuditDTO auditDTO,
-                                        Integer policyCount,
-                                        Integer componentLabelCount,
-                                        Integer licenseThreatGroupCount,
-                                        Integer applicationCategoryCount)
+  protected void assertPolicyImportData(
+      AuditDTO auditDTO,
+      Integer policyCount,
+      Integer componentLabelCount,
+      Integer licenseThreatGroupCount,
+      Integer applicationCategoryCount)
   {
     assertCustomData(auditDTO, "policyCount", policyCount);
     assertCustomData(auditDTO, "componentLabelCount", componentLabelCount);
@@ -141,10 +141,11 @@ public abstract class AbstractPolicyImportAuditTest
     }
   }
 
-  protected void assertImportedPolicies(final List<Policy> policies,
-                                        String organizationId,
-                                        String organizationName,
-                                        String username)
+  protected void assertImportedPolicies(
+      final List<Policy> policies,
+      String organizationId,
+      String organizationName,
+      String username)
   {
     List<AuditDTO> auditLogs = assertAuditLogs(AuditEvent.IMPORT_POLICY, policies.size(), null, username);
     for (int i = 0; i < policies.size(); i++) {

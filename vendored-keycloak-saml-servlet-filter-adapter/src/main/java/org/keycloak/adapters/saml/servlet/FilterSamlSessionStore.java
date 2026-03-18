@@ -37,16 +37,29 @@ import org.keycloak.common.util.KeycloakUriBuilder;
 import org.slf4j.LoggerFactory;
 
 /**
- * Copied from <a href="https://github.com/keycloak/keycloak/blob/23.0.7/adapters/saml/servlet-filter/src/main/java/org/keycloak/adapters/saml/servlet/FilterSamlSessionStore.java">...</a>
+ * Copied from <a href=
+ * "https://github.com/keycloak/keycloak/blob/23.0.7/adapters/saml/servlet-filter/src/main/java/org/keycloak/adapters/saml/servlet/FilterSamlSessionStore.java">...</a>
+ *
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
-public class FilterSamlSessionStore extends FilterSessionStore implements SamlSessionStore {
+public class FilterSamlSessionStore
+    extends FilterSessionStore
+    implements SamlSessionStore
+{
   protected static Logger log = LoggerFactory.getLogger(SamlSessionStore.class);
+
   protected final SessionIdMapper idMapper;
+
   private final SamlDeployment deployment;
 
-  public FilterSamlSessionStore(HttpServletRequest request, HttpFacade facade, int maxBuffer, SessionIdMapper idMapper, SamlDeployment deployment) {
+  public FilterSamlSessionStore(
+      HttpServletRequest request,
+      HttpFacade facade,
+      int maxBuffer,
+      SessionIdMapper idMapper,
+      SamlDeployment deployment)
+  {
     super(request, facade, maxBuffer);
     this.idMapper = idMapper;
     this.deployment = deployment;
@@ -54,33 +67,38 @@ public class FilterSamlSessionStore extends FilterSessionStore implements SamlSe
 
   @Override
   public void setCurrentAction(CurrentAction action) {
-    if (action == CurrentAction.NONE && request.getSession(false) == null) return;
+    if (action == CurrentAction.NONE && request.getSession(false) == null)
+      return;
     request.getSession().setAttribute(SamlSessionStore.CURRENT_ACTION, action);
   }
 
   @Override
   public boolean isLoggingIn() {
     HttpSession session = request.getSession(false);
-    if (session == null) return false;
-    CurrentAction action = (CurrentAction)session.getAttribute(SamlSessionStore.CURRENT_ACTION);
+    if (session == null)
+      return false;
+    CurrentAction action = (CurrentAction) session.getAttribute(SamlSessionStore.CURRENT_ACTION);
     return action == CurrentAction.LOGGING_IN;
   }
 
   @Override
   public boolean isLoggingOut() {
     HttpSession session = request.getSession(false);
-    if (session == null) return false;
-    CurrentAction action = (CurrentAction)session.getAttribute(SamlSessionStore.CURRENT_ACTION);
+    if (session == null)
+      return false;
+    CurrentAction action = (CurrentAction) session.getAttribute(SamlSessionStore.CURRENT_ACTION);
     return action == CurrentAction.LOGGING_OUT;
   }
 
   @Override
   public void logoutAccount() {
     HttpSession session = request.getSession(false);
-    if (session == null) return;
+    if (session == null)
+      return;
     if (session != null) {
-      if (idMapper != null) idMapper.removeSession(session.getId());
-      SamlSession samlSession = (SamlSession)session.getAttribute(SamlSession.class.getName());
+      if (idMapper != null)
+        idMapper.removeSession(session.getId());
+      SamlSession samlSession = (SamlSession) session.getAttribute(SamlSession.class.getName());
       if (samlSession != null) {
         session.removeAttribute(SamlSession.class.getName());
       }
@@ -113,7 +131,8 @@ public class FilterSamlSessionStore extends FilterSessionStore implements SamlSe
     for (String ssoId : ssoIds) {
       if (account != null && account.getSessionIndex().equals(ssoId)) {
         logoutAccount();
-      } else if (idMapper != null) {
+      }
+      else if (idMapper != null) {
         String sessionId = idMapper.getSessionFromSSO(ssoId);
         idMapper.removeSession(sessionId);
       }
@@ -127,7 +146,8 @@ public class FilterSamlSessionStore extends FilterSessionStore implements SamlSe
       log.debug("session was null, returning false");
       return false;
     }
-    final SamlSession samlSession = SamlUtil.validateSamlSession(session.getAttribute(SamlSession.class.getName()), deployment);
+    final SamlSession samlSession =
+        SamlUtil.validateSamlSession(session.getAttribute(SamlSession.class.getName()), deployment);
     if (samlSession == null) {
       log.debug("SamlSession was not in session, returning null");
       return false;
@@ -143,7 +163,7 @@ public class FilterSamlSessionStore extends FilterSessionStore implements SamlSe
 
   public HttpServletRequestWrapper getWrap() {
     HttpSession session = request.getSession(true);
-    final SamlSession samlSession = (SamlSession)session.getAttribute(SamlSession.class.getName());
+    final SamlSession samlSession = (SamlSession) session.getAttribute(SamlSession.class.getName());
     final KeycloakAccount account = samlSession;
     return buildWrapper(session, account);
   }
@@ -152,24 +172,28 @@ public class FilterSamlSessionStore extends FilterSessionStore implements SamlSe
   public void saveAccount(SamlSession account) {
     HttpSession session = request.getSession(true);
     session.setAttribute(SamlSession.class.getName(), account);
-    if (idMapper != null) idMapper.map(account.getSessionIndex(),  account.getPrincipal().getSamlSubject(), session.getId());
+    if (idMapper != null)
+      idMapper.map(account.getSessionIndex(), account.getPrincipal().getSamlSubject(), session.getId());
   }
 
   @Override
   public SamlSession getAccount() {
     HttpSession session = request.getSession(false);
-    if (session == null) return null;
-    return (SamlSession)session.getAttribute(SamlSession.class.getName());
+    if (session == null)
+      return null;
+    return (SamlSession) session.getAttribute(SamlSession.class.getName());
   }
 
   @Override
   public String getRedirectUri() {
     HttpSession session = request.getSession(false);
-    if (session == null) return null;
-    String redirect = (String)session.getAttribute(FilterSessionStore.REDIRECT_URI);
+    if (session == null)
+      return null;
+    String redirect = (String) session.getAttribute(FilterSessionStore.REDIRECT_URI);
     if (redirect == null) {
       String contextPath = request.getContextPath();
-      String baseUri = KeycloakUriBuilder.fromUri(request.getRequestURL().toString()).replacePath(contextPath).build().toString();
+      String baseUri =
+          KeycloakUriBuilder.fromUri(request.getRequestURL().toString()).replacePath(contextPath).build().toString();
       return SamlUtil.getRedirectTo(facade, contextPath, baseUri);
     }
     return redirect;

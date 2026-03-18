@@ -225,10 +225,9 @@ public class ApiPolicyWaiverServiceTest
   @Deprecated
   @Test
   public void testAddPolicyWaiver_InvalidPolicyViolationId() {
-    assertThatThrownBy(() ->
-        apiPolicyWaiverService.addPolicyWaiver("invalid-policyViolationId", OwnerType.APPLICATION, "waiver comment")
-    ).isInstanceOf(NotFoundException.class)
-        .hasMessage("Could not find policy violation with ID invalid-policyViolationId.");
+    assertThatThrownBy(() -> apiPolicyWaiverService.addPolicyWaiver("invalid-policyViolationId", OwnerType.APPLICATION,
+        "waiver comment")).isInstanceOf(NotFoundException.class)
+            .hasMessage("Could not find policy violation with ID invalid-policyViolationId.");
   }
 
   /**
@@ -237,10 +236,10 @@ public class ApiPolicyWaiverServiceTest
   @Deprecated
   @Test
   public void testAddPolicyWaiver_InvalidOwnerType() {
-    assertThatThrownBy(() ->
-        apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.REPOSITORY, "waiver comment")
-    ).isInstanceOf(IllegalStateException.class)
-        .hasMessage("Unknown owner type: repository");
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.REPOSITORY, "waiver comment"))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("Unknown owner type: repository");
   }
 
   @Test
@@ -277,20 +276,20 @@ public class ApiPolicyWaiverServiceTest
 
   @Test
   public void testAddPolicyWaiverWithWrongWaiverReason() {
-    assertThatThrownBy(() ->
-        apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-            policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null, "WrongId", false))
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Waiver reason not found");
+    assertThatThrownBy(() -> apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION,
+        app.getId(),
+        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null, "WrongId", false)))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Waiver reason not found");
   }
 
   @Test
   public void testAddPolicyWaiverWithExpireWhenRemediationAvailableAndAllComponents() {
-    assertThatThrownBy(() ->
-        apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-            policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_COMPONENTS, null, null, true))
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Expire When Remediation Available Waivers can only be applied to Exact Components.");
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+            policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_COMPONENTS, null, null, true)))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Expire When Remediation Available Waivers can only be applied to Exact Components.");
   }
 
   @Test
@@ -308,24 +307,22 @@ public class ApiPolicyWaiverServiceTest
   public void testAddPolicyWaiverByPolicyViolationId_NonParentApplication() {
     Application otherApp = tempEntity.newApplication(org.getId());
 
-    assertThatThrownBy(() ->
-        apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, otherApp.getId(),
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, otherApp.getId(),
             policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT,
-                null, null, false))
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Invalid owner id: " + otherApp.getId());
+                null, null, false))).isInstanceOf(BadRequestException.class)
+                    .hasMessage("Invalid owner id: " + otherApp.getId());
   }
 
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_NonParentApplicationPublicId() {
     Application otherApp = tempEntity.newApplication(org.getId());
 
-    assertThatThrownBy(() ->
-        apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, otherApp.getPublicId(),
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, otherApp.getPublicId(),
             policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT,
-                null, null, false))
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Invalid owner id: " + otherApp.getPublicId());
+                null, null, false))).isInstanceOf(BadRequestException.class)
+                    .hasMessage("Invalid owner id: " + otherApp.getPublicId());
   }
 
   @Test
@@ -343,12 +340,11 @@ public class ApiPolicyWaiverServiceTest
   public void testAddPolicyWaiverByPolicyViolationId_NonParentOrganization() {
     Organization otherOrg = tempEntity.newOrganization();
 
-    assertThatThrownBy(() ->
-        apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, otherOrg.getId(),
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, otherOrg.getId(),
             policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT,
-                null, null, false))
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Invalid owner id: " + otherOrg.getId());
+                null, null, false))).isInstanceOf(BadRequestException.class)
+                    .hasMessage("Invalid owner id: " + otherOrg.getId());
   }
 
   @Test
@@ -387,8 +383,8 @@ public class ApiPolicyWaiverServiceTest
   public void testAddPolicyWaiverByPolicyViolationId_InvalidPolicyViolationId() {
     assertThatThrownBy(() -> apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION,
         app.getId(), "invalid-policyViolationId", new ApiWaiverOptionsDTO(null, EXACT_COMPONENT, null, null, false)))
-        .isInstanceOf(NotFoundException.class)
-        .hasMessage("Could not find policy violation with ID invalid-policyViolationId.");
+            .isInstanceOf(NotFoundException.class)
+            .hasMessage("Could not find policy violation with ID invalid-policyViolationId.");
   }
 
   @Test
@@ -427,13 +423,17 @@ public class ApiPolicyWaiverServiceTest
         policyViolation.getConstraintFactsJson(), null, policyWaiver.getComponentMatchStrategy(),
         policyWaiver.getAssociatedPackageUrl(), null, false);
     assertThat(policyWaiver.getComponentIdentifier().getCoordinates())
-        .hasSize(5).isEqualTo(new TreeMap<String, String>() {{
+        .hasSize(5)
+        .isEqualTo(new TreeMap<String, String>()
+        {
+          {
             this.put("artifactId", "a1");
             this.put("groupId", "g1");
             this.put("version", "v1");
             this.put("classifier", "c1");
             this.put("extension", "java");
-          }});
+          }
+        });
   }
 
   @Test
@@ -462,8 +462,8 @@ public class ApiPolicyWaiverServiceTest
     assertThatThrownBy(
         () -> apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
             policyViolation1.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_VERSIONS, null, null, false)))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("This policy waiver already exists.");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("This policy waiver already exists.");
 
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
         policyViolation2.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_VERSIONS, null, null, false));
@@ -555,9 +555,10 @@ public class ApiPolicyWaiverServiceTest
 
     assertThatThrownBy(() -> apiPolicyWaiverService
         .deletePolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), policyWaiver.getId()))
-        .isInstanceOf(NotFoundException.class)
-        .hasMessage("Cannot find a policy waiver with ID " + policyWaiver.getId() + " for " + OwnerType.ORGANIZATION +
-            " with ID " + organization.getId());
+            .isInstanceOf(NotFoundException.class)
+            .hasMessage(
+                "Cannot find a policy waiver with ID " + policyWaiver.getId() + " for " + OwnerType.ORGANIZATION +
+                    " with ID " + organization.getId());
   }
 
   @Test
@@ -854,17 +855,14 @@ public class ApiPolicyWaiverServiceTest
 
   @Test
   public void testGetApplicableWaivers_NullId() {
-    assertThatThrownBy(() ->
-        apiPolicyWaiverService.getApplicableWaivers(null)
-    ).isInstanceOf(NotFoundException.class)
+    assertThatThrownBy(() -> apiPolicyWaiverService.getApplicableWaivers(null)).isInstanceOf(NotFoundException.class)
         .hasMessage("Could not find policy violation with ID null.");
   }
 
   @Test
   public void testGetApplicableWaivers_InvalidId() {
-    assertThatThrownBy(() ->
-        apiPolicyWaiverService.getApplicableWaivers("InvalidPolicyViolationId")
-    ).isInstanceOf(NotFoundException.class)
+    assertThatThrownBy(() -> apiPolicyWaiverService.getApplicableWaivers("InvalidPolicyViolationId"))
+        .isInstanceOf(NotFoundException.class)
         .hasMessage("Could not find policy violation with ID InvalidPolicyViolationId.");
   }
 
@@ -932,7 +930,8 @@ public class ApiPolicyWaiverServiceTest
 
     // activeWaivers - results sorted to have deterministic ordering in the test
     List<ApiPolicyWaiverDTO> activeApplicableWaivers = dto.activeWaivers.stream()
-        .sorted(Comparator.comparing(apiPolicyWaiverDTO -> apiPolicyWaiverDTO.createTime)).collect(Collectors.toList());
+        .sorted(Comparator.comparing(apiPolicyWaiverDTO -> apiPolicyWaiverDTO.createTime))
+        .collect(Collectors.toList());
 
     assertThat(activeApplicableWaivers.size()).isEqualTo(3);
     assertApiPolicyWaiverDTO("hashX", policyId, orgId, "NewOrg", "", policyViolationId,
@@ -1036,7 +1035,7 @@ public class ApiPolicyWaiverServiceTest
 
     when(apiPolicyViolationServiceV2Mock.getTransitivePolicyViolationsForLastEvaluation(app.getId(),
         policyEvaluation.getScanId(), componentIdentifier, null, null))
-        .thenReturn(Pair.of(component, Collections.emptyList()));
+            .thenReturn(Pair.of(component, Collections.emptyList()));
 
     apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByAppScanComponent(OwnerType.APPLICATION,
         app.getPublicId(), policyEvaluation.getScanId(), componentIdentifier, null, null, null);
@@ -1079,7 +1078,7 @@ public class ApiPolicyWaiverServiceTest
 
     when(apiPolicyViolationServiceV2Mock.getTransitivePolicyViolationsForLastEvaluation(app.getId(),
         policyEvaluation.getScanId(), componentIdentifier, null, null))
-        .thenReturn(pair);
+            .thenReturn(pair);
 
     apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByAppScanComponent(OwnerType.APPLICATION,
         app.getPublicId(), policyEvaluation.getScanId(), componentIdentifier, null, null, apiWaiverOptionsDTO);
@@ -1146,20 +1145,20 @@ public class ApiPolicyWaiverServiceTest
   public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_UnknownOwnerId() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
         () -> apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.APPLICATION,
-            "doesNotExist", BuildStageType.ID, null, null, null, null)
-    ).withMessageContaining("Application with ID doesNotExist does not exist.");
+            "doesNotExist", BuildStageType.ID, null, null, null, null))
+        .withMessageContaining("Application with ID doesNotExist does not exist.");
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
         () -> apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.ORGANIZATION,
-            "doesNotExist", BuildStageType.ID, null, null, null, null)
-    ).withMessageContaining("Organization with ID doesNotExist does not exist.");
+            "doesNotExist", BuildStageType.ID, null, null, null, null))
+        .withMessageContaining("Organization with ID doesNotExist does not exist.");
   }
 
   @Test
   public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_UnknownStageId() {
     assertThatExceptionOfType(InvalidStageException.class).isThrownBy(
         () -> apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.APPLICATION,
-            app.getPublicId(), "doesNotExist", null, null, null, null)
-    ).withMessageContaining("Invalid stage id=doesNotExist");
+            app.getPublicId(), "doesNotExist", null, null, null, null))
+        .withMessageContaining("Invalid stage id=doesNotExist");
   }
 
   @Test
@@ -1426,16 +1425,16 @@ public class ApiPolicyWaiverServiceTest
   public void testGetTransitivePolicyWaiversByAppScanComponent_NotAnApp() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(OwnerType.ORGANIZATION, null, null,
-            null, null, null)
-    ).withMessageContaining("scanId can only be specified for an application.");
+            null, null, null))
+        .withMessageContaining("scanId can only be specified for an application.");
   }
 
   @Test
   public void testGetTransitivePolicyWaiversByAppScanComponent_NoComponentIdentifier_NoPackageUrl_NoHash() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(OwnerType.APPLICATION, null,
-            null, null, null, null)
-    ).withMessageContaining("componentIdentifier or packageUrl or hash must be specified.");
+            null, null, null, null))
+        .withMessageContaining("componentIdentifier or packageUrl or hash must be specified.");
   }
 
   @Test
@@ -1443,8 +1442,8 @@ public class ApiPolicyWaiverServiceTest
     String appId = "unknown";
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
         () -> apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(OwnerType.APPLICATION, appId, null,
-            null, null, "hash")
-    ).withMessageContaining("Application with ID " + appId + " does not exist.");
+            null, null, "hash"))
+        .withMessageContaining("Application with ID " + appId + " does not exist.");
   }
 
   @Test
@@ -1452,8 +1451,8 @@ public class ApiPolicyWaiverServiceTest
     String scanId = "unknown";
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
         () -> apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(OwnerType.APPLICATION, app.getId(),
-            scanId, null, null, "hash")
-    ).withMessageContaining("scanId " + scanId + " not found for application " + app.getPublicId() + ".");
+            scanId, null, null, "hash"))
+        .withMessageContaining("scanId " + scanId + " not found for application " + app.getPublicId() + ".");
   }
 
   @Test
@@ -1803,8 +1802,8 @@ public class ApiPolicyWaiverServiceTest
         String.format("Cannot find a waiver with ID %s for owner %s", "nonExistingId", application.getId());
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-        () -> apiPolicyWaiverService.getPolicyWaiver(OwnerType.APPLICATION, application.getId(), "nonExistingId")
-    ).withMessageContaining(expectedErrorMessage);
+        () -> apiPolicyWaiverService.getPolicyWaiver(OwnerType.APPLICATION, application.getId(), "nonExistingId"))
+        .withMessageContaining(expectedErrorMessage);
   }
 
   @Test
@@ -1823,8 +1822,8 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testGetSimilarWaivers_null() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-        () -> apiPolicyWaiverService.getSimilarWaivers(null)
-    ).withMessageContaining("Could not find policy violation with ID null.");
+        () -> apiPolicyWaiverService.getSimilarWaivers(null))
+        .withMessageContaining("Could not find policy violation with ID null.");
   }
 
   @Test
@@ -1947,8 +1946,7 @@ public class ApiPolicyWaiverServiceTest
             OwnerType.ORGANIZATION,
             "doesNotExist",
             policyWaiver.getId(),
-            dto
-        ))
+            dto))
         .withMessageContaining("Organization with ID doesNotExist does not exist.");
   }
 
@@ -1963,8 +1961,7 @@ public class ApiPolicyWaiverServiceTest
             OwnerType.APPLICATION,
             "doesNotExist",
             policyWaiver.getId(),
-            dto
-        ))
+            dto))
         .withMessageContaining("Application with ID doesNotExist does not exist.");
   }
 
@@ -1979,8 +1976,7 @@ public class ApiPolicyWaiverServiceTest
             OwnerType.REPOSITORY_MANAGER,
             "doesNotExist",
             policyWaiver.getId(),
-            dto
-        ))
+            dto))
         .withMessageContaining("RepositoryManager with ID doesNotExist does not exist.");
   }
 
@@ -1995,8 +1991,7 @@ public class ApiPolicyWaiverServiceTest
             OwnerType.REPOSITORY,
             "doesNotExist",
             policyWaiver.getId(),
-            dto
-        ))
+            dto))
         .withMessageContaining("Repository with ID doesNotExist does not exist.");
   }
 
@@ -2010,8 +2005,7 @@ public class ApiPolicyWaiverServiceTest
             OwnerType.APPLICATION,
             application.getId(),
             "doesNotExist",
-            dto
-        ))
+            dto))
         .withMessageContaining("Cannot find a waiver with ID doesNotExist for owner " + application.getId() + ".");
   }
 
@@ -2028,8 +2022,7 @@ public class ApiPolicyWaiverServiceTest
             application.getType(),
             application.getId(),
             policyWaiver.getId(),
-            dto
-        ))
+            dto))
         .withMessageContaining("Matcher strategy cannot be updated.");
   }
 
@@ -2045,8 +2038,7 @@ public class ApiPolicyWaiverServiceTest
         application.getType(),
         application.getId(),
         policyWaiver.getId(),
-        dto
-    );
+        dto);
 
     assertThat(policyWaiverDAO.getById(policyWaiver.getId()).getComment()).isEqualTo(dto.comment);
   }
@@ -2064,8 +2056,7 @@ public class ApiPolicyWaiverServiceTest
             application.getType(),
             application.getId(),
             policyWaiver.getId(),
-            dto
-        ))
+            dto))
         .withMessageContaining("Expiration date must be in the future.");
   }
 
@@ -2082,8 +2073,7 @@ public class ApiPolicyWaiverServiceTest
             application.getType(),
             application.getId(),
             policyWaiver.getId(),
-            dto
-        ))
+            dto))
         .withMessageContaining("Waiver reason not found");
   }
 
@@ -2103,8 +2093,7 @@ public class ApiPolicyWaiverServiceTest
             application.getType(),
             application.getId(),
             policyWaiver.getId(),
-            dto
-        ))
+            dto))
         .withMessageContaining("Expire When Remediation Available Waivers can only be applied to Exact Components.");
   }
 
@@ -2130,8 +2119,7 @@ public class ApiPolicyWaiverServiceTest
         application.getType(),
         application.getId(),
         policyWaiver.getId(),
-        dto
-    );
+        dto);
 
     assertThat(new ApiWaiverOptionsDTO(policyWaiverDAO.getById(policyWaiver.getId())))
         .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
@@ -2143,8 +2131,7 @@ public class ApiPolicyWaiverServiceTest
       PolicyWaiver policyWaiver,
       Policy policy,
       Owner owner,
-      String expectedWaiverReasonText
-  )
+      String expectedWaiverReasonText)
   {
     assertThat(savedWaiver.policyWaiverId).isEqualTo(policyWaiver.getId());
     assertThat(savedWaiver.comment).isEqualTo(policyWaiver.getComment());
@@ -2366,7 +2353,7 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddBulkPolicyWaivers_Application_Success() {
     Policy policy2 = tempEntity.newPolicy(app);
-    PolicyViolation violation2 = tempEntity.newPolicyViolation(policyEvaluation, policy2, 
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(policyEvaluation, policy2,
         5, PolicyThreatCategory.SECURITY, "g2", "a2", "v2", "hash2", FailActionType.ID);
 
     ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
@@ -2374,8 +2361,7 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Arrays.asList(policyViolation.getId(), violation2.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO);
 
@@ -2398,8 +2384,7 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.matcherStrategy = ALL_VERSIONS;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.singletonList(policyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.ORGANIZATION, org.getId(), bulkWaiversDTO);
 
@@ -2422,8 +2407,7 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.singletonList(repoPolicyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.REPOSITORY, repository.getId(), bulkWaiversDTO);
 
@@ -2447,8 +2431,7 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.singletonList(repoPolicyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     apiPolicyWaiverService.addBulkPolicyWaivers(
         OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), bulkWaiversDTO);
@@ -2472,8 +2455,7 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.singletonList(repoPolicyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.REPOSITORY_CONTAINER,
         RepositoryContainer.REPOSITORY_CONTAINER_ID, bulkWaiversDTO);
@@ -2496,8 +2478,7 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.expiryTime = futureDate;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.singletonList(policyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO);
 
@@ -2516,8 +2497,7 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.waiverReasonId = reason.getId();
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.singletonList(policyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO);
 
@@ -2534,8 +2514,7 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.expireWhenRemediationAvailable = true;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.singletonList(policyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO);
 
@@ -2551,13 +2530,12 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Arrays.asList(policyViolation.getId(), "invalid-id-123"),
-        waiverOptions
-    );
+        waiverOptions);
 
-    assertThatThrownBy(() ->
-        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Error processing policy violation with ID: invalid-id-123");
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Error processing policy violation with ID: invalid-id-123");
 
     List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
     assertThat(waivers).hasSize(0);
@@ -2578,8 +2556,7 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.singletonList(policyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO);
 
@@ -2591,9 +2568,8 @@ public class ApiPolicyWaiverServiceTest
 
   @Test
   public void testAddBulkPolicyWaivers_NullRequest() {
-    assertThatThrownBy(() -> 
-        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), null)
-    ).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), null))
+        .isInstanceOf(BadRequestException.class)
         .hasMessage("Waivers request cannot be null");
   }
 
@@ -2601,26 +2577,24 @@ public class ApiPolicyWaiverServiceTest
   public void testAddBulkPolicyWaivers_NullViolationIds() {
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         null,
-        new ApiWaiverOptionsDTO()
-    );
+        new ApiWaiverOptionsDTO());
 
-    assertThatThrownBy(() -> 
-        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Violation IDs list cannot be null or empty");
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Violation IDs list cannot be null or empty");
   }
 
   @Test
   public void testAddBulkPolicyWaivers_EmptyViolationIds() {
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.emptyList(),
-        new ApiWaiverOptionsDTO()
-    );
+        new ApiWaiverOptionsDTO());
 
-    assertThatThrownBy(() -> 
-        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Violation IDs list cannot be null or empty");
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Violation IDs list cannot be null or empty");
   }
 
   @Test
@@ -2634,13 +2608,12 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         tooManyViolations,
-        waiverOptions
-    );
+        waiverOptions);
 
-    assertThatThrownBy(() -> 
-        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Maximum " + MAX_BULK_WAIVER_VIOLATIONS + " violations allowed per waiver request");
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Maximum " + MAX_BULK_WAIVER_VIOLATIONS + " violations allowed per waiver request");
 
     List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
     assertThat(waivers).hasSize(0);
@@ -2650,13 +2623,12 @@ public class ApiPolicyWaiverServiceTest
   public void testAddBulkPolicyWaivers_NullWaiverOptions() {
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.singletonList(policyViolation.getId()),
-        null
-    );
+        null);
 
-    assertThatThrownBy(() -> 
-        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Waiver options cannot be null");
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Waiver options cannot be null");
   }
 
   @Test
@@ -2665,13 +2637,12 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.matcherStrategy = null;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.singletonList(policyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
-    assertThatThrownBy(() -> 
-        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Matcher strategy is required");
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Matcher strategy is required");
   }
 
   @Test
@@ -2680,13 +2651,12 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.matcherStrategy = ALL_COMPONENTS;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.singletonList(policyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
-    assertThatThrownBy(() -> 
-        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Only EXACT_COMPONENT and ALL_VERSIONS matcher strategies are supported for bulk waivers");
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Only EXACT_COMPONENT and ALL_VERSIONS matcher strategies are supported for bulk waivers");
   }
 
   @Test
@@ -2698,13 +2668,12 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.expiryTime = pastDate;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.singletonList(policyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
-    assertThatThrownBy(() -> 
-        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Expiration date must be in the future.");
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Expiration date must be in the future.");
   }
 
   @Test
@@ -2714,13 +2683,12 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.expireWhenRemediationAvailable = true;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.singletonList(policyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
-    assertThatThrownBy(() -> 
-        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Expire When Remediation Available Waivers can only be applied to Exact Components.");
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Expire When Remediation Available Waivers can only be applied to Exact Components.");
   }
 
   @Test
@@ -2730,13 +2698,12 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.waiverReasonId = "invalid-reason-id";
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.singletonList(policyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
-    assertThatThrownBy(() -> 
-        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Waiver reason not found");
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Waiver reason not found");
   }
 
   @Test
@@ -2745,13 +2712,12 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Arrays.asList("invalid-1", "invalid-2", "invalid-3"),
-        waiverOptions
-    );
+        waiverOptions);
 
-    assertThatThrownBy(() -> 
-        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
-    ).isInstanceOf(BadRequestException.class)
-        .hasMessage("Error processing policy violation with ID: invalid-1");
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Error processing policy violation with ID: invalid-1");
 
     List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
     assertThat(waivers).hasSize(0);
@@ -2770,8 +2736,7 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         maxViolations,
-        waiverOptions
-    );
+        waiverOptions);
 
     // Should not throw exception (but will only create 1 waiver due to duplicates)
     apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO);
@@ -2792,8 +2757,7 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Arrays.asList(policyViolation.getId(), violation2.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     // When: Create bulk waivers
     apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO);
@@ -2820,13 +2784,12 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.waiverReasonId = "invalid-reason-id";
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Arrays.asList(policyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     // When: Attempt to create bulk waivers (should fail)
-    assertThatThrownBy(() ->
-        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
-    ).isInstanceOf(BadRequestException.class);
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
+            .isInstanceOf(BadRequestException.class);
 
     // Then: Verify no waivers were created
     List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
@@ -2850,13 +2813,12 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.waiverReasonId = "invalid-reason-id"; // This will cause failure
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Arrays.asList(policyViolation.getId(), violation2.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     // When: Attempt to create bulk waivers (should fail completely)
-    assertThatThrownBy(() ->
-        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
-    ).isInstanceOf(BadRequestException.class);
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
+            .isInstanceOf(BadRequestException.class);
 
     // Then: Verify NO waivers were created (atomic operation)
     List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
@@ -2881,13 +2843,12 @@ public class ApiPolicyWaiverServiceTest
     waiverOptions.waiverReasonId = "invalid-reason-id";
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Arrays.asList(policyViolation.getId(), violation2.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     // When: Attempt bulk waiver creation that will fail
-    assertThatThrownBy(() ->
-        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
-    ).isInstanceOf(BadRequestException.class);
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO))
+            .isInstanceOf(BadRequestException.class);
 
     // Then: Verify database state is clean (transaction rolled back)
     List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());

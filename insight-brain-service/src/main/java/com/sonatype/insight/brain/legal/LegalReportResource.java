@@ -81,7 +81,8 @@ public class LegalReportResource
         .withIncludeIncludeSonatypeSpecialLicenses(Boolean
             .parseBoolean(getMultiPartValue(formData, REPORT_FORM_SONATYPE_SPECIAL_LICENSES, DEFAULT_VALUE_FALSE)))
         .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
-        .withNoticeFiles(getNoticeFilesFromFormData(formData)).withIncludeInnerSource(
+        .withNoticeFiles(getNoticeFilesFromFormData(formData))
+        .withIncludeInnerSource(
             Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE, DEFAULT_VALUE_FALSE)));
     return applicationAttributionReportBuilder
         .generateLegalMultiApplicationAttributionReportFromActiveUserFilter(reportParametersBuilder.build());

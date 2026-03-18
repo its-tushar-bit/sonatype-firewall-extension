@@ -7,4 +7,6 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.List;
 
-public record ApiVersionEvaluationWindowsDTO(List<ApiVersionEvaluationWindowDTO> versionEvaluationWindows) { }
+public record ApiVersionEvaluationWindowsDTO(List<ApiVersionEvaluationWindowDTO> versionEvaluationWindows)
+{
+}

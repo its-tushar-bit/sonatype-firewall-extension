@@ -279,9 +279,10 @@ public class MeteredThreadPoolExecutorTest
     assertThat(meterRegistry.getMeters())
         .extracting(meter -> Tuple.tuple(
             meter.getId().getName(),
-            meter.getId().getTags().stream()
-                .collect(Collectors.toMap(Tag::getKey, Tag::getValue))
-        ))
+            meter.getId()
+                .getTags()
+                .stream()
+                .collect(Collectors.toMap(Tag::getKey, Tag::getValue))))
         .containsExactlyInAnyOrder(
             Tuple.tuple("executor.active", Map.of("kind", "some_kind", "name", "SomeService")),
             Tuple.tuple("executor.queued", Map.of("kind", "some_kind", "name", "SomeService")),
@@ -293,8 +294,7 @@ public class MeteredThreadPoolExecutorTest
             Tuple.tuple("executor.idle", Map.of("kind", "some_kind", "name", "SomeService")),
             Tuple.tuple("executor", Map.of("kind", "some_kind", "name", "SomeService")),
             Tuple.tuple("executor.failed", Map.of("kind", "some_kind", "name", "SomeService")),
-            Tuple.tuple("executor.completed", Map.of("kind", "some_kind", "name", "SomeService"))
-        );
+            Tuple.tuple("executor.completed", Map.of("kind", "some_kind", "name", "SomeService")));
   }
 
   @Test
@@ -316,9 +316,10 @@ public class MeteredThreadPoolExecutorTest
     assertThat(meterRegistry.getMeters())
         .extracting(meter -> Tuple.tuple(
             meter.getId().getName(),
-            meter.getId().getTags().stream()
-                .collect(Collectors.toMap(Tag::getKey, Tag::getValue))
-        ))
+            meter.getId()
+                .getTags()
+                .stream()
+                .collect(Collectors.toMap(Tag::getKey, Tag::getValue))))
         .containsExactlyInAnyOrder(
             Tuple.tuple("executor.active", Map.of("kind", "some_kind", "name", "SomeService")),
             Tuple.tuple("executor.queued", Map.of("kind", "some_kind", "name", "SomeService")),
@@ -335,8 +336,7 @@ public class MeteredThreadPoolExecutorTest
             Tuple.tuple("executor.failed",
                 Map.of("kind", "some_kind", "name", "SomeService", "tag1", "value1", "tag2", "value2")),
             Tuple.tuple("executor.completed",
-                Map.of("kind", "some_kind", "name", "SomeService", "tag1", "value1", "tag2", "value2"))
-        );
+                Map.of("kind", "some_kind", "name", "SomeService", "tag1", "value1", "tag2", "value2")));
   }
 
   @Test

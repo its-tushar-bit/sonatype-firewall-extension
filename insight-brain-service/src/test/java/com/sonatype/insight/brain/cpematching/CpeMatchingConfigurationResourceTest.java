@@ -50,7 +50,8 @@ public class CpeMatchingConfigurationResourceTest
     CpeMatchingConfigurationRequest requestDTO = new CpeMatchingConfigurationRequest();
     requestDTO.enabled = true;
     HttpResponse response = restRequest().parameter("application", app1.getId())
-        .body(requestDTO).put();
+        .body(requestDTO)
+        .put();
     assertResponseStatus(200, response);
     CpeMatchingConfigurationDTO actualRestResponse = response.getBody(CpeMatchingConfigurationDTO.class);
     assertThat(actualRestResponse).isNotNull();
@@ -66,7 +67,8 @@ public class CpeMatchingConfigurationResourceTest
     requestDTO.enabled = true;
     requestDTO.allowOverride = true;
     HttpResponse response = restRequest().parameter("organization", org1.getId())
-        .body(requestDTO).put();
+        .body(requestDTO)
+        .put();
     assertResponseStatus(200, response);
     CpeMatchingConfigurationDTO actualRestResponse = response.getBody(CpeMatchingConfigurationDTO.class);
     assertThat(actualRestResponse.enabled).isTrue();
@@ -82,7 +84,8 @@ public class CpeMatchingConfigurationResourceTest
     requestDTO.enabled = true;
     requestDTO.allowOverride = true;
     HttpResponse response = restRequest().parameter("application", app1.getId())
-        .body(requestDTO).put();
+        .body(requestDTO)
+        .put();
     assertResponseStatus(403, response);
     assertThat(response.getBodyText()).isEqualTo(
         String.format(CPE_MATCHING_OVERRIDING_DISABLED_ERROR_TEMPLATE, app1.getId(),
@@ -98,7 +101,8 @@ public class CpeMatchingConfigurationResourceTest
     requestDTO.enabled = true;
     requestDTO.allowOverride = true;
     HttpResponse response = restRequest().parameter("organization", org2.getId())
-        .body(requestDTO).put();
+        .body(requestDTO)
+        .put();
     assertResponseStatus(403, response);
     assertThat(response.getBodyText()).isEqualTo(
         String.format(CPE_MATCHING_OVERRIDING_DISABLED_ERROR_TEMPLATE, org2.getId(),
@@ -116,7 +120,8 @@ public class CpeMatchingConfigurationResourceTest
   @Test
   public void testUpdateCpeMatchingConfiguration_notFoundError() throws Exception {
     HttpResponse response = restRequest().parameter("application", "fakeApp")
-        .body(new CpeMatchingConfigurationRequest()).put();
+        .body(new CpeMatchingConfigurationRequest())
+        .put();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Application with ID fakeApp does not exist.");
   }
@@ -128,7 +133,8 @@ public class CpeMatchingConfigurationResourceTest
     CpeMatchingConfigurationRequest requestDTO = new CpeMatchingConfigurationRequest();
     requestDTO.enabled = true;
     HttpResponse response = restRequest().parameter("application", app1.getId())
-        .body(requestDTO).put();
+        .body(requestDTO)
+        .put();
     assertResponseStatus(402, response);
     assertThat(response.getBodyText()).isEqualTo("Your IQ Server license does not enable this feature.");
   }

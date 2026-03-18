@@ -58,7 +58,7 @@ public class TelemetryService
     UserPrincipal userPrincipal = currentUser.getUserPrincipal();
 
     return roleDAO.getObfuscatedRolesByUserCaseInsensitiveAndGroups(userPrincipal.getUsername(),
-            userPrincipal.getMembership());
+        userPrincipal.getMembership());
   }
 
   private String obfuscate(String input) {

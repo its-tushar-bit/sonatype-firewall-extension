@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.container.images;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import jakarta.inject.Inject;
@@ -66,11 +67,11 @@ public class ContainerImageReportServiceTest
     Application application2 = tempEntity.newApplication("app2", "appPublicId2", organization.getId());
     tempEntity.newApplication("app3", "appPublicId3", organization.getId());
 
-    //policy evaluation
+    // policy evaluation
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application1.getId(), "proxy", "scanId1");
     PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), "proxy", "scanId2");
 
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -79,7 +80,7 @@ public class ContainerImageReportServiceTest
     Policy policy5 = tempEntity.newPolicy(application2.getId(), "policy5");
     Policy policy6 = tempEntity.newPolicy(application2.getId(), "policy6");
 
-    //create policy violations app 1
+    // create policy violations app 1
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -90,7 +91,7 @@ public class ContainerImageReportServiceTest
     policyViolation4.setThreatLevel(5);
     policyViolation1.setActionTypeId("fail");
 
-    //create policy violations app 1
+    // create policy violations app 1
     PolicyViolation policyViolation5 = tempEntity.newPolicyViolation(policyEvaluation2, policy5);
     PolicyViolation policyViolation6 = tempEntity.newPolicyViolation(policyEvaluation2, policy6);
     policyViolation5.setThreatLevel(10);
@@ -131,13 +132,13 @@ public class ContainerImageReportServiceTest
     // Container Image application
     Application application1 = tempEntity.newApplication("app1", "appPublicId1", organization.getId());
 
-    //policy evaluation
+    // policy evaluation
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application1.getId(), "proxy", "scanId1");
 
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
 
-    //create policy violation with fail action (quarantine)
+    // create policy violation with fail action (quarantine)
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     policyViolation1.setThreatLevel(10);
     policyViolation1.setActionTypeId("fail");
@@ -180,7 +181,7 @@ public class ContainerImageReportServiceTest
         .isThrownBy(() -> containerImageReportService.getContainerImagesSummary("foobar"))
         .withMessage("Repository with ID foobar does not exist.");
   }
-  
+
   @Test
   public void testGetContainerImagesSummary_RepositoryIdIsNotDocker() {
     Repository repository = tempEntity.newRepository("publicId");
@@ -194,7 +195,7 @@ public class ContainerImageReportServiceTest
         .isThrownBy(() -> containerImageReportService.getContainerImagesSummary(repository.getId()))
         .withMessage("Repository must be of type proxy and format docker");
   }
-  
+
   @Test
   public void testGetContainerImagesSummary_RepositoryIdIsNotProxy() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
@@ -203,8 +204,7 @@ public class ContainerImageReportServiceTest
         "publicId",
         RepositoryType.hosted,
         "docker",
-        false
-    );
+        false);
     Organization organization = tempEntity.newOrganization("org");
     organization.setRelatedRepositoryId(repository.getId());
     repository.setRelatedOrganizationId(organization.getId());

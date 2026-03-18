@@ -18,7 +18,8 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
-public class ApiSamlConfigurationResourceFIPSTest extends ApiSamlConfigurationResourceTest
+public class ApiSamlConfigurationResourceFIPSTest
+    extends ApiSamlConfigurationResourceTest
 {
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();

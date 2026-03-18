@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 public class LegalServiceUtil
 {
   private LegalServiceUtil() {
-    //Static util class
+    // Static util class
   }
 
   public static String getContentHash(String content) {

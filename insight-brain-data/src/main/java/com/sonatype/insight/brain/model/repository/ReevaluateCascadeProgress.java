@@ -17,12 +17,13 @@ import jakarta.persistence.Table;
 /**
  * Entity representing the progress of a cascade re-evaluation for a specific repository component.
  * Maps to the `reevaluate_cascade_progress` database table.
- * 
+ *
  * @since 1.196
  */
 @Entity
 @Table(name = "reevaluate_cascade_progress")
-public class ReevaluateCascadeProgress implements HasStringId
+public class ReevaluateCascadeProgress
+    implements HasStringId
 {
   @Id
   @Column(name = "reevaluate_cascade_progress_id")
@@ -48,8 +49,11 @@ public class ReevaluateCascadeProgress implements HasStringId
     // Default constructor for JPA
   }
 
-  public ReevaluateCascadeProgress(String reevaluateCascadeRequestId, String repositoryId,
-      String repositoryComponentId, ReevaluateCascadeProgressStatus status)
+  public ReevaluateCascadeProgress(
+      String reevaluateCascadeRequestId,
+      String repositoryId,
+      String repositoryComponentId,
+      ReevaluateCascadeProgressStatus status)
   {
     this.reevaluateCascadeRequestId = reevaluateCascadeRequestId;
     this.repositoryId = repositoryId;

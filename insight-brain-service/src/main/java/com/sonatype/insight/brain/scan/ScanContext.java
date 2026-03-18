@@ -13,11 +13,12 @@ import com.sonatype.insight.brain.sbom.SbomSpecification;
  * parameters everywhere. It is similar to {@link com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext} but is
  * intended to be usable for any scan.
  */
-public record ScanContext(String applicationVersion,
-                          boolean isValid,
-                          String sbomMetadataId,
-                          SbomSpecification containerImageSbomSpecification,
-                          ContainerImageTelemetryMetrics containerImageTelemetryMetrics)
+public record ScanContext(
+    String applicationVersion,
+    boolean isValid,
+    String sbomMetadataId,
+    SbomSpecification containerImageSbomSpecification,
+    ContainerImageTelemetryMetrics containerImageTelemetryMetrics)
 {
   /**
    * This builder is intended to make constructing a {@link ScanContext} easier by not having to set all fields.

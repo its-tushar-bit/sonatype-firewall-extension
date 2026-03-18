@@ -18,7 +18,9 @@ public class ConstraintFactDTO
 
   public ConstraintFactDTO(ConstraintFact constraintFact) {
     constraintName = constraintFact.getConstraintName();
-    satisfiedConditions = constraintFact.getConditionFacts().stream().map(ConditionFactDTO::new)
+    satisfiedConditions = constraintFact.getConditionFacts()
+        .stream()
+        .map(ConditionFactDTO::new)
         .collect(Collectors.toList());
   }
 }

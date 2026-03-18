@@ -15,7 +15,7 @@ public interface AuditLogFilesProvider
    * Return files ordered chronologically in ascending order.
    *
    * @param startUtcDate is required and inclusive.
-   * @param endUtcDate   is required and inclusive.
+   * @param endUtcDate is required and inclusive.
    */
   List<File> getAuditLogFiles(LocalDate startUtcDate, LocalDate endUtcDate);
 }

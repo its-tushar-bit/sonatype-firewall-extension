@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.cpematching;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -41,7 +42,8 @@ public class CpeMatchingConfigurationResourceAuditTest
     CpeMatchingConfigurationRequest requestDTO = new CpeMatchingConfigurationRequest();
     requestDTO.enabled = true;
     HttpResponse response = restRequest().parameter("application", app1.getId())
-        .body(requestDTO).put();
+        .body(requestDTO)
+        .put();
     assertResponseStatus(200, response);
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_CPE_MATCHING_CONFIGURATION, null);
     assertCustomData(auditDTO, "enabled", true);
@@ -53,7 +55,9 @@ public class CpeMatchingConfigurationResourceAuditTest
     CpeMatchingConfigurationRequest requestDTO = new CpeMatchingConfigurationRequest();
     requestDTO.enabled = true;
     HttpResponse response = restRequest().parameter("application", app1.getId())
-        .body(requestDTO).with(unauthorizedUser()).put();
+        .body(requestDTO)
+        .with(unauthorizedUser())
+        .put();
     assertResponseStatus(403, response);
     assertAuditLog(AuditEvent.UPDATE_CPE_MATCHING_CONFIGURATION, "unauthorized");
   }

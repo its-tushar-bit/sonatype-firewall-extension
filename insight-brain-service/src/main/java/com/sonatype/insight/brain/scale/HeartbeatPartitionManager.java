@@ -44,12 +44,13 @@ public class HeartbeatPartitionManager
     this.instanceId = instanceId;
     // the heartbeat task reserves a lock specific to this instance as a way to inform other running IQ instances
     // that this one is up, running and available to participate in the coordination of work between them
-    Runnable heartbeatTask = new SystemRunnable(() ->
-        reserveHeartbeatLock(instanceId, category, partitionReservationSeconds));
+    Runnable heartbeatTask =
+        new SystemRunnable(() -> reserveHeartbeatLock(instanceId, category, partitionReservationSeconds));
 
     ThreadFactory threadFactory =
         new ThreadFactoryBuilder().setNameFormat(category + "SelfThrottlingLoadBalancer-%d")
-            .setDaemon(true).build();
+            .setDaemon(true)
+            .build();
 
     heartbeatExecutorService = new ScheduledThreadPoolExecutor(1, threadFactory);
 
@@ -84,7 +85,6 @@ public class HeartbeatPartitionManager
   // the 'heartbeat lock' represents a perpetual lock where the lock ID and the lock owner are the same value
   private void reserveHeartbeatLock(String instanceId, String category, long partitionReservationSeconds) {
     TenantThreadLocal.runAsGlobal(() -> perpetualLockManager.tryAcquireLock(
-        instanceId, category, instanceId, partitionReservationSeconds
-    ));
+        instanceId, category, instanceId, partitionReservationSeconds));
   }
 }

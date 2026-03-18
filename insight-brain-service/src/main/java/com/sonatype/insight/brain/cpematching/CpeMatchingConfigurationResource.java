@@ -57,18 +57,15 @@ public class CpeMatchingConfigurationResource
   @Operation(
       description = "Use this method to apply a given cpe matching configuration to an organization or application." +
           "<p>" +
-          "Permissions Required: Edit IQ Elements"
-  )
+          "Permissions Required: Edit IQ Elements")
   @ApiResponse(
       responseCode = "200",
       description = "An object containing the cpe configuration applied to the given ownerId",
-      content = @Content(mediaType = "application/json")
-  )
+      content = @Content(mediaType = "application/json"))
   public CpeMatchingConfigurationDTO updateCpeMatchingConfiguration(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId,
-      CpeMatchingConfigurationRequest configRequest
-  )
+      CpeMatchingConfigurationRequest configRequest)
   {
     AuditData.get().setData("enabled", configRequest == null ? null : configRequest.enabled);
     return cpeMatchingConfigurationService.updateCpeMatchingConfiguration(ownerType, internalOwnerId, configRequest);
@@ -80,8 +77,7 @@ public class CpeMatchingConfigurationResource
       description = "This method allows to retrieve the applicable cpe matching configuration of a given " +
           "organization or application." +
           "<p>" +
-          "Permissions Required: View IQ Elements"
-  )
+          "Permissions Required: View IQ Elements")
   @ApiResponse(responseCode = "200", description = "Applicable cpe matching configuration for given ownerId")
   @ProductLicenseEnforcementPoint(LicensedFeature.CPE_MATCHING)
   public CpeMatchingConfigurationDTO getCpeMatchingConfiguration(

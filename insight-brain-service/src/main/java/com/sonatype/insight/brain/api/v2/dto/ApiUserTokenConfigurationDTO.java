@@ -10,4 +10,6 @@ package com.sonatype.insight.brain.api.v2.dto;
  * <p>
  * When adding properties: use same name as SystemConfigurationProperty constant
  */
-public record ApiUserTokenConfigurationDTO(Integer userTokenDefaultExpirationDays) {}
+public record ApiUserTokenConfigurationDTO(Integer userTokenDefaultExpirationDays)
+{
+}

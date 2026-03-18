@@ -64,7 +64,7 @@ public class QuartzConcurrencyListener
       boolean veto = runningCount > maxConcurrent;
       if (veto) {
         log.debug("Vetoing job execution for job {} due to max concurrency limit reached." +
-                " Current running count: {}, max concurrent: {}",
+            " Current running count: {}, max concurrent: {}",
             jobKey.getName(), runningCount, maxConcurrent);
 
         Trigger newTrigger = trigger.getTriggerBuilder()

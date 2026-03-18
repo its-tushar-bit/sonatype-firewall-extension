@@ -215,12 +215,12 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then a permission denied error is shown
-    scmOnboardingPage.loadError().shouldBe(visible).shouldHave(
-        text(
-          "An error occurred loading data. It appears that your current licence do not support this feature(s). "
-          + "If you believe this to be incorrect please contact your administrator."
-        )
-    );
+    scmOnboardingPage.loadError()
+        .shouldBe(visible)
+        .shouldHave(
+            text(
+                "An error occurred loading data. It appears that your current licence do not support this feature(s). "
+                    + "If you believe this to be incorrect please contact your administrator."));
 
     // and form elements are hidden
     scmOnboardingPage.hostUrl().shouldBe(hidden);
@@ -339,11 +339,11 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then an authentication error is displayed
-    scmOnboardingPage.gitHostError().shouldHave(text(
-        "Authentication Error. IQ Server was unable to authenticate with GitHub using the credentials " +
-            "associated with the Test Org Organization. You may try a different host URL or manage your " +
-            "SCM configuration in the Orgs & Policies page."
-    ));
+    scmOnboardingPage.gitHostError()
+        .shouldHave(text(
+            "Authentication Error. IQ Server was unable to authenticate with GitHub using the credentials " +
+                "associated with the Test Org Organization. You may try a different host URL or manage your " +
+                "SCM configuration in the Orgs & Policies page."));
 
     eyesWatcher.eyesCheck("ScmOnboarding authentication error");
 
@@ -371,10 +371,11 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then an authorization error is displayed
-    scmOnboardingPage.repoTableLoadError().shouldHave(text(
-        "Due to an Authorization Error, IQ Server was unable to connect to GitHub " +
-            "using the credentials associated with the Test Org Organization. " +
-            "You may try a different host URL or manage your SCM configuration in the Orgs & Policies page."));
+    scmOnboardingPage.repoTableLoadError()
+        .shouldHave(text(
+            "Due to an Authorization Error, IQ Server was unable to connect to GitHub " +
+                "using the credentials associated with the Test Org Organization. " +
+                "You may try a different host URL or manage your SCM configuration in the Orgs & Policies page."));
     scmOnboardingPage.gitHostError().shouldHave(text("Authorization Error. IQ Server was unable to connect to GitHub"));
   }
 
@@ -608,9 +609,7 @@ public class ScmOnboardingTest
             "description", "",
             "private", false,
             "clone_url", cloneUrl,
-            "ssh_url", "git@host" + repoUrl)
-        )
-    );
+            "ssh_url", "git@host" + repoUrl)));
     mockRepoForPage(1, json);
     mockRepoForPage(2, EMPTY_JSON_ARRAY);
     setupOrgSourceControl();
@@ -677,11 +676,13 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTable().shouldBe(visible);
     scmOnboardingPage.repositoryCount().shouldBe(visible);
     scmOnboardingPage.selectedToImportCount().shouldBe(text("0 of 14 repositories"));
-    scmOnboardingPage.resultsTableProject().shouldHave(exactTexts("ci-project-1",
-        "ci-project-16", "create-react-app", "missing-description", "nexus-repository-p2", "nexus-repository-puppet",
-        "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
-        "nexus-webhook-example-collection", "null-description", "oysteR",
-        "prime-nexus-proxy-repos", "this-is-a-repository-with-a-really-long-name-ci-project-1"));
+    scmOnboardingPage.resultsTableProject()
+        .shouldHave(exactTexts("ci-project-1",
+            "ci-project-16", "create-react-app", "missing-description", "nexus-repository-p2",
+            "nexus-repository-puppet",
+            "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
+            "nexus-webhook-example-collection", "null-description", "oysteR",
+            "prime-nexus-proxy-repos", "this-is-a-repository-with-a-really-long-name-ci-project-1"));
     assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("depshield-ci",
         "sonatype-nexus-community");
   }
@@ -699,7 +700,8 @@ public class ScmOnboardingTest
 
     // NOTE the missing space before the org name is deliberate. In the UI there is an icon there with
     // appropriate margins.
-    scmOnboardingPage.onboardingPageTitle().shouldBe(visible)
+    scmOnboardingPage.onboardingPageTitle()
+        .shouldBe(visible)
         .shouldBe(text("Import Applications from GitHub"));
   }
 
@@ -776,8 +778,9 @@ public class ScmOnboardingTest
 
     // then selected count is updated with the number of filtered repositories
     scmOnboardingPage.selectedToImportCount().shouldBe(text("3 of 14 repositories"));
-    scmOnboardingPage.resultsTableProject().shouldHave(exactTexts("ci-project-1",
-        "ci-project-16", "this-is-a-repository-with-a-really-long-name-ci-project-1"));
+    scmOnboardingPage.resultsTableProject()
+        .shouldHave(exactTexts("ci-project-1",
+            "ci-project-16", "this-is-a-repository-with-a-really-long-name-ci-project-1"));
   }
 
   @Test
@@ -798,8 +801,9 @@ public class ScmOnboardingTest
 
     // then selected count is updated with the number of filtered repositories
     scmOnboardingPage.selectedToImportCount().shouldBe(text("3  of 14 repositories"));
-    scmOnboardingPage.resultsTableProject().shouldHave(texts("ci-project-1",
-        "ci-project-16", "this-is-a-repository-with-a-really-long-name-ci-project-1"));
+    scmOnboardingPage.resultsTableProject()
+        .shouldHave(texts("ci-project-1",
+            "ci-project-16", "this-is-a-repository-with-a-really-long-name-ci-project-1"));
 
     // when we import the selected repos
     scmOnboardingPage.importRepoButton().click();
@@ -812,8 +816,9 @@ public class ScmOnboardingTest
     scmOnboardingPage.importStatusModal().shouldBe(visible);
     scmOnboardingPage.successMessage().shouldBe(visible);
     scmOnboardingPage.errorMessage().shouldBe(hidden);
-    scmOnboardingPage.successMessage().shouldBe(text(
-        "All repositories were successfully imported. See details below."));
+    scmOnboardingPage.successMessage()
+        .shouldBe(text(
+            "All repositories were successfully imported. See details below."));
 
     // and can dismiss the dialog
     scmOnboardingPage.importStatusContinue().click();
@@ -827,16 +832,19 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableProject().shouldHave(size(0));
 
     // and they are not there when the filter is updated
-    scmOnboardingPage.projectFilter().sendKeys(IntStream.range(0, 3)
-        .mapToObj(i -> Keys.BACK_SPACE).toArray(CharSequence[]::new));
+    scmOnboardingPage.projectFilter()
+        .sendKeys(IntStream.range(0, 3)
+            .mapToObj(i -> Keys.BACK_SPACE)
+            .toArray(CharSequence[]::new));
     scmOnboardingPage.resultsTableSelectAll().parent().click();
     scmOnboardingPage.repositoryCount().shouldBe(text("11"));
     scmOnboardingPage.selectedToImportCount().shouldBe(text("11 of 11 repositories"));
-    scmOnboardingPage.resultsTableProject().shouldHave(textsInAnyOrder(
-        "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
-        "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
-        "nexus-webhook-example-collection", "null-description", "missing-description", "oysteR",
-        "prime-nexus-proxy-repos"));
+    scmOnboardingPage.resultsTableProject()
+        .shouldHave(textsInAnyOrder(
+            "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
+            "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
+            "nexus-webhook-example-collection", "null-description", "missing-description", "oysteR",
+            "prime-nexus-proxy-repos"));
     assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("sonatype-nexus-community");
 
     // and the select all checkbox is checked
@@ -862,8 +870,9 @@ public class ScmOnboardingTest
 
     // then selected count is updated with the number of filtered repositories
     scmOnboardingPage.selectedToImportCount().shouldBe(text("2 of 3 repositories"));
-    scmOnboardingPage.resultsTableProject().shouldHave(textsInAnyOrder("broken-url-1",
-        "broken-url-2"));
+    scmOnboardingPage.resultsTableProject()
+        .shouldHave(textsInAnyOrder("broken-url-1",
+            "broken-url-2"));
 
     // when we import the selected repos
     scmOnboardingPage.importRepoButton().click();
@@ -880,8 +889,9 @@ public class ScmOnboardingTest
     scmOnboardingPage.alreadyImportedCount().shouldBe(text("0"));
 
     // and the initially selected elements are still visible
-    scmOnboardingPage.resultsTableProject().shouldHave(texts("broken-url-1",
-        "broken-url-2"));
+    scmOnboardingPage.resultsTableProject()
+        .shouldHave(texts("broken-url-1",
+            "broken-url-2"));
 
     // and the select all checkbox is unchecked
     scmOnboardingPage.resultsTableSelectAll().shouldNotBe(checked);
@@ -910,13 +920,14 @@ public class ScmOnboardingTest
     // then we see an import message
     scmOnboardingPage.importStatusModal().shouldBe(visible);
     scmOnboardingPage.errorMessage().shouldBe(text("2 repositories had an error. See details below."));
-    scmOnboardingPage.importSuccessDetailMsg().shouldBe(text("1 repository was successfully imported to IQ Server " +
-        "as applications under the Test Org Organization."));
+    scmOnboardingPage.importSuccessDetailMsg()
+        .shouldBe(text("1 repository was successfully imported to IQ Server " +
+            "as applications under the Test Org Organization."));
     scmOnboardingPage.importErrorDetailMsg().shouldBe(text("2 repositories had an error"));
-    scmOnboardingPage.importErrorDetails().shouldHave(exactTexts(
-        "org2/broken-url-1 failed with Unsupported repository URL format: `h://localhost/org2/broken-url-1.git`",
-        "org2/broken-url-2 failed with Unsupported repository URL format: `ht://host/org2/broken-url-2.git`"
-    ));
+    scmOnboardingPage.importErrorDetails()
+        .shouldHave(exactTexts(
+            "org2/broken-url-1 failed with Unsupported repository URL format: `h://localhost/org2/broken-url-1.git`",
+            "org2/broken-url-2 failed with Unsupported repository URL format: `ht://host/org2/broken-url-2.git`"));
 
     eyesWatcher.eyesCheck("ScmOnboarding import success / error message");
 
@@ -928,8 +939,9 @@ public class ScmOnboardingTest
     scmOnboardingPage.alreadyImportedCount().shouldBe(text("1"));
 
     // and the broken elements are still visible
-    scmOnboardingPage.resultsTableProject().shouldHave(texts("broken-url-1",
-        "broken-url-2"));
+    scmOnboardingPage.resultsTableProject()
+        .shouldHave(texts("broken-url-1",
+            "broken-url-2"));
 
     // and the select all checkbox is unchecked
     scmOnboardingPage.resultsTableSelectAll().shouldNotBe(checked);
@@ -957,10 +969,11 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().click(); // uncheck box
     scmOnboardingPage.resultsTableSelectAll().parent().click(); // check box
     scmOnboardingPage.selectedToImportCount().shouldBe(text("7 of 14 repositories"));
-    scmOnboardingPage.resultsTableProject().shouldHave(texts(
-        "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
-        "nexus-repository-vgo", "nexus-scripting-examples", "nexus-webhook-example-collection",
-        "prime-nexus-proxy-repos"));
+    scmOnboardingPage.resultsTableProject()
+        .shouldHave(texts(
+            "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
+            "nexus-repository-vgo", "nexus-scripting-examples", "nexus-webhook-example-collection",
+            "prime-nexus-proxy-repos"));
   }
 
   @Test
@@ -979,10 +992,11 @@ public class ScmOnboardingTest
     scmOnboardingPage.projectFilter().setValue("nexus");
     scmOnboardingPage.resultsTableSelectAll().parent().click();
     scmOnboardingPage.selectedToImportCount().shouldBe(text("7 of 14 repositories"));
-    scmOnboardingPage.resultsTableProject().shouldHave(texts(
-        "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
-        "nexus-repository-vgo", "nexus-scripting-examples", "nexus-webhook-example-collection",
-        "prime-nexus-proxy-repos"));
+    scmOnboardingPage.resultsTableProject()
+        .shouldHave(texts(
+            "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
+            "nexus-repository-vgo", "nexus-scripting-examples", "nexus-webhook-example-collection",
+            "prime-nexus-proxy-repos"));
 
     // when a new selection is made
     scmOnboardingPage.projectFilter().setValue("nexus-repository");
@@ -991,9 +1005,10 @@ public class ScmOnboardingTest
     scmOnboardingPage.selectedToImportCount().shouldBe(text("4 of 14 repositories"));
 
     // and the result table contains exactly 4 projects
-    scmOnboardingPage.resultsTableProject().shouldHave(texts(
-        "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
-        "nexus-repository-vgo"));
+    scmOnboardingPage.resultsTableProject()
+        .shouldHave(texts(
+            "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
+            "nexus-repository-vgo"));
 
     // and the repositories checkboxes are selected
     scmOnboardingPage.selectionCheckboxById(getIdSelector(REPOSITORY_P_2_GIT)).shouldBe(selected);
@@ -1055,13 +1070,14 @@ public class ScmOnboardingTest
     assertThat(namespaceTexts).isSorted();
 
     // and project are sorted within their namespace
-    scmOnboardingPage.resultsTableProject().shouldHave(exactTexts(
-        // org-1
-        "dupe-prj", "prj-1", "prj-2", "prj-3",
-        // org-2
-        "dupe-prj", "name-7", "name-8", "name-9",
-        // org-3
-        "a", "b", "c", "d", "dupe-prj", "e", "f"));
+    scmOnboardingPage.resultsTableProject()
+        .shouldHave(exactTexts(
+            // org-1
+            "dupe-prj", "prj-1", "prj-2", "prj-3",
+            // org-2
+            "dupe-prj", "name-7", "name-8", "name-9",
+            // org-3
+            "a", "b", "c", "d", "dupe-prj", "e", "f"));
 
     // when namespace is clicked
     scmOnboardingPage.namespaceHeaderSort().click();
@@ -1074,11 +1090,12 @@ public class ScmOnboardingTest
     assertThat(namespaceTexts).isSortedAccordingTo(Comparator.reverseOrder());
 
     // and project keeps the same order within their project
-    scmOnboardingPage.resultsTableProject().shouldHave(exactTexts(
-        // org-3
-        "a", "b", "c", "d", "dupe-prj", "e", "f", "g", "m", "n", "v", "z",
-        // org-2
-        "dupe-prj", "name-7", "name-8"));
+    scmOnboardingPage.resultsTableProject()
+        .shouldHave(exactTexts(
+            // org-3
+            "a", "b", "c", "d", "dupe-prj", "e", "f", "g", "m", "n", "v", "z",
+            // org-2
+            "dupe-prj", "name-7", "name-8"));
 
     // when project is clicked
     scmOnboardingPage.projectHeader().click();
@@ -1141,8 +1158,9 @@ public class ScmOnboardingTest
     // server side validation (server calls are async so wait is needed)
     scmOnboardingPage.hostUrl().sendKeys(Keys.SPACE);
     scmOnboardingPage.hostUrlInvalidMessage().shouldBe(hidden);
-    scmOnboardingPage.hostUrlInvalidMessage().shouldBe(text("Unable to parse repository URL: " +
-        "java.net.URISyntaxException: Illegal character in authority at index 7: http://host"));
+    scmOnboardingPage.hostUrlInvalidMessage()
+        .shouldBe(text("Unable to parse repository URL: " +
+            "java.net.URISyntaxException: Illegal character in authority at index 7: http://host"));
   }
 
   @Test
@@ -1235,16 +1253,19 @@ public class ScmOnboardingTest
     scmOnboardingPage.importLabelQuestionIcon()
         .shouldNotHave(attribute("aria-describedby"));
     scmOnboardingPage.importLabelQuestionIcon().hover();
-    Tooltip.get().shouldHave(text("IQ Server will attempt to connect to GitHub using the credentials " +
-        "associated with the target organization"));
+    Tooltip.get()
+        .shouldHave(text("IQ Server will attempt to connect to GitHub using the credentials " +
+            "associated with the target organization"));
 
     // when we pull down the list
     scmOnboardingPage.organizationsDropdown().click();
     OrganizationsDropdownMenu menu = scmOnboardingPage.organizationsDropdown().dropdownMenu();
 
     // then the org list is complete
-    menu.options().shouldHave(
-        texts(level1ChildOrg.getName(), org.getName(), org2.getName(), org3.getName(), org4.getName(), org5.getName()));
+    menu.options()
+        .shouldHave(
+            texts(level1ChildOrg.getName(), org.getName(), org2.getName(), org3.getName(), org4.getName(),
+                org5.getName()));
   }
 
   @Test
@@ -1299,9 +1320,7 @@ public class ScmOnboardingTest
             "description", "",
             "private", false,
             "clone_url", cloneUrl,
-            "ssh_url", "git@host" + repoUrl)
-        )
-    );
+            "ssh_url", "git@host" + repoUrl)));
     mockRepoForPage(secondaryGitService, 1, json);
     mockRepoForPage(secondaryGitService, 2, EMPTY_JSON_ARRAY);
 
@@ -1385,9 +1404,10 @@ public class ScmOnboardingTest
     scmOnboardingPage.modalDialog().shouldNotBe(visible);
 
     // then we see an error message with a link enabling us to relaunch the dialog
-    scmOnboardingPage.repoTableLoadError().shouldHave(text(
-        "IQ Server was unable to identify the URL for your GitHub host. " +
-            "You need to provide a SCM URL in order to proceed."));
+    scmOnboardingPage.repoTableLoadError()
+        .shouldHave(text(
+            "IQ Server was unable to identify the URL for your GitHub host. " +
+                "You need to provide a SCM URL in order to proceed."));
     scmOnboardingPage.repoTableLoadErrorLink().click();
 
     // then the dialog is visible again
@@ -1603,9 +1623,7 @@ public class ScmOnboardingTest
             "description", "",
             "private", false,
             "clone_url", cloneUrl,
-            "ssh_url", "git@host" + repoUrl)
-        )
-    );
+            "ssh_url", "git@host" + repoUrl)));
     mockRepoForPage(1, json);
     mockRepoForPage(2, EMPTY_JSON_ARRAY);
     setupOrgSourceControl();
@@ -1742,8 +1760,9 @@ public class ScmOnboardingTest
     OwnerEditorDialog.name().setValue("!#$@");
 
     // then an form validation error is displayed
-    OwnerEditorDialog.nameInvalidMessage().shouldHave(
-        text("Use valid characters: alphanumeric, \"_\", \".\", \"-\", or spaces"));
+    OwnerEditorDialog.nameInvalidMessage()
+        .shouldHave(
+            text("Use valid characters: alphanumeric, \"_\", \".\", \"-\", or spaces"));
   }
 
   @Test
@@ -1757,9 +1776,7 @@ public class ScmOnboardingTest
             "description", "",
             "private", false,
             "clone_url", secondaryGitService.baseUrl() + "/org/repo.git",
-            "ssh_url", "git@host/org/repo.git")
-        )
-    );
+            "ssh_url", "git@host/org/repo.git")));
     mockRepoForPage(secondaryGitService, 1, json);
     mockRepoForPage(secondaryGitService, 2, EMPTY_JSON_ARRAY);
 
@@ -1806,8 +1823,9 @@ public class ScmOnboardingTest
 
     // then an authentication error is displayed inside the results table
     String expectedUrl = SourceControlEditorPage.url("organization", ROOT_ORGANIZATION_ID);
-    scmOnboardingPage.repoTableLoadError().shouldHave(text(
-        "Due to an Authentication Error, IQ Server was unable to authenticate with GitHub"));
+    scmOnboardingPage.repoTableLoadError()
+        .shouldHave(text(
+            "Due to an Authentication Error, IQ Server was unable to authenticate with GitHub"));
     scmOnboardingPage.repoTableLoadErrorLink("Orgs & Policies").shouldHave(attribute("href", expectedUrl));
 
     // and an authentication error is displayed in the host URL modal
@@ -1839,14 +1857,16 @@ public class ScmOnboardingTest
 
     // then an authentication error is displayed inside the results table
     String expectedUrl = SourceControlEditorPage.url("organization", orgCustomToken.getId());
-    scmOnboardingPage.repoTableLoadError().shouldHave(text(
-        "Due to an Authentication Error, IQ Server was unable to authenticate with GitHub using the " +
-            "credentials associated with the Custom Host Organization."));
+    scmOnboardingPage.repoTableLoadError()
+        .shouldHave(text(
+            "Due to an Authentication Error, IQ Server was unable to authenticate with GitHub using the " +
+                "credentials associated with the Custom Host Organization."));
     scmOnboardingPage.repoTableLoadErrorLink("Orgs & Policies").shouldHave(attribute("href", expectedUrl));
 
     // and an authentication error is displayed in the host URL modal
-    scmOnboardingPage.hostUrlAuthError().shouldHave(text("Authentication Error. IQ Server was unable to authenticate " +
-        "with GitHub using the credentials associated with the Custom Host Organization."));
+    scmOnboardingPage.hostUrlAuthError()
+        .shouldHave(text("Authentication Error. IQ Server was unable to authenticate " +
+            "with GitHub using the credentials associated with the Custom Host Organization."));
     scmOnboardingPage.hostUrlAuthErrorLink().shouldHave(attribute("href", expectedUrl));
   }
 
@@ -1877,7 +1897,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.organizationsDropdown().click();
     scmOnboardingPage.orgDropdownItems().find(exactText("Other Org")).click();
     // inconsistent test seems to like having the focus outside of the dropdown
-    //scmOnboardingPage.orgDropdownItems().first().sendKeys(Keys.TAB);
+    // scmOnboardingPage.orgDropdownItems().first().sendKeys(Keys.TAB);
 
     // then the URL is updated
     assertThat(driver.getCurrentUrl()).endsWith("#/onboarding/" + otherOrg.getId());

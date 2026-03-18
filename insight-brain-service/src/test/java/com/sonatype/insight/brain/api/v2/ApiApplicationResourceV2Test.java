@@ -335,8 +335,11 @@ public class ApiApplicationResourceV2Test
     String clonedAppName = "Cloned App Name";
     String clonedAppPublicId = "ClonedAppPublicId";
 
-    HttpResponse response = restRequest().path(ApiApplicationResourceV2.CLONE_PATH).parameter(app.getId())
-        .query("clonedApplicationName", clonedAppName).query("clonedApplicationPublicId", clonedAppPublicId).post();
+    HttpResponse response = restRequest().path(ApiApplicationResourceV2.CLONE_PATH)
+        .parameter(app.getId())
+        .query("clonedApplicationName", clonedAppName)
+        .query("clonedApplicationPublicId", clonedAppPublicId)
+        .post();
 
     assertResponseStatus(200, response);
     ApiApplicationDTO returnedDTO = response.getBody(ApiApplicationDTO.class);
@@ -370,7 +373,8 @@ public class ApiApplicationResourceV2Test
     Application app = tempEntity.newApplicationWithParent("test-app-id");
 
     HttpResponse response = restRequest().path(ApiApplicationResourceV2.MOVE_PATH)
-        .parameter(app.getId(), org.getId()).post();
+        .parameter(app.getId(), org.getId())
+        .post();
     assertResponseStatus(200, response);
     List<String> warnings = response.getBody(ApiMoveApplicationResponseDTOV2.class).warnings;
     assertThat(warnings).isEmpty();
@@ -385,7 +389,8 @@ public class ApiApplicationResourceV2Test
     tempEntity.newPolicy(app.getOrganizationId(), "Missing Policy");
 
     HttpResponse response = restRequest().path(ApiApplicationResourceV2.MOVE_PATH)
-        .parameter(app.getId(), org1.getId()).post();
+        .parameter(app.getId(), org1.getId())
+        .post();
     assertResponseStatus(409, response);
     ApiMoveApplicationResponseDTOV2 issues = response.getBody(ApiMoveApplicationResponseDTOV2.class);
     assertThat(issues.errors)
@@ -472,8 +477,9 @@ public class ApiApplicationResourceV2Test
     applicationDTO.applicationTags.add(applicationTagADTO);
   }
 
-  private void assertApplications(List<ApiApplicationDTO> actualApplications,
-                                  List<ApiApplicationDTO> expectedApplications)
+  private void assertApplications(
+      List<ApiApplicationDTO> actualApplications,
+      List<ApiApplicationDTO> expectedApplications)
   {
     assertThat(actualApplications).hasSameSizeAs(expectedApplications);
 
@@ -500,8 +506,9 @@ public class ApiApplicationResourceV2Test
       return;
     }
 
-    Comparator<ApiApplicationTagDTO> tagComparator = Comparator.<ApiApplicationTagDTO, String> comparing(dto -> dto.id)
-        .thenComparing(dto -> dto.applicationId).thenComparing(dto -> dto.tagId);
+    Comparator<ApiApplicationTagDTO> tagComparator = Comparator.<ApiApplicationTagDTO, String>comparing(dto -> dto.id)
+        .thenComparing(dto -> dto.applicationId)
+        .thenComparing(dto -> dto.tagId);
     assertThat(actualTags).usingElementComparator(tagComparator).containsExactlyInAnyOrderElementsOf(expectedTags);
   }
 

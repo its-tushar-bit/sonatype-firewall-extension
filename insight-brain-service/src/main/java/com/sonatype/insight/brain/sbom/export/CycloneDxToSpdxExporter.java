@@ -178,12 +178,14 @@ public class CycloneDxToSpdxExporter
     catch (IOException | ParseException e) {
       throw new SbomExportException(
           String.format("Internal error reading from the original SBOM file for application %s, version %s",
-              exportParams.sbomMetadata.getApplicationId(), exportParams.sbomMetadata.getSbomVersion()), e);
+              exportParams.sbomMetadata.getApplicationId(), exportParams.sbomMetadata.getSbomVersion()),
+          e);
     }
     catch (InvalidSPDXAnalysisException e) {
       throw new SbomExportException(
           String.format("Internal error reading from the translated SBOM file for application %s, version %s",
-              exportParams.sbomMetadata.getApplicationId(), exportParams.sbomMetadata.getSbomVersion()), e);
+              exportParams.sbomMetadata.getApplicationId(), exportParams.sbomMetadata.getSbomVersion()),
+          e);
     }
   }
 
@@ -233,8 +235,7 @@ public class CycloneDxToSpdxExporter
 
   private void setComponents(
       final Bom baseBom,
-      final SpdxDocument newDocument)
-      throws InvalidSPDXAnalysisException
+      final SpdxDocument newDocument) throws InvalidSPDXAnalysisException
   {
     List<Component> components = baseBom.getComponents();
     if (CollectionUtils.isNotEmpty(components)) {
@@ -281,7 +282,8 @@ public class CycloneDxToSpdxExporter
   }
 
   private void addCommentToRelationships(
-      List<BomReference> bomRefs, String comment,
+      List<BomReference> bomRefs,
+      String comment,
       @Nullable RelationshipType relationshipType) throws InvalidSPDXAnalysisException
   {
     for (BomReference assembly : bomRefs) {
@@ -322,8 +324,10 @@ public class CycloneDxToSpdxExporter
                 Relationship relationship =
                     fromElement.createRelationship(toElement, RelationshipType.DEPENDS_ON, null);
                 Collection<Relationship> fromRelationships = fromElement.getRelationships();
-                if (fromRelationships.stream().allMatch(
-                    fromRelationship -> fromRelationship.compareTo(relationship) != 0)) {
+                if (fromRelationships.stream()
+                    .allMatch(
+                        fromRelationship -> fromRelationship.compareTo(relationship) != 0))
+                {
                   fromRelationships.add(relationship);
                 }
               }
@@ -421,19 +425,20 @@ public class CycloneDxToSpdxExporter
 
     if (Type.FILE.equals(componentType) && !containsPackageOnlyProperties(component)) {
       element = newDocument.createSpdxFile(elementId, name,
-              new SpdxNoAssertionLicense(), new ArrayList<>(), copyright, sha1)
+          new SpdxNoAssertionLicense(), new ArrayList<>(), copyright, sha1)
           .build();
       setFileProperties((SpdxFile) element, component);
     }
     else {
       SpdxPackageBuilder packageBuilder =
           newDocument.createPackage(elementId, name, new SpdxNoAssertionLicense(), copyright,
-                  new SpdxNoAssertionLicense())
+              new SpdxNoAssertionLicense())
               .setFilesAnalyzed(false);
 
-      //Primary purpose is not supported by SPDX 2.2
+      // Primary purpose is not supported by SPDX 2.2
       if (!ThirdPartyUtils.SPDX_ACCEPTED_VERSIONS.get(org.spdx.library.Version.TWO_POINT_TWO_VERSION)
-          .equals(exportParams.getExportSpecification().getVersion())) {
+          .equals(exportParams.getExportSpecification().getVersion()))
+      {
         packageBuilder.setPrimaryPurpose(COMPONENT_TYPE_TO_PURPOSE.get(componentType));
       }
 
@@ -620,20 +625,27 @@ public class CycloneDxToSpdxExporter
     return (component.getAuthor() != null && !component.getAuthor()
         .isEmpty()) &&
         (component.getDescription() != null && !component.getDescription()
-            .isEmpty()) &&
+            .isEmpty())
+        &&
         (component.getPublisher() != null && !component.getPublisher()
-            .isEmpty()) &&
+            .isEmpty())
+        &&
         (component.getPurl() != null && !component.getPurl()
-            .isEmpty()) &&
+            .isEmpty())
+        &&
         (component.getSupplier() != null && !component.getSupplier()
             .getName()
-            .isEmpty()) &&
+            .isEmpty())
+        &&
         (component.getVersion() != null && !component.getVersion()
-            .isEmpty()) &&
+            .isEmpty())
+        &&
         (component.getPurl() != null && !component.getPurl()
-            .isEmpty()) &&
+            .isEmpty())
+        &&
         (component.getComponents() != null && !component.getComponents()
-            .isEmpty()) &&
+            .isEmpty())
+        &&
         (component.getEvidence() != null) &&
         (component.getExternalReferences() != null && !component.getExternalReferences()
             .isEmpty());
@@ -652,7 +664,8 @@ public class CycloneDxToSpdxExporter
           return FileType.SPDX;
         }
         else if (mimeParts[1].endsWith("+zip") || mimeParts[1].endsWith("+gzip") ||
-            mimeParts[1].endsWith("+rar")) {
+            mimeParts[1].endsWith("+rar"))
+        {
           return FileType.ARCHIVE;
         }
         else if (mimeParts[1].contains("x-bytecode")) {
@@ -717,7 +730,7 @@ public class CycloneDxToSpdxExporter
     List<AnyLicenseInfo> retval = new ArrayList<>();
     if (licenseChoice != null) {
       Expression expression = licenseChoice.getExpression();
-      if (expression != null && StringUtils.isNotEmpty(expression.getValue()) ) {
+      if (expression != null && StringUtils.isNotEmpty(expression.getValue())) {
         try {
           retval.add(LicenseInfoFactory.parseSPDXLicenseString(expression.getValue(),
               parentElement.getModelStore(), parentElement.getDocumentUri(), parentElement.getCopyManager()));
@@ -754,7 +767,8 @@ public class CycloneDxToSpdxExporter
       log.debug("Missing CycloneDX license ID for license name " + id);
     }
     if (ListedLicenses.getListedLicenses()
-        .isSpdxListedLicenseId(id)) {
+        .isSpdxListedLicenseId(id))
+    {
       return ListedLicenses.getListedLicenses()
           .getListedLicenseById(id);
     }
@@ -817,7 +831,8 @@ public class CycloneDxToSpdxExporter
   }
 
   private void setExternalReferences(
-      List<ExternalReference> externalReferences, SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException
+      List<ExternalReference> externalReferences,
+      SpdxPackage spdxPackage) throws InvalidSPDXAnalysisException
   {
     if (CollectionUtils.isEmpty(externalReferences)) {
       return;
@@ -866,7 +881,8 @@ public class CycloneDxToSpdxExporter
           break;
         case WEBSITE:
           if (spdxPackage.getHomepage()
-              .isPresent()) {
+              .isPresent())
+          {
             log.debug("More than one home page in CycloneDX.  The following will be ignored: " + url);
           }
           else {
@@ -934,8 +950,9 @@ public class CycloneDxToSpdxExporter
     }
   }
 
-  private AnyLicenseInfo licenseChoiceToSpdxLicense(SpdxElement parent, LicenseChoice licenseChoice)
-      throws InvalidSPDXAnalysisException
+  private AnyLicenseInfo licenseChoiceToSpdxLicense(
+      SpdxElement parent,
+      LicenseChoice licenseChoice) throws InvalidSPDXAnalysisException
   {
     List<AnyLicenseInfo> licenses = convertCycloneLicenseInfo(parent, licenseChoice);
     if (licenses.size() == 1) {
@@ -950,8 +967,7 @@ public class CycloneDxToSpdxExporter
   }
 
   private void setVulnerabilities(
-      final Bom baseBom
-  ) throws InvalidSPDXAnalysisException
+      final Bom baseBom) throws InvalidSPDXAnalysisException
   {
     if (CollectionUtils.isNotEmpty(baseBom.getVulnerabilities())) {
       List<Vulnerability> bomVulnerabilitiesList = baseBom.getVulnerabilities();

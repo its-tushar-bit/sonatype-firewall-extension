@@ -73,9 +73,7 @@ public class PullRequestTargetCommitPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformTargetCommitPolicyEvaluation_noExistingPolicyEvaluations()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformTargetCommitPolicyEvaluation_noExistingPolicyEvaluations() throws GitException, IOException {
     // setup
     final String headBranchName = "feature-1";
     final String baseBranchName = "main";
@@ -97,9 +95,7 @@ public class PullRequestTargetCommitPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformTargetCommitPolicyEvaluation_noPolicyEvaluation_externalEvaluationsExist()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformTargetCommitPolicyEvaluation_noPolicyEvaluation_externalEvaluationsExist() throws GitException, IOException {
     // setup
     final String headBranchName = "feature-1";
     final String baseBranchName = "main";
@@ -125,9 +121,7 @@ public class PullRequestTargetCommitPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformTargetCommitPolicyEvaluation_internalPolicyEvaluationExists()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformTargetCommitPolicyEvaluation_internalPolicyEvaluationExists() throws GitException, IOException {
     // setup
     final String headBranchName = "feature-1";
     final String baseBranchName = "main";
@@ -156,9 +150,7 @@ public class PullRequestTargetCommitPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformTargetCommitPolicyEvaluation_externalPolicyEvaluationExists()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformTargetCommitPolicyEvaluation_externalPolicyEvaluationExists() throws GitException, IOException {
     // setup
     final String headBranchName = "feature-1";
     final String baseBranchName = "main";
@@ -187,9 +179,7 @@ public class PullRequestTargetCommitPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformTargetCommitPolicyEvaluation_externalPolicyEvaluationExists_noCommonAncestor()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformTargetCommitPolicyEvaluation_externalPolicyEvaluationExists_noCommonAncestor() throws GitException, IOException {
     // setup
     final String headBranchName = "feature-1";
     final String baseBranchName = "main";
@@ -217,9 +207,7 @@ public class PullRequestTargetCommitPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformTargetCommitPolicyEvaluation_externalReleaseStagePolicyEvaluationExists()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformTargetCommitPolicyEvaluation_externalReleaseStagePolicyEvaluationExists() throws GitException, IOException {
     // setup
     final String headBranchName = "feature-1";
     final String baseBranchName = "main";
@@ -248,9 +236,7 @@ public class PullRequestTargetCommitPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformTargetCommitPolicyEvaluation_buildAndSourceStagePolicyEvaluations()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformTargetCommitPolicyEvaluation_buildAndSourceStagePolicyEvaluations() throws GitException, IOException {
     // setup
     final String headBranchName = "feature-1";
     final String baseBranchName = "main";
@@ -301,7 +287,8 @@ public class PullRequestTargetCommitPolicyEvaluationResolverTest
 
     PullRequestTargetCommitPolicyEvaluationResolver policyEvaluationResolver =
         new TestableTargetCommitPolicyEvaluationBuilder().hasExternalPolicyEvaluations(false)
-            .withCommonAncestor(commonCommit).build();
+            .withCommonAncestor(commonCommit)
+            .build();
     doReturn(defaultBranchPolicyEvaluation).when(mockSourceControlScanService)
         .doSynchronousSourceControlScan(eq(application.getId()), any(), eq(defaultBranchName), eq(commonCommit));
 
@@ -334,7 +321,9 @@ public class PullRequestTargetCommitPolicyEvaluationResolverTest
 
     PullRequestTargetCommitPolicyEvaluationResolver policyEvaluationResolver =
         new TestableTargetCommitPolicyEvaluationBuilder()
-            .hasExternalPolicyEvaluations(false).withCommonAncestor(commonCommit).build();
+            .hasExternalPolicyEvaluations(false)
+            .withCommonAncestor(commonCommit)
+            .build();
     doReturn(baseBranchPolicyEvaluation).when(mockSourceControlScanService)
         .doSynchronousSourceControlScan(eq(application.getId()), any(), eq(baseBranchName), eq(commonCommit));
 
@@ -353,9 +342,7 @@ public class PullRequestTargetCommitPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testGetOrPerformTargetCommitPolicyEvaluation_buildAndSourceStagePolicyEvaluations_mixedTriggers()
-      throws GitException, IOException
-  {
+  public void testGetOrPerformTargetCommitPolicyEvaluation_buildAndSourceStagePolicyEvaluations_mixedTriggers() throws GitException, IOException {
     // setup
     final String headBranchName = "feature-1";
     final String baseBranchName = "main";

@@ -349,7 +349,8 @@ public class RepositoryServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-            componentEvaluationDataRequestList, null)).withMessage("The format cannot be null or empty.");
+            componentEvaluationDataRequestList, null))
+        .withMessage("The format cannot be null or empty.");
   }
 
   @Test
@@ -362,7 +363,8 @@ public class RepositoryServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-            componentEvaluationDataRequestList, null)).withMessage("The hash cannot be null or empty.");
+            componentEvaluationDataRequestList, null))
+        .withMessage("The hash cannot be null or empty.");
   }
 
   @Test
@@ -395,7 +397,8 @@ public class RepositoryServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-            componentEvaluationDataRequestList, null)).withMessage("The format cannot be null or empty.");
+            componentEvaluationDataRequestList, null))
+        .withMessage("The format cannot be null or empty.");
   }
 
   @Test
@@ -408,7 +411,8 @@ public class RepositoryServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-            componentEvaluationDataRequestList, null)).withMessage("The hash cannot be null or empty.");
+            componentEvaluationDataRequestList, null))
+        .withMessage("The hash cannot be null or empty.");
   }
 
   @Test
@@ -522,7 +526,8 @@ public class RepositoryServiceTest
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
         () -> repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-            componentEvaluationDataRequestList, null)).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+            componentEvaluationDataRequestList, null))
+        .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   @Override

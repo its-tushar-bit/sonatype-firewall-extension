@@ -125,7 +125,8 @@ public class ThirdPartyScanResultsProcessor
     log.info("Processing third party content with scanRequestId: {}", scanRequestId);
 
     try (GZIPInputStream gis = new GZIPInputStream(scanEntity.getInputStream());
-         OutputStream out = new GzipCompressorOutputStream(tempScanEntity.getOutputStream())) {
+        OutputStream out = new GzipCompressorOutputStream(tempScanEntity.getOutputStream()))
+    {
 
       XmlPullParser parser = new MXParser();
       parser.setInput(new XmlStreamReader(gis));
@@ -184,8 +185,7 @@ public class ThirdPartyScanResultsProcessor
       ThirdPartyScanContext scanContext,
       XmlPullParser parser,
       XMLEventWriter writer,
-      TelemetryData thirdPartyScanTelemetryData
-  ) throws XMLStreamException, IOException, XmlPullParserException
+      TelemetryData thirdPartyScanTelemetryData) throws XMLStreamException, IOException, XmlPullParserException
   {
     String contentType = parser.getAttributeValue(null, "contentType");
     if (contentType != null && thirdPartyItemContentTypes.contains(contentType)) {
@@ -218,7 +218,7 @@ public class ThirdPartyScanResultsProcessor
     if (tpScanTelemetryData != null) {
       Object contentTypeList = tpScanTelemetryData.getAttributes().get(CONTENT_TYPE_LIST_ATTRIBUTE);
       if (contentTypeList instanceof List) {
-        //noinspection unchecked
+        // noinspection unchecked
         ((List<String>) contentTypeList).add(contentType);
       }
       else {
@@ -241,7 +241,8 @@ public class ThirdPartyScanResultsProcessor
 
     ItemContentType contentItemType = ItemContentType.valueOf(contentType);
     if (ItemContentType.CONTAINER_URI.equals(contentItemType)
-        || ItemContentType.CONTAINER_URI_SONATYPE.equals(contentItemType)) {
+        || ItemContentType.CONTAINER_URI_SONATYPE.equals(contentItemType))
+    {
       scanContext.addContainerUriPath(path);
     }
     ThirdPartyScanResultHandler handler = createHandler(contentItemType, scanContext);
@@ -282,8 +283,9 @@ public class ThirdPartyScanResultsProcessor
     }
   }
 
-  private void writeFilteredInformation(XMLEventWriter writer, FilteredThirdPartyContent filteredThirdPartyContent)
-      throws XMLStreamException
+  private void writeFilteredInformation(
+      XMLEventWriter writer,
+      FilteredThirdPartyContent filteredThirdPartyContent) throws XMLStreamException
   {
     if (filteredThirdPartyContent.hasErrors()) {
       try {
@@ -305,8 +307,9 @@ public class ThirdPartyScanResultsProcessor
     writer.add(EVENT_FACTORY.createCharacters("\n"));
   }
 
-  private void writeDependencyGraph(final XMLEventWriter writer, final List<ProjectScanItem> moduleDependencies)
-      throws XMLStreamException
+  private void writeDependencyGraph(
+      final XMLEventWriter writer,
+      final List<ProjectScanItem> moduleDependencies) throws XMLStreamException
   {
     for (ProjectScanItem moduleDependency : moduleDependencies) {
       String xml = xstream.toXML(moduleDependency);
@@ -358,8 +361,8 @@ public class ThirdPartyScanResultsProcessor
    * ThirdPartySbomMetadata records that are created here will have a PENDING status.
    *
    * @return the saved ThirdPartyFile, or null if an error occurs.
-   * The ThirdPartySbomMetadata will be null if this is a Lifecycle scan for which the SBOM metadata should not
-   * be stored.
+   *         The ThirdPartySbomMetadata will be null if this is a Lifecycle scan for which the SBOM metadata should not
+   *         be stored.
    */
   private ThirdPartyFile storeSbom(
       Xpp3Dom itemElement,
@@ -385,16 +388,14 @@ public class ThirdPartyScanResultsProcessor
                 sbomContent,
                 filename,
                 scanContext.getApplicationId(),
-                sbomDetectionResult
-            );
+                sbomDetectionResult);
           }
           else {
             entities = thirdPartyPersistenceService.saveSbomManagerBinaryFromScan(
                 sbomContent,
                 filename,
                 scanContext.getApplicationId(),
-                sbomDetectionResult
-            );
+                sbomDetectionResult);
           }
 
           sbomMetadata = entities.getLeft();
@@ -426,12 +427,13 @@ public class ThirdPartyScanResultsProcessor
         thirdPartyFile = thirdPartyPersistenceService.saveLifecycleSbomFromScan(filename);
 
         // Note: in LC multiple SBOMs present in the scan will be saved separately, so there may be multiple
-        // ThirdPartyFiles.  The scan context just holds the id of the most recently saved one
+        // ThirdPartyFiles. The scan context just holds the id of the most recently saved one
         scanContext.setThirdPartyFileId(thirdPartyFile.getId());
       }
 
       if (scanContext.getThirdPartyFileId() != null &&
-          !scanContext.getThirdPartyFileId().equals(thirdPartyFile.getId())) {
+          !scanContext.getThirdPartyFileId().equals(thirdPartyFile.getId()))
+      {
         throw new IllegalStateException("""
             Already-saved ThirdPartyFile does not match information being processed in ThirdPartyScanResultsProcessor: \
             %s != %s""".formatted(scanContext.getThirdPartyFileId(), thirdPartyFile.getId()));
@@ -449,7 +451,7 @@ public class ThirdPartyScanResultsProcessor
 
   /**
    * @return whether or not the ThirdPartySbomMetadata and actual SBOM file contents should be persisted for this
-   * scan.
+   *         scan.
    */
   private boolean shouldStoreAsSbom(ThirdPartyScanContext scanContext) {
     return productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)
@@ -459,7 +461,8 @@ public class ThirdPartyScanResultsProcessor
 
   private boolean isStageTypeSupported(ThirdPartyScanContext scanContext) {
     return scanContext.getStageType().equalsIgnoreCase(ComplianceStageType.ID)
-        && productLicense.getStageTypes().stream()
-        .anyMatch(stageType -> stageType.getId().equalsIgnoreCase(ComplianceStageType.ID));
+        && productLicense.getStageTypes()
+            .stream()
+            .anyMatch(stageType -> stageType.getId().equalsIgnoreCase(ComplianceStageType.ID));
   }
 }

@@ -69,13 +69,18 @@ public class ConfigurationInfo
     entries.put(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, MASK);
     entries.put(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, configuration.isExternalHyperlinksAllowed());
     entries.put(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
-        configuration.getMatcherConfiguration() != null ? configuration.getMatcherConfiguration().get(
-            "disableConanNamespaceMatching") : null);
+        configuration.getMatcherConfiguration() != null
+            ? configuration.getMatcherConfiguration()
+                .get(
+                    "disableConanNamespaceMatching")
+            : null);
     entries.put(SystemConfigurationProperty.BASE_URL,
         configuration.getBaseUrlConfiguration() != null ? configuration.getBaseUrlConfiguration().getBaseUrl() : null);
     entries.put(SystemConfigurationProperty.FORCE_BASE_URL,
-        configuration.getBaseUrlConfiguration() != null ? configuration.getBaseUrlConfiguration()
-            .isForceBaseUrl() : null);
+        configuration.getBaseUrlConfiguration() != null
+            ? configuration.getBaseUrlConfiguration()
+                .isForceBaseUrl()
+            : null);
     entries.put(SystemConfigurationProperty.ACCESS_ALLOWLIST, configuration.getAccessAllowlist());
     entries.put(SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
         configuration.isALPObservedLicenseDetectionEnabled());

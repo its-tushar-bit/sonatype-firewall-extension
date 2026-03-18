@@ -56,8 +56,9 @@ public class ApplicationTagResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_APPLICATION_CATEGORY)
-  public void updateApplicationTags(@PathParam("applicationPublicId") final String applicationPublicId,
-                                    final List<Tag> tags)
+  public void updateApplicationTags(
+      @PathParam("applicationPublicId") final String applicationPublicId,
+      final List<Tag> tags)
   {
     tagService.updateApplicationTags(applicationPublicId, tags);
   }

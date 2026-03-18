@@ -192,7 +192,9 @@ public class PolicyViolationTelemetryBuilder
       return;
     }
 
-    policyViolation.getConstraintFacts().stream().flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
+    policyViolation.getConstraintFacts()
+        .stream()
+        .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
         .forEach(conditionFact -> {
           switch (policyViolation.getThreatCategory()) {
             case SECURITY:

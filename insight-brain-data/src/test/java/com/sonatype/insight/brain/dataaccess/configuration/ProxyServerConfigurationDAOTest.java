@@ -193,7 +193,8 @@ public class ProxyServerConfigurationDAOTest
     proxyServerConfiguration.setId("not-singleton-id");
     dao.update(proxyServerConfiguration);
     assertThat(dao.createQuery("SELECT entity FROM ProxyServerConfiguration entity").getList())
-        .extracting(ProxyServerConfiguration::getId).containsExactly(ProxyServerConfigurationDAO.SINGLETON_ENTITY_ID);
+        .extracting(ProxyServerConfiguration::getId)
+        .containsExactly(ProxyServerConfigurationDAO.SINGLETON_ENTITY_ID);
   }
 
   @Test

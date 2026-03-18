@@ -46,8 +46,10 @@ public class ReportComponentService
     this.clusterLockManager = clusterLockManager;
   }
 
-  public ReportComponentData fetchReportAndComponents(Application application, String scanId, String stageTypeId)
-      throws IOException
+  public ReportComponentData fetchReportAndComponents(
+      Application application,
+      String scanId,
+      String stageTypeId) throws IOException
   {
     ApplicationReport applicationReport;
     List<Component> components;
@@ -59,21 +61,22 @@ public class ReportComponentService
           LICENSES_JSON.getName(),
           SECURITY_JSON.getName(),
           BOM_JSON.getName(),
-          DEPENDENCIES_JSON.getName()
-      ));
+          DEPENDENCIES_JSON.getName()));
       final ReportEntry licenseReportEntry = entries.get(LICENSES_JSON.getName());
       final ReportEntry securityReportEntry = entries.get(SECURITY_JSON.getName());
       final ReportEntry bomReportEntry = entries.get(BOM_JSON.getName());
       final ReportEntry dependenciesReportEntry = entries.get(DEPENDENCIES_JSON.getName());
 
       if (bomReportEntry == null || securityReportEntry == null || licenseReportEntry == null
-          || dependenciesReportEntry == null) {
+          || dependenciesReportEntry == null)
+      {
         throw new BadRequestException("Unable to fetch report data, the scan " + scanId + " could not be processed.");
       }
 
       // Load data about components
-      components = componentLoaderFactory.createComponentLoader(application).getAll(licenseReportEntry.buf,
-          securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
+      components = componentLoaderFactory.createComponentLoader(application)
+          .getAll(licenseReportEntry.buf,
+              securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
     }
 
     return new ReportComponentData(applicationReport, components);
@@ -85,8 +88,7 @@ public class ReportComponentService
         LICENSES_JSON.getName(),
         SECURITY_JSON.getName(),
         BOM_JSON.getName(),
-        DEPENDENCIES_JSON.getName()
-    ));
+        DEPENDENCIES_JSON.getName()));
     ReportEntry licenseReportEntry = entries.get(LICENSES_JSON.getName());
     ReportEntry securityReportEntry = entries.get(SECURITY_JSON.getName());
     ReportEntry bomReportEntry = entries.get(BOM_JSON.getName());

@@ -47,11 +47,12 @@ public class DashboardFilterService
   private final Configuration configuration;
 
   @Inject
-  public DashboardFilterService(ApplicationDAO applicationDAO,
-                                DashboardFilterDAO dashboardFilterDAO,
-                                CurrentUser currentUser,
-                                DashboardUtils dashboardUtils,
-                                Configuration configuration)
+  public DashboardFilterService(
+      ApplicationDAO applicationDAO,
+      DashboardFilterDAO dashboardFilterDAO,
+      CurrentUser currentUser,
+      DashboardUtils dashboardUtils,
+      Configuration configuration)
   {
     this.applicationDAO = applicationDAO;
     this.dashboardFilterDAO = dashboardFilterDAO;
@@ -97,7 +98,7 @@ public class DashboardFilterService
     List<DashboardFilter> dashboardFilters = new ArrayList<>();
     dashboardFilters.addAll(dashboardFilterDAO.getNamedFiltersByUsernameAndRealmId(username, realmId));
     dashboardFilters.addAll(dashboardFilterDAO.getLegacyNamedFiltersByUsername(username));
-    
+
     List<NamedDashboardFilterDTO> namedDashboardFilterDTOs = new ArrayList<>();
     for (DashboardFilter dashboardFilter : dashboardFilters) {
       DashboardFilterDTO dto = JsonUtils.parse(dashboardFilter.getFilter(), DashboardFilterDTO.class);
@@ -125,7 +126,7 @@ public class DashboardFilterService
     dashboardFilterDTO.stageTypeFilters = new ArrayList<>();
     dashboardFilterDTO.policyThreatCategoryFilters = new ArrayList<>();
     dashboardFilterDTO.tagFilters = new ArrayList<>();
-    
+
     NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
     namedDashboardFilterDTO.name = ACTIVE_FILTER_NAME;
     namedDashboardFilterDTO.needsAcknowledgement = configuration.isNeedsAcknowledgementOfInitialDashboardFilter();
@@ -203,7 +204,8 @@ public class DashboardFilterService
   }
 
   private void auditDashboardFilter(final DashboardFilter dashboardFilter) {
-    AuditData.get().setData("filterId", dashboardFilter.getId())
+    AuditData.get()
+        .setData("filterId", dashboardFilter.getId())
         .setData("filterName",
             dashboardFilter.getName().equals(ACTIVE_FILTER_NAME) ? "(active)" : dashboardFilter.getName());
   }

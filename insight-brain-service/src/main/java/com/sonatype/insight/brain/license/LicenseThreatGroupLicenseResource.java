@@ -39,7 +39,7 @@ import static java.util.stream.Collectors.toList;
 @Path(LicenseThreatGroupLicenseResource.RESOURCE_PATH)
 public class LicenseThreatGroupLicenseResource
 {
-  public static final String RESOURCE_PATH = 
+  public static final String RESOURCE_PATH =
       "rest/licenseThreatGroupLicense/{ownerType: application|organization}/{ownerId}/{licenseThreatGroupId}";
 
   private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO;
@@ -85,8 +85,11 @@ public class LicenseThreatGroupLicenseResource
 
     AuditData.get() //
         .setLicenseThreatGroup(licenseThreatGroupDAO.getByIdNotNull(licenseThreatGroupId)) //
-        .setData("licenseNames", licenseIds.stream().map(licenseDAO::getByIdNotNull).map(License::getShortDisplayName)
-            .sorted().collect(toList()));
+        .setData("licenseNames", licenseIds.stream()
+            .map(licenseDAO::getByIdNotNull)
+            .map(License::getShortDisplayName)
+            .sorted()
+            .collect(toList()));
 
     return licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId(licenseThreatGroupId);
   }

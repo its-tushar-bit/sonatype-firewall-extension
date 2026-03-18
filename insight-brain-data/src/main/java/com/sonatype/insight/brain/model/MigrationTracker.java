@@ -17,7 +17,8 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "migration_tracker")
-public class MigrationTracker implements HasStringId
+public class MigrationTracker
+    implements HasStringId
 {
   @Id
   @Column(name = "migration_tracker_id")

@@ -43,7 +43,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for {@link SourceControlAuthenticationTransitionHandler}.
  */
-public class SourceControlAuthenticationTransitionHandlerTest extends AbstractComponentTest
+public class SourceControlAuthenticationTransitionHandlerTest
+    extends AbstractComponentTest
 {
   private static final Integer TEST_GITHUB_APP_ID = 12345;
 
@@ -82,27 +83,26 @@ public class SourceControlAuthenticationTransitionHandlerTest extends AbstractCo
   private void setupServices() {
     String wireMockBaseUrl = "http://localhost:" + githubMockServer.port();
     GitHubAppDeletionService deletionService = new GitHubAppDeletionService(
-            gitHubAppDAO,
-            installationStateDAO,
-            passwordHandler,
-            insightProxy,
-            wireMockBaseUrl
-    );
+        gitHubAppDAO,
+        installationStateDAO,
+        passwordHandler,
+        insightProxy,
+        wireMockBaseUrl);
     cleanupHandler = new SourceControlAuthenticationTransitionHandler(deletionService);
   }
 
   private void stubGitHubAppInstallationDeletion() {
     stubFor(delete(urlPathMatching("/app/installations/.*"))
-            .willReturn(aResponse().withStatus(204)));
+        .willReturn(aResponse().withStatus(204)));
   }
 
   @Test
   public void testHandleAuthTransition_SameAuthType_NoHandle() {
     Application app = tempEntity.newApplicationWithParent();
     SourceControl storedSC = createSourceControl(
-            app.getId(), SourceControlProvider.GITHUB, AuthenticationType.PAT);
+        app.getId(), SourceControlProvider.GITHUB, AuthenticationType.PAT);
     SourceControl newSC = createSourceControl(
-            app.getId(), SourceControlProvider.GITHUB, AuthenticationType.PAT);
+        app.getId(), SourceControlProvider.GITHUB, AuthenticationType.PAT);
 
     cleanupHandler.handleAuthTransition(storedSC, newSC);
 
@@ -116,9 +116,9 @@ public class SourceControlAuthenticationTransitionHandlerTest extends AbstractCo
     String originalToken = "pat-token-value";
 
     SourceControl storedSC = createSourceControlWithToken(
-            app.getId(), originalToken, AuthenticationType.PAT);
+        app.getId(), originalToken, AuthenticationType.PAT);
     SourceControl newSC = createSourceControlWithToken(
-            app.getId(), originalToken, AuthenticationType.GITHUB_APP);
+        app.getId(), originalToken, AuthenticationType.GITHUB_APP);
 
     cleanupHandler.handleAuthTransition(storedSC, newSC);
     assertThat(newSC.getToken()).isNull();
@@ -131,9 +131,9 @@ public class SourceControlAuthenticationTransitionHandlerTest extends AbstractCo
     createAndInsertGitHubApp(app.getId());
 
     SourceControl storedSC = createSourceControl(
-            app.getId(), SourceControlProvider.GITHUB, AuthenticationType.GITHUB_APP);
+        app.getId(), SourceControlProvider.GITHUB, AuthenticationType.GITHUB_APP);
     SourceControl newSC = createSourceControl(
-            app.getId(), SourceControlProvider.GITHUB, AuthenticationType.PAT);
+        app.getId(), SourceControlProvider.GITHUB, AuthenticationType.PAT);
 
     cleanupHandler.handleAuthTransition(storedSC, newSC);
     assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
@@ -145,9 +145,9 @@ public class SourceControlAuthenticationTransitionHandlerTest extends AbstractCo
     Application app = tempEntity.newApplicationWithParent();
 
     SourceControl storedSC = createSourceControl(
-            app.getId(), SourceControlProvider.GITHUB, null);
+        app.getId(), SourceControlProvider.GITHUB, null);
     SourceControl newSC = createSourceControl(
-            app.getId(), SourceControlProvider.GITHUB, AuthenticationType.GITHUB_APP);
+        app.getId(), SourceControlProvider.GITHUB, AuthenticationType.GITHUB_APP);
 
     cleanupHandler.handleAuthTransition(storedSC, newSC);
     verify(0, deleteRequestedFor(urlPathMatching("/app/installations/.*")));
@@ -159,7 +159,7 @@ public class SourceControlAuthenticationTransitionHandlerTest extends AbstractCo
     createAndInsertGitHubApp(app.getId());
 
     SourceControl sc = createSourceControl(
-            app.getId(), SourceControlProvider.GITHUB, AuthenticationType.GITHUB_APP);
+        app.getId(), SourceControlProvider.GITHUB, AuthenticationType.GITHUB_APP);
 
     cleanupHandler.deleteGitHubAppInstallation(sc);
     assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
@@ -176,7 +176,7 @@ public class SourceControlAuthenticationTransitionHandlerTest extends AbstractCo
     tempEntity.newGitHubAppInstallationState("pending-state-2", gitHubApp.getId(), "code-verifier-2", expiresAt);
 
     SourceControl sc = createSourceControl(
-            app.getId(), SourceControlProvider.GITHUB, AuthenticationType.GITHUB_APP);
+        app.getId(), SourceControlProvider.GITHUB, AuthenticationType.GITHUB_APP);
 
     assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNotNull();
     try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
@@ -208,9 +208,9 @@ public class SourceControlAuthenticationTransitionHandlerTest extends AbstractCo
     tempEntity.newGitHubAppInstallationState("transition-state-2", gitHubApp.getId(), "code-verifier-2", expiresAt);
 
     SourceControl storedSC = createSourceControl(
-            app.getId(), SourceControlProvider.GITHUB, AuthenticationType.GITHUB_APP);
+        app.getId(), SourceControlProvider.GITHUB, AuthenticationType.GITHUB_APP);
     SourceControl newSC = createSourceControl(
-            app.getId(), SourceControlProvider.GITHUB, AuthenticationType.PAT);
+        app.getId(), SourceControlProvider.GITHUB, AuthenticationType.PAT);
 
     assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNotNull();
     try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
@@ -248,30 +248,30 @@ public class SourceControlAuthenticationTransitionHandlerTest extends AbstractCo
   }
 
   private SourceControl createSourceControl(
-          final String ownerId,
-          final SourceControlProvider provider,
-          final AuthenticationType authType)
+      final String ownerId,
+      final SourceControlProvider provider,
+      final AuthenticationType authType)
   {
     return new SourceControl.Builder()
-            .setOwnerId(ownerId)
-            .setRepositoryUrl("https://github.com/test/repo")
-            .setProvider(provider)
-            .setAuthenticationType(authType)
-            .build();
+        .setOwnerId(ownerId)
+        .setRepositoryUrl("https://github.com/test/repo")
+        .setProvider(provider)
+        .setAuthenticationType(authType)
+        .build();
   }
 
   private SourceControl createSourceControlWithToken(
-          final String ownerId,
-          final String token,
-          final AuthenticationType authType)
+      final String ownerId,
+      final String token,
+      final AuthenticationType authType)
   {
     return new SourceControl.Builder()
-            .setOwnerId(ownerId)
-            .setRepositoryUrl("https://github.com/test/repo")
-            .setToken(token)
-            .setProvider(SourceControlProvider.GITHUB)
-            .setAuthenticationType(authType)
-            .build();
+        .setOwnerId(ownerId)
+        .setRepositoryUrl("https://github.com/test/repo")
+        .setToken(token)
+        .setProvider(SourceControlProvider.GITHUB)
+        .setAuthenticationType(authType)
+        .build();
   }
 
   private String generateTestRsaPrivateKey() {

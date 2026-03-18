@@ -19,11 +19,11 @@ public class TotalSBOMsStoredTile
   public SelenideElement totalSBOMsStored() {
     return child(".sbom-manager-total-sboms-stored-tile__total");
   }
-  
+
   public SelenideElement sbomProgressBar() {
     return child(".nx-progress-bar__progress");
   }
-  
+
   public SelenideElement sbomProgressBarLabel() {
     return child(".sbom-manager-total-sboms-stored-tile-progress__label");
   }

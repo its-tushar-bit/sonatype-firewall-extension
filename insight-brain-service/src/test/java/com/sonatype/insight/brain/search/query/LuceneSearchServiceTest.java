@@ -63,7 +63,7 @@ public class LuceneSearchServiceTest
   @Test
   public void testSearchIndex_NoSearchIndexDirectory() {
     assertThatExceptionOfType(ConflictException.class).isThrownBy(
-            () -> searchService.searchIndex("query", 1, 1, false, null, null))
+        () -> searchService.searchIndex("query", 1, 1, false, null, null))
         .withMessageContaining("Search index not found. The Advanced Search index is unavailable or has not " +
             "been created yet. Re-indexing is required before results can be returned.");
   }
@@ -72,7 +72,7 @@ public class LuceneSearchServiceTest
   public void testSearchIndex_EmptySearchIndexDirectory() throws Exception {
     Files.createDirectories(insightWork.getSearchIndexDir().toPath());
     assertThatExceptionOfType(ConflictException.class).isThrownBy(
-            () -> searchService.searchIndex("query", 1, 1, false, null, null))
+        () -> searchService.searchIndex("query", 1, 1, false, null, null))
         .withMessageContaining("Search index not found. The Advanced Search index is unavailable or has not " +
             "been created yet. Re-indexing is required before results can be returned.");
   }

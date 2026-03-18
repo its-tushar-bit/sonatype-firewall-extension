@@ -103,7 +103,8 @@ public class ApiComponentDetailsServiceV2
 
   private void validateRequest(ApiComponentDetailsRequestDTOV2 componentDetailsRequest) {
     if (componentDetailsRequest == null || componentDetailsRequest.components == null
-        || componentDetailsRequest.components.isEmpty()) {
+        || componentDetailsRequest.components.isEmpty())
+    {
       throw new BadRequestException("No components provided in the request");
     }
     for (ApiComponentDTOV2 componentDTO : componentDetailsRequest.components) {
@@ -167,8 +168,7 @@ public class ApiComponentDetailsServiceV2
       ComponentEvaluationDataRequestList componentEvaluationDataRequestList = convert(componentChunk, convert);
       ComponentEvaluationDataList componentEvaluationDataList;
       componentEvaluationDataList = post(componentEvaluationDataRequestList, purpose);
-      for (ComponentEvaluationDataList.ComponentEvaluationData componentEvaluationData : 
-          componentEvaluationDataList.components) {
+      for (ComponentEvaluationDataList.ComponentEvaluationData componentEvaluationData : componentEvaluationDataList.components) {
         componentEvaluationData.requestIndex += indexAdjust * chunkSize;
         returnList.components.add(componentEvaluationData);
       }

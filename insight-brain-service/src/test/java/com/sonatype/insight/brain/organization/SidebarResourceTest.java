@@ -171,7 +171,8 @@ public class SidebarResourceTest
   @Test
   public void testGetOwnerDetails_Organization() throws Exception {
     HttpResponse response = restRequest().path(SidebarResource.GET_OWNER_DETAILS_PATH)
-        .parameter(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).get();
+        .parameter(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID)
+        .get();
 
     assertValidOwnerDetailsDTO(response);
   }
@@ -182,7 +183,8 @@ public class SidebarResourceTest
     tempEntity.newApplicationWithParent(applicationPublicId);
 
     HttpResponse response = restRequest().path(SidebarResource.GET_OWNER_DETAILS_PATH)
-        .parameter(OwnerType.APPLICATION, applicationPublicId).get();
+        .parameter(OwnerType.APPLICATION, applicationPublicId)
+        .get();
 
     assertValidOwnerDetailsDTO(response);
   }
@@ -190,7 +192,8 @@ public class SidebarResourceTest
   @Test
   public void testGetOwnerDetails_RepositoryContaier() throws Exception {
     HttpResponse response = restRequest().path(SidebarResource.GET_GLOBAL_OWNER_DETAILS_PATH)
-        .parameter(OwnerType.REPOSITORY_CONTAINER).get();
+        .parameter(OwnerType.REPOSITORY_CONTAINER)
+        .get();
 
     assertValidOwnerDetailsDTO(response);
   }
@@ -199,7 +202,8 @@ public class SidebarResourceTest
   public void testGetOwnerDetails_RepositoryManager() throws Exception {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     HttpResponse response = restRequest().path(SidebarResource.GET_OWNER_DETAILS_PATH)
-        .parameter(OwnerType.REPOSITORY_MANAGER, repoManager.getId()).get();
+        .parameter(OwnerType.REPOSITORY_MANAGER, repoManager.getId())
+        .get();
 
     assertValidOwnerDetailsDTO(response);
   }

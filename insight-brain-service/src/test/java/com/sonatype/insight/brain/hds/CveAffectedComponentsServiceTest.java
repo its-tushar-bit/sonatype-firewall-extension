@@ -42,27 +42,28 @@ public class CveAffectedComponentsServiceTest
 
     when(hdsClient.getWithMultimap(
         eq(AffectedComponentList.class), eq("/rest/vulnerability/affected"), any()))
-        .thenAnswer(invocation -> {
-          Multimap<String, String> params = invocation.getArgument(2);
+            .thenAnswer(invocation -> {
+              Multimap<String, String> params = invocation.getArgument(2);
 
-          if (params.get("refId").size() > 1) {
-            throw new BadRequestException("Only one RefId is allowed");
-          }
+              if (params.get("refId").size() > 1) {
+                throw new BadRequestException("Only one RefId is allowed");
+              }
 
-          String cveId = params.get("refId").iterator().next();
+              String cveId = params.get("refId").iterator().next();
 
-          if (cveId.equals("CVE-2025-55182")) {
-            return new AffectedComponentList(Collections.singletonList(
-                new AffectedComponentDTO(
-                    "maven", "org.springframework", "spring-core", "5.3.30", null)), null, null);
-          }
-          else if (cveId.equals("CVE-2025-12345")) {
-            return new AffectedComponentList(Collections.singletonList(
-                new AffectedComponentDTO("npm", "", "lodash", "4.17.19", null)), null, null);
-          }
+              if (cveId.equals("CVE-2025-55182")) {
+                return new AffectedComponentList(Collections.singletonList(
+                    new AffectedComponentDTO(
+                        "maven", "org.springframework", "spring-core", "5.3.30", null)),
+                    null, null);
+              }
+              else if (cveId.equals("CVE-2025-12345")) {
+                return new AffectedComponentList(Collections.singletonList(
+                    new AffectedComponentDTO("npm", "", "lodash", "4.17.19", null)), null, null);
+              }
 
-          return new AffectedComponentList(Collections.emptyList(), null, null);
-        });
+              return new AffectedComponentList(Collections.emptyList(), null, null);
+            });
 
     Map<String, Set<AffectedCoordinates>> result = service.fetchAffectedComponentsForMultipleCves(cveIds);
 
@@ -96,29 +97,29 @@ public class CveAffectedComponentsServiceTest
 
     when(hdsClient.getWithMultimap(
         eq(AffectedComponentList.class), eq("/rest/vulnerability/affected"), any()))
-        .thenAnswer(invocation -> {
-          Multimap<String, String> params = invocation.getArgument(2);
+            .thenAnswer(invocation -> {
+              Multimap<String, String> params = invocation.getArgument(2);
 
-          if (params.get("refId").size() > 1) {
-            throw new BadRequestException("Only one RefId is allowed");
-          }
+              if (params.get("refId").size() > 1) {
+                throw new BadRequestException("Only one RefId is allowed");
+              }
 
-          String cveId = params.get("refId").iterator().next();
+              String cveId = params.get("refId").iterator().next();
 
-          if (cveId.equals("CVE-2025-55182")) {
-            if (params.containsKey("cursor")) {
-              return new AffectedComponentList(Collections.singletonList(comp2), null, false);
-            }
-            else {
-              return new AffectedComponentList(Collections.singletonList(comp1), "cursor123", true);
-            }
-          }
-          else if (cveId.equals("CVE-2025-12345")) {
-            return new AffectedComponentList(Collections.singletonList(comp3), null, false);
-          }
+              if (cveId.equals("CVE-2025-55182")) {
+                if (params.containsKey("cursor")) {
+                  return new AffectedComponentList(Collections.singletonList(comp2), null, false);
+                }
+                else {
+                  return new AffectedComponentList(Collections.singletonList(comp1), "cursor123", true);
+                }
+              }
+              else if (cveId.equals("CVE-2025-12345")) {
+                return new AffectedComponentList(Collections.singletonList(comp3), null, false);
+              }
 
-          return new AffectedComponentList(Collections.emptyList(), null, false);
-        });
+              return new AffectedComponentList(Collections.emptyList(), null, false);
+            });
 
     Map<String, Set<AffectedCoordinates>> result = service.fetchAffectedComponentsForMultipleCves(cveIds);
 
@@ -148,15 +149,15 @@ public class CveAffectedComponentsServiceTest
 
     when(hdsClient.getWithMultimap(
         eq(AffectedComponentList.class), eq("/rest/vulnerability/affected"), any()))
-        .thenAnswer(invocation -> {
-          Multimap<String, String> params = invocation.getArgument(2);
+            .thenAnswer(invocation -> {
+              Multimap<String, String> params = invocation.getArgument(2);
 
-          if (params.get("refId").size() > 1) {
-            return new AffectedComponentList(List.of(comp1, comp2), null, false);
-          }
+              if (params.get("refId").size() > 1) {
+                return new AffectedComponentList(List.of(comp1, comp2), null, false);
+              }
 
-          throw new IllegalStateException("Should use batch mode");
-        });
+              throw new IllegalStateException("Should use batch mode");
+            });
 
     Map<String, Set<AffectedCoordinates>> result = service.fetchAffectedComponentsForMultipleCves(cveIds);
 
@@ -184,31 +185,32 @@ public class CveAffectedComponentsServiceTest
 
     when(hdsClient.getWithMultimap(
         eq(AffectedComponentList.class), eq("/rest/vulnerability/affected"), any()))
-        .thenAnswer(invocation -> {
-          Multimap<String, String> params = invocation.getArgument(2);
+            .thenAnswer(invocation -> {
+              Multimap<String, String> params = invocation.getArgument(2);
 
-          if (params.get("refId").size() > 1) {
-            throw new BadRequestException("Only one RefId is allowed");
-          }
+              if (params.get("refId").size() > 1) {
+                throw new BadRequestException("Only one RefId is allowed");
+              }
 
-          String cveId = params.get("refId").iterator().next();
+              String cveId = params.get("refId").iterator().next();
 
-          if (cveId.equals("CVE-2025-55182")) {
-            return new AffectedComponentList(Collections.singletonList(
-                new AffectedComponentDTO(
-                    "maven", "org.springframework", "spring-core", "5.3.30", null)), null, null);
-          }
-          else if (cveId.equals("CVE-2025-INVALID")) {
-            throw new BadRequestException(
-                "Invalid CVE ID. Currently only supporting: CVE-2025-55182");
-          }
-          else if (cveId.equals("CVE-2025-12345")) {
-            return new AffectedComponentList(Collections.singletonList(
-                new AffectedComponentDTO("npm", "", "lodash", "4.17.19", null)), null, null);
-          }
+              if (cveId.equals("CVE-2025-55182")) {
+                return new AffectedComponentList(Collections.singletonList(
+                    new AffectedComponentDTO(
+                        "maven", "org.springframework", "spring-core", "5.3.30", null)),
+                    null, null);
+              }
+              else if (cveId.equals("CVE-2025-INVALID")) {
+                throw new BadRequestException(
+                    "Invalid CVE ID. Currently only supporting: CVE-2025-55182");
+              }
+              else if (cveId.equals("CVE-2025-12345")) {
+                return new AffectedComponentList(Collections.singletonList(
+                    new AffectedComponentDTO("npm", "", "lodash", "4.17.19", null)), null, null);
+              }
 
-          return new AffectedComponentList(Collections.emptyList(), null, null);
-        });
+              return new AffectedComponentList(Collections.emptyList(), null, null);
+            });
 
     Map<String, Set<AffectedCoordinates>> result = service.fetchAffectedComponentsForMultipleCves(cveIds);
 

@@ -16,7 +16,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-class ConditionFactComparator implements Comparator<ConditionFact>
+class ConditionFactComparator
+    implements Comparator<ConditionFact>
 {
   // uses its own object mapper since it needs specific configuration options that can impact performance
   private final ObjectMapper objectMapper;
@@ -41,7 +42,8 @@ class ConditionFactComparator implements Comparator<ConditionFact>
     // Condition trigger - prioritize comparison by actual trigger content over index
     // Not all condition types store trigger data.
     if (conditionFact1.getConditionIndex() != null && conditionFact2.getConditionIndex() != null &&
-        conditionFact1.getTriggerJson() != null && conditionFact2.getTriggerJson() != null) {
+        conditionFact1.getTriggerJson() != null && conditionFact2.getTriggerJson() != null)
+    {
       try {
         // De-serialize and then re-serialize the triggers in order to ensure consistent formatting and key ordering
         // for the string-based comparison below

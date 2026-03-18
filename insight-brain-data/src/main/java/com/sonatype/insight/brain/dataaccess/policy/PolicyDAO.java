@@ -222,8 +222,10 @@ public class PolicyDAO
     return PolicyInternal.toPolicies(policyInternalDAO.getApplicableByOwnerIdWithHierarchy(tx, ownerId));
   }
 
-  private void validateNameWithinHierarchy(TransactionContext tx, final String ownerId, final Policy policy)
-      throws InvalidPolicyException
+  private void validateNameWithinHierarchy(
+      TransactionContext tx,
+      final String ownerId,
+      final Policy policy) throws InvalidPolicyException
   {
     Owner owner = ownerDAO.getById(tx, ownerId);
 
@@ -231,8 +233,10 @@ public class PolicyDAO
     validateNameWithinHierarchyDown(tx, owner, policy);
   }
 
-  private void validateNameWithinHierarchyUp(TransactionContext tx, String parentId, Policy policy)
-      throws InvalidPolicyException
+  private void validateNameWithinHierarchyUp(
+      TransactionContext tx,
+      String parentId,
+      Policy policy) throws InvalidPolicyException
   {
     if (parentId == null) {
       return; // no parent, we're done
@@ -245,8 +249,10 @@ public class PolicyDAO
     validateNameWithinHierarchyUp(tx, parentOwner.getParentOwnerId(), policy);
   }
 
-  private void validateNameWithinHierarchyDown(TransactionContext tx, Owner owner, Policy policy)
-      throws InvalidPolicyException
+  private void validateNameWithinHierarchyDown(
+      TransactionContext tx,
+      Owner owner,
+      Policy policy) throws InvalidPolicyException
   {
     if (!owner.canHaveChildren()) {
       return;

@@ -24,8 +24,7 @@ public class ApplicationComponentLicensesDTOTest
         null,
         null,
         null,
-        null
-    );
+        null);
 
     assertThat(dto.getComponentIdentifier()).isNull();
   }
@@ -43,8 +42,7 @@ public class ApplicationComponentLicensesDTOTest
         null,
         ComponentIdentifier.FORMAT_CONAN,
         JsonUtils.toJson(coordinates),
-        null
-    );
+        null);
 
     ComponentIdentifier componentIdentifier = dto.getComponentIdentifier();
     assertThat(componentIdentifier.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_CONAN);
@@ -60,16 +58,14 @@ public class ApplicationComponentLicensesDTOTest
         ComponentIdentifier.CONAN_CHANNEL, "",
         ComponentIdentifier.CONAN_OWNER, "",
         ComponentIdentifier.CONAN_NAME, "bzip2",
-        ComponentIdentifier.VERSION, "1.0.8"
-    );
+        ComponentIdentifier.VERSION, "1.0.8");
 
     ApplicationComponentLicensesDTO dto = new ApplicationComponentLicensesDTO(
         null,
         null,
         ComponentIdentifier.FORMAT_CONAN,
         JsonUtils.toJson(coordinates),
-        null
-    );
+        null);
 
     ComponentIdentifier componentIdentifier = dto.getComponentIdentifier();
     assertThat(componentIdentifier.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_CONAN);
@@ -92,8 +88,7 @@ public class ApplicationComponentLicensesDTOTest
         null,
         ComponentIdentifier.FORMAT_CONAN,
         JsonUtils.toJson(coordinates),
-        null
-    );
+        null);
 
     ComponentIdentifier componentIdentifier = dto.getComponentIdentifier();
     assertThat(componentIdentifier.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_CONAN);
@@ -110,16 +105,14 @@ public class ApplicationComponentLicensesDTOTest
     Map<String, String> coordinates = Map.of(
         ComponentIdentifier.ANAME_NAME, "n",
         ComponentIdentifier.ANAME_QUALIFIER, "",
-        ComponentIdentifier.VERSION, "v"
-    );
+        ComponentIdentifier.VERSION, "v");
 
     ApplicationComponentLicensesDTO dto = new ApplicationComponentLicensesDTO(
         null,
         null,
         ComponentIdentifier.FORMAT_ANAME,
         JsonUtils.toJson(coordinates),
-        null
-    );
+        null);
 
     ComponentIdentifier componentIdentifier = dto.getComponentIdentifier();
     assertThat(componentIdentifier.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_ANAME);

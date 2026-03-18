@@ -71,8 +71,10 @@ public class ExportEmbeddedDatabaseCommand
   }
 
   @Override
-  protected void run(final Bootstrap<InsightConfig> bootstrap, final Namespace namespace, final InsightConfig config)
-      throws Exception
+  protected void run(
+      final Bootstrap<InsightConfig> bootstrap,
+      final Namespace namespace,
+      final InsightConfig config) throws Exception
   {
     long start = System.currentTimeMillis();
 
@@ -111,7 +113,8 @@ public class ExportEmbeddedDatabaseCommand
 
     log.info("Exporting database to {}", dumpFile);
     try (BufferedWriter writer =
-        new BufferedWriter(new OutputStreamWriter(newOutputStream(dumpFile), StandardCharsets.UTF_8))) {
+        new BufferedWriter(new OutputStreamWriter(newOutputStream(dumpFile), StandardCharsets.UTF_8)))
+    {
       export(writer, operationalDataStore.getDataSource());
       export(writer, aggregationDataStoreProvider.getDataSource());
       export(writer, thirdPartyScansDataStore.getDataSource());
@@ -134,7 +137,7 @@ public class ExportEmbeddedDatabaseCommand
   /**
    * Delegates to H2's SCRIPT command for the heavy lifting in generating the SQL dump and post-processes its output to
    * be both compatible and efficient for use with PostgreSQL, specifically its psql client.
-   * 
+   *
    * Uses a foreign key constraint bypass strategy: disables constraints during data load, then re-enables them.
    *
    * @see https://www.h2database.com/html/commands.html#script
@@ -142,25 +145,26 @@ public class ExportEmbeddedDatabaseCommand
    */
   private void export(BufferedWriter writer, DataSource dataSource) throws Exception {
     log.info("Reading tables, please be patient");
-    
+
     // Start with constraint bypass commands
     writer.write("-- Disable foreign key constraints and triggers for bulk import");
     writer.newLine();
     writer.write("SET session_replication_role = replica;");
     writer.newLine();
     writer.newLine();
-    
+
     // Collect statements by type to ensure proper ordering
     List<String> schemaStatements = new ArrayList<>();
-    List<String> tableStatements = new ArrayList<>(); 
+    List<String> tableStatements = new ArrayList<>();
     List<String> viewStatements = new ArrayList<>();
     List<String> modifyStatements = new ArrayList<>();
     List<String> insertStatements = new ArrayList<>();
-    
+
     try (Connection connection = dataSource.getConnection();
         Statement statement = connection.createStatement();
-        ResultSet results = statement.executeQuery("SCRIPT SIMPLE NOSETTINGS BLOCKSIZE " + Integer.MAX_VALUE)) {
-      
+        ResultSet results = statement.executeQuery("SCRIPT SIMPLE NOSETTINGS BLOCKSIZE " + Integer.MAX_VALUE))
+    {
+
       while (results.next()) {
         String sql = results.getString(1);
         try {
@@ -219,14 +223,14 @@ public class ExportEmbeddedDatabaseCommand
         }
       }
     }
-    
+
     // Write statements in proper dependency order
     writeStatements(writer, schemaStatements);
     writeStatements(writer, tableStatements);
     writeStatements(writer, viewStatements);
     writeStatements(writer, modifyStatements);
     writeInsertStatements(writer, insertStatements);
-    
+
     // Re-enable foreign key constraints and triggers
     writer.newLine();
     writer.write("-- Re-enable foreign key constraints and triggers");
@@ -250,9 +254,9 @@ public class ExportEmbeddedDatabaseCommand
       String tableB = b.substring("INSERT INTO ".length(), b.indexOf('(')).trim();
       return tableA.compareTo(tableB);
     });
-    
+
     String currentTable = null;
-    for (String sql : insertStatements) { 
+    for (String sql : insertStatements) {
       String tableName = sql.substring("INSERT INTO ".length(), sql.indexOf('(')).trim();
       int valuesBegin = sql.indexOf(" VALUES");
       if (!tableName.equals(currentTable)) {

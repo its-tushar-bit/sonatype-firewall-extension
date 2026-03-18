@@ -106,8 +106,7 @@ public class ApiUsageIncrementDto
   public static ApiUsageIncrementDto fromApplicationHistoryCount(
       final long dateTimeMillis,
       final int totalNumberOfAppsUsingCiCd,
-      final ApplicationCountHistory applicationCountHistory
-  )
+      final ApplicationCountHistory applicationCountHistory)
   {
     return new ApiUsageIncrementDto(
         dateTimeMillis,
@@ -116,8 +115,7 @@ public class ApiUsageIncrementDto
         applicationCountHistory.getPolicyActionFailuresByAppCount(),
         applicationCountHistory.getWaiversCount(),
         applicationCountHistory.getMeanTimeToRemediateMs(),
-        totalNumberOfAppsUsingCiCd
-    );
+        totalNumberOfAppsUsingCiCd);
   }
 
   @Override

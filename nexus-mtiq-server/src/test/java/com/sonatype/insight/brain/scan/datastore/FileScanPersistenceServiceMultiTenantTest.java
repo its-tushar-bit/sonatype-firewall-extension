@@ -21,7 +21,8 @@ public class FileScanPersistenceServiceMultiTenantTest
 {
   @Before
   public void setup() throws Exception {
-    var configurator = new MtiqDatabaseConfigurator() {
+    var configurator = new MtiqDatabaseConfigurator()
+    {
       @Override
       public boolean isReusable() {
         return false;

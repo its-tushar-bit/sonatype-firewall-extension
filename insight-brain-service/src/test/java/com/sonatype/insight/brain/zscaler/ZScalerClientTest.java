@@ -42,7 +42,7 @@ public class ZScalerClientTest
   private HttpResponse<String> mockAdminResponse;
 
   @Mock
-  private  HttpResponse<String> mockRoleResponse;
+  private HttpResponse<String> mockRoleResponse;
 
   private ZScalerClient underTest;
 
@@ -74,9 +74,8 @@ public class ZScalerClientTest
     when(mockHttpResponse.statusCode()).thenReturn(401);
     when(mockHttpResponse.body()).thenReturn("Unauthorized");
 
-    BadRequestException exception = assertThrows(BadRequestException.class, () ->
-        underTest.authenticate("http://example.com", "user", "pass", "apiKey", "timestamp")
-    );
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.authenticate("http://example.com", "user", "pass", "apiKey", "timestamp"));
 
     assertEquals("Authentication failed: Unauthorized", exception.getMessage());
   }

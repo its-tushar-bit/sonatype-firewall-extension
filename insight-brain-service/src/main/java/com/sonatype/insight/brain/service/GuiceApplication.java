@@ -62,8 +62,7 @@ public abstract class GuiceApplication<T extends Configuration>
             .installers(NoMatchInstaller.class)
             .modules(wire(modules()))
             .modulesOverride(new MultiBinderModule(extensions))
-            .option(InstallersOptions.ForceSingletonForJerseyExtensions, false)
-    );
+            .option(InstallersOptions.ForceSingletonForJerseyExtensions, false));
 
     // Allow tests to override any existing module
     if (!overrideModules().isEmpty()) {
@@ -177,8 +176,9 @@ public abstract class GuiceApplication<T extends Configuration>
   private void addAdminHealthCheckEndpoints(Environment environment) {
     // Get all AdminHealthCheckEndpoint implementations from Guice Multibinder
     Set<AdminHealthCheckEndpoint> healthChecks = getInjector().getInstance(
-        Key.get(new TypeLiteral<>() { })
-    );
+        Key.get(new TypeLiteral<>()
+        {
+        }));
 
     for (AdminHealthCheckEndpoint endpoint : healthChecks) {
       AdminHealthCheckEndpoint.addAdminHealthCheckEndpoint(environment.admin(), endpoint);

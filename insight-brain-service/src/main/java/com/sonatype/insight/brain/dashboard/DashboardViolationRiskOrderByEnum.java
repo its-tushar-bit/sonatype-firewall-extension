@@ -12,5 +12,10 @@ public enum DashboardViolationRiskOrderByEnum
 {
   // TODO Remove COMPONENT_NAME after it is removed from the UI (https://sonatype.atlassian.net/browse/CLM-32985)
   // and after it is deployed once to MTIQ prod envs.
-  AGE, APPLICATION_NAME, COMPONENT_NAME, POLICY_NAME, THREAT_LEVEL, POLICY_VIOLATION_ID;
+  AGE,
+  APPLICATION_NAME,
+  COMPONENT_NAME,
+  POLICY_NAME,
+  THREAT_LEVEL,
+  POLICY_VIOLATION_ID;
 }

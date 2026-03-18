@@ -280,7 +280,8 @@ public class FirewallMetricsMigrator
                   processedRepositories.get(), totalRepositories));
 
               return repositoryMetrics;
-            })).collect(toList())),
+            }))
+            .collect(toList())),
         ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL)).join();
 
     consolidateAndSaveFirewallMetrics(flat(allMetrics));
@@ -300,7 +301,8 @@ public class FirewallMetricsMigrator
     processedRepositories.set(0);
 
     List<List<FirewallMetrics>> allMetrics = CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> repositories
-        .parallelStream().map(new TenantAwareFunction<Repository, List<FirewallMetrics>>(repository -> {
+        .parallelStream()
+        .map(new TenantAwareFunction<Repository, List<FirewallMetrics>>(repository -> {
           List<FirewallMetrics> repositoryMetrics = new ArrayList<>();
 
           Map<LocalDate, Long> results = repositoryComponentDAO
@@ -318,7 +320,8 @@ public class FirewallMetricsMigrator
               processedRepositories.get(), totalRepositories));
 
           return repositoryMetrics;
-        })).collect(toList())), ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL)).join();
+        }))
+        .collect(toList())), ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL)).join();
 
     consolidateAndSaveFirewallMetrics(flat(allMetrics));
 
@@ -337,7 +340,8 @@ public class FirewallMetricsMigrator
     processedRepositories.set(0);
 
     List<List<FirewallMetrics>> allMetrics = CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> repositories
-        .parallelStream().map(new TenantAwareFunction<Repository, List<FirewallMetrics>>(repository -> {
+        .parallelStream()
+        .map(new TenantAwareFunction<Repository, List<FirewallMetrics>>(repository -> {
           List<FirewallMetrics> repositoryMetrics = new ArrayList<>();
 
           Map<LocalDate, Long> results = policyWaiverDAO.getCountByOwnerIdAndDate(repository.getId(), twelveMonthsAgo);
@@ -353,7 +357,8 @@ public class FirewallMetricsMigrator
                   processedRepositories.get(), totalRepositories));
 
           return repositoryMetrics;
-        })).collect(toList())), ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL)).join();
+        }))
+        .collect(toList())), ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL)).join();
 
     consolidateAndSaveFirewallMetrics(flat(allMetrics));
 
@@ -396,7 +401,8 @@ public class FirewallMetricsMigrator
           .collect(toMap(FirewallMetrics::getMetricsDate, identity(), (existingMetric, newMetric) -> {
             existingMetric.incrementMetricsValue(newMetric.getMetricsValue());
             return existingMetric;
-          })).values();
+          }))
+          .values();
 
       log.info("Saving {} Firewall Metrics.", metrics.size());
       int insertBatchSize = 100;

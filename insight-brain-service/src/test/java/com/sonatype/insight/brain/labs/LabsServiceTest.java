@@ -43,7 +43,7 @@ public class LabsServiceTest
     Header customHeader1 = createHeader("customHeaderName1", "customHeaderValue1");
     Header customHeader2 = createHeader("customHeaderName2", "customHeaderValue2");
 
-    Header[] mockHeaders = { customHeader1, customHeader2 };
+    Header[] mockHeaders = {customHeader1, customHeader2};
     when(httpMockResponse.getAllHeaders()).thenReturn(mockHeaders);
 
     Response jaxRSResponse = labsService.convertResponse(httpMockResponse);
@@ -77,7 +77,7 @@ public class LabsServiceTest
     Header customHeader1 = createHeader("customHeaderName1", "customHeaderValue1");
     Header customHeader2 = createHeader("customHeaderName2", "customHeaderValue2");
 
-    Header[] mockHeaders = { contentTypeHeader, customHeader1, customHeader2 };
+    Header[] mockHeaders = {contentTypeHeader, customHeader1, customHeader2};
     when(httpMockResponse.getAllHeaders()).thenReturn(mockHeaders);
 
     Response jaxRSResponse = labsService.convertResponse(httpMockResponse);
@@ -129,7 +129,7 @@ public class LabsServiceTest
 
     when(httpMockResponse.getEntity()).thenReturn(httpEntity);
 
-    Header[] mockHeaders = { contentTypeHeader };
+    Header[] mockHeaders = {contentTypeHeader};
     when(httpMockResponse.getAllHeaders()).thenReturn(mockHeaders);
 
     Response jaxRSResponse = labsService.convertResponse(httpMockResponse);

@@ -214,11 +214,12 @@ public class ApplicationPolicyViolationLoggerTest
     return PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(logOutput, expected);
   }
 
-  private void assertApplicationPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
-                                                    PolicyViolationLogEvent policyViolationLogEvent,
-                                                    Date eventTime,
-                                                    PolicyViolation policyViolation,
-                                                    String userName) throws Exception
+  private void assertApplicationPolicyViolationData(
+      PolicyViolationLogDTO policyViolationLogDTO,
+      PolicyViolationLogEvent policyViolationLogEvent,
+      Date eventTime,
+      PolicyViolation policyViolation,
+      String userName) throws Exception
   {
     PolicyViolationLogDTOAssert.assertApplicationPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent,
         organization, application, eventTime, policyViolation, userName);

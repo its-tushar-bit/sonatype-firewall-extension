@@ -57,7 +57,8 @@ public class JiraConfigurationMigratorTest
   public void configure(Binder binder) {
     // Add the mock listener to the multibinder set
     Multibinder.newSetBinder(binder, JiraConfigurationListener.class)
-        .addBinding().toInstance(mockJiraConfigurationListener);
+        .addBinding()
+        .toInstance(mockJiraConfigurationListener);
     super.configure(binder);
   }
 
@@ -101,7 +102,9 @@ public class JiraConfigurationMigratorTest
     jiraConfigurationMigrator.migrate();
 
     JiraConfiguration jiraConfiguration = jiraConfigurationDAO.get();
-    assertThat(jiraConfiguration).usingRecursiveComparison().ignoringExpectedNullFields().ignoringFields("password")
+    assertThat(jiraConfiguration).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
+        .ignoringFields("password")
         .isEqualTo(jiraConfig);
     assertThat(passwordHandler.decryptPassword(jiraConfiguration.getPassword())).isEqualTo(jiraConfig.getPassword());
     verify(mockJiraConfigurationListener).jiraConfigurationChanged();

@@ -35,28 +35,28 @@ public class SbomResultsMatcherTest
     List<Pair<ComponentIdentifier, JsonNode>> mockResults = new ArrayList<>();
     ComponentIdentifier id1 =
         ComponentIdentifier.createPypiCoordinates("orange", "1.0.1", "py2.py3-none-1", "whl");
-    //qualifiers match + namespace doesn't match
+    // qualifiers match + namespace doesn't match
     JsonNode rNode1 =
         createResultNode("pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl", "hash3");
     mockResults.add(Pair.of(id1, rNode1));
 
     ComponentIdentifier id2 =
         ComponentIdentifier.createPypiCoordinates("orange", "1.0.1", "py2.py3-none-2", "whl");
-    //qualifiers partially match + namespace doesn't match
+    // qualifiers partially match + namespace doesn't match
     JsonNode rNode2 =
         createResultNode("pkg:pypi/orange@1.0.1?extension=whl&qualifier=py2.py3-none-x86_64", "hash2");
     mockResults.add(Pair.of(id2, rNode2));
 
     ComponentIdentifier id3 =
         ComponentIdentifier.createPypiCoordinates("orange", "1.0.1", "py2.py3-none-3", "whl");
-    //qualifiers partially match + namespace match
+    // qualifiers partially match + namespace match
     JsonNode rNode3 =
         createResultNode("pkg:pypi/citrus/orange@1.0.1?extension=egg&qualifier=py2.py3-none-any", "hash1");
     mockResults.add(Pair.of(id3, rNode3));
 
     ComponentIdentifier id4 =
         ComponentIdentifier.createPypiCoordinates("orange", "1.0.1", "py2.py3-none-4", "whl");
-    //qualifiers fully match + namespace match
+    // qualifiers fully match + namespace match
     JsonNode rNode4 =
         createResultNode("pkg:pypi/citrus/orange@1.0.1?extension=whl&qualifier=py2.py3-none-any&arch=x86_64", "hash3");
     mockResults.add(Pair.of(id4, rNode4));
@@ -150,7 +150,7 @@ public class SbomResultsMatcherTest
     ComponentIdentifier id2 =
         ComponentIdentifier.createPypiCoordinates("orange", "1.0.1", "py2.py3-none-2", "whl");
     JsonNode rNode2 =
-        createResultNode("", "hash", "Other"); //same hash bother other id source
+        createResultNode("", "hash", "Other"); // same hash bother other id source
     mockResults.add(Pair.of(id2, rNode2));
 
     SbomResultsMatcherTelemetry telemetry = new SbomResultsMatcherTelemetry();
@@ -169,8 +169,10 @@ public class SbomResultsMatcherTest
     return createResultNode(purl, hash, IdentificationSource.SONATYPE.getId());
   }
 
-  private JsonNode createResultNode(String purl, String hash, String identificationSource)
-      throws JsonProcessingException
+  private JsonNode createResultNode(
+      String purl,
+      String hash,
+      String identificationSource) throws JsonProcessingException
   {
     Map<String, String> nodeData = new HashMap<>();
     nodeData.put("packageUrl", purl);
@@ -180,8 +182,11 @@ public class SbomResultsMatcherTest
   }
 
   private ThirdPartyFileCoordinate createSbomComponent(
-      String format, String name, String version,
-      String hash, String purl)
+      String format,
+      String name,
+      String version,
+      String hash,
+      String purl)
   {
     ThirdPartyFileCoordinate fileCoordinate =
         new ThirdPartyFileCoordinate(hash, "source", format, name, version, "tpId");

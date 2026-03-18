@@ -145,12 +145,14 @@ public class ApiPromoteScanServiceV2
     String statusId = UUID.randomUUID().toString().replace("-", "");
     policyEvaluationUtil.createPersistedPolicyEvaluationPollingResultIfNeeded(applicationId, statusId);
     log.debug("Received request to promote scan {} of app {} to stage {}. The status ID of the operation is {}.",
-        apiPromoteScanRequestDTOV2.scanId != null ? apiPromoteScanRequestDTOV2.scanId
+        apiPromoteScanRequestDTOV2.scanId != null
+            ? apiPromoteScanRequestDTOV2.scanId
             : "from stage " + apiPromoteScanRequestDTOV2.sourceStageId,
         application.getName(), apiPromoteScanRequestDTOV2.targetStageId, statusId);
 
-    AuditData.get().continueAsync(executor,
-        new ScanPromotionTask(apiPromoteScanRequestDTOV2, application.getId(), statusId, userAgent));
+    AuditData.get()
+        .continueAsync(executor,
+            new ScanPromotionTask(apiPromoteScanRequestDTOV2, application.getId(), statusId, userAgent));
 
     ApiApplicationEvaluationStatusDTOV2 result = new ApiApplicationEvaluationStatusDTOV2();
     result.statusUrl = getStatusUrl(applicationId, statusId);
@@ -187,7 +189,8 @@ public class ApiPromoteScanServiceV2
       try {
         final Application application = applicationDAO.getByIdNotNull(applicationId);
         log.debug("Promoting scan {} of app {} to stage {}. The status ID of the operation is {}.",
-            apiPromoteScanRequestDTOV2.scanId != null ? apiPromoteScanRequestDTOV2.scanId
+            apiPromoteScanRequestDTOV2.scanId != null
+                ? apiPromoteScanRequestDTOV2.scanId
                 : "from stage " + apiPromoteScanRequestDTOV2.sourceStageId,
             application.getName(), targetStageId, statusId);
 

@@ -51,7 +51,8 @@ public class PolicyWaiverTelemetryBackfillServiceTest
   @Before
   public void loadWaiverReasons() {
     if (null == waiverReasonMap) {
-      waiverReasonMap = policyWaiverReasonDAO.getAll().stream()
+      waiverReasonMap = policyWaiverReasonDAO.getAll()
+          .stream()
           .collect(Collectors.toMap(PolicyWaiverReason::getId, reason -> reason));
     }
   }
@@ -90,7 +91,8 @@ public class PolicyWaiverTelemetryBackfillServiceTest
       List<TelemetryData> capturedTelemetryData = allCapturedTelemetryData.get(i);
       @SuppressWarnings("unchecked")
       var capturedWaiverReasons = (List<WaiverReasonData>) capturedTelemetryData.get(0)
-          .getAttributes().get(WAIVER_REASON_MAPPING);
+          .getAttributes()
+          .get(WAIVER_REASON_MAPPING);
 
       // since we've configured the test subject to send 2 records per batch we need to peel off 2 records
       // at a time from the expected reasons for the validation
@@ -130,8 +132,7 @@ public class PolicyWaiverTelemetryBackfillServiceTest
     return waivers.stream()
         .map(waiver -> new WaiverReasonData(
             waiver.getId(),
-            waiverReasonMap.get(waiver.getWaiverReasonId()).getReasonText())
-        )
+            waiverReasonMap.get(waiver.getWaiverReasonId()).getReasonText()))
         .sorted(Comparator.comparing(WaiverReasonData::policyWaiverId))
         .toList();
   }

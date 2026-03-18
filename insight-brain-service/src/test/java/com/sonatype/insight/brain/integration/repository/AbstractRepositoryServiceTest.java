@@ -242,7 +242,7 @@ public abstract class AbstractRepositoryServiceTest
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = Map.of("npm", List.of("random_ignore_pattern"));
     lenient().when(
-            hdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
+        hdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
     setBaseUrl("http://localhost");
 
@@ -447,13 +447,13 @@ public abstract class AbstractRepositoryServiceTest
     Application application1 = tempEntity.newApplication("app1", "appPublicId1", organization.getId());
     Application application2 = tempEntity.newApplication("app2", "appPublicId2", organization.getId());
 
-    //policy evaluation
+    // policy evaluation
     PolicyEvaluation policyEvaluation1 =
         tempEntity.newPolicyEvaluation(application1.getId(), Stage.ID_PROXY, "scanId1");
     PolicyEvaluation policyEvaluation2 =
         tempEntity.newPolicyEvaluation(application2.getId(), Stage.ID_PROXY, "scanId2");
 
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1", 10);
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2", 8);
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3", 10);
@@ -462,14 +462,14 @@ public abstract class AbstractRepositoryServiceTest
     Policy policy5 = tempEntity.newPolicy(application2.getId(), "policy5", 10);
     Policy policy6 = tempEntity.newPolicy(application2.getId(), "policy6", 2);
 
-    //create policy violations app 1
+    // create policy violations app 1
     tempEntity.newPolicyViolation(policyEvaluation1, policy1, 10, PolicyThreatCategory.SECURITY, "g", "a", "v", "h",
         Action.ID_FAIL);
     tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     tempEntity.newPolicyViolation(policyEvaluation1, policy3);
     tempEntity.newPolicyViolation(policyEvaluation1, policy4);
 
-    //create policy violations app 2
+    // create policy violations app 2
     tempEntity.newPolicyViolation(policyEvaluation2, policy5);
     tempEntity.newPolicyViolation(policyEvaluation2, policy6);
 
@@ -680,7 +680,8 @@ public abstract class AbstractRepositoryServiceTest
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), before, after, after, repositoryComponent);
 
     RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO
-        .getByRepositoryIdAndPathname(repository.getId(), pathname).get(0);
+        .getByRepositoryIdAndPathname(repository.getId(), pathname)
+        .get(0);
     assertPolicyViolation(repository.getId(), pathname, policy.getId(), policy.getName(), policy.getThreatLevel(),
         policy.getThreatCategory(), hash, componentIdentifier, before, after, policyViolation);
   }
@@ -732,7 +733,8 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositoryComponent.isQuarantined()).isTrue();
 
     RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO
-        .getByRepositoryIdAndPathname(repository.getId(), pathname).get(0);
+        .getByRepositoryIdAndPathname(repository.getId(), pathname)
+        .get(0);
     assertPolicyViolation(repository.getId(), pathname, policy.getId(), policy.getName(), policy.getThreatLevel(),
         policy.getThreatCategory(), hash, componentIdentifier, timeBeforeEvaluation1, timeAfterEvaluation1,
         policyViolation);
@@ -830,7 +832,8 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositoryComponent.isQuarantined()).isFalse();
 
     RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO
-        .getByRepositoryIdAndPathname(repository.getId(), pathname).get(0);
+        .getByRepositoryIdAndPathname(repository.getId(), pathname)
+        .get(0);
     assertPolicyViolation(repository.getId(), pathname, policy.getId(), policy.getName(), policy.getThreatLevel(),
         policy.getThreatCategory(), hash, componentIdentifier, timeBeforeEvaluation, after, policyViolation);
   }
@@ -887,7 +890,8 @@ public abstract class AbstractRepositoryServiceTest
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), before, after, after, repositoryComponent);
 
     RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO
-        .getByRepositoryIdAndPathname(repository.getId(), pathname).get(0);
+        .getByRepositoryIdAndPathname(repository.getId(), pathname)
+        .get(0);
     assertPolicyViolation(repository.getId(), pathname, policy.getId(), policy.getName(), policy.getThreatLevel(),
         policy.getThreatCategory(), hash, componentIdentifier, before, after, policyViolation);
   }
@@ -1110,7 +1114,8 @@ public abstract class AbstractRepositoryServiceTest
   public void testEvaluateComponents_RepositoryDoesNotExist() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> getRepositoryService()
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null /* componentEvaluationDataRequestList */,
-            false, null)).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
+            false, null))
+        .withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
   }
 
   @Test
@@ -1209,7 +1214,8 @@ public abstract class AbstractRepositoryServiceTest
           MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), repositoryComponent);
 
       RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO
-          .getByRepositoryIdAndPathname(repository.getId(), pathname).get(0);
+          .getByRepositoryIdAndPathname(repository.getId(), pathname)
+          .get(0);
       assertPolicyViolation(repository.getId(), pathname, policy.getId(), policy.getName(), policy.getThreatLevel(),
           policy.getThreatCategory(), hash, componentIdentifier, before, after, policyViolation);
     }
@@ -1299,8 +1305,11 @@ public abstract class AbstractRepositoryServiceTest
     getRepositoryService().evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
         false, null);
 
-    await().atMost(Duration.ofMillis(5000)).untilAsserted(() -> assertThat(emailerLogOutput).atErrorLevel().contains(
-        "Unable to send notification email to " + userEmailAddress + " for repository " + repository.getPublicId()));
+    await().atMost(Duration.ofMillis(5000))
+        .untilAsserted(() -> assertThat(emailerLogOutput).atErrorLevel()
+            .contains(
+                "Unable to send notification email to " + userEmailAddress + " for repository "
+                    + repository.getPublicId()));
   }
 
   @Test
@@ -1842,16 +1851,18 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   void mockHdsRequestForMetadata(ComponentEvaluationDataList hdsResult) {
-    doReturn(hdsResult).when(quarantineHdsClient).get( //
-        eq(ComponentEvaluationDataList.class), //
-        eq(AbstractRepositoryService.HDS_COMPONENT_METADATA_PATH), //
-        anyString(), //
-        anyMap());
+    doReturn(hdsResult).when(quarantineHdsClient)
+        .get( //
+            eq(ComponentEvaluationDataList.class), //
+            eq(AbstractRepositoryService.HDS_COMPONENT_METADATA_PATH), //
+            anyString(), //
+            anyMap());
   }
 
   void mockHdsRequestForMetadataWithoutUserAgent(ComponentEvaluationDataList hdsResult) {
-    doReturn(hdsResult).when(quarantineHdsClient).get(eq(ComponentEvaluationDataList.class),
-        eq(AbstractRepositoryService.HDS_COMPONENT_METADATA_PATH), isNull(), anyMap());
+    doReturn(hdsResult).when(quarantineHdsClient)
+        .get(eq(ComponentEvaluationDataList.class),
+            eq(AbstractRepositoryService.HDS_COMPONENT_METADATA_PATH), isNull(), anyMap());
   }
 
   protected ComponentEvaluationData createComponentEvaluationData(
@@ -2216,7 +2227,9 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(patterns).allSatisfy(pattern -> {
       assertThat(pattern.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_NPM);
       assertThat(pattern.getRepositoryId()).isEqualTo(repo.getId());
-    }).extracting(ProprietaryComponentNamePattern::getNamespacePattern, ProprietaryComponentNamePattern::getNamePattern)
+    })
+        .extracting(ProprietaryComponentNamePattern::getNamespacePattern,
+            ProprietaryComponentNamePattern::getNamePattern)
         .containsExactly(tuple("@sonatype", null));
   }
 
@@ -2272,7 +2285,9 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(patterns).allSatisfy(pattern -> {
       assertThat(pattern.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_NPM);
       assertThat(pattern.getRepositoryId()).isEqualTo(repo.getId());
-    }).extracting(ProprietaryComponentNamePattern::getNamespacePattern, ProprietaryComponentNamePattern::getNamePattern)
+    })
+        .extracting(ProprietaryComponentNamePattern::getNamespacePattern,
+            ProprietaryComponentNamePattern::getNamePattern)
         .containsExactlyInAnyOrder(tuple("@sonatype", null), tuple(null, "sonatype*"));
   }
 
@@ -3310,8 +3325,9 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositories).hasSize(1);
 
     await().atMost(Duration.ofMillis(5000))
-        .untilAsserted(() -> assertThat(repositoryServiceLogOutput).atErrorLevel().contains("Error updating repository "
-            + repository.getName() + " (" + repository.getId() + "): Cannot change the repository format."));
+        .untilAsserted(() -> assertThat(repositoryServiceLogOutput).atErrorLevel()
+            .contains("Error updating repository "
+                + repository.getName() + " (" + repository.getId() + "): Cannot change the repository format."));
 
     Repository existingRepository = repositoryDAO.getById(repository.getId());
     assertThat(existingRepository.getName()).isEqualTo(repository.getName());
@@ -3518,7 +3534,8 @@ public abstract class AbstractRepositoryServiceTest
     getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames);
 
     assertThat(proprietaryComponentNamePatternDAO.getByFormat(componentFormat))
-        .extracting(ProprietaryComponentNamePattern::getNamePattern).containsExactlyInAnyOrder("format-test");
+        .extracting(ProprietaryComponentNamePattern::getNamePattern)
+        .containsExactlyInAnyOrder("format-test");
     assertThat(repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repoManId, repoId).getFormat())
         .isEqualTo(repoFormat);
 
@@ -3552,7 +3569,8 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(telemetryData.getAttributes()).containsEntry(REPOSITORY_COMPONENT_POLICY_COMPLIANT_VERSION_COUNT,
         policyCompliantVersionCount);
     assertThat((Long) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_METADATA_EVALUATION_TIME))
-        .isGreaterThanOrEqualTo(0).isLessThanOrEqualTo(evaluationTime);
+        .isGreaterThanOrEqualTo(0)
+        .isLessThanOrEqualTo(evaluationTime);
   }
 
   @Test

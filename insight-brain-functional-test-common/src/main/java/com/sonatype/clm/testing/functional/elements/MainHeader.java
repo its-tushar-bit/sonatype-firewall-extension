@@ -13,7 +13,7 @@ public class MainHeader
 {
   /**
    * @deprecated Use {@link #menuBar()} instead. The main-header element itself is always present,
-   * but may be empty when embeddable mode is active. Check for the actual menu bar content.
+   *             but may be empty when embeddable mode is active. Check for the actual menu bar content.
    */
   @Deprecated
   public static SelenideElement get() {

@@ -142,8 +142,10 @@ public class SourceControlScanService
     }
   }
 
-  public PolicyEvaluation doSynchronousSourceControlScan(String applicationId, Stage stage, String branchName)
-      throws GitException, IOException
+  public PolicyEvaluation doSynchronousSourceControlScan(
+      String applicationId,
+      Stage stage,
+      String branchName) throws GitException, IOException
   {
     return doSynchronousSourceControlScan(applicationId, stage, branchName, null /* commitHash */);
   }
@@ -152,8 +154,7 @@ public class SourceControlScanService
       String applicationId,
       Stage stage,
       String branchName,
-      String commitHash)
-      throws GitException, IOException
+      String commitHash) throws GitException, IOException
   {
     if (!licenseChecker.isIqForScmSupported()) {
       log.debug("License does not support source control notification or automation features");
@@ -199,8 +200,7 @@ public class SourceControlScanService
   private RepositorySyncResult checkout(
       Application application,
       GitRepositoryInfo gitRepositoryInfo,
-      String branchName)
-      throws GitException
+      String branchName) throws GitException
   {
     return checkout(application, gitRepositoryInfo, branchName, null);
   }
@@ -209,8 +209,7 @@ public class SourceControlScanService
       Application application,
       GitRepositoryInfo gitRepositoryInfo,
       String branchName,
-      String commitHash)
-      throws GitException
+      String commitHash) throws GitException
   {
     final GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
     final File repositoryDirectory = sourceControlUtils.getCheckoutDirectory(application);
@@ -224,7 +223,8 @@ public class SourceControlScanService
     catch (GitException e) {
       final Throwable cause = e.getCause();
       if (cause instanceof InvalidExitValueException && cause.getMessage() != null &&
-          cause.getMessage().contains("Sparse checkout leaves no entry on working directory")) {
+          cause.getMessage().contains("Sparse checkout leaves no entry on working directory"))
+      {
         log.debug("{} for application '{}': {}", cause.getMessage(), application.getPublicId(),
             gitRepositoryInfo.normalizedRepositoryUrl);
         return new RepositorySyncResult();

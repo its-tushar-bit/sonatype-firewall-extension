@@ -87,9 +87,12 @@ public class ZscalerConfigPageTest
       login(user.getUsername(), user.getPassword());
       refreshOrOpen(ZscalerConfigPage.url());
 
-      page.loadError().shouldBe(visible).shouldHave(text("An error occurred loading data. It appears you do not have " +
-          "permission to access this page. If you believe this to be incorrect please contact your administrator.\n" +
-          "Retry"));
+      page.loadError()
+          .shouldBe(visible)
+          .shouldHave(text("An error occurred loading data. It appears you do not have " +
+              "permission to access this page. If you believe this to be incorrect please contact your administrator.\n"
+              +
+              "Retry"));
     }
     finally {
       logout();
@@ -233,7 +236,7 @@ public class ZscalerConfigPageTest
     List<SelenideElement> inputElements = asList(page.username(), page.password(), page.hostname(), page.apiKey());
     inputElements.forEach(ele -> ele.setValue("a"));
     inputElements.forEach(ele -> ele.sendKeys(Keys.BACK_SPACE));
-    
+
     new NxTextInput(page.username()).errorMessage().shouldHave(text("Must be non-empty"));
     new NxTextInput(page.password()).errorMessage().shouldHave(text("Must be non-empty"));
     new NxTextInput(page.apiKey()).errorMessage().shouldHave(text("Must be non-empty"));
@@ -273,9 +276,12 @@ public class ZscalerConfigPageTest
 
     // show tooltip when hovering over the icon
     page.formatTooltipIcon().shouldBe(visible).hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text("URLs pushed to Zscaler are based on official package sources. " +
-        "Limiting formats reduces noise and optimizes security rules. Dependencies from unofficial or custom sources " +
-        "are not fully protected by this integration."));
+    Tooltip.get()
+        .shouldBe(visible)
+        .shouldHave(text("URLs pushed to Zscaler are based on official package sources. " +
+            "Limiting formats reduces noise and optimizes security rules. Dependencies from unofficial or custom sources "
+            +
+            "are not fully protected by this integration."));
   }
 
   @Test
@@ -283,8 +289,10 @@ public class ZscalerConfigPageTest
     refreshOrOpen(ZscalerConfigPage.url());
     page.testConfig().shouldHave(attribute("aria-disabled", "true"));
     page.testConfig().hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text("Username, Password, Hostname and Zscaler API Key are " +
-        "required details."));
+    Tooltip.get()
+        .shouldBe(visible)
+        .shouldHave(text("Username, Password, Hostname and Zscaler API Key are " +
+            "required details."));
 
     fillConfigurationFields();
     saveConfiguration();
@@ -297,7 +305,8 @@ public class ZscalerConfigPageTest
     page.testConfig().shouldBe(enabled).click();
     FormMask.seeAndWaitForDismissal();
     FormUtils.getErrorElement(page).shouldBe(visible);
-    FormUtils.getErrorElement(page.zscalerFormSection()).shouldBe(visible)
+    FormUtils.getErrorElement(page.zscalerFormSection())
+        .shouldBe(visible)
         .shouldHave(text("Test Zscaler configuration failed."));
   }
 
@@ -394,7 +403,8 @@ public class ZscalerConfigPageTest
   }
 
   private void assertValidationError(String errorMessage) {
-    FormUtils.getAlertElement(page).shouldBe(visible)
+    FormUtils.getAlertElement(page)
+        .shouldBe(visible)
         .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " " + errorMessage));
   }
 }

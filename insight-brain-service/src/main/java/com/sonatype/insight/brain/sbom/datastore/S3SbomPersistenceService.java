@@ -109,8 +109,9 @@ public class S3SbomPersistenceService
     S3ObjectKey targetKey = getTemporarySbomKey(fileName, prefix);
 
     try (InputStream inputStream = sbomEntity.getInputStream();
-         OutputStream outputStream = new S3OutputStream(s3AsyncClient, targetKey.toString(),
-             s3DataStoreConfig.getBucketName(), s3DataStoreConfig.getServerSideEncryption())) {
+        OutputStream outputStream = new S3OutputStream(s3AsyncClient, targetKey.toString(),
+            s3DataStoreConfig.getBucketName(), s3DataStoreConfig.getServerSideEncryption()))
+    {
       inputStream.transferTo(outputStream);
     }
 

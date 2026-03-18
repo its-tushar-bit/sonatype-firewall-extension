@@ -53,11 +53,12 @@ public class RepositoryPolicyAlertEmailer
   private final ThreadPoolExecutor executor;
 
   @Inject
-  public RepositoryPolicyAlertEmailer(final InsightMail mail,
-                                      final PolicyAlertEmailResolver policyAlertEmailResolver,
-                                      final BaseUrl baseUrl,
-                                      final AuditRecorder auditRecorder,
-                                      final ShutdownHandler shutdownHandler)
+  public RepositoryPolicyAlertEmailer(
+      final InsightMail mail,
+      final PolicyAlertEmailResolver policyAlertEmailResolver,
+      final BaseUrl baseUrl,
+      final AuditRecorder auditRecorder,
+      final ShutdownHandler shutdownHandler)
   {
     super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;

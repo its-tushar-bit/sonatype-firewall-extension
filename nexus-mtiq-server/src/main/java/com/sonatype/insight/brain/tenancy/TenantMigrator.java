@@ -54,8 +54,7 @@ public class TenantMigrator
         catch (Exception e) {
           throw new IllegalStateException(
               String.format("Error migrating the database for tenant %s", TenantThreadLocal.getTenant().tenantSlug),
-              e
-          );
+              e);
         }
         tenant.invalidate();
         return null;

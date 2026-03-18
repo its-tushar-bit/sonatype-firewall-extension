@@ -190,10 +190,10 @@ public class ApiFirewallServiceTest
         .newRepositoryComponent(repository.getId(), "/manualUnquarantinedPrevious", previousYearDate, previousYearDate,
             false);
 
-    //when: retrieving release quarantine summary
+    // when: retrieving release quarantine summary
     ApiFirewallReleaseQuarantineSummaryDTO releaseQuarantineSummary = apiFirewallService.getReleaseQuarantineSummary();
 
-    //then: expect to get a valid pojo back
+    // then: expect to get a valid pojo back
     // if MTD and YTD dates are the same day it's January, and MTD counts will equal YTD counts
     if (DateUtils.isSameDay(mtdDate, ytdDate)) {
       assertThat(releaseQuarantineSummary.autoReleaseQuarantineCountMTD).isEqualTo(2);
@@ -206,24 +206,24 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testGetFirewallReleaseQuarantineSummary_NoFirewallAutoUnquarantineFeature() {
-    //setup: remove firewall feature
+    // setup: remove firewall feature
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
-    //when: getting release quarantine summary
-    //then: expect invalid license exception
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-        apiFirewallService.getReleaseQuarantineSummary());
+    // when: getting release quarantine summary
+    // then: expect invalid license exception
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> apiFirewallService.getReleaseQuarantineSummary());
   }
 
   @Test
   public void testGetFirewallReleaseQuarantineSummary_NoReleaseIntegrityFeature() {
-    //setup: remove release integrity feature
+    // setup: remove release integrity feature
     testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
 
-    //when: getting release quarantine summary
-    //then: expect invalid license exception
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-        apiFirewallService.getReleaseQuarantineSummary());
+    // when: getting release quarantine summary
+    // then: expect invalid license exception
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> apiFirewallService.getReleaseQuarantineSummary());
   }
 
   @Test
@@ -231,14 +231,16 @@ public class ApiFirewallServiceTest
     tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
     tempEntity.newAutoUnquarantinePolicyConditionType(LicenseConditionType.ID);
 
-    final List<String> autoUnquarantinedConditionTypes = ConditionTypes.getAllWithAutoUnquarantineSupported().stream()
+    final List<String> autoUnquarantinedConditionTypes = ConditionTypes.getAllWithAutoUnquarantineSupported()
+        .stream()
         .map(ConditionType::getName)
         .toList();
 
-    //when: getting release quarantine config
-    //then: expect the auto unquarantined enabled policy condition types with the enabled flag set
+    // when: getting release quarantine config
+    // then: expect the auto unquarantined enabled policy condition types with the enabled flag set
     Map<String, ApiFirewallReleaseQuarantineConfigDTO> releaseQuarantineConfig =
-        apiFirewallService.getReleaseQuarantineConfig().stream()
+        apiFirewallService.getReleaseQuarantineConfig()
+            .stream()
             .collect(Collectors.toMap(dto -> dto.id, Function.identity()));
     long numTrue = releaseQuarantineConfig.values().stream().filter(dto -> dto.autoReleaseQuarantineEnabled).count();
 
@@ -252,24 +254,24 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testGetFirewallReleaseQuarantineConfig_NoFirewallAutoUnquarantineFeature() {
-    //setup: remove firewall feature
+    // setup: remove firewall feature
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
-    //when: getting release quarantine config
-    //then: expect invalid license exception
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-        apiFirewallService.getReleaseQuarantineConfig());
+    // when: getting release quarantine config
+    // then: expect invalid license exception
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> apiFirewallService.getReleaseQuarantineConfig());
   }
 
   @Test
   public void testGetFirewallReleaseQuarantineConfig_NoReleaseIntegrityFeature() {
-    //setup: remove release integrity feature
+    // setup: remove release integrity feature
     testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
 
-    //when: getting release quarantine config
-    //then: expect invalid license exception
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-        apiFirewallService.getReleaseQuarantineConfig());
+    // when: getting release quarantine config
+    // then: expect invalid license exception
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> apiFirewallService.getReleaseQuarantineConfig());
   }
 
   @Test
@@ -287,20 +289,22 @@ public class ApiFirewallServiceTest
     security.autoReleaseQuarantineEnabled = true;
     list.add(security);
 
-    final List<String> autoUnquarantinedConditionTypes = ConditionTypes.getAllWithAutoUnquarantineSupported().stream()
+    final List<String> autoUnquarantinedConditionTypes = ConditionTypes.getAllWithAutoUnquarantineSupported()
+        .stream()
         .map(ConditionType::getName)
         .toList();
 
-    //when: setting release quarantine config
+    // when: setting release quarantine config
 
     Map<String, ApiFirewallReleaseQuarantineConfigDTO> releaseQuarantineConfig =
-        apiFirewallService.setReleaseQuarantineConfig(list).stream()
+        apiFirewallService.setReleaseQuarantineConfig(list)
+            .stream()
             .collect(Collectors.toMap(dto -> dto.id, Function.identity()));
 
-    //then: expect the auto unquarantined enabled policy condition types with the enabled flag set
-    //condition types explicitly set to false should be false
-    //condition types explicitly set to true should be true
-    //condition types not explicitly set should remain as they were
+    // then: expect the auto unquarantined enabled policy condition types with the enabled flag set
+    // condition types explicitly set to false should be false
+    // condition types explicitly set to true should be true
+    // condition types not explicitly set should remain as they were
     long numTrue = releaseQuarantineConfig.values().stream().filter(dto -> dto.autoReleaseQuarantineEnabled).count();
 
     assertThat(releaseQuarantineConfig.values()).extracting("name")
@@ -335,22 +339,24 @@ public class ApiFirewallServiceTest
     licenceThreatGroup.autoReleaseQuarantineEnabled = false;
     list.add(licenceThreatGroup);
 
-    final List<String> autoUnquarantinedConditionTypes = ConditionTypes.getAllWithAutoUnquarantineSupported().stream()
+    final List<String> autoUnquarantinedConditionTypes = ConditionTypes.getAllWithAutoUnquarantineSupported()
+        .stream()
         .map(ConditionType::getName)
         .toList();
 
-    //when: setting release quarantine config
+    // when: setting release quarantine config
 
     Map<String, ApiFirewallReleaseQuarantineConfigDTO> releaseQuarantineConfig =
-        apiFirewallService.setReleaseQuarantineConfig(list).stream()
+        apiFirewallService.setReleaseQuarantineConfig(list)
+            .stream()
             .collect(Collectors.toMap(dto -> dto.id, Function.identity()));
 
-    //then: expect the auto unquarantined enabled policy condition types with the enabled flag set
-    //condition types explicitly set to false should be false
-    //condition types explicitly set to true should be true
-    //false condition types set to false should remain false
-    //true condition types set to true should remain true
-    //condition types not explicitly set should remain as they were
+    // then: expect the auto unquarantined enabled policy condition types with the enabled flag set
+    // condition types explicitly set to false should be false
+    // condition types explicitly set to true should be true
+    // false condition types set to false should remain false
+    // true condition types set to true should remain true
+    // condition types not explicitly set should remain as they were
     long numTrue = releaseQuarantineConfig.values().stream().filter(dto -> dto.autoReleaseQuarantineEnabled).count();
 
     assertThat(releaseQuarantineConfig.values()).extracting("name")
@@ -369,7 +375,7 @@ public class ApiFirewallServiceTest
     condition.autoReleaseQuarantineEnabled = true;
     list.add(condition);
 
-    //when: setting release quarantine config, expect exception
+    // when: setting release quarantine config, expect exception
     assertThatThrownBy(() -> apiFirewallService.setReleaseQuarantineConfig(list))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Some Policy Condition Types do not have ID's specified.");
@@ -382,7 +388,7 @@ public class ApiFirewallServiceTest
     condition.id = IntegrityRatingConditionType.ID;
     list.add(condition);
 
-    //when: setting release quarantine config, expect exception
+    // when: setting release quarantine config, expect exception
     assertThatThrownBy(() -> apiFirewallService.setReleaseQuarantineConfig(list))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Policy Condition Type with id 'IntegrityRating' does not have the enabled flag specified.");
@@ -394,7 +400,7 @@ public class ApiFirewallServiceTest
     ApiFirewallReleaseQuarantineConfigDTO condition = new ApiFirewallReleaseQuarantineConfigDTO();
     list.add(condition);
 
-    //when: setting release quarantine config, expect exception
+    // when: setting release quarantine config, expect exception
     assertThatThrownBy(() -> apiFirewallService.setReleaseQuarantineConfig(list))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Some Policy Condition Types do not have ID's specified.");
@@ -402,29 +408,29 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testSetFirewallReleaseQuarantineConfig_NoFirewallAutoUnquarantineFeature() {
-    //setup: remove firewall feature
+    // setup: remove firewall feature
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
-    //when: getting release quarantine config
-    //then: expect invalid license exception
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-        apiFirewallService.setReleaseQuarantineConfig(null));
+    // when: getting release quarantine config
+    // then: expect invalid license exception
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> apiFirewallService.setReleaseQuarantineConfig(null));
   }
 
   @Test
   public void testSetFirewallReleaseQuarantineConfig_NoReleaseIntegrityFeature() {
-    //setup: remove release integrity feature
+    // setup: remove release integrity feature
     testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
 
-    //when: getting release quarantine config
-    //then: expect invalid license exception
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-        apiFirewallService.setReleaseQuarantineConfig(null));
+    // when: getting release quarantine config
+    // then: expect invalid license exception
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> apiFirewallService.setReleaseQuarantineConfig(null));
   }
 
   @Test
   public void testSetFirewallReleaseQuarantine_Telemetry() {
-    //setup
+    // setup
     ArgumentCaptor<TelemetryData> argCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
     List<ApiFirewallReleaseQuarantineConfigDTO> list = new ArrayList<>();
@@ -433,12 +439,13 @@ public class ApiFirewallServiceTest
     integrity.autoReleaseQuarantineEnabled = true;
     list.add(integrity);
 
-    //when: setting release quarantine config
+    // when: setting release quarantine config
     Map<String, ApiFirewallReleaseQuarantineConfigDTO> releaseQuarantineConfig =
-        apiFirewallService.setReleaseQuarantineConfig(list).stream()
+        apiFirewallService.setReleaseQuarantineConfig(list)
+            .stream()
             .collect(Collectors.toMap(dto -> dto.id, Function.identity()));
 
-    //then: expect telemetry to have been sent matching the current config
+    // then: expect telemetry to have been sent matching the current config
     assertThat(releaseQuarantineConfig.get(IntegrityRatingConditionType.ID).autoReleaseQuarantineEnabled).isTrue();
     assertThat(releaseQuarantineConfig.get(SecurityVulnerabilityCategoryConditionType.ID).autoReleaseQuarantineEnabled)
         .isFalse();
@@ -450,9 +457,9 @@ public class ApiFirewallServiceTest
         .isFalse();
     assertThat(releaseQuarantineConfig.get(SecurityVulnerabilityResearchConditionType.ID).autoReleaseQuarantineEnabled)
         .isFalse();
-    assertThat(releaseQuarantineConfig.get(SecurityVulnerabilityCustomCVSSVectorStringConditionType.ID)
-        .autoReleaseQuarantineEnabled)
-        .isFalse();
+    assertThat(releaseQuarantineConfig
+        .get(SecurityVulnerabilityCustomCVSSVectorStringConditionType.ID).autoReleaseQuarantineEnabled)
+            .isFalse();
     assertThat(releaseQuarantineConfig
         .get(SecurityVulnerabilityCustomRemediationConditionType.ID).autoReleaseQuarantineEnabled).isFalse();
 
@@ -478,14 +485,14 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testGetAutoUnquarantineEnabledPolicyConditionTypesIds() {
-    //setup
+    // setup
     tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
     tempEntity.newAutoUnquarantinePolicyConditionType(LicenseConditionType.ID);
 
-    //when: getting all ids of condition types that are auto-unquarantine enabled
+    // when: getting all ids of condition types that are auto-unquarantine enabled
     final Set<String> actuals = apiFirewallService.getAutoUnquarantineEnabledPolicyConditionTypesIds();
 
-    //then: expect to get a set of valid ids
+    // then: expect to get a set of valid ids
     assertThat(actuals.size()).isEqualTo(2);
     assertThat(actuals).contains(IntegrityRatingConditionType.ID);
     assertThat(actuals).contains(LicenseConditionType.ID);
@@ -493,10 +500,10 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testGetAutoUnquarantineEnabledPolicyConditionTypesIds_emptyResults() {
-    //when: getting all ids of condition types that are auto-unquarantine enabled
+    // when: getting all ids of condition types that are auto-unquarantine enabled
     final Set<String> actuals = apiFirewallService.getAutoUnquarantineEnabledPolicyConditionTypesIds();
 
-    //then: expect empty set
+    // then: expect empty set
     assertThat(actuals).isEmpty();
   }
 
@@ -785,7 +792,7 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testGetRepositoryManagers() {
-    //given
+    // given
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager("instanceId1", "repoName1",
         "repoProductName1", "repoProductVersion1");
     String repositoryManagerId1 = repositoryManager.getId();
@@ -793,10 +800,10 @@ public class ApiFirewallServiceTest
         "repoProductName2", "repoProductVersion2");
     String repositoryManagerId2 = repositoryManager2.getId();
 
-    //when
+    // when
     ApiRepositoryManagerListDTO repositoryManagers = apiFirewallService.getRepositoryManagers();
 
-    //then
+    // then
     assertThat(repositoryManagers.repositoryManagers.size()).isEqualTo(2);
     assertThat(repositoryManagers.repositoryManagers.get(0).id).isEqualTo(repositoryManagerId1);
     assertThat(repositoryManagers.repositoryManagers.get(0).instanceId).isEqualTo("instanceId1");
@@ -812,10 +819,10 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testGetRepositoryManagers_Empty() {
-    //when
+    // when
     ApiRepositoryManagerListDTO repositoryManagers = apiFirewallService.getRepositoryManagers();
 
-    //then
+    // then
     assertThat(repositoryManagers.repositoryManagers).isEmpty();
   }
 
@@ -890,19 +897,17 @@ public class ApiFirewallServiceTest
   public void testGetConfiguredRepositories_NoFirewallFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
 
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-        apiFirewallService
-            .getConfiguredRepositories("repositoryManagerId", null));
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> apiFirewallService
+        .getConfiguredRepositories("repositoryManagerId", null));
   }
 
   @Test
   public void testEvaluateComponents_NoFirewallFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
 
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-        apiFirewallService
-            .evaluateComponents("repositoryManagerId", "repositoryId",
-                new ApiRepositoryComponentEvaluationRequestList()));
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> apiFirewallService
+        .evaluateComponents("repositoryManagerId", "repositoryId",
+            new ApiRepositoryComponentEvaluationRequestList()));
   }
 
   @Test
@@ -914,7 +919,7 @@ public class ApiFirewallServiceTest
 
     // then
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-            () -> apiFirewallService.evaluateComponents(someOtherRepoManagerId, repository.getId(), requestList))
+        () -> apiFirewallService.evaluateComponents(someOtherRepoManagerId, repository.getId(), requestList))
         .withMessage("RepositoryManager with ID " + someOtherRepoManagerId + " does not exist.");
   }
 
@@ -941,7 +946,7 @@ public class ApiFirewallServiceTest
 
     // then
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-            () -> apiFirewallService.evaluateComponents(repositoryManager.getId(), repository.getId(), requestList))
+        () -> apiFirewallService.evaluateComponents(repositoryManager.getId(), repository.getId(), requestList))
         .withMessage(
             "Repository '" + repository.getId() + "' not found in repository manager '" + repositoryManager.getId() +
                 "'.");
@@ -954,7 +959,7 @@ public class ApiFirewallServiceTest
 
     // then
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), null))
+        () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), null))
         .withMessage("There should be at least 1 component to evaluate.");
   }
 
@@ -967,8 +972,8 @@ public class ApiFirewallServiceTest
 
     // then
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
-                requestList))
+        () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
+            requestList))
         .withMessage("There should be at least 1 component to evaluate.");
   }
 
@@ -980,8 +985,8 @@ public class ApiFirewallServiceTest
 
     // then
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
-                requestList))
+        () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
+            requestList))
         .withMessage("There should be at least 1 component to evaluate.");
   }
 
@@ -1001,8 +1006,8 @@ public class ApiFirewallServiceTest
 
     // then
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
-                requestList))
+        () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
+            requestList))
         .withMessage("Max amount of components to evaluate is '100'.");
   }
 
@@ -1017,8 +1022,8 @@ public class ApiFirewallServiceTest
         new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
     // then
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
-                requestList))
+        () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
+            requestList))
         .withMessage("The format must be specified.");
   }
 
@@ -1144,8 +1149,7 @@ public class ApiFirewallServiceTest
     requestList.components.add(new ApiRepositoryComponentEvaluationRequest(
         null,
         repositoryComponent.getHash(),
-        PackageUrlIdentifier.fromComponentIdentifier(repositoryComponent.getComponentIdentifier()).getPackageUrl())
-    );
+        PackageUrlIdentifier.fromComponentIdentifier(repositoryComponent.getComponentIdentifier()).getPackageUrl()));
     RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
     RepositoryComponentEvaluationData rced = new RepositoryComponentEvaluationData();
     rced.quarantine = true;
@@ -1198,8 +1202,7 @@ public class ApiFirewallServiceTest
     requestList.components.add(new ApiRepositoryComponentEvaluationRequest(
         null,
         null, // hash is null
-        "pkg:conan/zlib@1.3.1")
-    );
+        "pkg:conan/zlib@1.3.1"));
     RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
     RepositoryComponentEvaluationData rced = new RepositoryComponentEvaluationData();
     rced.quarantine = false;
@@ -1226,8 +1229,7 @@ public class ApiFirewallServiceTest
     requestList.components.add(new ApiRepositoryComponentEvaluationRequest(
         null,
         null, // hash is null - this should fail for hash-based format
-        "pkg:maven/org.springframework/spring-core@5.3.0?type=jar")
-    );
+        "pkg:maven/org.springframework/spring-core@5.3.0?type=jar"));
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(),
@@ -1245,8 +1247,7 @@ public class ApiFirewallServiceTest
     requestList.components.add(new ApiRepositoryComponentEvaluationRequest(
         null,
         null, // hash is null - this should fail for hash-based format
-        "pkg:npm/lodash@4.17.21")
-    );
+        "pkg:npm/lodash@4.17.21"));
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(),
@@ -1264,8 +1265,7 @@ public class ApiFirewallServiceTest
     requestList.components.add(new ApiRepositoryComponentEvaluationRequest(
         null,
         null, // hash is null - this should fail for hash-based format
-        "pkg:pypi/requests@2.28.0")
-    );
+        "pkg:pypi/requests@2.28.0"));
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(),
@@ -1786,7 +1786,8 @@ public class ApiFirewallServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> {
           apiFirewallService.addRepositoryManager(apiRepositoryManagerDTO);
-        }).withMessageContaining("The repository manager ID must be null.");
+        })
+        .withMessageContaining("The repository manager ID must be null.");
   }
 
   @Test
@@ -1816,15 +1817,15 @@ public class ApiFirewallServiceTest
   @Test
   public void testGetQuarantinedComponents() {
     /*
-    This test data covers all below scenarios.
-    1. sort by quarantine time (default desc)
-    2. sort by threat level for same quarantine times
-    3. sort by component name for same threat level & quarantine times
-    4. sort by quarantine time asc
-    5. excluding waived violations, 'warn' action policies and unquarantined components
-    6. selecting the valid highest threat level and policy name combination for a quarantined component
-    7. policy id and component name filters
-    */
+     * This test data covers all below scenarios.
+     * 1. sort by quarantine time (default desc)
+     * 2. sort by threat level for same quarantine times
+     * 3. sort by component name for same threat level & quarantine times
+     * 4. sort by quarantine time asc
+     * 5. excluding waived violations, 'warn' action policies and unquarantined components
+     * 6. selecting the valid highest threat level and policy name combination for a quarantined component
+     * 7. policy id and component name filters
+     */
     Date jan1st2024hour12 = Date.from(LocalDateTime.of(2024, 1, 1, 12, 0).toInstant(ZoneOffset.UTC));
     Date jan1st2024hour14 = Date.from(LocalDateTime.of(2024, 1, 1, 14, 0).toInstant(ZoneOffset.UTC));
     Date jan2nd2024hour12 = Date.from(LocalDateTime.of(2024, 1, 2, 12, 0).toInstant(ZoneOffset.UTC));
@@ -2439,9 +2440,7 @@ public class ApiFirewallServiceTest
         createApiRepositoryListDTO(
             Arrays.stream(repositoriesAndUpdatedAfterDate)
                 .filter(o -> o instanceof Repository)
-                .toArray(Repository[]::new)
-        )
-    );
+                .toArray(Repository[]::new)));
     for (int i = 0; i < repositoriesAndUpdatedAfterDate.length; i += 2) {
       Repository repository = (Repository) repositoriesAndUpdatedAfterDate[i];
       Date updatedAfterDate = (Date) repositoriesAndUpdatedAfterDate[i + 1];

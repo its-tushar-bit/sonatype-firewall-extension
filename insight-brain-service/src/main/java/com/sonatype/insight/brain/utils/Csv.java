@@ -30,15 +30,16 @@ public final class Csv
    * Fill out the supplied response with required headers and data for
    * downloading the supplied results as a CSV file.
    *
-   * @param response       The response to fill in
+   * @param response The response to fill in
    * @param fileNamePrefix The file name prefix to use before timestamp
-   * @param headerLine     The CSV header line
-   * @param results        The CSV content
+   * @param headerLine The CSV header line
+   * @param results The CSV content
    */
-  public static ResponseBuilder generate(ResponseBuilder response,
-                                         String fileNamePrefix,
-                                         final String headerLine,
-                                         final Collection<? extends CsvWritable> results)
+  public static ResponseBuilder generate(
+      ResponseBuilder response,
+      String fileNamePrefix,
+      final String headerLine,
+      final Collection<? extends CsvWritable> results)
   {
     final Date now = new Date();
 

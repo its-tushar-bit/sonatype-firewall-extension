@@ -19,7 +19,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
  */
 @Named
 @Singleton
-public class GitHubAppRegistrationStateDAO extends AbstractOperationalSqlDAO<GitHubAppRegistrationState>
+public class GitHubAppRegistrationStateDAO
+    extends AbstractOperationalSqlDAO<GitHubAppRegistrationState>
 {
   @Inject
   public GitHubAppRegistrationStateDAO(OperationalDataStore operationalDataStore) {

@@ -550,7 +550,7 @@ public class ApplicationDAO
   }
 
   /**
-   * fetches the #Application objects associated with the given repository URL;  the association is specified via the
+   * fetches the #Application objects associated with the given repository URL; the association is specified via the
    * #SourceControl entries
    *
    * @return List of #Application objects associated with the given repository URL or an empty list if there are none
@@ -566,8 +566,9 @@ public class ApplicationDAO
 
   /**
    * Efficiently fetch application IDs for all of the provided normalizedRepositoryUrls
+   *
    * @return Map of normalizedRepositoryUrl to applicationIds. The sets that are the values of the map will never be
-   * empty, and are sorted alphabetically.
+   *         empty, and are sorted alphabetically.
    */
   public Map<String, SortedSet<String>> getApplicationIdsByNormalizedRepositoryUrls(
       Set<String> normalizedRepositoryUrls)
@@ -593,8 +594,7 @@ public class ApplicationDAO
               var mergedSet = new TreeSet<>(set1);
               mergedSet.addAll(set2);
               return mergedSet;
-            }
-        ));
+            }));
 
     Set<String> missingUrls = new HashSet<>(normalizedRepositoryUrls);
     missingUrls.removeAll(retval.keySet());
@@ -722,8 +722,8 @@ public class ApplicationDAO
 
       List<ThirdPartySbomMetadata> thirdPartySbomMetadataList =
           thirdPartySbomMetadataDAO.getByApplicationId(thirdPartyScansTx, application.getId());
-      thirdPartySbomMetadataList.forEach(thirdPartySbomMetadata ->
-          thirdPartyFileDAO.delete(thirdPartyScansTx, thirdPartySbomMetadata.getThirdPartyFileId()));
+      thirdPartySbomMetadataList.forEach(thirdPartySbomMetadata -> thirdPartyFileDAO.delete(thirdPartyScansTx,
+          thirdPartySbomMetadata.getThirdPartyFileId()));
 
       thirdPartyScansTx.commit();
     }
@@ -772,8 +772,8 @@ public class ApplicationDAO
       boolean useTemporaryTable =
           temporaryTableHelper.maybeCreateTemporaryTableWithIds(tx, applicationIds);
 
-      String applicationWhereClause = useTemporaryTable ? "" :
-          "application_id IN (?" + StringUtils.repeat(",?", applicationIds.size() - 1) + ")";
+      String applicationWhereClause =
+          useTemporaryTable ? "" : "application_id IN (?" + StringUtils.repeat(",?", applicationIds.size() - 1) + ")";
       String stageTypeWhereClause = "stage_type_id IN (?" + StringUtils.repeat(",?", stageTypes.size() - 1) + ")";
       String threatCategoryWhereClause = policyThreatCategoryFilter.isEmpty()
           ? ""
@@ -784,7 +784,8 @@ public class ApplicationDAO
       }
       else {
         violationStateWhereClause = "(" + StringUtils.joinWith(" OR ",
-            policyViolationStateFilter.stream().map(state -> switch (state) {
+            policyViolationStateFilter.stream().map(state -> switch (state)
+            {
               case "WAIVED" -> "waive_time IS NOT NULL";
               case "LEGACY_VIOLATION" -> "legacy_violation_time IS NOT NULL";
               case "OPEN" -> "(waive_time IS NULL AND legacy_violation_time IS NULL)";
@@ -794,10 +795,12 @@ public class ApplicationDAO
 
       String whereClause = StringUtils.joinWith(" AND ",
           Stream.of(applicationWhereClause, stageTypeWhereClause, threatCategoryWhereClause, violationStateWhereClause)
-              .filter(StringUtils::isNotBlank).toArray());
+              .filter(StringUtils::isNotBlank)
+              .toArray());
 
-      String sortClause = "name".equals(sortColumn) ?
-          "lower(a.name)" : "SUM(%s) OVER (PARTITION BY application_id)".formatted(sortColumn);
+      String sortClause = "name".equals(sortColumn)
+          ? "lower(a.name)"
+          : "SUM(%s) OVER (PARTITION BY application_id)".formatted(sortColumn);
 
       String databaseSchema = getDatabaseSchema();
 
@@ -880,7 +883,7 @@ public class ApplicationDAO
                                          SUM(CASE
                                                  WHEN threat_level < 2 THEN threat_level ELSE 0 END) AS low_per_stage
                                   FROM (
-                                  -- FIRST_VALUE is added to get the first policy_violation_id, 
+                                  -- FIRST_VALUE is added to get the first policy_violation_id,
                                   -- then this value is used to sum the risks for application
                                   SELECT application_id,
                                                policy_id,
@@ -945,26 +948,25 @@ public class ApplicationDAO
       @SuppressWarnings("unchecked")
       List<ApplicationRiskDTO> results =
           ((Stream<Object[]>) query.getResultStream()).map(array -> new ApplicationRiskDTO(
-                  (String) array[0], // organizationId
-                  (String) array[1], // organizationName
-                  (String) array[2], // applicationName
-                  (String) array[3], // publicId
-                  (String) array[4], // scanId
-                  (String) array[5], // stageTypeId
-                  (String) array[6], // applicationId
-                  (Long) array[7], // rank
-                  array[8] == null ? 0 : Long.valueOf((long) array[8]).intValue(), // totalRiskPerStageUnique
-                  array[9] == null ? 0 : Long.valueOf((long) array[9]).intValue(), // criticalPerStageUnique
-                  array[10] == null ? 0 : Long.valueOf((long) array[10]).intValue(), // severePerStageUnique
-                  array[11] == null ? 0 : Long.valueOf((long) array[11]).intValue(), // moderatePerStageUnique
-                  array[12] == null ? 0 : Long.valueOf((long) array[12]).intValue(), // lowPerStageUnique
-                  array[13] == null ? 0 : Long.valueOf((long) array[13]).intValue(), // totalRiskPerStage
-                  array[14] == null ? 0 : Long.valueOf((long) array[14]).intValue(), // criticalPerStage
-                  array[15] == null ? 0 : Long.valueOf((long) array[15]).intValue(), // severePerStage
-                  array[16] == null ? 0 : Long.valueOf((long) array[16]).intValue(), // moderatePerStage
-                  array[17] == null ? 0 : Long.valueOf((long) array[17]).intValue() // lowPerStage
-              )
-          ).toList();
+              (String) array[0], // organizationId
+              (String) array[1], // organizationName
+              (String) array[2], // applicationName
+              (String) array[3], // publicId
+              (String) array[4], // scanId
+              (String) array[5], // stageTypeId
+              (String) array[6], // applicationId
+              (Long) array[7], // rank
+              array[8] == null ? 0 : Long.valueOf((long) array[8]).intValue(), // totalRiskPerStageUnique
+              array[9] == null ? 0 : Long.valueOf((long) array[9]).intValue(), // criticalPerStageUnique
+              array[10] == null ? 0 : Long.valueOf((long) array[10]).intValue(), // severePerStageUnique
+              array[11] == null ? 0 : Long.valueOf((long) array[11]).intValue(), // moderatePerStageUnique
+              array[12] == null ? 0 : Long.valueOf((long) array[12]).intValue(), // lowPerStageUnique
+              array[13] == null ? 0 : Long.valueOf((long) array[13]).intValue(), // totalRiskPerStage
+              array[14] == null ? 0 : Long.valueOf((long) array[14]).intValue(), // criticalPerStage
+              array[15] == null ? 0 : Long.valueOf((long) array[15]).intValue(), // severePerStage
+              array[16] == null ? 0 : Long.valueOf((long) array[16]).intValue(), // moderatePerStage
+              array[17] == null ? 0 : Long.valueOf((long) array[17]).intValue() // lowPerStage
+          )).toList();
       return results;
     }
   }

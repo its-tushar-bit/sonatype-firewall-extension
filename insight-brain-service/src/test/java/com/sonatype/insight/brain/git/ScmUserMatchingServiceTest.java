@@ -97,9 +97,7 @@ public class ScmUserMatchingServiceTest
 
   // === BEGIN - Test all 15 possible From-To pairing combinations ===
   @Test
-  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmUserNameToIqUserName()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmUserNameToIqUserName() throws IOException {
     final var givenMapping = new UserMapping(SCM_USERNAME, IQ_USERNAME);
 
     tempEntity.newSourceControl(app.getId(), REPO_URL);
@@ -117,8 +115,7 @@ public class ScmUserMatchingServiceTest
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        givenMapping, Sets.newHashSet("user1", "user4")
-    ));
+        givenMapping, Sets.newHashSet("user1", "user4")));
 
     // should only fetch contributor usernames for this mapping
     verify(gitApiClient).getRepositoryContributorsUsernames();
@@ -132,9 +129,7 @@ public class ScmUserMatchingServiceTest
   }
 
   @Test
-  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmEmailToIqEmail()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmEmailToIqEmail() throws IOException {
 
     final var givenMapping = new UserMapping(SCM_EMAIL, IQ_EMAIL);
 
@@ -175,8 +170,7 @@ public class ScmUserMatchingServiceTest
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        givenMapping, Sets.newHashSet("iq-sjenkins", "iq-twalters")
-    ));
+        givenMapping, Sets.newHashSet("iq-sjenkins", "iq-twalters")));
 
     // should only fetch scm contributor info from getContributorsFromGitLogs, getRepositoryContributorsUsernames does
     // not provide e-mails
@@ -192,9 +186,7 @@ public class ScmUserMatchingServiceTest
   }
 
   @Test
-  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromGitLogEmailToIqEmail()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromGitLogEmailToIqEmail() throws IOException {
     final var givenMapping = new UserMapping(GITLOG_EMAIL, IQ_EMAIL);
 
     tempEntity.newSourceControl(app.getId(), REPO_URL);
@@ -234,8 +226,7 @@ public class ScmUserMatchingServiceTest
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        givenMapping, Sets.newHashSet( "iq-jsmith", "iq-twalters")
-    ));
+        givenMapping, Sets.newHashSet("iq-jsmith", "iq-twalters")));
 
     // should only fetch scm contributor info from getContributorsFromGitLogs, getRepositoryContributorsUsernames does
     // not provide e-mails
@@ -251,9 +242,7 @@ public class ScmUserMatchingServiceTest
   }
 
   @Test
-  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmFullNameToIqFullName()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmFullNameToIqFullName() throws IOException {
     final var givenMapping = new UserMapping(SCM_FULLNAME, IQ_FULLNAME);
 
     tempEntity.newSourceControl(app.getId(), REPO_URL);
@@ -293,8 +282,7 @@ public class ScmUserMatchingServiceTest
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        givenMapping, Sets.newHashSet("iq-jsmith", "iq-twalters")
-    ));
+        givenMapping, Sets.newHashSet("iq-jsmith", "iq-twalters")));
 
     // should only fetch scm contributor info from getContributorsFromGitLogs, getRepositoryContributorsUsernames does
     // not provide e-mails
@@ -310,9 +298,7 @@ public class ScmUserMatchingServiceTest
   }
 
   @Test
-  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromGitLogFullNameToIqFullName()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromGitLogFullNameToIqFullName() throws IOException {
     final var givenMapping = new UserMapping(GITLOG_FULLNAME, IQ_FULLNAME);
 
     tempEntity.newSourceControl(app.getId(), REPO_URL);
@@ -352,8 +338,7 @@ public class ScmUserMatchingServiceTest
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        givenMapping, Sets.newHashSet( "iq-jsmith", "iq-twalters")
-    ));
+        givenMapping, Sets.newHashSet("iq-jsmith", "iq-twalters")));
 
     // should only fetch scm contributor info from getContributorsFromGitLogs, getRepositoryContributorsUsernames does
     // not provide e-mails
@@ -370,9 +355,7 @@ public class ScmUserMatchingServiceTest
 
   // This is a less likely but possible mapping
   @Test
-  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromGitLogFullNameToIqUserName()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromGitLogFullNameToIqUserName() throws IOException {
     final var givenMapping = new UserMapping(GITLOG_FULLNAME, IQ_USERNAME);
 
     tempEntity.newSourceControl(app.getId(), REPO_URL);
@@ -415,8 +398,7 @@ public class ScmUserMatchingServiceTest
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        givenMapping, Sets.newHashSet( "iq-jsmith", "iq-twalters")
-    ));
+        givenMapping, Sets.newHashSet("iq-jsmith", "iq-twalters")));
 
     // should only fetch scm contributor info from getContributorsFromGitLogs, getRepositoryContributorsUsernames does
     // not provide e-mails
@@ -434,9 +416,7 @@ public class ScmUserMatchingServiceTest
   // This is another, less likely, but definitely possible scenario for matching as using e-mail for authorName
   // could be something someone would do, though probably not since there is also a configurable git e-mail
   @Test
-  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromGitLogFullNameToIqEmail()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromGitLogFullNameToIqEmail() throws IOException {
     final var givenMapping = new UserMapping(GITLOG_FULLNAME, IQ_EMAIL);
 
     tempEntity.newSourceControl(app.getId(), REPO_URL);
@@ -477,8 +457,7 @@ public class ScmUserMatchingServiceTest
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        givenMapping, Sets.newHashSet( "iq-jsmith", "iq-twalters")
-    ));
+        givenMapping, Sets.newHashSet("iq-jsmith", "iq-twalters")));
 
     // should only fetch scm contributor info from getContributorsFromGitLogs, getRepositoryContributorsUsernames does
     // not provide e-mails
@@ -495,9 +474,7 @@ public class ScmUserMatchingServiceTest
 
   // unlikely real world mapping - but supported - so testing
   @Test
-  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmUserNameToIqEmail()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmUserNameToIqEmail() throws IOException {
     final var givenMapping = new UserMapping(SCM_USERNAME, IQ_EMAIL);
 
     tempEntity.newSourceControl(app.getId(), REPO_URL);
@@ -508,8 +485,7 @@ public class ScmUserMatchingServiceTest
     // this is the part that's unrealistic. We are mocking the github service to return e-mails for scm user names.
     // in practice this should not happen, but doing so will let us test the mapping
     mockGithubClientAndScmUtils(
-        Sets.newHashSet("jim.smith@example.com", "user2", "c-carlyle@example.com", "user4")
-    );
+        Sets.newHashSet("jim.smith@example.com", "user2", "c-carlyle@example.com", "user4"));
 
     final List<UserMapping> givenMappings = Lists.newArrayList(givenMapping);
 
@@ -518,8 +494,7 @@ public class ScmUserMatchingServiceTest
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        givenMapping, Sets.newHashSet("j-smith", "ccarlyle42")
-    ));
+        givenMapping, Sets.newHashSet("j-smith", "ccarlyle42")));
 
     // should only fetch contributor usernames for this mapping
     verify(gitApiClient).getRepositoryContributorsUsernames();
@@ -535,9 +510,7 @@ public class ScmUserMatchingServiceTest
 
   // unlikely real world mapping - but supported - so testing
   @Test
-  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmUserNameToIqFullName()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmUserNameToIqFullName() throws IOException {
     final var givenMapping = new UserMapping(SCM_USERNAME, IQ_FULLNAME);
 
     tempEntity.newSourceControl(app.getId(), REPO_URL);
@@ -556,8 +529,7 @@ public class ScmUserMatchingServiceTest
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        givenMapping, Sets.newHashSet("jdoe", "ccarlyle42")
-    ));
+        givenMapping, Sets.newHashSet("jdoe", "ccarlyle42")));
 
     // should only fetch contributor usernames for this mapping
     verify(gitApiClient).getRepositoryContributorsUsernames();
@@ -573,9 +545,7 @@ public class ScmUserMatchingServiceTest
 
   // unlikely real world mapping - but supported - so testing
   @Test
-  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmEmailToIqUserName()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmEmailToIqUserName() throws IOException {
     final var givenMapping = new UserMapping(SCM_EMAIL, IQ_USERNAME);
 
     tempEntity.newSourceControl(app.getId(), REPO_URL);
@@ -616,8 +586,7 @@ public class ScmUserMatchingServiceTest
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        givenMapping, Sets.newHashSet("iq-sjenkins", "iq-twalters")
-    ));
+        givenMapping, Sets.newHashSet("iq-sjenkins", "iq-twalters")));
 
     // should only fetch scm contributor info from getContributorsFromGitLogs, getRepositoryContributorsUsernames does
     // not provide e-mails
@@ -634,9 +603,7 @@ public class ScmUserMatchingServiceTest
 
   // unlikely real world mapping - but supported - so testing
   @Test
-  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmFullNameToIqEmail()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmFullNameToIqEmail() throws IOException {
     final var givenMapping = new UserMapping(SCM_FULLNAME, IQ_EMAIL);
 
     tempEntity.newSourceControl(app.getId(), REPO_URL);
@@ -678,8 +645,7 @@ public class ScmUserMatchingServiceTest
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        givenMapping, Sets.newHashSet("iq-sjenkins", "iq-twalters")
-    ));
+        givenMapping, Sets.newHashSet("iq-sjenkins", "iq-twalters")));
 
     // should only fetch scm contributor info from getContributorsFromGitLogs, getRepositoryContributorsUsernames does
     // not provide e-mails
@@ -696,9 +662,7 @@ public class ScmUserMatchingServiceTest
 
   // unlikely real world mapping - but supported - so testing
   @Test
-  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmEmailToIqFullName()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmEmailToIqFullName() throws IOException {
     final var givenMapping = new UserMapping(SCM_EMAIL, IQ_FULLNAME);
 
     tempEntity.newSourceControl(app.getId(), REPO_URL);
@@ -740,8 +704,7 @@ public class ScmUserMatchingServiceTest
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        givenMapping, Sets.newHashSet("iq-twalters", "iq-j-smith")
-    ));
+        givenMapping, Sets.newHashSet("iq-twalters", "iq-j-smith")));
 
     // should only fetch scm contributor info from getContributorsFromGitLogs, getRepositoryContributorsUsernames does
     // not provide e-mails
@@ -758,9 +721,7 @@ public class ScmUserMatchingServiceTest
 
   // unlikely real world mapping - but supported - so testing
   @Test
-  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmFullNameToIqUserName()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmFullNameToIqUserName() throws IOException {
     final var givenMapping = new UserMapping(SCM_FULLNAME, IQ_USERNAME);
 
     tempEntity.newSourceControl(app.getId(), REPO_URL);
@@ -800,8 +761,7 @@ public class ScmUserMatchingServiceTest
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        givenMapping, Sets.newHashSet( "iq-jsmith", "iq-twalters")
-    ));
+        givenMapping, Sets.newHashSet("iq-jsmith", "iq-twalters")));
 
     // should only fetch scm contributor info from getContributorsFromGitLogs, getRepositoryContributorsUsernames does
     // not provide e-mails
@@ -818,9 +778,7 @@ public class ScmUserMatchingServiceTest
 
   // This is another unlikely pair
   @Test
-  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromGitLogEmailToIqUserName()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromGitLogEmailToIqUserName() throws IOException {
     final var givenMapping = new UserMapping(GITLOG_EMAIL, IQ_USERNAME);
 
     tempEntity.newSourceControl(app.getId(), REPO_URL);
@@ -861,8 +819,7 @@ public class ScmUserMatchingServiceTest
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        givenMapping, Sets.newHashSet( "iq-jsmith", "iq-twalters")
-    ));
+        givenMapping, Sets.newHashSet("iq-jsmith", "iq-twalters")));
 
     // should only fetch scm contributor info from getContributorsFromGitLogs, getRepositoryContributorsUsernames does
     // not provide e-mails
@@ -879,9 +836,7 @@ public class ScmUserMatchingServiceTest
 
   // This is another unlikely pair
   @Test
-  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromGitLogEmailToIqFullName()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromGitLogEmailToIqFullName() throws IOException {
     final var givenMapping = new UserMapping(GITLOG_EMAIL, IQ_FULLNAME);
 
     tempEntity.newSourceControl(app.getId(), REPO_URL);
@@ -922,8 +877,7 @@ public class ScmUserMatchingServiceTest
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        givenMapping, Sets.newHashSet( "iq-jsmith", "iq-twalters")
-    ));
+        givenMapping, Sets.newHashSet("iq-jsmith", "iq-twalters")));
 
     // should only fetch scm contributor info from getContributorsFromGitLogs, getRepositoryContributorsUsernames does
     // not provide e-mails
@@ -940,9 +894,7 @@ public class ScmUserMatchingServiceTest
   // === END - Test All 15 Possible From to Paring Combinations ===
 
   @Test
-  public void testAutomaticRoleAssignmentByMapping_shouldReturnAfterFirstMatchFoundOnAnyStrategy()
-      throws IOException
-  {
+  public void testAutomaticRoleAssignmentByMapping_shouldReturnAfterFirstMatchFoundOnAnyStrategy() throws IOException {
     tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters@example.com");
     tempEntity.newUser("iq-jsmith", "Jim", "Smith", "jim.smith@example.com");
@@ -989,45 +941,39 @@ public class ScmUserMatchingServiceTest
         new UserMapping(SCM_USERNAME, IQ_FULLNAME), // should not match anything
         new UserMapping(SCM_USERNAME, IQ_USERNAME),
         new UserMapping(GITLOG_EMAIL, IQ_EMAIL),
-        new UserMapping(GITLOG_FULLNAME, IQ_FULLNAME)
-    );
+        new UserMapping(GITLOG_FULLNAME, IQ_FULLNAME));
 
     var results = scmUserMatchingService
         .automaticRoleAssignmentByMapping(app.getPublicId(), new SCMUserMappingsDTO(null, givenMappings));
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        new UserMapping(SCM_USERNAME, IQ_USERNAME), Sets.newHashSet( "iq-twalters", "iq-jsmith")
-    ));
+        new UserMapping(SCM_USERNAME, IQ_USERNAME), Sets.newHashSet("iq-twalters", "iq-jsmith")));
 
     givenMappings = Lists.newArrayList(
         new UserMapping(SCM_USERNAME, IQ_FULLNAME), // should not match anything
         new UserMapping(GITLOG_EMAIL, IQ_EMAIL),
         new UserMapping(SCM_USERNAME, IQ_USERNAME),
-        new UserMapping(GITLOG_FULLNAME, IQ_FULLNAME)
-    );
+        new UserMapping(GITLOG_FULLNAME, IQ_FULLNAME));
 
     results = scmUserMatchingService
         .automaticRoleAssignmentByMapping(app.getPublicId(), new SCMUserMappingsDTO(null, givenMappings));
 
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        new UserMapping(GITLOG_EMAIL, IQ_EMAIL), Sets.newHashSet( "iq-jsmith", "iq-patty")
-    ));
+        new UserMapping(GITLOG_EMAIL, IQ_EMAIL), Sets.newHashSet("iq-jsmith", "iq-patty")));
 
     givenMappings = Lists.newArrayList(
         new UserMapping(SCM_USERNAME, IQ_FULLNAME), // should not match anything
         new UserMapping(GITLOG_FULLNAME, IQ_FULLNAME),
         new UserMapping(GITLOG_EMAIL, IQ_EMAIL),
-        new UserMapping(SCM_USERNAME, IQ_USERNAME)
-    );
+        new UserMapping(SCM_USERNAME, IQ_USERNAME));
 
     results = scmUserMatchingService
         .automaticRoleAssignmentByMapping(app.getPublicId(), new SCMUserMappingsDTO(null, givenMappings));
 
     // returns the users along with a indicator of which matching was successful
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        new UserMapping(GITLOG_FULLNAME, IQ_FULLNAME), Sets.newHashSet( "iq-twalters")
-    ));
+        new UserMapping(GITLOG_FULLNAME, IQ_FULLNAME), Sets.newHashSet("iq-twalters")));
   }
 
   @Test
@@ -1041,16 +987,14 @@ public class ScmUserMatchingServiceTest
 
     final var givenMappings = Lists.newArrayList(
         new UserMapping(SCM_USERNAME, IQ_FULLNAME),
-        new UserMapping(SCM_USERNAME, IQ_USERNAME)
-    );
+        new UserMapping(SCM_USERNAME, IQ_USERNAME));
 
     var results = scmUserMatchingService
         .automaticRoleAssignmentByMapping(app.getPublicId(), new SCMUserMappingsDTO(null, givenMappings));
 
     // should return a null entry for successfulMapping and an empty hash set
     assertThat(results).isEqualTo(new SCMUserMatchingResultDTO(
-        null, Sets.newHashSet( )
-    ));
+        null, Sets.newHashSet()));
   }
 
   @Test
@@ -1064,8 +1008,7 @@ public class ScmUserMatchingServiceTest
 
     scmUserMatchingService.automaticRoleAssignmentByMapping(
         app.getPublicId(),
-        new SCMUserMappingsDTO(givenRoleName, Lists.newArrayList(new UserMapping(SCM_USERNAME, IQ_USERNAME)))
-    );
+        new SCMUserMappingsDTO(givenRoleName, Lists.newArrayList(new UserMapping(SCM_USERNAME, IQ_USERNAME))));
 
     // should correctly save the roles
     final var mappedMembers = tempEntity.getMembershipMappings("Owner");
@@ -1110,8 +1053,7 @@ public class ScmUserMatchingServiceTest
     final var result = assertThrows(BadRequestException.class,
         () -> scmUserMatchingService.automaticRoleAssignmentByMapping(
             app.getPublicId(),
-            null
-        ));
+            null));
 
     assertThat(result.getMessage())
         .isEqualTo("An SCMUserMappingsDTO must be provided either with the request or at the organization level");
@@ -1138,8 +1080,7 @@ public class ScmUserMatchingServiceTest
   }
 
   private void mockContributorProvider(
-      final ContributorPage contributorPage
-  ) throws IOException
+      final ContributorPage contributorPage) throws IOException
   {
     when(contributorInfoProvider.getContributorsFromGitLogs(anyString(), anyString(), anyInt(), any()))
         .thenReturn(contributorPage);
@@ -1153,7 +1094,7 @@ public class ScmUserMatchingServiceTest
 
   private GitRepositoryInfo getGitRepositoryInfo() {
     return new GitRepositoryInfo(REPO_URL, null, "user", "pass", SourceControlProvider.GITHUB, "main", true, true,
-        true, true,true, true, false, null);
+        true, true, true, true, false, null);
   }
 
   private void assertMembershipEqual(

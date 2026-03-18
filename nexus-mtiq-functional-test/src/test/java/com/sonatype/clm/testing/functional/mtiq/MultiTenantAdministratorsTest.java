@@ -31,7 +31,7 @@ public class MultiTenantAdministratorsTest
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-  @Before  
+  @Before
   public void startup() {
     refreshOrOpen(AdministratorsPage.url());
     loginAsAdmin();
@@ -54,7 +54,7 @@ public class MultiTenantAdministratorsTest
 
       UnsavedModal unsavedModal = new UnsavedModal();
 
-      //dismiss unsaved changes
+      // dismiss unsaved changes
       SelenideElement modalBtn = unsavedModal.continueButton();
       if (modalBtn.exists()) {
         modalBtn.click();

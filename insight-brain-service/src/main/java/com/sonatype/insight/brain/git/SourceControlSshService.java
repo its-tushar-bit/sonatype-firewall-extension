@@ -59,7 +59,8 @@ public class SourceControlSshService
     GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
     if (gitRepositoryInfo != null
         && Boolean.TRUE.equals(gitRepositoryInfo.getSshEnabled())
-        && isEmpty(gitRepositoryInfo.getSshRepositoryUrl())) {
+        && isEmpty(gitRepositoryInfo.getSshRepositoryUrl()))
+    {
       GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
       try {
         String sshUrl = gitApiClient.getSshUrl();

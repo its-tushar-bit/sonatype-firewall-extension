@@ -68,23 +68,23 @@ public class LegalReportBuilder
   /**
    * Build an {@link ApiLicenseLegalApplicationReportDTO}
    *
-   * @param rawReport                                   the HDS {@link ApiReportRawDataDTOV2} for this application
-   * @param componentReportLegalMap                     a map where the key is the {@link ApiReportComponentDTOV2} and
-   *                                                    value is the {@link ComponentIdentifierLegalData}. All
-   *                                                    components in the report raw data should be accounted for in
-   *                                                    this map.
+   * @param rawReport the HDS {@link ApiReportRawDataDTOV2} for this application
+   * @param componentReportLegalMap a map where the key is the {@link ApiReportComponentDTOV2} and
+   *          value is the {@link ComponentIdentifierLegalData}. All
+   *          components in the report raw data should be accounted for in
+   *          this map.
    * @param componentLegalCommentsByComponentIdentifier a map where the key is the {@link ComponentIdentifier} and the
-   *                                                    value is the IQ stored {@link ComponentLegalCommentDTO}.
-   *                                                    Components with not persisted LegalComment can be excluded from
-   *                                                    the map or have an empty list.
-   * @param componentLegalFilesByComponentIdentifier    a map where the key is the {@link ComponentIdentifier} and the
-   *                                                    value is the IQ stored {@link ComponentLegalFileDTO}. Components
-   *                                                    with not persisted LegalFile can be excluded from the map or
-   *                                                    have an empty list.
-   * @param multiLicenseToSingleLicense                 a map where the key is a multi-license and the value is a set of
-   *                                                    single licenses which makeup the multi license.
-   * @param licenseMetadataById                         a map where the key is the single license id and the value is
-   *                                                    the {@link LicenseMetadataDTO} for this license.
+   *          value is the IQ stored {@link ComponentLegalCommentDTO}.
+   *          Components with not persisted LegalComment can be excluded from
+   *          the map or have an empty list.
+   * @param componentLegalFilesByComponentIdentifier a map where the key is the {@link ComponentIdentifier} and the
+   *          value is the IQ stored {@link ComponentLegalFileDTO}. Components
+   *          with not persisted LegalFile can be excluded from the map or
+   *          have an empty list.
+   * @param multiLicenseToSingleLicense a map where the key is a multi-license and the value is a set of
+   *          single licenses which makeup the multi license.
+   * @param licenseMetadataById a map where the key is the single license id and the value is
+   *          the {@link LicenseMetadataDTO} for this license.
    * @return a populate {@link ApiLicenseLegalApplicationReportDTO}.
    */
   public ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
@@ -107,24 +107,23 @@ public class LegalReportBuilder
             componentLegalFilesByComponentIdentifier,
             componentReportLegalMap,
             componentSourceLinksMap,
-            multiLicenseToSingleLicense
-        );
+            multiLicenseToSingleLicense);
     return new ApiLicenseLegalApplicationReportDTO(components, licenseLegalMetadata);
   }
 
   /**
    * Given a component, build out an {@link ApiLicenseLegalComponentReportDTO}.
    *
-   * @param apiReportComponentDTOV2      the {@link ApiReportComponentDTOV2} in question.
+   * @param apiReportComponentDTOV2 the {@link ApiReportComponentDTOV2} in question.
    * @param componentIdentifierLegalData the component's {@link ComponentIdentifierLegalData}
-   * @param componentLegalComments       the component's list of persisted IQ {@link ComponentLegalCommentDTO}, can be
-   *                                     empty.
-   * @param componentLegalFiles          the component's list of persisted IQ {@link ComponentLegalFileDTO}, can be
-   *                                     empty
-   * @param multiLicenseToSingleLicense  a map where the key is a multi-license and the value is a set of single
-   *                                     licenses which makeup the multi license.
-   * @param licenseMetadataById          a map where the key is the single license id and the value is the {@link
-   *                                     LicenseMetadataDTO} for this license.
+   * @param componentLegalComments the component's list of persisted IQ {@link ComponentLegalCommentDTO}, can be
+   *          empty.
+   * @param componentLegalFiles the component's list of persisted IQ {@link ComponentLegalFileDTO}, can be
+   *          empty
+   * @param multiLicenseToSingleLicense a map where the key is a multi-license and the value is a set of single
+   *          licenses which makeup the multi license.
+   * @param licenseMetadataById a map where the key is the single license id and the value is the {@link
+   *          LicenseMetadataDTO} for this license.
    * @return a populated {@link ApiLicenseLegalComponentReportDTO}
    */
   public ApiLicenseLegalComponentReportDTO getLicenseLegalComponentReport(
@@ -134,8 +133,7 @@ public class LegalReportBuilder
       Set<ComponentLegalFileDTO> componentLegalFiles,
       Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense,
       Map<String, LicenseMetadataDTO> licenseMetadataById,
-      Set<LegalSourceLinkDTO> sourceLinks
-  )
+      Set<LegalSourceLinkDTO> sourceLinks)
   {
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = getLicenseLegalMetadata(
         multiLicenseToSingleLicense, licenseMetadataById);
@@ -147,8 +145,7 @@ public class LegalReportBuilder
         ImmutableMap.of(componentIdentifierLegalData.getComponentIdentifier(), componentLegalFiles),
         ImmutableMap.of(apiReportComponentDTOV2, componentIdentifierLegalData),
         ImmutableMap.of(componentIdentifierLegalData.getComponentIdentifier(), sourceLinks),
-        multiLicenseToSingleLicense
-    ).get(0);
+        multiLicenseToSingleLicense).get(0);
 
     return new ApiLicenseLegalComponentReportDTO(componentDTO, licenseLegalMetadata);
   }
@@ -160,8 +157,7 @@ public class LegalReportBuilder
       Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier,
       Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData> apiReportComponentDTOV2ComponentIdentifierLegalDataMap,
       Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> sourceLinks,
-      Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense
-  )
+      Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense)
   {
     return apiComponentDTOV2s.stream()
         .filter(apiReportComponentDTOV2 -> apiReportComponentDTOV2.componentIdentifier != null)
@@ -186,8 +182,7 @@ public class LegalReportBuilder
                   componentIdentifierLegalData.getObligations(),
                   componentIdentifierLegalData.getAttributions(),
                   sourceLinks.getOrDefault(key, new LinkedHashSet<>()),
-                  multiLicenseToSingleLicense
-              ),
+                  multiLicenseToSingleLicense),
               componentIdentifierLegalData.getStageScans());
         })
         .collect(Collectors.toList());
@@ -208,8 +203,7 @@ public class LegalReportBuilder
       List<ComponentObligation> obligations,
       List<ComponentObligationAttribution> attributions,
       Set<LegalSourceLinkDTO> sourceLinks,
-      Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense
-  )
+      Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense)
   {
     if (apiLicenseDataDTOV2 == null) {
       return null;
@@ -305,7 +299,7 @@ public class LegalReportBuilder
     return legalFileOverrides.stream()
         .sorted(LegalReportBuilder::sortLegalFileOverrides)
         .map(legalFileOverride -> {
-          //Find the relPath by matching the contentHash.
+          // Find the relPath by matching the contentHash.
           String relPath = componentLegalFiles.stream()
               .flatMap(c -> c.getLegalFiles().stream())
               .filter(l -> l.getType().equalsIgnoreCase(legalFileType.toString()) &&
@@ -328,8 +322,7 @@ public class LegalReportBuilder
       final List<ComponentObligation> obligations,
       final List<ApiLicenseDTO> effectiveLicenses,
       final Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata,
-      final Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense
-  )
+      final Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense)
   {
     List<ApiLicenseLegalObligationDTO> licenseLegalObligation = new ArrayList<>();
     Set<String> obligationNames = new HashSet<>();
@@ -383,7 +376,8 @@ public class LegalReportBuilder
   }
 
   private Set<String> getObligationNamesForLicense(
-      String licenseId, Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadataSet)
+      String licenseId,
+      Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadataSet)
   {
     for (ApiLicenseLegalMetadataDTO llm : licenseLegalMetadataSet) {
       if (llm.licenseId.equals(licenseId)) {
@@ -411,9 +405,9 @@ public class LegalReportBuilder
    * Given a Set of effective, observed, and declared multi-licenses and with
    *
    * @param multiLicenseToSingleLicense - a Map who's key is a MultiLicense and who's value is a set of Single Licenses
-   *                                    associated with this multi license
-   * @param licenseMetadataById         - Map who's key in the single license and value is the associated {@link
-   *                                    LicenseMetadataDTO}
+   *          associated with this multi license
+   * @param licenseMetadataById - Map who's key in the single license and value is the associated {@link
+   *          LicenseMetadataDTO}
    * @return the Set of {@link ApiLicenseLegalMetadataDTO} for the given licenses.
    */
   @VisibleForTesting
@@ -424,9 +418,11 @@ public class LegalReportBuilder
     Set<ApiLicenseLegalMetadataDTO> allLicenseLegalMetadata = new LinkedHashSet<>();
     Set<String> licenseIds = new HashSet<>();
 
-    for (License license : multiLicenseToSingleLicense.values().stream()
+    for (License license : multiLicenseToSingleLicense.values()
+        .stream()
         .flatMap(Collection::stream)
-        .collect(Collectors.toSet())) {
+        .collect(Collectors.toSet()))
+    {
       ApiLicenseLegalMetadataDTO licenseLegalMetadata = new ApiLicenseLegalMetadataDTO();
       licenseLegalMetadata.licenseId = license.getId();
       licenseLegalMetadata.licenseName = license.getShortDisplayName();

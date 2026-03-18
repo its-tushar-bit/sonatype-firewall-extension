@@ -94,8 +94,7 @@ public class ReportDiskSaver
       "public/glypyicons-halfligns-icon-info-sign.png",
       "public/license-icon_16x16.png",
       "public/red.png",
-      "public/sonatype.png"
-  );
+      "public/sonatype.png");
 
   private static final Logger log = LoggerFactory.getLogger(ReportDiskSaver.class);
 
@@ -115,7 +114,8 @@ public class ReportDiskSaver
   @Override
   public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
     if (insightConfig.getStorage() != null &&
-        insightConfig.getStorage().getType() == DataStoreType.S3) {
+        insightConfig.getStorage().getType() == DataStoreType.S3)
+    {
       throw new UnsupportedOperationException(
           "Report zip minification is only needed for legacy reports using local file storage.");
     }

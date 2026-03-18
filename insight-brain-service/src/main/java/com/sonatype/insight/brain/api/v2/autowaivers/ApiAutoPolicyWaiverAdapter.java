@@ -17,7 +17,7 @@ public class ApiAutoPolicyWaiverAdapter
       return null;
     }
 
-    final ApiAutoPolicyWaiverDTO  dto = new ApiAutoPolicyWaiverDTO();
+    final ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
 
     dto.autoPolicyWaiverId = autoPolicyWaiver.getId();
     dto.ownerId = autoPolicyWaiver.getOwnerId();

@@ -234,8 +234,10 @@ public class UserManagementTest
     editUserForm.saveButton().click();
     editUserForm.should(disappear);
 
-    userManagementPage.userItems().get(userRow).shouldHave(text(user.getUsername() +
-        " (testupdateFirstName testupdateLastName)"));
+    userManagementPage.userItems()
+        .get(userRow)
+        .shouldHave(text(user.getUsername() +
+            " (testupdateFirstName testupdateLastName)"));
   }
 
   @Test
@@ -253,8 +255,9 @@ public class UserManagementTest
     NxDeleteModal deleteModal = new NxDeleteModal("#delete-user-modal");
 
     deleteModal.header().shouldHave(text("Delete User"));
-    deleteModal.alertContent().shouldHave(text("You are about to permanently remove " +
-        user.getUsername() + ". This action cannot be undone."));
+    deleteModal.alertContent()
+        .shouldHave(text("You are about to permanently remove " +
+            user.getUsername() + ". This action cannot be undone."));
     deleteModal.submitButton().click();
     deleteModal.should(disappear);
 

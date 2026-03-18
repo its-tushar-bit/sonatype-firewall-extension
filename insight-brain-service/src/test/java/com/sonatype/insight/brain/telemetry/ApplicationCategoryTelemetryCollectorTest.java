@@ -27,7 +27,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-public class ApplicationCategoryTelemetryCollectorTest extends AbstractComponentTest
+public class ApplicationCategoryTelemetryCollectorTest
+    extends AbstractComponentTest
 {
   @Inject
   private ApplicationCategoryTelemetryCollector applicationCategoryTelemetryCollector;
@@ -100,13 +101,11 @@ public class ApplicationCategoryTelemetryCollectorTest extends AbstractComponent
     assertApplicationTags(
         applicationTags,
         application1.getId(),
-        List.of(tag.getName(), tag1.getName(), tag2.getName())
-    );
+        List.of(tag.getName(), tag1.getName(), tag2.getName()));
     assertApplicationTags(
         applicationTags,
         application2.getId(),
-        List.of(tag2.getName(), tag3.getName(), tag.getName())
-    );
+        List.of(tag2.getName(), tag3.getName(), tag.getName()));
   }
 
   @Test
@@ -177,7 +176,7 @@ public class ApplicationCategoryTelemetryCollectorTest extends AbstractComponent
     telemetryData = telemetryCollector.nextPage();
 
     // Then
-    assertThat((List)telemetryData.getAttributes().get(DATA_LIST)).isEmpty();
+    assertThat((List) telemetryData.getAttributes().get(DATA_LIST)).isEmpty();
     assertThat(telemetryCollector.hasMoreData()).isFalse();
   }
 
@@ -311,14 +310,14 @@ public class ApplicationCategoryTelemetryCollectorTest extends AbstractComponent
   private void assertTelemetryAttributesAndSize(TelemetryData telemetryData, int size) {
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.APPLICATION_CATEGORY);
     assertThat(telemetryData.getAttributes()).containsKey(DATA_LIST);
-    assertThat((List)telemetryData.getAttributes().get(DATA_LIST))
+    assertThat((List) telemetryData.getAttributes().get(DATA_LIST))
         .hasSize(size);
   }
 
   private void assertTelemetryIsEmpty(TelemetryData telemetryData) {
     List<ApplicationTagData> list =
         (List<ApplicationTagData>) telemetryData.getAttributes()
-        .get(DATA_LIST);
+            .get(DATA_LIST);
     assertThat(list).isEmpty();
   }
 

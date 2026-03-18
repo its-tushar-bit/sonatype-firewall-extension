@@ -12,7 +12,7 @@ public class SSOEmbedUrlDTO
   public String baseUrl;
 
   public SSOEmbedUrlDTO() {
-    //for jackson
+    // for jackson
   }
 
   public SSOEmbedUrlDTO(final String url) {

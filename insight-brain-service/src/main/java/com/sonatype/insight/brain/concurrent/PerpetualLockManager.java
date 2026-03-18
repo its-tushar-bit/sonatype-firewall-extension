@@ -77,7 +77,7 @@ public class PerpetualLockManager
 
     TransactionContext txn = null;
 
-    try  {
+    try {
       txn = perpetualLockDAO.createTransactionContext();
       txn.begin();
       perpetualLock = perpetualLockDAO.getPerpetualLockByIdForUpdate(txn, perpetualLockId);
@@ -134,7 +134,7 @@ public class PerpetualLockManager
       if (!(e.getCause() instanceof EntityExistsException)) {
         throw e;
       }
-      // a simultaneous request to reserve this same lock beat us to it;  may have come from a different
+      // a simultaneous request to reserve this same lock beat us to it; may have come from a different
       // instance or a different caller in this same instance, so we'll check to see if we can reserve it
       // instead of just assuming we can't
       log.trace("Perpetual lock {} already exists.  Will try to reserve it now on behalf of {}.",

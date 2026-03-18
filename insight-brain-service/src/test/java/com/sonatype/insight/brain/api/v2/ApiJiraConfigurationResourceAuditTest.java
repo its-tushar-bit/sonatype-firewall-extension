@@ -68,7 +68,9 @@ public class ApiJiraConfigurationResourceAuditTest
   }
 
   private void assertAuditData(
-      AuditDTO auditDTO, String url, String username)
+      AuditDTO auditDTO,
+      String url,
+      String username)
   {
     assertCustomData(auditDTO, "url", url);
     assertCustomData(auditDTO, "username", username);

@@ -84,8 +84,8 @@ public class IacControlConditionType
     boolean anyMatch = false;
 
     for (SecurityVulnerability securityVulnerability : component.getSecurityVulnerabilities()) {
-      ThirdPartyVulnerability thirdPartyVulnerability
-          = thirdPartyVulnerabilityDAO.getByRefId(securityVulnerability.getRefId());
+      ThirdPartyVulnerability thirdPartyVulnerability =
+          thirdPartyVulnerabilityDAO.getByRefId(securityVulnerability.getRefId());
       if (thirdPartyVulnerability == null) {
         continue;
       }

@@ -26,8 +26,7 @@ public class MultiTenantBatchModeJobStoreTX
       ProductLicense productLicense,
       InsightConfig insightConfig,
       OperationalDataStore operationalDataStore,
-      TenantUtil tenantUtil)
-      throws InvalidConfigurationException
+      TenantUtil tenantUtil) throws InvalidConfigurationException
   {
     super(productLicense, insightConfig, operationalDataStore, tenantUtil);
   }

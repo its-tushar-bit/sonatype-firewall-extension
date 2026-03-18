@@ -173,8 +173,7 @@ public class ThirdPartyScanResultsProcessorTest
         productLicense,
         sbomFileDetector,
         sbomMetadataUtils,
-        thirdPartyPersistenceService
-    ));
+        thirdPartyPersistenceService));
   }
 
   @Test
@@ -699,8 +698,8 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_ClairCorruptFile() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-data-corrupted.xml");
     assertThatExceptionOfType(RuntimeException.class).isThrownBy(
-            () -> thirdPartyScanResultsProcessorSpy.filterAndSaveData(new FileScanEntity(scanFile.toPath()),
-                new FileScanEntity(tempDir.newFile().toPath()), mockContext(scanFile), null))
+        () -> thirdPartyScanResultsProcessorSpy.filterAndSaveData(new FileScanEntity(scanFile.toPath()),
+            new FileScanEntity(tempDir.newFile().toPath()), mockContext(scanFile), null))
         .withMessage("Error reading/processing third party scan content from scan file");
 
     assertExistingSbomFiles();
@@ -710,8 +709,8 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_corruptSbomFile() throws Exception {
     File scanFile = getScanFile("sbom/scan-with-sbom-data-corrupted.xml");
     assertThatExceptionOfType(RuntimeException.class).isThrownBy(
-            () -> thirdPartyScanResultsProcessorSpy.filterAndSaveData(new FileScanEntity(scanFile.toPath()),
-                new FileScanEntity(tempDir.newFile().toPath()), mockContext(scanFile), null))
+        () -> thirdPartyScanResultsProcessorSpy.filterAndSaveData(new FileScanEntity(scanFile.toPath()),
+            new FileScanEntity(tempDir.newFile().toPath()), mockContext(scanFile), null))
         .withMessage("Error reading/processing third party scan content from scan file");
 
     assertExistingSbomFiles();
@@ -873,8 +872,8 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_InvalidFile() throws Exception {
     File scanFile = getScanFile("empty-scan.xml");
     assertThatExceptionOfType(RuntimeException.class).isThrownBy(
-            () -> thirdPartyScanResultsProcessorSpy.filterAndSaveData(new FileScanEntity(scanFile.toPath()),
-                new FileScanEntity(tempDir.newFile().toPath()), mockContext(scanFile), null))
+        () -> thirdPartyScanResultsProcessorSpy.filterAndSaveData(new FileScanEntity(scanFile.toPath()),
+            new FileScanEntity(tempDir.newFile().toPath()), mockContext(scanFile), null))
         .withMessage("Error reading/processing third party scan content from scan file");
     verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class),
         any(ThirdPartyScanContext.class));

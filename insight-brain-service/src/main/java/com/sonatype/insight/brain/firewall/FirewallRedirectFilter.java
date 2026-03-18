@@ -30,14 +30,17 @@ public class FirewallRedirectFilter
   }
 
   @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-      throws IOException, ServletException
+  public void doFilter(
+      ServletRequest request,
+      ServletResponse response,
+      FilterChain chain) throws IOException, ServletException
   {
     HttpServletRequest httpRequest = (HttpServletRequest) request;
 
     String pathInfo = httpRequest.getPathInfo();
     if (pathInfo != null && pathInfo.contains("/" + DEPRECATED_MALWARE_DEFENSE_RESOURCE_PATH) &&
-        !pathInfo.endsWith("/evaluate") && !pathInfo.endsWith("/metrics")) {
+        !pathInfo.endsWith("/evaluate") && !pathInfo.endsWith("/metrics"))
+    {
       pathInfo = pathInfo.replace(DEPRECATED_MALWARE_DEFENSE_RESOURCE_PATH, PublicApiPaths.FIREWALL_RESOURCE_PATH);
       request.getRequestDispatcher(pathInfo).forward(request, response);
     }

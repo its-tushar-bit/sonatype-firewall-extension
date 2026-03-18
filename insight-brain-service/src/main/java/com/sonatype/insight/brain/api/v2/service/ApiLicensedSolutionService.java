@@ -28,8 +28,7 @@ public class ApiLicensedSolutionService
       Solution.DEVELOPER, "developer",
       Solution.FIREWALL, "firewall",
       Solution.LIFECYCLE, "lifecycle",
-      Solution.SBOM_MANAGER, "sbom"
-  );
+      Solution.SBOM_MANAGER, "sbom");
 
   private final SolutionResolver solutionResolver;
 
@@ -45,11 +44,11 @@ public class ApiLicensedSolutionService
    * Returns a list of ApiLicensedSolutionDTO objects representing the 'solutions' (i.e. firewall, lifecycle, etc.)
    * this instance of IQ is licensed for.
    *
-   * If the baseUrl is configured and available it will form the prefix of the solution URLs returned.  If the baseUrl
+   * If the baseUrl is configured and available it will form the prefix of the solution URLs returned. If the baseUrl
    * is not available the results depend on the allowRelativeUrls parameter, as explained next.
    *
-   * @param allowRelativeUrls when true, relative Urls will be returned if the baseUrl is not configured;  when false
-   *                          no results will be returned if the baseUrl is not available.
+   * @param allowRelativeUrls when true, relative Urls will be returned if the baseUrl is not configured; when false
+   *          no results will be returned if the baseUrl is not available.
    * @return List of ApiLicensedSolutionDTO
    */
   public List<ApiLicensedSolutionDTO> getLicensedSolutions(boolean allowRelativeUrls) {

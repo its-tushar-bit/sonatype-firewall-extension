@@ -84,7 +84,8 @@ public sealed interface ClusterLockId
    * ClusterLockIds that consist only of a class and not a second string.
    */
   enum SimpleId
-      implements ClusterLockId
+      implements
+      ClusterLockId
   {
     /*
      * In the DB, the ordinal values of these enums are used, along with an unset high bit, as the high byte of the

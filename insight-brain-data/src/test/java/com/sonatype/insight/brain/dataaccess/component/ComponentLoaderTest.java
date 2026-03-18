@@ -148,20 +148,23 @@ public class ComponentLoaderTest
     tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
   }
 
-  private SecurityVulnerability newSV(String refId,
-                                      String source,
-                                      Float severity,
-                                      SecurityVulnerabilityOverrideStatus status)
+  private SecurityVulnerability newSV(
+      String refId,
+      String source,
+      Float severity,
+      SecurityVulnerabilityOverrideStatus status)
   {
     SecurityVulnerability sv = new SecurityVulnerability(source, refId, severity);
     sv.setStatus(status);
     return sv;
   }
 
-  private SecurityVulnerability newSVWithAlias(String refId,
-                                      String source,
-                                      Float severity,
-                                      SecurityVulnerabilityOverrideStatus status, String... aliases)
+  private SecurityVulnerability newSVWithAlias(
+      String refId,
+      String source,
+      Float severity,
+      SecurityVulnerabilityOverrideStatus status,
+      String... aliases)
   {
     SecurityVulnerability sv = newSV(refId, source, severity, status);
     for (String alias : aliases) {

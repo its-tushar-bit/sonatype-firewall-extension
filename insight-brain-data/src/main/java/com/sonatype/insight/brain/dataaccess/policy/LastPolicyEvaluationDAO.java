@@ -35,8 +35,9 @@ public class LastPolicyEvaluationDAO
     super(operationalDataStore, searchIndexManager);
   }
 
-  public void insertIfPossibleLastPolicyEvaluation(final TransactionContext tx,
-                                                   final PolicyEvaluation newestPolicyEvaluation)
+  public void insertIfPossibleLastPolicyEvaluation(
+      final TransactionContext tx,
+      final PolicyEvaluation newestPolicyEvaluation)
   {
     if (newestPolicyEvaluation != null) {
       insert(tx, new LastPolicyEvaluation(newestPolicyEvaluation.getId(), newestPolicyEvaluation.getApplicationId(),

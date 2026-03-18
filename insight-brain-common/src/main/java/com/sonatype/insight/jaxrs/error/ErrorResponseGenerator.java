@@ -86,7 +86,8 @@ public class ErrorResponseGenerator
         messageBody = "Resource not found, please check your request URL.";
       }
       else if (statusCode == Response.Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode()
-          && e instanceof WebApplicationException) {
+          && e instanceof WebApplicationException)
+      {
         // Jersey produces crappy messages for that one
         messageBody = "Unsupported media type"
             + ", please check your request URL, the supplied data and its content type.";

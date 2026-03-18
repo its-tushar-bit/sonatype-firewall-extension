@@ -532,7 +532,7 @@ public class ThirdPartyFileCoordinateDAOTest
               .extracting(ResolvedLicenseDTO::licenseName)
               .containsExactlyInAnyOrder("License 1", "License 2");
           assertThat(component.getPercentageAnnotated()).isEqualTo(16.7);
-          //for older records where the componentRef is not set.
+          // for older records where the componentRef is not set.
           assertThat(component.getFileCoordinateId()).isEqualTo(coordinate2.getId());
           assertThat(component.getComponentRef()).isNull();
         });
@@ -1083,7 +1083,7 @@ public class ThirdPartyFileCoordinateDAOTest
         packageUrlIdentifier5.getName(), packageUrlIdentifier5.getVersion(), "h5",
         packageUrlIdentifier5.getPackageUrl(), UNSPECIFIED);
 
-    //testing name
+    // testing name
     SbomComponentListDTO result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
         sbomMetadata.getThirdPartyFileId(), null, null, "slf4j-log4j",
         null, true, 5, 1);
@@ -1091,7 +1091,7 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(result).isNotNull();
     assertThat(result.getTotalResultsCount()).isEqualTo(2);
 
-    //testing version
+    // testing version
     result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
         sbomMetadata.getThirdPartyFileId(), null, null, "2.4",
         null, true, 5, 1);
@@ -1102,7 +1102,7 @@ public class ThirdPartyFileCoordinateDAOTest
         .extracting(SbomComponentDTO::getPackageUrl)
         .containsExactly(packageUrlIdentifier3.getPackageUrl());
 
-    //testing packageUrl - not part of namespace, name or version
+    // testing packageUrl - not part of namespace, name or version
     result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
         sbomMetadata.getThirdPartyFileId(), null, null, "native", null, true, 5, 1);
 
@@ -1122,7 +1122,7 @@ public class ThirdPartyFileCoordinateDAOTest
         .extracting(SbomComponentDTO::getPackageUrl)
         .containsExactly(packageUrlIdentifier5.getPackageUrl());
 
-    //testing no componentName filter
+    // testing no componentName filter
     result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(),
         null, null, null, null,
         true, 5, 1);
@@ -1210,7 +1210,7 @@ public class ThirdPartyFileCoordinateDAOTest
         .extracting(SbomComponentDTO::getPackageUrl)
         .containsExactly(packageUrlIdentifier2.getPackageUrl());
 
-    //testing looking for name when packageUrl null
+    // testing looking for name when packageUrl null
     result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(),
         null, null, "com.test.org", null, true,
         5, 1);
@@ -1220,7 +1220,7 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(result.getResults()).extracting(SbomComponentDTO::getName)
         .containsExactly("com.test.org");
 
-    //testing looking for version when packageUrl null
+    // testing looking for version when packageUrl null
     result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(),
         null, null, "0.29.1", null, true,
         5, 1);
@@ -1308,7 +1308,7 @@ public class ThirdPartyFileCoordinateDAOTest
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-4", "Another 4", "http://license4");
     tempEntity.newThirdPartyCoordinateLicense(coordinate4, "some-5", "Some 5", "http://some5");
 
-    //testing with license id
+    // testing with license id
     SbomComponentListDTO result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
         sbomMetadata.getThirdPartyFileId(), null, null, "license-1",
         null, true, 5, 1);
@@ -1321,16 +1321,16 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(licenses).hasSize(1);
     assertThat(licenses).extracting(ResolvedLicenseDTO::licenseId).containsExactly("license-1");
 
-    //testing with license id partial
+    // testing with license id partial
     result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
         sbomMetadata.getThirdPartyFileId(), null, null, "nse-",
         null, true, 5, 1);
 
     assertThat(result).isNotNull();
     assertThat(result.getTotalResultsCount()).isEqualTo(3);
-    //componentIdentifier1, componentIdentifier2 match based on license text (license-x)
-    //while componentIdentifier4 is matched based on component name (d-license-blah)
-    result.getResults().sort(Comparator.comparing(SbomComponentDTO::getName)); //sort results by name
+    // componentIdentifier1, componentIdentifier2 match based on license text (license-x)
+    // while componentIdentifier4 is matched based on component name (d-license-blah)
+    result.getResults().sort(Comparator.comparing(SbomComponentDTO::getName)); // sort results by name
     dto = result.getResults().get(0);
     assertThat(dto.getComponentIdentifier()).isEqualTo(componentIdentifier1);
     licenses = dto.getLicenses();
@@ -1348,7 +1348,7 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(licenses).hasSize(1);
     assertThat(licenses).extracting(ResolvedLicenseDTO::licenseId).containsExactly("some-5");
 
-    //testing with license name
+    // testing with license name
     result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
         sbomMetadata.getThirdPartyFileId(), null, null, "Chars",
         null, true, 5, 1);
@@ -1362,7 +1362,7 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(licenses).extracting(ResolvedLicenseDTO::licenseId)
         .containsExactlyInAnyOrder("license-2", "license-3", "license-4");
 
-    //testing with license name special characters
+    // testing with license name special characters
     result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
         sbomMetadata.getThirdPartyFileId(), null, null, "%$3",
         null, true, 5, 1);
@@ -1398,8 +1398,7 @@ public class ThirdPartyFileCoordinateDAOTest
         SbomComponentSortableField.DISPLAY_NAME,
         true,
         10,
-        1
-    );
+        1);
     assertThat(result.getResults())
         .isNotNull()
         .extracting(SbomComponentDTO::getComponentRef)
@@ -1414,8 +1413,7 @@ public class ThirdPartyFileCoordinateDAOTest
         SbomComponentSortableField.DISPLAY_NAME,
         false,
         10,
-        1
-    );
+        1);
     assertThat(result.getResults())
         .isNotNull()
         .extracting(SbomComponentDTO::getComponentRef)
@@ -1430,8 +1428,7 @@ public class ThirdPartyFileCoordinateDAOTest
         SbomComponentSortableField.DISPLAY_NAME,
         true,
         2,
-        1
-    );
+        1);
     assertThat(result.getResults())
         .isNotNull()
         .extracting(SbomComponentDTO::getComponentRef)
@@ -1444,8 +1441,7 @@ public class ThirdPartyFileCoordinateDAOTest
         SbomComponentSortableField.DISPLAY_NAME,
         true,
         2,
-        2
-    );
+        2);
     assertThat(result.getResults())
         .isNotNull()
         .extracting(SbomComponentDTO::getComponentRef)
@@ -1460,8 +1456,7 @@ public class ThirdPartyFileCoordinateDAOTest
         SbomComponentSortableField.DISPLAY_NAME,
         false,
         2,
-        1
-    );
+        1);
     assertThat(result.getResults())
         .isNotNull()
         .extracting(SbomComponentDTO::getComponentRef)
@@ -1474,8 +1469,7 @@ public class ThirdPartyFileCoordinateDAOTest
         SbomComponentSortableField.DISPLAY_NAME,
         false,
         2,
-        2
-    );
+        2);
     assertThat(result.getResults())
         .isNotNull()
         .extracting(SbomComponentDTO::getComponentRef)
@@ -1503,8 +1497,7 @@ public class ThirdPartyFileCoordinateDAOTest
         SbomComponentSortableField.DISPLAY_NAME,
         true,
         20,
-        1
-    );
+        1);
     assertThat(result.getResults())
         .isNotNull()
         .extracting(SbomComponentDTO::getComponentRef)
@@ -1519,8 +1512,7 @@ public class ThirdPartyFileCoordinateDAOTest
         SbomComponentSortableField.DISPLAY_NAME,
         false,
         20,
-        1
-    );
+        1);
     assertThat(result.getResults())
         .isNotNull()
         .extracting(SbomComponentDTO::getComponentRef)
@@ -1535,13 +1527,13 @@ public class ThirdPartyFileCoordinateDAOTest
     String ref = hash + "-ref";
     fc.setHash(hash);
     fc.setComponentRef(ref);
-    //a different sbom/thirdpartyFileId but having the same component
+    // a different sbom/thirdpartyFileId but having the same component
     fc2.setHash(hash);
     fc2.setComponentRef(ref);
     thirdPartyFileCoordinateDAO.update(fc);
     thirdPartyFileCoordinateDAO.update(fc2);
 
-    //hash only
+    // hash only
     List<ThirdPartyFileCoordinate> results =
         thirdPartyFileCoordinateDAO.getByHashOrComponentRefForThirdPartyFileId(fc.getThirdPartyFileId(), hash, null);
     assertThat(results).hasSize(1);
@@ -1593,8 +1585,7 @@ public class ThirdPartyFileCoordinateDAOTest
         List.of("occurrence"),
         List.of("filename"),
         displayName,
-        "componentRef-" + RandomStringUtils.insecure().nextAlphabetic(2)
-    );
+        "componentRef-" + RandomStringUtils.insecure().nextAlphabetic(2));
   }
 
   private ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
@@ -1615,8 +1606,10 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   private ThirdPartyCoordinateSecurity insertThirdPartyCoordinateSecurity(
-      ThirdPartyFileCoordinate coordinate, CvssV3Severity severity,
-      float range, String refId)
+      ThirdPartyFileCoordinate coordinate,
+      CvssV3Severity severity,
+      float range,
+      String refId)
   {
     return tempEntity.newThirdPartyCoordinateSecurity(coordinate, refId, "description", "link",
         severity.getStartScoreRange() + range, severity.getDisplayName(), "fix");
@@ -1802,10 +1795,10 @@ public class ThirdPartyFileCoordinateDAOTest
         .withSpecVersion("1.5")
         .withThirdPartyFileId(thirdPartyFile.getId())
         .build();
-    //no component ref
+    // no component ref
     tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "s", "SPDX", "n1", "v1", "h1", "pkg:npm/n1@v1");
-    //has component ref
+    // has component ref
     tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "s", "SPDX", "n2", "v1", "h2", "pkg:npm/n2@v1", "cr1");
     assertThat(thirdPartyFileCoordinateDAO.hasNonNullComponentRefs(thirdPartyFile.getId())).isTrue();
@@ -1820,7 +1813,7 @@ public class ThirdPartyFileCoordinateDAOTest
         .withSpecVersion("1.5")
         .withThirdPartyFileId(thirdPartyFile.getId())
         .build();
-    //no component refs
+    // no component refs
     tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "s", "SPDX", "n1", "v1", "h1", "pkg:npm/n1@v1");
     tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
@@ -1838,7 +1831,7 @@ public class ThirdPartyFileCoordinateDAOTest
             "log4j-core", "2.14.1", scannedFile.getId());
     entity.setIdentificationSources("SBOM");
     entity.setPackageUrl("pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1?extension=jar");
-    //exceeding max length of 1000
+    // exceeding max length of 1000
     StringBuilder cpe = new StringBuilder(
         "cpe:2.3:a:@apideck/better-ajv-errors:@apideck/better-ajv-errors:0.3.6:*:*:*:*:*:*:*:*:*:*:*:*");
     while (cpe.length() < MAX_CPE_LENGTH) {
@@ -1852,10 +1845,11 @@ public class ThirdPartyFileCoordinateDAOTest
     catch (PersistenceException sqlEx) {
       assertThat(sqlEx).isInstanceOf(PersistenceException.class)
           .hasMessageContaining("The transaction has been rolled back.  See the nested " +
-          "exceptions for details on the errors that occurred.");
+              "exceptions for details on the errors that occurred.");
       Throwable rootCause = Throwables.getRootCause(sqlEx);
-      assertThat(rootCause).isInstanceOf(ReportingSQLException.class).hasMessageContaining("Value too long " +
-          "for column \"\"\"cpe\"\" VARCHAR(" + MAX_CPE_LENGTH);
+      assertThat(rootCause).isInstanceOf(ReportingSQLException.class)
+          .hasMessageContaining("Value too long " +
+              "for column \"\"\"cpe\"\" VARCHAR(" + MAX_CPE_LENGTH);
     }
   }
 }

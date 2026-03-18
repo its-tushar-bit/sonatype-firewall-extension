@@ -261,9 +261,7 @@ class ContextResolver
         Arrays.asList(owner.getId(), owner.getParentOwnerId()),
         Iterables.transform(
             ownerDAO.walkHierarchy(owner.getParentOwnerId(), owner.getType().getParentType()),
-            PARENT_ID_FUNCTION
-        )
-    );
+            PARENT_ID_FUNCTION));
   }
 
   private Iterable<String> resolveContextIdsForOwner(final String ownerId, OwnerType ownerType) {

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.concurrent;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Random;
@@ -120,8 +121,8 @@ public class SemaphorePoolTest
     SemaphorePool semaphorePool = new SemaphorePool(20);
 
     // when: acquire lock with null key provided
-    Throwable thrownNull = catchThrowable(() -> semaphorePool.acquire(null) );
-    Throwable thrownBlank = catchThrowable(() -> semaphorePool.acquire("") );
+    Throwable thrownNull = catchThrowable(() -> semaphorePool.acquire(null));
+    Throwable thrownBlank = catchThrowable(() -> semaphorePool.acquire(""));
 
     // then: not expecting any pool usage
     assertThat(thrownNull).isInstanceOf(IllegalArgumentException.class);
@@ -130,8 +131,7 @@ public class SemaphorePoolTest
     assertThat(semaphorePool.getAvailableCount()).isEqualTo(0);
     assertThatLogMessagesEqual(
         error("Trying to acquire with invalid key 'null'"),
-        error("Trying to acquire with invalid key ''")
-    );
+        error("Trying to acquire with invalid key ''"));
   }
 
   @Test
@@ -148,8 +148,7 @@ public class SemaphorePoolTest
     assertThatLogMessagesEqual(
         warn("Trying to release with invalid key 'null'"),
         warn("Trying to release with invalid key ''"),
-        warn("Trying to release with invalid key 'bogus'")
-    );
+        warn("Trying to release with invalid key 'bogus'"));
   }
 
   @Test

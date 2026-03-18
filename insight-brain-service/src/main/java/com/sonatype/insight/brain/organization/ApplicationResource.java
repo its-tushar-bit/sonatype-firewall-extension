@@ -227,14 +227,15 @@ public class ApplicationResource
   @Path(SET_APPLICATION_ICON_PATH)
   @Authorize(permission = Permission.WRITE)
   @Audited(AuditEvent.CONFIGURE_APPLICATION_ICON)
-  public Response setIcon(@FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
-                          @Context HttpHeaders headers,
-                          @AuthzContext(Key.APPLICATION_ID) @PathParam("applicationId") String applicationId,
-                          @FormDataParam("hasRobotSource") boolean hasRobotSource,
-                          @FormDataParam("hashcode") String hashcode,
-                          @FormDataParam("file") InputStream uploadedInputStream,
-                          @FormDataParam("file") FormDataContentDisposition fileDetail,
-                          @QueryParam("noFormData") boolean noFormData) throws Exception
+  public Response setIcon(
+      @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
+      @Context HttpHeaders headers,
+      @AuthzContext(Key.APPLICATION_ID) @PathParam("applicationId") String applicationId,
+      @FormDataParam("hasRobotSource") boolean hasRobotSource,
+      @FormDataParam("hashcode") String hashcode,
+      @FormDataParam("file") InputStream uploadedInputStream,
+      @FormDataParam("file") FormDataContentDisposition fileDetail,
+      @QueryParam("noFormData") boolean noFormData) throws Exception
   {
     return super.setIcon(applicationId, work.getApplicationIconDir(), hasRobotSource, hashcode, uploadedInputStream,
         fileDetail, csrfToken, headers, noFormData);

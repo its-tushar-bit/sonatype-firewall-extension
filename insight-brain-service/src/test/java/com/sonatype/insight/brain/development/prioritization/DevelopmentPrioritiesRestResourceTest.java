@@ -5,6 +5,7 @@
  */
 
 package com.sonatype.insight.brain.development.prioritization;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 

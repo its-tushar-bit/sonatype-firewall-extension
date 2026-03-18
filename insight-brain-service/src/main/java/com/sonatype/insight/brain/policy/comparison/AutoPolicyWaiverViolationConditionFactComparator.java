@@ -24,34 +24,34 @@ import static com.sonatype.insight.brain.utils.CompareUtil.compareTo;
 /**
  * {@link Comparator} for {@link ConditionFact} objects that compares them based on the following fields:
  * <ul>
- *   <li>conditionTypeId</li>
- *   <li>conditionIndex</li>
- *   <li>triggerJson</li>
- *   <li>reference</li>
- *   <li>reason</li>
- *   <li>summary</li>
+ * <li>conditionTypeId</li>
+ * <li>conditionIndex</li>
+ * <li>triggerJson</li>
+ * <li>reference</li>
+ * <li>reason</li>
+ * <li>summary</li>
  * </ul>
  * <p>
- *   The conditionTypeId field is compared by its strings.
- *   <br>
- *   The conditionIndex field is compared by its integers.
- *   <br>
- *   The triggerJson field is compared by first comparing the conditionIndex field, and then comparing the
- *   triggerJson field. If the conditionIndex field is null, the triggerJson field is not compared, then the
- *   triggerJson field is first deserialized into a {@link ConditionTrigger} object,
- *   then re-serializing the object into a string, and finally comparing the strings.
- *   <br>
- *   The reference field is compared by first comparing the value field, and then comparing the type field.
- *   <br>
- *   The type field is compared by first comparing the value field, and then comparing the type field.
- *   <br>
- *   The reason and summary fields are compared by its strings.
+ * The conditionTypeId field is compared by its strings.
+ * <br>
+ * The conditionIndex field is compared by its integers.
+ * <br>
+ * The triggerJson field is compared by first comparing the conditionIndex field, and then comparing the
+ * triggerJson field. If the conditionIndex field is null, the triggerJson field is not compared, then the
+ * triggerJson field is first deserialized into a {@link ConditionTrigger} object,
+ * then re-serializing the object into a string, and finally comparing the strings.
+ * <br>
+ * The reference field is compared by first comparing the value field, and then comparing the type field.
+ * <br>
+ * The type field is compared by first comparing the value field, and then comparing the type field.
+ * <br>
+ * The reason and summary fields are compared by its strings.
  * </p>
  *
  * <p>
- *   This comparison is done differently than in {@link ConditionFactComparator} because the condition facts
- *   here are checked for more than just triggerJson, in short if no triggerJson is found we continue to the next
- *   fields for comparison.
+ * This comparison is done differently than in {@link ConditionFactComparator} because the condition facts
+ * here are checked for more than just triggerJson, in short if no triggerJson is found we continue to the next
+ * fields for comparison.
  * </p>
  */
 public class AutoPolicyWaiverViolationConditionFactComparator
@@ -102,12 +102,12 @@ public class AutoPolicyWaiverViolationConditionFactComparator
   }
 
   private int compareTriggerJson(final ConditionFact conditionFact1, final ConditionFact conditionFact2) {
-    //  If the condition index is null we don't test further as it's created from the value of triggerJson
+    // If the condition index is null we don't test further as it's created from the value of triggerJson
     if (conditionFact1.getConditionIndex() == null && conditionFact2.getConditionIndex() == null) {
       return 0;
     }
 
-    //  If the condition index don't match we don't test further for trigger json
+    // If the condition index don't match we don't test further for trigger json
     int result = compareObjectsByNull(conditionFact1.getConditionIndex(), conditionFact2.getConditionIndex());
     if (result != 0) {
       return result;

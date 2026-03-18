@@ -16,10 +16,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Removes directories and files.
- * 
+ *
  * Having our own utility encourages consistency across the system, making it easier to change implementation as
  * necessary.
- * 
+ *
  * @since 1.9
  */
 @Named
@@ -50,7 +50,7 @@ public class FileCleaner
 
   /**
    * Indicates that a deletion was not successful.
-   * 
+   *
    * Also having a specific exception makes it easy to locate in logs.
    */
   public static class FileDeletionException

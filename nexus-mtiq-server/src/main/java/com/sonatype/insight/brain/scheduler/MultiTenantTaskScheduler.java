@@ -40,7 +40,7 @@ import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 public class MultiTenantTaskScheduler
     extends TaskScheduler
 {
-  //Visible for test
+  // Visible for test
   static final String TASK_SCHEDULER_THREAD_POOL_SIZE = "TASK_SCHEDULER_THREAD_POOL_SIZE";
 
   private final Provider<TenantContextJobListener> tenantContextJobListener;

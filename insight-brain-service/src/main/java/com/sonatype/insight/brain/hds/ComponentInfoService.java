@@ -239,26 +239,27 @@ public class ComponentInfoService
         identificationSource, scanId, dependencyType);
   }
 
-  public NamedComponentDetails getComponentDetails(Owner owner,
-                                            final ComponentIdentifier identifier,
-                                            String matchState,
-                                            String hash,
-                                            boolean proprietary,
-                                            HttpServletRequest httpRequest) throws IOException
+  public NamedComponentDetails getComponentDetails(
+      Owner owner,
+      final ComponentIdentifier identifier,
+      String matchState,
+      String hash,
+      boolean proprietary,
+      HttpServletRequest httpRequest) throws IOException
   {
     return getComponentDetails(owner, identifier, matchState, hash, proprietary, httpRequest, null, null, null);
   }
 
-  NamedComponentDetails getComponentDetails(Owner owner,
-                                            final ComponentIdentifier identifier,
-                                            String matchState,
-                                            String hash,
-                                            boolean proprietary,
-                                            HttpServletRequest httpRequest,
-                                            String identificationSource,
-                                            String scanId,
-                                            DependencyType dependencyType
-                                            ) throws IOException
+  NamedComponentDetails getComponentDetails(
+      Owner owner,
+      final ComponentIdentifier identifier,
+      String matchState,
+      String hash,
+      boolean proprietary,
+      HttpServletRequest httpRequest,
+      String identificationSource,
+      String scanId,
+      DependencyType dependencyType) throws IOException
   {
     long start = System.currentTimeMillis();
 
@@ -321,7 +322,8 @@ public class ComponentInfoService
   {
     // Case 1: SBOM identification source with no supported formats
     if (IdentificationSource.SBOM.getId().equals(identificationSource) &&
-        ComponentIdentifier.isFormatValidForCpeMatching(identifier.getFormat())) {
+        ComponentIdentifier.isFormatValidForCpeMatching(identifier.getFormat()))
+    {
       return reportDataReader.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
     }
 
@@ -351,8 +353,10 @@ public class ComponentInfoService
         reportDataReader.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
 
     if (namedComponentDetails != null && namedComponentDetails.getSecurityVulnerabilities() != null) {
-      namedComponentDetails.getSecurityVulnerabilities().stream().forEach(
-          vulnerability -> vulnerability.setIdentificationSource(IdentificationSource.SONATYPE_CONTAINER.getId()));
+      namedComponentDetails.getSecurityVulnerabilities()
+          .stream()
+          .forEach(
+              vulnerability -> vulnerability.setIdentificationSource(IdentificationSource.SONATYPE_CONTAINER.getId()));
     }
 
     return namedComponentDetails;
@@ -426,8 +430,8 @@ public class ComponentInfoService
   }
 
   private void initUnspecifiedLicense() {
-    final com.sonatype.insight.brain.model.license.License
-        licenseNotProvided = licenseDAO.getByIdNotNull(com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID);
+    final com.sonatype.insight.brain.model.license.License licenseNotProvided =
+        licenseDAO.getByIdNotNull(com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID);
     unspecifiedLicense = new License(licenseNotProvided.getId(), licenseNotProvided.getShortDisplayName());
   }
 
@@ -481,8 +485,9 @@ public class ComponentInfoService
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, null, null, null, null,
         false).getLeft();
-    componentDetailsLoaderFactory.newInstance(app).augmentComponentDetails(componentDetailsList.getList(), matchState,
-        null);
+    componentDetailsLoaderFactory.newInstance(app)
+        .augmentComponentDetails(componentDetailsList.getList(), matchState,
+            null);
     return componentDetailsList;
   }
 
@@ -495,7 +500,8 @@ public class ComponentInfoService
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public ComponentVersionInfoDTO getComponentVersionInfo_EvaluateComponentPermission(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-      ComponentIdentifier componentIdentifier, SourceEndpoint sourceEndpoint)
+      ComponentIdentifier componentIdentifier,
+      SourceEndpoint sourceEndpoint)
   {
     auditComponentAccess(componentIdentifier, null);
     return getComponentVersionInfoNoAuth(OwnerType.APPLICATION, applicationPublicId, componentIdentifier, null, null,
@@ -506,7 +512,7 @@ public class ComponentInfoService
    * Returns a list of component details for the given application and component identifier. It does not evaluate
    * policies and it does not return policy violations.
    *
-    * @deprecated since 1.48. Not used by Insight or plugins, but left here as our customers use these APIs.
+   * @deprecated since 1.48. Not used by Insight or plugins, but left here as our customers use these APIs.
    */
   @Deprecated
   @Authorize(permission = Permission.READ)
@@ -521,8 +527,9 @@ public class ComponentInfoService
     ComponentDetailsList componentDetailsList =
         getComponentDetailsList(componentIdentifier, owner, null, null, null,
             false).getLeft();
-    componentDetailsLoaderFactory.newInstance(owner).augmentComponentDetails(componentDetailsList.getList(), matchState,
-        null);
+    componentDetailsLoaderFactory.newInstance(owner)
+        .augmentComponentDetails(componentDetailsList.getList(), matchState,
+            null);
     return componentDetailsList;
   }
 
@@ -598,8 +605,8 @@ public class ComponentInfoService
     }
 
     AutomatedRemediationStatusDTO remediationStatusDTO =
-          getAutomatedRemediationStatusDTO(componentIdentifier, stageId, dependencyType, owner,
-              remediationDto);
+        getAutomatedRemediationStatusDTO(componentIdentifier, stageId, dependencyType, owner,
+            remediationDto);
 
     return new ComponentVersionInfoDTO(
         componentDetailsDTOs,
@@ -621,8 +628,8 @@ public class ComponentInfoService
             remediationDto.versionChanges));
 
     if (suggestedVersion.isPresent() && OwnerType.APPLICATION == owner.getType()) {
-      Optional<AutomatedRemediationStatusDTO>
-          prStatus = getPullRequestStatus(componentIdentifier, (Application) owner, suggestedVersion.get());
+      Optional<AutomatedRemediationStatusDTO> prStatus =
+          getPullRequestStatus(componentIdentifier, (Application) owner, suggestedVersion.get());
       if (prStatus.isPresent() && DependencyType.DIRECT.equals(dependencyType)) {
         return prStatus.get();
       }
@@ -669,7 +676,8 @@ public class ComponentInfoService
       List<SourceControlEvent> sourceControlEvents)
   {
     return sourceControlEvents.stream()
-        .min(Comparator.comparingInt(e -> switch (e.getEventStatus()) {
+        .min(Comparator.comparingInt(e -> switch (e.getEventStatus())
+        {
           case SourceControlEvent.EVENT_STATUS_COMPLETE -> 0;
           case SourceControlEvent.EVENT_STATUS_IN_PROGRESS -> 1;
           case SourceControlEvent.EVENT_STATUS_NEW -> 2;
@@ -701,14 +709,13 @@ public class ComponentInfoService
     List<Component> allComponents = componentDetailsLoader.augmentComponentDetails(
         allComponentDetails,
         MatchState.EXACT.getId(),
-        null
-    );
+        null);
 
-    List<ComponentDetailsDTO> allComponentDetailsDTOs
-        = evaluatePoliciesAndGetComponentDetails(owner, stageId, allComponents, allComponentDetails);
+    List<ComponentDetailsDTO> allComponentDetailsDTOs =
+        evaluatePoliciesAndGetComponentDetails(owner, stageId, allComponents, allComponentDetails);
 
     Map<ComponentIdentifier, List<ComponentDetailsDTO>> results = new LinkedHashMap<>();
-    for (ComponentDetailsDTO dto: allComponentDetailsDTOs) {
+    for (ComponentDetailsDTO dto : allComponentDetailsDTOs) {
       ComponentIdentifier pkgIdentifier = dto.componentIdentifier.createAlternativeVersion(null);
       if (!results.containsKey(pkgIdentifier)) {
         results.put(pkgIdentifier, new ArrayList<>());
@@ -748,9 +755,9 @@ public class ComponentInfoService
         .stream()
         .filter(ComponentIdentifier::isTerraform)
         .map(componentIdentifier -> {
-          //Terraform information is not stored in HDS
-          ComponentDetailsList allVersions
-              = thirdPartyComponentDAO.getAllVersions(owner.getId(), componentIdentifier, scanId);
+          // Terraform information is not stored in HDS
+          ComponentDetailsList allVersions =
+              thirdPartyComponentDAO.getAllVersions(owner.getId(), componentIdentifier, scanId);
           return Maps.immutableEntry(componentIdentifier, allVersions.getList());
         })
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -760,8 +767,8 @@ public class ComponentInfoService
         .filter(componentIdentifier -> !componentIdentifier.isTerraform())
         .collect(Collectors.toList());
 
-    Map<ComponentIdentifier, List<ComponentDetails>> nonTerraformDetails
-        = getInformationVersionsHdsBulk(nonTerraformComponents, stableVersionsOnly);
+    Map<ComponentIdentifier, List<ComponentDetails>> nonTerraformDetails =
+        getInformationVersionsHdsBulk(nonTerraformComponents, stableVersionsOnly);
 
     // Unknown formats - Generic components
     Map<ComponentIdentifier, List<ComponentDetails>> unknownComponentDetails =
@@ -797,8 +804,8 @@ public class ComponentInfoService
               thirdPartyComponentDAO.resolveComponentDetails(appId, componentIdentifier, scanId);
 
           if (Objects.nonNull(componentDetails) &&
-              isThirdPartyIdentificationSource(componentDetails.getIdentificationSource())
-          ) {
+              isThirdPartyIdentificationSource(componentDetails.getIdentificationSource()))
+        {
             componentDetailsListForGenericIdentifier =
                 thirdPartyComponentDAO.getAllVersions(appId, componentIdentifier, scanId);
           }
@@ -816,7 +823,7 @@ public class ComponentInfoService
 
           final Map.Entry<ComponentIdentifier, List<ComponentDetails>> maps;
           if (componentDetailsListForGenericIdentifier == null) {
-            maps =  Maps.immutableEntry(componentIdentifier, Collections.emptyList());
+            maps = Maps.immutableEntry(componentIdentifier, Collections.emptyList());
           }
           else {
             maps = Maps.immutableEntry(componentIdentifier, componentDetailsListForGenericIdentifier.getList());
@@ -848,8 +855,8 @@ public class ComponentInfoService
         componentDetailsLoader.augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(), dependencyType);
 
     // Evaluate the policies and get the PolicyAlerts
-    List<ComponentDetailsDTO> componentDetailsDTOs
-            = evaluatePoliciesAndGetComponentDetails(owner, stageId, components, componentDetailsList);
+    List<ComponentDetailsDTO> componentDetailsDTOs =
+        evaluatePoliciesAndGetComponentDetails(owner, stageId, components, componentDetailsList);
 
     return Pair.of(componentDetailsDTOs, componentDetailsListAndSource.getRight());
   }
@@ -894,11 +901,16 @@ public class ComponentInfoService
       dto.policyAlerts = policyAlerts;
       dto.policyMaxThreatLevelsByCategory = getMaxPolicyThreatLevelsByCategory(policyAlerts, policiesById);
 
-      dto.violatedPolicyCount = policyAlerts.stream().map(PolicyAlert::getTrigger).map(PolicyFact::getPolicyId)
-          .collect(Collectors.toSet()).size();
+      dto.violatedPolicyCount = policyAlerts.stream()
+          .map(PolicyAlert::getTrigger)
+          .map(PolicyFact::getPolicyId)
+          .collect(Collectors.toSet())
+          .size();
 
-      OptionalDouble highestSecurityVulnerabilitySeverity = componentDetails.getSecurityVulnerabilities().stream()
-          .mapToDouble(SecurityVulnerability::getSeverity).max();
+      OptionalDouble highestSecurityVulnerabilitySeverity = componentDetails.getSecurityVulnerabilities()
+          .stream()
+          .mapToDouble(SecurityVulnerability::getSeverity)
+          .max();
 
       dto.securityVulnerabilityCount = componentDetails.getSecurityVulnerabilities().size();
       dto.highestSecurityVulnerabilitySeverity = (float) highestSecurityVulnerabilitySeverity.orElse(0);
@@ -914,7 +926,8 @@ public class ComponentInfoService
   }
 
   protected Map<String, Policy> getPoliciesById(Owner owner) {
-    return policyDAO.getApplicableByOwnerIdWithHierarchy(owner.getId()).stream()
+    return policyDAO.getApplicableByOwnerIdWithHierarchy(owner.getId())
+        .stream()
         .collect(Collectors.toMap(Policy::getId, Function.identity()));
   }
 
@@ -933,8 +946,8 @@ public class ComponentInfoService
     return policyMaxThreatLevelsByCategory;
   }
 
-  private Map<String,Integer> maxPolicyThreatLevelToString(Map<PolicyThreatCategory, Integer> maxPolicyThreat) {
-    Map<String,Integer> result = new HashMap<>();
+  private Map<String, Integer> maxPolicyThreatLevelToString(Map<PolicyThreatCategory, Integer> maxPolicyThreat) {
+    Map<String, Integer> result = new HashMap<>();
     maxPolicyThreat.forEach((k, v) -> {
       result.put(k.getName(), v);
     });
@@ -1029,8 +1042,7 @@ public class ComponentInfoService
       Owner owner,
       String scanId,
       DependencyType dependencyType,
-      boolean stableVersionsOnly
-  )
+      boolean stableVersionsOnly)
   {
     ComponentDetailsList detailsList =
         getInformationVersionsHds(identifier, identificationSource, owner, scanId, stableVersionsOnly);
@@ -1057,13 +1069,15 @@ public class ComponentInfoService
       final String identificationSource)
   {
     if (componentDetailsList != null && CollectionUtils.isNotEmpty(componentDetailsList.getList()) &&
-        componentDetailsList.getList().size() > 1) {
+        componentDetailsList.getList().size() > 1)
+    {
       return false;
     }
 
     if (DependencyType.INNER_SOURCE.equals(dependencyType) &&
         RepositoryClient.REPOSITORY_SUPPORTED_FORMATS.contains(identifier.getFormat()) &&
-        SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.isEnabled()) {
+        SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.isEnabled())
+    {
 
       if (CollectionUtils.isNotEmpty(componentDetailsList.getList()) && componentDetailsList.getList().size() == 1) {
         return isThirdPartyIdentificationSource(identificationSource) ||
@@ -1177,13 +1191,14 @@ public class ComponentInfoService
       throw e;
     }
     if (CollectionUtils.isEmpty(componentDetailsList.getList()) &&
-        isPackageManifestOrExternalRepoIdentificationSource(identificationSource)) {
+        isPackageManifestOrExternalRepoIdentificationSource(identificationSource))
+    {
       componentDetailsList = new ComponentDetailsList();
       componentDetailsList.setList(Collections
           .singletonList(createComponentDetails(identifier, generateFakeHash(identifier),
               IdentificationSource.getById(identificationSource))));
     }
-    //In case it's a third-party component, the data must be replaced with the local information
+    // In case it's a third-party component, the data must be replaced with the local information
     updateThirdPartyInformation(identifier, identificationSource, componentDetailsList, owner, scanId);
     return componentDetailsList;
   }
@@ -1210,7 +1225,8 @@ public class ComponentInfoService
   }
 
   private Map<ComponentIdentifier, List<ComponentDetails>> getInformationVersionsHdsBulk(
-      List<ComponentIdentifier> componentIdentifiers, boolean stableVersionsOnly)
+      List<ComponentIdentifier> componentIdentifiers,
+      boolean stableVersionsOnly)
   {
     if (CollectionUtils.isEmpty(componentIdentifiers)) {
       log.warn("No component identifiers provided, unable to fetch versions from HDS");
@@ -1234,8 +1250,7 @@ public class ComponentInfoService
     List<ComponentEvaluationDataList.ComponentEvaluationData> componentEvaluationData =
         apiComponentDetailsServiceV2.getComponentDetailsListFromHds(
             expandedComponentIdentifiers,
-            COMPONENT_DETAILS_PURPOSE
-        );
+            COMPONENT_DETAILS_PURPOSE);
 
     Map<ComponentIdentifier, List<ComponentEvaluationDataList.ComponentEvaluationData>> groupedComponentIdentifiers =
         groupComponentIdentifiers(componentEvaluationData);
@@ -1251,13 +1266,13 @@ public class ComponentInfoService
   public Map<ComponentIdentifier, List<ComponentEvaluationDataList.ComponentEvaluationData>> groupComponentIdentifiers(
       List<ComponentEvaluationDataList.ComponentEvaluationData> componentEvaluationData)
   {
-    Map<ComponentIdentifier, List<ComponentEvaluationDataList.ComponentEvaluationData>> groupedComponentIdentifiers
-        = new LinkedHashMap<>();
+    Map<ComponentIdentifier, List<ComponentEvaluationDataList.ComponentEvaluationData>> groupedComponentIdentifiers =
+        new LinkedHashMap<>();
 
     componentEvaluationData.forEach(currentComponentEvaluationData -> {
       ComponentIdentifier componentIdentifier = currentComponentEvaluationData.componentIdentifier;
-      List<ComponentEvaluationDataList.ComponentEvaluationData> currentComponentEvaluationList
-          = groupedComponentIdentifiers.get(componentIdentifier);
+      List<ComponentEvaluationDataList.ComponentEvaluationData> currentComponentEvaluationList =
+          groupedComponentIdentifiers.get(componentIdentifier);
       if (currentComponentEvaluationList != null) {
         currentComponentEvaluationList.add(currentComponentEvaluationData);
       }
@@ -1299,7 +1314,8 @@ public class ComponentInfoService
               })
               .collect(Collectors.toList());
           return Maps.immutableEntry(key, mappedComponentDetailsList);
-        }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+        })
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
   }
 
   /**

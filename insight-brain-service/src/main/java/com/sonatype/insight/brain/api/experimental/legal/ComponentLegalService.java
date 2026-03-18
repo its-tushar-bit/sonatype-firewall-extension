@@ -91,7 +91,7 @@ public class ComponentLegalService
 
   private static final int SOURCE_LINK_CONTENT_MAX_CHARACTER = 1000;
 
-  //TODO: Temporary placeholder until legalContentHash is implemented
+  // TODO: Temporary placeholder until legalContentHash is implemented
   static final String NOT_IMPLEMENTED = "NA";
 
   private final CopyrightOverrideDAO copyrightOverrideDAO;
@@ -153,8 +153,8 @@ public class ComponentLegalService
    * associated with the ComponentCopyright. To remove a CopyrightOverride we need to "rollback" the ComponentCopyright
    * to the original HDS data, that is delete the ComponentCopyright and all of its children.
    *
-   * @param ownerType             - the owner type we are applying the ComponentCopyright from.
-   * @param ownerId               - the owner id we are applying the ComponentCopyright from.
+   * @param ownerType - the owner type we are applying the ComponentCopyright from.
+   * @param ownerId - the owner id we are applying the ComponentCopyright from.
    * @param componentCopyrightDTO - the ComponentCopyrightDTO to be persisted
    * @return the persisted ComponentCopyrightDTO.
    */
@@ -167,16 +167,16 @@ public class ComponentLegalService
     LegalServiceUtil.checkLicense(productLicense, log);
     ComponentIdentifier componentIdentifier = getComponentIdentifier(componentCopyrightDTO.getComponentIdentifier(),
         componentCopyrightDTO.getPackageUrl());
-    validateComponentCopyrightDTO(componentCopyrightDTO,componentIdentifier);
+    validateComponentCopyrightDTO(componentCopyrightDTO, componentIdentifier);
     Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentCopyright componentCopyright = new ComponentCopyright(
         componentIdentifier,
         owner.getId(),
         NOT_IMPLEMENTED,
-        currentUser.getUsername()
-    );
+        currentUser.getUsername());
     componentCopyright.setId(componentCopyrightDTO.getId());
-    List<CopyrightOverride> copyrightOverrides = componentCopyrightDTO.getCopyrightOverrides().stream()
+    List<CopyrightOverride> copyrightOverrides = componentCopyrightDTO.getCopyrightOverrides()
+        .stream()
         .map(dto -> {
           final String content = StringUtils.isBlank(dto.getContent()) ? "" : dto.getContent();
           CopyrightOverride copyrightOverride = new CopyrightOverride(
@@ -184,8 +184,7 @@ public class ComponentLegalService
               LegalServiceUtil.getContentHash(content),
               content,
               dto.getStatus(),
-              componentCopyrightDTO.getId()
-          );
+              componentCopyrightDTO.getId());
           copyrightOverride.setId(dto.getId());
           return copyrightOverride;
         })
@@ -212,8 +211,7 @@ public class ComponentLegalService
     auditComponentCopyright(componentCopyright, copyrightOverrides);
     return ComponentCopyrightDTO.fromComponentCopyright(
         componentCopyright,
-        copyrightOverrides.stream().map(CopyrightOverrideDTO::fromCopyrightOverride).collect(Collectors.toList())
-    );
+        copyrightOverrides.stream().map(CopyrightOverrideDTO::fromCopyrightOverride).collect(Collectors.toList()));
   }
 
   /**
@@ -222,16 +220,17 @@ public class ComponentLegalService
    * <p>
    * Throws {@link NotFoundException} if none match.
    *
-   * @param ownerType           - The ownerType of the scope we want
-   * @param ownerId             - The ownerId of the scope we want
+   * @param ownerType - The ownerType of the scope we want
+   * @param ownerId - The ownerId of the scope we want
    * @param componentIdentifier - The component identifier of the ComponentCopyright
    * @return A {@link ComponentCopyrightWithOwnerDTO}, which contains the ComponentCopyright at the scope at which it is
-   * applied.
+   *         applied.
    * @since 1.107
    */
   @Authorize(permission = Permission.LEGAL_REVIEWER)
   public ComponentCopyrightWithOwnerDTO getComponentCopyrightWithHierarchy(
-      @AuthzContext(Key.TYPE) final OwnerType ownerType, @AuthzContext(Key.ID) final String ownerId,
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.ID) final String ownerId,
       ComponentIdentifier componentIdentifier)
   {
     LegalServiceUtil.checkLicense(productLicense, log);
@@ -247,10 +246,11 @@ public class ComponentLegalService
     return new ComponentCopyrightWithOwnerDTO(
         ComponentCopyrightDTO.fromComponentCopyright(
             componentCopyright,
-            copyrightOverrides.stream().sorted(LegalReportBuilder::sortCopyrightOverrides)
-                .map(CopyrightOverrideDTO::fromCopyrightOverride).collect(Collectors.toList())),
-        componentCopyright.getOwnerId()
-    );
+            copyrightOverrides.stream()
+                .sorted(LegalReportBuilder::sortCopyrightOverrides)
+                .map(CopyrightOverrideDTO::fromCopyrightOverride)
+                .collect(Collectors.toList())),
+        componentCopyright.getOwnerId());
   }
 
   /**
@@ -259,8 +259,8 @@ public class ComponentLegalService
    * associated with the ComponentLegalFile. To remove a LegalFileOverride we need to "rollback" the ComponentLegalFile
    * to the original HDS data, that is delete the ComponentLegalFile and all of its children.
    *
-   * @param ownerType             - the owner type we are applying the ComponentLegalFile from.
-   * @param ownerId               - the owner id we are applying the ComponentLegalFile from.
+   * @param ownerType - the owner type we are applying the ComponentLegalFile from.
+   * @param ownerId - the owner id we are applying the ComponentLegalFile from.
    * @param componentLegalFileDTO - the ComponentLegalFileDTO to be persisted.
    * @return the persisted ComponentLegalFileDTO.
    * @since 1.107
@@ -274,17 +274,17 @@ public class ComponentLegalService
     LegalServiceUtil.checkLicense(productLicense, log);
     ComponentIdentifier componentIdentifier = getComponentIdentifier(componentLegalFileDTO.getComponentIdentifier(),
         componentLegalFileDTO.getPackageUrl());
-    validateComponentLegalFileDTO(componentLegalFileDTO,componentIdentifier);
+    validateComponentLegalFileDTO(componentLegalFileDTO, componentIdentifier);
     Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentLegalFile componentLegalFile = new ComponentLegalFile(
         componentIdentifier,
         owner.getId(),
         componentLegalFileDTO.getLegalFileType(),
         NOT_IMPLEMENTED,
-        currentUser.getUsername()
-    );
+        currentUser.getUsername());
     componentLegalFile.setId(componentLegalFileDTO.getId());
-    List<LegalFileOverride> legalFileOverrides = componentLegalFileDTO.getLegalFileOverrides().stream()
+    List<LegalFileOverride> legalFileOverrides = componentLegalFileDTO.getLegalFileOverrides()
+        .stream()
         .map(dto -> {
           String content = StringUtils.isBlank(dto.getContent()) ? "" : dto.getContent();
           LegalFileOverride legalFileOverride = new LegalFileOverride(
@@ -292,8 +292,7 @@ public class ComponentLegalService
               LegalServiceUtil.getContentHash(content),
               content,
               dto.getStatus(),
-              componentLegalFileDTO.getId()
-          );
+              componentLegalFileDTO.getId());
           legalFileOverride.setId(dto.getId());
           return legalFileOverride;
         })
@@ -333,7 +332,9 @@ public class ComponentLegalService
     Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     List<LegalFileOverride> legalFileOverrides = legalFileOverrideDAO
         .getByOwnerIdAndComponentIdentifierAndTypeWithHierarchy(owner.getId(), componentIdentifier, legalFileType)
-        .stream().sorted(LegalReportBuilder::sortLegalFileOverrides).collect(Collectors.toList());
+        .stream()
+        .sorted(LegalReportBuilder::sortLegalFileOverrides)
+        .collect(Collectors.toList());
     if (legalFileOverrides.isEmpty()) {
       return null;
     }
@@ -350,12 +351,12 @@ public class ComponentLegalService
    * ApiLicenseLegalObligationDTO#getName()} must not be null or empty, and {@link
    * ApiLicenseLegalObligationDTO#getStatus()} must not be null.
    *
-   * @param ownerType               the owner type for the {@link ComponentObligation} owner.
-   * @param ownerId                 the owner id for the {@link ComponentObligation} owner.
+   * @param ownerType the owner type for the {@link ComponentObligation} owner.
+   * @param ownerId the owner id for the {@link ComponentObligation} owner.
    * @param componentObligationDTOs the {@link ApiLicenseLegalObligationDTO}s representing the {@link
-   *                                ComponentObligation}s to be created/updated.
+   *          ComponentObligation}s to be created/updated.
    * @return a list of {@link ApiLicenseLegalObligationDTO}s representing the created/updated {@link
-   * ComponentObligation}s.
+   *         ComponentObligation}s.
    * @since 1.106
    */
   @Authorize(permission = Permission.LEGAL_REVIEWER)
@@ -371,8 +372,9 @@ public class ComponentLegalService
     try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
       tx.begin();
       componentObligationDTOs.forEach(componentObligationDTO -> {
-        AuditEvent auditEvent = componentObligationDTO.getId() ==
-            null ? AuditEvent.CREATE_COMPONENT_OBLIGATION : AuditEvent.UPDATE_COMPONENT_OBLIGATION;
+        AuditEvent auditEvent = componentObligationDTO.getId() == null
+            ? AuditEvent.CREATE_COMPONENT_OBLIGATION
+            : AuditEvent.UPDATE_COMPONENT_OBLIGATION;
         try (AuditSession ignored = AuditData.get().recordSubEvent(auditEvent, false)) {
           ComponentIdentifier componentIdentifier =
               getComponentIdentifier(componentObligationDTO.getComponentIdentifier(),
@@ -406,10 +408,10 @@ public class ComponentLegalService
    * Get a {@link ApiLicenseLegalObligationDTO} representing the {@link ComponentObligation} for a given owner,
    * component, and obligation name.
    *
-   * @param ownerType           the owner type for the {@link ComponentObligation} owner.
-   * @param ownerId             the owner id for the {@link ComponentObligation} owner.
+   * @param ownerType the owner type for the {@link ComponentObligation} owner.
+   * @param ownerId the owner id for the {@link ComponentObligation} owner.
    * @param componentIdentifier the {@link ComponentIdentifier} for the {@link ComponentObligation}.
-   * @param obligationName      the obligation name for the {@link ComponentObligation}.
+   * @param obligationName the obligation name for the {@link ComponentObligation}.
    * @return a {@link ApiLicenseLegalObligationDTO} representing the {@link ComponentObligation}.
    * @since 1.106
    */
@@ -426,9 +428,9 @@ public class ComponentLegalService
     List<String> ownerIds = ownerDAO.getOwnerIds(owner.getId());
     try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
       return componentObligationDAO.getByOwnerIdsAndComponentIdentifierAndObligationNames(tx,
-              ownerIds,
-              componentIdentifier,
-              Set.of(obligationName))
+          ownerIds,
+          componentIdentifier,
+          Set.of(obligationName))
           .stream()
           .findFirst()
           .map(ApiLicenseLegalObligationDTO::new)
@@ -440,7 +442,7 @@ public class ComponentLegalService
    * Delete {@link ComponentObligation}s by its {@link ComponentObligation#getId()}.
    *
    * @param componentObligationIds a list of the {@link ComponentObligation#getId()} representing the {@link
-   *                               ComponentObligation} to be deleted.
+   *          ComponentObligation} to be deleted.
    * @since 1.106
    */
   public void deleteComponentObligations(List<String> componentObligationIds) {
@@ -467,12 +469,12 @@ public class ComponentLegalService
    * ComponentObligationAttributionDTO#getComponentIdentifier()} must be valid and {@link
    * ComponentObligationAttributionDTO#getContent()} must not be null or empty.
    *
-   * @param ownerType                         the owner type for the {@link ComponentObligationAttribution} owner.
-   * @param ownerId                           the owner id for the {@link ComponentObligationAttribution} owner.
+   * @param ownerType the owner type for the {@link ComponentObligationAttribution} owner.
+   * @param ownerId the owner id for the {@link ComponentObligationAttribution} owner.
    * @param componentObligationAttributionDTO the {@link ComponentObligationAttributionDTO} representing the {@link
-   *                                          ComponentObligationAttribution} to be created/updated.
+   *          ComponentObligationAttribution} to be created/updated.
    * @return a {@link ComponentObligationAttributionDTO} representing the created/updated {@link
-   * ComponentObligationAttribution}.
+   *         ComponentObligationAttribution}.
    * @since 1.106
    */
   @Authorize(permission = Permission.LEGAL_REVIEWER)
@@ -483,8 +485,8 @@ public class ComponentLegalService
   {
     LegalServiceUtil.checkLicense(productLicense, log);
     ComponentIdentifier componentIdentifier = getComponentIdentifier(
-        componentObligationAttributionDTO.getComponentIdentifier(),componentObligationAttributionDTO.getPackageUrl());
-    validateComponentObligationAttributionDTO(componentObligationAttributionDTO,componentIdentifier);
+        componentObligationAttributionDTO.getComponentIdentifier(), componentObligationAttributionDTO.getPackageUrl());
+    validateComponentObligationAttributionDTO(componentObligationAttributionDTO, componentIdentifier);
 
     Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     auditComponentObligationAttribution(owner, componentIdentifier,
@@ -503,8 +505,10 @@ public class ComponentLegalService
           componentObligationAttribution,
           componentObligationAttributionDAO.getById(tx, componentObligationAttribution.getId()),
           componentObligationAttributionDAO.getByOwnerIdAndComponentIdentifierAndObligationNames(tx, owner.getId(),
-              componentIdentifier, Collections.singleton(componentObligationAttribution.getObligationName())).stream()
-              .findFirst().orElse(null),
+              componentIdentifier, Collections.singleton(componentObligationAttribution.getObligationName()))
+              .stream()
+              .findFirst()
+              .orElse(null),
           componentObligationAttributionDAO);
       tx.commit();
     }
@@ -515,12 +519,12 @@ public class ComponentLegalService
    * Get a list of {@link ComponentObligationAttributionDTO} representing the {@link ComponentObligationAttribution}s
    * for a given owner, component, and obligation name.
    *
-   * @param ownerType           the owner type for each {@link ComponentObligationAttribution} owner.
-   * @param ownerId             the owner id for each {@link ComponentObligationAttribution} owner.
+   * @param ownerType the owner type for each {@link ComponentObligationAttribution} owner.
+   * @param ownerId the owner id for each {@link ComponentObligationAttribution} owner.
    * @param componentIdentifier the {@link ComponentIdentifier} for each {@link ComponentObligationAttribution}.
-   * @param obligationName      the obligation name for each {@link ComponentObligationAttribution}.
+   * @param obligationName the obligation name for each {@link ComponentObligationAttribution}.
    * @return a list of {@link ComponentObligationAttributionDTO} representing the {@link
-   * ComponentObligationAttribution}s.
+   *         ComponentObligationAttribution}s.
    * @since 1.106
    */
   @Authorize(permission = Permission.LEGAL_REVIEWER)
@@ -536,15 +540,17 @@ public class ComponentLegalService
     return componentObligationAttributionDAO.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
         owner.getId(),
         componentIdentifier,
-        Collections.singleton(obligationName)
-    ).stream().map(ComponentObligationAttributionDTO::new).collect(Collectors.toList());
+        Collections.singleton(obligationName))
+        .stream()
+        .map(ComponentObligationAttributionDTO::new)
+        .collect(Collectors.toList());
   }
 
   /**
    * Delete a {@link ComponentObligationAttribution} by its {@link ComponentObligationAttribution#getId()}.
    *
    * @param componentObligationAttributionId the {@link ComponentObligationAttribution#getId()} representing the {@link
-   *                                         ComponentObligationAttribution} to be deleted.
+   *          ComponentObligationAttribution} to be deleted.
    * @since 1.106
    */
   public void deleteComponentObligationAttribution(String componentObligationAttributionId) {
@@ -587,7 +593,7 @@ public class ComponentLegalService
     ComponentIdentifier componentIdentifier =
         getComponentIdentifier(componentSourceLinkDTO.getComponentIdentifier(),
             componentSourceLinkDTO.getPackageUrl());
-    validateComponentSourceLinkDTO(componentSourceLinkDTO,componentIdentifier);
+    validateComponentSourceLinkDTO(componentSourceLinkDTO, componentIdentifier);
 
     // ownerType and ownerId from the params are meant to check for permissions, but the custom data is not scoped
     ComponentSourceLink componentSourceLink =
@@ -635,25 +641,25 @@ public class ComponentLegalService
    * <p>
    * Otherwise
    * <ul>
-   *   <li>If there's a conflicting entity, then it will be updated, else the old one will be updated.
-   *   Each override will have its legal entity id updated.</li>
-   *   <li>
-   *     If there's an old entity
-   *     <ul>
-   *       <li>And its owner is changing (either directly or by updating the conflicting entity), then the user must
-   *       have permission at the old owner.</li>
-   *       <li>And it's not being directly updated, then it will be deleted.
-   *       Each override to be saved will have its id set to null since any existing will have also been deleted.</li>
-   *     </ul>
-   *   </li>
+   * <li>If there's a conflicting entity, then it will be updated, else the old one will be updated.
+   * Each override will have its legal entity id updated.</li>
+   * <li>
+   * If there's an old entity
+   * <ul>
+   * <li>And its owner is changing (either directly or by updating the conflicting entity), then the user must
+   * have permission at the old owner.</li>
+   * <li>And it's not being directly updated, then it will be deleted.
+   * Each override to be saved will have its id set to null since any existing will have also been deleted.</li>
+   * </ul>
+   * </li>
    * </ul>
    *
-   * @param tx               the transaction context.
-   * @param entity           the legal entity to be saved.
-   * @param old              the legal entity, if any, that already exists with the id of the entity to be saved.
-   * @param conflicting      the legal entity, if any, that should be updated.
-   * @param dao              the legal entity dao.
-   * @param overrides        the overrides for the legal entity to be saved.
+   * @param tx the transaction context.
+   * @param entity the legal entity to be saved.
+   * @param old the legal entity, if any, that already exists with the id of the entity to be saved.
+   * @param conflicting the legal entity, if any, that should be updated.
+   * @param dao the legal entity dao.
+   * @param overrides the overrides for the legal entity to be saved.
    * @param setLegalEntityId a function to set the legal entity id on an override.
    * @throws NotFoundException if the legal entity to be saved has an id that does not exist.
    */
@@ -714,18 +720,18 @@ public class ComponentLegalService
    * <p>
    * For each override
    * <ul>
-   *   <li>If it has an id, but no corresponding old override was found, then a NotFoundException is thrown.</li>
-   *   <li>If it should not exist (i.e. it has no content and it's user created), then it will be ignored if it doesn't
-   *   exist or deleted it if it does exist.</li>
-   *   <li>Otherwise it will be inserted if it doesn't exist or updated it if it does exist.</li>
+   * <li>If it has an id, but no corresponding old override was found, then a NotFoundException is thrown.</li>
+   * <li>If it should not exist (i.e. it has no content and it's user created), then it will be ignored if it doesn't
+   * exist or deleted it if it does exist.</li>
+   * <li>Otherwise it will be inserted if it doesn't exist or updated it if it does exist.</li>
    * </ul>
    *
-   * @param tx            the transaction context.
-   * @param overrides     the overrides for the legal entity to be saved.
-   * @param oldOverrides  the old overrides, if any, for the legal entity.
-   * @param dao           the override dao.
-   * @param getById       a function returning an override, if any, given a transaction context and its id.
-   * @param getContent    a function returning the content of an override.
+   * @param tx the transaction context.
+   * @param overrides the overrides for the legal entity to be saved.
+   * @param oldOverrides the old overrides, if any, for the legal entity.
+   * @param dao the override dao.
+   * @param getById a function returning an override, if any, given a transaction context and its id.
+   * @param getContent a function returning the content of an override.
    * @param isUserCreated a function returning true if an override was created by a user.
    * @throws NotFoundException if an override to be saved has an id that does not exist.
    */
@@ -781,8 +787,9 @@ public class ComponentLegalService
     // actual work done by AOP interceptor
   }
 
-  private void validateComponentCopyrightDTO(final ComponentCopyrightDTO componentCopyrightDTO,
-                                             ComponentIdentifier componentIdentifier)
+  private void validateComponentCopyrightDTO(
+      final ComponentCopyrightDTO componentCopyrightDTO,
+      ComponentIdentifier componentIdentifier)
   {
     ComponentIdentifierValidator.validate(componentIdentifier);
 
@@ -791,15 +798,18 @@ public class ComponentLegalService
         throw new InvalidComponentCopyrightException("CopyrightOverride must have a status.");
       }
       if (copyrightOverrideDTO.getContent() != null &&
-          copyrightOverrideDTO.getContent().length() > COPYRIGHT_CONTENT_MAX_CHARACTER) {
+          copyrightOverrideDTO.getContent().length() > COPYRIGHT_CONTENT_MAX_CHARACTER)
+      {
         throw new InvalidComponentCopyrightException(
-          String.format("CopyrightOverride content must be less than %s characters", COPYRIGHT_CONTENT_MAX_CHARACTER));
+            String.format("CopyrightOverride content must be less than %s characters",
+                COPYRIGHT_CONTENT_MAX_CHARACTER));
       }
     }
   }
 
-  private void validateComponentSourceLinkDTO(final ComponentSourceLinkDTO componentSourceLinkDTO,
-                                              ComponentIdentifier componentIdentifier)
+  private void validateComponentSourceLinkDTO(
+      final ComponentSourceLinkDTO componentSourceLinkDTO,
+      ComponentIdentifier componentIdentifier)
   {
     ComponentIdentifierValidator.validate(componentIdentifier);
 
@@ -810,15 +820,17 @@ public class ComponentLegalService
       if ((sourceLinkOverrideDTO.getContent() != null
           && sourceLinkOverrideDTO.getContent().length() > SOURCE_LINK_CONTENT_MAX_CHARACTER) ||
           (sourceLinkOverrideDTO.getOriginalContent() != null
-              && sourceLinkOverrideDTO.getOriginalContent().length() > SOURCE_LINK_CONTENT_MAX_CHARACTER)) {
+              && sourceLinkOverrideDTO.getOriginalContent().length() > SOURCE_LINK_CONTENT_MAX_CHARACTER))
+      {
         throw new InvalidComponentSourceLinkException(String
             .format("SourceLinkOverride content must be less than %s characters", SOURCE_LINK_CONTENT_MAX_CHARACTER));
       }
     }
   }
 
-  private void validateComponentLegalFileDTO(ComponentLegalFileDTO componentLegalFileDTO,
-                                             ComponentIdentifier componentIdentifier)
+  private void validateComponentLegalFileDTO(
+      ComponentLegalFileDTO componentLegalFileDTO,
+      ComponentIdentifier componentIdentifier)
   {
     ComponentIdentifierValidator.validate(componentIdentifier);
 
@@ -846,22 +858,23 @@ public class ComponentLegalService
   }
 
   private void validateComponentObligationAttributionDTO(
-      ComponentObligationAttributionDTO componentObligationAttributionDTO, ComponentIdentifier componentIdentifier)
+      ComponentObligationAttributionDTO componentObligationAttributionDTO,
+      ComponentIdentifier componentIdentifier)
   {
     ComponentIdentifierValidator.validate(componentIdentifier);
     if (StringUtils.isBlank(componentObligationAttributionDTO.getContent())) {
       throw new BadRequestException("ComponentObligationAttribution must have content.");
     }
     if (componentObligationAttributionDTO.getContent() != null &&
-        componentObligationAttributionDTO.getContent().length() > ATTRIBUTION_CONTENT_MAX_CHARACTER) {
-      throw new BadRequestException( String.format(
-        "ComponentObligationAttribution content must be less than %s characters", ATTRIBUTION_CONTENT_MAX_CHARACTER));
+        componentObligationAttributionDTO.getContent().length() > ATTRIBUTION_CONTENT_MAX_CHARACTER)
+    {
+      throw new BadRequestException(String.format(
+          "ComponentObligationAttribution content must be less than %s characters", ATTRIBUTION_CONTENT_MAX_CHARACTER));
     }
   }
 
   private ComponentIdentifier getComponentIdentifier(ApiComponentIdentifierDTOV2 componentIdentifier, String pkgUrl) {
-    if (componentIdentifier != null)
-    {
+    if (componentIdentifier != null) {
       return componentIdentifier.toComponentIdentifier();
     }
     if (pkgUrl != null) {
@@ -875,10 +888,12 @@ public class ComponentLegalService
       final List<CopyrightOverride> copyrightOverrides)
   {
     AuditData.get().setComponentIdentifier(componentCopyright.getComponentIdentifier());
-    AuditData.get().setData("copyrights",
-        copyrightOverrides.stream()
-            .filter(c -> c.getStatus() == ComponentLegalPartStatus.ENABLED)
-            .map(CopyrightOverride::getContent).collect(Collectors.toList()));
+    AuditData.get()
+        .setData("copyrights",
+            copyrightOverrides.stream()
+                .filter(c -> c.getStatus() == ComponentLegalPartStatus.ENABLED)
+                .map(CopyrightOverride::getContent)
+                .collect(Collectors.toList()));
   }
 
   private void auditComponentSourceLink(
@@ -886,10 +901,12 @@ public class ComponentLegalService
       final List<SourceLinkOverride> sourceLinkOverrides)
   {
     AuditData.get().setComponentIdentifier(componentSourceLink.getComponentIdentifier());
-    AuditData.get().setData("Source Link",
-        sourceLinkOverrides.stream()
-            .filter(c -> c.getStatus() == ComponentLegalPartStatus.ENABLED)
-            .map(SourceLinkOverride::getContent).collect(Collectors.toList()));
+    AuditData.get()
+        .setData("Source Link",
+            sourceLinkOverrides.stream()
+                .filter(c -> c.getStatus() == ComponentLegalPartStatus.ENABLED)
+                .map(SourceLinkOverride::getContent)
+                .collect(Collectors.toList()));
   }
 
   private void auditComponentLegalFile(
@@ -897,10 +914,12 @@ public class ComponentLegalService
       List<LegalFileOverride> legalFileOverrides)
   {
     AuditData.get().setComponentIdentifier(componentLegalFile.getComponentIdentifier());
-    AuditData.get().setData(componentLegalFile.getType().toString() + "s",
-        legalFileOverrides.stream()
-            .filter(clf -> clf.getStatus() == ComponentLegalPartStatus.ENABLED)
-            .map(LegalFileOverride::getId).collect(Collectors.toList()));
+    AuditData.get()
+        .setData(componentLegalFile.getType().toString() + "s",
+            legalFileOverrides.stream()
+                .filter(clf -> clf.getStatus() == ComponentLegalPartStatus.ENABLED)
+                .map(LegalFileOverride::getId)
+                .collect(Collectors.toList()));
   }
 
   private void auditComponentObligation(
@@ -935,7 +954,8 @@ public class ComponentLegalService
       String ownerId,
       ComponentIdentifier componentIdentifier)
   {
-    return sourceLinkOverrideDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(ownerId, componentIdentifier).stream()
+    return sourceLinkOverrideDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(ownerId, componentIdentifier)
+        .stream()
         .map(LegalSourceLinkDTO::new)
         .sorted(LEGAL_SOURCE_LINK_COMPARATOR)
         .collect(Collectors.toCollection(LinkedHashSet::new));

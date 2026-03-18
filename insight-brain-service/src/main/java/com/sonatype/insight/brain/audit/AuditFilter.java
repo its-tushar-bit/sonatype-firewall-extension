@@ -77,8 +77,10 @@ public class AuditFilter
   }
 
   @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-      throws IOException, ServletException
+  public void doFilter(
+      ServletRequest request,
+      ServletResponse response,
+      FilterChain chain) throws IOException, ServletException
   {
     try (AuditSession auditSession = auditRecorder.recordUserEvent((HttpServletRequest) request)) {
       chain.doFilter(request, new ResponseWrapper(response));

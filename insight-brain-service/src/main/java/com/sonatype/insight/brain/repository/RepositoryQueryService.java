@@ -46,9 +46,9 @@ public class RepositoryQueryService
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryQueryService.class);
 
-  //visible for testing
+  // visible for testing
   public static final TenantReference<Map<String, LongAdder>> REPOSITORY_QUERY_COUNT_PER_FORMAT =
-          new TenantReference<>(ConcurrentHashMap::new);
+      new TenantReference<>(ConcurrentHashMap::new);
 
   public static final String INNERSOURCE_REPOSITORY_FORMAT_KEY = "innersource_repository_format";
 
@@ -127,7 +127,8 @@ public class RepositoryQueryService
     }
 
     if (effectiveOwnerId != null) {
-      List<RepositoryConnection> repoConnections = repositoryConnectionDAO.getByOwnerId(effectiveOwnerId).stream()
+      List<RepositoryConnection> repoConnections = repositoryConnectionDAO.getByOwnerId(effectiveOwnerId)
+          .stream()
           .filter(repositoryConnection -> finalRepositoryFormat.equals(repositoryConnection.getFormat()) ||
               RepositoryFormat.GENERIC.equals(repositoryConnection.getFormat()))
           .sorted(REPOSITORY_CONNECTION_COMPARATOR)
@@ -136,7 +137,7 @@ public class RepositoryQueryService
         return Pair.of(new RepositoryAllVersionsResponse(Collections.emptyList()), null);
       }
 
-      //for the time being we only support one repository connection - cf. CLM-19789
+      // for the time being we only support one repository connection - cf. CLM-19789
       RepositoryConnection connection = repoConnections.get(0);
       return searchRepositoryForAllVersions(connection, componentIdentifier);
     }
@@ -152,7 +153,8 @@ public class RepositoryQueryService
     catch (InvalidComponentIdentifierException e) {
       if (componentIdentifier.isMaven()) {
         if (componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID) == null ||
-            componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID) == null) {
+            componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID) == null)
+        {
           throw new BadRequestException(e.getMessage(), e);
         }
       }
@@ -204,7 +206,7 @@ public class RepositoryQueryService
         buildNpmQueryCriteria(componentIdentifier, queryCriteria);
         break;
       default:
-        //no-op
+        // no-op
     }
     return queryCriteria;
   }
@@ -244,7 +246,9 @@ public class RepositoryQueryService
 
   @Override
   public List<TelemetryData> collectAllData() {
-    List<TelemetryData> telemetryData = REPOSITORY_QUERY_COUNT_PER_FORMAT.get().entrySet().stream()
+    List<TelemetryData> telemetryData = REPOSITORY_QUERY_COUNT_PER_FORMAT.get()
+        .entrySet()
+        .stream()
         .map(this::createTelemetryData)
         .collect(Collectors.toList());
     REPOSITORY_QUERY_COUNT_PER_FORMAT.get().clear();

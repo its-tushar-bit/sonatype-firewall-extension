@@ -49,12 +49,12 @@ public class SbomTestHelper
       {"creationInfo.created", "documentNamespace", "creationInfo.creators"};
 
   public static final String[] CYCLONEDX_JSON_IGNORE_FIELDS = {
-      "metadata.timestamp", "metadata.tools.components[0].version",
-      "metadata.component.bom-ref", "metadata.component.name", "metadata.component.version",
-      "creationInfo.created", "creationInfo.creators[0]", "documentNamespace",
-      "vulnerabilities[*].analysis.lastUpdated", "vulnerabilities[*].analysis.firstIssued",
-      "vulnerabilities[*].bom-ref", "components[*].licenses[*].license.bom-ref",
-      "components[*].properties[*].value", "name", "packages[*].name", "dependencies[0].ref"
+    "metadata.timestamp", "metadata.tools.components[0].version",
+    "metadata.component.bom-ref", "metadata.component.name", "metadata.component.version",
+    "creationInfo.created", "creationInfo.creators[0]", "documentNamespace",
+    "vulnerabilities[*].analysis.lastUpdated", "vulnerabilities[*].analysis.firstIssued",
+    "vulnerabilities[*].bom-ref", "components[*].licenses[*].license.bom-ref",
+    "components[*].properties[*].value", "name", "packages[*].name", "dependencies[0].ref"
   };
 
   public static Predicate<Node> spdxDxIgnoreNodesFilter() {
@@ -77,7 +77,7 @@ public class SbomTestHelper
         return false;
       }
 
-      //ignore name and version only if it is in the metadata component
+      // ignore name and version only if it is in the metadata component
       if ("name".equals(node.getNodeName()) || "version".equals(node.getNodeName())) {
         Node p = node.getParentNode();
         if (p != null && "component".equals(p.getNodeName())) {
@@ -88,7 +88,7 @@ public class SbomTestHelper
         }
       }
 
-      //ignore version only if it is in the tools section
+      // ignore version only if it is in the tools section
       if ("version".equals(node.getNodeName())) {
         Node p = node.getParentNode();
         if (p != null && "component".equals(p.getNodeName())) {
@@ -126,10 +126,12 @@ public class SbomTestHelper
       // so we need to ignore the ref attribute in the first dependency element during comparison
       // there are other dependencies elements in the bom that are not ignored
       if ("ref".equals(attr.getName()) && attr.getValue() != null &&
-          "dependency".equals(attr.getOwnerElement().getNodeName())) {
-        //make sure this is the bom/dependencies element
+          "dependency".equals(attr.getOwnerElement().getNodeName()))
+      {
+        // make sure this is the bom/dependencies element
         if (attr.getOwnerElement().getParentNode().getNodeName().equals("dependencies") &&
-            attr.getOwnerElement().getParentNode().getParentNode().getNodeName().equals("bom")) {
+            attr.getOwnerElement().getParentNode().getParentNode().getNodeName().equals("bom"))
+        {
           NodeList dependencies = attr.getOwnerDocument().getElementsByTagName("dependencies");
           if (dependencies.getLength() > 0) {
             Node firstChild = dependencies.item(0).getFirstChild();
@@ -190,9 +192,7 @@ public class SbomTestHelper
     return FileUtils.readFileToString(new File(Objects.requireNonNull(resource).toURI()), StandardCharsets.UTF_8);
   }
 
-  public static Path mockOriginalSbom(Class testClass, String fileName, Path sbomDir)
-      throws Exception
-  {
+  public static Path mockOriginalSbom(Class testClass, String fileName, Path sbomDir) throws Exception {
     URL resource = testClass.getResource("/" + testClass.getSimpleName() + "/" + fileName);
     Path tmpGzippedFile = Files.createTempFile(sbomDir, null, "-bom.gz");
     try (GZIPOutputStream gzipStream = new GZIPOutputStream(Files.newOutputStream(tmpGzippedFile))) {

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dashboard;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
@@ -13,7 +14,7 @@ import jakarta.inject.Inject;
 import org.junit.experimental.categories.Category;
 
 @PostgresTest
-@Category({PostgresTestCategory.class,SlowTest.class})
+@Category({PostgresTestCategory.class, SlowTest.class})
 public class PostgresComponentRiskServiceAuthzTest
     extends AbstractComponentRiskServiceAuthzTest
 {

@@ -43,14 +43,16 @@ public class PersistedPolicyEvaluationPollingResultCleanerTest
   @Override
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    binder.bind(PersistedPolicyEvaluationPollingResultDAO.class).toInstance(
-        persistedPolicyEvaluationPollingResultDAOMock);
+    binder.bind(PersistedPolicyEvaluationPollingResultDAO.class)
+        .toInstance(
+            persistedPolicyEvaluationPollingResultDAOMock);
     super.configure(binder);
   }
 
   @Test
   public void testDisallowConcurrentExecution() {
-    assertThat(JobBuilder.newJob(PersistedPolicyEvaluationPollingResultCleaner.class).build()
+    assertThat(JobBuilder.newJob(PersistedPolicyEvaluationPollingResultCleaner.class)
+        .build()
         .isConcurrentExectionDisallowed()).isTrue();
   }
 

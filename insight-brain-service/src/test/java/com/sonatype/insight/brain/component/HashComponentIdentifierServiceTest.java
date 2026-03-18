@@ -205,10 +205,11 @@ public class HashComponentIdentifierServiceTest
     assertThat(persisted.getClaimerName()).isEqualTo(userPrincipalDisplayName);
   }
 
-  private void assertHashComponentIdentifierDTO(final HashComponentIdentifierDTO hashComponentIdentifierDTO,
-                                                final ComponentIdentifier componentIdentifier,
-                                                final String comment,
-                                                final Date createTime)
+  private void assertHashComponentIdentifierDTO(
+      final HashComponentIdentifierDTO hashComponentIdentifierDTO,
+      final ComponentIdentifier componentIdentifier,
+      final String comment,
+      final Date createTime)
   {
     assertThat(hashComponentIdentifierDTO).isNotNull();
     assertThat(hashComponentIdentifierDTO.hash).isEqualTo(HASH);

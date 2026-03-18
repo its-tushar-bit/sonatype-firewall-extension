@@ -112,7 +112,8 @@ public class PolicyAlertUtil
     List<String> ownerIdsForPolicies =
         firewallForContainerImagesHelper.getApplicableOwnersForPolicies(stageTypeId, owner);
     Map<String, Policy> policiesById =
-        policyDAO.getByIds(policyViolations.stream().map(PolicyViolation::getPolicyId).collect(toSet())).stream()
+        policyDAO.getByIds(policyViolations.stream().map(PolicyViolation::getPolicyId).collect(toSet()))
+            .stream()
             .collect(toMap(Policy::getId, Function.identity()));
     List<PolicyAlert> result = new ArrayList<>();
 
@@ -164,7 +165,8 @@ public class PolicyAlertUtil
       return true;
     }
     if (component.getComponentIdentifier() != null &&
-        component.getComponentIdentifier().equals(policyViolation.getComponentIdentifier())) {
+        component.getComponentIdentifier().equals(policyViolation.getComponentIdentifier()))
+    {
       return true;
     }
     return false;
@@ -265,4 +267,3 @@ public class PolicyAlertUtil
     return components;
   }
 }
-

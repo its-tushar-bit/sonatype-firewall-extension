@@ -68,7 +68,7 @@ public class SuccessMetricsChartsSingleApplicationTest
     ApplicationComponent buildComponent = tempEntity
         .newApplicationComponent(app1.getId(), BuildStageType.ID, "logbackhash",
             ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-access", "0.6"));
-    
+
     // add a violation from a few months ago so we can see the mttr chart/break out of PoC mode
     tempEntity.newPolicyViolation(buildEval3MonthsAgo, licensePolicy, 6,
         LICENSE, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
@@ -132,15 +132,16 @@ public class SuccessMetricsChartsSingleApplicationTest
     ViolationAveragesTile.root().shouldBe(visible);
     ViolationAveragesTile.title()
         .shouldHave(text("Average Number of Violations Discovered Per Month"));
-    ViolationAveragesTile.averages().shouldHave(text("Lifecycle performed an average of 0 evaluations per month on 1 " +
-        "application over the past 3 months. Lifecycle found an average of 0 policy violations, 0 of which were " +
-        "critical."));
+    ViolationAveragesTile.averages()
+        .shouldHave(text("Lifecycle performed an average of 0 evaluations per month on 1 " +
+            "application over the past 3 months. Lifecycle found an average of 0 policy violations, 0 of which were " +
+            "critical."));
   }
 
   @Test
   public void testApplicationCountsTile() {
     SuccessMetricsReportPage successMetricsReportPage = new SuccessMetricsReportPage();
-    
+
     successMetricsReportPage.should(appear);
     ApplicationCountsTile.root().shouldNot(exist);
   }

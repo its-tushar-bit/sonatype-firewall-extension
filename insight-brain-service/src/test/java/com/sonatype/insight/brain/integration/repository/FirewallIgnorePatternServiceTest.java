@@ -84,7 +84,8 @@ public class FirewallIgnorePatternServiceTest
   public void testGetIgnorePatterns_HDS_Fails_StillUpdates() {
     FirewallIgnorePatterns expectedFirewallIgnorePatterns = createFirewallIgnorePatterns();
     when(hdsClientMock.get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))
-        .thenThrow(new BadGatewayException("ERROR")).thenReturn(expectedFirewallIgnorePatterns);
+        .thenThrow(new BadGatewayException("ERROR"))
+        .thenReturn(expectedFirewallIgnorePatterns);
     assertThatExceptionOfType(RuntimeException.class)
         .isThrownBy(() -> firewallIgnorePatternService.getIgnorePatterns())
         .withMessageContaining("Failed to get ignore patterns from remote");

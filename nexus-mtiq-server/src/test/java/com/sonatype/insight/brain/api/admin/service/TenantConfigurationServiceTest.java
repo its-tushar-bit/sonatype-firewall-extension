@@ -323,15 +323,13 @@ public class TenantConfigurationServiceTest
   @Test
   public void testConfigurableProperties() {
     assertThat(TenantConfigurationService.CONFIGURABLE_PROPERTIES).containsExactlyInAnyOrderElementsOf(
-        EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.keySet()
-    );
+        EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.keySet());
   }
 
   @Test
   public void testGlobalConfigurableProperties() {
     assertThat(TenantConfigurationService.GLOBAL_CONFIGURABLE_PROPERTIES).containsExactlyInAnyOrderElementsOf(
-        EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.keySet()
-    );
+        EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.keySet());
   }
 
   @Test

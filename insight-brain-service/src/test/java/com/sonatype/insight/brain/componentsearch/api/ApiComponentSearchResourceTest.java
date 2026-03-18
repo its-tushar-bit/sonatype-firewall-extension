@@ -30,7 +30,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Integration test for ApiComponentSearchResource using actual HTTP calls.
  * Tests basic happy-path functioning and various non authn/authz related error conditions.
  */
-public class ApiComponentSearchResourceTest extends AbstractResourceTest
+public class ApiComponentSearchResourceTest
+    extends AbstractResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
@@ -45,22 +46,19 @@ public class ApiComponentSearchResourceTest extends AbstractResourceTest
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "scan-123",
-        new Date()
-    );
+        new Date());
 
     ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates(
         "com.example",
         "vulnerable-lib",
-        "1.0.0"
-    );
+        "1.0.0");
 
     tempEntity.newApplicationComponent(
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "hash-123",
         componentId,
-        "pkg:maven/com.example/vulnerable-lib@1.0.0?type=jar"
-    );
+        "pkg:maven/com.example/vulnerable-lib@1.0.0?type=jar");
 
     setupHdsMocksForStandardSearch();
 
@@ -126,22 +124,19 @@ public class ApiComponentSearchResourceTest extends AbstractResourceTest
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "scan-123",
-        new Date()
-    );
+        new Date());
 
     ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates(
         "com.example",
         "vulnerable-lib",
-        "1.0.0"
-    );
+        "1.0.0");
 
     tempEntity.newApplicationComponent(
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "hash-123",
         componentId,
-        "pkg:maven/com.example/vulnerable-lib@1.0.0?type=jar"
-    );
+        "pkg:maven/com.example/vulnerable-lib@1.0.0?type=jar");
 
     setupHdsMocksForStandardSearch();
 
@@ -165,8 +160,7 @@ public class ApiComponentSearchResourceTest extends AbstractResourceTest
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "scan-123",
-        new Date()
-    );
+        new Date());
 
     // HDS returns empty list - no components affected by this CVE
     hdsRespondWith(new AffectedComponentList(List.of(), null, null))
@@ -195,22 +189,19 @@ public class ApiComponentSearchResourceTest extends AbstractResourceTest
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "scan-123",
-        new Date()
-    );
+        new Date());
 
     ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates(
         "com.example",
         "vulnerable-lib",
-        "1.0.0"
-    );
+        "1.0.0");
 
     tempEntity.newApplicationComponent(
         app.getId(),
         StageTypes.STAGE_RELEASE.getId(),
         "hash-123",
         componentId,
-        "pkg:maven/com.example/vulnerable-lib@1.0.0?type=jar"
-    );
+        "pkg:maven/com.example/vulnerable-lib@1.0.0?type=jar");
 
     setupHdsMocksForStandardSearch();
 
@@ -270,8 +261,7 @@ public class ApiComponentSearchResourceTest extends AbstractResourceTest
 
   private void setupHdsMocksForStandardSearch() {
     List<AffectedComponentDTO> affectedComponents = List.of(
-        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0", null)
-    );
+        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0", null));
     AffectedComponentList response = new AffectedComponentList(affectedComponents, null, null);
     hdsRespondWith(response)
         .atUri("/rest/vulnerability/affected?refId=CVE-2025-55182")

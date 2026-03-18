@@ -59,8 +59,15 @@ public class MatchStateConditionTypeTest
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, MatchStateConditionType.ID,
         policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Match state was 'Similar'");
   }
 
@@ -95,8 +102,15 @@ public class MatchStateConditionTypeTest
     assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, MatchStateConditionType.ID,
         policyAlerts);
 
-    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
-        .getConditionFacts().get(0).getReason();
+    String actualReason = policyAlerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
     assertThat(actualReason).isEqualTo("Match state was 'Exact', not 'Similar'");
   }
 

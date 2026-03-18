@@ -101,7 +101,7 @@ class ViolationDiscoveredEvent
 }
 
 /**
- * Represents a violation being resolved in all stages.  The `time` field stores the resolution time while the
+ * Represents a violation being resolved in all stages. The `time` field stores the resolution time while the
  * `openTime` field stores the openTime
  */
 abstract class ViolationResolvedEvent
@@ -114,9 +114,10 @@ abstract class ViolationResolvedEvent
     this.openTime = openTime;
   }
 
-  protected void processResolved(MttrStats mttrStats,
-                                 Table<PolicyThreatCategory, ThreatLevel, Integer> resolvedCounts,
-                                 Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts)
+  protected void processResolved(
+      MttrStats mttrStats,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> resolvedCounts,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts)
   {
     mttrStats.addViolation(violation, openTime, time);
     resolvedCounts.put(threatCategory, threatLevel, resolvedCounts.get(threatCategory, threatLevel) + 1);

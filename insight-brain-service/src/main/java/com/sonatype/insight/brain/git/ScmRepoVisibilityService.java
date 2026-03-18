@@ -42,7 +42,8 @@ public class ScmRepoVisibilityService
   public ScmRepoVisibilityService(final FeaturesService featuresService, final GitClientFactory gitClientFactory) {
     this.featuresService = featuresService;
 
-    privateRepoCache = new TenantReference<>(() -> CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES)
+    privateRepoCache = new TenantReference<>(() -> CacheBuilder.newBuilder()
+        .expireAfterAccess(5, TimeUnit.MINUTES)
         .build(new GitPrivateRepoCacheLoader(gitClientFactory)));
   }
 

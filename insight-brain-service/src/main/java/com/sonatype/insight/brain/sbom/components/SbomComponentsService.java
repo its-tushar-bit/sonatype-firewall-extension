@@ -103,8 +103,7 @@ public class SbomComponentsService
 
   @Authorize(permission = Permission.READ)
   public CDPSbomComponentDetailsDTO getSbomComponentDetails(
-      @AuthzContext(AuthzContext.Key.APPLICATION_ID)
-      String applicationId,
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       String sbomVersion,
       String componentHash)
   {
@@ -147,15 +146,15 @@ public class SbomComponentsService
     componentDetailsDTO.setDisclosedVulnerabilities(
         getVulnerabilitiesDetails(sbomMetadata, vulnerabilityList, vexAnnotationsMap, component, true));
     componentDetailsDTO.setSonatypeIdentifiedVulnerabilities(
-        getVulnerabilitiesDetails(sbomMetadata, vulnerabilityList, vexAnnotationsMap, component,false));
+        getVulnerabilitiesDetails(sbomMetadata, vulnerabilityList, vexAnnotationsMap, component, false));
 
     try {
       PolicyThreats.Component componentFound = sbomPolicyService.getPolicyViolationsByFileCoordinateIdOrHash(
           applicationId, sbomVersion, component.getComponentRef(), component.getId(), component.getHash(), null, null);
 
-      SbomPolicyViolationSummaryDTO policyViolationSummary = componentFound != null ?
-          calculatePolicyViolationSummary(componentFound.activeViolations) :
-          new SbomPolicyViolationSummaryDTO();
+      SbomPolicyViolationSummaryDTO policyViolationSummary = componentFound != null
+          ? calculatePolicyViolationSummary(componentFound.activeViolations)
+          : new SbomPolicyViolationSummaryDTO();
 
       componentDetailsDTO.setPolicyViolationSummary(policyViolationSummary);
       return componentDetailsDTO;
@@ -181,17 +180,17 @@ public class SbomComponentsService
         .map(ThirdPartyCoordinateSecurity::getSeverity)
         .max(Double::compare);
 
-    Predicate<ThirdPartyCoordinateSecurity> isVerified = vulnerability ->
-        vulnerability.getIdentificationSources() != null &&
+    Predicate<ThirdPartyCoordinateSecurity> isVerified =
+        vulnerability -> vulnerability.getIdentificationSources() != null &&
             vulnerability.getIdentificationSources().contains(IdentificationSource.SBOM.getName()) &&
             vulnerability.getIdentificationSources().contains(IdentificationSource.SONATYPE.getName());
 
-    Predicate<ThirdPartyCoordinateSecurity> isUnverified = vulnerability ->
-        vulnerability.getIdentificationSources() == null ||
+    Predicate<ThirdPartyCoordinateSecurity> isUnverified =
+        vulnerability -> vulnerability.getIdentificationSources() == null ||
             vulnerability.getIdentificationSources().equals(IdentificationSource.SBOM.getName());
 
-    Predicate<ThirdPartyCoordinateSecurity> isSonatypeIdentified = vulnerability ->
-        vulnerability.getIdentificationSources() != null &&
+    Predicate<ThirdPartyCoordinateSecurity> isSonatypeIdentified =
+        vulnerability -> vulnerability.getIdentificationSources() != null &&
             vulnerability.getIdentificationSources().equals(IdentificationSource.SONATYPE.getName());
 
     long verifiedVulnerabilities = vulnerabilityList.stream()
@@ -252,13 +251,12 @@ public class SbomComponentsService
           else {
             // get vex of vulnerability that was previously annotated in an earlier, most recent, SBOM version
             vulnerabilityDetailsDTO.setLatestPreviousAnnotation(
-                      vexDAO.getLatestVulnerabilityAnalysisByRefIdAndCoordinates(
-                          vulnerability.getRefId(),
-                          sbomMetadata.getApplicationId(),
-                          component.getName(),
-                          component.getFormat(),
-                          sbomMetadata.getCreatedAt())
-            );
+                vexDAO.getLatestVulnerabilityAnalysisByRefIdAndCoordinates(
+                    vulnerability.getRefId(),
+                    sbomMetadata.getApplicationId(),
+                    component.getName(),
+                    component.getFormat(),
+                    sbomMetadata.getCreatedAt()));
           }
 
           return vulnerabilityDetailsDTO;
@@ -271,8 +269,10 @@ public class SbomComponentsService
   {
     if (CollectionUtils.isNotEmpty(vulnerabilityList)) {
       List<String> coordinateSecurityIds =
-          vulnerabilityList.stream().map(ThirdPartyCoordinateSecurity::getId).collect(
-              Collectors.toList());
+          vulnerabilityList.stream()
+              .map(ThirdPartyCoordinateSecurity::getId)
+              .collect(
+                  Collectors.toList());
 
       return vexDAO.getListByCoordinateSecurityIds(coordinateSecurityIds);
     }

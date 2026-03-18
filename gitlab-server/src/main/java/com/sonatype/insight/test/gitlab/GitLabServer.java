@@ -32,22 +32,23 @@ import org.testcontainers.utility.DockerImageName;
 
 /**
  * A test utility class that creates and manages a GitLab server instance in a Docker container.
- * 
+ *
  * The class automatically:
  * - Creates a GitLab Docker container
  * - Configures the GitLab instance with custom settings
  * - Creates a personal access token for the root (admin) user
  * - Creates a project in the GitLab instance
  * - Provides helper methods to access its GitLab API
- * 
+ *
  * Usage example:
+ *
  * <pre>
  * try (GitLabServer gitLabServer = new GitLabServer("test-project")) {
- *     GitLabApi gitLabApi = gitLabServer.getGitLabApi();
- *     // Use GitLab API to interact with the server
+ *   GitLabApi gitLabApi = gitLabServer.getGitLabApi();
+ *   // Use GitLab API to interact with the server
  * }
  * </pre>
- * 
+ *
  * The class implements {@link AutoCloseable} to properly stop the container when it's no longer needed.
  */
 public class GitLabServer
@@ -124,11 +125,9 @@ public class GitLabServer
       container = new GenericContainer<>(DockerImageName.parse(DockerUtils.applyRegistry(image)));
       container.withCreateContainerCmdModifier(cmd -> cmd
           .withHostConfig(HostConfig.newHostConfig()
-              .withPortBindings(httpPortBinding, sshPortBinding)
-          )
+              .withPortBindings(httpPortBinding, sshPortBinding))
           .withHostName("127.0.0.1")
-          .withExposedPorts(ExposedPort.tcp(httpPort), ExposedPort.tcp(DEFAULT_SSH_PORT))
-      );
+          .withExposedPorts(ExposedPort.tcp(httpPort), ExposedPort.tcp(DEFAULT_SSH_PORT)));
       container.addExposedPorts(httpPort, DEFAULT_SSH_PORT);
       // https://docs.gitlab.com/administration/monitoring/health_check/#readiness
       container.waitingFor(
@@ -137,8 +136,7 @@ public class GitLabServer
                   RateLimiterBuilder.newBuilder()
                       .withRate(1, TimeUnit.SECONDS)
                       .withConstantThroughput()
-                      .build())
-      );
+                      .build()));
       container.withStartupTimeout(Duration.ofMinutes(5));
       container.addEnv("GITLAB_ROOT_PASSWORD", adminPassword);
       // https://forum.gitlab.com/t/gitlab-docker-not-working-if-external-url-is-set/4110/6
@@ -172,8 +170,7 @@ public class GitLabServer
           "pgbouncer_exporter['enable'] = false",
           "postgres_exporter['enable'] = false",
           "puma['exporter_enabled'] = false",
-          "redis_exporter['enable'] = false"
-      );
+          "redis_exporter['enable'] = false");
       container.addEnv("GITLAB_OMNIBUS_CONFIG", String.join("; ", options));
       container.addEnv("TZ", ZoneId.systemDefault().getId());
 
@@ -215,7 +212,8 @@ public class GitLabServer
       String createTokenCommand = "user=User.find_by_username('root');" +
           String.format(
               "token=user.personal_access_tokens.create(scopes: ['%s'], name: 'token', expires_at: 365.days.from_now);",
-              scopesString) +
+              scopesString)
+          +
           String.format("token.set_token('%s');", adminToken) +
           "token.save!";
       ExecResult result = container.execInContainer("gitlab-rails", "runner", createTokenCommand);

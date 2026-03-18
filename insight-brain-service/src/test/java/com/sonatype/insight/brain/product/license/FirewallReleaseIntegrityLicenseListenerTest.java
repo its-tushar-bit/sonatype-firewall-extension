@@ -43,8 +43,9 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     listener.productLicenseChanged();
 
     assertThat(systemConfigurationPropertyDAO
-        .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED).getValue())
-        .isEqualTo(String.valueOf(true));
+        .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED)
+        .getValue())
+            .isEqualTo(String.valueOf(true));
     List<PolicyMonitoring> policyMonitorings = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
     assertThat(policyMonitorings).isNotNull().hasSize(1);
     assertThat(policyMonitorings.get(0).getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
@@ -59,8 +60,9 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     listener.productLicenseChanged();
 
     assertThat(systemConfigurationPropertyDAO
-        .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED).getValue())
-        .isEqualTo(String.valueOf(true));
+        .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED)
+        .getValue())
+            .isEqualTo(String.valueOf(true));
     assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isEmpty();
     assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNull();
   }
@@ -73,8 +75,9 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     listener.productLicenseChanged();
 
     assertThat(systemConfigurationPropertyDAO
-        .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED).getValue())
-        .isEqualTo(String.valueOf(true));
+        .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED)
+        .getValue())
+            .isEqualTo(String.valueOf(true));
     List<PolicyMonitoring> policyMonitorings = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
     assertThat(policyMonitorings).isNotNull().hasSize(1);
     assertThat(policyMonitorings.get(0).getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());

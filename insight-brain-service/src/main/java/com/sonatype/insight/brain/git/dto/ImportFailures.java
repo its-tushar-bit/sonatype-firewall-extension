@@ -10,7 +10,7 @@ import java.util.List;
 public class ImportFailures
 {
   public ImportFailures() {
-    //no-op
+    // no-op
   }
 
   public ImportFailures(List<ImportFailure> failures) {

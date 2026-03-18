@@ -21,7 +21,7 @@ import com.codahale.metrics.annotation.Timed;
 
 /**
  * Supports moving an application to another parent organization.
- * 
+ *
  * @since 1.20
  */
 @Named

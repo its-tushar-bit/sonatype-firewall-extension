@@ -64,13 +64,15 @@ public class ApplicationManagementServiceTest
     // then: app1 summary indicates an eval is pending
     assertThat(applicationManagementSummaries.stream()
         .filter(summary -> summary.getId().equals(app1.getId()))
-        .findFirst().get()
+        .findFirst()
+        .get()
         .getHasPendingSourceControlPolicyEvaluation()).isTrue();
 
     // and: app2's summary indicates no pending evaluations
     assertThat(applicationManagementSummaries.stream()
         .filter(summary -> summary.getId().equals(app2.getId()))
-        .findFirst().get()
+        .findFirst()
+        .get()
         .getHasPendingSourceControlPolicyEvaluation()).isFalse();
   }
 
@@ -92,7 +94,7 @@ public class ApplicationManagementServiceTest
   public void testGetApplicationSummaries_MissingPage() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> applicationManagementService
-                .getApplicationManagementSummaries(null, null, null, RESULTS_PER_PAGE))
+            .getApplicationManagementSummaries(null, null, null, RESULTS_PER_PAGE))
         .withMessage("Request must include required query parameters page and pageSize.");
   }
 
@@ -101,7 +103,7 @@ public class ApplicationManagementServiceTest
     List<Application> apps = new ArrayList<>();
     createAlphabeticalOrgsAndApps(new ArrayList<>(), apps);
     Organization orgExclude = tempEntity.newOrganizationWithRepositoryManager("org-exclude");
-    //should not appear
+    // should not appear
     Application app1 = tempEntity.newApplication(orgExclude.getId());
     Application app2 = tempEntity.newApplication(orgExclude.getId());
 
@@ -110,10 +112,12 @@ public class ApplicationManagementServiceTest
 
     apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER));
     assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
-        .containsExactlyElementsOf(apps.subList(0, RESULTS_PER_PAGE).stream().map(Application::getName)
+        .containsExactlyElementsOf(apps.subList(0, RESULTS_PER_PAGE)
+            .stream()
+            .map(Application::getName)
             .collect(Collectors.toList()));
     assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
-            .doesNotContain(app1.getName(),app2.getName());
+        .doesNotContain(app1.getName(), app2.getName());
   }
 
   @Test
@@ -242,8 +246,10 @@ public class ApplicationManagementServiceTest
   }
 
   private void createAlphabeticalOrgsAndApps(List<Organization> orgs, List<Application> apps) {
-    orgs.addAll(organizationDAO.getAll().stream()
-        .filter(org -> !org.getId().equals(Organization.ROOT_ORGANIZATION_ID)).collect(Collectors.toList()));
+    orgs.addAll(organizationDAO.getAll()
+        .stream()
+        .filter(org -> !org.getId().equals(Organization.ROOT_ORGANIZATION_ID))
+        .collect(Collectors.toList()));
     apps.addAll(applicationDAO.getAll());
     int currentSize = apps.size();
     for (int result = 0; result < RESULTS_PER_PAGE + 1 - currentSize; result++) {

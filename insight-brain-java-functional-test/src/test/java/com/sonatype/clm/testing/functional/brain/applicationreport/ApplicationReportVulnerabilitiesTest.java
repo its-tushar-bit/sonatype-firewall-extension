@@ -180,13 +180,14 @@ public class ApplicationReportVulnerabilitiesTest
     waitUntilUrl(detailsUrl);
   }
 
-  private void checkRow(final VulnerabilityRow row,
-                        final String componentName,
-                        final String securityIssue,
-                        final String cvssScore,
-                        final String policyThreatLevel,
-                        final boolean waived,
-                        final boolean legacy)
+  private void checkRow(
+      final VulnerabilityRow row,
+      final String componentName,
+      final String securityIssue,
+      final String cvssScore,
+      final String policyThreatLevel,
+      final boolean waived,
+      final boolean legacy)
   {
     row.component().shouldHave(text(componentName));
     row.securityIssue().shouldHave(exactText(securityIssue));

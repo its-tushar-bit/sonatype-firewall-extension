@@ -60,7 +60,7 @@ public class ApiRepositoryResultsForImageContainerResourceTest
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     final Repository repository = tempEntity.newRepository(repositoryManager, "publicId");
 
-    //Repository organization
+    // Repository organization
     final Organization organization = tempEntity.newOrganization("org1");
     organization.setRelatedRepositoryId(repository.getId());
     repository.setRelatedOrganizationId(organization.getId());
@@ -71,15 +71,15 @@ public class ApiRepositoryResultsForImageContainerResourceTest
     Application application1 = tempEntity.newApplication("app1", "appPublicId1", organization.getId());
     Application application2 = tempEntity.newApplication("app2", "appPublicId2", organization.getId());
 
-    //policy evaluation
+    // policy evaluation
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application1.getId(), "proxy", "scanId1");
     PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), "proxy", "scanId2");
 
-    //last policy evaluation
+    // last policy evaluation
     lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application1.getId(), "proxy");
     lastPolicyEvaluationDAO.getByApplicationIdAndStageTypeId(application2.getId(), "proxy");
 
-    //policy for policy violation
+    // policy for policy violation
     Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
     Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
@@ -87,7 +87,7 @@ public class ApiRepositoryResultsForImageContainerResourceTest
     Policy policy5 = tempEntity.newPolicy(application1.getId(), "policy5");
     Policy policy6 = tempEntity.newPolicy(application1.getId(), "policy6");
 
-    //create policy violations
+    // create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
     PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
@@ -130,7 +130,8 @@ public class ApiRepositoryResultsForImageContainerResourceTest
         .path(PublicApiPaths.REPOSITORY_RESULTS_FOR_IMAGE_CONTAINER_PATH,
             ApiRepositoryResultsForImageContainerResource.IMAGE_CONTAINER_PATH)
         .parameter(OwnerType.REPOSITORY, repository.getId())
-        .body(detailsRequest).post();
+        .body(detailsRequest)
+        .post();
 
     assertResponseStatus(200, response);
 

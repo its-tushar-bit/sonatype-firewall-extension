@@ -60,14 +60,13 @@ public class ApiUserResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains user details. Passwords are excluded for security.",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains user details. Passwords are excluded for security.",
+            useReturnTypeSchema = true)
       })
   public ApiUserListDTO getAll(
-      @Parameter(description = "Enter the `realm`. Allowed values are `Internal`,`OAUTH2`, and `SAML`.")
-      @DefaultValue(User.INTERNAL_REALM_ID)
-      @QueryParam("realm") String realmId)
+      @Parameter(
+          description = "Enter the `realm`. Allowed values are `Internal`,`OAUTH2`, and `SAML`.") @DefaultValue(User.INTERNAL_REALM_ID) @QueryParam("realm") String realmId)
   {
     return userService.getAllApiUserDTOs(realmId);
   }
@@ -80,17 +79,14 @@ public class ApiUserResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains details for the specified user.",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains details for the specified user.",
+            useReturnTypeSchema = true)
       })
   public ApiUserDTO get(
-      @Parameter(description = "Enter the username.", required = true)
-      @PathParam("username") String username,
+      @Parameter(description = "Enter the username.", required = true) @PathParam("username") String username,
       @Parameter(description = "Enter the `realm`. Allowed values are `Internal`,`OAUTH2`, and " +
-          "`SAML`.")
-      @DefaultValue(User.INTERNAL_REALM_ID)
-      @QueryParam("realm") String realmId)
+          "`SAML`.") @DefaultValue(User.INTERNAL_REALM_ID) @QueryParam("realm") String realmId)
   {
     return userService.getApiUserDTOByUsernameAndRealmId(username, realmId);
   }
@@ -103,13 +99,12 @@ public class ApiUserResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "User created successfully.")
+        @ApiResponse(responseCode = "204",
+            description = "User created successfully.")
       })
   public void add(
       @RequestBody(description = "Specify the user details for the new user to be created. All fields " +
-          "except `realm` are required.")
-      ApiUserDTO userDTO)
+          "except `realm` are required.") ApiUserDTO userDTO)
   {
     userService.addUser(userDTO);
   }
@@ -125,16 +120,14 @@ public class ApiUserResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "User details updated successfully.",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "User details updated successfully.",
+            useReturnTypeSchema = true)
       })
   public ApiUserDTO update(
-      @Parameter(description = "Enter the username.")
-      @PathParam("username") String username,
+      @Parameter(description = "Enter the username.") @PathParam("username") String username,
       @RequestBody(description = "Specify the user details to be updated. Any unspecified field will remain " +
-          "unchanged. Username, password, and realm cannot be updated.")
-      ApiUserDTO userDTO)
+          "unchanged. Username, password, and realm cannot be updated.") ApiUserDTO userDTO)
   {
     return userService.updateUser(username, userDTO);
   }
@@ -147,14 +140,14 @@ public class ApiUserResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "User deleted successfully.")
+        @ApiResponse(responseCode = "204",
+            description = "User deleted successfully.")
       })
   public void delete(
-      @Parameter(description = "Enter the username to be deleted.", required = true)
-      @PathParam("username") String username,
-      @Parameter(description = "Enter the `realm`. Allowed values are `Internal`,`OAUTH2`, and `SAML`.")
-      @QueryParam("realm") @DefaultValue("Internal") String realmId)
+      @Parameter(description = "Enter the username to be deleted.",
+          required = true) @PathParam("username") String username,
+      @Parameter(
+          description = "Enter the `realm`. Allowed values are `Internal`,`OAUTH2`, and `SAML`.") @QueryParam("realm") @DefaultValue("Internal") String realmId)
   {
     userService.deleteUserByRealmIdAndUsername(realmId, username);
   }

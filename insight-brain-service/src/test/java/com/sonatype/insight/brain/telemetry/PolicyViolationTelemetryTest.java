@@ -39,8 +39,7 @@ public class PolicyViolationTelemetryTest
     Component component = createComponentWithVulnerability(
         "CVE-2021-44906",
         "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
-        "ARBITRARY_CODE_EXECUTION"
-    );
+        "ARBITRARY_CODE_EXECUTION");
 
     PolicyViolationTelemetry telemetry = PolicyViolationTelemetry.createWithComponent(violation, component);
 
@@ -58,15 +57,13 @@ public class PolicyViolationTelemetryTest
         "CVE-2023-12345",
         7.5,
         null, // No category in constraint facts
-        "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
-    );
+        "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H");
 
     // Create a component with SecurityVulnerability that has category
     Component component = createComponentWithVulnerability(
         "CVE-2023-12345",
         "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-        "DENIAL_OF_SERVICE"
-    );
+        "DENIAL_OF_SERVICE");
 
     PolicyViolationTelemetry telemetry = PolicyViolationTelemetry.createWithComponent(violation, component);
 
@@ -86,8 +83,7 @@ public class PolicyViolationTelemetryTest
     Component component = createComponentWithVulnerability(
         "CVE-2022-11111",
         "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
-        "PRIVILEGE_ESCALATION"
-    );
+        "PRIVILEGE_ESCALATION");
 
     PolicyViolationTelemetry telemetry = PolicyViolationTelemetry.createWithComponent(violation, component);
 
@@ -111,8 +107,7 @@ public class PolicyViolationTelemetryTest
     Component component = createComponentWithVulnerability(
         "CVE-2021-44906",
         "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H", // Local vector
-        "ARBITRARY_CODE_EXECUTION"
-    );
+        "ARBITRARY_CODE_EXECUTION");
 
     PolicyViolationTelemetry telemetry = PolicyViolationTelemetry.createWithComponent(violation, component);
 
@@ -128,8 +123,7 @@ public class PolicyViolationTelemetryTest
         "CVE-2023-12345",
         7.5,
         "ARBITRARY_CODE_EXECUTION", // Already has category
-        null
-    );
+        null);
 
     // Create a component with different category (shouldn't override)
     Component component = createComponentWithVulnerability(
@@ -164,8 +158,7 @@ public class PolicyViolationTelemetryTest
     Component component = createComponentWithVulnerability(
         "CVE-2999-99999", // Different CVE
         "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
-        "ARBITRARY_CODE_EXECUTION"
-    );
+        "ARBITRARY_CODE_EXECUTION");
 
     PolicyViolationTelemetry telemetry = PolicyViolationTelemetry.createWithComponent(violation, component);
 
@@ -198,8 +191,7 @@ public class PolicyViolationTelemetryTest
     Component component = createComponentWithVulnerability(
         "CVE-2021-44906",
         null, // Null vector
-        "ARBITRARY_CODE_EXECUTION"
-    );
+        "ARBITRARY_CODE_EXECUTION");
 
     PolicyViolationTelemetry telemetry = PolicyViolationTelemetry.createWithComponent(violation, component);
 
@@ -218,8 +210,7 @@ public class PolicyViolationTelemetryTest
     Component component = createComponentWithVulnerability(
         "CVE-2021-44906",
         "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
-        "ARBITRARY_CODE_EXECUTION"
-    );
+        "ARBITRARY_CODE_EXECUTION");
 
     PolicyViolationTelemetry telemetry = PolicyViolationTelemetry.createWithComponent(violation, component);
 
@@ -236,8 +227,7 @@ public class PolicyViolationTelemetryTest
     Component component = createComponentWithVulnerability(
         "CVE-2021-44906",
         "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
-        "ARBITRARY_CODE_EXECUTION"
-    );
+        "ARBITRARY_CODE_EXECUTION");
 
     PolicyViolationTelemetry telemetry = PolicyViolationTelemetry.createWithComponent(violation, component);
 
@@ -263,8 +253,7 @@ public class PolicyViolationTelemetryTest
         "CVE-2024-12345",
         "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
         "ARBITRARY_CODE_EXECUTION",
-        threatTypes
-    );
+        threatTypes);
 
     PolicyViolationTelemetry telemetry = PolicyViolationTelemetry.createWithComponent(violation, component);
 
@@ -282,8 +271,7 @@ public class PolicyViolationTelemetryTest
     Component component = createComponentWithMalwareAttackVector(
         "sonatype-2024-12345",
         "Trojan",
-        List.of("backdoor", "secrets_exfiltration")
-    );
+        List.of("backdoor", "secrets_exfiltration"));
 
     PolicyViolationTelemetry telemetry = PolicyViolationTelemetry.createWithComponent(violation, component);
 
@@ -302,8 +290,7 @@ public class PolicyViolationTelemetryTest
     Component component = createComponentWithMalwareAttackVector(
         "sonatype-2024-12345",
         "Brandjack",
-        null
-    );
+        null);
 
     PolicyViolationTelemetry telemetry = PolicyViolationTelemetry.createWithComponent(violation, component);
 
@@ -322,8 +309,7 @@ public class PolicyViolationTelemetryTest
         "sonatype-2024-67890",
         "Malicious",
         "Trojan",
-        List.of("backdoor", "crypto_miner")
-    );
+        List.of("backdoor", "crypto_miner"));
 
     PolicyViolationTelemetry telemetry = PolicyViolationTelemetry.createWithComponent(violation, component);
 
@@ -345,8 +331,7 @@ public class PolicyViolationTelemetryTest
         "CVE-2024-12345",
         "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
         "ARBITRARY_CODE_EXECUTION",
-        componentThreatTypes
-    );
+        componentThreatTypes);
 
     PolicyViolationTelemetry telemetry = PolicyViolationTelemetry.createWithComponent(violation, component);
 
@@ -425,7 +410,10 @@ public class PolicyViolationTelemetryTest
     return createComponentWithVulnerability(cveNumber, vector, categoryId, null);
   }
 
-  private Component createComponentWithVulnerability(String cveNumber, String vector, String categoryId,
+  private Component createComponentWithVulnerability(
+      String cveNumber,
+      String vector,
+      String categoryId,
       List<String> threatTypes)
   {
     SecurityVulnerability vulnerability = new SecurityVulnerability();
@@ -455,7 +443,9 @@ public class PolicyViolationTelemetryTest
     return component;
   }
 
-  private Component createComponentWithMalwareAttackVector(String refId, String attackVector,
+  private Component createComponentWithMalwareAttackVector(
+      String refId,
+      String attackVector,
       List<String> threatTypes)
   {
     SecurityVulnerability vulnerability = new SecurityVulnerability();
@@ -475,8 +465,11 @@ public class PolicyViolationTelemetryTest
     return component;
   }
 
-  private Component createComponentWithMalwareSeverity(String refId, String severityDescription,
-      String attackVector, List<String> threatTypes)
+  private Component createComponentWithMalwareSeverity(
+      String refId,
+      String severityDescription,
+      String attackVector,
+      List<String> threatTypes)
   {
     SecurityVulnerability vulnerability = new SecurityVulnerability();
     vulnerability.setRefId(refId);

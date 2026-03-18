@@ -220,16 +220,19 @@ public class ComponentLabelResourceTest
   /**
    * used when the rest request owner id and the label's owner id to verify are the same
    **/
-  private void setComponentLabelAndVerify(OwnerType ownerType, String requestOwnerId, Label labelToAdd)
-      throws Exception
+  private void setComponentLabelAndVerify(
+      OwnerType ownerType,
+      String requestOwnerId,
+      Label labelToAdd) throws Exception
   {
     setComponentLabelAndVerify(ownerType, requestOwnerId, labelToAdd, requestOwnerId);
   }
 
-  private void setComponentLabelAndVerify(OwnerType ownerType,
-                                          String requestOwnerId,
-                                          Label labelToAdd,
-                                          String ownerIdToVerify) throws Exception
+  private void setComponentLabelAndVerify(
+      OwnerType ownerType,
+      String requestOwnerId,
+      Label labelToAdd,
+      String ownerIdToVerify) throws Exception
   {
     HttpResponse response = restRequest(ownerType, requestOwnerId, componentHash).body(labelToAdd).post();
     assertResponseStatus(204, response);
@@ -241,8 +244,10 @@ public class ComponentLabelResourceTest
     assertThat(componentLabels.get(0).getLabelId()).isEqualTo(labelToAdd.getId());
   }
 
-  private void deleteComponentLabelAndVerify(OwnerType ownerType, String requestOwnerId, ComponentLabel componentLabel)
-      throws Exception
+  private void deleteComponentLabelAndVerify(
+      OwnerType ownerType,
+      String requestOwnerId,
+      ComponentLabel componentLabel) throws Exception
   {
     String labelId = componentLabel.getLabelId();
     String componentHash = componentLabel.getHash();

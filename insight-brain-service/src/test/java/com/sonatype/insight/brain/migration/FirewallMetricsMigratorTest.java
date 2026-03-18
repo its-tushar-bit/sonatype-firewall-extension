@@ -109,7 +109,8 @@ public class FirewallMetricsMigratorTest
 
     lenient().when(productLicenseDaoMock.get()).thenAnswer(invocation -> {
       SignedProductLicenseDetailsDTO licenseDetailsDTO = new SignedProductLicenseDetailsDTO();
-      licenseDetailsDTO.features = testProductLicense.getFeatures().stream()
+      licenseDetailsDTO.features = testProductLicense.getFeatures()
+          .stream()
           .map(Enum::name)
           .collect(toCollection(TreeSet::new));
       // Value that is not present in the enum LicensedFeature but can be found in the installed license file
@@ -365,7 +366,8 @@ public class FirewallMetricsMigratorTest
         .contains("Calculating Firewall Metrics from 3 repositories.")
         .contains("Firewall Metrics calculated for 3 repositories");
 
-    List<FirewallMetrics> metrics = firewallMetricsDAO.getAll().stream()
+    List<FirewallMetrics> metrics = firewallMetricsDAO.getAll()
+        .stream()
         .filter(metric -> metric.getMetricsName() == COMPONENTS_AUTO_RELEASED)
         .collect(toList());
 
@@ -636,8 +638,10 @@ public class FirewallMetricsMigratorTest
         .contains(expectedLog)
         .contains("Firewall Metrics calculated for 3 repositories");
 
-    List<FirewallMetrics> metrics = firewallMetricsDAO.getAll().stream()
-        .filter(firewallMetric -> firewallMetric.getMetricsName() == firewallMetricsName).collect(toList());
+    List<FirewallMetrics> metrics = firewallMetricsDAO.getAll()
+        .stream()
+        .filter(firewallMetric -> firewallMetric.getMetricsName() == firewallMetricsName)
+        .collect(toList());
 
     assertThat(metrics).hasSize(1);
     assertThat(metrics.get(0)).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(metric);

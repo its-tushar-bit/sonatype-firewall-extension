@@ -40,8 +40,7 @@ public class ApiLicensedSolutionsServiceTest
     final boolean licenseHasProducts = true;
     ApiLicensedSolutionService solutionService = new ApiLicensedSolutionService(
         createSolutionResolver(licenseHasProducts),
-        createSolutionUrlResolver(baseUrl)
-    );
+        createSolutionUrlResolver(baseUrl));
 
     // when:
     final boolean allowRelativeUrls = true;
@@ -63,8 +62,7 @@ public class ApiLicensedSolutionsServiceTest
     final boolean licenseHasProducts = true;
     ApiLicensedSolutionService solutionService = new ApiLicensedSolutionService(
         createSolutionResolver(licenseHasProducts),
-        createSolutionUrlResolver(baseUrl)
-    );
+        createSolutionUrlResolver(baseUrl));
 
     // when:
     final boolean allowRelativeUrls = false;
@@ -86,8 +84,7 @@ public class ApiLicensedSolutionsServiceTest
     final boolean licenseHasProducts = true;
     ApiLicensedSolutionService solutionService = new ApiLicensedSolutionService(
         createSolutionResolver(licenseHasProducts),
-        createSolutionUrlResolver(baseUrl)
-    );
+        createSolutionUrlResolver(baseUrl));
 
     // when:
     final boolean allowRelativeUrls = true;
@@ -106,13 +103,13 @@ public class ApiLicensedSolutionsServiceTest
   public void testGetLicensedSolutions_expectNoResults() {
     // these combinations of values should produce an empty result set
     //
-    //              baseUrl                    hasProducts  allowRelativeUrls
-    verifyNoResults("",                        true,        false); // no baseUrl and relative URLs not allowed
+    // baseUrl hasProducts allowRelativeUrls
+    verifyNoResults("", true, false); // no baseUrl and relative URLs not allowed
 
-    verifyNoResults("",                        false,       false); // the license doesn't contain any products
-    verifyNoResults("",                        false,       true);  // same
-    verifyNoResults("https://localhost:8443",  false,       false); // same
-    verifyNoResults("https://localhost:8443",  false,       true);  // same
+    verifyNoResults("", false, false); // the license doesn't contain any products
+    verifyNoResults("", false, true); // same
+    verifyNoResults("https://localhost:8443", false, false); // same
+    verifyNoResults("https://localhost:8443", false, true); // same
   }
 
   private void verifyNoResults(
@@ -123,8 +120,7 @@ public class ApiLicensedSolutionsServiceTest
     // given: config with no base url and license for all products
     ApiLicensedSolutionService solutionService = new ApiLicensedSolutionService(
         createSolutionResolver(hasLicensedProducts),
-        createSolutionUrlResolver(baseUrl)
-    );
+        createSolutionUrlResolver(baseUrl));
 
     // when:
     List<ApiLicensedSolutionDTO> licensedSolutions = solutionService.getLicensedSolutions(allowRelativeUrls);

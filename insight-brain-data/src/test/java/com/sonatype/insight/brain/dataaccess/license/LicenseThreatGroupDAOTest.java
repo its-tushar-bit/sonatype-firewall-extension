@@ -35,7 +35,8 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class LicenseThreatGroupDAOTest extends NameableDAOTest<LicenseThreatGroup>
+public class LicenseThreatGroupDAOTest
+    extends NameableDAOTest<LicenseThreatGroup>
 {
   private OrganizationDAO organizationDAO;
 
@@ -69,7 +70,7 @@ public class LicenseThreatGroupDAOTest extends NameableDAOTest<LicenseThreatGrou
   protected int getMaxNameLength() {
     return NameHelper.MAX_NAME_LENGTH;
   }
-  
+
   @Override
   protected LicenseThreatGroup getEntityByName(String name) {
     return licenseThreatGroupDAO.getByOwnerIdAndName(organization.getId(), name);
@@ -335,14 +336,12 @@ public class LicenseThreatGroupDAOTest extends NameableDAOTest<LicenseThreatGrou
     assertThat(actual.getName()).isEqualTo(name);
     assertThat(actual.getThreatLevel()).isEqualTo(threatLevel);
   }
-  
+
   @Test
   @Override
   public void testInsert_DuplicateName() {
     createNameable("testFilterName");
-    assertThatThrownBy(() ->
-      createNameable("testFilterName")
-    ).isInstanceOf(InvalidLicenseThreatGroupException.class)
+    assertThatThrownBy(() -> createNameable("testFilterName")).isInstanceOf(InvalidLicenseThreatGroupException.class)
         .hasMessageContaining("A license threat group with the same name already exists.");
   }
 
@@ -409,25 +408,25 @@ public class LicenseThreatGroupDAOTest extends NameableDAOTest<LicenseThreatGrou
       assertThat(groups.stream()
           .map(LicenseThreatGroup::getName)
           .collect(Collectors.toList()))
-          .containsExactlyInAnyOrder("Group 1", "Group 3");
+              .containsExactlyInAnyOrder("Group 1", "Group 3");
 
       groups = result.get("GPL-2.0");
       assertThat(groups.stream()
           .map(LicenseThreatGroup::getName)
           .collect(Collectors.toList()))
-          .containsExactly("Group 1");
+              .containsExactly("Group 1");
 
       groups = result.get("MIT");
       assertThat(groups.stream()
           .map(LicenseThreatGroup::getName)
           .collect(Collectors.toList()))
-          .containsExactly("Group 2");
+              .containsExactly("Group 2");
 
       groups = result.get("GPL-3.0");
       assertThat(groups.stream()
           .map(LicenseThreatGroup::getName)
           .collect(Collectors.toList()))
-          .containsExactly("Group 3");
+              .containsExactly("Group 3");
     }
   }
 
@@ -445,7 +444,7 @@ public class LicenseThreatGroupDAOTest extends NameableDAOTest<LicenseThreatGrou
       assertThat(result.stream()
           .map(LicenseThreatGroup::getName)
           .collect(Collectors.toList()))
-          .containsExactlyInAnyOrder("Group 1", "Group 2", "Group 3");
+              .containsExactlyInAnyOrder("Group 1", "Group 2", "Group 3");
     }
   }
 
@@ -478,13 +477,15 @@ public class LicenseThreatGroupDAOTest extends NameableDAOTest<LicenseThreatGrou
 
     assertThat(licenseThreatGroupDAO.getHighestLicenseThreatGroupWithHierarchy(app.getId(),
         new HashSet<>(Arrays.asList("Apache-2.0", "Beerware"))))
-        .extracting(LicenseThreatGroup::getId).isEqualTo(ltg4.getId());
+            .extracting(LicenseThreatGroup::getId)
+            .isEqualTo(ltg4.getId());
   }
 
-  private void assertUpdateLicenseThreatGroupWithDuplicateName(final String ownerId,
-                                                               final LicenseThreatGroup group,
-                                                               final String groupName,
-                                                               final Owner expectedOwner)
+  private void assertUpdateLicenseThreatGroupWithDuplicateName(
+      final String ownerId,
+      final LicenseThreatGroup group,
+      final String groupName,
+      final Owner expectedOwner)
   {
     // Update without changing the name
     group.setThreatLevel(6);
@@ -498,9 +499,10 @@ public class LicenseThreatGroupDAOTest extends NameableDAOTest<LicenseThreatGrou
             + expectedOwner.getName() + "'.");
   }
 
-  private void assertInsertLicenseThreatGroupWithDuplicateName(final String ownerId,
-                                                               final String groupName,
-                                                               final Owner expectedOwner)
+  private void assertInsertLicenseThreatGroupWithDuplicateName(
+      final String ownerId,
+      final String groupName,
+      final Owner expectedOwner)
   {
     // Add a group with a case-/whitespace-equivalent name
     LicenseThreatGroup group = newLicenseThreatGroup(ownerId,
@@ -517,7 +519,7 @@ public class LicenseThreatGroupDAOTest extends NameableDAOTest<LicenseThreatGrou
     group.setThreatLevel(5);
     return group;
   }
-  
+
   @Test
   @Override
   public void testUpdate_DuplicateName() {

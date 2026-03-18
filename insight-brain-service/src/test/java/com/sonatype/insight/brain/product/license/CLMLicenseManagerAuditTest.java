@@ -81,7 +81,8 @@ public class CLMLicenseManagerAuditTest
     assertCustomData(auditDTO, "productLicenseFilename", filename);
     String productLicenseExpiry = ZonedDateTime
         .ofInstant(Instant.ofEpochMilli(testProductLicenseManager.getExpirationDate().getTime()),
-            ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE);
+            ZoneId.systemDefault())
+        .format(DateTimeFormatter.ISO_LOCAL_DATE);
     assertCustomData(auditDTO, "productLicenseExpiry", productLicenseExpiry);
   }
 }

@@ -82,8 +82,9 @@ public class SystemInfo
 
   public static final String MASK = "****";
 
-  private static Entry<String, SortedMap<String, Object>> wrapEntry(final String entryName,
-                                                                    final SortedMap<String, Object> objectToPut)
+  private static Entry<String, SortedMap<String, Object>> wrapEntry(
+      final String entryName,
+      final SortedMap<String, Object> objectToPut)
   {
     return new AbstractMap.SimpleImmutableEntry<>(entryName, objectToPut);
   }
@@ -154,7 +155,7 @@ public class SystemInfo
   /**
    * Gets a Map.Entry of system properties and applies filter to each key of the map
    *
-   * @param filter    The filter to be applied to the map
+   * @param filter The filter to be applied to the map
    * @param entryName The entry name for the Map.Entry with the system properties
    * @return The Map.Entry with the filter applied
    */

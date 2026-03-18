@@ -60,7 +60,7 @@ public class SearchIndexRuleAndFixturesTest
     HttpOpenSearchConfig httpOpenSearchConfig = (HttpOpenSearchConfig) searchIndexRule.getSearchConfig();
 
     final HttpHost[] hosts = new HttpHost[]{
-        HttpHost.create(httpOpenSearchConfig.getUri())
+      HttpHost.create(httpOpenSearchConfig.getUri())
     };
 
     final ApacheHttpClient5Transport transport = ApacheHttpClient5TransportBuilder.builder(hosts)

@@ -113,7 +113,8 @@ public class RepositoryManagerDAO
     }
 
     if (repositoryManager.getName() != null
-            && getByName(tx, repositoryManager.getName()) != null) {
+        && getByName(tx, repositoryManager.getName()) != null)
+    {
       throw new InvalidNameException(repositoryManager.getName() + " is already used as a name.");
     }
 
@@ -134,11 +135,12 @@ public class RepositoryManagerDAO
 
     if (repositoryManager.getName() != null) {
       RepositoryManager foundByNameRepositoryManager = getByName(tx,
-              repositoryManager.getName());
+          repositoryManager.getName());
       if (foundByNameRepositoryManager != null && !repositoryManager.getId()
-              .equals(foundByNameRepositoryManager.getId())) {
+          .equals(foundByNameRepositoryManager.getId()))
+      {
         throw new InvalidNameException(
-                repositoryManager.getName() + " is already used as a name.");
+            repositoryManager.getName() + " is already used as a name.");
       }
     }
 

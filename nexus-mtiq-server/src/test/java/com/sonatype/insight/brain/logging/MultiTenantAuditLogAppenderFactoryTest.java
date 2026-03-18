@@ -105,9 +105,10 @@ public class MultiTenantAuditLogAppenderFactoryTest
     String tenantAuditLogFileName = MultiTenantAuditLogAppenderFactory.getAuditLogFileName(tenantSlug);
     assertThat(tenantAuditLogFileName).contains(tenantSlug);
     // Need to await for logback to flush the logs to disk.
-    await().atMost(5, TimeUnit.SECONDS).untilAsserted(
-        () -> assertThat(FileUtils.readFileToString(new File(tenantAuditLogFileName), StandardCharsets.UTF_8))
-            .contains(value));
+    await().atMost(5, TimeUnit.SECONDS)
+        .untilAsserted(
+            () -> assertThat(FileUtils.readFileToString(new File(tenantAuditLogFileName), StandardCharsets.UTF_8))
+                .contains(value));
   }
 
   private void assertLogDoesNotContain(String tenantSlug, String value) throws IOException {

@@ -88,8 +88,7 @@ public class ProductLicenseModule
         new ProductLicenseListenerAdapter(firewallReleaseIntegrityLicenseListener),
         new ProductLicenseListenerAdapter(pendoCache),
         new ProductLicenseListenerAdapter(policyMonitorScheduler),
-        new ProductLicenseListenerAdapter(policyViolationLoggerFactory)
-    );
+        new ProductLicenseListenerAdapter(policyViolationLoggerFactory));
   }
 
   /**

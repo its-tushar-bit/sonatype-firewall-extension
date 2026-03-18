@@ -111,7 +111,7 @@ public class DashboardViolationsTest
 
   private PolicyEvaluation buildEvalNow;
 
-  private PolicyEvaluation  buildEval2MonthsAgo;
+  private PolicyEvaluation buildEval2MonthsAgo;
 
   private PolicyEvaluation releaseEval2DaysAgo;
 
@@ -190,10 +190,10 @@ public class DashboardViolationsTest
         LICENSE, buildComponent.getComponentIdentifier(), buildComponent.getHash(), FailActionType.ID);
 
     Map<Pair<String, Date>, PolicyViolation> policyViolationsByPolicyAndDate =
-        ImmutableMap.of(Pair.of(licensePolicy.getName(), twoDaysAgo), licViolationRelease2DaysAgo,//
-            Pair.of(licensePolicy.getName(), oneWeekAgo), licViolationOperate1WeekAgo,//
-            Pair.of(securityPolicy.getName(), twoDaysAgo), secViolationRelease2DaysAgo,//
-            Pair.of(licensePolicy.getName(), now), licViolationBuildNow,//
+        ImmutableMap.of(Pair.of(licensePolicy.getName(), twoDaysAgo), licViolationRelease2DaysAgo, //
+            Pair.of(licensePolicy.getName(), oneWeekAgo), licViolationOperate1WeekAgo, //
+            Pair.of(securityPolicy.getName(), twoDaysAgo), secViolationRelease2DaysAgo, //
+            Pair.of(licensePolicy.getName(), now), licViolationBuildNow, //
             Pair.of(licensePolicy.getName(), twoMonthsAgo), licViolationBuild2MonthsAgo);
 
     refresh();
@@ -402,8 +402,7 @@ public class DashboardViolationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
-        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo
-    );
+        "3,DVTLicensePolicy,DVT Org1,DVT App1,g3 : a3 : v3", oneWeekAgo);
     assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // CSV export - filter out App1
@@ -431,8 +430,7 @@ public class DashboardViolationsTest
         ViolationTile::application,
         ViolationTile::component,
         ViolationTile::age,
-        ViolationTile::chevron
-    );
+        ViolationTile::chevron);
 
     // test that clicking any cell in the row opens the details page
     for (Function<ViolationTile, SelenideElement> cellGetter : cellGetters) {

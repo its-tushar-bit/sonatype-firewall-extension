@@ -45,12 +45,13 @@ public class TestReportEvaluator
 
   private boolean hasEvaluation = false;
 
-  public TestReportEvaluator(Application app,
-                             String scanId,
-                             URL locationOfTestReport,
-                             String brainBaseUrl,
-                             InsightWork workStorage,
-                             String stageId)
+  public TestReportEvaluator(
+      Application app,
+      String scanId,
+      URL locationOfTestReport,
+      String brainBaseUrl,
+      InsightWork workStorage,
+      String stageId)
   {
     this.app = app;
     this.scanId = scanId;
@@ -60,11 +61,12 @@ public class TestReportEvaluator
     this.stageId = stageId;
   }
 
-  public TestReportEvaluator(Application app,
-                             String scanId,
-                             URL locationOfTestReport,
-                             String brainBaseUrl,
-                             InsightWork workStorage)
+  public TestReportEvaluator(
+      Application app,
+      String scanId,
+      URL locationOfTestReport,
+      String brainBaseUrl,
+      InsightWork workStorage)
   {
     this(app, scanId, locationOfTestReport, brainBaseUrl, workStorage, Stage.ID_BUILD);
   }
@@ -109,13 +111,12 @@ public class TestReportEvaluator
 
     HttpClient client = HttpClientBuilder.create().build();
     HttpPost post = new HttpPost(
-            brainBaseUrl + "rest/policy/" + app.getPublicId() + "/evaluate?scanId=" + scanId
-                    + "&scanTriggerType=" + scanTriggerType
-    );
+        brainBaseUrl + "rest/policy/" + app.getPublicId() + "/evaluate?scanId=" + scanId
+            + "&scanTriggerType=" + scanTriggerType);
     post.setEntity(new StringEntity(JsonUtils.format(new Stage(stageId)), ContentType.APPLICATION_JSON));
     // please don't change the admin password on me!
     post.setHeader("Authorization",
-            "Basic " + Base64.getEncoder().encodeToString("admin:admin123".getBytes(StandardCharsets.UTF_8)));
+        "Basic " + Base64.getEncoder().encodeToString("admin:admin123".getBytes(StandardCharsets.UTF_8)));
     HttpResponse response = client.execute(post);
     // evaluation is done synchronously within the request, if the request is successful the eval is complete
     hasEvaluation = true;

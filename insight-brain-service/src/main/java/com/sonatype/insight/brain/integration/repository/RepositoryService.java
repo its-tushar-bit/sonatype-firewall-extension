@@ -50,7 +50,8 @@ import static java.util.stream.Collectors.toList;
  */
 @Named
 @Singleton
-public class RepositoryService extends AbstractRepositoryService
+public class RepositoryService
+    extends AbstractRepositoryService
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryService.class);
 
@@ -88,7 +89,7 @@ public class RepositoryService extends AbstractRepositoryService
 
   /**
    * Called from NXRM for npm audit. Maybe other usages?
-   * 
+   *
    * @since 1.89
    */
   public RepositoryComponentEvaluationDataList evaluateComponentsAdhoc(

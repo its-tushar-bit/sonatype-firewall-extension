@@ -74,10 +74,15 @@ public class ComponentCategoryConditionType
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
     String categoriesFromMatchFact =
-        matchFact.getComponent().getComponentCategories().stream().map(ComponentCategory::getPath)
+        matchFact.getComponent()
+            .getComponentCategories()
+            .stream()
+            .map(ComponentCategory::getPath)
             .collect(Collectors.joining(", "));
-    return "Component Category was " + categoriesFromMatchFact + ("is not".equals(condition.getOperator()) ?
-        ", not " + componentCategoryDAO.getById(condition.getValue()).getPath() : "");
+    return "Component Category was " + categoriesFromMatchFact
+        + ("is not".equals(condition.getOperator())
+            ? ", not " + componentCategoryDAO.getById(condition.getValue()).getPath()
+            : "");
   }
 
   @Override
@@ -86,8 +91,10 @@ public class ComponentCategoryConditionType
   }
 
   @Override
-  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
-      throws InvalidConditionException
+  public void validateCondition(
+      TransactionContext tx,
+      Condition condition,
+      String ownerId) throws InvalidConditionException
   {
     super.validateCondition(tx, condition, ownerId);
 
@@ -107,7 +114,8 @@ public class ComponentCategoryConditionType
       return false;
     }
     List<ComponentCategory> children = componentCategoryDAO.getChildren(value);
-    boolean result = component.getComponentCategories().stream()
+    boolean result = component.getComponentCategories()
+        .stream()
         .anyMatch(componentCategory -> value.equals(componentCategory.getId()) || children.contains(componentCategory));
     return "is".equals(operator) ? result : !result;
   }

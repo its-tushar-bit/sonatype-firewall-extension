@@ -9,7 +9,8 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class NxTableHeader extends BasicElement<NxTableHeader>
+public class NxTableHeader
+    extends BasicElement<NxTableHeader>
 {
   public NxTableHeader(String selector) {
     super(selector);

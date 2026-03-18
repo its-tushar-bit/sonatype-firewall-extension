@@ -153,7 +153,7 @@ public class ApiCrossStageViolationServiceTest
     violation1.setFixTime(new Date(baseDate.getTime() + 3));
     policyViolationDAO.update(violation1);
 
-    // equivalent, but opened after all relevant violations were closed.  Inserted into db before eval2 to test
+    // equivalent, but opened after all relevant violations were closed. Inserted into db before eval2 to test
     // that eval2 is still correctly picked up
     PolicyEvaluation eval6 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_OPERATE, "scan6",
         new Date(baseDate.getTime() + 6));
@@ -302,7 +302,7 @@ public class ApiCrossStageViolationServiceTest
         new Date(baseDate.getTime() + 4));
     PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, componentIdentifier, "1234", "vuln1");
 
-    // not equivalent  - same app
+    // not equivalent - same app
     PolicyViolation violation4 = tempEntity.newPolicyViolation(eval3, policy, componentIdentifier, "1235", "vuln2");
 
     // equivalent, different app
@@ -368,7 +368,7 @@ public class ApiCrossStageViolationServiceTest
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
 
-    // not equivalent  - same app
+    // not equivalent - same app
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_STAGE_RELEASE, "scan2",
         new Date(baseDate.getTime() + 4));
     PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, componentIdentifier, "1235", "vuln2");
@@ -482,7 +482,7 @@ public class ApiCrossStageViolationServiceTest
 
   @Test
   public void testGetCrossStageViolationById_UnwaivedViolation() {
-    //A waived violation
+    // A waived violation
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
     PolicyViolation buildStageViolation1 =
         tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
@@ -598,8 +598,7 @@ public class ApiCrossStageViolationServiceTest
       String stageId,
       Date expectedEvaluationTime,
       String expectedScanId,
-      String expectedActionTypeId
-  )
+      String expectedActionTypeId)
   {
     assertThat(result.stageData).hasEntrySatisfying(stageId, stageData -> {
       assertThat(stageData.mostRecentEvaluationTime).isEqualTo(expectedEvaluationTime);

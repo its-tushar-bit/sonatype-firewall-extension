@@ -16,15 +16,15 @@ public class NameHelperTest
   /**
    * A sample of characters not allowed.
    */
-  public static final String[] INVALID_CHARACTERS = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "+", "<" };
+  public static final String[] INVALID_CHARACTERS = {"!", "@", "#", "$", "%", "^", "&", "*", "(", "+", "<"};
 
-  public static final String[] INVALID_SPACING_NAMES = { " leading space", "trailing space ",
-      " leading and trailing space ", "double  space", "  starts with double space", "ends with double space  " };
+  public static final String[] INVALID_SPACING_NAMES = {" leading space", "trailing space ",
+    " leading and trailing space ", "double  space", "  starts with double space", "ends with double space  "};
 
   // The names must be case-insensitive unique in order to avoid test failures due to entity names being
   // case-insensitive unique.
-  public static final String[] VALID_NAMES = { "abcdefghijklmnopqrstuvwxyz", "BACDEFGHIJKLMNOPQRSTUVWXYZ",
-      "1234567890", "-", "a.", "_", "a b" };
+  public static final String[] VALID_NAMES = {"abcdefghijklmnopqrstuvwxyz", "BACDEFGHIJKLMNOPQRSTUVWXYZ",
+    "1234567890", "-", "a.", "_", "a b"};
 
   @Test
   public void validateNameCanNotBeBlank() {
@@ -65,7 +65,8 @@ public class NameHelperTest
   @Test
   public void validateInvalidNameLength() {
     assertThatThrownBy(() -> NameHelper.validate("test-field-name", "test-field-value", 2))
-        .isInstanceOf(InvalidNameException.class).hasMessage("test-field-name must be 2 characters or less.");
+        .isInstanceOf(InvalidNameException.class)
+        .hasMessage("test-field-name must be 2 characters or less.");
   }
 
   @Test
@@ -213,8 +214,8 @@ public class NameHelperTest
     assertThat(
         NameHelper.convertContainerImageToApplicationPublicIdAndName(baseUrl, repoPublicId, longNamespace, "name",
             "version"))
-            .hasSize(NameHelper.MAX_NAME_LENGTH_APP_ORG)
-            .isEqualTo(expectedLongResult);
+                .hasSize(NameHelper.MAX_NAME_LENGTH_APP_ORG)
+                .isEqualTo(expectedLongResult);
   }
 
   private void verifyNameHasBadWhitespace(String name) {

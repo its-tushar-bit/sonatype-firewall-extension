@@ -52,21 +52,21 @@ public class LegalDashboardPageTest
   }
 
   private void addComponentAndLicenses(
-          Application application,
-          String groupId,
-          String artifactId,
-          String version,
-          String hash,
-          String stageTypeId,
-          String... licenseIds)
+      Application application,
+      String groupId,
+      String artifactId,
+      String version,
+      String hash,
+      String stageTypeId,
+      String... licenseIds)
   {
     final ComponentIdentifier componentIdentifier =
-            ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
+        ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
     final ApplicationComponent applicationComponent =
-            tempEntity.newApplicationComponent(application.getId(), stageTypeId, hash,
-                    componentIdentifier);
+        tempEntity.newApplicationComponent(application.getId(), stageTypeId, hash,
+            componentIdentifier);
     Arrays.stream(licenseIds)
-            .forEach(licenseId -> tempEntity.newApplicationComponentLicense(applicationComponent.getId(), licenseId));
+        .forEach(licenseId -> tempEntity.newApplicationComponentLicense(applicationComponent.getId(), licenseId));
   }
 
   private void addEvaluationPoliciesToApplications(Application[] apps) {
@@ -110,15 +110,15 @@ public class LegalDashboardPageTest
         .atUri("rest/ci/componentDetails/list");
 
     Application app1 = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName() + "1",
-            "app1", "org1");
+        "app1", "org1");
     Application app2 = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName() + "2",
-            "app2", "org2");
+        "app2", "org2");
     Application[] apps = {app, app1, app2};
     addEvaluationPoliciesToApplications(apps);
 
     String[] licenses = {"Apache-1.0", "MIT", "Apache-2.0", "Better-Cms-LA", "BSL-1.0", "CC-BY-NC-3.0", "CMRL-1.0",
-        "GPL-2.0+-LGPL-3.0+", "GreenSock-Commercial-License", "Gridifier-Developer-LA",
-        "Grammatica-BSD-3-Clause-Variant"};
+      "GPL-2.0+-LGPL-3.0+", "GreenSock-Commercial-License", "Gridifier-Developer-LA",
+      "Grammatica-BSD-3-Clause-Variant"};
     ComponentIdentifier[] componentIdentifiers = new ComponentIdentifier[licenses.length];
 
     String currentComponentName = "";
@@ -127,27 +127,28 @@ public class LegalDashboardPageTest
 
       currentComponentName = (i == 1 || i == 12) ? "#$%&/" : "component";
 
-      String stageType = i % 3 == 0 ? BuildStageType.ID : ( i % 5 == 0 ? SourceStageType.ID : ReleaseStageType.ID );
+      String stageType = i % 3 == 0 ? BuildStageType.ID : (i % 5 == 0 ? SourceStageType.ID : ReleaseStageType.ID);
 
-      addComponentAndLicenses(apps[ i % apps.length ], "org.package", currentComponentName,
-              (i % licenses.length + 1 ) + ".0", "hash" + (i % licenses.length + 1),
-                          stageType, licenses[ i % licenses.length ]);
+      addComponentAndLicenses(apps[i % apps.length], "org.package", currentComponentName,
+          (i % licenses.length + 1) + ".0", "hash" + (i % licenses.length + 1),
+          stageType, licenses[i % licenses.length]);
 
-      componentIdentifiers[ i % licenses.length ] = componentIdentifiers[ i % licenses.length ] != null ?
-              componentIdentifiers[ i % licenses.length ] : ComponentIdentifier
-                .createMavenCoordinates("org.package", currentComponentName, (i % licenses.length + 1) + ".0");
+      componentIdentifiers[i % licenses.length] = componentIdentifiers[i % licenses.length] != null
+          ? componentIdentifiers[i % licenses.length]
+          : ComponentIdentifier
+              .createMavenCoordinates("org.package", currentComponentName, (i % licenses.length + 1) + ".0");
 
       tempEntity.newComponentObligation(
-              componentIdentifiers[ i % licenses.length ], apps[ i % apps.length ].getId(),
-              "Inclusion of Notice", "comment", ObligationStatus.FULFILLED, "hash" + i);
+          componentIdentifiers[i % licenses.length], apps[i % apps.length].getId(),
+          "Inclusion of Notice", "comment", ObligationStatus.FULFILLED, "hash" + i);
     }
   }
 
   private Wait<WebDriver> getWebDriverAwait() {
     return new FluentWait<>(getWebDriver())
-            .withTimeout(Duration.ofSeconds(240))
-            .pollingEvery(Duration.ofSeconds(2))
-            .ignoring(NoSuchElementException.class);
+        .withTimeout(Duration.ofSeconds(240))
+        .pollingEvery(Duration.ofSeconds(2))
+        .ignoring(NoSuchElementException.class);
   }
 
   @Test
@@ -362,7 +363,7 @@ public class LegalDashboardPageTest
     wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
     ldp.tableRows().get(0).click();
     ComponentLegalOverviewPage.AttributionSummaryTile attributionSummaryTile =
-            new ComponentLegalOverviewPage.AttributionSummaryTile();
+        new ComponentLegalOverviewPage.AttributionSummaryTile();
     wait.until(ExpectedConditions.visibilityOf(attributionSummaryTile.getElement()));
     ComponentLegalOverviewPage.backLink().click();
     wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
@@ -382,7 +383,9 @@ public class LegalDashboardPageTest
     ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
     ldp.tableRows().shouldHave(size(7));
     ldp.tableRows().get(0).shouldHave(Condition.text("org.package : component : 1.0 Apache-1.0 1 - / -"));
-    ldp.tableRows().get(6).shouldHave(
+    ldp.tableRows()
+        .get(6)
+        .shouldHave(
             Condition.text("org.package : component : 9.0 GreenSock-Commercial-License 1 - / -"));
     ldp.filterCollapsibleItems().get(0).click();
     ldp.filterOrganizationsCheckBoxes().get(3).click();
@@ -423,8 +426,10 @@ public class LegalDashboardPageTest
     ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
     ldp.tableRows().shouldHave(size(10));
     ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 2 0 / 4"));
-    ldp.tableRows().get(9).shouldHave(
-        Condition.text("org.package : component : 8.0 GPL-2.0+ or LGPL-3.0+ 2 - / -"));
+    ldp.tableRows()
+        .get(9)
+        .shouldHave(
+            Condition.text("org.package : component : 8.0 GPL-2.0+ or LGPL-3.0+ 2 - / -"));
     ldp.filterCollapsibleItems().get(2).click();
     ldp.filterApplicationCategoriesCheckBoxes().get(1).click();
     ldp.filterApplyButton().click();
@@ -462,7 +467,9 @@ public class LegalDashboardPageTest
     ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
     ldp.tableRows().shouldHave(size(9));
     ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 1 0 / 4"));
-    ldp.tableRows().get(8).shouldHave(
+    ldp.tableRows()
+        .get(8)
+        .shouldHave(
             Condition.text("org.package : component : 9.0 GreenSock-Commercial-License 2 - / -"));
     ldp.filterCollapsibleItems().get(3).click();
     ldp.filterStagesCheckBoxes().get(4).click();
@@ -483,8 +490,10 @@ public class LegalDashboardPageTest
     ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
     ldp.tableRows().shouldHave(size(9));
     ldp.tableRows().get(0).shouldHave(Condition.text("org.package : component : 1.0 Apache-1.0 1 - / -"));
-    ldp.tableRows().get(8).shouldHave(
-        Condition.text("org.package : component : 9.0 GreenSock-Commercial-License  2 - / -"));
+    ldp.tableRows()
+        .get(8)
+        .shouldHave(
+            Condition.text("org.package : component : 9.0 GreenSock-Commercial-License  2 - / -"));
     ldp.filterCollapsibleItems().get(4).click();
     ldp.filterReviewProgressCheckBoxes().get(2).click();
     ldp.filterApplyButton().click();

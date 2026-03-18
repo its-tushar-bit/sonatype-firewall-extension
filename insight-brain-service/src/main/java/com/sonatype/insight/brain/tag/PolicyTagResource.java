@@ -29,7 +29,7 @@ import com.codahale.metrics.annotation.Timed;
 
 /**
  * Resource for managing tags associated with policies
- * 
+ *
  * @since 1.9
  */
 @Named
@@ -50,9 +50,10 @@ public class PolicyTagResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @ProductLicenseEnforcementPoint(LicensedFeature.POLICY_READ_ONLY)
-  public List<Tag> getPolicyTags(@PathParam("ownerType") OwnerType ownerType,
-                                 @PathParam("ownerId") String ownerId,
-                                 @PathParam("policyId") String policyId)
+  public List<Tag> getPolicyTags(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @PathParam("policyId") String policyId)
   {
     return tagService.getPolicyTags(ownerType, ownerId, policyId);
   }
@@ -66,10 +67,11 @@ public class PolicyTagResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_POLICY_INHERITANCE)
-  public List<Tag> updatePolicyTags(@PathParam("ownerType") OwnerType ownerType,
-                                    @PathParam("ownerId") String ownerId,
-                                    @PathParam("policyId") String policyId,
-                                    List<Tag> tags)
+  public List<Tag> updatePolicyTags(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @PathParam("policyId") String policyId,
+      List<Tag> tags)
   {
     return tagService.updatePolicyTags(ownerType, ownerId, policyId, tags);
   }

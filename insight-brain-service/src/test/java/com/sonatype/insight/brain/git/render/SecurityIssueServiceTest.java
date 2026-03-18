@@ -44,7 +44,8 @@ import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-public class SecurityIssueServiceTest extends AbstractComponentTest
+public class SecurityIssueServiceTest
+    extends AbstractComponentTest
 {
   private static final String PV_ID_1 = "pv1";
 
@@ -78,10 +79,10 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
   @Test
   public void testGetSecurityIssuesFromViolations_customCVSS() {
     final SecurityVulnerabilityData[] vulnerabilities = {
-        generateSecurityVulnerabilityData("CVE-123-01", DESCRIPTION, 7.8f, 9.1f, null),
-        generateSecurityVulnerabilityData("CVE-123-02", DESCRIPTION, 9.9f, 2.1f, null),
-        generateSecurityVulnerabilityData("CVE-123-03", DESCRIPTION, null, 1.1f, null),
-        generateSecurityVulnerabilityData("CVE-123-04", DESCRIPTION, null, null, null)
+      generateSecurityVulnerabilityData("CVE-123-01", DESCRIPTION, 7.8f, 9.1f, null),
+      generateSecurityVulnerabilityData("CVE-123-02", DESCRIPTION, 9.9f, 2.1f, null),
+      generateSecurityVulnerabilityData("CVE-123-03", DESCRIPTION, null, 1.1f, null),
+      generateSecurityVulnerabilityData("CVE-123-04", DESCRIPTION, null, null, null)
     };
     final String[] refIds = stream(vulnerabilities).map(c -> c.identifier).toArray(String[]::new);
     final PolicyViolation pv1 = generatePVWithManyConditionFacts(PV_ID_1, TEST_COMPONENT_IDENTIFIER, 5, refIds);
@@ -114,21 +115,21 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
   public void testGetSecurityIssuesFromViolations_vulnAndPVSorting() {
     // Given a set of vulnerabilities
     final SecurityVulnerabilityData[] vulnerabilities = {
-        generateSecurityVulnerabilityData("CVE-123-01", DESCRIPTION, 7.8f, null),
-        generateSecurityVulnerabilityData("CVE-123-02", DESCRIPTION, 9.9f, null),
-        generateSecurityVulnerabilityData("CVE-123-03", DESCRIPTION, 7.8f, null),
-        generateSecurityVulnerabilityData("CVE-123-04", DESCRIPTION, 9.0f, null),
-        generateSecurityVulnerabilityData("CVE-123-05", DESCRIPTION, 8.1f, null),
-        generateSecurityVulnerabilityData("CVE-123-06", DESCRIPTION, 3.4f, null),
+      generateSecurityVulnerabilityData("CVE-123-01", DESCRIPTION, 7.8f, null),
+      generateSecurityVulnerabilityData("CVE-123-02", DESCRIPTION, 9.9f, null),
+      generateSecurityVulnerabilityData("CVE-123-03", DESCRIPTION, 7.8f, null),
+      generateSecurityVulnerabilityData("CVE-123-04", DESCRIPTION, 9.0f, null),
+      generateSecurityVulnerabilityData("CVE-123-05", DESCRIPTION, 8.1f, null),
+      generateSecurityVulnerabilityData("CVE-123-06", DESCRIPTION, 3.4f, null),
     };
 
     // And 3 PVs each with 2 Vulnerabilities
     final PolicyViolation pv1 = generatePVWithManyConditionFacts(
-        PV_ID_1, TEST_COMPONENT_IDENTIFIER,4, vulnerabilities[0].identifier, vulnerabilities[1].identifier);
+        PV_ID_1, TEST_COMPONENT_IDENTIFIER, 4, vulnerabilities[0].identifier, vulnerabilities[1].identifier);
     final PolicyViolation pv2 = generatePVWithManyConditionFacts(
-        PV_ID_2, TEST_COMPONENT_IDENTIFIER,8, vulnerabilities[2].identifier, vulnerabilities[3].identifier);
+        PV_ID_2, TEST_COMPONENT_IDENTIFIER, 8, vulnerabilities[2].identifier, vulnerabilities[3].identifier);
     final PolicyViolation pv3 = generatePVWithManyConditionFacts(
-        PV_ID_3, TEST_COMPONENT_IDENTIFIER,6, vulnerabilities[4].identifier, vulnerabilities[5].identifier);
+        PV_ID_3, TEST_COMPONENT_IDENTIFIER, 6, vulnerabilities[4].identifier, vulnerabilities[5].identifier);
 
     setupVulnerabilityService(pv1, vulnerabilities[0], vulnerabilities[1]);
     setupVulnerabilityService(pv2, vulnerabilities[2], vulnerabilities[3]);
@@ -158,8 +159,7 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
         uniqueIssueId(pv3, vulnerabilities[4]),
         uniqueIssueId(pv3, vulnerabilities[5]),
         uniqueIssueId(pv1, vulnerabilities[1]),
-        uniqueIssueId(pv1, vulnerabilities[0])
-    );
+        uniqueIssueId(pv1, vulnerabilities[0]));
     assertThat(actualIds).isEqualTo(expectedIds);
   }
 
@@ -185,7 +185,7 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actualSecurityIssue.getSeverityInfo()).isNull();
     assertThat(actualSecurityIssue.getDescription()).isNull();
     assertThat(actualSecurityIssue.getPolicyViolationDetailsLink())
-        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
+        .isEqualTo("https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
   }
 
   @Test
@@ -210,7 +210,7 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actualSecurityIssue.getSeverityInfo()).isNull();
     assertThat(actualSecurityIssue.getDescription()).isNull();
     assertThat(actualSecurityIssue.getPolicyViolationDetailsLink())
-        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
+        .isEqualTo("https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
 
   }
 
@@ -238,7 +238,7 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actualSecurityIssue.getSeverityInfo().getVerificationImage()).isEqualTo(SONATYPE_DEEP_DIVE_TAG);
     assertThat(actualSecurityIssue.getDescription()).isEqualTo(DESCRIPTION);
     assertThat(actualSecurityIssue.getPolicyViolationDetailsLink())
-        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
+        .isEqualTo("https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
   }
 
   @Test
@@ -265,7 +265,7 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actualSecurityIssue.getSeverityInfo().getVerificationImage()).isEqualTo(SONATYPE_FAST_TRACK_TAG);
     assertThat(actualSecurityIssue.getDescription()).isEqualTo(DESCRIPTION);
     assertThat(actualSecurityIssue.getPolicyViolationDetailsLink())
-        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
+        .isEqualTo("https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
   }
 
   @Test
@@ -292,7 +292,7 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actualSecurityIssue.getSeverityInfo().getVerificationImage()).isEqualTo(SONATYPE_FAST_TRACK_TAG);
     assertThat(actualSecurityIssue.getDescription()).isNull();
     assertThat(actualSecurityIssue.getPolicyViolationDetailsLink())
-        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
+        .isEqualTo("https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
   }
 
   @Test
@@ -319,7 +319,7 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actualSecurityIssue.getSeverityInfo().getVerificationImage()).isNull();
     assertThat(actualSecurityIssue.getDescription()).isEqualTo(DESCRIPTION);
     assertThat(actualSecurityIssue.getPolicyViolationDetailsLink())
-        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
+        .isEqualTo("https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
   }
 
   @Test
@@ -348,14 +348,14 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actual1.getSeverityInfo().getVerificationImage()).isEqualTo(SONATYPE_FAST_TRACK_TAG);
     assertThat(actual1.getDescription()).isEqualTo(DESCRIPTION);
     assertThat(actual1.getPolicyViolationDetailsLink())
-        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv2?utm_source=github");
+        .isEqualTo("https://iq.example.com/ui/links/policyViolationReport/pv2?utm_source=github");
 
     // Then expect the second security issue to be pv1
     assertThat(actual2.getThreatLevel()).isEqualTo(pv1.getThreatLevel());
     assertThat(actual2.getSeverityInfo()).usingRecursiveComparison().isEqualTo(actual1.getSeverityInfo());
     assertThat(actual2.getDescription()).isEqualTo(DESCRIPTION);
     assertThat(actual2.getPolicyViolationDetailsLink())
-        .isEqualTo( "https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
+        .isEqualTo("https://iq.example.com/ui/links/policyViolationReport/pv1?utm_source=github");
   }
 
   @Test
@@ -401,9 +401,9 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actualSecurityIssue.getSeverityInfo().getVerificationImage()).isEqualTo(SONATYPE_FAST_TRACK_TAG);
     assertThat(actualSecurityIssue.getDescription()).isEqualTo(DESCRIPTION);
     assertThat(actualSecurityIssue.getPolicyViolationDetailsLink()).isEqualTo(expectedDetailsLink);
-    //assertThat(actualSecurityIssue.getPolicyViolationDetailsLink())
-    //    .isEqualTo("https://iq.example.com/assets/index.html#/violation/" +
-    //        "pv1?type=violation&sidebarReference=filter&utm_source=github");
+    // assertThat(actualSecurityIssue.getPolicyViolationDetailsLink())
+    // .isEqualTo("https://iq.example.com/assets/index.html#/violation/" +
+    // "pv1?type=violation&sidebarReference=filter&utm_source=github");
   }
 
   private void setupVulnerabilityService(
@@ -435,31 +435,27 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
             null,
             APPLICATION,
             applicationId,
-            true)
-    ).thenThrow(throwableClazz);
+            true)).thenThrow(throwableClazz);
   }
 
   private void setupVulnerabilityService(final PolicyViolation pv, final SecurityVulnerabilityData... details) {
     stream(details)
-        .forEach(vulnData ->
-            when(
-                vulnerabilityDetailsServiceMock.getSecurityVulnerabilityDetails(
-                    vulnData.identifier,
-                    pv.getComponentIdentifier(),
-                    null,
-                    null,
-                    APPLICATION,
-                    pv.getOwnerId(),
-                    true)
-            ).thenReturn(vulnData));
+        .forEach(vulnData -> when(
+            vulnerabilityDetailsServiceMock.getSecurityVulnerabilityDetails(
+                vulnData.identifier,
+                pv.getComponentIdentifier(),
+                null,
+                null,
+                APPLICATION,
+                pv.getOwnerId(),
+                true)).thenReturn(vulnData));
   }
 
   private static String uniqueIssueId(final SecurityIssue issue) {
     return uniqueIssueId(
         issue.getThreatLevel(),
         issue.getSeverityInfo().getCvssScore(),
-        issue.getSeverityInfo().getRefId()
-    );
+        issue.getSeverityInfo().getRefId());
   }
 
   private static String uniqueIssueId(final PolicyViolation pv, final SecurityVulnerabilityData data) {

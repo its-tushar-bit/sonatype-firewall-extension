@@ -120,7 +120,8 @@ public abstract class AbstractClusterLockManagerTest
     String componentPathname = "componentPathname";
 
     try (ClusterLock clusterLock = clusterLockManager.createForRepositoryComponent(repositoryId,
-        componentPathname)) {
+        componentPathname))
+    {
       assertThat(clusterLock.getClusterLockId()).isEqualTo(ClusterLockId.forRepositoryComponent(repositoryId,
           componentPathname));
     }

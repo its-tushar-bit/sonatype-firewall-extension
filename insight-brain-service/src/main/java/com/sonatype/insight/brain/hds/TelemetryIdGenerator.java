@@ -49,7 +49,8 @@ public class TelemetryIdGenerator
     SystemConfigurationProperty generatedIdProperty = dao.getByName(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME);
     final var configMissing = null == generatedIdProperty;
     if (configMissing || StringUtils.isBlank(generatedIdProperty.getValue())
-        || generatedIdProperty.getValue().startsWith(CORRUPTED_TELEMETRY_HOST)) {
+        || generatedIdProperty.getValue().startsWith(CORRUPTED_TELEMETRY_HOST))
+    {
       String generatedId = UUID.randomUUID().toString().substring(0, ID_PART_LENGTH);
       generatedIdProperty = new SystemConfigurationProperty(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME, generatedId);
       if (configMissing) {

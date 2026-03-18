@@ -27,7 +27,8 @@ import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_E
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class WebhookServiceFIPSTest extends WebhookServiceTest
+public class WebhookServiceFIPSTest
+    extends WebhookServiceTest
 {
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();
@@ -59,7 +60,7 @@ public class WebhookServiceFIPSTest extends WebhookServiceTest
         configuration, productLicense, webhookDAO, organizationApplicationManagementEventService);
     PlexusCipher plexusCipher = CipherFactory.createCipher();
 
-    String secretKeyEncrypted =  plexusCipher.encrypt(MOCKED_WEBHOOK_SECRET,
+    String secretKeyEncrypted = plexusCipher.encrypt(MOCKED_WEBHOOK_SECRET,
         configuration.getWebhookSecretPassphrase());
 
     Webhook webhook = tempEntity.newWebhookWithSecret("http://localhost",

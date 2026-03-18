@@ -45,18 +45,19 @@ public class ProprietaryConfigResource
   }
 
   @GET
-  public ProprietaryConfigHierarchy getProprietaryConfigHierarchy(@PathParam("ownerType") final OwnerType ownerType,
-                                                                  @PathParam("ownerId")
-                                                                  final String ownerId)
+  public ProprietaryConfigHierarchy getProprietaryConfigHierarchy(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId)
   {
     return proprietaryConfigService.getProprietaryConfigHierarchy(ownerType, ownerId);
   }
 
   @PUT
   @Audited(AuditEvent.CONFIGURE_PROPRIETARY_COMPONENTS)
-  public ProprietaryConfig upsertProprietaryConfig(@PathParam("ownerType") final OwnerType ownerType,
-                                                   @PathParam("ownerId") final String ownerId,
-                                                   ProprietaryConfig proprietaryConfig)
+  public ProprietaryConfig upsertProprietaryConfig(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId,
+      ProprietaryConfig proprietaryConfig)
   {
     return proprietaryConfigService.upsertProprietaryConfig(ownerType, ownerId, proprietaryConfig);
   }
@@ -64,9 +65,10 @@ public class ProprietaryConfigResource
   @POST
   @Path(ADD_FILE_PATH_REGEX)
   @Audited(AuditEvent.CONFIGURE_PROPRIETARY_COMPONENTS)
-  public ProprietaryConfig addFilePathRegexToProprietaryConfig(@PathParam("ownerType") final OwnerType ownerType,
-                                                               @PathParam("ownerId") final String ownerId,
-                                                               final FilePathRegex filePathRegex)
+  public ProprietaryConfig addFilePathRegexToProprietaryConfig(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId,
+      final FilePathRegex filePathRegex)
   {
     return proprietaryConfigService.addFilePathRegexToProprietaryConfig(ownerType, ownerId, filePathRegex);
   }
@@ -96,10 +98,11 @@ public class ProprietaryConfigResource
     public ProprietaryConfigByOwner() {
     }
 
-    public ProprietaryConfigByOwner(String ownerId,
-                                    String ownerName,
-                                    OwnerType ownerType,
-                                    ProprietaryConfig proprietaryConfig)
+    public ProprietaryConfigByOwner(
+        String ownerId,
+        String ownerName,
+        OwnerType ownerType,
+        ProprietaryConfig proprietaryConfig)
     {
       this.ownerId = ownerId;
       this.ownerName = ownerName;

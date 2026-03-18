@@ -95,7 +95,8 @@ public class InsightMail
       if (StringUtils.isNotBlank(mailConfiguration.getUsername())) {
         email.setAuthentication( //
             mailConfiguration.getUsername(), //
-            mailConfiguration.getPassword() == null ? null
+            mailConfiguration.getPassword() == null
+                ? null
                 : String.valueOf(decryptPassword(mailConfiguration.getPassword())));
       }
 

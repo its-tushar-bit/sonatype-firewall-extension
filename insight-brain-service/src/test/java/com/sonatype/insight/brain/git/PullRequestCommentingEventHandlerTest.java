@@ -437,12 +437,15 @@ public class PullRequestCommentingEventHandlerTest
   public void testOnUpdatedPullRequest_createsCommentsAndCreatesPullRequestStatus() {
     // given: a resolver and a discovered PR event that will lead to comments being created
     List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("testAppId", 1);
-    pullRequestPolicyEvaluationDTOs.get(0).getTargetPolicyEvaluation()
+    pullRequestPolicyEvaluationDTOs.get(0)
+        .getTargetPolicyEvaluation()
         .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
-    pullRequestPolicyEvaluationDTOs.get(0).getFeatureBranchPolicyEvaluation()
+    pullRequestPolicyEvaluationDTOs.get(0)
+        .getFeatureBranchPolicyEvaluation()
         .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
     PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
-        .withPullRequestPolicyEvaluationDTOs(pullRequestPolicyEvaluationDTOs).build();
+        .withPullRequestPolicyEvaluationDTOs(pullRequestPolicyEvaluationDTOs)
+        .build();
 
     SourceControlEvent sourceControlEvent = new SourceControlEvent().forUpdatedPullRequest()
         .setPullRequestNumber(pullRequestPolicyEvaluationDTOs.get(0).getPullRequestNumber());
@@ -487,10 +490,12 @@ public class PullRequestCommentingEventHandlerTest
     // given: a resolver and a discovered PR event that will lead to comments being created
     List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("testAppId", 1);
     pullRequestPolicyEvaluationDTOs.get(0).getTargetPolicyEvaluation().setScanTriggerType(ScanTriggerType.CLI);
-    pullRequestPolicyEvaluationDTOs.get(0).getFeatureBranchPolicyEvaluation()
+    pullRequestPolicyEvaluationDTOs.get(0)
+        .getFeatureBranchPolicyEvaluation()
         .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
     PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
-        .withPullRequestPolicyEvaluationDTOs(pullRequestPolicyEvaluationDTOs).build();
+        .withPullRequestPolicyEvaluationDTOs(pullRequestPolicyEvaluationDTOs)
+        .build();
 
     SourceControlEvent sourceControlEvent = new SourceControlEvent().forUpdatedPullRequest()
         .setPullRequestNumber(pullRequestPolicyEvaluationDTOs.get(0).getPullRequestNumber());
@@ -509,11 +514,13 @@ public class PullRequestCommentingEventHandlerTest
   public void testOnUpdatedPullRequest_doesNotCreateCommentsOrPullRequestStatusIfPRBranchPolicyEvaluationIsExternal() {
     // given: a resolver and a discovered PR event that will lead to comments being created
     List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("testAppId", 1);
-    pullRequestPolicyEvaluationDTOs.get(0).getTargetPolicyEvaluation()
+    pullRequestPolicyEvaluationDTOs.get(0)
+        .getTargetPolicyEvaluation()
         .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
     pullRequestPolicyEvaluationDTOs.get(0).getFeatureBranchPolicyEvaluation().setScanTriggerType(ScanTriggerType.CLI);
     PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
-        .withPullRequestPolicyEvaluationDTOs(pullRequestPolicyEvaluationDTOs).build();
+        .withPullRequestPolicyEvaluationDTOs(pullRequestPolicyEvaluationDTOs)
+        .build();
 
     SourceControlEvent sourceControlEvent = new SourceControlEvent().forUpdatedPullRequest()
         .setPullRequestNumber(pullRequestPolicyEvaluationDTOs.get(0).getPullRequestNumber());
@@ -530,15 +537,15 @@ public class PullRequestCommentingEventHandlerTest
 
   @Test
   public void testRegisteredAndUnregisteredFromEventBus() throws Exception {
-    // given:  a commenting event handler
+    // given: a commenting event handler
     PullRequestCommentingEventHandler commentingEventHandler =
         new TestablePullRequestCommentingEventHandlerBuilder()
             .build();
 
-    // when:  start the handler
+    // when: start the handler
     commentingEventHandler.start();
 
-    // then:  registered with event bus
+    // then: registered with event bus
     verify(mockAsyncEventBus, times(1)).register(commentingEventHandler);
 
     // when: stop the handler
@@ -636,7 +643,8 @@ public class PullRequestCommentingEventHandlerTest
       doReturn(scmEnabled).when(mockSourceControlUtils).isScmEnabled(any(String.class));
       doReturn(scmEnabled).when(mockSourceControlUtils).isScmEnabled(any(GitRepositoryInfo.class));
       doReturn(repositoryUrl.contains("bitbucket.org"))
-          .when(mockSourceControlUtils).isBitbucketCloud(any(GitRepositoryInfo.class));
+          .when(mockSourceControlUtils)
+          .isBitbucketCloud(any(GitRepositoryInfo.class));
 
       gitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, sshRepositoryUrl, username, token, provider, baseBranch,
           remediationPullRequestsEnabled, manualPullRequestsEnabled, innerSourceAutomatedUpdatesEnabled,
@@ -645,13 +653,14 @@ public class PullRequestCommentingEventHandlerTest
       doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
 
       doReturn(null != pullRequestPolicyEvaluationsDTOs ? pullRequestPolicyEvaluationsDTOs : new ArrayList<>())
-          .when(mockPullRequestPolicyEvaluationResolver).resolveForPolicyEvaluation(any(), any(), any(), any());
+          .when(mockPullRequestPolicyEvaluationResolver)
+          .resolveForPolicyEvaluation(any(), any(), any(), any());
 
       doReturn(CollectionUtils.isNotEmpty(pullRequestPolicyEvaluationsDTOs)
           ? pullRequestPolicyEvaluationsDTOs.get(0)
           : null)
-          .when(mockPullRequestPolicyEvaluationResolver)
-          .resolveForPullRequest(any(), any(), anyInt(), any(), any(), any(), any());
+              .when(mockPullRequestPolicyEvaluationResolver)
+              .resolveForPullRequest(any(), any(), anyInt(), any(), any(), any(), any());
 
       return new PullRequestCommentingEventHandler(
           mockPullRequestCommentingService,
@@ -663,8 +672,7 @@ public class PullRequestCommentingEventHandlerTest
           mockPolicyEvaluationDAO,
           mockPullRequestStatusService,
           new PullRequestCommentingEligibilityValidator(),
-          mockGitCommitHistoryService
-      );
+          mockGitCommitHistoryService);
     }
 
     TestablePullRequestCommentingEventHandlerBuilder withPullRequestPolicyEvaluationDTOs(

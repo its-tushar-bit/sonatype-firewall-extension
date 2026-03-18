@@ -35,7 +35,7 @@ public class ErrorResponseGenerator
 
   public static final String MSG_MISSING_CREDENTIALS = "Missing credentials.";
 
-  static final String MSG_LDAP_FAILURE = 
+  static final String MSG_LDAP_FAILURE =
       "Authentication failed due to LDAP error. Please contact your IT administrator.";
 
   static final String MSG_LDAP_TIMEOUT = "Authentication failed due to LDAP timeout. Please try again.";
@@ -74,7 +74,8 @@ public class ErrorResponseGenerator
       return new ErrorResponse(Response.Status.UNAUTHORIZED.getStatusCode(), null);
     }
     else if (e instanceof JsonProcessingException
-        && !(e instanceof JsonGenerationException || e instanceof InvalidDefinitionException)) {
+        && !(e instanceof JsonGenerationException || e instanceof InvalidDefinitionException))
+    {
       String msg = e instanceof JsonMappingException ? MSG_JSON_UNMAPPABLE : MSG_JSON_UNPARSABLE;
       return new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), msg);
     }

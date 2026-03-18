@@ -22,12 +22,13 @@ import com.google.common.collect.Iterables;
 
 /**
  * Data access object for managing cascade re-evaluation requests.
- * 
+ *
  * @since 1.196
  */
 @Named
 @Singleton
-public class ReevaluateCascadeRequestDAO extends AbstractOperationalSqlDAO<ReevaluateCascadeRequest>
+public class ReevaluateCascadeRequestDAO
+    extends AbstractOperationalSqlDAO<ReevaluateCascadeRequest>
 {
   private final ReevaluateCascadeProgressDAO reevaluateCascadeProgressDAO;
 
@@ -47,7 +48,7 @@ public class ReevaluateCascadeRequestDAO extends AbstractOperationalSqlDAO<Reeva
   }
 
   public List<ReevaluateCascadeRequest> getByComponentHash(final TransactionContext tx, final String componentHash) {
-    String sQuery = "SELECT entity FROM ReevaluateCascadeRequest entity" + 
+    String sQuery = "SELECT entity FROM ReevaluateCascadeRequest entity" +
         " WHERE entity.componentReferenceHash=?1";
     return getList(tx, sQuery, componentHash);
   }

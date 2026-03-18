@@ -7,5 +7,7 @@ package com.sonatype.insight.brain.model.configuration.ldap;
 
 public enum LdapGroupMappingType
 {
-  NONE, STATIC, DYNAMIC;
+  NONE,
+  STATIC,
+  DYNAMIC;
 }

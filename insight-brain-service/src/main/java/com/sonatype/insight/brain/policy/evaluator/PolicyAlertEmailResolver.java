@@ -78,8 +78,9 @@ public class PolicyAlertEmailResolver
     this.crowdClientFactory = crowdClientFactory;
   }
 
-  public Map<String, List<PolicyFact>> getPolicyFactsByEmailAddress(Owner owner,
-                                                                    List<PolicyNotification> policyNotifications)
+  public Map<String, List<PolicyFact>> getPolicyFactsByEmailAddress(
+      Owner owner,
+      List<PolicyNotification> policyNotifications)
   {
     Map<String, List<PolicyFact>> policyFactsByEmailAddress = new HashMap<>();
     for (PolicyNotification notification : policyNotifications) {
@@ -89,9 +90,10 @@ public class PolicyAlertEmailResolver
     return policyFactsByEmailAddress;
   }
 
-  private void addRoleNotifications(Map<String, List<PolicyFact>> policyFactsByEmailAddress,
-                                    PolicyNotification notification,
-                                    Owner owner)
+  private void addRoleNotifications(
+      Map<String, List<PolicyFact>> policyFactsByEmailAddress,
+      PolicyNotification notification,
+      Owner owner)
   {
     Map<String, Set<String>> emailAddressesByRoleId = new HashMap<>();
     MemberAttributeResolver memberAttributeResolver = new MemberAttributeResolver(userDirectory);
@@ -117,7 +119,8 @@ public class PolicyAlertEmailResolver
     // Get role members from owner on up
     for (Owner parentOwner : ownerDAO.walkHierarchy(owner)) {
       for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextIdAndRoleId(parentOwner.getId(),
-          roleId)) {
+          roleId))
+      {
         Member member = new Member(membershipMapping.getMemberType(), membershipMapping.getMemberName(),
             membershipMapping.getMemberName());
         members.add(member);
@@ -191,17 +194,19 @@ public class PolicyAlertEmailResolver
     }
   }
 
-  private void addUserNotifications(Map<String, List<PolicyFact>> policyFactsByEmailAddress,
-                                    PolicyNotification notification)
+  private void addUserNotifications(
+      Map<String, List<PolicyFact>> policyFactsByEmailAddress,
+      PolicyNotification notification)
   {
     for (UserNotification userNotification : notification.getNotifications().getUserNotifications()) {
       addPolicyFact(policyFactsByEmailAddress, userNotification.getEmailAddress(), notification.getPolicyFact());
     }
   }
 
-  private void addPolicyFact(Map<String, List<PolicyFact>> policyFactsByEmailAddress,
-                             String emailAddress,
-                             PolicyFact policyFact)
+  private void addPolicyFact(
+      Map<String, List<PolicyFact>> policyFactsByEmailAddress,
+      String emailAddress,
+      PolicyFact policyFact)
   {
     List<PolicyFact> policyFacts = policyFactsByEmailAddress.get(emailAddress);
     if (policyFacts == null) {

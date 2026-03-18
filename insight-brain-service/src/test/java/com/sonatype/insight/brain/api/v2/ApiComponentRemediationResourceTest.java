@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -92,17 +93,14 @@ public class ApiComponentRemediationResourceTest
 
   @Test
   public void testGetSuggestedRemediationForComponent_Application() throws Exception {
-    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1,null);
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
     assertRemediationApplication(
         component,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
-    );
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
   }
 
   @Test
-  public void testGetSuggestedRemediationForComponent_Application_includeParentRemediation_transitiveComponent()
-      throws Exception
-  {
+  public void testGetSuggestedRemediationForComponent_Application_includeParentRemediation_transitiveComponent() throws Exception {
     final String scanID = "scanID";
     createReportFile(app.getId(), scanID, "/ApiComponentRemediationResourceTest/extendReport");
     final ComponentIdentifier transitiveComponent =
@@ -166,31 +164,33 @@ public class ApiComponentRemediationResourceTest
     assertThat(result).isNotNull();
     assertThat(result.remediation.versionChanges).hasSize(2);
 
-    //next-no-violations-with-dependencies should have newer version fix for parent component
+    // next-no-violations-with-dependencies should have newer version fix for parent component
     assertThat(result.remediation.versionChanges.get(0).getType()).isEqualTo(
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
-    assertThat(result.remediation.versionChanges.get(0).getData()
+    assertThat(result.remediation.versionChanges.get(0)
+        .getData()
         .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(transitiveComponent);
     ApiVersionChangeOptionDTO transitiveVersionChangeOptionDTO = result.remediation.versionChanges.get(0);
     assertThat(transitiveVersionChangeOptionDTO.getDirectDependency()).isFalse();
-    assertThat(transitiveVersionChangeOptionDTO.getDirectDependencyData().get(0)
+    assertThat(transitiveVersionChangeOptionDTO.getDirectDependencyData()
+        .get(0)
         .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(newerVersionParentComponent1);
 
-    //next-no-failing-with-dependencies should have current version fix for parent component
-    assertThat(result.remediation.versionChanges.get(1).getData()
+    // next-no-failing-with-dependencies should have current version fix for parent component
+    assertThat(result.remediation.versionChanges.get(1)
+        .getData()
         .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(transitiveComponent);
     assertThat(result.remediation.versionChanges.get(1).getType()).isEqualTo(
         ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
     transitiveVersionChangeOptionDTO = result.remediation.versionChanges.get(1);
     assertThat(transitiveVersionChangeOptionDTO.getDirectDependency()).isFalse();
-    assertThat(transitiveVersionChangeOptionDTO.getDirectDependencyData().get(0)
+    assertThat(transitiveVersionChangeOptionDTO.getDirectDependencyData()
+        .get(0)
         .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(currentParentComponent);
   }
 
   @Test
-  public void testGetSuggestedRemediationForComponent_Application_includeParentRemediation_directComponent()
-      throws Exception
-  {
+  public void testGetSuggestedRemediationForComponent_Application_includeParentRemediation_directComponent() throws Exception {
     final String scanID = "scanID";
     createReportFile(app.getId(), scanID, "/ApiComponentRemediationResourceTest/extendReport");
     final ComponentIdentifier currentParentComponent =
@@ -233,21 +233,21 @@ public class ApiComponentRemediationResourceTest
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
     assertThat(result.remediation.versionChanges.get(0).getDirectDependency()).isTrue();
     assertThat(result.remediation.versionChanges.get(0).getDirectDependencyData()).isEmpty();
-    assertThat(result.remediation.versionChanges.get(0).getData()
+    assertThat(result.remediation.versionChanges.get(0)
+        .getData()
         .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(newerVersionComponent2);
 
     assertThat(result.remediation.versionChanges.get(1).getType()).isEqualTo(
         ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
     assertThat(result.remediation.versionChanges.get(1).getDirectDependency()).isTrue();
     assertThat(result.remediation.versionChanges.get(1).getDirectDependencyData()).isEmpty();
-    assertThat(result.remediation.versionChanges.get(1).getData()
+    assertThat(result.remediation.versionChanges.get(1)
+        .getData()
         .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(currentParentComponent);
   }
 
   @Test
-  public void testIncludeParentRemediation_WithoutDirectFlags_UsesTreeStructure()
-      throws Exception
-  {
+  public void testIncludeParentRemediation_WithoutDirectFlags_UsesTreeStructure() throws Exception {
     final String scanID = "scanID";
     createReportFile(app.getId(), scanID,
         "/ApiComponentRemediationResourceTest/parent-remediation-without-direct-flags");
@@ -320,24 +320,28 @@ public class ApiComponentRemediationResourceTest
     assertThat(result).isNotNull();
     assertThat(result.remediation.versionChanges).hasSize(2);
 
-    //next-no-violations-with-dependencies should have newer version fix for parent component
+    // next-no-violations-with-dependencies should have newer version fix for parent component
     assertThat(result.remediation.versionChanges.get(0).getType()).isEqualTo(
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
-    assertThat(result.remediation.versionChanges.get(0).getData()
+    assertThat(result.remediation.versionChanges.get(0)
+        .getData()
         .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(transitiveComponent);
     ApiVersionChangeOptionDTO transitiveVersionChangeOptionDTO = result.remediation.versionChanges.get(0);
     assertThat(transitiveVersionChangeOptionDTO.getDirectDependency()).isFalse();
-    assertThat(transitiveVersionChangeOptionDTO.getDirectDependencyData().get(0)
+    assertThat(transitiveVersionChangeOptionDTO.getDirectDependencyData()
+        .get(0)
         .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(newerVersionParentComponent1);
 
-    //next-no-failing-with-dependencies should have current version fix for parent component
-    assertThat(result.remediation.versionChanges.get(1).getData()
+    // next-no-failing-with-dependencies should have current version fix for parent component
+    assertThat(result.remediation.versionChanges.get(1)
+        .getData()
         .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(transitiveComponent);
     assertThat(result.remediation.versionChanges.get(1).getType()).isEqualTo(
         ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
     transitiveVersionChangeOptionDTO = result.remediation.versionChanges.get(1);
     assertThat(transitiveVersionChangeOptionDTO.getDirectDependency()).isFalse();
-    assertThat(transitiveVersionChangeOptionDTO.getDirectDependencyData().get(0)
+    assertThat(transitiveVersionChangeOptionDTO.getDirectDependencyData()
+        .get(0)
         .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(currentParentComponent);
   }
 
@@ -363,9 +367,12 @@ public class ApiComponentRemediationResourceTest
     String identificationSource = IdentificationSource.CLAIR.getId();
 
     HttpResponse response =
-        restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.APPLICATION, app.getId())
-            .query("identificationSource", identificationSource).query("scanId", scanId)
-            .body(component).post();
+        restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
+            .parameter(OwnerType.APPLICATION, app.getId())
+            .query("identificationSource", identificationSource)
+            .query("scanId", scanId)
+            .body(component)
+            .post();
 
     assertResponseStatus(200, response);
     String responseText = response.getBodyText();
@@ -394,9 +401,12 @@ public class ApiComponentRemediationResourceTest
     String identificationSource = IdentificationSource.CLAIR.getId();
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.APPLICATION, app.getId())
-        .query("identificationSource", identificationSource).query("scanId", scanId)
-        .body(apiComponentDTOV2).post();
+        .path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
+        .parameter(OwnerType.APPLICATION, app.getId())
+        .query("identificationSource", identificationSource)
+        .query("scanId", scanId)
+        .body(apiComponentDTOV2)
+        .post();
 
     assertResponseStatus(200, response);
     String responseText = response.getBodyText();
@@ -418,10 +428,9 @@ public class ApiComponentRemediationResourceTest
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purl);
     assertRemediationApplication(
         component,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
-    );
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
   }
-  
+
   private void assertRemediationApplication(
       ApiComponentDTOV2 component,
       final ApiVersionChangeOptionType... optionTypes) throws Exception
@@ -442,8 +451,10 @@ public class ApiComponentRemediationResourceTest
     ApiComponentDTOV2 expectedComponent = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V3, null);
 
     HttpResponse response =
-        restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.APPLICATION, app.getId())
-            .body(component).post();
+        restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
+            .parameter(OwnerType.APPLICATION, app.getId())
+            .body(component)
+            .post();
 
     assertResponse(response, expectedComponent, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3), optionTypes);
   }
@@ -453,18 +464,16 @@ public class ApiComponentRemediationResourceTest
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
     assertRemediationOrganization(
         component,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
-    );
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
   }
-  
+
   @Test
   public void testGetSuggestedRemediationForComponent_Organization_Purl() throws Exception {
     String purl = "pkg:maven/g1/a1@v1?type=jar";
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purl);
     assertRemediationOrganization(
         component,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
-    );
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
   }
 
   @Test
@@ -490,7 +499,9 @@ public class ApiComponentRemediationResourceTest
         componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
 
     HttpResponse response = restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
-        .parameter(OwnerType.REPOSITORY, repo.getId()).body(component).post();
+        .parameter(OwnerType.REPOSITORY, repo.getId())
+        .body(component)
+        .post();
 
     assertResponse(
         response,
@@ -525,7 +536,10 @@ public class ApiComponentRemediationResourceTest
         componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
 
     HttpResponse response = restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
-        .parameter(OwnerType.APPLICATION, app.getId()).query("stageId", BuildStageType.ID).body(component).post();
+        .parameter(OwnerType.APPLICATION, app.getId())
+        .query("stageId", BuildStageType.ID)
+        .body(component)
+        .post();
 
     assertResponse(
         response,
@@ -558,8 +572,10 @@ public class ApiComponentRemediationResourceTest
     ApiComponentDTOV2 expectedComponent = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V3, null);
 
     HttpResponse response =
-        restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.ORGANIZATION, org.getId())
-            .body(component).post();
+        restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
+            .parameter(OwnerType.ORGANIZATION, org.getId())
+            .body(component)
+            .post();
 
     assertResponse(response, expectedComponent, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3), optionTypes);
   }
@@ -602,7 +618,7 @@ public class ApiComponentRemediationResourceTest
   }
 
   private void mockVersionScoring() {
-    hdsRespondWith(new VersionScoringService[] {}).atUri(HDS_BULK_SCORE_VERSIONING_PATH);
+    hdsRespondWith(new VersionScoringService[]{}).atUri(HDS_BULK_SCORE_VERSIONING_PATH);
   }
 
   private void assertResponse(
@@ -640,7 +656,8 @@ public class ApiComponentRemediationResourceTest
               .isEqualTo(expectedComponentNoViolations.componentIdentifier.toComponentIdentifier());
           assertThat(versionChangeOption.getData().getComponent().packageUrl).isEqualTo(expectedPackageUrlNoViolations);
           assertThat(versionChangeOption.getData().getComponent().displayName).isEqualTo(ComponentDisplayNameUtil
-              .fromIdentifier(expectedComponentNoViolations.componentIdentifier.toComponentIdentifier()).toString());
+              .fromIdentifier(expectedComponentNoViolations.componentIdentifier.toComponentIdentifier())
+              .toString());
           break;
         case NEXT_NON_FAILING:
         case NEXT_NON_FAILING_WITH_DEPENDENCIES:
@@ -648,7 +665,8 @@ public class ApiComponentRemediationResourceTest
               .isEqualTo(expectedComponentNonFailing.componentIdentifier.toComponentIdentifier());
           assertThat(versionChangeOption.getData().getComponent().packageUrl).isEqualTo(expectedPackageUrlNonFailing);
           assertThat(versionChangeOption.getData().getComponent().displayName).isEqualTo(ComponentDisplayNameUtil
-              .fromIdentifier(expectedComponentNonFailing.componentIdentifier.toComponentIdentifier()).toString());
+              .fromIdentifier(expectedComponentNonFailing.componentIdentifier.toComponentIdentifier())
+              .toString());
           break;
         default:
           throw new RuntimeException("Unknown ApiVersionChangeOptionType:" + optionTypes[i]);

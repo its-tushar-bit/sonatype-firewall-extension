@@ -45,7 +45,8 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
     HttpResponse response = restRequest()
         .path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH_ID)
         .parameter(report.getId())
-        .auth().get();
+        .auth()
+        .get();
 
     assertResponseStatus(200, response);
     AttributionReportTemplateDTO result =
@@ -172,7 +173,8 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
   public void testGetAttributionReportTemplateDoesNotExist() throws Exception {
     HttpResponse response = restRequest()
         .path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH_ID)
-        .parameter(NONEXISTENT_ID).get();
+        .parameter(NONEXISTENT_ID)
+        .get();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("No report with id %s", NONEXISTENT_ID);
   }
@@ -183,7 +185,8 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
     template.setId("");
     template.setDocumentTitle("");
     HttpResponse response = restRequest().path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
-        .body(AttributionReportTemplateDTO.fromReportTemplate(template)).post();
+        .body(AttributionReportTemplateDTO.fromReportTemplate(template))
+        .post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
         .isEqualTo("id cannot be an empty string. Leave id null and allow service to set one");
@@ -211,7 +214,8 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
         tempEntity.createNewAttributionReportTemplate("template to be deleted", "to be deleted");
     HttpResponse response = restRequest()
         .path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH_ID)
-        .parameter(tempReport.getId()).delete();
+        .parameter(tempReport.getId())
+        .delete();
     assertResponseStatus(204, response);
     assertThat(response.getBodyText()).isEmpty();
     response = restRequest().path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH).get();
@@ -223,7 +227,8 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
   public void testDeleteAttributionReportTemplateDoesNotExist() throws Exception {
     HttpResponse response = restRequest()
         .path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH_ID)
-        .parameter(NONEXISTENT_ID).delete();
+        .parameter(NONEXISTENT_ID)
+        .delete();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Template with id %s does not exist", NONEXISTENT_ID);
   }
@@ -236,7 +241,8 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
     toBeSaved.setDocumentTitle("other title");
 
     HttpResponse response = restRequest().path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
-        .body(toBeSaved).post();
+        .body(toBeSaved)
+        .post();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Report template already exists with name %s",
@@ -251,10 +257,10 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
         "<html>header</html>",
         "<html>footer</html>",
         false, false, false, false,
-        false
-    );
+        false);
     HttpResponse response = restRequest().path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
-        .body(reportTemplateDTO).post();
+        .body(reportTemplateDTO)
+        .post();
     AttributionReportTemplateDTO savedDto = response.getBody(AttributionReportTemplateDTO.class);
     assertThat(savedDto.getTemplateName()).isEqualTo("<html>template name</html>");
     assertThat(savedDto.getDocumentTitle()).isEqualTo("<html>title</html>");

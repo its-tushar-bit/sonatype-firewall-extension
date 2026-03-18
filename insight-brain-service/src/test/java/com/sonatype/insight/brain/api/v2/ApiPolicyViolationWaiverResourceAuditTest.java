@@ -73,7 +73,8 @@ public class ApiPolicyViolationWaiverResourceAuditTest
   @Test
   public void testAddPolicyWaiver_Application_Unauthorized() throws Exception {
     restRequest(policyViolation.getId(), OwnerType.APPLICATION).with(unauthorizedUser())
-        .body("waiver comment", MediaType.TEXT_PLAIN).post();
+        .body("waiver comment", MediaType.TEXT_PLAIN)
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER, "unauthorized");
     assertApplicationData(auditDTO, app);
@@ -82,7 +83,8 @@ public class ApiPolicyViolationWaiverResourceAuditTest
   @Test
   public void testAddPolicyWaiver_Organization_Unauthorized() throws Exception {
     restRequest(policyViolation.getId(), OwnerType.ORGANIZATION).with(unauthorizedUser())
-        .body("waiver comment", MediaType.TEXT_PLAIN).post();
+        .body("waiver comment", MediaType.TEXT_PLAIN)
+        .post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER, "unauthorized");
     assertOrganizationData(auditDTO, org);

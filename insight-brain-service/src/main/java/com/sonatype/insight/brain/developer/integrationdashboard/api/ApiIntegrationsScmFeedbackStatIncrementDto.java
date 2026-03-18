@@ -19,8 +19,7 @@ public class ApiIntegrationsScmFeedbackStatIncrementDto
   public ApiIntegrationsScmFeedbackStatIncrementDto(
       final long dateTimeMillis,
       final int totalNumberOfApps,
-      final int totalNumberOfAppsWithScmEnabled
-  )
+      final int totalNumberOfAppsWithScmEnabled)
   {
     this.dateTimeMillis = dateTimeMillis;
     this.totalNumberOfApps = totalNumberOfApps;

@@ -42,7 +42,8 @@ public class ApiOidcConfigurationService
   public ApiOidcConfigurationService(
       final PasswordHandler passwordHandler,
       final OAuth2ConfigurationDAO oAuth2ConfigurationDAO,
-      final OidcConfigurationDAO oidcConfigurationDAO, final OidcLoginFilter oidcLoginFilter,
+      final OidcConfigurationDAO oidcConfigurationDAO,
+      final OidcLoginFilter oidcLoginFilter,
       final SsoUserService ssoUserService)
   {
     super(oAuth2ConfigurationDAO, passwordHandler, oidcConfigurationDAO, oidcLoginFilter);
@@ -137,7 +138,8 @@ public class ApiOidcConfigurationService
   private void validateIdpIssuerMatches(final SsoConfigurationDTO ssoConfigurationDTO) {
     if (ssoConfigurationDTO == null ||
         ssoConfigurationDTO.getOAuth2Configuration() == null ||
-        ssoConfigurationDTO.getOidcConfiguration() == null) {
+        ssoConfigurationDTO.getOidcConfiguration() == null)
+    {
       log.debug("OAuth2 or OIDC configuration is null");
       throw new IllegalArgumentException("OAuth2 and OIDC configurations must be provided");
     }

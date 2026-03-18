@@ -455,8 +455,9 @@ public class ApiCycloneDxResourceV2Test
     assertThat(fileName.matches("^(?i)(?:[a-zA-Z0-9][a-zA-Z0-9_.-]+-)?bom\\.(?:xml|json)$")).isTrue();
   }
 
-  private void assertValidEmptyResponse(HttpResponse response, String format)
-      throws URISyntaxException, IOException, ParseException
+  private void assertValidEmptyResponse(
+      HttpResponse response,
+      String format) throws URISyntaxException, IOException, ParseException
   {
     assertResponseStatus(200, response);
     byte[] actualBytes = response.getBodyText().getBytes(StandardCharsets.UTF_8);
@@ -497,7 +498,8 @@ public class ApiCycloneDxResourceV2Test
     assertThat(bom.getDependencies()).hasSize(5);
     Dependency root = bom.getDependencies().get(0);
     assertThat(root.getRef()).isEqualTo(rootComponent.getBomRef());
-    assertThat(root.getDependencies()).hasSize(2).extracting("ref")
+    assertThat(root.getDependencies()).hasSize(2)
+        .extracting("ref")
         .containsExactlyInAnyOrder(
             bomRefOf(bom, "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar"),
             bomRefOf(bom, "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar"));
@@ -511,10 +513,10 @@ public class ApiCycloneDxResourceV2Test
     assertThat(d2.getRef()).isEqualTo(bomRefOf(bom,
         "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar"));
     assertThat(d2.getDependencies()).hasSize(2);
-    assertThat(d2.getDependencies()).extracting("ref").containsExactlyInAnyOrder(
-        bomRefOf(bom, "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar"),
-        bomRefOf(bom, "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar")
-    );
+    assertThat(d2.getDependencies()).extracting("ref")
+        .containsExactlyInAnyOrder(
+            bomRefOf(bom, "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar"),
+            bomRefOf(bom, "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar"));
 
     Dependency d3 = bom.getDependencies().get(3);
     assertThat(d3.getRef()).isEqualTo(bomRefOf(bom, "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar"));
@@ -526,7 +528,8 @@ public class ApiCycloneDxResourceV2Test
   }
 
   private String bomRefOf(final Bom bom, final String purl) {
-    return bom.getComponents().stream()
+    return bom.getComponents()
+        .stream()
         .filter(c -> c.getPurl().equals(purl))
         .findFirst()
         .map(Component::getBomRef)

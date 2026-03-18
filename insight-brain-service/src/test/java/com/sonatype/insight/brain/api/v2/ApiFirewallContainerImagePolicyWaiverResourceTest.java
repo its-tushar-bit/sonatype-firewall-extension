@@ -185,7 +185,9 @@ public class ApiFirewallContainerImagePolicyWaiverResourceTest
 
     ApiPageResult<PolicyContainerWaiverData> pageResult =
         getBodyByTypeReference(response.getBodyBytes(),
-            new TypeReference<ApiPageResult<PolicyContainerWaiverData>>() { });
+            new TypeReference<ApiPageResult<PolicyContainerWaiverData>>()
+            {
+            });
     assertThat(pageResult).isNotNull();
     assertThat(pageResult.getResults()).hasSize(1);
   }
@@ -211,7 +213,9 @@ public class ApiFirewallContainerImagePolicyWaiverResourceTest
 
     ApiPageResult<PolicyContainerWaiverData> pageResult1 =
         getBodyByTypeReference(responsePage1.getBodyBytes(),
-            new TypeReference<ApiPageResult<PolicyContainerWaiverData>>() { });
+            new TypeReference<ApiPageResult<PolicyContainerWaiverData>>()
+            {
+            });
     assertThat(pageResult1).isNotNull();
     assertThat(pageResult1.getResults()).hasSize(1);
 
@@ -223,7 +227,9 @@ public class ApiFirewallContainerImagePolicyWaiverResourceTest
 
     ApiPageResult<PolicyContainerWaiverData> pageResult2 =
         getBodyByTypeReference(responsePage2.getBodyBytes(),
-            new TypeReference<ApiPageResult<PolicyContainerWaiverData>>() { });
+            new TypeReference<ApiPageResult<PolicyContainerWaiverData>>()
+            {
+            });
     assertThat(pageResult2).isNotNull();
     assertThat(pageResult2.getResults()).hasSize(1);
 
@@ -279,7 +285,9 @@ public class ApiFirewallContainerImagePolicyWaiverResourceTest
 
     ApiPageResult<PolicyContainerWaiverData> pageResult =
         getBodyByTypeReference(response.getBodyBytes(),
-            new TypeReference<ApiPageResult<PolicyContainerWaiverData>>() { });
+            new TypeReference<ApiPageResult<PolicyContainerWaiverData>>()
+            {
+            });
     assertThat(pageResult.getResults()).isEmpty();
   }
 

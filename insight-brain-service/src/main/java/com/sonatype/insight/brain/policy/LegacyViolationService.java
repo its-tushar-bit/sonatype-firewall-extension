@@ -96,7 +96,8 @@ public class LegacyViolationService
     ApplicationPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, app);
 
     try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolations(app);
-         TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+        TransactionContext tx = policyViolationDAO.createTransactionContext())
+    {
       clusterLock.lock();
       tx.begin();
       List<PolicyViolation> legacyViolations =
@@ -135,7 +136,8 @@ public class LegacyViolationService
     ApplicationPolicyViolationLogger policyViolationLogger = policyViolationLoggerFactory.newLogger(now, app);
 
     try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolations(app);
-         TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+        TransactionContext tx = policyViolationDAO.createTransactionContext())
+    {
       clusterLock.lock();
       tx.begin();
       List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByApplicationId(tx, app.getId());
@@ -238,8 +240,11 @@ public class LegacyViolationService
       default:
         throw new IllegalStateException("Unknown owner type: " + ownerType);
     }
-    AuditData.get().setData("localSetting",
-        legacyViolationStatusDTO.enabled == null ? "inherit" : legacyViolationStatusDTO.enabled ? "enable" : "disable");
+    AuditData.get()
+        .setData("localSetting",
+            legacyViolationStatusDTO.enabled == null
+                ? "inherit"
+                : legacyViolationStatusDTO.enabled ? "enable" : "disable");
 
     return legacyViolationStatusDTO;
   }
@@ -271,7 +276,7 @@ public class LegacyViolationService
       parentOrgId = org.getParentOrganizationId();
     }
 
-    if (enabled == null ||  (stageTypeId != null && stageTypeId.equals(Stage.ID_COMPLIANCE))) {
+    if (enabled == null || (stageTypeId != null && stageTypeId.equals(Stage.ID_COMPLIANCE))) {
       enabled = false;
     }
 

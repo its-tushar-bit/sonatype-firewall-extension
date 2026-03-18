@@ -83,7 +83,7 @@ public class SastRemediationDAOTest
         .isInstanceOf(UnsupportedOperationException.class)
         .hasMessage("The SastRemediation table does not support update operations");
 
-    //DeleteBySastFindingId
+    // DeleteBySastFindingId
     sastRemediationDAO.deleteBySastFindingId(sastFinding.getId());
     assertThat(sastScanDAO.getById(sastScan.getId())).isNotNull();
     assertThat(sastFindingDAO.getById(sastFinding.getId())).isNotNull();

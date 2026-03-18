@@ -86,8 +86,7 @@ public class IntegrationService
       final Boolean optionalFilterAppsByScmIntegration,
       final Boolean optionalFilterAppsByCiCdIntegration
 
-  )
-  {
+  ) {
     final IntegrationStatusFilter filter =
         getIntegrationStatusFilter(page, pageSize, optionalOrderBy, optionalFilterApplicationNamesBy);
 
@@ -99,8 +98,7 @@ public class IntegrationService
         StringUtils.isNotEmpty(optionalFilterApplicationNamesBy),
         Boolean.TRUE.equals(optionalFilterAppsByScmIntegration),
         Boolean.TRUE.equals(optionalFilterAppsByCiCdIntegration),
-        optionalOrderBy
-    );
+        optionalOrderBy);
 
     final boolean paginateEarly = optionalFilterAppsByScmIntegration == null;
     final int skipCount = (filter.getPage() - 1) * filter.getPageSize();
@@ -108,23 +106,26 @@ public class IntegrationService
     final List<Application> applications = getApplicationsWithReadPermission();
 
     final List<Application> filteredApps =
-        StringUtils.isNotEmpty(filter.getOptionalFilterApplicationNamesBy()) ? applications.stream()
-            .filter(
-                application -> matchesFilter(application.getName(),
-                    filter.getOptionalFilterApplicationNamesBy()))
-            .toList() : applications;
+        StringUtils.isNotEmpty(filter.getOptionalFilterApplicationNamesBy())
+            ? applications.stream()
+                .filter(
+                    application -> matchesFilter(application.getName(),
+                        filter.getOptionalFilterApplicationNamesBy()))
+                .toList()
+            : applications;
 
     final Date sinceUtcDate = new Date(System.currentTimeMillis() - LOOKBACK_WINDOW_MS);
-    
+
     final List<IntegrationStatusDTO> minimalAppSummaries = getIntegrationStatusSummaries(
         filteredApps, sinceUtcDate, optionalFilterAppsByCiCdIntegration);
 
-    final List<IntegrationStatusDTO> possiblyPaginatedSummaries = paginateEarly ?
-        minimalAppSummaries.stream()
+    final List<IntegrationStatusDTO> possiblyPaginatedSummaries = paginateEarly
+        ? minimalAppSummaries.stream()
             .sorted(new IntegrationStatusDTOComparator(filter.getOptionalOrderBy()))
             .skip(skipCount)
             .limit(filter.getPageSize())
-            .toList() : minimalAppSummaries;
+            .toList()
+        : minimalAppSummaries;
 
     final List<IntegrationStatusDTO> enrichedSummaries = possiblyPaginatedSummaries.stream()
         // Set Automated Source Control Feedback status
@@ -132,13 +133,13 @@ public class IntegrationService
             applicationSourceControlService.isAutomatedSourceControlFeedbackEnabledForApp(
                 statusDTO.getApplicationId())))
         // Optionally filter on SCM Integration status
-        .filter(statusDTO ->
-            optionalFilterAppsByScmIntegration == null ||
-                statusDTO.isAutomatedSourceControlFeedbackEnabled() == optionalFilterAppsByScmIntegration)
+        .filter(statusDTO -> optionalFilterAppsByScmIntegration == null ||
+            statusDTO.isAutomatedSourceControlFeedbackEnabled() == optionalFilterAppsByScmIntegration)
         .collect(Collectors.toList());
 
-    final List<IntegrationStatusDTO> completeSummaries = paginateEarly ? enrichedSummaries :
-        enrichedSummaries.stream()
+    final List<IntegrationStatusDTO> completeSummaries = paginateEarly
+        ? enrichedSummaries
+        : enrichedSummaries.stream()
             .sorted(new IntegrationStatusDTOComparator(filter.getOptionalOrderBy()))
             .skip(skipCount)
             .limit(filter.getPageSize())
@@ -197,16 +198,16 @@ public class IntegrationService
       final List<String> filteredAppIds = filteredApps.stream()
           .map(Application::getId)
           .toList();
-      
-      final List<IntegrationStatusSummary> statusSummaries = 
+
+      final List<IntegrationStatusSummary> statusSummaries =
           integrationStatusDAO.getIntegrationStatusBulk(filteredAppIds, sinceUtcDate);
-      
+
       return statusSummaries.stream()
           .map(this::convertToDTO)
           .filter(statusDTO ->
-              // Optionally filter on CI/CD Integration status
-              optionalFilterAppsByCiCdIntegration == null ||
-                  statusDTO.isCiIntegrationEnabled() == optionalFilterAppsByCiCdIntegration)
+          // Optionally filter on CI/CD Integration status
+          optionalFilterAppsByCiCdIntegration == null ||
+              statusDTO.isCiIntegrationEnabled() == optionalFilterAppsByCiCdIntegration)
           .toList();
     }
     catch (UnsupportedOperationException e) {
@@ -250,9 +251,9 @@ public class IntegrationService
         .map(statusDTO -> statusDTO.setCiIntegrationEnabled(
             policyEvaluationDAO.hasCIIntegrationEvaluation(statusDTO.getApplicationId(), sinceUtcDate)))
         .filter(statusDTO ->
-            // Optionally filter on CI/CD Integration status
-            optionalFilterAppsByCiCdIntegration == null ||
-                statusDTO.isCiIntegrationEnabled() == optionalFilterAppsByCiCdIntegration)
+        // Optionally filter on CI/CD Integration status
+        optionalFilterAppsByCiCdIntegration == null ||
+            statusDTO.isCiIntegrationEnabled() == optionalFilterAppsByCiCdIntegration)
         .toList();
   }
 
@@ -273,8 +274,7 @@ public class IntegrationService
       final boolean includesAppNameSearch,
       final boolean includesScmIntegrationFilter,
       final boolean includesCiCdIntegrationFilter,
-      final String orderBy
-  )
+      final String orderBy)
   {
     final Map<String, Object> attributes = new HashMap<>();
 

@@ -55,8 +55,7 @@ public class S3ScanPersistenceServiceTestHelper
 
     s3Client.putObject(
         PutObjectRequest.builder().bucket(getBucketName()).key(key).build(),
-        RequestBody.fromBytes(compressedContent)
-    );
+        RequestBody.fromBytes(compressedContent));
   }
 
   @Override
@@ -68,8 +67,7 @@ public class S3ScanPersistenceServiceTestHelper
 
     s3Client.putObject(
         PutObjectRequest.builder().bucket(getBucketName()).key(key).build(),
-        RequestBody.fromBytes(compressedContent)
-    );
+        RequestBody.fromBytes(compressedContent));
   }
 
   @Override
@@ -82,11 +80,12 @@ public class S3ScanPersistenceServiceTestHelper
           GetObjectRequest.builder()
               .bucket(getBucketName())
               .key(key)
-              .build()
-      ).asByteArray();
+              .build())
+          .asByteArray();
 
       try (GZIPInputStream gis = new GZIPInputStream(new ByteArrayInputStream(responseContents));
-           ByteArrayOutputStream decompressed = new ByteArrayOutputStream()) {
+          ByteArrayOutputStream decompressed = new ByteArrayOutputStream())
+      {
         gis.transferTo(decompressed);
         return decompressed.toString(StandardCharsets.UTF_8);
       }
@@ -124,9 +123,7 @@ public class S3ScanPersistenceServiceTestHelper
           "Expected scan %s/%s to %s, but it %s".formatted(
               applicationId, scanId,
               expected ? "exist" : "not exist",
-              exists ? "exists" : "does not exist"
-          )
-      );
+              exists ? "exists" : "does not exist"));
     }
   }
 
@@ -162,7 +159,8 @@ public class S3ScanPersistenceServiceTestHelper
   private byte[] createCompressedScanContent(String content) throws IOException {
     var baos = new java.io.ByteArrayOutputStream();
     try (var gzipOut = new GZIPOutputStream(baos);
-         var writer = new OutputStreamWriter(gzipOut, StandardCharsets.UTF_8)) {
+        var writer = new OutputStreamWriter(gzipOut, StandardCharsets.UTF_8))
+    {
       writer.write(content);
     }
     return baos.toByteArray();

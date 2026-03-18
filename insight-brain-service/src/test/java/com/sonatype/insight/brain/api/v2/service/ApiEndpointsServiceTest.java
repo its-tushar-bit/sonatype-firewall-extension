@@ -127,8 +127,7 @@ public class ApiEndpointsServiceTest
     when(mockApplication.getClasses()).thenReturn(Set.of(
         ApiEndpointsServiceTestResourceA.class,
         ApiEndpointsServiceTestResourceB.class,
-        ApiEndpointsServiceTestResourceC.class
-    ));
+        ApiEndpointsServiceTestResourceC.class));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
@@ -141,8 +140,7 @@ public class ApiEndpointsServiceTest
   @Test
   public void testGetOpenAPI_DoesNotAddDuplicateTags() throws Exception {
     when(mockApplication.getClasses()).thenReturn(Set.of(
-        ApiEndpointsServiceTestResourceA.class
-    ));
+        ApiEndpointsServiceTestResourceA.class));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
@@ -156,8 +154,7 @@ public class ApiEndpointsServiceTest
   @SuppressWarnings("unchecked")
   public void testGetOpenAPI_EnumValuesAreRestricted() throws Exception {
     when(mockApplication.getClasses()).thenReturn(Set.of(
-        ApiEndpointsServiceTestResourceEnumParameter.class
-    ));
+        ApiEndpointsServiceTestResourceEnumParameter.class));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
@@ -201,8 +198,7 @@ public class ApiEndpointsServiceTest
     when(mockApplication.getClasses()).thenReturn(Set.of(
         ApiEndpointsServiceTestResourceLicensedFeatureA.class,
         ApiEndpointsServiceTestResourceLicensedFeatureB.class,
-        ApiEndpointsServiceTestResourceLicensedFeatureC.class
-    ));
+        ApiEndpointsServiceTestResourceLicensedFeatureC.class));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
@@ -227,8 +223,7 @@ public class ApiEndpointsServiceTest
     when(mockApplication.getClasses()).thenReturn(Set.of(
         ApiEndpointsServiceTestResourceLicensedFeatureA.class,
         ApiEndpointsServiceTestResourceLicensedFeatureB.class,
-        ApiEndpointsServiceTestResourceLicensedFeatureC.class
-    ));
+        ApiEndpointsServiceTestResourceLicensedFeatureC.class));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
@@ -255,8 +250,7 @@ public class ApiEndpointsServiceTest
     when(mockApplication.getClasses()).thenReturn(Set.of(
         ApiEndpointsServiceTestResourceLicensedFeatureA.class,
         ApiEndpointsServiceTestResourceLicensedFeatureB.class,
-        ApiEndpointsServiceTestResourceLicensedFeatureC.class
-    ));
+        ApiEndpointsServiceTestResourceLicensedFeatureC.class));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
@@ -287,8 +281,7 @@ public class ApiEndpointsServiceTest
     when(mockApplication.getClasses()).thenReturn(Set.of(
         ApiEndpointsServiceTestResourceLicensedFeatureA.class,
         ApiEndpointsServiceTestResourceLicensedFeatureB.class,
-        ApiEndpointsServiceTestResourceLicensedFeatureC.class
-    ));
+        ApiEndpointsServiceTestResourceLicensedFeatureC.class));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
@@ -321,8 +314,7 @@ public class ApiEndpointsServiceTest
     SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(false);
     when(mockApplication.getClasses()).thenReturn(Set.of(
         ApiEndpointsServiceTestResourceFeatureFlagA.class,
-        ApiEndpointsServiceTestResourceFeatureFlagB.class
-    ));
+        ApiEndpointsServiceTestResourceFeatureFlagB.class));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
@@ -339,8 +331,7 @@ public class ApiEndpointsServiceTest
     SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(false);
     when(mockApplication.getClasses()).thenReturn(Set.of(
         ApiEndpointsServiceTestResourceFeatureFlagA.class,
-        ApiEndpointsServiceTestResourceFeatureFlagB.class
-    ));
+        ApiEndpointsServiceTestResourceFeatureFlagB.class));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
@@ -359,8 +350,7 @@ public class ApiEndpointsServiceTest
     SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(true);
     when(mockApplication.getClasses()).thenReturn(Set.of(
         ApiEndpointsServiceTestResourceFeatureFlagA.class,
-        ApiEndpointsServiceTestResourceFeatureFlagB.class
-    ));
+        ApiEndpointsServiceTestResourceFeatureFlagB.class));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
@@ -381,8 +371,7 @@ public class ApiEndpointsServiceTest
     SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(true);
     when(mockApplication.getClasses()).thenReturn(Set.of(
         ApiEndpointsServiceTestResourceFeatureFlagA.class,
-        ApiEndpointsServiceTestResourceFeatureFlagB.class
-    ));
+        ApiEndpointsServiceTestResourceFeatureFlagB.class));
 
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
 
@@ -405,8 +394,7 @@ public class ApiEndpointsServiceTest
         // This public resource class returns ApiComponentDTOV2 on one of its methods
         ApiEndpointsServiceTestResourceSchema.class,
         // This experimental resource class does not use OwnerType
-        ApiEndpointsServiceTestExperimentalResource.class
-    ));
+        ApiEndpointsServiceTestExperimentalResource.class));
 
     // We're just getting experimental, so we shouldn't need the OwnerType schema
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.EXPERIMENTAL);
@@ -459,8 +447,11 @@ public class ApiEndpointsServiceTest
     }
   }
 
-  private void assertEndpoints(String result, ApiType expectedApiType, String expectedEndpoint, String expectedTag)
-      throws Exception
+  private void assertEndpoints(
+      String result,
+      ApiType expectedApiType,
+      String expectedEndpoint,
+      String expectedTag) throws Exception
   {
     assertThat(result).isNotBlank();
     OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
@@ -512,8 +503,7 @@ public class ApiEndpointsServiceTest
         ApiEndpointsServiceTestExperimentalResource.class,
         ApiEndpointsServiceTestPrivateResource.class,
         ApiEndpointsServiceTestApiResource.class,
-        ApiEndpointsServiceTestOtherResource.class
-    ));
+        ApiEndpointsServiceTestOtherResource.class));
   }
 
   private interface ApiEndpointsServiceTestInterface

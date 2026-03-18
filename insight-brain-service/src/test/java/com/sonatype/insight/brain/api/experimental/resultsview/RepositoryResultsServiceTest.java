@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.experimental.resultsview;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -843,8 +844,8 @@ public class RepositoryResultsServiceTest
 
     assertThatThrownBy(
         () -> repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("Page and Page size must be greater than 0");
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Page and Page size must be greater than 0");
   }
 
   @Test
@@ -866,14 +867,15 @@ public class RepositoryResultsServiceTest
 
     assertThatThrownBy(
         () -> repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("sort priority cannot be the same for different fields");
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("sort priority cannot be the same for different fields");
   }
 
   @Test
   public void testGetDetails_Repository_MissingRequestParameters() {
     assertThatThrownBy(() -> repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), null))
-        .isInstanceOf(BadRequestException.class).hasMessage("Missing request parameters");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Missing request parameters");
   }
 
   @Test

@@ -45,7 +45,8 @@ public class CompactCommandTest
     assertThat(newSize).isLessThan(originalSize);
     final BigDecimal percentChange = new BigDecimal(100 - newSize * 100.0d / originalSize)
         .setScale(2, RoundingMode.HALF_EVEN);
-    assertThat(logOutput).atInfoLevel().contains("Compacting " + databaseFile.toAbsolutePath())
+    assertThat(logOutput).atInfoLevel()
+        .contains("Compacting " + databaseFile.toAbsolutePath())
         .contains("This might take a while, please be patient.")
         .contains("Successfully compacted " + databaseFile.toAbsolutePath() + " from " + originalSize
             + " bytes to " + newSize + " bytes " + "(reduced by " + percentChange + "%) in");

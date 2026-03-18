@@ -108,7 +108,7 @@ public class WebhookDAOTest
   public void testInsert_NonHttp() {
     assertThatThrownBy(
         () -> tempEntity.newWebhook("ftp://test.com", Collections.singleton(POLICY_MANAGEMENT))).isInstanceOf(
-        BadRequestException.class).hasMessage("Webhook URL must start with http:// or https://");
+            BadRequestException.class).hasMessage("Webhook URL must start with http:// or https://");
   }
 
   @Test
@@ -122,7 +122,7 @@ public class WebhookDAOTest
     assertThatThrownBy(
         () -> tempEntity.newWebhook("http://boom crash", Collections.singleton(POLICY_MANAGEMENT))).isInstanceOf(
             BadRequestException.class)
-        .hasMessage("Webhook URL is invalid: Illegal character in authority at index 7: http://boom crash");
+            .hasMessage("Webhook URL is invalid: Illegal character in authority at index 7: http://boom crash");
   }
 
   @Test
@@ -219,13 +219,19 @@ public class WebhookDAOTest
     policy01 = policyDAO.getById(policy01.getId());
     assertThat(policy01.getNotifications().getWebhookNotifications()).hasSize(2);
     Set<String> collect =
-        policy01.getNotifications().getWebhookNotifications().stream().map(WebhookNotification::getWebhookId)
+        policy01.getNotifications()
+            .getWebhookNotifications()
+            .stream()
+            .map(WebhookNotification::getWebhookId)
             .collect(Collectors.toSet());
     assertThat(collect).containsExactlyInAnyOrder(webhook02.getId(), webhook03.getId());
 
     policy02 = policyDAO.getById(policy02.getId());
     assertThat(policy02.getNotifications().getWebhookNotifications()).hasSize(2);
-    collect = policy01.getNotifications().getWebhookNotifications().stream().map(WebhookNotification::getWebhookId)
+    collect = policy01.getNotifications()
+        .getWebhookNotifications()
+        .stream()
+        .map(WebhookNotification::getWebhookId)
         .collect(Collectors.toSet());
     assertThat(collect).containsExactlyInAnyOrder(webhook02.getId(), webhook03.getId());
 

@@ -292,7 +292,7 @@ public class ApiPolicyWaiverService
 
   /**
    * Creates policy waivers for multiple policy violations using the same waiver options
-   * 
+   *
    * @param ownerType The owner type
    * @param ownerId The owner ID
    * @param bulkWaiversDTO The waiver request containing violation IDs and waiver options
@@ -304,19 +304,19 @@ public class ApiPolicyWaiverService
       final ApiBulkWaiversDTO bulkWaiversDTO)
   {
     validateRequestData(bulkWaiversDTO);
-    
+
     // Deduplicate violation IDs early for accurate validation and processing
     Set<String> uniqueViolationIds = new HashSet<>(bulkWaiversDTO.violationIds());
     validateUniqueViolationIds(uniqueViolationIds);
-    
+
     validateExpiryTime(bulkWaiversDTO.apiWaiverOptionsDTO().expiryTime);
     validateExpireWhenRemediationAvailable(
         bulkWaiversDTO.apiWaiverOptionsDTO().expireWhenRemediationAvailable,
         bulkWaiversDTO.apiWaiverOptionsDTO().matcherStrategy);
-    
+
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     Owner owner = ownerDAO.getById(internalOwnerId);
-    
+
     List<AbstractPolicyViolation> allViolations = new ArrayList<>();
 
     for (String violationId : uniqueViolationIds) {
@@ -325,18 +325,18 @@ public class ApiPolicyWaiverService
         if (abstractPolicyViolation == null) {
           abstractPolicyViolation = repositoryPolicyViolationDAO.getByIdWithConstraintFacts(violationId);
         }
-        
+
         if (abstractPolicyViolation == null) {
           throw new BadRequestException("Could not find policy violation with ID: " + violationId);
         }
-        
+
         allViolations.add(abstractPolicyViolation);
       }
       catch (Exception e) {
         throw new BadRequestException("Error processing policy violation with ID: " + violationId);
       }
     }
-    
+
     if (allViolations.isEmpty()) {
       throw new BadRequestException("No valid policy violations found for the provided violation IDs");
     }
@@ -346,7 +346,8 @@ public class ApiPolicyWaiverService
 
   private void validateExpiryTime(final Date expiryTime) {
     if (Objects.nonNull(expiryTime) &&
-        !expiryTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(LocalDate.now())) {
+        !expiryTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(LocalDate.now()))
+    {
       throw new BadRequestException("Expiration date must be in the future.");
     }
   }
@@ -444,7 +445,8 @@ public class ApiPolicyWaiverService
     for (PolicyWaiver policyWaiver : policyWaivers) {
       PolicyWaiverReason policyWaiverReason = policyWaiverReasons.stream()
           .filter(waiverReason -> waiverReason.getId().equals(policyWaiver.getWaiverReasonId()))
-          .findFirst().orElse(null);
+          .findFirst()
+          .orElse(null);
       apiPolicyWaiverDTOS.add(ApiPolicyWaiverDTO.toDto(policyWaiver, policyWaiverReason, owner));
     }
 
@@ -537,8 +539,7 @@ public class ApiPolicyWaiverService
       policyWaiverReason = policyWaiverReasonDAO.getById(policyWaiver.getWaiverReasonId());
     }
     apiComponentPolicyWaiversDTO.componentPolicyWaivers.add(
-        convert(policyWaiver, policyNameById, ownerById, componentName, policyWaiverReason)
-    );
+        convert(policyWaiver, policyNameById, ownerById, componentName, policyWaiverReason));
   }
 
   private ApiPolicyWaiverDTO convert(
@@ -594,8 +595,9 @@ public class ApiPolicyWaiverService
         .setData("isForContainerImage", policyWaiver.isForContainerImage());
 
     if (policyWaiver.getConstraintFacts() != null) {
-      AuditData.get().setData("policyConstraints",
-          policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(toList()));
+      AuditData.get()
+          .setData("policyConstraints",
+              policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(toList()));
     }
   }
 
@@ -638,12 +640,11 @@ public class ApiPolicyWaiverService
         getByOwnerHierarchyAndPolicyIdWithReadPermission(owner, policyId).stream()
             .filter(policyWaiver -> filterWaiverByCriteria(constraintFactsJson, constraintFacts,
                 componentIdentifier, hash, policyWaiver))
-            .map(policyWaiver ->
-                ApiPolicyWaiverDTO.toDto(
-                    policyWaiver,
-                    policyWaiversReasons.get(policyWaiver.getWaiverReasonId()),
-                    ownerDAO.getById(policyWaiver.getOwnerId()),
-                    violationId))
+            .map(policyWaiver -> ApiPolicyWaiverDTO.toDto(
+                policyWaiver,
+                policyWaiversReasons.get(policyWaiver.getWaiverReasonId()),
+                ownerDAO.getById(policyWaiver.getOwnerId()),
+                violationId))
             .collect(partitioningBy(dto -> hasWaiverExpired(dto.expiryTime), toList()));
 
     ApiPolicyWaiversApplicableToViolationDTO apiPolicyWaivers = new ApiPolicyWaiversApplicableToViolationDTO();
@@ -697,11 +698,13 @@ public class ApiPolicyWaiverService
       }
     }
 
-    //Should exclude Applicable waivers (waivers shown in Applicable Waivers table)
+    // Should exclude Applicable waivers (waivers shown in Applicable Waivers table)
     ApiPolicyWaiversApplicableToViolationDTO applicableWaiversDTO = getApplicableWaivers(violationId);
     List<String> applicableWaiversIds =
-        Stream.of(applicableWaiversDTO.activeWaivers, applicableWaiversDTO.expiredWaivers).flatMap(Collection::stream)
-            .map(apiPolicyWaiverDTO -> apiPolicyWaiverDTO.policyWaiverId).collect(toList());
+        Stream.of(applicableWaiversDTO.activeWaivers, applicableWaiversDTO.expiredWaivers)
+            .flatMap(Collection::stream)
+            .map(apiPolicyWaiverDTO -> apiPolicyWaiverDTO.policyWaiverId)
+            .collect(toList());
     Predicate<PolicyWaiver> isNotAnApplicableWaiver =
         policyWaiver -> !applicableWaiversIds.contains(policyWaiver.getId());
 
@@ -749,7 +752,8 @@ public class ApiPolicyWaiverService
         .getTransitivePolicyViolationsForLastEvaluation(owner.getId(), scanId, componentIdentifier, packageUrl, hash);
 
     Component component = pair.getLeft();
-    List<PolicyViolation> policyViolations = pair.getRight().stream()
+    List<PolicyViolation> policyViolations = pair.getRight()
+        .stream()
         .map(Pair::getLeft)
         .collect(Collectors.toList());
 
@@ -757,7 +761,8 @@ public class ApiPolicyWaiverService
         .setScanId(scanId)
         .setComponentIdentifier(component.getComponentIdentifier())
         .setComponentHash(component.getHash())
-        .setComment(waiverDTO.comment).setData("expiryTime", waiverDTO.expiryTime);
+        .setComment(waiverDTO.comment)
+        .setData("expiryTime", waiverDTO.expiryTime);
 
     createPolicyWaivers(owner, waiverDTO, policyViolations);
   }
@@ -782,7 +787,8 @@ public class ApiPolicyWaiverService
     Pair<Component, List<Pair<PolicyViolation, Component>>> pair = apiPolicyViolationServiceV2
         .getTransitivePolicyViolationsByComponent(stageId, componentIdentifier, packageUrl, hash, policyEvaluations);
     Component component = pair.getLeft();
-    List<PolicyViolation> policyViolations = pair.getRight().stream()
+    List<PolicyViolation> policyViolations = pair.getRight()
+        .stream()
         .map(Pair::getLeft)
         .collect(Collectors.toList());
     ApiWaiverOptionsDTO waiverDTO = apiWaiverOptionsDTO != null ? apiWaiverOptionsDTO : new ApiWaiverOptionsDTO();
@@ -798,8 +804,7 @@ public class ApiPolicyWaiverService
   private void createPolicyWaivers(
       Owner owner,
       ApiWaiverOptionsDTO waiverDTO,
-      List<PolicyViolation> policyViolations
-  )
+      List<PolicyViolation> policyViolations)
   {
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
       tx.begin();
@@ -811,8 +816,7 @@ public class ApiPolicyWaiverService
   private void createBulkPolicyWaivers(
       Owner owner,
       ApiWaiverOptionsDTO waiverDTO,
-      List<AbstractPolicyViolation> abstractPolicyViolations
-  )
+      List<AbstractPolicyViolation> abstractPolicyViolations)
   {
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
       tx.begin();
@@ -827,8 +831,7 @@ public class ApiPolicyWaiverService
       List<PolicyViolation> policyViolations,
       boolean isForContainerImageComponent,
       boolean isForContainerImage,
-      TransactionContext tx
-  )
+      TransactionContext tx)
   {
     waiverDTO.matcherStrategy = waiverDTO.matcherStrategy != null ? waiverDTO.matcherStrategy : EXACT_COMPONENT;
     validateExistingPolicyWaiverReason(waiverDTO.waiverReasonId);
@@ -845,11 +848,9 @@ public class ApiPolicyWaiverService
             waiverDTO.waiverReasonId,
             waiverDTO.expireWhenRemediationAvailable,
             isForContainerImageComponent,
-            isForContainerImage
-        );
+            isForContainerImage);
         policyWaiverTelemetryCreator.sendWaiverTelemetryForOwnerType(
-            policyWaiver, owner.getType(), policyViolation
-        );
+            policyWaiver, owner.getType(), policyViolation);
         try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, false)) {
           auditPolicyWaiver(policyWaiver, tx);
         }
@@ -867,8 +868,7 @@ public class ApiPolicyWaiverService
       Owner owner,
       ApiWaiverOptionsDTO waiverDTO,
       List<AbstractPolicyViolation> abstractPolicyViolations,
-      TransactionContext tx
-  )
+      TransactionContext tx)
   {
     waiverDTO.matcherStrategy = waiverDTO.matcherStrategy != null ? waiverDTO.matcherStrategy : EXACT_COMPONENT;
     validateExistingPolicyWaiverReason(waiverDTO.waiverReasonId);
@@ -887,13 +887,13 @@ public class ApiPolicyWaiverService
             waiverDTO.waiverReasonId,
             waiverDTO.expireWhenRemediationAvailable,
             false,
-            false
-        );
+            false);
         successfulWaivers.put(policyWaiver, abstractPolicyViolation);
       }
       catch (Exception e) {
-        if (e instanceof BadRequestException && e.getMessage() != null && 
-            e.getMessage().contains("This policy waiver already exists.")) {
+        if (e instanceof BadRequestException && e.getMessage() != null &&
+            e.getMessage().contains("This policy waiver already exists."))
+        {
           // Log duplicate waiver and continue processing other violations
           log.debug("Skipping duplicate waiver for PolicyViolation ID {}: {}",
               abstractPolicyViolation.getId(), e.getMessage());
@@ -910,8 +910,7 @@ public class ApiPolicyWaiverService
     if (!successfulWaivers.isEmpty()) {
       for (PolicyWaiver policyWaiver : successfulWaivers.keySet()) {
         policyWaiverTelemetryCreator.sendWaiverTelemetryForOwnerType(
-            policyWaiver, owner.getType(), successfulWaivers.get(policyWaiver)
-        );
+            policyWaiver, owner.getType(), successfulWaivers.get(policyWaiver));
         try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, false)) {
           auditPolicyWaiver(policyWaiver, tx);
         }
@@ -1040,7 +1039,8 @@ public class ApiPolicyWaiverService
 
   @Authorize(permission = Permission.READ)
   ApiPolicyWaiverDTO getPolicyWaiverWithAuthzCheck(
-      @AuthzContext(Key.OWNER) Owner owner, String policyWaiverId)
+      @AuthzContext(Key.OWNER) Owner owner,
+      String policyWaiverId)
   {
     PolicyWaiver policyWaiver = policyWaiverDAO.getByIdAndOwnerIdNotNull(policyWaiverId, owner.getId());
     PolicyWaiverReason policyWaiverReason = policyWaiverReasonDAO.getById(policyWaiver.getWaiverReasonId());
@@ -1166,7 +1166,8 @@ public class ApiPolicyWaiverService
       policyWaiverDAO.deleteAllForContainerImage(tx, internalOwnerId);
       for (PolicyWaiver waiver : policyWaivers) {
         try (AuditSession auditSession = AuditData.get()
-            .recordSubEvent(AuditEvent.DELETE_WAIVER, false)) {
+            .recordSubEvent(AuditEvent.DELETE_WAIVER, false))
+        {
           auditPolicyWaiver(waiver, tx);
         }
       }
@@ -1212,7 +1213,8 @@ public class ApiPolicyWaiverService
 
     Repository repository = repositoryDAO.getById(organization.getRelatedRepositoryId());
     if (repository == null || repository.getRepositoryType() != RepositoryType.proxy
-        || !"docker".equals(repository.getFormat())) {
+        || !"docker".equals(repository.getFormat()))
+    {
       throw new BadRequestException("The related repository must be of type proxy and format docker");
     }
   }

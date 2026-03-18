@@ -304,7 +304,7 @@ public class DependencyTypeConditionTypeTest
       final List<Component> components,
       final Component component,
       final int policyAlertsSize,
-      final String ... messages)
+      final String... messages)
   {
     // Create policy
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
@@ -323,7 +323,13 @@ public class DependencyTypeConditionTypeTest
     List<String> reasons = new ArrayList<>();
     for (PolicyAlert policyAlert : policyAlerts) {
       reasons.add(
-          policyAlert.getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0).getConditionFacts().get(0)
+          policyAlert.getTrigger()
+              .getComponentFacts()
+              .get(0)
+              .getConstraintFacts()
+              .get(0)
+              .getConditionFacts()
+              .get(0)
               .getReason());
     }
     assertThat(reasons).containsExactlyInAnyOrder(messages);

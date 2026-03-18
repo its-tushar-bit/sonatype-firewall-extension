@@ -41,8 +41,7 @@ public class RoiConfigurationAuthzTest
         30,
         15,
         BigDecimal.valueOf(800),
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
   }
 
   @Test
@@ -98,7 +97,6 @@ public class RoiConfigurationAuthzTest
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
         30,
-        BigDecimal.valueOf(800)
-    );
+        BigDecimal.valueOf(800));
   }
 }

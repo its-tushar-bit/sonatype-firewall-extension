@@ -58,8 +58,7 @@ public class SourceControlDefaultBranchCommitHistoryDAO
     return get(
         SELECT_ENTITY + "WHERE entity.applicationId=?1 AND entity.commitHash=?2",
         applicationId,
-        commitHash
-    );
+        commitHash);
   }
 
   public SourceControlDefaultBranchCommitHistory getByApplicationIdAndPolicyEvaluationId(
@@ -69,8 +68,7 @@ public class SourceControlDefaultBranchCommitHistoryDAO
     return get(
         SELECT_ENTITY + "WHERE entity.applicationId=?1 AND entity.policyEvaluationId=?2",
         applicationId,
-        policyEvaluationId
-    );
+        policyEvaluationId);
   }
 
   public List<SourceControlDefaultBranchCommitHistory> getByPolicyEvaluationId(

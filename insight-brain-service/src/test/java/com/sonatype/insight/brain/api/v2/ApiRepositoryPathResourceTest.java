@@ -32,8 +32,10 @@ public class ApiRepositoryPathResourceTest
 
     HttpResponse response =
         restRequest().path(PublicApiPaths.REPOSITORIES_RESOURCE_PATH + "/" + ApiRepositoryPathResource.PATHNAMES_PATH)
-            .parameter("repositoryManager1", repository.getPublicId()).body(
-                Arrays.asList("comp1/-/comp1-1.tgz", "comp2/-/comp2-1.tgz")).post();
+            .parameter("repositoryManager1", repository.getPublicId())
+            .body(
+                Arrays.asList("comp1/-/comp1-1.tgz", "comp2/-/comp2-1.tgz"))
+            .post();
     assertResponseStatus(200, response);
 
     ApiRepositoryPathResponseDTO dto = response.getBody(ApiRepositoryPathResponseDTO.class);

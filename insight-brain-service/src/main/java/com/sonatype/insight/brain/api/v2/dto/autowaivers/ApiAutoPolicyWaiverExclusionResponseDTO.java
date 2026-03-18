@@ -44,7 +44,7 @@ public class ApiAutoPolicyWaiverExclusionResponseDTO
   public String ownerType;
 
   public String hash;
-  
+
   public String scanId;
 
   public ComponentMatcherStrategyForExclusion componentMatchStrategy;
@@ -52,16 +52,16 @@ public class ApiAutoPolicyWaiverExclusionResponseDTO
   public String policyViolationId;
 
   public Integer threatLevel;
-  
+
   public String policyName;
 
   public String componentDisplayName;
 
   public ComponentIdentifier componentIdentifier;
-  
+
   public String vulnerabilityIdentifiers;
-    
+
   public String policyId;
-  
+
   public List<ConstraintFact> constraintFacts;
 }

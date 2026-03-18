@@ -189,8 +189,7 @@ public class PullRequestRemediationServiceTest
         .hasMessage("Branch already exists on remote server for remediation: branch/already/exists");
 
     assertThatLogMessagesEqual(
-        info("Branch already exists on remote server for remediation [branch/already/exists]")
-    );
+        info("Branch already exists on remote server for remediation [branch/already/exists]"));
 
     verifyNoInteractions(mockSourceControlSshService);
   }
@@ -234,7 +233,7 @@ public class PullRequestRemediationServiceTest
     PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
     when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
 
-    //create a manual remediation event
+    // create a manual remediation event
     SourceControlEvent event = new SourceControlEvent()
         .withComponentIdentifier(ComponentIdentifier.createNpmCoordinates("pkg-A", "version-X"))
         .setApplicationId(application.getId())
@@ -247,7 +246,7 @@ public class PullRequestRemediationServiceTest
 
     pullRequestRemediationService.onRemediateComponent(event);
 
-    //verify the isManualRemediation flag is set in the PullRequestRemediationDetails
+    // verify the isManualRemediation flag is set in the PullRequestRemediationDetails
     ArgumentCaptor<PullRequestRemediationDetails> detailsCaptor =
         ArgumentCaptor.forClass(PullRequestRemediationDetails.class);
     verify(mockPullRequestTask).run(detailsCaptor.capture(), any());
@@ -326,8 +325,7 @@ public class PullRequestRemediationServiceTest
         .hasMessage("Branch does not exist on remote server for remediation closing: nonexistent/branch");
 
     assertThatLogMessagesEqual(
-        info("Branch nonexistent/branch does not exist on remote server for remediation closing.")
-    );
+        info("Branch nonexistent/branch does not exist on remote server for remediation closing."));
   }
 
   private void setupBranchExistence(String branchName, boolean exists) throws IOException {
@@ -593,16 +591,16 @@ public class PullRequestRemediationServiceTest
     // Setup GitRepositoryInfo with PAT (no GitHub App, no authenticationType)
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo(
         "https://github.com/org/repo",
-        "https://github.com/org/repo",  // normalizedRepositoryUrl
+        "https://github.com/org/repo", // normalizedRepositoryUrl
         "git@github.com:org/repo.git",
         "username",
-        "test-pat-token",  // PAT token
+        "test-pat-token", // PAT token
         SourceControlProvider.GITHUB,
         "main",
         true, true, true, true, true, true, false,
-        null,  // sourceControlScanTarget
-        null,  // authenticationType = null for PAT
-        null);  // ownerId = null for PAT
+        null, // sourceControlScanTarget
+        null, // authenticationType = null for PAT
+        null); // ownerId = null for PAT
 
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(appId))
         .thenReturn(gitRepositoryInfo);
@@ -627,7 +625,7 @@ public class PullRequestRemediationServiceTest
 
     // Verify the GitRepositoryInfo has PAT authentication fields
     GitRepositoryInfo capturedRepoInfo = repoInfoCaptor.getValue();
-    assertThat(capturedRepoInfo.getAuthenticationType()).isNull();  // PAT = no auth type
+    assertThat(capturedRepoInfo.getAuthenticationType()).isNull(); // PAT = no auth type
     assertThat(capturedRepoInfo.token).isEqualTo("test-pat-token");
     assertThat(capturedRepoInfo.authOwnerId).isNull();
 

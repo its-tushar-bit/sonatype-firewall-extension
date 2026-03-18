@@ -156,8 +156,8 @@ public abstract class InsightFixtureRule<T, F extends InsightTestFixture>
   /**
    * Retrieves any defined rule/fixture annotation on the currently executing test:
    * <ul>
-   *   <li>annotations on the method have higher precedence than the class</li>
-   *   <li>annotations on the subclass have higher precedence than the super class</li>
+   * <li>annotations on the method have higher precedence than the class</li>
+   * <li>annotations on the subclass have higher precedence than the super class</li>
    * </ul>
    */
   private Annotation getAnnotation(final Description description) {
@@ -173,7 +173,8 @@ public abstract class InsightFixtureRule<T, F extends InsightTestFixture>
     Annotation[] annotations = ArrayUtils.addAll(methodAnnotations, classAnnotations);
 
     Optional<Annotation> annotation =
-        Arrays.stream(annotations).filter(a -> getAnnotationTypes().contains(a.annotationType()))
+        Arrays.stream(annotations)
+            .filter(a -> getAnnotationTypes().contains(a.annotationType()))
             .findFirst();
     return annotation.orElse(null);
   }

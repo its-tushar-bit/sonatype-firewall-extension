@@ -98,20 +98,20 @@ public class ComponentMatchEnrichmentService
   {
     return fixedVersionsList.stream()
         .filter(componentFixedVersions -> componentFixedVersions.getPackageUrl() != null)
-        .flatMap(componentFixedVersions -> componentFixedVersions.getSecurityIssues().stream()
+        .flatMap(componentFixedVersions -> componentFixedVersions.getSecurityIssues()
+            .stream()
             .filter(range -> cveIds.contains(range.getIdentifier()))
             .filter(range -> range.getNearestFixedUpgrade() != null && !range.getNearestFixedUpgrade().isEmpty())
-            .map(range -> new String[] {
-                componentFixedVersions.getPackageUrl(),
-                range.getIdentifier(),
-                range.getNearestFixedUpgrade()
+            .map(range -> new String[]{
+              componentFixedVersions.getPackageUrl(),
+              range.getIdentifier(),
+              range.getNearestFixedUpgrade()
             }))
         .collect(Tables.toTable(
             row -> row[0],
             row -> row[1],
             row -> row[2],
-            HashBasedTable::create
-        ));
+            HashBasedTable::create));
   }
 
   public ApplicationComponentMatchDTO enrichMatchWithCache(
@@ -149,8 +149,7 @@ public class ComponentMatchEnrichmentService
         recommendedAction,
         match.getActiveWaiver(),
         match.getViolating(),
-        match.getReportId()
-    );
+        match.getReportId());
     enriched.setBaseUrl(baseUrl.get());
     return enriched;
   }
@@ -214,8 +213,7 @@ public class ComponentMatchEnrichmentService
         recommendedAction,
         match.getActiveWaiver(),
         match.getViolating(),
-        match.getReportId()
-    );
+        match.getReportId());
     enriched.setBaseUrl(baseUrl.get());
     return enriched;
   }

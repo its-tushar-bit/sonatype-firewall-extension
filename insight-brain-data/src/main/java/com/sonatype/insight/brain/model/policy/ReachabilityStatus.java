@@ -9,7 +9,9 @@ import java.util.stream.Stream;
 
 public enum ReachabilityStatus
 {
-  REACHABLE("reachable"), NON_REACHABLE("non-reachable"), UNKNOWN("unknown");
+  REACHABLE("reachable"),
+  NON_REACHABLE("non-reachable"),
+  UNKNOWN("unknown");
 
   private final String name;
 

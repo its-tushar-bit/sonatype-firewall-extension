@@ -85,14 +85,12 @@ public class PullRequestStatusService
       Status status = gitApiClient.createPullRequestStatus(pullRequestId, statusRequest);
       log.info(
           "Pull request status sent for repository: {}, pull request: {} state: {}, response: {}",
-          gitRepositoryInfo.normalizedRepositoryUrl, pullRequestId, statusRequest.getState(), status
-      );
+          gitRepositoryInfo.normalizedRepositoryUrl, pullRequestId, statusRequest.getState(), status);
     }
     catch (IOException e) {
       String message = String.format(
           "Failed to update pull request status for repository: %s, pull request Id: %s reason: %s",
-          gitRepositoryInfo.normalizedRepositoryUrl, pullRequestId, e.getMessage()
-      );
+          gitRepositoryInfo.normalizedRepositoryUrl, pullRequestId, e.getMessage());
       throw new SourceControlException(message, e);
     }
   }

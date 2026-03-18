@@ -24,11 +24,12 @@ public class ViolationsByCategoryDTO
   public ViolationsByCategoryDTO() {
   }
 
-  public ViolationsByCategoryDTO(String timePeriodName,
-                                 Integer security,
-                                 Integer license,
-                                 Integer quality,
-                                 Integer other)
+  public ViolationsByCategoryDTO(
+      String timePeriodName,
+      Integer security,
+      Integer license,
+      Integer quality,
+      Integer other)
   {
     this.timePeriodName = timePeriodName;
     this.security = security;

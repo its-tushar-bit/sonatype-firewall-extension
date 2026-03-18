@@ -42,7 +42,8 @@ public class PullRequestDetailsBase
 {
   @VisibleForTesting
   static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
-      .ofPattern("yyyy-MM-dd HH:mm:ss O").withLocale(Locale.ENGLISH);
+      .ofPattern("yyyy-MM-dd HH:mm:ss O")
+      .withLocale(Locale.ENGLISH);
 
   private static final Pattern CVE_REGEX_PATTERN = Pattern.compile("((CVE|SONATYPE|sonatype)-\\d+-\\d+)");
 
@@ -71,9 +72,9 @@ public class PullRequestDetailsBase
    * Gets the constraint details for the given list of constraints
    *
    * @param constraintFactsInput A list of constraint facts for a specific policy violation. These should all be
-   *                             relevant to the same policy
-   * @param baseUrl              The baseUrl of the IQ server
-   * @param convertCveToUrl      Convert any CVE references to markdown links
+   *          relevant to the same policy
+   * @param baseUrl The baseUrl of the IQ server
+   * @param convertCveToUrl Convert any CVE references to markdown links
    * @return A list of maps, each map in the list contains the details for a specific constraint
    */
   @VisibleForTesting
@@ -106,8 +107,8 @@ public class PullRequestDetailsBase
    * into a single string, all other conditions will each have it's own string
    *
    * @param constraintFacts The list of constraints that needs to be processed to get the condition summaries
-   * @param baseUrl         The baseUrl of the IQ server
-   * @param convertCveToUrl      Convert any CVE references to markdown links
+   * @param baseUrl The baseUrl of the IQ server
+   * @param convertCveToUrl Convert any CVE references to markdown links
    * @return The list of condition summaries for the given constraints
    */
   @VisibleForTesting
@@ -128,7 +129,7 @@ public class PullRequestDetailsBase
     final List<String> conditionReasons = new ArrayList<>();
     getViolationSummaryForSecurityConditions(conditionFactsByType.get(Boolean.TRUE), baseUrl, convertCveToUrl,
         reducedSecurityData, applicationPublicId, scanId)
-        .ifPresent(conditionReasons::add);
+            .ifPresent(conditionReasons::add);
     conditionReasons.addAll(getViolationSummariesForNonSecurityConditions(conditionFactsByType.get(Boolean.FALSE)));
 
     return conditionReasons;
@@ -138,9 +139,9 @@ public class PullRequestDetailsBase
    * Gets the summarised security condition string for the given conditions
    *
    * @param securityConditionFacts A list of security conditions that were violated that needs to be processed,
-   *                               the optional will be empty of no security conditions are present
-   * @param baseUrl                The baseUrl of the IQ Server
-   * @param convertCveToUrl        Convert any CVE references to markdown links
+   *          the optional will be empty of no security conditions are present
+   * @param baseUrl The baseUrl of the IQ Server
+   * @param convertCveToUrl Convert any CVE references to markdown links
    * @return A single string, with comma delimited values for all security threats, prefixed with the required string
    */
   @VisibleForTesting
@@ -244,9 +245,9 @@ public class PullRequestDetailsBase
    * Gets the details for each of the violated policies
    *
    * @param policyViolations A list of all policy violations, the list can contain multiple violations for the same
-   *                         policy
-   * @param baseUrl          The baseUrl of the IQ server
-   * @param convertCveToUrl  Convert any CVE references to markdown links
+   *          policy
+   * @param baseUrl The baseUrl of the IQ server
+   * @param convertCveToUrl Convert any CVE references to markdown links
    * @return A list of maps, each map in the list contains the details for violations on a specific policy
    */
   @VisibleForTesting
@@ -261,14 +262,14 @@ public class PullRequestDetailsBase
     return policyViolations
         .stream()
         .collect(groupingBy(
-            AbstractPolicyViolation::getPolicyId
-        ))
+            AbstractPolicyViolation::getPolicyId))
         .values()
         .stream()
         .sorted((o1, o2) -> Integer.compare(o2.get(0).getThreatLevel(), o1.get(0).getThreatLevel()))
         .map(groupedPolicyViolations -> ImmutableMap.<String, Object>builder()
             .put("threatLevel", groupedPolicyViolations.get(0).getThreatLevel())
-            .put("name", groupedPolicyViolations.get(0).getPolicyName()).put("constraints",
+            .put("name", groupedPolicyViolations.get(0).getPolicyName())
+            .put("constraints",
                 PullRequestDetailsBase.getConstraintsForPolicyViolationsPerPolicy(groupedPolicyViolations, baseUrl,
                     convertCveToUrl, reducedSecurityData, applicationPublicId, scanId))
             .build())
@@ -279,8 +280,8 @@ public class PullRequestDetailsBase
    * Gets the constraint details for each of the specified policy violations
    *
    * @param policyViolations A list of policy violations, these should all be for the same policy id
-   * @param baseUrl          The baseUrl of the IQ server
-   * @param convertCveToUrl  Convert any CVE references to markdown links
+   * @param baseUrl The baseUrl of the IQ server
+   * @param convertCveToUrl Convert any CVE references to markdown links
    * @return A list of maps, each map in the list contains the details for a specific constraint
    */
   @VisibleForTesting
@@ -293,11 +294,11 @@ public class PullRequestDetailsBase
       final String scanId)
   {
     return getConstraintDetailsForConstraints(policyViolations
-            .stream()
-            .sorted((o1, o2) -> Integer.compare(o2.getThreatLevel(), o1.getThreatLevel()))
-            .map(PolicyViolation::getConstraintFacts)
-            .flatMap(Collection::stream)
-            .collect(toList()),
+        .stream()
+        .sorted((o1, o2) -> Integer.compare(o2.getThreatLevel(), o1.getThreatLevel()))
+        .map(PolicyViolation::getConstraintFacts)
+        .flatMap(Collection::stream)
+        .collect(toList()),
         baseUrl, convertCveToUrl, reducedSecurityData, applicationPublicId, scanId);
   }
 

@@ -174,8 +174,9 @@ public class SpdxResultHandlerTest
     String filteredContent = spdxResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom bom = assertFilteredSbomFile(filteredContent, 5);
     List<Component> components = bom.getComponents();
-    assertThat(components).extracting(Component::getName).containsExactlyInAnyOrder(
-        "iq_application_SCM Test 1", "log4j-core", "log4j", "log4j-api", "joda-time");
+    assertThat(components).extracting(Component::getName)
+        .containsExactlyInAnyOrder(
+            "iq_application_SCM Test 1", "log4j-core", "log4j", "log4j-api", "joda-time");
     assertThat(components).extracting(Component::getVersion)
         .containsExactlyInAnyOrder("76b10b862e7b42009f2415097620928c", "2.13.2", "2.13.2", "2.11.2", null);
     // 4 purls were collected: 2 original purls, 1 from cpe, 1 from coordinates, 1 skipped (hash beats coordinates)
@@ -284,7 +285,7 @@ public class SpdxResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     assertThatExceptionOfType(RuntimeException.class).isThrownBy(
-            () -> spdxResultHandler.handleAndFilterContents(content, thirdPartyFile))
+        () -> spdxResultHandler.handleAndFilterContents(content, thirdPartyFile))
         .withMessage("Error filtering SPDX file " + path);
 
     assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId())).isEmpty();
@@ -365,7 +366,7 @@ public class SpdxResultHandlerTest
     when(thirdPartyScanContext.isValid()).thenReturn(true);
 
     assertThatExceptionOfType(RuntimeException.class).isThrownBy(
-            () -> spdxResultHandler.handleAndFilterContents(content, thirdPartyFile))
+        () -> spdxResultHandler.handleAndFilterContents(content, thirdPartyFile))
         .withMessage("Error filtering SPDX file " + path);
 
     assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId())).isEmpty();
@@ -483,8 +484,7 @@ public class SpdxResultHandlerTest
           "MPL-1.1",
           "COMMERCIAL",
           "PUBLIC-DOMAIN",
-          "UNSPECIFIED"
-      );
+          "UNSPECIFIED");
 
       assertThat(licenseNameSet).containsExactlyInAnyOrder(
           "Apache-2.0",
@@ -498,8 +498,7 @@ public class SpdxResultHandlerTest
           "MPL-1.1",
           "COMMERCIAL",
           "Public Domain",
-          "Not Provided"
-      );
+          "Not Provided");
     }
     assertComponentRef(thirdPartyFile.getId());
   }
@@ -537,8 +536,7 @@ public class SpdxResultHandlerTest
       Set<String> refIdSet =
           allSecurityRecords.stream().map(ThirdPartyCoordinateSecurity::getRefId).collect(Collectors.toSet());
       assertThat(refIdSet).containsExactlyInAnyOrder(
-          "CVE-2021-45046", "CVE-2021-45105", "CVE-2020-15250", "sonatype-2021-4560", "GHSA-5469-c5p2-xv5g"
-      );
+          "CVE-2021-45046", "CVE-2021-45105", "CVE-2020-15250", "sonatype-2021-4560", "GHSA-5469-c5p2-xv5g");
       assertThat(allSecurityRecords).allMatch(
           s -> s.getSbomMetadataId().equals(thirdPartyScanContext.getSbomMetadataId()));
 
@@ -856,9 +854,7 @@ public class SpdxResultHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_invalidSbom_skipSbomValidationFeatureEnabled_telemetryData()
-      throws Exception
-  {
+  public void testHandleAndFilterContents_invalidSbom_skipSbomValidationFeatureEnabled_telemetryData() throws Exception {
     SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
 
     String sbomContent = getSbomXmlFile("spdx-invalid.xml");
@@ -959,8 +955,7 @@ public class SpdxResultHandlerTest
   private Bom assertFilteredSbomFile(
       final String content,
       final int expectedComponentCount,
-      final Algorithm checksumAlgorithm)
-      throws Exception
+      final Algorithm checksumAlgorithm) throws Exception
   {
     assertThat(content).isNotNull();
     Bom bom = SbomTestHelper.parseToCycloneDxBom(content);
@@ -973,8 +968,7 @@ public class SpdxResultHandlerTest
       assertThat(component.getType()).isNotNull();
       assertThat(component).satisfiesAnyOf(
           c -> assertThat(c.getVersion()).isNotNull(),
-          c -> assertThat(c.getProperties()).hasSize(2)
-      );
+          c -> assertThat(c.getProperties()).hasSize(2));
 
       if (checksumAlgorithm != null) {
         assertThat(component.getHashes()).isNotNull();
@@ -983,7 +977,9 @@ public class SpdxResultHandlerTest
       else {
         assertThat(component.getHashes()).isNull();
       }
-      assertThat(component.getProperties().stream().filter(p -> p.getName().equals(PROPERTY_COMPONENT_REF))
+      assertThat(component.getProperties()
+          .stream()
+          .filter(p -> p.getName().equals(PROPERTY_COMPONENT_REF))
           .findFirst()).isNotEmpty();
     }
     return bom;

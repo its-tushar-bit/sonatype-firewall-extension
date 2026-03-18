@@ -8,8 +8,8 @@ package com.sonatype.clm.testing.functional.utils;
 import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.Keys;
 
-public class InputUtils 
-{  
+public class InputUtils
+{
   public static void clearInput(SelenideElement element) {
 
     while (!element.getAttribute("value").equals("")) {

@@ -79,8 +79,7 @@ public class PullRequestPollingSchedulerTest
     // then: no invocations of polling yet
     verify(pullRequestPollingService, never()).fetchAndSendPullRequestsForCommenting();
     assertThatLogMessagesEqual(
-        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 2 second(s)")
-    );
+        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 2 second(s)"));
 
     // when: wait 3 polling cycles
     Thread.sleep(3000);
@@ -94,8 +93,7 @@ public class PullRequestPollingSchedulerTest
         debug("Commencing pull request polling cycle"),
         debug("Pull request polling cycle complete"),
         debug("Commencing pull request polling cycle"),
-        debug("Pull request polling cycle complete")
-    );
+        debug("Pull request polling cycle complete"));
 
     // when: stop scheduler and wait (2 intervals)
     scheduler.deregister();
@@ -111,8 +109,7 @@ public class PullRequestPollingSchedulerTest
         debug("Pull request polling cycle complete"),
         debug("Commencing pull request polling cycle"),
         debug("Pull request polling cycle complete"),
-        info("Stopped SCM pull request discovery")
-    );
+        info("Stopped SCM pull request discovery"));
   }
 
   @Test
@@ -121,7 +118,7 @@ public class PullRequestPollingSchedulerTest
     final int delaySeconds = 1;
     final int intervalSeconds = 1;
     PullRequestPollingScheduler scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker,
-            mockApiConfigFeaturesService, delaySeconds, intervalSeconds, mockShutdownHandler, scmNodeProcessor);
+        mockApiConfigFeaturesService, delaySeconds, intervalSeconds, mockShutdownHandler, scmNodeProcessor);
     doThrow(new RuntimeException("some runtime exception")).when(pullRequestPollingService)
         .fetchAndSendPullRequestsForCommenting();
     when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
@@ -137,8 +134,7 @@ public class PullRequestPollingSchedulerTest
     assertThatLogMessagesEqual(
         info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 1 second(s)"),
         debug("Commencing pull request polling cycle"),
-        error("Failed to run pull request discovery cycle: some runtime exception")
-    );
+        error("Failed to run pull request discovery cycle: some runtime exception"));
 
     // when: throw runtime exception instead and wait another interval
     doThrow(new RuntimeException("some runtime exception")).when(pullRequestPollingService)
@@ -152,8 +148,7 @@ public class PullRequestPollingSchedulerTest
         debug("Commencing pull request polling cycle"),
         error("Failed to run pull request discovery cycle: some runtime exception"),
         debug("Commencing pull request polling cycle"),
-        error("Failed to run pull request discovery cycle: some runtime exception")
-    );
+        error("Failed to run pull request discovery cycle: some runtime exception"));
 
     // when: stop throwing and wait
     doNothing().when(pullRequestPollingService).fetchAndSendPullRequestsForCommenting();
@@ -168,8 +163,7 @@ public class PullRequestPollingSchedulerTest
         debug("Commencing pull request polling cycle"),
         error("Failed to run pull request discovery cycle: some runtime exception"),
         debug("Commencing pull request polling cycle"),
-        debug("Pull request polling cycle complete")
-    );
+        debug("Pull request polling cycle complete"));
 
     // cleanup: stop the scheduler so as not to interfere with other tests
     scheduler.deregister();
@@ -188,8 +182,7 @@ public class PullRequestPollingSchedulerTest
 
     // then: PR polling scheduler is started, but it does nothing
     assertThatLogMessagesEqual(
-        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 2 second(s)")
-    );
+        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 2 second(s)"));
 
     Thread.sleep(2500);
 
@@ -213,8 +206,7 @@ public class PullRequestPollingSchedulerTest
 
     // then: PR polling scheduler is started, but it does nothing
     assertThatLogMessagesEqual(
-        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 2 second(s)")
-    );
+        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 2 second(s)"));
 
     Thread.sleep(2500);
 
@@ -258,8 +250,7 @@ public class PullRequestPollingSchedulerTest
 
     // then: PR polling scheduler is started, but it does nothing
     assertThatLogMessagesEqual(
-        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 2 second(s)")
-    );
+        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 2 second(s)"));
 
     Thread.sleep(2500);
 

@@ -82,7 +82,8 @@ public class ClearRolePermissionCacheTest
     clearRolePermissionCache.clearRolePermissionCache();
 
     try (MockedStatic<RolePermissionDAO> rolePermissionDAO = Mockito.mockStatic(RolePermissionDAO.class,
-        CALLS_REAL_METHODS)) {
+        CALLS_REAL_METHODS))
+    {
       clearRolePermissionCache.clearRolePermissionCache();
 
       rolePermissionDAO.verify(RolePermissionDAO::clearRolePermissionCache);

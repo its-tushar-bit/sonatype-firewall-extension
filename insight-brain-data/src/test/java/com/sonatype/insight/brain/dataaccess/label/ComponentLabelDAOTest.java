@@ -93,8 +93,9 @@ public class ComponentLabelDAOTest
     Label label = newLabel("label", application.getId());
 
     ComponentLabel compLabel = new ComponentLabel(application.getOrganizationId(), label.getId(), hash);
-    assertThatThrownBy(() -> dao.insert(compLabel)).isInstanceOf(BadRequestException.class).hasMessage(
-        "The label 'label' is not applicable for the selected context " + application.getOrganizationId() + ".");
+    assertThatThrownBy(() -> dao.insert(compLabel)).isInstanceOf(BadRequestException.class)
+        .hasMessage(
+            "The label 'label' is not applicable for the selected context " + application.getOrganizationId() + ".");
   }
 
   @Test
@@ -116,8 +117,9 @@ public class ComponentLabelDAOTest
     ComponentLabel compLabel = new ComponentLabel(application.getId(), label.getId(), hash);
     dao.insert(compLabel);
     compLabel.setOwnerId(application.getOrganizationId());
-    assertThatThrownBy(() -> dao.update(compLabel)).isInstanceOf(BadRequestException.class).hasMessage(
-        "The label 'label' is not applicable for the selected context " + application.getOrganizationId() + ".");
+    assertThatThrownBy(() -> dao.update(compLabel)).isInstanceOf(BadRequestException.class)
+        .hasMessage(
+            "The label 'label' is not applicable for the selected context " + application.getOrganizationId() + ".");
   }
 
   @Test

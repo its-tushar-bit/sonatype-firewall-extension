@@ -29,9 +29,10 @@ import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
  */
 public class PolicyThreatsAdapter
 {
-  public static PolicyThreats createPolicyThreats(List<PolicyViolation> policyViolations,
-                                                  String stageTypeId,
-                                                  Map<String, Owner> policyIdPolicyOwnerIdMap)
+  public static PolicyThreats createPolicyThreats(
+      List<PolicyViolation> policyViolations,
+      String stageTypeId,
+      Map<String, Owner> policyIdPolicyOwnerIdMap)
   {
     Map<String, PolicyThreats.Component> components = processPolicyViolations(policyViolations,
         policyIdPolicyOwnerIdMap);
@@ -44,8 +45,9 @@ public class PolicyThreatsAdapter
     return policyThreats;
   }
 
-  private static Map<String, PolicyThreats.Component> processPolicyViolations(List<PolicyViolation> policyViolations,
-                                                                      Map<String, Owner> policyIdPolicyOwnerIdMap)
+  private static Map<String, PolicyThreats.Component> processPolicyViolations(
+      List<PolicyViolation> policyViolations,
+      Map<String, Owner> policyIdPolicyOwnerIdMap)
   {
     Map<String, PolicyThreats.Component> components = new LinkedHashMap<>();
 
@@ -68,7 +70,8 @@ public class PolicyThreatsAdapter
         if (!violation.isWaived()) {
           component.activeViolations.add(policyThreatsPolicyViolation);
           if (!violation.isLegacyViolation() && (violation.getThreatLevel() > component.policyThreatLevel ||
-              component.policyId == null)) {
+              component.policyId == null))
+          {
             component.policyId = violation.getPolicyId();
             component.policyName = violation.getPolicyName();
             component.policyThreatLevel = violation.getThreatLevel();
@@ -83,8 +86,9 @@ public class PolicyThreatsAdapter
     return components;
   }
 
-  private static PolicyThreats.PolicyViolation toPolicyThreatsPolicyViolation(PolicyViolation violation,
-                                                                              Map<String, Owner> policyIdPolicyOwnerMap)
+  private static PolicyThreats.PolicyViolation toPolicyThreatsPolicyViolation(
+      PolicyViolation violation,
+      Map<String, Owner> policyIdPolicyOwnerMap)
   {
     PolicyThreats.PolicyViolation result = new PolicyThreats.PolicyViolation();
     result.policyId = violation.getPolicyId();

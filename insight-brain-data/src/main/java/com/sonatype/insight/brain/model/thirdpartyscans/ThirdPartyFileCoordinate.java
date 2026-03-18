@@ -30,7 +30,7 @@ public class ThirdPartyFileCoordinate
     implements HasStringId
 {
   public ThirdPartyFileCoordinate() {
-    //noop
+    // noop
   }
 
   public ThirdPartyFileCoordinate(
@@ -201,8 +201,10 @@ public class ThirdPartyFileCoordinate
   }
 
   public Set<String> getIdentificationSourcesAsSet() {
-    return StringUtils.isBlank(identificationSources) ? Collections.emptySet() : Sets.newHashSet(
-        identificationSources.split(","));
+    return StringUtils.isBlank(identificationSources)
+        ? Collections.emptySet()
+        : Sets.newHashSet(
+            identificationSources.split(","));
   }
 
   public void setIdentificationSources(String identificationSources) {
@@ -264,12 +266,13 @@ public class ThirdPartyFileCoordinate
 
   /**
    * Overrides the current object with the values of the other object.
+   *
    * @param other
    */
   public void override(ThirdPartyFileCoordinate other) {
-    //calculate dependency string before override
+    // calculate dependency string before override
     String thisDependency = buildDependencyFromCoordinates(this);
-    //do override
+    // do override
     setHash(other.getHash());
     setComponentRef(other.getComponentRef());
     setSource(other.getSource());
@@ -283,7 +286,7 @@ public class ThirdPartyFileCoordinate
     setDependencyType(other.getDependencyType());
     setMatchStateId(other.getMatchStateId());
 
-    //merge occurrences, filenames and identification sources
+    // merge occurrences, filenames and identification sources
     mergeOccurrences(other, thisDependency);
     mergeFilenames(other);
     mergeIdentificationSources(other);
@@ -291,6 +294,7 @@ public class ThirdPartyFileCoordinate
 
   /**
    * Includes the mergable attributes from other object with the current object.
+   *
    * @param other
    */
   public void merge(ThirdPartyFileCoordinate other) {

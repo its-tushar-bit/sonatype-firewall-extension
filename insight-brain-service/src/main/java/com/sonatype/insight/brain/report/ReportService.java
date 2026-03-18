@@ -244,8 +244,10 @@ public class ReportService
   }
 
   @Trace
-  public ApplicationReport fetchReport(final Application app, final String scanId, final String stageTypeId)
-      throws IOException
+  public ApplicationReport fetchReport(
+      final Application app,
+      final String scanId,
+      final String stageTypeId) throws IOException
   {
     ApplicationReport applicationReport =
         reportDataStore.downloadReport(app, scanId, this::processThirdPartyData);
@@ -257,9 +259,10 @@ public class ReportService
     return applicationReport;
   }
 
-  //visible for testing
-  void includeThirdPartyData(final ApplicationReport applicationReport, final ThirdPartyApplicationReportDTO dto)
-      throws IOException
+  // visible for testing
+  void includeThirdPartyData(
+      final ApplicationReport applicationReport,
+      final ThirdPartyApplicationReportDTO dto) throws IOException
   {
     if (dto != null) {
       applicationReport.appendToReport(dto);
@@ -267,8 +270,10 @@ public class ReportService
   }
 
   @VisibleForTesting
-  void processThirdPartyData(final String scanId, final ApplicationReport tempApplicationReport, final String appId)
-      throws IOException
+  void processThirdPartyData(
+      final String scanId,
+      final ApplicationReport tempApplicationReport,
+      final String appId) throws IOException
   {
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = thirdPartyDataService.getScanData(scanId);
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportForInfrastructureAsCodeDTO =
@@ -283,7 +288,8 @@ public class ReportService
 
       if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER) ||
           !sbomMetadataUtils.hasSbomMetadata(scanId) ||
-          sbomMetadataUtils.hasMaxActiveSbomLimitBeenReached()) {
+          sbomMetadataUtils.hasMaxActiveSbomLimitBeenReached())
+      {
         thirdPartyDataService.deleteByScanId(scanId);
       }
     }
@@ -347,13 +353,10 @@ public class ReportService
     return buf != null ? buf.toString() : path;
   }
 
-  private ReportEntry loadCombinedSecurityData(ApplicationReport applicationReport)
-      throws IOException
-  {
+  private ReportEntry loadCombinedSecurityData(ApplicationReport applicationReport) throws IOException {
     Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
         SECURITY_JSON.getName(),
-        THIRD_PARTY_SECURITY_JSON.getName()
-    ));
+        THIRD_PARTY_SECURITY_JSON.getName()));
     ReportEntry securityReportEntry = entries.get(SECURITY_JSON.getName());
     ReportEntry thirdPartyReportEntry = entries.get(THIRD_PARTY_SECURITY_JSON.getName());
     if (securityReportEntry != null && thirdPartyReportEntry != null) {
@@ -417,8 +420,7 @@ public class ReportService
     Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
         DATA_JSON.getName(),
         TEMPLATE_PROPERTIES.getName(),
-        SUMMARY_JSON.getName()
-    ));
+        SUMMARY_JSON.getName()));
     final ContainerNode<?> data = JsonUtils.parse(entries.get(DATA_JSON.getName()).buf);
     boolean expandedCoverage = data.path("globals").path("expandedCoverage").booleanValue();
     if (expandedCoverage) {
@@ -460,9 +462,7 @@ public class ReportService
   }
 
   // visible for testing
-  void setContainerScannerMode(ReportEntry reportSummary, ReportMetadataDTO metadata)
-      throws IOException
-  {
+  void setContainerScannerMode(ReportEntry reportSummary, ReportMetadataDTO metadata) throws IOException {
     if (reportSummary == null) {
       return;
     }
@@ -543,8 +543,7 @@ public class ReportService
       final RepositoryMatcher repositoryMatcher,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
-      final Configuration configuration)
-      throws IOException
+      final Configuration configuration) throws IOException
   {
     long start = System.currentTimeMillis();
 
@@ -676,8 +675,7 @@ public class ReportService
         LICENSES_JSON.getName(),
         SECURITY_JSON.getName(),
         DEPENDENCIES_JSON.getName(),
-        PARTIAL_MATCHED_JSON.getName()
-    ));
+        PARTIAL_MATCHED_JSON.getName()));
 
     ContainerNode<?> bomJsonData = entries.get(BOM_JSON.getName());
     ContainerNode<?> dataJson = entries.get(DATA_JSON.getName());
@@ -741,8 +739,7 @@ public class ReportService
       final Application application,
       final String scanId,
       final String stageTypeId,
-      final JsonNode dependenciesJsonData
-  )
+      final JsonNode dependenciesJsonData)
   {
     try {
       if (dependenciesJsonData == null) {
@@ -792,12 +789,12 @@ public class ReportService
 
         InnerSourceVersion latestVersion = innerSourceVersionDAO.getByInnerSourceApplicationIdAndStage(
             innerSourceApplicationId,
-            StageTypes.RELEASE.getId()
-        );
+            StageTypes.RELEASE.getId());
 
         if (latestVersion == null ||
             !InnerSourceUtils.isValidAutomatedVersionUpdate(innerSourceComponentWithHighestVersion,
-                latestVersion.getLatestVersion())) {
+                latestVersion.getLatestVersion()))
+        {
           continue;
         }
 
@@ -849,8 +846,7 @@ public class ReportService
                 .fromComponentIdentifier(componentIdentifier)
                 .createAlternativeVersion(null)
                 .getPackageUrl(),
-            Collectors.toSet()
-        ));
+            Collectors.toSet()));
 
     List<InnerSourceApplication> innerSourceApps = innerSourceApplicationDAO.getByPackageUrls(directDepsWithoutVersion);
 
@@ -948,7 +944,7 @@ public class ReportService
       ComponentIdentifier componentIdentifier =
           ComponentIdentifierAdapter.getComponentIdentifier(bomJsonNode);
       if (componentIdentifier != null) {
-        //for total, count only the components with any valid component identifier. unknown components are not counted
+        // for total, count only the components with any valid component identifier. unknown components are not counted
         cpeResultsTelemetry.incrementReportComponentTotal();
         if (ComponentIdentifier.isFormatValidForCpeMatching(componentIdentifier.getFormat())) {
           cpeResultsTelemetry.incrementCandidateFormatsCount();
@@ -962,7 +958,8 @@ public class ReportService
             JsonUtils.asPojo(bomJsonNode.get("analyzerFeatures"), AnalyzerFeatures.class);
         String identificationSource = bomJsonNode.get("identificationSource").asText();
         if (IdentificationSource.SBOM.getId().equals(identificationSource) &&
-            AnalysisType.CPE.equals(analyzerFeatures.getAnalysisType())) {
+            AnalysisType.CPE.equals(analyzerFeatures.getAnalysisType()))
+        {
           cpeResultsTelemetry.incrementCpeMatchedComponentCount();
         }
       }
@@ -1251,7 +1248,8 @@ public class ReportService
       final CpeResultsTelemetry cpeResultsTelemetry)
   {
     if (cpeMatchingConfigurationService.isCpeDataMatchingEnabled(applicationId) &&
-        cpeResultsTelemetry.getCpeMatchedComponentCount() > 0) {
+        cpeResultsTelemetry.getCpeMatchedComponentCount() > 0)
+    {
       TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.CPE_RESULTS_METRICS);
       telemetryData.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
       telemetryData.put(CpeResultsTelemetry.ATTRIBUTE_NAME, cpeResultsTelemetry);
@@ -1269,7 +1267,8 @@ public class ReportService
     // we do no replacement for empty or only "Not-Supported" entry
     Set<String> currentObservedLicenses = JsonUtils.getStringSetFromArray(matchedComponentNode.get("observedLicenses"));
     if (CollectionUtils.isNotEmpty(currentObservedLicenses) &&
-        !currentObservedLicenses.equals(Collections.singleton(notSupportedLicense.getShortDisplayName()))) {
+        !currentObservedLicenses.equals(Collections.singleton(notSupportedLicense.getShortDisplayName())))
+    {
       if (!isALPObservedLicenseEnabled && License.isAlpObservedLicenseFormatHidden(matchedComponent.getFormat())) {
         matchedComponentNode.putArray("observedLicenses")
             .add(notSupportedLicense.getShortDisplayName());
@@ -1295,8 +1294,7 @@ public class ReportService
   @VisibleForTesting
   void writeLicenseThreatsToReportFile(
       final Application application,
-      final ApplicationReport applicationReport)
-      throws IOException
+      final ApplicationReport applicationReport) throws IOException
   {
     Map<String, Integer> threatLevelsBySimpleLicenseId =
         licenseThreatGroupDAO.getLicenseThreatLevelsByApplication(application);
@@ -1364,7 +1362,8 @@ public class ReportService
     for (int componentIndex = 0; componentIndex < components.size(); componentIndex++) {
       ObjectNode component = (ObjectNode) components.get(componentIndex);
       if (componentIdentifiersWithLicenseOverrides
-          .contains(ComponentIdentifierAdapter.getComponentIdentifier(component))) {
+          .contains(ComponentIdentifierAdapter.getComponentIdentifier(component)))
+      {
         component.put("modified", true);
       }
     }
@@ -1375,9 +1374,7 @@ public class ReportService
   }
 
   @Trace
-  public PolicyEvaluation reUploadScanToHds(String appId, String scanId, String clientUserAgent)
-      throws IOException
-  {
+  public PolicyEvaluation reUploadScanToHds(String appId, String scanId, String clientUserAgent) throws IOException {
     // First call to ensure the scanId is audited even on failure.
     AuditData.get().setScanId(scanId);
     Application application = applicationDAO.getById(appId);
@@ -1402,7 +1399,8 @@ public class ReportService
         clientScanType,
         clientUserAgent,
         telemetryUtils.buildThirdPartyScanTelemetryData(application.getId(), stage, stageTypeId,
-            scanTriggerType, clientUserAgent), null /* scanRequestId */, scanContext, true );
+            scanTriggerType, clientUserAgent),
+        null /* scanRequestId */, scanContext, true);
     // Call again after upload to ensure the scanId is set to the original value, not the temporary new one.
     AuditData.get().setScanId(scanId);
 

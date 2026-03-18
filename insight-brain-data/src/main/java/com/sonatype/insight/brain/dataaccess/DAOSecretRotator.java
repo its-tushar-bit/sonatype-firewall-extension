@@ -58,7 +58,8 @@ public class DAOSecretRotator
 
     try (Connection connection = operationalDataStoreDAO.getDataStore().getDataSource().getConnection()) {
       try (PreparedStatement statement = createPreparedStatement(operationalDataStoreDAO, connection, tableName,
-          rotatableSecretFieldAndColumnName.getRight(), tableIdField)) {
+          rotatableSecretFieldAndColumnName.getRight(), tableIdField))
+      {
 
         connection.setAutoCommit(false);
         processEntities(secretRotator, entities, statement, rotatableSecretFieldAndColumnName.getLeft());

@@ -37,21 +37,23 @@ public abstract class AbstractResourceWithIcon
 
   private final RobotImageService robotImageService;
 
-  protected AbstractResourceWithIcon(BaseUrl baseUrl,
-                                     NgUploadResponseGenerator ngUploadResponseGenerator,
-                                     RobotImageService robotImageService)
+  protected AbstractResourceWithIcon(
+      BaseUrl baseUrl,
+      NgUploadResponseGenerator ngUploadResponseGenerator,
+      RobotImageService robotImageService)
   {
     this.baseUrl = baseUrl;
     this.ngUploadResponseGenerator = ngUploadResponseGenerator;
     this.robotImageService = robotImageService;
   }
 
-  private void setIcon(String ownerId,
-                       File iconDir,
-                       boolean hasRobotSource,
-                       String hashcode,
-                       InputStream uploadedInputStream,
-                       FormDataContentDisposition fileDetail) throws IOException
+  private void setIcon(
+      String ownerId,
+      File iconDir,
+      boolean hasRobotSource,
+      String hashcode,
+      InputStream uploadedInputStream,
+      FormDataContentDisposition fileDetail) throws IOException
   {
     if (hasRobotSource) {
       AuditData.get().setData("iconType", "robot");
@@ -65,7 +67,7 @@ public abstract class AbstractResourceWithIcon
     if (uploadedInputStream != null) {
       // Copy the uploadInputStream to bytes to enforce size limitation (5 MB)
       try (ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream()) {
-        for (int b = 0; (b = uploadedInputStream.read()) != -1; ) {
+        for (int b = 0; (b = uploadedInputStream.read()) != -1;) {
           if (imageOutputStream.size() > 5242880) {
             throw new BadRequestException("Icon file size must be smaller than 5 MB.");
           }
@@ -93,15 +95,16 @@ public abstract class AbstractResourceWithIcon
     }
   }
 
-  protected Response setIcon(final String ownerId,
-                             final File iconDir,
-                             final boolean hasRobotSource,
-                             final String hashcode,
-                             final InputStream uploadedInputStream,
-                             final FormDataContentDisposition fileDetail,
-                             String csrfToken,
-                             HttpHeaders headers,
-                             boolean noFormData) throws Exception
+  protected Response setIcon(
+      final String ownerId,
+      final File iconDir,
+      final boolean hasRobotSource,
+      final String hashcode,
+      final InputStream uploadedInputStream,
+      final FormDataContentDisposition fileDetail,
+      String csrfToken,
+      HttpHeaders headers,
+      boolean noFormData) throws Exception
   {
     return ngUploadResponseGenerator.run(csrfToken, headers, noFormData, new Callable<Void>()
     {
@@ -123,7 +126,8 @@ public abstract class AbstractResourceWithIcon
       imageBytes = new IconDAO().getIcon(ownerId, iconDir);
     }
     if (imageBytes == null) {
-      UriBuilder defaultIconUriBuilder = baseUrl.redirect().path(InsightBrainService.BRAIN_ASSET_PATH)
+      UriBuilder defaultIconUriBuilder = baseUrl.redirect()
+          .path(InsightBrainService.BRAIN_ASSET_PATH)
           .path("img/" + getDefaultIconFilename(ownerId));
       return Response.temporaryRedirect(defaultIconUriBuilder.build()).build();
     }

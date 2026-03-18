@@ -23,7 +23,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-public class FirewallMetricsComponentWaivedConsolidatorCronJobTest extends AbstractComponentTest
+public class FirewallMetricsComponentWaivedConsolidatorCronJobTest
+    extends AbstractComponentTest
 {
   @Inject
   private FirewallMetricsComponentWaivedConsolidatorCronJob firewallMetricsComponentWaivedConsolidatorCronJob;
@@ -37,14 +38,16 @@ public class FirewallMetricsComponentWaivedConsolidatorCronJobTest extends Abstr
   @Override
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    binder.bind(WaivedComponentMetricsConsolidator.class).toInstance(
-        waivedComponentMetricsConsolidatorMock);
+    binder.bind(WaivedComponentMetricsConsolidator.class)
+        .toInstance(
+            waivedComponentMetricsConsolidatorMock);
     super.configure(binder);
   }
 
   @Test
   public void testDisallowConcurrentExecution() {
-    assertThat(JobBuilder.newJob(FirewallMetricsComponentWaivedConsolidatorCronJob.class).build()
+    assertThat(JobBuilder.newJob(FirewallMetricsComponentWaivedConsolidatorCronJob.class)
+        .build()
         .isConcurrentExectionDisallowed()).isTrue();
   }
 

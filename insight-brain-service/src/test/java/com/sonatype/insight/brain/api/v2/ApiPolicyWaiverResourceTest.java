@@ -399,8 +399,8 @@ public class ApiPolicyWaiverResourceTest
         .newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
 
     /*
-       Directly insert into db with expiry date in the past.
-       The api will now not allow creating waiver with expiry date in the past.
+     * Directly insert into db with expiry date in the past.
+     * The api will now not allow creating waiver with expiry date in the past.
      */
 
     policyViolation = policyViolationDAO.getById(policyViolation.getId());
@@ -461,8 +461,7 @@ public class ApiPolicyWaiverResourceTest
         getCLMServer().getInstance(InsightWork.class),
         app.getId(),
         policyEvaluation.getScanId(),
-        Collections.singletonList(policyViolationTransitive)
-    );
+        Collections.singletonList(policyViolationTransitive));
 
     ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
     waiverOptionsDTO.comment = "waiver comment";
@@ -517,8 +516,7 @@ public class ApiPolicyWaiverResourceTest
         getCLMServer().getInstance(InsightWork.class),
         app.getId(),
         policyEvaluation.getScanId(),
-        Collections.singletonList(policyViolationTransitive)
-    );
+        Collections.singletonList(policyViolationTransitive));
     ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
     waiverOptionsDTO.comment = "waiver comment";
     waiverOptionsDTO.expiryTime = new Date(System.currentTimeMillis() + 1000);
@@ -565,7 +563,8 @@ public class ApiPolicyWaiverResourceTest
     waiverOptionsDTO.comment = "waiver comment";
     HttpResponse response = restRequest().path(BY_POLICY_VIOLATION_ID_PATH)
         .parameter(OwnerType.REPOSITORY, repository.getId(), repositoryPolicyViolation.getId())
-        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON).post();
+        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
+        .post();
 
     assertResponseStatus(204, response);
     assertNonExpiringPolicyWaiver(repository.getId(), policy, repositoryPolicyViolation, "waiver comment",
@@ -585,7 +584,8 @@ public class ApiPolicyWaiverResourceTest
     waiverOptionsDTO.comment = "waiver comment";
     HttpResponse response = restRequest().path(BY_POLICY_VIOLATION_ID_PATH)
         .parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), repositoryPolicyViolation.getId())
-        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON).post();
+        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
+        .post();
 
     assertResponseStatus(204, response);
     assertNonExpiringPolicyWaiver(repositoryManager.getId(), policy, repositoryPolicyViolation, "waiver comment",
@@ -603,9 +603,11 @@ public class ApiPolicyWaiverResourceTest
     ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
     waiverOptionsDTO.comment = "waiver comment";
     HttpResponse response = restRequest()
-        .path(BY_POLICY_VIOLATION_ID_PATH).parameter(OwnerType.REPOSITORY_CONTAINER,
+        .path(BY_POLICY_VIOLATION_ID_PATH)
+        .parameter(OwnerType.REPOSITORY_CONTAINER,
             RepositoryContainer.REPOSITORY_CONTAINER_ID, repositoryPolicyViolation.getId())
-        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON).post();
+        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
+        .post();
 
     assertResponseStatus(204, response);
     assertNonExpiringPolicyWaiver(RepositoryContainer.REPOSITORY_CONTAINER_ID, policy, repositoryPolicyViolation,
@@ -688,7 +690,8 @@ public class ApiPolicyWaiverResourceTest
         singletonList(constraintFact), EXACT_COMPONENT, "a comment", today, aWeekFromNow);
 
     HttpResponse response = restRequest().path(BY_POLICY_WAIVER_ID_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId(), policyWaiver.getId()).get();
+        .parameter(OwnerType.APPLICATION, application.getId(), policyWaiver.getId())
+        .get();
 
     assertResponseStatus(200, response);
 
@@ -724,7 +727,8 @@ public class ApiPolicyWaiverResourceTest
         null, EXACT_COMPONENT, "a comment in org waiver", today, aWeekFromNow);
 
     HttpResponse response = restRequest().path(BY_POLICY_WAIVER_ID_PATH)
-        .parameter(OwnerType.ORGANIZATION, organization.getId(), policyWaiver.getId()).get();
+        .parameter(OwnerType.ORGANIZATION, organization.getId(), policyWaiver.getId())
+        .get();
 
     assertResponseStatus(200, response);
 
@@ -754,7 +758,8 @@ public class ApiPolicyWaiverResourceTest
         null, EXACT_COMPONENT, "comment", today, aWeekFromNow);
 
     HttpResponse response = restRequest().path(BY_POLICY_WAIVER_ID_PATH)
-        .parameter(OwnerType.REPOSITORY, repository.getId(), policyWaiver.getId()).get();
+        .parameter(OwnerType.REPOSITORY, repository.getId(), policyWaiver.getId())
+        .get();
 
     assertResponseStatus(200, response);
 
@@ -784,7 +789,8 @@ public class ApiPolicyWaiverResourceTest
         EXACT_COMPONENT, "comment", today, aWeekFromNow);
 
     HttpResponse response = restRequest().path(BY_POLICY_WAIVER_ID_PATH)
-        .parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), policyWaiver.getId()).get();
+        .parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), policyWaiver.getId())
+        .get();
 
     assertResponseStatus(200, response);
 
@@ -813,7 +819,8 @@ public class ApiPolicyWaiverResourceTest
         null, EXACT_COMPONENT, "comment", today, aWeekFromNow);
 
     HttpResponse response = restRequest().path(BY_POLICY_WAIVER_ID_PATH)
-        .parameter(OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, policyWaiver.getId()).get();
+        .parameter(OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, policyWaiver.getId())
+        .get();
 
     assertResponseStatus(200, response);
 
@@ -875,8 +882,7 @@ public class ApiPolicyWaiverResourceTest
     assertThat(post.getBodyText()).isEqualTo("Could not find associated policy violation");
 
     Repository repository = tempEntity.newRepository();
-    RepositoryPolicyViolation
-        repositoryPolicyViolation =
+    RepositoryPolicyViolation repositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), Date.from(Instant.now()));
     post = restRequest()
         .path(ApiPolicyWaiverResource.REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH)
@@ -936,8 +942,7 @@ public class ApiPolicyWaiverResourceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Arrays.asList(violation1.getId(), violation2.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
@@ -972,8 +977,7 @@ public class ApiPolicyWaiverResourceTest
         com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         singletonList(violation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
@@ -1001,8 +1005,7 @@ public class ApiPolicyWaiverResourceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         singletonList(repositoryPolicyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
@@ -1030,13 +1033,14 @@ public class ApiPolicyWaiverResourceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         singletonList(repositoryPolicyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     HttpResponse response = restRequest()
-        .path(OWNERS_PATH).parameter(OwnerType.REPOSITORY_CONTAINER,
+        .path(OWNERS_PATH)
+        .parameter(OwnerType.REPOSITORY_CONTAINER,
             RepositoryContainer.REPOSITORY_CONTAINER_ID, repositoryPolicyViolation.getId())
-        .body(bulkWaiversDTO, MediaType.APPLICATION_JSON).post();
+        .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
+        .post();
 
     assertResponseStatus(204, response);
 
@@ -1058,8 +1062,7 @@ public class ApiPolicyWaiverResourceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         singletonList(repositoryPolicyViolation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
@@ -1097,8 +1100,7 @@ public class ApiPolicyWaiverResourceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Collections.emptyList(),
-        waiverOptions
-    );
+        waiverOptions);
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
@@ -1123,8 +1125,7 @@ public class ApiPolicyWaiverResourceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         tooManyViolations,
-        waiverOptions
-    );
+        waiverOptions);
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
@@ -1150,8 +1151,7 @@ public class ApiPolicyWaiverResourceTest
     waiverOptions.matcherStrategy = ALL_COMPONENTS;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         singletonList(violation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
@@ -1172,8 +1172,7 @@ public class ApiPolicyWaiverResourceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Arrays.asList("invalid-1", "invalid-2"),
-        waiverOptions
-    );
+        waiverOptions);
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
@@ -1199,8 +1198,7 @@ public class ApiPolicyWaiverResourceTest
     waiverOptions.matcherStrategy = EXACT_COMPONENT;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         Arrays.asList(violation.getId(), "invalid-id-123", "another-invalid-id"),
-        waiverOptions
-    );
+        waiverOptions);
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
@@ -1212,8 +1210,7 @@ public class ApiPolicyWaiverResourceTest
     assertThat(response.getBodyText())
         .satisfiesAnyOf(
             bodyText -> assertThat(bodyText).contains("Error processing policy violation with ID: invalid-id-123"),
-            bodyText -> assertThat(bodyText).contains("Error processing policy violation with ID: another-invalid-id")
-        );
+            bodyText -> assertThat(bodyText).contains("Error processing policy violation with ID: another-invalid-id"));
 
     // Should create no waivers when invalid valid violation IDs are present
     List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(application.getId());
@@ -1237,8 +1234,7 @@ public class ApiPolicyWaiverResourceTest
     waiverOptions.expiryTime = futureDate;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         singletonList(violation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
@@ -1270,8 +1266,7 @@ public class ApiPolicyWaiverResourceTest
     waiverOptions.expiryTime = pastDate;
     ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
         singletonList(violation.getId()),
-        waiverOptions
-    );
+        waiverOptions);
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)

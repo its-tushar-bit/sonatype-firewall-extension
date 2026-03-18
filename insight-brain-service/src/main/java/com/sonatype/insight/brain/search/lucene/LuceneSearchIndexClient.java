@@ -99,8 +99,7 @@ public class LuceneSearchIndexClient
       LockReleaseFailedException.class,
       MergeException.class,
       PrepareCommitFailException.class,
-      ThreadInterruptedException.class
-  );
+      ThreadInterruptedException.class);
 
   private static final Set<String> SYSTEMIC_LUCENE_LOWERCASE_EXCEPTION_MESSAGES = Set.of(
       "access denied",
@@ -108,8 +107,7 @@ public class LuceneSearchIndexClient
       "no space left",
       "not enough space",
       "permission denied",
-      "too many open files"
-  );
+      "too many open files");
 
   private final InsightWork insightWork;
 
@@ -147,7 +145,8 @@ public class LuceneSearchIndexClient
     log.info("creating search index...");
     long start = System.currentTimeMillis();
     try (Directory directory = luceneComponents.openSearchIndex(false);
-         IndexWriter indexWriter = newIndexWriter(directory, OpenMode.CREATE)) {
+        IndexWriter indexWriter = newIndexWriter(directory, OpenMode.CREATE))
+    {
       doPopulateIndex(new LuceneIndexingContext(ownerDAO, indexWriter, conversionHelper));
       indexWriter.commit();
       log.info("all indexing complete");
@@ -184,7 +183,8 @@ public class LuceneSearchIndexClient
       return;
     }
     try (Directory directory = luceneComponents.openSearchIndex(false);
-         IndexWriter indexWriter = newIndexWriter(directory, OpenMode.CREATE_OR_APPEND)) {
+        IndexWriter indexWriter = newIndexWriter(directory, OpenMode.CREATE_OR_APPEND))
+    {
       processSearchIndexChanges(searchIndexChanges, new LuceneIndexingContext(ownerDAO, indexWriter, conversionHelper),
           deletionCallback);
     }
@@ -242,7 +242,8 @@ public class LuceneSearchIndexClient
     updateMaxQueryClauseCount();
 
     try (Directory directory = openSearchIndex();
-         IndexReader indexReader = DirectoryReader.open(directory)) {
+        IndexReader indexReader = DirectoryReader.open(directory))
+    {
       AuditData.get()
           .setData("searchQuery", searchQuery)
           .setData("searchPageSize", pageSize)

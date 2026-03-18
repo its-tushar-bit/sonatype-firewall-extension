@@ -107,9 +107,7 @@ public class CertificateFactoryTest
   }
 
   @Test
-  public void testCreateCertificate_WithFipsEnabled_And_WithDefaultsOverriddenByEnvironmentVariables()
-      throws Exception
-  {
+  public void testCreateCertificate_WithFipsEnabled_And_WithDefaultsOverriddenByEnvironmentVariables() throws Exception {
     insertBouncyCastleFipsProvider();
     environmentVariables.set(FIPS_MODE_ENABLED_ENV, "true");
 

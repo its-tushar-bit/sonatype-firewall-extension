@@ -29,8 +29,7 @@ public class RequestWaiverReviewPage
         "/requestWaiverReview/{ownerType}/{ownerId}/{policyWaiverRequestId}",
         ownerType,
         ownerId,
-        policyWaiverRequestId
-    );
+        policyWaiverRequestId);
   }
 
   public SelenideElement root() {

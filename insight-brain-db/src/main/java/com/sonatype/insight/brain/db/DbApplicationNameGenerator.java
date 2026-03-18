@@ -23,10 +23,10 @@ public class DbApplicationNameGenerator
    * 'host name' of where this instance is running to help identify connections from multiple IQ nodes.
    *
    * @param applicationNamePrefix A prefix to add for the application name, so different {@link DataSource}s can be
-   *                              identified.
+   *          identified.
    * @return An application name in the form "<prefix>-hostname-<randomness>". If the hostname cannot be determined the
-   * value 'unknown' will be used. The 'randomness' is 5 random hex digits which can be used to differentiate
-   * connections when multiple IQ servers are executed on the same host.
+   *         value 'unknown' will be used. The 'randomness' is 5 random hex digits which can be used to differentiate
+   *         connections when multiple IQ servers are executed on the same host.
    */
   public String generateApplicationNameWithHost(final String applicationNamePrefix) {
     String hostname = "unknown";

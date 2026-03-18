@@ -323,7 +323,8 @@ public class OAuth2SsoUserProviderTest
     oAuth2SsoUserProvider.upsertByUsername(SsoUser.fromOAuth2User(oAuth2User));
 
     assertThat(oAuth2UserDAO.getByUsername(oAuth2User.getUsername())).usingRecursiveComparison()
-        .ignoringFields(ignoreFields(GROUPS_JSON_FIELD)).isEqualTo(oAuth2User);
+        .ignoringFields(ignoreFields(GROUPS_JSON_FIELD))
+        .isEqualTo(oAuth2User);
   }
 
   @Test
@@ -337,7 +338,8 @@ public class OAuth2SsoUserProviderTest
     oAuth2SsoUserProvider.upsertByUsername(SsoUser.fromOAuth2User(oAuth2User));
 
     assertThat(oAuth2UserDAO.getByUsername(oAuth2User.getUsername())).usingRecursiveComparison()
-        .ignoringFields(ignoreFields(GROUPS_JSON_FIELD)).isEqualTo(oAuth2User);
+        .ignoringFields(ignoreFields(GROUPS_JSON_FIELD))
+        .isEqualTo(oAuth2User);
   }
 
   @Test
@@ -345,7 +347,8 @@ public class OAuth2SsoUserProviderTest
     OAuth2User oAuth2User = tempEntity.newOAuth2User();
 
     assertThat(oAuth2SsoUserProvider.getByUsernameNotNull(oAuth2User.getUsername())).usingRecursiveComparison()
-        .ignoringFields(ignoreFields(GROUPS_JSON_FIELD)).isEqualTo(SsoUser.fromOAuth2User(oAuth2User));
+        .ignoringFields(ignoreFields(GROUPS_JSON_FIELD))
+        .isEqualTo(SsoUser.fromOAuth2User(oAuth2User));
   }
 
   @Test
@@ -370,17 +373,23 @@ public class OAuth2SsoUserProviderTest
 
   private void assertOAuth2User(OAuth2User expectedOAuth2User, List<SsoUser> users) {
     SsoUser foundUser = users.stream()
-        .filter(oAuth2User -> expectedOAuth2User.getUsername().equals(oAuth2User.getUsername())).findFirst()
+        .filter(oAuth2User -> expectedOAuth2User.getUsername().equals(oAuth2User.getUsername()))
+        .findFirst()
         .orElse(null);
-    assertThat(foundUser).isNotNull().usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(foundUser).isNotNull()
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(SsoUser.fromOAuth2User(expectedOAuth2User));
   }
 
   private void assertOAuth2Group(OAuth2Group expectedOAuth2Group, List<SsoGroup> groups) {
     SsoGroup foundGroup = groups.stream()
-        .filter(oAuth2User -> expectedOAuth2Group.getId().equals(oAuth2User.getId())).findFirst()
+        .filter(oAuth2User -> expectedOAuth2Group.getId().equals(oAuth2User.getId()))
+        .findFirst()
         .orElse(null);
-    assertThat(foundGroup).isNotNull().usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(foundGroup).isNotNull()
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(SsoGroup.fromOAuth2Group(expectedOAuth2Group));
   }
 
@@ -404,7 +413,8 @@ public class OAuth2SsoUserProviderTest
 
     List<OAuth2UserGroup> oAuth2UserGroups = oAuth2UserGroupDAO.getAll();
     List<OAuth2UserGroup> expectedOAuth2UserGroups =
-        oAuth2Groups.stream().map(group -> new OAuth2UserGroup(oAuth2User.getId(), group.getId()))
+        oAuth2Groups.stream()
+            .map(group -> new OAuth2UserGroup(oAuth2User.getId(), group.getId()))
             .collect(Collectors.toList());
     assertThat(oAuth2UserGroups)
         .usingRecursiveFieldByFieldElementComparatorIgnoringFields(ignoreFields(extraFieldsToIgnore))

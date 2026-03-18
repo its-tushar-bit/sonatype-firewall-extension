@@ -72,7 +72,8 @@ public class PolicyWaiverResourceAuditTest
   }
 
   private HttpRequest restRequest(Owner owner) {
-    return restRequest().path(PolicyWaiverResource.RESOURCE_PATH).parameter(owner.getType(),
-        owner.getType().equals(OwnerType.APPLICATION) ? owner.getPublicId() : owner.getId());
+    return restRequest().path(PolicyWaiverResource.RESOURCE_PATH)
+        .parameter(owner.getType(),
+            owner.getType().equals(OwnerType.APPLICATION) ? owner.getPublicId() : owner.getId());
   }
 }

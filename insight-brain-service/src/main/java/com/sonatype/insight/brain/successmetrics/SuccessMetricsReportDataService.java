@@ -137,7 +137,8 @@ public class SuccessMetricsReportDataService
     DateTime currentDateTime = new DateTime();
 
     SuccessMetricsReportData reportData = successMetricsReportDataDAO.getById(successMetricsReportId);
-    DateTime lastUpdated = includeLatestData ? currentDateTime
+    DateTime lastUpdated = includeLatestData
+        ? currentDateTime
         : latest(currentDateTime.withDayOfMonth(1), currentDateTime.withDayOfWeek(1)).millisOfDay().withMinimumValue();
     Date lastUpdatedDate = lastUpdated.toDate();
 
@@ -162,7 +163,8 @@ public class SuccessMetricsReportDataService
       }
     }
     else if (isReportDataOutOfDate(reportData, includeLatestData, currentDateTime.toDateTime(),
-        applicationIdsToQuery)) {
+        applicationIdsToQuery))
+    {
       policyViolationAggregationService.generatePolicyViolationAggregations(applicationIdsToQuery, currentDateTime,
           includeLatestData);
 
@@ -200,17 +202,19 @@ public class SuccessMetricsReportDataService
    * part of it
    */
   @VisibleForTesting
-  static boolean isReportDataOutOfDate(SuccessMetricsReportData reportData,
-                                       boolean includeLatestData,
-                                       DateTime currentDateTime,
-                                       Set<String> applicationIdsToInclude)
+  static boolean isReportDataOutOfDate(
+      SuccessMetricsReportData reportData,
+      boolean includeLatestData,
+      DateTime currentDateTime,
+      Set<String> applicationIdsToInclude)
   {
     if (reportData == null) {
       return true;
     }
     else {
       // The time that the aggregations would be updated to if run right now
-      DateTime aggregationUpdateTime = includeLatestData ? currentDateTime
+      DateTime aggregationUpdateTime = includeLatestData
+          ? currentDateTime
           : latest(currentDateTime.withDayOfMonth(1), currentDateTime.withDayOfWeek(1)).withTimeAtStartOfDay();
 
       DateTime reportDataLastUpdated = new DateTime(reportData.getLastUpdated());
@@ -222,11 +226,12 @@ public class SuccessMetricsReportDataService
     }
   }
 
-  private SuccessMetricsReportData createSuccessMetricsReportData(String successMetricsReportId,
-                                                                  Date lastUpdated,
-                                                                  Set<String> applicationIdsToQuery,
-                                                                  boolean includeLatestData,
-                                                                  DateTime currentDateTime)
+  private SuccessMetricsReportData createSuccessMetricsReportData(
+      String successMetricsReportId,
+      Date lastUpdated,
+      Set<String> applicationIdsToQuery,
+      boolean includeLatestData,
+      DateTime currentDateTime)
   {
     SuccessMetricsReportData successMetricsReportData = new SuccessMetricsReportData();
     successMetricsReportData.setId(successMetricsReportId);
@@ -249,12 +254,14 @@ public class SuccessMetricsReportDataService
     return successMetricsReportData;
   }
 
-  private void populateMttrData(SuccessMetricsChartDataDTO chartDataDTO,
-                                Set<String> applicationIdsToQuery,
-                                boolean includeLatestData)
+  private void populateMttrData(
+      SuccessMetricsChartDataDTO chartDataDTO,
+      Set<String> applicationIdsToQuery,
+      boolean includeLatestData)
   {
     chartDataDTO.mttrs = violationAggregationDAO.getMttrMonthlyAverages(applicationIdsToQuery, includeLatestData)
-        .stream().map(
+        .stream()
+        .map(
             mttrMonth -> new MttrDTO(
                 new YearMonth(mttrMonth.monthStart).monthOfYear().getAsShortText(Locale.US),
                 getOverallMttr(mttrMonth),
@@ -264,7 +271,7 @@ public class SuccessMetricsReportDataService
 
   /**
    * @return the overall Mean Time to Resolution represented by this MttrMonth. Null if this MttrMonth didn't
-   * record any resolutions
+   *         record any resolutions
    */
   private static Integer getOverallMttr(MttrMonth mttrMonth) {
     int totalResolved = mttrMonth.resolvedCountLowThreat + mttrMonth.resolvedCountModerateThreat
@@ -291,9 +298,10 @@ public class SuccessMetricsReportDataService
     return mttrMonth.mttrCriticalThreat != null ? (int) (mttrMonth.mttrCriticalThreat.doubleValue() / 1000) : null;
   }
 
-  private void populateAveragesData(SuccessMetricsChartDataDTO chartDataDTO,
-                                    Set<String> applicationIdsToQuery,
-                                    boolean includeLatestData)
+  private void populateAveragesData(
+      SuccessMetricsChartDataDTO chartDataDTO,
+      Set<String> applicationIdsToQuery,
+      boolean includeLatestData)
   {
     List<AverageMonth> queryResults = violationAggregationDAO.getMonthlyAverages(applicationIdsToQuery,
         includeLatestData);
@@ -388,10 +396,11 @@ public class SuccessMetricsReportDataService
     return denominator == 0 ? 0.0 : numerator / denominator;
   }
 
-  private void populateApplicationCountsData(SuccessMetricsChartDataDTO chartDataDTO,
-                                             Set<String> applicationIdsToQuery,
-                                             int activeApplicationCount,
-                                             boolean includeLatestData)
+  private void populateApplicationCountsData(
+      SuccessMetricsChartDataDTO chartDataDTO,
+      Set<String> applicationIdsToQuery,
+      int activeApplicationCount,
+      boolean includeLatestData)
   {
     ApplicationCountsByThreat applicationCounts = violationAggregationDAO
         .getApplicationCountsByThreatByApplicationIds(applicationIdsToQuery, includeLatestData);
@@ -415,13 +424,16 @@ public class SuccessMetricsReportDataService
         totalCount, securityCount, licenseCount, qualityCount, otherCount);
   }
 
-  private void populateViolationsByCategory(SuccessMetricsChartDataDTO dto,
-                                            Set<String> applicationIdsToQuery,
-                                            boolean includeLatestData,
-                                            DateTime currentDateTime)
+  private void populateViolationsByCategory(
+      SuccessMetricsChartDataDTO dto,
+      Set<String> applicationIdsToQuery,
+      boolean includeLatestData,
+      DateTime currentDateTime)
   {
     dto.violationsByCategoryWeeks = violationAggregationDAO
-        .getOpenViolationsCountsByApplicationIds(applicationIdsToQuery, includeLatestData).stream().map(
+        .getOpenViolationsCountsByApplicationIds(applicationIdsToQuery, includeLatestData)
+        .stream()
+        .map(
             week -> new ViolationsByCategoryDTO(getAdjustedOpenViolationCountsDate(week.weekStart),
                 week.openViolationCounts.get(SECURITY), week.openViolationCounts.get(LICENSE),
                 week.openViolationCounts.get(QUALITY), week.openViolationCounts.get(OTHER)))
@@ -434,9 +446,10 @@ public class SuccessMetricsReportDataService
     padWeeks(dto.violationsByCategoryWeeks, includeLatestData, currentDateTime);
   }
 
-  private void padWeeks(List<ViolationsByCategoryDTO> violationsByCategoryWeeks,
-                        boolean includeLatestData,
-                        DateTime currentDateTime)
+  private void padWeeks(
+      List<ViolationsByCategoryDTO> violationsByCategoryWeeks,
+      boolean includeLatestData,
+      DateTime currentDateTime)
   {
     // Add missing weeks to return a full 12 weeks worth of data
     LocalDate weekStart = new LocalDate(currentDateTime.withDayOfWeek(1));
@@ -449,12 +462,15 @@ public class SuccessMetricsReportDataService
     }
   }
 
-  private void populateViolationCountsData(SuccessMetricsChartDataDTO chartDataDTO,
-                                           Set<String> applicationIdsToQuery,
-                                           boolean includeLatestData)
+  private void populateViolationCountsData(
+      SuccessMetricsChartDataDTO chartDataDTO,
+      Set<String> applicationIdsToQuery,
+      boolean includeLatestData)
   {
     chartDataDTO.violationCounts = violationAggregationDAO
-        .getViolationCountsByApplicationIds(applicationIdsToQuery, includeLatestData).stream().map(week -> {
+        .getViolationCountsByApplicationIds(applicationIdsToQuery, includeLatestData)
+        .stream()
+        .map(week -> {
           ViolationCountsDTO violationCountsDTO = new ViolationCountsDTO();
 
           DateTime periodStart = new DateTime(week.periodStart);
@@ -473,9 +489,9 @@ public class SuccessMetricsReportDataService
   }
 
   /**
-   * Open counts are calculated at a specific point in time (a snapshot) as opposed to discovered/fixed/waived counts 
-   * that represent the number of respective events that occurred during a given time period. The snapshot we use for 
-   * open counts is taken at the end of the time period (week) or technically at the beginning of the next time period. 
+   * Open counts are calculated at a specific point in time (a snapshot) as opposed to discovered/fixed/waived counts
+   * that represent the number of respective events that occurred during a given time period. The snapshot we use for
+   * open counts is taken at the end of the time period (week) or technically at the beginning of the next time period.
    * Here we make those adjustments.
    */
   private String getAdjustedOpenViolationCountsDate(Date weekStart) {
@@ -597,11 +613,12 @@ public class SuccessMetricsReportDataService
 
   /**
    * @return a map from hash to ComponentInfo where the ComponentInfo counts are counts of the number of applications
-   * in which the component is present. Only evaluations more recent than the passed-in date are considered.
+   *         in which the component is present. Only evaluations more recent than the passed-in date are considered.
    */
-  private Map<String, ComponentInfo> getComponentApplicationCounts(Set<String> applicationIds,
-                                                                   Set<String> stageTypeIds,
-                                                                   Date date)
+  private Map<String, ComponentInfo> getComponentApplicationCounts(
+      Set<String> applicationIds,
+      Set<String> stageTypeIds,
+      Date date)
   {
     List<ApplicationComponent> applicationComponents =
         applicationComponentDAO.getByApplicationIdsAndStageTypeIdsSince(applicationIds, stageTypeIds, date);
@@ -653,17 +670,19 @@ public class SuccessMetricsReportDataService
   }
 
   /**
-   * @return a map from Component Id to total violation count in the specified applications.  Only applications
-   * with an evaluation more recent than the specified date are included.
+   * @return a map from Component Id to total violation count in the specified applications. Only applications
+   *         with an evaluation more recent than the specified date are included.
    */
-  private Map<String, ComponentInfo> getComponentViolationCounts(Set<String> applicationIds,
-                                                                 Set<String> stageTypeIds,
-                                                                 Date date)
+  private Map<String, ComponentInfo> getComponentViolationCounts(
+      Set<String> applicationIds,
+      Set<String> stageTypeIds,
+      Date date)
   {
     Map<String, ComponentInfo> retval = new HashMap<>();
 
     for (PolicyEvaluation evaluation : policyEvaluationDAO
-        .getLastByApplicationIdsAndStageIds(applicationIds, stageTypeIds)) {
+        .getLastByApplicationIdsAndStageIds(applicationIds, stageTypeIds))
+    {
       if (evaluation == null || evaluation.getTime().compareTo(date) < 0) {
         continue;
       }
@@ -693,8 +712,9 @@ public class SuccessMetricsReportDataService
     return retval;
   }
 
-  private int getAverageComponentCountPerApplication(int applicationCount,
-                                                     Collection<ComponentInfo> applicationCountComponentInfos)
+  private int getAverageComponentCountPerApplication(
+      int applicationCount,
+      Collection<ComponentInfo> applicationCountComponentInfos)
   {
     int totalComponentApplicationCounts = 0;
     for (ComponentInfo componentInfo : applicationCountComponentInfos) {

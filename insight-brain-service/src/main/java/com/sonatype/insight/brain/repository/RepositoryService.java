@@ -250,9 +250,10 @@ public class RepositoryService
     // and so we don't want to wait for each repository re-evaluation to finish before shutting down the server
     ThreadPoolExecutor reevalExecutor = createReevaluationExecutor();
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
-    AuditData.get().continueAsync(reevalExecutor,
-        new RepositoryReevaluationTask(repository, repositoryPolicyEvaluator, reevalExecutor,
-            MAX_REPOSITORY_EVALUATION_REQUEST_SIZE, repositoryComponentDAO, clusterLockManager));
+    AuditData.get()
+        .continueAsync(reevalExecutor,
+            new RepositoryReevaluationTask(repository, repositoryPolicyEvaluator, reevalExecutor,
+                MAX_REPOSITORY_EVALUATION_REQUEST_SIZE, repositoryComponentDAO, clusterLockManager));
   }
 
   private static ThreadPoolExecutor createReevaluationExecutor() {
@@ -288,8 +289,9 @@ public class RepositoryService
       }
     }
     repositoryDAO.delete(repository);
-    AuditData.get().setData("repositoryManagerInstanceId",
-        repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId());
+    AuditData.get()
+        .setData("repositoryManagerInstanceId",
+            repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId());
 
     if (repository.isAuditEnabled()) {
       policyViolationLoggerFactory.newLogger(new Date(), repository).logClearEvent();
@@ -359,7 +361,8 @@ public class RepositoryService
   {
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
     List<RepositoryComponent> components = repositoryComponentDAO.getByRepositoryIdAndHash(repository.getId(), hash);
-    AuditData.get().setData("componentCount", components.size())
+    AuditData.get()
+        .setData("componentCount", components.size())
         .setData("evaluationCause", RepositoryComponentEvaluationDataRequestList.REEVALUATION);
     if (components.isEmpty()) {
       throw new NotFoundException("Cannot find a repository component for hash " + hash + " in "
@@ -451,7 +454,8 @@ public class RepositoryService
       throw new NotFoundException(
           "Cannot find a component with path " + pathname + " in repository with ID " + repositoryId + ".");
     }
-    AuditData.get().setComponentIdentifier(repositoryComponent.getComponentIdentifier())
+    AuditData.get()
+        .setComponentIdentifier(repositoryComponent.getComponentIdentifier())
         .setComponentHash(repositoryComponent.getHash());
 
     List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
@@ -479,7 +483,8 @@ public class RepositoryService
     repositoryPolicyViolationDAO.loadConstraintFacts(Collections.singletonList(repositoryPolicyViolation));
 
     auditComponentPath(repositoryPolicyViolation.getPathname());
-    AuditData.get().setComponentIdentifier(repositoryPolicyViolation.getComponentIdentifier())
+    AuditData.get()
+        .setComponentIdentifier(repositoryPolicyViolation.getComponentIdentifier())
         .setComponentHash(repositoryPolicyViolation.getHash());
 
     return toRepositoryPolicyViolationDTO(repositoryPolicyViolation);
@@ -592,11 +597,10 @@ public class RepositoryService
     String nxrmMinimalVersion = "3.60.0-SNAPSHOT";
     String artifactoryPluginMinimalVersion = "2.4.8-SNAPSHOT";
     unconfiguredRepositoryManagers = unconfiguredRepositoryManagers.stream()
-        .filter(repositoryManager ->
-            ("Nexus".equals(repositoryManager.getProductName())
+        .filter(repositoryManager -> ("Nexus".equals(repositoryManager.getProductName())
             && compareVersions(repositoryManager.getProductVersion(), nxrmMinimalVersion) >= 0) ||
             ("Firewall_For_Jfrog_Artifactory".equals(repositoryManager.getProductName())
-            && compareVersions(repositoryManager.getProductVersion(), artifactoryPluginMinimalVersion) >= 0))
+                && compareVersions(repositoryManager.getProductVersion(), artifactoryPluginMinimalVersion) >= 0))
         .collect(Collectors.toList());
     log.debug("Found {} unconfigured repository managers.", unconfiguredRepositoryManagers.size());
     return unconfiguredRepositoryManagers;
@@ -672,7 +676,8 @@ public class RepositoryService
         if (existingRepository == null) {
           log.error(
               "Cannot update repository config with repository manager ID:{} and name:{} because " +
-                  "it does not exist.", repositoryManager.getId(), repository.getPublicId());
+                  "it does not exist.",
+              repositoryManager.getId(), repository.getPublicId());
           continue;
         }
 
@@ -698,7 +703,8 @@ public class RepositoryService
             break;
           case hosted:
             if (existingRepository.isNamespaceConfusionProtectionEnabled() != repository
-                .isNamespaceConfusionProtectionEnabled()) {
+                .isNamespaceConfusionProtectionEnabled())
+            {
               existingRepository
                   .setNamespaceConfusionProtectionEnabled(repository.isNamespaceConfusionProtectionEnabled());
               updated = true;
@@ -786,7 +792,8 @@ public class RepositoryService
           policyActionId);
 
       try (AuditSession auditSession =
-          AuditData.get().recordSubEvent(AuditEvent.UPDATE_POLICY, false /* independent */)) {
+          AuditData.get().recordSubEvent(AuditEvent.UPDATE_POLICY, false /* independent */))
+      {
         AuditData.get().setPolicyWithDetails(policy);
       }
     }
@@ -804,8 +811,8 @@ public class RepositoryService
     RepositoryManager repositoryManager = repositoryManagerDAO.getByIdNotNull(repositoryManagerId);
 
     AuditData.get()
-            .setRepositoryManagerInstanceId(repositoryManager.getInstanceId())
-            .setRepositoryManagerName(repositoryManager.getName());
+        .setRepositoryManagerInstanceId(repositoryManager.getInstanceId())
+        .setRepositoryManagerName(repositoryManager.getName());
 
     repositoryManager.setName(name);
     repositoryManagerDAO.update(repositoryManager);

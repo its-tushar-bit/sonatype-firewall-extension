@@ -53,10 +53,11 @@ public class ApiRepositoryResultsForImageContainerService
   private final RepositoryManagerDAO repositoryManagerDAO;
 
   @Inject
-  public ApiRepositoryResultsForImageContainerService(final RepositoryDAO repositoryDAO,
-                                                      final ApplicationDAO applicationDAO,
-                                                      final PolicyViolationDAO policyViolationDAO,
-                                                      final RepositoryManagerDAO repositoryManagerDAO)
+  public ApiRepositoryResultsForImageContainerService(
+      final RepositoryDAO repositoryDAO,
+      final ApplicationDAO applicationDAO,
+      final PolicyViolationDAO policyViolationDAO,
+      final RepositoryManagerDAO repositoryManagerDAO)
   {
     this.repositoryDAO = repositoryDAO;
     this.applicationDAO = applicationDAO;
@@ -77,8 +78,7 @@ public class ApiRepositoryResultsForImageContainerService
       throw new BadRequestException("Missing request parameters");
     }
 
-    RepositoryResultsForImageContainerFilter
-        detailsFilter = validateAndInitializeDetailsFilter(detailsRequest);
+    RepositoryResultsForImageContainerFilter detailsFilter = validateAndInitializeDetailsFilter(detailsRequest);
 
     List<Repository> repositories;
     String repositoryManagerId = detailsFilter.searchFilters.getOrDefault("REPOSITORY_MANAGER_ID", null);
@@ -120,7 +120,8 @@ public class ApiRepositoryResultsForImageContainerService
 
     Set<String> repositoryIds =
         proxyRepositoriesWithReadPermission.stream()
-            .map(Repository::getId).collect(Collectors.toSet());
+            .map(Repository::getId)
+            .collect(Collectors.toSet());
 
     Set<String> applicationIds = proxyRepositoriesWithReadPermission.stream()
         .map(Repository::getRelatedOrganizationId) // Extract relatedOrganizationId
@@ -130,11 +131,12 @@ public class ApiRepositoryResultsForImageContainerService
         .collect(Collectors.toSet()); // Collect into a Set
 
     List<RepositoryResultsForImageContainer> detailsList =
-        repositoryIds.isEmpty() ? Collections.emptyList() : policyViolationDAO.getRepositoryResultsForImageContainer(
-            repositoryIds, applicationIds, detailsFilter);
+        repositoryIds.isEmpty()
+            ? Collections.emptyList()
+            : policyViolationDAO.getRepositoryResultsForImageContainer(
+                repositoryIds, applicationIds, detailsFilter);
 
-    RepositoryResultsForImageContainerResponseDto
-        result = new RepositoryResultsForImageContainerResponseDto();
+    RepositoryResultsForImageContainerResponseDto result = new RepositoryResultsForImageContainerResponseDto();
 
     int iPattern = 1;
     for (RepositoryResultsForImageContainer details : detailsList) {
@@ -184,7 +186,8 @@ public class ApiRepositoryResultsForImageContainerService
 
   private Set<String> initializeViolationStateFilters(final List<ViolationStateFilter> violationStateFilters) {
     if (CollectionUtils.isEmpty(violationStateFilters)
-        || violationStateFilters.contains(ViolationStateFilter.VIOLATION_STATE_ALL)) {
+        || violationStateFilters.contains(ViolationStateFilter.VIOLATION_STATE_ALL))
+    {
       return ImmutableSet.of(ViolationStateFilter.VIOLATION_STATE_ALL.name());
     }
 
@@ -192,7 +195,8 @@ public class ApiRepositoryResultsForImageContainerService
   }
 
   private Map<String, String> initializeSearchFilterMap(final List<SearchFilter> searchFilters) {
-    return CollectionUtils.emptyIfNull(searchFilters).stream()
+    return CollectionUtils.emptyIfNull(searchFilters)
+        .stream()
         .collect(Collectors.toMap(searchFilter -> searchFilter.filterableField.name(),
             searchFilter -> searchFilter.value.toLowerCase()));
   }

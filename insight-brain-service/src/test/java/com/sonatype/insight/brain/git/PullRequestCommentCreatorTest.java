@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.git;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -104,8 +105,7 @@ public class PullRequestCommentCreatorTest
 
     // then: no comment created and no telemetry generated
     assertThatLogMessagesEqual(
-        info("generated feedback markup was empty for application 'app1' pull request '1'")
-    );
+        info("generated feedback markup was empty for application 'app1' pull request '1'"));
     verify(mockCommentingClient, never()).createOrUpdateCommentInGitSCM(any(), any(), anyInt(), any(), any(), any());
     verify(mockCommentingMetricsService, never()).sendTelemetry(any());
 
@@ -118,8 +118,7 @@ public class PullRequestCommentCreatorTest
     // then: no comment updated and no telemetry generated
     assertThatLogMessagesEqual(
         info("generated feedback markup was empty for application 'app1' pull request '1'"),
-        info("generated feedback markup was empty for application 'app1' pull request '2'")
-    );
+        info("generated feedback markup was empty for application 'app1' pull request '2'"));
     verify(mockCommentingClient, never()).createOrUpdateCommentInGitSCM(any(), any(), anyInt(), any(), any(), any());
     verify(mockCommentingMetricsService, never()).sendTelemetry(any());
   }
@@ -319,7 +318,7 @@ public class PullRequestCommentCreatorTest
     TestCase() {
       pullRequestPolicyEvaluationsDTO.setGitRepositoryInfo(
           new GitRepositoryInfo("http://gitlab.com/test/app1", null, "user", "token", SourceControlProvider.GITLAB,
-              "master", true, true,true, true, true, true, false, null));
+              "master", true, true, true, true, true, true, false, null));
     }
 
     TestCase forApplication(String applicationId) {
@@ -446,8 +445,7 @@ public class PullRequestCommentCreatorTest
           mockScmEventLoggerFactory,
           mockApplicationDAO,
           mockOrganizationDAO,
-          mockScmOperationMetrics
-      );
+          mockScmOperationMetrics);
     }
 
     TestablePullRequestCommentCreatorBuilder withoutMarkup() {

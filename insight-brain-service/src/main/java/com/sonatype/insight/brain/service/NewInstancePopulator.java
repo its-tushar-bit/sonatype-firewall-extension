@@ -88,7 +88,8 @@ public class NewInstancePopulator
 
     // create sample data only for new installs
     if (policies.isEmpty() && orgs.size() == 1
-        && orgs.get(0).getId().equalsIgnoreCase(Organization.ROOT_ORGANIZATION_ID)) {
+        && orgs.get(0).getId().equalsIgnoreCase(Organization.ROOT_ORGANIZATION_ID))
+    {
       populate(orgs.get(0));
     }
 

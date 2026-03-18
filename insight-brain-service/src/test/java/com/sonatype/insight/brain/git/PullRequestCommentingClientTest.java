@@ -86,15 +86,15 @@ public class PullRequestCommentingClientTest
             pullRequestNumber,
             commentText,
             null,
-            prCommentTelemetry).get();
+            prCommentTelemetry)
+        .get();
 
     // then: expecting PR comment created
     verify(mockGitClientFactory, times(1)).createApiClient(gitRepositoryInfo);
     verify(mockGitClientApi, times(1))
         .createPullRequestComment(pullRequestNumber, commentText);
     assertThatLogMessagesEqual(
-        info("pull request comment '20' created for application 'app1' pull request '1'")
-    );
+        info("pull request comment '20' created for application 'app1' pull request '1'"));
     assertThat(prCommentTelemetry.action).isEqualTo(ACTION_CREATED);
     assertThat(prCommentTelemetry.commentId).isEqualTo(20);
     assertThat(prCommentTelemetry.provider).isEqualTo("gitlab");
@@ -126,7 +126,8 @@ public class PullRequestCommentingClientTest
             pullRequestNumber,
             commentText,
             prComment,
-            prCommentTelemetry).get();
+            prCommentTelemetry)
+        .get();
 
     // then: PR comment without version updated
     verify(mockGitClientFactory, times(1)).createApiClient(gitRepositoryInfo);
@@ -137,8 +138,7 @@ public class PullRequestCommentingClientTest
             prComment.getPullRequestCommentVersion(),
             commentText);
     assertThatLogMessagesEqual(
-        info("pull request comment '20' updated for application 'app1' pull request '1'")
-    );
+        info("pull request comment '20' updated for application 'app1' pull request '1'"));
     assertThat(prCommentTelemetry.action).isEqualTo(ACTION_UPDATED);
     assertThat(prCommentTelemetry.commentId).isEqualTo(20);
     assertThat(prCommentTelemetry.provider).isEqualTo("gitlab");
@@ -171,7 +171,8 @@ public class PullRequestCommentingClientTest
             pullRequestNumber,
             commentText,
             prComment,
-            prCommentTelemetry).get();
+            prCommentTelemetry)
+        .get();
 
     // then: expecting no attempt to create a comment
     verify(mockGitClientFactory, times(1)).createApiClient(gitRepositoryInfo);
@@ -182,8 +183,7 @@ public class PullRequestCommentingClientTest
             prComment.getPullRequestCommentVersion(),
             commentText);
     assertThatLogMessagesEqual(
-        info("pull request comment '20' with version '11' updated for application 'app1' pull request '1'")
-    );
+        info("pull request comment '20' with version '11' updated for application 'app1' pull request '1'"));
     assertThat(prCommentTelemetry.action).isEqualTo(ACTION_UPDATED);
     assertThat(prCommentTelemetry.commentId).isEqualTo(20);
     assertThat(prCommentTelemetry.provider).isEqualTo("gitlab");
@@ -225,8 +225,7 @@ public class PullRequestCommentingClientTest
             prComment.getPullRequestCommentVersion(),
             commentText);
     assertThatLogMessagesEqual(
-        warn("Updating pull request comment '20' for application 'app1' pull request '1' returned 404 NOT FOUND")
-    );
+        warn("Updating pull request comment '20' for application 'app1' pull request '1' returned 404 NOT FOUND"));
     assertThat(prCommentTelemetry.action).isEqualTo(ACTION_UPDATED);
     assertThat(prCommentTelemetry.commentId).isZero();
     assertThat(commentResponse).isNotPresent();
@@ -256,7 +255,8 @@ public class PullRequestCommentingClientTest
             pullRequestNumber,
             commentText,
             prComment,
-            prCommentTelemetry)).withMessageContaining("");
+            prCommentTelemetry))
+        .withMessageContaining("");
     verify(mockGitClientFactory, times(1)).createApiClient(gitRepositoryInfo);
     verify(mockGitClientApi, times(1))
         .updatePullRequestComment(
@@ -284,8 +284,7 @@ public class PullRequestCommentingClientTest
         prCommentVersion,
         "contentHash",
         sourcePolicyEvaluation.getId(),
-        targetPolicyEvaluation.getId()
-    );
+        targetPolicyEvaluation.getId());
   }
 
   private void setupGitClientFactory() {
@@ -294,7 +293,7 @@ public class PullRequestCommentingClientTest
 
   private GitRepositoryInfo getGitRepositoryInfo() {
     return new GitRepositoryInfo("repoUrl", "sshRepoUrl", "username", "token", SourceControlProvider.GITLAB,
-        "baseBranch", true, true, true,true, true, true, false, null);
+        "baseBranch", true, true, true, true, true, true, false, null);
   }
 
   @Test
@@ -303,15 +302,15 @@ public class PullRequestCommentingClientTest
     String applicationId = "app-pat";
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo(
         TEST_REPO_URL,
-        TEST_REPO_URL,  // normalizedRepositoryUrl
+        TEST_REPO_URL, // normalizedRepositoryUrl
         TEST_SSH_URL,
         "username",
-        "token123",  // PAT token
+        "token123", // PAT token
         SourceControlProvider.GITHUB,
         "main",
         true, true, true, true, true, true, false,
-        null,  // sourceControlScanTarget
-        null,  // PAT auth uses null authenticationType
+        null, // sourceControlScanTarget
+        null, // PAT auth uses null authenticationType
         null); // PAT auth uses null ownerId
     int pullRequestNumber = 1;
     String commentText = "Comment text with PAT";
@@ -333,15 +332,16 @@ public class PullRequestCommentingClientTest
             pullRequestNumber,
             commentText,
             null,
-            prCommentTelemetry).get();
+            prCommentTelemetry)
+        .get();
 
     // then: verify gitClientFactory was called with PAT authentication (null authenticationType)
     verify(mockGitClientFactory, times(1)).createApiClient(repoInfoCaptor.capture());
 
     GitRepositoryInfo captured = repoInfoCaptor.getValue();
-    assertThat(captured.getAuthenticationType()).isNull();  // PAT auth uses null
-    assertThat(captured.authOwnerId).isNull();  // PAT auth uses null
-    assertThat(captured.token).isEqualTo("token123");  // PAT auth uses token field
+    assertThat(captured.getAuthenticationType()).isNull(); // PAT auth uses null
+    assertThat(captured.authOwnerId).isNull(); // PAT auth uses null
+    assertThat(captured.token).isEqualTo("token123"); // PAT auth uses token field
 
     // and: PR comment was created
     verify(mockGitClientApi, times(1)).createPullRequestComment(pullRequestNumber, commentText);
@@ -355,14 +355,14 @@ public class PullRequestCommentingClientTest
     String ownerId = "app-123";
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo(
         TEST_REPO_URL,
-        TEST_REPO_URL,  // normalizedRepositoryUrl
+        TEST_REPO_URL, // normalizedRepositoryUrl
         TEST_SSH_URL,
-        null,  // no username for GitHub App
-        null,  // no token for GitHub App
+        null, // no username for GitHub App
+        null, // no token for GitHub App
         SourceControlProvider.GITHUB,
         "main",
         true, true, true, true, true, true, false,
-        null,  // sourceControlScanTarget
+        null, // sourceControlScanTarget
         SourceControl.AuthenticationType.GITHUB_APP,
         ownerId);
     int pullRequestNumber = 1;
@@ -385,7 +385,8 @@ public class PullRequestCommentingClientTest
             pullRequestNumber,
             commentText,
             null,
-            prCommentTelemetry).get();
+            prCommentTelemetry)
+        .get();
 
     // then: verify gitClientFactory was called with correct GitHub App authentication
     verify(mockGitClientFactory, times(1)).createApiClient(repoInfoCaptor.capture());

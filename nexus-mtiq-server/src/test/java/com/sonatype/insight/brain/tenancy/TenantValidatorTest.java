@@ -65,7 +65,7 @@ public class TenantValidatorTest
 
   @Test
   public void shouldThrowIllegalArgumentException_whenTenantNull() {
-    assertThatThrownBy(() -> underTest.validateTenantExists((Tenant)null))
+    assertThatThrownBy(() -> underTest.validateTenantExists((Tenant) null))
         .withFailMessage("Invalid tenant parameter")
         .isInstanceOf(IllegalArgumentException.class);
   }
@@ -90,7 +90,7 @@ public class TenantValidatorTest
 
   @Test
   public void shouldThrowIllegalArgumentException_whenTenantNameNull() {
-    assertThatThrownBy(() -> underTest.validateTenantExists((String)null))
+    assertThatThrownBy(() -> underTest.validateTenantExists((String) null))
         .withFailMessage("Invalid tenant parameter")
         .isInstanceOf(IllegalArgumentException.class);
   }

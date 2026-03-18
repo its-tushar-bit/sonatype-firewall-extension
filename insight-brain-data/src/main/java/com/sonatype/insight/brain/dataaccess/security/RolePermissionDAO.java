@@ -38,8 +38,8 @@ public class RolePermissionDAO
 {
   private static final Logger log = LoggerFactory.getLogger(RolePermissionDAO.class);
 
-  private static final TenantReference<Map<Permission, Set<String>>> roleIdsByPermission
-      = new TenantReference<>(ConcurrentHashMap::new);
+  private static final TenantReference<Map<Permission, Set<String>>> roleIdsByPermission =
+      new TenantReference<>(ConcurrentHashMap::new);
 
   private static final Runnable DEFAULT_CLEAR_ROLE_PERMISSION_CACHE_FOR_ALL_OTHER_NODES =
       () -> log.warn("Clear role permission cache for all other nodes not set.");

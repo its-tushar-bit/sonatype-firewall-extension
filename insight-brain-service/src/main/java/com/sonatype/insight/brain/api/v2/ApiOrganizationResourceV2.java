@@ -77,17 +77,16 @@ public class ApiOrganizationResourceV2
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains a list of organizations. For each " +
-                  "organization the response contains organization id, organization name, " +
-                  "parent organization id, and its associated tags with additional details.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains a list of organizations. For each " +
+                "organization the response contains organization id, organization name, " +
+                "parent organization id, and its associated tags with additional details.",
+            useReturnTypeSchema = true)
       })
   public ApiOrganizationListDTO getOrganizations(
-      @Parameter(description = "Enter the organization names.")
-      @QueryParam("organizationName") Set<String> organizationNames)
+      @Parameter(
+          description = "Enter the organization names.") @QueryParam("organizationName") Set<String> organizationNames)
   {
     return apiOrganizationService.getOrganizations(organizationNames);
   }
@@ -103,17 +102,15 @@ public class ApiOrganizationResourceV2
 
       Permissions required: View IQ Elements""",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains a list of organizations. For each " +
-                  "organization the response contains organization id, organization name, " +
-                  "and parent organization id.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains a list of organizations. For each " +
+                "organization the response contains organization id, organization name, " +
+                "and parent organization id.",
+            useReturnTypeSchema = true)
       })
-    public ApiOrganizationListDTO getOrganizationsByIds(
-      @Parameter(description = "Enter the internal organization IDs.")
-      @QueryParam("id") Set<String> ids)
+  public ApiOrganizationListDTO getOrganizationsByIds(
+      @Parameter(description = "Enter the internal organization IDs.") @QueryParam("id") Set<String> ids)
   {
     return apiOrganizationService.getOrganizationsByIds(ids);
   }
@@ -130,17 +127,16 @@ public class ApiOrganizationResourceV2
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains the details for the specified  " +
-                  "organization including organization id, organization name, " +
-                  "parent organization id, and its associated tags with additional details.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains the details for the specified  " +
+                "organization including organization id, organization name, " +
+                "parent organization id, and its associated tags with additional details.",
+            useReturnTypeSchema = true)
       })
   public ApiOrganizationDTO getOrganization(
-      @Parameter(description = "Enter the organization id.", required = true)
-      @PathParam("organizationId") String organizationId)
+      @Parameter(description = "Enter the organization id.",
+          required = true) @PathParam("organizationId") String organizationId)
   {
     return apiOrganizationService.getOrganizationById(organizationId);
   }
@@ -157,12 +153,11 @@ public class ApiOrganizationResourceV2
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains the assigned organization id and all other organization " +
-                  "details specified.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains the assigned organization id and all other organization " +
+                "details specified.",
+            useReturnTypeSchema = true)
       })
   public ApiOrganizationDTO addOrganization(
       @RequestBody(
@@ -174,8 +169,7 @@ public class ApiOrganizationResourceV2
               "level and then applied to applications under the organization. The tags can be used to decide which " +
               "applications will be evaluated against a selected policy."
 
-      ) final ApiOrganizationDTO organizationDTO)
-  {
+      ) final ApiOrganizationDTO organizationDTO) {
     return apiOrganizationService.addOrganization(organizationDTO);
   }
 
@@ -192,32 +186,26 @@ public class ApiOrganizationResourceV2
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The organization has been successfully moved under the parent organization id provided.",
-              content = @Content(
-                  mediaType = MediaType.APPLICATION_JSON,
-                  schema = @Schema(implementation = MoveOrganizationResponseDTO.class)
-              )
-          ),
-          @ApiResponse(
-              responseCode = "409",
-              description = "Encountered conflicts while inheriting policy elements of the new parent organization. " +
-                  "The organization could not be moved under the new parent organization id provided.",
-              content = @Content(
-                  mediaType = MediaType.APPLICATION_JSON,
-                  schema = @Schema(implementation = MoveOrganizationResponseDTO.class)
-              )
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The organization has been successfully moved under the parent organization id provided.",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON,
+                schema = @Schema(implementation = MoveOrganizationResponseDTO.class))),
+        @ApiResponse(
+            responseCode = "409",
+            description = "Encountered conflicts while inheriting policy elements of the new parent organization. " +
+                "The organization could not be moved under the new parent organization id provided.",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON,
+                schema = @Schema(implementation = MoveOrganizationResponseDTO.class)))
+      })
   public Response moveOrganization(
-      @Parameter(description = "Enter the id for the organization to be moved under the new parent.")
-      @PathParam("organizationId") final String orgId,
-      @Parameter(description = "Enter the id for the new parent organization.")
-      @PathParam("destinationId") final String newParentOrgId,
-      @DefaultValue("false") @QueryParam("failEarlyOnError") final boolean failEarlyOnError
-  )
+      @Parameter(
+          description = "Enter the id for the organization to be moved under the new parent.") @PathParam("organizationId") final String orgId,
+      @Parameter(
+          description = "Enter the id for the new parent organization.") @PathParam("destinationId") final String newParentOrgId,
+      @DefaultValue("false") @QueryParam("failEarlyOnError") final boolean failEarlyOnError)
   {
     MoveOrganizationResponseDTO moveOrganizationResponseDTO =
         moveOrganizationService.moveOrganization(orgId, newParentOrgId, failEarlyOnError);
@@ -240,14 +228,13 @@ public class ApiOrganizationResourceV2
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "The specified organization has been deleted."
-          )
+        @ApiResponse(
+            responseCode = "204",
+            description = "The specified organization has been deleted.")
       })
   public void deleteOrganization(
-      @Parameter(description = "Enter the organization id to be deleted.")
-      @PathParam("organizationId") final String organizationId) throws IOException
+      @Parameter(
+          description = "Enter the organization id to be deleted.") @PathParam("organizationId") final String organizationId) throws IOException
   {
     apiOrganizationService.deleteOrganization(organizationId);
   }

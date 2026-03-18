@@ -110,7 +110,7 @@ public class ApiJiraConfigurationServiceTest
     dto.username = "username";
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> service.setConfiguration(asTreeIgnoreNull(dto)))
+        () -> service.setConfiguration(asTreeIgnoreNull(dto)))
         .withMessageContaining(NO_USERNAME_PASSWORD_PAIR);
   }
 
@@ -121,7 +121,7 @@ public class ApiJiraConfigurationServiceTest
     dto.password = "password".toCharArray();
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> service.setConfiguration(asTreeIgnoreNull(dto)))
+        () -> service.setConfiguration(asTreeIgnoreNull(dto)))
         .withMessageContaining(NO_USERNAME_PASSWORD_PAIR);
   }
 
@@ -150,7 +150,9 @@ public class ApiJiraConfigurationServiceTest
     spy.setConfiguration(asTreeIgnoreNull(dto));
 
     JiraConfiguration jiraConfiguration = dao.get();
-    assertThat(jiraConfiguration).usingRecursiveComparison().ignoringExpectedNullFields().ignoringFields("password")
+    assertThat(jiraConfiguration).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
+        .ignoringFields("password")
         .isEqualTo(dto);
     assertThat(passwordHandler.decryptPassword(jiraConfiguration.getPassword())).isEqualTo(dto.password);
     verify(spy).updateAllClusterNodesFromConfiguration();
@@ -163,7 +165,7 @@ public class ApiJiraConfigurationServiceTest
     dto.url = existing.getUrl() + "2";
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> service.setConfiguration(asTreeIgnoreNull(dto)))
+        () -> service.setConfiguration(asTreeIgnoreNull(dto)))
         .withMessageContaining(NO_PASSWORD_ERROR_MSG);
   }
 
@@ -177,7 +179,9 @@ public class ApiJiraConfigurationServiceTest
     spy.setConfiguration(asTreeIgnoreNull(dto));
 
     JiraConfiguration jiraConfiguration = dao.get();
-    assertThat(jiraConfiguration).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).ignoringFields("url")
+    assertThat(jiraConfiguration).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .ignoringFields("url")
         .isEqualTo(existing);
     assertThat(jiraConfiguration.getUrl()).isEqualTo(dto.url);
     verify(spy).updateAllClusterNodesFromConfiguration();
@@ -190,7 +194,7 @@ public class ApiJiraConfigurationServiceTest
     dto.username = "username";
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> service.setConfiguration(asTreeIgnoreNull(dto)))
+        () -> service.setConfiguration(asTreeIgnoreNull(dto)))
         .withMessageContaining(NO_USERNAME_PASSWORD_PAIR);
   }
 
@@ -201,7 +205,7 @@ public class ApiJiraConfigurationServiceTest
     dto.password = "password".toCharArray();
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> service.setConfiguration(asTreeIgnoreNull(dto)))
+        () -> service.setConfiguration(asTreeIgnoreNull(dto)))
         .withMessageContaining(NO_USERNAME_PASSWORD_PAIR);
   }
 
@@ -211,7 +215,7 @@ public class ApiJiraConfigurationServiceTest
     ApiJiraConfigurationDTO dto = new ApiJiraConfigurationDTO();
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> service.setConfiguration(asTree(dto, "url", "username", "customFields")))
+        () -> service.setConfiguration(asTree(dto, "url", "username", "customFields")))
         .withMessageContaining(NO_USERNAME_PASSWORD_PAIR);
   }
 
@@ -221,7 +225,7 @@ public class ApiJiraConfigurationServiceTest
     ApiJiraConfigurationDTO dto = new ApiJiraConfigurationDTO();
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-            () -> service.setConfiguration(asTree(dto, "url", "password", "customFields")))
+        () -> service.setConfiguration(asTree(dto, "url", "password", "customFields")))
         .withMessageContaining(NO_USERNAME_PASSWORD_PAIR);
   }
 
@@ -234,7 +238,8 @@ public class ApiJiraConfigurationServiceTest
     spy.setConfiguration(asTree(dto, "url", "customFields"));
 
     JiraConfiguration jiraConfiguration = dao.get();
-    assertThat(jiraConfiguration).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(jiraConfiguration).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .ignoringFields("username")
         .ignoringFields("password")
         .isEqualTo(existing);
@@ -254,7 +259,8 @@ public class ApiJiraConfigurationServiceTest
     spy.setConfiguration(asTreeIgnoreNull(dto));
 
     JiraConfiguration jiraConfiguration = dao.get();
-    assertThat(jiraConfiguration).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(jiraConfiguration).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .ignoringFields("username")
         .ignoringFields("password")
         .isEqualTo(existing);
@@ -273,7 +279,8 @@ public class ApiJiraConfigurationServiceTest
     spy.setConfiguration(asTreeIgnoreNull(dto));
 
     JiraConfiguration jiraConfiguration = dao.get();
-    assertThat(jiraConfiguration).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(jiraConfiguration).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .ignoringFields("customFields", "customFieldsJson")
         .isEqualTo(existing);
     assertThat(jiraConfiguration.getCustomFields()).isEqualTo(dto.customFields);
@@ -295,7 +302,9 @@ public class ApiJiraConfigurationServiceTest
     spy.setConfiguration(asTreeIgnoreNull(dto));
 
     JiraConfiguration jiraConfiguration = dao.get();
-    assertThat(jiraConfiguration).usingRecursiveComparison().ignoringExpectedNullFields().ignoringFields("password")
+    assertThat(jiraConfiguration).usingRecursiveComparison()
+        .ignoringExpectedNullFields()
+        .ignoringFields("password")
         .isEqualTo(dto);
     assertThat(passwordHandler.decryptPassword(jiraConfiguration.getPassword())).isEqualTo(dto.password);
     verify(spy).updateAllClusterNodesFromConfiguration();

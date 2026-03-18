@@ -32,8 +32,7 @@ public record S3SbomEntity(
     S3AsyncClient s3AsyncClient,
     S3DataStoreConfig s3DataStoreConfig,
     @Nullable String appId,
-    String fileName
-)
+    String fileName)
     implements SbomEntity
 {
   public S3SbomEntity {
@@ -58,8 +57,7 @@ public record S3SbomEntity(
         s3AsyncClient,
         key.toString(),
         s3DataStoreConfig.getBucketName(),
-        s3DataStoreConfig.getServerSideEncryption()
-    );
+        s3DataStoreConfig.getServerSideEncryption());
   }
 
   @Override
@@ -69,7 +67,8 @@ public record S3SbomEntity(
       tempFile.toFile().deleteOnExit();
 
       try (InputStream inputStream = getInputStream();
-           OutputStream outputStream = Files.newOutputStream(tempFile)) {
+          OutputStream outputStream = Files.newOutputStream(tempFile))
+      {
         inputStream.transferTo(outputStream);
       }
 

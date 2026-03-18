@@ -137,8 +137,7 @@ public class CycloneDxToCycloneDxExporterTest
         versionService,
         apiReportDataServiceV2,
         licenseResolutionService,
-        buildThirdPartyPersistenceService()
-    );
+        buildThirdPartyPersistenceService());
   }
 
   @Test
@@ -217,8 +216,7 @@ public class CycloneDxToCycloneDxExporterTest
         "log4j",
         "1.2.8",
         "abcdef",
-        "pkg:maven/log4j/log4j@1.2.8?type=jar"
-    );
+        "pkg:maven/log4j/log4j@1.2.8?type=jar");
     tempEntity.newThirdPartyCoordinateSecurity(
         fileCoordinate, "sonatype-2010-0053", "DESC sonatype-2010-0053", "l1", 5.5d,
         "1.1", "source", "v:1", "Medium", "1234",
@@ -243,8 +241,7 @@ public class CycloneDxToCycloneDxExporterTest
         "1.2.8",
         "abcdef",
         null,
-        "69ea90fe09efe94a7e53e1989a3addc2decf3833"
-    );
+        "69ea90fe09efe94a7e53e1989a3addc2decf3833");
     tempEntity.newThirdPartyCoordinateSecurity(
         fileCoordinate, "sonatype-2010-0053", "DESC sonatype-2010-0053", "l1", 5.5d,
         "1.1", "source", "v:1", "Medium", "1234",
@@ -271,8 +268,7 @@ public class CycloneDxToCycloneDxExporterTest
         "1.2.8",
         "abcdef",
         null,
-        "99de859bd6977b14fe90b8283ccd6803b34305d4"
-    );
+        "99de859bd6977b14fe90b8283ccd6803b34305d4");
     tempEntity.newThirdPartyCoordinateSecurity(
         fileCoordinate, "sonatype-2010-0053", "DESC sonatype-2010-0053", "l1", 5.5d,
         "1.1", "source", "v:1", "Medium", "1234",
@@ -296,8 +292,7 @@ public class CycloneDxToCycloneDxExporterTest
         "pam/libpam-modules-bin",
         "1.5.2-6+deb12u1",
         "abcdef",
-        "pkg:generic/debian%3A12/pam%2Flibpam-modules-bin@1.5.2-6%2Bdeb12u1?nexustype=container"
-    );
+        "pkg:generic/debian%3A12/pam%2Flibpam-modules-bin@1.5.2-6%2Bdeb12u1?nexustype=container");
     tempEntity.newThirdPartyCoordinateSecurity(
         fileCoordinate, "CVE-2024-10041", "DESC CVE-2024-10041", "l1", 4.7d,
         "1.1", "Sonatype-Container", "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:N/A:N",
@@ -322,8 +317,7 @@ public class CycloneDxToCycloneDxExporterTest
         "log4j",
         "1.2.8",
         "abcdef",
-        "pkg:maven/log4j/log4j@1.2.8?type=jar"
-    );
+        "pkg:maven/log4j/log4j@1.2.8?type=jar");
     tempEntity.newThirdPartyCoordinateSecurity(
         fileCoordinate, "sonatype-2010-0053", "DESC sonatype-2010-0053", "l1", 5.5d,
         "1.1", "source", "v:1", "Medium", "noinfo",
@@ -351,8 +345,7 @@ public class CycloneDxToCycloneDxExporterTest
         "log4j",
         "1.2.8",
         "abcdef",
-        "pkg:maven/log4j/log4j@1.2.8?type=jar"
-    );
+        "pkg:maven/log4j/log4j@1.2.8?type=jar");
     tempEntity.newThirdPartyCoordinateSecurity(
         fileCoordinate, "CVE-2022-23307", "DESC CVE-2022-23307", "NVD-link", 5.5d,
         "1.1", "NVD", "CVSS:3.1", "Medium", "1234",
@@ -378,8 +371,7 @@ public class CycloneDxToCycloneDxExporterTest
         "abcdef",
         "pkg:maven/log4j/log4j@1.2.8?type=jar",
         "log4j-1.2.8.jar",
-        "similar"
-    );
+        "similar");
     tempEntity.newThirdPartyCoordinateSecurity(
         fileCoordinate, "CVE-2022-23307", "DESC CVE-2022-23307", "NVD-link", 5.5d,
         "1.1", "NVD", "CVSS:3.1", "Medium", "1234",
@@ -405,8 +397,7 @@ public class CycloneDxToCycloneDxExporterTest
         "abcdef",
         "pkg:maven/log4j/log4j@1.2.8?type=jar",
         "log4j-1.2.8.jar",
-        "exact"
-    );
+        "exact");
     tempEntity.newThirdPartyCoordinateSecurity(
         fileCoordinate, "CVE-2022-23307", "DESC CVE-2022-23307", "NVD-link", 5.5d,
         "1.1", "NVD", "CVSS:3.1", "Medium", "1234",
@@ -419,7 +410,7 @@ public class CycloneDxToCycloneDxExporterTest
 
   @Test
   public void testExport_VulnerabilitiesWithMultipleAffects_WithVex() throws Exception {
-    //Given
+    // Given
     String testFileName = "test-bom-duplicate-vuln.xml";
     File testBomFile = prepareTestReportFile(testFileName);
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
@@ -460,21 +451,19 @@ public class CycloneDxToCycloneDxExporterTest
         null, "NVD", "CVSS:3.1", "MEDIUM", "79",
         "CVSSV3", null, null, "SBOM,Sonatype");
 
-    //when
+    // when
     exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_16, SbomFormat.JSON));
     String export = exporter.export();
 
-    //Then
+    // Then
     assertThatJson(export)
         .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/output-test-bom-duplicate-vuln.json"));
   }
 
   @Test
-  public void testExport_specificSbomVersion_doNotExportOriginalSbomVexInfoWhenNoSonatypeDbRecordsFound()
-      throws Exception
-  {
-    //Given
+  public void testExport_specificSbomVersion_doNotExportOriginalSbomVexInfoWhenNoSonatypeDbRecordsFound() throws Exception {
+    // Given
     String testFileName = "test-bom-with-initial-vex.json";
     File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(testFileName));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
@@ -518,14 +507,16 @@ public class CycloneDxToCycloneDxExporterTest
     // Delete all vex info stored in the db associated with this bom and component
     List<ThirdPartyCoordinateSecurity> v1p1Vulnerabilities = thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(cp1
         .getId());
-    List<String> vulnIds = v1p1Vulnerabilities.stream().map(ThirdPartyCoordinateSecurity::getId).collect(
-        Collectors.toList());
+    List<String> vulnIds = v1p1Vulnerabilities.stream()
+        .map(ThirdPartyCoordinateSecurity::getId)
+        .collect(
+            Collectors.toList());
     List<ThirdPartyVulnerabilityExploitabilityExchange> vexAnnotationsInDB =
         thirdPartyVulnerabilityExploitabilityExchangeDAO.getListByCoordinateSecurityIds(vulnIds);
     vexAnnotationsInDB.forEach(vex -> thirdPartyVulnerabilityExploitabilityExchangeDAO
         .delete(vex));
 
-    //Export again after deleting all vex info in db
+    // Export again after deleting all vex info in db
     exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_16, SbomFormat.JSON));
     export = exporter.export();
 
@@ -535,8 +526,9 @@ public class CycloneDxToCycloneDxExporterTest
         .isEqualTo(readFileToString("outputs/output-bom-without-vex-exported.json"));
   }
 
-  private void testExportingWebgoatAppWithInputFormatAndOutputFormat(SbomFormat inputFormat, SbomFormat outputFormat)
-      throws Exception
+  private void testExportingWebgoatAppWithInputFormatAndOutputFormat(
+      SbomFormat inputFormat,
+      SbomFormat outputFormat) throws Exception
   {
     String testFileName = inputFormat.equals(SbomFormat.XML) ? TEST_XML_SBOM : TEST_JSON_SBOM;
     File testBomFile = prepareTestReportFile(testFileName);
@@ -603,9 +595,8 @@ public class CycloneDxToCycloneDxExporterTest
         .hasFieldOrPropertyWithValue("url", "l1");
     assertThat(updatedSonatype0053.getProperties())
         .hasSize(1)
-        .anyMatch(p ->
-            p.getName().equalsIgnoreCase(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME) &&
-                p.getValue().equals("G,F"));
+        .anyMatch(p -> p.getName().equalsIgnoreCase(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME) &&
+            p.getValue().equals("G,F"));
     assertThat(updatedSonatype0053.getCwes()).hasSize(1)
         .anyMatch(cwe -> cwe.equals(1234));
     assertThat(updatedSonatype0053.getRatings()).hasSize(1)
@@ -645,9 +636,8 @@ public class CycloneDxToCycloneDxExporterTest
         .hasFieldOrPropertyWithValue("url", "http//");
     assertThat(vulnerabilityABC.getProperties())
         .hasSize(1)
-        .anyMatch(p ->
-            p.getName().equalsIgnoreCase(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME) &&
-                p.getValue().equals("M"));
+        .anyMatch(p -> p.getName().equalsIgnoreCase(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME) &&
+            p.getValue().equals("M"));
 
     // Vex
     assertThat(vulnerabilityABC.getAnalysis())
@@ -667,8 +657,7 @@ public class CycloneDxToCycloneDxExporterTest
         "test",
         "1.5",
         "abc",
-        "pkg:maven/log4j/log4j@1.2.8?type=jar"
-    );
+        "pkg:maven/log4j/log4j@1.2.8?type=jar");
 
     ThirdPartyCoordinateSecurity vulnerabilitySonatype20100053 = tempEntity.newThirdPartyCoordinateSecurity(
         fileCoordinate, "sonatype-2010-0053", "DESC sonatype-2010-0053", "l1", 5.5d,
@@ -720,10 +709,12 @@ public class CycloneDxToCycloneDxExporterTest
   }
 
   private License findBomLicense(String licenseIdentifier, List<License> licenses) {
-    return licenses.stream().filter(
-        l -> (l.getId() != null && l.getId().equalsIgnoreCase(licenseIdentifier))
-            || (l.getName() != null && l.getName().equalsIgnoreCase(licenseIdentifier))
-    ).findFirst().orElse(null);
+    return licenses.stream()
+        .filter(
+            l -> (l.getId() != null && l.getId().equalsIgnoreCase(licenseIdentifier))
+                || (l.getName() != null && l.getName().equalsIgnoreCase(licenseIdentifier)))
+        .findFirst()
+        .orElse(null);
   }
 
   private Vulnerability findVulnerability(String refId, List<Vulnerability> vulnerabilities) {
@@ -747,7 +738,8 @@ public class CycloneDxToCycloneDxExporterTest
     assertThat(exportedLog4j).isNotNull()
         .extracting(Component::getLicenses)
         .extracting(LicenseChoice::getLicenses)
-        .extracting(List::size).isEqualTo(4);
+        .extracting(List::size)
+        .isEqualTo(4);
 
     // Licenses
     List<License> log4JExportedLicenses = exportedLog4j.getLicenses().getLicenses();
@@ -781,8 +773,12 @@ public class CycloneDxToCycloneDxExporterTest
 
   private void assertLicenseHasIdentificationSources(License license, String identificationSources) {
     assertThat(CollectionUtils.isEmpty(license.getProperties())).isFalse();
-    Property foundProperty = license.getProperties().stream().filter(property -> property.getName()
-        .equals(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME)).findFirst().orElse(null);
+    Property foundProperty = license.getProperties()
+        .stream()
+        .filter(property -> property.getName()
+            .equals(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME))
+        .findFirst()
+        .orElse(null);
     assertThat(foundProperty).isNotNull()
         .extracting(Property::getValue)
         .isEqualTo(identificationSources);

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess.artifactory;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.sql.SQLException;
@@ -48,7 +49,8 @@ public class ArtifactoryConnectionDAOTest
     assertThat(artifactoryConnection.getId()).isNotNull();
 
     // Read
-    assertThat(dao.getById(artifactoryConnection.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(dao.getById(artifactoryConnection.getId())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(artifactoryConnection);
 
     // Update
@@ -57,7 +59,8 @@ public class ArtifactoryConnectionDAOTest
     artifactoryConnection.setUsername(artifactoryConnection.getUsername() + "2");
     artifactoryConnection.setPassword((String.valueOf(artifactoryConnection.getPassword()) + "2").toCharArray());
     dao.update(artifactoryConnection);
-    assertThat(dao.getById(artifactoryConnection.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(dao.getById(artifactoryConnection.getId())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(artifactoryConnection);
 
     // Delete
@@ -71,7 +74,8 @@ public class ArtifactoryConnectionDAOTest
         tempEntity.newArtifactoryConnection("ownerId1", "baseUrl1", "username1", "password1".toCharArray());
     tempEntity.newArtifactoryConnection("ownerId2", "baseUrl2", "username2", "password2".toCharArray());
 
-    assertThat(dao.getById(artifactoryConnection.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(dao.getById(artifactoryConnection.getId())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(artifactoryConnection);
   }
 

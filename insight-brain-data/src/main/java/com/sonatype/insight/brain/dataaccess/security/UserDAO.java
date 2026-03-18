@@ -92,7 +92,7 @@ public class UserDAO
 
   /**
    * Looks up users by their (case-insensitive) usernames.
-   * 
+   *
    * @param usernames The usernames to look up, must not be {@code null}.
    * @return List of matching User objects ordered by their lower case usernames.
    */
@@ -125,7 +125,7 @@ public class UserDAO
 
   /**
    * Looks up a user by its (case-insensitive) username.
-   * 
+   *
    * @param username The username to look up, must not be {@code null}.
    * @return The user or {@code null} if not found.
    */
@@ -145,7 +145,7 @@ public class UserDAO
 
   /**
    * Find users in the database by matching case-insensitive the supplied name query against their full name.
-   * 
+   *
    * @param nameQuery This string may contain wildcards and it will be checked case-insensitive against
    *          concat(entity.firstName, ' ', entity.lastName)
    */

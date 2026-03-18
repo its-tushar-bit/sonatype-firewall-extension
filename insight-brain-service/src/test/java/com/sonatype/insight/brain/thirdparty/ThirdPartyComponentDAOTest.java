@@ -205,8 +205,7 @@ public class ThirdPartyComponentDAOTest
     List<ComponentDetails> result = dao.getAllVersions(
         application.getId(),
         componentIdentifierFrom("unknown", "unknown", "0.0"),
-        SCAN_ID
-    ).getList();
+        SCAN_ID).getList();
     assertThat(result).isEmpty();
   }
 
@@ -289,8 +288,7 @@ public class ThirdPartyComponentDAOTest
         testData.get(hashGlibc),
         application.getId(),
         SCAN_ID,
-        referenceId
-    );
+        referenceId);
 
     assertThat(securityDetails).isNotNull();
     assertThat(securityDetails.getSource()).isNull();
@@ -310,8 +308,7 @@ public class ThirdPartyComponentDAOTest
             testData.get(hashGlibc),
             application.getId(),
             SCAN_ID,
-            referenceId
-        ))
+            referenceId))
         .withMessageContaining("Vulnerability with refid: " + referenceId + " not found.");
   }
 
@@ -352,7 +349,8 @@ public class ThirdPartyComponentDAOTest
   }
 
   private Optional<SecurityVulnerability> getSecurityVulnerability(
-      final List<SecurityVulnerability> secResults, final String cve)
+      final List<SecurityVulnerability> secResults,
+      final String cve)
   {
     return secResults.stream().filter(sv -> sv.getRefId().equals(cve)).findFirst();
   }
@@ -808,9 +806,7 @@ public class ThirdPartyComponentDAOTest
     assertThat(epssData.textValue()).isNull();
   }
 
-  private ContainerNode<?> getContainerNode(final ApplicationReport reportFile, final String name)
-      throws IOException
-  {
+  private ContainerNode<?> getContainerNode(final ApplicationReport reportFile, final String name) throws IOException {
     return JsonUtils.parse(reportFile.getEntry(name).buf);
   }
 
@@ -833,7 +829,7 @@ public class ThirdPartyComponentDAOTest
 
   private void mockHdsGetKevDataBulk_Error() {
     lenient().when(hdsClientMock.post(
-            eq(BulkSecurityVulnerabilityDataDTO.class), eq("/rest/vulnerability/details/json"), anyCollection()))
+        eq(BulkSecurityVulnerabilityDataDTO.class), eq("/rest/vulnerability/details/json"), anyCollection()))
         .thenThrow(new BadRequestException("Bad request"));
   }
 }

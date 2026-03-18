@@ -62,9 +62,9 @@ public class AgeInDaysConditionType
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
     final int days = Integer.parseInt(condition.getValue());
-    final String conditionAge = days % 365 == 0 ?
-        days / 365 + " years" :
-        days % 30 == 0 ? days / 30 + " months" : days % 7 == 0 ? days / 7 + " weeks" : days + " days";
+    final String conditionAge = days % 365 == 0
+        ? days / 365 + " years"
+        : days % 30 == 0 ? days / 30 + " months" : days % 7 == 0 ? days / 7 + " weeks" : days + " days";
     return "Found component " + condition.getOperator() + " " + conditionAge;
   }
 
@@ -74,8 +74,10 @@ public class AgeInDaysConditionType
   }
 
   @Override
-  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
-      throws InvalidConditionException
+  public void validateCondition(
+      TransactionContext tx,
+      Condition condition,
+      String ownerId) throws InvalidConditionException
   {
     super.validateCondition(tx, condition, ownerId);
 

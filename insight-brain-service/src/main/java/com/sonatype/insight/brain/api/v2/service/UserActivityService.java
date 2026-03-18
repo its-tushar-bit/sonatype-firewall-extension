@@ -127,9 +127,10 @@ public class UserActivityService
   private final TenantReference<TenantThreadPoolExecutor> executors;
 
   @Inject
-  public UserActivityService(final AuditLogFilesProvider auditLogFilesProvider,
-                           final ClusterLockManager clusterLockManager,
-                           final ShutdownHandler shutdownHandler)
+  public UserActivityService(
+      final AuditLogFilesProvider auditLogFilesProvider,
+      final ClusterLockManager clusterLockManager,
+      final ShutdownHandler shutdownHandler)
   {
     this(auditLogFilesProvider, clusterLockManager, shutdownHandler, DEFAULT_MAX_READ_USER_ACTIVITIES);
   }
@@ -137,10 +138,11 @@ public class UserActivityService
   /**
    * Constructor with configurable user activity limit (primarily for testing).
    */
-  public UserActivityService(final AuditLogFilesProvider auditLogFilesProvider,
-                           final ClusterLockManager clusterLockManager,
-                           final ShutdownHandler shutdownHandler,
-                           final int maxReadUserActivities)
+  public UserActivityService(
+      final AuditLogFilesProvider auditLogFilesProvider,
+      final ClusterLockManager clusterLockManager,
+      final ShutdownHandler shutdownHandler,
+      final int maxReadUserActivities)
   {
     this.auditLogFilesProvider = auditLogFilesProvider;
     this.clusterLockManager = clusterLockManager;
@@ -161,8 +163,7 @@ public class UserActivityService
           threadFactory,
           new AbortPolicy(),
           "userActivity",
-          "UserActivityService"
-      );
+          "UserActivityService");
 
       // Configure proper shutdown behavior
       tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
@@ -190,8 +191,10 @@ public class UserActivityService
 
   @Authorize(permission = Permission.ACCESS_AUDIT_LOG)
   public ApiUserActivitySummaryDTO getUserActivitySummary(
-      final String startUtcDate, final String endUtcDate,
-      final String username, final Integer limit,
+      final String startUtcDate,
+      final String endUtcDate,
+      final String username,
+      final Integer limit,
       final Integer offset)
   {
     validateParams(startUtcDate, endUtcDate, limit, offset);
@@ -201,8 +204,7 @@ public class UserActivityService
     List<File> auditLogFiles = auditLogFilesProvider.getAuditLogFiles(
         LocalDate.parse(startUtcDate), LocalDate.parse(endUtcDate));
 
-    Map<String, UserActivityData> userActivities = executeWithTimeout(() ->
-        processAuditFiles(auditLogFiles, username));
+    Map<String, UserActivityData> userActivities = executeWithTimeout(() -> processAuditFiles(auditLogFiles, username));
 
     List<ApiUserActivityDTO> users = convertToUserActivityDTOs(userActivities, actualLimit, actualOffset);
 
@@ -217,10 +219,15 @@ public class UserActivityService
   }
 
   @Authorize(permission = Permission.ACCESS_AUDIT_LOG)
-  public ApiUserActivityDetailDTO getUserActivityDetail(final String startUtcDate, final String endUtcDate,
-                                                        final String username, final Integer limit,
-                                                        final Integer offset, final List<String> activityTypes,
-                                                        final List<String> domains, final List<String> errorTypes)
+  public ApiUserActivityDetailDTO getUserActivityDetail(
+      final String startUtcDate,
+      final String endUtcDate,
+      final String username,
+      final Integer limit,
+      final Integer offset,
+      final List<String> activityTypes,
+      final List<String> domains,
+      final List<String> errorTypes)
   {
     validateParams(startUtcDate, endUtcDate, limit, offset);
 
@@ -233,8 +240,8 @@ public class UserActivityService
     List<File> auditLogFiles = auditLogFilesProvider.getAuditLogFiles(
         LocalDate.parse(startUtcDate), LocalDate.parse(endUtcDate));
 
-    UserActivityResult result = executeWithTimeout(() ->
-        processAuditFilesForUserWithPagination(auditLogFiles, username, actualLimit, actualOffset,
+    UserActivityResult result = executeWithTimeout(
+        () -> processAuditFilesForUserWithPagination(auditLogFiles, username, actualLimit, actualOffset,
             activityTypes, domains, errorTypes));
 
     ApiUserActivityDetailDTO response = new ApiUserActivityDetailDTO();
@@ -246,13 +253,15 @@ public class UserActivityService
   }
 
   @Authorize(permission = Permission.ACCESS_AUDIT_LOG)
-  public List<ApiActivityEventDTO> getAllUserActivitiesForExport(final String startUtcDate,
-                                                                 final String endUtcDate,
-                                                                 final String username,
-                                                                 final Integer limit, final Integer offset,
-                                                                 final List<String> activityTypes,
-                                                                 final List<String> domains,
-                                                                 final List<String> errorTypes)
+  public List<ApiActivityEventDTO> getAllUserActivitiesForExport(
+      final String startUtcDate,
+      final String endUtcDate,
+      final String username,
+      final Integer limit,
+      final Integer offset,
+      final List<String> activityTypes,
+      final List<String> domains,
+      final List<String> errorTypes)
   {
     validateParams(startUtcDate, endUtcDate, limit, offset);
 
@@ -261,8 +270,8 @@ public class UserActivityService
     List<File> auditLogFiles = auditLogFilesProvider.getAuditLogFiles(
         LocalDate.parse(startUtcDate), LocalDate.parse(endUtcDate));
 
-    UserActivityResult result = executeWithTimeout(() ->
-        processAuditFilesForUserWithPagination(auditLogFiles, username, actualLimit, actualOffset,
+    UserActivityResult result = executeWithTimeout(
+        () -> processAuditFilesForUserWithPagination(auditLogFiles, username, actualLimit, actualOffset,
             activityTypes, domains, errorTypes));
 
     return result.activities;
@@ -282,8 +291,10 @@ public class UserActivityService
    * @param context description of where the check is being performed (for logging)
    * @return true if the limit has been reached and processing should stop
    */
-  private boolean hasReachedUserActivityLimit(String usernameFilter, Map<String, UserActivityData> userActivities,
-                                            String context)
+  private boolean hasReachedUserActivityLimit(
+      String usernameFilter,
+      Map<String, UserActivityData> userActivities,
+      String context)
   {
     boolean isGeneralQuery = (usernameFilter == null || usernameFilter.trim().isEmpty());
     if (isGeneralQuery && userActivities.size() >= maxReadUserActivities) {
@@ -303,8 +314,11 @@ public class UserActivityService
    * @param fileName name of the file being processed
    * @return true if processing should stop
    */
-  private boolean shouldStopProcessing(String usernameFilter, Map<String, UserActivityData> userActivities,
-                                      int lineCount, String fileName)
+  private boolean shouldStopProcessing(
+      String usernameFilter,
+      Map<String, UserActivityData> userActivities,
+      int lineCount,
+      String fileName)
   {
     // Check user tracking limit - only apply when doing general queries (not user-specific)
     if (hasReachedUserActivityLimit(usernameFilter, userActivities, "at line " + lineCount)) {
@@ -377,8 +391,10 @@ public class UserActivityService
     return userActivities;
   }
 
-  private void processAuditFile(File file, Map<String, UserActivityData> userActivities, String usernameFilter)
-      throws IOException
+  private void processAuditFile(
+      File file,
+      Map<String, UserActivityData> userActivities,
+      String usernameFilter) throws IOException
   {
     if (!file.exists() || !file.canRead()) {
       log.debug("Cannot read audit file: {} (exists: {}, readable: {})",
@@ -434,7 +450,8 @@ public class UserActivityService
     // Skip system events and anonymous users
     if (auditEvent.username == null ||
         MDCUsernameScope.SYSTEM.equals(auditEvent.username) ||
-        MDCUsernameScope.ANONYMOUS.equals(auditEvent.username)) {
+        MDCUsernameScope.ANONYMOUS.equals(auditEvent.username))
+    {
       return false;
     }
 
@@ -456,9 +473,14 @@ public class UserActivityService
     userData.addEvent(auditEvent);
   }
 
-  private UserActivityResult processAuditFilesForUserWithPagination(List<File> auditLogFiles, String username,
-                                                                   int limit, int offset, List<String> activityTypes,
-                                                                   List<String> domains, List<String> errorTypes)
+  private UserActivityResult processAuditFilesForUserWithPagination(
+      List<File> auditLogFiles,
+      String username,
+      int limit,
+      int offset,
+      List<String> activityTypes,
+      List<String> domains,
+      List<String> errorTypes)
   {
     List<ApiActivityEventDTO> events = new ArrayList<>();
     int currentOffset = 0;
@@ -504,8 +526,12 @@ public class UserActivityService
     }
   }
 
-  private List<ApiActivityEventDTO> processAuditFileForUser(File file, String username, List<String> activityTypes,
-      List<String> domains, List<String> errorTypes) throws IOException
+  private List<ApiActivityEventDTO> processAuditFileForUser(
+      File file,
+      String username,
+      List<String> activityTypes,
+      List<String> domains,
+      List<String> errorTypes) throws IOException
   {
     List<ApiActivityEventDTO> events = new ArrayList<>();
 
@@ -518,7 +544,8 @@ public class UserActivityService
           try {
             AuditDTO auditEvent = objectMapper.readValue(line, AuditDTO.class);
             if (isRelevantAuditEvent(auditEvent, username)
-                && matchesFilters(auditEvent, activityTypes, domains, errorTypes)) {
+                && matchesFilters(auditEvent, activityTypes, domains, errorTypes))
+            {
               events.add(convertToActivityEventDTO(auditEvent));
             }
           }
@@ -532,7 +559,10 @@ public class UserActivityService
     return events;
   }
 
-  private boolean matchesFilters(AuditDTO auditEvent, List<String> activityTypes, List<String> domains,
+  private boolean matchesFilters(
+      AuditDTO auditEvent,
+      List<String> activityTypes,
+      List<String> domains,
       List<String> errorTypes)
   {
     // Filter by activity type
@@ -578,10 +608,13 @@ public class UserActivityService
     return true;
   }
 
-  private List<ApiUserActivityDTO> convertToUserActivityDTOs(Map<String, UserActivityData> userActivities,
-                                                             int limit, int offset)
+  private List<ApiUserActivityDTO> convertToUserActivityDTOs(
+      Map<String, UserActivityData> userActivities,
+      int limit,
+      int offset)
   {
-    return userActivities.values().stream()
+    return userActivities.values()
+        .stream()
         .sorted((a, b) -> b.getLoginCount().compareTo(a.getLoginCount()))
         .skip(offset)
         .limit(limit)

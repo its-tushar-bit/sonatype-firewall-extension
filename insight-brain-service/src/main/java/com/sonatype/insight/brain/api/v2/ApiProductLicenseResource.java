@@ -56,15 +56,14 @@ public class ApiProductLicenseResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "License installed successfully")
+        @ApiResponse(responseCode = "200",
+            description = "License installed successfully")
       })
   public Response installLicense(
       @Parameter(required = true,
-          schema = @Schema(type = "string", format = "binary", description = "Your product license file"))
-      @FormDataParam("file") InputStream inputStream,
-      @Parameter(hidden = true)
-      @FormDataParam("file") FormDataContentDisposition fileDetail)
+          schema = @Schema(type = "string", format = "binary",
+              description = "Your product license file")) @FormDataParam("file") InputStream inputStream,
+      @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail)
   {
     productLicenseService.installLicense(inputStream, fileDetail.getFileName());
     return Response.ok().build();
@@ -77,8 +76,8 @@ public class ApiProductLicenseResource
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
-          @ApiResponse(responseCode = "204",
-              description = "License uninstalled successfully")
+        @ApiResponse(responseCode = "204",
+            description = "License uninstalled successfully")
       })
   public void uninstallLicense() {
     productLicenseService.uninstallLicense();

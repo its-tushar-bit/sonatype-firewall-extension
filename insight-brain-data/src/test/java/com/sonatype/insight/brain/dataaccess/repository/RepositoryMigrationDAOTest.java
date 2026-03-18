@@ -37,13 +37,15 @@ public class RepositoryMigrationDAOTest
 
     // Read
     assertThat(dao.getByRepositoryId(repositoryMigration.getRepositoryId())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(repositoryMigration);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(repositoryMigration);
 
     // Update
     repositoryMigration.setState(MigrationState.COMPLETED);
     dao.update(repositoryMigration);
     assertThat(dao.getByRepositoryId(repositoryMigration.getRepositoryId())).usingRecursiveComparison()
-        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(repositoryMigration);
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(repositoryMigration);
 
     // Delete
     dao.delete(repositoryMigration);
@@ -56,7 +58,8 @@ public class RepositoryMigrationDAOTest
     RepositoryMigration repositoryMigration2 = tempEntity.newRepositoryMigration(tempEntity.newRepository());
 
     assertThat(dao.getAll()).extracting(RepositoryMigration::getId)
-        .doesNotContainNull().containsExactlyInAnyOrder(repositoryMigration1.getId(), repositoryMigration2.getId());
+        .doesNotContainNull()
+        .containsExactlyInAnyOrder(repositoryMigration1.getId(), repositoryMigration2.getId());
   }
 
   @Test

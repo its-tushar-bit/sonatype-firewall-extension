@@ -144,7 +144,7 @@ public class PolicyWaiverResource
         policyId -> policyNamesById.computeIfAbsent(policyId, id -> policyDAO.getById(id).getName());
 
     Map<String, PolicyWaiverReason> policyWaiverReasonMap = policyWaiverReasonDAO
-            .getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
+        .getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
 
     AppliedWaivers result = new AppliedWaivers();
     ComponentIdentifier componentIdentifier = null;
@@ -153,7 +153,7 @@ public class PolicyWaiverResource
         componentIdentifier = getComponentIdentifierFromOwnerAndHash(owner, hash);
       }
       result.add(owner, getApplicableWaivers(owner.getId(), hash, policyNameLoader, componentIdentifier,
-              policyWaiverReasonMap));
+          policyWaiverReasonMap));
       result.addExpired(owner, policyWaiverService.getExpiredWaivers(owner.getId(), hash, policyNameLoader,
           componentIdentifier, policyWaiverReasonMap));
     }

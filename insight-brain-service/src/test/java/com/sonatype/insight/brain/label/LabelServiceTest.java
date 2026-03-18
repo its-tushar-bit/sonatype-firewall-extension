@@ -176,7 +176,8 @@ public class LabelServiceTest
     labelDTO.id = "id-on-demand";
 
     assertThatThrownBy(() -> labelService.addLabel(OwnerType.APPLICATION, appId, labelDTO))
-        .isInstanceOf(BadRequestException.class).hasMessage("ID must be null when creating a Label.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("ID must be null when creating a Label.");
   }
 
   @Test
@@ -186,7 +187,8 @@ public class LabelServiceTest
     ApiLabelDTO labelDTO = new ApiLabelDTO(null, "description", "dark-blue");
 
     assertThatThrownBy(() -> labelService.addLabel(OwnerType.APPLICATION, appId, labelDTO))
-        .isInstanceOf(InvalidNameException.class).hasMessage("Label name is required.");
+        .isInstanceOf(InvalidNameException.class)
+        .hasMessage("Label name is required.");
   }
 
   @Test
@@ -217,14 +219,16 @@ public class LabelServiceTest
     labelDTO.ownerId = "ownerId-on-demand";
 
     assertThatThrownBy(() -> labelService.addLabel(OwnerType.APPLICATION, appId, labelDTO))
-        .isInstanceOf(BadRequestException.class).hasMessage("Owner ID mismatch.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Owner ID mismatch.");
   }
 
   @Test
   public void testAddLabel_ToNonExistingApplication() {
     ApiLabelDTO labelDTO = new ApiLabelDTO("MyLabel", "DescriptionLabel", "dark-blue");
     assertThatThrownBy(() -> labelService.addLabel(OwnerType.APPLICATION, "no-app-with-this-id", labelDTO))
-        .isInstanceOf(NotFoundException.class).hasMessage("Application with ID no-app-with-this-id does not exist.");
+        .isInstanceOf(NotFoundException.class)
+        .hasMessage("Application with ID no-app-with-this-id does not exist.");
   }
 
   @Test
@@ -255,7 +259,8 @@ public class LabelServiceTest
     labelDTO.ownerType = "ORGANIZATION";
 
     assertThatThrownBy(() -> labelService.addLabel(OwnerType.APPLICATION, appId, labelDTO))
-        .isInstanceOf(BadRequestException.class).hasMessage("Owner Type mismatch.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Owner Type mismatch.");
   }
 
   @Test
@@ -264,7 +269,8 @@ public class LabelServiceTest
     ApiLabelDTO labelDTO = new ApiLabelDTO("Label Without Color", "Description", null);
 
     assertThatThrownBy(() -> labelService.addLabel(OwnerType.APPLICATION, appId, labelDTO))
-        .isInstanceOf(InvalidLabelException.class).hasMessage("The label color must be assigned.");
+        .isInstanceOf(InvalidLabelException.class)
+        .hasMessage("The label color must be assigned.");
   }
 
   @Test
@@ -274,7 +280,8 @@ public class LabelServiceTest
     ApiLabelDTO labelDTO = new ApiLabelDTO("Label", "Description", "blakc");
 
     assertThatThrownBy(() -> labelService.addLabel(OwnerType.APPLICATION, appId, labelDTO))
-        .isInstanceOf(BadRequestException.class).hasMessage("Unsupported color: blakc");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Unsupported color: blakc");
   }
 
   @Test
@@ -334,7 +341,8 @@ public class LabelServiceTest
     apiLabelDTO.id = null;
 
     assertThatThrownBy(() -> labelService.updateLabel(OwnerType.APPLICATION, appId, apiLabelDTO))
-        .isInstanceOf(NotFoundException.class).hasMessage("Label with ID null does not exist.");
+        .isInstanceOf(NotFoundException.class)
+        .hasMessage("Label with ID null does not exist.");
   }
 
   @Test
@@ -346,7 +354,8 @@ public class LabelServiceTest
     apiLabelDTO.ownerId = tempEntity.newApplicationWithParent().getId();
 
     assertThatThrownBy(() -> labelService.updateLabel(OwnerType.APPLICATION, appId, apiLabelDTO))
-        .isInstanceOf(BadRequestException.class).hasMessage("Owner ID mismatch.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Owner ID mismatch.");
   }
 
   @Test
@@ -358,7 +367,8 @@ public class LabelServiceTest
     apiLabelDTO.ownerType = "ORGANIZATION";
 
     assertThatThrownBy(() -> labelService.updateLabel(OwnerType.APPLICATION, appId, apiLabelDTO))
-        .isInstanceOf(BadRequestException.class).hasMessage("Owner Type mismatch.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Owner Type mismatch.");
   }
 
   @Test
@@ -384,7 +394,8 @@ public class LabelServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     assertThatThrownBy(() -> labelService.deleteLabel(APPLICATION, app.getId(), "YettiId"))
-        .isInstanceOf(NotFoundException.class).hasMessage("Label with ID YettiId does not exist.");
+        .isInstanceOf(NotFoundException.class)
+        .hasMessage("Label with ID YettiId does not exist.");
   }
 
   @Test

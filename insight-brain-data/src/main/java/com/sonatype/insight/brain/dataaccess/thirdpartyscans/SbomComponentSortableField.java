@@ -15,7 +15,7 @@ public enum SbomComponentSortableField
 
   private final String column;
 
-  SbomComponentSortableField( final String column) {
+  SbomComponentSortableField(final String column) {
     this.column = column;
   }
 

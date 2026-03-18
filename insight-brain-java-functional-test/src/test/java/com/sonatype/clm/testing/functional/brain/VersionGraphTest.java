@@ -117,8 +117,8 @@ public class VersionGraphTest
   }
 
   /**
-   *  tests CLM-29546
-   * */
+   * tests CLM-29546
+   */
   @Test
   public void testVersionGraph_babel_plugin_syntax_showDefaultVersionBar() {
     mockHdsResponseForBabelComponent();
@@ -182,12 +182,13 @@ public class VersionGraphTest
     return new ComponentDetailsPage();
   }
 
-  private void createPolicy(String ownerId,
-                            int threatLevel,
-                            String name,
-                            String conditionType,
-                            String operator,
-                            String value)
+  private void createPolicy(
+      String ownerId,
+      int threatLevel,
+      String name,
+      String conditionType,
+      String operator,
+      String value)
   {
     Policy p = new Policy(null, name);
     p.setThreatLevel(threatLevel);

@@ -32,7 +32,8 @@ public class MultiTenantTelemetryScheduler
 
   @Inject
   public MultiTenantTelemetryScheduler(
-      MultiTenantTaskScheduler taskScheduler, final MultiTenantTelemetryTask multiTenantTelemetryTask)
+      MultiTenantTaskScheduler taskScheduler,
+      final MultiTenantTelemetryTask multiTenantTelemetryTask)
   {
     this.taskScheduler = taskScheduler;
     this.multiTenantTelemetryTask = multiTenantTelemetryTask;

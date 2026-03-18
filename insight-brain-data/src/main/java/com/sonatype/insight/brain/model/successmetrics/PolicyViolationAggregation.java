@@ -439,19 +439,20 @@ public class PolicyViolationAggregation
   public PolicyViolationAggregation() {
   }
 
-  public PolicyViolationAggregation(String applicationId,
-                                    Date timePeriodStart,
-                                    Date timePeriodEnd,
-                                    TimePeriod timePeriod,
-                                    DescriptiveStatistics mttrLowThreatStats,
-                                    DescriptiveStatistics mttrModerateThreatStats,
-                                    DescriptiveStatistics mttrSevereThreatStats,
-                                    DescriptiveStatistics mttrCriticalThreatStats,
-                                    Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts,
-                                    Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
-                                    Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
-                                    Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts,
-                                    Integer evaluationCount)
+  public PolicyViolationAggregation(
+      String applicationId,
+      Date timePeriodStart,
+      Date timePeriodEnd,
+      TimePeriod timePeriod,
+      DescriptiveStatistics mttrLowThreatStats,
+      DescriptiveStatistics mttrModerateThreatStats,
+      DescriptiveStatistics mttrSevereThreatStats,
+      DescriptiveStatistics mttrCriticalThreatStats,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> discoveredCounts,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> fixedCounts,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> waivedCounts,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> openCounts,
+      Integer evaluationCount)
   {
     this.applicationId = applicationId;
     this.timePeriodStart = timePeriodStart;
@@ -471,8 +472,9 @@ public class PolicyViolationAggregation
     this.evaluationCount = evaluationCount;
   }
 
-  private void setCounts(Table<PolicyThreatCategory, ThreatLevel, Integer> counts,
-                         Table<PolicyThreatCategory, ThreatLevel, IntConsumer> settersMap)
+  private void setCounts(
+      Table<PolicyThreatCategory, ThreatLevel, Integer> counts,
+      Table<PolicyThreatCategory, ThreatLevel, IntConsumer> settersMap)
   {
     for (PolicyThreatCategory category : PolicyThreatCategory.values()) {
       for (ThreatLevel threatLevel : ThreatLevel.values()) {
@@ -575,7 +577,8 @@ public class PolicyViolationAggregation
   private int getResolvedForThreatLevel(ThreatLevel level) {
     return Stream
         .concat(fixedGettersMap.column(level).values().stream(), waivedGettersMap.column(level).values().stream())
-        .mapToInt(getter -> getter.getAsInt()).sum();
+        .mapToInt(getter -> getter.getAsInt())
+        .sum();
   }
 
   public int getEvaluationCount() {

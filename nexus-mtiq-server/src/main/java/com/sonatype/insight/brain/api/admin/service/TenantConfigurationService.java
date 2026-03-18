@@ -66,8 +66,7 @@ public class TenantConfigurationService
       SESSION_TIMEOUT_MINUTES,
       USER_ACTIVITY_TRACKING,
       USER_TOKEN_DEFAULT_EXPIRATION_DAYS,
-      MALICIOUS_URLS_PARTNER_ACCESS
-  );
+      MALICIOUS_URLS_PARTNER_ACCESS);
 
   // Visible for testing
   /**
@@ -82,8 +81,7 @@ public class TenantConfigurationService
       USER_AGENT_SUFFIX,
       WARN_ON_NON_PRIMARY_STORAGE_ACCESS,
       COPY_STORAGE_CONFIG,
-      MAX_CONCURRENT_TENANT_INDEX_CREATION
-  );
+      MAX_CONCURRENT_TENANT_INDEX_CREATION);
 
   private static final String NO_CONFIG_SPECIFIED = "No configuration was specified.";
 

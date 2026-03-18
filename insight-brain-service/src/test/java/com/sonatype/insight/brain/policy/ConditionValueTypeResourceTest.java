@@ -38,8 +38,10 @@ public class ConditionValueTypeResourceTest
       ALL_TYPES.values().stream().map(SecurityVulnerabilityResearch::getId).toList();
 
   private static final List<String> ALL_DETECTION_TYPES =
-      SecurityVulnerabilityDetection.ALL_TYPES.values().stream()
-          .map(SecurityVulnerabilityDetection::getId).toList();
+      SecurityVulnerabilityDetection.ALL_TYPES.values()
+          .stream()
+          .map(SecurityVulnerabilityDetection::getId)
+          .toList();
 
   private static final List<String> DETECTION_TYPES_WITHOUT_CPE_MATCH =
       WITHOUT_CPE_MATCH.values().stream().map(SecurityVulnerabilityDetection::getId).toList();
@@ -144,11 +146,13 @@ public class ConditionValueTypeResourceTest
     assertThat(researchTypeOptional).isPresent().get().satisfies(researchType -> {
       List<Map<?, ?>> availableValues = (List<Map<?, ?>>) ((Map<?, ?>) researchType).get("availableValues");
       if (includePublicResearch) {
-        assertThat(availableValues).isNotEmpty().extracting("id")
+        assertThat(availableValues).isNotEmpty()
+            .extracting("id")
             .containsExactlyInAnyOrderElementsOf(ALL_RESEARCH_TYPES);
       }
       else {
-        assertThat(availableValues).isNotEmpty().extracting("id")
+        assertThat(availableValues).isNotEmpty()
+            .extracting("id")
             .containsExactlyInAnyOrderElementsOf(DEFAULT_RESEARCH_TYPES);
       }
     });
@@ -163,11 +167,13 @@ public class ConditionValueTypeResourceTest
     assertThat(detectionTypeOptional).isPresent().get().satisfies(researchType -> {
       List<Map<?, ?>> availableValues = (List<Map<?, ?>>) ((Map<?, ?>) researchType).get("availableValues");
       if (includeCpeMatch) {
-        assertThat(availableValues).isNotEmpty().extracting("id")
+        assertThat(availableValues).isNotEmpty()
+            .extracting("id")
             .containsExactlyInAnyOrderElementsOf(ALL_DETECTION_TYPES);
       }
       else {
-        assertThat(availableValues).isNotEmpty().extracting("id")
+        assertThat(availableValues).isNotEmpty()
+            .extracting("id")
             .containsExactlyInAnyOrderElementsOf(DETECTION_TYPES_WITHOUT_CPE_MATCH);
       }
     });

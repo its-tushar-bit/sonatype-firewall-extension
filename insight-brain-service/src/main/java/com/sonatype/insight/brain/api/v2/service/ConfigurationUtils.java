@@ -144,7 +144,8 @@ public class ConfigurationUtils
         return JsonUtils.writeUnformatted(Collections.singletonList(NONE_VALUE));
       }
       List<String> nullFiltered =
-          values.stream().filter(Objects::nonNull)
+          values.stream()
+              .filter(Objects::nonNull)
               .collect(Collectors.toList());
       if (!nullFiltered.isEmpty()) {
         List<String> result =
@@ -160,7 +161,9 @@ public class ConfigurationUtils
   public static List<AllowedIp> stringToAccessAllowlist(String values) {
     if (values != null) {
       try {
-        return JsonUtils.parse(values, new TypeReference<List<AllowedIp>>() { });
+        return JsonUtils.parse(values, new TypeReference<List<AllowedIp>>()
+        {
+        });
       }
       catch (IOException e) {
         throw new UncheckedIOException("Invalid json: " + values, e);
@@ -401,7 +404,8 @@ public class ConfigurationUtils
       catch (Exception e) {
         log.error(
             "Unable to deserialize configuration '%s' into '%s', using default configuration '%s'.".formatted(value,
-                clazz.getName(), objectToString(defaultValue)), e);
+                clazz.getName(), objectToString(defaultValue)),
+            e);
       }
     }
     return defaultValue;

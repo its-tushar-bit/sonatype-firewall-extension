@@ -426,9 +426,7 @@ public class BulkWaivePageTest
     assertThat(waivers).isNotEmpty();
 
     // All waivers should have the application ID as owner
-    assertThat(waivers).allSatisfy(waiver ->
-        assertThat(waiver.getOwnerId()).isEqualTo(app.getId())
-    );
+    assertThat(waivers).allSatisfy(waiver -> assertThat(waiver.getOwnerId()).isEqualTo(app.getId()));
   }
 
   @Test
@@ -643,8 +641,9 @@ public class BulkWaivePageTest
 
     // Alert should be visible when "All Versions" is selected with mixed violations
     confirmationPage.mixedViolationsAlert().shouldBe(visible);
-    confirmationPage.mixedViolationsAlert().shouldHave(text("The selected violations contain unknown/unclaimed" +
-        " components. When \"All Versions\" is selected, the bulk waiver will only apply to identified components."));
+    confirmationPage.mixedViolationsAlert()
+        .shouldHave(text("The selected violations contain unknown/unclaimed" +
+            " components. When \"All Versions\" is selected, the bulk waiver will only apply to identified components."));
   }
 
   @Test

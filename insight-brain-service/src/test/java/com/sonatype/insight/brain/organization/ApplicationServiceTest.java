@@ -226,11 +226,17 @@ public class ApplicationServiceTest
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
 
-    OwnerEvent ownerEvent = (OwnerEvent) handler.getAllEvents().stream().filter(event -> event instanceof OwnerEvent)
-        .findFirst().get();
+    OwnerEvent ownerEvent = (OwnerEvent) handler.getAllEvents()
+        .stream()
+        .filter(event -> event instanceof OwnerEvent)
+        .findFirst()
+        .get();
     OrganizationApplicationManagementEvent orgAppSummaryEvent =
-        (OrganizationApplicationManagementEvent) handler.getAllEvents().stream()
-            .filter(event -> event instanceof OrganizationApplicationManagementEvent).findFirst().get();
+        (OrganizationApplicationManagementEvent) handler.getAllEvents()
+            .stream()
+            .filter(event -> event instanceof OrganizationApplicationManagementEvent)
+            .findFirst()
+            .get();
 
     assertThat(ownerEvent.action).isEqualTo(CREATED);
     assertThat(ownerEvent.ownerId).isEqualTo(applicationId);
@@ -245,11 +251,17 @@ public class ApplicationServiceTest
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
 
-    ownerEvent = (OwnerEvent) handler.getAllEvents().stream().filter(event -> event instanceof OwnerEvent)
-        .findFirst().get();
+    ownerEvent = (OwnerEvent) handler.getAllEvents()
+        .stream()
+        .filter(event -> event instanceof OwnerEvent)
+        .findFirst()
+        .get();
     orgAppSummaryEvent =
-        (OrganizationApplicationManagementEvent) handler.getAllEvents().stream()
-            .filter(event -> event instanceof OrganizationApplicationManagementEvent).findFirst().get();
+        (OrganizationApplicationManagementEvent) handler.getAllEvents()
+            .stream()
+            .filter(event -> event instanceof OrganizationApplicationManagementEvent)
+            .findFirst()
+            .get();
 
     assertThat(ownerEvent.action).isEqualTo(UPDATED);
     assertThat(ownerEvent.ownerId).isEqualTo(applicationId);
@@ -263,11 +275,17 @@ public class ApplicationServiceTest
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
 
-    ownerEvent = (OwnerEvent) handler.getAllEvents().stream().filter(event -> event instanceof OwnerEvent)
-        .findFirst().get();
+    ownerEvent = (OwnerEvent) handler.getAllEvents()
+        .stream()
+        .filter(event -> event instanceof OwnerEvent)
+        .findFirst()
+        .get();
     orgAppSummaryEvent =
-        (OrganizationApplicationManagementEvent) handler.getAllEvents().stream()
-            .filter(event -> event instanceof OrganizationApplicationManagementEvent).findFirst().get();
+        (OrganizationApplicationManagementEvent) handler.getAllEvents()
+            .stream()
+            .filter(event -> event instanceof OrganizationApplicationManagementEvent)
+            .findFirst()
+            .get();
 
     assertThat(ownerEvent.action).isEqualTo(DELETED);
     assertThat(ownerEvent.ownerId).isEqualTo(applicationId);
@@ -381,7 +399,8 @@ public class ApplicationServiceTest
               ? tempEntity.newOrganizationWithSpecificId("org" + number, "orgName" + number).getId()
               : "org" + (number - 1);
           return tempEntity.newApplication(orgId);
-        }).collect(Collectors.toList());
+        })
+        .collect(Collectors.toList());
 
     Set<Organization> orgs = applicationService.getParentOrganizationsForApplicationsNoAuthz(applications);
     List<String> orgIds = orgs.stream().map(Organization::getId).collect(Collectors.toList());
@@ -417,9 +436,7 @@ public class ApplicationServiceTest
             "Application A2",
             "Application A3",
             "Application M1",
-            "Application Z1"
-        )
-    );
+            "Application Z1"));
   }
 
   @Test
@@ -443,8 +460,7 @@ public class ApplicationServiceTest
             "Application A2",
             "Application A3",
             "Application M1",
-            "Application Z1"
-        );
+            "Application Z1");
   }
 
   @Test
@@ -471,16 +487,14 @@ public class ApplicationServiceTest
         app1.getId(),
         "build",
         buildEval1ForApp1ScanId,
-        buildEval1ForApp1Date
-    );
+        buildEval1ForApp1Date);
 
     // build stage 2nd evaluation for app1 (this should be returned for app1/build)
     tempEntity.newPolicyEvaluation(
         app1.getId(),
         "build",
         buildEval2ForApp1ScanId,
-        buildEval2ForApp1Date
-    );
+        buildEval2ForApp1Date);
 
     final String releaseEvalForApp1ScanId = UUID.randomUUID().toString();
     final Date reeleaseEvalForApp1Date = new GregorianCalendar(2024, Calendar.JANUARY, 3).getTime();
@@ -490,8 +504,7 @@ public class ApplicationServiceTest
         app1.getId(),
         "release",
         releaseEvalForApp1ScanId,
-        reeleaseEvalForApp1Date
-    );
+        reeleaseEvalForApp1Date);
 
     // a re-evaluation newer than our latest eval, this should be filtered out and not returned
     final String releaseReEvalForApp1ScanId = UUID.randomUUID().toString();
@@ -500,8 +513,7 @@ public class ApplicationServiceTest
         app1.getId(),
         "release",
         releaseReEvalForApp1ScanId,
-        reeleaseReEvalForApp1Date
-    );
+        reeleaseReEvalForApp1Date);
 
     // === App 2 Evaluations
     final String releaseEvalForApp2ScanId = UUID.randomUUID().toString();
@@ -512,8 +524,7 @@ public class ApplicationServiceTest
         app2.getId(),
         "release",
         releaseEvalForApp2ScanId,
-        reeleaseEvalForApp2Date
-    );
+        reeleaseEvalForApp2Date);
 
     // === Then ===
     var results = applicationService.getLatestReportInformation(app1.getPublicId(), "build");
@@ -559,14 +570,12 @@ public class ApplicationServiceTest
         regularApp1.getPublicId(),
         regularApp2.getPublicId(),
         dockerApp1.getPublicId(),
-        docApp1.getPublicId()
-    );
+        docApp1.getPublicId());
 
     // Library applications should be excluded
     assertThat(applicationNames).doesNotContainKeys(
         libraryApp1.getPublicId(),
-        libraryApp2.getPublicId()
-    );
+        libraryApp2.getPublicId());
   }
 
   @Test
@@ -574,8 +583,7 @@ public class ApplicationServiceTest
     // Create an application with "library" in the name but not in the ID pattern
     Application appWithLibraryInName = tempEntity.newApplicationWithParent(
         "regular-app-id",
-        "My Library Management Application"
-    );
+        "My Library Management Application");
 
     // When
     var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
@@ -606,8 +614,7 @@ public class ApplicationServiceTest
         app3.getPublicId(),
         app4.getPublicId(),
         app5.getPublicId(),
-        app6.getPublicId()
-    );
+        app6.getPublicId());
   }
 
   @Test
@@ -623,8 +630,7 @@ public class ApplicationServiceTest
     // Then - uppercase and mixed case should be included (case-sensitive matching)
     assertThat(applicationNames).containsKeys(
         app1.getPublicId(),
-        app2.getPublicId()
-    );
+        app2.getPublicId());
 
     // Lowercase -library- should be excluded
     assertThat(applicationNames).doesNotContainKey(app3.getPublicId());
@@ -635,14 +641,12 @@ public class ApplicationServiceTest
     // Create application with -library- pattern along with other patterns
     Application app1 = tempEntity.newApplicationWithParent(
         "app-library-test-doc-123",
-        "Library with Other Patterns"
-    );
+        "Library with Other Patterns");
 
     // Create application with -docker- and -doc- but no -library-
     Application app2 = tempEntity.newApplicationWithParent(
         "app-docker-test-doc-456",
-        "Docker and Doc without Library"
-    );
+        "Docker and Doc without Library");
 
     // When
     var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();

@@ -22,7 +22,8 @@ import static java.lang.String.format;
 
 @Named
 @Singleton
-public class SastFindingDAO extends AbstractOperationalSqlDAO<SastFinding>
+public class SastFindingDAO
+    extends AbstractOperationalSqlDAO<SastFinding>
 {
   @Inject
   public SastFindingDAO(final OperationalDataStore operationalDataStore) {

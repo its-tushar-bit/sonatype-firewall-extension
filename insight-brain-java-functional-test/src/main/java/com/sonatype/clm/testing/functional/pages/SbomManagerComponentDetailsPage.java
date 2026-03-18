@@ -62,11 +62,10 @@ public class SbomManagerComponentDetailsPage
     this.policyViolationDetailsDrawer = policyViolationDetailsDrawer;
   }
 
-  public static String url(String applicationId, String versionId, String componentHash ) {
+  public static String url(String applicationId, String versionId, String componentHash) {
     return BaseUrl.resolvePageUrl(
-      "/sbomManager/application/{applicationId}/bom/{versionId}/componentDetails/{componentHash}/overview",
-      applicationId, versionId, componentHash
-    );
+        "/sbomManager/application/{applicationId}/bom/{versionId}/componentDetails/{componentHash}/overview",
+        applicationId, versionId, componentHash);
   }
 
   public ElementsCollection reportInfoItems() {

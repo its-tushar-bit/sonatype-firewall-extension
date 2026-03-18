@@ -72,15 +72,15 @@ public class ApiReportViolationsDiffServiceTest
 
   @Test
   public void testGetPolicyViolationDiff_FromEvaluationIds() throws URISyntaxException, IOException {
-    //setup
+    // setup
     setupValidReportsAndEvaluations();
 
-    //when calculating diff
+    // when calculating diff
     final ApiPolicyViolationDiffDTO apiPolicyViolationDiffDTO =
         apiReportViolationsDiffService
             .getPolicyViolationDiff(app.getPublicId(), null, null, fromEvalId, toEvalId, false);
 
-    //then assert correct diff results
+    // then assert correct diff results
     assertValidDiffResults(apiPolicyViolationDiffDTO);
   }
 
@@ -100,28 +100,30 @@ public class ApiReportViolationsDiffServiceTest
   public void testGetPolicyViolationDiff_NoFromCommitSpecified() {
     assertThatThrownBy(() -> apiReportViolationsDiffService.getPolicyViolationDiff(null, null, TO_COMMIT_HASH, null,
         null, false)).isInstanceOf(BadRequestException.class)
-        .hasMessage("The commit identifier or policy evaluation id for the `from` evaluation needs to be specified");
+            .hasMessage(
+                "The commit identifier or policy evaluation id for the `from` evaluation needs to be specified");
   }
 
   @Test
   public void testGetPolicyViolationDiff_NoFromEvaluationSpecified() {
     assertThatThrownBy(() -> apiReportViolationsDiffService.getPolicyViolationDiff(null, null, null, null,
         TO_COMMIT_HASH, false)).isInstanceOf(BadRequestException.class)
-        .hasMessage("The commit identifier or policy evaluation id for the `from` evaluation needs to be specified");
+            .hasMessage(
+                "The commit identifier or policy evaluation id for the `from` evaluation needs to be specified");
   }
 
   @Test
   public void testGetPolicyViolationDiff_NoToCommitSpecified() {
     assertThatThrownBy(() -> apiReportViolationsDiffService.getPolicyViolationDiff(null, FROM_COMMIT_HASH, null, null,
         null, false)).isInstanceOf(BadRequestException.class)
-        .hasMessage("The commit identifier or policy evaluation id for the `to` evaluation needs to be specified");
+            .hasMessage("The commit identifier or policy evaluation id for the `to` evaluation needs to be specified");
   }
 
   @Test
   public void testGetPolicyViolationDiff_NoToEvaluationSpecified() {
     assertThatThrownBy(() -> apiReportViolationsDiffService.getPolicyViolationDiff(null, null, null, FROM_COMMIT_HASH,
         null, false)).isInstanceOf(BadRequestException.class)
-        .hasMessage("The commit identifier or policy evaluation id for the `to` evaluation needs to be specified");
+            .hasMessage("The commit identifier or policy evaluation id for the `to` evaluation needs to be specified");
   }
 
   @Test
@@ -129,14 +131,14 @@ public class ApiReportViolationsDiffServiceTest
     assertThatThrownBy(
         () -> apiReportViolationsDiffService.getPolicyViolationDiff(null, FROM_COMMIT_HASH, FROM_COMMIT_HASH, null,
             null, false)).isInstanceOf(BadRequestException.class)
-        .hasMessage("The specified commits or evaluation ids cannot be identical.");
+                .hasMessage("The specified commits or evaluation ids cannot be identical.");
   }
 
   @Test
   public void testGetPolicyViolationDiff_SameEvaluationSpecified() {
     assertThatThrownBy(() -> apiReportViolationsDiffService.getPolicyViolationDiff(null, null, null, FROM_COMMIT_HASH,
         FROM_COMMIT_HASH, false)).isInstanceOf(BadRequestException.class)
-        .hasMessage("The specified commits or evaluation ids cannot be identical.");
+            .hasMessage("The specified commits or evaluation ids cannot be identical.");
   }
 
   @Test
@@ -144,7 +146,7 @@ public class ApiReportViolationsDiffServiceTest
     assertThatThrownBy(
         () -> apiReportViolationsDiffService.getPolicyViolationDiff(app.getPublicId(), "aaa", FROM_COMMIT_HASH, null,
             null, false)).isInstanceOf(BadRequestException.class)
-        .hasMessage("The commit identifier `aaa` supplied is not a valid commit hash");
+                .hasMessage("The commit identifier `aaa` supplied is not a valid commit hash");
   }
 
   @Test
@@ -155,45 +157,47 @@ public class ApiReportViolationsDiffServiceTest
     assertThatThrownBy(
         () -> apiReportViolationsDiffService.getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, "aaa", null,
             null, false)).isInstanceOf(BadRequestException.class)
-        .hasMessage("The commit identifier `aaa` supplied is not a valid commit hash");
+                .hasMessage("The commit identifier `aaa` supplied is not a valid commit hash");
   }
 
   @Test
   public void testGetPolicyViolationDiff_FromCommitNotFound() {
     assertThatThrownBy(() -> apiReportViolationsDiffService
         .getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH, null, null, false))
-        .isInstanceOf(NotFoundException.class)
-        .hasMessage("The policy violation diff could not be determined for the given request.");
+            .isInstanceOf(NotFoundException.class)
+            .hasMessage("The policy violation diff could not be determined for the given request.");
   }
 
   @Test
   public void testGetPolicyViolationDiff_FromEvaluationNotFound() {
     assertThatThrownBy(() -> apiReportViolationsDiffService
         .getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH, null, null, false))
-        .isInstanceOf(NotFoundException.class)
-        .hasMessage("The policy violation diff could not be determined for the given request.");
+            .isInstanceOf(NotFoundException.class)
+            .hasMessage("The policy violation diff could not be determined for the given request.");
   }
 
   @Test
   public void testGetPolicyViolationDiff_ToCommitNotFound() {
     toEvalId = tempEntity
         .newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan1", false, false, false,
-            date, FROM_COMMIT_HASH).getId();
+            date, FROM_COMMIT_HASH)
+        .getId();
     assertThatThrownBy(() -> apiReportViolationsDiffService
         .getPolicyViolationDiff(app.getPublicId(), null, null, "aaa", toEvalId, false))
-        .isInstanceOf(NotFoundException.class)
-        .hasMessage("The policy violation diff could not be determined for the given request.");
+            .isInstanceOf(NotFoundException.class)
+            .hasMessage("The policy violation diff could not be determined for the given request.");
   }
 
   @Test
   public void testGetPolicyViolationDiff_ToEvaluationNotFound() {
     fromEvalId = tempEntity
         .newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan1", false, false, false,
-            date, FROM_COMMIT_HASH).getId();
+            date, FROM_COMMIT_HASH)
+        .getId();
     assertThatThrownBy(() -> apiReportViolationsDiffService
         .getPolicyViolationDiff(app.getPublicId(), null, null, fromEvalId, "aaa", false))
-        .isInstanceOf(NotFoundException.class)
-        .hasMessage("The policy violation diff could not be determined for the given request.");
+            .isInstanceOf(NotFoundException.class)
+            .hasMessage("The policy violation diff could not be determined for the given request.");
   }
 
   @Test
@@ -201,7 +205,7 @@ public class ApiReportViolationsDiffServiceTest
     assertThatThrownBy(
         () -> apiReportViolationsDiffService.getPolicyViolationDiff(null, FROM_COMMIT_HASH, TO_COMMIT_HASH, null,
             null, false)).isInstanceOf(DataAccessException.class)
-        .hasMessage("The application public ID cannot be null or empty.");
+                .hasMessage("The application public ID cannot be null or empty.");
   }
 
   @Test
@@ -209,12 +213,12 @@ public class ApiReportViolationsDiffServiceTest
     assertThatThrownBy(() -> apiReportViolationsDiffService
         .getPolicyViolationDiff("INVALID_APP", FROM_COMMIT_HASH, TO_COMMIT_HASH, null, null, false)).isInstanceOf(
             NotFoundException.class)
-        .hasMessage("Could not find an application with public ID INVALID_APP.");
+            .hasMessage("Could not find an application with public ID INVALID_APP.");
   }
 
   @Test
   public void testGetPolicyViolationDiff_FromCommitNoReport() {
-    //setup evaluations
+    // setup evaluations
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID, false, false, false,
         date, FROM_COMMIT_HASH);
     tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID, false, false, false,
@@ -223,18 +227,18 @@ public class ApiReportViolationsDiffServiceTest
     assertThatThrownBy(() -> apiReportViolationsDiffService
         .getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH, null, null, false)).isInstanceOf(
             NotFoundException.class)
-        .hasMessage("The policy violation diff could not be determined for the given request.");
+            .hasMessage("The policy violation diff could not be determined for the given request.");
   }
 
   @Test
   public void testGetPolicyViolationDiff_FromCommitMissingAlerts() throws URISyntaxException, IOException {
-    //setup reports
+    // setup reports
     createReportFile(app.getId(), FROM_SCAN_ID,
         zipReportDir("/PolicyEvaluationDiffServiceTest/report-missing-policyalerts", tempDir), insightWork);
     createReportFile(app.getId(), TO_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/to-report", tempDir),
         insightWork);
 
-    //setup evaluations
+    // setup evaluations
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID, false, false, false,
         date, FROM_COMMIT_HASH);
     tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID, false, false, false,
@@ -243,15 +247,15 @@ public class ApiReportViolationsDiffServiceTest
     assertThatThrownBy(() -> apiReportViolationsDiffService
         .getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH, null, null, false)).isInstanceOf(
             NotFoundException.class)
-        .hasMessage("The policy violation diff could not be determined for the given request.");
+            .hasMessage("The policy violation diff could not be determined for the given request.");
   }
 
   @Test
   public void testGetPolicyViolationDiff_FromEvaluationAndCommitSpecified() {
     assertThatThrownBy(() -> apiReportViolationsDiffService
         .getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH, "aaa", null, false))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessage("Cannot specify both commit identifier and evaluation id for `from` evaluation.");
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Cannot specify both commit identifier and evaluation id for `from` evaluation.");
   }
 
   @Test
@@ -259,7 +263,7 @@ public class ApiReportViolationsDiffServiceTest
     assertThatThrownBy(() -> apiReportViolationsDiffService
         .getPolicyViolationDiff(app.getPublicId(), FROM_COMMIT_HASH, TO_COMMIT_HASH, null, "aaa", false)).isInstanceOf(
             BadRequestException.class)
-        .hasMessage("Cannot specify both commit identifier and evaluation id for `to` evaluation.");
+            .hasMessage("Cannot specify both commit identifier and evaluation id for `to` evaluation.");
   }
 
   private void assertValidDiffResults(final ApiPolicyViolationDiffDTO apiPolicyViolationDiffDTO) {
@@ -292,13 +296,13 @@ public class ApiReportViolationsDiffServiceTest
   }
 
   private void setupValidReportsAndEvaluations() throws IOException, URISyntaxException {
-    //setup reports
+    // setup reports
     createReportFile(app.getId(), FROM_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/from-report", tempDir),
         insightWork);
     createReportFile(app.getId(), TO_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/to-report", tempDir),
         insightWork);
 
-    //setup evaluations
+    // setup evaluations
     fromEvalId = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID, false, false, false,
         date, FROM_COMMIT_HASH).getId();
     toEvalId = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID, false, false, false,

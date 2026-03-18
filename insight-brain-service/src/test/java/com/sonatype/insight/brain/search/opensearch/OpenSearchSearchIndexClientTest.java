@@ -67,7 +67,7 @@ import static org.mockito.Mockito.when;
 public class OpenSearchSearchIndexClientTest
     extends AbstractBrainServiceIntegrationTest
 {
-  private OpenSearchSearchIndexClient openSearchSearchIndexClient; //under test
+  private OpenSearchSearchIndexClient openSearchSearchIndexClient; // under test
 
   private IndexConfigProvider indexConfigProvider;
 
@@ -137,7 +137,7 @@ public class OpenSearchSearchIndexClientTest
       @Override
       public String getConfigFilePath() {
         return Objects.requireNonNull(
-                InsightBrainService.class.getResource("/OpenSearchSearchIndexClientTest/bad-opensearch-config.yml"))
+            InsightBrainService.class.getResource("/OpenSearchSearchIndexClientTest/bad-opensearch-config.yml"))
             .getFile();
       }
     });

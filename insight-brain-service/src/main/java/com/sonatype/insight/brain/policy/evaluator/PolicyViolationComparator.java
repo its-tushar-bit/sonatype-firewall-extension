@@ -51,13 +51,14 @@ public class PolicyViolationComparator
         v2.getConstraintFacts());
   }
 
-  public static String computeUniqueAppPolicyConstraintId(String applicationId,
-                                                          String policyId,
-                                                          List<ConstraintFact> constraintFacts)
+  public static String computeUniqueAppPolicyConstraintId(
+      String applicationId,
+      String policyId,
+      List<ConstraintFact> constraintFacts)
   {
     StringBuilder allConditionsHashIds = new StringBuilder();
 
-    for (ConstraintFact constraintFact: CollectionUtils.emptyIfNull(constraintFacts)) {
+    for (ConstraintFact constraintFact : CollectionUtils.emptyIfNull(constraintFacts)) {
       for (ConditionFact conditionFact : CollectionUtils.emptyIfNull(constraintFact.getConditionFacts())) {
         if (StringUtils.isNotBlank(conditionFact.getReason())) {
           allConditionsHashIds.append(conditionFact.getReason().hashCode());

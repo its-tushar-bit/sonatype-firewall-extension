@@ -42,7 +42,7 @@ public class ComponentObligationAttributionDTO
     // for jackson
   }
 
-  public ComponentObligationAttributionDTO(String id, String ownerId, String obligationName,  String content) {
+  public ComponentObligationAttributionDTO(String id, String ownerId, String obligationName, String content) {
     this.id = id;
     this.ownerId = ownerId;
     this.content = content;
@@ -138,7 +138,8 @@ public class ComponentObligationAttributionDTO
     ComponentObligationAttributionDTO that = (ComponentObligationAttributionDTO) o;
     return Objects.equals(getId(), that.getId()) &&
         Objects.equals(getComponentIdentifier() == null ? null : getComponentIdentifier().toComponentIdentifier(),
-            that.getComponentIdentifier() == null ? null : getComponentIdentifier().toComponentIdentifier()) &&
+            that.getComponentIdentifier() == null ? null : getComponentIdentifier().toComponentIdentifier())
+        &&
         Objects.equals(getPackageUrl(), that.getPackageUrl()) &&
         Objects.equals(getOwnerId(), that.getOwnerId()) &&
         Objects.equals(getObligationName(), that.getObligationName()) &&
@@ -168,4 +169,3 @@ public class ComponentObligationAttributionDTO
         '}';
   }
 }
-

@@ -47,9 +47,10 @@ public class SearchTestHelper
 
     public final List<PolicyViolationInfo> policyViolationInfos;
 
-    public ComponentInfo(final String hash,
-                         final ComponentIdentifier componentIdentifier,
-                         final List<PolicyViolationInfo> policyViolationInfos)
+    public ComponentInfo(
+        final String hash,
+        final ComponentIdentifier componentIdentifier,
+        final List<PolicyViolationInfo> policyViolationInfos)
     {
       this.hash = hash;
       this.componentIdentifier = componentIdentifier;

@@ -140,7 +140,8 @@ public class ApiMetricsReportingServiceV2
         .collect(Collectors.toMap(Application::getId, Function.identity()));
     DateParser dateParser = inputDateParsers.get(queryDTO.timePeriod);
     LocalDate startDate = dateParser.parse(queryDTO.firstTimePeriod);
-    Optional<LocalDate> endDate = Optional.ofNullable(queryDTO.lastTimePeriod).map(dateParser::parse)
+    Optional<LocalDate> endDate = Optional.ofNullable(queryDTO.lastTimePeriod)
+        .map(dateParser::parse)
         .map(localDate -> localDate.plus(queryDTO.timePeriod.getPeriod(1)));
     AuditData.get()
         .setData("beginDate", startDate.toString())
@@ -164,7 +165,8 @@ public class ApiMetricsReportingServiceV2
       DateTime now,
       List<Application> applications)
   {
-    return getMetrics(queryDTO, now, applications).stream().flatMap(this::flattenDTO)
+    return getMetrics(queryDTO, now, applications).stream()
+        .flatMap(this::flattenDTO)
         .collect(Collectors.toList());
   }
 
@@ -197,9 +199,9 @@ public class ApiMetricsReportingServiceV2
    * Gather up the PolicyViolationAggregations into ApiMetricsReportingDTOV2s. Each DTO represents one application, with
    * one or more aggregations.
    *
-   * @param aggregations     The aggregations to convert into DTOs
+   * @param aggregations The aggregations to convert into DTOs
    * @param applicationsById map of applications indexed by their id. Since the calling method has already fetched them
-   *                         all, this prevents this method from having to re-fetch them one at a time
+   *          all, this prevents this method from having to re-fetch them one at a time
    */
   private List<ApiMetricsReportingDTOV2> makeDTOs(
       List<PolicyViolationAggregation> aggregations,
@@ -221,7 +223,8 @@ public class ApiMetricsReportingServiceV2
           organizationDAO::getById);
 
       List<ApiMetricsReportingAggregationDTOV2> aggregationDTOs = thisAppsAggregations.stream()
-          .map(this::makeAggregationDTO).collect(Collectors.toList());
+          .map(this::makeAggregationDTO)
+          .collect(Collectors.toList());
 
       return new ApiMetricsReportingDTOV2(application.getId(), application.getPublicId(),
           application.getName(), organization.getId(), organization.getName(), aggregationDTOs);
@@ -243,8 +246,8 @@ public class ApiMetricsReportingServiceV2
   }
 
   private Stream<ApiMetricsReportingFlattenedDTOV2> flattenDTO(ApiMetricsReportingDTOV2 inputDTO) {
-    return inputDTO.aggregations.stream().map(aggregationDTO ->
-        new ApiMetricsReportingFlattenedDTOV2( //
+    return inputDTO.aggregations.stream()
+        .map(aggregationDTO -> new ApiMetricsReportingFlattenedDTOV2( //
             inputDTO.applicationId, //
             inputDTO.applicationPublicId, //
             inputDTO.applicationName, //

@@ -224,7 +224,8 @@ public class ManualPullRequestServiceTest
     remediationDto.suggestedVersionChange = getSuggestedVersionChange(SUGGESTED_VERSION);
 
     for (String format : SUPPORTED_FORMATS) {
-      Map<String, String> coordinates = ComponentIdentifier.getAllRequiredCoordinateNames(format).stream()
+      Map<String, String> coordinates = ComponentIdentifier.getAllRequiredCoordinateNames(format)
+          .stream()
           .collect(Collectors.toMap(name -> name, name -> name));
       ComponentIdentifier componentIdentifier = new ComponentIdentifier(format, coordinates);
       Optional<ManualPullRequestImpossibilityReason> result =
@@ -243,7 +244,8 @@ public class ManualPullRequestServiceTest
     Collection<String> notSupportedFormats = new ArrayList<>(ComponentIdentifier.getAllFormats());
     notSupportedFormats.removeAll(SUPPORTED_FORMATS);
     for (String format : notSupportedFormats) {
-      Map<String, String> coordinates = ComponentIdentifier.getAllRequiredCoordinateNames(format).stream()
+      Map<String, String> coordinates = ComponentIdentifier.getAllRequiredCoordinateNames(format)
+          .stream()
           .collect(Collectors.toMap(name -> name, name -> name));
       ComponentIdentifier componentIdentifier = new ComponentIdentifier(format, coordinates);
       Optional<ManualPullRequestImpossibilityReason> result =
@@ -313,10 +315,10 @@ public class ManualPullRequestServiceTest
       remediationDto.versionChanges = getVersionChanges(Map.of("v", versionChangeType));
 
       Optional<ManualPullRequestImpossibilityReason> result =
-              manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
-                      VALID_DEPENDENCY_TYPE,
-                      app,
-                      remediationDto);
+          manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+              VALID_DEPENDENCY_TYPE,
+              app,
+              remediationDto);
 
       assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
     }

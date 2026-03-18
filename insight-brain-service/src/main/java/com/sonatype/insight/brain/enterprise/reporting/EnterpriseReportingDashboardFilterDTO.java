@@ -11,18 +11,19 @@ public class EnterpriseReportingDashboardFilterDTO
 
   public String name;
 
-  public String filter; //JSON string returned by Looker
+  public String filter; // JSON string returned by Looker
 
   public Boolean isDefault;
 
   public EnterpriseReportingDashboardFilterDTO() {
-    //for jackson;
+    // for jackson;
   }
 
-  public EnterpriseReportingDashboardFilterDTO(final String id,
-                            final String name,
-                            final String filter,
-                            final Boolean isDefault)
+  public EnterpriseReportingDashboardFilterDTO(
+      final String id,
+      final String name,
+      final String filter,
+      final Boolean isDefault)
   {
     this.id = id;
     this.name = name;

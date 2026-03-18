@@ -113,7 +113,7 @@ public class RequestWaiverReviewTest
     policyViolation = tempEntity.newPolicyViolation(policyEvaluation, securityPolicy, componentIdentifier, "hash1",
         "sonatype-2017-0507");
 
-    waiverReason = "9b704ef5bc064fc29d7fe08a251ee9a6"; //Acknowledged violation
+    waiverReason = "9b704ef5bc064fc29d7fe08a251ee9a6"; // Acknowledged violation
 
     policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
         .setHash("hash1")
@@ -122,7 +122,7 @@ public class RequestWaiverReviewTest
         .setOwnerId(organization.getId())
         .setAssociatedPackageUrl(purl)
         .setComponentMatchStrategy(EXACT_COMPONENT)
-        .setWaiverReasonId(waiverReason) //Acknowledged violation
+        .setWaiverReasonId(waiverReason) // Acknowledged violation
         .setComment("Comment 1")
         .setNoteToReviewer("Note to Reviewer 1")
         .setRequestTime(twoDaysAgo)
@@ -139,7 +139,7 @@ public class RequestWaiverReviewTest
   @Test
   public void testPageLayout() {
     RequestWaiverReviewPage requestWaiverReviewPage = new RequestWaiverReviewPage();
-    //Verify that the elements are loaded with the Waiver Request details
+    // Verify that the elements are loaded with the Waiver Request details
     verifyRequestWaiverReviewPage(requestWaiverReviewPage);
   }
 
@@ -152,7 +152,7 @@ public class RequestWaiverReviewTest
     dashboardWaiverRequestTable.firstWaiverRequest().click();
 
     RequestWaiverReviewPage requestWaiverReviewPage = new RequestWaiverReviewPage();
-    //Verify that the elements are loaded with the Waiver Request details
+    // Verify that the elements are loaded with the Waiver Request details
     verifyRequestWaiverReviewPage(requestWaiverReviewPage);
   }
 
@@ -164,9 +164,10 @@ public class RequestWaiverReviewTest
 
     RequestWaiverReviewPage requestWaiverReviewPage = new RequestWaiverReviewPage();
     requestWaiverReviewPage.root().shouldBe(visible);
-    requestWaiverReviewPage.requestWaiverReviewAlert().shouldHave(text("An error occurred loading data. " +
-        "Cannot find a policy waiver request with ID " + invalidId +
-        " for owner " + policyWaiverRequest.getOwnerId() + "."));
+    requestWaiverReviewPage.requestWaiverReviewAlert()
+        .shouldHave(text("An error occurred loading data. " +
+            "Cannot find a policy waiver request with ID " + invalidId +
+            " for owner " + policyWaiverRequest.getOwnerId() + "."));
   }
 
   @Test
@@ -195,7 +196,7 @@ public class RequestWaiverReviewTest
     requestWaiverReviewPage.approveButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
 
-    //The waiver request values don't change and the status is updated to "Approved"
+    // The waiver request values don't change and the status is updated to "Approved"
     PolicyWaiverRequest waiverRequest = verifyWaiverRequestInDB(policyWaiverRequest);
     assertThat(waiverRequest.getStatus()).isEqualTo(PolicyWaiverRequestStatus.APPROVED);
 
@@ -225,7 +226,7 @@ public class RequestWaiverReviewTest
         .setOwnerId(ROOT_ORGANIZATION_ID)
         .setAssociatedPackageUrl(purl)
         .setComponentMatchStrategy(EXACT_COMPONENT)
-        .setWaiverReasonId(waiverReason) //Acknowledged violation
+        .setWaiverReasonId(waiverReason) // Acknowledged violation
         .setComment("Comment 2")
         .setNoteToReviewer("Note to Reviewer 2")
         .setRequestTime(twoDaysAgo)
@@ -243,7 +244,7 @@ public class RequestWaiverReviewTest
     requestWaiverReviewPage.approveButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
 
-    //The waiver request values don't change and the status is updated to "Approved"
+    // The waiver request values don't change and the status is updated to "Approved"
     PolicyWaiverRequest waiverRequest = verifyWaiverRequestInDB(policyWaiverRequest2);
     assertThat(waiverRequest.getStatus()).isEqualTo(PolicyWaiverRequestStatus.APPROVED);
 
@@ -268,26 +269,26 @@ public class RequestWaiverReviewTest
   public void testApproveButton_ApproveWaiverRequestAndCreatesWaiverWithUpdatedValues() {
     RequestWaiverReviewPage requestWaiverReviewPage = new RequestWaiverReviewPage();
 
-    //Updated scope
+    // Updated scope
     requestWaiverReviewPage.requestWaiverScopeSelect().selectOptionContainingText("Organization - Org 1");
 
-    //Update matcher strategy (all versions)
+    // Update matcher strategy (all versions)
     NxRadio chosenComponent = requestWaiverReviewPage.requestWaiverComponent(1);
     chosenComponent.click();
 
-    //Update expiry time
+    // Update expiry time
     requestWaiverReviewPage.requestWaiverExpiryTimesSelect().selectOptionContainingText("Never");
 
-    //Update reason
+    // Update reason
     requestWaiverReviewPage.requestWaiverReasonSelect().selectOptionContainingText("Other");
 
-    //Update comment
+    // Update comment
     requestWaiverReviewPage.requestWaiverComments().setValue("Updated Comments from review");
 
     requestWaiverReviewPage.approveButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
 
-    //The waiver request values don't change and the status is updated to "Approved"
+    // The waiver request values don't change and the status is updated to "Approved"
     PolicyWaiverRequest waiverRequest = verifyWaiverRequestInDB(policyWaiverRequest);
     assertThat(waiverRequest.getStatus()).isEqualTo(PolicyWaiverRequestStatus.APPROVED);
 
@@ -316,7 +317,7 @@ public class RequestWaiverReviewTest
     requestWaiverReviewPage.approveButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
 
-    //re-open the requested waiver which is already approved
+    // re-open the requested waiver which is already approved
     refreshOrOpen(RequestWaiverReviewPage.url(organization.getType().toString(), organization.getId(),
         policyWaiverRequest.getId()));
     RequestWaiverReviewPage.waitUntilSpinnersGone();
@@ -339,7 +340,7 @@ public class RequestWaiverReviewTest
       verifyDisabledElements(requestWaiverReviewPage);
     }
     finally {
-      //For the next test
+      // For the next test
       logout();
       loginAsAdmin();
     }
@@ -353,8 +354,8 @@ public class RequestWaiverReviewTest
 
     requestWaiverReviewPage.cancelRejectionButton().click();
 
-    //The waiver request field values should remain unchanged
-    PolicyWaiverRequest waiverRequest =  policyWaiverRequestDAO.getById(policyWaiverRequest.getId());
+    // The waiver request field values should remain unchanged
+    PolicyWaiverRequest waiverRequest = policyWaiverRequestDAO.getById(policyWaiverRequest.getId());
     JPA.assertEntityEquals(waiverRequest, policyWaiverRequest);
     verifyRequestWaiverReviewPage(requestWaiverReviewPage);
   }
@@ -371,12 +372,12 @@ public class RequestWaiverReviewTest
     requestWaiverReviewPage.sendRejectionButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
 
-    //The waiver request values don't change and the status is updated to "Rejected" with the rejection reason
+    // The waiver request values don't change and the status is updated to "Rejected" with the rejection reason
     PolicyWaiverRequest waiverRequest = verifyWaiverRequestInDB(policyWaiverRequest);
     assertThat(waiverRequest.getStatus()).isEqualTo(PolicyWaiverRequestStatus.REJECTED);
     assertThat(waiverRequest.getRejectionReason()).isEqualTo("Test rejection reason");
 
-    //The waiver request should be displayed in the dashboard
+    // The waiver request should be displayed in the dashboard
     WaiverRequestTile waiverRequestTile = verifyDashboardWaiverRequest(0, policyWaiverRequest);
     waiverRequestTile.status().shouldHave(text("Rejected"));
   }
@@ -414,8 +415,7 @@ public class RequestWaiverReviewTest
     tempEntity.newMembershipMapping(
         ROOT_ORGANIZATION_ID,
         Role.DEVELOPER_ROLE_ID,
-        developerUser.getUsername()
-    );
+        developerUser.getUsername());
     login(developerUser.getUsername(), developerUser.getPassword());
   }
 
@@ -454,13 +454,15 @@ public class RequestWaiverReviewTest
     requestWaiverReviewPage.requestWaiverConditions().shouldHave(text("sonatype-2017-0507"));
 
     requestWaiverReviewPage.requestWaiverScope().shouldHave(text("Scope"));
-    requestWaiverReviewPage.requestWaiverScopeOptions().findBy(text("Organization - Org 1"))
+    requestWaiverReviewPage.requestWaiverScopeOptions()
+        .findBy(text("Organization - Org 1"))
         .shouldBe(selected);
 
     requestWaiverReviewPage.requestWaiverComponents().shouldHave(text("Components"));
-    requestWaiverReviewPage.requestWaiverComponentsOptions().shouldHave(
-        exactTexts("Group1 : Artifact1 : Version1", "Group1 : Artifact1 (all versions)", "All Components"));
-    //exact component is checked:
+    requestWaiverReviewPage.requestWaiverComponentsOptions()
+        .shouldHave(
+            exactTexts("Group1 : Artifact1 : Version1", "Group1 : Artifact1 (all versions)", "All Components"));
+    // exact component is checked:
     requestWaiverReviewPage.requestWaiverComponentsInputs().get(0).shouldBe(checked);
 
     requestWaiverReviewPage.requestWaiverExpiryTime().shouldHave(text("Waiver Expiration"));

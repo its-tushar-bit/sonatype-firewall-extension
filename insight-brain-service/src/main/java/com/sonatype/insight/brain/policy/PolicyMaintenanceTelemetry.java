@@ -53,12 +53,16 @@ public class PolicyMaintenanceTelemetry
     telemetryData.put(POLICY_THREAT_LEVEL, policy.getThreatLevel());
     telemetryData.put(POLICY_CONSTRAINTS_ATTR, policy.getConstraints());
     telemetryData.put(POLICY_ACTIONS_ATTR, getActionsList(Collections.singletonList(policy.getActions())));
-    telemetryData.put(POLICY_ACTIONS_OVERRIDES_ATTR, policy.getPolicyActionsOverrides() != null ?
-        getActionsList(policy.getPolicyActionsOverrides().values()) : List.of());
+    telemetryData.put(POLICY_ACTIONS_OVERRIDES_ATTR,
+        policy.getPolicyActionsOverrides() != null
+            ? getActionsList(policy.getPolicyActionsOverrides().values())
+            : List.of());
     telemetryData.put(POLICY_NOTIFICATIONS_ATTR,
         getNotificationTypes(Collections.singletonList(policy.getNotifications())));
-    telemetryData.put(POLICY_NOTIFICATIONS_OVERRIDES_ATTR, policy.getPolicyNotificationsOverrides() != null ?
-        getNotificationTypes(policy.getPolicyNotificationsOverrides().values()) : Set.of());
+    telemetryData.put(POLICY_NOTIFICATIONS_OVERRIDES_ATTR,
+        policy.getPolicyNotificationsOverrides() != null
+            ? getNotificationTypes(policy.getPolicyNotificationsOverrides().values())
+            : Set.of());
     return telemetryData;
   }
 

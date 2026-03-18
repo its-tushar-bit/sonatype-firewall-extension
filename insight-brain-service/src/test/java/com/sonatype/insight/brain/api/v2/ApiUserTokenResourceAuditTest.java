@@ -118,7 +118,8 @@ public class ApiUserTokenResourceAuditTest
   public void testPurgeUserTokens_Unauthorized() throws Exception {
     restRequest() //
         .path(ApiUserTokenResource.PURGE) //
-        .with(unauthorizedUser()).delete();
+        .with(unauthorizedUser())
+        .delete();
 
     assertAuditLog(AuditEvent.PURGE_USER_TOKENS, "unauthorized");
   }

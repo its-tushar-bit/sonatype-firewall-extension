@@ -61,8 +61,8 @@ public class ApiAdvancedSearchResourceV2
    * Search request to search the index.
    *
    * @param searchQuery - String holding a query to search for.
-   * @param pageSize    - the amount of results per page
-   * @param page        - the current page to start from, 0 indexed.
+   * @param pageSize - the amount of results per page
+   * @param page - the current page to start from, 0 indexed.
    * @return SearchResultDTO
    * @throws IOException on failing to search the index
    */
@@ -93,14 +93,13 @@ public class ApiAdvancedSearchResourceV2
       useReturnTypeSchema = true)
   public SearchResultDTO searchIndex(
       @Parameter(description = "Enter your search query here") @QueryParam("query") String searchQuery,
-      @Parameter(description = "Enter the no. of results that should be visible per page") @DefaultValue("10")
-      @QueryParam("pageSize") int pageSize,
+      @Parameter(
+          description = "Enter the no. of results that should be visible per page") @DefaultValue("10") @QueryParam("pageSize") int pageSize,
       @Parameter(description = "Enter the page no. for the page containing results") @QueryParam("page") int page,
-      @Parameter(description = "Set to `true` to retrieve results that include components with no violations")
-      @DefaultValue("false") @QueryParam("allComponents") boolean allComponents,
+      @Parameter(
+          description = "Set to `true` to retrieve results that include components with no violations") @DefaultValue("false") @QueryParam("allComponents") boolean allComponents,
       @QueryParam("mode") ProductMode mode,
-      @Parameter(hidden = true)
-      @QueryParam("searchAfter") String searchAfter)
+      @Parameter(hidden = true) @QueryParam("searchAfter") String searchAfter)
   {
     return searchService.searchIndex(searchQuery, pageSize, page, allComponents, mode, searchAfter);
   }
@@ -110,12 +109,11 @@ public class ApiAdvancedSearchResourceV2
    */
   @POST
   @Path(INDEX_PATH)
-  @Operation(description =
-      "Use this method to create or rebuild the index for Advanced Search. " +
-          "This is a resource intensive operation. Avoid creating indexes during peak usage hours." +
-          "\n" +
-          "\n" +
-          "Permissions required: Edit System Configuration and Users")
+  @Operation(description = "Use this method to create or rebuild the index for Advanced Search. " +
+      "This is a resource intensive operation. Avoid creating indexes during peak usage hours." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users")
   @ApiResponse(responseCode = "204", description = "Index created successfully.")
   public void createSearchIndexAsync() {
     indexService.createIndexAsync();
@@ -124,25 +122,21 @@ public class ApiAdvancedSearchResourceV2
   @GET
   @Path(EXPORT_CSV_REPORT_PATH)
   @Produces("application/csv")
-  @Operation(description =
-      "Use this method to generate a csv file containing your search results. " +
-          "The default delimiter in the generated file is comma. " +
-          "Use the advancedSearchCSVExportDelimiter property of the Configuration REST API to change the delimiter " +
-          "in the generated file."
-  )
+  @Operation(description = "Use this method to generate a csv file containing your search results. " +
+      "The default delimiter in the generated file is comma. " +
+      "Use the advancedSearchCSVExportDelimiter property of the Configuration REST API to change the delimiter " +
+      "in the generated file.")
   @ApiResponse(responseCode = "200", description = "Downloadable csv file generated successfully.")
   @ApiResponse(responseCode = "409", description = "Search index does not exist or is unreadable.")
   public Response getExportResults(
-      @Parameter(description = "A well-formed search query.", required = true)
-      @QueryParam("query") String searchQuery,
-      @Parameter(description = "Enter the no. of results that should be visible per page, unset gives all results")
-      @QueryParam("pageSize") Integer pageSize,
+      @Parameter(description = "A well-formed search query.", required = true) @QueryParam("query") String searchQuery,
+      @Parameter(
+          description = "Enter the no. of results that should be visible per page, unset gives all results") @QueryParam("pageSize") Integer pageSize,
       @Parameter(description = "Enter the page no. for the page containing results") @QueryParam("page") int page,
-      @Parameter(description = "Set to `true` to retrieve results that include components with no violations.")
-      @DefaultValue("false") @QueryParam("allComponents") boolean allComponents,
+      @Parameter(
+          description = "Set to `true` to retrieve results that include components with no violations.") @DefaultValue("false") @QueryParam("allComponents") boolean allComponents,
       @QueryParam("mode") ProductMode mode,
-      @Parameter(hidden = true)
-      @QueryParam("searchAfter") String searchAfter,
+      @Parameter(hidden = true) @QueryParam("searchAfter") String searchAfter,
       @Context HttpServletResponse httpServletResponse)
   {
     return searchService.exportSearch(searchQuery, pageSize, page, allComponents, mode, searchAfter,

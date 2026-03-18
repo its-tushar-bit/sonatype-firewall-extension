@@ -139,7 +139,7 @@ public class EnterpriseReportingFilterServiceTest
   public void testUpsertFilterForCurrentUser__trimsName() {
     String userId = getUserId();
     var expectedFilter = enterpriseReportingFilterService.upsertFilterForCurrentUser(
-            new EnterpriseReportingDashboardFilterDTO(null, " Filter's 2  ", "{}", false));
+        new EnterpriseReportingDashboardFilterDTO(null, " Filter's 2  ", "{}", false));
     var persistedFilter = enterpriseReportingFilterDAO.getFilterByUserAndFilterId(userId, expectedFilter.id);
     assertThat(persistedFilter.getFilterName()).isEqualTo("Filter's 2");
   }
@@ -264,12 +264,12 @@ public class EnterpriseReportingFilterServiceTest
     var expectedFilter = enterpriseReportingFilterService.upsertFilterForCurrentUser(request);
 
     var updateRequest =
-            new EnterpriseReportingDashboardFilterDTO(expectedFilter.id, expectedFilter.name, "{\"k\":2}", true);
+        new EnterpriseReportingDashboardFilterDTO(expectedFilter.id, expectedFilter.name, "{\"k\":2}", true);
     enterpriseReportingFilterService.upsertFilterForCurrentUser(updateRequest);
 
     String userId = getUsedUserId();
     assertThat(enterpriseReportingFilterDAO.getFilterByUserAndFilterId(userId, expectedFilter.id).getFilter())
-            .isEqualTo(updateRequest.filter);
+        .isEqualTo(updateRequest.filter);
     var defaultFilter = enterpriseReportingDefaultFilterDAO.getDefaultFilterByUserId(userId);
     assertThat(defaultFilter).isNotNull();
     assertThat(defaultFilter.getFilterId()).isEqualTo(updateRequest.id);
@@ -309,7 +309,7 @@ public class EnterpriseReportingFilterServiceTest
     String otherUserId = userDAO.getByUsernameNotNull(otherUsername).getId();
     var otherUserFilter = createFilterForOtherUser(otherUserId);
 
-    //attempt to upsert using other’s id as current user
+    // attempt to upsert using other’s id as current user
     var request = new EnterpriseReportingDashboardFilterDTO(otherUserFilter.getId(), "My Name", "{\"k\":1}", false);
     var expectedFilter = enterpriseReportingFilterService.upsertFilterForCurrentUser(request);
 
@@ -326,8 +326,8 @@ public class EnterpriseReportingFilterServiceTest
     deleteInternalUser();
     var request = new EnterpriseReportingDashboardFilterDTO(null, " ", "{\"k\":1}", false);
     assertThatExceptionOfType(NotFoundException.class)
-            .isThrownBy(() -> enterpriseReportingFilterService.upsertFilterForCurrentUser(request))
-            .withMessageContaining("User not found: " + USERNAME);
+        .isThrownBy(() -> enterpriseReportingFilterService.upsertFilterForCurrentUser(request))
+        .withMessageContaining("User not found: " + USERNAME);
   }
 
   @Test
@@ -398,28 +398,28 @@ public class EnterpriseReportingFilterServiceTest
   @Test
   public void testDeleteFilterForCurrentUser__notFound() {
     assertThatExceptionOfType(NotFoundException.class)
-      .isThrownBy(() -> enterpriseReportingFilterService.deleteFilterForCurrentUser("does-not-exist"))
+        .isThrownBy(() -> enterpriseReportingFilterService.deleteFilterForCurrentUser("does-not-exist"))
         .withMessageContaining("Cannot find filter to delete.");
   }
 
   @Test
   public void testDeleteFilterForCurrentUser__nullId() {
     assertThatExceptionOfType(BadRequestException.class)
-      .isThrownBy(() -> enterpriseReportingFilterService.deleteFilterForCurrentUser(null))
+        .isThrownBy(() -> enterpriseReportingFilterService.deleteFilterForCurrentUser(null))
         .withMessageContaining("Filter ID cannot be null.");
   }
 
   @Test
   public void testDeleteFilterForCurrentUser__nullStringId() {
     assertThatExceptionOfType(BadRequestException.class)
-      .isThrownBy(() -> enterpriseReportingFilterService.deleteFilterForCurrentUser("null"))
+        .isThrownBy(() -> enterpriseReportingFilterService.deleteFilterForCurrentUser("null"))
         .withMessageContaining("Filter ID cannot be null.");
   }
 
   @Test
   public void testDeleteFilterForCurrentUser__undefinedStringId() {
     assertThatExceptionOfType(BadRequestException.class)
-      .isThrownBy(() -> enterpriseReportingFilterService.deleteFilterForCurrentUser("undefined"))
+        .isThrownBy(() -> enterpriseReportingFilterService.deleteFilterForCurrentUser("undefined"))
         .withMessageContaining("Filter ID cannot be null.");
   }
 
@@ -431,7 +431,7 @@ public class EnterpriseReportingFilterServiceTest
     var otherUserFilter = createFilterForOtherUser(otherUserId);
 
     assertThatExceptionOfType(NotFoundException.class)
-      .isThrownBy(() -> enterpriseReportingFilterService.deleteFilterForCurrentUser(otherUserFilter.getId()))
+        .isThrownBy(() -> enterpriseReportingFilterService.deleteFilterForCurrentUser(otherUserFilter.getId()))
         .withMessageContaining("Cannot find filter to delete. It may have already been removed or does not exist");
   }
 
@@ -507,9 +507,9 @@ public class EnterpriseReportingFilterServiceTest
 
   private void testSetDefaultFilterForCurrentUser__updatesDefault() {
     var filter1 = enterpriseReportingFilterService.upsertFilterForCurrentUser(
-            new EnterpriseReportingDashboardFilterDTO(null, "Filter 1", "{\"a\":1}", true));
+        new EnterpriseReportingDashboardFilterDTO(null, "Filter 1", "{\"a\":1}", true));
     var filter2 = enterpriseReportingFilterService.upsertFilterForCurrentUser(
-            new EnterpriseReportingDashboardFilterDTO(null, "Filter 2", "{\"a\":2}", false));
+        new EnterpriseReportingDashboardFilterDTO(null, "Filter 2", "{\"a\":2}", false));
     assertThat(enterpriseReportingFilterService.getDefaultFilterForCurrentUser()).isEqualTo(filter1.id);
 
     enterpriseReportingFilterService.setDefaultFilterForCurrentUser(filter2.id);
@@ -519,14 +519,14 @@ public class EnterpriseReportingFilterServiceTest
   @Test
   public void testSetDefaultFilterForCurrentUser__noExistingFilterThrowsError() {
     assertThatExceptionOfType(BadRequestException.class)
-      .isThrownBy(() -> enterpriseReportingFilterService.setDefaultFilterForCurrentUser("12345"))
+        .isThrownBy(() -> enterpriseReportingFilterService.setDefaultFilterForCurrentUser("12345"))
         .withMessageContaining("Filter does not already exist to mark as default");
   }
 
   @Test
   public void testSetDefaultFilterForCurrentUser__noFilterIdThrowsError() {
     assertThatExceptionOfType(BadRequestException.class)
-      .isThrownBy(() -> enterpriseReportingFilterService.setDefaultFilterForCurrentUser(null))
+        .isThrownBy(() -> enterpriseReportingFilterService.setDefaultFilterForCurrentUser(null))
         .withMessageContaining("Filter does not already exist to mark as default");
   }
 
@@ -538,7 +538,7 @@ public class EnterpriseReportingFilterServiceTest
     var otherUserFilter = createFilterForOtherUser(otherUserId);
 
     assertThatExceptionOfType(BadRequestException.class)
-      .isThrownBy(() -> enterpriseReportingFilterService.setDefaultFilterForCurrentUser(otherUserFilter.getId()))
+        .isThrownBy(() -> enterpriseReportingFilterService.setDefaultFilterForCurrentUser(otherUserFilter.getId()))
         .withMessageContaining("Filter does not already exist to mark as default");
   }
 
@@ -561,7 +561,7 @@ public class EnterpriseReportingFilterServiceTest
 
   private void testSetDefaultFilterForCurrentUser__sameIdTwiceWithNoError() {
     var filter = enterpriseReportingFilterService.upsertFilterForCurrentUser(
-            new EnterpriseReportingDashboardFilterDTO(null, "My Filter", "{}", false));
+        new EnterpriseReportingDashboardFilterDTO(null, "My Filter", "{}", false));
     enterpriseReportingFilterService.setDefaultFilterForCurrentUser(filter.id);
     enterpriseReportingFilterService.setDefaultFilterForCurrentUser(filter.id);
     assertThat(enterpriseReportingFilterService.getDefaultFilterForCurrentUser()).isEqualTo(filter.id);
@@ -619,7 +619,7 @@ public class EnterpriseReportingFilterServiceTest
 
   private void testDeleteDefaultFilter__removedByCascade() {
     var filter = enterpriseReportingFilterService.upsertFilterForCurrentUser(
-            new EnterpriseReportingDashboardFilterDTO(null, "Filter 1", "{\"a\":1}", true));
+        new EnterpriseReportingDashboardFilterDTO(null, "Filter 1", "{\"a\":1}", true));
     String userId = getUsedUserId();
 
     assertThat(enterpriseReportingDefaultFilterDAO.getDefaultFilterByUserId(userId).getFilterId()).isEqualTo(filter.id);
@@ -694,9 +694,10 @@ public class EnterpriseReportingFilterServiceTest
     userDAO.delete(user);
   }
 
-  private void assertFilterEquality(EnterpriseReportingDashboardFilterDTO response,
-                                    EnterpriseReportingFilter daoFilter,
-                                    String userId)
+  private void assertFilterEquality(
+      EnterpriseReportingDashboardFilterDTO response,
+      EnterpriseReportingFilter daoFilter,
+      String userId)
   {
     assertThat(daoFilter.getFilterName()).isEqualTo(response.name);
     assertThat(daoFilter.getId()).isEqualTo(response.id);

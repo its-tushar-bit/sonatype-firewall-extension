@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.sbom.applications;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Date;

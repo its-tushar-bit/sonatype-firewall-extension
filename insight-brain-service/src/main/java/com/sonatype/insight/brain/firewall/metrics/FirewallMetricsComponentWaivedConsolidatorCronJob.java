@@ -22,7 +22,8 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 @DisallowConcurrentExecution
-public class FirewallMetricsComponentWaivedConsolidatorCronJob implements InsightJob
+public class FirewallMetricsComponentWaivedConsolidatorCronJob
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory
       .getLogger(FirewallMetricsComponentWaivedConsolidatorCronJob.class);
@@ -47,8 +48,7 @@ public class FirewallMetricsComponentWaivedConsolidatorCronJob implements Insigh
   @Inject
   public FirewallMetricsComponentWaivedConsolidatorCronJob(
       TaskScheduler taskScheduler,
-      WaivedComponentMetricsConsolidator consolidator
-  )
+      WaivedComponentMetricsConsolidator consolidator)
   {
     this.taskScheduler = taskScheduler;
     this.consolidator = consolidator;

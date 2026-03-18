@@ -18,8 +18,11 @@ import org.junit.rules.TemporaryFolder;
 
 public class ReportTestUtils
 {
-  public static void createReportFile(String appId, String scanId, File reportFile, InsightWork insightWork)
-      throws IOException
+  public static void createReportFile(
+      String appId,
+      String scanId,
+      File reportFile,
+      InsightWork insightWork) throws IOException
   {
     FileUtils.copyFile(reportFile, insightWork.getReportFile(appId, scanId));
   }

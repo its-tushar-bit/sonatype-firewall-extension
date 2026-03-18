@@ -14,9 +14,9 @@ public interface TenantManaged
    * Before the introduction of this class, the dropwizard start() method was used for initialization of jobs. The
    * problem with that is it can't be used for tenant provisioning because it ties the initialization to the boot of the
    * application (tenants are initialized at some unknown point in time after boot).
-   * 
+   *
    * Note: All future Quartz jobs should be TenantManaged.
-   * 
+   *
    * Register is still called on start through the use of
    * {@link com.sonatype.insight.brain.service.DefaultTenantManagedInitializer}
    */

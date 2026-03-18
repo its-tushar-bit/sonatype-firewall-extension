@@ -111,7 +111,7 @@ public class ApplicationSummaryViewTest
     organizationDAO = lookup(OrganizationDAO.class);
     cpeMatchingConfigurationService = lookup(CpeMatchingConfigurationService.class);
 
-    //note the ȧ being used to force a character to be encoded
+    // note the ȧ being used to force a character to be encoded
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
     rootOrganization = organizationDAO.getByIdNotNull(ROOT_ORGANIZATION_ID);
@@ -139,7 +139,8 @@ public class ApplicationSummaryViewTest
     ActionDropDown.selectContact().shouldBe(visible).click();
     SelectContactModal.body().shouldBe(visible);
     SelectContactModal.searchBox().shouldBe(focused).val(tempUser.getFirstName() + "*");
-    SelectContactModal.users().shouldHave(size(1))
+    SelectContactModal.users()
+        .shouldHave(size(1))
         .shouldHave(texts(tempUser.calculateDisplayName()));
     // update contact
     SelectContactModal.userContact(tempUser.calculateDisplayName()).click();
@@ -207,7 +208,8 @@ public class ApplicationSummaryViewTest
     ActionDropDown.reportLinks().shouldHave(size(stagesSize));
 
     for (int i = 0; i < stagesSize; i++) {
-      ActionDropDown.reportLink(i).shouldBe(visible, CLM.DISABLED)
+      ActionDropDown.reportLink(i)
+          .shouldBe(visible, CLM.DISABLED)
           .shouldHave(ActionDropDown.reportLinkText(stages.get(i).getName()));
     }
 
@@ -227,7 +229,9 @@ public class ApplicationSummaryViewTest
     eyesWatcher.eyesCheck("Summary report links");
 
     for (int i = 0; i < policyEvaluationsSize; i++) {
-      ActionDropDown.reportLink(i).shouldBe(visible).shouldNotBe(CLM.DISABLED)
+      ActionDropDown.reportLink(i)
+          .shouldBe(visible)
+          .shouldNotBe(CLM.DISABLED)
           .shouldHave(ActionDropDown.reportLinkText(stages.get(i).getName()));
 
       ActionDropDown.reportLink(i).click();
@@ -368,9 +372,11 @@ public class ApplicationSummaryViewTest
     }
     finally {
       if (tempFile != null) {
-        testCLMServer.getHdsServer().respondWith("{\"scanId\": \"blah\", \"timeToReport\": 0}")
+        testCLMServer.getHdsServer()
+            .respondWith("{\"scanId\": \"blah\", \"timeToReport\": 0}")
             .atUri("rest/application/analysis");
-        testCLMServer.getHdsServer().respondWith(getClass().getResource("/AppEvalReport/report.zip"))
+        testCLMServer.getHdsServer()
+            .respondWith(getClass().getResource("/AppEvalReport/report.zip"))
             .atUri("rest/application/analysis/blah");
 
         ActionDropDown.actionButton().click();
@@ -385,7 +391,7 @@ public class ApplicationSummaryViewTest
         modal.dismissSelectedFileButton().shouldNot(visible);
         modal.fileInput().shouldBe(visible).sendKeys(tempFile.getAbsolutePath());
 
-        //Check for NxFileUpload validation if no file is selected
+        // Check for NxFileUpload validation if no file is selected
         modal.dismissSelectedFileButton().shouldBe(visible).click();
         modal.fileUploadError().shouldBe(visible);
         modal.fileInput().shouldBe(visible).sendKeys(tempFile.getAbsolutePath());
@@ -393,7 +399,8 @@ public class ApplicationSummaryViewTest
         NxFormSelect stageSelect = modal.stageSelect();
         assertThat(stageSelect.selectedItem().getText()).isEqualTo(EvaluateApplicationModal.SELECT_STAGE_TEXT);
         stageSelect.click();
-        stageSelect.listItems().shouldHave(size(5))
+        stageSelect.listItems()
+            .shouldHave(size(5))
             .shouldHave(texts(EvaluateApplicationModal.SELECT_STAGE_TEXT,
                 StageTypes.BUILD.getName(), StageTypes.STAGE_RELEASE.getName(), StageTypes.RELEASE.getName(),
                 StageTypes.OPERATE.getName()));
@@ -492,12 +499,15 @@ public class ApplicationSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Configures the integration with an external SCM for the %s application", application.getName())));
+    tile.nxSubHeader()
+        .shouldBe(visible)
+        .shouldHave(Condition.text(String
+            .format("Configures the integration with an external SCM for the %s application", application.getName())));
     tile.rows().shouldHave(size(1));
 
     tile.itemSubText().shouldNotBe(visible);
-    tile.itemText().shouldBe(visible)
+    tile.itemText()
+        .shouldBe(visible)
         .shouldHave(Condition.text("Source Control not configured"));
 
     SourceControl rootSourceControl =
@@ -509,8 +519,10 @@ public class ApplicationSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Configures the integration with an external SCM for the %s application", application.getName())));
+    tile.nxSubHeader()
+        .shouldBe(visible)
+        .shouldHave(Condition.text(String
+            .format("Configures the integration with an external SCM for the %s application", application.getName())));
     tile.rows().shouldHave(size(1));
 
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("Repository URL needed"));
@@ -526,13 +538,17 @@ public class ApplicationSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Configures the integration with an external SCM for the %s application", application.getName())));
+    tile.nxSubHeader()
+        .shouldBe(visible)
+        .shouldHave(Condition.text(String
+            .format("Configures the integration with an external SCM for the %s application", application.getName())));
     tile.rows().shouldHave(size(1));
 
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("Repository URL needed"));
-    tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Inherit access token from %s (GitHub)", rootOrganization.getName())));
+    tile.itemSubText()
+        .shouldBe(visible)
+        .shouldHave(Condition.text(String
+            .format("Inherit access token from %s (GitHub)", rootOrganization.getName())));
 
     tempEntity.newSourceControl(application.getId(), "http://github.com/aaa/bbb", "TEST_TOKEN", null);
     refresh();
@@ -543,13 +559,17 @@ public class ApplicationSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Configures the integration with an external SCM for the %s application", application.getName())));
+    tile.nxSubHeader()
+        .shouldBe(visible)
+        .shouldHave(Condition.text(String
+            .format("Configures the integration with an external SCM for the %s application", application.getName())));
     tile.rows().shouldHave(size(1));
 
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("http://github.com/aaa/bbb"));
-    tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Provides default access token for %s (GitHub)", application.getName())));
+    tile.itemSubText()
+        .shouldBe(visible)
+        .shouldHave(Condition.text(String
+            .format("Provides default access token for %s (GitHub)", application.getName())));
   }
 
   @Test
@@ -582,8 +602,10 @@ public class ApplicationSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
-    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
-        .format("Configures the integration with an external SCM for the %s application", application.getName())));
+    tile.nxSubHeader()
+        .shouldBe(visible)
+        .shouldHave(Condition.text(String
+            .format("Configures the integration with an external SCM for the %s application", application.getName())));
     tile.content().shouldBe(visible);
 
     tile.itemText().shouldBe(visible);
@@ -625,7 +647,7 @@ public class ApplicationSummaryViewTest
     inheritedLabelList.shouldNotBe(visible);
     labelTile.labelListSubheader(1).shouldHave(LabelTile.inheritedText(organization.getName()));
     ScrollUtil.scrollIntoViewInstantly(labelTile.getElement());
-    //eyesWatcher.eyesCheck("Inherited Component Labels Header Truncation"); //sonatype.atlassian.net/browse/CLM-30559
+    // eyesWatcher.eyesCheck("Inherited Component Labels Header Truncation"); //sonatype.atlassian.net/browse/CLM-30559
   }
 
   @Test

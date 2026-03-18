@@ -49,13 +49,13 @@ public class PullRequestLineFeedbackTest
 
   public static final String MULTIPLE_WITH_SUGGESTION_AND_DEPENDENCY_REMEDIATION =
       "multipleWithSuggestionAndDependencyRemediation";
-  
+
   public static final String MULTIPLE_WITH_GOLDEN = "multipleWithGolden";
-  
+
   public static final String MULTIPLE_WITH_RECOMMENDED = "multipleWithRecommended";
-  
+
   public static final String MULTIPLE_WITH_GOLDEN_SCM_IMPROVEMENTS = "multipleWithGoldenScmImprovements";
-  
+
   public static final String MULTIPLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS = "multipleWithRecommendedScmImprovements";
 
   public static final String SINGLE_NO_SUGGESTION = "singleNoSuggestion";
@@ -65,13 +65,13 @@ public class PullRequestLineFeedbackTest
   public static final String SINGLE_WITH_SUGGESTION_AZCLOUD = "singleWithSuggestion_azureCloud";
 
   public static final String SINGLE_WITH_SUGGESTION_AZONPREM = "singleWithSuggestion_azureOnPrem";
-  
+
   public static final String SINGLE_WITH_GOLDEN = "singleWithGolden";
-  
+
   public static final String SINGLE_WITH_RECOMMENDED = "singleWithRecommended";
-  
+
   public static final String SINGLE_WITH_GOLDEN_SCM_IMPROVEMENTS = "singleWithGoldenScmImprovements";
-  
+
   public static final String SINGLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS = "singleWithRecommendedScmImprovements";
 
   private static final String SCM_ON_PREM_BASE_URL = "https://scm.mycompany.com";
@@ -129,14 +129,13 @@ public class PullRequestLineFeedbackTest
         .put(
             MULTIPLE_WITH_GOLDEN,
             new PullRequestLineFeedback(
-                defaultPolicyViolations(10), 
+                defaultPolicyViolations(10),
                 "Test Component",
                 iqBaseUrl,
                 new RemediationVersionDTO(
                     "123",
                     ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
-                    0
-                ),
+                    0),
                 SCM_ON_PREM_BASE_URL,
                 APPLICATION_PUBLIC_ID,
                 FEATURE_BRANCH_SCAN_ID,
@@ -152,8 +151,7 @@ public class PullRequestLineFeedbackTest
                 new RemediationVersionDTO(
                     "123",
                     ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING,
-                    0
-                ),
+                    0),
                 SCM_ON_PREM_BASE_URL,
                 APPLICATION_PUBLIC_ID,
                 FEATURE_BRANCH_SCAN_ID,
@@ -169,8 +167,7 @@ public class PullRequestLineFeedbackTest
                 new RemediationVersionDTO(
                     "123",
                     ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
-                    0
-                ),
+                    0),
                 SCM_ON_PREM_BASE_URL,
                 APPLICATION_PUBLIC_ID,
                 FEATURE_BRANCH_SCAN_ID,
@@ -186,8 +183,7 @@ public class PullRequestLineFeedbackTest
                 new RemediationVersionDTO(
                     "123",
                     ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING,
-                    0
-                ),
+                    0),
                 SCM_ON_PREM_BASE_URL,
                 APPLICATION_PUBLIC_ID,
                 FEATURE_BRANCH_SCAN_ID,
@@ -203,8 +199,7 @@ public class PullRequestLineFeedbackTest
                 new RemediationVersionDTO(
                     "123",
                     ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
-                    0
-                ),
+                    0),
                 SCM_ON_PREM_BASE_URL,
                 APPLICATION_PUBLIC_ID,
                 FEATURE_BRANCH_SCAN_ID,
@@ -220,8 +215,7 @@ public class PullRequestLineFeedbackTest
                 new RemediationVersionDTO(
                     "123",
                     ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING,
-                    0
-                ),
+                    0),
                 SCM_ON_PREM_BASE_URL,
                 APPLICATION_PUBLIC_ID,
                 FEATURE_BRANCH_SCAN_ID,
@@ -237,8 +231,7 @@ public class PullRequestLineFeedbackTest
                 new RemediationVersionDTO(
                     "123",
                     ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
-                    0
-                ),
+                    0),
                 SCM_ON_PREM_BASE_URL,
                 APPLICATION_PUBLIC_ID,
                 FEATURE_BRANCH_SCAN_ID,
@@ -255,8 +248,7 @@ public class PullRequestLineFeedbackTest
                 new RemediationVersionDTO(
                     "123",
                     ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING,
-                    0
-                ),
+                    0),
                 SCM_ON_PREM_BASE_URL,
                 APPLICATION_PUBLIC_ID,
                 FEATURE_BRANCH_SCAN_ID,
@@ -290,7 +282,7 @@ public class PullRequestLineFeedbackTest
     assertContents(testCases.get(MULTIPLE_WITH_GOLDEN),
         "PullRequestLineFeedback_multipleWithGolden.md", GITHUB);
   }
-  
+
   @Test
   public void testPullRequestFeedback_multipleWithRecommended_github() throws Exception {
     assertContents(testCases.get(MULTIPLE_WITH_RECOMMENDED),
@@ -308,7 +300,7 @@ public class PullRequestLineFeedbackTest
     assertContents(testCases.get(MULTIPLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS),
         "PullRequestLineFeedback_multipleWithRecommended_ScmImprovements.md", GITHUB);
   }
-  
+
   @Test
   public void testPullRequestFeedback_singleNoSuggestion_github() throws Exception {
     assertContents(testCases.get(SINGLE_NO_SUGGESTION),
@@ -326,7 +318,7 @@ public class PullRequestLineFeedbackTest
     assertContents(testCases.get(SINGLE_WITH_GOLDEN),
         "PullRequestLineFeedback_singleWithGolden.md", GITHUB);
   }
-  
+
   @Test
   public void testPullRequestFeedback_singleWithRecommended_github() throws Exception {
     assertContents(testCases.get(SINGLE_WITH_RECOMMENDED),
@@ -344,7 +336,7 @@ public class PullRequestLineFeedbackTest
     assertContents(testCases.get(SINGLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS),
         "PullRequestLineFeedback_singleWithRecommended_ScmImprovements.md", GITHUB);
   }
-  
+
   @Test
   public void testPullRequestFeedback_multipleNoSuggestion_gitlab() throws Exception {
     assertContents(testCases.get(MULTIPLE_NO_SUGGESTIONS),
@@ -369,11 +361,11 @@ public class PullRequestLineFeedbackTest
     assertContents(testCases.get(MULTIPLE_WITH_GOLDEN),
         "PullRequestLineFeedback_multipleWithGold_gitlab.md", SourceControlProvider.GITLAB);
   }
-  
+
   @Test
   public void testPullRequestFeedback_multipleWithRecommended_gitlab() throws Exception {
     assertContents(testCases.get(MULTIPLE_WITH_RECOMMENDED),
-        "PullRequestLineFeedback_multipleWithReco_gitlab.md", SourceControlProvider.GITLAB); 
+        "PullRequestLineFeedback_multipleWithReco_gitlab.md", SourceControlProvider.GITLAB);
   }
 
   @Test
@@ -387,7 +379,7 @@ public class PullRequestLineFeedbackTest
     assertContents(testCases.get(MULTIPLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS),
         "PullRequestLineFeedback_multipleWithRecommended_gitlab_ScmImprovements.md", SourceControlProvider.GITLAB);
   }
-  
+
   @Test
   public void testPullRequestFeedback_singleNoSuggestion_gitlab() throws Exception {
     assertContents(testCases.get(SINGLE_NO_SUGGESTION),
@@ -405,7 +397,7 @@ public class PullRequestLineFeedbackTest
     assertContents(testCases.get(SINGLE_WITH_GOLDEN),
         "PullRequestLineFeedback_singleWithGolden_gitlab.md", SourceControlProvider.GITLAB);
   }
-  
+
   @Test
   public void testPullRequestFeedback_singleWithRecommended_gitlab() throws Exception {
     assertContents(testCases.get(SINGLE_WITH_RECOMMENDED),
@@ -423,7 +415,7 @@ public class PullRequestLineFeedbackTest
     assertContents(testCases.get(SINGLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS),
         "PullRequestLineFeedback_singleWithRecommended_gitlab_ScmImprovements.md", SourceControlProvider.GITLAB);
   }
-  
+
   @Test
   public void testPullRequestFeedback_multipleNoSuggestion_bitbucket() throws Exception {
     assertContents(testCases.get(MULTIPLE_NO_SUGGESTIONS),
@@ -447,16 +439,16 @@ public class PullRequestLineFeedbackTest
   public void testPullRequestFeedback_multipleWithGolden_bitbucket() throws Exception {
     assertContents(testCases.get(MULTIPLE_WITH_GOLDEN),
         "PullRequestLineFeedback_multipleWithGolden_noHtml.md",
-        SourceControlProvider.BITBUCKET); 
+        SourceControlProvider.BITBUCKET);
   }
-  
+
   @Test
   public void testPullRequestFeedback_multipleWithRecommended_bitbucket() throws Exception {
     assertContents(testCases.get(MULTIPLE_WITH_RECOMMENDED),
         "PullRequestLineFeedback_multipleWithRecommended_noHtml.md",
         SourceControlProvider.BITBUCKET);
   }
-  
+
   @Test
   public void testPullRequestFeedback_singleNoSuggestion_bitbucket() throws Exception {
     assertContents(testCases.get(SINGLE_NO_SUGGESTION),
@@ -480,7 +472,7 @@ public class PullRequestLineFeedbackTest
     assertContents(testCases.get(SINGLE_WITH_RECOMMENDED),
         "PullRequestLineFeedback_singleWithRecommended_noHtml.md", SourceControlProvider.BITBUCKET);
   }
-  
+
   @Test
   public void testPullRequestFeedback_singleWithSuggestion_azureCloud() throws Exception {
     // Azure Cloud uses the standard template with embedded HTML
@@ -506,7 +498,7 @@ public class PullRequestLineFeedbackTest
     assertContents(testCases.get(SINGLE_WITH_RECOMMENDED),
         "PullRequestLineFeedback_singleWithRecommended_noHtml.md", SourceControlProvider.AZURE);
   }
-  
+
   @Test
   public void testPullRequestFeedback_nullViolations() {
     assertThatExceptionOfType(NullPointerException.class)
@@ -529,7 +521,7 @@ public class PullRequestLineFeedbackTest
         .isThrownBy(() -> new PullRequestLineFeedback(new ArrayList<>(), "Test Component",
             lookup(BaseUrl.class).getConfigured(), null, null,
             APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID, null, false, organizationDAO, FULL_DATA)
-            .renderTemplateAndGetContents(GITHUB))
+                .renderTemplateAndGetContents(GITHUB))
         .withMessageContaining("violations cannot be empty");
   }
 

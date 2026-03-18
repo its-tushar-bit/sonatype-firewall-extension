@@ -138,8 +138,7 @@ public class ConfigurationInfoTest
         SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
         SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED,
         SystemConfigurationProperty.API_ACCESS_ALLOW_LIST,
-        SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR
-    ));
+        SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR));
 
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());
 
@@ -298,8 +297,7 @@ public class ConfigurationInfoTest
         "userTokenDefaultExpirationDays",
         "exitOnFatalError",
         "maliciousUrlsPartnerAccess",
-        "maxConcurrentTenantIndexCreation"
-    );
+        "maxConcurrentTenantIndexCreation");
 
     // Properties included in the config.json in support zip
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());

@@ -469,8 +469,9 @@ public abstract class AuditData
       final SystemConfigurationPropertyFeature systemConfigurationPropertyFeature)
   {
     if (systemConfigurationPropertyFeature.isStored()) {
-      AuditData.get().setData(systemConfigurationPropertyFeature.getPropertyName(),
-          systemConfigurationPropertyFeature.getPropertyValue());
+      AuditData.get()
+          .setData(systemConfigurationPropertyFeature.getPropertyName(),
+              systemConfigurationPropertyFeature.getPropertyValue());
     }
     else {
       AuditData.get().setData(systemConfigurationPropertyFeature.getPropertyName(), "null");

@@ -25,11 +25,13 @@ public record AutoPolicyWaiverTelemetry(
     String creatorName,
     Long createTime,
     AutoPolicyWaiverAction action,
-    PolicyViolation policyViolation
-)
+    PolicyViolation policyViolation)
 {
-  public AutoPolicyWaiverTelemetry(AutoPolicyWaiver autoPolicyWaiver, OwnerType ownerType,
-                                   AutoPolicyWaiverAction action, PolicyViolation policyViolation)
+  public AutoPolicyWaiverTelemetry(
+      AutoPolicyWaiver autoPolicyWaiver,
+      OwnerType ownerType,
+      AutoPolicyWaiverAction action,
+      PolicyViolation policyViolation)
   {
     this(
         autoPolicyWaiver.getId(),
@@ -42,8 +44,7 @@ public record AutoPolicyWaiverTelemetry(
         autoPolicyWaiver.getCreatorName(),
         autoPolicyWaiver.getCreateTime().getTime(),
         action,
-        policyViolation
-    );
+        policyViolation);
   }
 
   public static AutoPolicyWaiverTelemetry from(
@@ -63,8 +64,7 @@ public record AutoPolicyWaiverTelemetry(
         apiAutoPolicyWaiverDTO.creatorName,
         apiAutoPolicyWaiverDTO.createTime.getTime(),
         action,
-        policyViolation
-    );
+        policyViolation);
   }
 
   public AutoPolicyWaiver toAutoPolicyWaiver() {
@@ -76,8 +76,7 @@ public record AutoPolicyWaiverTelemetry(
         pathForward != null ? pathForward : false,
         creatorId,
         creatorName,
-        new Date(createTime)
-    );
+        new Date(createTime));
   }
 
   @Override

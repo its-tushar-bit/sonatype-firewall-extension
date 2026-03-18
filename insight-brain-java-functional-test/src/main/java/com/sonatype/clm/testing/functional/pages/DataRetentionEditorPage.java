@@ -46,19 +46,19 @@ public class DataRetentionEditorPage
     }
 
     public SelenideElement inheritRadioButton() {
-      return child( "#retention-editor-inherit-" + contextId);
+      return child("#retention-editor-inherit-" + contextId);
     }
 
     public SelenideElement disableRadioButton() {
-      return child( "#retention-editor-disable-" + contextId);
+      return child("#retention-editor-disable-" + contextId);
     }
 
     public SelenideElement customRadioButton() {
-      return child( "#retention-editor-custom-" + contextId);
+      return child("#retention-editor-custom-" + contextId);
     }
 
     public SelenideElement customRow() {
-      return child( ".custom-purge-row");
+      return child(".custom-purge-row");
     }
 
     public SelenideElement ageErrorMessage() {

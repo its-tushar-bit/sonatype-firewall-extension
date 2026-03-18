@@ -154,7 +154,8 @@ public class SuccessMetricsReportDAOTest
     String username = "test123";
     tempEntity.newSuccessMetricsReport(username, "Metrics12345", "testMetricsString 1111");
     assertThatThrownBy(() -> tempEntity.newSuccessMetricsReport(username, "METRICS 12345", "testMetricsString 1111"))
-        .isInstanceOf(BadRequestException.class).hasMessage("METRICS 12345 is already used as a name.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("METRICS 12345 is already used as a name.");
   }
 
   @Test
@@ -162,7 +163,8 @@ public class SuccessMetricsReportDAOTest
     String username = "test123";
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     assertThatThrownBy(() -> tempEntity.newSuccessMetricsReport(username, name + "a", "testMetricsString 1111"))
-        .isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
+        .isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name must be 60 characters or less.");
     tempEntity.newSuccessMetricsReport(username, name, "testMetricsString 1111");
   }
 

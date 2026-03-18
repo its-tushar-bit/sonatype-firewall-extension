@@ -35,11 +35,12 @@ public class ApiScmOnboardingResourceAuditTest
     Organization org = tempEntity.newOrganization();
     ImportScmOrganizationRequest importRequest = new ImportScmOrganizationRequest();
     importRequest.scmHostUrl = "https://somescm/owner";
-    importRequest.importLimit = 0; //to throw a bad request
+    importRequest.importLimit = 0; // to throw a bad request
 
     HttpResponse response = restRequest()
         .path(UriBuilder.fromPath(ApiScmOnboardingResource.IMPORT_REPO_PATH)
-            .build(org.getId()).toString())
+            .build(org.getId())
+            .toString())
         .body(importRequest)
         .post();
 
@@ -47,8 +48,8 @@ public class ApiScmOnboardingResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.SOURCE_CONTROL_IMPORT, "bad-request");
     assertOrganizationData(auditDTO, org);
     assertStandardData(auditDTO, AuditEvent.SOURCE_CONTROL_IMPORT, "bad-request");
-    assertCustomData(auditDTO, "scmHostUrl","https://somescm/owner");
-    assertCustomData(auditDTO, "importLimit",0);
-    assertCustomData(auditDTO, "desiredSubOrganizationCount",0);
+    assertCustomData(auditDTO, "scmHostUrl", "https://somescm/owner");
+    assertCustomData(auditDTO, "importLimit", 0);
+    assertCustomData(auditDTO, "desiredSubOrganizationCount", 0);
   }
 }

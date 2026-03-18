@@ -16,7 +16,7 @@ public class SbomResultsMatcherStat
   public Float coordMatchScore;
 
   public SbomResultsMatcherStat() {
-    //no-op
+    // no-op
   }
 
   public SbomResultsMatcherStat(

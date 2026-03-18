@@ -57,8 +57,7 @@ public class ApiMailConfigurationResource
       "Permissions required: Edit System Configuration and Users")
   @ApiResponse(
       responseCode = "404",
-      description = "No SMTP server is currently configured with the IQ Server."
-  )
+      description = "No SMTP server is currently configured with the IQ Server.")
   @ApiResponse(
       responseCode = "200",
       description = "The response contains:" +
@@ -74,8 +73,7 @@ public class ApiMailConfigurationResource
           "upgrade to SSL/TLS using the STARTTLS command.</li>" +
           "<li>`systemEmail` is the email address used for the FROM header in emails sent by the IQ Server.</li>" +
           "</ul>",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   public ApiMailConfigurationDTO getConfiguration() {
     return mailConfigurationService.getConfiguration();
   }
@@ -89,13 +87,11 @@ public class ApiMailConfigurationResource
       "Permissions required: Edit System Configuration and Users")
   @ApiResponse(
       responseCode = "400",
-      description = "Missing or invalid values provided."
-  )
+      description = "Missing or invalid values provided.")
   @ApiResponse(
       responseCode = "204",
       description = "SMTP server configuration was updated successfully.",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
 
   public void setConfiguration(
       @RequestBody(description = "Provide one or more values for the following in the JSON payload:" +
@@ -112,8 +108,7 @@ public class ApiMailConfigurationResource
           "upgrade to SSL/TLS using the STARTTLS command." +
           "<li>`systemEmail` - is the email address used for the FROM header in emails sent by the IQ Server.</li>" +
           "</ul>",
-          useParameterTypeSchema = true)
-      ApiMailConfigurationDTO configurationDTO)
+          useParameterTypeSchema = true) ApiMailConfigurationDTO configurationDTO)
   {
     mailConfigurationService.setConfiguration(configurationDTO);
   }
@@ -127,13 +122,11 @@ public class ApiMailConfigurationResource
   @ApiResponse(
       responseCode = "204",
       description = "SMTP configuration was removed successfully.",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   @ApiResponse(
       responseCode = "404",
       description = "SMTP server configuration does not exist.",
-      useReturnTypeSchema = true
-  )
+      useReturnTypeSchema = true)
   public void deleteConfiguration() {
     mailConfigurationService.deleteConfiguration();
   }
@@ -148,15 +141,13 @@ public class ApiMailConfigurationResource
       "Permissions required:Edit System Configuration and Users")
   @ApiResponse(
       responseCode = "204",
-      description = "The test email was sent successfully."
-  )
+      description = "The test email was sent successfully.")
   @ApiResponse(
       responseCode = "400",
-      description = "Missing or invalid values provided."
-  )
+      description = "Missing or invalid values provided.")
   public void testConfiguration(
-      @Parameter(description = "Enter the test recipient email address.")
-      @PathParam("recipientEmail") String recipientEmail,
+      @Parameter(
+          description = "Enter the test recipient email address.") @PathParam("recipientEmail") String recipientEmail,
       @RequestBody(description = "Provide one or more values for the following in the JSON payload:" +
           "<ul>" +
           "<li>`hostname` - is the hostname or IP address of the SMTP server used for outgoing mail.</li>" +
@@ -171,9 +162,7 @@ public class ApiMailConfigurationResource
           "upgrade to SSL/TLS using the STARTTLS command." +
           "<li>`systemEmail` - is the email address used for the FROM header in emails sent by the IQ Server.</li>" +
           "</ul>",
-          useParameterTypeSchema = true
-      )
-      ApiMailConfigurationDTO configurationDTO)
+          useParameterTypeSchema = true) ApiMailConfigurationDTO configurationDTO)
   {
     mailConfigurationService.testConfiguration(recipientEmail, configurationDTO);
   }

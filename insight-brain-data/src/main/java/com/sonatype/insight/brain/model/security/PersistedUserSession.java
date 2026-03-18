@@ -92,7 +92,9 @@ public class PersistedUserSession
         // Fix jackson deserializing PrincipalCollection as an ArrayList and UserPrincipal as a LinkedHashMap
         List<UserPrincipal> userPrincipals = OBJECT_MAPPER.readValue(
             OBJECT_MAPPER.treeAsTokens(principalCollectionNode),
-            OBJECT_MAPPER.getTypeFactory().constructType(new TypeReference<List<UserPrincipal>>() { }));
+            OBJECT_MAPPER.getTypeFactory().constructType(new TypeReference<List<UserPrincipal>>()
+            {
+            }));
         SimplePrincipalCollection simplePrincipalCollection = new SimplePrincipalCollection();
         userPrincipals
             .forEach(userPrincipal -> simplePrincipalCollection.add(userPrincipal, userPrincipal.getRealmId()));
@@ -162,8 +164,9 @@ public class PersistedUserSession
       extends JsonDeserializer<XMLGregorianCalendar>
   {
     @Override
-    public XMLGregorianCalendar deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
-        throws IOException
+    public XMLGregorianCalendar deserialize(
+        JsonParser jsonParser,
+        DeserializationContext deserializationContext) throws IOException
     {
       JsonNode jsonNode = jsonParser.getCodec().readTree(jsonParser);
       if (!jsonNode.isNumber()) {

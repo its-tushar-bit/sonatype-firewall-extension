@@ -65,18 +65,17 @@ abstract class AbstractApplicationRiskService
   @Override
   public ApplicationRiskScoreDTO getRiskForApp(
       final Application application,
-      final Set<StageType> stageTypes
-  )
+      final Set<StageType> stageTypes)
   {
     final ApplicationView appView =
         policyViolationLoader.getViolations(
-                Collections.singleton(application),
-                stageTypes,
-                false,
-                null,
-                null,
-                null
-            ).stream()
+            Collections.singleton(application),
+            stageTypes,
+            false,
+            null,
+            null,
+            null)
+            .stream()
             .findFirst()
             .orElse(null);
 
@@ -88,8 +87,7 @@ abstract class AbstractApplicationRiskService
       final Set<String> stageIds,
       final PolicyThreatCategoryFilter policyThreatCategoryFilter,
       final PolicyThreatLevelFilter policyThreatLevelFilter,
-      final PolicyViolationStateFilter policyViolationStateFilter
-  )
+      final PolicyViolationStateFilter policyViolationStateFilter)
   {
     final Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
 
@@ -137,8 +135,7 @@ abstract class AbstractApplicationRiskService
         stageIds,
         policyThreatCategoryFilter,
         policyThreatLevelFilter,
-        policyViolationStateFilter
-    );
+        policyViolationStateFilter);
 
     applicationRiskScoreDTOs.sort(applicationRiskComparator);
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = new DashboardResultsDTO<>();
@@ -174,8 +171,7 @@ abstract class AbstractApplicationRiskService
 
   private ApplicationRiskScoreDTO createApplicationRiskScore(
       final ApplicationView appView,
-      final boolean returnNullAndSkipStageViewCalculationsWhenRiskIsZero
-  )
+      final boolean returnNullAndSkipStageViewCalculationsWhenRiskIsZero)
   {
     // We must limit ourselves only to the organization name in order to avoid leaking other information
     // to users which may not have READ access to organization details. Organization names can still be
@@ -196,7 +192,8 @@ abstract class AbstractApplicationRiskService
     updateTotalApplicationRisks(applicationRiskScore, appView.getStageViews());
 
     if (!returnNullAndSkipStageViewCalculationsWhenRiskIsZero
-        && applicationRiskScore.totalApplicationRisk.totalRisk <= 0) {
+        && applicationRiskScore.totalApplicationRisk.totalRisk <= 0)
+    {
       return null;
     }
 

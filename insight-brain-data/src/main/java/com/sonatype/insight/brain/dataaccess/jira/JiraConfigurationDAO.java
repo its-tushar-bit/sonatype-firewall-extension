@@ -59,7 +59,7 @@ public class JiraConfigurationDAO
   static final String EMPTY_OR_WHITESPACE_USERNAME_ERROR_MSG = "The username cannot be empty or only whitespace.";
 
   // Visible for testing
-  static final int MAX_PASSWORD_LENGTH = 2000;  // This is maximum encrypted password length allowed..
+  static final int MAX_PASSWORD_LENGTH = 2000; // This is maximum encrypted password length allowed..
 
   // Visible for testing
   static final String LONG_PASSWORD_ERROR_MSG = "The password is too long.";
@@ -143,7 +143,8 @@ public class JiraConfigurationDAO
       throw new BadRequestException(EMPTY_OR_WHITESPACE_USERNAME_ERROR_MSG);
     }
     if (jiraConfiguration.getPassword() != null &&
-        StringUtils.isWhitespace(CharBuffer.wrap(jiraConfiguration.getPassword()))) {
+        StringUtils.isWhitespace(CharBuffer.wrap(jiraConfiguration.getPassword())))
+    {
       throw new BadRequestException(EMPTY_OR_WHITESPACE_PASSWORD_ERROR_MSG);
     }
     if (jiraConfiguration.getUsername() != null && jiraConfiguration.getUsername().length() > MAX_USERNAME_LENGTH) {
@@ -153,7 +154,8 @@ public class JiraConfigurationDAO
       throw new BadRequestException(LONG_PASSWORD_ERROR_MSG);
     }
     if (jiraConfiguration.getCustomFieldsJson() != null &&
-        jiraConfiguration.getCustomFieldsJson().length() > MAX_CUSTOM_FIELDS_JSON_LENGTH) {
+        jiraConfiguration.getCustomFieldsJson().length() > MAX_CUSTOM_FIELDS_JSON_LENGTH)
+    {
       throw new BadRequestException(LONG_CUSTOM_FIELDS_JSON_ERROR_MSG);
     }
   }

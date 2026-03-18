@@ -119,7 +119,7 @@ public class ApplicationSummaryResource
 
   /**
    * @param apiVerifyOrCreateApplicationForContainerImageFirewallDTO
-   * {@link ApiVerifyOrCreateApplicationForContainerImageFirewallDTO}
+   *          {@link ApiVerifyOrCreateApplicationForContainerImageFirewallDTO}
    * @return applicationPublicId
    */
   @POST

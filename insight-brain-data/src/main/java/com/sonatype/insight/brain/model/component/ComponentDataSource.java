@@ -16,7 +16,7 @@ public class ComponentDataSource
   private final String id;
 
   private final String name;
-  
+
   public static final ComponentDataSource LICENSE = new ComponentDataSource("license", "License");
 
   public static final ComponentDataSource IDENTITY = new ComponentDataSource("identity", "Identity");

@@ -74,8 +74,8 @@ public final class AttributionReportFormPage
     return child("#table-of-contents-checkbox");
   }
 
-  public SelenideElement getTableOfContentsHiddenInput() { 
-    return child("input[name='includeToc']"); 
+  public SelenideElement getTableOfContentsHiddenInput() {
+    return child("input[name='includeToc']");
   }
 
   public SelenideElement getIncludeStandardLicenseTextsCheck() {
@@ -114,9 +114,10 @@ public final class AttributionReportFormPage
     return children(".nx-dropdown-button");
   }
 
-  public static class UnsavedChangesDialog extends BasicElement<ManageTemplatesPage.UnsavedChangesDialog>
+  public static class UnsavedChangesDialog
+      extends BasicElement<ManageTemplatesPage.UnsavedChangesDialog>
   {
-    private static  final String UNSAVED_DIALOG_SELECTOR = "#attribution-report-unsaved-dialog";
+    private static final String UNSAVED_DIALOG_SELECTOR = "#attribution-report-unsaved-dialog";
 
     public UnsavedChangesDialog() {
       super(UNSAVED_DIALOG_SELECTOR);

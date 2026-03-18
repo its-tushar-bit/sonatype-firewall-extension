@@ -16,12 +16,13 @@ public class DashboardMetadataListDTO
   public List<DashboardGroupMetadataDTO> dashboardGroupMetadata;
 
   public DashboardMetadataListDTO() {
-    //for jackson
+    // for jackson
   }
 
-  public DashboardMetadataListDTO(DashboardsVersionDTO version,
-                                  List<DashboardMetadataDTO> dashboardMetadata,
-                                  List<DashboardGroupMetadataDTO> dashboardGroupMetadata)
+  public DashboardMetadataListDTO(
+      DashboardsVersionDTO version,
+      List<DashboardMetadataDTO> dashboardMetadata,
+      List<DashboardGroupMetadataDTO> dashboardGroupMetadata)
   {
     this.version = version;
     this.dashboardMetadata = dashboardMetadata;

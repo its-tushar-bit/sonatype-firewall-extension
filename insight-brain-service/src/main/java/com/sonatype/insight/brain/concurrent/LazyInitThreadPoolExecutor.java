@@ -36,7 +36,7 @@ public class LazyInitThreadPoolExecutor
 
   private final ShutdownHandler shutdownHandler;
 
-  // clear any data that might be in a pooled thread's ThreadContext before the thread is used?  by default, Shiro
+  // clear any data that might be in a pooled thread's ThreadContext before the thread is used? by default, Shiro
   // will propagate the security manager and subject to child threads, but only when the child threads are first created
   private boolean shouldClearShiroThreadContextBeforeThreadStart;
 

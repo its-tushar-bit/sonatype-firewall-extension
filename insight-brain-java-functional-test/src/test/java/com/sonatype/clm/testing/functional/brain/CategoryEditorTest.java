@@ -81,8 +81,9 @@ public class CategoryEditorTest
     // when invalid description - too long
     CategoryEditorPage.description().val(StringUtils.repeat("a", 256));
     // then error on description and disabled save
-    CategoryEditorPage.descriptionInvalidMessage().shouldBe(visible)
-            .shouldHave(text("Please enter less than 255 characters"));
+    CategoryEditorPage.descriptionInvalidMessage()
+        .shouldBe(visible)
+        .shouldHave(text("Please enter less than 255 characters"));
 
     // take focus off the input to prevent blinking cursor
     SidebarNavigation.container().click();

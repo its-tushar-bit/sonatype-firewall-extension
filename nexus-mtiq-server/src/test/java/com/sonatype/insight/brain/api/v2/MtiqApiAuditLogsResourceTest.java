@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -126,7 +127,8 @@ public class MtiqApiAuditLogsResourceTest
 
   private void copyTestResource(String sourceDir, String tenantSlug, String filename) throws IOException {
     String filepath = getClass().getClassLoader()
-        .getResource(getClass().getSimpleName() + "/" + sourceDir + "/" + filename).getFile();
+        .getResource(getClass().getSimpleName() + "/" + sourceDir + "/" + filename)
+        .getFile();
     Path tenantAuditLogDir = Paths.get(MultiTenantAuditLogAppenderFactory.getAuditLogFileName(tenantSlug)).getParent();
     Files.createDirectories(tenantAuditLogDir);
     Files.copy(new File(filepath).toPath(), Paths.get(tenantAuditLogDir.toString(), filename));

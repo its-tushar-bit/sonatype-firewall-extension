@@ -55,8 +55,7 @@ public class DatabaseMigrations
   @VisibleForTesting
   public DatabaseMigrations(
       final DataStoreProvider dataStoreProvider,
-      final ClusterLockManager clusterLockManager
-  )
+      final ClusterLockManager clusterLockManager)
   {
     this.operationalDataStore = dataStoreProvider.getOperationalDataStore();
     this.aggregationDataStore = dataStoreProvider.getAggregationDataStore();
@@ -98,8 +97,7 @@ public class DatabaseMigrations
   private ClusterLockManager getClusterLockManagerProvider(final OperationalDataStore operationalDataStore) {
     ClusterLockManagerProvider clusterLockManagerProvider = new ClusterLockManagerProvider(
         operationalDataStore,
-        new PostgresAdvisoryLockDAO()
-    );
+        new PostgresAdvisoryLockDAO());
 
     return clusterLockManagerProvider.get();
   }
@@ -107,9 +105,9 @@ public class DatabaseMigrations
   /**
    * Is the migration system enabled or disabled. Options include
    * <ul>
-   *   <li>{@link #setForceEnableMigration(boolean)} was called to forcefully override it</li>
-   *   <li>The {@link #NXIQ_SCHEMA_MIGRATION} environment variable was set</li>
-   *   <li>The {@link #NXIQ_SCHEMA_MIGRATION} system configuration property was set in the database</li>
+   * <li>{@link #setForceEnableMigration(boolean)} was called to forcefully override it</li>
+   * <li>The {@link #NXIQ_SCHEMA_MIGRATION} environment variable was set</li>
+   * <li>The {@link #NXIQ_SCHEMA_MIGRATION} system configuration property was set in the database</li>
    * </ul>
    */
   public boolean isMigrationEnabled() {
@@ -135,10 +133,11 @@ public class DatabaseMigrations
   @VisibleForTesting
   String getSchemaMigrationEnabledFromDatabase() {
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
-         Statement statement = connection.createStatement();
-         ResultSet resultSet = statement.executeQuery(
-             "SELECT value FROM " + operationalDataStore.getDatabaseSchema() +
-                 ".system_configuration_property WHERE name = '" + DatabaseMigrator.SCHEMA_MIGRATION_ENABLED + "'")) {
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(
+            "SELECT value FROM " + operationalDataStore.getDatabaseSchema() +
+                ".system_configuration_property WHERE name = '" + DatabaseMigrator.SCHEMA_MIGRATION_ENABLED + "'"))
+    {
       if (resultSet.next()) {
         return resultSet.getString(1);
       }
@@ -151,8 +150,8 @@ public class DatabaseMigrations
 
   private boolean supportsClusterLock() {
     // check if the ODS schema version is newer than the version locking was introduced in
-    return DatabaseUtil.getLegacyDatabaseSchemaVersion(operationalDataStore) >=
-        OperationalDataStore.LOCK_TABLE_DATABASE_VERSION;
+    return DatabaseUtil
+        .getLegacyDatabaseSchemaVersion(operationalDataStore) >= OperationalDataStore.LOCK_TABLE_DATABASE_VERSION;
   }
 
   private void doMigrateDatabases() {

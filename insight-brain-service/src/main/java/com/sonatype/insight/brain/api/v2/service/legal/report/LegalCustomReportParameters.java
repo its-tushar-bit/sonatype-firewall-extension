@@ -189,8 +189,7 @@ public final class LegalCustomReportParameters
           this.includeAppendix,
           this.noticeFiles,
           this.includeInnerSource,
-          this.includeSonatypeSpecialLicenses
-      );
+          this.includeSonatypeSpecialLicenses);
     }
 
     public LegalCustomReportParameters buildWithDefaults(final String applicationId) {
@@ -198,8 +197,7 @@ public final class LegalCustomReportParameters
           ATTRIBUTION_REPORT_FOR + applicationId,
           "", "",
           true, true, true, Collections.emptyList(),
-          false, false
-      );
+          false, false);
     }
 
     public LegalCustomReportParameters buildMultiApplicationWithDefaults(final Set<String> applicationId) {

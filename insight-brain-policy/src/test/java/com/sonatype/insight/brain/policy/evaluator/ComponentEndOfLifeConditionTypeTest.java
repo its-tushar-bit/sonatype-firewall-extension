@@ -43,11 +43,11 @@ public class ComponentEndOfLifeConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forCoordinates("maven","g1", "a1", "v1", "jar", "");
+    Component component1 = ComponentFactory.forCoordinates("maven", "g1", "a1", "v1", "jar", "");
     component1.setMatchState(MatchState.EXACT);
     component1.setEndOfLife(ComponentEndOfLifeStatus.END_OF_LIFE_TRUE);
     components.add(component1);
-    Component component2 = ComponentFactory.forCoordinates("maven","g2", "a2", "v2", "jar", "");
+    Component component2 = ComponentFactory.forCoordinates("maven", "g2", "a2", "v2", "jar", "");
     component2.setMatchState(MatchState.EXACT);
     component2.setEndOfLife(ComponentEndOfLifeStatus.END_OF_LIFE_FALSE);
     components.add(component2);
@@ -81,11 +81,11 @@ public class ComponentEndOfLifeConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forCoordinates("maven","g1", "a1", "v1", "jar", "");
+    Component component1 = ComponentFactory.forCoordinates("maven", "g1", "a1", "v1", "jar", "");
     component1.setMatchState(MatchState.EXACT);
     component1.setEndOfLife(ComponentEndOfLifeStatus.END_OF_LIFE_TRUE);
     components.add(component1);
-    Component component2 = ComponentFactory.forCoordinates("maven","g2", "a2", "v2", "jar", "");
+    Component component2 = ComponentFactory.forCoordinates("maven", "g2", "a2", "v2", "jar", "");
     component2.setMatchState(MatchState.EXACT);
     component2.setEndOfLife(ComponentEndOfLifeStatus.END_OF_LIFE_FALSE);
     components.add(component2);
@@ -109,7 +109,7 @@ public class ComponentEndOfLifeConditionTypeTest
   @Test
   public void testHandlesNullEndOfLife() {
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forCoordinates("maven","g1", "a1", "v1", "jar", "");
+    Component component1 = ComponentFactory.forCoordinates("maven", "g1", "a1", "v1", "jar", "");
     component1.setMatchState(MatchState.EXACT);
     component1.setEndOfLife(null);
     components.add(component1);

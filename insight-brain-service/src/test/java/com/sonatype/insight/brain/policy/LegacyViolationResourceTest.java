@@ -58,7 +58,8 @@ public class LegacyViolationResourceTest
     PolicyViolation policyViolation = tempEntity.newLegacyPolicyViolation(policyEvaluation, policy);
 
     HttpResponse response = restRequest().path(LegacyViolationResource.REVOKE_PATH)
-        .parameter(application.getPublicId()).put();
+        .parameter(application.getPublicId())
+        .put();
     assertResponseStatus(204, response);
     policyViolation = policyViolationDAO.getById(policyViolation.getId());
     assertThat(policyViolation.isLegacyViolation()).isFalse();
@@ -76,7 +77,8 @@ public class LegacyViolationResourceTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
 
     HttpResponse response = restRequest().path(LegacyViolationResource.GRANT_PATH)
-        .parameter(application.getPublicId()).put();
+        .parameter(application.getPublicId())
+        .put();
     assertResponseStatus(204, response);
     policyViolation = policyViolationDAO.getById(policyViolation.getId());
     assertThat(policyViolation.isLegacyViolation()).isTrue();
@@ -92,7 +94,8 @@ public class LegacyViolationResourceTest
     applicationDAO.update(app);
 
     HttpResponse response = restRequest().path(LegacyViolationResource.GET_PATH)
-        .parameter(OwnerType.APPLICATION, app.getPublicId()).get();
+        .parameter(OwnerType.APPLICATION, app.getPublicId())
+        .get();
     assertResponseStatus(200, response);
 
     LegacyViolationStatusDTO legacyViolationStatusDTO = response.getBody(LegacyViolationStatusDTO.class);
@@ -110,7 +113,8 @@ public class LegacyViolationResourceTest
     organizationDAO.update(org);
 
     HttpResponse response = restRequest().path(LegacyViolationResource.GET_PATH)
-        .parameter(OwnerType.ORGANIZATION, org.getId()).get();
+        .parameter(OwnerType.ORGANIZATION, org.getId())
+        .get();
     assertResponseStatus(200, response);
 
     LegacyViolationStatusDTO legacyViolationStatusDTO = response.getBody(LegacyViolationStatusDTO.class);
@@ -129,7 +133,9 @@ public class LegacyViolationResourceTest
     LegacyViolationStatusDTO legacyViolationStatusDTO = new LegacyViolationStatusDTO();
     legacyViolationStatusDTO.enabled = true;
     HttpResponse response = restRequest().path(LegacyViolationResource.GET_PATH)
-        .parameter(OwnerType.APPLICATION, app.getPublicId()).body(legacyViolationStatusDTO).put();
+        .parameter(OwnerType.APPLICATION, app.getPublicId())
+        .body(legacyViolationStatusDTO)
+        .put();
     assertResponseStatus(200, response);
 
     assertThat(applicationDAO.getById(app.getId()).isLegacyViolationEnabled()).isTrue();
@@ -148,7 +154,9 @@ public class LegacyViolationResourceTest
     legacyViolationStatusDTO.enabled = true;
     legacyViolationStatusDTO.allowOverride = true;
     HttpResponse response = restRequest().path(LegacyViolationResource.GET_PATH)
-        .parameter(OwnerType.ORGANIZATION, org.getId()).body(legacyViolationStatusDTO).put();
+        .parameter(OwnerType.ORGANIZATION, org.getId())
+        .body(legacyViolationStatusDTO)
+        .put();
     assertResponseStatus(200, response);
 
     org = organizationDAO.getById(org.getId());

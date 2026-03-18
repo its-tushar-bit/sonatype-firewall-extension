@@ -78,7 +78,8 @@ public class PendoServiceTest
     when(productLicense.getContactCompany()).thenReturn(null);
 
     PendoConfig config = pendoService.getConfig();
-    assertThat(config.account).containsEntry("id", telemetryId.getId()).containsEntry("foo", "bar")
+    assertThat(config.account).containsEntry("id", telemetryId.getId())
+        .containsEntry("foo", "bar")
         .containsEntry("iq-server-version", versionService.getVersion());
 
     assertThat(config.visitor).containsEntry("id", hashedVisitorId);
@@ -105,7 +106,8 @@ public class PendoServiceTest
         new ByteArrayInputStream(JsonUtils.generate(segmentInfo)));
 
     PendoConfig config = pendoService.getConfig();
-    assertThat(config.account).containsEntry("id", telemetryId.getId()).containsEntry("foo", "bar")
+    assertThat(config.account).containsEntry("id", telemetryId.getId())
+        .containsEntry("foo", "bar")
         .containsEntry("iq-server-version", versionService.getVersion());
 
     assertThat(config.visitor).isEmpty();

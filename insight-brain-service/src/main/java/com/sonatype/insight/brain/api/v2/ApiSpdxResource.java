@@ -69,39 +69,31 @@ public class ApiSpdxResource
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The requested SBOM(s).",
-              content = {
-                  @Content(
-                      mediaType = MediaType.APPLICATION_XML,
-                      schema = @Schema(type = "string", description = "SBOM in XML format")
-                  ),
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON,
-                      schema = @Schema(type = "string", description = "SBOM in JSON format")
-                  ),
-                  @Content(
-                      mediaType = MediaType.APPLICATION_OCTET_STREAM,
-                      schema = @Schema(type = "string", format = "binary", description = "SBOM archive (tar.gz)")
-                  )
-              }
-          )
-      }
-  )
+        @ApiResponse(responseCode = "200",
+            description = "The requested SBOM(s).",
+            content = {
+              @Content(
+                  mediaType = MediaType.APPLICATION_XML,
+                  schema = @Schema(type = "string", description = "SBOM in XML format")),
+              @Content(
+                  mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(type = "string", description = "SBOM in JSON format")),
+              @Content(
+                  mediaType = MediaType.APPLICATION_OCTET_STREAM,
+                  schema = @Schema(type = "string", format = "binary", description = "SBOM archive (tar.gz)"))
+            })
+      })
   public Response getLatestForStage(
       @Parameter(description = "Enter the applicationId for the application you want to generate the SBOM(s).",
-          required = true)
-      @PathParam("applicationId") String applicationId,
+          required = true) @PathParam("applicationId") String applicationId,
       @Parameter(description = "Specify the stageId for the application evaluation. Allowed values are `develop`, " +
-          "`build`, `stage-release`, `release` and `operate`.")
-      @PathParam("stageId") String stageId,
-      @Parameter(description = "Enter the format for the SBOM(s) to be generated.")
-      @DefaultValue(DEFAULT_SPDX_FORMAT) @QueryParam("format") String format,
+          "`build`, `stage-release`, `release` and `operate`.") @PathParam("stageId") String stageId,
+      @Parameter(
+          description = "Enter the format for the SBOM(s) to be generated.") @DefaultValue(DEFAULT_SPDX_FORMAT) @QueryParam("format") String format,
       @Parameter(description = "Set to `true` to generate an equivalent CycloneDx SBOM. Both SBOMs will be combined " +
-          "as a tar.gz archive.")
-      @DefaultValue("false") @QueryParam("generateCycloneDx") boolean generateCycloneDx,
-      @Parameter(description = "Enter the desired SPDX version, possible values are 2.2|2.3")
-      @DefaultValue(DEFAULT_SPDX_VERSION) @QueryParam("spdxVersion") String spdxVersion)
+          "as a tar.gz archive.") @DefaultValue("false") @QueryParam("generateCycloneDx") boolean generateCycloneDx,
+      @Parameter(
+          description = "Enter the desired SPDX version, possible values are 2.2|2.3") @DefaultValue(DEFAULT_SPDX_VERSION) @QueryParam("spdxVersion") String spdxVersion)
   {
     return apiSpdxService.getLatestForStage(applicationId, stageId, format, generateCycloneDx, spdxVersion);
   }
@@ -115,38 +107,31 @@ public class ApiSpdxResource
       "\n" +
       "Permissions required: View IQ Elemets",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The requested SBOM(s).",
-              content = {
-                  @Content(
-                      mediaType = MediaType.APPLICATION_XML,
-                      schema = @Schema(type = "string", description = "SBOM in XML format")
-                  ),
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON,
-                      schema = @Schema(type = "string", description = "SBOM in JSON format")
-                  ),
-                  @Content(
-                      mediaType = MediaType.APPLICATION_OCTET_STREAM,
-                      schema = @Schema(type = "string", format = "binary", description = "SBOM archive (tar.gz)")
-                  )
-              }
-          )
+        @ApiResponse(responseCode = "200",
+            description = "The requested SBOM(s).",
+            content = {
+              @Content(
+                  mediaType = MediaType.APPLICATION_XML,
+                  schema = @Schema(type = "string", description = "SBOM in XML format")),
+              @Content(
+                  mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(type = "string", description = "SBOM in JSON format")),
+              @Content(
+                  mediaType = MediaType.APPLICATION_OCTET_STREAM,
+                  schema = @Schema(type = "string", format = "binary", description = "SBOM archive (tar.gz)"))
+            })
       })
   public Response getByScanId(
       @Parameter(description = "Enter the applicationId for the application you want to generate the SBOM(s).",
-          required = true)
-      @PathParam("applicationId") String applicationId,
+          required = true) @PathParam("applicationId") String applicationId,
       @Parameter(description = "Enter the scanId of the application scan.",
-          required = true)
-      @PathParam("scanId") String scanId,
-      @Parameter(description = "Enter the format for the SBOM(s) to be generated.")
-      @DefaultValue(DEFAULT_SPDX_FORMAT) @QueryParam("format") String format,
+          required = true) @PathParam("scanId") String scanId,
+      @Parameter(
+          description = "Enter the format for the SBOM(s) to be generated.") @DefaultValue(DEFAULT_SPDX_FORMAT) @QueryParam("format") String format,
       @Parameter(description = "Set to `true` to generate an equivalent CycloneDx SBOM. Both SBOMs will be combined " +
-          "as a tar.gz archive.")
-      @DefaultValue("false") @QueryParam("generateCycloneDx") boolean generateCycloneDx,
-      @Parameter(description = "Enter the desired SPDX version, possible values are 2.2|2.3")
-      @DefaultValue(DEFAULT_SPDX_VERSION) @QueryParam("spdxVersion") String spdxVersion)
+          "as a tar.gz archive.") @DefaultValue("false") @QueryParam("generateCycloneDx") boolean generateCycloneDx,
+      @Parameter(
+          description = "Enter the desired SPDX version, possible values are 2.2|2.3") @DefaultValue(DEFAULT_SPDX_VERSION) @QueryParam("spdxVersion") String spdxVersion)
   {
     return apiSpdxService.getByScanId(applicationId, scanId, format, generateCycloneDx, spdxVersion);
   }

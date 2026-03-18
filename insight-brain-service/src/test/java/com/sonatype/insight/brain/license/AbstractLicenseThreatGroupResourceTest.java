@@ -58,10 +58,11 @@ abstract class AbstractLicenseThreatGroupResourceTest
     testDelete_InUseByPolicy(owner.getPublicId(), owner.getId(), owner.getId(), null);
   }
 
-  protected void testDelete_InUseByPolicy(String ownerPublicId,
-                                          String ownerId,
-                                          String policyOwnerId,
-                                          String policyLocation) throws Exception
+  protected void testDelete_InUseByPolicy(
+      String ownerPublicId,
+      String ownerId,
+      String policyOwnerId,
+      String policyLocation) throws Exception
   {
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(ownerId);
 
@@ -97,11 +98,12 @@ abstract class AbstractLicenseThreatGroupResourceTest
     return response.getBody(ApplicableLicenseThreatGroups.class);
   }
 
-  protected void assertLicenseThreatGroupsByOwner(String ownerId,
-                                                  String ownerName,
-                                                  OwnerType ownerType,
-                                                  int licenseThreatGroupCount,
-                                                  LicenseThreatGroupsByOwner actual)
+  protected void assertLicenseThreatGroupsByOwner(
+      String ownerId,
+      String ownerName,
+      OwnerType ownerType,
+      int licenseThreatGroupCount,
+      LicenseThreatGroupsByOwner actual)
   {
     assertThat(actual.ownerId).isEqualTo(ownerId);
     assertThat(actual.ownerName).isEqualTo(ownerName);

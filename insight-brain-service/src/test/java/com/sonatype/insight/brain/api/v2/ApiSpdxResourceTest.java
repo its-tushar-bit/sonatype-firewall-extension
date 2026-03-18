@@ -78,9 +78,7 @@ public class ApiSpdxResourceTest
     assertValidResponse(response, "json", "2.3");
   }
 
-  private void assertValidResponse(HttpResponse response, String format, String spdxVersion)
-      throws Exception
-  {
+  private void assertValidResponse(HttpResponse response, String format, String spdxVersion) throws Exception {
     assertResponseStatus(200, response);
 
     final SpdxDocument document = deserialize(response, format);
@@ -126,30 +124,33 @@ public class ApiSpdxResourceTest
     return request;
   }
 
-  private HttpRequest getHttpRequestLatestForStage(String format, String generateCycloneDx, String spdxVersion)
-      throws Exception
+  private HttpRequest getHttpRequestLatestForStage(
+      String format,
+      String generateCycloneDx,
+      String spdxVersion) throws Exception
   {
     HttpRequest request = getHttpRequest(ApiSpdxResource.GET_BY_STAGE_PATH, format, generateCycloneDx, spdxVersion);
     request.parameter(app.getId(), Stage.ID_BUILD);
     return request;
   }
 
-  private HttpRequest getHttpRequestByScanId(String format, String generateCycloneDx, String spdxVersion)
-      throws Exception
+  private HttpRequest getHttpRequestByScanId(
+      String format,
+      String generateCycloneDx,
+      String spdxVersion) throws Exception
   {
     HttpRequest request = getHttpRequest(ApiSpdxResource.GET_BY_REPORT_PATH, format, generateCycloneDx, spdxVersion);
     request.parameter(app.getId(), scanId);
     return request;
   }
 
-  private SpdxDocument deserialize(HttpResponse response, String format)
-      throws Exception
-  {
+  private SpdxDocument deserialize(HttpResponse response, String format) throws Exception {
     String uri;
     IModelStore modelStore = new InMemSpdxStore();
     try (MultiFormatStore multiFormatStore =
-             new MultiFormatStore(modelStore, "json".equals(format) ? Format.JSON : Format.XML, Verbose.COMPACT);
-         InputStream in = response.getBodyStream()) {
+        new MultiFormatStore(modelStore, "json".equals(format) ? Format.JSON : Format.XML, Verbose.COMPACT);
+        InputStream in = response.getBodyStream())
+    {
       uri = multiFormatStore.deSerialize(in, true);
     }
     return new SpdxDocument(modelStore, uri, DefaultModelStore.getDefaultCopyManager(), true);

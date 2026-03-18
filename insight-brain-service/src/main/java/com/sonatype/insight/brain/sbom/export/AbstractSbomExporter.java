@@ -125,8 +125,9 @@ public abstract class AbstractSbomExporter
   protected String generateTargetSbomString(SpdxDocument document) {
     Format spdxFormat = SbomFormat.JSON.equals(exportParams.targetFormat) ? Format.JSON_PRETTY : Format.XML;
     try (MultiFormatStore multiFormatStore =
-             new MultiFormatStore(document.getModelStore(), spdxFormat, Verbose.STANDARD);
-         ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+        new MultiFormatStore(document.getModelStore(), spdxFormat, Verbose.STANDARD);
+        ByteArrayOutputStream out = new ByteArrayOutputStream())
+    {
       multiFormatStore.serialize(document.getDocumentUri(), out);
       return out.toString(StandardCharsets.UTF_8);
     }

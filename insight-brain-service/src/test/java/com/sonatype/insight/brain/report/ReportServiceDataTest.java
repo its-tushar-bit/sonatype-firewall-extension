@@ -77,11 +77,14 @@ public class ReportServiceDataTest
 
     ContainerNode<?> licenseThreats = JsonUtils.parse(licenseThreatsEntry.buf);
     int countNotZero = 0;
-    @SuppressWarnings("unchecked") Map<String, Integer> threatLevelsByMultiLicenseId =
+    @SuppressWarnings("unchecked")
+    Map<String, Integer> threatLevelsByMultiLicenseId =
         JsonUtils.asPojo(licenseThreats.get("aaData"), Map.class);
     for (String multiLicenseShortName : threatLevelsByMultiLicenseId.keySet()) {
       Set<String> simpleLicenseIds = multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(
-              multiLicenseDAO.getByNameNotNull(multiLicenseShortName).getId()).stream().map(License::getId)
+          multiLicenseDAO.getByNameNotNull(multiLicenseShortName).getId())
+          .stream()
+          .map(License::getId)
           .collect(Collectors.toSet());
       if (simpleLicenseIds.contains("GPL-3.0")) {
         assertThat(threatLevelsByMultiLicenseId.get(multiLicenseShortName)).isEqualTo(9);

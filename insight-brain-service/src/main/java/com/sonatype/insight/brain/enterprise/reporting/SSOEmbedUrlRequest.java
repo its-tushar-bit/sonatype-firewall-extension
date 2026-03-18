@@ -26,7 +26,7 @@ public class SSOEmbedUrlRequest
   public String embedDomain;
 
   public SSOEmbedUrlRequest() {
-    //for jackson
+    // for jackson
   }
 
   public SSOEmbedUrlRequest(

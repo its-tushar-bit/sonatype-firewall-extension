@@ -40,11 +40,13 @@ public class PasswordService
   }
 
   public PasswordService() {
-    /* Shiro v2's default algorithm is argon2id, which is not FIPS compliant. It also only allows argon2 and bcrypt
-    algorithms for hashing and will throw an exception if using SHA-256 with Shiro2CryptFormat
-    (see https://github.com/apache/shiro/blob/shiro-root-2.0.2/crypto/hash/src/main/java/org/apache/shiro/crypto/hash/
-    format/Shiro2CryptFormat.java#L107)
-    */
+    /*
+     * Shiro v2's default algorithm is argon2id, which is not FIPS compliant. It also only allows argon2 and bcrypt
+     * algorithms for hashing and will throw an exception if using SHA-256 with Shiro2CryptFormat
+     * (see
+     * https://github.com/apache/shiro/blob/shiro-root-2.0.2/crypto/hash/src/main/java/org/apache/shiro/crypto/hash/
+     * format/Shiro2CryptFormat.java#L107)
+     */
     if (useWeakIterationsForTests || FIPSModeDetector.isEnabled()) {
       DefaultHashService hashService = new DefaultHashService();
       hashService.setDefaultAlgorithmName(FIPS_HASH_ALGORITHM);

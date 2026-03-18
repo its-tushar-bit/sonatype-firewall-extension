@@ -48,8 +48,10 @@ public class MembershipMappingDAOTest
   private RoleDAO roleDAO;
 
   private static final Comparator<MembershipMapping> MEMBERSHIP_COMPARATOR =
-      Comparator.comparing(MembershipMapping::getContextId).thenComparing(MembershipMapping::getRoleId)
-          .thenComparing(MembershipMapping::getMemberName).thenComparing(MembershipMapping::getMemberType);
+      Comparator.comparing(MembershipMapping::getContextId)
+          .thenComparing(MembershipMapping::getRoleId)
+          .thenComparing(MembershipMapping::getMemberName)
+          .thenComparing(MembershipMapping::getMemberType);
 
   @Before
   @Override
@@ -89,8 +91,9 @@ public class MembershipMappingDAOTest
         new MembershipMapping("ops", MemberType.GROUP));
     membershipDAO.setMembershipMappingsForContextAndRole(contextId, roleId2, memberships2);
     memberships = membershipDAO.getByContextId(contextId);
-    assertThat(memberships).usingElementComparator(MEMBERSHIP_COMPARATOR).containsExactlyInAnyOrderElementsOf(
-        Stream.concat(memberships1.stream(), memberships2.stream()).collect(toList()));
+    assertThat(memberships).usingElementComparator(MEMBERSHIP_COMPARATOR)
+        .containsExactlyInAnyOrderElementsOf(
+            Stream.concat(memberships1.stream(), memberships2.stream()).collect(toList()));
 
     // exercise update involving keeping, removing and adding new member for a role
     memberships1 = Arrays.asList(new MembershipMapping("john", MemberType.USER), new MembershipMapping("jane",
@@ -303,11 +306,13 @@ public class MembershipMappingDAOTest
     List<MembershipMapping> storedMemberships = membershipDAO
         .getByRoleIdsForTestsOnly(Collections.singleton(roleDeveloper.getId()));
     assertThat(storedMemberships.stream()
-        .map(MembershipMapping::getMemberName).collect(Collectors.toList()))
-        .hasSize(5)
-        .containsExactlyInAnyOrder(
-            membershipMappings.stream()
-                .map(MembershipMapping::getMemberName).toArray(String[]::new));
+        .map(MembershipMapping::getMemberName)
+        .collect(Collectors.toList()))
+            .hasSize(5)
+            .containsExactlyInAnyOrder(
+                membershipMappings.stream()
+                    .map(MembershipMapping::getMemberName)
+                    .toArray(String[]::new));
   }
 
   @Test
@@ -348,11 +353,13 @@ public class MembershipMappingDAOTest
     List<MembershipMapping> storedMemberships = membershipDAO
         .getByRoleIdsForTestsOnly(Collections.singleton(roleDeveloper.getId()));
     assertThat(storedMemberships.stream()
-        .map(MembershipMapping::getMemberName).collect(Collectors.toList()))
-        .hasSize(6)
-        .containsExactlyInAnyOrder(
-            membershipMappings.stream()
-                .map(MembershipMapping::getMemberName).toArray(String[]::new));
+        .map(MembershipMapping::getMemberName)
+        .collect(Collectors.toList()))
+            .hasSize(6)
+            .containsExactlyInAnyOrder(
+                membershipMappings.stream()
+                    .map(MembershipMapping::getMemberName)
+                    .toArray(String[]::new));
   }
 
   private List<MembershipMapping> createUserMembershipMappings(List<String> usernames) {
@@ -409,10 +416,10 @@ public class MembershipMappingDAOTest
     Set<String> bothGroupIds = Set.of("group1", "group2");
     assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role1.getId()), "username",
         Collections.singleton("group1")))
-        .isFalse();
+            .isFalse();
     assertThat(membershipDAO.isUserHavingRolesInAnyContext(Collections.singleton(role2.getId()), "username",
         Collections.singleton("group1")))
-        .isFalse();
+            .isFalse();
     assertThat(membershipDAO.isUserHavingRolesInAnyContext(bothRoleIds, "username", bothGroupIds)).isFalse();
 
     MembershipMapping membershipMappingRole1 =

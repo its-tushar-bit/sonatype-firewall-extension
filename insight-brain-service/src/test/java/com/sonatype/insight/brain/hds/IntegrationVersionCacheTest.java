@@ -38,8 +38,7 @@ public class IntegrationVersionCacheTest
   public void testGet_LoadsFromCacheLoader() throws Exception {
     List<IqIntegrationVersion> expectedVersions = List.of(
         new IqIntegrationVersion("Maven_Plugin", "1.3.0"),
-        new IqIntegrationVersion("Maven_Plugin", "1.2.0")
-    );
+        new IqIntegrationVersion("Maven_Plugin", "1.2.0"));
 
     when(mockLoader.load(any(IntegrationVersionCacheKey.class))).thenReturn(expectedVersions);
 
@@ -52,8 +51,7 @@ public class IntegrationVersionCacheTest
   @Test
   public void testGet_UsesCacheOnSecondCall() throws Exception {
     List<IqIntegrationVersion> expectedVersions = List.of(
-        new IqIntegrationVersion("Maven_Plugin", "1.3.0")
-    );
+        new IqIntegrationVersion("Maven_Plugin", "1.3.0"));
 
     when(mockLoader.load(any(IntegrationVersionCacheKey.class))).thenReturn(expectedVersions);
 
@@ -72,11 +70,9 @@ public class IntegrationVersionCacheTest
   @Test
   public void testGet_DifferentKeysLoadSeparately() throws Exception {
     List<IqIntegrationVersion> mavenVersions = List.of(
-        new IqIntegrationVersion("Maven_Plugin", "1.3.0")
-    );
+        new IqIntegrationVersion("Maven_Plugin", "1.3.0"));
     List<IqIntegrationVersion> gradleVersions = List.of(
-        new IqIntegrationVersion("Gradle_Plugin", "2.0.0")
-    );
+        new IqIntegrationVersion("Gradle_Plugin", "2.0.0"));
 
     when(mockLoader.load(new IntegrationVersionCacheKey("Maven_Plugin", 3)))
         .thenReturn(mavenVersions);
@@ -96,8 +92,7 @@ public class IntegrationVersionCacheTest
   @Test
   public void testInvalidateAll_ClearsCache() throws Exception {
     List<IqIntegrationVersion> versions = List.of(
-        new IqIntegrationVersion("Maven_Plugin", "1.3.0")
-    );
+        new IqIntegrationVersion("Maven_Plugin", "1.3.0"));
 
     when(mockLoader.load(any(IntegrationVersionCacheKey.class))).thenReturn(versions);
 
@@ -126,8 +121,7 @@ public class IntegrationVersionCacheTest
   @Test
   public void testInvalidateAll_ReturnsCorrectCountForMultipleEntries() throws Exception {
     List<IqIntegrationVersion> versions = List.of(
-        new IqIntegrationVersion("Test", "1.0.0")
-    );
+        new IqIntegrationVersion("Test", "1.0.0"));
 
     when(mockLoader.load(any(IntegrationVersionCacheKey.class))).thenReturn(versions);
 
@@ -143,7 +137,8 @@ public class IntegrationVersionCacheTest
 
   @Test
   public void testCreateLoadingCache_ConfiguresCorrectly() {
-    IntegrationVersionCache testCache = new IntegrationVersionCache(mockLoader) {
+    IntegrationVersionCache testCache = new IntegrationVersionCache(mockLoader)
+    {
       @Override
       CacheBuilder<Object, Object> newCacheBuilder() {
         return spy(CacheBuilder.newBuilder());
@@ -161,15 +156,13 @@ public class IntegrationVersionCacheTest
     List<IqIntegrationVersion> threeVersions = List.of(
         new IqIntegrationVersion("Maven_Plugin", "1.3.0"),
         new IqIntegrationVersion("Maven_Plugin", "1.2.0"),
-        new IqIntegrationVersion("Maven_Plugin", "1.1.0")
-    );
+        new IqIntegrationVersion("Maven_Plugin", "1.1.0"));
     List<IqIntegrationVersion> fiveVersions = List.of(
         new IqIntegrationVersion("Maven_Plugin", "1.5.0"),
         new IqIntegrationVersion("Maven_Plugin", "1.4.0"),
         new IqIntegrationVersion("Maven_Plugin", "1.3.0"),
         new IqIntegrationVersion("Maven_Plugin", "1.2.0"),
-        new IqIntegrationVersion("Maven_Plugin", "1.1.0")
-    );
+        new IqIntegrationVersion("Maven_Plugin", "1.1.0"));
 
     when(mockLoader.load(new IntegrationVersionCacheKey("Maven_Plugin", 3)))
         .thenReturn(threeVersions);

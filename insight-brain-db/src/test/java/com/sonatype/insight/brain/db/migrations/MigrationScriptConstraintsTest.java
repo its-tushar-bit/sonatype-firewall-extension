@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.db.migrations;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -34,8 +35,7 @@ public class MigrationScriptConstraintsTest
         AggregationDataStore.ID,
         DataMartDataStore.ID,
         OperationalDataStore.ID,
-        ThirdPartyScansDataStore.ID
-    );
+        ThirdPartyScansDataStore.ID);
 
     for (String dataStoreId : dataStoreIds) {
       int firstVersion = determineMinVersion(dataStoreId);
@@ -49,10 +49,10 @@ public class MigrationScriptConstraintsTest
 
         String message = """
             Only two states are valid for incremental migration scripts. Either:
-            
+
             1. A single script ending in .sql exists that applies to both H2 and Postgres.
             2. OR two scripts exist, one for H2 and one for Postgres, with the same version number.
-            
+
             Both cannot be true. For version %d of data store %s, the following is the detected state:
                 - Generic incremental script exists: %s
                 - H2 script exists: %s

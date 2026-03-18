@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -40,7 +41,8 @@ public class ApiComponentLabelResourceV2Test
     Label label = tempEntity.newLabel(app.getOrganizationId(), "label");
 
     HttpResponse response = restRequest().path(PublicApiPaths.APP_COMPONENT_LABELS_PATH_V2)
-        .parameter(componentHash, label.getLabel(), OwnerType.APPLICATION, app.getId()).post();
+        .parameter(componentHash, label.getLabel(), OwnerType.APPLICATION, app.getId())
+        .post();
     assertResponseStatus(204, response);
 
     ComponentLabel componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), componentHash,
@@ -55,7 +57,8 @@ public class ApiComponentLabelResourceV2Test
     Label label = tempEntity.newLabel(org.getId(), "label");
 
     HttpResponse response = restRequest().path(PublicApiPaths.APP_COMPONENT_LABELS_PATH_V2)
-        .parameter(componentHash, label.getLabel(), OwnerType.ORGANIZATION, org.getId()).post();
+        .parameter(componentHash, label.getLabel(), OwnerType.ORGANIZATION, org.getId())
+        .post();
     assertResponseStatus(204, response);
 
     ComponentLabel componentLabel =
@@ -75,7 +78,8 @@ public class ApiComponentLabelResourceV2Test
     assertThat(componentLabel).isNotNull();
 
     HttpResponse response = restRequest().path(PublicApiPaths.APP_COMPONENT_LABELS_PATH_V2)
-        .parameter(componentHash, label.getLabel(), OwnerType.APPLICATION, app.getId()).delete();
+        .parameter(componentHash, label.getLabel(), OwnerType.APPLICATION, app.getId())
+        .delete();
     assertResponseStatus(204, response);
 
     componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), componentHash,
@@ -95,7 +99,8 @@ public class ApiComponentLabelResourceV2Test
     assertThat(componentLabel).isNotNull();
 
     HttpResponse response = restRequest().path(PublicApiPaths.APP_COMPONENT_LABELS_PATH_V2)
-        .parameter(componentHash, label.getLabel(), OwnerType.ORGANIZATION, org.getId()).delete();
+        .parameter(componentHash, label.getLabel(), OwnerType.ORGANIZATION, org.getId())
+        .delete();
     assertResponseStatus(204, response);
 
     componentLabel = componentLabelDAO.getByOwnerIdAndHashAndLabelId(org.getId(), componentHash, label.getId());

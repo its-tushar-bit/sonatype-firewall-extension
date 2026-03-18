@@ -70,7 +70,7 @@ public class ApplicationEvaluationEventService
     event.commitHash = policyEvaluation.getCommitHash();
     event.isForLatestScan = !policyEvaluation.isForObsoleteScan();
     event.branchName = policyEvaluation.getBranchName();
-              
+
     event.affectedComponentCount = policyEvaluationResult.getAffectedComponentCount();
     event.criticalComponentCount = policyEvaluationResult.getCriticalComponentCount();
     event.severeComponentCount = policyEvaluationResult.getSevereComponentCount();

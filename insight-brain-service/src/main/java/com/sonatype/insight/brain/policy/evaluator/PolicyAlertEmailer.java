@@ -61,7 +61,7 @@ public class PolicyAlertEmailer
   private final ShutdownHandler shutdownHandler;
 
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
-  
+
   private final OrganizationDAO organizationDAO;
 
   @Inject
@@ -74,8 +74,7 @@ public class PolicyAlertEmailer
       final ProductLicense productLicense,
       final ShutdownHandler shutdownHandler,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
-      final OrganizationDAO organizationDAO
-  )
+      final OrganizationDAO organizationDAO)
   {
     super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;
@@ -122,7 +121,10 @@ public class PolicyAlertEmailer
             try {
               log.debug("Sending notification email via {} to {} for application {} and scan {} in stage {}",
                   mailServer, details.getKey(), applicationPublicId, scanId, stage);
-              AuditData.get().setApplication(app).setScanId(scanId).setStageId(stage.getStageTypeId())
+              AuditData.get()
+                  .setApplication(app)
+                  .setScanId(scanId)
+                  .setStageId(stage.getStageTypeId())
                   .setData("emailAddress", details.getKey());
               PolicyAlertCounts policyAlertCounts = new PolicyAlertCounts(details.getValue());
               AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
@@ -185,11 +187,11 @@ public class PolicyAlertEmailer
       baseModel.put("applicationContactEmail", appContact.getEmail());
       baseModel.put("applicationContactName", appContact.getDisplayName());
     }
-    
+
     if (organizationDAO.getById(app.getOrganizationId()).getRelatedRepositoryId() != null) {
       baseModel.put("detailedReportUrl", baseUrl.getConfigured() +
           UserInterfaceLinksHelper.getFirewallContainerImageEvaluationReportUrl(app.getPublicId(), scanId));
-    } 
+    }
     else {
       baseModel.put("detailedReportUrl",
           baseUrl.getConfigured() + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId));

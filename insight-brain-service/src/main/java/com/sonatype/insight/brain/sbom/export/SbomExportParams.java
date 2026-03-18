@@ -27,13 +27,18 @@ public class SbomExportParams
 {
   public enum ExportOption
   {
-    ANNOTATED_VULNERABILITIES_ONLY, NO_VULNERABILITIES
+    ANNOTATED_VULNERABILITIES_ONLY,
+    NO_VULNERABILITIES
   }
 
   public enum ExportSpecification
   {
-    DEFAULT("1.6", CYCLONEDX), CYCLONEDX_16("1.6", CYCLONEDX), CYCLONEDX_15("1.5", CYCLONEDX),
-    SPDX_22("2.2", SPDX), SPDX_23("2.3", SPDX), PDF("pdf", null);
+    DEFAULT("1.6", CYCLONEDX),
+    CYCLONEDX_16("1.6", CYCLONEDX),
+    CYCLONEDX_15("1.5", CYCLONEDX),
+    SPDX_22("2.2", SPDX),
+    SPDX_23("2.3", SPDX),
+    PDF("pdf", null);
 
     private static final Map<String, ExportSpecification> SUPPORTED_EXPORT_SPECIFICATIONS =
         ImmutableMap.of("cyclonedx1.6", CYCLONEDX_16, "cyclonedx1.5", CYCLONEDX_15, "spdx2.2", SPDX_22, "spdx2.3",

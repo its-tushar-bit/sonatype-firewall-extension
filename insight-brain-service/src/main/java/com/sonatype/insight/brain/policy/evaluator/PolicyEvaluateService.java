@@ -206,8 +206,7 @@ public class PolicyEvaluateService
       ScanTriggerType scanTriggerType,
       String clientUserAgent,
       String clientInstanceId,
-      ClientScanType clientScanType)
-      throws IOException
+      ClientScanType clientScanType) throws IOException
   {
     ScanPolicyEvaluatorResults results =
         evaluateAndSendNotifications(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
@@ -221,8 +220,7 @@ public class PolicyEvaluateService
       Application application,
       String scanId,
       Stage stage,
-      ScanTriggerType scanTriggerType)
-      throws IOException
+      ScanTriggerType scanTriggerType) throws IOException
   {
     return evaluate(application, scanId, stage, scanTriggerType, null, null, null);
   }
@@ -342,14 +340,14 @@ public class PolicyEvaluateService
    * starting, it will return a {@link PolicyEvaluationReceipt} for the requester to use to check on results via
    * {@link #pollEvaluationResult(String, String)}.
    *
-   * @param integrationType           - the type of integration {@link IntegrationType}
-   * @param applicationPublicId       - the public shared ID of the application
-   * @param clientScanType            - the type of client scan {@link ClientScanType}
-   * @param req                       - the HTTP servlet request {@link HttpServletRequest}
-   * @param stage                     - the stage of the evaluation {@link Stage}
-   * @param statusId                  - the status ID of a previous evaluation
-   * @param analysisDTO               - the vulnerability signature analysis data transfer object
-   *                                  {@link VulnerabilitySignatureAnalysisDTO}
+   * @param integrationType - the type of integration {@link IntegrationType}
+   * @param applicationPublicId - the public shared ID of the application
+   * @param clientScanType - the type of client scan {@link ClientScanType}
+   * @param req - the HTTP servlet request {@link HttpServletRequest}
+   * @param stage - the stage of the evaluation {@link Stage}
+   * @param statusId - the status ID of a previous evaluation
+   * @param analysisDTO - the vulnerability signature analysis data transfer object
+   *          {@link VulnerabilitySignatureAnalysisDTO}
    * @return a receipt for the policy evaluation {@link PolicyEvaluationReceipt}
    */
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
@@ -372,8 +370,7 @@ public class PolicyEvaluateService
         HdsClient.getClientUserAgent(req),
         HdsClient.getClientInstanceId(req),
         statusId,
-        analysisDTO
-    );
+        analysisDTO);
   }
 
   public void evaluateWithPolling(
@@ -397,8 +394,7 @@ public class PolicyEvaluateService
         thirdPartyScanType,
         clientUserAgent,
         clientInstanceId,
-        (ScanContext) null
-    );
+        (ScanContext) null);
   }
 
   /**
@@ -440,8 +436,7 @@ public class PolicyEvaluateService
         clientUserAgent,
         clientInstanceId,
         scanContext,
-        null
-    );
+        null);
   }
 
   public void evaluateWithPolling(
@@ -457,7 +452,8 @@ public class PolicyEvaluateService
       ScanContext scanContext,
       HttpServletRequest request)
   {
-    if (stageTypeService.getLicensedStageTypes().stream()
+    if (stageTypeService.getLicensedStageTypes()
+        .stream()
         .anyMatch(stageType -> stageType.getId().equals(stage.getStageTypeId())))
     {
       PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
@@ -472,10 +468,12 @@ public class PolicyEvaluateService
       TelemetryData thirdPartyScanTelemetryData = telemetryUtils.buildThirdPartyScanTelemetryData(
           app.getId(), stage, thirdPartyScanType, scanTriggerType, clientUserAgent);
 
-      AuditData.get().continueAsync(
-          new CompleteEvaluationTask(app, clientScanType, statusId, stage, scanTriggerType, tempScanEntity,
-              thirdPartyScanTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent,
-              clientInstanceId, scanContext, null, request), executor::submit);
+      AuditData.get()
+          .continueAsync(
+              new CompleteEvaluationTask(app, clientScanType, statusId, stage, scanTriggerType, tempScanEntity,
+                  thirdPartyScanTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent,
+                  clientInstanceId, scanContext, null, request),
+              executor::submit);
     }
     else {
       throw new BadRequestException("Invalid stage: " + stage.getStageTypeId());
@@ -492,7 +490,8 @@ public class PolicyEvaluateService
    * @since 1.69
    */
   public PolicyEvaluationPollingResultDTO pollEvaluationResult(
-      final String applicationPublicId, String statusId)
+      final String applicationPublicId,
+      String statusId)
   {
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     Organization organization = organizationDAO.getById(app.getOrganizationId());
@@ -529,7 +528,8 @@ public class PolicyEvaluateService
       PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult)
   {
     if (!productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
-            || !SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()) {
+        || !SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled())
+    {
       throw new InvalidLicenseException();
     }
     return toPolicyEvaluationPollingResultDTO(persistedPolicyEvaluationPollingResult);
@@ -540,17 +540,17 @@ public class PolicyEvaluateService
    * starting, it will return a {@link PolicyEvaluationReceipt} for the requester to use to check on results via
    * {@link #pollEvaluationResult(String, String)}.
    *
-   * @param integrationType     the type of integration {@link IntegrationType}
+   * @param integrationType the type of integration {@link IntegrationType}
    * @param applicationPublicId the public shared ID of the application
-   * @param clientScanType      the type of client scan {@link ClientScanType}
-   * @param req                 the HTTP servlet request {@link HttpServletRequest}
-   * @param stage               the stage of the evaluation {@link Stage}
-   * @param scanTriggerType     the type of trigger for the scan {@link ScanTriggerType}
-   * @param clientUserAgent     the user agent from the HTTP request
-   * @param clientInstanceId    the client instance ID from the HTTP request
-   * @param statusId            the status ID of a previous evaluation
-   * @param analysisDTO         the vulnerability signature analysis data transfer object
-   *                            {@link VulnerabilitySignatureAnalysisDTO}
+   * @param clientScanType the type of client scan {@link ClientScanType}
+   * @param req the HTTP servlet request {@link HttpServletRequest}
+   * @param stage the stage of the evaluation {@link Stage}
+   * @param scanTriggerType the type of trigger for the scan {@link ScanTriggerType}
+   * @param clientUserAgent the user agent from the HTTP request
+   * @param clientInstanceId the client instance ID from the HTTP request
+   * @param statusId the status ID of a previous evaluation
+   * @param analysisDTO the vulnerability signature analysis data transfer object
+   *          {@link VulnerabilitySignatureAnalysisDTO}
    * @return a receipt for the policy evaluation {@link PolicyEvaluationReceipt}
    */
   @VisibleForTesting
@@ -569,7 +569,7 @@ public class PolicyEvaluateService
     policyEvaluationUtil.validateEvaluationTypeAndFeature(integrationType, stage);
 
     log.debug("Received request to evaluate policy, with vulnerability signature analysis, for app public id {}, " +
-            "clientScanType {}, stageTypeId {}. The status ID of the operation is {}.",
+        "clientScanType {}, stageTypeId {}. The status ID of the operation is {}.",
         applicationPublicId, clientScanType, stage.getStageTypeId(), statusId);
 
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
@@ -580,14 +580,14 @@ public class PolicyEvaluateService
         findValidComponentAnalysis(app, statusId);
 
     log.debug("Submitting policy evaluation task, with vulnerability signature analysis, for app public id {}, " +
-            "clientScanType {}, stageTypeId {}. The status ID of the operation is {}.",
+        "clientScanType {}, stageTypeId {}. The status ID of the operation is {}.",
         app.getPublicId(), clientScanType, stage.getStageTypeId(), statusId);
 
-    AuditData.get().continueAsync(
-        new CompleteEvaluationTask(app, clientScanType, statusId, stage, scanTriggerType, null, null,
-            persistedPolicyEvaluationPollingResult, clientUserAgent, clientInstanceId, null, analysisDTO
-        ), executor::submit
-    );
+    AuditData.get()
+        .continueAsync(
+            new CompleteEvaluationTask(app, clientScanType, statusId, stage, scanTriggerType, null, null,
+                persistedPolicyEvaluationPollingResult, clientUserAgent, clientInstanceId, null, analysisDTO),
+            executor::submit);
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
     policyEvaluationReceipt.setStatusId(statusId);
@@ -597,7 +597,8 @@ public class PolicyEvaluateService
   private void validateLicenseLimits(final Stage stage) {
     if (stageTypeService.getLicensedStageTypes().contains(StageTypes.COMPLIANCE)
         && stage.getStageTypeId().equals(Stage.ID_COMPLIANCE)
-        && sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
+        && sbomMetadataUtils.hasMaxSbomLimitBeenReached())
+    {
       throw new PaymentRequiredException(
           "You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.");
     }
@@ -610,8 +611,7 @@ public class PolicyEvaluateService
     PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
         persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(
             application.getId(),
-            componentAnalysisStatusId
-        );
+            componentAnalysisStatusId);
 
     if (persistedPolicyEvaluationPollingResult == null) {
       throw new BadRequestException("Component Analysis not found for Application ID: "
@@ -753,8 +753,7 @@ public class PolicyEvaluateService
         log.error(
             "Failed to evaluate policy for app public id {}, scan id {}, stageTypeId {}."
                 + " The status ID of the operation is {}.",
-            app.getPublicId(), getScanId(policyEvaluationPollingResult), stage.getStageTypeId(), statusId, e
-        );
+            app.getPublicId(), getScanId(policyEvaluationPollingResult), stage.getStageTypeId(), statusId, e);
 
         policyEvaluationPollingResult = failEvaluation(e, policyEvaluationPollingResult);
       }
@@ -782,8 +781,7 @@ public class PolicyEvaluateService
      */
     private boolean shouldContinueExistingEvaluation() {
       return COMPONENT_ANALYSIS_COMPLETE.equals(
-          persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult().getSubStatus()
-      );
+          persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult().getSubStatus());
     }
 
     /**
@@ -794,16 +792,14 @@ public class PolicyEvaluateService
      * @throws IOException if the associated report file is unable to be read or processed
      */
     private PolicyEvaluationPollingResult continueEvaluation(
-        final PolicyEvaluationPollingResult policyEvaluationPollingResult
-    ) throws IOException
+        final PolicyEvaluationPollingResult policyEvaluationPollingResult) throws IOException
     {
       policyEvaluationPollingResult.setSubStatus(PolicyEvaluationSubStatus.POLICY_EVALUATION_PENDING);
       updatePolicyEvaluationPollingResult(policyEvaluationPollingResult);
 
       ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(
           app, policyEvaluationPollingResult.getScanReceipt().getScanId(),
-          stage, scanTriggerType, clientUserAgent, clientInstanceId, clientScanType, analysisDTO
-      );
+          stage, scanTriggerType, clientUserAgent, clientInstanceId, clientScanType, analysisDTO);
 
       if (!results.evaluation.isReevaluation()) {
         policyAlertNotifier.sendNotifications(app, results);
@@ -826,8 +822,7 @@ public class PolicyEvaluateService
      * @throws IOException if the associated report file is unable to be read or processed
      */
     private PolicyEvaluationPollingResult scanAndEvaluate(
-        final PolicyEvaluationPollingResult policyEvaluationPollingResult
-    ) throws IOException
+        final PolicyEvaluationPollingResult policyEvaluationPollingResult) throws IOException
     {
       ScanReceipt scanReceipt =
           scanHandler.handle(ScanHandler.ScanRequest.builder()
@@ -849,12 +844,10 @@ public class PolicyEvaluateService
 
       log.debug(
           "Evaluating policy for app public id {}, scan id {}, stageTypeId {}. The status ID of the operation is {}.",
-          app.getPublicId(), scanId, stage.getStageTypeId(), statusId
-      );
+          app.getPublicId(), scanId, stage.getStageTypeId(), statusId);
 
       PolicyEvaluationResult policyEvaluationResult = evaluate(
-          app, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId, clientScanType
-      );
+          app, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId, clientScanType);
 
       PolicyEvaluationPollingResult result = new PolicyEvaluationPollingResult();
       result.setScanReceipt(scanReceipt);
@@ -871,9 +864,9 @@ public class PolicyEvaluateService
       PolicyEvaluationPollingResult failedEvaluationPollingResult = makeCopy(policyEvaluationPollingResult);
       failedEvaluationPollingResult.setStatus(PolicyEvaluationStatus.FAILED);
       failedEvaluationPollingResult.setReason(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody());
-      AuditData.get().setException(
-          new RuntimeException(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody(), e)
-      );
+      AuditData.get()
+          .setException(
+              new RuntimeException(errorResponseGenerator.mapExceptionAndLog(e).getMessageBody(), e));
       return failedEvaluationPollingResult;
     }
 
@@ -1043,14 +1036,14 @@ public class PolicyEvaluateService
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   void checkEvaluateApplicationPermission(
-          @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION) Application application)
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION) Application application)
   {
     // actual work done by AOP interceptor
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   void checkEvaluateComponentPermission(
-          @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION) Application application)
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION) Application application)
   {
     // actual work done by AOP interceptor
   }

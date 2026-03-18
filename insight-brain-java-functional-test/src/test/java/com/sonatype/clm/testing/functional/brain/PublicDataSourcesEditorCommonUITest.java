@@ -25,7 +25,8 @@ public class PublicDataSourcesEditorCommonUITest
   public void testEditPublicDataSourceConfiguration_errorLicense_noCpeMatchingFeature() {
     productLicenseManager.getFeatures().remove(LicensedFeature.CPE_MATCHING);
     refresh();
-    assertThat(PublicDataSourcesEditorPage.errorMessage().text()
+    assertThat(PublicDataSourcesEditorPage.errorMessage()
+        .text()
         .contains("Your IQ Server license does not enable this feature")).isTrue();
   }
 
@@ -33,15 +34,17 @@ public class PublicDataSourcesEditorCommonUITest
   public void testEditPublicDataSourceConfiguration_checkUI() {
     List<String> radioExpectedTexts = List.of(
         "Enabled",
-        "Disabled"
-    );
+        "Disabled");
     PublicDataSourcesEditorPage.title().shouldHave(text("Public Data Sources"));
     PublicDataSourcesEditorPage.radioInputs().shouldHave(size(2));
-    PublicDataSourcesEditorPage.radioInputs().forEach(element -> assertThat(radioExpectedTexts.stream()
-        .anyMatch(element.text()::contains)).isTrue());
+    PublicDataSourcesEditorPage.radioInputs()
+        .forEach(element -> assertThat(radioExpectedTexts.stream()
+            .anyMatch(element.text()::contains)).isTrue());
     PublicDataSourcesEditorPage.allowOverridesCheckbox().shouldBe(visible);
     PublicDataSourcesEditorPage.submitButton().shouldHave(text("Update")).shouldBe(visible);
-    OwnerDetailSidebar.publicDatasources().shouldBe(visible).shouldHave(text("Public Data Sources"))
+    OwnerDetailSidebar.publicDatasources()
+        .shouldBe(visible)
+        .shouldHave(text("Public Data Sources"))
         .shouldHave(cssClass("selected"));
   }
 }

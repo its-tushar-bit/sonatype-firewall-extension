@@ -38,8 +38,9 @@ public class RepositoryPolicyViolationTest
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation("repositoryId", "path", new Date(),
         "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER,
         constraintFacts);
-    assertThat(policyViolation.getConstraintFactsJson()).isEqualTo(constraintFactsJson).doesNotContain("\n", "\r",
-        "\\n", "\\r");
+    assertThat(policyViolation.getConstraintFactsJson()).isEqualTo(constraintFactsJson)
+        .doesNotContain("\n", "\r",
+            "\\n", "\\r");
     assertConstraintFacts(policyViolation.getConstraintFacts(), constraintFacts);
   }
 
@@ -56,7 +57,8 @@ public class RepositoryPolicyViolationTest
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
 
     assertThatThrownBy(() -> policyViolation.setConstraintFacts(Collections.emptyList()))
-        .isInstanceOf(IllegalArgumentException.class).hasMessage("ConstraintFacts cannot be null or empty.");
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("ConstraintFacts cannot be null or empty.");
   }
 
   @Test
@@ -90,7 +92,8 @@ public class RepositoryPolicyViolationTest
       assertThat(actualConstraintFact.getConstraintName()).isEqualTo(expectedConstraintFact.getConstraintName());
       assertThat(actualConstraintFact.getOperatorName()).isEqualTo(expectedConstraintFact.getOperatorName());
       for (int conditionFactIndex = 0; conditionFactIndex < expectedConstraintFact.getConditionFacts()
-          .size(); conditionFactIndex++) {
+          .size(); conditionFactIndex++)
+      {
         ConditionFact expectedConditionFact = expectedConstraintFact.getConditionFacts().get(conditionFactIndex);
         ConditionFact actualConditionFact = actualConstraintFact.getConditionFacts().get(conditionFactIndex);
         assertThat(actualConditionFact.getConditionTypeId()).isEqualTo(expectedConditionFact.getConditionTypeId());

@@ -88,9 +88,10 @@ public class MembershipMappingDAO
     return getList(sQuery, username, MemberType.USER, groupNames, MemberType.GROUP);
   }
 
-  public List<MembershipMapping> getByUserCaseInsensitiveAndGroupsAndRoles(String username,
-                                                                           Set<String> groupNames,
-                                                                           Set<String> roleIds)
+  public List<MembershipMapping> getByUserCaseInsensitiveAndGroupsAndRoles(
+      String username,
+      Set<String> groupNames,
+      Set<String> roleIds)
   {
     String sQuery = "SELECT entity FROM MembershipMapping entity" +
         " WHERE ((" +
@@ -104,8 +105,8 @@ public class MembershipMappingDAO
         " ORDER BY entity.contextId, entity.roleId";
 
     return getListWithSqlInClause(roleIds,
-        rolesPartition -> getListWithSqlInClause(groupNames, groupPartition ->
-            getList(sQuery, username, MemberType.USER, groupPartition, MemberType.GROUP, rolesPartition)));
+        rolesPartition -> getListWithSqlInClause(groupNames, groupPartition -> getList(sQuery, username,
+            MemberType.USER, groupPartition, MemberType.GROUP, rolesPartition)));
   }
 
   public List<String> getContextIdsByUserCaseInsensitiveAndGroupsAndRoles(
@@ -124,8 +125,9 @@ public class MembershipMappingDAO
         " AND entity.roleId IN ?5";
 
     return getListWithSqlInClause(roleIds,
-        rolesPartition -> getListWithSqlInClause(groupNames, groupPartition ->
-            getScalars(String.class, sQuery, username, MemberType.USER, groupPartition, MemberType.GROUP,
+        rolesPartition -> getListWithSqlInClause(groupNames,
+            groupPartition -> getScalars(String.class, sQuery, username, MemberType.USER, groupPartition,
+                MemberType.GROUP,
                 rolesPartition)));
   }
 
@@ -168,9 +170,10 @@ public class MembershipMappingDAO
   /**
    * Sets the membership mappings for a given context and role.
    */
-  public void setMembershipMappingsForContextAndRole(String contextId,
-                                                     String roleId,
-                                                     List<MembershipMapping> mappings)
+  public void setMembershipMappingsForContextAndRole(
+      String contextId,
+      String roleId,
+      List<MembershipMapping> mappings)
   {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
@@ -187,10 +190,11 @@ public class MembershipMappingDAO
    *
    * @since 1.11.0
    */
-  public void setMembershipMappingsForContextAndRole(TransactionContext tx,
-                                                     String contextId,
-                                                     String roleId,
-                                                     List<MembershipMapping> mappings)
+  public void setMembershipMappingsForContextAndRole(
+      TransactionContext tx,
+      String contextId,
+      String roleId,
+      List<MembershipMapping> mappings)
   {
 
     Map<String, MembershipMapping> mappingsByMember = new HashMap<>();

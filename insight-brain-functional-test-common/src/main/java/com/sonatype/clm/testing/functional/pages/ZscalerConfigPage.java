@@ -59,7 +59,7 @@ public class ZscalerConfigPage
     return child(".nx-dropdown .nx-dropdown__toggle");
   }
 
-  public NxCheckbox getFormatCheckboxAt(int i ) {
+  public NxCheckbox getFormatCheckboxAt(int i) {
     return new NxCheckbox(child(".nx-dropdown-menu .nx-radio-checkbox", nthChild(i + 1)));
   }
 
@@ -70,7 +70,7 @@ public class ZscalerConfigPage
   public SelenideElement formatValidationError() {
     return child("#zscaler-config-format .nx-field-validation-message");
   }
-  
+
   public NxCheckbox eulaCheckbox() {
     return new NxCheckbox(child("#zscaler-eula-checkbox"));
   }

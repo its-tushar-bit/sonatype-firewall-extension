@@ -265,8 +265,7 @@ public class RequestWaiverTest
     tempEntity.newMembershipMapping(
         Organization.ROOT_ORGANIZATION_ID,
         Role.DEVELOPER_ROLE_ID,
-        developerUser.getUsername()
-    );
+        developerUser.getUsername());
     login(developerUser.getUsername(), developerUser.getPassword());
   }
 
@@ -288,26 +287,30 @@ public class RequestWaiverTest
 
     requestWaiverPage.requestWaiverScope().shouldHave(text("Scope"));
     requestWaiverPage.requestWaiverScopeOptions().shouldHave(size(3));
-    requestWaiverPage.requestWaiverScopeOptions().shouldHave(
-        exactTexts("Application - App 1", "Organization - Org 1", "Organization - Root Organization"));
+    requestWaiverPage.requestWaiverScopeOptions()
+        .shouldHave(
+            exactTexts("Application - App 1", "Organization - Org 1", "Organization - Root Organization"));
     requestWaiverPage.requestWaiverScopeOptions().get(0).shouldBe(selected);
 
     requestWaiverPage.requestWaiverComponents().shouldHave(text("Components"));
     requestWaiverPage.requestWaiverComponentsOptions().shouldHave(size(3));
-    requestWaiverPage.requestWaiverComponentsOptions().shouldHave(
-        exactTexts("Group1 : Artifact1 : Version1", "Group1 : Artifact1 (all versions)", "All Components"));
+    requestWaiverPage.requestWaiverComponentsOptions()
+        .shouldHave(
+            exactTexts("Group1 : Artifact1 : Version1", "Group1 : Artifact1 (all versions)", "All Components"));
     requestWaiverPage.requestWaiverComponentsRadios().get(0).shouldBe(checked);
 
     requestWaiverPage.requestWaiverExpiryTime().shouldHave(text("Waiver Expiration"));
     requestWaiverPage.requestWaiverExpiryTimeOptions().shouldHave(size(8));
-    requestWaiverPage.requestWaiverExpiryTimeOptions().shouldHave(exactTexts("Never", "7 Days", "14 Days", "30 Days",
-        "60 Days", "90 Days", "120 Days", "Custom"));
+    requestWaiverPage.requestWaiverExpiryTimeOptions()
+        .shouldHave(exactTexts("Never", "7 Days", "14 Days", "30 Days",
+            "60 Days", "90 Days", "120 Days", "Custom"));
     requestWaiverPage.requestWaiverExpiryTimeOptions().get(0).shouldBe(selected);
 
     requestWaiverPage.requestWaiverReason().shouldHave(text("Reason"));
-    requestWaiverPage.requestWaiverReasonOptions().shouldHave(
-        exactTexts("Select a reason", "Acknowledged violation", "Evaluating component", "Mitigated externally",
-            "No upgrade path", "Not exploitable", "Not reachable", "Researching", "Other"));
+    requestWaiverPage.requestWaiverReasonOptions()
+        .shouldHave(
+            exactTexts("Select a reason", "Acknowledged violation", "Evaluating component", "Mitigated externally",
+                "No upgrade path", "Not exploitable", "Not reachable", "Researching", "Other"));
     requestWaiverPage.requestWaiverReasonOptions().get(0).shouldBe(selected);
 
     requestWaiverPage.requestWaiverComments().shouldBe(empty);

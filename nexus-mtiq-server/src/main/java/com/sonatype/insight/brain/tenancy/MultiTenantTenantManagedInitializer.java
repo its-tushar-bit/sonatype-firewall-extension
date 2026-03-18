@@ -43,8 +43,9 @@ public class MultiTenantTenantManagedInitializer
   private final TenantUtil tenantUtil;
 
   @Inject
-  public MultiTenantTenantManagedInitializer(final Provider<Set<TenantManaged>> tenantLifecyclesProvider,
-                                             final TenantUtil tenantUtil)
+  public MultiTenantTenantManagedInitializer(
+      final Provider<Set<TenantManaged>> tenantLifecyclesProvider,
+      final TenantUtil tenantUtil)
   {
     this.tenantLifecyclesProvider = tenantLifecyclesProvider;
     this.tenantUtil = tenantUtil;
@@ -52,7 +53,8 @@ public class MultiTenantTenantManagedInitializer
 
   @Override
   public void start() throws Exception {
-    List<TenantManaged> prioritizedLifecycles = tenantLifecyclesProvider.get().stream()
+    List<TenantManaged> prioritizedLifecycles = tenantLifecyclesProvider.get()
+        .stream()
         .sorted(comparingInt(TenantManaged::registrationPriority))
         .collect(toList());
 

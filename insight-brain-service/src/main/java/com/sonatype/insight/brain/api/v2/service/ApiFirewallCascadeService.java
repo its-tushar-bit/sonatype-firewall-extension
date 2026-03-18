@@ -129,10 +129,11 @@ public class ApiFirewallCascadeService
   private void launchAsyncProcessing(final String cascadeRequestId, final String componentHash) {
     Executor executor = ExecutorThreadPools.getInstance().getThreadPool(ExecutorThreadPools.ThreadPools.GENERAL);
 
-    AuditData.get().continueAsync(executor,
-        new CascadeReevaluationTask(cascadeRequestId, componentHash,
-            reevaluateCascadeProgressDAO, reevaluateCascadeRequestDAO,
-            repositoryComponentDAO, repositoryPolicyEvaluator));
+    AuditData.get()
+        .continueAsync(executor,
+            new CascadeReevaluationTask(cascadeRequestId, componentHash,
+                reevaluateCascadeProgressDAO, reevaluateCascadeRequestDAO,
+                repositoryComponentDAO, repositoryPolicyEvaluator));
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -141,7 +142,8 @@ public class ApiFirewallCascadeService
 
   private void checkProductLicense() {
     if (!productLicense.hasFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE) ||
-        !productLicense.hasFeature(LicensedFeature.RELEASE_INTEGRITY)) {
+        !productLicense.hasFeature(LicensedFeature.RELEASE_INTEGRITY))
+    {
       throw new InvalidLicenseException();
     }
   }
@@ -173,8 +175,9 @@ public class ApiFirewallCascadeService
 
     Map<String, String> repositoryToManagerIdMap = repositoryIds.isEmpty()
         ? Map.of()
-        : repositoryDAO.getByIds(repositoryIds).stream()
-        .collect(Collectors.toMap(Repository::getId, Repository::getRepositoryManagerId));
+        : repositoryDAO.getByIds(repositoryIds)
+            .stream()
+            .collect(Collectors.toMap(Repository::getId, Repository::getRepositoryManagerId));
 
     // Create response DTO
     CascadeStatusResponseDTO response = new CascadeStatusResponseDTO();

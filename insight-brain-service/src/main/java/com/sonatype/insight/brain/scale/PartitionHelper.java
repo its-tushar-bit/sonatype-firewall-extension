@@ -54,16 +54,16 @@ public class PartitionHelper
   }
 
   /**
-   * determines whether or not the caller can 'try' to use a partition.  This is meant to short-circuit those cases
+   * determines whether or not the caller can 'try' to use a partition. This is meant to short-circuit those cases
    * where either (a) we know the caller won't be able to get a lock for a partition or (b) when we need to balance
    * partitions away from this instance (i.e. self-throttling).
    *
-   * The caller will still need to try to get the lock from the PerpetualLockManager.  This method/class does not grant
+   * The caller will still need to try to get the lock from the PerpetualLockManager. This method/class does not grant
    * access to the locks.
    *
    * @param partitionId the partition in question.
    * @return false if (a) another instance already known to have the lock or (b) this instance is at capacity and it
-   * 'looks' like another instance my have capacity;  true otherwise
+   *         'looks' like another instance my have capacity; true otherwise
    */
   public synchronized boolean canTryToUsePartition(String partitionId) {
     // we may need to force a partition analysis for new partitions when the system is evenly balanced
@@ -115,7 +115,7 @@ public class PartitionHelper
   }
 
   /**
-   * tell this helper whether or not a given partition was able to be reserved by this instance;  this helps to keep
+   * tell this helper whether or not a given partition was able to be reserved by this instance; this helps to keep
    * our partition analysis 'fresh' between analysis cycles without needing to query the partition locks table
    *
    * @param partitionId the partition in question
@@ -176,7 +176,7 @@ public class PartitionHelper
       }
     }
 
-    // we currently balance by the number of partitions and IQ instances;  we don't take into account how active
+    // we currently balance by the number of partitions and IQ instances; we don't take into account how active
     // any particular partition is, which may or may not be something we'd care to look at in the future and it would
     // add some complexity
     partitionDistribution = computeIdealPartitionCount(totalPartitionCount, activeInstanceIds.size());
@@ -194,7 +194,7 @@ public class PartitionHelper
     isThereCapacityElsewhere = otherInstancePartitionCapacity > otherInstanceActivePartitions.size();
 
     log.debug("Load balancing partition analysis completed : isSingleInstance = {}, partitions = {}({}), " +
-            "instance count = {}, distribution = {}, capacity elsewhere = {}",
+        "instance count = {}, distribution = {}, capacity elsewhere = {}",
         isSingleInstanceMode, totalPartitionCount, myActivePartitions.size(), activeInstanceIds.size(),
         partitionDistribution, isThereCapacityElsewhere);
 

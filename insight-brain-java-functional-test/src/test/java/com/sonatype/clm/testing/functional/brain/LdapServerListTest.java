@@ -107,8 +107,9 @@ public class LdapServerListTest
     FormUtils.getAlertElement()
         .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
 
-    ldapServerListPage.listElements().shouldHave(texts("Fourth Server",
-        "Third Server", "Second Server", "First Server"));
+    ldapServerListPage.listElements()
+        .shouldHave(texts("Fourth Server",
+            "Third Server", "Second Server", "First Server"));
 
     eyesWatcher.eyesCheck();
     ListRow reorderRow = ldapServerListPage.listRow(1);
@@ -116,26 +117,29 @@ public class LdapServerListTest
     reorderRow.reorderDown().shouldNotBe(disabled);
 
     reorderRow.reorderDown().click();
-    ldapServerListPage.listElements().shouldHave(texts("Third Server",
-        "Fourth Server", "Second Server", "First Server"));
+    ldapServerListPage.listElements()
+        .shouldHave(texts("Third Server",
+            "Fourth Server", "Second Server", "First Server"));
 
     ListRow reorderRowLast = ldapServerListPage.listRow(4);
     reorderRowLast.reorderUp().shouldNotBe(disabled);
     reorderRowLast.reorderDown().shouldBe(disabled);
 
     reorderRowLast.reorderUp().click();
-    ldapServerListPage.listElements().shouldHave(texts("Third Server",
-        "Fourth Server", "First Server", "Second Server"));
+    ldapServerListPage.listElements()
+        .shouldHave(texts("Third Server",
+            "Fourth Server", "First Server", "Second Server"));
 
     ldapServerListPage.saveButton().shouldBe(visible).click();
-    ldapServerListPage.listElements().shouldHave(texts("Third Server",
-        "Fourth Server", "First Server", "Second Server"));
+    ldapServerListPage.listElements()
+        .shouldHave(texts("Third Server",
+            "Fourth Server", "First Server", "Second Server"));
 
     NxSubmitMask.seeAndWaitForDismissal();
 
     List<LdapServer> actualLdapServers = ldapServerDAO.getAll();
     String[] ldapServerNames = new String[]{"Third Server", "Fourth Server",
-        "First Server", "Second Server"};
+      "First Server", "Second Server"};
     for (int i = 0; i < ldapServerNames.length; i++) {
       LdapServer ldapServer = actualLdapServers.get(i);
       assertThat(ldapServer.getName()).isEqualTo(ldapServerNames[i]);

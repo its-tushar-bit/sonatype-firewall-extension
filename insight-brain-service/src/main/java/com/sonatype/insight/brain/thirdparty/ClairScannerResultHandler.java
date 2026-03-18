@@ -68,9 +68,12 @@ public class ClairScannerResultHandler
         if (clairScannerResult.getVulnerabilities() != null) {
           Map<String, String> hashFileCoordinateIdMap = new HashMap<>();
 
-          Set<ClairScannerVulnerability> filteredVulnerabilities = clairScannerResult.getVulnerabilities().stream()
+          Set<ClairScannerVulnerability> filteredVulnerabilities = clairScannerResult.getVulnerabilities()
+              .stream()
               .map(vulnerability -> saveVulnerability(vulnerability, thirdPartyFile, hashFileCoordinateIdMap, tx))
-              .filter(Objects::nonNull).map(this::filterIdentities).collect(Collectors.toSet());
+              .filter(Objects::nonNull)
+              .map(this::filterIdentities)
+              .collect(Collectors.toSet());
 
           filteredClairScannerResult.setVulnerabilities(filteredVulnerabilities);
         }

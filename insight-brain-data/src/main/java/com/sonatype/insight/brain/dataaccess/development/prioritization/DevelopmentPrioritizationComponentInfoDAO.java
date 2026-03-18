@@ -58,7 +58,8 @@ public class DevelopmentPrioritizationComponentInfoDAO
   }
 
   public DevelopmentPrioritizationComponentInfo getByScanIdAndComponentHash(
-      final String scanId, final String componentHash)
+      final String scanId,
+      final String componentHash)
   {
     final String sQuery =
         "SELECT entity FROM DevelopmentPrioritizationComponentInfo " +
@@ -103,7 +104,7 @@ public class DevelopmentPrioritizationComponentInfoDAO
         " (development_prioritization_component_info_id, scan_id, development_prioritization_id, component_hash," +
         " remediation_type, remediation_version, created_at, updated_at, source_status, build_status," +
         " stage_release_status, release_status)" + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" + StringUtils.repeat(
-        ", (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", developmentPrioritizationComponentInfoCollection.size() - 1);
+            ", (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", developmentPrioritizationComponentInfoCollection.size() - 1);
 
     jakarta.persistence.Query query = tx.createNativeQuery(qs);
     int pos = 0;
@@ -137,8 +138,8 @@ public class DevelopmentPrioritizationComponentInfoDAO
     }
 
     final Map<StageType, String> stageStatuses = new HashMap<>();
-    getSupportedStageTypes().forEach(stageType ->
-        stageStatuses.put(stageType, getStageStatusByStageType(stageType.getId(), componentInfo)));
+    getSupportedStageTypes().forEach(
+        stageType -> stageStatuses.put(stageType, getStageStatusByStageType(stageType.getId(), componentInfo)));
     return stageStatuses;
   }
 

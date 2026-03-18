@@ -59,8 +59,9 @@ public class HashComponentIdentifierDAO
     return get(tx, sQuery, HashHelper.truncateHash(hash));
   }
 
-  private HashComponentIdentifier getByComponentIdentifier(TransactionContext tx,
-                                                           ComponentIdentifier componentIdentifier)
+  private HashComponentIdentifier getByComponentIdentifier(
+      TransactionContext tx,
+      ComponentIdentifier componentIdentifier)
   {
     String sQuery = "SELECT entity FROM HashComponentIdentifier entity" + //
         " WHERE entity.componentIdFormat=?1 and entity.componentIdCoordinatesJson=?2";

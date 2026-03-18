@@ -9,7 +9,7 @@ import java.util.Set;
 
 /**
  * User details populated from LDAP.
- * 
+ *
  * @since 1.7
  */
 public class LdapUser

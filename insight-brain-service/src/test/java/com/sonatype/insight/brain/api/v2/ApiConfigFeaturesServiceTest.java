@@ -96,7 +96,7 @@ public class ApiConfigFeaturesServiceTest
     assertThat(service.getFeatureForPropertyName(USER_ACTIVITY_TRACKING)).isEqualTo(
         FEATURE_USER_ACTIVITY_TRACKING);
     assertThat(service.getFeatureForPropertyName(EXIT_ON_FATAL_ERROR)).isEqualTo(
-            FEATURE_EXIT_ON_FATAL_ERROR);
+        FEATURE_EXIT_ON_FATAL_ERROR);
     assertThat(service.getFeatureForPropertyName("default-value")).isEqualTo("default-value");
   }
 
@@ -134,7 +134,7 @@ public class ApiConfigFeaturesServiceTest
         .isEqualTo(SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER);
     assertThat(service.getSystemConfigurationPropertyFeature(
         SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED)).isEqualTo(
-        SystemConfigurationPropertyFeature.VULNERABILITY_SOURCE);
+            SystemConfigurationPropertyFeature.VULNERABILITY_SOURCE);
     assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_CODE_INSIGHTS))
         .isEqualTo(SystemConfigurationPropertyFeature.CODE_INSIGHTS);
     assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_COMPONENT_SEARCH_API_WITH_INNERSOURCE))
@@ -259,7 +259,7 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_SecurityVulnerabilitySourcePolicyCondition_AlreadyDisabled() {
     assertThatThrownBy(
         () -> service.disableFeature(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already disabled.");
+            BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -277,7 +277,7 @@ public class ApiConfigFeaturesServiceTest
 
     assertThatThrownBy(
         () -> service.enableFeature(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already enabled.");
+            BadRequestException.class).hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -307,7 +307,7 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_JavaRecompilation_AlreadyDisabled() {
     assertThatThrownBy(
         () -> service.disableFeature(SystemConfigurationProperty.BUILT_FROM_SOURCE)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already disabled.");
+            BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -332,7 +332,7 @@ public class ApiConfigFeaturesServiceTest
     service.disableFeature(SystemConfigurationProperty.CROWD_INTEGRATION);
     assertThat(
         systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.CROWD_INTEGRATION).getValue()).isEqualTo(
-        "false");
+            "false");
   }
 
   @Test
@@ -340,7 +340,7 @@ public class ApiConfigFeaturesServiceTest
     service.disableFeature(SystemConfigurationProperty.CROWD_INTEGRATION);
     assertThatThrownBy(
         () -> service.disableFeature(SystemConfigurationProperty.CROWD_INTEGRATION)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already disabled.");
+            BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -355,7 +355,8 @@ public class ApiConfigFeaturesServiceTest
     tempEntity.newSystemConfigurationProperty(CODE_INSIGHTS, "false");
     service.enableFeature(CODE_INSIGHTS);
     assertThatThrownBy(() -> service.enableFeature(CODE_INSIGHTS))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -368,7 +369,8 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_CodeInsights_AlreadyDisabled() {
     tempEntity.newSystemConfigurationProperty(CODE_INSIGHTS, "false");
     assertThatThrownBy(() -> service.disableFeature(CODE_INSIGHTS))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -383,7 +385,8 @@ public class ApiConfigFeaturesServiceTest
     tempEntity.newSystemConfigurationProperty(COMPONENT_SEARCH_API_WITH_INNERSOURCE, "false");
     service.enableFeature(COMPONENT_SEARCH_API_WITH_INNERSOURCE);
     assertThatThrownBy(() -> service.enableFeature(COMPONENT_SEARCH_API_WITH_INNERSOURCE))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -397,7 +400,8 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_ComponentSearchApiWithInnerSource_AlreadyDisabled() {
     tempEntity.newSystemConfigurationProperty(COMPONENT_SEARCH_API_WITH_INNERSOURCE, "false");
     assertThatThrownBy(() -> service.disableFeature(COMPONENT_SEARCH_API_WITH_INNERSOURCE))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -412,7 +416,8 @@ public class ApiConfigFeaturesServiceTest
     tempEntity.newSystemConfigurationProperty(DEFAULT_BRANCH_MONITORING, "false");
     service.enableFeature(DEFAULT_BRANCH_MONITORING);
     assertThatThrownBy(() -> service.enableFeature(DEFAULT_BRANCH_MONITORING))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -425,7 +430,8 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_DefaultBranchMonitoring_AlreadyDisabled() {
     tempEntity.newSystemConfigurationProperty(DEFAULT_BRANCH_MONITORING, "false");
     assertThatThrownBy(() -> service.disableFeature(DEFAULT_BRANCH_MONITORING))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -440,7 +446,8 @@ public class ApiConfigFeaturesServiceTest
     tempEntity.newSystemConfigurationProperty(DEPENDENCY_DATA_IN_API, "false");
     service.enableFeature(DEPENDENCY_DATA_IN_API);
     assertThatThrownBy(() -> service.enableFeature(DEPENDENCY_DATA_IN_API))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -453,7 +460,8 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_DependencyDataInApi_AlreadyDisabled() {
     tempEntity.newSystemConfigurationProperty(DEPENDENCY_DATA_IN_API, "false");
     assertThatThrownBy(() -> service.disableFeature(DEPENDENCY_DATA_IN_API))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -468,7 +476,8 @@ public class ApiConfigFeaturesServiceTest
     tempEntity.newSystemConfigurationProperty(INNER_SOURCE_TRANSITIVE_WAIVER, "false");
     service.enableFeature(INNER_SOURCE_TRANSITIVE_WAIVER);
     assertThatThrownBy(() -> service.enableFeature(INNER_SOURCE_TRANSITIVE_WAIVER))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -481,7 +490,8 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_InnerSourceTransitiveWaiver_AlreadyDisabled() {
     tempEntity.newSystemConfigurationProperty(INNER_SOURCE_TRANSITIVE_WAIVER, "false");
     assertThatThrownBy(() -> service.disableFeature(INNER_SOURCE_TRANSITIVE_WAIVER))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -496,7 +506,8 @@ public class ApiConfigFeaturesServiceTest
     tempEntity.newSystemConfigurationProperty(INNER_SOURCE_REPOSITORY_INTEGRATION, "false");
     service.enableFeature(INNER_SOURCE_REPOSITORY_INTEGRATION);
     assertThatThrownBy(() -> service.enableFeature(INNER_SOURCE_REPOSITORY_INTEGRATION))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -510,7 +521,8 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_InnerSourceRepositoryIntegration_AlreadyDisabled() {
     tempEntity.newSystemConfigurationProperty(INNER_SOURCE_REPOSITORY_INTEGRATION, "false");
     assertThatThrownBy(() -> service.disableFeature(INNER_SOURCE_REPOSITORY_INTEGRATION))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -525,7 +537,8 @@ public class ApiConfigFeaturesServiceTest
     tempEntity.newSystemConfigurationProperty(PR_COMMENTING, "false");
     service.enableFeature(PR_COMMENTING);
     assertThatThrownBy(() -> service.enableFeature(PR_COMMENTING))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -538,7 +551,8 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_PrCommenting_AlreadyDisabled() {
     tempEntity.newSystemConfigurationProperty(PR_COMMENTING, "false");
     assertThatThrownBy(() -> service.disableFeature(PR_COMMENTING))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -553,7 +567,8 @@ public class ApiConfigFeaturesServiceTest
     tempEntity.newSystemConfigurationProperty(PR_LINE_COMMENTING, "false");
     service.enableFeature(PR_LINE_COMMENTING);
     assertThatThrownBy(() -> service.enableFeature(PR_LINE_COMMENTING))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -566,7 +581,8 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_PrLineCommenting_AlreadyDisabled() {
     tempEntity.newSystemConfigurationProperty(PR_LINE_COMMENTING, "false");
     assertThatThrownBy(() -> service.disableFeature(PR_LINE_COMMENTING))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -580,7 +596,8 @@ public class ApiConfigFeaturesServiceTest
   public void testEnableFeature_PrLineCommentingBitbucketOnNoChange_AlreadyEnabled() {
     service.enableFeature(PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE);
     assertThatThrownBy(() -> service.enableFeature(PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -598,7 +615,8 @@ public class ApiConfigFeaturesServiceTest
   @Test
   public void testDisableFeature_PrLineCommentingBitbucketOnNoChange_AlreadyDisabled() {
     assertThatThrownBy(() -> service.disableFeature(PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -631,7 +649,8 @@ public class ApiConfigFeaturesServiceTest
     tempEntity.newSystemConfigurationProperty(ENABLE_UNAUTHENTICATED_PAGES, "false");
     service.enableFeature(ENABLE_UNAUTHENTICATED_PAGES);
     assertThatThrownBy(() -> service.enableFeature(ENABLE_UNAUTHENTICATED_PAGES))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -644,7 +663,8 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_EnableUnauthenticatedPages_AlreadyDisabled() {
     tempEntity.newSystemConfigurationProperty(ENABLE_UNAUTHENTICATED_PAGES, "false");
     assertThatThrownBy(() -> service.disableFeature(ENABLE_UNAUTHENTICATED_PAGES))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -659,7 +679,8 @@ public class ApiConfigFeaturesServiceTest
     tempEntity.newSystemConfigurationProperty(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS, "false");
     service.enableFeature(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
     assertThatThrownBy(() -> service.enableFeature(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -667,14 +688,15 @@ public class ApiConfigFeaturesServiceTest
     service.disableFeature(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
     assertThat(
         systemConfigurationPropertyDAO.getByName(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS).getValue()).isEqualTo(
-        "false");
+            "false");
   }
 
   @Test
   public void testDisableFeature_InternalSourceControlPolicyEvaluations_AlreadyDisabled() {
     tempEntity.newSystemConfigurationProperty(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS, "false");
     assertThatThrownBy(() -> service.disableFeature(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -683,12 +705,10 @@ public class ApiConfigFeaturesServiceTest
     List<SystemConfigurationPropertyFeature> actual = List.of(
         service.getSystemConfigurationPropertyFeature("api-page"),
         service.getSystemConfigurationPropertyFeature("API-PAGE"),
-        service.getSystemConfigurationPropertyFeature("Api-Page")
-    );
+        service.getSystemConfigurationPropertyFeature("Api-Page"));
 
     // Assert all map to API_PAGE
-    assertThat(actual).allMatch(feature ->
-        feature.equals(SystemConfigurationPropertyFeature.API_PAGE));
+    assertThat(actual).allMatch(feature -> feature.equals(SystemConfigurationPropertyFeature.API_PAGE));
     assertThatThrownBy(() -> service.getSystemConfigurationPropertyFeature("apiPage")).isInstanceOf(
         BadRequestException.class).hasMessage("Feature not supported: apiPage");
   }
@@ -732,7 +752,7 @@ public class ApiConfigFeaturesServiceTest
     service.enableFeature(SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY);
     assertThatThrownBy(
         () -> service.enableFeature(SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already enabled.");
+            BadRequestException.class).hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -748,7 +768,7 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_ScanPomFilesInMetaInfDirectory_AlreadyDisabled() {
     assertThatThrownBy(
         () -> service.disableFeature(SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already disabled.");
+            BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -762,7 +782,8 @@ public class ApiConfigFeaturesServiceTest
   public void testEnableFeature_ScanNpmDevAndOptDependencies_AlreadyEnabled() {
     service.enableFeature(SystemConfigurationProperty.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES);
     assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -777,7 +798,8 @@ public class ApiConfigFeaturesServiceTest
   @Test
   public void testDisableFeature_ScanNpmDevAndOptDependencies_AlreadyDisabled() {
     assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -866,7 +888,7 @@ public class ApiConfigFeaturesServiceTest
   @Test
   public void testEnableFeature_PrioritizedFindingsReport() {
     tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT
-            .getPropertyName(), "false");
+        .getPropertyName(), "false");
     service.enableFeature(PRIORITIZED_FINDINGS_REPORT);
     assertThat(systemConfigurationPropertyDAO.getByName(PRIORITIZED_FINDINGS_REPORT)).isNull();
   }
@@ -910,7 +932,8 @@ public class ApiConfigFeaturesServiceTest
   public void testEnableFeature_SkipSbomImportValidation_AlreadyEnabled() {
     service.enableFeature(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION);
     assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -931,7 +954,8 @@ public class ApiConfigFeaturesServiceTest
   @Test
   public void testDisableFeature_SkipSbomImportValidation_AlreadyDisabled() {
     assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -1008,12 +1032,11 @@ public class ApiConfigFeaturesServiceTest
         service.getSystemConfigurationPropertyFeature("clean-up-sbom-continuous-monitoring-report"),
         service.getSystemConfigurationPropertyFeature("Clean-Up-Sbom-Continuous-Monitoring-Report"),
         service.getSystemConfigurationPropertyFeature("CLEAN-UP-SBOM-CONTINUOUS-MONITORING-REPORT"),
-        service.getSystemConfigurationPropertyFeature("cleanUpSbomContinuousMonitoringReport")
-    );
+        service.getSystemConfigurationPropertyFeature("cleanUpSbomContinuousMonitoringReport"));
 
     // Assert all map to CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT
-    assertThat(actual).allMatch(feature ->
-        feature.equals(SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT));
+    assertThat(actual).allMatch(
+        feature -> feature.equals(SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT));
   }
 
   @Test
@@ -1023,7 +1046,7 @@ public class ApiConfigFeaturesServiceTest
     assertThat(
         systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT)
             .getValue())
-        .isEqualTo("false");
+                .isEqualTo("false");
   }
 
   @Test
@@ -1031,7 +1054,7 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(
         () -> service.enableFeature(
             SystemConfigurationProperty.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already enabled.");
+                BadRequestException.class).hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -1040,7 +1063,7 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(
         () -> service.disableFeature(
             SystemConfigurationProperty.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already disabled.");
+                BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -1050,12 +1073,10 @@ public class ApiConfigFeaturesServiceTest
         service.getSystemConfigurationPropertyFeature("sbomBinaryScanning"),
         service.getSystemConfigurationPropertyFeature("sbom-binary-scanning"),
         service.getSystemConfigurationPropertyFeature("Sbom-Binary-Scanning"),
-        service.getSystemConfigurationPropertyFeature("SBOM-BINARY-SCANNING")
-    );
+        service.getSystemConfigurationPropertyFeature("SBOM-BINARY-SCANNING"));
 
     // Assert all map to SBOM_BINARY_SCANNING
-    assertThat(actual).allMatch(feature ->
-        feature.equals(SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING));
+    assertThat(actual).allMatch(feature -> feature.equals(SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING));
   }
 
   @Test
@@ -1064,7 +1085,7 @@ public class ApiConfigFeaturesServiceTest
     assertThat(
         systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.SBOM_BINARY_SCANNING)
             .getValue())
-        .isEqualTo("false");
+                .isEqualTo("false");
   }
 
   @Test
@@ -1072,7 +1093,7 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(
         () -> service.enableFeature(
             SystemConfigurationProperty.SBOM_BINARY_SCANNING)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already enabled.");
+                BadRequestException.class).hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -1081,7 +1102,7 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(
         () -> service.disableFeature(
             SystemConfigurationProperty.SBOM_BINARY_SCANNING)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already disabled.");
+                BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -1090,7 +1111,7 @@ public class ApiConfigFeaturesServiceTest
     assertThat(
         systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION)
             .getValue())
-        .isEqualTo("false");
+                .isEqualTo("false");
     assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION))
         .isFalse();
   }
@@ -1100,7 +1121,7 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(
         () -> service.enableFeature(
             SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already enabled.");
+                BadRequestException.class).hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -1108,7 +1129,7 @@ public class ApiConfigFeaturesServiceTest
     // Enabled by default
     assertThat(
         systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION))
-        .isNull();
+            .isNull();
     assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION))
         .isTrue();
   }
@@ -1121,7 +1142,7 @@ public class ApiConfigFeaturesServiceTest
     assertThat(
         systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION)
             .getValue())
-        .isEqualTo("true");
+                .isEqualTo("true");
     assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION))
         .isTrue();
   }
@@ -1133,12 +1154,11 @@ public class ApiConfigFeaturesServiceTest
         service.getSystemConfigurationPropertyFeature("sbomContinuousMonitoringUi"),
         service.getSystemConfigurationPropertyFeature("sbom-continuous-monitoring-ui"),
         service.getSystemConfigurationPropertyFeature("Sbom-Continuous-Monitoring-Ui"),
-        service.getSystemConfigurationPropertyFeature("SBOM-CONTINUOUS-MONITORING-UI")
-    );
+        service.getSystemConfigurationPropertyFeature("SBOM-CONTINUOUS-MONITORING-UI"));
 
     // Assert all map to SBOM_CONTINUOUS_MONITORING_UI
-    assertThat(actual).allMatch(feature ->
-        feature.equals(SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI));
+    assertThat(actual)
+        .allMatch(feature -> feature.equals(SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI));
   }
 
   @Test
@@ -1148,7 +1168,7 @@ public class ApiConfigFeaturesServiceTest
     assertThat(
         systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI)
             .getValue())
-        .isEqualTo("false");
+                .isEqualTo("false");
   }
 
   @Test
@@ -1156,7 +1176,7 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(
         () -> service.enableFeature(
             SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already enabled.");
+                BadRequestException.class).hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -1166,7 +1186,7 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(
         () -> service.disableFeature(
             SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already disabled.");
+                BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -1176,18 +1196,17 @@ public class ApiConfigFeaturesServiceTest
         service.getSystemConfigurationPropertyFeature("sbomPolicies"),
         service.getSystemConfigurationPropertyFeature("sbom-policies"),
         service.getSystemConfigurationPropertyFeature("Sbom-Policies"),
-        service.getSystemConfigurationPropertyFeature("SBOM-POLICIES")
-    );
+        service.getSystemConfigurationPropertyFeature("SBOM-POLICIES"));
 
     // Assert all map to SBOM_POLICIES
-    assertThat(actual).allMatch(feature ->
-        feature.equals(SystemConfigurationPropertyFeature.SBOM_POLICIES));
+    assertThat(actual).allMatch(feature -> feature.equals(SystemConfigurationPropertyFeature.SBOM_POLICIES));
   }
 
   @Test
   public void testEnableFeature_SbomPolicies_AlreadyEnabled() {
     assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.SBOM_POLICIES))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -1203,7 +1222,7 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(
         () -> service.disableFeature(
             SystemConfigurationProperty.SBOM_POLICIES)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already disabled.");
+                BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -1213,19 +1232,17 @@ public class ApiConfigFeaturesServiceTest
         service.getSystemConfigurationPropertyFeature("autoWaivers"),
         service.getSystemConfigurationPropertyFeature("autowaivers"),
         service.getSystemConfigurationPropertyFeature("AutoWaivers"),
-        service.getSystemConfigurationPropertyFeature("AUTOWAIVERS")
-    );
+        service.getSystemConfigurationPropertyFeature("AUTOWAIVERS"));
 
     // Assert all map to AUTO_WAIVERS
-    assertThat(actual).allMatch(feature ->
-        feature.equals(SystemConfigurationPropertyFeature.AUTO_WAIVERS));
+    assertThat(actual).allMatch(feature -> feature.equals(SystemConfigurationPropertyFeature.AUTO_WAIVERS));
   }
 
   @Test
   public void testEnabledByDefaultFeature_AutoWaivers() {
     assertThat(
         systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.AUTO_WAIVERS))
-        .isNull();
+            .isNull();
   }
 
   @Test
@@ -1234,7 +1251,7 @@ public class ApiConfigFeaturesServiceTest
     assertThat(
         systemConfigurationPropertyDAO.getByName(AUTO_WAIVERS)
             .getValue())
-        .isEqualTo("false");
+                .isEqualTo("false");
   }
 
   @Test
@@ -1242,7 +1259,7 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(
         () -> service.enableFeature(
             AUTO_WAIVERS)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already enabled.");
+                BadRequestException.class).hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -1251,7 +1268,7 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(
         () -> service.disableFeature(
             AUTO_WAIVERS)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already disabled.");
+                BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -1268,7 +1285,7 @@ public class ApiConfigFeaturesServiceTest
     systemConfigurationPropertyDAO.insert(systemConfigurationProperty);
     assertThat(
         systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.AUTO_WAIVERS).getValue())
-        .isEqualTo("true");
+            .isEqualTo("true");
     assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.AUTO_WAIVERS)).isTrue();
   }
 
@@ -1333,12 +1350,11 @@ public class ApiConfigFeaturesServiceTest
         service.getSystemConfigurationPropertyFeature("containerImagesEvalEnabled"),
         service.getSystemConfigurationPropertyFeature("container-images-eval-enabled"),
         service.getSystemConfigurationPropertyFeature("Container-Images-Eval-Enabled"),
-        service.getSystemConfigurationPropertyFeature("CONTAINER-IMAGES-EVAL-ENABLED")
-    );
+        service.getSystemConfigurationPropertyFeature("CONTAINER-IMAGES-EVAL-ENABLED"));
 
     // Assert all map to CONTAINER_IMAGES_EVAL_ENABLED
-    assertThat(actual).allMatch(feature ->
-        feature.equals(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED));
+    assertThat(actual)
+        .allMatch(feature -> feature.equals(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED));
   }
 
   @Test
@@ -1346,7 +1362,7 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(
         () -> service.enableFeature(
             SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already enabled.");
+                BadRequestException.class).hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -1356,7 +1372,7 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(
         () -> service.disableFeature(
             SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already disabled.");
+                BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -1376,7 +1392,8 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_ZScaler_AlreadyDisabled() {
     service.disableFeature(SystemConfigurationProperty.ZSCALER);
     assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.ZSCALER))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -1406,7 +1423,8 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_ThirdPartyKevLookup_AlreadyDisabled() {
     service.disableFeature(SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP);
     assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -1499,12 +1517,10 @@ public class ApiConfigFeaturesServiceTest
         service.getSystemConfigurationPropertyFeature("userManagementPages"),
         service.getSystemConfigurationPropertyFeature("user-management-pages"),
         service.getSystemConfigurationPropertyFeature("User-Management-Pages"),
-        service.getSystemConfigurationPropertyFeature("USER-MANAGEMENT-PAGES")
-    );
+        service.getSystemConfigurationPropertyFeature("USER-MANAGEMENT-PAGES"));
 
     // Assert all map to USER_MANAGEMENT_PAGES
-    assertThat(actual).allMatch(feature ->
-        feature.equals(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES));
+    assertThat(actual).allMatch(feature -> feature.equals(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES));
   }
 
   @Test
@@ -1553,7 +1569,8 @@ public class ApiConfigFeaturesServiceTest
   @Test
   public void testDisableFeature_EpssDataEnabled_AlreadyDisabled() {
     assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.EPSS_DATA))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -1633,12 +1650,10 @@ public class ApiConfigFeaturesServiceTest
         service.getSystemConfigurationPropertyFeature("userActivityTracking"),
         service.getSystemConfigurationPropertyFeature("user-activity-tracking"),
         service.getSystemConfigurationPropertyFeature("User-Activity-Tracking"),
-        service.getSystemConfigurationPropertyFeature("USER-ACTIVITY-TRACKING")
-    );
+        service.getSystemConfigurationPropertyFeature("USER-ACTIVITY-TRACKING"));
 
     // Assert all map to USER_ACTIVITY_TRACKING
-    assertThat(actual).allMatch(feature ->
-        feature.equals(SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING));
+    assertThat(actual).allMatch(feature -> feature.equals(SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING));
   }
 
   @Test
@@ -1702,12 +1717,11 @@ public class ApiConfigFeaturesServiceTest
         service.getSystemConfigurationPropertyFeature("githubAppAuthentication"),
         service.getSystemConfigurationPropertyFeature("github-app-authentication"),
         service.getSystemConfigurationPropertyFeature("Github-App-Authentication"),
-        service.getSystemConfigurationPropertyFeature("GITHUB-APP-AUTHENTICATION")
-    );
+        service.getSystemConfigurationPropertyFeature("GITHUB-APP-AUTHENTICATION"));
 
     // Assert all map to GITHUB_APP_AUTHENTICATION
-    assertThat(actual).allMatch(feature ->
-        feature.equals(SystemConfigurationPropertyFeature.GITHUB_APP_AUTHENTICATION));
+    assertThat(actual)
+        .allMatch(feature -> feature.equals(SystemConfigurationPropertyFeature.GITHUB_APP_AUTHENTICATION));
   }
 
   @Test
@@ -1762,7 +1776,7 @@ public class ApiConfigFeaturesServiceTest
     systemConfigurationPropertyDAO.insert(systemConfigurationProperty);
     assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.GITHUB_APP_AUTHENTICATION)
         .getValue())
-        .isEqualTo("true");
+            .isEqualTo("true");
     assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.GITHUB_APP_AUTHENTICATION)).isTrue();
   }
 
@@ -1783,7 +1797,8 @@ public class ApiConfigFeaturesServiceTest
   @Test
   public void testDisableFeature_MaliciousUrlsPartnerAccess_AlreadyDisabled() {
     assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS))
-        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test

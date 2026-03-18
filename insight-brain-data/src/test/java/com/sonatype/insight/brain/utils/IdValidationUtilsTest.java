@@ -15,7 +15,7 @@ public class IdValidationUtilsTest
 {
   private static final String VALID_ID = "abcdefghijklmnopqrstuvwxyz_ABCDEFGHIJKLOMOPQUSTUVWXYZ-0123456789";
 
-  private static final String[] INVALID_CHARACTERS = { ".", "\\", "/", "%" };
+  private static final String[] INVALID_CHARACTERS = {".", "\\", "/", "%"};
 
   @Test
   public void testValidate() {

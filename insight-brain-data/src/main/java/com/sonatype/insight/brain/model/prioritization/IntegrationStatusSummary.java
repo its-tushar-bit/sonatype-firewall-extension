@@ -19,8 +19,8 @@ public record IntegrationStatusSummary(
     long lastEvaluationTimestamp,
     String lastScanId,
     long lastCommitTimestamp,
-    boolean isCiIntegrationEnabled
-) {
+    boolean isCiIntegrationEnabled)
+{
   public boolean hasPrioritiesReport() {
     return lastEvaluationTimestamp > 0 && lastScanId != null;
   }

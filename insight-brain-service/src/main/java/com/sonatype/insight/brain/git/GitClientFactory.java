@@ -222,9 +222,9 @@ public class GitClientFactory
   }
 
   public GeneralSCMApiClient createGeneralApiClient(
-          final SourceControlProvider provider,
-          final String hostUrl,
-          final GitHubApp gitHubApp) throws IOException
+      final SourceControlProvider provider,
+      final String hostUrl,
+      final GitHubApp gitHubApp) throws IOException
   {
     if (provider != SourceControlProvider.GITHUB) {
       throw new IllegalArgumentException("GitHub App authentication only supports GitHub provider");

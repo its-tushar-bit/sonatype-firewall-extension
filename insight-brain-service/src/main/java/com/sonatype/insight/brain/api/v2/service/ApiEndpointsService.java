@@ -161,9 +161,8 @@ public class ApiEndpointsService
   private boolean isResourceMatchingApiType(final Resource resource) {
     return Arrays.stream(ApiType.values())
         .map(ApiType::getPathPrefix)
-        .anyMatch(pathPrefix ->
-            resource.getPath().startsWith(pathPrefix) || resource.getPath().startsWith(pathPrefix.substring(1))
-        );
+        .anyMatch(pathPrefix -> resource.getPath().startsWith(pathPrefix)
+            || resource.getPath().startsWith(pathPrefix.substring(1)));
   }
 
   private void handlePathsAndOperations(final OpenAPI openAPI) {
@@ -351,8 +350,10 @@ public class ApiEndpointsService
   private void removeUnusedSchemas(final OpenAPI openAPI) {
     Set<String> usedSchemaKeys = new HashSet<>();
     if (openAPI.getPaths() != null) {
-      for (String schemaRef : findAllValues(JsonUtils.asTree(openAPI.getPaths()), "$ref").stream().map(JsonNode::asText)
-          .collect(Collectors.toSet())) {
+      for (String schemaRef : findAllValues(JsonUtils.asTree(openAPI.getPaths()), "$ref").stream()
+          .map(JsonNode::asText)
+          .collect(Collectors.toSet()))
+      {
         addSchema(openAPI, schemaRef, usedSchemaKeys);
       }
     }
@@ -370,8 +371,10 @@ public class ApiEndpointsService
       return;
     }
     Schema<?> schema = openAPI.getComponents().getSchemas().get(schemaKey);
-    for (String s : findAllValues(JsonUtils.asTree(schema), "$ref").stream().map(JsonNode::asText)
-        .collect(Collectors.toSet())) {
+    for (String s : findAllValues(JsonUtils.asTree(schema), "$ref").stream()
+        .map(JsonNode::asText)
+        .collect(Collectors.toSet()))
+    {
       addSchema(openAPI, s, schemaKeys);
     }
   }
@@ -496,7 +499,8 @@ public class ApiEndpointsService
       Class<?> clazz = method.getDeclaringClass();
       // Class explicitly does not need a product license and method inherits
       if (clazz.isAnnotationPresent(UnlicensedPath.class) &&
-          !method.isAnnotationPresent(ProductLicenseEnforcementPoint.class)) {
+          !method.isAnnotationPresent(ProductLicenseEnforcementPoint.class))
+      {
         return () -> true;
       }
 

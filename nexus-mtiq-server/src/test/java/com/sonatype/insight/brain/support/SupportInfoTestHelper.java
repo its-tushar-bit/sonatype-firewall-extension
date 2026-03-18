@@ -34,17 +34,18 @@ public class SupportInfoTestHelper
         {
           @Override
           public FileVisitResult postVisitDirectory(
-              Path dir, IOException exc) throws IOException
-          {
+              Path dir,
+              IOException exc) throws IOException
+        {
             Files.delete(dir);
             return FileVisitResult.CONTINUE;
           }
 
           @Override
           public FileVisitResult visitFile(
-              Path file, BasicFileAttributes attrs)
-              throws IOException
-          {
+              Path file,
+              BasicFileAttributes attrs) throws IOException
+        {
             Files.delete(file);
             return FileVisitResult.CONTINUE;
           }

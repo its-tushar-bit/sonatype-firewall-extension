@@ -31,8 +31,7 @@ public record CopyStorageConfig(
     if (tooManyThreads) {
       String msg = "Configuration could result in too many threads i.e." +
           " maxTenantThreads * maxCopyThreads > %s";
-      throw new BadRequestException(msg.formatted(CopyStorageService.MAX_TENANT_THREAD_POOL_THREADS)
-      );
+      throw new BadRequestException(msg.formatted(CopyStorageService.MAX_TENANT_THREAD_POOL_THREADS));
     }
   }
 }

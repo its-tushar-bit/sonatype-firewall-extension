@@ -68,8 +68,7 @@ public class CycloneDxToPdfExporter
         versionService,
         apiReportDataServiceV2,
         licenseResolutionService,
-        thirdPartyPersistenceService
-    );
+        thirdPartyPersistenceService);
   }
 
   @Override
@@ -87,7 +86,8 @@ public class CycloneDxToPdfExporter
     catch (IOException | ParseException e) {
       throw new SbomExportException(
           String.format("Internal error reading from the original SBOM file for application %s, version %s",
-              exportParams.sbomMetadata.getApplicationId(), exportParams.sbomMetadata.getSbomVersion()), e);
+              exportParams.sbomMetadata.getApplicationId(), exportParams.sbomMetadata.getSbomVersion()),
+          e);
     }
   }
 }

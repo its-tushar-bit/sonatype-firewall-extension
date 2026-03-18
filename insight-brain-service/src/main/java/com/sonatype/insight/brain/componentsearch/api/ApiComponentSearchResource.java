@@ -120,15 +120,13 @@ public class ApiComponentSearchResource
           "Results are streamed to avoid memory issues with large datasets. " +
           "Keep-alive mechanism prevents ALB timeouts during long-running queries. " +
           "<p>" +
-          "Permissions Required: View IQ Elements"
-  )
+          "Permissions Required: View IQ Elements")
   @ApiResponse(responseCode = "200", description = "CSV file containing the component search results")
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public void exportComponentSearchReport(
       @Parameter(description = "CVE identifier(s). Can be specified multiple times for multiple CVEs. " +
           "Defaults to CVE-2025-55182 if not specified.",
-          example = "CVE-2025-55182", required = false)
-      @QueryParam("cveId") Set<String> cveIds,
+          example = "CVE-2025-55182", required = false) @QueryParam("cveId") Set<String> cveIds,
       @Context HttpServletResponse httpServletResponse) throws IOException
   {
     if (CollectionUtils.isEmpty(cveIds)) {
@@ -158,7 +156,8 @@ public class ApiComponentSearchResource
       final long keepAliveCheckIntervalMs) throws IOException
   {
     try (BufferedWriter writer = new BufferedWriter(
-        new OutputStreamWriter(httpServletResponse.getOutputStream(), UTF_8), STREAM_BUFFER_SIZE)) {
+        new OutputStreamWriter(httpServletResponse.getOutputStream(), UTF_8), STREAM_BUFFER_SIZE))
+    {
 
       // Write header and immediately commit response to start streaming
       writer.write(CSV_HEADER);
@@ -219,10 +218,10 @@ public class ApiComponentSearchResource
    * checks every 15 seconds and writes a space if 30+ seconds have passed since the last data write. Spaces are written
    * to the trailing CSV column to maintain valid CSV structure.
    *
-   * @param writer                   the CSV writer
-   * @param httpServletResponse      the servlet response for forcing buffer flush
-   * @param lastFlushTime            atomic timestamp of last write operation
-   * @param keepAliveIntervalMs      minimum milliseconds of inactivity before sending keep-alive (30 seconds)
+   * @param writer the CSV writer
+   * @param httpServletResponse the servlet response for forcing buffer flush
+   * @param lastFlushTime atomic timestamp of last write operation
+   * @param keepAliveIntervalMs minimum milliseconds of inactivity before sending keep-alive (30 seconds)
    * @param keepAliveCheckIntervalMs how often to check if keep-alive is needed (15 seconds)
    * @return scheduled future that can be cancelled when streaming completes
    */
@@ -269,28 +268,25 @@ public class ApiComponentSearchResource
           "When sortBy is explicitly specified, only single-field sorting is applied " +
           "with the specified sortOrder (default: asc). " +
           "<p>" +
-          "Permissions Required: View IQ Elements"
-  )
+          "Permissions Required: View IQ Elements")
   @ApiResponse(responseCode = "200", description = "Paginated list of affected applications and components")
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public ComponentSearchPageResultDTO getCveAffectedComponents(
-          @Parameter(description = "CVE identifier(s). Can be specified multiple times for multiple CVEs.",
-              example = "CVE-2025-55182", required = true)
-          @QueryParam("cveId") Set<String> cveIds,
+      @Parameter(description = "CVE identifier(s). Can be specified multiple times for multiple CVEs.",
+          example = "CVE-2025-55182", required = true) @QueryParam("cveId") Set<String> cveIds,
 
-          @Parameter(description = "Page number (1-indexed, minimum: 1, default: 1)")
-          @QueryParam("pageNumber") @DefaultValue("1") @Min(1) Integer pageNumber,
+      @Parameter(
+          description = "Page number (1-indexed, minimum: 1, default: 1)") @QueryParam("pageNumber") @DefaultValue("1") @Min(1) Integer pageNumber,
 
-          @Parameter(description = "Number of items per page (1-1000, default: 10)")
-          @QueryParam("pageSize") @DefaultValue("10") @Min(1) @Max(1000) Integer pageSize,
+      @Parameter(
+          description = "Number of items per page (1-1000, default: 10)") @QueryParam("pageSize") @DefaultValue("10") @Min(1) @Max(1000) Integer pageSize,
 
-          @Parameter(description = "Sort field: applicationName, applicationId, componentName, " +
-              "evaluationDate, stage, activeWaiver, violating, cveId. " +
-              "When not specified, sorts by applicationName (asc), then componentName (asc), then cveId (asc)")
-          @QueryParam("sortBy") ComponentMatchSortField sortBy,
+      @Parameter(description = "Sort field: applicationName, applicationId, componentName, " +
+          "evaluationDate, stage, activeWaiver, violating, cveId. " +
+          "When not specified, sorts by applicationName (asc), then componentName (asc), then cveId (asc)") @QueryParam("sortBy") ComponentMatchSortField sortBy,
 
-          @Parameter(description = "Sort order: asc or desc, default: asc")
-          @QueryParam("sortOrder") @DefaultValue("asc") String sortOrder)
+      @Parameter(
+          description = "Sort order: asc or desc, default: asc") @QueryParam("sortOrder") @DefaultValue("asc") String sortOrder)
   {
     if (CollectionUtils.isEmpty(cveIds)) {
       throw new BadRequestException("At least one CVE ID is required");

@@ -223,7 +223,7 @@ public abstract class AbstractRepositoryServiceAuthzTest
   @Test
   public void testRemoveComponent_Authorized_DockerProxyRepository() {
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    
+
     Repository repository = createRepository();
     repository.setRepositoryType(RepositoryType.proxy);
     repository.setFormat("docker");
@@ -448,7 +448,7 @@ public abstract class AbstractRepositoryServiceAuthzTest
 
   @Test
   public void testGetQuarantinedComponentReportUrl_Authorized() {
-    //setup
+    // setup
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     final Repository repository = tempEntity.newRepository(repositoryManager, "repo");
     tempEntity.newRepositoryComponent(repository.getId());

@@ -32,9 +32,10 @@ public class LicenseOverrideInternalDAO
     super(operationalDataStore);
   }
 
-  public LicenseOverrideInternal getByOwnerIdAndComponentIdentifier(TransactionContext tx,
-                                                                    String ownerId,
-                                                                    ComponentIdentifier componentIdentifier)
+  public LicenseOverrideInternal getByOwnerIdAndComponentIdentifier(
+      TransactionContext tx,
+      String ownerId,
+      ComponentIdentifier componentIdentifier)
   {
     String sQuery = "SELECT entity from LicenseOverrideInternal entity "
         + "WHERE entity.ownerId=?1 and entity.componentIdFormat=?2 and entity.componentIdCoordinatesJson=?3";
@@ -55,8 +56,9 @@ public class LicenseOverrideInternalDAO
     return licenseOverride;
   }
 
-  public List<LicenseOverrideInternal> getByComponentIdentifier(final TransactionContext tx,
-                                                                final ComponentIdentifier componentIdentifier)
+  public List<LicenseOverrideInternal> getByComponentIdentifier(
+      final TransactionContext tx,
+      final ComponentIdentifier componentIdentifier)
   {
     String sQuery = "SELECT entity FROM LicenseOverrideInternal entity "
         + "WHERE entity.componentIdFormat=?1 and entity.componentIdCoordinatesJson=?2";

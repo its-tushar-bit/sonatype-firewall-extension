@@ -69,20 +69,17 @@ public class ReachabilityStatusTest
     assertThat(ReachabilityStatus.combine(Stream.of(
         ReachabilityStatus.REACHABLE,
         ReachabilityStatus.NON_REACHABLE,
-        ReachabilityStatus.UNKNOWN)
-    )).isEqualTo(ReachabilityStatus.REACHABLE);
+        ReachabilityStatus.UNKNOWN))).isEqualTo(ReachabilityStatus.REACHABLE);
 
     assertThat(ReachabilityStatus.combine(Stream.of(
         ReachabilityStatus.NON_REACHABLE,
         ReachabilityStatus.NON_REACHABLE,
-        ReachabilityStatus.NON_REACHABLE)
-    )).isEqualTo(ReachabilityStatus.NON_REACHABLE);
+        ReachabilityStatus.NON_REACHABLE))).isEqualTo(ReachabilityStatus.NON_REACHABLE);
 
     assertThat(ReachabilityStatus.combine(Stream.of(
         ReachabilityStatus.NON_REACHABLE,
         ReachabilityStatus.NON_REACHABLE,
-        ReachabilityStatus.UNKNOWN)
-    )).isEqualTo(ReachabilityStatus.UNKNOWN);
+        ReachabilityStatus.UNKNOWN))).isEqualTo(ReachabilityStatus.UNKNOWN);
 
     assertThat(ReachabilityStatus.combine(Stream.of())).isEqualTo(ReachabilityStatus.UNKNOWN);
   }

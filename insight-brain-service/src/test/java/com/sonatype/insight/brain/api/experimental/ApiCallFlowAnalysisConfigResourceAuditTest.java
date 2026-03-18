@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.experimental;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -96,21 +97,23 @@ public class ApiCallFlowAnalysisConfigResourceAuditTest
     assertCustomData(auditDTO, "namespaces", map.get("namespaces"));
   }
 
-  private void upsert(Consumer<HttpRequest> user, Owner owner, ApiCallFlowAnalysisConfigDTO callFlowAnalysisConfig)
-      throws Exception
+  private void upsert(
+      Consumer<HttpRequest> user,
+      Owner owner,
+      ApiCallFlowAnalysisConfigDTO callFlowAnalysisConfig) throws Exception
   {
     restRequest(user, owner).body(callFlowAnalysisConfig).put();
   }
 
-  private void delete(Consumer<HttpRequest> user, Owner owner)
-      throws Exception
-  {
+  private void delete(Consumer<HttpRequest> user, Owner owner) throws Exception {
     restRequest(user, owner).delete();
   }
 
   private HttpRequest restRequest(Consumer<HttpRequest> user, Owner owner) {
-    return restRequest().with(user).path(PublicApiPaths.CALL_FLOW_ANALYSIS_CONFIG).parameter(owner.getType(),
-        owner.getId());
+    return restRequest().with(user)
+        .path(PublicApiPaths.CALL_FLOW_ANALYSIS_CONFIG)
+        .parameter(owner.getType(),
+            owner.getId());
   }
 
   private ApiCallFlowAnalysisConfigDTO buildCallFlowAnalysisConfig(String ownerId) {

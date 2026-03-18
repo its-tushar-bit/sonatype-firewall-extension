@@ -41,7 +41,7 @@ public class RepositorySummaryService
   }
 
   private List<RepositorySummary> toRepositorySummaryList(List<Repository> repositories) {
-    List<RepositorySummary> result = repositories.stream() ///
+    List<RepositorySummary> result = repositories.stream()
         .map(repo -> new RepositorySummary(repo.getId(), repo.getName())) //
         .sorted((repo1, repo2) -> repo1.name.compareToIgnoreCase(repo2.name)) //
         .collect(Collectors.toList());

@@ -62,8 +62,10 @@ public class FileScanPersistenceService
   }
 
   @Override
-  public void moveTempScan(final ScanEntity tempScanEntity, final String appId, final String scanId)
-      throws IOException
+  public void moveTempScan(
+      final ScanEntity tempScanEntity,
+      final String appId,
+      final String scanId) throws IOException
   {
     Path sourcePath = ((FileScanEntity) tempScanEntity).path();
     Path destinationPath = getFile(appId, scanFileName(scanId)).toPath();

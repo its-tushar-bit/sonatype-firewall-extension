@@ -16,7 +16,8 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 
-public class LoginFIPSTest extends LoginTest
+public class LoginFIPSTest
+    extends LoginTest
 {
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();

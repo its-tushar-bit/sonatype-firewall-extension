@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.git;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -181,15 +182,15 @@ public class ScmOnboardingServiceParallelTest
     // given a list of repos to import
     String repo1URL = String.format("%s/scm/org/repo1", gitService.baseUrl());
     String repo2URL = String.format("%s/scm/org/repo2", gitService.baseUrl());
-    SCMRepository[] reposToImport = new SCMRepository[] {
-        // existing repository on BB with unknown default branch
-        // should get default branch from SCM
-        new SCMRepository(SourceControlProvider.BITBUCKET, repo1URL, null,
-            false, "org", "repo1", "", GeneralSCMApiClient.UNKNOWN_DEFAULT_BRANCH),
-        // empty repository on BB with unknown default branch
-        // should get null default branch
-        new SCMRepository(SourceControlProvider.BITBUCKET, repo2URL, null,
-            false, "org", "repo2", "", GeneralSCMApiClient.UNKNOWN_DEFAULT_BRANCH)
+    SCMRepository[] reposToImport = new SCMRepository[]{
+      // existing repository on BB with unknown default branch
+      // should get default branch from SCM
+      new SCMRepository(SourceControlProvider.BITBUCKET, repo1URL, null,
+          false, "org", "repo1", "", GeneralSCMApiClient.UNKNOWN_DEFAULT_BRANCH),
+      // empty repository on BB with unknown default branch
+      // should get null default branch
+      new SCMRepository(SourceControlProvider.BITBUCKET, repo2URL, null,
+          false, "org", "repo2", "", GeneralSCMApiClient.UNKNOWN_DEFAULT_BRANCH)
     };
     int totalRepoCount = 50;
     int prevImportedCount = 10;
@@ -212,7 +213,8 @@ public class ScmOnboardingServiceParallelTest
     WireMock.verify(1, getRequestedFor(urlPathEqualTo(repo2GetDefaultBranchURL)));
 
     // and they exist in the DB
-    List<Application> allApps = sourceControlDAO.getAll().stream()
+    List<Application> allApps = sourceControlDAO.getAll()
+        .stream()
         .filter(sc -> !sc.getOwnerId().equals(ROOT_ORGANIZATION_ID))
         .map(sc -> applicationDAO.getById(sc.getOwnerId()))
         .collect(Collectors.toList());
@@ -222,10 +224,11 @@ public class ScmOnboardingServiceParallelTest
         .containsExactlyInAnyOrder("Repo1 - Org", "Repo2 - Org");
 
     // and the default branches are stored on DB
-    assertThat(sourceControlDAO.getAll().stream()
+    assertThat(sourceControlDAO.getAll()
+        .stream()
         .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
         .map(SourceControl::getBaseBranch))
-        .containsExactly(MAIN_BRANCH,null);
+            .containsExactly(MAIN_BRANCH, null);
   }
 
   private void mockGetRequest(WireMockRule gitService, String urlPath, String json, int status) {
@@ -261,16 +264,17 @@ public class ScmOnboardingServiceParallelTest
     assertThat(childOrgsAfterImport).hasSize(3);
 
     List<Integer> importedAppCountsPerOrg =
-        childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+        childOrgsAfterImport.stream()
+            .map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
             .collect(Collectors.toList());
     assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(5, 4, 4);
     assertThat(importedAppCountsPerOrg.stream().mapToInt(i -> i).sum()).isEqualTo(13);
 
-    //verify source control evaluations triggered for all imported apps
+    // verify source control evaluations triggered for all imported apps
     verifySourceControlEvaluationEventsCreated(13);
     verify(sourceControlOrganizationImportEventDAO, times(4)).update(any(SourceControlOrganizationImportEvent.class));
 
-    //check the telemetry was sent properly
+    // check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock, times(29)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
@@ -327,16 +331,17 @@ public class ScmOnboardingServiceParallelTest
     assertThat(childOrgsAfterImport).hasSize(6);
 
     List<Integer> importedAppCountsPerOrg =
-        childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+        childOrgsAfterImport.stream()
+            .map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
             .collect(Collectors.toList());
     assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(3, 2, 2, 2, 2, 2);
     assertThat(importedAppCountsPerOrg.stream().mapToInt(i -> i).sum()).isEqualTo(13);
 
-    //verify source control evaluations triggered for all imported apps
+    // verify source control evaluations triggered for all imported apps
     verifySourceControlEvaluationEventsCreated(13);
     verify(sourceControlOrganizationImportEventDAO, times(8)).update(any(SourceControlOrganizationImportEvent.class));
 
-    //check the telemetry was sent properly
+    // check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock, times(32)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
@@ -380,7 +385,8 @@ public class ScmOnboardingServiceParallelTest
 
     assertThat(childOrgsAfterImport).hasSize(3);
     List<Integer> importedAppCountsPerOrg =
-        childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+        childOrgsAfterImport.stream()
+            .map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
             .collect(Collectors.toList());
     assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(4, 3, 3);
     assertThat(importedAppCountsPerOrg.stream().mapToInt(i -> i).sum()).isEqualTo(10);
@@ -388,7 +394,7 @@ public class ScmOnboardingServiceParallelTest
     verifySourceControlEvaluationEventsCreated(10);
     verify(sourceControlOrganizationImportEventDAO, times(4)).update(any(SourceControlOrganizationImportEvent.class));
 
-    //check the telemetry was sent properly
+    // check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock, times(23)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
@@ -510,7 +516,8 @@ public class ScmOnboardingServiceParallelTest
     List<Organization> childOrgsAfterImport = organizationDAO.getByParentOrganizationId(org.getId());
     assertThat(childOrgsAfterImport).hasSize(3);
     List<Integer> importedAppCountsPerOrg =
-        childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+        childOrgsAfterImport.stream()
+            .map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
             .collect(Collectors.toList());
     assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(5, 4, 4);
     assertThat(importedAppCountsPerOrg.stream().mapToInt(i -> i).sum()).isEqualTo(13);
@@ -518,7 +525,7 @@ public class ScmOnboardingServiceParallelTest
     verifySourceControlEvaluationEventsCreated(13);
     verify(sourceControlOrganizationImportEventDAO, times(7)).update(any(SourceControlOrganizationImportEvent.class));
 
-    //check the telemetry was sent properly
+    // check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock, times(32)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
@@ -565,7 +572,7 @@ public class ScmOnboardingServiceParallelTest
 
     verifySourceControlEvaluationEventsCreated(13);
     verify(sourceControlOrganizationImportEventDAO, times(7)).update(any(SourceControlOrganizationImportEvent.class));
-    //check the telemetry was sent properly
+    // check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock, times(32)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
@@ -626,7 +633,7 @@ public class ScmOnboardingServiceParallelTest
 
     ImportScmOrganizationRequest importRequest = new ImportScmOrganizationRequest();
     importRequest.scmHostUrl = gitService.baseUrl();
-    importRequest.desiredSubOrganizationCount = 50; //should only import the available 13 repos
+    importRequest.desiredSubOrganizationCount = 50; // should only import the available 13 repos
 
     SourceControlOrganizationImportEvent importEvent =
         tempEntity.newSourceControlOrganizationImportEvent(org.getId(), gitService.baseUrl(), -1, 50);
@@ -648,7 +655,8 @@ public class ScmOnboardingServiceParallelTest
 
     assertThat(childOrgsAfterImport).hasSize(13);
     List<Integer> importedAppCountsPerOrg =
-        childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+        childOrgsAfterImport.stream()
+            .map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
             .collect(Collectors.toList());
     assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
     assertThat(importedAppCountsPerOrg.stream().mapToInt(i -> i).sum()).isEqualTo(13);
@@ -681,16 +689,17 @@ public class ScmOnboardingServiceParallelTest
     assertThat(childOrgsAfterImport).hasSize(3);
 
     List<Integer> importedAppCountsPerOrg =
-        childOrgsAfterImport.stream().map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
+        childOrgsAfterImport.stream()
+            .map(childOrg -> applicationDAO.getByOrganizationId(childOrg.getId()).size())
             .collect(Collectors.toList());
     assertThat(importedAppCountsPerOrg).containsExactlyInAnyOrder(5, 4, 4);
     assertThat(importedAppCountsPerOrg.stream().mapToInt(i -> i).sum()).isEqualTo(13);
 
-    //verify source control evaluations triggered for all imported apps
+    // verify source control evaluations triggered for all imported apps
     verifySourceControlEvaluationEventsCreated(13);
     verify(sourceControlOrganizationImportEventDAO, times(8)).update(any(SourceControlOrganizationImportEvent.class));
 
-    //check the telemetry was sent properly
+    // check the telemetry was sent properly
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock, times(29)).send(telemetryDataArgumentCaptor.capture());
     final List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
@@ -745,7 +754,7 @@ public class ScmOnboardingServiceParallelTest
   }
 
   private void assertScmImportTelemetries(int batchCount, int updatedApps) {
-    //calculation mentioned here for clarification only
+    // calculation mentioned here for clarification only
     int totalRepoCount = 13;
     int prevImportedCount = 0;
     int batchPercent = (int) Math.round(batchCount * 100.0 / totalRepoCount);
@@ -755,7 +764,7 @@ public class ScmOnboardingServiceParallelTest
   }
 
   private void assertScmImportTelemetries(int batchCount, int repoCount, int updatedApps) {
-    //calculation mentioned here for clarification only
+    // calculation mentioned here for clarification only
     int prevImportedCount = 0;
     int batchPercent = (int) Math.round(batchCount * 100.0 / repoCount);
     int totalPercent = (int) ((prevImportedCount + batchCount) * 100.0 / repoCount);
@@ -768,13 +777,13 @@ public class ScmOnboardingServiceParallelTest
       ArgumentCaptor<SourceControlEvent> eventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
       verify(mockSourceControlEventPublisher, times(count)).publishEvent(eventCaptor.capture());
       assertThat(eventCaptor.getAllValues()).hasSize(count);
-      eventCaptor.getAllValues().forEach(
-          event -> {
-            assertThat(event.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
-            assertThat(event.getScanTriggerType())
-                .isEqualTo(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
-          }
-      );
+      eventCaptor.getAllValues()
+          .forEach(
+              event -> {
+                assertThat(event.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
+                assertThat(event.getScanTriggerType())
+                    .isEqualTo(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+              });
     }
     else {
       verify(mockSourceControlEventPublisher, never()).publishEvent(any());

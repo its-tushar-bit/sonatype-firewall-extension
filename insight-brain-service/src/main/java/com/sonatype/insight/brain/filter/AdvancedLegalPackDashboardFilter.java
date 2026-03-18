@@ -26,8 +26,11 @@ public class AdvancedLegalPackDashboardFilter
   }
 
   public AdvancedLegalPackDashboardFilter(
-      final List<String> organizationFilters, final List<String> applicationFilters, final List<String> categoryFilters,
-      final List<String> stageTypeFilters, final List<String> progressOptionsFilters)
+      final List<String> organizationFilters,
+      final List<String> applicationFilters,
+      final List<String> categoryFilters,
+      final List<String> stageTypeFilters,
+      final List<String> progressOptionsFilters)
   {
     this.organizationFilters = organizationFilters;
     this.applicationFilters = applicationFilters;

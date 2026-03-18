@@ -79,8 +79,8 @@ public class TelemetryId
     var clusterIdentity = tenantClusterIdentity.get();
     if (null == clusterIdentity) {
       // currently, the system effectively (and inadvertently) defaults the telemetry ID to what is in the global
-      // configuration for multi-tenant;  so, we'll preserve that behavior for existing instances when seeding
-      // cluster identification with an initial value;  at that point the telemetry ID is maintained per tenant
+      // configuration for multi-tenant; so, we'll preserve that behavior for existing instances when seeding
+      // cluster identification with an initial value; at that point the telemetry ID is maintained per tenant
       final var computedTelemetryId = globalTelemetryId;
       final var computedClusterId = ClusterIdCalculator.calculateClusterId(insightConfig.getDatabase());
 
@@ -96,5 +96,7 @@ public class TelemetryId
     return clusterIdentity;
   }
 
-  private record ClusterIdentity(String clusterId, String telemetryId) { }
+  private record ClusterIdentity(String clusterId, String telemetryId)
+  {
+  }
 }

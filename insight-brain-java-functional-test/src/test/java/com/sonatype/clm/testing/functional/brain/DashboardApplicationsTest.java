@@ -131,13 +131,14 @@ public class DashboardApplicationsTest
 
     // applications should be sorted by total risk
     table.applications().shouldHave(size(5));
-    table.applications().shouldHave(texts(
-        "App5", //
-        "App4", //
-        "App3", //
-        "App2", //
-        "App1"  //
-    ));
+    table.applications()
+        .shouldHave(texts(
+            "App5", //
+            "App4", //
+            "App3", //
+            "App2", //
+            "App1" //
+        ));
 
     // check rows per application
     table.application(0).getRows().shouldHave(size(5));
@@ -157,19 +158,21 @@ public class DashboardApplicationsTest
     app5Totals.get(2).shouldNotHave(cssClass("white-text"));
     app5Totals.get(3).shouldNotHave(cssClass("white-text"));
     app5Totals.get(4).shouldNotHave(cssClass("white-text"));
-    app5.getTotalsInStageRow(0).shouldHave(texts("8", "8", "0", "0", "0"))
+    app5.getTotalsInStageRow(0)
+        .shouldHave(texts("8", "8", "0", "0", "0"))
         .shouldHave(cssValues("background-color", "rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)", // no heatmap
             "rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)"));
     app5.getTotalsInStageRow(1).shouldHave(texts("0", "0", "0", "0", "0"));
     app5.getTotalsInStageRow(2).shouldHave(texts("4", "0", "4", "0", "0"));
     app5.getTotalsInStageRow(3).shouldHave(texts("2", "0", "0", "2", "0"));
     app5.getStages().shouldHave(size(4));
-    app5.getStages().shouldHave(texts(
-        "Build",          //
-        "Stage Release",  //
-        "Release",        //
-        "Operate"         //
-    ));
+    app5.getStages()
+        .shouldHave(texts(
+            "Build", //
+            "Stage Release", //
+            "Release", //
+            "Operate" //
+        ));
     app5.getStageLink(0).shouldHave(attribute("href", ApplicationReportPage.url(app, "App5build")));
     app5.getStageLink(1).shouldHave(attribute("href", ApplicationReportPage.url(app, "App5stage-release")));
     app5.getStageLink(2).shouldHave(attribute("href", ApplicationReportPage.url(app, "App5release")));
@@ -183,33 +186,34 @@ public class DashboardApplicationsTest
     DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
     String exportCsv = new String(responseCopyHandler.consumeResponse());
     String[] expectedResults = {
-        "DashboardApplicationsTest,App5,14,8,4,2,0", //
-        "DashboardApplicationsTest,App4,10,10,0,0,0", //
-        "DashboardApplicationsTest,App3,7,0,7,0,0", //
-        "DashboardApplicationsTest,App2,3,0,0,3,0", //
-        "DashboardApplicationsTest,App1,1,0,0,0,1" //
+      "DashboardApplicationsTest,App5,14,8,4,2,0", //
+      "DashboardApplicationsTest,App4,10,10,0,0,0", //
+      "DashboardApplicationsTest,App3,7,0,7,0,0", //
+      "DashboardApplicationsTest,App2,3,0,0,3,0", //
+      "DashboardApplicationsTest,App1,1,0,0,0,1" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
     // sort by name
     headers.applicationNameHeader().click();
-    table.applications().shouldHave(texts(
-        "App1", //
-        "App2", //
-        "App3", //
-        "App4", //
-        "App5"  //
-    ));
+    table.applications()
+        .shouldHave(texts(
+            "App1", //
+            "App2", //
+            "App3", //
+            "App4", //
+            "App5" //
+        ));
 
     // check the csv export sorting
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "DashboardApplicationsTest,App1,1,0,0,0,1", //
-        "DashboardApplicationsTest,App2,3,0,0,3,0", //
-        "DashboardApplicationsTest,App3,7,0,7,0,0", //
-        "DashboardApplicationsTest,App4,10,10,0,0,0", //
-        "DashboardApplicationsTest,App5,14,8,4,2,0" //
+      "DashboardApplicationsTest,App1,1,0,0,0,1", //
+      "DashboardApplicationsTest,App2,3,0,0,3,0", //
+      "DashboardApplicationsTest,App3,7,0,7,0,0", //
+      "DashboardApplicationsTest,App4,10,10,0,0,0", //
+      "DashboardApplicationsTest,App5,14,8,4,2,0" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -223,11 +227,11 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "DashboardApplicationsTest,App2,3,0,0,3,0", //
-        "DashboardApplicationsTest,App3,7,0,7,0,0", //
-        "DashboardApplicationsTest,App4,10,10,0,0,0", //
-        "DashboardApplicationsTest,App5,14,8,4,2,0", //
-        "DashboardApplicationsTest,App1,1,0,0,0,1" //
+      "DashboardApplicationsTest,App2,3,0,0,3,0", //
+      "DashboardApplicationsTest,App3,7,0,7,0,0", //
+      "DashboardApplicationsTest,App4,10,10,0,0,0", //
+      "DashboardApplicationsTest,App5,14,8,4,2,0", //
+      "DashboardApplicationsTest,App1,1,0,0,0,1" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -241,11 +245,11 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "DashboardApplicationsTest,App1,1,0,0,0,1", //
-        "DashboardApplicationsTest,App3,7,0,7,0,0", //
-        "DashboardApplicationsTest,App4,10,10,0,0,0", //
-        "DashboardApplicationsTest,App5,14,8,4,2,0", //
-        "DashboardApplicationsTest,App2,3,0,0,3,0" //
+      "DashboardApplicationsTest,App1,1,0,0,0,1", //
+      "DashboardApplicationsTest,App3,7,0,7,0,0", //
+      "DashboardApplicationsTest,App4,10,10,0,0,0", //
+      "DashboardApplicationsTest,App5,14,8,4,2,0", //
+      "DashboardApplicationsTest,App2,3,0,0,3,0" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -259,11 +263,11 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "DashboardApplicationsTest,App1,1,0,0,0,1", //
-        "DashboardApplicationsTest,App2,3,0,0,3,0", //
-        "DashboardApplicationsTest,App4,10,10,0,0,0", //
-        "DashboardApplicationsTest,App5,14,8,4,2,0", //
-        "DashboardApplicationsTest,App3,7,0,7,0,0" //
+      "DashboardApplicationsTest,App1,1,0,0,0,1", //
+      "DashboardApplicationsTest,App2,3,0,0,3,0", //
+      "DashboardApplicationsTest,App4,10,10,0,0,0", //
+      "DashboardApplicationsTest,App5,14,8,4,2,0", //
+      "DashboardApplicationsTest,App3,7,0,7,0,0" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -277,11 +281,11 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "DashboardApplicationsTest,App1,1,0,0,0,1", //
-        "DashboardApplicationsTest,App2,3,0,0,3,0", //
-        "DashboardApplicationsTest,App3,7,0,7,0,0", //
-        "DashboardApplicationsTest,App5,14,8,4,2,0", //
-        "DashboardApplicationsTest,App4,10,10,0,0,0" //
+      "DashboardApplicationsTest,App1,1,0,0,0,1", //
+      "DashboardApplicationsTest,App2,3,0,0,3,0", //
+      "DashboardApplicationsTest,App3,7,0,7,0,0", //
+      "DashboardApplicationsTest,App5,14,8,4,2,0", //
+      "DashboardApplicationsTest,App4,10,10,0,0,0" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -302,10 +306,10 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "DashboardApplicationsTest,App2,3,0,0,3,0", //
-        "DashboardApplicationsTest,App3,7,0,7,0,0", //
-        "DashboardApplicationsTest,App5,14,8,4,2,0", //
-        "DashboardApplicationsTest,App4,10,10,0,0,0" //
+      "DashboardApplicationsTest,App2,3,0,0,3,0", //
+      "DashboardApplicationsTest,App3,7,0,7,0,0", //
+      "DashboardApplicationsTest,App5,14,8,4,2,0", //
+      "DashboardApplicationsTest,App4,10,10,0,0,0" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -319,9 +323,9 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "DashboardApplicationsTest,App3,7,0,7,0,0", //
-        "DashboardApplicationsTest,App5,10,8,0,2,0", //
-        "DashboardApplicationsTest,App4,10,10,0,0,0" //
+      "DashboardApplicationsTest,App3,7,0,7,0,0", //
+      "DashboardApplicationsTest,App5,10,8,0,2,0", //
+      "DashboardApplicationsTest,App4,10,10,0,0,0" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
 
@@ -335,8 +339,8 @@ public class DashboardApplicationsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "DashboardApplicationsTest,App3,7,0,7,0,0", //
-        "DashboardApplicationsTest,App5,10,8,0,2,0" //
+      "DashboardApplicationsTest,App3,7,0,7,0,0", //
+      "DashboardApplicationsTest,App5,10,8,0,2,0" //
     };
     assertApplicationsCsv(exportCsv, expectedResults);
   }

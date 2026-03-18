@@ -52,7 +52,8 @@ public class BaseUrlConfigurationMigratorTest
   public void configure(Binder binder) {
     // Add the mock listener to the multibinder set
     Multibinder.newSetBinder(binder, ConfigurationListener.class)
-        .addBinding().toInstance(mockBaseUrlConfigurationListener);
+        .addBinding()
+        .toInstance(mockBaseUrlConfigurationListener);
     super.configure(binder);
   }
 

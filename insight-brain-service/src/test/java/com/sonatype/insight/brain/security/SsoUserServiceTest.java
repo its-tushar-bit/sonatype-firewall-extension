@@ -432,7 +432,8 @@ public class SsoUserServiceTest
       SamlUser samlUser = tempEntity.newSamlUser();
 
       assertThat(ssoUserService.getByUsernameNotNull(samlUser.getUsername())).usingRecursiveComparison()
-          .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(SsoUser.fromSamlUser(samlUser));
+          .ignoringFields(JPA.IGNORE_FIELDS)
+          .isEqualTo(SsoUser.fromSamlUser(samlUser));
     });
   }
 
@@ -442,7 +443,8 @@ public class SsoUserServiceTest
       OAuth2User oauth2User = tempEntity.newOAuth2User();
 
       assertThat(ssoUserService.getByUsernameNotNull(oauth2User.getUsername())).usingRecursiveComparison()
-          .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(SsoUser.fromOAuth2User(oauth2User));
+          .ignoringFields(JPA.IGNORE_FIELDS)
+          .isEqualTo(SsoUser.fromOAuth2User(oauth2User));
     });
   }
 
@@ -574,8 +576,9 @@ public class SsoUserServiceTest
         .containsExactlyElementsOf(expectedGroupNames.stream().map(SamlGroup::new).collect(Collectors.toList()));
     assertThat(samlUserGroupDAO.getAll())
         .usingRecursiveFieldByFieldElementComparatorIgnoringFields(ignoreFields.toArray(new String[0]))
-        .containsExactlyInAnyOrderElementsOf(samlGroups.stream().map(samlGroup ->
-            new SamlUserGroup(samlUser.getId(), samlGroup.getId())).collect(Collectors.toList()));
+        .containsExactlyInAnyOrderElementsOf(samlGroups.stream()
+            .map(samlGroup -> new SamlUserGroup(samlUser.getId(), samlGroup.getId()))
+            .collect(Collectors.toList()));
   }
 
   private void assertOAuth2UserGroups(
@@ -598,7 +601,8 @@ public class SsoUserServiceTest
 
     List<OAuth2UserGroup> oAuth2UserGroups = oAuth2UserGroupDAO.getAll();
     List<OAuth2UserGroup> expectedOAuth2UserGroups =
-        oAuth2Groups.stream().map(group -> new OAuth2UserGroup(oAuth2User.getId(), group.getId()))
+        oAuth2Groups.stream()
+            .map(group -> new OAuth2UserGroup(oAuth2User.getId(), group.getId()))
             .collect(Collectors.toList());
     assertThat(oAuth2UserGroups)
         .usingRecursiveFieldByFieldElementComparatorIgnoringFields(ignoreFields(extraFieldsToIgnore))

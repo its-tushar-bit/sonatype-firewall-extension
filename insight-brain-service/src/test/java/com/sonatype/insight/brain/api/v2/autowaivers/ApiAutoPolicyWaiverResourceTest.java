@@ -79,7 +79,7 @@ public class ApiAutoPolicyWaiverResourceTest
     assertResponseStatus(204, response);
     assertThat(autoPolicyWaiverDAO.getById(autoPolicyWaiver.getId())).isNull();
 
-    //when feature flag is disabled
+    // when feature flag is disabled
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
 
     response = restRequest()
@@ -96,7 +96,8 @@ public class ApiAutoPolicyWaiverResourceTest
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
 
     HttpResponse response = restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/" + OWNERS_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId()).get();
+        .parameter(OwnerType.APPLICATION, application.getId())
+        .get();
 
     assertResponseStatus(200, response);
 
@@ -125,7 +126,8 @@ public class ApiAutoPolicyWaiverResourceTest
 
     HttpResponse response =
         restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/" + OWNERS_PATH)
-            .parameter(OwnerType.ORGANIZATION, organization.getId()).get();
+            .parameter(OwnerType.ORGANIZATION, organization.getId())
+            .get();
 
     assertResponseStatus(200, response);
 
@@ -332,7 +334,8 @@ public class ApiAutoPolicyWaiverResourceTest
 
     HttpResponse response =
         restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
-            .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId()).get();
+            .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId())
+            .get();
 
     assertResponseStatus(200, response);
 
@@ -357,7 +360,8 @@ public class ApiAutoPolicyWaiverResourceTest
 
     HttpResponse response =
         restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
-            .parameter(OwnerType.ORGANIZATION, organization.getId(), autoPolicyWaiver.getId()).get();
+            .parameter(OwnerType.ORGANIZATION, organization.getId(), autoPolicyWaiver.getId())
+            .get();
 
     assertResponseStatus(200, response);
 
@@ -437,7 +441,8 @@ public class ApiAutoPolicyWaiverResourceTest
 
     HttpResponse response =
         restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/" + BY_AUTO_POLICY_WAIVER_ID_PATH)
-            .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId()).get();
+            .parameter(OwnerType.APPLICATION, application.getId(), autoPolicyWaiver.getId())
+            .get();
 
     assertResponseStatus(HttpStatus.PAYMENT_REQUIRED_402, response);
   }
@@ -451,7 +456,8 @@ public class ApiAutoPolicyWaiverResourceTest
     Application application = tempEntity.newApplicationWithParent();
 
     HttpResponse response = restRequest().path(PublicApiPaths.AUTO_POLICY_WAIVER_PATH + "/" + OWNERS_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId()).get();
+        .parameter(OwnerType.APPLICATION, application.getId())
+        .get();
 
     assertResponseStatus(HttpStatus.PAYMENT_REQUIRED_402, response);
   }

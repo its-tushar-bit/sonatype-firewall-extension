@@ -30,8 +30,9 @@ public class ApplicationCountsDTO
     public ThreatCategoryApplicationCount() {
     }
 
-    public ThreatCategoryApplicationCount(int applicationsWithViolations,
-                                          int applicationsWithCriticalViolations)
+    public ThreatCategoryApplicationCount(
+        int applicationsWithViolations,
+        int applicationsWithCriticalViolations)
     {
       this.applicationsWithViolations = applicationsWithViolations;
       this.applicationsWithCriticalViolations = applicationsWithCriticalViolations;
@@ -46,13 +47,14 @@ public class ApplicationCountsDTO
     this.other = new ThreatCategoryApplicationCount();
   }
 
-  public ApplicationCountsDTO(int totalApplications,
-                              int activeApplications,
-                              ThreatCategoryApplicationCount total,
-                              ThreatCategoryApplicationCount security,
-                              ThreatCategoryApplicationCount license,
-                              ThreatCategoryApplicationCount quality,
-                              ThreatCategoryApplicationCount other)
+  public ApplicationCountsDTO(
+      int totalApplications,
+      int activeApplications,
+      ThreatCategoryApplicationCount total,
+      ThreatCategoryApplicationCount security,
+      ThreatCategoryApplicationCount license,
+      ThreatCategoryApplicationCount quality,
+      ThreatCategoryApplicationCount other)
   {
     this.totalApplications = totalApplications;
     this.activeApplications = activeApplications;

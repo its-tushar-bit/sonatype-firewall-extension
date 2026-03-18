@@ -16,12 +16,13 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApplicationRiskScoreDTOComparatorTest
 {
-  private ApplicationRiskScoreDTO newDTO(String applicationName,
-                                         int total,
-                                         int critical,
-                                         int severe,
-                                         int moderate,
-                                         int low)
+  private ApplicationRiskScoreDTO newDTO(
+      String applicationName,
+      int total,
+      int critical,
+      int severe,
+      int moderate,
+      int low)
   {
     ApplicationRiskScoreDTO dto = new ApplicationRiskScoreDTO("orgName", "orgId", applicationName, "test", "id");
     dto.totalApplicationRisk.totalRisk = total;
@@ -32,10 +33,11 @@ public class ApplicationRiskScoreDTOComparatorTest
     return dto;
   }
 
-  private void assertComparison(Comparator<ApplicationRiskScoreDTO> comparator,
-                                int expected,
-                                ApplicationRiskScoreDTO dto1,
-                                ApplicationRiskScoreDTO dto2)
+  private void assertComparison(
+      Comparator<ApplicationRiskScoreDTO> comparator,
+      int expected,
+      ApplicationRiskScoreDTO dto1,
+      ApplicationRiskScoreDTO dto2)
   {
     assertThat(comparator.compare(dto1, dto2)).isEqualTo(expected);
     assertThat(comparator.compare(dto2, dto1)).isEqualTo(-expected);
@@ -117,7 +119,8 @@ public class ApplicationRiskScoreDTOComparatorTest
   public void testCompare_InvalidOrderBy() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> assertComparison(new ApplicationRiskScoreDTOComparator("Invalid"), -1, newDTO("Name", 0, 0, 0, 0, 5),
-            newDTO("Name", 0, 0, 0, 0, 4))).withMessage("Invalid orderBy property.");
+            newDTO("Name", 0, 0, 0, 0, 4)))
+        .withMessage("Invalid orderBy property.");
   }
 
   @Test
@@ -130,6 +133,7 @@ public class ApplicationRiskScoreDTOComparatorTest
   public void testCompare_EmptyOrderBy() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> assertComparison(new ApplicationRiskScoreDTOComparator(""), 0, newDTO("Name", 0, 0, 0, 0, 5),
-            newDTO("Name1", 1, 1, 1, 1, 4))).withMessage("Invalid orderBy property.");
+            newDTO("Name1", 1, 1, 1, 1, 4)))
+        .withMessage("Invalid orderBy property.");
   }
 }

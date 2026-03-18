@@ -79,7 +79,8 @@ public class DataRetentionPolicyDAOTest
   @Test
   public void testDefaultPoliciesForRootOrganization() {
     assertThat(dao.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).values())
-        .extracting(DataRetentionPolicy::getContextId).containsExactlyInAnyOrder( //
+        .extracting(DataRetentionPolicy::getContextId)
+        .containsExactlyInAnyOrder( //
             Stage.ID_DEVELOP, //
             Stage.ID_SOURCE, //
             Stage.ID_BUILD, //
@@ -219,6 +220,7 @@ public class DataRetentionPolicyDAOTest
     DataRetentionPolicy policy3 = new DataRetentionPolicy(organization.getId(), "anotherContextId");
     dao.insert(policy3);
     assertThat(dao.getByOwnerIdAndContextId(organization.getId(), "contextId"))
-        .usingComparator(Comparator.comparing(DataRetentionPolicy::getId)).isEqualTo(policy2);
+        .usingComparator(Comparator.comparing(DataRetentionPolicy::getId))
+        .isEqualTo(policy2);
   }
 }

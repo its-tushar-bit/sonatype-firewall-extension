@@ -173,8 +173,9 @@ public class ApplicationComponentDAOTest
     String appId2 = tempEntity.newApplication(organization.getId()).getId();
     Set<String> largeIdList = new HashSet<>();
 
-    int threshold = isDatabaseEmbedded ?
-        ApplicationComponentDAO.H2_IN_OPERATOR_THRESHOLD : ApplicationComponentDAO.POSTGRES_IN_OPERATOR_THRESHOLD;
+    int threshold = isDatabaseEmbedded
+        ? ApplicationComponentDAO.H2_IN_OPERATOR_THRESHOLD
+        : ApplicationComponentDAO.POSTGRES_IN_OPERATOR_THRESHOLD;
     // make a collection of over 2000 ids.
     largeIdList.add(appId1);
     largeIdList.add(appId2);
@@ -212,11 +213,13 @@ public class ApplicationComponentDAOTest
       assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId3);
       components =
           dao.getByApplicationIdsAndStageTypeIdsSince(new HashSet<>(Arrays.asList(appId1, appId2)), stageTypeIds, date);
-      assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2,
-          componentId3);
+      assertThat(components).extracting(ApplicationComponent::getId)
+          .containsExactly(componentId1, componentId2,
+              componentId3);
       components = dao.getByApplicationIdsAndStageTypeIdsSince(largeIdList, stageTypeIds, date);
-      assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2,
-          componentId3);
+      assertThat(components).extracting(ApplicationComponent::getId)
+          .containsExactly(componentId1, componentId2,
+              componentId3);
     }
     else {
       List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIds(null, stageTypeIds);
@@ -226,16 +229,19 @@ public class ApplicationComponentDAOTest
       components = dao.getByApplicationIdsAndStageTypeIds(Collections.singleton("missing"), stageTypeIds);
       assertThat(components).isEmpty();
       components = dao.getByApplicationIdsAndStageTypeIds(Collections.singleton(appId1), stageTypeIds);
-      assertThat(components).extracting(ApplicationComponent::getId).containsExactlyInAnyOrder(componentId1,
-          componentId2);
+      assertThat(components).extracting(ApplicationComponent::getId)
+          .containsExactlyInAnyOrder(componentId1,
+              componentId2);
       components = dao.getByApplicationIdsAndStageTypeIds(Collections.singleton(appId2), stageTypeIds);
       assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId3);
       components = dao.getByApplicationIdsAndStageTypeIds(new HashSet<>(Arrays.asList(appId1, appId2)), stageTypeIds);
-      assertThat(components).extracting(ApplicationComponent::getId).containsExactlyInAnyOrder(componentId1,
-          componentId2, componentId3);
+      assertThat(components).extracting(ApplicationComponent::getId)
+          .containsExactlyInAnyOrder(componentId1,
+              componentId2, componentId3);
       components = dao.getByApplicationIdsAndStageTypeIds(largeIdList, stageTypeIds);
-      assertThat(components).extracting(ApplicationComponent::getId).containsExactlyInAnyOrder(componentId1,
-          componentId2, componentId3);
+      assertThat(components).extracting(ApplicationComponent::getId)
+          .containsExactlyInAnyOrder(componentId1,
+              componentId2, componentId3);
     }
   }
 
@@ -256,7 +262,8 @@ public class ApplicationComponentDAOTest
         new Date(date.getTime() + 3000)).getId();
     tempEntity
         .newApplicationComponent(tempEntity.newApplication(organization.getId()).getId(), ReleaseStageType.ID, "hash-4",
-            ComponentIdentifier.createMavenCoordinates("g", "a", "4"), null, MatchState.EXACT, false, date).getId();
+            ComponentIdentifier.createMavenCoordinates("g", "a", "4"), null, MatchState.EXACT, false, date)
+        .getId();
 
     Set<String> appIds = Collections.singleton(application.getId());
     List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, null, date);
@@ -274,8 +281,9 @@ public class ApplicationComponentDAOTest
     assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId2);
     components = dao.getByApplicationIdsAndStageTypeIdsSince(new HashSet<>(Arrays.asList(appId1, appId2)),
         new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)), date);
-    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2,
-        componentId3);
+    assertThat(components).extracting(ApplicationComponent::getId)
+        .containsExactly(componentId1, componentId2,
+            componentId3);
   }
 
   @Test
@@ -294,7 +302,7 @@ public class ApplicationComponentDAOTest
         ComponentIdentifier.createMavenCoordinates("g", "a", "3"), null, MatchState.EXACT, false,
         new Date(date.getTime() + 3000)).getId();
     tempEntity.newApplicationComponent(tempEntity.newApplication(organization.getId()).getId(), ReleaseStageType.ID,
-            "hash-4", ComponentIdentifier.createMavenCoordinates("g", "a", "4"), null, MatchState.EXACT, false, date)
+        "hash-4", ComponentIdentifier.createMavenCoordinates("g", "a", "4"), null, MatchState.EXACT, false, date)
         .getId();
 
     Set<String> appIds = Collections.singleton(application.getId());
@@ -313,8 +321,9 @@ public class ApplicationComponentDAOTest
     assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId2);
     components = dao.getByApplicationIdsAndStageTypeIds(new HashSet<>(Arrays.asList(appId1, appId2)),
         new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)));
-    assertThat(components).extracting(ApplicationComponent::getId).containsExactlyInAnyOrder(componentId1, componentId2,
-        componentId3);
+    assertThat(components).extracting(ApplicationComponent::getId)
+        .containsExactlyInAnyOrder(componentId1, componentId2,
+            componentId3);
   }
 
   @Test
@@ -363,8 +372,9 @@ public class ApplicationComponentDAOTest
     Set<String> appIds = new HashSet<>(Arrays.asList(appId1, appId2));
     Set<String> stageIds = new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID));
     List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, stageIds, date);
-    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2,
-        componentId3);
+    assertThat(components).extracting(ApplicationComponent::getId)
+        .containsExactly(componentId1, componentId2,
+            componentId3);
   }
 
   @Test
@@ -387,8 +397,9 @@ public class ApplicationComponentDAOTest
     Set<String> appIds = new HashSet<>(Arrays.asList(appId1, appId2));
     Set<String> stageIds = new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID));
     List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIds(appIds, stageIds);
-    assertThat(components).extracting(ApplicationComponent::getId).containsExactlyInAnyOrder(componentId1, componentId2,
-        componentId3);
+    assertThat(components).extracting(ApplicationComponent::getId)
+        .containsExactlyInAnyOrder(componentId1, componentId2,
+            componentId3);
   }
 
   @Test
@@ -423,7 +434,8 @@ public class ApplicationComponentDAOTest
 
     assertThat(aggregateFileDAO.getByApplicationComponentId(applicationComponent1.getId())).isEmpty();
     assertThat(aggregateFileDAO.getByApplicationComponentId(applicationComponent2.getId()))
-        .usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(aggregateFile3, aggregateFile4);
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(aggregateFile3, aggregateFile4);
   }
 
   @Test
@@ -576,13 +588,14 @@ public class ApplicationComponentDAOTest
         Sets.newHashSet(BuildStageType.ID, DevelopStageType.ID),
         true);
 
-    assertThat(result).isNotEmpty().containsExactlyInAnyOrder(
-        new Object[]{application.getId(), BuildStageType.ID},
-        new Object[]{otherApplication.getId(), BuildStageType.ID},
-        new Object[]{application.getId(), DevelopStageType.ID},
-        new Object[]{otherApplication.getId(), DevelopStageType.ID},
-        new Object[]{applicationNewParent.getId(), BuildStageType.ID},
-        new Object[]{applicationForRoot.getId(), DevelopStageType.ID});
+    assertThat(result).isNotEmpty()
+        .containsExactlyInAnyOrder(
+            new Object[]{application.getId(), BuildStageType.ID},
+            new Object[]{otherApplication.getId(), BuildStageType.ID},
+            new Object[]{application.getId(), DevelopStageType.ID},
+            new Object[]{otherApplication.getId(), DevelopStageType.ID},
+            new Object[]{applicationNewParent.getId(), BuildStageType.ID},
+            new Object[]{applicationForRoot.getId(), DevelopStageType.ID});
 
     result = dao.getApplicationIdsAndStageTypeIdsByReviewStatus(
         Sets.newHashSet(application.getId(), otherApplication.getId(), applicationNewParent.getId(),
@@ -590,8 +603,9 @@ public class ApplicationComponentDAOTest
         Sets.newHashSet(BuildStageType.ID, DevelopStageType.ID),
         false);
 
-    assertThat(result).isNotEmpty().containsExactlyInAnyOrder(
-        new Object[]{applicationWithoutReview.getId(), DevelopStageType.ID});
+    assertThat(result).isNotEmpty()
+        .containsExactlyInAnyOrder(
+            new Object[]{applicationWithoutReview.getId(), DevelopStageType.ID});
   }
 
   @Test
@@ -645,8 +659,8 @@ public class ApplicationComponentDAOTest
     assertThatThrownBy(() -> dao.getComponentsRiskFiltered(Set.of(application.getId()), Collections.emptySet(),
         Collections.emptySet(), new AbstractMap.SimpleEntry<>(0, 10), Collections.emptySet(),
         "score DESC", 0, 100))
-        .hasMessage("This operation is only supported for PostgreSQL databases")
-        .isInstanceOf(UnsupportedOperationException.class);
+            .hasMessage("This operation is only supported for PostgreSQL databases")
+            .isInstanceOf(UnsupportedOperationException.class);
   }
 
   @Test
@@ -670,7 +684,7 @@ public class ApplicationComponentDAOTest
         new AbstractMap.SimpleEntry<>(0, 10), Collections.emptySet(),
         "score DESC", 0, 100);
 
-    ApplicationComponentRisk expected = new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0);
+    ApplicationComponentRisk expected = new ApplicationComponentRisk("hash", null, "maven", null, 1, 5, 0, 5, 0, 0);
 
     assertApplicationComponentRisk(List.of(expected), result);
   }
@@ -722,15 +736,15 @@ public class ApplicationComponentDAOTest
 
     List<ApplicationComponentRisk> result = dao.getComponentsRiskFiltered(
         Set.of(application1.getId(), application2.getId()), Set.of(BuildStageType.ID, SourceStageType.ID,
-            ReleaseStageType.ID), Collections.emptySet(), new AbstractMap.SimpleEntry<>(0, 10), Collections.emptySet(),
+            ReleaseStageType.ID),
+        Collections.emptySet(), new AbstractMap.SimpleEntry<>(0, 10), Collections.emptySet(),
         "score DESC", 0, 100);
 
     List<ApplicationComponentRisk> expected = List.of(
-            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0)
-    );
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 10, 10, 0, 0, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 10, 10, 0, 0, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 5, 0, 5, 0, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 2, 0, 0, 2, 0));
 
     assertApplicationComponentRisk(expected, result);
   }
@@ -782,18 +796,18 @@ public class ApplicationComponentDAOTest
 
     List<ApplicationComponentRisk> result = dao.getComponentsRiskFiltered(
         Set.of(application1.getId(), application2.getId(), application3.getId()), Set.of(BuildStageType.ID,
-            SourceStageType.ID, ReleaseStageType.ID), Collections.emptySet(), new AbstractMap.SimpleEntry<>(0, 10),
+            SourceStageType.ID, ReleaseStageType.ID),
+        Collections.emptySet(), new AbstractMap.SimpleEntry<>(0, 10),
         Collections.emptySet(),
         "score DESC", 0, 100);
 
     List<ApplicationComponentRisk> expected = List.of(
-            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0)
-    );
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 10, 10, 0, 0, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 10, 10, 0, 0, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 5, 0, 5, 0, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 5, 0, 5, 0, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 2, 0, 0, 2, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 2, 0, 0, 2, 0));
 
     assertApplicationComponentRisk(expected, result);
   }
@@ -846,24 +860,25 @@ public class ApplicationComponentDAOTest
     List<ApplicationComponentRisk> result = dao.getComponentsRiskFiltered(
         Set.of(application1.getId(), application2.getId(), application3.getId()),
         Set.of(BuildStageType.ID, SourceStageType.ID,
-            ReleaseStageType.ID), Set.of(PolicyThreatCategory.SECURITY.getId()),
+            ReleaseStageType.ID),
+        Set.of(PolicyThreatCategory.SECURITY.getId()),
         new AbstractMap.SimpleEntry<>(0, 10), Collections.emptySet(), "score DESC", 0, 100);
 
     List<ApplicationComponentRisk> expected = List.of(
-            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0)
-    );
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 10, 10, 0, 0, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 10, 10, 0, 0, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 5, 0, 5, 0, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 5, 0, 5, 0, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 2, 0, 0, 2, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 2, 0, 0, 2, 0));
 
     assertApplicationComponentRisk(expected, result);
 
     result = dao.getComponentsRiskFiltered(
         Set.of(application1.getId(), application2.getId(), application3.getId()),
         Set.of(BuildStageType.ID, SourceStageType.ID,
-            ReleaseStageType.ID), Set.of(PolicyThreatCategory.LICENSE.getId()),
+            ReleaseStageType.ID),
+        Set.of(PolicyThreatCategory.LICENSE.getId()),
         new AbstractMap.SimpleEntry<>(0, 10), Collections.emptySet(), "score DESC", 0, 100);
 
     assertThat(result).hasSize(0);
@@ -917,27 +932,28 @@ public class ApplicationComponentDAOTest
     List<ApplicationComponentRisk> result = dao.getComponentsRiskFiltered(
         Set.of(application1.getId(), application2.getId(), application3.getId()),
         Set.of(BuildStageType.ID, SourceStageType.ID,
-            ReleaseStageType.ID), Collections.emptySet(), new AbstractMap.SimpleEntry<>(6, 10), Collections.emptySet(),
+            ReleaseStageType.ID),
+        Collections.emptySet(), new AbstractMap.SimpleEntry<>(6, 10), Collections.emptySet(),
         "score DESC", 0, 100);
 
     List<ApplicationComponentRisk> expected = List.of(
-            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,10,10,0,0,0));
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 10, 10, 0, 0, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 10, 10, 0, 0, 0));
 
     assertApplicationComponentRisk(expected, result);
 
     result = dao.getComponentsRiskFiltered(
         Set.of(application1.getId(), application2.getId(), application3.getId()),
         Set.of(BuildStageType.ID, SourceStageType.ID,
-            ReleaseStageType.ID), Collections.emptySet(), new AbstractMap.SimpleEntry<>(0, 5), Collections.emptySet(),
+            ReleaseStageType.ID),
+        Collections.emptySet(), new AbstractMap.SimpleEntry<>(0, 5), Collections.emptySet(),
         "score DESC", 0, 100);
 
     expected = List.of(
-            new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,5,0,5,0,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0),
-            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0)
-    );
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 5, 0, 5, 0, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 5, 0, 5, 0, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 2, 0, 0, 2, 0),
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 2, 0, 0, 2, 0));
 
     assertApplicationComponentRisk(expected, result);
   }
@@ -995,8 +1011,7 @@ public class ApplicationComponentDAOTest
         new AbstractMap.SimpleEntry<>(0, 10), Set.of("WAIVED"), "score DESC", 0, 100);
 
     List<ApplicationComponentRisk> expected = List.of(
-            new ApplicationComponentRisk("hash",null,"maven",null,1,2,0,0,2,0)
-    );
+        new ApplicationComponentRisk("hash", null, "maven", null, 1, 2, 0, 0, 2, 0));
 
     assertApplicationComponentRisk(expected, result);
 
@@ -1006,12 +1021,11 @@ public class ApplicationComponentDAOTest
         new AbstractMap.SimpleEntry<>(0, 10), Set.of("OPEN"), "score DESC", 0, 100);
 
     expected = List.of(
-            new ApplicationComponentRisk("hash-1",null,"maven",null,1,10,10,0,0,0),
-            new ApplicationComponentRisk("hash-2",null,"maven",null,1,10,10,0,0,0),
-            new ApplicationComponentRisk("hash-3",null,"maven",null,1,5,0,5,0,0),
-            new ApplicationComponentRisk("hash-5",null,"maven",null,1,5,0,5,0,0),
-            new ApplicationComponentRisk("hash-4",null,"maven",null,1,2,0,0,2,0)
-    );
+        new ApplicationComponentRisk("hash-1", null, "maven", null, 1, 10, 10, 0, 0, 0),
+        new ApplicationComponentRisk("hash-2", null, "maven", null, 1, 10, 10, 0, 0, 0),
+        new ApplicationComponentRisk("hash-3", null, "maven", null, 1, 5, 0, 5, 0, 0),
+        new ApplicationComponentRisk("hash-5", null, "maven", null, 1, 5, 0, 5, 0, 0),
+        new ApplicationComponentRisk("hash-4", null, "maven", null, 1, 2, 0, 0, 2, 0));
 
     assertApplicationComponentRisk(expected, result);
 
@@ -1021,35 +1035,33 @@ public class ApplicationComponentDAOTest
         new AbstractMap.SimpleEntry<>(0, 10), Set.of("LEGACY_VIOLATION"), "score DESC", 0, 100);
 
     expected = List.of(
-            new ApplicationComponentRisk(result.get(0).hash(),"unknown.jar","npm",null,1,3,0,0,3,0)
-    );
+        new ApplicationComponentRisk(result.get(0).hash(), "unknown.jar", "npm", null, 1, 3, 0, 0, 3, 0));
 
     assertApplicationComponentRisk(expected, result);
   }
 
   public void assertApplicationComponentRisk(
-          List<ApplicationComponentRisk> expected,
-          List<ApplicationComponentRisk> actual)
+      List<ApplicationComponentRisk> expected,
+      List<ApplicationComponentRisk> actual)
   {
     assertThat(actual).isNotNull();
     assertThat(actual).hasSize(expected.size());
     assertThat(actual).usingElementComparator((a, b) -> {
-      if (
-          Objects.equals(a.hash(), b.hash()) &&
+      if (Objects.equals(a.hash(), b.hash()) &&
           Objects.equals(a.componentIdFormat(), b.componentIdFormat()) &&
           Objects.equals(a.affectedApplications(), b.affectedApplications()) &&
           Objects.equals(a.score(), b.score()) &&
           Objects.equals(a.scoreCritical(), b.scoreCritical()) &&
           Objects.equals(a.scoreSevere(), b.scoreSevere()) &&
           Objects.equals(a.scoreModerate(), b.scoreModerate()) &&
-          Objects.equals(a.scoreLow(), b.scoreLow())
-      ) {
+          Objects.equals(a.scoreLow(), b.scoreLow()))
+      {
         return 0;
       }
 
-      return  -1;
+      return -1;
     })
-    .containsExactlyInAnyOrderElementsOf(expected);
+        .containsExactlyInAnyOrderElementsOf(expected);
   }
 
   public void assertApplicationComponent(ApplicationComponent expected, ApplicationComponent actual) {

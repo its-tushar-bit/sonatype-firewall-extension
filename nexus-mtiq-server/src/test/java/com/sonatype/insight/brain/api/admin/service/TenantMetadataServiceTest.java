@@ -128,8 +128,8 @@ public class TenantMetadataServiceTest
 
       assertThatThrownBy(
           () -> underTest.insertOrUpdateMetadata(expected, tenant.tenantSlug))
-          .withFailMessage("Tenant doesn't exist")
-          .isInstanceOf(NotFoundException.class);
+              .withFailMessage("Tenant doesn't exist")
+              .isInstanceOf(NotFoundException.class);
     });
   }
 
@@ -141,8 +141,8 @@ public class TenantMetadataServiceTest
     testAsGlobalTenant(tenant -> {
       assertThatThrownBy(
           () -> underTest.insertOrUpdateMetadata(expected, tenant.tenantSlug))
-          .withFailMessage("Invalid tenant")
-          .isInstanceOf(BadRequestException.class);
+              .withFailMessage("Invalid tenant")
+              .isInstanceOf(BadRequestException.class);
     });
   }
 }

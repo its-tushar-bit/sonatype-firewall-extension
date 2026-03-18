@@ -42,7 +42,7 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testGetConstraintDetailsForConstraints_AllSameId() {
-    //Setup
+    // Setup
     final ConstraintFact constraintFact1 = getConstraintFact("1", "Constraint 1",
         getSecurityStatusConditionFact("CVE-123"),
         getSecuritySeverityConditionFact("CVE-123"));
@@ -58,12 +58,12 @@ public class PullRequestDetailsBaseTest
     final ConstraintFact constraintFact4 = getConstraintFact("1", "Constraint 1",
         getIdentificationSourceConditionFact("Identification Reason"));
 
-    //When
+    // When
     final List<Map<String, Object>> results = PullRequestDetailsBase.getConstraintDetailsForConstraints(
         Lists.newArrayList(constraintFact1, constraintFact2, constraintFact3, constraintFact4), getBaseUrl(),
-        CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+        CONVERT_URLS, FULL_DATA, null /* unused */, null /* unused */);
 
-    //Then
+    // Then
     assertThat(results).hasSize(1);
     assertThat(results.get(0)).containsKeys("constraintName", "conditions");
     assertThat(results.get(0).get("constraintName")).isEqualTo("Constraint 1");
@@ -77,7 +77,7 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testGetConstraintDetailsForConstraints_DifferentIds() {
-    //Setup
+    // Setup
     final ConstraintFact constraintFact1 = getConstraintFact("1", "Constraint 1",
         getSecurityStatusConditionFact("CVE-123"),
         getSecuritySeverityConditionFact("CVE-123"));
@@ -93,12 +93,12 @@ public class PullRequestDetailsBaseTest
     final ConstraintFact constraintFact4 = getConstraintFact("2", "Constraint 2",
         getIdentificationSourceConditionFact("Identification Reason"));
 
-    //When
+    // When
     final List<Map<String, Object>> results = PullRequestDetailsBase.getConstraintDetailsForConstraints(
         Lists.newArrayList(constraintFact1, constraintFact2, constraintFact3, constraintFact4), getBaseUrl(),
-        CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+        CONVERT_URLS, FULL_DATA, null /* unused */, null /* unused */);
 
-    //Then
+    // Then
     assertThat(results).hasSize(2);
     assertThat(results.get(0)).containsKeys("constraintName", "conditions");
     assertThat(results.get(0).get("constraintName")).isEqualTo("Constraint 1");
@@ -110,16 +110,17 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testGetConstraintDetailsForConstraints_SingleConstraint() {
-    //Setup
+    // Setup
     final ConstraintFact constraintFact1 = getConstraintFact("1", "Constraint 1",
         getSecurityStatusConditionFact("CVE-123"),
         getSecuritySeverityConditionFact("CVE-123"));
 
-    //When
+    // When
     final List<Map<String, Object>> results = PullRequestDetailsBase.getConstraintDetailsForConstraints(
-        Lists.newArrayList(constraintFact1), getBaseUrl(), CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+        Lists.newArrayList(constraintFact1), getBaseUrl(), CONVERT_URLS, FULL_DATA, null /* unused */,
+        null /* unused */);
 
-    //Then
+    // Then
     assertThat(results).hasSize(1);
     assertThat(results.get(0)).containsKeys("constraintName", "conditions");
     assertThat(results.get(0).get("constraintName")).isEqualTo("Constraint 1");
@@ -128,24 +129,25 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testGetConstraintDetailsForConstraints_NoConstraint() {
-    //When
+    // When
     final List<Map<String, Object>> results = PullRequestDetailsBase.getConstraintDetailsForConstraints(
-        Lists.newArrayList(), getBaseUrl(), CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+        Lists.newArrayList(), getBaseUrl(), CONVERT_URLS, FULL_DATA, null /* unused */, null /* unused */);
 
-    //Then
+    // Then
     assertThat(results).isEmpty();
   }
 
   @Test
   public void testGetConstraintDetailsForConstraints_EmptyConditions() {
-    //Setup
+    // Setup
     final ConstraintFact constraintFact1 = getConstraintFact("1", "Constraint 1");
 
-    //When
+    // When
     final List<Map<String, Object>> results = PullRequestDetailsBase.getConstraintDetailsForConstraints(
-        Lists.newArrayList(constraintFact1), getBaseUrl(), CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+        Lists.newArrayList(constraintFact1), getBaseUrl(), CONVERT_URLS, FULL_DATA, null /* unused */,
+        null /* unused */);
 
-    //Then
+    // Then
     assertThat(results).hasSize(1);
     assertThat(results.get(0)).containsKeys("constraintName", "conditions");
     assertThat(results.get(0).get("constraintName")).isEqualTo("Constraint 1");
@@ -154,15 +156,16 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testGetConstraintDetailsForConstraints_NullConditions() {
-    //Setup
+    // Setup
     final ConstraintFact constraintFact1 = getConstraintFact("1", "Constraint 1");
     constraintFact1.setConditionFacts(null);
 
-    //When
+    // When
     final List<Map<String, Object>> results = PullRequestDetailsBase.getConstraintDetailsForConstraints(
-        Lists.newArrayList(constraintFact1), getBaseUrl(), CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+        Lists.newArrayList(constraintFact1), getBaseUrl(), CONVERT_URLS, FULL_DATA, null /* unused */,
+        null /* unused */);
 
-    //Then
+    // Then
     assertThat(results).hasSize(1);
     assertThat(results.get(0)).containsKeys("constraintName", "conditions");
     assertThat(results.get(0).get("constraintName")).isEqualTo("Constraint 1");
@@ -171,7 +174,7 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testGetConstraintConditionSummaries_AllSameId() {
-    //Setup
+    // Setup
     final ConstraintFact constraintFact1 = getConstraintFact("1", "Constraint 1",
         getSecurityStatusConditionFact("CVE-123"),
         getSecuritySeverityConditionFact("CVE-123"));
@@ -187,12 +190,12 @@ public class PullRequestDetailsBaseTest
     final ConstraintFact constraintFact4 = getConstraintFact("1", "Constraint 1",
         getIdentificationSourceConditionFact("Identification Reason"));
 
-    //When
+    // When
     final List<String> results = PullRequestDetailsBase.getConstraintConditionSummaries(
         Lists.newArrayList(constraintFact1, constraintFact2, constraintFact3, constraintFact4), getBaseUrl(),
-        CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+        CONVERT_URLS, FULL_DATA, null /* unused */, null /* unused */);
 
-    //Then
+    // Then
     assertThat(results).hasSize(4);
     assertThat(results).contains("Identification Reason", "Licence Reason", "Label Reason");
     assertThat(results.get(0)).startsWith("Found 2 security vulnerabilities");
@@ -200,7 +203,7 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testGetConstraintConditionSummaries_DifferentIds() {
-    //Setup
+    // Setup
     final ConstraintFact constraintFact1 = getConstraintFact("1", "Constraint 1",
         getSecurityStatusConditionFact("CVE-123"),
         getSecuritySeverityConditionFact("CVE-123"));
@@ -216,12 +219,12 @@ public class PullRequestDetailsBaseTest
     final ConstraintFact constraintFact4 = getConstraintFact("2", "Constraint 2",
         getIdentificationSourceConditionFact("Identification Reason"));
 
-    //When
+    // When
     final List<String> results = PullRequestDetailsBase.getConstraintConditionSummaries(
         Lists.newArrayList(constraintFact1, constraintFact2, constraintFact3, constraintFact4), getBaseUrl(),
-        CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+        CONVERT_URLS, FULL_DATA, null /* unused */, null /* unused */);
 
-    //Then
+    // Then
     assertThat(results).hasSize(4);
     assertThat(results).contains("Identification Reason", "Licence Reason", "Label Reason");
     assertThat(results.get(0)).startsWith("Found 2 security vulnerabilities");
@@ -229,68 +232,71 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testGetConstraintConditionSummaries_SingleConstraint() {
-    //Setup
+    // Setup
     final ConstraintFact constraintFact1 = getConstraintFact("1", "Constraint 1",
         getSecurityStatusConditionFact("CVE-123"),
         getSecuritySeverityConditionFact("CVE-123"));
 
-    //When
+    // When
     final List<String> results = PullRequestDetailsBase.getConstraintConditionSummaries(
-        Lists.newArrayList(constraintFact1), getBaseUrl(), CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+        Lists.newArrayList(constraintFact1), getBaseUrl(), CONVERT_URLS, FULL_DATA, null /* unused */,
+        null /* unused */);
 
-    //Then
+    // Then
     assertThat(results).hasSize(1);
     assertThat(results.get(0)).startsWith("Found 1 security vulnerability");
   }
 
   @Test
   public void testGetConstraintConditionSummaries_NoConstraint() {
-    //When
+    // When
     final List<String> results = PullRequestDetailsBase.getConstraintConditionSummaries(Lists.newArrayList(),
-        getBaseUrl(), CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+        getBaseUrl(), CONVERT_URLS, FULL_DATA, null /* unused */, null /* unused */);
 
-    //Then
+    // Then
     assertThat(results).isEmpty();
   }
 
   @Test
   public void testGetConstraintConditionSummaries_EmptyConditions() {
-    //Setup
+    // Setup
     final ConstraintFact constraintFact1 = getConstraintFact("1", "Constraint 1");
 
-    //When
+    // When
     final List<String> results = PullRequestDetailsBase.getConstraintConditionSummaries(
-        Lists.newArrayList(constraintFact1), getBaseUrl(), CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+        Lists.newArrayList(constraintFact1), getBaseUrl(), CONVERT_URLS, FULL_DATA, null /* unused */,
+        null /* unused */);
 
-    //Then
+    // Then
     assertThat(results).isEmpty();
   }
 
   @Test
   public void testGetConstraintConditionSummaries_NullConditions() {
-    //Setup
+    // Setup
     final ConstraintFact constraintFact1 = getConstraintFact("1", "Constraint 1");
     constraintFact1.setConditionFacts(null);
 
-    //When
+    // When
     final List<String> results = PullRequestDetailsBase.getConstraintConditionSummaries(
-        Lists.newArrayList(constraintFact1), getBaseUrl(), CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+        Lists.newArrayList(constraintFact1), getBaseUrl(), CONVERT_URLS, FULL_DATA, null /* unused */,
+        null /* unused */);
 
-    //Then
+    // Then
     assertThat(results).isEmpty();
   }
 
   @Test
   public void testGetViolationSummaryForSecurityConditions_StatusOnly() {
-    //Setup
+    // Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact("CVE-123-123");
 
-    //when
+    // when
     final Optional<String> result = PullRequestDetailsBase
         .getViolationSummaryForSecurityConditions(Lists.newArrayList(statusConditionFact), getBaseUrl(), CONVERT_URLS,
-            FULL_DATA, null /*unused*/, null /*unused*/);
+            FULL_DATA, null /* unused */, null /* unused */);
 
-    //then
+    // then
     assertThat(result).isNotEmpty();
     assertThat(result.get())
         .isEqualTo("Found 1 security vulnerability: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123)");
@@ -298,15 +304,15 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testGetViolationSummaryForSecurityConditions_SeverityOnly() {
-    //Setup
+    // Setup
     final ConditionFact severityConditionFact = getSecuritySeverityConditionFact("CVE-123-123");
 
-    //when
+    // when
     final Optional<String> result = PullRequestDetailsBase
         .getViolationSummaryForSecurityConditions(Lists.newArrayList(severityConditionFact), getBaseUrl(), CONVERT_URLS,
-            FULL_DATA, null /*unused*/, null /*unused*/);
+            FULL_DATA, null /* unused */, null /* unused */);
 
-    //then
+    // then
     assertThat(result).isNotEmpty();
     assertThat(result.get())
         .isEqualTo("Found 1 security vulnerability: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123)");
@@ -314,16 +320,16 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testGetViolationSummaryForSecurityConditions_StatusAndSeverity() {
-    //Setup
+    // Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact("CVE-123-123");
     final ConditionFact severityConditionFact = getSecuritySeverityConditionFact("CVE-123-123");
 
-    //when
+    // when
     final Optional<String> result = PullRequestDetailsBase
         .getViolationSummaryForSecurityConditions(Lists.newArrayList(statusConditionFact, severityConditionFact),
-            getBaseUrl(), CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+            getBaseUrl(), CONVERT_URLS, FULL_DATA, null /* unused */, null /* unused */);
 
-    //then
+    // then
     assertThat(result).isNotEmpty();
     assertThat(result.get())
         .isEqualTo("Found 1 security vulnerability: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123)");
@@ -331,18 +337,18 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testGetViolationSummaryForSecurityConditions_StatusAndBoth() {
-    //Setup
+    // Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact("CVE-123-123");
     final ConditionFact statusConditionFact2 = getSecurityStatusConditionFact("CVE-456-456");
     final ConditionFact severityConditionFact = getSecuritySeverityConditionFact("CVE-123-123");
 
-    //when
+    // when
     final Optional<String> result = PullRequestDetailsBase
         .getViolationSummaryForSecurityConditions(
             Lists.newArrayList(statusConditionFact, statusConditionFact2, severityConditionFact), getBaseUrl(),
-            CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+            CONVERT_URLS, FULL_DATA, null /* unused */, null /* unused */);
 
-    //then
+    // then
     assertThat(result).isNotEmpty();
     assertThat(result.get()).isEqualTo(
         "Found 2 security vulnerabilities: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123), " +
@@ -351,18 +357,18 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testGetViolationSummaryForSecurityConditions_SeverityAndBoth() {
-    //Setup
+    // Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact("CVE-123-123");
     final ConditionFact severityConditionFact = getSecuritySeverityConditionFact("CVE-123-123");
     final ConditionFact severityConditionFact2 = getSecurityStatusConditionFact("CVE-456-456");
 
-    //when
+    // when
     final Optional<String> result = PullRequestDetailsBase
         .getViolationSummaryForSecurityConditions(
             Lists.newArrayList(statusConditionFact, severityConditionFact, severityConditionFact2), getBaseUrl(),
-            CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+            CONVERT_URLS, FULL_DATA, null /* unused */, null /* unused */);
 
-    //then
+    // then
     assertThat(result).isNotEmpty();
     assertThat(result.get()).isEqualTo(
         "Found 2 security vulnerabilities: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123), " +
@@ -371,19 +377,19 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testGetViolationSummaryForSecurityConditions_BothAndBoth() {
-    //Setup
+    // Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact("CVE-123-123");
     final ConditionFact statusConditionFact2 = getSecurityStatusConditionFact("CVE-456-456");
     final ConditionFact severityConditionFact = getSecuritySeverityConditionFact("CVE-123-123");
     final ConditionFact severityConditionFact2 = getSecurityStatusConditionFact("CVE-456-456");
 
-    //when
+    // when
     final Optional<String> result = PullRequestDetailsBase
         .getViolationSummaryForSecurityConditions(Lists
-                .newArrayList(statusConditionFact, statusConditionFact2, severityConditionFact, severityConditionFact2),
-            getBaseUrl(), CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+            .newArrayList(statusConditionFact, statusConditionFact2, severityConditionFact, severityConditionFact2),
+            getBaseUrl(), CONVERT_URLS, FULL_DATA, null /* unused */, null /* unused */);
 
-    //then
+    // then
     assertThat(result).isNotEmpty();
     assertThat(result.get()).isEqualTo(
         "Found 2 security vulnerabilities: [CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123), " +
@@ -392,12 +398,12 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testGetViolationSummaryForSecurityConditions_Empty() {
-    //when
+    // when
     final Optional<String> result =
         PullRequestDetailsBase.getViolationSummaryForSecurityConditions(Lists.newArrayList(), getBaseUrl(),
-            CONVERT_URLS, FULL_DATA, null /*unused*/, null /*unused*/);
+            CONVERT_URLS, FULL_DATA, null /* unused */, null /* unused */);
 
-    //then
+    // then
     assertThat(result).isEmpty();
   }
 
@@ -406,7 +412,7 @@ public class PullRequestDetailsBaseTest
     // when
     final String result = PullRequestDetailsBase.getSecurityPrefix(Lists.newArrayList(""));
 
-    //then
+    // then
     assertThat(result).isEqualTo("Found 1 security vulnerability:");
   }
 
@@ -415,7 +421,7 @@ public class PullRequestDetailsBaseTest
     // when
     final String result = PullRequestDetailsBase.getSecurityPrefix(Lists.newArrayList("", ""));
 
-    //then
+    // then
     assertThat(result).isEqualTo("Found 2 security vulnerabilities:");
   }
 
@@ -424,7 +430,7 @@ public class PullRequestDetailsBaseTest
     // when
     final String result = PullRequestDetailsBase.getSecurityPrefix(Lists.newArrayList());
 
-    //then
+    // then
     assertThat(result).isEqualTo("");
   }
 
@@ -485,107 +491,107 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testMaybeApplyCVEUrl_CVE() {
-    //Setup
+    // Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact("CVE-123-123");
 
-    //when
+    // when
     final String result = PullRequestDetailsBase
         .maybeApplyCVEUrl(statusConditionFact, getBaseUrl(), CONVERT_URLS);
 
-    //then
+    // then
     assertThat(result).isEqualTo("[CVE-123-123](http://localhost:1122/ui/links/vln/CVE-123-123)");
   }
 
   @Test
   public void testMaybeApplyCVEUrl_CVE_DoNotConvert() {
-    //Setup
+    // Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact("CVE-123-123");
 
-    //when - we pass in false for the URL conversion
+    // when - we pass in false for the URL conversion
     final String result = PullRequestDetailsBase.maybeApplyCVEUrl(statusConditionFact, getBaseUrl(), false);
 
-    //then - URL conversion does not occur
+    // then - URL conversion does not occur
     assertThat(result).isEqualTo("CVE-123-123");
   }
 
   @Test
   public void testMaybeApplyCVEUrl_SonatypeCapitals() {
-    //Setup
+    // Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact("SONATYPE-123-123");
 
-    //when
+    // when
     final String result = PullRequestDetailsBase
         .maybeApplyCVEUrl(statusConditionFact, getBaseUrl(), CONVERT_URLS);
 
-    //then
+    // then
     assertThat(result).isEqualTo("[SONATYPE-123-123](http://localhost:1122/ui/links/vln/SONATYPE-123-123)");
   }
 
   @Test
   public void testMaybeApplyCVEUrl_SonatypeLower() {
-    //Setup
+    // Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact("sonatype-123-123");
 
-    //when
+    // when
     final String result =
         PullRequestDetailsBase.maybeApplyCVEUrl(statusConditionFact, getBaseUrl(), CONVERT_URLS);
 
-    //then
+    // then
     assertThat(result).isEqualTo("[sonatype-123-123](http://localhost:1122/ui/links/vln/sonatype-123-123)");
   }
 
   @Test
   public void testMaybeApplyCVEUrl_NoMatch() {
-    //Setup
+    // Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact("invalid-cve");
 
-    //when
+    // when
     final String result =
         PullRequestDetailsBase.maybeApplyCVEUrl(statusConditionFact, getBaseUrl(), CONVERT_URLS);
 
-    //then
+    // then
     assertThat(result).isEqualTo("invalid-cve");
   }
 
   @Test
   public void testMaybeApplyCVEUrl_NullReference() {
-    //Setup
+    // Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact(null);
     statusConditionFact.setReference(null);
 
-    //when
+    // when
     final String result =
         PullRequestDetailsBase.maybeApplyCVEUrl(statusConditionFact, getBaseUrl(), CONVERT_URLS);
 
-    //then
+    // then
     assertThat(result).isNull();
   }
 
   @Test
   public void testMaybeApplyCVEUrl_NullReferenceValue() {
-    //Setup
+    // Setup
     final ConditionFact statusConditionFact = getSecurityStatusConditionFact(null);
 
-    //when
+    // when
     final String result =
         PullRequestDetailsBase.maybeApplyCVEUrl(statusConditionFact, getBaseUrl(), CONVERT_URLS);
 
-    //then
+    // then
     assertThat(result).isNull();
   }
 
   @Test
   public void testGetConstraintConditionSummaries_ReducedSecurityData_SingleCVE() {
-    //Setup
+    // Setup
     final ConstraintFact constraintFact1 = getConstraintFact("1", "Constraint 1",
         getSecurityStatusConditionFact("CVE-123"),
         getSecuritySeverityConditionFact("CVE-123"));
 
-    //When - pass in true for reduced security data
+    // When - pass in true for reduced security data
     final List<String> results = PullRequestDetailsBase.getConstraintConditionSummaries(
         Lists.newArrayList(constraintFact1), getBaseUrl(), CONVERT_URLS, true, "public_id", "scan_id");
 
-    //Then
+    // Then
     assertThat(results).hasSize(1);
     assertThat(results.get(0)).isEqualTo("Found 1 security vulnerability: " +
         "<a href=\"http://localhost:1122/ui/links/application/public_id/report/scan_id\">View Details</a>.");
@@ -593,7 +599,7 @@ public class PullRequestDetailsBaseTest
 
   @Test
   public void testGetConstraintConditionSummaries_ReducedSecurityData_MultipleCVE() {
-    //Setup
+    // Setup
     final ConstraintFact constraintFact1 = getConstraintFact("1", "Constraint 1",
         getSecurityStatusConditionFact("CVE-123"),
         getSecuritySeverityConditionFact("CVE-123"));
@@ -602,11 +608,11 @@ public class PullRequestDetailsBaseTest
         getSecurityStatusConditionFact("CVE-456"),
         getSecuritySeverityConditionFact("CVE-456"));
 
-    //When - pass in true for reduced security data
+    // When - pass in true for reduced security data
     final List<String> results = PullRequestDetailsBase.getConstraintConditionSummaries(
         Lists.newArrayList(constraintFact1, constraintFact2), getBaseUrl(), CONVERT_URLS, true, "public_id", "scan_id");
 
-    //Then
+    // Then
     assertThat(results).hasSize(1);
     assertThat(results.get(0)).isEqualTo("Found 2 security vulnerabilities: " +
         "<a href=\"http://localhost:1122/ui/links/application/public_id/report/scan_id\">View Details</a>.");

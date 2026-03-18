@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.telemetry;
+
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -18,7 +19,8 @@ import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastl
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 
 @Category(SlowTest.class)
-public class MultiTenantRealmTelemetryCollectorFIPSTest extends MultiTenantRealmTelemetryCollectorTest
+public class MultiTenantRealmTelemetryCollectorFIPSTest
+    extends MultiTenantRealmTelemetryCollectorTest
 {
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();

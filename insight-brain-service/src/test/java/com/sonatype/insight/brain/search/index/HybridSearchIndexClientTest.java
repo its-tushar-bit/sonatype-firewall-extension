@@ -96,8 +96,7 @@ public class HybridSearchIndexClientTest
         .thenThrow(new RuntimeException("Secondary client error"));
 
     // When/Then
-    assertThatThrownBy(() ->
-        hybridClient.searchIndex("test", 10, 0, false, false, Collections.emptyList()))
+    assertThatThrownBy(() -> hybridClient.searchIndex("test", 10, 0, false, false, Collections.emptyList()))
         .isInstanceOf(SearchIndexException.class)
         .hasMessageContaining("Search failed on both primary and secondary clients");
   }
@@ -262,8 +261,7 @@ public class HybridSearchIndexClientTest
     // Create a small number of changes (well under the 10000 limit)
     List<SearchIndexChange> changes = Arrays.asList(
         new SearchIndexChange(),
-        new SearchIndexChange()
-    );
+        new SearchIndexChange());
 
     when(mockPrimaryAbstract.getSearchIndexChanges()).thenReturn(changes);
     doThrow(new RuntimeException("Primary update failed")).when(mockPrimaryAbstract).updateIndex(anyList(), any());

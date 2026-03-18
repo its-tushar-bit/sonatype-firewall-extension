@@ -33,7 +33,8 @@ import org.junit.experimental.categories.Category;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTest.class)
-public class SbomDashboardServiceAuthzTest extends AbstractServiceAuthzTest
+public class SbomDashboardServiceAuthzTest
+    extends AbstractServiceAuthzTest
 {
   @Inject
   private SbomDashboardService service;
@@ -155,7 +156,7 @@ public class SbomDashboardServiceAuthzTest extends AbstractServiceAuthzTest
 
     tempEntity
         .newThirdPartyCoordinateSecurity(coordinate2, "r2", sbomMetadata2.getId(), "d2", "l2",
-        10, CvssV3Severity.HIGH.getDisplayName(), "f2");
+            10, CvssV3Severity.HIGH.getDisplayName(), "f2");
 
     ReleaseStatusDTO results = service.getSbomReleaseStatus();
 
@@ -259,7 +260,7 @@ public class SbomDashboardServiceAuthzTest extends AbstractServiceAuthzTest
         tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s1", "f1", "n1", "v1", "", "");
 
     ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1,
-        "r1", sbomMetadata.getId(),"d1", "l1", CvssV3Severity.LOW.getStartScoreRange(),
+        "r1", sbomMetadata.getId(), "d1", "l1", CvssV3Severity.LOW.getStartScoreRange(),
         CvssV3Severity.LOW.getDisplayName(), "f1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity1, coordinateSecurity1.getRefId(),
         "state", "justification", "response", "detail");

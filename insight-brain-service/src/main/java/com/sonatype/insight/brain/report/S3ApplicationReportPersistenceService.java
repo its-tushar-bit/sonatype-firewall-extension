@@ -98,9 +98,9 @@ public class S3ApplicationReportPersistenceService
     /**
      * Cached metadata for this entity to reduce S3 API calls.
      * <ul>
-     *   <li>{@code null} - metadata has not been fetched yet</li>
-     *   <li>{@link Optional#empty()} - entity does not exist in S3</li>
-     *   <li>{@link Optional#of(Metadata)} - entity exists with the cached metadata</li>
+     * <li>{@code null} - metadata has not been fetched yet</li>
+     * <li>{@link Optional#empty()} - entity does not exist in S3</li>
+     * <li>{@link Optional#of(Metadata)} - entity exists with the cached metadata</li>
      * </ul>
      */
     private volatile Optional<Metadata> metadata;
@@ -181,8 +181,9 @@ public class S3ApplicationReportPersistenceService
 
     @Override
     @SuppressWarnings("OptionalAssignedToNull")
-    public Optional<Metadata> getMetadata(final MetadataSource source, final MetadataAttribute... metadataAttributes)
-        throws IOException
+    public Optional<Metadata> getMetadata(
+        final MetadataSource source,
+        final MetadataAttribute... metadataAttributes) throws IOException
     {
       if (source == MetadataSource.CACHED && metadata != null) {
         return metadata;
@@ -202,8 +203,7 @@ public class S3ApplicationReportPersistenceService
           s3AsyncClient,
           key.toString(),
           s3DataStoreConfig.getBucketName(),
-          s3DataStoreConfig.getServerSideEncryption()
-      );
+          s3DataStoreConfig.getServerSideEncryption());
     }
 
     @Override
@@ -316,9 +316,7 @@ public class S3ApplicationReportPersistenceService
         additionalEntities.stream(),
         Stream.concat(
             localEntities.stream(),
-            getOriginalEntities(applicationId, scanId, namesAlreadySeen)
-        )
-    );
+            getOriginalEntities(applicationId, scanId, namesAlreadySeen)));
   }
 
   @Override
@@ -422,7 +420,8 @@ public class S3ApplicationReportPersistenceService
   @Trace
   public boolean reportExists(final String applicationId, final String scanId) throws IOException {
     try (var objects = S3Utils.getS3Objects(s3Client, s3DataStoreConfig.getBucketName(),
-        s3DataStoreConfig.getObjectKeyPrefix() + String.format(BASE_FORMAT, applicationId, scanId))) {
+        s3DataStoreConfig.getObjectKeyPrefix() + String.format(BASE_FORMAT, applicationId, scanId)))
+    {
       Set<S3Object> s3Objects = objects.collect(Collectors.toSet());
       if (s3Objects.stream().anyMatch(s3Object -> s3Object.key().endsWith(CopyStorageService.COPY_MARKER))) {
         return false;
@@ -505,7 +504,7 @@ public class S3ApplicationReportPersistenceService
     {
       boolean copied = false;
     };
-    
+
     var request = CopyObjectRequest.builder()
         .sourceBucket(s3DataStoreConfig.getBucketName())
         .sourceKey(getOriginalKey(applicationId, scanId, name).toString())
@@ -562,7 +561,8 @@ public class S3ApplicationReportPersistenceService
         .build();
 
     try (InputStream zipInputStream = wrapS3Exception(() -> s3Client.getObject(getRequest));
-         ZipInputStream zis = new ZipInputStream(zipInputStream)) {
+        ZipInputStream zis = new ZipInputStream(zipInputStream))
+    {
 
       ZipEntry entry;
       while ((entry = zis.getNextEntry()) != null) {
@@ -606,8 +606,10 @@ public class S3ApplicationReportPersistenceService
 
   @Override
   @Trace
-  public void moveReport(final String appId, final String sourceScanId, final String destinationScanId)
-      throws IOException
+  public void moveReport(
+      final String appId,
+      final String sourceScanId,
+      final String destinationScanId) throws IOException
   {
     deleteReport(appId, destinationScanId);
     Set<S3Object> s3Objects;
@@ -686,16 +688,16 @@ public class S3ApplicationReportPersistenceService
     String prefix = s3DataStoreConfig.getObjectKeyPrefix() + KEY_PREFIX.formatted(applicationId, scanId);
     return getEntities(
         prefix,
-        key -> getOriginalKey(applicationId, scanId, StringUtils.removeStart(key, prefix))
-    ).filter(entity -> !excludeNames.contains(entity.getName()));
+        key -> getOriginalKey(applicationId, scanId, StringUtils.removeStart(key, prefix)))
+            .filter(entity -> !excludeNames.contains(entity.getName()));
   }
 
   /**
    * @return a Stream of S3ReportEntity objects for all objects in the specified keySubPrefix under the keyPrefix
-   * instance variable.
+   *         instance variable.
    *
    * @param keyParser a function that takes a full S3 key string starting with the prefix and returns a parsed
-   * S3ObjectKey
+   *          S3ObjectKey
    */
   private Stream<S3ReportEntity> getEntities(
       final String prefix,
@@ -706,8 +708,7 @@ public class S3ApplicationReportPersistenceService
           // Extract metadata from ListObjectsV2 response to avoid additional headObject calls
           Metadata metadata = new Metadata(
               s3Object.lastModified().toEpochMilli(),
-              s3Object.size()
-          );
+              s3Object.size());
           return new S3ReportEntity(keyParser.apply(s3Object.key()), Optional.of(metadata));
         });
   }

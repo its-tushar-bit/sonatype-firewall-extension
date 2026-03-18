@@ -70,12 +70,15 @@ public class SuccessMetricsIncludeLatestDataTest
     addSuccessMetricsModal.name().setValue("Test Latest Data");
     addSuccessMetricsModal.byMostRecentWarning().shouldBe(hidden);
     addSuccessMetricsModal.includingMostRecentEvaluations().shouldNotBe(selected).click();
-    addSuccessMetricsModal.byMostRecentWarning().shouldBe(visible)
+    addSuccessMetricsModal.byMostRecentWarning()
+        .shouldBe(visible)
         .shouldHave(AddSuccessMetricsModal.ON_LOAD_WARNING_TEXT);
     addSuccessMetricsModal.createBtn().click();
 
     successMetricsReportListPage.reports().shouldHave(size(1));
-    successMetricsReportListPage.report(0).shouldHave(text("Test Latest Data")).link()
+    successMetricsReportListPage.report(0)
+        .shouldHave(text("Test Latest Data"))
+        .link()
         .click();
 
     successMetricsChartsPage.shouldBe(visible);

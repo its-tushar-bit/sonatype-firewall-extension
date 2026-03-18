@@ -52,13 +52,13 @@ public class ApiEndpointsResource
   @GET
   @Path(ENDPOINT_TYPE_RESOURCE_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Operation(description =
-      "Use this method to retrieve the OpenAPI documentation for the specified type of IQ Server " +
+  @Operation(
+      description = "Use this method to retrieve the OpenAPI documentation for the specified type of IQ Server " +
           "REST API.",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the OpenAPI documentation.",
-              useReturnTypeSchema = true)
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the OpenAPI documentation.",
+            useReturnTypeSchema = true)
       })
   public String getOpenAPI(
       @Context final Application application,
@@ -67,8 +67,7 @@ public class ApiEndpointsResource
           "<li> `public` APIs are Generally Available and fully supported by Sonatype.</li>" +
           "<li> `experimental` APIs are not production " +
           "ready, may change, and are not intended to be used in critical workloads.</li>" +
-          "</ul>")
-      @PathParam("apiType") final ApiType apiType)
+          "</ul>") @PathParam("apiType") final ApiType apiType)
   {
     return apiEndpointsService.getOpenAPI(application, apiType);
   }

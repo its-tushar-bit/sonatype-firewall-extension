@@ -59,7 +59,7 @@ public class ApiRepositoryPathService
     log.debug("Getting unquarantined component paths for repository {}:{} ({}), since {}.", repositoryManagerInstanceId,
         repositoryPublicId, repository.getId(), pathnames);
     validateIsProxyRepository(repository);
-    
+
     ApiRepositoryPathResponseDTO repositoryPathResponse = new ApiRepositoryPathResponseDTO();
     if (pathnames == null) {
       return repositoryPathResponse;
@@ -72,14 +72,15 @@ public class ApiRepositoryPathService
       ApiRepositoryPathVersions pathVersions = new ApiRepositoryPathVersions();
       pathVersions.requestIndex = index;
       for (RepositoryComponent matchedRepositoryPath : getComponentsAtPath(repository.getFormat(),
-          quarantinedComponents, path)) {
+          quarantinedComponents, path))
+      {
         ApiRepositoryComponentPath repositoryPathStatus = new ApiRepositoryComponentPath();
         repositoryPathStatus.quarantine = true;
         repositoryPathStatus.pathname = matchedRepositoryPath.getPathname();
         pathVersions.repositoryComponentPaths.add(repositoryPathStatus);
       }
       repositoryPathResponse.pathVersions.add(pathVersions);
-      index++;      
+      index++;
     }
     return repositoryPathResponse;
   }
@@ -93,8 +94,10 @@ public class ApiRepositoryPathService
     if (ComponentIdentifier.FORMAT_NPM.equals(format)) {
       if (path.matches(".+/-/.+")) {
         final String searchPath = extractNpmPath(AbstractRepositoryService.normalizePathname(path));
-        matchedComponents = quarantinedComponents.stream().filter(
-            component -> extractNpmPath(component.getPathname()).equals(searchPath)).collect(Collectors.toList());
+        matchedComponents = quarantinedComponents.stream()
+            .filter(
+                component -> extractNpmPath(component.getPathname()).equals(searchPath))
+            .collect(Collectors.toList());
       }
       else {
         throw new UnsupportedOperationException("NPM path is not supported for repository paths.");

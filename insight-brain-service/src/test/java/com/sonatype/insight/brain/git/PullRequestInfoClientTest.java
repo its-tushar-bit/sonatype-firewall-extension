@@ -78,10 +78,10 @@ public class PullRequestInfoClientTest
     PullRequestInfoClient pullRequestInfoClient = new PullRequestInfoClient(mockGitClientFactory);
 
     // expect: when we try to retrieve commit info
-    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() ->
-        pullRequestInfoClient.getCommitInfoFromScm(gitRepositoryInfo, "commit123")
-    ).withMessage(
-        "Failed to obtain CommitInfo from SCM for project http://gitlab.com/test/project/, " +
-            "commit commit123 - reason: Test generated");
+    assertThatExceptionOfType(SourceControlException.class)
+        .isThrownBy(() -> pullRequestInfoClient.getCommitInfoFromScm(gitRepositoryInfo, "commit123"))
+        .withMessage(
+            "Failed to obtain CommitInfo from SCM for project http://gitlab.com/test/project/, " +
+                "commit commit123 - reason: Test generated");
   }
 }

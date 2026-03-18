@@ -199,8 +199,7 @@ public class PullRequestCommentingEligibilityValidatorTest
       boolean dbFieldEnabled,
       boolean featureFlagEnabled,
       boolean providerSupported,
-      boolean expectedResult
-  )
+      boolean expectedResult)
   {
     // given:
     TestScenario testScenario = new TestScenario()

@@ -27,7 +27,8 @@ public class ApplicationResourceAuthzTest
     grantReadPermission(app.getId());
 
     HttpRequest request = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES)
-        .query("page", "1").query("pageSize", "50");
+        .query("page", "1")
+        .query("pageSize", "50");
     HttpResponse response = request.auth(unauthorized).get();
     assertResponseStatus(200, response);
     ApplicationManagementSummaryDTO[] entities = response.getBody(ApplicationManagementSummaryDTO[].class);
@@ -49,8 +50,9 @@ public class ApplicationResourceAuthzTest
   public void testGetApplicationManagementSummary() throws Exception {
     grantReadPermission(app.getId());
 
-    HttpRequest request = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARY).parameter(
-        app.getPublicId());
+    HttpRequest request = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARY)
+        .parameter(
+            app.getPublicId());
     testAuthzGet(request);
   }
 
@@ -67,7 +69,8 @@ public class ApplicationResourceAuthzTest
   public void testSetIcon() throws Exception {
     grantWritePermission(app.getId());
 
-    HttpRequest request = restRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH).parameter(app.getId())
+    HttpRequest request = restRequest().path(ApplicationResource.SET_APPLICATION_ICON_PATH)
+        .parameter(app.getId())
         .part("hasRobotSource", "false");
     testAuthzPost(request);
   }

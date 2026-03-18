@@ -28,8 +28,7 @@ public class HistoricalPolicyViolationTelemetryService
   private static final Date CUTOFF_DATE = Date.from(
       LocalDate.of(2024, 1, 1)
           .atStartOfDay(ZoneId.of("GMT"))
-          .toInstant()
-  );
+          .toInstant());
 
   private static final int BATCH_SIZE = 10_000;
 
@@ -87,13 +86,12 @@ public class HistoricalPolicyViolationTelemetryService
         policyViolation,
         TelemetryPurpose.HISTORICAL_POLICY_VIOLATION,
         telemetryUtils,
-        licenseNameProvider
-    )
-        .withComponentIdentifier(policyViolation.getComponentIdentifier())
-        .withFixTime(policyViolation.getFixTime())
-        .withLegacyViolationTime(policyViolation.getLegacyViolationTime())
-        .withWaiveTime(policyViolation.getWaiveTime())
-        .build();
+        licenseNameProvider)
+            .withComponentIdentifier(policyViolation.getComponentIdentifier())
+            .withFixTime(policyViolation.getFixTime())
+            .withLegacyViolationTime(policyViolation.getLegacyViolationTime())
+            .withWaiveTime(policyViolation.getWaiveTime())
+            .build();
   }
 
   private void onPolicyViolation(PolicyViolation policyViolation) {

@@ -37,10 +37,10 @@ public class PostgresComponentRiskService
 
   @Inject
   public PostgresComponentRiskService(
-          final DashboardUtils dashboardUtils,
-          final ApplicationService applicationService,
-          final ApplicationComponentDAO applicationComponentDAO,
-          final AuditService auditService)
+      final DashboardUtils dashboardUtils,
+      final ApplicationService applicationService,
+      final ApplicationComponentDAO applicationComponentDAO,
+      final AuditService auditService)
   {
     super(applicationService, dashboardUtils, auditService);
     this.applicationComponentDAO = applicationComponentDAO;
@@ -71,13 +71,17 @@ public class PostgresComponentRiskService
     Set<String> violationStateFilter = policyViolationStateFilter != null
         ? policyViolationStateFilter.getPolicyViolationStates().stream().map(Enum::name).collect(Collectors.toSet())
         : Collections.emptySet();
-    Set<String> stageTypesFilter = dashboardUtils.getStageTypes(stageIds).stream().map(StageType::getId)
+    Set<String> stageTypesFilter = dashboardUtils.getStageTypes(stageIds)
+        .stream()
+        .map(StageType::getId)
         .collect(Collectors.toSet());
 
     List<ComponentRiskDTO> dtos = applicationComponentDAO
         .getComponentsRiskFiltered(appIds, stageTypesFilter, threatCategoryFilter,
-            threatLevelFilter, violationStateFilter, getSortColumnAndDirection(orderBy), page, pageSize).stream()
-        .map(this::toDTO).toList();
+            threatLevelFilter, violationStateFilter, getSortColumnAndDirection(orderBy), page, pageSize)
+        .stream()
+        .map(this::toDTO)
+        .toList();
 
     if (dtos.isEmpty()) {
       result.dashboardResults = List.of();

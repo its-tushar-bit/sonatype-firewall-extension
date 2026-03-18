@@ -140,7 +140,8 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.token().shouldBe(enabled);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"));
     SourceControlEditorPage.saveButton().click();
-    FormUtils.getAlertElement(SourceControlEditorPage.root()).shouldBe(visible)
+    FormUtils.getAlertElement(SourceControlEditorPage.root())
+        .shouldBe(visible)
         .shouldHave(
             text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " Unable to save: fields with invalid or missing data"));
 
@@ -155,7 +156,8 @@ public class OrganizationSourceControlEditorTest
 
     SourceControlEditorPage.saveButton().shouldHave(text("Update"));
     SourceControlEditorPage.saveButton().click();
-    FormUtils.getAlertElement(SourceControlEditorPage.root()).shouldBe(visible)
+    FormUtils.getAlertElement(SourceControlEditorPage.root())
+        .shouldBe(visible)
         .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
     SourceControlEditorPage.resetButton().shouldBe(enabled);
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
@@ -184,7 +186,8 @@ public class OrganizationSourceControlEditorTest
     verifyStartWithSourceControl();
     SourceControlEditorPage.token().shouldBe(visible, disabled);
     SourceControlEditorPage.credentialsFieldset().shouldBe(visible);
-    SourceControlEditorPage.credentialsFieldset().labels()
+    SourceControlEditorPage.credentialsFieldset()
+        .labels()
         .shouldHave(texts("Inherit from Root Organization", "Override"));
     SourceControlEditorPage.credentialsFieldset().radioInputs().forEach(input -> input.shouldBe(enabled));
     SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldNotBe(selected);
@@ -225,7 +228,8 @@ public class OrganizationSourceControlEditorTest
     verifyStartWithSourceControl();
     SourceControlEditorPage.token().shouldBe(visible, disabled);
     SourceControlEditorPage.credentialsFieldset().shouldBe(visible);
-    SourceControlEditorPage.credentialsFieldset().labels()
+    SourceControlEditorPage.credentialsFieldset()
+        .labels()
         .shouldHave(texts("Inherit from Root Organization", "Override"));
     SourceControlEditorPage.credentialsFieldset().radioInputs().forEach(input -> input.shouldBe(enabled));
     SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldNotBe(selected);
@@ -314,7 +318,8 @@ public class OrganizationSourceControlEditorTest
     verifyStartNoSourceControl();
     SourceControlEditorPage.baseBranchFieldset().radioInputs().forEach(input -> input.shouldBe(disabled));
     SourceControlEditorPage.baseBranchFieldset().radioInputs().get(0).shouldBe(selected);
-    SourceControlEditorPage.baseBranchFieldset().labels()
+    SourceControlEditorPage.baseBranchFieldset()
+        .labels()
         .shouldHave(texts("Inherit (Not Configured)", "Override"));
     SourceControlEditorPage.baseBranchInput().shouldHave(value(""));
     SourceControlEditorPage.baseBranchInput().shouldBe(disabled);
@@ -322,10 +327,12 @@ public class OrganizationSourceControlEditorTest
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB, true, true, "master");
     refresh();
 
-    SourceControlEditorPage.baseBranchFieldset().radioInputs()
+    SourceControlEditorPage.baseBranchFieldset()
+        .radioInputs()
         .should(allMatch("is enabled", WebElement::isEnabled));
     SourceControlEditorPage.baseBranchFieldset().radioInputs().get(0).shouldBe(selected);
-    SourceControlEditorPage.baseBranchFieldset().labels()
+    SourceControlEditorPage.baseBranchFieldset()
+        .labels()
         .shouldHave(texts(String.format("Inherit from %s", rootOrganization.getName()), "Override"));
     SourceControlEditorPage.baseBranchInput().shouldHave(value(""));
     SourceControlEditorPage.baseBranchInput().shouldBe(disabled);
@@ -336,7 +343,8 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.baseBranchInput().shouldHave(value(""));
     SourceControlEditorPage.baseBranchInput().click();
     SourceControlEditorPage.saveButton().click();
-    FormUtils.getAlertElement(SourceControlEditorPage.root()).shouldBe(visible)
+    FormUtils.getAlertElement(SourceControlEditorPage.root())
+        .shouldBe(visible)
         .shouldHave(text(
             FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " Unable to save: fields with invalid or missing data"));
 
@@ -363,8 +371,9 @@ public class OrganizationSourceControlEditorTest
 
     DeleteModal.root().shouldBe(visible);
     DeleteModal.header().shouldHave(text("Reset Source Control"));
-    DeleteModal.body().shouldHave(text("You are about to reset the Source Control configuration for " +
-        "Ye Ole Organization. This action cannot be undone."));
+    DeleteModal.body()
+        .shouldHave(text("You are about to reset the Source Control configuration for " +
+            "Ye Ole Organization. This action cannot be undone."));
 
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
@@ -390,8 +399,9 @@ public class OrganizationSourceControlEditorTest
 
     DeleteModal.root().shouldBe(visible);
     DeleteModal.header().shouldHave(text("Reset Source Control"));
-    DeleteModal.body().shouldHave(text("You are about to reset the Source Control configuration for " +
-        "Ye Ole Organization. This action cannot be undone."));
+    DeleteModal.body()
+        .shouldHave(text("You are about to reset the Source Control configuration for " +
+            "Ye Ole Organization. This action cannot be undone."));
 
     // delete entry to create error condition
     deleteSourceControl(organization.getId());
@@ -461,20 +471,24 @@ public class OrganizationSourceControlEditorTest
     // then elements show inherit status
     SourceControlEditorPage.credentialsFieldset().shouldBe(visible);
     SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldBe(selected);
-    SourceControlEditorPage.credentialsFieldset().labels().get(0)
+    SourceControlEditorPage.credentialsFieldset()
+        .labels()
+        .get(0)
         .shouldHave(text("Inherit from Root Organization"));
     SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldBe(enabled);
     SourceControlEditorPage.token().shouldBe(visible, disabled);
     SourceControlEditorPage.providerFieldset().radioInputs().get(1).shouldBe(enabled);
     SourceControlEditorPage.providerFieldset().radioInputs().get(0).shouldBe(selected, enabled);
-    SourceControlEditorPage.providerFieldset().labels().get(0)
+    SourceControlEditorPage.providerFieldset()
+        .labels()
+        .get(0)
         .shouldHave(text("Inherit from Root Organization"));
 
     // when change provider to bitbucket
     SourceControlEditorPage.username().shouldNotBe(visible);
     SourceControlEditorPage.providerFieldset().labels().get(1).click();
     SourceControlEditorPage.providerSelect().shouldBe(visible, enabled);
-    SourceControlEditorPage.providerSelect().chooseOption(new NxFormSelect.Option( 2, "Bitbucket"));
+    SourceControlEditorPage.providerSelect().chooseOption(new NxFormSelect.Option(2, "Bitbucket"));
 
     // then credentials are shown with no inherit/override radio buttons
     SourceControlEditorPage.credentialsFieldset().labels().forEach(label -> label.shouldNotBe(visible));
@@ -509,18 +523,19 @@ public class OrganizationSourceControlEditorTest
     verifyStartNoSourceControl();
     SourceControlEditorPage.manualPullRequestsFieldset().toggle().shouldNotBe(visible);
     SourceControlEditorPage.manualPullRequestsFieldset().shouldBe(visible);
-    SourceControlEditorPage.manualPullRequestsFieldset().radioInputs()
+    SourceControlEditorPage.manualPullRequestsFieldset()
+        .radioInputs()
         .forEach(input -> input.shouldBe(disabled));
-    SourceControlEditorPage.manualPullRequestsFieldset().labels()
+    SourceControlEditorPage.manualPullRequestsFieldset()
+        .labels()
         .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
 
-    //root org source control with manual pull requests enabled
+    // root org source control with manual pull requests enabled
     tempEntity.newSourceControl(
         rootOrganization.getId(), null, null, null, TOKEN, SourceControlProvider.GITHUB, false, true, "main", null,
-        true, true, null, null, true, true, null
-    );
+        true, true, null, null, true, true, null);
 
-    //org source control
+    // org source control
     tempEntity.newSourceControl(organization.getId(), null, null, null, null, null, null, null, null, null, null, null,
         null, null, null, null, null);
 
@@ -529,10 +544,12 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.manualPullRequestsFieldset().shouldBe(visible);
     SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(0).shouldBe(selected);
     SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(0).shouldBe(enabled);
-    SourceControlEditorPage.manualPullRequestsFieldset().labels().get(0)
+    SourceControlEditorPage.manualPullRequestsFieldset()
+        .labels()
+        .get(0)
         .shouldHave(text("Inherit from Root Organization"));
 
-    //override to Disabled
+    // override to Disabled
     SourceControlEditorPage.manualPullRequestsFieldset().labels().get(2).click();
 
     SourceControlEditorPage.saveButton().click();
@@ -541,7 +558,7 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(2).shouldBe(selected);
     assertSourceControlManualPullRequest(organization.getId(), false);
 
-    //override to Enabled
+    // override to Enabled
     SourceControlEditorPage.manualPullRequestsFieldset().labels().get(1).click();
 
     SourceControlEditorPage.saveButton().click();
@@ -550,7 +567,7 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(1).shouldBe(selected);
     assertSourceControlManualPullRequest(organization.getId(), true);
 
-    //back to inherit
+    // back to inherit
     SourceControlEditorPage.manualPullRequestsFieldset().labels().get(0).click();
 
     SourceControlEditorPage.saveButton().click();
@@ -566,17 +583,18 @@ public class OrganizationSourceControlEditorTest
     verifyStartNoSourceControl();
     SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().toggle().shouldNotBe(visible);
     SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().shouldBe(visible);
-    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().radioInputs()
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset()
+        .radioInputs()
         .forEach(input -> input.shouldBe(disabled));
-    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().labels()
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset()
+        .labels()
         .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
     SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().radioInputs().get(1).shouldBe(selected);
 
     // root org source control with InnerSource automated updates enabled
     tempEntity.newSourceControl(
         rootOrganization.getId(), null, null, null, TOKEN, SourceControlProvider.GITHUB, false, true, "main", null,
-        true, true, null, null, true, true, true
-    );
+        true, true, null, null, true, true, true);
 
     // org source control
     tempEntity.newSourceControl(organization.getId(), null, null, null, null, null, null, null, null, null, null, null,
@@ -587,7 +605,9 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().shouldBe(visible);
     SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().radioInputs().get(0).shouldBe(selected);
     SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().radioInputs().get(0).shouldBe(enabled);
-    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().labels().get(0)
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset()
+        .labels()
+        .get(0)
         .shouldHave(text("Inherit from Root Organization"));
 
     // override to Disabled
@@ -634,7 +654,8 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.saveButton().shouldHave(text("Update"));
     SourceControlEditorPage.resetButton().shouldBe(RSC_TERTIARY_DISABLED);
     SourceControlEditorPage.saveButton().click();
-    FormUtils.getAlertElement(SourceControlEditorPage.root()).shouldBe(visible)
+    FormUtils.getAlertElement(SourceControlEditorPage.root())
+        .shouldBe(visible)
         .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
 
     SourceControlEditorPage.credentialsFieldset().shouldBe(visible);
@@ -652,72 +673,87 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.sshEnabledFieldset().shouldBe(visible);
     SourceControlEditorPage.sshEnabledFieldset().radioInputs().forEach(input -> input.shouldBe(disabled));
     SourceControlEditorPage.sshEnabledFieldset().radioInputs().get(0).shouldBe(selected);
-    SourceControlEditorPage.sshEnabledFieldset().labels()
+    SourceControlEditorPage.sshEnabledFieldset()
+        .labels()
         .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
 
     SourceControlEditorPage.remediationPullRequestsFieldset().toggle().shouldNotBe(visible);
     SourceControlEditorPage.remediationPullRequestsFieldset().shouldBe(visible);
-    SourceControlEditorPage.remediationPullRequestsFieldset().radioInputs()
+    SourceControlEditorPage.remediationPullRequestsFieldset()
+        .radioInputs()
         .forEach(input -> input.shouldBe(disabled));
 
-    SourceControlEditorPage.remediationPullRequestsFieldset().labels()
+    SourceControlEditorPage.remediationPullRequestsFieldset()
+        .labels()
         .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
-    //SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
+    // SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
 
     SourceControlEditorPage.pullRequestCommentingFieldset().toggle().shouldNotBe(visible);
     SourceControlEditorPage.pullRequestCommentingFieldset().shouldBe(visible);
-    SourceControlEditorPage.pullRequestCommentingFieldset().radioInputs()
+    SourceControlEditorPage.pullRequestCommentingFieldset()
+        .radioInputs()
         .forEach(input -> input.shouldBe(disabled));
     SourceControlEditorPage.pullRequestCommentingFieldset().radioInputs().get(1).shouldBe(selected);
-    SourceControlEditorPage.pullRequestCommentingFieldset().labels()
+    SourceControlEditorPage.pullRequestCommentingFieldset()
+        .labels()
         .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
-    //SourceControlEditorPage.pullRequestCommentingNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
+    // SourceControlEditorPage.pullRequestCommentingNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
 
     SourceControlEditorPage.sourceControlEvaluationsFieldset().toggle().shouldNotBe(visible);
     SourceControlEditorPage.sourceControlEvaluationsFieldset().shouldBe(visible);
-    SourceControlEditorPage.sourceControlEvaluationsFieldset().radioInputs()
+    SourceControlEditorPage.sourceControlEvaluationsFieldset()
+        .radioInputs()
         .forEach(input -> input.shouldBe(disabled));
     SourceControlEditorPage.sourceControlEvaluationsFieldset().radioInputs().get(1).shouldBe(selected);
-    SourceControlEditorPage.sourceControlEvaluationsFieldset().labels()
+    SourceControlEditorPage.sourceControlEvaluationsFieldset()
+        .labels()
         .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
-    //SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
+    // SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
 
     SourceControlEditorPage.automatedCommitFeedbackFieldset().toggle().shouldNotBe(visible);
     SourceControlEditorPage.automatedCommitFeedbackFieldset().shouldBe(visible);
-    SourceControlEditorPage.automatedCommitFeedbackFieldset().radioInputs()
+    SourceControlEditorPage.automatedCommitFeedbackFieldset()
+        .radioInputs()
         .forEach(input -> input.shouldBe(disabled));
     SourceControlEditorPage.automatedCommitFeedbackFieldset().radioInputs().get(1).shouldBe(selected);
-    SourceControlEditorPage.automatedCommitFeedbackFieldset().labels()
+    SourceControlEditorPage.automatedCommitFeedbackFieldset()
+        .labels()
         .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
-    //SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
+    // SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
 
     SourceControlEditorPage.baseBranchFieldset().shouldBe(visible);
-    SourceControlEditorPage.baseBranchFieldset().radioInputs()
+    SourceControlEditorPage.baseBranchFieldset()
+        .radioInputs()
         .forEach(input -> input.shouldBe(disabled));
     SourceControlEditorPage.baseBranchFieldset().radioInputs().get(0).shouldBe(selected);
-    SourceControlEditorPage.baseBranchFieldset().labels()
+    SourceControlEditorPage.baseBranchFieldset()
+        .labels()
         .shouldHave(texts("Inherit (Not Configured)", "Override"));
     SourceControlEditorPage.baseBranchInput().shouldBe(visible, disabled);
     SourceControlEditorPage.baseBranchInput().shouldHave(value(""));
-    //SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
+    // SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
 
     SourceControlEditorPage.manualPullRequestsFieldset().toggle().shouldNotBe(visible);
     SourceControlEditorPage.manualPullRequestsFieldset().shouldBe(visible);
-    SourceControlEditorPage.manualPullRequestsFieldset().radioInputs()
+    SourceControlEditorPage.manualPullRequestsFieldset()
+        .radioInputs()
         .forEach(input -> input.shouldBe(disabled));
     SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(1).shouldBe(selected);
-    SourceControlEditorPage.manualPullRequestsFieldset().labels()
+    SourceControlEditorPage.manualPullRequestsFieldset()
+        .labels()
         .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
-    //SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
+    // SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
 
     SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().toggle().shouldNotBe(visible);
     SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().shouldBe(visible);
-    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().radioInputs()
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset()
+        .radioInputs()
         .forEach(input -> input.shouldBe(disabled));
     SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().radioInputs().get(1).shouldBe(selected);
-    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().labels()
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset()
+        .labels()
         .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
-    //SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
+    // SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
   }
 
   @Override
@@ -744,7 +780,8 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.saveButton().shouldHave(text("Update"));
     SourceControlEditorPage.resetButton().shouldBe(inherited ? disabled : enabled);
     SourceControlEditorPage.saveButton().click();
-    FormUtils.getAlertElement(SourceControlEditorPage.root()).shouldBe(visible)
+    FormUtils.getAlertElement(SourceControlEditorPage.root())
+        .shouldBe(visible)
         .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible);

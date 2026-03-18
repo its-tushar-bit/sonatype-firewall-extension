@@ -54,7 +54,9 @@ public class AdminAuditContainerRequestFilter
       // resource classes using AOP (e.g. for @Authorize) get subclassed but the generated subclasses miss the
       // annotations, so we have to manually inspect the original class
       try {
-        audited = method.getDeclaringClass().getSuperclass().getMethod(method.getName(), method.getParameterTypes())
+        audited = method.getDeclaringClass()
+            .getSuperclass()
+            .getMethod(method.getName(), method.getParameterTypes())
             .getAnnotation(Audited.class);
       }
       catch (NoSuchMethodException e) {

@@ -78,22 +78,24 @@ public class LicenseOverrideDAOTest
     assertThat(licenseOverride).isNull();
   }
 
-  private void assertLicenseOverride(String ownerId,
-                                     ComponentIdentifier componentIdentifier,
-                                     LicenseOverrideStatus status,
-                                     String licenseId,
-                                     String comment,
-                                     LicenseOverride actual)
+  private void assertLicenseOverride(
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      LicenseOverrideStatus status,
+      String licenseId,
+      String comment,
+      LicenseOverride actual)
   {
     assertLicenseOverride(ownerId, componentIdentifier, status, Collections.singleton(licenseId), comment, actual);
   }
 
-  private void assertLicenseOverride(String ownerId,
-                                     ComponentIdentifier componentIdentifier,
-                                     LicenseOverrideStatus status,
-                                     Set<String> licenseIds,
-                                     String comment,
-                                     LicenseOverride actual)
+  private void assertLicenseOverride(
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      LicenseOverrideStatus status,
+      Set<String> licenseIds,
+      String comment,
+      LicenseOverride actual)
   {
     assertThat(actual.getOwnerId()).isEqualTo(ownerId);
     assertThat(actual.getComponentIdentifier()).isEqualTo(componentIdentifier);
@@ -148,19 +150,19 @@ public class LicenseOverrideDAOTest
     assertThatThrownBy(
         () -> dao.insert(new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
             "FataMorganaId", "My comment"))).isInstanceOf(NotFoundException.class)
-        .hasMessage("A license with ID 'FataMorganaId' does not exist.");
+                .hasMessage("A license with ID 'FataMorganaId' does not exist.");
 
     assertThatThrownBy(
         () -> dao.insert(new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.SELECTED,
             "FataMorganaId", "My comment"))).isInstanceOf(NotFoundException.class)
-        .hasMessage("A license with ID 'FataMorganaId' does not exist.");
+                .hasMessage("A license with ID 'FataMorganaId' does not exist.");
   }
 
   @Test
   public void testInvalidLicenseId_Update() {
     LicenseOverride override =
         new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
-        "Apache-2.0", "My comment");
+            "Apache-2.0", "My comment");
     dao.insert(override);
 
     override.setLicenseIds(Collections.singleton("FataMorganaId"));
@@ -247,7 +249,7 @@ public class LicenseOverrideDAOTest
   public void testNotNullLicenseId_Update() {
     LicenseOverride override =
         new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
-        "Apache-2.0", "My comment");
+            "Apache-2.0", "My comment");
     dao.insert(override);
 
     for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {

@@ -18,7 +18,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 @Named
 @Singleton
-public class UserIdePolicyEvaluationDAO extends AbstractOperationalSqlDAO<UserIdePolicyEvaluation>
+public class UserIdePolicyEvaluationDAO
+    extends AbstractOperationalSqlDAO<UserIdePolicyEvaluation>
 {
   @Inject
   public UserIdePolicyEvaluationDAO(OperationalDataStore operationalDataStore) {

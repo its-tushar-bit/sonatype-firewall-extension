@@ -66,9 +66,9 @@ public class ThirdPartyComponentLicenseResolutionService
    * specified application. It considers the application hierarchy when looking for overrides.
    *
    * @param appInternalId the internal ID of the application
-   * @param packageUrl    the package URL of the component to retrieve license overrides for
+   * @param packageUrl the package URL of the component to retrieve license overrides for
    * @return a set of {@link ResolvedLicenseDTO} objects representing the overridden licenses, or an empty set if no
-   * overrides exist or the component identifier is invalid
+   *         overrides exist or the component identifier is invalid
    */
   public Set<ResolvedLicenseDTO> getLicenseOverrides(
       String appInternalId,
@@ -82,7 +82,8 @@ public class ThirdPartyComponentLicenseResolutionService
     LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(
         applicationDAO.getByIdNotNull(appInternalId), componentIdentifier);
     if (licenseOverride != null && LICENSE_OVERRIDE_STATUSES.contains(licenseOverride.getStatus())) {
-      return licenseOverride.getLicenseIds().stream()
+      return licenseOverride.getLicenseIds()
+          .stream()
           .map(licenseId -> new ResolvedLicenseDTO(licenseId, null, null, null, licenseOverride.getStatus()))
           .collect(Collectors.toSet());
     }
@@ -106,16 +107,16 @@ public class ThirdPartyComponentLicenseResolutionService
    * <p>
    * This method performs a hierarchical resolution process:
    * <ol>
-   *   <li>First attempts to find license overrides for the component if the identifier is valid and
-   *       the product license supports overrides</li>
-   *   <li>If no overrides are found, searches for third-party licenses associated with the component</li>
-   *   <li>Returns an empty set if neither overrides nor third-party licenses are found</li>
+   * <li>First attempts to find license overrides for the component if the identifier is valid and
+   * the product license supports overrides</li>
+   * <li>If no overrides are found, searches for third-party licenses associated with the component</li>
+   * <li>Returns an empty set if neither overrides nor third-party licenses are found</li>
    * </ol>
    *
-   * @param appInternalId            the internal ID of the application context
+   * @param appInternalId the internal ID of the application context
    * @param thirdPartyFileCoordinate the component coordinate to resolve licenses for
    * @return a set of {@link ResolvedLicenseDTO} objects representing the resolved licenses, which may come from
-   * overrides or third-party licenses, or an empty set if none found
+   *         overrides or third-party licenses, or an empty set if none found
    */
   public Set<ResolvedLicenseDTO> resolveLicenseOverridesOrThirdPartyLicenses(
       String appInternalId,
@@ -132,8 +133,9 @@ public class ThirdPartyComponentLicenseResolutionService
     return resolveLicenses(app, thirdPartyFileCoordinate);
   }
 
-  private Set<ResolvedLicenseDTO> resolveLicenses(Application application,
-                                                  ThirdPartyFileCoordinate thirdPartyFileCoordinate)
+  private Set<ResolvedLicenseDTO> resolveLicenses(
+      Application application,
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate)
   {
     ComponentIdentifier componentId = getCompleteIdentifier(thirdPartyFileCoordinate.getPackageUrl());
 
@@ -144,7 +146,8 @@ public class ThirdPartyComponentLicenseResolutionService
           licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(application, componentId);
 
       if (licenseOverride != null && LICENSE_OVERRIDE_STATUSES.contains(licenseOverride.getStatus())) {
-        return licenseOverride.getLicenseIds().stream()
+        return licenseOverride.getLicenseIds()
+            .stream()
             .map(licenseId -> new ResolvedLicenseDTO(licenseId, null, null, null, licenseOverride.getStatus()))
             .collect(Collectors.toSet());
       }
@@ -178,7 +181,7 @@ public class ThirdPartyComponentLicenseResolutionService
       }
     }
     catch (InvalidComponentIdentifierException | InvalidPackageURLException e) {
-      //no-op
+      // no-op
     }
     return id;
   }

@@ -110,7 +110,8 @@ public class ApiProxyServerConfigurationService
       // - The HTTP request is sent to the fake server and the password is stolen
       if (!configurationDTO.passwordIsIncluded) {
         if (!proxyServerConfiguration.getHostname().equals(configurationDTO.hostname)
-            || proxyServerConfiguration.getPort() != configurationDTO.port) {
+            || proxyServerConfiguration.getPort() != configurationDTO.port)
+        {
           clearPassword(configurationDTO);
           throw new BadRequestException("The password must be provided when the hostname or port are updated");
         }
@@ -118,7 +119,8 @@ public class ApiProxyServerConfigurationService
     }
 
     if (StringUtils.isBlank(configurationDTO.hostname) ||
-        !HOSTNAME_PATTERN.matcher(configurationDTO.hostname).matches()) {
+        !HOSTNAME_PATTERN.matcher(configurationDTO.hostname).matches())
+    {
       throw new BadRequestException("Invalid hostname provided for the proxy server");
     }
     proxyServerConfiguration.setHostname(configurationDTO.hostname);

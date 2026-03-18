@@ -37,9 +37,9 @@ public class PolicyWaiverMatcherWrapper
   }
 
   public boolean matchesComponent(ComponentFact componentFact) {
-    ComponentMatcherStrategyForWaiver componentMatcherStrategy = policyWaiver.getComponentMatchStrategy() == null ?
-        ComponentMatcherStrategyForWaiver.DEFAULT :
-        policyWaiver.getComponentMatchStrategy();
+    ComponentMatcherStrategyForWaiver componentMatcherStrategy = policyWaiver.getComponentMatchStrategy() == null
+        ? ComponentMatcherStrategyForWaiver.DEFAULT
+        : policyWaiver.getComponentMatchStrategy();
 
     switch (componentMatcherStrategy) {
       case EXACT_COMPONENT:
@@ -61,10 +61,9 @@ public class PolicyWaiverMatcherWrapper
   public boolean matchesComponentOrAnyVersionOfComponent(ComponentFact componentFact) {
     componentFactNotNull(componentFact);
     ComponentMatcherStrategyForWaiver componentMatchStrategy = policyWaiver.getComponentMatchStrategy();
-    return
-        isWaiverForAllComponents(componentMatchStrategy) ||
-            isWaiverForExactComponent(componentFact, componentMatchStrategy) ||
-            matchesAllVersionsOfComponent(componentFact);
+    return isWaiverForAllComponents(componentMatchStrategy) ||
+        isWaiverForExactComponent(componentFact, componentMatchStrategy) ||
+        matchesAllVersionsOfComponent(componentFact);
   }
 
   private boolean isWaiverForAllComponents(final ComponentMatcherStrategyForWaiver componentMatchStrategy) {
@@ -85,7 +84,8 @@ public class PolicyWaiverMatcherWrapper
 
     if (policyWaiverComponentIdentifier == null ||
         componentFactComponentIdentifier == null ||
-        isDifferentFormat(componentFactComponentIdentifier, policyWaiverComponentIdentifier)) {
+        isDifferentFormat(componentFactComponentIdentifier, policyWaiverComponentIdentifier))
+    {
       return false;
     }
 
@@ -126,7 +126,8 @@ public class PolicyWaiverMatcherWrapper
   private boolean matchesAllVersionsOfComponent(ComponentFact componentFact) {
     if (policyWaiver.getComponentIdentifier() == null ||
         componentFact.getComponentIdentifier() == null ||
-        isDifferentFormat(componentFact.getComponentIdentifier(), policyWaiver.getComponentIdentifier())) {
+        isDifferentFormat(componentFact.getComponentIdentifier(), policyWaiver.getComponentIdentifier()))
+    {
       return false;
     }
 
@@ -169,7 +170,9 @@ public class PolicyWaiverMatcherWrapper
       ComponentIdentifier waiverIdentifier,
       ComponentIdentifier componentIdentifier)
   {
-    return componentIdentifier.getCoordinates().entrySet().stream()
+    return componentIdentifier.getCoordinates()
+        .entrySet()
+        .stream()
         .allMatch(compCoord -> compCoord.getValue().equals(waiverIdentifier.get(compCoord.getKey())));
   }
 

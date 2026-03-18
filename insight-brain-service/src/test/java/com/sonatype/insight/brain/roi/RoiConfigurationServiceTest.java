@@ -36,7 +36,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
-public class RoiConfigurationServiceTest extends AbstractComponentTest
+public class RoiConfigurationServiceTest
+    extends AbstractComponentTest
 {
   @Inject
   private RoiConfigurationService roiConfigurationService;
@@ -60,7 +61,7 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
   }
 
   @Before
-  public  void setup() {
+  public void setup() {
     dao.getAll().forEach(dao::delete);
     tempEntity.createRoiConfigurationDefaultValues(
         CurrencyTypes.USD,
@@ -73,8 +74,7 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
         30,
         15,
         BigDecimal.valueOf(800),
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
   }
 
   @Test
@@ -85,8 +85,7 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
         15,
-        BigDecimal.valueOf(400)
-    );
+        BigDecimal.valueOf(400));
     RoiConfigurationCurrentAndMinimumValuesDTO roiConfigurationActual =
         roiConfigurationService.getCurrentAndMinimumValuesByCurrencyType("usd");
     assertThat(roiConfigurationActual).isNotNull();
@@ -101,10 +100,9 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
         BigDecimal.valueOf(60000),
         BigDecimal.valueOf(70000),
         15,
-        BigDecimal.valueOf(400)
-    );
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
-        roiConfigurationService.getCurrentAndMinimumValuesByCurrencyType("aud"))
+        BigDecimal.valueOf(400));
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> roiConfigurationService.getCurrentAndMinimumValuesByCurrencyType("aud"))
         .withMessage("Provided currency type aud is not found");
   }
 
@@ -145,8 +143,7 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
         30,
-        BigDecimal.valueOf(800)
-    );
+        BigDecimal.valueOf(800));
     roiConfigurationService.saveRoiConfiguration(roiConfigurationDTO);
     RoiConfiguration roiConfigurationActual = roiConfigurationDao.getByCurrencyType(CurrencyTypes.USD);
     assertThat(roiConfigurationActual).isNotNull();
@@ -163,8 +160,7 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
         30,
-        null
-    );
+        null);
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> roiConfigurationService.saveRoiConfiguration(roiConfigurationDTO))
         .withMessage("Daily risk cost of unfixed violation cannot be less than 400");
@@ -177,8 +173,7 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
         null,
         null,
         30,
-        BigDecimal.valueOf(800)
-    );
+        BigDecimal.valueOf(800));
     testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
     roiConfigurationService.saveRoiConfiguration(roiConfigurationDTO1);
     RoiConfiguration roiConfigurationActual = roiConfigurationDao.getByCurrencyType(CurrencyTypes.USD);
@@ -200,8 +195,7 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
         BigDecimal.valueOf(600000),
         BigDecimal.valueOf(700000),
         30,
-        BigDecimal.valueOf(800)
-    );
+        BigDecimal.valueOf(800));
     testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     roiConfigurationService.saveRoiConfiguration(roiConfigurationDTO);
     RoiConfiguration roiConfigurationActual = roiConfigurationDao.getByCurrencyType(CurrencyTypes.USD);
@@ -220,7 +214,7 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
     roiConfigurationActual = roiConfigurationDao.getByCurrencyType(CurrencyTypes.USD);
     assertThat(roiConfigurationActual).isNotNull();
     assertThat(roiConfigurationActual.getBaselineDaysToResolveViolation()).isEqualTo(
-                roiConfigurationDTO.baselineDaysToResolveViolation());
+        roiConfigurationDTO.baselineDaysToResolveViolation());
     assertThat(roiConfigurationActual.getMalwareAttacksPrevented()).isEqualTo(BigDecimal.ZERO);
     assertThat(roiConfigurationActual.getNamespaceAttacksPrevented()).isEqualTo(BigDecimal.ZERO);
     assertThat(roiConfigurationActual.getSafeComponentsAutoSelected()).isEqualTo(BigDecimal.ZERO);
@@ -233,14 +227,13 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
         Map.entry("Namespace attacks blocked", BigDecimal.valueOf(10000)),
         Map.entry("Safe components auto selected", BigDecimal.valueOf(5000)),
         Map.entry("Baseline days to resolve violation", BigDecimal.valueOf(15)),
-        Map.entry("Daily risk cost of unfixed violation", BigDecimal.valueOf(400))
-    ).forEach(entry -> {
-      RoiConfigurationDTO roiConfigurationDTO =
-          createRoiConfigurationDTOMininumValues(entry.getKey(), entry.getValue().subtract(BigDecimal.ONE));
-      assertThatExceptionOfType(BadRequestException.class)
-          .isThrownBy(() -> roiConfigurationService.saveRoiConfiguration(roiConfigurationDTO))
-          .withMessage(entry.getKey() + " cannot be less than " + entry.getValue());
-    });
+        Map.entry("Daily risk cost of unfixed violation", BigDecimal.valueOf(400))).forEach(entry -> {
+          RoiConfigurationDTO roiConfigurationDTO =
+              createRoiConfigurationDTOMininumValues(entry.getKey(), entry.getValue().subtract(BigDecimal.ONE));
+          assertThatExceptionOfType(BadRequestException.class)
+              .isThrownBy(() -> roiConfigurationService.saveRoiConfiguration(roiConfigurationDTO))
+              .withMessage(entry.getKey() + " cannot be less than " + entry.getValue());
+        });
   }
 
   private void assertTelemetryData(final RoiConfigurationDTO roiConfiguration) {
@@ -289,8 +282,7 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
           BigDecimal.valueOf(600000),
           BigDecimal.valueOf(700000),
           30,
-          BigDecimal.valueOf(800)
-      );
+          BigDecimal.valueOf(800));
       case "Namespace attacks blocked" -> new RoiConfigurationDTO(
           null,
           CurrencyTypes.USD,
@@ -298,8 +290,7 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
           value,
           BigDecimal.valueOf(700000),
           30,
-          BigDecimal.valueOf(800)
-      );
+          BigDecimal.valueOf(800));
       case "Safe components auto selected" -> new RoiConfigurationDTO(
           null,
           CurrencyTypes.USD,
@@ -307,8 +298,7 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
           BigDecimal.valueOf(600000),
           value,
           30,
-          BigDecimal.valueOf(800)
-      );
+          BigDecimal.valueOf(800));
       case "Baseline days to resolve violation" -> new RoiConfigurationDTO(
           null,
           CurrencyTypes.USD,
@@ -316,8 +306,7 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
           BigDecimal.valueOf(600000),
           BigDecimal.valueOf(700000),
           value.intValue(),
-          BigDecimal.valueOf(800)
-      );
+          BigDecimal.valueOf(800));
       case "Daily risk cost of unfixed violation" -> new RoiConfigurationDTO(
           null,
           CurrencyTypes.USD,
@@ -325,8 +314,7 @@ public class RoiConfigurationServiceTest extends AbstractComponentTest
           BigDecimal.valueOf(600000),
           BigDecimal.valueOf(700000),
           30,
-          value
-      );
+          value);
       default -> throw new IllegalArgumentException("Invalid field name");
     };
   }

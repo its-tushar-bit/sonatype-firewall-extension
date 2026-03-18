@@ -66,20 +66,18 @@ public class ApiHashComponentIdentifierResource
       "\n" +
       "Permissions required: Claim components",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains the truncated SHA1 hash of the component, the datetime when " +
-                  "the component was published (not the time it was claimed), the format and coordinates of " +
-                  "the claimed component (componentIdentifier) and the package URL of the claimed component.",
-              useReturnTypeSchema = true
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "Component Claim for this hash does not exist."
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains the truncated SHA1 hash of the component, the datetime when " +
+                "the component was published (not the time it was claimed), the format and coordinates of " +
+                "the claimed component (componentIdentifier) and the package URL of the claimed component.",
+            useReturnTypeSchema = true),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Component Claim for this hash does not exist."
 
-          )
-      }
-  )
+        )
+      })
   public ApiHashComponentIdentifierDTO get(
       @Parameter(description = "The hash of the claimed component.", required = true) @PathParam("hash") String hash)
   {
@@ -93,15 +91,13 @@ public class ApiHashComponentIdentifierResource
       "\n" +
       "Permissions required: Claim components",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response contains the truncated SHA1 hash of each component, the datetime when " +
-                  "the component was published (not the time it was claimed), the format and coordinates of " +
-                  "the claimed component (componentIdentifier) and the package URL of the claimed component.",
-              useReturnTypeSchema = true
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response contains the truncated SHA1 hash of each component, the datetime when " +
+                "the component was published (not the time it was claimed), the format and coordinates of " +
+                "the claimed component (componentIdentifier) and the package URL of the claimed component.",
+            useReturnTypeSchema = true)
+      })
   public ApiHashComponentIdentifiersDTO getAll() {
     return apiHashComponentIdentifierService.getAll();
   }
@@ -115,19 +111,17 @@ public class ApiHashComponentIdentifierResource
       "\n" +
       "Permissions required: Claim components",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response shows the new/updated details for the claimed component.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response shows the new/updated details for the claimed component.",
+            useReturnTypeSchema = true)
       })
   @Audited(AuditEvent.SET_COMPONENT_IDENTITY)
   public ApiHashComponentIdentifierDTO set(
       @RequestBody(description = "Specify the hash (required), comment (optional), createTime (optional), and the" +
           " component identifier/package URL (required) with non-null/non-empty format and coordinates, " +
           " for the component to be claimed.",
-          required = true)
-      ApiHashComponentIdentifierDTO hashComponentIdentifier)
+          required = true) ApiHashComponentIdentifierDTO hashComponentIdentifier)
   {
     return apiHashComponentIdentifierService.set(hashComponentIdentifier);
   }
@@ -140,20 +134,17 @@ public class ApiHashComponentIdentifierResource
       "\n" +
       "Permissions required: Claim components",
       responses = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "Component Claim for this hash was deleted."
-          ),
-          @ApiResponse(
-              responseCode = "404",
-              description = "Component Claim for this hash does not exist."
-          )
-      }
-  )
+        @ApiResponse(
+            responseCode = "204",
+            description = "Component Claim for this hash was deleted."),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Component Claim for this hash does not exist.")
+      })
   @Audited(AuditEvent.UNSET_COMPONENT_IDENTITY)
   public void delete(
-      @Parameter(description = "Enter the SHA1 hash for the component.", required = true)
-      @PathParam("hash") String hash)
+      @Parameter(description = "Enter the SHA1 hash for the component.",
+          required = true) @PathParam("hash") String hash)
   {
     apiHashComponentIdentifierService.delete(hash);
   }

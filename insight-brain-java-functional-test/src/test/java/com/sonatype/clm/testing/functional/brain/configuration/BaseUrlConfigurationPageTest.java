@@ -21,7 +21,8 @@ import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.value;
 
-public class BaseUrlConfigurationPageTest extends AbstractFunctionalTest
+public class BaseUrlConfigurationPageTest
+    extends AbstractFunctionalTest
 {
   protected String baseUrl = "";
 
@@ -64,13 +65,13 @@ public class BaseUrlConfigurationPageTest extends AbstractFunctionalTest
     refreshOrOpen(baseUrlConfigurationPage.getUrl());
     loginAsAdmin();
 
-    //Once saved data is re-loaded
+    // Once saved data is re-loaded
     baseUrlConfigurationPage.baseUrlAttribute().shouldHave(value(baseUrl));
     baseUrlConfigurationPage.deleteButton().shouldBe(enabled);
     baseUrlConfigurationPage.saveButton().shouldBe(enabled);
     baseUrlConfigurationPage.cancelButton().shouldBe(disabled);
 
-    //If the Base URL config is loaded, then it can be deleted
+    // If the Base URL config is loaded, then it can be deleted
     baseUrlConfigurationPage.deleteButton().shouldBe(enabled);
     baseUrlConfigurationPage.deleteButton().click();
     BaseUrlConfigurationDeleteModal deleteModal = new BaseUrlConfigurationDeleteModal();
@@ -84,10 +85,10 @@ public class BaseUrlConfigurationPageTest extends AbstractFunctionalTest
   public void testCancel() {
     baseUrlConfigurationPage.baseUrlAttribute().clear();
     baseUrlConfigurationPage.baseUrlAttribute().sendKeys("test");
-    //If the form is dirty, the cancel button should be enabled
+    // If the form is dirty, the cancel button should be enabled
     baseUrlConfigurationPage.cancelButton().shouldBe(enabled).click();
 
-    //The form should be reset
+    // The form should be reset
     assertDefaultState();
     baseUrlConfigurationPage.deleteButton().shouldBe(enabled);
   }

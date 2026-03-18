@@ -29,7 +29,7 @@ public class ImportScmOrganizationStatus
   public long importFailureCount;
 
   public ImportScmOrganizationStatus() {
-    //no-op
+    // no-op
   }
 
   public ImportScmOrganizationStatus(

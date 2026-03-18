@@ -107,12 +107,12 @@ public class DashboardComponentsTest
     paginator.nextPageButton().shouldBe(visible);
     paginator.previousPageButton().shouldBe(hidden);
 
-    //Click next page
+    // Click next page
     paginator.nextPageButton().click();
     paginator.nextPageButton().shouldBe(hidden);
     paginator.previousPageButton().shouldBe(visible);
 
-    //Click back page
+    // Click back page
     paginator.previousPageButton().click();
     paginator.nextPageButton().shouldBe(visible);
     paginator.previousPageButton().shouldBe(hidden);
@@ -122,10 +122,10 @@ public class DashboardComponentsTest
   @Ignore // Flakey see CLM-37534
   public void testComponentsTable() {
     // add a violation for each Risk Level
-    addComponentWithViolation(2, 3);   // moderate
-    addComponentWithViolation(1, 1);   // low
-    addComponentWithViolation(4, 10);  // critical
-    addComponentWithViolation(3, 7);   // severe
+    addComponentWithViolation(2, 3); // moderate
+    addComponentWithViolation(1, 1); // low
+    addComponentWithViolation(4, 10); // critical
+    addComponentWithViolation(3, 7); // severe
     refreshOrOpen(DashboardPage.urlToComponents());
     waitUntilUrl(DashboardPage.urlToComponents());
     DashboardPage.pageLoadSpinner().shouldNotBe(visible, Duration.ofSeconds(10));
@@ -137,17 +137,19 @@ public class DashboardComponentsTest
 
     // components should be sorted by risk
     table.components().shouldHave(size(4));
-    table.components().shouldHave(texts(
-        "Group4 : Artifact4 : Version4",   //
-        "Group3 : Artifact3 : Version3",  //
-        "Group2 : Artifact2 : Version2",  //
-        "Group1 : Artifact1 : Version1"  //
-    ));
+    table.components()
+        .shouldHave(texts(
+            "Group4 : Artifact4 : Version4", //
+            "Group3 : Artifact3 : Version3", //
+            "Group2 : Artifact2 : Version2", //
+            "Group1 : Artifact1 : Version1" //
+        ));
 
     // test heat map
-    table.componentRisks(0).shouldHave(
-        cssValues("background-color", "rgba(54, 93, 123, 1)", "rgba(54, 93, 123, 1)", "rgba(247, 251, 255, 1)",
-            "rgba(247, 251, 255, 1)", "rgba(247, 251, 255, 1)"));
+    table.componentRisks(0)
+        .shouldHave(
+            cssValues("background-color", "rgba(54, 93, 123, 1)", "rgba(54, 93, 123, 1)", "rgba(247, 251, 255, 1)",
+                "rgba(247, 251, 255, 1)", "rgba(247, 251, 255, 1)"));
     // check the text colors
     table.componentRisks(0).get(0).shouldHave(cssClass("white-text"));
     table.componentRisks(0).get(1).shouldHave(cssClass("white-text"));
@@ -155,15 +157,18 @@ public class DashboardComponentsTest
     table.componentRisks(0).get(3).shouldHave(cssClass("grey-text"));
     table.componentRisks(0).get(4).shouldHave(cssClass("grey-text"));
 
-    table.componentRisks(1).shouldHave(
-        cssValues("background-color", "rgba(91, 145, 187, 1)", "rgba(247, 251, 255, 1)", "rgba(91, 145, 187, 1)",
-            "rgba(247, 251, 255, 1)", "rgba(247, 251, 255, 1)"));
-    table.componentRisks(2).shouldHave(
-        cssValues("background-color", "rgba(150, 185, 212, 1)", "rgba(247, 251, 255, 1)", "rgba(247, 251, 255, 1)",
-            "rgba(150, 185, 212, 1)", "rgba(247, 251, 255, 1)"));
-    table.componentRisks(3).shouldHave(
-        cssValues("background-color", "rgba(203, 220, 234, 1)", "rgba(247, 251, 255, 1)", "rgba(247, 251, 255, 1)",
-            "rgba(247, 251, 255, 1)", "rgba(203, 220, 234, 1)"));
+    table.componentRisks(1)
+        .shouldHave(
+            cssValues("background-color", "rgba(91, 145, 187, 1)", "rgba(247, 251, 255, 1)", "rgba(91, 145, 187, 1)",
+                "rgba(247, 251, 255, 1)", "rgba(247, 251, 255, 1)"));
+    table.componentRisks(2)
+        .shouldHave(
+            cssValues("background-color", "rgba(150, 185, 212, 1)", "rgba(247, 251, 255, 1)", "rgba(247, 251, 255, 1)",
+                "rgba(150, 185, 212, 1)", "rgba(247, 251, 255, 1)"));
+    table.componentRisks(3)
+        .shouldHave(
+            cssValues("background-color", "rgba(203, 220, 234, 1)", "rgba(247, 251, 255, 1)", "rgba(247, 251, 255, 1)",
+                "rgba(247, 251, 255, 1)", "rgba(203, 220, 234, 1)"));
 
     // open component details and back
     DashboardComponentDetailsPage dashboardComponentDetailsPage = new DashboardComponentDetailsPage();
@@ -190,10 +195,10 @@ public class DashboardComponentsTest
     DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
     String exportCsv = new String(responseCopyHandler.consumeResponse());
     String[] expectedResults = {
-        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
-        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
-        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
-        "Group1 : Artifact1 : Version1,1,1,0,0,0,1"
+      "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
+      "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+      "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+      "Group1 : Artifact1 : Version1,1,1,0,0,0,1"
     };
     assertComponentsCsv(exportCsv, expectedResults);
 
@@ -209,10 +214,10 @@ public class DashboardComponentsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
-        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
-        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
-        "Group1 : Artifact1 : Version1,1,1,0,0,0,1"
+      "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+      "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+      "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
+      "Group1 : Artifact1 : Version1,1,1,0,0,0,1"
     };
     assertComponentsCsv(exportCsv, expectedResults);
 
@@ -226,10 +231,10 @@ public class DashboardComponentsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "Group1 : Artifact1 : Version1,1,1,0,0,0,1",
-        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
-        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
-        "Group2 : Artifact2 : Version2,1,3,0,0,3,0"
+      "Group1 : Artifact1 : Version1,1,1,0,0,0,1",
+      "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+      "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
+      "Group2 : Artifact2 : Version2,1,3,0,0,3,0"
     };
     assertComponentsCsv(exportCsv, expectedResults);
 
@@ -243,10 +248,10 @@ public class DashboardComponentsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "Group1 : Artifact1 : Version1,1,1,0,0,0,1",
-        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
-        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
-        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+      "Group1 : Artifact1 : Version1,1,1,0,0,0,1",
+      "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+      "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
+      "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
     };
     assertComponentsCsv(exportCsv, expectedResults);
 
@@ -260,10 +265,10 @@ public class DashboardComponentsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "Group1 : Artifact1 : Version1,1,1,0,0,0,1",
-        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
-        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
-        "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
+      "Group1 : Artifact1 : Version1,1,1,0,0,0,1",
+      "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+      "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+      "Group4 : Artifact4 : Version4,1,10,10,0,0,0",
     };
     assertComponentsCsv(exportCsv, expectedResults);
 
@@ -276,9 +281,9 @@ public class DashboardComponentsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
-        "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
-        "Group4 : Artifact4 : Version4,1,10,10,0,0,0"
+      "Group2 : Artifact2 : Version2,1,3,0,0,3,0",
+      "Group3 : Artifact3 : Version3,1,7,0,7,0,0",
+      "Group4 : Artifact4 : Version4,1,10,10,0,0,0"
     };
     assertComponentsCsv(exportCsv, expectedResults);
 
@@ -291,7 +296,7 @@ public class DashboardComponentsTest
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
-        "Group3 : Artifact3 : Version3,1,7,0,7,0,0"
+      "Group3 : Artifact3 : Version3,1,7,0,7,0,0"
     };
     assertComponentsCsv(exportCsv, expectedResults);
   }
@@ -308,8 +313,10 @@ public class DashboardComponentsTest
 
     Tooltip.get().shouldBe(hidden);
     table.firstComponent().name().hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text("A superficially artificial, perfunctorily "
-        + "slapdash : protracted and interminable name : to ensure overflow in cell"));
+    Tooltip.get()
+        .shouldBe(visible)
+        .shouldHave(text("A superficially artificial, perfunctorily "
+            + "slapdash : protracted and interminable name : to ensure overflow in cell"));
     table.lastComponent().name().hover();
     Tooltip.get().shouldBe(hidden);
   }

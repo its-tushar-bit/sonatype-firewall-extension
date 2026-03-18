@@ -11,7 +11,8 @@ import com.sonatype.insight.license.model.Feature;
  * Denotes a feature that is not controlled by the product license.
  */
 public enum NonLicensedFeature
-    implements Feature
+    implements
+    Feature
 {
   ALLOW_EXTERNAL_HYPERLINKS,
 

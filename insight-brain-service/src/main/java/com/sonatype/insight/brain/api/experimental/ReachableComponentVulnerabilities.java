@@ -13,8 +13,8 @@ import java.util.Set;
 /**
  * This interface represents a component's reachable vulnerabilities (if any).
  * <ul>
- *   <li>Missing reachable vulnerabilities means we have no analysis and reachability is unknown.</li>
- *   <li>Present reachable vulnerabilities means we have an analysis and reachability is detected or not.</li>
+ * <li>Missing reachable vulnerabilities means we have no analysis and reachability is unknown.</li>
+ * <li>Present reachable vulnerabilities means we have an analysis and reachability is detected or not.</li>
  * </ul>
  * If reachable vulnerabilities are present, that means we've determined the component is vulnerable to the
  * given vulnerabilities via certain paths.
@@ -34,7 +34,8 @@ public sealed interface ReachableComponentVulnerabilities
    * vulnerability is unknown).
    */
   enum MissingReachableComponentVulnerabilities
-      implements ReachableComponentVulnerabilities
+      implements
+      ReachableComponentVulnerabilities
   {
     INSTANCE;
 

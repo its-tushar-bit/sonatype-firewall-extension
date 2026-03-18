@@ -80,7 +80,7 @@ public class PolicyMonitorScheduler
     // randomize minute to avoid coordinated load spike for HDS scan processing
     LocalTime policyMonitoringStartHour = LocalTime.of(configuration.getPolicyMonitoringHour(), 0);
     LocalTime startTime = policyMonitoringStartHour
-            .plusMinutes(new Random().nextInt(CONTINUOUS_MONITORING_TIME_WINDOW));
+        .plusMinutes(new Random().nextInt(CONTINUOUS_MONITORING_TIME_WINDOW));
 
     // The policyMonitoringTask instance used here is used only for scheduling.
     // When the task is actually run, quartz creates a new PolicyMonitoringTask instance, which for MTIQ means one

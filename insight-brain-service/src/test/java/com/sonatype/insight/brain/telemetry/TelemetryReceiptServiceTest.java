@@ -151,8 +151,7 @@ public class TelemetryReceiptServiceTest
     assertThat(receipts.detailPurposes()).contains(
         APPLICATION_CATEGORY,
         HISTORICAL_POLICY_VIOLATION,
-        REST_ENDPOINT_USAGE
-    );
+        REST_ENDPOINT_USAGE);
   }
 
   @Test

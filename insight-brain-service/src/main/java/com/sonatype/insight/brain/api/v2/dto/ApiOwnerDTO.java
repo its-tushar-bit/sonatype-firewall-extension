@@ -18,7 +18,8 @@ public class ApiOwnerDTO
     implements Comparable<ApiOwnerDTO>
 {
   private static final Comparator<ApiOwnerDTO> COMPARATOR =
-      Comparator.comparing((ApiOwnerDTO dto) -> dto.ownerName).thenComparing(dto -> dto.ownerPublicId)
+      Comparator.comparing((ApiOwnerDTO dto) -> dto.ownerName)
+          .thenComparing(dto -> dto.ownerPublicId)
           .thenComparing(dto -> dto.ownerId);
 
   @JsonInclude(Include.NON_NULL)

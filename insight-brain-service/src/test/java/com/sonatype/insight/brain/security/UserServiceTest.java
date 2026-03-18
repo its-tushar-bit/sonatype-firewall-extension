@@ -238,13 +238,14 @@ public class UserServiceTest
         "TestFirstName", "TestLastName", "TestEmail@example.com");
   }
 
-  private void assertInternalUser(User actualUser,
-                                  String id,
-                                  String username,
-                                  String password,
-                                  String firstName,
-                                  String lastName,
-                                  String email)
+  private void assertInternalUser(
+      User actualUser,
+      String id,
+      String username,
+      String password,
+      String firstName,
+      String lastName,
+      String email)
   {
     assertThat(actualUser.getId()).isEqualTo(id);
     assertThat(actualUser.getUsername()).isEqualTo(username);
@@ -267,7 +268,8 @@ public class UserServiceTest
     Organization org = tempEntity.newOrganization();
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> userService.findMembersForRoles(OwnerType.ORGANIZATION, org.getId(), "" /* query */,
-            false /* groupsEnabled */)).withMessage("No search term specified.");
+            false /* groupsEnabled */))
+        .withMessage("No search term specified.");
   }
 
   @Test
@@ -728,13 +730,14 @@ public class UserServiceTest
     assertThat(input).satisfiesAnyOf(s -> assertThat(s).isNull(), s -> assertThat(s).isEqualTo(output));
   }
 
-  private void assertMember(FindMembersDTO findMembersDTO,
-                            String error,
-                            MemberType type,
-                            String name,
-                            String displayName,
-                            String email,
-                            String realm)
+  private void assertMember(
+      FindMembersDTO findMembersDTO,
+      String error,
+      MemberType type,
+      String name,
+      String displayName,
+      String email,
+      String realm)
   {
     assertThat(findMembersDTO.getError()).isEqualTo(error);
 
@@ -743,12 +746,13 @@ public class UserServiceTest
     assertMember(members[0], type, name, displayName, email, realm);
   }
 
-  private void assertMember(final Member member,
-                            final MemberType type,
-                            final String name,
-                            final String displayName,
-                            final String email,
-                            final String realm)
+  private void assertMember(
+      final Member member,
+      final MemberType type,
+      final String name,
+      final String displayName,
+      final String email,
+      final String realm)
   {
     assertThat(member.getType()).isEqualTo(type);
     assertThat(member.getInternalName()).isEqualTo(name);

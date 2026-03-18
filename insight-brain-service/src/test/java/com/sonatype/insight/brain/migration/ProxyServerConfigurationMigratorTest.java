@@ -58,7 +58,8 @@ public class ProxyServerConfigurationMigratorTest
   public void configure(Binder binder) {
     // Add the mock listener to the multibinder set
     Multibinder.newSetBinder(binder, ProxyServerConfigurationListener.class)
-        .addBinding().toInstance(proxyServerConfigurationListener);
+        .addBinding()
+        .toInstance(proxyServerConfigurationListener);
     super.configure(binder);
   }
 

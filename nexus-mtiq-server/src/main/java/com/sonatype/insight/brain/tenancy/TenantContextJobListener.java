@@ -130,11 +130,14 @@ public class TenantContextJobListener
 
   private void registerAllNonDeletedTenants() {
     List<String> allTenants = tenantService.getAllTenantsNames();
-    List<String> deletedTenants = deletedTenantDAO.getAllTenantDeletions().stream()
-        .map(DeletedTenant::getId).collect(Collectors.toList());
+    List<String> deletedTenants = deletedTenantDAO.getAllTenantDeletions()
+        .stream()
+        .map(DeletedTenant::getId)
+        .collect(Collectors.toList());
 
     List<String> allNonDeletedTenants = allTenants.stream()
-        .filter(t -> !deletedTenants.contains(t)).collect(Collectors.toList());
+        .filter(t -> !deletedTenants.contains(t))
+        .collect(Collectors.toList());
 
     runForAllTenantsOnBatch(allNonDeletedTenants, "registerAllTenants",
         t -> {

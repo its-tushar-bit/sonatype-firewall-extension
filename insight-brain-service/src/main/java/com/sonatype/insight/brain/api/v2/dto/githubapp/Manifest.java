@@ -24,8 +24,8 @@ public record Manifest(
     List<String> callback_urls,
     Boolean request_oauth_on_install,
     String description,
-    @JsonProperty("public")
-    Boolean isPublic,
+    @JsonProperty("public") Boolean isPublic,
     Map<String, String> default_permissions,
-    Boolean setup_on_update
-) {}
+    Boolean setup_on_update)
+{
+}

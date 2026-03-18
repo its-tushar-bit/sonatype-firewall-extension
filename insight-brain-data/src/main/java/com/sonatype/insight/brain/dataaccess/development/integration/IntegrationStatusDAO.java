@@ -26,7 +26,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 /**
  * Data Access Object for retrieving integration status information for applications.
  * Provides optimized queries that replace multiple individual queries with single JOIN operations.
- * 
+ *
  * @since 1.196
  */
 @Named
@@ -73,8 +73,9 @@ public class IntegrationStatusDAO
       Collection<String> applicationIds,
       Date ciLookbackDate)
   {
-    return applicationIds.isEmpty() ? new ArrayList<>() :
-        getListWithSqlInClause(applicationIds, ids -> getIntegrationStatusForApplications(ids, ciLookbackDate));
+    return applicationIds.isEmpty()
+        ? new ArrayList<>()
+        : getListWithSqlInClause(applicationIds, ids -> getIntegrationStatusForApplications(ids, ciLookbackDate));
   }
 
   private List<IntegrationStatusSummary> getIntegrationStatusForApplications(
@@ -117,7 +118,6 @@ public class IntegrationStatusDAO
         row[4] != null ? ((Date) row[4]).getTime() : 0L,
         (String) row[5],
         row[6] != null ? ((Date) row[6]).getTime() : 0L,
-        (Boolean) row[7]
-    );
+        (Boolean) row[7]);
   }
 }

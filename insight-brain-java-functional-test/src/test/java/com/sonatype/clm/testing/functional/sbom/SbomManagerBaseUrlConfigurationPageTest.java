@@ -15,7 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class SbomManagerBaseUrlConfigurationPageTest
-        extends BaseUrlConfigurationPageTest
+    extends BaseUrlConfigurationPageTest
 {
   @Before
   @Override

@@ -78,7 +78,8 @@ public class ThirdPartyComponentLicenseResolutionServiceTest
     Set<ResolvedLicenseDTO> result =
         service.resolveLicenseOverridesOrThirdPartyLicenses(app.getId(), thirdPartyFileCoordinate);
 
-    assertThat(result).hasSize(1).extracting(ResolvedLicenseDTO::licenseId)
+    assertThat(result).hasSize(1)
+        .extracting(ResolvedLicenseDTO::licenseId)
         .containsExactly("MIT");
   }
 
@@ -98,7 +99,8 @@ public class ThirdPartyComponentLicenseResolutionServiceTest
 
     Set<ResolvedLicenseDTO> result = service.getLicenseOverrides(app.getId(), purl);
 
-    assertThat(result).hasSize(2).extracting(ResolvedLicenseDTO::licenseId)
+    assertThat(result).hasSize(2)
+        .extracting(ResolvedLicenseDTO::licenseId)
         .containsExactlyInAnyOrder("MIT", "Aladdin");
   }
 

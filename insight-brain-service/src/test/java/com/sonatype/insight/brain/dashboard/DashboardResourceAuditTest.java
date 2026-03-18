@@ -77,7 +77,8 @@ public class DashboardResourceAuditTest
 
   @Test
   public void testDeleteDashboardFilterForCurrentUserByFilterName_NotFound() throws Exception {
-    dashboardRequest().path(DashboardResource.DELETE_NAMED_FILTER_PATH).query("filterName", "non-existent-filter")
+    dashboardRequest().path(DashboardResource.DELETE_NAMED_FILTER_PATH)
+        .query("filterName", "non-existent-filter")
         .post();
 
     assertAuditLog(AuditEvent.DELETE_DASHBOARD_FILTER, "not-found");
@@ -85,7 +86,7 @@ public class DashboardResourceAuditTest
 
   @After
   public void after() {
-    //required in order to avoid clashes between create/delete tests
+    // required in order to avoid clashes between create/delete tests
     dashboardFilterDAO.getByUsernameAndRealmId(ADMIN_USERNAME, InternalRealm.ID).forEach(dashboardFilterDAO::delete);
   }
 

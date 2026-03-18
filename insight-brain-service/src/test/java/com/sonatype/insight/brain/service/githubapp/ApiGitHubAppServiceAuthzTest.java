@@ -109,19 +109,16 @@ public class ApiGitHubAppServiceAuthzTest
         gitHubManifestService,
         mock(GitHubAppAuthStrategyCache.class),
         mock(GitHubAppDeletionService.class),
-        mockServerUrl,  // githubApiBaseUrl
-        mockServerUrl,  // githubOAuthTokenUrl
-        mock(BaseUrl.class)
-    );
+        mockServerUrl, // githubApiBaseUrl
+        mockServerUrl, // githubOAuthTokenUrl
+        mock(BaseUrl.class));
 
     githubMockServer.stubFor(
         post(urlPathEqualTo("/login/oauth/access_token"))
             .willReturn(aResponse()
                 .withStatus(200)
                 .withHeader("Content-Type", "application/json")
-                .withBody("{\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":\"bearer\",\"scope\":\"\"}")
-            )
-    );
+                .withBody("{\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":\"bearer\",\"scope\":\"\"}")));
 
     githubMockServer.stubFor(
         get(urlPathEqualTo("/user"))
@@ -129,9 +126,7 @@ public class ApiGitHubAppServiceAuthzTest
             .willReturn(aResponse()
                 .withStatus(200)
                 .withHeader("Content-Type", "application/json")
-                .withBody("{\"login\":\"testuser\",\"id\":12345}")
-            )
-    );
+                .withBody("{\"login\":\"testuser\",\"id\":12345}")));
 
     githubMockServer.stubFor(
         get(urlPathEqualTo("/user/installations"))
@@ -140,9 +135,7 @@ public class ApiGitHubAppServiceAuthzTest
                 .withStatus(200)
                 .withHeader("Content-Type", "application/json")
                 .withBody("{\"total_count\":1,\"installations\":[{\"id\":" + INSTALLATION_ID
-                    + ",\"app_id\":" + APP_ID + ",\"account\":{\"login\":\"test-org\",\"id\":12345}}]}")
-            )
-    );
+                    + ",\"app_id\":" + APP_ID + ",\"account\":{\"login\":\"test-org\",\"id\":12345}}]}")));
   }
 
   @Test(expected = UnauthenticatedException.class)

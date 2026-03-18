@@ -32,9 +32,12 @@ public class PostgresDatabaseConfigProvider
     }
     url += "/" + dbConfig.getName();
     if (dbConfig.getParameters() != null && !dbConfig.getParameters().isEmpty()) {
-      url += "?" + dbConfig.getParameters().entrySet().stream()
+      url += "?" + dbConfig.getParameters()
+          .entrySet()
+          .stream()
           .filter(entry -> !"user".equals(entry.getKey()) && !"password".equals(entry.getKey()))
-          .map(entry -> entry.getKey() + '=' + entry.getValue()).collect(joining("&"));
+          .map(entry -> entry.getKey() + '=' + entry.getValue())
+          .collect(joining("&"));
     }
 
     DatabaseConfig databaseConfig = new DatabaseConfig();

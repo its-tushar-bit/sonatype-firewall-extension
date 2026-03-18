@@ -11,7 +11,8 @@ public class PolicyViolationsTableRow
     implements Comparable<PolicyViolationsTableRow>
 {
   private static final Comparator<PolicyViolationsTableRow> COMPARATOR = Comparator
-      .comparingInt((PolicyViolationsTableRow row) -> row.threatLevel).reversed()
+      .comparingInt((PolicyViolationsTableRow row) -> row.threatLevel)
+      .reversed()
       .thenComparing(row -> row.policyName, String::compareToIgnoreCase)
       .thenComparing(row -> row.componentName, Comparator.nullsLast(String::compareToIgnoreCase));
 

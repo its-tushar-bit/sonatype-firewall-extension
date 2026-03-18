@@ -26,6 +26,6 @@ public class TriggerLicense
 
   @Override
   public String toString() {
-    return "TriggerLicense [id=" + id  + "]";
+    return "TriggerLicense [id=" + id + "]";
   }
 }

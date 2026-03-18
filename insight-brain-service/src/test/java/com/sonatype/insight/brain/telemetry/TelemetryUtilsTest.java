@@ -111,11 +111,9 @@ public class TelemetryUtilsTest
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
         entry("stage_id", "build"),
         entry("scan_trigger_type", "CLI"),
-        entry("number_of_components", "0")
-    );
+        entry("number_of_components", "0"));
     assertThat(telemetryData.getAttributes()).doesNotContainKeys(
-        "client_id", "client_instance_id", "deployment_type", "ide_theme"
-    );
+        "client_id", "client_instance_id", "deployment_type", "ide_theme");
   }
 
   @Test
@@ -131,11 +129,9 @@ public class TelemetryUtilsTest
         entry("real_application_id", "appId"),
         entry("stage_id", "build"),
         entry("scan_trigger_type", "CLI"),
-        entry("number_of_components", "0")
-    );
+        entry("number_of_components", "0"));
     assertThat(telemetryData.getAttributes()).doesNotContainKeys(
-        "client_id", "client_instance_id", "deployment_type", "ide_theme"
-    );
+        "client_id", "client_instance_id", "deployment_type", "ide_theme");
   }
 
   @Test
@@ -151,11 +147,9 @@ public class TelemetryUtilsTest
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
         entry("stage_id", "build"),
         entry("scan_trigger_type", "CLI"),
-        entry("number_of_components", "0")
-    );
+        entry("number_of_components", "0"));
     assertThat(telemetryData.getAttributes()).doesNotContainKeys(
-        "client_id", "client_instance_id", "deployment_type", "ide_theme"
-    );
+        "client_id", "client_instance_id", "deployment_type", "ide_theme");
   }
 
   @Test
@@ -179,8 +173,7 @@ public class TelemetryUtilsTest
         entry("client_os_name", "Linux"),
         entry("client_os_version", "5.4.144"),
         entry("client_other", "Jenkins 2.319.2"),
-        entry("client_instance_id", "abc")
-    );
+        entry("client_instance_id", "abc"));
     assertThat(telemetryData.getAttributes()).doesNotContainKeys("deployment_type", "ide_theme");
   }
 
@@ -201,11 +194,9 @@ public class TelemetryUtilsTest
         entry("scan_trigger_type", "CLI"),
         entry("number_of_maven_components", "3"),
         entry("number_of_npm_components", "2"),
-        entry("number_of_components", "5")
-    );
+        entry("number_of_components", "5"));
     assertThat(telemetryData.getAttributes()).doesNotContainKeys(
-        "client_id", "client_instance_id", "deployment_type", "ide_theme"
-    );
+        "client_id", "client_instance_id", "deployment_type", "ide_theme");
   }
 
   @Test
@@ -226,11 +217,9 @@ public class TelemetryUtilsTest
         entry("scan_trigger_type", "CLI"),
         entry("number_of_maven_components", "15"),
         entry("number_of_npm_components", "10"),
-        entry("number_of_components", "25")
-    );
+        entry("number_of_components", "25"));
     assertThat(telemetryData.getAttributes()).doesNotContainKeys(
-        "client_id", "client_instance_id", "deployment_type", "ide_theme"
-    );
+        "client_id", "client_instance_id", "deployment_type", "ide_theme");
   }
 
   @Test
@@ -248,8 +237,7 @@ public class TelemetryUtilsTest
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
         entry("stage_id", "build"),
         entry("scan_trigger_type", "CLI"),
-        entry("deployment_type", "Docker")
-    );
+        entry("deployment_type", "Docker"));
   }
 
   @Test
@@ -268,8 +256,7 @@ public class TelemetryUtilsTest
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
         entry("stage_id", "build"),
         entry("scan_trigger_type", "CLI"),
-        entry("ide_theme", "light")
-    );
+        entry("ide_theme", "light"));
   }
 
   @Test
@@ -373,8 +360,7 @@ public class TelemetryUtilsTest
     expectedContinuousMonitoringMetricsAttributes.put("stageIds", "build, stage-release");
 
     assertThat(telemetryData.getAttributes()).contains(
-        entry("continuous_monitoring_metrics", expectedContinuousMonitoringMetricsAttributes)
-    );
+        entry("continuous_monitoring_metrics", expectedContinuousMonitoringMetricsAttributes));
   }
 
   @Test
@@ -413,8 +399,7 @@ public class TelemetryUtilsTest
         quarantineTime,
         releaseQuarantineTime,
         releaseQuarantineType,
-        policyViolations
-    );
+        policyViolations);
 
     // Assert
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_COMPONENT);

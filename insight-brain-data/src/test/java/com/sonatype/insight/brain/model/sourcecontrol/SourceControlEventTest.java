@@ -55,8 +55,9 @@ public class SourceControlEventTest
     List<String> scanTargets = Arrays.asList("scanTarget1", "scanTarget2");
     String scanTargetsJson = JsonUtils.writeUnformatted(scanTargets);
     sourceControlEvent.setScanTargets(scanTargets);
-    assertThat(sourceControlEvent.getScanTargetsJson()).isEqualTo(scanTargetsJson).doesNotContain("\n", "\r", "\\n",
-        "\\r");
+    assertThat(sourceControlEvent.getScanTargetsJson()).isEqualTo(scanTargetsJson)
+        .doesNotContain("\n", "\r", "\\n",
+            "\\r");
     assertThat(sourceControlEvent.getScanTargets()).isEqualTo(scanTargets);
   }
 

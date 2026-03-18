@@ -38,5 +38,3 @@ public class SastScanRequestDTO
     public String content;
   }
 }
-
-

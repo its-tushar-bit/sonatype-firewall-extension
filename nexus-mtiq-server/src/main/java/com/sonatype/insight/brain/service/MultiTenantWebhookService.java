@@ -53,7 +53,8 @@ public class MultiTenantWebhookService
 
   public Webhook addWebhookNoAuthz(Webhook webhook) {
     if (!productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS) &&
-        !productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES)) {
+        !productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES))
+    {
       log.debug("Not adding Webhook, license does not support Webhooks.");
       throw new InvalidLicenseException();
     }

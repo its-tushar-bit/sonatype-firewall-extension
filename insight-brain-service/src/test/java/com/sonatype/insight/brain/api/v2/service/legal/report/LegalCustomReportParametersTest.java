@@ -37,7 +37,8 @@ public class LegalCustomReportParametersTest
         true, true, true, true);
 
     final LegalCustomReportParameters parameters =
-        LegalCustomReportParameters.builder().fromAttributionReportTemplateDTO(templateDTO)
+        LegalCustomReportParameters.builder()
+            .fromAttributionReportTemplateDTO(templateDTO)
             .withNoticeFiles(Arrays.asList("one", "two"))
             .build();
 

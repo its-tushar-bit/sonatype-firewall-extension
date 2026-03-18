@@ -152,10 +152,12 @@ public class UserFilterServiceTest
 
   @Test
   public void deleteFilterForCurrentUserByNameAndType_NonExisting() {
-    assertThatThrownBy(() ->
-        userFilterService.deleteFilterForCurrentUserByNameAndType("fake", ADVANCED_LEGAL_PACK_DASHBOARD)
-    ).isInstanceOf(NotFoundException.class).hasMessage(
-        "Cannot find a filter with name fake and type ADVANCED_LEGAL_PACK_DASHBOARD for user " + USERNAME + ".");
+    assertThatThrownBy(
+        () -> userFilterService.deleteFilterForCurrentUserByNameAndType("fake", ADVANCED_LEGAL_PACK_DASHBOARD))
+            .isInstanceOf(NotFoundException.class)
+            .hasMessage(
+                "Cannot find a filter with name fake and type ADVANCED_LEGAL_PACK_DASHBOARD for user " + USERNAME
+                    + ".");
   }
 
   @Test

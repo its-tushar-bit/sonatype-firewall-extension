@@ -36,8 +36,7 @@ public class RequestSafeComponentsAutoSelectMetricEventHandler
   @Inject
   public RequestSafeComponentsAutoSelectMetricEventHandler(
       AsyncEventBus eventBus,
-      ApiFirewallMetricsService firewallMetricsService
-  )
+      ApiFirewallMetricsService firewallMetricsService)
   {
     this.eventBus = eventBus;
     this.firewallMetricsService = firewallMetricsService;
@@ -63,7 +62,7 @@ public class RequestSafeComponentsAutoSelectMetricEventHandler
     }
 
     FirewallMetrics firewallMetrics = new FirewallMetrics(LocalDate.now(),
-        FirewallMetricsName.SAFE_VERSIONS_SELECTED_AUTOMATICALLY, 1 );
+        FirewallMetricsName.SAFE_VERSIONS_SELECTED_AUTOMATICALLY, 1);
     firewallMetricsService.incrementFirewallMetrics(firewallMetrics);
 
     log.info("Request of safe components auto-selected for Firewall Metrics saved");

@@ -217,9 +217,9 @@ public class LicenseOverrideServiceTest
     String appPublicId = "LicenseOverrideResourceTest";
     tempEntity.newApplicationWithParent(appPublicId);
 
-    assertThatThrownBy(() ->
-        service.deleteLicenseOverride(APPLICATION, appPublicId, "YettiId", null, null))
-        .isInstanceOf(NotFoundException.class).hasMessage("Cannot find a license override with ID " +
+    assertThatThrownBy(() -> service.deleteLicenseOverride(APPLICATION, appPublicId, "YettiId", null, null))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessage("Cannot find a license override with ID " +
             "YettiId.");
   }
 
@@ -227,18 +227,18 @@ public class LicenseOverrideServiceTest
   public void testDelete_Nonexistent_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("LicenseOverrideResourceTest");
 
-    assertThatThrownBy(() ->
-        service.deleteLicenseOverride(ORGANIZATION, organization.getId(), "YettiId", null, null))
-        .isInstanceOf(NotFoundException.class).hasMessage("Cannot find a license override with ID " +
+    assertThatThrownBy(() -> service.deleteLicenseOverride(ORGANIZATION, organization.getId(), "YettiId", null, null))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessage("Cannot find a license override with ID " +
             "YettiId.");
   }
 
   @Test
   public void testDelete_Nonexistent_Repository() throws Exception {
     final Repository repository = tempEntity.newRepository();
-    assertThatThrownBy(() ->
-        service.deleteLicenseOverride(REPOSITORY, repository.getId(), "YettiId", null, null))
-        .isInstanceOf(NotFoundException.class).hasMessage("Cannot find a license override with ID " +
+    assertThatThrownBy(() -> service.deleteLicenseOverride(REPOSITORY, repository.getId(), "YettiId", null, null))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessage("Cannot find a license override with ID " +
             "YettiId.");
   }
 
@@ -250,9 +250,9 @@ public class LicenseOverrideServiceTest
     String appPublicId = "testGetAppliedLicenseOverrides";
     tempEntity.newApplication(appPublicId, appPublicId, organization.getId());
 
-    assertThatThrownBy(() ->
-        service.getAppliedLicenseOverridesForRead(APPLICATION, appPublicId, null))
-        .isInstanceOf(BadRequestException.class).hasMessage("componentIdentifier is required");
+    assertThatThrownBy(() -> service.getAppliedLicenseOverridesForRead(APPLICATION, appPublicId, null))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("componentIdentifier is required");
   }
 
   @Test
@@ -263,9 +263,9 @@ public class LicenseOverrideServiceTest
     String appPublicId = "testGetAppliedLicenseOverrides";
     tempEntity.newApplication(appPublicId, appPublicId, organization.getId());
 
-    assertThatThrownBy(() ->
-        service.getAppliedLicenseOverridesForLegalReviewer(APPLICATION, appPublicId, null))
-        .isInstanceOf(BadRequestException.class).hasMessage("componentIdentifier is required");
+    assertThatThrownBy(() -> service.getAppliedLicenseOverridesForLegalReviewer(APPLICATION, appPublicId, null))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("componentIdentifier is required");
   }
 
   @Test
@@ -455,7 +455,7 @@ public class LicenseOverrideServiceTest
         .isEqualTo(repoLicenseOverride.getId());
 
     // Create a license override for the root organization
-    LicenseOverride rootOrgLicenseOverride =  new LicenseOverride(null /* ownerId */, componentIdentifier,
+    LicenseOverride rootOrgLicenseOverride = new LicenseOverride(null /* ownerId */, componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment2");
     service.addLicenseOverride(ORGANIZATION, rootOrganization.getId(), rootOrgLicenseOverride, null, mockHttpRequest);
 
@@ -520,9 +520,9 @@ public class LicenseOverrideServiceTest
     LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */, null /* componentIdentifier */,
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
 
-    assertThatThrownBy(() ->
-        service.addLicenseOverride(APPLICATION, appPublicId, licenseOverride, null, null))
-        .isInstanceOf(BadRequestException.class).hasMessage("The component identifier cannot be null.");
+    assertThatThrownBy(() -> service.addLicenseOverride(APPLICATION, appPublicId, licenseOverride, null, null))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("The component identifier cannot be null.");
   }
 
   @Test
@@ -530,14 +530,15 @@ public class LicenseOverrideServiceTest
     String appPublicId = "LicenseOverrideResourceTest";
     tempEntity.newApplicationWithParent(appPublicId);
 
-    assertThatThrownBy(() ->
-        service.addLicenseOverride(APPLICATION, appPublicId, null, null, null))
+    assertThatThrownBy(() -> service.addLicenseOverride(APPLICATION, appPublicId, null, null, null))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("The license override cannot be null. Validate the body of the request.");
   }
-  
-  private void assertLicenseOverrideByOwner(Owner owner, boolean hasLicenseOverride,
-                                            LicenseOverrideService.LicenseOverrideByOwner actual)
+
+  private void assertLicenseOverrideByOwner(
+      Owner owner,
+      boolean hasLicenseOverride,
+      LicenseOverrideService.LicenseOverrideByOwner actual)
   {
     assertThat(actual.ownerId).isEqualTo(owner instanceof Repository ? owner.getId() : owner.getPublicId());
     assertThat(actual.ownerName).isEqualTo(owner.getName());
@@ -550,8 +551,10 @@ public class LicenseOverrideServiceTest
     }
   }
 
-  private void testDelete_OwnerIdMismatch(OwnerType ownerType, String ownerPublicId1, String ownerPublicId2)
-      throws Exception
+  private void testDelete_OwnerIdMismatch(
+      OwnerType ownerType,
+      String ownerPublicId1,
+      String ownerPublicId2) throws Exception
   {
     HttpServletRequest mockHttpRequest = mock(HttpServletRequest.class);
     when(mockHttpRequest.getHeader("X-Forwarded-For")).thenReturn("1.1.1.1");
@@ -562,9 +565,9 @@ public class LicenseOverrideServiceTest
         "My comment");
     service.addLicenseOverride(ownerType, ownerPublicId1, licenseOverride, null, mockHttpRequest);
 
-    assertThatThrownBy(() ->
-        service.deleteLicenseOverride(ownerType, ownerPublicId2, licenseOverride.getId(), null,
-            mockHttpRequest)).isInstanceOf(NotFoundException.class).hasMessage(
+    assertThatThrownBy(() -> service.deleteLicenseOverride(ownerType, ownerPublicId2, licenseOverride.getId(), null,
+        mockHttpRequest)).isInstanceOf(NotFoundException.class)
+            .hasMessage(
                 "Cannot find a license override with ID " + licenseOverride.getId() +
                     " for " + ownerType + " ID " + ownerPublicId2);
 

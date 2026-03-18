@@ -13,7 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import jakarta.annotation.Nullable;
 
-public record FileSbomEntity(Path path, @Nullable String appId, String fileName) implements SbomEntity
+public record FileSbomEntity(Path path, @Nullable String appId, String fileName)
+    implements SbomEntity
 {
   @Override
   public InputStream getInputStream() throws IOException {

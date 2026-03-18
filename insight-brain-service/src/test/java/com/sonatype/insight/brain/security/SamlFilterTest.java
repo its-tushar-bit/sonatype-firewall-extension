@@ -331,12 +331,15 @@ public class SamlFilterTest
     lenient().when(mockHttpServletRequest.getContextPath()).thenReturn(contextPath);
     lenient().when(mockHttpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
     SamlFilter spySamlFilter = spy(this.samlFilter);
-    lenient().doReturn(mockSamlSessionStore).when(spySamlFilter)
+    lenient().doReturn(mockSamlSessionStore)
+        .when(spySamlFilter)
         .newSamlSessionStore(any(HttpServletRequest.class), any(HttpFacade.class), any(SamlDeployment.class));
     lenient().when(mockSamlAuthenticator.getChallenge()).thenReturn(mockAuthChallenge);
     lenient().when(mockSamlAuthenticator.authenticate()).thenReturn(authOutcome);
-    lenient().doReturn(mockSamlAuthenticator).when(spySamlFilter).newSamlAuthenticator(anyBoolean(),
-        any(HttpFacade.class), any(SamlDeployment.class), any(SamlSessionStore.class));
+    lenient().doReturn(mockSamlAuthenticator)
+        .when(spySamlFilter)
+        .newSamlAuthenticator(anyBoolean(),
+            any(HttpFacade.class), any(SamlDeployment.class), any(SamlSessionStore.class));
     lenient().when(spySamlFilter.newServletHttpFacade(any(HttpServletRequest.class), any(HttpServletResponse.class)))
         .thenReturn(spyServletHttpFacade);
     assertThat(spySamlFilter.onPreHandle(mockHttpServletRequest, mockHttpServletResponse, null))

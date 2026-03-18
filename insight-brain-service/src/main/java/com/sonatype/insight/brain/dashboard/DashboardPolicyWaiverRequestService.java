@@ -155,7 +155,8 @@ public class DashboardPolicyWaiverRequestService
     List<DashboardPolicyWaiverRequestDTO> filteredWaiverRequestDTOs = new ArrayList<>();
     for (Policy policy : filteredPoliciesById.values()) {
       List<PolicyWaiverRequest> policyWaiverRequests =
-          expirationDate.equals(ALL) ? policyWaiverRequestDAO.getByPolicyId(policy.getId())
+          expirationDate.equals(ALL)
+              ? policyWaiverRequestDAO.getByPolicyId(policy.getId())
               : policyWaiverRequestDAO.getActiveByPolicyId(policy.getId());
       List<DashboardPolicyWaiverRequestDTO> partialDTOs = filterPolicyWaiverRequestsAndBuildDTOs(policyWaiverRequests,
           filteringPredicate, dtoAdapter, waiverReasonIdToWaiverReason);
@@ -209,7 +210,8 @@ public class DashboardPolicyWaiverRequestService
     owners.putAll(repositoryManagers.stream().collect(ownerCollector));
 
     if (ownerFilterIsEmptyAndRepoContainerReadPermission || !repositories.isEmpty()
-        || (repositoryIds.contains(RepositoryContainer.REPOSITORY_CONTAINER_ID) && hasRepoContainerReadPermission)) {
+        || (repositoryIds.contains(RepositoryContainer.REPOSITORY_CONTAINER_ID) && hasRepoContainerReadPermission))
+    {
       owners.put(RepositoryContainer.REPOSITORY_CONTAINER_ID, RepositoryContainer.SINGLETON);
       owners.computeIfAbsent(ROOT_ORGANIZATION_ID, organizationDAO::getById);
     }
@@ -285,9 +287,11 @@ public class DashboardPolicyWaiverRequestService
       return policyWaiverRequest -> true;
     }
 
-    Instant expiration = Instant.now().plus(expirationDate.getDays(), ChronoUnit.DAYS)
+    Instant expiration = Instant.now()
+        .plus(expirationDate.getDays(), ChronoUnit.DAYS)
         // add one day to allow waivers expiring on last day to filter in
-        .plus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
+        .plus(1, ChronoUnit.DAYS)
+        .truncatedTo(ChronoUnit.DAYS);
 
     return policyWaiverRequest -> policyWaiverRequest.getExpiryTime() != null
         && !policyWaiverRequest.getExpiryTime().toInstant().truncatedTo(ChronoUnit.DAYS).isAfter(expiration);

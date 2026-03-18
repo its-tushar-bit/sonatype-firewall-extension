@@ -81,7 +81,8 @@ public class ApiLegalCopyrightService
    *
    * <p>
    * <strong>Note</strong> This implementation will perform a HDS request to get the full copyright data for the
-   * component for <strong>each page</strong>. <br>This is done to avoid introducing in-memory cache in IQ which will
+   * component for <strong>each page</strong>. <br>
+   * This is done to avoid introducing in-memory cache in IQ which will
    * not be shared by cluster nodes.
    * </p>
    *
@@ -94,7 +95,8 @@ public class ApiLegalCopyrightService
       final ComponentIdentifier componentIdentifier,
       final String componentHash,
       final String copyrightContentHash,
-      final int start, final int length)
+      final int start,
+      final int length)
   {
     checkLicense();
     componentIdentifier.validate();
@@ -135,7 +137,8 @@ public class ApiLegalCopyrightService
     componentIdentifier.validate();
 
     final List<CopyrightContextDTO> matchingContexts = loadCopyrightContexts(componentIdentifier, componentHash)
-        .stream().filter(copyrightContextDTO -> copyrightContextDTO.getFilePaths().contains(filePath) &&
+        .stream()
+        .filter(copyrightContextDTO -> copyrightContextDTO.getFilePaths().contains(filePath) &&
             copyrightContextDTO.getCopyrightContentHashes().contains(copyrightContentHash))
         .collect(Collectors.toList());
 
@@ -163,8 +166,7 @@ public class ApiLegalCopyrightService
         context -> context.getCopyrightContentHashes().forEach(copyrightHash -> {
           final int existing = copyrightFileCount.computeIfAbsent(copyrightHash, key -> 0);
           copyrightFileCount.put(copyrightHash, existing + context.getFilePaths().size());
-        })
-    );
+        }));
 
     return copyrightFileCount;
   }
@@ -178,7 +180,8 @@ public class ApiLegalCopyrightService
     }
     final Collection<ComponentLegalCommentFilePathsDTO> componentLegalComment =
         hdsService.getComponentLegalCommentFilePaths(componentIdentifier);
-    return componentLegalComment.stream().flatMap(it -> it.getComments().stream())
+    return componentLegalComment.stream()
+        .flatMap(it -> it.getComments().stream())
         .map(comment -> new CopyrightContextDTO(
             comment.getContent(),
             comment.getFilePaths(),
@@ -195,7 +198,9 @@ public class ApiLegalCopyrightService
         .filter(it -> it.getCopyrightContentHashes().contains(copyrightContentHash))
         .flatMap(it -> it.getFilePaths().stream())
         .collect(Collectors.toMap(Function.identity(), path -> 1, Integer::sum))
-        .entrySet().stream().map(entry -> new CopyrightFilePathDTO(entry.getKey(), entry.getValue()))
+        .entrySet()
+        .stream()
+        .map(entry -> new CopyrightFilePathDTO(entry.getKey(), entry.getValue()))
         .sorted()
         .collect(Collectors.toList());
   }
@@ -220,23 +225,23 @@ public class ApiLegalCopyrightService
     // collect all different file paths which contain the same copyright context
     final Map<String, CopyrightContextDTO> commentFileMap = new HashMap<>();
     componentLegalComments.forEach(componentLegalCommentDTO -> {
-          final AggregateFile aggregateFile = componentAggregateHashes.get(componentLegalCommentDTO.getHash());
-          final Set<String> filePaths = aggregateFile == null ? ImmutableSet.of() : aggregateFile.getPathnames();
-          componentLegalCommentDTO.getComments().forEach(commentDTO -> {
-            commentFileMap.putIfAbsent(commentDTO.getContent(),
-                new CopyrightContextDTO(
-                    commentDTO.getContent(),
-                    new HashSet<>(),
-                    getCopyrightContentHashes(commentDTO)));
-            commentFileMap.get(commentDTO.getContent()).getFilePaths().addAll(filePaths);
-          });
-        }
-    );
+      final AggregateFile aggregateFile = componentAggregateHashes.get(componentLegalCommentDTO.getHash());
+      final Set<String> filePaths = aggregateFile == null ? ImmutableSet.of() : aggregateFile.getPathnames();
+      componentLegalCommentDTO.getComments().forEach(commentDTO -> {
+        commentFileMap.putIfAbsent(commentDTO.getContent(),
+            new CopyrightContextDTO(
+                commentDTO.getContent(),
+                new HashSet<>(),
+                getCopyrightContentHashes(commentDTO)));
+        commentFileMap.get(commentDTO.getContent()).getFilePaths().addAll(filePaths);
+      });
+    });
     return commentFileMap.values();
   }
 
   private static Set<String> getCopyrightContentHashes(final LegalCommentDTO comment) {
-    return comment.getCopyrights().stream()
+    return comment.getCopyrights()
+        .stream()
         .map(LegalCopyrightDTO::getContentHash)
         .collect(Collectors.toSet());
   }
@@ -248,8 +253,10 @@ public class ApiLegalCopyrightService
     final ApplicationComponent lastByHash = applicationComponentDAO.getLastByHash(componentHash);
     final List<AggregateFile> aggregateFiles =
         aggregateFileDAO.getByApplicationComponentId(lastByHash.getId());
-    return aggregateFiles == null ? Collections.emptyMap() : aggregateFiles.stream()
-        .collect(Collectors.toMap(AggregateFile::getHash, Function.identity()));
+    return aggregateFiles == null
+        ? Collections.emptyMap()
+        : aggregateFiles.stream()
+            .collect(Collectors.toMap(AggregateFile::getHash, Function.identity()));
   }
 
   private void checkLicense() {

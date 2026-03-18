@@ -232,8 +232,7 @@ public class ApiAutoPolicyWaiverExclusionService
       @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId,
       String autoPolicyWaiverId,
       int page,
-      int pageSize
-  )
+      int pageSize)
   {
     AutoPolicyWaiverUtil.validateAutoWaiversFeatureEnabled();
     checkOwnerType(ownerType, ownerId);
@@ -243,8 +242,7 @@ public class ApiAutoPolicyWaiverExclusionService
             ownerId,
             autoPolicyWaiverId,
             page,
-            pageSize
-        );
+            pageSize);
 
     Owner owner = getOwner(ownerType, ownerId);
 
@@ -375,10 +373,9 @@ public class ApiAutoPolicyWaiverExclusionService
   private void checkForExistingRecord(AutoPolicyWaiverExclusion newExclusion) {
     AutoPolicyWaiverExclusion existingExclusion =
         autoPolicyWaiverExclusionDAO.getByOwnerIdPolicyViolation(
-        newExclusion.getOwnerId(),
-        newExclusion.getAutoPolicyWaiverId(),
-        newExclusion.getPolicyViolationId()
-    );
+            newExclusion.getOwnerId(),
+            newExclusion.getAutoPolicyWaiverId(),
+            newExclusion.getPolicyViolationId());
     if (existingExclusion != null) {
       throw new BadRequestException("Exclusion already exists for this policy violation");
     }

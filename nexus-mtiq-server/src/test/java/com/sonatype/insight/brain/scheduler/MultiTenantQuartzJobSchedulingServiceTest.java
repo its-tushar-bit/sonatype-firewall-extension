@@ -104,9 +104,7 @@ public class MultiTenantQuartzJobSchedulingServiceTest
             Pair.of(createJobDetail(TEST_JOB_NAME, tenants.get(1).tenantSlug),
                 Set.of(createTrigger(TEST_TRIGGER_NAME, tenants.get(1).tenantSlug))),
             Pair.of(createJobDetail(TEST_JOB_NAME, tenants.get(2).tenantSlug),
-                Set.of(createTrigger(TEST_TRIGGER_NAME, tenants.get(2).tenantSlug)))
-        )
-    );
+                Set.of(createTrigger(TEST_TRIGGER_NAME, tenants.get(2).tenantSlug)))));
 
     // Verify log output
     assertThat(logOutput).atDebugLevel()

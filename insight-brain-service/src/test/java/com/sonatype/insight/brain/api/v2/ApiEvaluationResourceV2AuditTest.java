@@ -62,7 +62,8 @@ public class ApiEvaluationResourceV2AuditTest
     assertResponseStatus(400,
         restRequest()
             .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
-            .parameter(app.getId()).post());
+            .parameter(app.getId())
+            .post());
     assertEvaluationAuditLog("bad-request", app.getId(), app.getPublicId(), app.getName(), null, null, null);
   }
 
@@ -170,7 +171,9 @@ public class ApiEvaluationResourceV2AuditTest
     return restRequest().with(user)
         .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2,
             ApiEvaluationResourceV2.SOURCE_CONTROL_EVALUATION_PATH)
-        .parameter(applicationId).body(new ApiSourceControlEvaluationRequestDTO(stageId, "TestBranchName")).post();
+        .parameter(applicationId)
+        .body(new ApiSourceControlEvaluationRequestDTO(stageId, "TestBranchName"))
+        .post();
   }
 
   private HttpResponse promoteScan(
@@ -189,7 +192,9 @@ public class ApiEvaluationResourceV2AuditTest
     }
     return restRequest().with(user)
         .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)
-        .parameter(applicationId).body(ApiPromoteScanRequestDTOV2.fromScan(scanId, stageId)).post();
+        .parameter(applicationId)
+        .body(ApiPromoteScanRequestDTOV2.fromScan(scanId, stageId))
+        .post();
   }
 
   private HttpRequest evaluateComponents(ApiComponentEvaluationRequestDTOV2 request) {

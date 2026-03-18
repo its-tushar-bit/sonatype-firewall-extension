@@ -133,15 +133,13 @@ public class ConstraintSection
       return new ConditionEditSection<>(
           rootSelector,
           ".constraint-editor__conditions .nx-list__item",
-          nthChild(i + 1)
-      );
+          nthChild(i + 1));
     }
 
     public AgeConditionEditSection ageCondition(int i) {
       return new AgeConditionEditSection(
           rootSelector + " .constraint-editor__conditions .nx-list__item"
-          + nthChild(i + 1)
-      );
+              + nthChild(i + 1));
     }
 
     public DropdownConditionEditSection dropdownCondition(int i) {
@@ -153,16 +151,14 @@ public class ConstraintSection
       return new InputConditionEditSection(
           rootSelector,
           ".constraint-editor__conditions .nx-list__item",
-          nthChild(i + 1)
-      );
+          nthChild(i + 1));
     }
 
     public CoordinatesCondition coordinatesCondition(int i) {
       return new CoordinatesCondition(
           rootSelector,
           ".constraint-editor__conditions .nx-list__item",
-          nthChild(i + 1)
-      );
+          nthChild(i + 1));
     }
 
     public ElementsCollection conditionUnsupportedMessages() {

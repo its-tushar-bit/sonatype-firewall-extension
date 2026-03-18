@@ -97,7 +97,8 @@ public class Auth0ProvisioningServiceTest
 
     auth0ProvisioningService.provision(parameters);
     logOutput.assertThat().contains("Created new auth0 account for tenant=tenant1, clientId=abcdefg").atInfoLevel();
-    logOutput.assertThat().contains("Unable to download the saml metadata for tenant=tenant1, clientId=abcdefg")
+    logOutput.assertThat()
+        .contains("Unable to download the saml metadata for tenant=tenant1, clientId=abcdefg")
         .atInfoLevel();
   }
 

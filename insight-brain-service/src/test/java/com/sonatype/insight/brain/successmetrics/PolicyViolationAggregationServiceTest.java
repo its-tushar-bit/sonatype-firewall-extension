@@ -149,12 +149,12 @@ public class PolicyViolationAggregationServiceTest
 
     final var evalSource1 = tempEntity.newPolicyEvaluation(app.getId(), SourceStageType.ID, "scan1",
         now.minusHours(72).toDate());
-    final var  evalSource2 = tempEntity.newPolicyEvaluation(app.getId(), SourceStageType.ID, "scan3",
+    final var evalSource2 = tempEntity.newPolicyEvaluation(app.getId(), SourceStageType.ID, "scan3",
         now.minusHours(48).toDate());
 
     final var evalRelease1 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, "scan2",
         now.minusHours(72).toDate());
-    final var  evalRelease2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, "scan4",
+    final var evalRelease2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, "scan4",
         now.minusHours(24).toDate());
 
     PolicyViolation violationStaging = tempEntity
@@ -226,14 +226,12 @@ public class PolicyViolationAggregationServiceTest
     final var app = tempEntity.newApplicationWithParent();
     setSuccessMetricsStage(DevelopStageType.ID);
 
-    final var thrown = assertThrows(BadRequestException.class, () ->
-        service.generatePolicyViolationAggregations(
-            Collections.singleton(app.getId()), DateTime.now(), true));
+    final var thrown = assertThrows(BadRequestException.class, () -> service.generatePolicyViolationAggregations(
+        Collections.singleton(app.getId()), DateTime.now(), true));
 
     assertThat(thrown.getMessage()).isEqualTo(
         "Invalid value 'develop' provided for successMetricsStageId. Allowed values are: " +
-            "'[operate, build, release, source, stage-release]'"
-    );
+            "'[operate, build, release, source, stage-release]'");
   }
 
   private void assertAllResoloved(DateTime now, PolicyViolationAggregation aggregation) {
@@ -258,8 +256,10 @@ public class PolicyViolationAggregationServiceTest
     assertThat(aggregation.getMttrLowThreat()).isNull();
 
     LocalDate expectedTimePeriodStart =
-        aggregation.getTimePeriod() == MONTH ? new LocalDate(now.withDayOfMonth(1)) : new LocalDate(
-            now.withDayOfWeek(1));
+        aggregation.getTimePeriod() == MONTH
+            ? new LocalDate(now.withDayOfMonth(1))
+            : new LocalDate(
+                now.withDayOfWeek(1));
     assertThat(aggregation.getTimePeriodStart()).isEqualTo(expectedTimePeriodStart.toDate());
     assertThat(aggregation.getTimePeriodEnd()).isEqualTo(now.toDate());
   }
@@ -352,8 +352,10 @@ public class PolicyViolationAggregationServiceTest
     assertThat(aggregation.getMttrLowThreat()).isNull();
 
     LocalDate expectedTimePeriodStart =
-        aggregation.getTimePeriod() == MONTH ? new LocalDate(now.withDayOfMonth(1)) : new LocalDate(
-            now.withDayOfWeek(1));
+        aggregation.getTimePeriod() == MONTH
+            ? new LocalDate(now.withDayOfMonth(1))
+            : new LocalDate(
+                now.withDayOfWeek(1));
     assertThat(aggregation.getTimePeriodStart()).isEqualTo(expectedTimePeriodStart.toDate());
     assertThat(aggregation.getTimePeriodEnd()).isEqualTo(now.toDate());
   }
@@ -464,7 +466,7 @@ public class PolicyViolationAggregationServiceTest
 
     assertViolationsWithHash(aggregation);
   }
-  
+
   private void assertViolationsWithHash(PolicyViolationAggregation aggregation) {
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getDiscoveredAsTable());
     assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL)).isEqualTo(2);
@@ -604,8 +606,9 @@ public class PolicyViolationAggregationServiceTest
         .containsExactly(1, 0, 0, 0);
   }
 
-  private void assertViolationOneWeekAgoFromMidMonth(PolicyViolationAggregation aggregation,
-                                                     boolean violationExpected)
+  private void assertViolationOneWeekAgoFromMidMonth(
+      PolicyViolationAggregation aggregation,
+      boolean violationExpected)
   {
     assertAllCountsZeroExcept(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL, aggregation.getDiscoveredAsTable());
     assertThat(aggregation.getDiscoveredCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL))
@@ -686,9 +689,10 @@ public class PolicyViolationAggregationServiceTest
     assertAllCountsZeroExcept(null, null, countsAsTable);
   }
 
-  private void assertAllCountsZeroExcept(PolicyThreatCategory category,
-                                         ThreatLevel level,
-                                         Table<PolicyThreatCategory, ThreatLevel, Integer> countsAsTable)
+  private void assertAllCountsZeroExcept(
+      PolicyThreatCategory category,
+      ThreatLevel level,
+      Table<PolicyThreatCategory, ThreatLevel, Integer> countsAsTable)
   {
     for (Cell<PolicyThreatCategory, ThreatLevel, Integer> cell : countsAsTable.cellSet()) {
       if (!(cell.getRowKey().equals(category) && cell.getColumnKey().equals(level))) {

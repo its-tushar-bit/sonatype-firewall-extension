@@ -34,8 +34,7 @@ public abstract class OwnerTelemetryCollector
         telemetryUtils.obfuscateIfAdvancedReportingDisabled(owner.getId()),
         type,
         telemetryUtils.obfuscateIfAdvancedReportingDisabled(owner.getName()),
-        telemetryUtils.obfuscateIfAdvancedReportingDisabled(owner.getParentOwnerId())
-    );
+        telemetryUtils.obfuscateIfAdvancedReportingDisabled(owner.getParentOwnerId()));
   }
 
   public static class OwnerData
@@ -49,7 +48,7 @@ public abstract class OwnerTelemetryCollector
     private String parentOwnerId;
 
     public OwnerData() {
-      //for serialization
+      // for serialization
     }
 
     public OwnerData(String ownerId, String ownerType, String ownerName, String parentOwnerId) {

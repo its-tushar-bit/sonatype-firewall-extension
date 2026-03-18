@@ -46,8 +46,7 @@ public class FileApplicationReportPersistenceServiceTestHelper
         tempDir,
         TEST_REPORT_CLASSPATH + reportName,
         APPLICATION_ID,
-        SCAN_ID
-    );
+        SCAN_ID);
   }
 
   @Override

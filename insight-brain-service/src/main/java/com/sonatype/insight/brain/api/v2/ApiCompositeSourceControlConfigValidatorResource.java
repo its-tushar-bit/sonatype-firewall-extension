@@ -60,17 +60,15 @@ public class ApiCompositeSourceControlConfigValidatorResource
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "The response shows if the composite source control configuration for the application " +
-                  "is valid.",
-              useReturnTypeSchema = true
-          )
+        @ApiResponse(
+            responseCode = "200",
+            description = "The response shows if the composite source control configuration for the application " +
+                "is valid.",
+            useReturnTypeSchema = true)
       })
   public ConfigurationValidationResult validateSourceControlConfig(
       @Parameter(description = "Enter the applicationId for which you want to validate the composite source " +
-          "control configuration.", required = true)
-      @PathParam("applicationId") String applicationId)
+          "control configuration.", required = true) @PathParam("applicationId") String applicationId)
   {
     return service.validateSourceControlConfig(applicationId);
   }

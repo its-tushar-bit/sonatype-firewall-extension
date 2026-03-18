@@ -138,8 +138,11 @@ public class SimpleConfigurationMigratorTest
     Arrays.stream(Feature.values()).forEach(f -> {
       verify(mockConfigFeaturesService).disableFeatureNoAuthz(f.getFlag());
       assertThat(
-          Arrays.stream(SystemConfigurationPropertyFeature.values()).filter(p -> p.name().equals(f.name())).findFirst()
-              .orElseThrow(RuntimeException::new).isEnabled()).isFalse();
+          Arrays.stream(SystemConfigurationPropertyFeature.values())
+              .filter(p -> p.name().equals(f.name()))
+              .findFirst()
+              .orElseThrow(RuntimeException::new)
+              .isEnabled()).isFalse();
     });
     assertThat(migrationTrackerDAO.isTrackerPresent(SimpleConfigurationMigrator.MIGRATION_ID)).isTrue();
   }
@@ -151,7 +154,8 @@ public class SimpleConfigurationMigratorTest
 
     simpleConfigurationMigrator.migrate();
 
-    logOutput.assertThat().atWarnLevel()
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains("The current hdsUrl configuration is invalid and cannot be migrated.");
     assertThat(configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL)).isEqualTo(
         "https://clm-staging.sonatype.com/");
@@ -204,8 +208,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(
         configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES)).isEqualTo(
-        insightConfig.getSupportConfig().getReadLimitBytes());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.getSupportConfig().getReadLimitBytes());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES));
@@ -223,8 +228,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE)).isEqualTo(
-        insightConfig.getEventBusConfig().getMaxPoolSize());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.getEventBusConfig().getMaxPoolSize());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE));
@@ -241,7 +247,8 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.CSRF_PROTECTION)).isEqualTo(
         insightConfig.isCsrfProtection());
-    logOutput.assertThat().atWarnLevel()
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.CSRF_PROTECTION + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.CSRF_PROTECTION));
@@ -257,7 +264,8 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.USER_AGENT_SUFFIX)).isEqualTo(
         insightConfig.getUserAgentSuffix());
-    logOutput.assertThat().atWarnLevel()
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.USER_AGENT_SUFFIX + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.USER_AGENT_SUFFIX));
@@ -290,8 +298,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(
         configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH)).isEqualTo(
-        insightConfig.isBlockSemicolonInPath());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.isBlockSemicolonInPath());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH));
@@ -308,8 +317,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(
         configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH)).isEqualTo(
-        insightConfig.isBlockBackslashInPath());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.isBlockBackslashInPath());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH));
@@ -326,8 +336,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(
         configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH)).isEqualTo(
-        insightConfig.isBlockNonAsciiInPath());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.isBlockNonAsciiInPath());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH));
@@ -344,8 +355,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(
         configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE)).isEqualTo(
-        insightConfig.getReleaseGraphCacheSize());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.getReleaseGraphCacheSize());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE));
@@ -362,8 +374,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT)).isEqualTo(
-        insightConfig.getLicenseLegalHdsRequestLimit());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.getLicenseLegalHdsRequestLimit());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT));
@@ -380,8 +393,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD)).isEqualTo(
-        insightConfig.getMaxApplicationsToQueryOnDashboard());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.getMaxApplicationsToQueryOnDashboard());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD));
@@ -398,8 +412,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT)).isEqualTo(
-        insightConfig.getMaxAdvancedSearchClauseCount());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.getMaxAdvancedSearchClauseCount());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT));
@@ -416,8 +431,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER)).isEqualTo(
-        insightConfig.getAdvancedSearchCSVExportDelimiter());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.getAdvancedSearchCSVExportDelimiter());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER));
@@ -434,8 +450,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS)).isEqualTo(
-        insightConfig.getConnectTimeoutInSeconds());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.getConnectTimeoutInSeconds());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS));
@@ -452,8 +469,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS)).isEqualTo(
-        insightConfig.getSocketTimeoutInSeconds());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.getSocketTimeoutInSeconds());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS));
@@ -470,8 +488,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS)).isEqualTo(
-        insightConfig.getReportTimeoutInSeconds());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.getReportTimeoutInSeconds());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS));
@@ -489,9 +508,11 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER)).isEqualTo(
-        insightConfig.isNeedsAcknowledgementOfInitialDashboardFilter());
-    logOutput.assertThat().atWarnLevel().contains(
-        SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER + EXPECTED_OBSOLETE_SUFFIX);
+            insightConfig.isNeedsAcknowledgementOfInitialDashboardFilter());
+    logOutput.assertThat()
+        .atWarnLevel()
+        .contains(
+            SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER));
     verifyNoInteractions(mockConfigFeaturesService);
@@ -507,8 +528,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING)).isEqualTo(
-        insightConfig.isEnableDefaultPasswordWarning());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.isEnableDefaultPasswordWarning());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING));
@@ -525,8 +547,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.POLICY_MONITORING_HOUR)).isEqualTo(
-        insightConfig.getPolicyMonitoringHour());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.getPolicyMonitoringHour());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.POLICY_MONITORING_HOUR + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.POLICY_MONITORING_HOUR));
@@ -559,8 +582,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(
         configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE)).isEqualTo(
-        insightConfig.getWebhookSecretPassphrase());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.getWebhookSecretPassphrase());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE));
@@ -577,9 +601,10 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(
         configurationService.getConfigurationNoAuthz(
-            SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS)
-        ).isEqualTo(insightConfig.getWebhookSecretPassphraseFips());
-    logOutput.assertThat().atWarnLevel()
+            SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS))
+                .isEqualTo(insightConfig.getWebhookSecretPassphraseFips());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS));
@@ -596,8 +621,9 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED)).isEqualTo(
-        insightConfig.isExternalHyperlinksAllowed());
-    logOutput.assertThat().atWarnLevel()
+            insightConfig.isExternalHyperlinksAllowed());
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED));
@@ -615,8 +641,11 @@ public class SimpleConfigurationMigratorTest
 
     assertThat(configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING)).isEqualTo(true);
-    logOutput.assertThat().atWarnLevel().contains(
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING + EXPECTED_OBSOLETE_SUFFIX);
+    logOutput.assertThat()
+        .atWarnLevel()
+        .contains(
+            SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING
+                + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING));
     verifyNoInteractions(mockConfigFeaturesService);
@@ -649,7 +678,8 @@ public class SimpleConfigurationMigratorTest
     simpleConfigurationMigrator.migrate();
 
     assertThat(SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.isEnabled()).isFalse();
-    logOutput.assertThat().atWarnLevel()
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag() + EXPECTED_OBSOLETE_SUFFIX);
     verifyNoInteractions(mockConfigurationService);
     verify(mockConfigFeaturesService).disableFeatureNoAuthz(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag());
@@ -666,7 +696,8 @@ public class SimpleConfigurationMigratorTest
     simpleConfigurationMigrator.migrate();
 
     assertThat(SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.isEnabled()).isFalse();
-    logOutput.assertThat().atWarnLevel()
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(Feature.DEFAULT_BRANCH_MONITORING.getFlag() + EXPECTED_OBSOLETE_SUFFIX);
     verifyNoInteractions(mockConfigurationService);
     verify(mockConfigFeaturesService).disableFeatureNoAuthz(Feature.DEFAULT_BRANCH_MONITORING.getFlag());
@@ -683,7 +714,8 @@ public class SimpleConfigurationMigratorTest
     simpleConfigurationMigrator.migrate();
 
     assertThat(SystemConfigurationPropertyFeature.DEPENDENCY_DATA_IN_API.isEnabled()).isFalse();
-    logOutput.assertThat().atWarnLevel()
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(Feature.DEPENDENCY_DATA_IN_API.getFlag() + EXPECTED_OBSOLETE_SUFFIX);
     verifyNoInteractions(mockConfigurationService);
     verify(mockConfigFeaturesService).disableFeatureNoAuthz(Feature.DEPENDENCY_DATA_IN_API.getFlag());
@@ -700,7 +732,8 @@ public class SimpleConfigurationMigratorTest
     simpleConfigurationMigrator.migrate();
 
     assertThat(SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.isEnabled()).isFalse();
-    logOutput.assertThat().atWarnLevel()
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag() + EXPECTED_OBSOLETE_SUFFIX);
     verifyNoInteractions(mockConfigurationService);
     verify(mockConfigFeaturesService).disableFeatureNoAuthz(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag());
@@ -717,7 +750,8 @@ public class SimpleConfigurationMigratorTest
     simpleConfigurationMigrator.migrate();
 
     assertThat(SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.isEnabled()).isFalse();
-    logOutput.assertThat().atWarnLevel()
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag() + EXPECTED_OBSOLETE_SUFFIX);
     verifyNoInteractions(mockConfigurationService);
     verify(mockConfigFeaturesService).disableFeatureNoAuthz(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag());
@@ -766,7 +800,8 @@ public class SimpleConfigurationMigratorTest
     simpleConfigurationMigrator.migrate();
 
     assertThat(SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES.isEnabled()).isFalse();
-    logOutput.assertThat().atWarnLevel()
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(Feature.ENABLE_UNAUTHENTICATED_PAGES.getFlag() + EXPECTED_OBSOLETE_SUFFIX);
     verifyNoInteractions(mockConfigurationService);
     verify(mockConfigFeaturesService).disableFeatureNoAuthz(Feature.ENABLE_UNAUTHENTICATED_PAGES.getFlag());
@@ -783,7 +818,8 @@ public class SimpleConfigurationMigratorTest
     simpleConfigurationMigrator.migrate();
 
     assertThat(SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS.isEnabled()).isFalse();
-    logOutput.assertThat().atWarnLevel()
+    logOutput.assertThat()
+        .atWarnLevel()
         .contains(Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS.getFlag() + EXPECTED_OBSOLETE_SUFFIX);
     verifyNoInteractions(mockConfigurationService);
     verify(mockConfigFeaturesService).disableFeatureNoAuthz(

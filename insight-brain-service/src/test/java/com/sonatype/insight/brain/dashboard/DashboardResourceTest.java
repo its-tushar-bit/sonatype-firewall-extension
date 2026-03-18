@@ -92,7 +92,8 @@ public class DashboardResourceTest
     createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
 
     HttpResponse response = restRequest().path(DashboardResource.GET_VIOLATION_RISKS_PATH)
-        .body(new RisksFilterDTO()).post();
+        .body(new RisksFilterDTO())
+        .post();
 
     assertResponseStatus(200, response);
     DashboardResultsDTO<?> dto = response.getBody(DashboardResultsDTO.class);
@@ -271,14 +272,18 @@ public class DashboardResourceTest
 
     createNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    HttpResponse exportResponse = restRequest().auth(tempUser).path(GET_VIOLATION_RISKS_EXPORT_PATH)
-        .part("filter", new RisksFilterDTO()).post();
+    HttpResponse exportResponse = restRequest().auth(tempUser)
+        .path(GET_VIOLATION_RISKS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO())
+        .post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "test_violation_risks_non_dirty-violations");
 
     dirtyNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    exportResponse = restRequest().auth(tempUser).path(GET_VIOLATION_RISKS_EXPORT_PATH)
-        .part("filter", new RisksFilterDTO()).post();
+    exportResponse = restRequest().auth(tempUser)
+        .path(GET_VIOLATION_RISKS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO())
+        .post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "results-violations");
   }
 
@@ -293,7 +298,8 @@ public class DashboardResourceTest
     RisksFilterDTO filter = new RisksFilterDTO();
     filter.orderBy = "Invalid";
     HttpResponse response = restRequest().path(DashboardResource.GET_VIOLATION_RISKS_PATH)
-        .body(filter).post();
+        .body(filter)
+        .post();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid orderBy property.");
@@ -336,7 +342,8 @@ public class DashboardResourceTest
     RisksFilterDTO filter = new RisksFilterDTO();
     filter.orderBy = "Invalid";
     HttpResponse response = restRequest().path(DashboardResource.GET_APPLICATION_RISKS_PATH)
-        .body(filter).post();
+        .body(filter)
+        .post();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid orderBy property.");
@@ -354,14 +361,18 @@ public class DashboardResourceTest
 
     createNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    HttpResponse exportResponse = restRequest().auth(tempUser).path(GET_APPLICATION_RISKS_EXPORT_PATH)
-        .part("filter", new RisksFilterDTO()).post();
+    HttpResponse exportResponse = restRequest().auth(tempUser)
+        .path(GET_APPLICATION_RISKS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO())
+        .post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "test_application_risks_non_dirty-applications");
 
     dirtyNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    exportResponse = restRequest().auth(tempUser).path(GET_APPLICATION_RISKS_EXPORT_PATH)
-        .part("filter", new RisksFilterDTO()).post();
+    exportResponse = restRequest().auth(tempUser)
+        .path(GET_APPLICATION_RISKS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO())
+        .post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "results-applications");
   }
 
@@ -370,7 +381,8 @@ public class DashboardResourceTest
     RisksFilterDTO filter = new RisksFilterDTO();
     filter.orderBy = "Invalid";
     HttpResponse response = restRequest().path(DashboardResource.GET_COMPONENT_RISKS_PATH)
-        .body(filter).post();
+        .body(filter)
+        .post();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid orderBy property.");
@@ -378,7 +390,8 @@ public class DashboardResourceTest
 
   @Test
   public void testGetComponentRisksExport_returnValidCsvHeadersWithoutAppSetup() throws Exception {
-    HttpResponse response = restRequest().path(GET_COMPONENT_RISKS_EXPORT_PATH).part("filter", new RisksFilterDTO())
+    HttpResponse response = restRequest().path(GET_COMPONENT_RISKS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO())
         .post();
 
     assertResponseOkAndCsvHeadersSet(response, "results-components");
@@ -416,27 +429,33 @@ public class DashboardResourceTest
 
     createNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    HttpResponse exportResponse = restRequest().auth(tempUser).path(GET_COMPONENT_RISKS_EXPORT_PATH)
-        .part("filter", new RisksFilterDTO()).post();
+    HttpResponse exportResponse = restRequest().auth(tempUser)
+        .path(GET_COMPONENT_RISKS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO())
+        .post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "test_component_risks_non_dirty-components");
 
     dirtyNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
 
-    exportResponse = restRequest().auth(tempUser).path(GET_COMPONENT_RISKS_EXPORT_PATH)
-        .part("filter", new RisksFilterDTO()).post();
+    exportResponse = restRequest().auth(tempUser)
+        .path(GET_COMPONENT_RISKS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO())
+        .post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "results-components");
   }
 
-  private void createNamedFilterForUserAndAssertResponseOk(NamedDashboardFilterDTO namedDashboardFilterDTO, User user)
-      throws Exception
+  private void createNamedFilterForUserAndAssertResponseOk(
+      NamedDashboardFilterDTO namedDashboardFilterDTO,
+      User user) throws Exception
   {
     HttpRequest request = restRequest().auth(user).path(DashboardResource.NAMED_FILTERS_PATH);
     HttpResponse response = request.body(namedDashboardFilterDTO).put();
     assertResponseStatus(200, response);
   }
 
-  private void dirtyNamedFilterForUserAndAssertResponseOk(NamedDashboardFilterDTO namedDashboardFilterDTO, User user)
-      throws Exception
+  private void dirtyNamedFilterForUserAndAssertResponseOk(
+      NamedDashboardFilterDTO namedDashboardFilterDTO,
+      User user) throws Exception
   {
     namedDashboardFilterDTO.basedOnFilterName = namedDashboardFilterDTO.name;
     namedDashboardFilterDTO.name = null;
@@ -489,7 +508,7 @@ public class DashboardResourceTest
     namedDashboardFilterDTO.name = filterName;
     namedDashboardFilterDTO.filter = createDashboardFilter(app, tag);
 
-    //creating a new filter
+    // creating a new filter
     HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.NAMED_FILTERS_PATH);
     HttpResponse response = request.body(namedDashboardFilterDTO).put();
     assertResponseStatus(200, response);
@@ -580,7 +599,8 @@ public class DashboardResourceTest
     DashboardFilter dashboardFilter1 = tempEntity.newDashboardFilter(username, InternalRealm.ID, filerName,
         JsonUtils.format(createDashboardFilter(app, tag)));
 
-    HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.DELETE_NAMED_FILTER_PATH)
+    HttpRequest request = restRequest().auth(tempUser)
+        .path(DashboardResource.DELETE_NAMED_FILTER_PATH)
         .query("filterName", filerName);
     HttpResponse response = request.post();
     assertResponseStatus(204, response);
@@ -589,13 +609,12 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testDeleteDashboardFilterForCurrentUserByFilterName_returnErrorResponseWhenFilterIsNotFound()
-      throws Exception
-  {
+  public void testDeleteDashboardFilterForCurrentUserByFilterName_returnErrorResponseWhenFilterIsNotFound() throws Exception {
     User tempUser = tempEntity.newUser();
     String username = tempUser.getUsername();
 
-    HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.DELETE_NAMED_FILTER_PATH)
+    HttpRequest request = restRequest().auth(tempUser)
+        .path(DashboardResource.DELETE_NAMED_FILTER_PATH)
         .query("filterName", "NotFoundFilter");
     HttpResponse response = request.post();
     assertResponseStatus(404, response);
@@ -613,7 +632,8 @@ public class DashboardResourceTest
     tempEntity.newWaiver("hash1", policy.getId(), org.getId(), "comment");
 
     HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
-        .body(new RisksFilterDTO()).post();
+        .body(new RisksFilterDTO())
+        .post();
 
     assertResponseStatus(200, response);
     DashboardResultsDTO<?> dto = response.getBody(DashboardResultsDTO.class);
@@ -634,7 +654,8 @@ public class DashboardResourceTest
     RisksFilterDTO filter = new RisksFilterDTO();
     filter.orderBy = "Invalid";
     HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
-        .body(filter).post();
+        .body(filter)
+        .post();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid orderBy property.");
@@ -649,7 +670,8 @@ public class DashboardResourceTest
     tempEntity.newWaiver("hash", policy.getId(), app.getId(), "comment");
 
     HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
-        .body(null).post();
+        .body(null)
+        .post();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid filter supplied for request.");
@@ -664,36 +686,40 @@ public class DashboardResourceTest
     tempEntity.newWaiver("hash", policy.getId(), app.getId(), "comment");
     tempEntity.newAutoPolicyWaiver(app.getId());
 
-    //Test without including auto waivers query param
+    // Test without including auto waivers query param
     HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
-        .body(new RisksFilterDTO()).post();
+        .body(new RisksFilterDTO())
+        .post();
 
     assertResponseStatus(200, response);
     DashboardResultsDTO<?> dto = response.getBody(DashboardResultsDTO.class);
     assertThat(dto.dashboardResults).hasSize(2);
 
-    //Test with auto waivers query param set to false
+    // Test with auto waivers query param set to false
     response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
         .body(new RisksFilterDTO())
-        .query("includeAutoWaivers", "false").post();
+        .query("includeAutoWaivers", "false")
+        .post();
 
     assertResponseStatus(200, response);
     dto = response.getBody(DashboardResultsDTO.class);
     assertThat(dto.dashboardResults).hasSize(1);
 
-    //Test without including auto waivers and feature flag is disabled
+    // Test without including auto waivers and feature flag is disabled
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
     response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
-        .body(new RisksFilterDTO()).post();
+        .body(new RisksFilterDTO())
+        .post();
 
     assertResponseStatus(200, response);
     dto = response.getBody(DashboardResultsDTO.class);
     assertThat(dto.dashboardResults).hasSize(1);
 
-    //Test with auto waivers query param set to true and feature flag is disabled
+    // Test with auto waivers query param set to true and feature flag is disabled
     response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
         .body(new RisksFilterDTO())
-        .query("includeAutoWaivers", "false").post();
+        .query("includeAutoWaivers", "false")
+        .post();
 
     assertResponseStatus(200, response);
     dto = response.getBody(DashboardResultsDTO.class);
@@ -730,12 +756,14 @@ public class DashboardResourceTest
     String[] lines = response.getBodyText().split("\r\n");
     String expectedFirstLine =
         format("%s,5,%s,%s,%s,%s,%s,application,%s,%s,EXACT_COMPONENT,hash,%s,%s,%s,%s,comment,%s,%s,%s,%s",
-            policyWaiver.getId(), csvTimestampFormatter.format(policyWaiver.getCreateTime()),/*no expiry*/"",
+            policyWaiver.getId(), csvTimestampFormatter.format(policyWaiver.getCreateTime()), /* no expiry */"",
             policy.getId(), policy.getName(), expectedConstraints, app.getId(), app.getName(), expectedComponentName,
             "", policyWaiver.getCreatorId(), policyWaiver.getCreatorName(), false, false, "", "");
     String expectedSecondLine =
         format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-            secondPolicyWaiver.getId(), csvTimestampFormatter.format(secondPolicyWaiver.getCreateTime()),/*no expiry*/
+            secondPolicyWaiver.getId(), csvTimestampFormatter.format(secondPolicyWaiver.getCreateTime()), /*
+                                                                                                           * no expiry
+                                                                                                           */
             "",
             policy.getId(), policy.getName(), "", org.getId(), org.getName(), "", "",
             secondPolicyWaiver.getCreatorId(), secondPolicyWaiver.getCreatorName(), secondPolicyWaiver.getComment(),
@@ -744,27 +772,31 @@ public class DashboardResourceTest
 
     assertThat(lines).containsExactly(DashboardPolicyWaiverDTO.getCsvHeader(), expectedFirstLine, expectedSecondLine);
 
-    //includeAutoWaivers
+    // includeAutoWaivers
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(app.getId());
-    response = restRequest().path(GET_POLICY_WAIVERS_EXPORT_PATH).part("filter", filter)
-        .query("includeAutoWaivers", true).post();
+    response = restRequest().path(GET_POLICY_WAIVERS_EXPORT_PATH)
+        .part("filter", filter)
+        .query("includeAutoWaivers", true)
+        .post();
     assertResponseOkAndCsvHeadersSet(response, "results-waivers");
     lines = response.getBodyText().split("\r\n");
     expectedFirstLine =
         format("%s,5,%s,%s,%s,%s,%s,application,%s,%s,EXACT_COMPONENT,hash,%s,%s,%s,%s,comment,%s,%s,%s,%s",
-            policyWaiver.getId(), csvTimestampFormatter.format(policyWaiver.getCreateTime()),/*no expiry*/"",
+            policyWaiver.getId(), csvTimestampFormatter.format(policyWaiver.getCreateTime()), /* no expiry */"",
             policy.getId(), policy.getName(), expectedConstraints, app.getId(), app.getName(), expectedComponentName,
             "", policyWaiver.getCreatorId(), policyWaiver.getCreatorName(), false, false, "", "");
     expectedSecondLine =
         format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-            secondPolicyWaiver.getId(), csvTimestampFormatter.format(secondPolicyWaiver.getCreateTime()),/*no expiry*/
+            secondPolicyWaiver.getId(), csvTimestampFormatter.format(secondPolicyWaiver.getCreateTime()), /*
+                                                                                                           * no expiry
+                                                                                                           */
             "",
             policy.getId(), policy.getName(), "", org.getId(), org.getName(), "", "",
             secondPolicyWaiver.getCreatorId(), secondPolicyWaiver.getCreatorName(), secondPolicyWaiver.getComment(),
             false,
             false, waiverReason.getId(), waiverReason.getReasonText());
     String expectedThirdLine = format("%s,7,%s,%s,%s,%s,%s,application,%s,%s,DEFAULT,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-        autoPolicyWaiver.getId(), csvTimestampFormatter.format(autoPolicyWaiver.getCreateTime()),/*no expiry*/"",
+        autoPolicyWaiver.getId(), csvTimestampFormatter.format(autoPolicyWaiver.getCreateTime()), /* no expiry */"",
         "", "", "", app.getId(), app.getName(), "", "", "",
         autoPolicyWaiver.getCreatorId(), autoPolicyWaiver.getCreatorName(), "", true, false, "", "");
 
@@ -782,13 +814,17 @@ public class DashboardResourceTest
     namedDashboardFilterDTO.name = "test policy waivers non dirty";
 
     createNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
-    HttpResponse exportResponse = restRequest().auth(tempUser).path(GET_POLICY_WAIVERS_EXPORT_PATH)
-        .part("filter", new RisksFilterDTO()).post();
+    HttpResponse exportResponse = restRequest().auth(tempUser)
+        .path(GET_POLICY_WAIVERS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO())
+        .post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "test_policy_waivers_non_dirty-waivers");
 
     dirtyNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
-    exportResponse = restRequest().auth(tempUser).path(GET_POLICY_WAIVERS_EXPORT_PATH)
-        .part("filter", new RisksFilterDTO()).post();
+    exportResponse = restRequest().auth(tempUser)
+        .path(GET_POLICY_WAIVERS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO())
+        .post();
     assertResponseOkAndCsvHeadersSet(exportResponse, "results-waivers");
   }
 
@@ -832,17 +868,22 @@ public class DashboardResourceTest
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("GroupId", "ArtifactId", "1.0.0", "Classifier", "Extension");
     PolicyWaiverRequest policyWaiverRequest1 = new PolicyWaiverRequest().setHash("hash1")
-        .setPolicyId(policy.getId()).setOwnerId(app.getId())
+        .setPolicyId(policy.getId())
+        .setOwnerId(app.getId())
         .setConstraintFacts(Collections.singletonList(sourceConstraintFact))
         .setAssociatedPackageUrl(PackageUrlIdentifier.toPackageUrl(componentIdentifier))
-        .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT).setComment("comment 1");
+        .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
+        .setComment("comment 1");
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest1);
     PolicyWaiverReason waiverReason = tempEntity.newWaiverReason("system", "Something");
     PolicyWaiverRequest policyWaiverRequest2 =
-        new PolicyWaiverRequest().setHash("hash2").setPolicyId(policy.getId()).setOwnerId(org.getId())
+        new PolicyWaiverRequest().setHash("hash2")
+            .setPolicyId(policy.getId())
+            .setOwnerId(org.getId())
             .setConstraintFacts(Collections.singletonList(sourceConstraintFact))
             .setAssociatedPackageUrl(PackageUrlIdentifier.toPackageUrl(componentIdentifier))
-            .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT).setComment("comment 2")
+            .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
+            .setComment("comment 2")
             .setWaiverReasonId(waiverReason.getId());
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest2);
 
@@ -874,8 +915,10 @@ public class DashboardResourceTest
     assertThat(lines).containsExactly(DashboardPolicyWaiverRequestDTO.getCsvHeader(), expectedLine1, expectedLine2);
   }
 
-  private void verifyDbState(final User tempUser, final String filterName, final NamedDashboardFilterDTO expected)
-      throws IOException
+  private void verifyDbState(
+      final User tempUser,
+      final String filterName,
+      final NamedDashboardFilterDTO expected) throws IOException
   {
     DashboardFilter actual =
         dashboardFilterDAO.getByUsernameAndRealmIdAndName(tempUser.getUsername(), InternalRealm.ID, filterName);
@@ -909,7 +952,8 @@ public class DashboardResourceTest
     filter.repositoryIds = Set.of(repository.getId());
 
     HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
-        .body(filter).post();
+        .body(filter)
+        .post();
 
     assertResponseStatus(200, response);
     DashboardResultsDTO<?> dto = response.getBody(DashboardResultsDTO.class);
@@ -949,7 +993,8 @@ public class DashboardResourceTest
     filter.repositoryIds = Set.of(repository.getId());
 
     HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
-        .body(filter).post();
+        .body(filter)
+        .post();
 
     assertResponseStatus(200, response);
     DashboardResultsDTO<?> dto = response.getBody(DashboardResultsDTO.class);
@@ -1000,7 +1045,8 @@ public class DashboardResourceTest
     filter.repositoryIds = Set.of(repo1.getId(), repo2.getId(), repo3.getId());
 
     HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
-        .body(filter).post();
+        .body(filter)
+        .post();
 
     assertResponseStatus(200, response);
     DashboardResultsDTO<?> dto = response.getBody(DashboardResultsDTO.class);
@@ -1020,8 +1066,7 @@ public class DashboardResourceTest
         repoWaiver1.getId(),
         repoWaiver2.getId(),
         repoWaiver3.getId(),
-        rmWaiver.getId()
-    );
+        rmWaiver.getId());
 
     // Verify RM waiver appears exactly ONCE (deduplication)
     long rmWaiverCount = waiverIds.stream()

@@ -38,9 +38,9 @@ public class RepositoryResourceAuthzTest
     grantWritePermission(repositoryManager.getId());
 
     HttpRequest request =
-        restRequest().path(RepositoryResource.REPOSITORY_MANAGER_ICON_PATH).parameter(repositoryManager.getId())
+        restRequest().path(RepositoryResource.REPOSITORY_MANAGER_ICON_PATH)
+            .parameter(repositoryManager.getId())
             .part("hasRobotSource", "false");
     testAuthzPost(request);
   }
 }
-

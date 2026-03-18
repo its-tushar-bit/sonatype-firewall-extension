@@ -20,7 +20,7 @@ import org.apache.shiro.authz.UnauthorizedException;
 
 /**
  * AOP-based method interceptor to evaluate {@link Authorize} annotations.
- * 
+ *
  * @since 1.7
  */
 class AuthorizeMethodInterceptor

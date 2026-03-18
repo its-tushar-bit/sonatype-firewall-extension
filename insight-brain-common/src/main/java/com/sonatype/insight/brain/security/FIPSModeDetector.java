@@ -20,11 +20,13 @@ public class FIPSModeDetector
   }
 
   /**
-   * This method attempts to detect if FIPS mode is enabled. <br /><br /> This is controlled by
+   * This method attempts to detect if FIPS mode is enabled. <br />
+   * <br />
+   * This is controlled by
    * environment variable {@link FIPSConfig#FIPS_MODE_ENABLED_ENV}.
    *
    * @return true if we detect that FIPS mode is enabled by environment variable, false if we detect
-   * that FIPS mode is disabled.
+   *         that FIPS mode is disabled.
    */
   public static boolean isEnabled() {
     if (isFipsModeEnabledVariableSet()) {

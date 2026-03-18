@@ -52,8 +52,7 @@ public class PullRequestStateService
       PullRequestSource.AUTOMATIC,
       PullRequestSource.AUTOMATIC_INNER_SOURCE,
       PullRequestSource.MANUAL,
-      PullRequestSource.MANUAL_INNER_SOURCE
-  );
+      PullRequestSource.MANUAL_INNER_SOURCE);
 
   // only fetch updates for open PRs
   public static final Set<PullRequestState> RELEVANT_PR_STATES = EnumSet.of(PullRequestState.OPEN);
@@ -98,7 +97,8 @@ public class PullRequestStateService
           applicationDAO.getApplicationIdsByNormalizedRepositoryUrls(repoUrls);
 
       // We only need one app per repoUrl. Use the alphabetically first one for consistency across runs
-      Map<String, String> appIdsByRepoUrl = allIdsByRepoUrl.entrySet().stream()
+      Map<String, String> appIdsByRepoUrl = allIdsByRepoUrl.entrySet()
+          .stream()
           .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().first()));
 
       // A map from one appId with a matching repoUrl to all of the open SourceControlPullRequests with that repoUrl
@@ -140,8 +140,10 @@ public class PullRequestStateService
                 return Stream.of(event.getPullRequestNumber()).filter(prId -> prId != 0);
               case SourceControlEvent.BATCH_PR_STATE_UPDATE_EVENT:
                 try {
-                  return JsonUtils.parse(event.getEventStatusDetails(), new TypeReference<List<Integer>>() {})
-                    .stream();
+                  return JsonUtils.parse(event.getEventStatusDetails(), new TypeReference<List<Integer>>()
+                  {
+                  })
+                      .stream();
                 }
                 catch (IOException e) {
                   throw new RuntimeException(e);
@@ -160,7 +162,7 @@ public class PullRequestStateService
 
   /**
    * Create SourceControlEvents for updating each of the specified PRs, which are all in the same specified application.
-   * If batch PR lifecycle fetching is supported, a minimal number of batch events will be created.  Otherwise, one
+   * If batch PR lifecycle fetching is supported, a minimal number of batch events will be created. Otherwise, one
    * event per PR will be created. Exceptions that occur during the creation of events are logged but do not stop
    * attempts to create the remaining events and are not thrown.
    */

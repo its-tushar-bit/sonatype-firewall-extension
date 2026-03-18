@@ -88,8 +88,7 @@ public class PopulateSearchIndexTaskTest
     populateSearchIndexTask.execute(Collections.emptyMap(), null);
 
     Map<String, String> expectedJobDataMap = Map.of(
-        QuartzConcurrencyListener.MAX_CONCURRENT, "5"
-    );
+        QuartzConcurrencyListener.MAX_CONCURRENT, "5");
     verify(mockTaskScheduler).scheduleOneTimeTask(eq(mockIndexCreationScheduler), eq(expectedJobDataMap));
   }
 
@@ -101,8 +100,7 @@ public class PopulateSearchIndexTaskTest
     populateSearchIndexTask.execute(Collections.emptyMap(), null);
 
     Map<String, String> expectedJobDataMap = Map.of(
-        QuartzConcurrencyListener.MAX_CONCURRENT, "10"
-    );
+        QuartzConcurrencyListener.MAX_CONCURRENT, "10");
     verify(mockTaskScheduler).scheduleOneTimeTask(eq(mockIndexCreationScheduler), eq(expectedJobDataMap));
   }
 
@@ -114,8 +112,7 @@ public class PopulateSearchIndexTaskTest
     populateSearchIndexTask.execute(Collections.emptyMap(), null);
 
     Map<String, String> expectedJobDataMap = Map.of(
-        QuartzConcurrencyListener.MAX_CONCURRENT, "0"
-    );
+        QuartzConcurrencyListener.MAX_CONCURRENT, "0");
     verify(mockTaskScheduler).scheduleOneTimeTask(eq(mockIndexCreationScheduler), eq(expectedJobDataMap));
   }
 
@@ -127,14 +124,12 @@ public class PopulateSearchIndexTaskTest
     // Pass some input parameters that should be ignored
     Map<String, java.util.List<String>> inputParams = Map.of(
         "param1", java.util.List.of("value1"),
-        "param2", java.util.List.of("value2")
-    );
+        "param2", java.util.List.of("value2"));
 
     populateSearchIndexTask.execute(inputParams, null);
 
     Map<String, String> expectedJobDataMap = Map.of(
-        QuartzConcurrencyListener.MAX_CONCURRENT, "5"
-    );
+        QuartzConcurrencyListener.MAX_CONCURRENT, "5");
     verify(mockTaskScheduler).scheduleOneTimeTask(eq(mockIndexCreationScheduler), eq(expectedJobDataMap));
   }
 }

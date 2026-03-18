@@ -115,7 +115,7 @@ public class ReportResource
 
   public static final String BROWSE_PATH = "{scanId}/browseReport";
 
-  public  static final String SBOM_POLICY_VIOLATION_REPORT = "sbom/{sbomVersion}/sbomPolicyViolationReport";
+  public static final String SBOM_POLICY_VIOLATION_REPORT = "sbom/{sbomVersion}/sbomPolicyViolationReport";
 
   public static final String PRINT_PATH = "{scanId}/printReport";
 
@@ -129,7 +129,7 @@ public class ReportResource
 
   private static final Set<Character> INVALID_FILESYSTEM_CHARACTERS;
 
-  public static Long FILE_SIZE_THRESHOLD = 200_000_000L;  // 200MB
+  public static Long FILE_SIZE_THRESHOLD = 200_000_000L; // 200MB
 
   private static final long YEAR = (long) 365 * 24 * 60 * 60 * 1000;
 
@@ -228,8 +228,7 @@ public class ReportResource
   @Path(SBOM_POLICY_VIOLATION_REPORT)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   public Response getSbomPolicyViolationReport(
-      @PathParam("applicationPublicId")
-      final String applicationPublicId,
+      @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("sbomVersion") final String sbomVersion,
       @QueryParam("componentRef") final String componentRef,
       @QueryParam("fileCoordinateId") final String fileCoordinateId,
@@ -323,8 +322,9 @@ public class ReportResource
   @Path(METADATA_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
-  public ReportMetadataDTO getReportMetadata(@PathParam("applicationPublicId") final String applicationPublicId,
-                                             @PathParam("scanId") final String scanId) throws IOException
+  public ReportMetadataDTO getReportMetadata(
+      @PathParam("applicationPublicId") final String applicationPublicId,
+      @PathParam("scanId") final String scanId) throws IOException
   {
     return reportService.getReportMetadata(applicationPublicId, scanId);
   }
@@ -338,8 +338,7 @@ public class ReportResource
   @Audited(AuditEvent.EVALUATE_APPLICATION)
   @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
   public Response reevaluatePolicy(
-      @AuthzContext(Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId")
-      final String applicationPublicId,
+      @AuthzContext(Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("scanId") final String scanId,
       @DefaultValue("false") @QueryParam("skipAutoWaivers") final Boolean skipAutoWaivers,
       @Context HttpServletRequest request) throws IOException
@@ -440,7 +439,8 @@ public class ReportResource
         ReportBundleUpdater updater = new ReportBundleUpdater(
             reportEntities,
             updatedFile,
-            new FilenameMapping("^.*\\.json$", dataPath + "$0"))) {
+            new FilenameMapping("^.*\\.json$", dataPath + "$0")))
+    {
 
       addLegacyReportArtifacts(updater);
 
@@ -481,7 +481,8 @@ public class ReportResource
             updater.add(dataPath + name, clmDetails);
 
             if (!cipListPath.isEmpty()
-                && IdentificationSource.MANUAL.getId().equals(clmDetails.getIdentificationSource())) {
+                && IdentificationSource.MANUAL.getId().equals(clmDetails.getIdentificationSource()))
+            {
               String listPath = cipListPath;
               if (dataVersion >= 3) {
                 listPath += toDataPathV3(clmDetails.getComponentIdentifier()) + "/list.json";
@@ -583,8 +584,7 @@ public class ReportResource
       "public/glypyicons-halfligns-icon-info-sign.png",
       "public/license-icon_16x16.png",
       "public/red.png",
-      "public/sonatype.png"
-  );
+      "public/sonatype.png");
 
   private void addLegacyReportArtifacts(final ReportBundleUpdater updater) throws IOException {
     for (String zipEntry : legacyReportArtifacts) {
@@ -645,12 +645,13 @@ public class ReportResource
         namedComponentDetails.getVersion());
   }
 
-  private void addUniqueComponentsToUpdater(final String applicationPublicId,
-                                            final String scanId,
-                                            final String dataPath,
-                                            final int dataVersion,
-                                            final List<ApiReportComponentDTOV2> components,
-                                            final ReportBundleUpdater updater) throws IOException
+  private void addUniqueComponentsToUpdater(
+      final String applicationPublicId,
+      final String scanId,
+      final String dataPath,
+      final int dataVersion,
+      final List<ApiReportComponentDTOV2> components,
+      final ReportBundleUpdater updater) throws IOException
   {
     for (ApiReportComponentDTOV2 component : components) {
       ComponentIdentifier componentIdentifier =

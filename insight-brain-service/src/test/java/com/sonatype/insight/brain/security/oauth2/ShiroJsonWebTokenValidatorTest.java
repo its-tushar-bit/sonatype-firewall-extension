@@ -142,7 +142,7 @@ public class ShiroJsonWebTokenValidatorTest
     ShiroJsonWebToken shiroJsonWebToken = new ShiroJsonWebToken(token);
 
     assertThatThrownBy(() -> shiroJsonWebTokenVerifier.isTokenValid(shiroJsonWebToken)).isInstanceOf(
-            AuthorizationException.class)
+        AuthorizationException.class)
         .hasMessage(ShiroJsonWebTokenValidator.NO_OAUTH_2_CONFIGURATION_AVAILABLE);
   }
 }

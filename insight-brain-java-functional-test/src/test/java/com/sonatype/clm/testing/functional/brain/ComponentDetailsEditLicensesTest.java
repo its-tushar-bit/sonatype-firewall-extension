@@ -133,8 +133,9 @@ public class ComponentDetailsEditLicensesTest
             "Organization - ParentApplicationReportTest", "Organization - Root Organization"));
     secondScope.shouldHave(text("Organization - ApplicationReportTest"));
     thirdScope.shouldHave(text("Organization - ParentApplicationReportTest"));
-    editLicensesPopover.statuses().shouldHave(
-        texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
+    editLicensesPopover.statuses()
+        .shouldHave(
+            texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
     statusSelect.getSelectedOption().shouldHave(value("Open"));
     editLicensesPopover.selectedLicensesCheckBoxElements().shouldHave(size(0));
 
@@ -282,7 +283,8 @@ public class ComponentDetailsEditLicensesTest
   }
 
   private void testDefaultValuesAfterCloseWithoutSaving(
-      LicenseDetectionsTile licenseDetectionsTile, EditLicensesPopover editLicensesPopover)
+      LicenseDetectionsTile licenseDetectionsTile,
+      EditLicensesPopover editLicensesPopover)
   {
     editLicensesPopover.getCloseButton().click();
     // CHECK FOR CONFIRMATION MODAL
@@ -314,8 +316,9 @@ public class ComponentDetailsEditLicensesTest
         .shouldHave(texts("Application - ApplicationReportTest", "Organization - ApplicationReportTest",
             "Organization - ParentApplicationReportTest", "Organization - Root Organization"));
     secondScope.shouldHave(text("Organization - ApplicationReportTest"));
-    editLicensesPopover.statuses().shouldHave(
-        texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
+    editLicensesPopover.statuses()
+        .shouldHave(
+            texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
     statusSelect.getSelectedOption().shouldHave(value("Open"));
     editLicensesPopover.selectedLicensesCheckBoxElements().shouldHave(size(0));
   }
@@ -358,8 +361,9 @@ public class ComponentDetailsEditLicensesTest
         .shouldHave(texts("Application - ApplicationReportTest", "Organization - ApplicationReportTest",
             "Organization - ParentApplicationReportTest", "Organization - Root Organization"));
     secondScope.shouldHave(text("Organization - ApplicationReportTest"));
-    editLicensesPopover.statuses().shouldHave(
-        texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
+    editLicensesPopover.statuses()
+        .shouldHave(
+            texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
     statusSelect.getSelectedOption().shouldHave(value("Open"));
     editLicensesPopover.selectedLicensesCheckBoxElements().shouldHave(size(0));
 
@@ -420,7 +424,7 @@ public class ComponentDetailsEditLicensesTest
     testCLMServer.getHdsServer()
         .respondWith(IOUtils
             .toString(Objects.requireNonNull(
-                    this.getClass().getResourceAsStream("/legal/legalLicenseMetadataHdsResponse.json")),
+                this.getClass().getResourceAsStream("/legal/legalLicenseMetadataHdsResponse.json")),
                 StandardCharsets.UTF_8))
         .atUri("/rest/license/metadata");
     testCLMServer.getHdsServer()
@@ -432,7 +436,7 @@ public class ComponentDetailsEditLicensesTest
     testCLMServer.getHdsServer()
         .respondWith(IOUtils
             .toString(Objects.requireNonNull(this.getClass()
-                    .getResourceAsStream("/legal/ApplicationAttributionReportTest-legalFileHdsResponse.json")),
+                .getResourceAsStream("/legal/ApplicationAttributionReportTest-legalFileHdsResponse.json")),
                 StandardCharsets.UTF_8))
         .atUri("/rest/legal/file");
     testCLMServer.getHdsServer()

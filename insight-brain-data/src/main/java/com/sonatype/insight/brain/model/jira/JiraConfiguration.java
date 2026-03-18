@@ -112,7 +112,9 @@ public class JiraConfiguration
     }
     if (customFields == null) {
       try {
-        customFields = JsonUtils.parse(customFieldsJson, new TypeReference<Map<String, Object>>() { });
+        customFields = JsonUtils.parse(customFieldsJson, new TypeReference<Map<String, Object>>()
+        {
+        });
       }
       catch (IOException e) {
         throw new UncheckedIOException(e.getMessage(), e);

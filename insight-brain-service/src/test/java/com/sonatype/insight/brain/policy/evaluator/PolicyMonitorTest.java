@@ -225,7 +225,7 @@ public class PolicyMonitorTest
     for (StageType stageType : StageTypes.getAll()) {
       assertThat(
           policyEvaluationDAO.getLastByApplicationIdAndStageId(notMonitoredApp.getId(), stageType.getId()).getTime())
-          .isEqualTo(policyEvaluations.get(stageType).getTime());
+              .isEqualTo(policyEvaluations.get(stageType).getTime());
     }
     assertShutdownHandler();
   }
@@ -371,7 +371,8 @@ public class PolicyMonitorTest
     PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId())) {
+        stage.getStageTypeId()))
+    {
       assertThat(policyViolation.getActionTypeId()).isEqualTo(Action.ID_FAIL);
     }
     assertThat(scanFile1).isFile();
@@ -386,7 +387,8 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation2.getScanId()).isEqualTo(scanId2);
     assertThat(policyEvaluation2.getTime()).isAfter(policyEvaluation1.getTime());
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId())) {
+        stage.getStageTypeId()))
+    {
       assertThat(policyViolation.getActionTypeId()).isNull();
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
@@ -410,7 +412,8 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation3.getScanId()).isEqualTo(scanId3);
     assertThat(policyEvaluation3.getTime()).isAfter(policyEvaluation2.getTime());
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId())) {
+        stage.getStageTypeId()))
+    {
       assertThat(policyViolation.getActionTypeId()).isNull();
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
@@ -433,7 +436,8 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation4.getScanId()).isEqualTo(scanId4);
     assertThat(policyEvaluation4.getTime()).isAfter(policyEvaluation3.getTime());
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId())) {
+        stage.getStageTypeId()))
+    {
       assertThat(policyViolation.getActionTypeId()).isNull();
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
@@ -457,7 +461,8 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation5.getScanId()).isEqualTo(scanId5);
     assertThat(policyEvaluation5.getTime()).isAfter(policyEvaluation4.getTime());
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId())) {
+        stage.getStageTypeId()))
+    {
       assertThat(policyViolation.getActionTypeId()).isNull();
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
@@ -481,7 +486,8 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation6.getScanId()).isEqualTo(scanId6);
     assertThat(policyEvaluation6.getTime()).isAfter(policyEvaluation5.getTime());
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId())) {
+        stage.getStageTypeId()))
+    {
       assertThat(policyViolation.getActionTypeId()).isNull();
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
@@ -522,8 +528,11 @@ public class PolicyMonitorTest
   private PolicyEvaluationResult evaluatePolicy(String applicationPublicId, String scanId, Stage stage) {
     HttpResponse response;
     try {
-      response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)
-          .parameter(applicationPublicId).body(stage).post();
+      response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH)
+          .query("scanId", scanId)
+          .parameter(applicationPublicId)
+          .body(stage)
+          .post();
     }
     catch (Exception e) {
       throw new RuntimeException(e);
@@ -535,7 +544,9 @@ public class PolicyMonitorTest
   }
 
   private Policy updatePolicy(OwnerType ownerType, String ownerId, Policy policy) throws Exception {
-    HttpResponse response = restRequest().path(PolicyResource.RESOURCE_PATH).parameter(ownerType, ownerId).body(policy)
+    HttpResponse response = restRequest().path(PolicyResource.RESOURCE_PATH)
+        .parameter(ownerType, ownerId)
+        .body(policy)
         .put();
     assertResponseStatus(200, response);
     return response.getBody(Policy.class);
@@ -731,12 +742,15 @@ public class PolicyMonitorTest
     mockScanReceiptAndReport(newScanId);
     policyMonitor.run();
 
-    assertThat(logOutput).atInfoLevel().contains("SBOM Manager Policy Monitoring is enabled for application '" +
-        app.getName() + "' and stage '" + complianceStage.getStageTypeId() + "'");
-    assertThat(logOutput).atInfoLevel().contains("Policy monitoring is enabled for application '" +
-        app.getName() + "' and stage '" + releaseStage.getStageTypeId() + "'");
-    assertThat(logOutput).atDebugLevel().contains("SBOM Manager Policy Monitoring evaluated for application '" +
-        app.getName() + "'");
+    assertThat(logOutput).atInfoLevel()
+        .contains("SBOM Manager Policy Monitoring is enabled for application '" +
+            app.getName() + "' and stage '" + complianceStage.getStageTypeId() + "'");
+    assertThat(logOutput).atInfoLevel()
+        .contains("Policy monitoring is enabled for application '" +
+            app.getName() + "' and stage '" + releaseStage.getStageTypeId() + "'");
+    assertThat(logOutput).atDebugLevel()
+        .contains("SBOM Manager Policy Monitoring evaluated for application '" +
+            app.getName() + "'");
     assertThat(logOutput).atInfoLevel().contains("Finished policy monitoring");
 
     assertShutdownHandler();
@@ -794,7 +808,7 @@ public class PolicyMonitorTest
 
     File reportFile = insightWork.getReportFile(app.getId(), newScanId);
     assertThat(reportFile).doesNotExist();
-    
+
     assertShutdownHandler();
   }
 
@@ -823,7 +837,7 @@ public class PolicyMonitorTest
 
     File reportFile = insightWork.getReportFile(app.getId(), newScanId);
     assertThat(reportFile).doesNotExist();
-    
+
     assertShutdownHandler();
   }
 
@@ -877,7 +891,7 @@ public class PolicyMonitorTest
     // If the second scan file does not exist, then evaluation was not attempted and the scan file was not uploaded.
     // Invalid stage type exception would be still be thrown, but is caught and logged so can't be verified here.
     assertThat(insightWork.getScanFile(app.getId(), scanId2).exists()).isFalse();
-    
+
     assertShutdownHandler();
   }
 

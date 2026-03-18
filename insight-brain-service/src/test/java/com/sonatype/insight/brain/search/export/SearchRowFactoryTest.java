@@ -58,7 +58,7 @@ public class SearchRowFactoryTest
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo("https://test.base.url/ui/links/organization/testOrganizationId/management");
 
-    checkColumnsAreEmpty(row, 3, 4, 5, 6 , 7, 8, 9, 10, 11, 12, 13, 14, 15);
+    checkColumnsAreEmpty(row, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
   }
 
   @Test
@@ -90,7 +90,7 @@ public class SearchRowFactoryTest
     assertThat(row.get(6)).isEqualTo("https://test.base.url/ui/links/organization/testOrganizationId/category" +
         "/testApplicationCategoryId/management/edit");
 
-    checkColumnsAreEmpty(row, 3, 4 , 7, 8, 9, 10, 11, 12, 13, 14, 15);
+    checkColumnsAreEmpty(row, 3, 4, 7, 8, 9, 10, 11, 12, 13, 14, 15);
   }
 
   @Test
@@ -125,7 +125,7 @@ public class SearchRowFactoryTest
     assertThat(row.get(8)).isEqualTo("https://test.base.url/ui/links/application/testApplicationPublicId/label" +
         "/testComponentLabelId/management/edit");
 
-    checkColumnsAreEmpty(row, 1, 2, 5, 6, 9, 10, 11, 12, 13 ,14, 15);
+    checkColumnsAreEmpty(row, 1, 2, 5, 6, 9, 10, 11, 12, 13, 14, 15);
   }
 
   @Test
@@ -183,7 +183,7 @@ public class SearchRowFactoryTest
     assertThat(row.get(14)).isEqualTo("https://test.base.url/ui/links/vln/testVulnerabilityId");
     assertThat(row.get(15)).isEqualTo(searchResultItemDTO.policyEvaluationStage);
 
-    checkColumnsAreEmpty(row,5, 6 , 7, 8, 9, 10, 11);
+    checkColumnsAreEmpty(row, 5, 6, 7, 8, 9, 10, 11);
   }
 
   @Test
@@ -203,7 +203,7 @@ public class SearchRowFactoryTest
     assertThat(row.get(14)).isEqualTo("https://test.base.url/ui/links/vln/testVulnerabilityId");
     assertThat(row.get(15)).isEqualTo(searchResultItemDTO.policyEvaluationStage);
 
-    checkColumnsAreEmpty(row,1, 2, 5, 6, 7, 8, 9, 10, 11);
+    checkColumnsAreEmpty(row, 1, 2, 5, 6, 7, 8, 9, 10, 11);
   }
 
   @Test
@@ -223,7 +223,7 @@ public class SearchRowFactoryTest
         "https://test.base.url/ui/links/application/testApplicationPublicId/report/testReportId");
     assertThat(row.get(15)).isEqualTo(searchResultItemDTO.policyEvaluationStage);
 
-    checkColumnsAreEmpty(row, 5, 6 , 7, 8, 9, 10, 11, 14);
+    checkColumnsAreEmpty(row, 5, 6, 7, 8, 9, 10, 11, 14);
   }
 
   @Test
@@ -242,7 +242,7 @@ public class SearchRowFactoryTest
         "https://test.base.url/ui/links/application/testApplicationPublicId/report/testReportId");
     assertThat(row.get(15)).isEqualTo(searchResultItemDTO.policyEvaluationStage);
 
-    checkColumnsAreEmpty(row,  1, 2, 5, 6 , 7, 8, 9, 10, 11, 14);
+    checkColumnsAreEmpty(row, 1, 2, 5, 6, 7, 8, 9, 10, 11, 14);
   }
 
   @Test
@@ -257,7 +257,7 @@ public class SearchRowFactoryTest
     assertThat(row.get(2)).isEqualTo(
         "https://test.base.url/ui/links/sbomManager/organization/testOrganizationId/management");
 
-    checkColumnsAreEmpty(row,  3, 4, 5, 6 ,7 , 8, 9, 10, 11, 12, 13 ,14);
+    checkColumnsAreEmpty(row, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
   }
 
   @Test
@@ -275,7 +275,7 @@ public class SearchRowFactoryTest
     assertThat(row.get(4)).isEqualTo(
         "https://test.base.url/ui/links/sbomManager/application/testApplicationPublicId/management");
 
-    checkColumnsAreEmpty(row,  5, 6 , 7, 8, 9, 10, 11, 12, 13, 14);
+    checkColumnsAreEmpty(row, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
   }
 
   @Test
@@ -308,7 +308,7 @@ public class SearchRowFactoryTest
     assertThat(row.get(2)).isEqualTo(
         "https://test.base.url/ui/links/sbomManager/organization/testOrganizationId/management");
 
-    checkColumnsAreEmpty(row, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ,14);
+    checkColumnsAreEmpty(row, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
   }
 
   @Test
@@ -324,7 +324,7 @@ public class SearchRowFactoryTest
     assertThat(row.get(4)).isEqualTo(
         "https://test.base.url/ui/links/sbomManager/application/testApplicationPublicId/management");
 
-    checkColumnsAreEmpty(row, 1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 13 ,14);
+    checkColumnsAreEmpty(row, 1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
   }
 
   @Test
@@ -343,7 +343,7 @@ public class SearchRowFactoryTest
     assertThat(row.get(8)).isEqualTo("");
     assertThat(row.get(9)).isEqualTo("");
 
-    checkColumnsAreEmpty(row, 3, 4, 5, 6, 10, 11, 12, 13 ,14);
+    checkColumnsAreEmpty(row, 3, 4, 5, 6, 10, 11, 12, 13, 14);
   }
 
   @Test
@@ -486,7 +486,7 @@ public class SearchRowFactoryTest
   }
 
   private void checkColumnsAreEmpty(List<String> row, int... columnIndexes) {
-    for (int idx: columnIndexes) {
+    for (int idx : columnIndexes) {
       assertThat(row.get(idx)).isEmpty();
     }
   }

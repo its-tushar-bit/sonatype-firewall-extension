@@ -132,15 +132,15 @@ import static org.mockito.Mockito.mock;
  * <p>
  * Important notes:
  * <ul>
- *   <li>Use @{@link AbstractBrainServiceIntegrationTest} for a regular single-tenant version.</li>
- *   <li>Use AbstractMultiTenantBrainServiceIntegrationTest (in the nexus-mtiq-server module) for the multi-tenant
- *   version</li>
- *   <li>See {@link DatabaseRule} to see how to set up a DB depending on your needs. Note this class uses
- *   {@link DatabaseContainerRule} to provide access to the full database container.</li>
- *   <li>Assign any test dependencies used for setup (e.g. DAOs) by overridding {@link #assignTestDependencies()}</li>
- *   <li>The test IQ server will be started automatically with a default configuration. Use the
- *   {@link ManualIqServerInit} annotation to suppress automatic start and then call
- *   {@link #startIqTestServer(Configurator)} with a custom configuration.</li>
+ * <li>Use @{@link AbstractBrainServiceIntegrationTest} for a regular single-tenant version.</li>
+ * <li>Use AbstractMultiTenantBrainServiceIntegrationTest (in the nexus-mtiq-server module) for the multi-tenant
+ * version</li>
+ * <li>See {@link DatabaseRule} to see how to set up a DB depending on your needs. Note this class uses
+ * {@link DatabaseContainerRule} to provide access to the full database container.</li>
+ * <li>Assign any test dependencies used for setup (e.g. DAOs) by overridding {@link #assignTestDependencies()}</li>
+ * <li>The test IQ server will be started automatically with a default configuration. Use the
+ * {@link ManualIqServerInit} annotation to suppress automatic start and then call
+ * {@link #startIqTestServer(Configurator)} with a custom configuration.</li>
  * </ul>
  * </p>
  */
@@ -153,7 +153,8 @@ public abstract class AbstractBaseIntegrationTest
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ElementType.METHOD})
   public @interface ManualIqServerInit
-  { }
+  {
+  }
 
   private static final Configurator DEFAULT_CONFIGURATOR = new Configurator()
   {
@@ -180,9 +181,11 @@ public abstract class AbstractBaseIntegrationTest
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  /** You should only use this `daoFactory` when you use the {@link ManualIqServerInit} annotation, and you need a DAO
+  /**
+   * You should only use this `daoFactory` when you use the {@link ManualIqServerInit} annotation, and you need a DAO
    * before calling the `startIqTestServer` method on the test, or when you need a DAO and no server has started yet.
-   * For other scenarios, use the `lookup` method to get an injected instance of the DAO from the server */
+   * For other scenarios, use the `lookup` method to get an injected instance of the DAO from the server
+   */
   protected DAOFactory daoFactory;
 
   @Rule(order = 1)
@@ -435,8 +438,7 @@ public abstract class AbstractBaseIntegrationTest
             SystemConfigurationProperty.ACCESS_ALLOWLIST, SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED,
             SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
             SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
-            SystemConfigurationProperty.API_ACCESS_ALLOW_LIST
-        );
+            SystemConfigurationProperty.API_ACCESS_ALLOW_LIST);
       }
     }
     releaseScmPerpetualLock();
@@ -520,11 +522,11 @@ public abstract class AbstractBaseIntegrationTest
 
     // using a provider so the MockCleaner doesn't break the mocked JiraClientFactory between tests
     binder.bind(JiraClientFactory.class).toInstance(mockJiraClientFactory);
-    
-    // Ensure SAML tests use the test password factory  
+
+    // Ensure SAML tests use the test password factory
     TestSamlFactory testSamlFactory = new TestSamlFactory();
     binder.bind(SamlPasswordFactory.class).toInstance(testSamlFactory.createSamlPasswordFactory());
-    
+
     // Only bind TestEncryptionKeyStore if the test doesn't manage its own EncryptionKeyStore binding
     if (shouldBindTestEncryptionKeyStore()) {
       binder.bind(EncryptionKeyStore.class).to(TestEncryptionKeyStore.class);
@@ -535,7 +537,7 @@ public abstract class AbstractBaseIntegrationTest
 
   /**
    * @deprecated Use {@link #configureTestBindings(Binder)} instead. This method is kept for backward compatibility
-   * with tests that override it. It is called by configureTestBindings() to maintain compatibility.
+   *             with tests that override it. It is called by configureTestBindings() to maintain compatibility.
    */
   @Deprecated
   public void configure(final Binder binder) {
@@ -613,11 +615,13 @@ public abstract class AbstractBaseIntegrationTest
     hdsRespondWith(resourceUrl).atUri("rest/application/analysis/" + scanId);
   }
 
-  protected void mockComponentSummary(ComponentIdentifier componentIdentifier, ComponentSummary componentSummary)
-      throws Exception
+  protected void mockComponentSummary(
+      ComponentIdentifier componentIdentifier,
+      ComponentSummary componentSummary) throws Exception
   {
     hdsRespondWith(componentSummary).atUri(UriBuilder.fromPath("rest/component/summary")
-        .queryParam("componentIdentifier", URLEncoder.encode(toJson(componentIdentifier), "UTF-8")).build());
+        .queryParam("componentIdentifier", URLEncoder.encode(toJson(componentIdentifier), "UTF-8"))
+        .build());
   }
 
   protected void mockGetVersionsByComponentCI() {
@@ -633,7 +637,8 @@ public abstract class AbstractBaseIntegrationTest
   protected static void assertResponseStatus(final int expectedStatus, final HttpResponse response) {
     assertThat(response.getStatusCode()).as(
         "URI:" + response.getUrl() + ", StatusText:" + response.getStatusText() + ", ResponseBody:" +
-            response.getBodyText()).isEqualTo(expectedStatus);
+            response.getBodyText())
+        .isEqualTo(expectedStatus);
   }
 
   private String toJson(Object object) {
@@ -757,8 +762,8 @@ public abstract class AbstractBaseIntegrationTest
     return insightWork.getReportFile(applicationId, scanId);
   }
 
-  protected List<TelemetryItem> getTelemetryItems(final Map<ByteArrayDataSource, Integer> responses)
-      throws MessagingException, IOException
+  protected List<TelemetryItem> getTelemetryItems(
+      final Map<ByteArrayDataSource, Integer> responses) throws MessagingException, IOException
   {
     List<TelemetryItem> telemetryItems = new ArrayList<>();
     // Create a snapshot of the entries to avoid ConcurrentModificationException
@@ -828,7 +833,9 @@ public abstract class AbstractBaseIntegrationTest
 
       ZipEntry zipEntryData = zipInputStream.getNextEntry();
       assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);
-      telemetryDataReceived = objectMapper.readValue(zipInputStream, new TypeReference<List<TelemetryData>>() { });
+      telemetryDataReceived = objectMapper.readValue(zipInputStream, new TypeReference<List<TelemetryData>>()
+      {
+      });
       return this;
     }
   }

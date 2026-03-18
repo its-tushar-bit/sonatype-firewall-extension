@@ -36,7 +36,8 @@ class ApiSourceControlMetricsAdapter
             apiPullRequestResult.successful = result.getTiming().isSuccessful();
             apiPullRequestResult.totalTime = result.getTiming().getTotalTime();
             return apiPullRequestResult;
-          }).collect(Collectors.toList());
+          })
+          .collect(Collectors.toList());
     }
     return apiPullRequestResults;
   }

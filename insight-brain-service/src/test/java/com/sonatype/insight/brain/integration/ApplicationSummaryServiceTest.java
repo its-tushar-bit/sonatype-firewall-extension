@@ -217,8 +217,9 @@ public class ApplicationSummaryServiceTest
   @Test
   public void testVerifyOrCreateApplication_TelemetryData_AutomaticApplicationCreationEnabled() throws Exception {
     final InvocationOnMock[] invocation = new InvocationOnMock[1];
-    doAnswer(x -> invocation[0] = x).when(telemetrySenderMock).send(any(TelemetryData.class),
-        eq("test_client_user_agent"));
+    doAnswer(x -> invocation[0] = x).when(telemetrySenderMock)
+        .send(any(TelemetryData.class),
+            eq("test_client_user_agent"));
 
     Organization org = tempEntity.newOrganization();
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());

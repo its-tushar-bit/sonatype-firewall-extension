@@ -55,7 +55,7 @@ public class HybridApplicationReportPersistenceService
     /*
      * The order of this collection is significant:
      * 1. The first element is the default storage mechanism.
-     *    - All writes are directed here.
+     * - All writes are directed here.
      * 2. The remaining elements act as backup storage mechanisms.
      *
      * Behavior:
@@ -66,38 +66,42 @@ public class HybridApplicationReportPersistenceService
     applicationReportPersistenceServices =
         types.stream().map(t -> applicationReportPersistenceServiceProviderProvider.get().get(t)).toList();
     this.apiConfigurationServiceProvider = apiConfigurationServiceProvider;
-    warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get().getConfigurationNoAuthz(
-        SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
+    warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get()
+        .getConfigurationNoAuthz(
+            SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
   }
 
   @Override
-  protected ReportEntity doGetReportEntity(final String applicationId, final String scanId, final String name)
-      throws IOException
+  protected ReportEntity doGetReportEntity(
+      final String applicationId,
+      final String scanId,
+      final String name) throws IOException
   {
     ReportEntity reportEntity = hybridDoGetReportEntity(applicationId, scanId, name);
     log.trace("Getting report entity '{}' for app id '{}' and scan id '{}' using {}.",
         name,
         applicationId,
         scanId,
-        reportEntity.getApplicationReportPersistenceServiceClass()
-    );
-    if (warnOnNonPrimaryStorageAccess && !applicationReportPersistenceServices.get(0).getClass()
-        .equals(reportEntity.getApplicationReportPersistenceServiceClass())) {
+        reportEntity.getApplicationReportPersistenceServiceClass());
+    if (warnOnNonPrimaryStorageAccess && !applicationReportPersistenceServices.get(0)
+        .getClass()
+        .equals(reportEntity.getApplicationReportPersistenceServiceClass()))
+    {
       log.warn("Non-primary storage access for report entity '{}' for app id '{}' and scan id '{}' using {}.",
           name,
           applicationId,
           scanId,
-          reportEntity.getApplicationReportPersistenceServiceClass()
-      );
+          reportEntity.getApplicationReportPersistenceServiceClass());
     }
     return reportEntity;
   }
 
-  private ReportEntity hybridDoGetReportEntity(final String applicationId, final String scanId, final String name)
-      throws IOException
+  private ReportEntity hybridDoGetReportEntity(
+      final String applicationId,
+      final String scanId,
+      final String name) throws IOException
   {
-    for (ApplicationReportPersistenceService applicationReportPersistenceService :
-        applicationReportPersistenceServices) {
+    for (ApplicationReportPersistenceService applicationReportPersistenceService : applicationReportPersistenceServices) {
       if (applicationReportPersistenceService.reportExists(applicationId, scanId)) {
         return applicationReportPersistenceService.doGetReportEntity(applicationId, scanId, name);
       }
@@ -115,12 +119,12 @@ public class HybridApplicationReportPersistenceService
     throw new UnsupportedOperationException();
   }
 
-  private Stream<ReportEntity> hybridGetAllReportEntities(final String applicationId, final String scanId)
-      throws IOException
+  private Stream<ReportEntity> hybridGetAllReportEntities(
+      final String applicationId,
+      final String scanId) throws IOException
   {
     ApplicationReportPersistenceService targetService = applicationReportPersistenceServices.get(0);
-    for (ApplicationReportPersistenceService applicationReportPersistenceService :
-        applicationReportPersistenceServices) {
+    for (ApplicationReportPersistenceService applicationReportPersistenceService : applicationReportPersistenceServices) {
       if (applicationReportPersistenceService.reportExists(applicationId, scanId)) {
         targetService = applicationReportPersistenceService;
         break;
@@ -129,22 +133,23 @@ public class HybridApplicationReportPersistenceService
     log.trace("Getting all report entities for app id '{}' and scan id '{}' using {}.",
         applicationId,
         scanId,
-        targetService.getClass()
-    );
+        targetService.getClass());
     if (warnOnNonPrimaryStorageAccess &&
-        !applicationReportPersistenceServices.get(0).getClass().equals(targetService.getClass())) {
+        !applicationReportPersistenceServices.get(0).getClass().equals(targetService.getClass()))
+    {
       log.warn("Non-primary storage access for all report entities for app id '{}' and scan id '{}' using {}.",
           applicationId,
           scanId,
-          targetService.getClass()
-      );
+          targetService.getClass());
     }
     return targetService.getAllReportEntities(applicationId, scanId);
   }
 
   @Override
-  public void saveOriginalReport(final String applicationId, final String scanId, final InputStream reportZipContents)
-      throws IOException
+  public void saveOriginalReport(
+      final String applicationId,
+      final String scanId,
+      final InputStream reportZipContents) throws IOException
   {
     applicationReportPersistenceServices.get(0).saveOriginalReport(applicationId, scanId, reportZipContents);
   }
@@ -160,8 +165,10 @@ public class HybridApplicationReportPersistenceService
   }
 
   @Override
-  public void moveReport(final String appId, final String sourceScanId, final String destinationScanId)
-      throws IOException
+  public void moveReport(
+      final String appId,
+      final String sourceScanId,
+      final String destinationScanId) throws IOException
   {
     applicationReportPersistenceServices.get(0).moveReport(appId, sourceScanId, destinationScanId);
   }
@@ -193,16 +200,16 @@ public class HybridApplicationReportPersistenceService
       log.trace("Getting report pdf entity for app id '{}' and scan id '{}' using {}.",
           applicationId,
           scanId,
-          reportPdfEntity.getApplicationReportPersistenceServiceClass()
-      );
+          reportPdfEntity.getApplicationReportPersistenceServiceClass());
       if (warnOnNonPrimaryStorageAccess &&
-          !applicationReportPersistenceServices.get(0).getReportEntityClass()
-              .isAssignableFrom(reportPdfEntity.getClass())) {
+          !applicationReportPersistenceServices.get(0)
+              .getReportEntityClass()
+              .isAssignableFrom(reportPdfEntity.getClass()))
+      {
         log.warn("Non-primary storage access for report pdf entity for app id '{}' and scan id '{}' using {}.",
             applicationId,
             scanId,
-            reportPdfEntity.getApplicationReportPersistenceServiceClass()
-        );
+            reportPdfEntity.getApplicationReportPersistenceServiceClass());
       }
       return reportPdfEntity;
     }
@@ -212,8 +219,7 @@ public class HybridApplicationReportPersistenceService
   }
 
   private ReportPdfEntity hybridGetPdfEntity(final String applicationId, final String scanId) throws IOException {
-    for (ApplicationReportPersistenceService applicationReportPersistenceService :
-        applicationReportPersistenceServices) {
+    for (ApplicationReportPersistenceService applicationReportPersistenceService : applicationReportPersistenceServices) {
       if (applicationReportPersistenceService.getPdfEntity(applicationId, scanId).exists()) {
         return applicationReportPersistenceService.getPdfEntity(applicationId, scanId);
       }
@@ -228,17 +234,17 @@ public class HybridApplicationReportPersistenceService
       log.trace("Getting vulnerability signatures entity for app id '{}' and scan id '{}' using {}.",
           applicationId,
           scanId,
-          baseReportEntity.getApplicationReportPersistenceServiceClass()
-      );
+          baseReportEntity.getApplicationReportPersistenceServiceClass());
       if (warnOnNonPrimaryStorageAccess &&
-          !applicationReportPersistenceServices.get(0).getReportEntityClass()
-              .isAssignableFrom(baseReportEntity.getClass())) {
+          !applicationReportPersistenceServices.get(0)
+              .getReportEntityClass()
+              .isAssignableFrom(baseReportEntity.getClass()))
+      {
         log.warn(
             "Non-primary storage access for vulnerability signatures entity for app id '{}' and scan id '{}' using {}.",
             applicationId,
             scanId,
-            baseReportEntity.getApplicationReportPersistenceServiceClass()
-        );
+            baseReportEntity.getApplicationReportPersistenceServiceClass());
       }
       return baseReportEntity;
     }
@@ -247,11 +253,11 @@ public class HybridApplicationReportPersistenceService
     }
   }
 
-  private BaseReportEntity hybridGetVulnerabilitySignaturesEntity(final String applicationId, final String scanId)
-      throws IOException
+  private BaseReportEntity hybridGetVulnerabilitySignaturesEntity(
+      final String applicationId,
+      final String scanId) throws IOException
   {
-    for (ApplicationReportPersistenceService applicationReportPersistenceService :
-        applicationReportPersistenceServices) {
+    for (ApplicationReportPersistenceService applicationReportPersistenceService : applicationReportPersistenceServices) {
       if (applicationReportPersistenceService.getVulnerabilitySignaturesEntity(applicationId, scanId).exists()) {
         return applicationReportPersistenceService.getVulnerabilitySignaturesEntity(applicationId, scanId);
       }
@@ -262,8 +268,7 @@ public class HybridApplicationReportPersistenceService
   @Override
   public String getReportLocation(final String applicationId, final String scanId) {
     try {
-      for (ApplicationReportPersistenceService applicationReportPersistenceService :
-          applicationReportPersistenceServices) {
+      for (ApplicationReportPersistenceService applicationReportPersistenceService : applicationReportPersistenceServices) {
         if (applicationReportPersistenceService.reportExists(applicationId, scanId)) {
           return applicationReportPersistenceService.getReportLocation(applicationId, scanId);
         }
@@ -277,14 +282,12 @@ public class HybridApplicationReportPersistenceService
 
   @Override
   public boolean reportExists(final String applicationId, final String scanId) throws IOException {
-    for (ApplicationReportPersistenceService applicationReportPersistenceService :
-        applicationReportPersistenceServices) {
+    for (ApplicationReportPersistenceService applicationReportPersistenceService : applicationReportPersistenceServices) {
       if (applicationReportPersistenceService.reportExists(applicationId, scanId)) {
         log.trace("Report for applicationId {} and scanId {} exists using {}.",
             applicationId,
             scanId,
-            applicationReportPersistenceService.getClass()
-        );
+            applicationReportPersistenceService.getClass());
         return true;
       }
     }
@@ -293,16 +296,14 @@ public class HybridApplicationReportPersistenceService
 
   @Override
   public void deleteReport(final String applicationId, final String scanId) throws IOException {
-    for (ApplicationReportPersistenceService applicationReportPersistenceService :
-        applicationReportPersistenceServices) {
+    for (ApplicationReportPersistenceService applicationReportPersistenceService : applicationReportPersistenceServices) {
       applicationReportPersistenceService.deleteReport(applicationId, scanId);
     }
   }
 
   @Override
   public void deleteReports(final String applicationId) throws IOException {
-    for (ApplicationReportPersistenceService applicationReportPersistenceService :
-        applicationReportPersistenceServices) {
+    for (ApplicationReportPersistenceService applicationReportPersistenceService : applicationReportPersistenceServices) {
       applicationReportPersistenceService.deleteReports(applicationId);
     }
   }
@@ -320,8 +321,9 @@ public class HybridApplicationReportPersistenceService
   @Override
   public void configurationChanged(final Set<String> propertyNames) {
     if (propertyNames.contains(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS)) {
-      warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get().getConfigurationNoAuthz(
-          SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
+      warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get()
+          .getConfigurationNoAuthz(
+              SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
     }
   }
 }

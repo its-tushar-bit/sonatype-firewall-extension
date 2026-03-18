@@ -34,7 +34,7 @@ public class SourceControlPullRequestComment
 
   /**
    * The pathname of the file where the line comment is added. Null for summary comments.
-   * 
+   *
    * @since 1.125
    */
   @Column(name = "pathname")
@@ -84,7 +84,7 @@ public class SourceControlPullRequestComment
     this.pullRequestId = pullRequestId;
     this.pullRequestCommentId = pullRequestCommentId;
     this.pullRequestCommentVersion = pullRequestCommentVersion;
-    this.contentHash = contentHash; 
+    this.contentHash = contentHash;
     this.sourcePolicyEvaluationId = sourcePolicyEvaluationId;
     this.targetPolicyEvaluationId = targetPolicyEvaluationId;
     this.createTime = new Date();

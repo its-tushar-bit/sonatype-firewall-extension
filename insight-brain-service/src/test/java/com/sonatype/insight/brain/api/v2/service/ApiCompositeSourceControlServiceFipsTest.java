@@ -33,7 +33,8 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 
-public class ApiCompositeSourceControlServiceFipsTest extends ApiCompositeSourceControlServiceTest
+public class ApiCompositeSourceControlServiceFipsTest
+    extends ApiCompositeSourceControlServiceTest
 {
   @Inject
   private ApplicationDAO applicationDAO;
@@ -85,8 +86,7 @@ public class ApiCompositeSourceControlServiceFipsTest extends ApiCompositeSource
     ApiCompositeSourceControlDTO dto =
         apiCompositeSourceControlServiceLocal.getCompositeSourceControlByOwnerDecrypted(
             OwnerType.ORGANIZATION,
-            level1OrgLocal.getId()
-        );
+            level1OrgLocal.getId());
 
     // then the passwords at both levels match
     assertThat(dto.token.value).isEqualTo(TOKEN);

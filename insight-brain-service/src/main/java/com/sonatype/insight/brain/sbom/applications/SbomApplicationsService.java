@@ -37,10 +37,11 @@ public class SbomApplicationsService
   private final ApplicationDAO applicationDAO;
 
   @Inject
-  public SbomApplicationsService(final ApplicationService applicationService,
-                                 final ApplicationAdapter applicationAdapter,
-                                 final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
-                                 final ApplicationDAO applicationDAO)
+  public SbomApplicationsService(
+      final ApplicationService applicationService,
+      final ApplicationAdapter applicationAdapter,
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
+      final ApplicationDAO applicationDAO)
   {
     this.applicationService = applicationService;
     this.applicationAdapter = applicationAdapter;
@@ -63,7 +64,8 @@ public class SbomApplicationsService
 
     List<ApplicationManagementSummaryDTO> filteredByApplicationName = applicationAdapter
         .createApplicationManagementSummariesWithOnlyAppNameFilter(applications, applicationName);
-    Set<String> filteredApplicationIds = filteredByApplicationName.stream().map(ApplicationManagementSummaryDTO::getId)
+    Set<String> filteredApplicationIds = filteredByApplicationName.stream()
+        .map(ApplicationManagementSummaryDTO::getId)
         .collect(Collectors.toSet());
     if (filteredApplicationIds.isEmpty()) {
       return new SbomApplicationListSummaryDTO(new ArrayList<>());

@@ -33,7 +33,7 @@ public class FileSbomPersistenceServiceTest
     extends AbstractComponentTest
 {
   private static final String APP_ID = "test-app";
-  
+
   private static final String PREFIX_ID = "prefix-test";
 
   private static final String FILE_NAME = "test-sbom.xml";
@@ -58,21 +58,21 @@ public class FileSbomPersistenceServiceTest
     // Create directories for the SBOM
     Path sbomDir = insightWork.getSbomDir(APP_ID).toPath();
     Files.createDirectories(sbomDir);
-    
+
     // Create the SBOM file
     Path sbomPath = sbomDir.resolve(FILE_NAME);
     Files.write(sbomPath, SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
-    
+
     // Test getSbom method
     SbomEntity entity = service.getPermanentSbom(APP_ID, FILE_NAME);
-    
+
     // Verify the entity properties
     assertThat(entity).isInstanceOf(FileSbomEntity.class);
     assertThat(entity.getAppId()).isEqualTo(APP_ID);
     assertThat(entity.getName()).isEqualTo(FILE_NAME);
     assertThat(entity.getPath()).exists();
     assertThat(entity.getPath()).isEqualTo(sbomPath);
-    
+
     // Verify the content
     try (InputStream is = entity.getInputStream()) {
       String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
@@ -93,49 +93,49 @@ public class FileSbomPersistenceServiceTest
     // Create directories for the persistent temp SBOM
     Path sbomDir = insightWork.getSbomPersistentTempDir().toPath();
     Files.createDirectories(sbomDir);
-    
+
     // Create the SBOM file
     Path sbomPath = sbomDir.resolve(FILE_NAME);
     Files.write(sbomPath, SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
-    
+
     // Test getPersistentTempSbom method
     SbomEntity entity = service.getTemporarySbom(FILE_NAME, null);
-    
+
     // Verify the entity properties
     assertThat(entity).isInstanceOf(FileSbomEntity.class);
     assertThat(entity.getAppId()).isNull();
     assertThat(entity.getName()).isEqualTo(FILE_NAME);
     assertThat(entity.getPath()).exists();
     assertThat(entity.getPath()).isEqualTo(sbomPath);
-    
+
     // Verify the content
     try (InputStream is = entity.getInputStream()) {
       String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
       assertThat(content).isEqualTo(SBOM_CONTENT);
     }
   }
-  
+
   @Test
   public void testGetTemporarySbomWithPrefix() throws Exception {
     // Create directories for the persistent temp SBOM with prefix
     Path sbomDir = insightWork.getSbomPersistentTempDir().toPath();
     Path prefixDir = sbomDir.resolve(PREFIX_ID);
     Files.createDirectories(prefixDir);
-    
+
     // Create the SBOM file in the prefix directory
     Path sbomPath = prefixDir.resolve(FILE_NAME);
     Files.write(sbomPath, SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
-    
+
     // Test getPersistentTempSbom method with prefix
     SbomEntity entity = service.getTemporarySbom(FILE_NAME, PREFIX_ID);
-    
+
     // Verify the entity properties
     assertThat(entity).isInstanceOf(FileSbomEntity.class);
     assertThat(entity.getAppId()).isNull();
     assertThat(entity.getName()).isEqualTo(FILE_NAME);
     assertThat(entity.getPath()).exists();
     assertThat(entity.getPath()).isEqualTo(sbomPath);
-    
+
     // Verify the content
     try (InputStream is = entity.getInputStream()) {
       String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
@@ -159,11 +159,11 @@ public class FileSbomPersistenceServiceTest
 
     assertThat(entity.exists()).isFalse();
     assertThat(Files.exists(expectedPath)).isFalse();
-    
+
     try (OutputStream os = entity.getOutputStream()) {
       os.write(SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
     }
-    
+
     assertThat(entity.exists()).isTrue();
     assertThat(Files.readAllBytes(expectedPath)).isEqualTo(SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
   }
@@ -173,11 +173,11 @@ public class FileSbomPersistenceServiceTest
     // Create directories for the SBOM
     Path sbomDir = insightWork.getSbomDir(APP_ID).toPath();
     Files.createDirectories(sbomDir);
-    
+
     // Create the SBOM file
     Path sbomPath = sbomDir.resolve(FILE_NAME);
     Files.write(sbomPath, SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
-    
+
     SbomEntity entity = service.doGetSbom(APP_ID, FILE_NAME);
     assertThat(entity.exists()).isTrue();
   }
@@ -185,7 +185,7 @@ public class FileSbomPersistenceServiceTest
   @Test
   public void testCreateTransientSbom() throws Exception {
     SbomEntity entity = service.getTransientSbom(FILE_NAME);
-    
+
     // Verify the entity properties
     assertThat(entity).isInstanceOf(FileSbomEntity.class);
     assertThat(entity.getAppId()).isNull();
@@ -200,12 +200,12 @@ public class FileSbomPersistenceServiceTest
 
     // Verify the file is created
     assertThat(Files.exists(sbomPath)).isTrue();
-    
+
     // Write content to the entity
     try (OutputStream os = entity.getOutputStream()) {
       os.write(SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
     }
-    
+
     // Verify that the file now exists and the content was written
     assertThat(Files.readAllBytes(sbomPath)).isEqualTo(SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
   }
@@ -215,11 +215,11 @@ public class FileSbomPersistenceServiceTest
     // Create directories for the transient SBOM
     Path sbomDir = insightWork.getSbomTransientDir().toPath();
     Files.createDirectories(sbomDir);
-    
+
     // Create two transient SBOMs - this should work fine since they get unique names
     SbomEntity entity1 = service.getTransientSbom(FILE_NAME);
     SbomEntity entity2 = service.getTransientSbom(FILE_NAME);
-    
+
     // Verify they have different names but the same extension
     assertThat(entity1.getName()).isNotEqualTo(entity2.getName());
     assertThat(entity1.getName()).endsWith(".xml");
@@ -233,22 +233,22 @@ public class FileSbomPersistenceServiceTest
     Path sourcePath = sourceDir.resolve(FILE_NAME);
     Files.write(sourcePath, SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
     FileSbomEntity sourceSbom = new FileSbomEntity(sourcePath, APP_ID, FILE_NAME);
-    
+
     // Save it as a persistent temp SBOM
     String newFileName = "saved-" + FILE_NAME;
     SbomEntity savedSbom = service.saveTemporarySbom(sourceSbom, newFileName, null);
-    
+
     // Verify the saved entity properties
     assertThat(savedSbom).isInstanceOf(FileSbomEntity.class);
     assertThat(savedSbom.getAppId()).isEqualTo(APP_ID);
     assertThat(savedSbom.getName()).isEqualTo(newFileName);
-    
+
     // Verify the file was created and has the correct content
     Path expectedPath = insightWork.getSbomPersistentTempDir().toPath().resolve(newFileName);
     assertThat(Files.exists(expectedPath)).isTrue();
     assertThat(Files.readAllBytes(expectedPath)).isEqualTo(SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
   }
-  
+
   @Test
   public void testSaveTemporarySbomWithPrefix() throws Exception {
     // Create a source SBOM entity
@@ -256,19 +256,21 @@ public class FileSbomPersistenceServiceTest
     Path sourcePath = sourceDir.resolve(FILE_NAME);
     Files.write(sourcePath, SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
     FileSbomEntity sourceSbom = new FileSbomEntity(sourcePath, APP_ID, FILE_NAME);
-    
+
     // Save it as a persistent temp SBOM with a prefix
     String newFileName = "saved-" + FILE_NAME;
     SbomEntity savedSbom = service.saveTemporarySbom(sourceSbom, newFileName, PREFIX_ID);
-    
+
     // Verify the saved entity properties
     assertThat(savedSbom).isInstanceOf(FileSbomEntity.class);
     assertThat(savedSbom.getAppId()).isEqualTo(APP_ID);
     assertThat(savedSbom.getName()).isEqualTo(newFileName);
-    
+
     // Verify the file was created and has the correct content
-    Path expectedPath = insightWork.getSbomPersistentTempDir().toPath()
-        .resolve(PREFIX_ID).resolve(newFileName);
+    Path expectedPath = insightWork.getSbomPersistentTempDir()
+        .toPath()
+        .resolve(PREFIX_ID)
+        .resolve(newFileName);
     assertThat(Files.exists(expectedPath)).isTrue();
     assertThat(Files.readAllBytes(expectedPath)).isEqualTo(SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
   }
@@ -281,10 +283,10 @@ public class FileSbomPersistenceServiceTest
     Path sbomPath = sbomDir.resolve(FILE_NAME);
     Files.write(sbomPath, SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
     FileSbomEntity sbomEntity = new FileSbomEntity(sbomPath, APP_ID, FILE_NAME);
-    
+
     // Delete the SBOM entity
     service.deleteSbom(sbomEntity);
-    
+
     // Verify the file was deleted
     assertThat(Files.exists(sbomPath)).isFalse();
   }
@@ -298,10 +300,10 @@ public class FileSbomPersistenceServiceTest
     Path sbomPath = subDir.resolve(FILE_NAME);
     Files.write(sbomPath, SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
     FileSbomEntity sbomEntity = new FileSbomEntity(sbomPath, APP_ID, "subdir/" + FILE_NAME);
-    
+
     // Delete the SBOM entity
     service.deleteSbom(sbomEntity);
-    
+
     // Verify the file and parent directory were deleted
     assertThat(Files.exists(sbomPath)).isFalse();
     assertThat(Files.exists(subDir)).isFalse();
@@ -328,10 +330,10 @@ public class FileSbomPersistenceServiceTest
     Files.createDirectories(sbomDir);
     Path sbomPath = sbomDir.resolve(FILE_NAME);
     Files.write(sbomPath, SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
-    
+
     // Delete the SBOM
     service.deleteSbom(APP_ID, FILE_NAME);
-    
+
     // Verify the file was deleted
     assertThat(Files.exists(sbomPath)).isFalse();
   }
@@ -340,14 +342,14 @@ public class FileSbomPersistenceServiceTest
   public void testDeleteSbomsFor() throws Exception {
     // Create a directory for the app's SBOMs
     File sbomDir = insightWork.getSbomDir(APP_ID, true);
-    
+
     // Create a spy on the FileCleaner to verify it's called
     FileCleaner spyFileCleaner = spy(fileCleaner);
     FileSbomPersistenceService spyService = new FileSbomPersistenceService(insightWork, spyFileCleaner);
-    
+
     // Delete all SBOMs for the app
     spyService.deleteSbomsFor(APP_ID);
-    
+
     // Verify the FileCleaner was called with the correct directory
     verify(spyFileCleaner).delete(sbomDir);
   }
@@ -357,23 +359,23 @@ public class FileSbomPersistenceServiceTest
     // Create directories for transient SBOMs
     Path transientDir = insightWork.getSbomTransientDir().toPath();
     Files.createDirectories(transientDir);
-    
+
     // Create some old and new SBOM files
     Path oldSbomPath = transientDir.resolve("old-sbom.xml");
     Path newSbomPath = transientDir.resolve("new-sbom.xml");
-    
+
     Files.write(oldSbomPath, "old content".getBytes(StandardCharsets.UTF_8));
     Files.write(newSbomPath, "new content".getBytes(StandardCharsets.UTF_8));
-    
+
     // Set the old file to have a modification time of 2 days ago
     Files.setLastModifiedTime(oldSbomPath, FileTime.from(Instant.now().minus(2, ChronoUnit.DAYS)));
-    
+
     // Set the threshold to 1 day ago
     Instant threshold = Instant.now().minus(1, ChronoUnit.DAYS);
-    
+
     // Delete transient SBOMs older than the threshold
     service.deleteTransientSbomsOlderThan(threshold);
-    
+
     // Verify only the old file was deleted
     assertThat(Files.exists(oldSbomPath)).isFalse();
     assertThat(Files.exists(newSbomPath)).isTrue();

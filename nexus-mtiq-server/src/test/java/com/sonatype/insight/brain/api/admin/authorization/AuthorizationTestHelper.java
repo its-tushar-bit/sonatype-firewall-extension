@@ -105,8 +105,9 @@ public class AuthorizationTestHelper
     final X509EncodedKeySpec pubSpec = new X509EncodedKeySpec(pubPemReader.readPemObject().getContent());
     final RSAPublicKey rsaPublicKey = (RSAPublicKey) keyFactory.generatePublic(pubSpec);
 
-    final URL keyResource = AuthorizationTestHelper.class.getClassLoader().getResource(
-        AuthorizationTestHelper.class.getSimpleName() + "/private_key.pem"); // should be in pkcs8 format!
+    final URL keyResource = AuthorizationTestHelper.class.getClassLoader()
+        .getResource(
+            AuthorizationTestHelper.class.getSimpleName() + "/private_key.pem"); // should be in pkcs8 format!
     final StringReader keyReader =
         new StringReader(FileUtils.readFileToString(new File(keyResource.getFile()), StandardCharsets.UTF_8));
     final PemReader keyPemReader = new PemReader(keyReader);

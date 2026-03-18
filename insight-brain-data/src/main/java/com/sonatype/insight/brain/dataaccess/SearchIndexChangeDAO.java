@@ -34,7 +34,8 @@ public class SearchIndexChangeDAO
   @Override
   public void insert(TransactionContext tx, SearchIndexChange entity) {
     if (SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.isEnabled() &&
-        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.isEnabled()) {
+        SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.isEnabled())
+    {
       jakarta.persistence.Query nativeQuery =
           tx.createNativeQuery(String.format(SEARCH_INDEX_CHANGE_INSERT_QUERY, getDatabaseSchema()));
       nativeQuery.setParameter(1, IdUtil.newUUID());

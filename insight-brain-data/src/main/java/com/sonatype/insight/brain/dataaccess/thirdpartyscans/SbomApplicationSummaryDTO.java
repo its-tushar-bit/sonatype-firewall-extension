@@ -31,46 +31,47 @@ public class SbomApplicationSummaryDTO
 
   private Double releaseStatusPercentage;
 
-  public SbomApplicationSummaryDTO(Object[] result,
-                                   SbomPolicyViolationSummaryDTO policyViolationSummary)
+  public SbomApplicationSummaryDTO(
+      Object[] result,
+      SbomPolicyViolationSummaryDTO policyViolationSummary)
   {
-    applicationInternalId =  String.valueOf(result[0]);
+    applicationInternalId = String.valueOf(result[0]);
     sbomVersion = String.valueOf(result[1]);
     importDate = (Date) result[2];
     applicationPublicId = String.valueOf(result[3]);
     applicationName = String.valueOf(result[4]);
     SbomVulnerabilitiesSummaryDTO sbomVulnerabilitiesSummaryDTO =
         new SbomVulnerabilitiesSummaryDTO();
-    sbomVulnerabilitiesSummaryDTO.setNone((Long)result[5]);
-    sbomVulnerabilitiesSummaryDTO.setLow((Long)result[6]);
-    sbomVulnerabilitiesSummaryDTO.setMedium((Long)result[7]);
-    sbomVulnerabilitiesSummaryDTO.setHigh((Long)result[8]);
-    sbomVulnerabilitiesSummaryDTO.setCritical((Long)result[9]);
+    sbomVulnerabilitiesSummaryDTO.setNone((Long) result[5]);
+    sbomVulnerabilitiesSummaryDTO.setLow((Long) result[6]);
+    sbomVulnerabilitiesSummaryDTO.setMedium((Long) result[7]);
+    sbomVulnerabilitiesSummaryDTO.setHigh((Long) result[8]);
+    sbomVulnerabilitiesSummaryDTO.setCritical((Long) result[9]);
     this.policyViolationSummary = policyViolationSummary;
     this.vulnerabilitySummary = sbomVulnerabilitiesSummaryDTO;
-    releaseStatusPercentage = result[11] == null ? null : ((Number)result[11]).doubleValue();
+    releaseStatusPercentage = result[11] == null ? null : ((Number) result[11]).doubleValue();
   }
 
-  //for Jackson
+  // for Jackson
   public SbomApplicationSummaryDTO() {
   }
 
   public SbomApplicationSummaryDTO(final Object[] result) {
-    applicationInternalId =  String.valueOf(result[0]);
+    applicationInternalId = String.valueOf(result[0]);
     sbomVersion = String.valueOf(result[1]);
     importDate = (Date) result[2];
     applicationPublicId = String.valueOf(result[3]);
     applicationName = String.valueOf(result[4]);
     SbomVulnerabilitiesSummaryDTO sbomVulnerabilitiesSummaryDTO =
         new SbomVulnerabilitiesSummaryDTO();
-    sbomVulnerabilitiesSummaryDTO.setNone((Long)result[5]);
-    sbomVulnerabilitiesSummaryDTO.setLow((Long)result[6]);
-    sbomVulnerabilitiesSummaryDTO.setMedium((Long)result[7]);
-    sbomVulnerabilitiesSummaryDTO.setHigh((Long)result[8]);
-    sbomVulnerabilitiesSummaryDTO.setCritical((Long)result[9]);
+    sbomVulnerabilitiesSummaryDTO.setNone((Long) result[5]);
+    sbomVulnerabilitiesSummaryDTO.setLow((Long) result[6]);
+    sbomVulnerabilitiesSummaryDTO.setMedium((Long) result[7]);
+    sbomVulnerabilitiesSummaryDTO.setHigh((Long) result[8]);
+    sbomVulnerabilitiesSummaryDTO.setCritical((Long) result[9]);
     this.policyViolationSummary = null;
     this.vulnerabilitySummary = sbomVulnerabilitiesSummaryDTO;
-    releaseStatusPercentage = result[11] == null ? null : ((Number)result[11]).doubleValue();
+    releaseStatusPercentage = result[11] == null ? null : ((Number) result[11]).doubleValue();
   }
 
   public Double getReleaseStatusPercentage() {

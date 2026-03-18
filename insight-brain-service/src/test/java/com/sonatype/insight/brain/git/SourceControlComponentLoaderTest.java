@@ -184,7 +184,7 @@ public class SourceControlComponentLoaderTest
     identifierToComponentInfoMap.put(log4jCoreComponentId, componentInfo);
     List<PullRequestLineCommentDTO> lineComments =
         Collections.singletonList(
-            new PullRequestLineCommentDTO(log4jCoreComponentId, new DiffPosition("path", 1, 0, 1, "456",1)));
+            new PullRequestLineCommentDTO(log4jCoreComponentId, new DiffPosition("path", 1, 0, 1, "456", 1)));
 
     componentInfo = details.getComponentInfo(log4jCoreComponentId);
     assertThat(componentInfo.getDirectDependency()).isFalse();

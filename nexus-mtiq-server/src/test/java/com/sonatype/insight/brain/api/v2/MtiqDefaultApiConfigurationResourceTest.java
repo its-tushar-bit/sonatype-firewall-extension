@@ -44,7 +44,8 @@ public class MtiqDefaultApiConfigurationResourceTest
 
     assertResponseStatus(200, response);
     Map<String, Object> result = response.getBody(Map.class);
-    assertThat(result).isNotNull().containsEntry(SystemConfigurationProperty.BASE_URL, expectedBaseUrl)
+    assertThat(result).isNotNull()
+        .containsEntry(SystemConfigurationProperty.BASE_URL, expectedBaseUrl)
         .containsEntry(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, expectedMessage);
   }
 

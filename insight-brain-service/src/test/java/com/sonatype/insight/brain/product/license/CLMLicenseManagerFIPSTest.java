@@ -32,25 +32,25 @@ public class CLMLicenseManagerFIPSTest
     super.before();
 
     // TODO - Uncomment after the HDS code is updated to use the new keystore format. See HDS-3252
-    //try (InputStream in = getClass().getResourceAsStream("/productlicense/licensing-keystore-hds.bcfks")) {
-    //  assert in != null;
-    //  Files.copy(in, new File(tempDir.getRoot(), "hds.bcfks").toPath());
-    //}
-    //hdsMockServer.reset();
-    //setHdsUrl(hdsMockServer.getHttpUrl());
+    // try (InputStream in = getClass().getResourceAsStream("/productlicense/licensing-keystore-hds.bcfks")) {
+    // assert in != null;
+    // Files.copy(in, new File(tempDir.getRoot(), "hds.bcfks").toPath());
+    // }
+    // hdsMockServer.reset();
+    // setHdsUrl(hdsMockServer.getHttpUrl());
   }
 
-
   /*
-  TODO - Uncomment after the HDS code is updated to use the new keystore format. See HDS-3252
-
-  @Override
-  public void configure(Binder binder) {
-    ProductLicenseConfig productLicenseConfig = new ProductLicenseConfig();
-    productLicenseConfig.setKeyStorePath(new File(tempDir.getRoot(), "hds.bcfks").getAbsolutePath());
-    productLicenseConfig.setKeyStoreAliasGroup("licensing-key-test");
-    binder.bind(ProductLicenseConfig.class).toInstance(productLicenseConfig);
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    super.configure(binder);
-  }*/
+   * TODO - Uncomment after the HDS code is updated to use the new keystore format. See HDS-3252
+   *
+   * @Override
+   * public void configure(Binder binder) {
+   * ProductLicenseConfig productLicenseConfig = new ProductLicenseConfig();
+   * productLicenseConfig.setKeyStorePath(new File(tempDir.getRoot(), "hds.bcfks").getAbsolutePath());
+   * productLicenseConfig.setKeyStoreAliasGroup("licensing-key-test");
+   * binder.bind(ProductLicenseConfig.class).toInstance(productLicenseConfig);
+   * binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
+   * super.configure(binder);
+   * }
+   */
 }

@@ -74,7 +74,8 @@ public class GitLabServerTest
           .setURI(gitLabServer.getProject().getHttpUrlToRepo())
           .setDirectory(checkoutDir)
           .setCredentialsProvider(credentialsProvider)
-          .call()) {
+          .call())
+      {
         Path checkoutFile = Paths.get(checkoutDir.getAbsolutePath(), file.getFileName().toString());
         assertThat(Files.exists(checkoutFile)).isTrue();
         assertThat(Files.readString(checkoutFile)).isEqualTo("some file content");

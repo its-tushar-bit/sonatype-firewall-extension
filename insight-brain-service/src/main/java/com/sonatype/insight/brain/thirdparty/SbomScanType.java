@@ -7,5 +7,6 @@ package com.sonatype.insight.brain.thirdparty;
 
 public enum SbomScanType
 {
-  SBOM, BINARY
+  SBOM,
+  BINARY
 }

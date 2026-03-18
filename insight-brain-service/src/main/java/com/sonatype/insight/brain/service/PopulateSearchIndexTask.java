@@ -56,7 +56,6 @@ public class PopulateSearchIndexTask
     productLicense.validate();
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
     taskScheduler.scheduleOneTimeTask(indexCreationScheduler, Map.of(
-        QuartzConcurrencyListener.MAX_CONCURRENT, String.valueOf(configuration.getMaxConcurrentTenantIndexCreation()))
-    );
+        QuartzConcurrencyListener.MAX_CONCURRENT, String.valueOf(configuration.getMaxConcurrentTenantIndexCreation())));
   }
 }

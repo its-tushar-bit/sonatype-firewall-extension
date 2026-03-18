@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Runs a scheduled or manually triggered policy monitoring task for applications.
- * 
+ *
  * The @DisallowConcurrentExecution annotation on this class can be confusing/misleading, especially when combined with
  * the @Singleton annotation.
  * Here is how it works:
@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * concurrent jobs (as long as the jobs have different keys).
  * This is particularly important in MTIQ, where Quartz jobs have the tenant slug in their job key, which allows MTIQ to
  * run a job/task of this type per tenant in parallel (despite of the @DisallowConcurrentExecution annotation).
- * 
+ *
  * @since 1.8
  */
 @Named

@@ -426,7 +426,8 @@ public class PolicyEvaluateServiceTest
 
     // One legacy violation
     PolicyViolation policyViolation = policyViolationDAO
-        .getActiveByApplicationIdAndStageId(app.getId(), stage.getStageTypeId()).get(0);
+        .getActiveByApplicationIdAndStageId(app.getId(), stage.getStageTypeId())
+        .get(0);
     policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
     policyViolation.setLegacyViolationTime(new Date());
     policyViolationDAO.update(policyViolation);
@@ -568,8 +569,7 @@ public class PolicyEvaluateServiceTest
   private void testEvaluateWithPolling(
       LicensedFeature requiredFeature,
       IntegrationType integrationType,
-      ScanTriggerType scanTriggerType)
-      throws Exception
+      ScanTriggerType scanTriggerType) throws Exception
   {
     productLicenseManager.setFeatures(requiredFeature, LicensedFeature.NOTIFICATIONS);
     setBaseUrl("http://localhost");
@@ -704,8 +704,9 @@ public class PolicyEvaluateServiceTest
         Thread.sleep(100);
         return super.answer(invocation);
       }
-    }).when(spyService).evaluate(any(Application.class), anyString(), any(Stage.class),
-        any(ScanTriggerType.class), eq(null), eq(null), eq(ClientScanType.SONATYPE));
+    }).when(spyService)
+        .evaluate(any(Application.class), anyString(), any(Stage.class),
+            any(ScanTriggerType.class), eq(null), eq(null), eq(ClientScanType.SONATYPE));
 
     // evaluate policy
     PolicyEvaluationReceipt policyEvaluationReceipt =
@@ -1048,7 +1049,8 @@ public class PolicyEvaluateServiceTest
     }
     assertPolicyEvaluation(app.getId(), scanId, scanTriggerType, false /* isReevaluation */);
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId())) {
+        stage.getStageTypeId()))
+    {
       if (policyViolation.getPolicyId().equals(policy1.getId())) {
         assertThat(policyViolation.getActionTypeId()).isEqualTo(Action.ID_FAIL);
       }
@@ -1096,7 +1098,8 @@ public class PolicyEvaluateServiceTest
     }
     assertPolicyEvaluation(app.getId(), scanId, scanTriggerType, true /* isReevaluation */);
     for (PolicyViolation policyViolation : policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId())) {
+        stage.getStageTypeId()))
+    {
       if (policyViolation.getPolicyId().equals(policy1.getId())) {
         assertThat(policyViolation.getActionTypeId()).isEqualTo(Action.ID_FAIL);
       }
@@ -1187,8 +1190,7 @@ public class PolicyEvaluateServiceTest
     PersistedPolicyEvaluationPollingResult componentAnalyzePollingResult = persistedPolicyEvaluationPollingResultDAO
         .getByApplicationIdAndStatusId(
             app.getId(),
-            componentAnalyzeEvaluationReceipt.getStatusId()
-        );
+            componentAnalyzeEvaluationReceipt.getStatusId());
 
     assertThat(componentAnalyzeEvaluationReceipt.getStatusId()).isEqualTo(componentAnalyzePollingResult.getStatusId());
 
@@ -1204,8 +1206,7 @@ public class PolicyEvaluateServiceTest
         policyEvaluationPollingResult.getScanReceipt().getScanId(),
         componentIdentifier,
         vulnerabilityIdentifier,
-        lookup(InsightWork.class)
-    );
+        lookup(InsightWork.class));
 
     PolicyEvaluationReceipt receipt = policyEvaluateService.evaluateWithPolling(
         IntegrationType.CLI,
@@ -1214,8 +1215,7 @@ public class PolicyEvaluateServiceTest
         null,
         new Stage(Stage.ID_BUILD),
         componentAnalyzePollingResult.getStatusId(),
-        analysisDTO
-    );
+        analysisDTO);
 
     PolicyEvaluationPollingResult pollingResult = policyEvaluationHelper
         .awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
@@ -1240,8 +1240,7 @@ public class PolicyEvaluateServiceTest
     PersistedPolicyEvaluationPollingResult componentAnalyzePollingResult = persistedPolicyEvaluationPollingResultDAO
         .getByApplicationIdAndStatusId(
             app.getId(),
-            componentAnalyzeEvaluationReceipt.getStatusId()
-        );
+            componentAnalyzeEvaluationReceipt.getStatusId());
 
     assertThat(componentAnalyzeEvaluationReceipt.getStatusId()).isEqualTo(componentAnalyzePollingResult.getStatusId());
 
@@ -1256,8 +1255,7 @@ public class PolicyEvaluateServiceTest
         null,
         new Stage(Stage.ID_BUILD),
         componentAnalyzePollingResult.getStatusId(),
-        null
-    );
+        null);
 
     PolicyEvaluationPollingResult pollingResult = policyEvaluationHelper
         .awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
@@ -1282,8 +1280,7 @@ public class PolicyEvaluateServiceTest
     PersistedPolicyEvaluationPollingResult componentAnalyzePollingResult = persistedPolicyEvaluationPollingResultDAO
         .getByApplicationIdAndStatusId(
             app.getId(),
-            componentAnalyzeEvaluationReceipt.getStatusId()
-        );
+            componentAnalyzeEvaluationReceipt.getStatusId());
 
     assertThat(componentAnalyzeEvaluationReceipt.getStatusId()).isEqualTo(componentAnalyzePollingResult.getStatusId());
 
@@ -1298,8 +1295,7 @@ public class PolicyEvaluateServiceTest
         null,
         new Stage(Stage.ID_PROXY),
         componentAnalyzePollingResult.getStatusId(),
-        null
-    );
+        null);
 
     PolicyEvaluationPollingResult pollingResult = policyEvaluationHelper
         .awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
@@ -1323,20 +1319,17 @@ public class PolicyEvaluateServiceTest
         "scanId",
         createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"),
         "CVE-2012-0022",
-        lookup(InsightWork.class)
-    );
+        lookup(InsightWork.class));
 
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() ->
-            policyEvaluateService.evaluateWithPolling(
-                IntegrationType.CLI,
-                app.getPublicId(),
-                ClientScanType.SONATYPE,
-                null,
-                new Stage(Stage.ID_BUILD),
-                "componentAnalysisStatusId",
-                analysisDTO
-            ))
+        .isThrownBy(() -> policyEvaluateService.evaluateWithPolling(
+            IntegrationType.CLI,
+            app.getPublicId(),
+            ClientScanType.SONATYPE,
+            null,
+            new Stage(Stage.ID_BUILD),
+            "componentAnalysisStatusId",
+            analysisDTO))
         .withMessage("Component Analysis not found for Application ID: "
             + app.getPublicId() + " and Status ID: componentAnalysisStatusId");
   }
@@ -1350,29 +1343,24 @@ public class PolicyEvaluateServiceTest
         new PersistedPolicyEvaluationPollingResult(
             app.getId(),
             "componentAnalysisStatusId",
-            policyEvaluationPollingResult
-        )
-    );
+            policyEvaluationPollingResult));
 
     VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
         app.getId(),
         "scanId",
         createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"),
         "CVE-2012-0022",
-        lookup(InsightWork.class)
-    );
+        lookup(InsightWork.class));
 
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() ->
-            policyEvaluateService.evaluateWithPolling(
-                IntegrationType.CLI,
-                app.getPublicId(),
-                ClientScanType.SONATYPE,
-                null,
-                new Stage(Stage.ID_BUILD),
-                "componentAnalysisStatusId",
-                analysisDTO
-            ))
+        .isThrownBy(() -> policyEvaluateService.evaluateWithPolling(
+            IntegrationType.CLI,
+            app.getPublicId(),
+            ClientScanType.SONATYPE,
+            null,
+            new Stage(Stage.ID_BUILD),
+            "componentAnalysisStatusId",
+            analysisDTO))
         .withMessage("Component analysis has not completed for public application id: " + app.getPublicId()
             + " and status ID: componentAnalysisStatusId "
             + "The current status is null and the current sub status is COMPONENT_ANALYSIS_PENDING");

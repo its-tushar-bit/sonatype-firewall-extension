@@ -23,84 +23,90 @@ import org.eclipse.jetty.ee11.servlets.HeaderFilter;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterRegistration;
 
-public abstract class WebBundle<T extends Configuration> implements ConfiguredBundle<T> {
-    private static final String WILDCARD = "*";
+public abstract class WebBundle<T extends Configuration>
+    implements ConfiguredBundle<T>
+{
+  private static final String WILDCARD = "*";
 
-    @Override
-    public void initialize(Bootstrap<?> bootstrap) {
-        // do nothing
+  @Override
+  public void initialize(Bootstrap<?> bootstrap) {
+    // do nothing
+  }
+
+  @Override
+  public void run(T configuration, Environment environment) throws Exception {
+    final WebConfiguration webConfig = getWebConfiguration(configuration);
+    final String urlPattern = deriveUrlPattern(webConfig.getUriPath());
+
+    // collect headers
+    final Map<String, String> headers = new HashMap<>();
+
+    // hsts
+    if (webConfig.getHstsHeaderFactory() != null) {
+      headers.putAll(webConfig.getHstsHeaderFactory().build());
     }
 
-    @Override
-    public void run(T configuration, Environment environment) throws Exception {
-        final WebConfiguration webConfig = getWebConfiguration(configuration);
-        final String urlPattern = deriveUrlPattern(webConfig.getUriPath());
+    // frame-options
+    headers.putAll(webConfig.getFrameOptionsHeaderFactory().build());
 
-        // collect headers
-        final Map<String, String> headers = new HashMap<>();
+    // content-type-options
+    headers.putAll(webConfig.getContentTypeOptionsHeaderFactory().build());
 
-        // hsts
-        if (webConfig.getHstsHeaderFactory() != null) {
-            headers.putAll(webConfig.getHstsHeaderFactory().build());
-        }
+    // xss-protection
+    headers.putAll(webConfig.getXssProtectionHeaderFactory().build());
 
-        // frame-options
-        headers.putAll(webConfig.getFrameOptionsHeaderFactory().build());
-
-        // content-type-options
-        headers.putAll(webConfig.getContentTypeOptionsHeaderFactory().build());
-
-        // xss-protection
-        headers.putAll(webConfig.getXssProtectionHeaderFactory().build());
-
-        // csp
-        if (webConfig.getCspHeaderFactory() != null) {
-            headers.putAll(webConfig.getCspHeaderFactory().build());
-        }
-
-        // other headers
-        headers.putAll(webConfig.getHeaders());
-
-        // configure filter
-        configureHeaderFilter(environment, webConfig.getUriPath(), urlPattern, headers);
-
-        // cors
-        if (webConfig.getCorsFilterFactory() != null) {
-            webConfig.getCorsFilterFactory().build(environment, urlPattern);
-        }
+    // csp
+    if (webConfig.getCspHeaderFactory() != null) {
+      headers.putAll(webConfig.getCspHeaderFactory().build());
     }
 
-    protected void configureHeaderFilter(Environment environment,
-                                         String uriPath,
-                                         String urlPattern,
-                                         Map<String, String> headers) {
-        final String headerConfig = headers.entrySet().stream()
-                .map(entry -> "set " + entry.getKey() + ": " + entry.getValue())
-                .collect(Collectors.joining(","));
-        final Map<String, String> filterConfig = Collections.singletonMap("headerConfig", headerConfig);
-        final FilterRegistration.Dynamic filter = getServletEnvironment(environment)
-                .addFilter("header-filter-" + uriPath, HeaderFilter.class);
-        filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, urlPattern);
-        filter.setInitParameters(filterConfig);
-    }
+    // other headers
+    headers.putAll(webConfig.getHeaders());
 
-    private String deriveUrlPattern(String uri) {
-        if (uri.endsWith("/")) {
-            return uri + WILDCARD;
-        } else {
-            return uri + "/" + WILDCARD;
-        }
-    }
+    // configure filter
+    configureHeaderFilter(environment, webConfig.getUriPath(), urlPattern, headers);
 
-    /**
-     * Define which {@link ServletEnvironment} should be configured. Default is {@link Environment#servlets()}.
-     *
-     * @param environment The environment of the Dropwizard application
-     * @return The {@link ServletEnvironment} to configure
-     */
-    protected ServletEnvironment getServletEnvironment(Environment environment) {
-        return environment.servlets();
+    // cors
+    if (webConfig.getCorsFilterFactory() != null) {
+      webConfig.getCorsFilterFactory().build(environment, urlPattern);
     }
+  }
 
-    public abstract WebConfiguration getWebConfiguration(T config);
+  protected void configureHeaderFilter(
+      Environment environment,
+      String uriPath,
+      String urlPattern,
+      Map<String, String> headers)
+  {
+    final String headerConfig = headers.entrySet()
+        .stream()
+        .map(entry -> "set " + entry.getKey() + ": " + entry.getValue())
+        .collect(Collectors.joining(","));
+    final Map<String, String> filterConfig = Collections.singletonMap("headerConfig", headerConfig);
+    final FilterRegistration.Dynamic filter = getServletEnvironment(environment)
+        .addFilter("header-filter-" + uriPath, HeaderFilter.class);
+    filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, urlPattern);
+    filter.setInitParameters(filterConfig);
+  }
+
+  private String deriveUrlPattern(String uri) {
+    if (uri.endsWith("/")) {
+      return uri + WILDCARD;
+    }
+    else {
+      return uri + "/" + WILDCARD;
+    }
+  }
+
+  /**
+   * Define which {@link ServletEnvironment} should be configured. Default is {@link Environment#servlets()}.
+   *
+   * @param environment The environment of the Dropwizard application
+   * @return The {@link ServletEnvironment} to configure
+   */
+  protected ServletEnvironment getServletEnvironment(Environment environment) {
+    return environment.servlets();
+  }
+
+  public abstract WebConfiguration getWebConfiguration(T config);
 }

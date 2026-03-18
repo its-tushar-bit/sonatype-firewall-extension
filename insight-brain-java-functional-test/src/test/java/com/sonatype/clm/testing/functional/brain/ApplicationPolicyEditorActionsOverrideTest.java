@@ -86,8 +86,8 @@ public class ApplicationPolicyEditorActionsOverrideTest
 
     organization = tempEntity.newOrganization(TEST_ORGANIZATION_PUBLIC_ID);
     application = tempEntity.newApplication(getClass().getSimpleName() + "ȧpp", TEST_APPLICATION_PUBLIC_ID,
-      organization.getId());
-    //We always start at application summary page
+        organization.getId());
+    // We always start at application summary page
     goToOwnerSummaryPage(application);
   }
 
@@ -98,7 +98,8 @@ public class ApplicationPolicyEditorActionsOverrideTest
     mockActions.put(Stage.ID_DEVELOP, Action.ID_WARN);
     mockActions.put(Stage.ID_BUILD, Action.ID_WARN);
     assertThat(inheritedOwnerId).isEqualTo(organization.getId());
-    Policy policy = createPolicy(inheritedOwnerId,"ORGANIZATION POLICY", 10, true, mockActions, Collections.emptyMap());
+    Policy policy =
+        createPolicy(inheritedOwnerId, "ORGANIZATION POLICY", 10, true, mockActions, Collections.emptyMap());
 
     refresh();
 
@@ -171,7 +172,11 @@ public class ApplicationPolicyEditorActionsOverrideTest
     assertThat(actions.get(Stage.ID_RELEASE)).isNull();
 
     Map<String, String> policyActionsOverrides = policy
-            .getPolicyActionsOverrides().entrySet().iterator().next().getValue();
+        .getPolicyActionsOverrides()
+        .entrySet()
+        .iterator()
+        .next()
+        .getValue();
 
     assertThat(policyActionsOverrides)
         .containsEntry(Stage.ID_BUILD, Action.ID_WARN)
@@ -238,7 +243,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
     overrideByOwner.put(currentOwner.getId(), overrides);
     overrideByOwner.put(inheritedOwnerId, overrides);
     assertThat(inheritedOwnerId).isEqualTo(organization.getId());
-    Policy policy = createPolicy(inheritedOwnerId,"ORGANIZATION POLICY", 10, true, actions, overrideByOwner);
+    Policy policy = createPolicy(inheritedOwnerId, "ORGANIZATION POLICY", 10, true, actions, overrideByOwner);
 
     goToOwnerSummaryPage(organization);
 
@@ -283,7 +288,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
     overrideByOwner.put(currentOwner.getId(), overrides);
     assertThat(inheritedOwnerId).isEqualTo(organization.getId());
     assertThat(currentOwner.getId()).isEqualTo(application.getId());
-    Policy policy = createPolicy(inheritedOwnerId,"ORGANIZATION POLICY", 10, true, actions, overrideByOwner);
+    Policy policy = createPolicy(inheritedOwnerId, "ORGANIZATION POLICY", 10, true, actions, overrideByOwner);
 
     refresh();
 
@@ -320,7 +325,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
     overrideByOwner.put(currentOwner.getId(), overrides);
     assertThat(inheritedOwnerId).isEqualTo(organization.getId());
     assertThat(currentOwner.getId()).isEqualTo(application.getId());
-    Policy policy = createPolicy(inheritedOwnerId,"ORGANIZATION POLICY", 10, true, actions, overrideByOwner);
+    Policy policy = createPolicy(inheritedOwnerId, "ORGANIZATION POLICY", 10, true, actions, overrideByOwner);
 
     refresh();
 
@@ -417,7 +422,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
     actionsTable.overrideParentActions().shouldBe(selected);
 
     PolicyEditorPage.savePolicy();
-    
+
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
   }
 
@@ -455,7 +460,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
     actions.put(Stage.ID_BUILD, Action.ID_WARN);
     assertThat(inheritedOwnerId).isEqualTo(organization.getId());
 
-    //both overrides allowed
+    // both overrides allowed
     Policy policy = createPolicy(inheritedOwnerId, "ORGANIZATION POLICY", 10, true, actions, Collections.emptyMap());
     policy.setPolicyNotificationsOverrideAllowed(true);
     policyDAO.update(policy);
@@ -493,17 +498,23 @@ public class ApplicationPolicyEditorActionsOverrideTest
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
   }
 
-  private Policy createPolicy(String ownerId, String name, int threatLevel, boolean policyActionsOverrideAllowed,
-      Map<String, String> actions, Map<String, Map<String, String>> actionsOverrides)
+  private Policy createPolicy(
+      String ownerId,
+      String name,
+      int threatLevel,
+      boolean policyActionsOverrideAllowed,
+      Map<String, String> actions,
+      Map<String, Map<String, String>> actionsOverrides)
   {
     Policy policy = tempEntity.newPolicy(ownerId, name, threatLevel);
-    policy.setConstraints(createConstraints(ownerId,policy));
+    policy.setConstraints(createConstraints(ownerId, policy));
     policy.setPolicyActionsOverrideAllowed(policyActionsOverrideAllowed);
     policy.setPolicyActionsOverrides(actionsOverrides);
 
     actions.forEach(policy::setAction);
-    policy.getNotifications().add(
-        new UserNotification("test@foo.com", Stage.ID_BUILD, Notification.CONTINUOUS_MONITORING));
+    policy.getNotifications()
+        .add(
+            new UserNotification("test@foo.com", Stage.ID_BUILD, Notification.CONTINUOUS_MONITORING));
     String roleName = "Developer";
     policy.getNotifications().add(new RoleNotification(roleDAO.getByName(roleName).getId(), roleName, Stage.ID_BUILD));
 

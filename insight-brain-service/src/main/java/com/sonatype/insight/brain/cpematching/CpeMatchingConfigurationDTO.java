@@ -37,7 +37,6 @@ public class CpeMatchingConfigurationDTO
   public Boolean inheritedFromOrganizationAllowOverride;
 
   public CpeMatchingConfigurationDTO() {
-    //for jackson
+    // for jackson
   }
 }
-

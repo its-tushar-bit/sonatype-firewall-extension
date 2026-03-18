@@ -28,7 +28,7 @@ public class LdapConnection
 {
   /**
    * Internal id used to identify this LDAP configuration
-   * 
+   *
    * @since 1.7
    */
   @Id
@@ -37,7 +37,7 @@ public class LdapConnection
 
   /**
    * LdapServer id
-   * 
+   *
    * @since 1.7
    */
   @Column(name = "ldap_server_id")
@@ -52,7 +52,7 @@ public class LdapConnection
 
   /**
    * LDAP server hostname
-   * 
+   *
    * @since 1.7
    */
   @Column(name = "hostname")
@@ -60,7 +60,7 @@ public class LdapConnection
 
   /**
    * LDAP server port
-   * 
+   *
    * @since 1.7
    */
   @Column(name = "port")
@@ -68,7 +68,7 @@ public class LdapConnection
 
   /**
    * Read http://technet.microsoft.com/en-us/library/cc978021.aspx if "ldap search base" does not tell you anything.
-   * 
+   *
    * @since 1.7
    */
   @Column(name = "search_base")
@@ -86,7 +86,7 @@ public class LdapConnection
 
   /**
    * Optional SASL realm for digest authentication.
-   * 
+   *
    * @since 1.7
    */
   @Column(name = "sasl_realm")
@@ -94,7 +94,7 @@ public class LdapConnection
 
   /**
    * Username or DN to bind to LDAP server with.
-   * 
+   *
    * @since 1.7
    */
   @Column(name = "system_username")
@@ -102,7 +102,7 @@ public class LdapConnection
 
   /**
    * The password to bind with.
-   * 
+   *
    * @since 1.7
    */
   @RotatableSecret
@@ -112,7 +112,7 @@ public class LdapConnection
   /**
    * From nexus ui help: the number of seconds to wait before timeout on connection to LDAP server. The key takeaway,
    * the value is in <strong>seconds</strong>.
-   * 
+   *
    * @since 1.7
    */
   @Column(name = "connection_timeout")
@@ -120,7 +120,7 @@ public class LdapConnection
 
   /**
    * The number of <strong>seconds</strong> to wait before retrying a request to the LDAP server.
-   * 
+   *
    * @since 1.7
    */
   @Column(name = "retry_delay")

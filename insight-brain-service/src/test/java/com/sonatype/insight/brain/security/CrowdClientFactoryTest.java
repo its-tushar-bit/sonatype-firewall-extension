@@ -55,9 +55,11 @@ public class CrowdClientFactoryTest
         passwordHandler.encryptPassword("password".toCharArray()));
 
     assertThat(crowdClientFactory.createCrowdClient()).isNull();
-    logOutput.assertThat().atErrorLevel().contains(String.format(
-        "Failed to create a Crowd REST client for serverUrl '%s', applicationName '%s', " +
-            "and applicationPassword '****'. Your Crowd configuration may be invalid.",
-        crowdConfiguration.getServerUrl(), crowdConfiguration.getApplicationName()));
+    logOutput.assertThat()
+        .atErrorLevel()
+        .contains(String.format(
+            "Failed to create a Crowd REST client for serverUrl '%s', applicationName '%s', " +
+                "and applicationPassword '****'. Your Crowd configuration may be invalid.",
+            crowdConfiguration.getServerUrl(), crowdConfiguration.getApplicationName()));
   }
 }

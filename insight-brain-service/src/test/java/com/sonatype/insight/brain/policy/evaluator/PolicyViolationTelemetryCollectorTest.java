@@ -153,19 +153,23 @@ public class PolicyViolationTelemetryCollectorTest
 
     // Build the constraints test data as
     List<Constraint> formattedConstraints = testablePolicyViolation.policyViolation.getConstraintFacts()
-        .stream().map(
+        .stream()
+        .map(
             cf -> {
-              List<Condition> conditions = cf.getConditionFacts().stream().map(condF -> telemetryCollector
-                  .formatConditionForTelemetryData(condF, cf.getOperatorName())).collect(Collectors.toList());
+              List<Condition> conditions = cf.getConditionFacts()
+                  .stream()
+                  .map(condF -> telemetryCollector
+                      .formatConditionForTelemetryData(condF, cf.getOperatorName()))
+                  .collect(Collectors.toList());
               return telemetryCollector.formatConstraintForTelemetryData(cf, conditions);
-            }).toList();
+            })
+        .toList();
 
     // when
     telemetryCollector.addTelemetryForConditionTypeViolation(
         testablePolicyViolation.getPolicyViolation(),
         testablePolicyViolation.getComponents(),
-        formattedConstraints
-    );
+        formattedConstraints);
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -189,16 +193,14 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in downgraded component
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        createWrappedComponent(lodashv3, true, false)
-    );
+        createWrappedComponent(lodashv3, true, false));
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
     testablePolicyViolation.validateTelemetryDataForPurposes(
         telemetryData,
         TIME_TO_REMEDIATE_POLICY_VIOLATION,
-        TIME_TO_CHANGE_VERSION_POLICY_VIOLATION
-    );
+        TIME_TO_CHANGE_VERSION_POLICY_VIOLATION);
   }
 
   @Test
@@ -220,8 +222,7 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in multiple additional versions
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getAdditionalVersions()
-    );
+        testablePolicyViolation.getAdditionalVersions());
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -244,8 +245,7 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in empty component list
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponents()
-    );
+        testablePolicyViolation.getComponents());
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -270,16 +270,14 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in an upgraded component
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        createWrappedComponent(lodashv5, true, false)
-    );
+        createWrappedComponent(lodashv5, true, false));
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
     testablePolicyViolation.validateTelemetryDataForPurposes(
         telemetryData,
         TIME_TO_REMEDIATE_POLICY_VIOLATION,
-        TIME_TO_CHANGE_VERSION_POLICY_VIOLATION
-    );
+        TIME_TO_CHANGE_VERSION_POLICY_VIOLATION);
   }
 
   @Test
@@ -301,16 +299,14 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in an upgraded component
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        createWrappedComponent(lodashv5, true, false)
-    );
+        createWrappedComponent(lodashv5, true, false));
 
     // then - verify telemetry includes isRemediatedByVersionChange field
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
     testablePolicyViolation.validateTelemetryDataForPurposes(
         telemetryData,
         TIME_TO_REMEDIATE_POLICY_VIOLATION,
-        TIME_TO_CHANGE_VERSION_POLICY_VIOLATION
-    );
+        TIME_TO_CHANGE_VERSION_POLICY_VIOLATION);
 
     // Additional explicit check for the new field
     TelemetryData ttcvpvData = telemetryData.stream()
@@ -339,16 +335,14 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in an upgraded component
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        createWrappedComponent(lodashv5, true, false)
-    );
+        createWrappedComponent(lodashv5, true, false));
 
     // then - verify telemetry includes isRemediatedByVersionChange field as null
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
     testablePolicyViolation.validateTelemetryDataForPurposes(
         telemetryData,
         TIME_TO_REMEDIATE_POLICY_VIOLATION,
-        TIME_TO_CHANGE_VERSION_POLICY_VIOLATION
-    );
+        TIME_TO_CHANGE_VERSION_POLICY_VIOLATION);
 
     // Additional explicit check - field should be present with null value
     TelemetryData ttcvpvData = telemetryData.stream()
@@ -374,14 +368,12 @@ public class PolicyViolationTelemetryCollectorTest
 
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponents()
-    );
+        testablePolicyViolation.getComponents());
 
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
     testablePolicyViolation.validateTelemetryDataForPurposes(
         telemetryData,
-        TIME_TO_REMEDIATE_POLICY_VIOLATION
-    );
+        TIME_TO_REMEDIATE_POLICY_VIOLATION);
 
     // Additional check - TIME_TO_CHANGE_VERSION_POLICY_VIOLATION should NOT be present
     boolean hasTTCVPV = telemetryData.stream()
@@ -431,8 +423,7 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in an upgraded component (version matches event remediation version)
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        createWrappedComponent(jacksonDatabind_2_13_5, true, false)
-    );
+        createWrappedComponent(jacksonDatabind_2_13_5, true, false));
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -442,8 +433,7 @@ public class PolicyViolationTelemetryCollectorTest
         .validateTelemetryDataForPurposes(
             telemetryData,
             TIME_TO_REMEDIATE_POLICY_VIOLATION,
-            TIME_TO_CHANGE_VERSION_POLICY_VIOLATION
-        );
+            TIME_TO_CHANGE_VERSION_POLICY_VIOLATION);
   }
 
   @Test
@@ -462,8 +452,7 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in same component version the violation is for
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponents()
-    );
+        testablePolicyViolation.getComponents());
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -496,8 +485,7 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in same component version the violation is for
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponents()
-    );
+        testablePolicyViolation.getComponents());
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -520,8 +508,7 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in same component version the violation is for
     telemetryCollector.addTelemetryForLegacyViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponent()
-    );
+        testablePolicyViolation.getComponent());
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -544,8 +531,7 @@ public class PolicyViolationTelemetryCollectorTest
     // when
     telemetryCollector.addTelemetryForLegacyViolationAudit(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponent()
-    );
+        testablePolicyViolation.getComponent());
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -569,13 +555,11 @@ public class PolicyViolationTelemetryCollectorTest
     // when: Add both regular and audit telemetry
     telemetryCollector.addTelemetryForLegacyViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponent()
-    );
+        testablePolicyViolation.getComponent());
 
     telemetryCollector.addTelemetryForLegacyViolationAudit(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponent()
-    );
+        testablePolicyViolation.getComponent());
 
     // then: Verify both telemetry entries exist with different purposes
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -614,8 +598,7 @@ public class PolicyViolationTelemetryCollectorTest
     // when
     telemetryCollector.addTelemetryForLegacyViolationAudit(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponent()
-    );
+        testablePolicyViolation.getComponent());
 
     // then: Should include all standard telemetry fields
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -631,8 +614,7 @@ public class PolicyViolationTelemetryCollectorTest
         COMPONENT_VERSION,
         LEGACY_VIOLATION_TIME,
         DIRECT_DEPENDENCY,
-        POLICY_VIOLATION_ID
-    );
+        POLICY_VIOLATION_ID);
 
     // Verify component metadata
     assertThat(data.getAttributes().get(ECOSYSTEM)).isEqualTo("maven");
@@ -656,8 +638,7 @@ public class PolicyViolationTelemetryCollectorTest
     // when
     telemetryCollector.addTelemetryForLegacyViolationAudit(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponent()
-    );
+        testablePolicyViolation.getComponent());
 
     // then: Should mark as inner source dependency
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -690,8 +671,7 @@ public class PolicyViolationTelemetryCollectorTest
     telemetryCollector.addTelemetryForUnwaivedViolation(
         unwaivedPolicyViolation.getPolicyViolation(),
         replacementPolicyViolation.getPolicyViolation(),
-        unwaivedPolicyViolation.getComponent()
-    );
+        unwaivedPolicyViolation.getComponent());
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -717,8 +697,7 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in same component version the violation is for
     telemetryCollector.addTelemetryForWaivedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponent()
-    );
+        testablePolicyViolation.getComponent());
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -743,8 +722,7 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in same component version the violation is for
     telemetryCollector.addTelemetryForAutoWaivedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponent()
-    );
+        testablePolicyViolation.getComponent());
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -776,8 +754,7 @@ public class PolicyViolationTelemetryCollectorTest
     telemetryCollector.addTelemetryForUnwaivedViolation(
         unwaivedPolicyViolation.getPolicyViolation(),
         replacementPolicyViolation.getPolicyViolation(),
-        unwaivedPolicyViolation.getComponent()
-    );
+        unwaivedPolicyViolation.getComponent());
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -795,8 +772,7 @@ public class PolicyViolationTelemetryCollectorTest
     telemetryCollector.addTelemetryForReachableViolation(
         testablePolicyViolation.getPolicyViolation(),
         testablePolicyViolation.getComponent(),
-        null
-    );
+        null);
 
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
     testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, CALLFLOW_EVALUATION_COMPONENT_COUNTS);
@@ -812,8 +788,7 @@ public class PolicyViolationTelemetryCollectorTest
         null,
         Map.of(
             fromComponentIdentifier(testablePolicyViolation.policyViolation.getComponentIdentifier()),
-            new PresentReachableComponentVulnerabilities(Set.of("CVE-1234"))
-        ));
+            new PresentReachableComponentVulnerabilities(Set.of("CVE-1234"))));
 
     testablePolicyViolation.withPurlIdentifiersWithVulnerabilities(purlIdentifiersWithVulnerabilities);
 
@@ -823,8 +798,7 @@ public class PolicyViolationTelemetryCollectorTest
     telemetryCollector.addTelemetryForReachableViolation(
         testablePolicyViolation.getPolicyViolation(),
         testablePolicyViolation.getComponent(),
-        purlIdentifiersWithVulnerabilities
-    );
+        purlIdentifiersWithVulnerabilities);
 
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
     testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, CALLFLOW_EVALUATION_COMPONENT_COUNTS);
@@ -842,21 +816,24 @@ public class PolicyViolationTelemetryCollectorTest
 
     // Build the constraints test data
     List<Constraint> formattedConstraints = testablePolicyViolation.policyViolation.getConstraintFacts()
-        .stream().map(
+        .stream()
+        .map(
             cf -> {
-              List<Condition> conditions = cf.getConditionFacts().stream().map(
-                  condF -> telemetryCollector
-                      .formatConditionForTelemetryData(condF, cf.getOperatorName()))
+              List<Condition> conditions = cf.getConditionFacts()
+                  .stream()
+                  .map(
+                      condF -> telemetryCollector
+                          .formatConditionForTelemetryData(condF, cf.getOperatorName()))
                   .collect(Collectors.toList());
               return telemetryCollector.formatConstraintForTelemetryData(cf, conditions);
-            }).toList();
+            })
+        .toList();
 
     // when
     telemetryCollector.addTelemetryForConditionTypeViolationAudit(
         testablePolicyViolation.getPolicyViolation(),
         testablePolicyViolation.getComponents(),
-        formattedConstraints
-    );
+        formattedConstraints);
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -880,14 +857,12 @@ public class PolicyViolationTelemetryCollectorTest
     telemetryCollector.addTelemetryForConditionTypeViolation(
         testablePolicyViolation.getPolicyViolation(),
         testablePolicyViolation.getComponents(),
-        formattedConstraints
-    );
+        formattedConstraints);
 
     telemetryCollector.addTelemetryForConditionTypeViolationAudit(
         testablePolicyViolation.getPolicyViolation(),
         testablePolicyViolation.getComponents(),
-        formattedConstraints
-    );
+        formattedConstraints);
 
     // then- Verify both telemetry entries exist with different purposes
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -906,8 +881,7 @@ public class PolicyViolationTelemetryCollectorTest
     telemetryCollector.addTelemetryForConditionTypeViolationAudit(
         null,
         Collections.emptyList(),
-        Collections.emptyList()
-    );
+        Collections.emptyList());
 
     // then: No telemetry should be added
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -927,8 +901,7 @@ public class PolicyViolationTelemetryCollectorTest
     telemetryCollector.addTelemetryForConditionTypeViolationAudit(
         testablePolicyViolation.getPolicyViolation(),
         testablePolicyViolation.getComponents(),
-        Collections.emptyList()
-    );
+        Collections.emptyList());
 
     // then- Telemetry should still be added with empty constraints
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -961,8 +934,7 @@ public class PolicyViolationTelemetryCollectorTest
     telemetryCollector.addTelemetryForConditionTypeViolationAudit(
         testablePolicyViolation.getPolicyViolation(),
         allComponents,
-        formattedConstraints
-    );
+        formattedConstraints);
 
     // then: Should use first component for telemetry
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -989,8 +961,7 @@ public class PolicyViolationTelemetryCollectorTest
     telemetryCollector.addTelemetryForConditionTypeViolationAudit(
         testablePolicyViolation.getPolicyViolation(),
         testablePolicyViolation.getComponents(),
-        formattedConstraints
-    );
+        formattedConstraints);
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -1019,9 +990,9 @@ public class PolicyViolationTelemetryCollectorTest
     telemetryCollector.addTelemetryForConditionTypeViolationAudit(
         testablePolicyViolation.getPolicyViolation(),
         testablePolicyViolation.getComponent() != null
-            ? List.of(testablePolicyViolation.getComponent()) : Collections.emptyList(),
-        formattedConstraints
-    );
+            ? List.of(testablePolicyViolation.getComponent())
+            : Collections.emptyList(),
+        formattedConstraints);
 
     // then: Should capture waived violations in audit telemetry
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -1048,8 +1019,7 @@ public class PolicyViolationTelemetryCollectorTest
 
         testablePolicyViolation.getPolicyViolation(),
         testablePolicyViolation.getComponents(),
-        formattedConstraints
-    );
+        formattedConstraints);
 
     // then- Should include SCM enabled flag
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -1074,8 +1044,7 @@ public class PolicyViolationTelemetryCollectorTest
     telemetryCollector.addTelemetryForConditionTypeViolationAudit(
         testablePolicyViolation.getPolicyViolation(),
         testablePolicyViolation.getComponents(),
-        formattedConstraints
-    );
+        formattedConstraints);
 
     // then: TIME should be 0 for audit telemetry (not calculated duration)
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -1090,14 +1059,17 @@ public class PolicyViolationTelemetryCollectorTest
       TestablePolicyViolation testablePolicyViolation)
   {
     return testablePolicyViolation.policyViolation.getConstraintFacts()
-        .stream().map(
+        .stream()
+        .map(
             cf -> {
-              List<Condition> conditions = cf.getConditionFacts().stream()
+              List<Condition> conditions = cf.getConditionFacts()
+                  .stream()
                   .map(condF -> telemetryCollector.formatConditionForTelemetryData(condF,
                       cf.getOperatorName()))
                   .collect(Collectors.toList());
               return telemetryCollector.formatConstraintForTelemetryData(cf, conditions);
-            }).toList();
+            })
+        .toList();
   }
 
   private PolicyViolationTelemetryCollector createTelemetryCollector(boolean isScmEnabled) {
@@ -1731,10 +1703,10 @@ public class PolicyViolationTelemetryCollectorTest
      * is instantiated in the whole list of constraint facts, it is possible to choose where. Hardcoded values are not
      * important for these tests.
      *
-     * @param cveNumber          CVE id to inject in the condition fact
-     * @param cvssScore          Score to inject in the condition fact
-     * @param licenseThreatGroup use for license thread conditions;  mutually exclusive with the cve params above
-     * @param cvIteration        Iteration you want to insert the cv metadata
+     * @param cveNumber CVE id to inject in the condition fact
+     * @param cvssScore Score to inject in the condition fact
+     * @param licenseThreatGroup use for license thread conditions; mutually exclusive with the cve params above
+     * @param cvIteration Iteration you want to insert the cv metadata
      * @return A list of constraint fact with the same amount of condition fact that contain the cv metadata
      */
     private static List<ConstraintFact> createConstraintFactsWithInjectedCondition(
@@ -1834,8 +1806,7 @@ public class PolicyViolationTelemetryCollectorTest
     // when
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponents()
-    );
+        testablePolicyViolation.getComponents());
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -1871,8 +1842,7 @@ public class PolicyViolationTelemetryCollectorTest
     // when
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponents()
-    );
+        testablePolicyViolation.getComponents());
 
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
@@ -1882,6 +1852,210 @@ public class PolicyViolationTelemetryCollectorTest
     Map<String, Object> attributes = data.getAttributes();
     assertThat(attributes).containsEntry(FROM_WAIVED_STATUS, false);
     assertThat(attributes).doesNotContainKey(WAIVER_AUDIT_INFO);
+  }
+
+  // EI-1096: Tests for unwaive detection and previous waiver info
+  @Test
+  public void testAddTelemetryForUnwaivedViolation_IncludesPreviousWaiverInfoForManualWaiver() {
+    // given: A policy violation with manual waiver that has reason and comment
+    Policy policy = tempEntity.newPolicy();
+    Date waiverCreateTime = new Date(policyEvaluation.getTime().getTime() - 48 * 60 * 60 * 1000); // 48 hours ago
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(
+        null, // hash
+        policy.getId(),
+        policyEvaluation.getApplicationId(),
+        "Manual waiver comment for testing",
+        null, // expiryTime
+        null, // constraintFacts
+        "SECURITY_REVIEW_REASON" // policyWaiverReasonId
+    );
+    policyWaiver.setCreateTime(waiverCreateTime);
+    policyWaiverDAO.updateWithNoChecks(policyWaiver);
+
+    var replacementPolicyViolation = TestablePolicyViolation.createDefaultSecurityViolationForComponent(urllib3)
+        .openedHoursAgo(0)
+        .asDirectDependency(true)
+        .withPolicyViolationId("newViolationAfterUnwaived")
+        .withConditionType(SecurityVulnerabilitySeverityConditionType.ID);
+
+    var unwaivedPolicyViolation = TestablePolicyViolation.createDefaultSecurityViolationForComponent(urllib3)
+        .openedHoursAgo(500)
+        .asDirectDependency(true)
+        .withPolicyViolationId("unwaivedViolation")
+        .withConditionType(SecurityVulnerabilitySeverityConditionType.ID)
+        .markWaived(policyWaiver)
+        .markUnwaived(policyWaiver.getId(), replacementPolicyViolation.getPolicyViolation());
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(unwaivedPolicyViolation.isScmEnabled());
+
+    // when
+    telemetryCollector.addTelemetryForUnwaivedViolation(
+        unwaivedPolicyViolation.getPolicyViolation(),
+        replacementPolicyViolation.getPolicyViolation(),
+        unwaivedPolicyViolation.getComponent());
+
+    // then: Telemetry should include previous_waiver_info with all fields populated
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(1);
+
+    TelemetryData data = telemetryData.get(0);
+    Map<String, Object> attributes = data.getAttributes();
+    assertThat(attributes).containsKey(PREVIOUS_WAIVER_INFO);
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> previousWaiverInfo = (Map<String, Object>) attributes.get(PREVIOUS_WAIVER_INFO);
+    assertThat(previousWaiverInfo).containsEntry(ORIGINAL_WAIVER_REASON, "SECURITY_REVIEW_REASON");
+    assertThat(previousWaiverInfo).containsEntry(ORIGINAL_WAIVER_COMMENT, "Manual waiver comment for testing");
+    assertThat(previousWaiverInfo).containsEntry(ORIGINAL_WAIVER_DATE, policyEvaluation.getTime().getTime());
+  }
+
+  @Test
+  public void testAddTelemetryForUnwaivedViolation_PreviousWaiverInfoWithNullsForAutoWaiver() {
+    // given: A policy violation that was auto-waived and then unwaived
+    var autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(policyEvaluation.getApplicationId());
+
+    var replacementPolicyViolation = TestablePolicyViolation.createDefaultSecurityViolationForComponent(urllib3)
+        .openedHoursAgo(0)
+        .asDirectDependency(true)
+        .withPolicyViolationId("newViolationAfterUnwaived")
+        .withConditionType(SecurityVulnerabilitySeverityConditionType.ID);
+
+    var unwaivedPolicyViolation = TestablePolicyViolation.createDefaultSecurityViolationForComponent(urllib3)
+        .openedHoursAgo(500)
+        .asDirectDependency(true)
+        .withPolicyViolationId("unwaivedViolation")
+        .withConditionType(SecurityVulnerabilitySeverityConditionType.ID)
+        .markAutoWaived(autoPolicyWaiver)
+        .markUnAutoWaived(autoPolicyWaiver.getId(), replacementPolicyViolation.getPolicyViolation());
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(unwaivedPolicyViolation.isScmEnabled());
+
+    // when
+    telemetryCollector.addTelemetryForUnwaivedViolation(
+        unwaivedPolicyViolation.getPolicyViolation(),
+        replacementPolicyViolation.getPolicyViolation(),
+        unwaivedPolicyViolation.getComponent());
+
+    // then: Telemetry should include previous_waiver_info with null reason/comment but valid date
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(1);
+
+    TelemetryData data = telemetryData.get(0);
+    Map<String, Object> attributes = data.getAttributes();
+    assertThat(attributes).containsKey(PREVIOUS_WAIVER_INFO);
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> previousWaiverInfo = (Map<String, Object>) attributes.get(PREVIOUS_WAIVER_INFO);
+    assertThat(previousWaiverInfo).containsEntry(ORIGINAL_WAIVER_REASON, null);
+    assertThat(previousWaiverInfo).containsEntry(ORIGINAL_WAIVER_COMMENT, null);
+    assertThat(previousWaiverInfo).containsEntry(ORIGINAL_WAIVER_DATE, policyEvaluation.getTime().getTime());
+  }
+
+  @Test
+  public void testAddTelemetryForUnwaivedViolation_PreviousWaiverInfoWithNullsWhenPolicyWaiverNotFound() {
+    // given: A policy violation with a policyWaiverId that doesn't exist in database
+    var replacementPolicyViolation = TestablePolicyViolation.createDefaultSecurityViolationForComponent(urllib3)
+        .openedHoursAgo(0)
+        .asDirectDependency(true)
+        .withPolicyViolationId("newViolationAfterUnwaived")
+        .withConditionType(SecurityVulnerabilitySeverityConditionType.ID);
+
+    var unwaivedPolicyViolation = TestablePolicyViolation.createDefaultSecurityViolationForComponent(urllib3)
+        .openedHoursAgo(500)
+        .asDirectDependency(true)
+        .withPolicyViolationId("unwaivedViolation")
+        .withConditionType(SecurityVulnerabilitySeverityConditionType.ID);
+
+    // Set a non-existent policyWaiverId and markUnwaived will set waiveTime to policyEvaluation.getTime()
+    unwaivedPolicyViolation.markUnwaived("NON_EXISTENT_WAIVER_ID", replacementPolicyViolation.getPolicyViolation());
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(unwaivedPolicyViolation.isScmEnabled());
+
+    // when
+    telemetryCollector.addTelemetryForUnwaivedViolation(
+        unwaivedPolicyViolation.getPolicyViolation(),
+        replacementPolicyViolation.getPolicyViolation(),
+        unwaivedPolicyViolation.getComponent());
+
+    // then: Telemetry should include previous_waiver_info with null values for missing waiver
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(1);
+
+    TelemetryData data = telemetryData.get(0);
+    Map<String, Object> attributes = data.getAttributes();
+    assertThat(attributes).containsKey(PREVIOUS_WAIVER_INFO);
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> previousWaiverInfo = (Map<String, Object>) attributes.get(PREVIOUS_WAIVER_INFO);
+    assertThat(previousWaiverInfo).containsEntry(ORIGINAL_WAIVER_REASON, null);
+    assertThat(previousWaiverInfo).containsEntry(ORIGINAL_WAIVER_COMMENT, null);
+    assertThat(previousWaiverInfo).containsEntry(ORIGINAL_WAIVER_DATE, policyEvaluation.getTime().getTime());
+  }
+
+  @Test
+  public void testAddTelemetryForWaivedViolation_DoesNotIncludeUnwaiveFields() {
+    // given: A regular waived policy violation (not unwaived)
+    PolicyWaiver policyWaiver =
+        tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getApplicationId());
+
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
+            .openedHoursAgo(5)
+            .asDirectDependency(true)
+            .withPolicyViolationId("waivedViolation")
+            .markWaived(policyWaiver);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when
+    telemetryCollector.addTelemetryForWaivedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponent());
+
+    // then: Telemetry should NOT include previous_waiver_info
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(1);
+
+    TelemetryData data = telemetryData.get(0);
+    assertThat(data.getPurpose()).isEqualTo(TIME_TO_WAIVE_POLICY_VIOLATION);
+
+    Map<String, Object> attributes = data.getAttributes();
+    assertThat(attributes).doesNotContainKey(PREVIOUS_WAIVER_INFO);
+  }
+
+  @Test
+  public void testAddTelemetryForAutoWaivedViolation_DoesNotIncludeUnwaiveFields() {
+    // given: A regular auto-waived policy violation (not unwaived)
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(policyEvaluation.getApplicationId());
+
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
+            .openedHoursAgo(5)
+            .asDirectDependency(true)
+            .withPolicyViolationId("autoWaivedViolation")
+            .markAutoWaived(autoPolicyWaiver);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when
+    telemetryCollector.addTelemetryForAutoWaivedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponent());
+
+    // then: Telemetry should NOT include previous_waiver_info
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(1);
+
+    TelemetryData data = telemetryData.get(0);
+    assertThat(data.getPurpose()).isEqualTo(TIME_TO_WAIVE_POLICY_VIOLATION);
+
+    Map<String, Object> attributes = data.getAttributes();
+    assertThat(attributes).doesNotContainKey(PREVIOUS_WAIVER_INFO);
   }
 
   /**
@@ -1896,8 +2070,8 @@ public class PolicyViolationTelemetryCollectorTest
       copy.setApplicationId(original.getApplicationId());
       copy.setAutoPolicyWaiverId(original.getAutoPolicyWaiverId());
       copy.setComponentIdentifier(original.getComponentIdentifier());
-      copy.setConstraintFacts(null != original.getConstraintFacts() ?
-          new ArrayList<>(original.getConstraintFacts()) : new ArrayList<>());
+      copy.setConstraintFacts(
+          null != original.getConstraintFacts() ? new ArrayList<>(original.getConstraintFacts()) : new ArrayList<>());
       copy.setFilename(original.getFilename());
       copy.setFixTime(original.getFixTime());
       copy.setHash(original.getHash());

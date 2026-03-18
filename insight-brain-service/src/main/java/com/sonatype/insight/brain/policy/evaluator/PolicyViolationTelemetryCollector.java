@@ -141,6 +141,8 @@ public class PolicyViolationTelemetryCollector
 
   static final String WAIVER_ID = "waiver_id";
 
+  static final String PREVIOUS_WAIVER_INFO = "previous_waiver_info";
+
   private final PolicyWaiverDAO policyWaiverDAO;
 
   private final SourceControlEventDAO sourceControlEventDAO;
@@ -226,8 +228,7 @@ public class PolicyViolationTelemetryCollector
                 fixedPolicyViolation.getApplicationId(),
                 fixedPolicyViolation.getComponentIdentifier(),
                 minCutoffTime,
-                fixedPolicyViolation.getFixTime()
-            );
+                fixedPolicyViolation.getFixTime());
 
         if (CollectionUtils.isNotEmpty(remediationPullRequestEvents)) {
           var remediationEvent = remediationPullRequestEvents.get(0);
@@ -240,16 +241,14 @@ public class PolicyViolationTelemetryCollector
             telemetryData.put(PULL_REQUEST_REMEDIATION_VERSION, eventRemediationVersion);
             var isGolden = componentHelper.isGoldenVersion(
                 newComponent.getComponentIdentifier(),
-                fixedPolicyViolation.getApplicationId()
-            );
+                fixedPolicyViolation.getApplicationId());
             telemetryData.put(PULL_REQUEST_IS_GOLDEN, isGolden);
           }
           else {
             log.debug("Remediation pull request event exists, but versions don't match: {} -> {}, event version is {}",
                 fixedPolicyViolation.getComponentIdentifier(),
                 newComponent.getComponentIdentifier(),
-                eventRemediationVersion
-            );
+                eventRemediationVersion);
           }
         }
 
@@ -261,8 +260,7 @@ public class PolicyViolationTelemetryCollector
   public void addTelemetryForUnwaivedViolation(
       final PolicyViolation unwaivedPolicyViolation,
       final PolicyViolation newPolicyViolation,
-      final Component component
-  )
+      final Component component)
   {
     if (unwaivedPolicyViolation != null) {
       TelemetryData telemetryData =
@@ -285,6 +283,8 @@ public class PolicyViolationTelemetryCollector
             .put(AUTO_POLICY_WAIVER_ID, unwaivedPolicyViolation.getAutoPolicyWaiverId())
             .put(WAIVER_EXPIRATION, WAIVER_EXPIRATION_NEVER);
       }
+
+      addPreviousWaiverInfo(telemetryData, unwaivedPolicyViolation);
 
       telemetryDataList.add(telemetryData);
     }
@@ -339,8 +339,8 @@ public class PolicyViolationTelemetryCollector
    * Records telemetry for existing, unchanged policy violations for auditing purposes.
    * Uses the CONDITION_TYPE_VIOLATION_AUDIT purpose.
    *
-   * @param policyViolation         The policy violation to include in telemetry.
-   * @param components              The associated component(s).
+   * @param policyViolation The policy violation to include in telemetry.
+   * @param components The associated component(s).
    * @param constraintsTelemetryData Formatted constraint data for telemetry.
    */
   public void addTelemetryForConditionTypeViolationAudit(
@@ -403,7 +403,7 @@ public class PolicyViolationTelemetryCollector
    * with original TIME_TO_LEGACY_VIOLATION events to identify missing data.
    *
    * @param legacyViolation The legacy policy violation to include in telemetry.
-   * @param component       The associated component.
+   * @param component The associated component.
    */
   public void addTelemetryForLegacyViolationAudit(PolicyViolation legacyViolation, Component component) {
     if (legacyViolation != null) {
@@ -423,8 +423,7 @@ public class PolicyViolationTelemetryCollector
     TelemetryData telemetryData = createTelemetry(
         TelemetryPurpose.CALLFLOW_EVALUATION_COMPONENT_COUNTS,
         policyViolation,
-        component
-    );
+        component);
 
     // important to note that we don't add specific component/policy violation
     // reachability status as that is being added through the createTelemetry method.
@@ -556,5 +555,25 @@ public class PolicyViolationTelemetryCollector
 
       telemetryData.put(WAIVER_AUDIT_INFO, waiverAuditInfo);
     }
+  }
+
+  /**
+   * Adds historical waiver information to telemetry for unwaive events.
+   * Captures the original waiver reason, comment, and date from when the violation was waived.
+   */
+  private void addPreviousWaiverInfo(TelemetryData telemetryData, PolicyViolation unwaivedPolicyViolation) {
+    String policyWaiverId = unwaivedPolicyViolation.getPolicyWaiverId();
+    PolicyWaiver waiver = policyWaiverId != null ? policyWaiverDAO.getById(policyWaiverId) : null;
+
+    Map<String, Object> previousWaiverInfo = new HashMap<>();
+    previousWaiverInfo.put(ORIGINAL_WAIVER_REASON, waiver != null ? waiver.getWaiverReasonId() : null);
+    previousWaiverInfo.put(ORIGINAL_WAIVER_COMMENT, waiver != null ? waiver.getComment() : null);
+    previousWaiverInfo.put(ORIGINAL_WAIVER_DATE, getTimestamp(unwaivedPolicyViolation.getWaiveTime()));
+
+    telemetryData.put(PREVIOUS_WAIVER_INFO, previousWaiverInfo);
+  }
+
+  private static Long getTimestamp(Date date) {
+    return date != null ? date.getTime() : null;
   }
 }

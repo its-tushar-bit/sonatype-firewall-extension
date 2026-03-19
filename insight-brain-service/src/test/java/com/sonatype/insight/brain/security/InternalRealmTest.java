@@ -49,7 +49,6 @@ public class InternalRealmTest
 
   @Before
   public void setUp() {
-    PasswordService.useWeakHashIterationForTestsOnly();
     PasswordService passwordService = new PasswordService();
     realm = new InternalRealm(passwordService, userDAO);
 

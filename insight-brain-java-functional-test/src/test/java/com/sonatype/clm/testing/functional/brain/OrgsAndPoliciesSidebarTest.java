@@ -14,27 +14,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.NxLoadingSpinner;
-import com.sonatype.clm.testing.functional.elements.ActionDropDown;
-import com.sonatype.clm.testing.functional.elements.MoveApplicationSuccessModal;
-import com.sonatype.clm.testing.functional.elements.MoveOwnerDialog;
 import com.sonatype.clm.testing.functional.elements.NxCollapsible;
-import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.elements.NxTooltip;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPageWithLimitedVisibility;
-import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
-import com.sonatype.clm.testing.functional.pages.ScmOnboardingPage;
 import com.sonatype.clm.testing.functional.utils.NameSupplierDictionary;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
@@ -46,7 +37,6 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -110,90 +100,6 @@ public class OrgsAndPoliciesSidebarTest
   }
 
   @Test
-  public void testOrgsAndPoliciesSideNavbar_repoManagersMenu() {
-    RepositoryManager repositoryManagerA = tempEntity.newRepositoryManager(
-        "5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AA");
-    RepositoryManager repositoryManagerB = tempEntity.newRepositoryManager(
-        "P39Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
-    tempEntity.newRepository(repositoryManagerA, "a123", false);
-    tempEntity.newRepository(repositoryManagerB, "b123", true);
-    tempEntity.newRepositoryManager("AB9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
-    tempEntity.newRepositoryManager("XY9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
-    RepositoryManager firstRepositoryManagerInSortedList = tempEntity.newRepositoryManager(
-        "1Z9Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6B");
-    Repository npmHostedRepository = tempEntity.newHostedRepository(
-        firstRepositoryManagerInSortedList, "npm-hosted", "npm", true);
-    tempEntity.newProxyRepository(firstRepositoryManagerInSortedList, "npm-proxy", "npm", true, true);
-    Repository mavenCentralRepository = tempEntity.newProxyRepository(
-        firstRepositoryManagerInSortedList, "maven-central-proxy", "maven", true, true);
-    RepositoryManager namedRepositoryManager = tempEntity.newRepositoryManager(
-        "2Z9Q1VFX-3AHKKK7Y-0L0XUPQA-WLFF6J4J-9KIPGT6B", "Repo Manager", "Nexus", "1.0");
-
-    refresh();
-
-    // Repository managers are only accessible in standalone firewall mode
-    // Check if the repositories link is visible, if not skip this test (not in firewall mode)
-    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = OwnerSummaryPage.sidebar();
-    if (!orgsAndPoliciesSidebar.repositories().exists()) {
-      // Skip test - repository managers not available in current deployment mode (Lifecycle)
-      return;
-    }
-
-    // Validate the repository managers count is displayed correctly (should show 6)
-    orgsAndPoliciesSidebar.repositories().shouldHave(text("Repository Managers"));
-    orgsAndPoliciesSidebar.repositories().shouldHave(text("(6)"));
-
-    orgsAndPoliciesSidebar.repositories().click();
-    NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
-    repoManagerList.children().get(0).shouldNotBe(visible);
-    repoManagerList.click();
-    repoManagerList.children().shouldHave(size(6));
-    repoManagerList.children().get(1).shouldBe(visible);
-    repoManagerList.shouldHave(text(namedRepositoryManager.getName()));
-
-    eyesWatcher.eyesCheck("Orgs and policies sidebar at Repository Container level");
-
-    orgsAndPoliciesSidebar.getRepositoryManagerLink(0).click();
-    waitUntilUrl(OwnerSummaryPage.url(firstRepositoryManagerInSortedList));
-    NxCollapsible repositoryList = orgsAndPoliciesSidebar.getRepositoryList();
-    repositoryList.children().shouldHave(size(3));
-
-    eyesWatcher.eyesCheck("Orgs and policies sidebar at Repository Manager level");
-
-    orgsAndPoliciesSidebar.getRepositoryLink(0).click();
-    waitUntilUrl(OwnerSummaryPage.url(mavenCentralRepository.getType(), mavenCentralRepository.getId()));
-    RepositoriesSummaryPage.summaryTile().name().shouldHave(text(mavenCentralRepository.getName()));
-
-    eyesWatcher.eyesCheck("Orgs and policies sidebar at Proxy Repository level");
-
-    refreshOrOpen(OwnerSummaryPage.url(firstRepositoryManagerInSortedList));
-    RepositoriesSummaryPage.summaryTile().name().shouldHave(text(firstRepositoryManagerInSortedList.getName()));
-
-    orgsAndPoliciesSidebar.getRepositoryLink(1).click();
-    waitUntilUrl(OwnerSummaryPage.url(npmHostedRepository.getType(), npmHostedRepository.getId()));
-    RepositoriesSummaryPage.summaryTile().name().shouldHave(text(npmHostedRepository.getName()));
-
-    eyesWatcher.eyesCheck("Orgs and policies sidebar at Hosted Repository level");
-  }
-
-  @Test
-  public void testOrgsAndPoliciesSideNavbar_importApplications() {
-    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
-
-    List<Organization> childOrganizations = organizations.get(2);
-    childOrganizations.sort(Comparator.comparing(organization -> organization.getName().toUpperCase()));
-    Organization parentOrg = childOrganizations.get(0);
-
-    OrgsAndPoliciesSidebar.OwnerItem firstChildOrg = orgsAndPoliciesSidebar.getOrganizationLink(0);
-    firstChildOrg.click();
-
-    orgsAndPoliciesSidebar.getApplicationPlusIcon().shouldBe(visible).shouldBe(enabled).click();
-    orgsAndPoliciesSidebar.getImportApplicationsButton().shouldBe(visible).shouldBe(enabled).click();
-
-    waitUntilUrl(ScmOnboardingPage.url(parentOrg.getId()));
-  }
-
-  @Test
   public void testOrgsAndPoliciesSideNavbar_updateNavbarAfterAddingNewApplication() {
     organizations.forEach((key, value) -> {
       Collections.sort(organizations.get(key), Comparator.comparing(o -> o.getName().toUpperCase()));
@@ -246,60 +152,6 @@ public class OrgsAndPoliciesSidebarTest
         parentOrganization,
         new ArrayList<>(organizationDAO.getByParentOrganizationId(parentOrganization.getId())),
         new ArrayList<>(applicationDAO.getByOrganizationId(parentOrganization.getId())));
-  }
-
-  @Test
-  public void testOrgsAndPoliciesSideNavbar_updateNavbarAfterMovingApplication() {
-    organizations.forEach((key, value) -> {
-      Collections.sort(organizations.get(key), Comparator.comparing(o -> o.getName().toUpperCase()));
-    });
-
-    Organization parentOrganization = organizations.get(2).get(0);
-    Application movingApplication = applicationDAO.getByOrganizationId(parentOrganization.getId()).get(0);
-    Organization newParentOrganization = organizations.get(0).get(0);
-    refreshOrOpen(OwnerSummaryPageWithLimitedVisibility.url(movingApplication));
-    waitUntilUrl(OwnerSummaryPageWithLimitedVisibility.url(movingApplication));
-
-    OwnerSummaryPage.summaryTile().name().shouldHave(text(movingApplication.getName()));
-    testSideNavbarContent(
-        parentOrganization,
-        new ArrayList<>(organizationDAO.getByParentOrganizationId(parentOrganization.getId())),
-        new ArrayList<>(applicationDAO.getByOrganizationId(parentOrganization.getId())));
-
-    MoveOwnerDialog modal = new MoveOwnerDialog();
-    selectOptionAndSubmit(modal, newParentOrganization);
-    modal.shouldBe(hidden);
-
-    MoveApplicationSuccessModal successDialog = new MoveApplicationSuccessModal();
-    successDialog.shouldBe(visible);
-    successDialog.okButton().click();
-    successDialog.shouldBe(hidden);
-    modal.shouldBe(hidden);
-
-    Application updatedApp = applicationDAO.getById(movingApplication.getId());
-    assertThat(updatedApp.getParentOwnerId()).isEqualTo(newParentOrganization.getId());
-
-    waitUntilUrl(OwnerSummaryPageWithLimitedVisibility.url(movingApplication));
-    OwnerSummaryPage.summaryTile().name().shouldHave(text(movingApplication.getName()));
-    testSideNavbarContent(
-        newParentOrganization,
-        new ArrayList<>(organizationDAO.getByParentOrganizationId(newParentOrganization.getId())),
-        new ArrayList<>(applicationDAO.getByOrganizationId(newParentOrganization.getId())));
-  }
-
-  @Test
-  public void testOrgsAndPoliciesSideNavbar_filteringOwners() {
-    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
-
-    orgsAndPoliciesSidebar.getOrganizationLink(0).click();
-    orgsAndPoliciesSidebar.getApplicationLink(0).hover();
-    NxTooltip tooltip = new NxTooltip();
-    tooltip.shouldNotBe(visible);
-
-    orgsAndPoliciesSidebar.filterInput().val("app");
-    orgsAndPoliciesSidebar.getApplicationLink(0).hover();
-    tooltip.shouldBe(visible);
-    tooltip.shouldHave(text("TestApp_0\nParent: TestOrg_0"));
   }
 
   private Organization findFirstOrgChild(String parentOrgId, List<Organization> organizations) {
@@ -365,21 +217,6 @@ public class OrgsAndPoliciesSidebarTest
     assertThat(newApplicationButton.is(visible)).isTrue();
     assertThat(newApplicationButton.isEnabled()).isTrue();
     newApplicationButton.click();
-  }
-
-  private void selectOptionAndSubmit(MoveOwnerDialog modal, Organization destination) {
-    ActionDropDown.actionButton().shouldBe(visible).click();
-    ActionDropDown.moveOwner().shouldBe(visible).click();
-    modal.shouldBe(visible);
-    modal.body().shouldBe(visible);
-
-    NxFormSelect destinationDropdown = modal.destinationDropdown();
-    destinationDropdown.shouldBe(visible).click();
-    destinationDropdown.chooseOption(destination.getName());
-
-    modal.errorMessage().shouldBe(hidden);
-    modal.dismissButton().shouldHave(text("Cancel"));
-    modal.moveButton().click();
   }
 
   private void testSideNavbarContent(

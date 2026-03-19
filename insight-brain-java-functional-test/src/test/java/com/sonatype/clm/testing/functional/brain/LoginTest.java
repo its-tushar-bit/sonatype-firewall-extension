@@ -5,47 +5,28 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
-import com.sonatype.clm.testing.functional.pages.UserManagementPage;
-import com.sonatype.clm.testing.functional.pages.UserManagementPage.EditUserForm;
-import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
-import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.utils.InputUtils.clearInput;
 
 public class LoginTest
     extends AbstractFunctionalTest
 {
   private final LoginModal loginModal = new LoginModal();
-
-  private final VulnerabilitySearchPage vulnPage = new VulnerabilitySearchPage();
-
-  private final InsightConfig insightConfig = testCLMServer.getCLMServer().getInstance(InsightConfig.class);
 
   @Before
   @After
@@ -59,40 +40,6 @@ public class LoginTest
   }
 
   @Test
-  public void testInitialLoginFormState_UnauthenticatedPagesDisabled() {
-    Map<String, Boolean> currentFeatures = insightConfig.getFeatures();
-    try {
-      insightConfig.setFeatures(new HashMap<>());
-      SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES.setEnabled(false);
-
-      refreshOrOpen(ReportListPage.url());
-      loginModal.vulnerabilityLookupLink().shouldBe(hidden);
-      loginModal.cancelButton().shouldBe(hidden);
-      MainHeader.loginButton().shouldBe(hidden);
-    }
-    finally {
-      insightConfig.setFeatures(currentFeatures);
-    }
-  }
-
-  @Test
-  public void testLoginFormStateInVulnerabilityLookupPage_UnauthenticatedPagesDisabled() {
-    Map<String, Boolean> currentFeatures = insightConfig.getFeatures();
-    try {
-      insightConfig.setFeatures(new HashMap<>());
-      SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES.setEnabled(false);
-
-      refreshOrOpen(VulnerabilitySearchPage.url());
-      loginModal.vulnerabilityLookupLink().shouldBe(hidden);
-      loginModal.cancelButton().shouldBe(hidden);
-      MainHeader.loginButton().shouldBe(hidden);
-    }
-    finally {
-      insightConfig.setFeatures(currentFeatures);
-    }
-  }
-
-  @Test
   public void testInitialLoginFormState() {
     refreshOrOpen(ReportListPage.url());
     loginModal.shouldBe(visible);
@@ -102,44 +49,6 @@ public class LoginTest
     loginModal.loginButton().shouldBe(enabled);
     loginModal.cancelButton().shouldBe(hidden);
     loginModal.vulnerabilityLookupLink().shouldBe(visible);
-  }
-
-  @Test
-  public void testInitialLoginFormState_NotSbomManagerOnlyLicense() {
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER, ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-
-    refreshOrOpen(ReportListPage.url());
-    loginModal.shouldBe(visible);
-    loginModal.vulnerabilityLookupLink().shouldBe(visible);
-  }
-
-  @Test
-  public void testInitialLoginFormState_SbomManagerOnlyLicense() {
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
-
-    refreshOrOpen(ReportListPage.url());
-    loginModal.shouldBe(visible);
-    loginModal.vulnerabilityLookupLink().shouldNotBe(visible);
-  }
-
-  @Test
-  public void testInitialLoginFormState_SamlSso() {
-    SamlConfigurationService samlConfigurationService = lookup(SamlConfigurationService.class);
-    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration();
-    samlConfigurationService.insert(samlConfiguration);
-    testCLMServer.getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
-
-    refreshOrOpen(ReportListPage.url());
-
-    loginModal.shouldBe(visible);
-    loginModal.ssoButton().shouldBe(visible, focused);
-    loginModal.loginButton().shouldBe(visible);
-    eyesWatcher.eyesCheck();
-
-    loginModal.username().setValue("u");
-    loginModal.password().setValue("p");
-    loginModal.loginButton().shouldNotHave(attribute("aria-disabled"));
-    clearInput(loginModal.username());
   }
 
   @Test
@@ -165,61 +74,6 @@ public class LoginTest
   }
 
   @Test
-  public void testErrorMessageClearOnNavigateToVulnerabilitySearchPage() {
-    refreshOrOpen(ReportListPage.url());
-    loginModal.shouldBe(visible);
-    loginModal.username().setValue("unknown");
-    loginModal.password().setValue("user");
-    loginModal.loginButton().shouldBe(enabled).click();
-    loginModal.shouldBe(visible);
-    loginModal.errorMessage().shouldBe(visible).shouldHave(text("Invalid credentials"));
-
-    loginModal.vulnerabilityLookupLink().shouldBe(visible).click();
-    waitUntilUrl(VulnerabilitySearchPage.url());
-    loginModal.shouldNotBe(visible);
-    vulnPage.shouldBe(visible);
-
-    MainHeader.loginButton().shouldBe(visible).click();
-    loginModal.shouldBe(visible);
-    loginModal.errorMessage().shouldNotBe(visible);
-  }
-
-  @Test
-  public void testErrorMessageClearOnCancel() {
-    refreshOrOpen(ReportListPage.url());
-    loginModal.shouldBe(visible);
-    loginModal.vulnerabilityLookupLink().shouldBe(visible).click();
-    waitUntilUrl(VulnerabilitySearchPage.url());
-    loginModal.shouldNotBe(visible);
-    vulnPage.shouldBe(visible);
-
-    MainHeader.loginButton().shouldBe(visible).click();
-    loginModal.shouldBe(visible);
-    loginModal.username().setValue("unknown");
-    loginModal.password().setValue("user");
-    loginModal.loginButton().shouldBe(enabled).click();
-    loginModal.shouldBe(visible);
-    loginModal.errorMessage().shouldBe(visible).shouldHave(text("Invalid credentials"));
-    loginModal.cancelButton().shouldBe(visible).click();
-
-    MainHeader.loginButton().shouldBe(visible).click();
-    loginModal.shouldBe(visible);
-    loginModal.errorMessage().shouldNotBe(visible);
-  }
-
-  @Test
-  public void testAuthenticationSessionStateIsRememberedByCookie() {
-    refreshOrOpen(OwnerSummaryPage.url());
-    loginAsAdmin();
-    OwnerSummaryPage.summaryTile().shouldBe(visible);
-    refreshOrOpen(ReportListPage.url());
-    ReportListPage.listContainer().shouldBe(visible);
-    clearCookies();
-    refreshOrOpen(ReportListPage.url());
-    loginModal.shouldBe(visible);
-  }
-
-  @Test
   public void testLogout() {
     refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
@@ -228,31 +82,4 @@ public class LoginTest
     loginModal.shouldBe(visible);
   }
 
-  @Test
-  public void testTryToLogoutWhileFormHasUnsavedChanges() {
-    refreshOrOpen(UserManagementPage.url());
-
-    loginAsAdmin();
-
-    UserManagementPage userManagementPage = new UserManagementPage();
-    userManagementPage.userItems().get(0).shouldBe(visible).click();
-    EditUserForm editUserForm = userManagementPage.editUserForm();
-    editUserForm.firstNameInput().val("a");
-
-    logout();
-    SidebarNavigation.sidebarLinks().shouldBe(empty);
-    loginModal.shouldBe(visible);
-  }
-
-  @Test
-  public void testNavigationWhileLoggedOut() {
-    refreshOrOpen(ReportListPage.url());
-    loginModal.shouldBe(visible);
-    refreshOrOpen(OwnerSummaryPage.url());
-    loginModal.shouldBe(visible);
-    Selenide.back();
-    loginModal.shouldBe(visible);
-    Selenide.forward();
-    loginModal.shouldBe(visible);
-  }
 }

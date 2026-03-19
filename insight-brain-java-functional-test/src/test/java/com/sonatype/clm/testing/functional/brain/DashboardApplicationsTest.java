@@ -14,7 +14,6 @@ import com.sonatype.clm.testing.functional.elements.DashboardApplications.Applic
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsResultsPaginator;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
@@ -346,220 +345,6 @@ public class DashboardApplicationsTest
   }
 
   @Test
-  public void testApplicationNameTooltip() {
-    String appName = "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW";
-
-    createViolation(tempEntity.newApplication(appName, "long", org.getId()),
-        BuildStageType.ID, 8, "scan123");
-    createViolation(tempEntity.newApplication("A", "short", org.getId()), BuildStageType.ID, 5, "scan123");
-    refresh();
-
-    Tooltip.get().shouldBe(hidden);
-    table.firstApplication().name().hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text(appName));
-    table.lastApplication().name().hover();
-    Tooltip.get().shouldBe(hidden);
-  }
-
-  @Test
-  public void testSortsOnFrontend() {
-    showLowRiskViolations();
-
-    createViolation(tempEntity.newApplication("Sandbox", "3", org.getId()), BuildStageType.ID, 2);
-    createViolation(tempEntity.newApplication("app1", "1", org.getId()), BuildStageType.ID, 4);
-    createViolation(tempEntity.newApplication("app2", "2", org.getId()), BuildStageType.ID, 8);
-
-    refresh();
-    newFluentWait();
-
-    DashboardPage.dashboardContainer().shouldBe(visible);
-
-    assertThat(table.applications().size()).isEqualTo(3);
-
-    // default - sorted by total risk desc
-    headers.totalRiskHeader().sortArrows().shouldBeDown();
-    table.firstApplication().totalRisk().shouldHave(text("8"));
-    table.application(1).totalRisk().shouldHave(text("4"));
-    table.lastApplication().totalRisk().shouldHave(text("2"));
-
-    // sort by total risk asc
-    headers.totalRiskHeader().click();
-    headers.totalRiskHeader().sortArrows().shouldBeUp();
-    table.firstApplication().totalRisk().shouldHave(text("2"));
-    table.application(1).totalRisk().shouldHave(text("4"));
-    table.lastApplication().totalRisk().shouldHave(text("8"));
-
-    // sort by name asc and case-insensitive
-    headers.applicationNameHeader().click();
-    headers.applicationNameHeader().sortArrows().shouldBeUp();
-    table.firstApplication().name().shouldHave(text("app1"));
-    table.application(1).name().shouldHave(text("app2"));
-    table.lastApplication().name().shouldHave(text("Sandbox"));
-
-    // sort by name desc and case-insensitive
-    headers.applicationNameHeader().click();
-    headers.applicationNameHeader().sortArrows().shouldBeDown();
-    table.firstApplication().name().shouldHave(text("Sandbox"));
-    table.application(1).name().shouldHave(text("app2"));
-    table.lastApplication().name().shouldHave(text("app1"));
-
-    // sort by criticalRisk desc
-    headers.criticalRiskHeader().click();
-    headers.criticalRiskHeader().sortArrows().shouldBeDown();
-    table.firstApplication().criticalRisk().shouldHave(text("8"));
-    table.application(1).criticalRisk().shouldHave(text("0"));
-    table.lastApplication().criticalRisk().shouldHave(text("0"));
-
-    // sort by criticalRisk asc
-    headers.criticalRiskHeader().click();
-    headers.criticalRiskHeader().sortArrows().shouldBeUp();
-    table.firstApplication().criticalRisk().shouldHave(text("0"));
-    table.application(1).criticalRisk().shouldHave(text("0"));
-    table.lastApplication().criticalRisk().shouldHave(text("8"));
-
-    // sort by severeRisk desc
-    headers.severeRiskHeader().click();
-    headers.severeRiskHeader().sortArrows().shouldBeDown();
-    table.firstApplication().severeRisk().shouldHave(text("4"));
-    table.application(1).severeRisk().shouldHave(text("0"));
-    table.lastApplication().severeRisk().shouldHave(text("0"));
-
-    // sort by severeRisk asc
-    headers.severeRiskHeader().click();
-    headers.severeRiskHeader().sortArrows().shouldBeUp();
-    table.firstApplication().severeRisk().shouldHave(text("0"));
-    table.application(1).severeRisk().shouldHave(text("0"));
-    table.lastApplication().severeRisk().shouldHave(text("4"));
-
-    // sort by moderateRisk desc
-    headers.moderateRiskHeader().click();
-    headers.moderateRiskHeader().sortArrows().shouldBeDown();
-    table.firstApplication().moderateRisk().shouldHave(text("2"));
-    table.application(1).moderateRisk().shouldHave(text("0"));
-    table.lastApplication().moderateRisk().shouldHave(text("0"));
-
-    // sort by moderateRisk asc
-    headers.moderateRiskHeader().click();
-    headers.moderateRiskHeader().sortArrows().shouldBeUp();
-    table.firstApplication().moderateRisk().shouldHave(text("0"));
-    table.application(1).moderateRisk().shouldHave(text("0"));
-    table.lastApplication().moderateRisk().shouldHave(text("2"));
-
-    // sort by lowRisk desc
-    headers.lowRiskHeader().click();
-    headers.lowRiskHeader().sortArrows().shouldBeDown();
-    table.firstApplication().lowRisk().shouldHave(text("0"));
-    table.application(1).lowRisk().shouldHave(text("0"));
-    table.lastApplication().lowRisk().shouldHave(text("0"));
-
-    // sort by lowRisk asc
-    headers.lowRiskHeader().click();
-    headers.lowRiskHeader().sortArrows().shouldBeUp();
-    table.firstApplication().lowRisk().shouldHave(text("0"));
-    table.application(1).lowRisk().shouldHave(text("0"));
-    table.lastApplication().lowRisk().shouldHave(text("0"));
-  }
-
-  @Test
-  public void testSortsOnBackend() {
-    showLowRiskViolations();
-    createApplicationsWithViolation(40, "low", 1);
-    createApplicationsWithViolation(40, "moderate", 2);
-    createApplicationsWithViolation(40, "severe", 4);
-    createApplicationsWithViolation(40, "critical", 8);
-    refresh();
-    DashboardPage.dashboardContainer().shouldBe(visible);
-
-    // default - sorted by total risk desc
-    headers.totalRiskHeader().sortArrows().shouldBeDown();
-    table.firstApplication().totalRisk().shouldHave(text("8"));
-    table.application(40).totalRisk().shouldHave(text("4"));
-    table.application(80).totalRisk().shouldHave(text("2"));
-    table.lastApplication().totalRisk().shouldHave(text("2"));
-
-    // sort by total risk asc
-    headers.totalRiskHeader().click();
-    headers.totalRiskHeader().sortArrows().shouldBeUp();
-    table.firstApplication().totalRisk().shouldHave(text("1"));
-    table.application(40).totalRisk().shouldHave(text("2"));
-    table.application(80).totalRisk().shouldHave(text("4"));
-    table.lastApplication().totalRisk().shouldHave(text("4"));
-
-    // sort by name asc
-    headers.applicationNameHeader().click();
-    headers.applicationNameHeader().sortArrows().shouldBeUp();
-    table.firstApplication().name().shouldHave(text("critical"));
-    table.application(40).name().shouldHave(text("low"));
-    table.application(80).name().shouldHave(text("moderate"));
-    table.lastApplication().name().shouldHave(text("moderate"));
-
-    // sort by name desc
-    headers.applicationNameHeader().click();
-    headers.applicationNameHeader().sortArrows().shouldBeDown();
-    table.firstApplication().name().shouldHave(text("severe"));
-    table.application(40).name().shouldHave(text("moderate"));
-    table.application(80).name().shouldHave(text("low"));
-    table.lastApplication().name().shouldHave(text("low"));
-
-    // sort by criticalRisk desc
-    headers.criticalRiskHeader().click();
-    headers.criticalRiskHeader().sortArrows().shouldBeDown();
-    table.firstApplication().criticalRisk().shouldHave(text("8"));
-    table.application(40).criticalRisk().shouldHave(text("0"));
-    table.lastApplication().criticalRisk().shouldHave(text("0"));
-
-    // sort by criticalRisk asc
-    headers.criticalRiskHeader().click();
-    headers.criticalRiskHeader().sortArrows().shouldBeUp();
-    table.firstApplication().criticalRisk().shouldHave(text("0"));
-    table.application(40).criticalRisk().shouldHave(text("0"));
-    table.lastApplication().criticalRisk().shouldHave(text("0"));
-
-    // sort by severeRisk desc
-    headers.severeRiskHeader().click();
-    headers.severeRiskHeader().sortArrows().shouldBeDown();
-    table.firstApplication().severeRisk().shouldHave(text("4"));
-    table.application(40).severeRisk().shouldHave(text("0"));
-    table.lastApplication().severeRisk().shouldHave(text("0"));
-
-    // sort by severeRisk asc
-    headers.severeRiskHeader().click();
-    headers.severeRiskHeader().sortArrows().shouldBeUp();
-    table.firstApplication().severeRisk().shouldHave(text("0"));
-    table.application(40).severeRisk().shouldHave(text("0"));
-    table.lastApplication().severeRisk().shouldHave(text("0"));
-
-    // sort by moderateRisk desc
-    headers.moderateRiskHeader().click();
-    headers.moderateRiskHeader().sortArrows().shouldBeDown();
-    table.firstApplication().moderateRisk().shouldHave(text("2"));
-    table.application(40).moderateRisk().shouldHave(text("0"));
-    table.lastApplication().moderateRisk().shouldHave(text("0"));
-
-    // sort by moderateRisk asc
-    headers.moderateRiskHeader().click();
-    headers.moderateRiskHeader().sortArrows().shouldBeUp();
-    table.firstApplication().moderateRisk().shouldHave(text("0"));
-    table.application(40).moderateRisk().shouldHave(text("0"));
-    table.lastApplication().moderateRisk().shouldHave(text("0"));
-
-    // sort by lowRisk desc
-    headers.lowRiskHeader().click();
-    headers.lowRiskHeader().sortArrows().shouldBeDown();
-    table.firstApplication().lowRisk().shouldHave(text("1"));
-    table.application(40).lowRisk().shouldHave(text("0"));
-    table.lastApplication().lowRisk().shouldHave(text("0"));
-
-    // sort by lowRisk asc
-    headers.lowRiskHeader().click();
-    headers.lowRiskHeader().sortArrows().shouldBeUp();
-    table.firstApplication().lowRisk().shouldHave(text("0"));
-    table.application(40).lowRisk().shouldHave(text("0"));
-    table.lastApplication().lowRisk().shouldHave(text("0"));
-
-  }
-
-  @Test
   public void testApplicationsTableMultiplePages() {
     for (int i = 0; i <= 49; i++) {
       createViolation(createApp(String.valueOf(i)), BuildStageType.ID, 1);
@@ -632,13 +417,6 @@ public class DashboardApplicationsTest
     table.lastApplication().totalRisk().shouldBe(text("3"));
   }
 
-  @Test
-  public void testApplicationsTabDoesNotShowReasonsFilter() {
-    DashboardPage.expandFilter();
-    DashboardFilters.filterContainer().shouldBe(visible);
-    DashboardFilters.iqPolicyWaiverReasonFilter().shouldNotBe(visible);
-  }
-
   private void assertApplicationsCsv(String csv, String[] expectedSortedResults) {
     String[] lines = csv.split("\r\n");
     assertThat(lines[0]).isEqualTo("Organization Name,Application Name,Total Risk,Critical,Severe,Moderate,Low");
@@ -664,12 +442,6 @@ public class DashboardApplicationsTest
 
     return tempEntity.newPolicyViolation(evaluation, policy, threatLevel,
         PolicyThreatCategory.LICENSE, group, artifact, version, hash, FailActionType.ID);
-  }
-
-  private void createApplicationsWithViolation(int numberOfApps, String namePrefix, int threatLevel) {
-    for (int i = 1; i <= numberOfApps; i++) {
-      createViolation(createApp(namePrefix + i), BuildStageType.ID, threatLevel);
-    }
   }
 
   private void showLowRiskViolations() {

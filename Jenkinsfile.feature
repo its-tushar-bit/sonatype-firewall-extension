@@ -50,13 +50,13 @@
  │  • main agent           │  • agent: iq          │  • nexusPolicyEvaluation                  │
  │  • Jest                 │  • Spotless Check     │                                           │
  │                         │  • License Check      │                                           │
- ├───────────────────┬────────────┬────────────┬────────────┬────────────┬────────────────────┤
- │  Postgres Tests   │  Surefire  │  Failsafe  │  Failsafe  │  Failsafe  │  Failsafe          │
- │  ──────────────   │  ────────  │  1 (A)     │  2 (B-L)   │  3 (M-R)   │  4 (S-Z)           │
- │  • main agent     │  • main    │  27%       │  25%       │  25%       │  21%               │
- │  • PostgresTest   │  • surefire│  • iq      │  • iq      │  • iq      │  • iq              │
- ├───────────────────┴─────────────────┴─────────────────┴─────────────────┴────────────────────┤
- │  MTIQ Tests • main agent • surefire+failsafe                                                │
+ ├──────────────┬──────────┬──────────┬──────────┬──────────┬──────────┬────────────────────┤
+ │  Postgres    │  Surefire│  Failsafe│  Failsafe│  Failsafe│  Failsafe│  Functional        │
+ │  Tests       │  ────────│  1 (A)   │  2 (B-L) │  3 (M-R) │  4 (S-Z) │  Tests             │
+ │  • main      │  • main  │  • iq    │  • iq    │  • iq    │  • iq    │  • iq              │
+ │  • Postgres  │  • test  │  27%     │  25%     │  25%     │  21%     │  • 45 UI tests     │
+ ├──────────────┴──────────┴──────────┴──────────┴──────────┴──────────┴────────────────────┤
+ │  MTIQ Tests • main agent • surefire+failsafe                                            │
  └──────────────────────────────────────────────────────────────────────────────────────────────┘
  │
  ▼
@@ -367,6 +367,27 @@ pipeline {
             }
           }
         }
+
+        stage('Functional Tests') {
+          agent { label DISTRIBUTED_TEST_AGENT }
+          options {
+            timeout(time: 90, unit: 'MINUTES')
+          }
+          steps {
+            script {
+              runDistributedFunctionalTests()
+            }
+          }
+          post {
+            always {
+              junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
+              script {
+                String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
+                stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
+              }
+            }
+          }
+        }
       }
     }
 
@@ -424,7 +445,8 @@ pipeline {
                 'Failsafe Tests 1 (A)',
                 'Failsafe Tests 2 (B-L)',
                 'Failsafe Tests 3 (M-R)',
-                'Failsafe Tests 4 (S-Z)'
+                'Failsafe Tests 4 (S-Z)',
+                'Functional Tests'
             ]
             distributedStages.each { stageName ->
               String stashName = "jacoco-${stageName.replaceAll('[^a-zA-Z0-9]', '-')}"
@@ -785,91 +807,6 @@ String buildSlowTestMavenOptions(String moduleList) {
   return opts.join(' ')
 }
 
-/**
- * Build Maven options for surefire tests (runs on main agent).
- */
-String buildSurefireTestMavenOptions(List<String> additionalExcludedGroups, String moduleList) {
-  def opts = []
-
-  opts << "--no-transfer-progress"
-  opts << "-T 1"
-  opts << "-pl '${moduleList}'"
-  opts << "-D skip-functional-test"
-  opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  // Test configuration
-  opts << "-Dsurefire.runOrder=alphabetical"
-  opts << "-Dsurefire.rerunFailingTestsCount=2"
-  opts << "-Dsurefire.failOnFlakeCount=5"
-
-  // Excluded test groups
-  def excludedGroups = [] + additionalExcludedGroups
-  if (!params.includeSlowTests) {
-    excludedGroups << "SlowTest"
-  }
-  if (!params.runRefPolicyImportIntTest) {
-    excludedGroups << "ReferencePolicyImportIntegrationTest"
-  }
-  if (excludedGroups) {
-    opts << "-DexcludedGroups=${excludedGroups.join(',')}"
-  }
-
-  // Docker registry
-  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
-
-  // Error handling
-  opts << "-e"
-  opts << "-C"
-  opts << "-fae"
-  opts << "-Dmaven.test.failure.ignore"
-
-  return opts.join(' ')
-}
-
-/**
- * Build Maven options for MTIQ tests (runs on main agent).
- */
-String buildMtiqTestMavenOptions() {
-  def opts = []
-
-  opts << "--no-transfer-progress"
-  opts << "-T 1"
-  opts << "-pl 'nexus-mtiq-server'"
-  opts << "-D skip-functional-test"
-  opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  // Test configuration
-  opts << "-Dsurefire.runOrder=alphabetical"
-  opts << "-Dsurefire.rerunFailingTestsCount=2"
-  opts << "-Dsurefire.failOnFlakeCount=5"
-  opts << "-Dfailsafe.runOrder=alphabetical"
-  opts << "-Dfailsafe.rerunFailingTestsCount=2"
-  opts << "-Dfailsafe.failOnFlakeCount=5"
-
-  // Excluded test groups
-  def excludedGroups = []
-  if (!params.includeSlowTests) {
-    excludedGroups << "SlowTest"
-  }
-  if (!params.runRefPolicyImportIntTest) {
-    excludedGroups << "ReferencePolicyImportIntegrationTest"
-  }
-  if (excludedGroups) {
-    opts << "-DexcludedGroups=${excludedGroups.join(',')}"
-  }
-
-  // Docker registry
-  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
-
-  // Error handling
-  opts << "-e"
-  opts << "-C"
-  opts << "-fae"
-  opts << "-Dmaven.test.failure.ignore"
-
-  return opts.join(' ')
-}
-
 String mtiqImageVersion() {
   def dateSection = new Date().format("yyyyMMddHHmm", TimeZone.getTimeZone('UTC'))
   def buildNumSection = env.BUILD_NUMBER
@@ -987,7 +924,8 @@ void stashTestArtifacts() {
     echo "Copying classes/test-classes in parallel..."
     pids=""
     for module in insight-brain-service insight-brain-db insight-brain-data insight-brain-policy \\
-                  insight-brain-common insight-brain-event insight-brain-tenancy nexus-mtiq-server; do
+                  insight-brain-common insight-brain-event insight-brain-tenancy nexus-mtiq-server \\
+                  insight-brain-java-functional-test; do
       mkdir -p "${stashDir}/test-classes/\$module/target"
       if [ -d "\$module/target/test-classes" ]; then
         cp -r "\$module/target/test-classes" "${stashDir}/test-classes/\$module/target/" &
@@ -1065,12 +1003,6 @@ String unstashTestArtifacts() {
           mkdir -p "${env.WORKSPACE}/\$module_dir"
           cp -r "\$target_dir" "${env.WORKSPACE}/\$module_dir/"
         done
-      ) &
-      pids="\$pids \$!"
-
-      # Copy pom.xml files (separate background process)
-      (
-        cd test-classes
         find . -name 'pom.xml' | while read pom; do
           dir=\$(dirname "\$pom")
           mkdir -p "${env.WORKSPACE}/\$dir"
@@ -1464,4 +1396,59 @@ void mvnDirectForDistributedTests(String mavenOptions, String goals, String loca
       sh mvnCmdLine
     }
   }
+}
+
+/**
+ * Run functional tests (Selenium UI tests) on a distributed agent.
+ *
+ * This runs the curated set of high-value functional tests in the
+ * insight-brain-java-functional-test module. Unlike other test stages,
+ * this does NOT pass -D skip-functional-test.
+ */
+void runDistributedFunctionalTests() {
+  echo "Running distributed functional tests..."
+  echo "  Workspace: ${env.WORKSPACE}"
+
+  // Restore stashed artifacts
+  def localRepo = unstashTestArtifacts()
+
+  withSonatypeDockerRegistry() {
+    withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
+             "TESTCONTAINERS_RYUK_DISABLED=true"]) {
+
+      def opts = buildFunctionalTestMavenOptions()
+      mvnDirectForDistributedTests(opts, 'failsafe:integration-test failsafe:verify', localRepo)
+    }
+  }
+}
+
+/**
+ * Build Maven options for functional test execution.
+ *
+ * Does NOT include -D skip-functional-test so the functional test module is active.
+ * Runs all remaining functional tests in the module.
+ */
+String buildFunctionalTestMavenOptions() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-T 1"
+  opts << "-pl 'insight-brain-java-functional-test'"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Test configuration
+  opts << "-Dfailsafe.runOrder=alphabetical"
+  opts << "-Dfailsafe.rerunFailingTestsCount=2"
+  opts << "-Dfailsafe.failOnFlakeCount=5"
+
+  // Docker registry
+  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
+
+  // Error handling
+  opts << "-e"
+  opts << "-C"
+  opts << "-fae"
+  opts << "-Dmaven.test.failure.ignore"
+
+  return opts.join(' ')
 }

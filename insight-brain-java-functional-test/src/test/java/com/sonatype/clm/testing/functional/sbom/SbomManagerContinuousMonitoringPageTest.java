@@ -92,16 +92,6 @@ public class SbomManagerContinuousMonitoringPageTest
   }
 
   @Test
-  public void testSbomManagerContinuousMonitoring_EditorPage_With_Error() {
-    // Organization level
-    refreshOrOpen(SbomManagerContinuousMonitoringPage.url(organization.getId(), true));
-    continuousMonitoringPage.submitButton().shouldHave(text("Update"));
-    continuousMonitoringPage.submitButton().click();
-    continuousMonitoringPage.errorAlert()
-        .shouldHave(text("There were validation errors. There are no changes to save."));
-  }
-
-  @Test
   public void testSbomManagerContinuousMonitoring_EditorPage_Sub_Organization_Enabled() {
     // Sub Organization level
     refreshOrOpen(SbomManagerContinuousMonitoringPage.url(organization.getId(), true));

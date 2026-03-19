@@ -162,13 +162,7 @@ void configureBranchJob() {
           name: 'mtiqImagePushEnabled'),
 
       // Functional Test Skip Parameters
-      booleanParam(name: 'skipFuncAB', defaultValue: false, description: 'Skip: Java Functional Tests A-B'),
-      booleanParam(name: 'skipFuncCE', defaultValue: false, description: 'Skip: Java Functional Tests C-E'),
-      booleanParam(name: 'skipFuncFM', defaultValue: false, description: 'Skip: Java Functional Tests F-M'),
-      booleanParam(name: 'skipFuncNO', defaultValue: false, description: 'Skip: Java Functional Tests N-O'),
-      booleanParam(name: 'skipFuncPR', defaultValue: false, description: 'Skip: Java Functional Tests P-R'),
-      booleanParam(name: 'skipFuncSZ', defaultValue: false, description: 'Skip: Java Functional Tests S-Z'),
-      booleanParam(name: 'skipFuncMtiq', defaultValue: false, description: 'Skip: MTIQ Functional Tests'),
+      booleanParam(name: 'skipFunctionalTests', defaultValue: false, description: 'Skip: Java Functional Tests'),
 
       // Unit/Integration Test Skip Parameters
       booleanParam(name: 'skipUnitA', defaultValue: false, description: 'Skip: Unit and Integration Tests A'),
@@ -340,28 +334,8 @@ Map<String, Closure> getDockerSteps(List<String> zipFiles) {
 Map<String, Closure> getParallelTests(List <String> zips) {
   Map<String, Closure> testStages = [:]
 
-  if (isFunctionalTestsEnabled()) {
-    if (!params.skipFuncAB) {
-      testStages << createFunctionalTests('Java Functional Tests A-B', '.*/[A-B].*Test.class', zips)
-    }
-    if (!params.skipFuncCE) {
-      testStages << createFunctionalTests('Java Functional Tests C-E', '.*/[C-E].*Test.class', zips)
-    }
-    if (!params.skipFuncFM) {
-      testStages << createFunctionalTests('Java Functional Tests F-M', '.*/[F-M].*Test.class', zips)
-    }
-    if (!params.skipFuncNO) {
-      testStages << createFunctionalTests('Java Functional Tests N-O', '.*/[N-O].*Test.class', zips)
-    }
-    if (!params.skipFuncPR) {
-      testStages << createFunctionalTests('Java Functional Tests P-R', '.*/[P-R].*Test.class', zips)
-    }
-    if (!params.skipFuncSZ) {
-      testStages << createFunctionalTests('Java Functional Tests S-Z', '.*/[S-Z].*Test.class', zips)
-    }
-    if (!params.skipFuncMtiq) {
-      testStages << createMtiqFunctionalTests('MTIQ Functional Tests', '.*/.*Test.class', zips)
-    }
+  if (isFunctionalTestsEnabled() && !params.skipFunctionalTests) {
+    testStages << createFunctionalTests('Java Functional Tests', '.*Test.class', zips)
   }
 
   // These tests make use of iq-tests.zip which does not include insight-brain-frontend (1.2GB)
@@ -411,14 +385,6 @@ Map<String, Closure> createFunctionalTests(
   return createFunctionalTests(stageName, regex, false, zipFiles)
 }
 
-Map<String, Closure> createMtiqFunctionalTests(
-    String stageName,
-    String regex,
-    List<String> zipFiles
-) {
-  return createFunctionalTests(stageName, regex, true, zipFiles)
-}
-
 Map<String, Closure> createFunctionalTests(
   String stageName,
   String regex,
@@ -426,9 +392,6 @@ Map<String, Closure> createFunctionalTests(
   List<String> zipFiles
 ) {
   String mavenModule = 'insight-brain-java-functional-test'
-  if (mtiq) {
-    mavenModule = 'nexus-mtiq-functional-test'
-  }
 
   return ["${stageName}": {
     node('iq-large') {

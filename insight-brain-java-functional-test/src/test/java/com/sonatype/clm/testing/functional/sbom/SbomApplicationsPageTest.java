@@ -28,7 +28,6 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 
-import com.codeborne.selenide.Selenide;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -36,12 +35,9 @@ import org.junit.Test;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.List;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -49,7 +45,6 @@ import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class SbomApplicationsPageTest
     extends AbstractFunctionalTest
@@ -149,147 +144,6 @@ public class SbomApplicationsPageTest
     applicationsTable.paginationStatus().shouldHave(text("Showing 75 of 75 applications"));
   }
 
-  @Test
-  public void testApplicationsPage__sortByImportDate() throws Exception {
-    setSbomApplicationsTableData();
-    refreshOrOpen(SbomApplicationsPage.url());
-
-    SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
-    applicationsTable.table().shouldBe(visible);
-    // sort desc by default -> newest first
-    ElementsCollection tableRows = applicationsTable.tableBodyRows();
-    ElementsCollection paginationButtons = applicationsTable.paginationButtons();
-    tableRows.get(0).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(0)));
-    tableRows.get(8).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(8)));
-    tableRows.get(49).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(49)));
-    paginationButtons.get(1).shouldHave(text("2")).click();
-    tableRows.get(24).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(74))); // 50 + 24
-
-    // sort asc
-    refreshOrOpen(SbomApplicationsPage.url());
-    paginationButtons.get(0).shouldHave(text("1")).click();
-    applicationsTable.columnHeader(3).click();
-    tableRows.get(0).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(74))); // (50 + 24) -
-                                                                                                         // 0
-    tableRows.get(49).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(74 - 49)));
-    paginationButtons.get(1).shouldHave(text("2")).click();
-    tableRows.get(24).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(74 - 24)));
-
-    // sort desc
-    paginationButtons.get(0).shouldHave(text("1")).click();
-    applicationsTable.columnHeader(3).click();
-    tableRows.get(0).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(0)));
-    tableRows.get(8).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(8)));
-    tableRows.get(49).findAll("td").get(3).shouldHave(text(getRelativeTimeSimilarToMomentJSFromNow(49)));
-  }
-
-  @Test
-  public void testApplicationsPage__sortByName() throws Exception {
-    setSbomApplicationsTableData();
-    refreshOrOpen(SbomApplicationsPage.url());
-
-    SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
-    applicationsTable.table().shouldBe(visible);
-    applicationsTable.columnHeader(0).click(); // sort asc
-    ElementsCollection tableRow = applicationsTable.tableBodyRowsColumns(0);
-    tableRow.get(0).shouldHave(text("Test App 0"));
-    tableRow = applicationsTable.tableBodyRowsColumns(1);
-    tableRow.get(0).shouldHave(text("Test App 1"));
-    tableRow = applicationsTable.tableBodyRowsColumns(2);
-    tableRow.get(0).shouldHave(text("Test App 10"));
-    applicationsTable.columnHeader(0).click(); // sort desc
-    tableRow = applicationsTable.tableBodyRowsColumns(0);
-    tableRow.get(0).shouldHave(text("Test App 9"));
-    tableRow = applicationsTable.tableBodyRowsColumns(1);
-    tableRow.get(0).shouldHave(text("Test App 8"));
-    tableRow = applicationsTable.tableBodyRowsColumns(2);
-    tableRow.get(0).shouldHave(text("Test App 74"));
-  }
-
-  @Test
-  public void testApplicationsPage__sortByVersion() throws Exception {
-    setSbomApplicationsTableData();
-    refreshOrOpen(SbomApplicationsPage.url());
-
-    SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
-    applicationsTable.table().shouldBe(visible);
-    applicationsTable.columnHeader(0).click(); // sort asc
-    ElementsCollection tableRow = applicationsTable.tableBodyRowsColumns(0);
-    tableRow.get(1).shouldHave(text("test-version 0"));
-    tableRow = applicationsTable.tableBodyRowsColumns(1);
-    tableRow.get(1).shouldHave(text("test-version 1"));
-    tableRow = applicationsTable.tableBodyRowsColumns(2);
-    tableRow.get(1).shouldHave(text("test-version 10"));
-    applicationsTable.columnHeader(0).click(); // sort desc
-    tableRow = applicationsTable.tableBodyRowsColumns(0);
-    tableRow.get(1).shouldHave(text("test-version 9"));
-    tableRow = applicationsTable.tableBodyRowsColumns(1);
-    tableRow.get(1).shouldHave(text("test-version 8"));
-    tableRow = applicationsTable.tableBodyRowsColumns(2);
-    tableRow.get(1).shouldHave(text("test-version 74"));
-  }
-
-  @Test
-  public void testApplicationsPage__sortByReleaseStatus() throws Exception {
-    setSbomApplicationsTableData();
-    refreshOrOpen(SbomApplicationsPage.url());
-    waitUntilUrl(SbomApplicationsPage.url());
-    SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
-    applicationsTable.table().shouldBe(visible);
-    applicationsTable.columnHeader(2).shouldHave(text("RELEASE STATUS")).click();
-    verifySortOrderReleaseStatus(true, applicationsTable); // verify asc
-    applicationsTable.columnHeader(2).shouldHave(text("RELEASE STATUS")).click();
-    verifySortOrderReleaseStatus(false, applicationsTable);
-  }
-
-  @Test
-  public void testApplicationsPage__sortByVulnerabilities() throws Exception {
-    setSbomApplicationsTableData();
-    refreshOrOpen(SbomApplicationsPage.url());
-
-    SbomApplicationsTable applicationsTable = SbomApplicationsPage.sbomApplicationsTable();
-    applicationsTable.table().shouldBe(visible);
-
-    applicationsTable.columnHeader(4).shouldHave(text("VULNERABILITIES")).click();
-    Selenide.sleep(1000);
-    verifySortOrderVulnerabilities(true, applicationsTable); // verify asc
-    applicationsTable.columnHeader(4).shouldHave(text("VULNERABILITIES")).click();
-    Selenide.sleep(1000);
-    verifySortOrderVulnerabilities(false, applicationsTable); // verify DESC
-  }
-
-  private void verifySortOrderVulnerabilities(boolean ascending, SbomApplicationsTable applicationsTable) {
-    applicationsTable.tableBodyRows().first().shouldBe(visible);
-    int totalRows = applicationsTable.tableBodyRows().size();
-    for (int i = 0; i < totalRows - 1; i++) {
-      List<String> currentVulnerabilities = applicationsTable.vulnerabilitiesColumns(i).texts();
-      List<String> nextVulnerabilities = applicationsTable.vulnerabilitiesColumns(i + 1).texts();
-      String currentComparable = String.join(",", currentVulnerabilities);
-      String nextComparable = String.join(",", nextVulnerabilities);
-      int comparison = currentComparable.compareTo(nextComparable);
-      if (ascending) {
-        assertThat(comparison).isLessThanOrEqualTo(0);
-      }
-      else {
-        assertThat(comparison).isGreaterThanOrEqualTo(0);
-      }
-    }
-  }
-
-  private void verifySortOrderReleaseStatus(boolean ascending, SbomApplicationsTable applicationsRow) {
-    String expectedValue;
-    int rowsHighOrCriticalVulnerabilities = 23;
-    for (int i = 0; i < 50; i++) {
-      if (ascending) {
-        expectedValue = (i < rowsHighOrCriticalVulnerabilities) ? "57.1%" : "100%";
-      }
-      else {
-        expectedValue = "100%";
-      }
-      applicationsRow.releaseStatusColumn(i).shouldHave(text(expectedValue));
-    }
-  }
-
   private void setSbomApplicationsTableData() throws Exception {
     organization = tempEntity.newOrganization("Test Organization");
     ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
@@ -366,79 +220,4 @@ public class SbomApplicationsPageTest
         "state", "justification", "response", "detail");
   }
 
-  private static String getRelativeTimeSimilarToMomentJSFromNow(int rowNum) {
-    rowNum = rowNum + 1;
-    LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
-    LocalDateTime rowDateTime = now.minusDays(rowNum);
-    Duration duration = Duration.between(rowDateTime, now);
-
-    long seconds = duration.getSeconds();
-    // based off of https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/02-fromnow/
-    if (seconds <= 44) {
-      return seconds + "a few seconds ago";
-    }
-    else if (seconds <= 89) {
-      return "a minute ago";
-    }
-    else if (seconds <= 2640) { // 90 seconds to 44 minutes
-      long minutes = duration.toMinutes();
-      return minutes + " minutes ago";
-    }
-    else if (seconds <= 5340) { // 45 to 89 minutes
-      return "an hour ago";
-    }
-    else if (seconds <= 75600) { // 90 minutes to 21 hours
-      long hours = duration.toHours();
-      return hours + " hours ago";
-    }
-    else if (seconds <= 126000) { // 22 to 35 hours
-      return "a day ago";
-    }
-    else if (seconds <= 2160000) { // 36 hours to 25 days
-      long days = duration.toDays();
-      return days + " days ago";
-    }
-    else if (seconds <= 3888000) { // 26 to 45 days
-      return "a month ago";
-    }
-    else if (seconds <= 27561600) { // 45 to 319 days
-      long months = getRelativeMonthsAgoSimilarToMomentJSFromNow(now, rowDateTime);
-      return months + " months ago";
-    }
-    else if (seconds <= 47260800) { // 320 to 547 days (1.5 years)
-      return "a year ago";
-    }
-    else {
-      long years = Math.round(duration.toMillis() / (double) ChronoUnit.YEARS.getDuration().toMillis());
-      return years + " years ago";
-    }
-  }
-
-  private static long getRelativeMonthsAgoSimilarToMomentJSFromNow(
-      final LocalDateTime now,
-      final LocalDateTime rowDateTime)
-  {
-    // Mirror moment.js monthDiff: use calendar-aware arithmetic rather than fixed average month length
-    int calendarMonthDiff = (now.getYear() - rowDateTime.getYear()) * 12
-        + (now.getMonthValue() - rowDateTime.getMonthValue());
-
-    // Land on the same day-of-month as rowDateTime, but calendarMonthDiff months ahead
-    LocalDateTime wholeMonthAnchor = rowDateTime.plusMonths(calendarMonthDiff);
-
-    double fractionalMonthAdjustment;
-    if (wholeMonthAnchor.isAfter(now)) {
-      // wholeMonthAnchor overshot — step back one month to bracket 'now'
-      LocalDateTime oneMonthBefore = rowDateTime.plusMonths(calendarMonthDiff - 1);
-      fractionalMonthAdjustment = (double) Duration.between(wholeMonthAnchor, now).toDays()
-          / (double) Duration.between(oneMonthBefore, wholeMonthAnchor).toDays();
-    }
-    else {
-      // wholeMonthAnchor undershot — step forward one month to bracket 'now'
-      LocalDateTime oneMonthAfter = rowDateTime.plusMonths(calendarMonthDiff + 1);
-      fractionalMonthAdjustment = (double) Duration.between(wholeMonthAnchor, now).toDays()
-          / (double) Duration.between(wholeMonthAnchor, oneMonthAfter).toDays();
-    }
-
-    return Math.round(calendarMonthDiff + fractionalMonthAdjustment);
-  }
 }

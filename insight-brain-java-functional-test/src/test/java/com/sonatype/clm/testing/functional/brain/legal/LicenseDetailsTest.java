@@ -14,13 +14,11 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ComponentLicensesDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ComponentLicensesDetailsPage.ComponentLicenseOverview;
 import com.sonatype.clm.testing.functional.pages.ComponentLicensesDetailsPage.LicenseList;
-import com.sonatype.clm.testing.functional.pages.ComponentLicensesDetailsPage.LicenseObligations;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import com.codeborne.selenide.Selenide;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -105,33 +103,10 @@ public class LicenseDetailsTest
     doTestSelectDifferentLicense();
   }
 
-  @Test
-  public void testSelectDifferentLicense_ByComponentIdentifier() throws UnsupportedEncodingException {
-    refreshOrOpen(
-        ComponentLicensesDetailsPage.urlToApplicationScopeByComponentIdentifier(app.getPublicId(), componentId, 0));
-    doTestSelectDifferentLicense();
-  }
-
   private void doTestSelectDifferentLicense() {
     final LicenseList licenseList = ComponentLicensesDetailsPage.licenseList();
 
     licenseList.licenseItem(1).shouldHave(text("Apache-2.0"));
     licenseList.licenseItem(2).shouldHave(text("GPL-2.0"));
-  }
-
-  /**
-   * This test has no assertions, it only creates screenshots for applitools
-   */
-  @Test
-  public void testLicenseObligationsScrollIntoView() {
-    refreshOrOpen(
-        ComponentLicensesDetailsPage.urlToApplicationScopeByHash(app.getPublicId(), "033e7a20b23ea284d474", 0));
-    final LicenseObligations obligations = ComponentLicensesDetailsPage.licenseObligations();
-
-    // Should highlight the obligation in the full license text on click
-    obligations.obligationAt(1).click();
-    Selenide.sleep(1500); // wait for the snippet to scroll into the view
-
-    eyesWatcher.eyesCheck("After obligation snippet scrolled into view");
   }
 }

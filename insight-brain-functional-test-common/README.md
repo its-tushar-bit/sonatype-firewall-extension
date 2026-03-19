@@ -7,4 +7,4 @@
 -->
 # Functional tests common resources
 
-Common resources used in IQ functional tests (`insight-brain-java-functional-test` module) and MTIQ functional tests (`nexus-mtiq-functional-test` module).
+Common resources used in IQ functional tests (`insight-brain-java-functional-test` module).

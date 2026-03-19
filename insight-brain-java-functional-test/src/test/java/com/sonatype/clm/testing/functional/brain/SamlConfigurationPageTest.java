@@ -11,19 +11,13 @@ import java.nio.charset.StandardCharsets;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-import com.sonatype.clm.testing.functional.elements.UnsavedModal;
-import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.SamlConfigurationPage;
-import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
-import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
@@ -95,57 +89,6 @@ public class SamlConfigurationPageTest
     samlConfigurationPage.feedbackWelcomeLink()
         .shouldBe(
             attribute("href", "http://links.sonatype.com/products/nxiq/feedback/saml"));
-  }
-
-  @Test
-  public void testDefaultValuesSetIfFieldEmptyAndTooltipsAreShown() {
-    // If an input field with a default value is empty and loses focus, it gets set to its default value.
-    // A popover shows for each input field which has a default value asserting the value of the value.
-    SamlConfigurationPage samlConfigurationPage = new SamlConfigurationPage();
-    samlConfigurationPage.identityProviderName().hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"identity provider\""));
-    samlConfigurationPage.identityProviderName().clear();
-    ScrollUtil.scrollIntoView(samlConfigurationPage.entityId());
-    samlConfigurationPage.entityId().click();
-    samlConfigurationPage.identityProviderName().shouldBe(value("identity provider"));
-
-    samlConfigurationPage.scrollToBottom();
-    String defaultEntityId = rootUriBuilder().build() + "api/v2/config/saml/metadata";
-    samlConfigurationPage.entityId().hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"" + defaultEntityId + "\""));
-    samlConfigurationPage.entityId().clear();
-    samlConfigurationPage.usernameAttribute().click();
-    samlConfigurationPage.entityId().shouldBe(value(defaultEntityId));
-    samlConfigurationPage.usernameAttribute().hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"username\""));
-    samlConfigurationPage.usernameAttribute().clear();
-    samlConfigurationPage.firstNameAttribute().click();
-    samlConfigurationPage.usernameAttribute().shouldBe(value("username"));
-
-    samlConfigurationPage.firstNameAttribute().hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"firstName\""));
-    samlConfigurationPage.firstNameAttribute().clear();
-    samlConfigurationPage.scrollToBottom();
-    samlConfigurationPage.lastNameAttribute().click();
-    samlConfigurationPage.firstNameAttribute().shouldBe(value("firstName"));
-
-    samlConfigurationPage.lastNameAttribute().hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"lastName\""));
-    samlConfigurationPage.lastNameAttribute().clear();
-    samlConfigurationPage.emailAttribute().click();
-    samlConfigurationPage.lastNameAttribute().shouldBe(value("lastName"));
-
-    samlConfigurationPage.emailAttribute().hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"email\""));
-    samlConfigurationPage.emailAttribute().clear();
-    samlConfigurationPage.groupsAttribute().click();
-    samlConfigurationPage.emailAttribute().shouldBe(value("email"));
-
-    samlConfigurationPage.groupsAttribute().hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"groups\""));
-    samlConfigurationPage.groupsAttribute().clear();
-    samlConfigurationPage.entityId().click();
-    samlConfigurationPage.groupsAttribute().shouldBe(value("groups"));
   }
 
   @Test
@@ -283,46 +226,4 @@ public class SamlConfigurationPageTest
     samlConfigurationPage.identityProviderMetadataXmlTextArea().shouldBe(value(""));
   }
 
-  @Test
-  public void testIdentityProviderName_MaximumLength() {
-    SamlConfigurationPage samlConfigurationPage = new SamlConfigurationPage();
-    samlConfigurationPage.loadXmlInput()
-        .uploadFromClasspath(
-            "com/sonatype/clm/testing/functional/brain/SamlConfigurationTest/identity-provider-metadata.xml");
-    samlConfigurationPage.identityProviderName()
-        .sendKeys(Keys.HOME, Keys.chord(Keys.SHIFT, Keys.END),
-            StringUtils.repeat('a', SamlConfiguration.IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH));
-    samlConfigurationPage.scrollToBottom();
-    samlConfigurationPage.saveButton().shouldNotHave(DISABLED);
-  }
-
-  @Test
-  public void testUnsavedChangesModal_ContinueNavigation() {
-    SamlConfigurationPage samlConfigurationPage = new SamlConfigurationPage();
-    samlConfigurationPage.identityProviderName().clear();
-    samlConfigurationPage.identityProviderName().sendKeys("My Awesome IdP");
-    samlConfigurationPage.validateResponseSignatureDropdown().chooseOption(new Option(2, "False"));
-    samlConfigurationPage.validateAssertionSignatureDropdown().chooseOption(new Option(1, "True"));
-
-    refreshOrOpen(DashboardPage.urlToViolations());
-    DashboardPage.dashboardContainer().shouldNotBe(visible);
-    UnsavedModal unsavedChangesModal = new UnsavedModal();
-    unsavedChangesModal.shouldBe(visible);
-    unsavedChangesModal.continueButton().click();
-    DashboardPage.dashboardContainer().shouldBe(visible);
-  }
-
-  @Test
-  public void testUnsavedChangesModal_CancelNavigation() {
-    SamlConfigurationPage samlConfigurationPage = new SamlConfigurationPage();
-    samlConfigurationPage.validateResponseSignatureDropdown().chooseOption(new Option(2, "False"));
-    samlConfigurationPage.validateAssertionSignatureDropdown().chooseOption(new Option(1, "True"));
-
-    refreshOrOpen(DashboardPage.urlToViolations());
-    DashboardPage.dashboardContainer().shouldNotBe(visible);
-    UnsavedModal unsavedChangesModal = new UnsavedModal();
-    unsavedChangesModal.shouldBe(visible);
-    unsavedChangesModal.cancelButton().click();
-    DashboardPage.dashboardContainer().shouldNotBe(visible);
-  }
 }

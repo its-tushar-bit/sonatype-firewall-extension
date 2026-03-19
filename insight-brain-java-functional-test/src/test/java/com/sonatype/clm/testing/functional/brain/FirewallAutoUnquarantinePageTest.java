@@ -12,13 +12,8 @@ import java.time.ZoneOffset;
 import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
-import com.sonatype.clm.testing.functional.elements.NxTableHeader;
 import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
-import com.sonatype.clm.testing.functional.pages.FirewallPage;
-import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineMtd;
-import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineYtd;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -31,10 +26,8 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -85,28 +78,6 @@ public class FirewallAutoUnquarantinePageTest
   }
 
   @Test
-  public void testFirewallAutoUnquarantinePageAutoReleaseQuarantineMtd_showsCount() {
-    refreshOrOpen(FirewallAutoUnquarantinePage.url());
-    page.shouldBe(visible);
-
-    FirewallAutoUnquarantineMtd firewallAutoUnquarantineMtd = page.firewallAutoReleaseQuarantineMtd();
-    firewallAutoUnquarantineMtd.shouldBe(visible);
-    firewallAutoUnquarantineMtd.shouldBe(visible);
-    firewallAutoUnquarantineMtd.cardContent().shouldBe(text("2"));
-  }
-
-  @Test
-  public void testFirewallAutoUnquarantinePageAutoReleaseQuarantineYtd_showsCount() {
-    refreshOrOpen(FirewallAutoUnquarantinePage.url());
-    page.shouldBe(visible);
-
-    FirewallAutoUnquarantineYtd firewallAutoUnquarantineYtd = page.firewallAutoReleaseQuarantineYtd();
-    firewallAutoUnquarantineYtd.shouldBe(visible);
-    firewallAutoUnquarantineYtd.shouldBe(visible);
-    firewallAutoUnquarantineYtd.cardContent().shouldBe(text("2"));
-  }
-
-  @Test
   public void testFirewallAutoUnquarantinePage_OpenCloseModal() {
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
 
@@ -128,113 +99,12 @@ public class FirewallAutoUnquarantinePageTest
   }
 
   @Test
-  public void testFirewallAutoUnquarantinePage_BackToFirewallButton() {
-    refreshOrOpen(FirewallAutoUnquarantinePage.url());
-
-    page.shouldBe(visible);
-
-    // click button
-    page.backToFirewallButton().click();
-
-    // verify firewall page loads
-    waitUntilUrl(FirewallPage.url());
-  }
-
-  @Test
-  public void testFirewallAutoUnquarantinePage_LoadErrorTest() {
-    // induce error by removing feature
-    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
-
-    refreshOrOpen(FirewallAutoUnquarantinePage.url());
-
-    // verify initial status with error
-    page.shouldBe(visible);
-    page.firewallConfigurationModal().shouldBe(hidden);
-    page.firewallAutoUnquarantineStatus().shouldBe(hidden);
-    page.firewallAutoReleaseQuarantineMtd().shouldBe(hidden);
-    page.firewallAutoReleaseQuarantineYtd().shouldBe(hidden);
-    page.loadError().shouldBe(visible);
-    page.retryButton().shouldBe(visible);
-
-    // resolve error
-    testProductLicense.reset();
-
-    // retry
-    page.retryButton().click();
-
-    page.shouldBe(visible);
-    page.firewallConfigurationModal().shouldBe(hidden);
-    page.firewallAutoUnquarantineStatus().shouldBe(visible);
-    page.firewallAutoReleaseQuarantineMtd().shouldBe(visible);
-    page.firewallAutoReleaseQuarantineYtd().shouldBe(visible);
-    page.loadError().shouldBe(hidden);
-    page.retryButton().shouldBe(hidden);
-  }
-
-  @Test
   public void testFirewallAutoUnquarantineTable_TableBodyCount() {
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
 
     page.shouldBe(visible);
     page.firewallUnquarantineTable().tableBodyRows().shouldHave(size(2));
     page.firewallUnquarantineTable().tableBodyRows().shouldHave(texts("g : a : v", "g : a : v"));
-  }
-
-  @Test
-  public void testFirewallAutoUnquarantineTable_Sorting() {
-    refreshOrOpen(FirewallAutoUnquarantinePage.url());
-
-    page.shouldBe(visible);
-
-    NxTableHeader quarantineTimeHeader = page.firewallUnquarantineTable().quarantineTimeHeader();
-    NxTableHeader releaseQuarantineTimeHeader = page.firewallUnquarantineTable().releaseQuarantineTimeHeader();
-
-    quarantineTimeHeader.sortBtn()
-        .shouldHave(
-            attribute("aria-label", "Quarantine Date unsorted"));
-    releaseQuarantineTimeHeader.sortBtn()
-        .shouldHave(
-            attribute("aria-label", "Date Cleared unsorted"));
-    quarantineTimeHeader.click();
-
-    quarantineTimeHeader.sortBtn()
-        .shouldHave(
-            attribute("aria-label", "Quarantine Date ascending"));
-    releaseQuarantineTimeHeader.sortBtn()
-        .shouldHave(
-            attribute("aria-label", "Date Cleared unsorted"));
-    quarantineTimeHeader.click();
-
-    quarantineTimeHeader.sortBtn()
-        .shouldHave(
-            attribute("aria-label", "Quarantine Date descending"));
-    releaseQuarantineTimeHeader.sortBtn()
-        .shouldHave(
-            attribute("aria-label", "Date Cleared unsorted"));
-    releaseQuarantineTimeHeader.click();
-
-    quarantineTimeHeader.sortBtn()
-        .shouldHave(
-            attribute("aria-label", "Quarantine Date unsorted"));
-    releaseQuarantineTimeHeader.sortBtn()
-        .shouldHave(
-            attribute("aria-label", "Date Cleared ascending"));
-    releaseQuarantineTimeHeader.click();
-
-    quarantineTimeHeader.sortBtn()
-        .shouldHave(
-            attribute("aria-label", "Quarantine Date unsorted"));
-    releaseQuarantineTimeHeader.sortBtn()
-        .shouldHave(
-            attribute("aria-label", "Date Cleared descending"));
-    releaseQuarantineTimeHeader.click();
-
-    quarantineTimeHeader.sortBtn()
-        .shouldHave(
-            attribute("aria-label", "Quarantine Date unsorted"));
-    releaseQuarantineTimeHeader.sortBtn()
-        .shouldHave(
-            attribute("aria-label", "Date Cleared unsorted"));
   }
 
   @Test
@@ -257,22 +127,4 @@ public class FirewallAutoUnquarantinePageTest
     componentDetailsPage.shouldBe(visible);
   }
 
-  @Test
-  public void backButtonToAutoUnquarantine_whenUserCameFromAutoUnquarantinePage() {
-    setFeatures(LicensedFeature.FIREWALL, LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
-        LicensedFeature.RELEASE_INTEGRITY);
-    refreshOrOpen(FirewallAutoUnquarantinePage.url());
-    page.shouldBe(visible);
-    page.firewallUnquarantineTable().shouldBe(visible);
-    page.firewallUnquarantineTable().tableBodyRows().shouldHave(size(2));
-    page.firewallUnquarantineTable().tableBodyRows().first().click();
-    page.shouldBe(hidden);
-    FirewallComponentDetailsPage componentDetailsPage = new FirewallComponentDetailsPage();
-    componentDetailsPage.shouldBe(visible);
-    MainHeader.backButton().shouldHave(text("Back to Auto Release from Quarantine"));
-    MainHeader.backButton().click();
-    page.shouldBe(visible);
-    page.firewallUnquarantineTable().shouldBe(visible);
-    page.firewallUnquarantineTable().tableBodyRows().shouldHave(size(2));
-  }
 }

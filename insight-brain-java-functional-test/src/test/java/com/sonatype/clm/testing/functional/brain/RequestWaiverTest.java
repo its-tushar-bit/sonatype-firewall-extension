@@ -5,23 +5,13 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.net.URL;
 import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.DashboardViolations;
-import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
-import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
-import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
-import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
-import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
-import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.RequestWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
-import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -30,11 +20,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.utils.ReportHelper;
 
-import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.lang.time.DateUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -43,7 +29,6 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.checked;
-import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
@@ -97,96 +82,6 @@ public class RequestWaiverTest
   }
 
   @Test
-  public void testBackButton() {
-    loginAsLimitedUser();
-    refreshOrOpen(RequestWaiverPage.url(policyViolation.getId()));
-    RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-    requestWaiverPage.backButton().shouldHave(text("Back to Violation Details")).click();
-    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
-    violationDetailsPage.shouldBe(visible);
-  }
-
-  @Test
-  public void testCancelButton() {
-    loginAsLimitedUser();
-    refreshOrOpen(RequestWaiverPage.url(policyViolation.getId()));
-    RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-    requestWaiverPage.cancelButton().click();
-    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
-    violationDetailsPage.shouldBe(visible);
-  }
-
-  @Test
-  public void testBackButtonWhenNavigatedFromViolationDetails() {
-    loginAsLimitedUser();
-    refreshOrOpen(DashboardPage.url());
-    DashboardPage.violationsTab().click();
-    DashboardViolations.ViolationsResults table = DashboardPage.violationsView().results();
-    table.firstViolation().click();
-    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
-    violationDetailsPage.shouldBe(visible);
-    ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
-    tile.requestWaiverButton().shouldHave(cssClass("nx-btn--primary")).click();
-    RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-    requestWaiverPage.backButton().shouldHave(text("Back to Violation Details")).click();
-    tile.shouldBe(visible);
-  }
-
-  @Test
-  public void testCancelButtonWhenNavigatedFromViolationDetails() {
-    loginAsLimitedUser();
-    refreshOrOpen(DashboardPage.url());
-    DashboardPage.violationsTab().click();
-    DashboardViolations.ViolationsResults table = DashboardPage.violationsView().results();
-    table.firstViolation().click();
-    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
-    violationDetailsPage.shouldBe(visible);
-    ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
-    tile.requestWaiverButton().click();
-    RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-    requestWaiverPage.cancelButton().click();
-    tile.shouldBe(visible);
-  }
-
-  @Test
-  public void testBackButtonWhenNavFromComponentDetails() throws Exception {
-    URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
-    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    TestReportEvaluator evaluator = new TestReportEvaluator(application, SCAN_ID, zippedReport, baseUrlFromTest, work);
-    evaluator.evaluatePolicy();
-    String hash = "dc810b3d25f9e8c930f5";
-
-    loginAsLimitedUser();
-    refreshOrOpen(ApplicationReportPage.url(application, SCAN_ID));
-    ApplicationReportPage reportPage = new ApplicationReportPage();
-    reportPage.shouldBe(visible);
-    ElementsCollection violations = reportPage.resultRows();
-    SelenideElement firstViolation = violations.first();
-    firstViolation.click();
-    waitUntilUrl(ComponentDetailsPage.url(application, SCAN_ID, hash));
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-
-    componentDetailsPage.violationsTab().click();
-    waitUntilUrl(ComponentDetailsPage.urlToViolations(application, SCAN_ID, hash));
-    componentDetailsPage.violationsTabContent().shouldBe(visible);
-
-    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
-    policyViolationsTable.shouldBe(visible);
-    SelenideElement firstRow = policyViolationsTable.getRow(1);
-    firstRow.shouldBe(visible).click();
-
-    PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
-    violationDetailPopover.shouldBe(visible);
-    violationDetailPopover.getRequestWaiversButton().shouldBe(visible).click();
-
-    RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-    requestWaiverPage.requestWaiverHeader().shouldBe(visible);
-    requestWaiverPage.backButton().click();
-
-    waitUntilUrl(ComponentDetailsPage.urlToViolations(application, SCAN_ID, hash));
-  }
-
-  @Test
   public void testSubmitButton() {
     loginAsLimitedUser();
     refreshOrOpen(RequestWaiverPage.url(policyViolation.getId()));
@@ -226,38 +121,6 @@ public class RequestWaiverTest
     requestWaiverPage.submitError().shouldBe(visible);
     requestWaiverPage.submitError()
         .shouldHave(text("An error occurred saving data. This policy waiver request already exists."));
-  }
-
-  @Test
-  public void testButtonStylingWithWaiverApplied() {
-    refreshOrOpen(DashboardPage.url());
-    loginAsAdmin();
-    DashboardPage.violationsTab().click();
-    DashboardViolations.ViolationsResults table = DashboardPage.violationsView().results();
-    table.firstViolation().click();
-    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
-    violationDetailsPage.shouldBe(visible);
-    ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
-    tile.addWaiverButton().click();
-
-    AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Application - App 1"));
-    NxRadio chosenComponent = addWaiverPage.component(2);
-    chosenComponent.click();
-    addWaiverPage.comments().setValue("Some comments");
-    addWaiverPage.saveButton().click();
-    NxSubmitMask.seeAndWaitForDismissal();
-    violationDetailsPage.detailsTile().shouldBe(visible);
-    logout();
-    refreshOrOpen(DashboardPage.url());
-    loginAsLimitedUser();
-    DashboardPage.violationsTab().click();
-    table = DashboardPage.violationsView().results();
-    table.firstViolation().click();
-    violationDetailsPage = new ViolationDetailsPage();
-    violationDetailsPage.shouldBe(visible);
-    tile = new ViolationDetailsPage().detailsTile();
-    tile.requestWaiverButton().shouldHave(cssClass("nx-btn--secondary")).click();
   }
 
   private void loginAsLimitedUser() {

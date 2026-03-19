@@ -19,11 +19,7 @@
     <clm.skip>true</clm.skip>
     <it.includes>**/*Test.*</it.includes>
     <selenide.timeout>4000</selenide.timeout>
-    <!-- 0.25C means 0.25 x number-of-CPUs:
-      8 CPUs -> 2 forks
-     16 CPUs -> 4 forks
- -->
-    <failsafe.forkCount>0.25C</failsafe.forkCount>
+    <failsafe.forkCount>0.5C</failsafe.forkCount>
   </properties>
 
   <build>

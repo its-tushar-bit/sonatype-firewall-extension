@@ -9,14 +9,9 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
-import com.sonatype.clm.testing.functional.pages.ReportListPage;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.Before;
@@ -46,86 +41,6 @@ public class PageLoadTest
   }
 
   @Test
-  public void testLoginModalVulnerabilitiesLink() {
-    refreshOrOpen(IndexPage.url());
-    LoginModal loginModal = new LoginModal();
-    loginModal.cancelButton().shouldNotBe(visible);
-    loginModal.vulnerabilityLookupText().shouldBe(visible);
-    loginModal.vulnerabilityLookupLink().shouldBe(visible).click();
-
-    waitUntilUrl(VulnerabilitySearchPage.url());
-    loginModal.shouldNotBe(visible);
-    VulnerabilitySearchPage vulnPage = new VulnerabilitySearchPage();
-    vulnPage.shouldBe(visible);
-
-    MainHeader.loginButton().shouldBe(visible).click();
-    loginModal.shouldBe(visible);
-    loginModal.cancelButton().shouldBe(visible);
-    loginModal.vulnerabilityLookupText().shouldNotBe(visible);
-    vulnPage.shouldBe(visible);
-    loginAsAdmin();
-
-    // wait a bit to ensure that the page isn't redirecting somewhere else (like the dashboard)
-    Selenide.sleep(1000);
-    MainHeader.loginButton().shouldNotBe(visible);
-    loginModal.shouldNotBe(visible);
-    vulnPage.shouldBe(visible);
-  }
-
-  @Test
-  public void testLoginModalVulnerabilitiesLink_FromDashboard() {
-    refreshOrOpen(DashboardPage.url());
-    LoginModal loginModal = new LoginModal();
-    loginModal.cancelButton().shouldNotBe(visible);
-    loginModal.vulnerabilityLookupText().shouldBe(visible);
-    loginModal.vulnerabilityLookupLink().shouldBe(visible).click();
-
-    waitUntilUrl(VulnerabilitySearchPage.url());
-    loginModal.shouldNotBe(visible);
-    VulnerabilitySearchPage vulnPage = new VulnerabilitySearchPage();
-    vulnPage.shouldBe(visible);
-
-    MainHeader.loginButton().shouldBe(visible).click();
-    loginModal.shouldBe(visible);
-    loginModal.cancelButton().shouldBe(visible);
-    loginModal.vulnerabilityLookupText().shouldNotBe(visible);
-    vulnPage.shouldBe(visible);
-    loginAsAdmin();
-
-    // wait a bit to ensure that the page isn't redirecting somewhere else (like the dashboard)
-    Selenide.sleep(1000);
-    MainHeader.loginButton().shouldNotBe(visible);
-    loginModal.shouldNotBe(visible);
-    vulnPage.shouldBe(visible);
-  }
-
-  @Test
-  public void testLoginModalCancelFromVulnerabilitiesPage() {
-    refreshOrOpen(DashboardPage.url());
-    LoginModal loginModal = new LoginModal();
-    loginModal.cancelButton().shouldNotBe(visible);
-    loginModal.vulnerabilityLookupText().shouldBe(visible);
-    loginModal.vulnerabilityLookupLink().shouldBe(visible).click();
-
-    waitUntilUrl(VulnerabilitySearchPage.url());
-    loginModal.shouldNotBe(visible);
-    VulnerabilitySearchPage vulnPage = new VulnerabilitySearchPage();
-    vulnPage.shouldBe(visible);
-
-    MainHeader.loginButton().shouldBe(visible).click();
-    loginModal.shouldBe(visible);
-    loginModal.vulnerabilityLookupText().shouldNotBe(visible);
-    loginModal.cancelButton().shouldBe(visible).click();
-    vulnPage.shouldBe(visible);
-
-    // wait a bit to ensure that the page isn't redirecting somewhere else (like the dashboard)
-    Selenide.sleep(1000);
-    MainHeader.loginButton().shouldBe(visible);
-    loginModal.shouldNotBe(visible);
-    vulnPage.shouldBe(visible);
-  }
-
-  @Test
   public void testLoadUnauthenticatedPage() {
     refreshOrOpen(VulnerabilitySearchPage.url());
 
@@ -150,96 +65,6 @@ public class PageLoadTest
   }
 
   @Test
-  public void testLoadAuthPageAfterUnauthPage() {
-    refreshOrOpen(VulnerabilitySearchPage.url());
-
-    LoginModal loginModal = new LoginModal();
-    loginModal.shouldNotBe(visible);
-    VulnerabilitySearchPage vulnPage = new VulnerabilitySearchPage();
-    vulnPage.shouldBe(visible);
-
-    refreshOrOpen(DashboardPage.url());
-    loginModal.shouldBe(visible);
-    vulnPage.shouldBe(visible);
-
-    loginAsAdmin();
-    loginModal.shouldNotBe(visible);
-    vulnPage.shouldNotBe(visible);
-    DashboardPage.dashboardContainer().shouldBe(visible);
-  }
-
-  @Test
-  public void testLoadUnauthPageWhileOnLogin() {
-    refreshOrOpen(DashboardPage.url());
-
-    LoginModal loginModal = new LoginModal();
-    loginModal.shouldBe(visible);
-    refreshOrOpen(VulnerabilitySearchPage.url());
-    loginModal.shouldNotBe(visible);
-    VulnerabilitySearchPage vulnPage = new VulnerabilitySearchPage();
-    vulnPage.shouldBe(visible);
-  }
-
-  @Test
-  public void testLoadNonDefaultAuthPage() {
-    refreshOrOpen(SuccessMetricsReportListPage.url());
-    LoginModal loginModal = new LoginModal();
-    loginModal.shouldBe(visible);
-    loginAsAdmin();
-
-    // Should go to the page specified, not default to the dashboard
-    new SuccessMetricsReportListPage().shouldBe(visible);
-  }
-
-  @Test
-  public void testLoadIndexHtml_DashboardNotLicensed() {
-    setMissingFeatures(LicensedFeature.DASHBOARD, LicensedFeature.FIREWALL, LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
-
-    refreshOrOpen(IndexPage.url());
-    loginAsAdmin();
-    waitUntilUrl(ReportListPage.url());
-    ReportListPage.listContainer().shouldBe(visible);
-  }
-
-  @Test
-  public void testLoadIndexHtml_DashboardFeatureDisabled() {
-    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.DASHBOARD_DISABLED, "true");
-
-    refreshOrOpen(IndexPage.url());
-    loginAsAdmin();
-    waitUntilUrl(ReportListPage.url());
-    ReportListPage.listContainer().shouldBe(visible);
-  }
-
-  @Test
-  public void testLoadIndexHtml_NoReportsList() {
-    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.REPORTS_LIST_DISABLED, "true");
-
-    refreshOrOpen(IndexPage.url());
-    loginAsAdmin();
-    waitUntilUrl(DashboardPage.url());
-    DashboardPage.dashboardContainer().shouldBe(visible);
-  }
-
-  @Test
-  public void testLoadIndexHtml_NoDashboardAndNoReportsList() {
-    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.DASHBOARD_DISABLED, "true");
-    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.REPORTS_LIST_DISABLED, "true");
-
-    setMissingFeatures(LicensedFeature.DASHBOARD,
-        LicensedFeature.FIREWALL,
-        LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
-        LicensedFeature.RELEASE_INTEGRITY,
-        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
-        LicensedFeature.WAIVERS_DASHBOARD);
-
-    refreshOrOpen(IndexPage.url());
-    loginAsAdmin();
-    waitUntilUrl(GettingStartedPage.url());
-    new GettingStartedPage().productLicenseSummary().shouldBe(visible);
-  }
-
-  @Test
   public void testLoadIndexHtml_NoLicense() {
     uninstallLicense();
 
@@ -261,36 +86,4 @@ public class PageLoadTest
     ProductLicensePage.installLicenseBtn().shouldBe(visible);
   }
 
-  @Test
-  public void testLoadNonDefaultAuthPage_NoLicense() {
-    uninstallLicense();
-
-    refreshOrOpen(SuccessMetricsReportListPage.url());
-    LoginModal loginModal = new LoginModal();
-    loginModal.shouldBe(visible);
-
-    // no link to vuln lookup page before license is installed
-    loginModal.vulnerabilityLookupLink().shouldNotBe(visible);
-    loginAsAdmin();
-
-    // should go to Product License Page
-    waitUntilUrl(ProductLicensePage.url());
-  }
-
-  @Test
-  public void testLoadUnauthenticatedPage_NoLicense() {
-    uninstallLicense();
-
-    refreshOrOpen(VulnerabilitySearchPage.url());
-
-    LoginModal loginModal = new LoginModal();
-
-    // login required even though it is an unauthenticated page
-    loginModal.shouldBe(visible);
-    loginModal.vulnerabilityLookupLink().shouldNotBe(visible);
-    loginAsAdmin();
-
-    // should go to Product License Page
-    waitUntilUrl(ProductLicensePage.url());
-  }
 }

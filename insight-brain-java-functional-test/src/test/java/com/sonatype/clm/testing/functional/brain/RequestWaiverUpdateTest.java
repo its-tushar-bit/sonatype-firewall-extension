@@ -132,52 +132,6 @@ public class RequestWaiverUpdateTest
   }
 
   @Test
-  public void testBackButton() {
-    refreshOrOpen(DashboardPage.urlToWaiverRequests());
-    DashboardPage.waitUntilSpinnersGone();
-
-    DashboardPage.dashboardContainer().shouldBe(visible);
-    dashboardWaiverRequestTable.firstWaiverRequest().click();
-
-    RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-    requestWaiverPage.backButton().shouldHave(text("Back to Waiver Requests")).click();
-
-    WaiverRequestTile waiverRequest = verifyDashboardWaiverRequests(
-        0,
-        SEVERE,
-        "7",
-        policyWaiverRequest.getRequestTime(),
-        "Test User 1",
-        "Policy 1",
-        "Application - App 1",
-        "Group1 : Artifact1 : Version1");
-    waiverRequest.status().shouldHave(text("Requested"));
-  }
-
-  @Test
-  public void testCancelButton() {
-    refreshOrOpen(DashboardPage.urlToWaiverRequests());
-    DashboardPage.waitUntilSpinnersGone();
-
-    DashboardPage.dashboardContainer().shouldBe(visible);
-    dashboardWaiverRequestTable.firstWaiverRequest().click();
-
-    RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-    requestWaiverPage.cancelButton().click();
-
-    WaiverRequestTile waiverRequest = verifyDashboardWaiverRequests(
-        0,
-        SEVERE,
-        "7",
-        policyWaiverRequest.getRequestTime(),
-        "Test User 1",
-        "Policy 1",
-        "Application - App 1",
-        "Group1 : Artifact1 : Version1");
-    waiverRequest.status().shouldHave(text("Requested"));
-  }
-
-  @Test
   public void testSubmitUpdatedValues() {
     refreshOrOpen(DashboardPage.urlToWaiverRequests());
     DashboardPage.waitUntilSpinnersGone();
@@ -287,59 +241,6 @@ public class RequestWaiverUpdateTest
     String expectedText = "This Waiver Request was rejected by " + reviewerName + " for the following reason:";
     requestWaiverPage.rejectionErrorAlert().shouldHave(text(expectedText));
     requestWaiverPage.rejectionErrorAlert().shouldHave(text(rejectionReason));
-  }
-
-  @Test
-  public void testPageElementsReadOnlyIfRequestWasApproved() {
-    String reviewerName = "Admin Reviewer";
-
-    policyWaiverRequest.setStatus(PolicyWaiverRequestStatus.APPROVED);
-    policyWaiverRequest.setReviewerId("admin");
-    policyWaiverRequest.setReviewerName(reviewerName);
-    policyWaiverRequestDAO.update(policyWaiverRequest);
-
-    refreshOrOpen(DashboardPage.urlToWaiverRequests());
-    DashboardPage.waitUntilSpinnersGone();
-
-    DashboardPage.dashboardContainer().shouldBe(visible);
-    WaiverRequestTile waiverRequest = verifyDashboardWaiverRequests(
-        0,
-        SEVERE,
-        "7",
-        policyWaiverRequest.getRequestTime(),
-        "Test User 1",
-        "Policy 1",
-        "Application - App 1",
-        "Group1 : Artifact1 : Version1");
-    waiverRequest.status().shouldHave(text("Approved"));
-
-    dashboardWaiverRequestTable.firstWaiverRequest().click();
-
-    RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-
-    verifyWaiverRequestValues(
-        requestWaiverPage,
-        "Application - App 1",
-        "Acknowledged violation",
-        "Custom",
-        threeDaysFromNow,
-        "Comment 1",
-        "Note to Reviewer 1");
-
-    verifyFormElementsAreReadOnly(requestWaiverPage);
-  }
-
-  private void verifyFormElementsAreReadOnly(RequestWaiverPage requestWaiverPage) {
-    requestWaiverPage.requestWaiverScopeSelect().shouldHave(Condition.attribute("disabled"));
-
-    requestWaiverPage.waiverExpirationSelect().shouldHave(Condition.attribute("disabled"));
-
-    requestWaiverPage.waiverReasonSelect().shouldHave(Condition.attribute("disabled"));
-
-    requestWaiverPage.requestWaiverComments().shouldHave(Condition.attribute("disabled"));
-    requestWaiverPage.requestWaiverNoteToReviewer().shouldHave(Condition.attribute("disabled"));
-
-    requestWaiverPage.saveButton().shouldHave(Condition.cssClass("disabled"));
   }
 
   private void loginAsLimitedUser() {

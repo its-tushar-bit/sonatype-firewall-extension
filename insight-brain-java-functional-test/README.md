@@ -9,9 +9,7 @@
 
 This test project runs Functional tests with Selenium on IQ. (On-Premise).
 
-If you are looking for MTIQ functional tests those are located on `nexus-mtiq-functional-test` module.
-
-`insight-brain-functional-test-common` module contains common resources used in both IQ and MTIQ functional tests.
+`insight-brain-functional-test-common` module contains common resources used in functional tests.
 
 ## Running
 

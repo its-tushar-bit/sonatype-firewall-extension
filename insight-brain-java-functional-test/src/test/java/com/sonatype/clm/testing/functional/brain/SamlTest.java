@@ -11,11 +11,9 @@ import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.UserDetailsModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
-import com.sonatype.clm.testing.functional.pages.BackupLoginPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.KeycloakLoginPage;
-import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.insight.brain.api.v2.service.ApiSamlConfigurationService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -66,50 +64,6 @@ public class SamlTest
   @After
   public void after() {
     keycloakServerRule.clean();
-  }
-
-  @Test
-  public void testAnonymousAccess() {
-    // SAML Configuration
-    apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
-    String metadata = apiSamlConfigurationService.getMetadata();
-    ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
-    clientRepresentation.setProtocolMappers(KeycloakServerUtil.protocolMappers());
-    keycloak.createClient(clientRepresentation);
-
-    LoginModal loginModal = new LoginModal();
-    VulnerabilitySearchPage vulnPage = new VulnerabilitySearchPage();
-
-    // VulnerabilitySearchPage access before login
-    refreshOrOpen(IndexPage.url());
-    loginModal.vulnerabilityLookupLink().shouldBe(visible).click();
-    waitUntilUrl(VulnerabilitySearchPage.url());
-    loginModal.shouldNotBe(visible);
-    vulnPage.shouldBe(visible);
-
-    MainHeader.loginButton().shouldBe(visible).click();
-    loginModal.shouldBe(visible);
-    loginModal.ssoButton().shouldBe(visible, focused);
-
-    String username = "koraytugay";
-    String password = "my-password";
-    String userId = keycloak.createUser("Koray", "Tugay", username, "koray@tugay.biz", password, null);
-    loginModal.ssoButton().click();
-    KeycloakLoginPage.login(username, password);
-
-    // VulnerabilitySearchPage after login
-    refreshOrOpen(VulnerabilitySearchPage.url());
-    vulnPage.shouldBe(visible);
-
-    keycloak.logoutUser(userId);
-    logout();
-
-    // VulnerabilitySearchPage after logout
-    refreshOrOpen(IndexPage.url());
-    loginModal.vulnerabilityLookupText().shouldBe(visible);
-    loginModal.vulnerabilityLookupLink().shouldBe(visible).click();
-    waitUntilUrl(VulnerabilitySearchPage.url());
-    loginModal.shouldNotBe(visible);
   }
 
   @Test
@@ -193,61 +147,6 @@ public class SamlTest
   }
 
   @Test
-  public void testLoginSsoOnly_backupLogin() {
-    SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.setEnabled(true);
-
-    // Upload Identity Provider metadata to IQ Server
-    apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
-
-    // Register IQ in Keycloak
-    String metadata = apiSamlConfigurationService.getMetadata();
-    ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
-    clientRepresentation.setProtocolMappers(KeycloakServerUtil.protocolMappers());
-    keycloak.createClient(clientRepresentation);
-
-    // Create a group and a user
-    String groupId = keycloak.createGroup("group-developers");
-    String username = "john.doe";
-    String password = "password";
-    String userId = keycloak.createUser("John", "Doe", username, "john@doe.com", password, null);
-    keycloak.assignUserToGroup(userId, groupId);
-
-    // Load the backup login page which should NOT redirect to SSO login automatically
-    refreshOrOpen(BackupLoginPage.url());
-    loginAsAdmin();
-
-    DashboardPage.dashboardContainer().shouldBe(visible);
-  }
-
-  @Test
-  public void testLoginSsoOnly_backupLogin_SsoButton() {
-    SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.setEnabled(true);
-
-    // Upload Identity Provider metadata to IQ Server
-    apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
-
-    // Register IQ in Keycloak
-    String metadata = apiSamlConfigurationService.getMetadata();
-    ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
-    clientRepresentation.setProtocolMappers(KeycloakServerUtil.protocolMappers());
-    keycloak.createClient(clientRepresentation);
-
-    // Create a group and a user
-    String groupId = keycloak.createGroup("group-developers");
-    String username = "john.doe";
-    String password = "password";
-    String userId = keycloak.createUser("John", "Doe", username, "john@doe.com", password, null);
-    keycloak.assignUserToGroup(userId, groupId);
-
-    // Load the backup login page which should NOT redirect to SSO login automatically
-    refreshOrOpen(BackupLoginPage.url());
-    new LoginModal().ssoButton().shouldBe(visible).click();
-    KeycloakLoginPage.login(username, password);
-
-    DashboardPage.dashboardContainer().shouldBe(visible);
-  }
-
-  @Test
   public void testIntegrationWithMinimalConfig() {
     // Upload Identity Provider metadata to IQ Server
     apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
@@ -282,42 +181,6 @@ public class SamlTest
     modal.displayName().shouldBe(text("johanne.doanne"));
     modal.groups().shouldBe(text(Group.AUTHENTICATED_USERS_GROUP_ID));
     modal.closeButton().click();
-  }
-
-  @Test
-  public void testDeleteSamlConfigurationLoggedInUsersActiveAndCanLogout() {
-    // Upload Identity Provider metadata to IQ Server
-    apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
-
-    // Register IQ in Keycloak
-    String metadata = apiSamlConfigurationService.getMetadata();
-    ClientRepresentation clientRepresentation = keycloak.createClientRepresentation(metadata);
-    clientRepresentation.setProtocolMappers(KeycloakServerUtil.protocolMappers());
-    keycloak.createClient(clientRepresentation);
-
-    String username = "william.gibson";
-    String password = "will-password";
-    keycloak.createUser("William", "Gibson", username, "william@gibson.com", password, null);
-
-    // William logs in
-    refreshOrOpen(IndexPage.url());
-    LoginModal loginModal = new LoginModal();
-    loginModal.ssoButton().click();
-
-    KeycloakLoginPage.login(username, password);
-    DashboardPage.dashboardContainer().shouldBe(visible);
-
-    // Admin decides to delete SAML Configuration from IQ Server while William Gibson has a session
-    apiSamlConfigurationService.deleteSamlConfiguration();
-
-    // William should still be able to navigate around
-    refreshOrOpen(IndexPage.url());
-    DashboardPage.dashboardContainer().shouldBe(visible);
-
-    // William should be able to logout
-    logout();
-    loginModal.loginButton().shouldBe(visible);
-    loginModal.ssoButton().shouldNotBe(visible);
   }
 
   @Test

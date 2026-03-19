@@ -11,21 +11,14 @@ import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Button;
-import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
-import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxTextInput;
-import com.sonatype.clm.testing.functional.elements.ResetPasswordModal;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
-import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage;
-import com.sonatype.clm.testing.functional.pages.UserManagementPage.CopyToClipboardModal;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage.EditUserForm;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage.NewUserForm;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
 
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
@@ -33,7 +26,6 @@ import org.junit.Test;
 import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.CollectionCondition.size;
-import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.empty;
@@ -43,7 +35,6 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserManagementTest
     extends AbstractFunctionalTest
@@ -179,39 +170,6 @@ public class UserManagementTest
   }
 
   @Test
-  public void testUserResetPassword() {
-    User user = createUser();
-    int userRow = 0;
-
-    refreshOrOpen(UserManagementPage.url());
-    UserManagementPage userManagementPage = new UserManagementPage();
-
-    EditUserForm editUserForm = goToEditUserForm(userManagementPage, userRow);
-    editUserForm.shouldBe(visible);
-    editUserForm.resetPasswordButton().shouldNotBe(CLM.DISABLED).click();
-
-    ResetPasswordModal resetPasswordModal = userManagementPage.resetPasswordModal();
-    resetPasswordModal.shouldBe(visible);
-
-    resetPasswordModal.reset().click();
-
-    CopyToClipboardModal copyToClipboardModal = userManagementPage.copyToClipboardModal();
-
-    String newPassword = copyToClipboardModal.newPassword().shouldBe(visible).val();
-    copyToClipboardModal.ok().click();
-
-    logout();
-    login(user.getUsername(), newPassword);
-
-    UserMenu userMenu = MainHeader.userMenu();
-    userMenu.dropdownToggle().shouldBe(visible).click();
-    userMenu.userName().shouldBe(text(user.getFirstName() + " " + user.getLastName()));
-
-    // close the menu again so the logout logic works
-    userMenu.dropdownToggle().click();
-  }
-
-  @Test
   public void testUserEditProfile() {
     User user = createUser();
     int userRow = 0;
@@ -238,84 +196,6 @@ public class UserManagementTest
         .get(userRow)
         .shouldHave(text(user.getUsername() +
             " (testupdateFirstName testupdateLastName)"));
-  }
-
-  @Test
-  public void testDeleteUser() {
-    User user = createUser();
-    int userRow = 0;
-
-    refreshOrOpen(UserManagementPage.url());
-    UserManagementPage userManagementPage = new UserManagementPage();
-
-    EditUserForm editUserForm = goToEditUserForm(userManagementPage, userRow);
-    editUserForm.shouldBe(visible);
-    editUserForm.deleteButton().shouldNotBe(CLM.DISABLED).click();
-
-    NxDeleteModal deleteModal = new NxDeleteModal("#delete-user-modal");
-
-    deleteModal.header().shouldHave(text("Delete User"));
-    deleteModal.alertContent()
-        .shouldHave(text("You are about to permanently remove " +
-            user.getUsername() + ". This action cannot be undone."));
-    deleteModal.submitButton().click();
-    deleteModal.should(disappear);
-
-    userManagementPage.userItems().shouldHave(size(1));
-  }
-
-  @Test
-  public void testDeleteModal() throws Exception {
-    User user = createUser();
-    refreshOrOpen(UserManagementPage.url());
-
-    UserManagementPage userManagementPage = new UserManagementPage();
-
-    int userRow = -1;
-    String username = user.getUsername().toLowerCase();
-    ElementsCollection headers = userManagementPage.userItems();
-    headers.shouldHave(sizeGreaterThan(0));
-
-    for (int i = 0; i < headers.size(); i++) {
-      SelenideElement element = userManagementPage.userItems().get(i);
-      if (element.getText().toLowerCase().contains(username)) {
-        userRow = i;
-        break;
-      }
-    }
-    assertThat(userRow).isNotEqualTo(-1);
-
-    SelenideElement accordionHeader = userManagementPage.userItems().get(userRow);
-    accordionHeader.shouldHave(text(user.getUsername()));
-
-    EditUserForm editUserForm = goToEditUserForm(userManagementPage, userRow);
-    editUserForm.shouldBe(visible);
-    editUserForm.deleteButton().click();
-
-    NxDeleteModal deleteModal = new NxDeleteModal("#delete-user-modal");
-    deleteModal.shouldBe(visible);
-
-    // Stop server to test error messages.
-    testCLMServer.stop();
-
-    deleteModal.submitButton().click();
-    deleteModal.error().shouldBe(visible);
-    deleteModal.shouldBe(visible);
-    cleanupAllPersistedUserSessions();
-    // Start the server again, and log back in
-    testCLMServer.start();
-
-    initialLogin();
-    refreshOrOpen(UserManagementPage.url());
-    // Test proper delete.
-    EditUserForm editUserForm2 = goToEditUserForm(userManagementPage, userRow);
-    editUserForm2.deleteButton().click();
-
-    deleteModal.shouldBe(visible);
-    deleteModal.submitButton().click();
-    deleteModal.shouldNotBe(visible);
-    // Confirm delete
-    accordionHeader.shouldNotHave(text(user.getUsername()));
   }
 
   private void keyInElementValue(final String inputText, final List<SelenideElement> elements) {

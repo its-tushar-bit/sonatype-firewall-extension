@@ -29,7 +29,7 @@ public class KeycloakServer
   public static final String IMAGE_NAME = "keycloak/keycloak";
 
   // IMPORTANT: Keep this version in sync with keycloak.version in pom.xml
-  public static final String IMAGE_VERSION = "26.4.7";
+  public static final String IMAGE_VERSION = "26.5.6";
 
   public static final String IMAGE = IMAGE_NAME + ":" + IMAGE_VERSION;
 

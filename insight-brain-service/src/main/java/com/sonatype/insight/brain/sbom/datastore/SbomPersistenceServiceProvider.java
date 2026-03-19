@@ -48,7 +48,7 @@ public class SbomPersistenceServiceProvider
   @Override
   public SbomPersistenceService get() {
     if (insightConfig.getStorage() == null) {
-      log.info("No storage config found, using FileSbomPersistenceService");
+      log.trace("No storage config found, using FileSbomPersistenceService");
       return fileSbomPersistenceServiceProvider.get();
     }
     return get(insightConfig.getStorage().getType());
@@ -57,15 +57,15 @@ public class SbomPersistenceServiceProvider
   public SbomPersistenceService get(final DataStoreType dataStoreType) {
     return switch (dataStoreType) {
       case FILE -> {
-        log.info("Using FileSbomPersistenceService");
+        log.trace("Using FileSbomPersistenceService");
         yield fileSbomPersistenceServiceProvider.get();
       }
       case S3 -> {
-        log.info("Using S3SbomPersistenceService");
+        log.trace("Using S3SbomPersistenceService");
         yield s3SbomPersistenceServiceProvider.get();
       }
       case HYBRID -> {
-        log.info("Using HybridSbomPersistenceService");
+        log.trace("Using HybridSbomPersistenceService");
         yield hybridSbomPersistenceServiceProvider.get();
       }
     };

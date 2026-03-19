@@ -286,7 +286,7 @@
             <include>**/*Test.*</include>
           </includes>
           <trimStackTrace>false</trimStackTrace>
-          <reuseForks>false</reuseForks>
+          <reuseForks>true</reuseForks>
           <useUnlimitedThreads>false</useUnlimitedThreads>
           <!-- 15 minute timeout per fork to prevent hanging builds -->
           <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
@@ -294,8 +294,7 @@
           <forkedProcessExitTimeoutInSeconds>30</forkedProcessExitTimeoutInSeconds>
           <!-- Force kill JVM after tests complete to prevent hanging from daemon threads (CLM-34044) -->
           <shutdown>kill</shutdown>
-          <!-- Reduced from 0.5C to 1 fork to prevent hanging from concurrent tests (CLM-34044) -->
-          <forkCount>1</forkCount>
+          <forkCount>0.75C</forkCount>
           <!-- Increased heap from 1G to 2G to prevent OOM and GC pressure during tests -->
           <argLine>@{argLine} -Xmx2048M -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
           <systemPropertyVariables>

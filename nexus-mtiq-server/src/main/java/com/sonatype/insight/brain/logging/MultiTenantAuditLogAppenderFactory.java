@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.error.exception.InternalServerException;
 
@@ -94,6 +95,16 @@ public class MultiTenantAuditLogAppenderFactory
    */
   public void setAuditLogBasePath(final String auditLogBasePath) {
     MultiTenantAuditLogAppenderFactory.auditLogBasePath = auditLogBasePath;
+  }
+
+  @VisibleForTesting
+  static String getAuditLogBasePathForTesting() {
+    return auditLogBasePath;
+  }
+
+  @VisibleForTesting
+  static void setAuditLogBasePathForTesting(String path) {
+    MultiTenantAuditLogAppenderFactory.auditLogBasePath = path;
   }
 
   @Override

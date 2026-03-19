@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.health;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.insight.brain.operational.check.AbstractOperationalCheck;
 
 /**
@@ -30,6 +31,11 @@ public class ServerBootHealthCheck
 
   public static void fullyBooted() {
     ServerBootHealthCheck.fullyBooted = true;
+  }
+
+  @VisibleForTesting
+  static void resetForTesting() {
+    ServerBootHealthCheck.fullyBooted = false;
   }
 
   @Override

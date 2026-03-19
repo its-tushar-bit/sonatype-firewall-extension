@@ -5,12 +5,24 @@
  */
 package com.sonatype.insight.brain.health;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ServerBootHealthCheckTest
 {
+  @Before
+  public void setUp() {
+    ServerBootHealthCheck.resetForTesting();
+  }
+
+  @After
+  public void tearDown() {
+    ServerBootHealthCheck.resetForTesting();
+  }
+
   @Test
   public void testHealthCheck() throws Exception {
     ServerBootHealthCheck healthCheck = new ServerBootHealthCheck();

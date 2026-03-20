@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.hds.ComponentRemediationService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.DependencyType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
@@ -42,7 +43,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.inject.Binder;
@@ -85,9 +86,6 @@ public class ManualPullRequestServiceTest
   private ScmRepoVisibilityService mockScmRepoVisibilityService;
 
   @Mock
-  private TenantUtil mockTenantUtil;
-
-  @Mock
   private GitHubAppDAO mockGitHubAppDAO;
 
   @Inject
@@ -97,7 +95,6 @@ public class ManualPullRequestServiceTest
   public void configure(Binder binder) {
     super.configure(binder);
     binder.bind(ScmRepoVisibilityService.class).toInstance(mockScmRepoVisibilityService);
-    binder.bind(TenantUtil.class).toInstance(mockTenantUtil);
     binder.bind(GitHubAppDAO.class).toInstance(mockGitHubAppDAO);
   }
 
@@ -308,6 +305,87 @@ public class ManualPullRequestServiceTest
   }
 
   @Test
+  public void testIsManualPullRequestPossible_True_WhenSaasLifecycleScmPrsEnabledInMultiTenant() {
+    try {
+      TenantTestHelper.initMultiTenantMode();
+      TenantTestHelper.testAsNewTenant("test-tenant", tenant -> {
+        try {
+          SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.setEnabled(true);
+
+          assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.isEnabled()).isTrue();
+
+          Organization tenantOrg = tempEntity.newOrganization("test-org");
+          Application tenantApp = tempEntity.newApplication(tenantOrg.getId());
+          grantPermission(tenantApp.getId(), Permission.CREATE_PULL_REQUESTS);
+
+          SourceControl sourceControl = new SourceControl();
+          sourceControl.setOwnerId(tenantApp.getId());
+          sourceControl.setRepositoryUrl("https://github.com/test/repo");
+          sourceControl.setProvider(SourceControlProvider.GITHUB);
+          sourceControl.setBaseBranch("main");
+          sourceControl.setManualPullRequestsEnabled(true);
+          sourceControl.setToken(passwordHandler.encryptPassword("testToken"));
+          tempEntity.newSourceControl(sourceControl);
+
+          ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+          remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
+
+          Optional<ManualPullRequestImpossibilityReason> result =
+              manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+                  VALID_DEPENDENCY_TYPE,
+                  tenantApp,
+                  remediationDto);
+
+          assertThat(result).isEmpty();
+        }
+        finally {
+          SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.setEnabled(false);
+        }
+      });
+    }
+    finally {
+      TenantTestHelper.resetAfterTest();
+    }
+  }
+
+  @Test
+  public void testIsManualPullRequestPossible_False_WhenSaasLifecycleScmPrsDisabledInMultiTenant() {
+    try {
+      TenantTestHelper.initMultiTenantMode();
+      TenantTestHelper.testAsNewTenant("test-tenant", tenant -> {
+        assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.isEnabled()).isFalse();
+
+        Organization tenantOrg = tempEntity.newOrganization("test-org");
+        Application tenantApp = tempEntity.newApplication(tenantOrg.getId());
+        grantPermission(tenantApp.getId(), Permission.CREATE_PULL_REQUESTS);
+
+        SourceControl sourceControl = new SourceControl();
+        sourceControl.setOwnerId(tenantApp.getId());
+        sourceControl.setRepositoryUrl("https://github.com/test/repo");
+        sourceControl.setProvider(SourceControlProvider.GITHUB);
+        sourceControl.setBaseBranch("main");
+        sourceControl.setManualPullRequestsEnabled(true);
+        sourceControl.setToken(passwordHandler.encryptPassword("testToken"));
+        tempEntity.newSourceControl(sourceControl);
+
+        ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+        remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
+
+        Optional<ManualPullRequestImpossibilityReason> result =
+            manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+                VALID_DEPENDENCY_TYPE,
+                tenantApp,
+                remediationDto);
+
+        assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NOT_SUPPORTED_FOR_MTIQ);
+      });
+    }
+    finally {
+      TenantTestHelper.resetAfterTest();
+    }
+  }
+
+  @Test
   public void testIsManualPullRequestPossible_False_SuggestedVersionIsCurrentVersion() {
     ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
 
@@ -321,24 +399,6 @@ public class ManualPullRequestServiceTest
               remediationDto);
 
       assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
-    }
-  }
-
-  @Test
-  public void testIsManualPullRequestPossible_False_MTIQ() {
-    when(mockTenantUtil.isMultiTenant()).thenReturn(true);
-
-    ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
-    for (ApiVersionChangeOptionType versionChangeType : ComponentRemediationService.PREFERABLE_TYPE_ORDER) {
-      remediationDto.versionChanges = getVersionChanges(Map.of("v", versionChangeType));
-
-      Optional<ManualPullRequestImpossibilityReason> result =
-          manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
-              VALID_DEPENDENCY_TYPE,
-              app,
-              remediationDto);
-
-      assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NOT_SUPPORTED_FOR_MTIQ);
     }
   }
 

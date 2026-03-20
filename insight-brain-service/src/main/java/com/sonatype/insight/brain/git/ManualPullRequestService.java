@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.DependencyType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -29,7 +30,6 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 
 import jakarta.inject.Inject;
@@ -61,8 +61,6 @@ public class ManualPullRequestService
 
   private final RemediationPullRequestEligibilityService remediationPullRequestEligibilityService;
 
-  private final TenantUtil tenantUtil;
-
   private final GitHubAppDAO gitHubAppDAO;
 
   @Inject
@@ -76,7 +74,6 @@ public class ManualPullRequestService
       PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
       ComponentRemediationService componentRemediationService,
       RemediationPullRequestEligibilityService remediationPullRequestEligibilityService,
-      TenantUtil tenantUtil,
       GitHubAppDAO gitHubAppDAO)
   {
     this.sourceControlDAO = sourceControlDAO;
@@ -88,7 +85,6 @@ public class ManualPullRequestService
     this.pullRequestBranchNameGenerator = pullRequestBranchNameGenerator;
     this.componentRemediationService = componentRemediationService;
     this.remediationPullRequestEligibilityService = remediationPullRequestEligibilityService;
-    this.tenantUtil = tenantUtil;
     this.gitHubAppDAO = gitHubAppDAO;
   }
 
@@ -109,7 +105,7 @@ public class ManualPullRequestService
       final Owner owner,
       final ApiComponentRemediationValueDTO remediationDto)
   {
-    if (tenantUtil.isMultiTenant()) {
+    if (!SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.isEnabled()) {
       return Optional.of(ManualPullRequestImpossibilityReason.NOT_SUPPORTED_FOR_MTIQ);
     }
 

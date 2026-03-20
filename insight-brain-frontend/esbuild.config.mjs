@@ -101,10 +101,16 @@ async function copyStaticFiles() {
 
 // Rewrite relative url() paths to absolute before sass merges files together.
 // After sass compilation, all url() references resolve against the entry file's
-// directory, losing the original source file context.  This is the esbuild-sass-plugin
+// directory, losing the original source file context.  The absolute filesystem
+// paths injected here are only intermediary - esbuild's file loader then picks
+// them up, copies the referenced assets to the output directory, and replaces
+// these paths with the correct relative output URLs.  This is the esbuild-sass-plugin
 // documented solution (equivalent to webpack's resolve-url-loader).
 const sassPrecompile = (source, pathname) => {
-  const basedir = path.dirname(pathname);
+  // url() takes a URL, which always uses forward slashes as path delimiters.
+  // On Windows, backslashes would additionally be consumed as CSS escape
+  // characters by the SASS compiler (e.g. D:\foo → D:/foo).
+  const basedir = path.dirname(pathname).replaceAll('\\', '/');
   return source.replace(/(url\(\s*['"]?)(\.\.?\/)([^'")]+['"]?\s*\))/g, `$1${basedir}/$2$3`);
 };
 
@@ -160,16 +166,24 @@ async function copyModules(metafile) {
 // directives (@import, @use, @forward), making it the right place to
 // remap custom path prefixes.
 const sassImportMapper = (importPath) => {
+  // Return native OS paths (backslashes on Windows) — the plugin's resolveImport
+  // uses path.sep to locate the last separator when prepending '_' for SASS partials.
+  // Forward-slash paths cause that logic to fail on Windows.
+  //
+  // On Windows, Dart Sass resolves bare @use paths relative to the containing
+  // file's canonical file:// URL, then passes the result through canonicalize.
+  // By the time importMapper sees it, path separators are backslashes
+  // (e.g. "…\waivers\MainRoot\scss\mixins"), so we must match both / and \.
   if (importPath.startsWith('~')) {
     return path.resolve(__dirname, 'node_modules', importPath.slice(1));
   }
-  const mainRootIdx = importPath.indexOf('MainRoot/');
-  if (mainRootIdx >= 0) {
-    return srcDir + '/' + importPath.substring(mainRootIdx + 'MainRoot/'.length);
+  const mainRootMatch = importPath.match(/MainRoot[/\\]/);
+  if (mainRootMatch) {
+    return path.resolve(srcDir, importPath.substring(mainRootMatch.index + 'MainRoot/'.length));
   }
-  const nodeModulesIdx = importPath.indexOf('node_modules/');
-  if (nodeModulesIdx >= 0) {
-    return path.resolve(__dirname, importPath.substring(nodeModulesIdx));
+  const nodeModulesMatch = importPath.match(/node_modules[/\\]/);
+  if (nodeModulesMatch) {
+    return path.resolve(__dirname, importPath.substring(nodeModulesMatch.index));
   }
   return importPath;
 };

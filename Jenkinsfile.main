@@ -5,9 +5,7 @@
  */
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
 
-m2Zip = 'm2.zip'
 workspaceZip = 'workspace.zip'
-iqTestsZip = 'iq-tests.zip'
 
 configureBranchJob()
 make(
@@ -284,38 +282,26 @@ void runBuildAndParallelSteps(Map<String, ?> mavenCommon, String keystoreCredId,
     buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
   }
 
-  if (!isMergeQueueBranch(env)) {
-    if (isFastCopyEnabled()) {
-      runSafely "zip --symlinks -q -r ${m2Zip} .zion/repository/*"
-      runSafely 'find . \\( -type d \\( -name "test-classes" -o -name "classes" \\) -o -type f -name "pom.xml" -o -path "*/src/*" -o -type d -name .mvn \\) ! -path "./insight-brain-frontend/target/*" ! -path "./insight-brain-functional-test-common/target/*" -print | zip -q -r iq-tests.zip -@'
-
-      //\( -type d \( -name "test-classes" -o -name "classes" \) -o -type f -name "pom.xml" -o -path "*/src/*" \)
-
-      archiveArtifacts(artifacts: "${m2Zip}, ${iqTestsZip}", fingerprint: false)
-    }
-    else {
-      runSafely "zip --symlinks -q -r ${workspaceZip} . "
-      archiveArtifacts(artifacts: workspaceZip, fingerprint: false)
-    }
+  runSafely "zip --symlinks -q -r ${workspaceZip} . "
+  archiveArtifacts(artifacts: workspaceZip, fingerprint: false)
 
 
-    def zips = isFastCopyEnabled() ? [m2Zip, iqTestsZip] : [workspaceZip]
-    def parallelSteps = new HashMap<String, Closure>(getParallelTests(zips))
-    parallelSteps.putAll(getDockerSteps(zips))
-    parallel(parallelSteps)
+  def zips = [workspaceZip]
+  def parallelSteps = new HashMap<String, Closure>(getParallelTests(zips))
+  parallelSteps.putAll(getDockerSteps(zips))
+  parallel(parallelSteps)
 
-    // Collect JaCoCo coverage from all parallel test stages into a single report
-    dir('jacoco-collection') {
-      parallelSteps.keySet().each { stageName ->
-        String stashName = "jacoco-${stageName.replaceAll('[^a-zA-Z0-9]', '-')}"
-        try {
-          dir(stashName) { unstash stashName }
-        } catch (e) {
-          echo "No JaCoCo coverage data from ${stageName}: ${e.message}"
-        }
+  // Collect JaCoCo coverage from all parallel test stages into a single report
+  dir('jacoco-collection') {
+    parallelSteps.keySet().each { stageName ->
+      String stashName = "jacoco-${stageName.replaceAll('[^a-zA-Z0-9]', '-')}"
+      try {
+        dir(stashName) { unstash stashName }
+      } catch (e) {
+        echo "No JaCoCo coverage data from ${stageName}: ${e.message}"
       }
-      recordCoverage(tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']])
     }
+    recordCoverage(tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']])
   }
 }
 
@@ -339,7 +325,6 @@ Map<String, Closure> getParallelTests(List <String> zips) {
   }
 
   // These tests make use of iq-tests.zip which does not include insight-brain-frontend (1.2GB)
-  if (isUnitTestsEnabled()) {
     if (!params.skipUnitA) {
       testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 A', 'OpenJDK 17', '.*/[A].*Test.class', zips)
     }
@@ -373,22 +358,12 @@ Map<String, Closure> getParallelTests(List <String> zips) {
     if (!params.skipFrontend) {
       testStages << createFrontendTests('Frontend Tests - Jest', zips)
     }
-  }
   return testStages
-}
-
-Map<String, Closure> createFunctionalTests(
-    String stageName,
-    String regex,
-    List<String> zipFiles
-) {
-  return createFunctionalTests(stageName, regex, false, zipFiles)
 }
 
 Map<String, Closure> createFunctionalTests(
   String stageName,
   String regex,
-  boolean mtiq,
   List<String> zipFiles
 ) {
   String mavenModule = 'insight-brain-java-functional-test'
@@ -428,7 +403,6 @@ Map<String, Closure> createFrontendTests(String stageName, List<String> zipFiles
           copyRepo(zipFiles)
           String mavenOptions = "-pl 'com.sonatype.insight.brain:insight-brain-frontend'"
           mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
-          mavenOptions += " -Pbuildsupport-sonar-coverage"
           // Use single thread to prevent Jest parallelization issues causing test timeouts
           mavenOptions += " --threads 1"
 
@@ -536,11 +510,6 @@ boolean isFunctionalTestsEnabled() {
   return true
 }
 
-boolean isUnitTestsEnabled() {
-  return !isMergeQueueBranch(env)
-}
-
-
 boolean isDynamicPolicyEvaluationEnabled() {
   // Dynamic policy evaluation disabled for main-style builds (Jenkinsfile.main) - always run full evaluation
   return false
@@ -550,19 +519,8 @@ boolean isMtiqImagePushEnabled() {
   return isDeployBranch(env, 'main') || params.mtiqImagePushEnabled
 }
 
-boolean isFastCopyEnabled() {
-  return false
-}
-
 boolean shouldRunPolicyEvaluation() {
-  return !isMergeQueueBranch(env) && (!isDynamicPolicyEvaluationEnabled() || haveDependenciesChanged(['pom.xml', 'package.json', 'yarn.lock']))
-}
-
-boolean isMergeQueueBranch(env) {
-  // BRANCH_NAME is only set for multi-branch pipelines, other pipelines need to fallback to GIT_BRANCH
-  String branchName = env.BRANCH_NAME ?: gitBranch(env)
-
-  return branchName != null && branchName.startsWith('gh-readonly-queue/main/pr-')
+  return (!isDynamicPolicyEvaluationEnabled() || haveDependenciesChanged(['pom.xml', 'package.json', 'yarn.lock']))
 }
 
 String getRunRefPolicyImportIntTestMavenOption() {

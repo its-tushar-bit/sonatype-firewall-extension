@@ -526,9 +526,6 @@ void configureBranchJob() {
               'MAIN runs all tests including functional tests, no caching. ' +
               'Changing this requires a new build to take effect.'
       ),
-      booleanParam(defaultValue: true,
-          description: 'If checked will use maven build caching to speed up the build (not available on Main)',
-          name: 'buildCachingEnabled'),
       booleanParam(defaultValue: false,
           description: 'If checked will run policy evaluation with full reachability analysis (same as Main)',
           name: 'policyEvaluationEnabled'),
@@ -580,49 +577,6 @@ Map getMavenBuildConfig() {
 
   // Docker registry
   opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
-
-  return mavenCommon(
-      javaVersion: 'OpenJDK 17',
-      mavenVersion: 'Maven 3.9.x',
-      useEventSpy: false,
-      mavenOptions: opts.join(' ')
-  )
-}
-
-// Get Maven config for static analysis (spotless, license)
-Map getMavenStaticAnalysisConfig() {
-  def opts = []
-
-  // Base options
-  opts << "--no-transfer-progress"
-  opts << "-T 2"
-  opts << "-D skip-functional-test"
-  opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  return mavenCommon(
-      javaVersion: 'OpenJDK 17',
-      mavenVersion: 'Maven 3.9.x',
-      useEventSpy: false,
-      mavenOptions: opts.join(' ')
-  )
-}
-
-// Get Maven config for dependency resolution stage
-Map getDependencyResolveConfig() {
-  def opts = []
-
-  opts << "--no-transfer-progress"
-  opts << "-T 0.75C"
-  // -U flag removed: Feature branches use cached dependencies (saves 1-3 minutes)
-  opts << "-fn"
-  opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  // Skip unnecessary processing during dependency resolution
-  opts << "-DskipTests"
-  opts << "-Dmaven.javadoc.skip=true"
-  opts << "-Dsource.skip=true"
-  opts << "-Dspotless.apply.skip=true"
-  opts << "-Dspotless.check.skip=true"
 
   return mavenCommon(
       javaVersion: 'OpenJDK 17',
@@ -723,53 +677,6 @@ void mvnDirectForTests(String mavenOptions, String goals) {
       sh mvnCmdLine
     }
   }
-}
-
-/**
- * Build Maven options string for PostgresTestCategory tests.
- */
-String buildPostgresTestMavenOptions(String moduleList) {
-  def opts = []
-
-  opts << "--no-transfer-progress"
-  opts << "-T 1"
-  opts << "-pl '${moduleList}'"
-  opts << "-D skip-functional-test"
-  opts << "-D build.number=${env.BUILD_NUMBER}"
-
-  // Test configuration
-  opts << "-Dfailsafe.runOrder=alphabetical"
-  opts << "-Dfailsafe.rerunFailingTestsCount=2"
-  opts << "-Dfailsafe.failOnFlakeCount=5"
-  opts << "-Dsurefire.runOrder=alphabetical"
-  opts << "-Dsurefire.rerunFailingTestsCount=2"
-  opts << "-Dsurefire.failOnFlakeCount=5"
-
-  // Excluded test groups - exclude SlowTest unless includeSlowTests is checked
-  def excludedGroups = []
-  if (!params.includeSlowTests) {
-    excludedGroups << "SlowTest"
-  }
-  if (!params.runRefPolicyImportIntTest) {
-    excludedGroups << "ReferencePolicyImportIntegrationTest"
-  }
-  if (excludedGroups) {
-    opts << "-DexcludedGroups=${excludedGroups.join(',')}"
-  }
-
-  // Include ONLY PostgresTestCategory
-  opts << "-Dgroups=PostgresTestCategory"
-
-  // Docker registry
-  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
-
-  // Error handling
-  opts << "-e"
-  opts << "-C"
-  opts << "-fae"
-  opts << "-Dmaven.test.failure.ignore"
-
-  return opts.join(' ')
 }
 
 /**

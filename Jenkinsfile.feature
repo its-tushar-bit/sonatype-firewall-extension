@@ -20,19 +20,17 @@
  │
  ▼
  ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
- │  2. PREPARE                                                            ║ PARALLEL ║          │
- ├──────────────────────────────────────────────┬───────────────────────────────────────────────┤
- │  Download Dependencies                       │  Install Node/Yarn                            │
- │  ─────────────────────                       │  ──────────────────                           │
- │  • dependency:resolve                        │  • install-node-and-yarn                      │
- │  • -T 0.75C -U                               │  • yarn install                               │
- └──────────────────────────────────────────────┴───────────────────────────────────────────────┘
+ │  2. PREPARE                                                                                 │
+ │     • Install Node/Yarn                                                                     │
+ │     • install-node-and-yarn                                                                 │
+ │     • yarn install                                                                          │
+ └──────────────────────────────────────────────────────────────────────────────────────────────┘
  │
  ▼
  ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
  │  3. BUILD                                                                                    │
  │     • install -DskipTests                                                                    │
- │     • Uses -T 0.75C for parallel builds                                                      │
+ │     • Uses -T 1C for parallel builds                                                      │
  └──────────────────────────────────────────────────────────────────────────────────────────────┘
  │
  ▼
@@ -93,7 +91,7 @@
  ╔═══════════════════════════════════════════════════════════════════════════════════════════════╗
  ║  LEGEND                                                                                       ║
  ╠═══════════════════════════════════════════════════════════════════════════════════════════════╣
- ║  -T 0.75C    = 75% of CPU cores (12 threads on 16-core)                                       ║
+ ║  -T 1C       = 100% of CPU cores (16 threads on 16-core)                                      ║
  ║  -T 2        = 2 Maven threads                                                                ║
  ║  SlowTest    = Tests >100s excluded by default (param: includeSlowTests)                      ║
  ║  FE          = insight-brain-frontend                                                         ║
@@ -111,7 +109,7 @@ def DISTRIBUTED_TEST_AGENT = 'iq-large'
 
 pipeline {
   agent {
-    label 'iq'
+    label 'iq-large'
   }
 
   options {
@@ -139,32 +137,14 @@ pipeline {
       }
     }
 
-    stage('Prepare') {
-      parallel {
-        stage('Install Node/Yarn') {
-          steps {
-            script {
-              dir(env.BUILD_DIR) {
-                // Cache node binaries, node_modules, and yarn cache to speed up builds
-                // Node/Yarn binaries (~200MB) are downloaded fresh each build without caching
-                cache(defaultBranch: 'main',
-                    caches: [
-                        arbitraryFileCache(path: 'insight-brain-frontend/node',
-                            cacheValidityDecidingFile: 'insight-brain-frontend/pom.xml',
-                            compressionMethod: 'TARGZ'),
-                        arbitraryFileCache(path: 'insight-brain-frontend/node_modules',
-                            cacheValidityDecidingFile: 'insight-brain-frontend/yarn.lock',
-                            compressionMethod: 'TARGZ'),
-                        arbitraryFileCache(path: 'insight-brain-frontend/yarn-cache',
-                            compressionMethod: 'TARGZ')
-                    ]) {
-                  // Install node/yarn binaries and download npm dependencies
-                  mvn getFrontEndInstallConfig(),
-                      'com.github.eirslett:frontend-maven-plugin:install-node-and-yarn@install-node-and-yarn com.github.' +
-                          'eirslett:frontend-maven-plugin:yarn@yarn-install'
-                }
-              }
-            }
+    stage('Prepare: Install Node/Yarn') {
+      steps {
+        script {
+          dir(env.BUILD_DIR) {
+              // Install node/yarn binaries and download npm dependencies
+              mvn getFrontEndInstallConfig(),
+                  'com.github.eirslett:frontend-maven-plugin:install-node-and-yarn@install-node-and-yarn com.github.' +
+                      'eirslett:frontend-maven-plugin:yarn@yarn-install'
           }
         }
       }
@@ -557,7 +537,7 @@ Map getMavenBuildConfig() {
 
   // Base options
   opts << "--no-transfer-progress"
-  opts << "-T 0.75C"
+  opts << "-T 1C"
   opts << "-D skip-functional-test"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 

@@ -25,8 +25,10 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.UpdatableRecord;
+import org.jooq.impl.DSL;
 
-public class AbstractPolicyViolationDAO<T extends AbstractPolicyViolation>
+public abstract class AbstractPolicyViolationDAO<T extends AbstractPolicyViolation>
     extends AbstractOperationalSqlDAO<T>
 {
   private final PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
@@ -48,23 +50,13 @@ public class AbstractPolicyViolationDAO<T extends AbstractPolicyViolation>
   }
 
   public long getCountWhereDeprecatedConstraintFactsJsonNotNull() {
-    String sQuery =
-        "SELECT COUNT(entity) FROM " + getEntityName() + " entity "
-            + "WHERE entity.deprecatedConstraintFactsJson IS NOT NULL";
-
-    return getSingle(Long.class, sQuery);
-  }
-
-  @Override
-  public void insert(final TransactionContext tx, final T entity) {
-    storeConstraints(entity);
-    super.insert(tx, entity);
-  }
-
-  @Override
-  public void update(final TransactionContext tx, final T entity) {
-    storeConstraints(entity);
-    super.update(tx, entity);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectCount()
+          .from(getJooqTable())
+          .where(DSL.field("constraint_facts_json").isNotNull())
+          .fetchOne(0, Long.class);
+    }
   }
 
   /**
@@ -112,7 +104,26 @@ public class AbstractPolicyViolationDAO<T extends AbstractPolicyViolation>
     });
   }
 
-  private void storeConstraints(final AbstractPolicyViolation entity) {
+  @Override
+  protected UpdatableRecord<?> fromEntity(final UpdatableRecord<?> record, final T entity) {
+    record.from(entity);
+    // Fix: record.from() uses Java bean introspection and maps the computed getConstraintFactsJson() getter
+    // to the constraint_facts_json column. We need the actual deprecatedConstraintFactsJson field value instead.
+    var field = getJooqTable().field("constraint_facts_json", String.class);
+    if (field != null) {
+      record.set(field, entity.getDeprecatedConstraintFactsJson());
+    }
+    return record;
+  }
+
+  protected void storeConstraints(final AbstractPolicyViolation entity) {
+    // If constraint facts are already stored (identified by their ID) and not loaded in memory,
+    // skip re-storing them. Constraint facts are immutable and identified by a hash of their JSON.
+    // This allows update() to work with entities that were loaded from the database without
+    // requiring the constraint facts to be explicitly loaded first.
+    if (entity.getConstraintFactsId() != null && !entity.constraintFactsAreLoaded()) {
+      return;
+    }
     PolicyViolationConstraintFacts constraints =
         policyViolationConstraintFactsDAO.createIfNotExists(entity.getConstraintFactsJson());
     entity.setConstraintFactsId(constraints.getId());

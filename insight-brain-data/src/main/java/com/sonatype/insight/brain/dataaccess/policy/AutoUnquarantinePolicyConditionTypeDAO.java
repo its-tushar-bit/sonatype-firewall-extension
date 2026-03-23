@@ -5,11 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
@@ -17,6 +12,13 @@ import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.AutoUnquarantinePolicyConditionType.AUTO_UNQUARANTINE_POLICY_CONDITION_TYPE;
 
 /**
  * @since 1.107
@@ -29,13 +31,6 @@ public class AutoUnquarantinePolicyConditionTypeDAO
   @Inject
   public AutoUnquarantinePolicyConditionTypeDAO(OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
-  }
-
-  @Override
-  public List<AutoUnquarantinePolicyConditionType> getAll() {
-    String sQuery = "SELECT entity FROM AutoUnquarantinePolicyConditionType entity" + //
-        " ORDER BY entity.id";
-    return getList(sQuery);
   }
 
   @Override
@@ -55,5 +50,15 @@ public class AutoUnquarantinePolicyConditionTypeDAO
       throw new BadRequestException("The condition type already exists: " + entity.getId());
     }
     super.insert(tx, entity);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return AUTO_UNQUARANTINE_POLICY_CONDITION_TYPE;
+  }
+
+  @Override
+  public Class<AutoUnquarantinePolicyConditionType> getEntityClass() {
+    return AutoUnquarantinePolicyConditionType.class;
   }
 }

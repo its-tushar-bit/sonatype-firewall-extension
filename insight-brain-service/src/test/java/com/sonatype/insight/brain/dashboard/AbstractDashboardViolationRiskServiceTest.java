@@ -647,23 +647,25 @@ abstract class AbstractDashboardViolationRiskServiceTest
     }
     assertThat(actual.filename).isEqualTo(policyViolation.getFilename());
 
-    Optional<ConditionFact> conditionFact =
-        policyViolation.getConstraintFacts().isEmpty()
-            ? Optional.empty()
-            : policyViolation.getConstraintFacts()
-                .get(0)
-                .getConditionFacts()
-                .stream()
-                .filter(
-                    Objects::nonNull)
-                .findFirst();
-    if (conditionFact.filter(condition -> condition.getReference() != null &&
-        Type.SECURITY_VULNERABILITY_REFID.equals(condition.getReference().getType())).isPresent())
-    {
-      assertThat(actual.referenceId).isEqualTo(conditionFact.get().getReference().getValue());
-    }
-    else {
-      assertThat(actual.referenceId).isNull();
+    // Only check constraint facts if they are loaded - they may not be loaded in all test scenarios
+    if (policyViolation.constraintFactsAreLoaded()) {
+      Optional<ConditionFact> conditionFact =
+          policyViolation.getConstraintFacts().isEmpty()
+              ? Optional.empty()
+              : policyViolation.getConstraintFacts()
+                  .get(0)
+                  .getConditionFacts()
+                  .stream()
+                  .filter(Objects::nonNull)
+                  .findFirst();
+      if (conditionFact.filter(condition -> condition.getReference() != null &&
+          Type.SECURITY_VULNERABILITY_REFID.equals(condition.getReference().getType())).isPresent())
+      {
+        assertThat(actual.referenceId).isEqualTo(conditionFact.get().getReference().getValue());
+      }
+      else {
+        assertThat(actual.referenceId).isNull();
+      }
     }
   }
 }

@@ -13,8 +13,7 @@ import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.PersistenceException;
+import org.jooq.exception.IntegrityConstraintViolationException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -175,14 +174,13 @@ public class ProxyServerConfigurationDAOTest
   public void testInsert_EnforceSingleton() {
     dao.insert(newValidProxyServerConfiguration());
 
-    assertThatExceptionOfType(PersistenceException.class)
-        .isThrownBy(() -> dao.insert(newValidProxyServerConfiguration()))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class)
+        .isThrownBy(() -> dao.insert(newValidProxyServerConfiguration()));
 
     ProxyServerConfiguration proxyServerConfiguration = newValidProxyServerConfiguration();
     proxyServerConfiguration.setId("not-singleton-id");
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(proxyServerConfiguration))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class)
+        .isThrownBy(() -> dao.insert(proxyServerConfiguration));
   }
 
   @Test
@@ -192,7 +190,7 @@ public class ProxyServerConfigurationDAOTest
     ProxyServerConfiguration proxyServerConfiguration = newValidProxyServerConfiguration();
     proxyServerConfiguration.setId("not-singleton-id");
     dao.update(proxyServerConfiguration);
-    assertThat(dao.createQuery("SELECT entity FROM ProxyServerConfiguration entity").getList())
+    assertThat(dao.getAll())
         .extracting(ProxyServerConfiguration::getId)
         .containsExactly(ProxyServerConfigurationDAO.SINGLETON_ENTITY_ID);
   }

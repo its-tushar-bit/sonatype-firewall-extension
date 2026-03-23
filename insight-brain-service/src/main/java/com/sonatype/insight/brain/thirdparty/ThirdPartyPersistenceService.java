@@ -43,16 +43,19 @@ import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import com.google.common.collect.Streams;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.RollbackException;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.codehaus.plexus.util.StringUtils;
+import org.jooq.exception.DataAccessException;
+import org.jooq.exception.IntegrityConstraintViolationException;
+import org.postgresql.util.PSQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.db.jooq.DialectHelper.POSTGRES_UNIQUE_CONSTRAINT_VIOLATION;
 
 /**
  * This class aims to have centralized responsibility for persisting high-level ThirdParty/SBOM data to the database and
@@ -454,25 +457,40 @@ public class ThirdPartyPersistenceService
 
   /**
    * Set the status on the ThirdPartySbomMetadata with the given id to PENDING. Atomically checks that it was currently
-   * set to UPLOADED in the database and throws an exception if not
+   * set to UPLOADED in the database and throws an exception if not.
+   * Creates its own transaction context - use
+   * {@link #setSbomMetadataStatusToPending(TransactionContext, ThirdPartySbomMetadata)} if you already have an active
+   * transaction to avoid lock contention.
    */
   public void setSbomMetadataStatusToPending(ThirdPartySbomMetadata sbomMetadata) {
     try (var tx = sbomMetadataDAO.createTransactionContext()) {
       tx.begin();
-
-      var existing = sbomMetadataDAO.getByIdForUpdate(tx, sbomMetadata.getId());
-
-      if (existing.getStatus() != ThirdPartySbomMetadataStatus.UPLOADED) {
-        throw new IllegalStateException(
-            "SBOM %s is not in the UPLOADED state, is in %s".formatted(sbomMetadata.getId(), existing.getStatus()));
-      }
-
-      sbomMetadata.setStatus(ThirdPartySbomMetadataStatus.PENDING);
-
-      // this will merge the changes from sbomMetadata into `existing` and persist them to the DB
-      sbomMetadataDAO.update(tx, sbomMetadata);
+      setSbomMetadataStatusToPendingInternal(tx, sbomMetadata);
       tx.commit();
     }
+  }
+
+  /**
+   * Set the status on the ThirdPartySbomMetadata with the given id to PENDING, using the provided transaction context.
+   * Atomically checks that it was currently set to UPLOADED in the database and throws an exception if not.
+   * Use this overload when you already have an active transaction to avoid lock contention issues.
+   */
+  public void setSbomMetadataStatusToPending(TransactionContext tx, ThirdPartySbomMetadata sbomMetadata) {
+    setSbomMetadataStatusToPendingInternal(tx, sbomMetadata);
+  }
+
+  private void setSbomMetadataStatusToPendingInternal(TransactionContext tx, ThirdPartySbomMetadata sbomMetadata) {
+    var existing = sbomMetadataDAO.getByIdForUpdate(tx, sbomMetadata.getId());
+
+    if (existing.getStatus() != ThirdPartySbomMetadataStatus.UPLOADED) {
+      throw new IllegalStateException(
+          "SBOM %s is not in the UPLOADED state, is in %s".formatted(sbomMetadata.getId(), existing.getStatus()));
+    }
+
+    sbomMetadata.setStatus(ThirdPartySbomMetadataStatus.PENDING);
+
+    // this will merge the changes from sbomMetadata into `existing` and persist them to the DB
+    sbomMetadataDAO.update(tx, sbomMetadata);
   }
 
   /**
@@ -705,8 +723,13 @@ public class ThirdPartyPersistenceService
         auditData.setStageId(StageTypes.COMPLIANCE.getId());
         return metadataAndFile;
       }
-      catch (EntityExistsException | RollbackException e) {
-        if (e instanceof EntityExistsException || e.getCause() instanceof EntityExistsException) {
+      catch (DataAccessException e) {
+        // Handle unique constraint violations for PostgreSQL and H2
+        if ((e.getCause() instanceof PSQLException psqlEx
+            && POSTGRES_UNIQUE_CONSTRAINT_VIOLATION.equals(psqlEx.getSQLState()))
+            || e instanceof IntegrityConstraintViolationException
+            || e.getCause() instanceof IntegrityConstraintViolationException)
+        {
           finalException = e;
 
           var oldVersionToSave = versionToSave;

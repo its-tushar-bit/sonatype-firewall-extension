@@ -6,14 +6,18 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.AutoPolicyWaiverRevocation.AUTO_POLICY_WAIVER_REVOCATION;
 
 @Named
 @Singleton
@@ -38,9 +42,10 @@ public class AutoPolicyWaiverExclusionDAO
   }
 
   public List<AutoPolicyWaiverExclusion> getByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT entity FROM AutoPolicyWaiverExclusion entity" +
-        " WHERE entity.ownerId=?1";
-    return getList(tx, sQuery, ownerId);
+    return tx.dsl()
+        .selectFrom(AUTO_POLICY_WAIVER_REVOCATION)
+        .where(AUTO_POLICY_WAIVER_REVOCATION.OWNER_ID.eq(ownerId))
+        .fetch(this::toEntity);
   }
 
   public List<AutoPolicyWaiverExclusion> getByOwnerIdAndHash(String ownerId, String hash) {
@@ -50,9 +55,11 @@ public class AutoPolicyWaiverExclusionDAO
   }
 
   public List<AutoPolicyWaiverExclusion> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {
-    String sQuery = "SELECT entity FROM AutoPolicyWaiverExclusion entity" +
-        " WHERE entity.ownerId=?1 AND entity.hash=?2";
-    return getList(tx, sQuery, ownerId, hash);
+    return tx.dsl()
+        .selectFrom(AUTO_POLICY_WAIVER_REVOCATION)
+        .where(AUTO_POLICY_WAIVER_REVOCATION.OWNER_ID.eq(ownerId))
+        .and(AUTO_POLICY_WAIVER_REVOCATION.HASH.eq(hash))
+        .fetch(this::toEntity);
   }
 
   public List<AutoPolicyWaiverExclusion> getByOwnerIdAndAutoPolicyWaiverId(
@@ -69,9 +76,11 @@ public class AutoPolicyWaiverExclusionDAO
       String ownerId,
       String autoPolicyWaiverId)
   {
-    String sQuery = "SELECT entity FROM AutoPolicyWaiverExclusion entity" +
-        " WHERE entity.ownerId=?1 AND entity.autoPolicyWaiverId=?2";
-    return getList(tx, sQuery, ownerId, autoPolicyWaiverId);
+    return tx.dsl()
+        .selectFrom(AUTO_POLICY_WAIVER_REVOCATION)
+        .where(AUTO_POLICY_WAIVER_REVOCATION.OWNER_ID.eq(ownerId))
+        .and(AUTO_POLICY_WAIVER_REVOCATION.AUTO_POLICY_WAIVER_ID.eq(autoPolicyWaiverId))
+        .fetch(this::toEntity);
   }
 
   public AutoPolicyWaiverExclusion getByOwnerIdAndAutoPolicyWaiverIdAndHash(
@@ -90,9 +99,12 @@ public class AutoPolicyWaiverExclusionDAO
       String autoPolicyWaiverId,
       String hash)
   {
-    String sQuery = "SELECT entity FROM AutoPolicyWaiverExclusion entity" +
-        " WHERE entity.ownerId=?1 AND entity.autoPolicyWaiverId=?2 AND entity.hash=?3";
-    return get(tx, sQuery, ownerId, autoPolicyWaiverId, hash);
+    return toEntity(tx.dsl()
+        .selectFrom(AUTO_POLICY_WAIVER_REVOCATION)
+        .where(AUTO_POLICY_WAIVER_REVOCATION.OWNER_ID.eq(ownerId))
+        .and(AUTO_POLICY_WAIVER_REVOCATION.AUTO_POLICY_WAIVER_ID.eq(autoPolicyWaiverId))
+        .and(AUTO_POLICY_WAIVER_REVOCATION.HASH.eq(hash))
+        .fetchOne());
   }
 
   public AutoPolicyWaiverExclusion getByOwnerIdPolicyViolation(
@@ -111,9 +123,12 @@ public class AutoPolicyWaiverExclusionDAO
       String autoPolicyWaiverId,
       String policyViolationId)
   {
-    String sQuery = "SELECT entity FROM AutoPolicyWaiverExclusion entity" +
-        " WHERE entity.ownerId=?1 AND entity.autoPolicyWaiverId=?2 AND entity.policyViolationId=?3";
-    return get(tx, sQuery, ownerId, autoPolicyWaiverId, policyViolationId);
+    return toEntity(tx.dsl()
+        .selectFrom(AUTO_POLICY_WAIVER_REVOCATION)
+        .where(AUTO_POLICY_WAIVER_REVOCATION.OWNER_ID.eq(ownerId))
+        .and(AUTO_POLICY_WAIVER_REVOCATION.AUTO_POLICY_WAIVER_ID.eq(autoPolicyWaiverId))
+        .and(AUTO_POLICY_WAIVER_REVOCATION.POLICY_VIOLATION_ID.eq(policyViolationId))
+        .fetchOne());
   }
 
   public List<AutoPolicyWaiverExclusion> getByOwnerIdAndAutoPolicyWaiverIdPaginated(
@@ -127,7 +142,6 @@ public class AutoPolicyWaiverExclusionDAO
     }
   }
 
-  @SuppressWarnings("unchecked")
   public List<AutoPolicyWaiverExclusion> getByOwnerIdAndAutoPolicyWaiverIdPaginated(
       TransactionContext tx,
       String ownerId,
@@ -135,28 +149,23 @@ public class AutoPolicyWaiverExclusionDAO
       int page,
       int pageSize)
   {
-    jakarta.persistence.Query paginatedQuery = createPaginatedGetByOwnerIdAndAutoPolicyWaiverIdQuery(
-        pageSize,
-        page,
-        ownerId,
-        autoPolicyWaiverId,
-        tx);
-    return paginatedQuery.getResultStream().toList();
+    int offset = (page - 1) * pageSize;
+    return tx.dsl()
+        .selectFrom(AUTO_POLICY_WAIVER_REVOCATION)
+        .where(AUTO_POLICY_WAIVER_REVOCATION.OWNER_ID.eq(ownerId))
+        .and(AUTO_POLICY_WAIVER_REVOCATION.AUTO_POLICY_WAIVER_ID.eq(autoPolicyWaiverId))
+        .offset(offset)
+        .limit(pageSize)
+        .fetch(this::toEntity);
   }
 
-  private jakarta.persistence.Query createPaginatedGetByOwnerIdAndAutoPolicyWaiverIdQuery(
-      final int pageSize,
-      final int page,
-      final String ownerId,
-      final String autoPolicyWaiverId,
-      final TransactionContext tx)
-  {
-    int offset = (page - 1) * pageSize;
-    String sQuery = "SELECT entity FROM AutoPolicyWaiverExclusion entity" +
-        " WHERE entity.ownerId=?1 AND entity.autoPolicyWaiverId=?2";
-    jakarta.persistence.Query paginatedQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
-    paginatedQuery.setParameter(1, ownerId);
-    paginatedQuery.setParameter(2, autoPolicyWaiverId);
-    return paginatedQuery;
+  @Override
+  public Table<?> getJooqTable() {
+    return AUTO_POLICY_WAIVER_REVOCATION;
+  }
+
+  @Override
+  public Class<AutoPolicyWaiverExclusion> getEntityClass() {
+    return AutoPolicyWaiverExclusion.class;
   }
 }

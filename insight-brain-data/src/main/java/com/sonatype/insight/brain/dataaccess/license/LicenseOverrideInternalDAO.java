@@ -7,9 +7,6 @@ package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.List;
 import java.util.SortedMap;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -18,6 +15,13 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.license.LicenseOverrideInternal;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseOverride.LICENSE_OVERRIDE;
 
 /**
  * @since 1.13
@@ -37,10 +41,14 @@ public class LicenseOverrideInternalDAO
       String ownerId,
       ComponentIdentifier componentIdentifier)
   {
-    String sQuery = "SELECT entity from LicenseOverrideInternal entity "
-        + "WHERE entity.ownerId=?1 and entity.componentIdFormat=?2 and entity.componentIdCoordinatesJson=?3";
-    LicenseOverrideInternal licenseOverride = get(tx, sQuery, ownerId, componentIdentifier.getFormat(),
-        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
+    LicenseOverrideInternal licenseOverride = this.toEntity(tx.dsl()
+        .selectFrom(LICENSE_OVERRIDE)
+        .where(LICENSE_OVERRIDE.OWNER_ID.eq(ownerId))
+        .and(LICENSE_OVERRIDE.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+        .and(LICENSE_OVERRIDE.COMPONENT_ID_COORDINATES_JSON.eq(
+            ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())))
+        .fetchOne());
+
     if (licenseOverride == null && componentIdentifier.isMaven()) {
       // Legacy license overrides for maven components have only G, A and V coordinates and those overrides must be used
       // even if the passed in component identifier has complete maven coordinates (i.e. includes extension and
@@ -48,8 +56,13 @@ public class LicenseOverrideInternalDAO
       SortedMap<String, String> gavCoordinates = ComponentIdentifierAdapter.toGavOnlyCoordinates(componentIdentifier
           .getCoordinates());
       if (!gavCoordinates.equals(componentIdentifier.getCoordinates())) {
-        licenseOverride = get(tx, sQuery, ownerId, componentIdentifier.getFormat(),
-            ComponentIdentifierAdapter.toJson(gavCoordinates));
+        licenseOverride = this.toEntity(tx.dsl()
+            .selectFrom(LICENSE_OVERRIDE)
+            .where(LICENSE_OVERRIDE.OWNER_ID.eq(ownerId))
+            .and(LICENSE_OVERRIDE.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+            .and(LICENSE_OVERRIDE.COMPONENT_ID_COORDINATES_JSON.eq(
+                ComponentIdentifierAdapter.toJson(gavCoordinates)))
+            .fetchOne());
       }
     }
 
@@ -60,16 +73,19 @@ public class LicenseOverrideInternalDAO
       final TransactionContext tx,
       final ComponentIdentifier componentIdentifier)
   {
-    String sQuery = "SELECT entity FROM LicenseOverrideInternal entity "
-        + "WHERE entity.componentIdFormat=?1 and entity.componentIdCoordinatesJson=?2";
-
-    return getList(tx, sQuery, componentIdentifier.getFormat(),
-        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
+    return tx.dsl()
+        .selectFrom(LICENSE_OVERRIDE)
+        .where(LICENSE_OVERRIDE.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+        .and(LICENSE_OVERRIDE.COMPONENT_ID_COORDINATES_JSON.eq(
+            ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())))
+        .fetch(this::toEntity);
   }
 
   public List<LicenseOverrideInternal> getByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT entity FROM LicenseOverrideInternal entity WHERE entity.ownerId=?1";
-    return getList(tx, sQuery, ownerId);
+    return tx.dsl()
+        .selectFrom(LICENSE_OVERRIDE)
+        .where(LICENSE_OVERRIDE.OWNER_ID.eq(ownerId))
+        .fetch(this::toEntity);
   }
 
   public List<LicenseOverrideInternal> getByOwnerId(String ownerId) {
@@ -79,8 +95,7 @@ public class LicenseOverrideInternalDAO
   }
 
   public int getCountByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT COUNT(entity.id) FROM LicenseOverrideInternal entity WHERE entity.ownerId=?1";
-    return getSingle(tx, Number.class, sQuery, ownerId).intValue();
+    return tx.dsl().fetchCount(LICENSE_OVERRIDE, LICENSE_OVERRIDE.OWNER_ID.eq(ownerId));
   }
 
   @Override
@@ -89,5 +104,15 @@ public class LicenseOverrideInternalDAO
       throw new BadRequestException("LicenseOverride already exists for this ownerId and component");
     }
     super.insert(tx, entity);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return LICENSE_OVERRIDE;
+  }
+
+  @Override
+  public Class<LicenseOverrideInternal> getEntityClass() {
+    return LicenseOverrideInternal.class;
   }
 }

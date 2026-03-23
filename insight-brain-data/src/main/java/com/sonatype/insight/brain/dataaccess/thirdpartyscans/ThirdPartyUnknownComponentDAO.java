@@ -15,6 +15,8 @@ import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyUnknownComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import static com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.ThirdPartyUnknownComponent.THIRD_PARTY_UNKNOWN_COMPONENT;
+
 @Named
 @Singleton
 public class ThirdPartyUnknownComponentDAO
@@ -25,22 +27,29 @@ public class ThirdPartyUnknownComponentDAO
     super(thirdPartyScansDataStore);
   }
 
-  @Override
-  public ThirdPartyUnknownComponent getById(String id) {
-    String sQuery = "SELECT entity FROM ThirdPartyUnknownComponent entity " + //
-        " WHERE entity.id=?1";
-    return get(sQuery, id);
-  }
-
   public List<ThirdPartyUnknownComponent> getByThirdPartyFileId(String thirdPartyFileId) {
-    String sQuery = "SELECT entity FROM ThirdPartyUnknownComponent entity " + //
-        " WHERE entity.thirdPartyFileId = ?1";
-    return getList(sQuery, thirdPartyFileId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(THIRD_PARTY_UNKNOWN_COMPONENT)
+          .where(THIRD_PARTY_UNKNOWN_COMPONENT.THIRD_PARTY_FILE_ID.eq(thirdPartyFileId))
+          .fetchInto(ThirdPartyUnknownComponent.class);
+    }
   }
 
   public int deleteByThirdPartyFileId(TransactionContext tx, String thirdPartyFileId) {
-    String sQuery = "DELETE from ThirdPartyUnknownComponent entity WHERE entity.thirdPartyFileId=?1";
-    Query<ThirdPartyUnknownComponent> query = createQuery(sQuery, thirdPartyFileId);
-    return query.executeUpdate(tx);
+    return tx.dsl()
+        .deleteFrom(THIRD_PARTY_UNKNOWN_COMPONENT)
+        .where(THIRD_PARTY_UNKNOWN_COMPONENT.THIRD_PARTY_FILE_ID.eq(thirdPartyFileId))
+        .execute();
+  }
+
+  @Override
+  public org.jooq.Table<?> getJooqTable() {
+    return THIRD_PARTY_UNKNOWN_COMPONENT;
+  }
+
+  @Override
+  public Class<ThirdPartyUnknownComponent> getEntityClass() {
+    return ThirdPartyUnknownComponent.class;
   }
 }

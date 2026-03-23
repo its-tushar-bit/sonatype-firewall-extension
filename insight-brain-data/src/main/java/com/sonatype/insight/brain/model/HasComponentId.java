@@ -51,16 +51,32 @@ public abstract class HasComponentId
   }
 
   /**
-   * exposed for testing
+   * exposed for testing and DAO mapping
    */
-  String getComponentIdFormat() {
+  public String getComponentIdFormat() {
     return componentIdFormat;
   }
 
   /**
-   * exposed for testing
+   * exposed for testing and DAO mapping
    */
-  String getComponentIdCoordinatesJson() {
+  public void setComponentIdFormat(String componentIdFormat) {
+    this.componentIdFormat = componentIdFormat;
+    this.componentIdentifier = null; // clear cached value
+  }
+
+  /**
+   * exposed for testing and DAO mapping
+   */
+  public String getComponentIdCoordinatesJson() {
     return componentIdCoordinatesJson;
+  }
+
+  /**
+   * exposed for testing and DAO mapping
+   */
+  public void setComponentIdCoordinatesJson(String componentIdCoordinatesJson) {
+    this.componentIdCoordinatesJson = componentIdCoordinatesJson;
+    this.componentIdentifier = null; // clear cached value
   }
 }

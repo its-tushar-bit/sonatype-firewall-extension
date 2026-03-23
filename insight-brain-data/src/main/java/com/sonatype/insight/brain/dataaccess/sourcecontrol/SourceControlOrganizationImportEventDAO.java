@@ -6,14 +6,18 @@
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationImportEvent;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControlOrganizationImportEvent.SOURCE_CONTROL_ORGANIZATION_IMPORT_EVENT;
 
 @Named
 @Singleton
@@ -27,9 +31,11 @@ public class SourceControlOrganizationImportEventDAO
 
   public SourceControlOrganizationImportEvent getByOrganizationAndEventId(final String orgId, final String eventId) {
     try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = "SELECT entity FROM SourceControlOrganizationImportEvent entity" + //
-          " WHERE entity.id=?1 AND entity.organizationId=?2";
-      return get(tx, sQuery, eventId, orgId);
+      return toEntity(tx.dsl()
+          .selectFrom(SOURCE_CONTROL_ORGANIZATION_IMPORT_EVENT)
+          .where(SOURCE_CONTROL_ORGANIZATION_IMPORT_EVENT.SOURCE_CONTROL_ORGANIZATION_IMPORT_EVENT_ID.eq(eventId))
+          .and(SOURCE_CONTROL_ORGANIZATION_IMPORT_EVENT.ORGANIZATION_ID.eq(orgId))
+          .fetchOne());
     }
   }
 
@@ -43,8 +49,19 @@ public class SourceControlOrganizationImportEventDAO
       final TransactionContext tx,
       final String orgId)
   {
-    String sQuery = "SELECT entity FROM SourceControlOrganizationImportEvent entity" + //
-        " WHERE entity.organizationId=?1";
-    return getList(tx, sQuery, orgId);
+    return tx.dsl()
+        .selectFrom(SOURCE_CONTROL_ORGANIZATION_IMPORT_EVENT)
+        .where(SOURCE_CONTROL_ORGANIZATION_IMPORT_EVENT.ORGANIZATION_ID.eq(orgId))
+        .fetch(this::toEntity);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return SOURCE_CONTROL_ORGANIZATION_IMPORT_EVENT;
+  }
+
+  @Override
+  public Class<SourceControlOrganizationImportEvent> getEntityClass() {
+    return SourceControlOrganizationImportEvent.class;
   }
 }

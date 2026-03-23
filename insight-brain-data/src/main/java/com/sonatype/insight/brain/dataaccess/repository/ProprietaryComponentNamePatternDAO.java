@@ -9,22 +9,27 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter.SearchFilter;
-import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter.SortField;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.Table;
+import org.jooq.UpdatableRecord;
+import org.jooq.impl.DSL;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProprietaryComponentNamePattern.PROPRIETARY_COMPONENT_NAME_PATTERN;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Repository.REPOSITORY;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryManager.REPOSITORY_MANAGER;
 
 @Named
 @Singleton
@@ -36,15 +41,42 @@ public class ProprietaryComponentNamePatternDAO
     super(operationalDataStore);
   }
 
+  @Override
+  protected UpdatableRecord<?> fromEntity(
+      final UpdatableRecord<?> record,
+      final ProprietaryComponentNamePattern entity)
+  {
+    super.fromEntity(record, entity);
+    // DB schema comment: "using empty strings instead if needed" for uniqueness constraint
+    record.set(PROPRIETARY_COMPONENT_NAME_PATTERN.NAMESPACE_PATTERN,
+        entity.getNamespacePattern() != null ? entity.getNamespacePattern() : "");
+    record.set(PROPRIETARY_COMPONENT_NAME_PATTERN.NAME_PATTERN,
+        entity.getNamePattern() != null ? entity.getNamePattern() : "");
+    return record;
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return PROPRIETARY_COMPONENT_NAME_PATTERN;
+  }
+
   public List<ProprietaryComponentNamePattern> getByFormat(String format) {
-    String sQuery = "SELECT entity FROM ProprietaryComponentNamePattern entity WHERE entity.format = ?1";
-    return getList(sQuery, format);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(PROPRIETARY_COMPONENT_NAME_PATTERN)
+          .where(PROPRIETARY_COMPONENT_NAME_PATTERN.FORMAT.eq(format))
+          .fetch(this::toEntity);
+    }
   }
 
   public List<ProprietaryComponentNamePattern> getEnabledByFormat(String format) {
-    String sQuery = "SELECT entity FROM ProprietaryComponentNamePattern entity" + //
-        " WHERE entity.format = ?1 AND entity.enabled = true";
-    return getList(sQuery, format);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(PROPRIETARY_COMPONENT_NAME_PATTERN)
+          .where(PROPRIETARY_COMPONENT_NAME_PATTERN.FORMAT.eq(format))
+          .and(PROPRIETARY_COMPONENT_NAME_PATTERN.ENABLED.eq(true))
+          .fetch(this::toEntity);
+    }
   }
 
   public void deleteByRepository(String repositoryId) {
@@ -62,8 +94,10 @@ public class ProprietaryComponentNamePatternDAO
       patterns.forEach(pattern -> delete(tx, pattern));
     }
     else {
-      String sQuery = "DELETE FROM ProprietaryComponentNamePattern entity" + " WHERE entity.repositoryId=?1";
-      createQuery(sQuery, repositoryId).executeUpdate(tx);
+      tx.dsl()
+          .deleteFrom(PROPRIETARY_COMPONENT_NAME_PATTERN)
+          .where(PROPRIETARY_COMPONENT_NAME_PATTERN.REPOSITORY_ID.eq(repositoryId))
+          .execute();
     }
   }
 
@@ -71,14 +105,21 @@ public class ProprietaryComponentNamePatternDAO
   public final void delete(ProprietaryComponentNamePattern entity) {
     // WARNING: Don't add any business logic to this method because, for performance reasons,
     // we bypass this method when deleting all patterns for a repository or repository manager.
-    super.delete(entity);
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      delete(tx, entity);
+      tx.commit();
+    }
   }
 
   @Override
   public final void delete(TransactionContext tx, ProprietaryComponentNamePattern entity) {
     // WARNING: Don't add any business logic to this method because, for performance reasons,
     // we bypass this method when deleting all patterns for a repository or repository manager.
-    super.delete(tx, entity);
+    tx.dsl()
+        .deleteFrom(PROPRIETARY_COMPONENT_NAME_PATTERN)
+        .where(PROPRIETARY_COMPONENT_NAME_PATTERN.PROPRIETARY_COMPONENT_NAME_PATTERN_ID.eq(entity.getId()))
+        .execute();
   }
 
   public List<ProprietaryComponentNamePatternDTO> getByFilter(
@@ -89,118 +130,108 @@ public class ProprietaryComponentNamePatternDAO
       return Collections.emptyList();
     }
 
-    // We need two SELECTs to be able to have namespace_pattern and name_pattern concatenated,
-    // so we can filter and sort on it.
-    String innerSelect = "SELECT pattern.proprietary_component_name_pattern_id, " + //
-        "pattern.format, " + //
-        "pattern.namespace_pattern, " + //
-        "pattern.name_pattern, " + //
-        // to be able to sort and filter on both fields
-        "CONCAT(pattern.namespace_pattern, pattern.name_pattern) as pattern, " + //
-        "repoManager.instance_id AS repository_manager_instance_id, " + //
-        "repoManager.name AS repository_manager_name, " + //
-        "repo.public_id AS repository_public_id, " + //
-        "pattern.enabled" + //
-        " FROM " + getDatabaseSchema() + ".proprietary_component_name_pattern pattern" + //
-        " INNER JOIN " + getDatabaseSchema() + ".repository repo" + //
-        " ON pattern.repository_id = repo.repository_id" + //
-        " INNER JOIN " + getDatabaseSchema() + ".repository_manager repoManager" + //
-        " ON repo.repository_manager_id = repoManager.repository_manager_id" + //
-        " WHERE repo.repository_id IN " + //
-        // I did not find a way to pass the list of repository IDs as query param
-        "(" + repositoryIds.stream().map(repositoryId -> "'" + repositoryId + "'").collect(Collectors.joining(","))
-        + ")";
-    String sQuery = "SELECT proprietary_component_name_pattern_id, " + //
-        "format, " + //
-        "namespace_pattern, " + //
-        "name_pattern, " + //
-        "pattern, " + //
-        "repository_manager_instance_id, " + //
-        "repository_manager_name, " + //
-        "repository_public_id, " + //
-        "enabled" + //
-        " FROM (" + innerSelect + ") AS inner_sql";
-
-    // Filters
-    List<String> queryParams = new ArrayList<>();
-    if (!CollectionUtils.isEmpty(filter.searchFilters)) {
-      sQuery += " WHERE ";
-      int filterCount = 1;
-      for (SearchFilter searchFilter : filter.searchFilters) {
-        if (filterCount > 1) {
-          sQuery += ", ";
-        }
-        switch (searchFilter.filterableField) {
-          case PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME:
-            sQuery += "pattern LIKE ?" + filterCount;
-            queryParams.add('%' + searchFilter.value + '%');
-            break;
-          default:
-            throw new BadRequestException("Unknown filterable field: " + searchFilter.filterableField);
-        }
-        filterCount++;
-      }
-    }
-
-    // Sorting
-    sQuery += " ORDER BY ";
-    if (!CollectionUtils.isEmpty(filter.sortFields)) {
-      filter.sortFields
-          .sort((sortField1, sortField2) -> Integer.compare(sortField1.sortPriority, sortField2.sortPriority));
-
-      int sortCount = 1;
-      for (SortField sortField : filter.sortFields) {
-        if (sortCount > 1) {
-          sQuery += ", ";
-        }
-        switch (sortField.sortableField) {
-          case PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME:
-            sQuery += "pattern";
-            break;
-          case REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME:
-            sQuery += "COALESCE(repository_manager_instance_id, repository_manager_name)";
-            break;
-          case REPOSITORY_PUBLIC_ID:
-            sQuery += "repository_public_id";
-            break;
-          case ENABLED:
-            sQuery += "enabled";
-            break;
-          default:
-            throw new BadRequestException("Unknown sortable field: " + sortField.sortableField);
-        }
-        sQuery += sortField.asc ? " ASC" : " DESC";
-        sortCount++;
-      }
-    }
-    else {
-      // Always order to have consistent results
-      sQuery += "pattern";
-    }
-
     try (TransactionContext tx = createTransactionContext()) {
-      jakarta.persistence.Query query = tx.createNativeQuery(sQuery.toString());
-      for (int iParam = 0; iParam < queryParams.size(); iParam++) {
-        query.setParameter(iParam + 1, queryParams.get(iParam));
+      // Create a concatenated field for namespace_pattern + name_pattern to support filtering and sorting
+      Field<String> patternField = DSL.concat(
+          DSL.coalesce(PROPRIETARY_COMPONENT_NAME_PATTERN.NAMESPACE_PATTERN, DSL.inline("")),
+          DSL.coalesce(PROPRIETARY_COMPONENT_NAME_PATTERN.NAME_PATTERN, DSL.inline(""))).as("pattern");
+
+      // Build the base query with joins
+      var baseQuery = tx.dsl()
+          .select(
+              PROPRIETARY_COMPONENT_NAME_PATTERN.PROPRIETARY_COMPONENT_NAME_PATTERN_ID.as("id"),
+              PROPRIETARY_COMPONENT_NAME_PATTERN.FORMAT,
+              PROPRIETARY_COMPONENT_NAME_PATTERN.NAMESPACE_PATTERN,
+              PROPRIETARY_COMPONENT_NAME_PATTERN.NAME_PATTERN,
+              patternField,
+              REPOSITORY_MANAGER.INSTANCE_ID.as("repository_manager_instance_id"),
+              REPOSITORY_MANAGER.NAME.as("repository_manager_name"),
+              REPOSITORY.PUBLIC_ID.as("repository_public_id"),
+              PROPRIETARY_COMPONENT_NAME_PATTERN.ENABLED)
+          .from(PROPRIETARY_COMPONENT_NAME_PATTERN)
+          .join(REPOSITORY)
+          .on(PROPRIETARY_COMPONENT_NAME_PATTERN.REPOSITORY_ID.eq(REPOSITORY.REPOSITORY_ID))
+          .join(REPOSITORY_MANAGER)
+          .on(REPOSITORY.REPOSITORY_MANAGER_ID.eq(REPOSITORY_MANAGER.REPOSITORY_MANAGER_ID));
+
+      // Build conditions
+      List<Condition> conditions = new ArrayList<>();
+      conditions.add(REPOSITORY.REPOSITORY_ID.in(repositoryIds));
+
+      // Add search filters
+      if (!CollectionUtils.isEmpty(filter.searchFilters)) {
+        for (SearchFilter searchFilter : filter.searchFilters) {
+          switch (searchFilter.filterableField) {
+            case PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME:
+              // Match on the concatenated pattern field
+              Field<String> concatField = DSL.concat(
+                  DSL.coalesce(PROPRIETARY_COMPONENT_NAME_PATTERN.NAMESPACE_PATTERN, DSL.inline("")),
+                  DSL.coalesce(PROPRIETARY_COMPONENT_NAME_PATTERN.NAME_PATTERN, DSL.inline("")));
+              conditions.add(concatField.like("%" + searchFilter.value + "%"));
+              break;
+            default:
+              throw new BadRequestException("Unknown filterable field: " + searchFilter.filterableField);
+          }
+        }
       }
-      query.setFirstResult((filter.page - 1) * filter.pageSize);
+
+      // Build sort fields
+      List<org.jooq.SortField<?>> sortFields = new ArrayList<>();
+      if (!CollectionUtils.isEmpty(filter.sortFields)) {
+        filter.sortFields
+            .sort((sortField1, sortField2) -> Integer.compare(sortField1.sortPriority, sortField2.sortPriority));
+
+        for (ProprietaryComponentNamePatternFilter.SortField sortField : filter.sortFields) {
+          Field<?> field;
+          switch (sortField.sortableField) {
+            case PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME:
+              field = DSL.concat(
+                  DSL.coalesce(PROPRIETARY_COMPONENT_NAME_PATTERN.NAMESPACE_PATTERN, DSL.inline("")),
+                  DSL.coalesce(PROPRIETARY_COMPONENT_NAME_PATTERN.NAME_PATTERN, DSL.inline("")));
+              break;
+            case REPOSITORY_MANAGER_INSTANCE_ID_OR_NAME:
+              field = DSL.coalesce(REPOSITORY_MANAGER.INSTANCE_ID, REPOSITORY_MANAGER.NAME);
+              break;
+            case REPOSITORY_PUBLIC_ID:
+              field = REPOSITORY.PUBLIC_ID;
+              break;
+            case ENABLED:
+              field = PROPRIETARY_COMPONENT_NAME_PATTERN.ENABLED;
+              break;
+            default:
+              throw new BadRequestException("Unknown sortable field: " + sortField.sortableField);
+          }
+          sortFields.add(sortField.asc ? field.asc() : field.desc());
+        }
+      }
+      else {
+        // Default sort on concatenated pattern field
+        Field<String> defaultSortField = DSL.concat(
+            DSL.coalesce(PROPRIETARY_COMPONENT_NAME_PATTERN.NAMESPACE_PATTERN, DSL.inline("")),
+            DSL.coalesce(PROPRIETARY_COMPONENT_NAME_PATTERN.NAME_PATTERN, DSL.inline("")));
+        sortFields.add(defaultSortField.asc());
+      }
+
+      // Calculate pagination offset
+      int offset = (filter.page - 1) * filter.pageSize;
       // Incremented page size to help UI determine whether to enable / disable NextPage button
-      query.setMaxResults(filter.pageSize + 1);
+      int limit = filter.pageSize + 1;
 
-      List<ProprietaryComponentNamePatternDTO> results = ((Stream<Object[]>) query.getResultStream())
-          .map(array -> new ProprietaryComponentNamePatternDTO( //
-              (String) array[0], // id
-              (String) array[1], // format
-              emptyToNull((String) array[2]), // namespacePattern
-              emptyToNull((String) array[3]), // namePattern
-              // Skip 4 - the concatenated namespacePattern+namePattern
-              (String) array[5], // repositoryManagerInstanceId
-              (String) array[6], // repositoryManagerName
-              (String) array[7], // repositoryPublicId
-              (boolean) array[8])) // enabled
-          .collect(Collectors.toList());
-
-      return results;
+      // Execute query with conditions, sorting, and pagination
+      return baseQuery
+          .where(conditions)
+          .orderBy(sortFields)
+          .offset(offset)
+          .limit(limit)
+          .fetch(record -> new ProprietaryComponentNamePatternDTO(
+              record.get("id", String.class),
+              record.get(PROPRIETARY_COMPONENT_NAME_PATTERN.FORMAT),
+              emptyToNull(record.get(PROPRIETARY_COMPONENT_NAME_PATTERN.NAMESPACE_PATTERN)),
+              emptyToNull(record.get(PROPRIETARY_COMPONENT_NAME_PATTERN.NAME_PATTERN)),
+              record.get("repository_manager_instance_id", String.class),
+              record.get("repository_manager_name", String.class),
+              record.get("repository_public_id", String.class),
+              record.get(PROPRIETARY_COMPONENT_NAME_PATTERN.ENABLED)));
     }
   }
 
@@ -211,11 +242,18 @@ public class ProprietaryComponentNamePatternDAO
   }
 
   public List<ProprietaryComponentNamePattern> getByRepositoryId(TransactionContext tx, String repositoryId) {
-    String sQuery = "SELECT entity FROM ProprietaryComponentNamePattern entity WHERE entity.repositoryId = ?1";
-    return getList(tx, sQuery, repositoryId);
+    return tx.dsl()
+        .selectFrom(PROPRIETARY_COMPONENT_NAME_PATTERN)
+        .where(PROPRIETARY_COMPONENT_NAME_PATTERN.REPOSITORY_ID.eq(repositoryId))
+        .fetch(this::toEntity);
   }
 
   private static String emptyToNull(String value) {
     return "".equals(value) ? null : value;
+  }
+
+  @Override
+  public Class<ProprietaryComponentNamePattern> getEntityClass() {
+    return ProprietaryComponentNamePattern.class;
   }
 }

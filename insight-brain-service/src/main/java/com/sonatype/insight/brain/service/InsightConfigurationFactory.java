@@ -183,9 +183,15 @@ public class InsightConfigurationFactory
     Map<String, JsonNode> loggersByName = new HashMap<>(loggingFactory.getLoggers());
     setAuditLogSettings(loggersByName);
     setPolicyViolationLogSettings(loggersByName);
+    setDefaultLogLevelsIfNotConfigured(loggersByName);
     configureAsyncAppendersForNoLoss(loggersByName);
     configureAsyncAppendersForNoLoss(loggingFactory.getAppenders());
     loggingFactory.setLoggers(loggersByName);
+  }
+
+  private void setDefaultLogLevelsIfNotConfigured(Map<String, JsonNode> loggers) {
+    loggers.putIfAbsent("org.jooq.tools", new TextNode("WARN"));
+    loggers.putIfAbsent("org.jooq.Constants", new TextNode("OFF"));
   }
 
   private void configureAsyncAppendersForNoLoss(Map<String, JsonNode> loggers) {

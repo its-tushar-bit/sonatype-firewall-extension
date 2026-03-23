@@ -14,6 +14,10 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.ProductLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ProductLicense.PRODUCT_LICENSE;
+
 @Named
 @Singleton
 public class ProductLicenseDAO
@@ -22,7 +26,7 @@ public class ProductLicenseDAO
   public static final String SINGLETON_ENTITY_ID = "product-license";
 
   @Inject
-  public ProductLicenseDAO(OperationalDataStore operationalDataStore) {
+  public ProductLicenseDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
   }
 
@@ -31,15 +35,22 @@ public class ProductLicenseDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, ProductLicense productLicense) {
+  public void insert(final TransactionContext tx, final ProductLicense productLicense) {
     productLicense.setId(SINGLETON_ENTITY_ID);
     super.insert(tx, productLicense);
   }
 
   @Override
-  public void update(TransactionContext tx, ProductLicense productLicense) {
+  public void update(final TransactionContext tx, final ProductLicense productLicense) {
     productLicense.setId(SINGLETON_ENTITY_ID);
-    super.update(tx, productLicense);
+    // Use upsert semantics to match the old JPA merge() behavior
+    // DatabasePreferences.putSpi() calls update() expecting it to create the row if it doesn't exist
+    if (getById(tx, SINGLETON_ENTITY_ID) == null) {
+      insert(tx, productLicense);
+    }
+    else {
+      super.update(tx, productLicense);
+    }
   }
 
   public void delete() {
@@ -47,5 +58,15 @@ public class ProductLicenseDAO
     if (productLicense != null) {
       delete(productLicense);
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return PRODUCT_LICENSE;
+  }
+
+  @Override
+  public Class<ProductLicense> getEntityClass() {
+    return ProductLicense.class;
   }
 }

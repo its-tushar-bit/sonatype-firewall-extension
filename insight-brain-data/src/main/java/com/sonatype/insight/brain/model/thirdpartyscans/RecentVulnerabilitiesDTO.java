@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.thirdpartyscans;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 import com.sonatype.insight.json.store.ApiDateFormat;
@@ -28,7 +30,20 @@ public class RecentVulnerabilitiesDTO
     refId = (String) array[0];
     severity = (double) array[1];
     severityStatus = String.valueOf(array[2]);
-    createdAt = (Date) array[3];
+    createdAt = toDate(array[3]);
+  }
+
+  private static Date toDate(Object value) {
+    if (value == null) {
+      return null;
+    }
+    if (value instanceof Date) {
+      return (Date) value;
+    }
+    if (value instanceof LocalDateTime) {
+      return Date.from(((LocalDateTime) value).atZone(ZoneId.systemDefault()).toInstant());
+    }
+    throw new IllegalArgumentException("Cannot convert " + value.getClass() + " to Date");
   }
 
   public String getRefId() {

@@ -79,13 +79,18 @@ public class ScanTaskStateTest
 
   @Before
   public void init() throws Exception {
+    var persistedScanTicketDAO = daoFactory.createPersistedScanTicketDAO();
     task = new ScanTask(scanner, scanPolicyEvaluator, notifier, fileCleaner, proprietaryConfigService,
-        scanUploadService, daoFactory.createPersistedScanTicketDAO(), telemetryUtils, scanPersistenceService);
+        scanUploadService, persistedScanTicketDAO, telemetryUtils, scanPersistenceService);
 
     File binFile = new File("path/any");
     Application application = new Application("any", "MyApp", null);
     application.setId("appId");
     task.init(application, binFile, "any", new Stage(Stage.ID_BUILD), false, "", "", false);
+
+    // Insert the PersistedScanTicket so that update() calls in task.run() can find it
+    persistedScanTicketDAO.insert(task.toPersistedScanTicket());
+
     when(scanner.scan(any(), any(), any(), any())).thenReturn(
         new ScanResult(new FileScanEntity(binFile.toPath()), false));
   }

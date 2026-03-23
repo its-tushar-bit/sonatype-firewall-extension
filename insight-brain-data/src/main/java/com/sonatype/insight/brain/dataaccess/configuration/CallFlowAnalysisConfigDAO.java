@@ -5,15 +5,18 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.CallFlowAnalysisConfig.CALL_FLOW_ANALYSIS_CONFIG;
 
 /**
  * @since 1.172
@@ -28,28 +31,43 @@ public class CallFlowAnalysisConfigDAO
     super(operationalDataStore);
   }
 
-  public CallFlowAnalysisConfig getByOwnerId(String ownerId) {
-    String sQuery = "SELECT entity FROM CallFlowAnalysisConfig entity WHERE entity.ownerId=?1";
-    return get(sQuery, ownerId);
+  public CallFlowAnalysisConfig getByOwnerId(final String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerId(tx, ownerId);
+    }
+  }
+
+  public CallFlowAnalysisConfig getByOwnerId(final TransactionContext tx, final String ownerId) {
+    return toEntity(tx.dsl()
+        .selectFrom(CALL_FLOW_ANALYSIS_CONFIG)
+        .where(CALL_FLOW_ANALYSIS_CONFIG.OWNER_ID.eq(ownerId))
+        .fetchOne());
   }
 
   @Override
-  public void insert(TransactionContext tx, CallFlowAnalysisConfig entity) {
-    if (getByOwnerId(entity.getOwnerId()) != null) {
+  public void insert(final TransactionContext tx, final CallFlowAnalysisConfig entity) {
+    if (getByOwnerId(tx, entity.getOwnerId()) != null) {
       throw new BadRequestException("A call flow analysis config already exists for owner id " + entity.getOwnerId());
     }
-
     super.insert(tx, entity);
   }
 
   @Override
-  public void update(TransactionContext tx, CallFlowAnalysisConfig entity) {
-
-    CallFlowAnalysisConfig existingConfigByOwner = getByOwnerId(entity.getOwnerId());
+  public void update(final TransactionContext tx, final CallFlowAnalysisConfig entity) {
+    CallFlowAnalysisConfig existingConfigByOwner = getByOwnerId(tx, entity.getOwnerId());
     if (existingConfigByOwner != null && !existingConfigByOwner.getId().equals(entity.getId())) {
       throw new BadRequestException("A call flow analysis config already exists for owner id " + entity.getOwnerId());
     }
-
     super.update(tx, entity);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return CALL_FLOW_ANALYSIS_CONFIG;
+  }
+
+  @Override
+  public Class<CallFlowAnalysisConfig> getEntityClass() {
+    return CallFlowAnalysisConfig.class;
   }
 }

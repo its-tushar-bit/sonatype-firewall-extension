@@ -23,12 +23,12 @@ import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.annotations.VisibleForTesting;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.PersistenceException;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.db.jooq.DialectHelper.POSTGRES_UNIQUE_CONSTRAINT_VIOLATION;
 
 @Named
 @Singleton
@@ -129,9 +129,12 @@ public class ProprietaryComponentNameDetector
         proprietaryComponentNamePatternDAO.insert(pattern);
         inserted++;
       }
-      catch (PersistenceException e) {
-        if (e.getCause() instanceof EntityExistsException) {
-          // another request/node was faster
+      catch (org.jooq.exception.DataAccessException e) {
+        if (e.getCause() instanceof org.postgresql.util.PSQLException psqlEx
+            && POSTGRES_UNIQUE_CONSTRAINT_VIOLATION.equals(psqlEx.getSQLState()))
+        {
+          // another request/node was faster (unique constraint violation)
+          continue;
         }
         throw e;
       }

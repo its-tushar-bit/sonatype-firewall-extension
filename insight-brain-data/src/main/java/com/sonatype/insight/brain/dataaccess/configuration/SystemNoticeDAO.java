@@ -14,6 +14,10 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.SystemNotice;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SystemNotice.SYSTEM_NOTICE;
+
 /**
  * @since 1.29.0
  */
@@ -25,28 +29,37 @@ public class SystemNoticeDAO
   private static final String SYSTEM_NOTICE_ID = "system-notice";
 
   @Inject
-  public SystemNoticeDAO(OperationalDataStore operationalDataStore) {
+  public SystemNoticeDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
   }
 
   public SystemNotice get() {
-    String sQuery = "SELECT entity FROM SystemNotice entity WHERE entity.id=?1";
-    return get(sQuery, SYSTEM_NOTICE_ID);
+    return getById(SYSTEM_NOTICE_ID);
   }
 
   @Override
-  public void update(TransactionContext tx, SystemNotice systemNotice) {
-    systemNotice.setId(SYSTEM_NOTICE_ID);
-    super.update(tx, systemNotice);
+  public void update(final TransactionContext tx, final SystemNotice entity) {
+    entity.setId(SYSTEM_NOTICE_ID);
+    super.update(tx, entity);
   }
 
   @Override
-  public void insert(TransactionContext tx, SystemNotice entity) {
+  public void insert(final TransactionContext tx, final SystemNotice entity) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void delete(TransactionContext tx, SystemNotice entity) {
+  public void delete(final TransactionContext tx, final SystemNotice entity) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return SYSTEM_NOTICE;
+  }
+
+  @Override
+  public Class<SystemNotice> getEntityClass() {
+    return SystemNotice.class;
   }
 }

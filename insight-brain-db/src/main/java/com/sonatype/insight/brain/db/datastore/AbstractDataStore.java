@@ -9,7 +9,6 @@ import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.db.DatabaseConfig;
-import jakarta.persistence.EntityManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,19 +62,6 @@ public abstract class AbstractDataStore
   @Override
   public void close() throws Exception {
     log.info("Closing {} data store and releasing resources.", getID());
-
-    // Close the EntityManagerFactory which internally cleans up OpenJPA's JDBCConfigurationImpl
-    EntityManagerFactory entityManagerFactory = getJPAEntityManagerFactory();
-    if (entityManagerFactory != null && entityManagerFactory.isOpen()) {
-      try {
-        entityManagerFactory.close();
-        log.debug("Closed EntityManagerFactory for {} data store.", getID());
-      }
-      catch (Exception e) {
-        log.warn("Error closing EntityManagerFactory for {} data store: {}", getID(), e.getMessage(), e);
-      }
-    }
-
     setInitializedFalse();
     log.info("Successfully closed {} data store.", getID());
   }

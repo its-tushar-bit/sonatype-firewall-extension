@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -746,6 +747,7 @@ public class PolicyEvaluateServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     CountDownLatch countDownLatch = new CountDownLatch(1);
+    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(ScanEntity.class));
     lenient().doAnswer(invocation -> {
       countDownLatch.await(1, TimeUnit.MINUTES);
       return null;
@@ -1130,8 +1132,8 @@ public class PolicyEvaluateServiceTest
     addNotificationsToPolicy(policy, stage.getStageTypeId(), new UserNotification(mail, stage.getStageTypeId()));
 
     String scanId = simulateReportIsAvailable();
-    ScanEntity scanEntity =
-        new FileScanEntity(ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId).toPath());
+    Path scanPath = ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId).toPath();
+    ScanEntity scanEntity = new FileScanEntity(scanPath, app.getId());
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
 
     ScanReceipt scanReceipt = new ScanReceipt();
@@ -1386,15 +1388,16 @@ public class PolicyEvaluateServiceTest
     Application app = tempEntity.newApplication("app", organization.getId());
     tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
 
-    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    List<TelemetryData> capturedTelemetryData = new ArrayList<>();
+    doAnswer(invocation -> {
+      capturedTelemetryData.add(invocation.getArgument(0));
+      return null;
+    }).when(mockTelemetrySender).send(any(TelemetryData.class));
 
     when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(ScanEntity.class));
     doReturn(scanReceipt)
         .when(mockScanHandler)
         .handle(any(ScanHandler.ScanRequest.class));
-    doNothing()
-        .when(mockTelemetrySender)
-        .send(telemetryDataArgumentCaptor.capture());
 
     // Act
     PolicyEvaluationReceipt receipt =
@@ -1403,8 +1406,7 @@ public class PolicyEvaluateServiceTest
     PolicyEvaluationPollingResult pollingResult = policyEvaluationHelper
         .awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
 
-    List<TelemetryData> telemetryDataValues = telemetryDataArgumentCaptor.getAllValues();
-    TelemetryData telemetryDataForContainer = telemetryDataValues.stream()
+    TelemetryData telemetryDataForContainer = capturedTelemetryData.stream()
         .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.REPOSITORY_COMPONENT))
         .findFirst()
         .orElse(null);
@@ -1415,7 +1417,7 @@ public class PolicyEvaluateServiceTest
     assertThat(pollingResult).isNotNull();
     assertThat(pollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
 
-    assertThat(telemetryDataValues).isNotEmpty();
+    assertThat(capturedTelemetryData).isNotEmpty();
     assertThat(telemetryDataForContainer).isNotNull();
     assertThat(telemetryDataForContainer.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_COMPONENT);
     assertThat(telemetryDataForContainer.getAttributes())

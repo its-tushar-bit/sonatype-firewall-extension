@@ -5,11 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-import jakarta.mail.internet.InternetAddress;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
@@ -17,7 +12,15 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.mail.internet.InternetAddress;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Table;
+import org.jooq.UpdatableRecord;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControlConfiguration.SOURCE_CONTROL_CONFIGURATION;
 
 @Named
 @Singleton
@@ -101,11 +104,6 @@ public class SourceControlConfigurationDAO
     return config;
   }
 
-  @Override
-  public SourceControlConfiguration getById(TransactionContext tx, String id) {
-    return super.getById(tx, SINGLETON_ENTITY_ID);
-  }
-
   public void set(SourceControlConfiguration sourceControlConfiguration) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
@@ -115,7 +113,13 @@ public class SourceControlConfigurationDAO
   }
 
   public void set(TransactionContext tx, SourceControlConfiguration sourceControlConfiguration) {
-    update(tx, sourceControlConfiguration);
+    SourceControlConfiguration existing = getById(tx, SINGLETON_ENTITY_ID);
+    if (existing == null) {
+      insert(tx, sourceControlConfiguration);
+    }
+    else {
+      update(tx, sourceControlConfiguration);
+    }
   }
 
   @Override
@@ -182,5 +186,26 @@ public class SourceControlConfigurationDAO
     if (config.getPullRequestMonitoringIntervalSeconds() < MIN_PULL_REQUEST_MONITORING_INTERVAL_SECONDS) {
       throw new BadRequestException(LOW_PULL_REQUEST_MONITORING_INTERVAL_SECONDS);
     }
+  }
+
+  @Override
+  protected UpdatableRecord<?> fromEntity(final UpdatableRecord<?> record, final SourceControlConfiguration entity) {
+    record.from(entity);
+    // Fix: record.from() uses Java bean introspection and maps the computed getDefaultBranchMonitoringStartTime()
+    // getter (which returns LocalTime) to the default_branch_monitoring_start_time column (which is VARCHAR).
+    // We need the actual String field value instead.
+    record.set(SOURCE_CONTROL_CONFIGURATION.DEFAULT_BRANCH_MONITORING_START_TIME,
+        entity.getDefaultBranchMonitoringStartTimeString());
+    return record;
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return SOURCE_CONTROL_CONFIGURATION;
+  }
+
+  @Override
+  public Class<SourceControlConfiguration> getEntityClass() {
+    return SourceControlConfiguration.class;
   }
 }

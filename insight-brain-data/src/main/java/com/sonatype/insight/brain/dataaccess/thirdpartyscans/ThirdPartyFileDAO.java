@@ -6,14 +6,17 @@
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+
+import static com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.ThirdPartyFile.THIRD_PARTY_FILE;
 
 @Named
 @Singleton
@@ -44,25 +47,30 @@ public class ThirdPartyFileDAO
   }
 
   public List<ThirdPartyFile> getAll() {
-    return getList("SELECT entity FROM ThirdPartyFile entity");
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(THIRD_PARTY_FILE)
+          .fetchInto(ThirdPartyFile.class);
+    }
   }
 
   public List<ThirdPartyFile> getByScanId(String scanId) {
-    String sQuery = "SELECT TPF FROM ThirdPartyFile TPF," + //
-        " ThirdPartyScan TPS" + //
-        " WHERE TPS.thirdPartyFileId=TPF.id AND TPS.scanId=?1";
-    return getList(sQuery, scanId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(THIRD_PARTY_FILE.fields())
+          .from(THIRD_PARTY_FILE)
+          .join(com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.ThirdPartyScan.THIRD_PARTY_SCAN)
+          .on(com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.ThirdPartyScan.THIRD_PARTY_SCAN.THIRD_PARTY_FILE_ID
+              .eq(THIRD_PARTY_FILE.THIRD_PARTY_FILE_ID))
+          .where(
+              com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.ThirdPartyScan.THIRD_PARTY_SCAN.SCAN_ID
+                  .eq(scanId))
+          .fetchInto(ThirdPartyFile.class);
+    }
   }
 
   public void deleteByScanId(String scanId) {
     getByScanId(scanId).forEach(this::delete);
-  }
-
-  @Override
-  public ThirdPartyFile getById(String id) {
-    String sQuery = "SELECT entity FROM ThirdPartyFile entity" + //
-        " WHERE entity.id=?1";
-    return get(sQuery, id);
   }
 
   public void delete(TransactionContext tx, String thirdPartyFileId) {
@@ -83,7 +91,23 @@ public class ThirdPartyFileDAO
     // cascade delete unknown components
     thirdPartyUnknownComponentDAO.deleteByThirdPartyFileId(tx, thirdPartyFile.getId());
 
-    // lastly delete this entity
+    // Delete this entity using jOOQ
+    tx.dsl()
+        .deleteFrom(THIRD_PARTY_FILE)
+        .where(THIRD_PARTY_FILE.THIRD_PARTY_FILE_ID.eq(thirdPartyFile.getId()))
+        .execute();
+
+    // Call super for search index changes
     super.delete(tx, thirdPartyFile);
+  }
+
+  @Override
+  public org.jooq.Table<?> getJooqTable() {
+    return THIRD_PARTY_FILE;
+  }
+
+  @Override
+  public Class<ThirdPartyFile> getEntityClass() {
+    return ThirdPartyFile.class;
   }
 }

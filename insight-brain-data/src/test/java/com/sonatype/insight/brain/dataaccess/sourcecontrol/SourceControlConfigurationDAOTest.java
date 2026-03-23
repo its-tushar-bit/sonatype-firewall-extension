@@ -7,8 +7,7 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.time.LocalTime;
 
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.PersistenceException;
+import org.jooq.exception.IntegrityConstraintViolationException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -93,12 +92,11 @@ public class SourceControlConfigurationDAOTest
   public void testInsert_EnforceSingleton() {
     dao.insert(new SourceControlConfiguration());
 
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(new SourceControlConfiguration()))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class)
+        .isThrownBy(() -> dao.insert(new SourceControlConfiguration()));
     SourceControlConfiguration config = new SourceControlConfiguration();
     config.setId(TemporaryEntity.uuid());
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(config))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class).isThrownBy(() -> dao.insert(config));
   }
 
   @Test
@@ -108,7 +106,7 @@ public class SourceControlConfigurationDAOTest
     SourceControlConfiguration config = new SourceControlConfiguration();
     config.setId(TemporaryEntity.uuid());
     dao.update(config);
-    assertThat(dao.createQuery("SELECT entity FROM SourceControlConfiguration entity").getList())
+    assertThat(dao.getAll())
         .extracting(SourceControlConfiguration::getId)
         .containsExactly(SourceControlConfigurationDAO.SINGLETON_ENTITY_ID);
   }
@@ -125,6 +123,7 @@ public class SourceControlConfigurationDAOTest
 
   @Test
   public void testUpdate_Validates() {
+    dao.insert(new SourceControlConfiguration());
     SourceControlConfigurationDAO spy = spy(dao);
     SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
 

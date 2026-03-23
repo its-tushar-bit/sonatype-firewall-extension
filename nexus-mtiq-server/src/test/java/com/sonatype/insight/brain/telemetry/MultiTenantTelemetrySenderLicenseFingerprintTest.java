@@ -54,7 +54,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 @Category(SlowTest.class)
 public class MultiTenantTelemetrySenderLicenseFingerprintTest
     extends AbstractMultiTenantTest
@@ -96,6 +96,9 @@ public class MultiTenantTelemetrySenderLicenseFingerprintTest
       config.setServerUrl(hdsMockServer.getHttpUrl());
       return null;
     }).when(proxy).contextualize(any());
+
+    // Enable multi-tenant mode so TenantAwareOneTimeRunnable properly sets tenant context
+    doReturn(true).when(tenantUtil).isMultiTenant();
 
     testProductLicenseManager = new TestProductLicenseManager();
     productLicense = new MultiTenantProductLicense(mock(DeveloperEnablementService.class));

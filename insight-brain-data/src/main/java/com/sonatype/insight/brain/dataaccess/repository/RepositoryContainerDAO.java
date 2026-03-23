@@ -17,6 +17,10 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryContainer.REPOSITORY_CONTAINER;
+
 @Named
 @Singleton
 public class RepositoryContainerDAO
@@ -40,8 +44,9 @@ public class RepositoryContainerDAO
   }
 
   public RepositoryContainer getInstance(TransactionContext tx) {
-    String sQuery = "SELECT entity FROM RepositoryContainer entity";
-    return get(tx, sQuery);
+    return super.toEntity(tx.dsl()
+        .selectFrom(REPOSITORY_CONTAINER)
+        .fetchOne());
   }
 
   public String getRelatedOrganizationId() {
@@ -69,11 +74,11 @@ public class RepositoryContainerDAO
       throw new NotFoundException("Organization not found");
     }
 
-    String sQuery = "UPDATE RepositoryContainer entity" + //
-        " SET entity.relatedOrganizationId=?1" + //
-        " WHERE entity.id=?2";
-
-    createQuery(tx, sQuery, organizationId, RepositoryContainer.REPOSITORY_CONTAINER_ID).executeUpdate();
+    tx.dsl()
+        .update(REPOSITORY_CONTAINER)
+        .set(REPOSITORY_CONTAINER.RELATED_ORGANIZATION_ID, organizationId)
+        .where(REPOSITORY_CONTAINER.REPOSITORY_CONTAINER_ID.eq(RepositoryContainer.REPOSITORY_CONTAINER_ID))
+        .execute();
   }
 
   @Override
@@ -89,5 +94,15 @@ public class RepositoryContainerDAO
   @Override
   public void delete(TransactionContext tx, RepositoryContainer entity) {
     throw new UnsupportedOperationException("RepositoryContainerDAO does not support delete");
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return REPOSITORY_CONTAINER;
+  }
+
+  @Override
+  public Class<RepositoryContainer> getEntityClass() {
+    return RepositoryContainer.class;
   }
 }

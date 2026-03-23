@@ -5,16 +5,18 @@
  */
 package com.sonatype.insight.brain.dataaccess.roi;
 
-import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.model.roi.CurrencyTypes;
 import com.sonatype.insight.brain.model.roi.RoiConfiguration;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.aggregation.tables.RoiConfiguration.ROI_CONFIGURATION;
 
 @Named
 @Singleton
@@ -26,23 +28,22 @@ public class RoiConfigurationDAO
     super(aggregationDataStore);
   }
 
-  @Override
-  public RoiConfiguration getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM RoiConfiguration entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  public List<RoiConfiguration> getAll() {
-    String sQuery = "SELECT entity FROM RoiConfiguration entity";
-    return getList(sQuery);
-  }
-
   public RoiConfiguration getByCurrencyType(CurrencyTypes currencyType) {
     try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = "SELECT entity FROM RoiConfiguration entity" + //
-          " WHERE entity.currency=?1";
-      return get(tx, sQuery, currencyType);
+      return toEntity(tx.dsl()
+          .selectFrom(ROI_CONFIGURATION)
+          .where(ROI_CONFIGURATION.CURRENCY.eq(currencyType.name()))
+          .fetchOne());
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return ROI_CONFIGURATION;
+  }
+
+  @Override
+  public Class<RoiConfiguration> getEntityClass() {
+    return RoiConfiguration.class;
   }
 }

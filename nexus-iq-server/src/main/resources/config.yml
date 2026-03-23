@@ -98,6 +98,8 @@ logging:
     "com.networknt.schema": OFF
     "org.eclipse.jgit": INFO
     "software.amazon.awssdk": WARN
+    "org.jooq.tools": WARN
+    "org.jooq.Constants": OFF
     "com.sonatype.insight.audit":
       appenders:
       - type: file

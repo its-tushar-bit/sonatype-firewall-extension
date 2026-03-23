@@ -5,16 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -26,23 +20,17 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.git.utils.GitBranchNameValidator;
 import com.sonatype.nexus.git.utils.InvalidBranchNameException;
 
-import jakarta.persistence.LockModeType;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.BATCH_PR_STATE_UPDATE_EVENT;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_COMPLETE;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_ERROR;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_IN_PROGRESS;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_NEW;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.PR_STATE_UPDATE_EVENT;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.UPDATED_PULL_REQUEST_EVENT;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControlEvent.SOURCE_CONTROL_EVENT;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.*;
 
 @Named
 @Singleton
@@ -54,12 +42,6 @@ public class SourceControlEventDAO
   private static final int DELETE_BATCH_SIZE = 100;
 
   private static final String AN_INVALID_INSTANCE_ID = "-1";
-
-  private static final String SELECT_ENTITY = "SELECT entity FROM SourceControlEvent entity ";
-
-  private static final String UPDATE_ENTITY = "UPDATE SourceControlEvent entity ";
-
-  private static final String WHERE_ENTITY_ID_MATCHES = "WHERE entity.id=?1";
 
   private static final String UPDATED_EVENT_WITH_STATUS = "updated event {} with status {}";
 
@@ -81,14 +63,12 @@ public class SourceControlEventDAO
   public void releaseRelatedEvents(SourceControlEvent event) {
     try (TransactionContext txn = createTransactionContext()) {
       txn.begin();
-
-      txn.createNativeQuery(
-          "UPDATE " + getDatabaseSchema() + ".source_control_event" +
-              " SET instance_id = NULL" +
-              " WHERE scm_username = ?1 " +
-              "   AND event_status = 'new'")
-          .setParameter(1, event.getScmUsername())
-          .executeUpdate();
+      txn.dsl()
+          .update(SOURCE_CONTROL_EVENT)
+          .setNull(SOURCE_CONTROL_EVENT.INSTANCE_ID)
+          .where(SOURCE_CONTROL_EVENT.SCM_USERNAME.eq(event.getScmUsername()))
+          .and(SOURCE_CONTROL_EVENT.EVENT_STATUS.eq(EVENT_STATUS_NEW))
+          .execute();
       txn.commit();
     }
   }
@@ -106,28 +86,35 @@ public class SourceControlEventDAO
 
       // assign the given instance ID to any events that aren't already assigned IFF there are no active events
       // (i.e. 'new', 'in progress') already assigned to another instance
-      result = txn
-          .createNativeQuery(
-              "UPDATE " + getDatabaseSchema() + ".source_control_event" +
-                  " SET instance_id = ?1" +
-                  " WHERE source_control_event_id IN (" +
-                  "   SELECT unassigned_events.id FROM (" +
-                  "     SELECT source_control_event_id AS id" +
-                  "       FROM " + getDatabaseSchema() + ".source_control_event" +
-                  "       WHERE instance_id IS NULL" +
-                  "       FOR UPDATE" +
-                  "     ) AS unassigned_events," +
-                  "     (" +
-                  "       SELECT count(*) AS reserved_count " +
-                  "       FROM " + getDatabaseSchema() + ".source_control_event" +
-                  "       WHERE instance_id IS NOT NULL" +
-                  "       AND instance_id != ?1" +
-                  "       AND event_status IN ('new', 'in progress')" +
-                  "     ) AS events_reserved_for_other_instances" +
-                  "   WHERE events_reserved_for_other_instances.reserved_count = 0" +
-                  " );")
-          .setParameter(1, instanceId)
-          .executeUpdate();
+
+      // First check if there are any events reserved for other instances
+      List<String> activeStatuses = Arrays.asList(EVENT_STATUS_NEW, EVENT_STATUS_IN_PROGRESS);
+      long reservedCount = txn.dsl()
+          .selectCount()
+          .from(SOURCE_CONTROL_EVENT)
+          .where(SOURCE_CONTROL_EVENT.INSTANCE_ID.isNotNull())
+          .and(SOURCE_CONTROL_EVENT.INSTANCE_ID.ne(instanceId))
+          .and(SOURCE_CONTROL_EVENT.EVENT_STATUS.in(activeStatuses))
+          .fetchOne(0, Long.class);
+
+      if (reservedCount == 0) {
+        // Get unassigned event IDs
+        List<String> unassignedIds = txn.dsl()
+            .select(SOURCE_CONTROL_EVENT.SOURCE_CONTROL_EVENT_ID)
+            .from(SOURCE_CONTROL_EVENT)
+            .where(SOURCE_CONTROL_EVENT.INSTANCE_ID.isNull())
+            .forUpdate()
+            .fetchInto(String.class);
+
+        if (!unassignedIds.isEmpty()) {
+          result = txn.dsl()
+              .update(SOURCE_CONTROL_EVENT)
+              .set(SOURCE_CONTROL_EVENT.INSTANCE_ID, instanceId)
+              .where(SOURCE_CONTROL_EVENT.SOURCE_CONTROL_EVENT_ID.in(unassignedIds))
+              .execute();
+        }
+      }
+
       txn.commit();
     }
     return result;
@@ -136,17 +123,17 @@ public class SourceControlEventDAO
   public List<SourceControlEvent> selectUnassignedNewEventsAndAssignToInstance(final String instanceId) {
     List<SourceControlEvent> unassignedEvents;
 
-    String sQuery = SELECT_ENTITY +
-        "WHERE entity.instanceId IS NULL AND entity.eventStatus = ?1 " +
-        "ORDER BY entity.createTime";
-    Query<SourceControlEvent> query = new Query<>(sQuery, EVENT_STATUS_NEW);
-    // need a 'select for update' type query - this is how to do it in JPA
-    query.setLockModeType(LockModeType.PESSIMISTIC_WRITE);
-
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
 
-      unassignedEvents = query.getList(tx);
+      unassignedEvents = tx.dsl()
+          .selectFrom(SOURCE_CONTROL_EVENT)
+          .where(SOURCE_CONTROL_EVENT.INSTANCE_ID.isNull())
+          .and(SOURCE_CONTROL_EVENT.EVENT_STATUS.eq(EVENT_STATUS_NEW))
+          .orderBy(SOURCE_CONTROL_EVENT.CREATE_TIME)
+          .forUpdate()
+          .fetch(this::toEntity);
+
       unassignedEvents.forEach(event -> {
         event.setInstanceId(instanceId);
         update(tx, event);
@@ -158,7 +145,6 @@ public class SourceControlEventDAO
     return unassignedEvents;
   }
 
-  @SuppressWarnings("unchecked")
   public List<SourceControlEvent> selectEventsByCriteria(
       final Set<String> applicationIds,
       final Date createdOnOrAfter,
@@ -166,30 +152,39 @@ public class SourceControlEventDAO
       final int limit,
       final int offset)
   {
-    String sQuery = SELECT_ENTITY +
-        "WHERE entity.applicationId IN ?1 AND entity.createTime >= ?2 ORDER BY entity.createTime " +
-        (ascending ? "ASC " : "DESC ");
     try (TransactionContext tx = createTransactionContext()) {
-      final jakarta.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, limit);
-      paginationQuery.setParameter(1, applicationIds);
-      paginationQuery.setParameter(2, createdOnOrAfter);
-      return paginationQuery.getResultList();
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL_EVENT)
+          .where(SOURCE_CONTROL_EVENT.APPLICATION_ID.in(applicationIds))
+          .and(SOURCE_CONTROL_EVENT.CREATE_TIME.ge(createdOnOrAfter))
+          .orderBy(ascending ? SOURCE_CONTROL_EVENT.CREATE_TIME.asc() : SOURCE_CONTROL_EVENT.CREATE_TIME.desc())
+          .offset(offset)
+          .limit(limit)
+          .fetch(this::toEntity);
     }
   }
 
   public List<SourceControlEvent> selectEventsForInstance(final String instanceId, final int quantity) {
-    String sQuery = SELECT_ENTITY +
-        "WHERE entity.instanceId = ?1 AND entity.eventStatus = ?2 ORDER BY entity.eventPriority, entity.createTime";
-    Query<SourceControlEvent> query =
-        new Query<>(sQuery, instanceId, EVENT_STATUS_NEW);
-    query.setMaxResults(quantity);
-    return query.getList();
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL_EVENT)
+          .where(SOURCE_CONTROL_EVENT.INSTANCE_ID.eq(instanceId))
+          .and(SOURCE_CONTROL_EVENT.EVENT_STATUS.eq(EVENT_STATUS_NEW))
+          .orderBy(SOURCE_CONTROL_EVENT.EVENT_PRIORITY, SOURCE_CONTROL_EVENT.CREATE_TIME)
+          .limit(quantity)
+          .fetch(this::toEntity);
+    }
   }
 
   public List<SourceControlEvent> getPendingOrInProgressSourceControlEvaluationEvents() {
     List<String> statuses = Arrays.asList(EVENT_STATUS_NEW, EVENT_STATUS_IN_PROGRESS);
-    String sQuery = SELECT_ENTITY + "WHERE entity.eventType = ?1 AND entity.eventStatus IN ?2";
-    return getList(sQuery, SOURCE_CONTROL_EVALUATION_EVENT, statuses);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL_EVENT)
+          .where(SOURCE_CONTROL_EVENT.EVENT_TYPE.eq(SOURCE_CONTROL_EVALUATION_EVENT))
+          .and(SOURCE_CONTROL_EVENT.EVENT_STATUS.in(statuses))
+          .fetch(this::toEntity);
+    }
   }
 
   public List<SourceControlEvent> getPendingOrInProgressUpdatedPullRequestEvents(
@@ -197,33 +192,53 @@ public class SourceControlEventDAO
       int pullRequestNumber)
   {
     List<String> statuses = Arrays.asList(EVENT_STATUS_NEW, EVENT_STATUS_IN_PROGRESS);
-    String sQuery = SELECT_ENTITY + //
-        "WHERE entity.eventType = ?1 AND entity.eventStatus IN ?2" + //
-        " AND entity.applicationId IN ?3 AND entity.pullRequestNumber=?4";
-    return getList(sQuery, UPDATED_PULL_REQUEST_EVENT, statuses, appIds, pullRequestNumber);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL_EVENT)
+          .where(SOURCE_CONTROL_EVENT.EVENT_TYPE.eq(UPDATED_PULL_REQUEST_EVENT))
+          .and(SOURCE_CONTROL_EVENT.EVENT_STATUS.in(statuses))
+          .and(SOURCE_CONTROL_EVENT.APPLICATION_ID.in(appIds))
+          .and(SOURCE_CONTROL_EVENT.PULL_REQUEST_NUMBER.eq(pullRequestNumber))
+          .fetch(this::toEntity);
+    }
   }
 
   public List<SourceControlEvent> getRemediationEventsForBranch(String applicationId, String branchName) {
-    String sQuery =
-        SELECT_ENTITY + " WHERE entity.applicationId = ?1 AND entity.eventType IN ?2 AND entity.branchName = ?3";
-    return getList(sQuery, applicationId, REMEDIATION_EVENT_TYPES, branchName);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL_EVENT)
+          .where(SOURCE_CONTROL_EVENT.APPLICATION_ID.eq(applicationId))
+          .and(SOURCE_CONTROL_EVENT.EVENT_TYPE.in(REMEDIATION_EVENT_TYPES))
+          .and(SOURCE_CONTROL_EVENT.BRANCH_NAME.eq(branchName))
+          .fetch(this::toEntity);
+    }
   }
 
   public void markEventInProgress(final String eventId) {
-    String sQuery = UPDATE_ENTITY +
-        "SET entity.eventStatus=?2, entity.startTime=?3 " +
-        WHERE_ENTITY_ID_MATCHES;
-    createQuery(sQuery, eventId, EVENT_STATUS_IN_PROGRESS, new Timestamp(System.currentTimeMillis()))
-        .executeUpdate();
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .update(SOURCE_CONTROL_EVENT)
+          .set(SOURCE_CONTROL_EVENT.EVENT_STATUS, EVENT_STATUS_IN_PROGRESS)
+          .set(SOURCE_CONTROL_EVENT.START_TIME, new Date())
+          .where(SOURCE_CONTROL_EVENT.SOURCE_CONTROL_EVENT_ID.eq(eventId))
+          .execute();
+      tx.commit();
+    }
     log.debug(UPDATED_EVENT_WITH_STATUS, eventId, EVENT_STATUS_IN_PROGRESS);
   }
 
   public void markEventComplete(final String eventId) {
-    String sQuery = UPDATE_ENTITY +
-        "SET entity.eventStatus=?2, entity.completeTime=?3 " +
-        WHERE_ENTITY_ID_MATCHES;
-    createQuery(sQuery, eventId, EVENT_STATUS_COMPLETE, new Timestamp(System.currentTimeMillis()))
-        .executeUpdate();
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .update(SOURCE_CONTROL_EVENT)
+          .set(SOURCE_CONTROL_EVENT.EVENT_STATUS, EVENT_STATUS_COMPLETE)
+          .set(SOURCE_CONTROL_EVENT.COMPLETE_TIME, new Date())
+          .where(SOURCE_CONTROL_EVENT.SOURCE_CONTROL_EVENT_ID.eq(eventId))
+          .execute();
+      tx.commit();
+    }
     log.debug(UPDATED_EVENT_WITH_STATUS, eventId, EVENT_STATUS_COMPLETE);
   }
 
@@ -242,12 +257,18 @@ public class SourceControlEventDAO
       Exception eventException)
   {
     String eventErrorDetails = eventException == null ? null : ExceptionUtils.getStackTrace(eventException);
-    String sQuery = UPDATE_ENTITY + //
-        "SET entity.eventStatus=?2, entity.eventStatusDetails=?3, " + //
-        "entity.eventErrorDetails=?4, entity.completeTime=?5 " + //
-        WHERE_ENTITY_ID_MATCHES;
-    createQuery(sQuery, eventId, eventStatus, StringUtils.abbreviate(message, 2048), eventErrorDetails,
-        new Timestamp(System.currentTimeMillis())).executeUpdate();
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .update(SOURCE_CONTROL_EVENT)
+          .set(SOURCE_CONTROL_EVENT.EVENT_STATUS, eventStatus)
+          .set(SOURCE_CONTROL_EVENT.EVENT_STATUS_DETAILS, StringUtils.abbreviate(message, 2048))
+          .set(SOURCE_CONTROL_EVENT.EVENT_ERROR_DETAILS, eventErrorDetails)
+          .set(SOURCE_CONTROL_EVENT.COMPLETE_TIME, new Date())
+          .where(SOURCE_CONTROL_EVENT.SOURCE_CONTROL_EVENT_ID.eq(eventId))
+          .execute();
+      tx.commit();
+    }
     log.debug(UPDATED_EVENT_WITH_STATUS, eventId, eventStatus);
   }
 
@@ -259,27 +280,42 @@ public class SourceControlEventDAO
     }
 
     // we ignore events for 'active' instances as well as complete or error events
-    String sQuery = UPDATE_ENTITY +
-        "SET entity.instanceId = null, entity.eventStatus = 'new' " +
-        "WHERE (entity.instanceId IS NOT NULL " +
-        "  AND NOT entity.instanceId IN ?1 " +
-        "  AND (" +
-        "    (entity.eventStatus = 'new' AND entity.createTime < ?2) " +
-        "      OR " +
-        "    (entity.eventStatus = 'in progress' AND entity.startTime < ?2)" +
-        "  )) " +
-        "OR ( " +
-        "  entity.instanceId IS NULL AND entity.eventStatus = 'in progress' AND entity.startTime < ?2" +
-        ")";
     long cutoffTimeMs = System.currentTimeMillis() - eventsOlderThanSeconds * 1_000L;
     Date cutoffTime = new Date(cutoffTimeMs);
-    createQuery(sQuery, activeInstanceIds, cutoffTime).executeUpdate();
+
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .update(SOURCE_CONTROL_EVENT)
+          .setNull(SOURCE_CONTROL_EVENT.INSTANCE_ID)
+          .set(SOURCE_CONTROL_EVENT.EVENT_STATUS, EVENT_STATUS_NEW)
+          .where(
+              SOURCE_CONTROL_EVENT.INSTANCE_ID.isNotNull()
+                  .and(SOURCE_CONTROL_EVENT.INSTANCE_ID.notIn(activeInstanceIds))
+                  .and(
+                      SOURCE_CONTROL_EVENT.EVENT_STATUS.eq(EVENT_STATUS_NEW)
+                          .and(SOURCE_CONTROL_EVENT.CREATE_TIME.lt(cutoffTime))
+                          .or(
+                              SOURCE_CONTROL_EVENT.EVENT_STATUS.eq(EVENT_STATUS_IN_PROGRESS)
+                                  .and(SOURCE_CONTROL_EVENT.START_TIME.lt(cutoffTime))))
+                  .or(
+                      SOURCE_CONTROL_EVENT.INSTANCE_ID.isNull()
+                          .and(SOURCE_CONTROL_EVENT.EVENT_STATUS.eq(EVENT_STATUS_IN_PROGRESS))
+                          .and(SOURCE_CONTROL_EVENT.START_TIME.lt(cutoffTime))))
+          .execute();
+      tx.commit();
+    }
   }
 
   public List<SourceControlEvent> getUnassignedEventsToProcess() {
-    String sQuery = SELECT_ENTITY + "WHERE entity.instanceId IS NULL AND entity.eventStatus = 'new' " +
-        "ORDER BY entity.createTime";
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL_EVENT)
+          .where(SOURCE_CONTROL_EVENT.INSTANCE_ID.isNull())
+          .and(SOURCE_CONTROL_EVENT.EVENT_STATUS.eq(EVENT_STATUS_NEW))
+          .orderBy(SOURCE_CONTROL_EVENT.CREATE_TIME)
+          .fetch(this::toEntity);
+    }
   }
 
   public void deleteByApplicationId(final String applicationId) {
@@ -291,26 +327,35 @@ public class SourceControlEventDAO
   }
 
   public void deleteByApplicationId(final TransactionContext tx, final String applicationId) {
-    List<SourceControlEvent> sourceControlEventList = getList(
-        tx, SELECT_ENTITY + "WHERE entity.applicationId=?1", applicationId);
+    List<SourceControlEvent> sourceControlEventList = tx.dsl()
+        .selectFrom(SOURCE_CONTROL_EVENT)
+        .where(SOURCE_CONTROL_EVENT.APPLICATION_ID.eq(applicationId))
+        .fetch(this::toEntity);
     for (SourceControlEvent sourceControlEvent : sourceControlEventList) {
       delete(tx, sourceControlEvent);
     }
   }
 
   public int deleteAllBeforeDate(final Date cutoffDate) {
-    String sQuery = "SELECT entity.id FROM SourceControlEvent entity" +
-        " WHERE entity.createTime < ?1";
     int deletedRows = 0;
     while (true) {
-      List<String> ids =
-          new Query<String>(sQuery, cutoffDate).setMaxResults(DELETE_BATCH_SIZE).getList();
-      if (ids.isEmpty()) {
-        return deletedRows;
+      try (TransactionContext tx = createTransactionContext()) {
+        List<String> ids = tx.dsl()
+            .select(SOURCE_CONTROL_EVENT.SOURCE_CONTROL_EVENT_ID)
+            .from(SOURCE_CONTROL_EVENT)
+            .where(SOURCE_CONTROL_EVENT.CREATE_TIME.lt(cutoffDate))
+            .limit(DELETE_BATCH_SIZE)
+            .fetchInto(String.class);
+        if (ids.isEmpty()) {
+          return deletedRows;
+        }
+        tx.begin();
+        deletedRows += tx.dsl()
+            .deleteFrom(SOURCE_CONTROL_EVENT)
+            .where(SOURCE_CONTROL_EVENT.SOURCE_CONTROL_EVENT_ID.in(ids))
+            .execute();
+        tx.commit();
       }
-      deletedRows +=
-          createQuery("DELETE FROM SourceControlEvent entity WHERE entity.id IN (?1)", ids)
-              .executeUpdate();
     }
   }
 
@@ -319,34 +364,36 @@ public class SourceControlEventDAO
       String branchName,
       String... eventStatuses)
   {
-    String sQuery = "SELECT count(entity) FROM SourceControlEvent entity" +
-        " WHERE entity.applicationId = ?1" +
-        " AND entity.eventType IN ?2" +
-        " AND entity.branchName = ?3";
-    List<Object> params = new ArrayList<>();
-    params.add(applicationId);
-    params.add(REMEDIATION_EVENT_TYPES);
-    params.add(branchName);
-    if (eventStatuses.length > 0) {
-      sQuery += " AND entity.eventStatus IN ?4";
-      params.add(Arrays.asList(eventStatuses));
+    try (TransactionContext tx = createTransactionContext()) {
+      var condition = SOURCE_CONTROL_EVENT.APPLICATION_ID.eq(applicationId)
+          .and(SOURCE_CONTROL_EVENT.EVENT_TYPE.in(REMEDIATION_EVENT_TYPES))
+          .and(SOURCE_CONTROL_EVENT.BRANCH_NAME.eq(branchName));
+
+      if (eventStatuses.length > 0) {
+        condition = condition.and(SOURCE_CONTROL_EVENT.EVENT_STATUS.in(Arrays.asList(eventStatuses)));
+      }
+
+      return tx.dsl()
+          .selectCount()
+          .from(SOURCE_CONTROL_EVENT)
+          .where(condition)
+          .fetchOne(0, Long.class) > 0;
     }
-    return 0 != getSingle(Long.class, sQuery, params.toArray());
   }
 
   public List<SourceControlEvent> getPullRequestStateUpdateEventsForApplication(String applicationId) {
-    String sQuery = """
-        SELECT entity
-        FROM SourceControlEvent entity
-        WHERE entity.eventType IN ?1 AND entity.applicationId = ?2
-        """;
-
-    return getList(sQuery, List.of(PR_STATE_UPDATE_EVENT, BATCH_PR_STATE_UPDATE_EVENT), applicationId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL_EVENT)
+          .where(SOURCE_CONTROL_EVENT.EVENT_TYPE.in(List.of(PR_STATE_UPDATE_EVENT, BATCH_PR_STATE_UPDATE_EVENT)))
+          .and(SOURCE_CONTROL_EVENT.APPLICATION_ID.eq(applicationId))
+          .fetch(this::toEntity);
+    }
   }
 
   /**
-   * Gets completed REMEDIATION_PULL_REQUEST events for a given application and component identifier
-   * that were completed before a given time.
+   * Gets completed REMEDIATION_PULL_REQUEST events for a given application and component identifier that were completed
+   * before a given time.
    *
    * @param applicationId The ID of the application
    * @param componentIdentifier The component identifier to check
@@ -363,26 +410,17 @@ public class SourceControlEventDAO
     String format = componentIdentifier.getFormat();
     String coordinatesJson = ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates());
 
-    String sQuery = SELECT_ENTITY + """
-        WHERE entity.applicationId = :appId
-        AND entity.eventType = :eventType
-        AND entity.eventStatus = :eventStatus
-        AND entity.componentIdFormat = :format
-        AND entity.componentIdCoordinatesJson = :coordinates
-        AND entity.completeTime >= :pullRequestCreationMinCutoffTime
-        AND entity.completeTime <= :pullRequestCreationMaxCutoffTime""";
-
     try (TransactionContext tx = createTransactionContext()) {
-      jakarta.persistence.Query query = tx.createQuery(sQuery);
-      query.setParameter("appId", applicationId);
-      query.setParameter("eventType", REMEDIATION_PULL_REQUEST_EVENT);
-      query.setParameter("eventStatus", EVENT_STATUS_COMPLETE);
-      query.setParameter("format", format);
-      query.setParameter("coordinates", coordinatesJson);
-      query.setParameter("pullRequestCreationMinCutoffTime", pullRequestCreationMinCutoffTime);
-      query.setParameter("pullRequestCreationMaxCutoffTime", pullRequestCreationMaxCutoffTime);
-
-      return query.getResultList();
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL_EVENT)
+          .where(SOURCE_CONTROL_EVENT.APPLICATION_ID.eq(applicationId))
+          .and(SOURCE_CONTROL_EVENT.EVENT_TYPE.eq(REMEDIATION_PULL_REQUEST_EVENT))
+          .and(SOURCE_CONTROL_EVENT.EVENT_STATUS.eq(EVENT_STATUS_COMPLETE))
+          .and(SOURCE_CONTROL_EVENT.COMPONENT_ID_FORMAT.eq(format))
+          .and(SOURCE_CONTROL_EVENT.COMPONENT_ID_COORDINATES_JSON.eq(coordinatesJson))
+          .and(SOURCE_CONTROL_EVENT.COMPLETE_TIME.ge(pullRequestCreationMinCutoffTime))
+          .and(SOURCE_CONTROL_EVENT.COMPLETE_TIME.le(pullRequestCreationMaxCutoffTime))
+          .fetch(this::toEntity);
     }
   }
 
@@ -399,20 +437,6 @@ public class SourceControlEventDAO
         SourceControlEvent.EVENT_STATUS_COMPLETE);
   }
 
-  @Override
-  public final void delete(TransactionContext tx, SourceControlEvent entity) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting related entities.
-    super.delete(tx, entity);
-  }
-
-  @Override
-  public final void delete(SourceControlEvent entity) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting related entities.
-    super.delete(entity);
-  }
-
   public void clearEventsAndInsert(SourceControlEvent sourceControlEvent) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
@@ -423,24 +447,29 @@ public class SourceControlEventDAO
   }
 
   public List<SourceControlEvent> getAllByApplicationId(String applicationId) {
-    String sQuery = SELECT_ENTITY + "WHERE entity.applicationId =?1";
-    return getList(sQuery, applicationId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL_EVENT)
+          .where(SOURCE_CONTROL_EVENT.APPLICATION_ID.eq(applicationId))
+          .fetch(this::toEntity);
+    }
   }
 
   /**
-   * Finds the latest remediation event (PR creation event) for a specific pull request.
-   * This is used to retrieve golden status information from the original PR creation.
+   * Finds the latest remediation event (PR creation event) for a specific pull request. This is used to retrieve golden
+   * status information from the original PR creation.
    */
   public SourceControlEvent getLatestRemediationEventForPullRequest(String applicationId, int pullRequestNumber) {
-    String sQuery = SELECT_ENTITY +
-        "WHERE entity.applicationId = ?1 AND entity.pullRequestNumber = ?2 " +
-        "AND entity.eventType IN ?3 " +
-        "ORDER BY entity.createTime DESC";
-
-    Query<SourceControlEvent> query = new Query<>(sQuery, applicationId, pullRequestNumber, REMEDIATION_EVENT_TYPES);
-    query.setMaxResults(1);
-    List<SourceControlEvent> events = query.getList();
-    return events.isEmpty() ? null : events.get(0);
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(SOURCE_CONTROL_EVENT)
+          .where(SOURCE_CONTROL_EVENT.APPLICATION_ID.eq(applicationId))
+          .and(SOURCE_CONTROL_EVENT.PULL_REQUEST_NUMBER.eq(pullRequestNumber))
+          .and(SOURCE_CONTROL_EVENT.EVENT_TYPE.in(REMEDIATION_EVENT_TYPES))
+          .orderBy(SOURCE_CONTROL_EVENT.CREATE_TIME.desc())
+          .limit(1)
+          .fetchOne());
+    }
   }
 
   @Override
@@ -468,5 +497,15 @@ public class SourceControlEventDAO
     catch (InvalidBranchNameException e) {
       throw new BadRequestException(e.getMessage(), e);
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return SOURCE_CONTROL_EVENT;
+  }
+
+  @Override
+  public Class<SourceControlEvent> getEntityClass() {
+    return SourceControlEvent.class;
   }
 }

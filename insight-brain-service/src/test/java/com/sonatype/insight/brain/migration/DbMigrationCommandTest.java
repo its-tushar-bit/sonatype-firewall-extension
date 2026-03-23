@@ -11,7 +11,6 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.common.test.SlowTest;
@@ -60,6 +59,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+
+import org.jooq.impl.DSL;
 
 @RunWith(MockitoJUnitRunner.class)
 @H2DiskTest
@@ -451,17 +452,20 @@ public class DbMigrationCommandTest
 
   private void createSchedulerStateRecord(long checkinTimestamp) throws Exception {
     OperationalDataStore operationalDataStore = databaseContainerRule.getOperationalDataStore();
-    String sQuery = "INSERT INTO " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE" + //
-        " (SCHED_NAME, INSTANCE_NAME, LAST_CHECKIN_TIME, CHECKIN_INTERVAL) " + //
-        " VALUES (?, ?, ?, ?)";
-    try (Connection connection = operationalDataStore.getDataSource().getConnection();
-        PreparedStatement statement = connection.prepareStatement(sQuery))
-    {
-      statement.setString(1, TaskScheduler.DEFAULT_SCHEDULER_NAME);
-      statement.setString(2, "instanceId");
-      statement.setLong(3, checkinTimestamp);
-      statement.setLong(4, QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS);
-      statement.execute();
+    try (Connection connection = operationalDataStore.getDataSource().getConnection()) {
+      DSL.using(connection)
+          .insertInto(DSL.table(operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE"))
+          .columns(
+              DSL.field("SCHED_NAME"),
+              DSL.field("INSTANCE_NAME"),
+              DSL.field("LAST_CHECKIN_TIME"),
+              DSL.field("CHECKIN_INTERVAL"))
+          .values(
+              TaskScheduler.DEFAULT_SCHEDULER_NAME,
+              "instanceId",
+              checkinTimestamp,
+              QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS)
+          .execute();
     }
   }
 
@@ -471,11 +475,10 @@ public class DbMigrationCommandTest
 
   private void deleteTable(String tableName) throws Exception {
     OperationalDataStore operationalDataStore = databaseContainerRule.getOperationalDataStore();
-    try (Connection connection = operationalDataStore.getDataSource().getConnection();
-        PreparedStatement statement = connection.prepareStatement(
-            "DROP TABLE " + operationalDataStore.getDatabaseSchema() + "." + tableName))
-    {
-      statement.execute();
+    try (Connection connection = operationalDataStore.getDataSource().getConnection()) {
+      DSL.using(connection)
+          .dropTable(DSL.table(operationalDataStore.getDatabaseSchema() + "." + tableName))
+          .execute();
     }
   }
 

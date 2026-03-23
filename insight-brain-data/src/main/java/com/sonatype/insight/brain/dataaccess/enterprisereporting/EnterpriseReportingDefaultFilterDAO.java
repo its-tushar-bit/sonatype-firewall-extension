@@ -6,14 +6,18 @@
 package com.sonatype.insight.brain.dataaccess.enterprisereporting;
 
 import java.util.List;
+
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingDefaultFilter;
+import com.sonatype.insight.dataaccess.TransactionContext;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.jooq.Table;
 
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingDefaultFilter;
-import com.sonatype.insight.dataaccess.TransactionContext;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.EnterpriseReportingDefaultFilter.ENTERPRISE_REPORTING_DEFAULT_FILTER;
 
 @Named
 @Singleton
@@ -32,9 +36,20 @@ public class EnterpriseReportingDefaultFilterDAO
   }
 
   public EnterpriseReportingDefaultFilter getDefaultFilterByUserId(TransactionContext tx, String userId) {
-    String sQuery = "SELECT entity FROM EnterpriseReportingDefaultFilter entity " +
-        "WHERE entity.id=?1";
-    List<EnterpriseReportingDefaultFilter> filters = getList(tx, sQuery, userId);
+    List<EnterpriseReportingDefaultFilter> filters = tx.dsl()
+        .selectFrom(ENTERPRISE_REPORTING_DEFAULT_FILTER)
+        .where(ENTERPRISE_REPORTING_DEFAULT_FILTER.USER_ID.eq(userId))
+        .fetch(this::toEntity);
     return filters.isEmpty() ? null : filters.get(0);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return ENTERPRISE_REPORTING_DEFAULT_FILTER;
+  }
+
+  @Override
+  public Class<EnterpriseReportingDefaultFilter> getEntityClass() {
+    return EnterpriseReportingDefaultFilter.class;
   }
 }

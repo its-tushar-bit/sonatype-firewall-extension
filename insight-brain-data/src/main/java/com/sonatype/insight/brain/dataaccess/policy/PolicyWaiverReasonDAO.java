@@ -5,16 +5,20 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.List;
+import java.util.Map;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.util.List;
-import java.util.Map;
+import org.jooq.Table;
 
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyWaiverReason.POLICY_WAIVER_REASON;
 import static java.util.function.UnaryOperator.identity;
 import static java.util.stream.Collectors.toMap;
 
@@ -29,16 +33,17 @@ public class PolicyWaiverReasonDAO
   }
 
   @Override
-  public List<PolicyWaiverReason> getAll() {
-    final String sQuery = "SELECT entity FROM PolicyWaiverReason entity" +
-        "  ORDER BY " +
-        "    entity.sortOrder ASC," +
-        // this is a fallback for when sortOrder is null, it guarantees determinant behavior, currently we are providing
-        // sort_order values for all rows so this should not get hit, but we have left the column nullable because there
-        // is discussion around
-        "    entity.reasonText ASC";
+  public List<PolicyWaiverReason> getAll(TransactionContext tx) {
+    return tx.dsl()
+        .selectFrom(POLICY_WAIVER_REASON)
+        .orderBy(POLICY_WAIVER_REASON.SORT_ORDER.asc().nullsFirst(),
+            POLICY_WAIVER_REASON.REASON_TEXT.asc())
+        .fetchInto(PolicyWaiverReason.class);
+  }
 
-    return getList(sQuery);
+  @Override
+  public Table<?> getJooqTable() {
+    return POLICY_WAIVER_REASON;
   }
 
   // Returns all waivers reasons as a convenient lookup map;
@@ -52,14 +57,28 @@ public class PolicyWaiverReasonDAO
   }
 
   public List<PolicyWaiverReason> getAllByIds(List<String> policyWaiverReasonIds) {
-    String sQuery = "SELECT entity FROM PolicyWaiverReason entity" + //
-        " WHERE entity.id IN ?1";
-    return getList(sQuery, policyWaiverReasonIds);
+    if (policyWaiverReasonIds == null || policyWaiverReasonIds.isEmpty()) {
+      return java.util.Collections.emptyList();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(POLICY_WAIVER_REASON)
+          .where(POLICY_WAIVER_REASON.WAIVER_REASON_ID.in(policyWaiverReasonIds))
+          .fetchInto(PolicyWaiverReason.class);
+    }
   }
 
   public PolicyWaiverReason getByReasonText(String reasontext) {
-    String sQuery = "SELECT entity FROM PolicyWaiverReason entity" + //
-        " WHERE entity.reasonText=?1";
-    return get(sQuery, reasontext);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(POLICY_WAIVER_REASON)
+          .where(POLICY_WAIVER_REASON.REASON_TEXT.eq(reasontext))
+          .fetchOneInto(PolicyWaiverReason.class);
+    }
+  }
+
+  @Override
+  public Class<PolicyWaiverReason> getEntityClass() {
+    return PolicyWaiverReason.class;
   }
 }

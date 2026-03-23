@@ -262,10 +262,12 @@ describe('PolicyViolationsTableRow', () => {
       });
 
       it("Should render small text - Multiple expiring waivers is today's range", () => {
+        // Use day-based offsets to avoid flakiness when tests run near midnight
         const date = new Date();
-        date.setHours(date.getHours() + 1); // Add 1 hour (same day)
+        date.setHours(23, 59, 59); // End of today - expires today (0 days)
         const date1 = new Date();
-        date1.setDate(date1.getDate() + 1); // Add 1 day (next calendar day)
+        date1.setDate(date1.getDate() + 1); // Tomorrow - expires in 1 day
+        date1.setHours(12, 0, 0); // Midday tomorrow to ensure it's solidly in the next day
 
         const state = {
           ...defaultState,

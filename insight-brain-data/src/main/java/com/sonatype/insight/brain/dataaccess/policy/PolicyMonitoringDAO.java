@@ -5,12 +5,12 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -25,6 +25,10 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyMonitoring.POLICY_MONITORING;
 
 /**
  * @since 1.8
@@ -41,9 +45,12 @@ public class PolicyMonitoringDAO
 
   @Override
   public List<PolicyMonitoring> getAll() {
-    String sQuery = "SELECT entity FROM PolicyMonitoring entity" + //
-        " ORDER BY entity.id";
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(POLICY_MONITORING)
+          .orderBy(POLICY_MONITORING.POLICY_MONITORING_ID)
+          .fetchInto(PolicyMonitoring.class);
+    }
   }
 
   public List<PolicyMonitoring> getByOwnerId(String ownerId) {
@@ -61,9 +68,10 @@ public class PolicyMonitoringDAO
   }
 
   public List<PolicyMonitoring> getByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT entity FROM PolicyMonitoring entity" + //
-        " WHERE entity.ownerId=?1";
-    return getList(tx, sQuery, ownerId);
+    return tx.dsl()
+        .selectFrom(POLICY_MONITORING)
+        .where(POLICY_MONITORING.OWNER_ID.eq(ownerId))
+        .fetchInto(PolicyMonitoring.class);
   }
 
   public PolicyMonitoring getByOwnerIdAndStageTypeId(String ownerId, String stageTypeId) {
@@ -73,15 +81,20 @@ public class PolicyMonitoringDAO
   }
 
   public PolicyMonitoring getByOwnerIdAndStageTypeId(TransactionContext tx, String ownerId, String stageTypeId) {
-    String sQuery = "SELECT entity FROM PolicyMonitoring entity" + //
-        " WHERE entity.ownerId=?1 and entity.stageTypeId=?2";
-    return get(tx, sQuery, ownerId, stageTypeId);
+    return tx.dsl()
+        .selectFrom(POLICY_MONITORING)
+        .where(POLICY_MONITORING.OWNER_ID.eq(ownerId))
+        .and(POLICY_MONITORING.STAGE_TYPE_ID.eq(stageTypeId))
+        .fetchOneInto(PolicyMonitoring.class);
   }
 
   public List<PolicyMonitoring> getByStageTypeId(String stageTypeId) {
-    String sQuery = "SELECT entity FROM PolicyMonitoring entity" + //
-        " WHERE entity.stageTypeId=?1";
-    return getList(sQuery, stageTypeId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(POLICY_MONITORING)
+          .where(POLICY_MONITORING.STAGE_TYPE_ID.eq(stageTypeId))
+          .fetchInto(PolicyMonitoring.class);
+    }
   }
 
   @Override
@@ -93,6 +106,9 @@ public class PolicyMonitoringDAO
    * with the compliance stage
    */
   public void insert(TransactionContext tx, PolicyMonitoring entity) {
+    if (entity.getId() == null) {
+      entity.setId(UUID.randomUUID().toString());
+    }
     List<PolicyMonitoring> others = getByOwnerId(tx, entity.getOwnerId());
     if (others.stream()
         .anyMatch(pM -> pM.getStageTypeId().equals(entity.getStageTypeId()) ||
@@ -101,7 +117,20 @@ public class PolicyMonitoringDAO
     {
       throw new BadRequestException("This application/organization already has policy monitoring.");
     }
-    super.insert(tx, entity);
+    tx.dsl()
+        .insertInto(POLICY_MONITORING)
+        .set(POLICY_MONITORING.POLICY_MONITORING_ID, entity.getId())
+        .set(POLICY_MONITORING.OWNER_ID, entity.getOwnerId())
+        .set(POLICY_MONITORING.STAGE_TYPE_ID, entity.getStageTypeId())
+        .execute();
+  }
+
+  @Override
+  public void delete(TransactionContext tx, PolicyMonitoring entity) {
+    tx.dsl()
+        .deleteFrom(POLICY_MONITORING)
+        .where(POLICY_MONITORING.POLICY_MONITORING_ID.eq(entity.getId()))
+        .execute();
   }
 
   /**
@@ -139,7 +168,6 @@ public class PolicyMonitoringDAO
     }
   }
 
-  @SuppressWarnings("unchecked")
   public Map<String, PolicyMonitoring> getByOwnerIdsAndStageTypeIdsWithInheritance(
       final Set<String> ownerIds,
       final String... stageTypeIds)
@@ -148,34 +176,47 @@ public class PolicyMonitoringDAO
       return new HashMap<>();
     }
 
-    String sQuery = "SELECT oa.id, oa.ancestorDistance, entity FROM PolicyMonitoring entity, OwnerAncestor oa " +
-        "WHERE oa.id IN (?1) " +
-        "AND oa.ancestorId = entity.ownerId";
-
-    if (ArrayUtils.isNotEmpty(stageTypeIds)) {
-      sQuery += " AND entity.stageTypeId IN (?2)";
-    }
-
-    String finalQuery = sQuery;
-
-    Map<String, Object[]> closest = new HashMap<>();
     try (TransactionContext tx = createTransactionContext()) {
-      jakarta.persistence.Query query;
-      if (ArrayUtils.isEmpty(stageTypeIds)) {
-        query = createQuery(tx, finalQuery, ownerIds);
-      }
-      else {
-        query = createQuery(tx, finalQuery, ownerIds, Arrays.asList(stageTypeIds));
-      }
-      List<Object[]> results = (List<Object[]>) getListWithSqlInClause(ownerIds, ids -> query.getResultList());
-      for (Object[] row : results) {
-        closest.merge((String) row[0], row, (a, b) -> ((Integer) a[1] <= (Integer) b[1]) ? a : b);
-      }
+      List<org.jooq.Record> results = getListWithSqlInClause(ownerIds, partition -> {
+        var query = tx.dsl()
+            .select(OWNER_ANCESTOR.OWNER_ID, OWNER_ANCESTOR.ANCESTOR_DISTANCE)
+            .select(POLICY_MONITORING.fields())
+            .from(POLICY_MONITORING)
+            .join(OWNER_ANCESTOR)
+            .on(OWNER_ANCESTOR.ANCESTOR_ID.eq(POLICY_MONITORING.OWNER_ID))
+            .where(OWNER_ANCESTOR.OWNER_ID.in(partition));
+
+        if (ArrayUtils.isNotEmpty(stageTypeIds)) {
+          query = query.and(POLICY_MONITORING.STAGE_TYPE_ID.in(stageTypeIds));
+        }
+
+        return query.fetch();
+      });
+
+      Map<String, PolicyMonitoring> map = new HashMap<>();
+      Map<String, Integer> closestDistance = new HashMap<>();
+
+      results.forEach(row -> {
+        String ownerId = row.get(OWNER_ANCESTOR.OWNER_ID);
+        int distance = row.get(OWNER_ANCESTOR.ANCESTOR_DISTANCE);
+
+        if (!closestDistance.containsKey(ownerId) || distance < closestDistance.get(ownerId)) {
+          closestDistance.put(ownerId, distance);
+          map.put(ownerId, row.into(PolicyMonitoring.class));
+        }
+      });
+
+      return map;
     }
+  }
 
-    Map<String, PolicyMonitoring> map = new HashMap<>();
-    closest.forEach((ownerId, row) -> map.put(ownerId, (PolicyMonitoring) row[2]));
+  @Override
+  public Table<?> getJooqTable() {
+    return POLICY_MONITORING;
+  }
 
-    return map;
+  @Override
+  public Class<PolicyMonitoring> getEntityClass() {
+    return PolicyMonitoring.class;
   }
 }

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -14,6 +15,10 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.OrganizationAncestor;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OrganizationAncestor.ORGANIZATION_ANCESTOR;
 
 @Named
 @Singleton
@@ -32,9 +37,40 @@ public class OrganizationAncestorDAO
   }
 
   public List<OrganizationAncestor> getByOrganizationId(TransactionContext tx, String orgId) {
-    String sQuery = "SELECT entity FROM OrganizationAncestor entity WHERE entity.organizationId = ?1 " +
-        "ORDER BY entity.ancestorDistance";
+    return tx.dsl()
+        .selectFrom(ORGANIZATION_ANCESTOR)
+        .where(ORGANIZATION_ANCESTOR.ORGANIZATION_ID.eq(orgId))
+        .orderBy(ORGANIZATION_ANCESTOR.ANCESTOR_DISTANCE)
+        .fetch()
+        .stream()
+        .map(this::toEntity)
+        .collect(Collectors.toList());
+  }
 
-    return getList(tx, sQuery, orgId);
+  public List<OrganizationAncestor> getByAncestorId(TransactionContext tx, String ancestorId) {
+    return tx.dsl()
+        .selectFrom(ORGANIZATION_ANCESTOR)
+        .where(ORGANIZATION_ANCESTOR.ANCESTOR_ID.eq(ancestorId))
+        .fetch()
+        .stream()
+        .map(this::toEntity)
+        .collect(Collectors.toList());
+  }
+
+  public void deleteByAncestorId(TransactionContext tx, String ancestorId) {
+    tx.dsl()
+        .deleteFrom(ORGANIZATION_ANCESTOR)
+        .where(ORGANIZATION_ANCESTOR.ANCESTOR_ID.eq(ancestorId))
+        .execute();
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return ORGANIZATION_ANCESTOR;
+  }
+
+  @Override
+  public Class<OrganizationAncestor> getEntityClass() {
+    return OrganizationAncestor.class;
   }
 }

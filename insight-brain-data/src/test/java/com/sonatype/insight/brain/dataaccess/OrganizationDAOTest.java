@@ -263,7 +263,7 @@ public class OrganizationDAOTest
     tempEntity.newOrganizationWithRepositoryManager("org-with-repo");
     Organization organizationForRepositoryContainer =
         tempEntity.newOrganizationWithRepositoryManager("org-for-repo-container");
-    organizationForRepositoryContainer.setRelatedRepositorContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    organizationForRepositoryContainer.setRelatedRepositoryContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     dao.update(organizationForRepositoryContainer);
 
     List<Organization> orgs = dao.getAllWithoutRelatedRepositories();
@@ -927,7 +927,7 @@ public class OrganizationDAOTest
   @Test
   public void testNewSearchIndexChange_WithRelatedRepositoryManagerOrRepository() {
     Organization orgWithRepoContainer = tempEntity.newOrganization();
-    orgWithRepoContainer.setRelatedRepositorContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    orgWithRepoContainer.setRelatedRepositoryContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     dao.update(orgWithRepoContainer);
     SearchIndexChange result = dao.newSearchIndexChange(orgWithRepoContainer);
     assertThat(result).isNull();

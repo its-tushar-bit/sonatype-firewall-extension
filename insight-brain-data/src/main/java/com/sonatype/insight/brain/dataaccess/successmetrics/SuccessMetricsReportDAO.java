@@ -7,9 +7,6 @@ package com.sonatype.insight.brain.dataaccess.successmetrics;
 
 import java.util.Date;
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
@@ -18,6 +15,13 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.aggregation.tables.SuccessMetricsReport.SUCCESS_METRICS_REPORT;
 
 /**
  * @since 1.37
@@ -38,18 +42,14 @@ public class SuccessMetricsReportDAO
     this.successMetricsReportDataDAO = successMetricsReportDataDAO;
   }
 
-  @Override
-  public SuccessMetricsReport getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM SuccessMetricsReport entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
   public List<SuccessMetricsReport> getByUsername(String username) {
-    String sQuery = "SELECT entity FROM SuccessMetricsReport entity" + //
-        " WHERE entity.username=?1" +
-        " ORDER BY entity.name";
-    return getList(sQuery, username);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SUCCESS_METRICS_REPORT)
+          .where(SUCCESS_METRICS_REPORT.USERNAME.eq(username))
+          .orderBy(SUCCESS_METRICS_REPORT.NAME)
+          .fetchInto(SuccessMetricsReport.class);
+    }
   }
 
   public SuccessMetricsReport getByUsernameAndName(String username, String name) {
@@ -61,44 +61,51 @@ public class SuccessMetricsReportDAO
   private SuccessMetricsReport getByUsernameAndName(TransactionContext tx, String username, String name) {
     // success metrics name is whitespace and case insensitive
     name = NameHelper.normalize(name);
-    String sQuery = "SELECT entity FROM SuccessMetricsReport entity" +
-        " WHERE entity.username=?1 AND entity.nameLowercaseNoWhitespace=?2";
-    return get(tx, sQuery, username, name);
+    return tx.dsl()
+        .selectFrom(SUCCESS_METRICS_REPORT)
+        .where(SUCCESS_METRICS_REPORT.USERNAME.eq(username))
+        .and(SUCCESS_METRICS_REPORT.NAME_LOWERCASE_NO_WHITESPACE.eq(name))
+        .fetchOneInto(SuccessMetricsReport.class);
   }
 
   @Override
-  public void insert(TransactionContext tx, SuccessMetricsReport successMetrics) {
-    NameHelper.validate(successMetrics.getName());
-    if (getByUsernameAndName(tx, successMetrics.getUsername(), successMetrics.getName()) != null) {
-      throw new BadRequestException(successMetrics.getName() + " is already used as a name.");
+  public void insert(TransactionContext tx, SuccessMetricsReport entity) {
+    NameHelper.validate(entity.getName());
+    if (getByUsernameAndName(tx, entity.getUsername(), entity.getName()) != null) {
+      throw new BadRequestException(entity.getName() + " is already used as a name.");
     }
 
-    if (successMetrics.getCreateTime() == null) {
-      successMetrics.setCreateTime(new Date());
+    if (entity.getCreateTime() == null) {
+      entity.setCreateTime(new Date());
     }
 
-    super.insert(tx, successMetrics);
+    super.insert(tx, entity);
   }
 
   @Override
-  public void update(TransactionContext tx, SuccessMetricsReport successMetrics) {
+  public void update(TransactionContext tx, SuccessMetricsReport entity) {
     throw new UnsupportedOperationException("SuccessMetricsReport does not support update operations.");
   }
 
   @Override
-  public void delete(TransactionContext tx, SuccessMetricsReport successMetricsReport) {
+  public void delete(TransactionContext tx, SuccessMetricsReport entity) {
     SuccessMetricsReportData successMetricsReportData = successMetricsReportDataDAO
-        .getById(successMetricsReport.getId());
+        .getById(entity.getId());
 
     if (successMetricsReportData != null) {
       successMetricsReportDataDAO.delete(tx, successMetricsReportData);
     }
 
-    super.delete(tx, successMetricsReport);
+    super.delete(tx, entity);
   }
 
-  public List<SuccessMetricsReport> getAll() {
-    String sQuery = "SELECT entity FROM SuccessMetricsReport entity";
-    return getList(sQuery);
+  @Override
+  public Table<?> getJooqTable() {
+    return SUCCESS_METRICS_REPORT;
+  }
+
+  @Override
+  public Class<SuccessMetricsReport> getEntityClass() {
+    return SuccessMetricsReport.class;
   }
 }

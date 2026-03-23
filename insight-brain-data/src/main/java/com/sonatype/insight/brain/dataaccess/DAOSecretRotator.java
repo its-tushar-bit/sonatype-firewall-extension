@@ -6,23 +6,20 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.security.RotatableSecret;
-import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jooq.Table;
 
 /**
  * The DAOs that extend this class should implement the @RotatableSecretsDAO interface to expose the
@@ -41,7 +38,7 @@ public class DAOSecretRotator
    * Rotates the DAO encrypted secrets in the database using the provided secretRotator function.
    * The @RotatableSecrets interface should be implemented by the DAO class to ensure this class is included in the
    * RotateEncryptionKeyTask.
-   * The DAOs parametrized entity must have fields annotated with @Table, @RotatableSecret and @Id
+   * The DAOs parametrized entity must have a field annotated with @RotatableSecret.
    *
    * @param secretRotator a function that takes an encrypted secret and returns the rotated secret
    * @throws SQLException if an SQL error occurs during the rotation process
@@ -50,11 +47,13 @@ public class DAOSecretRotator
       AbstractOperationalSqlDAO<?> operationalDataStoreDAO,
       Function<String, String> secretRotator) throws SQLException
   {
-    Class<?> typeArgument = getTypeArgument(operationalDataStoreDAO);
-    String tableName = getTableName(typeArgument);
-    String tableIdField = getTableIdField(typeArgument);
-    Pair<String, String> rotatableSecretFieldAndColumnName = getRotatableSecretFieldAndColumnName(typeArgument);
-    List<?> entities = getBySecretField(operationalDataStoreDAO, rotatableSecretFieldAndColumnName.getLeft());
+    Class<?> entityClass = operationalDataStoreDAO.getEntityClass();
+    Table<?> jooqTable = operationalDataStoreDAO.getJooqTable();
+    String tableName = jooqTable.getName();
+    String tableIdField = getIdColumnName(jooqTable);
+    Pair<String, String> rotatableSecretFieldAndColumnName = getRotatableSecretFieldAndColumnName(entityClass);
+    List<?> entities =
+        getEntitiesWithNonNullSecret(operationalDataStoreDAO, rotatableSecretFieldAndColumnName.getLeft());
 
     try (Connection connection = operationalDataStoreDAO.getDataStore().getDataSource().getConnection()) {
       try (PreparedStatement statement = createPreparedStatement(operationalDataStoreDAO, connection, tableName,
@@ -91,12 +90,12 @@ public class DAOSecretRotator
       Function<String, String> secretRotator,
       List<?> entities,
       PreparedStatement statement,
-      String rotatableSecretColumnName) throws SQLException, IllegalAccessException, NoSuchFieldException
+      String rotatableSecretFieldName) throws SQLException, IllegalAccessException, NoSuchFieldException
   {
     int count = 0;
 
     for (Object entity : entities) {
-      Field field = entity.getClass().getDeclaredField(rotatableSecretColumnName);
+      Field field = entity.getClass().getDeclaredField(rotatableSecretFieldName);
       field.setAccessible(true);
 
       String secret = (field.getType() == char[].class)
@@ -115,42 +114,76 @@ public class DAOSecretRotator
     statement.executeBatch();
   }
 
-  private <T extends HasStringId> Class<T> getTypeArgument(AbstractOperationalSqlDAO<T> operationalDataStoreDAO) {
-    ParameterizedType parameterizedType = operationalDataStoreDAO.getParameterizedSuperClass();
-    return (Class<T>) parameterizedType.getActualTypeArguments()[0];
-  }
-
-  private String getTableName(Class<?> typeArgument) {
-    if (typeArgument.isAnnotationPresent(Table.class)) {
-      return typeArgument.getAnnotation(Table.class).name();
+  /**
+   * Gets the ID column name from the jOOQ table's primary key.
+   */
+  private String getIdColumnName(Table<?> table) {
+    var primaryKey = table.getPrimaryKey();
+    if (primaryKey == null) {
+      throw new IllegalStateException("Table " + table.getName() + " has no primary key defined");
     }
-    throw new IllegalStateException("No @Table annotation found");
+    var fields = primaryKey.getFields();
+    if (fields.isEmpty()) {
+      throw new IllegalStateException("Table " + table.getName() + " has no primary key fields");
+    }
+    return fields.get(0).getName();
   }
 
-  private Pair<String, String> getRotatableSecretFieldAndColumnName(Class<?> typeArgument) {
-    for (Field field : typeArgument.getDeclaredFields()) {
-      if (field.isAnnotationPresent(RotatableSecret.class) && field.isAnnotationPresent(Column.class)) {
-        return Pair.of(field.getName(), field.getAnnotation(Column.class).name());
+  /**
+   * Gets the field name and column name for the field annotated with @RotatableSecret.
+   * The column name is derived from the field name using snake_case convention.
+   */
+  private Pair<String, String> getRotatableSecretFieldAndColumnName(Class<?> entityClass) {
+    for (Field field : entityClass.getDeclaredFields()) {
+      if (field.isAnnotationPresent(RotatableSecret.class)) {
+        String fieldName = field.getName();
+        String columnName = toSnakeCase(fieldName);
+        return Pair.of(fieldName, columnName);
       }
     }
-    throw new IllegalStateException("No @RotatableSecret annotation found");
+    throw new IllegalStateException("No @RotatableSecret annotation found on " + entityClass.getName());
   }
 
-  private String getTableIdField(Class<?> typeArgument) {
-    for (Field field : typeArgument.getDeclaredFields()) {
-      if (field.isAnnotationPresent(Id.class) && field.isAnnotationPresent(Column.class)) {
-        return field.getAnnotation(Column.class).name();
+  /**
+   * Converts a camelCase field name to snake_case column name.
+   */
+  private String toSnakeCase(String camelCase) {
+    StringBuilder result = new StringBuilder();
+    for (int i = 0; i < camelCase.length(); i++) {
+      char c = camelCase.charAt(i);
+      if (Character.isUpperCase(c)) {
+        if (i > 0) {
+          result.append('_');
+        }
+        result.append(Character.toLowerCase(c));
+      }
+      else {
+        result.append(c);
       }
     }
-    throw new IllegalStateException("No @Id annotation found");
+    return result.toString();
   }
 
-  private List<?> getBySecretField(AbstractOperationalSqlDAO<?> operationalDataStoreDAO, String secretFieldName) {
-    try (TransactionContext tx = operationalDataStoreDAO.createTransactionContext()) {
-      String sQuery =
-          "SELECT entity FROM " + operationalDataStoreDAO.getEntityName() + " entity WHERE entity." + secretFieldName +
-              " IS NOT NULL";
-      return operationalDataStoreDAO.getList(tx, sQuery);
-    }
+  private List<?> getEntitiesWithNonNullSecret(
+      AbstractOperationalSqlDAO<?> operationalDataStoreDAO,
+      String rotatableSecretFieldName)
+  {
+    // Use the DAO's getAll() method instead of jOOQ's fetchInto() because:
+    // 1. DAOs have custom mapRecord() methods that properly handle char[] <-> String conversion for password fields
+    // 2. jOOQ's fetchInto() doesn't handle char[] fields properly
+    // Then filter out entities with null secret values in Java
+    return operationalDataStoreDAO.getAll()
+        .stream()
+        .filter(entity -> {
+          try {
+            Field field = entity.getClass().getDeclaredField(rotatableSecretFieldName);
+            field.setAccessible(true);
+            return field.get(entity) != null;
+          }
+          catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException("Error accessing secret field: " + rotatableSecretFieldName, e);
+          }
+        })
+        .collect(Collectors.toList());
   }
 }

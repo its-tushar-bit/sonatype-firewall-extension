@@ -6,14 +6,20 @@
 
 package com.sonatype.insight.brain.dataaccess.development.prioritization;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import java.util.Date;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritization;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+import org.jooq.UpdatableRecord;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.DevelopmentPrioritization.DEVELOPMENT_PRIORITIZATION;
 
 @Named
 @Singleton
@@ -31,6 +37,19 @@ public class DevelopmentPrioritizationDAO
     this.developmentPrioritizationComponentInfoDAO = developmentPrioritizationComponentInfoDAO;
   }
 
+  @Override
+  protected UpdatableRecord<?> fromEntity(final UpdatableRecord<?> record, final DevelopmentPrioritization entity) {
+    super.fromEntity(record, entity);
+    Date now = new Date();
+    record.set(DEVELOPMENT_PRIORITIZATION.CREATED_AT, entity.getCreatedAt() != null
+        ? entity.getCreatedAt()
+        : now);
+    record.set(DEVELOPMENT_PRIORITIZATION.UPDATED_AT, entity.getUpdatedAt() != null
+        ? entity.getUpdatedAt()
+        : now);
+    return record;
+  }
+
   public DevelopmentPrioritization getByScanId(final String scanId) {
     try (final TransactionContext tx = createTransactionContext()) {
       return getByScanId(tx, scanId);
@@ -38,40 +57,29 @@ public class DevelopmentPrioritizationDAO
   }
 
   public DevelopmentPrioritization getByScanId(final TransactionContext tx, final String scanId) {
-    final String sQuery =
-        "SELECT entity FROM DevelopmentPrioritization entity WHERE entity.scanId=?1";
-    return get(tx, sQuery, scanId);
+    return toEntity(tx.dsl()
+        .selectFrom(DEVELOPMENT_PRIORITIZATION)
+        .where(DEVELOPMENT_PRIORITIZATION.SCAN_ID.eq(scanId))
+        .fetchOne());
   }
 
   public void deleteByScanIdCascade(final TransactionContext tx, final String scanId) {
     // This method would cascade-delete all children DevelopmentPrioritizationComponentInfo entities
     developmentPrioritizationComponentInfoDAO.deleteAllByScanId(tx, scanId);
 
-    final String sQuery = "DELETE FROM DevelopmentPrioritization entity WHERE entity.scanId=?1";
-    createQuery(sQuery, scanId).executeUpdate(tx);
+    tx.dsl()
+        .deleteFrom(DEVELOPMENT_PRIORITIZATION)
+        .where(DEVELOPMENT_PRIORITIZATION.SCAN_ID.eq(scanId))
+        .execute();
   }
 
   @Override
-  public void delete(final TransactionContext tx, final DevelopmentPrioritization entity) {
-    /*
-     * Do not use this method for deleting DevelopmentPrioritization entities
-     * since it does not cascade to DevelopmentPrioritizationComponentInfo.
-     *
-     * Instead, use the deleteByScanIdCascade method to delete both
-     * DevelopmentPrioritization and associated DevelopmentPrioritizationComponentInfo.
-     */
-    super.delete(tx, entity);
+  public Table<?> getJooqTable() {
+    return DEVELOPMENT_PRIORITIZATION;
   }
 
   @Override
-  public void delete(final DevelopmentPrioritization entity) {
-    /*
-     * Do not use this method for deleting DevelopmentPrioritization entities
-     * since it does not cascade to DevelopmentPrioritizationComponentInfo.
-     *
-     * Instead, use the deleteByScanIdCascade method to delete both
-     * DevelopmentPrioritization and associated DevelopmentPrioritizationComponentInfo.
-     */
-    super.delete(entity);
+  public Class<DevelopmentPrioritization> getEntityClass() {
+    return DevelopmentPrioritization.class;
   }
 }

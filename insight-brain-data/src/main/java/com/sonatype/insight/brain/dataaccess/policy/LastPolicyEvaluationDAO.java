@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -18,6 +14,13 @@ import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.LastPolicyEvaluation.LAST_POLICY_EVALUATION;
 
 /**
  * @since 1.12
@@ -35,6 +38,11 @@ public class LastPolicyEvaluationDAO
     super(operationalDataStore, searchIndexManager);
   }
 
+  @Override
+  public void insert(final TransactionContext tx, final LastPolicyEvaluation entity) {
+    super.insert(tx, entity);
+  }
+
   public void insertIfPossibleLastPolicyEvaluation(
       final TransactionContext tx,
       final PolicyEvaluation newestPolicyEvaluation)
@@ -45,28 +53,14 @@ public class LastPolicyEvaluationDAO
     }
   }
 
-  public LastPolicyEvaluation getByEvaluationId(final TransactionContext tx, final String evaluationId) {
-    String sQuery = "SELECT entity FROM LastPolicyEvaluation entity" + //
-        " WHERE entity.policyEvaluationId=?1";
-    return createQuery(sQuery, evaluationId).forceSingleResult().get(tx);
-  }
-
-  public LastPolicyEvaluation getByEvaluationId(final String evaluationId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByEvaluationId(tx, evaluationId);
-    }
-  }
-
-  @Override
-  public LastPolicyEvaluation getById(String evaluationId) {
-    return getByEvaluationId(evaluationId);
-  }
-
   public LastPolicyEvaluation getByApplicationIdAndStageTypeId(final String applicationId, final String stageTypeId) {
-    String sQuery = "SELECT entity FROM LastPolicyEvaluation entity" + //
-        " WHERE entity.applicationId = ?1" + //
-        " AND entity.stageTypeId = ?2";
-    return get(sQuery, applicationId, stageTypeId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(LAST_POLICY_EVALUATION)
+          .where(LAST_POLICY_EVALUATION.APPLICATION_ID.eq(applicationId))
+          .and(LAST_POLICY_EVALUATION.STAGE_TYPE_ID.eq(stageTypeId))
+          .fetchOne());
+    }
   }
 
   @Override
@@ -81,5 +75,15 @@ public class LastPolicyEvaluationDAO
     }
     return new SearchIndexChange(ChangeType.LAST_POLICY_EVALUATION,
         entity.getApplicationId() + ':' + entity.getStageTypeId());
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return LAST_POLICY_EVALUATION;
+  }
+
+  @Override
+  public Class<LastPolicyEvaluation> getEntityClass() {
+    return LastPolicyEvaluation.class;
   }
 }

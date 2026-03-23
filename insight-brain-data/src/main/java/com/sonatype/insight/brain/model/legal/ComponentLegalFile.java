@@ -98,6 +98,10 @@ public class ComponentLegalFile
     return legalContentHash;
   }
 
+  public void setLegalContentHash(String legalContentHash) {
+    this.legalContentHash = legalContentHash;
+  }
+
   public String getLastUpdatedByUsername() {
     return lastUpdatedByUsername;
   }

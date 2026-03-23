@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.configuration.oauth2;
 
 import java.io.IOException;
 import java.util.Map;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -20,6 +21,9 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OidcConfiguration.OIDC_CONFIGURATION;
 
 /**
  * @since 1.72
@@ -47,28 +51,32 @@ public class OidcConfigurationDAO
   public static final String IDP_TOKEN_URL_REQUIRED = "The idp token url is required";
 
   @Inject
-  public OidcConfigurationDAO(OperationalDataStore operationalDataStore) {
+  public OidcConfigurationDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
   }
 
   @Override
-  public void insert(TransactionContext tx, OidcConfiguration configuration) {
+  public void insert(final TransactionContext tx, final OidcConfiguration configuration) {
     validate(configuration);
     super.insert(tx, configuration);
   }
 
   @Override
-  public void update(TransactionContext tx, OidcConfiguration configuration) {
+  public void update(final TransactionContext tx, final OidcConfiguration configuration) {
     validate(configuration);
     super.update(tx, configuration);
   }
 
   public OidcConfiguration get() {
-    String sQuery = "SELECT entity FROM OidcConfiguration entity";
-    return createQuery(sQuery).forceSingleResult().get();
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(OIDC_CONFIGURATION)
+          .limit(1)
+          .fetchOneInto(OidcConfiguration.class);
+    }
   }
 
-  private void validate(OidcConfiguration config) {
+  private void validate(final OidcConfiguration config) {
     if (config == null) {
       throw new IllegalArgumentException(INVALID_CONFIGURATION);
     }
@@ -88,20 +96,20 @@ public class OidcConfigurationDAO
       throw new IllegalArgumentException(IDP_TOKEN_URL_REQUIRED);
     }
     if (StringUtils.isNotBlank(config.getAuthorizationCustomParamsJson()) &&
-        !isValidJason(config.getAuthorizationCustomParamsJson()))
+        !isValidJson(config.getAuthorizationCustomParamsJson()))
     {
       throw new IllegalArgumentException(AUTHORIZATION_PARAMS_JSON_IS_INVALID);
     }
     if (StringUtils.isNotBlank(config.getTokenRequestCustomParamsJson()) &&
-        !isValidJason(config.getTokenRequestCustomParamsJson()))
+        !isValidJson(config.getTokenRequestCustomParamsJson()))
     {
       throw new IllegalArgumentException(TOKEN_REQUEST_PARAMS_JSON_IS_INVALID);
     }
   }
 
-  private boolean isValidJason(final String exactMatchClaimsJson) {
+  private boolean isValidJson(final String json) {
     try {
-      JsonUtils.parse(exactMatchClaimsJson, new TypeReference<Map<String, Object>>()
+      JsonUtils.parse(json, new TypeReference<Map<String, Object>>()
       {
       });
     }
@@ -109,5 +117,15 @@ public class OidcConfigurationDAO
       return false;
     }
     return true;
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return OIDC_CONFIGURATION;
+  }
+
+  @Override
+  public Class<OidcConfiguration> getEntityClass() {
+    return OidcConfiguration.class;
   }
 }

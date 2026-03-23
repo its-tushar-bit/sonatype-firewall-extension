@@ -17,13 +17,13 @@ import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.brain.utils.DateUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.RollbackException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+
+import static com.sonatype.insight.brain.db.jooq.DialectHelper.POSTGRES_UNIQUE_CONSTRAINT_VIOLATION;
 
 /**
  * A perpetual lock is a lock that 'expires' but can be perpetually 'renewed' by the current owner of the lock without
@@ -130,8 +130,10 @@ public class PerpetualLockManager
       acquired = true;
       log.trace("Perpetual lock {} created and acquired on behalf of {}.", shortIdForLogging, shortOwnerForLogging);
     }
-    catch (RollbackException e) {
-      if (!(e.getCause() instanceof EntityExistsException)) {
+    catch (org.jooq.exception.DataAccessException e) {
+      if (!(e.getCause() instanceof org.postgresql.util.PSQLException psqlEx
+          && POSTGRES_UNIQUE_CONSTRAINT_VIOLATION.equals(psqlEx.getSQLState())))
+      {
         throw e;
       }
       // a simultaneous request to reserve this same lock beat us to it; may have come from a different

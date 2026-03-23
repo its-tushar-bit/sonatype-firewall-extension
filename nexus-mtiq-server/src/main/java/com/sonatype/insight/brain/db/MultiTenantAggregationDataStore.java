@@ -21,11 +21,6 @@ public class MultiTenantAggregationDataStore
   }
 
   @Override
-  protected String getFactoryName() {
-    return "InsightBrainAggregation";
-  }
-
-  @Override
   public boolean isDatabaseEmbedded() {
     // multi-tenant is not compatible with H2
     return false;

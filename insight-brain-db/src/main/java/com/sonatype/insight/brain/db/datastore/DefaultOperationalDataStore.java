@@ -5,22 +5,16 @@
  */
 package com.sonatype.insight.brain.db.datastore;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.DbApplicationNameGenerator;
-import com.sonatype.insight.brain.db.SqlCallCounterMetrics;
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.db.DatabaseConfig;
 
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.apache.openjpa.lib.jdbc.JDBCListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +23,6 @@ public class DefaultOperationalDataStore
     implements OperationalDataStore
 {
   private static final Logger log = LoggerFactory.getLogger(DefaultOperationalDataStore.class);
-
-  private EntityManagerFactory entityManagerFactory;
 
   private DataSource dataSourceForLocks;
 
@@ -56,16 +48,6 @@ public class DefaultOperationalDataStore
 
     isDatabaseEmbedded = DatabaseUtil.isDatabaseEmbedded(databaseConfig);
 
-    Map<String, Object> props = new LinkedHashMap<>();
-    props.put("openjpa.ConnectionFactory", dataSource);
-
-    if (SqlCallCounterMetrics.getInstance().getJDBCListener() != null) {
-      props.put("openjpa.jdbc.JDBCListeners",
-          new JDBCListener[]{SqlCallCounterMetrics.getInstance().getJDBCListener()});
-      log.info("Enabled JPA JDBC listener for performance testing.");
-    }
-
-    entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainODS", props);
     if (isDatabaseEmbedded) {
       dataSourceForLocks = null; // H2 doesn't use this, it implements ClusterLock using Java Semaphores
     }
@@ -98,11 +80,6 @@ public class DefaultOperationalDataStore
   @Override
   protected boolean isInitialized() {
     return isInitialized;
-  }
-
-  @Override
-  public EntityManagerFactory getJPAEntityManagerFactory() {
-    return entityManagerFactory;
   }
 
   @Override

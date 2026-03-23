@@ -27,6 +27,9 @@ public class SastRemediation
   @Column(name = "content")
   private String content;
 
+  public SastRemediation() {
+  }
+
   public SastRemediation(final String findingId, final String content) {
     this.sastFindingId = findingId;
     this.content = content;

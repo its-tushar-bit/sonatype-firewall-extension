@@ -15,8 +15,14 @@ import jakarta.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.AdminApiPaths;
+import com.sonatype.insight.brain.api.admin.dto.TenantCacheStatisticsDTO;
 import com.sonatype.insight.brain.api.admin.service.TenantCacheService;
 
+/**
+ * Resource for accessing per-tenant cache statistics.
+ *
+ * @since 1.185
+ */
 @Named
 @MtiqAdminEndpoint
 @Path(AdminApiPaths.ADMIN_TENANT_CACHE_PATH)
@@ -31,7 +37,7 @@ public class TenantCacheResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public String getCacheStatistics(@PathParam("tenantSlug") String tenantSlug) {
-    return tenantCacheService.getCache(tenantSlug);
+  public TenantCacheStatisticsDTO getCacheStatistics(@PathParam("tenantSlug") String tenantSlug) {
+    return tenantCacheService.getCacheStatistics(tenantSlug);
   }
 }

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 import com.sonatype.insight.json.store.ISODateSerializer;
@@ -44,7 +46,7 @@ public class ThirdPartySbomMetadataSummaryDTO
     applicationVersion = (String) array[0];
     spec = (String) array[1];
     specVersion = (String) array[2];
-    importDate = (Date) array[3];
+    importDate = toDate(array[3]);
     isValid = (Boolean) array[4];
 
     none = longToInt(array[5]);
@@ -136,7 +138,20 @@ public class ThirdPartySbomMetadataSummaryDTO
   }
 
   private int longToInt(Object number) {
-    return ((Long) number).intValue();
+    return ((Number) number).intValue();
+  }
+
+  private Date toDate(Object value) {
+    if (value == null) {
+      return null;
+    }
+    if (value instanceof Date) {
+      return (Date) value;
+    }
+    if (value instanceof LocalDateTime) {
+      return Date.from(((LocalDateTime) value).atZone(ZoneId.systemDefault()).toInstant());
+    }
+    throw new IllegalArgumentException("Cannot convert " + value.getClass() + " to Date");
   }
 
   public double getReleaseStatusPercentage() {

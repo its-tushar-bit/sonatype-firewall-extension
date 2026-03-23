@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.notification;
 
 import java.util.List;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -18,6 +19,9 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.UserViewedProductNotification.USER_VIEWED_PRODUCT_NOTIFICATION;
 
 /**
  * @since 1.14.0
@@ -30,6 +34,20 @@ public class UserViewedProductNotificationDAO
   @Inject
   public UserViewedProductNotificationDAO(OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
+  }
+
+  @Override
+  public void insert(TransactionContext tx, UserViewedProductNotification entity) {
+    if (StringUtils.isBlank(entity.getRealmId())) {
+      throw new BadRequestException("The realm ID is required.");
+    }
+    super.insert(tx, entity);
+  }
+
+  @Override
+  public void update(TransactionContext tx, UserViewedProductNotification entity) {
+    throw new UnsupportedOperationException(
+        "The UserViewedProductNotification table does not support update operations");
   }
 
   public UserViewedProductNotification getByUsernameAndRealmIdAndNotificationId(
@@ -49,24 +67,12 @@ public class UserViewedProductNotificationDAO
       String notificationId)
   {
     username = User.normalizeUsername(username);
-    String sQuery = "SELECT entity FROM UserViewedProductNotification entity" + //
-        " WHERE entity.usernameLowercase=?1 AND entity.realmId=?2 AND entity.notificationId=?3";
-
-    return get(tx, sQuery, username, realmId, notificationId);
-  }
-
-  @Override
-  public void insert(TransactionContext tx, UserViewedProductNotification entity) {
-    if (StringUtils.isBlank(entity.getRealmId())) {
-      throw new BadRequestException("The realm ID is required.");
-    }
-    super.insert(tx, entity);
-  }
-
-  @Override
-  public void update(TransactionContext tx, UserViewedProductNotification entity) {
-    throw new UnsupportedOperationException(
-        "The UserViewedProductNotification table does not support update operations");
+    return toEntity(tx.dsl()
+        .selectFrom(USER_VIEWED_PRODUCT_NOTIFICATION)
+        .where(USER_VIEWED_PRODUCT_NOTIFICATION.USERNAME_LOWERCASE.eq(username)
+            .and(USER_VIEWED_PRODUCT_NOTIFICATION.REALM_ID.eq(realmId))
+            .and(USER_VIEWED_PRODUCT_NOTIFICATION.NOTIFICATION_ID.eq(notificationId)))
+        .fetchOne());
   }
 
   public List<UserViewedProductNotification> getByUsernameAndRealmId(String username, String realmId) {
@@ -81,9 +87,19 @@ public class UserViewedProductNotificationDAO
       String realmId)
   {
     username = User.normalizeUsername(username);
-    String sQuery = "SELECT entity FROM UserViewedProductNotification entity" + //
-        " WHERE entity.usernameLowercase=?1 AND entity.realmId=?2";
-    return getList(tx, sQuery, username, realmId);
+    // Handle NULL realmId with IS NULL (SQL NULL comparison requires IS NULL, not eq(null))
+    var condition = USER_VIEWED_PRODUCT_NOTIFICATION.USERNAME_LOWERCASE.eq(username);
+    if (realmId == null) {
+      condition = condition.and(USER_VIEWED_PRODUCT_NOTIFICATION.REALM_ID.isNull());
+    }
+    else {
+      condition = condition.and(USER_VIEWED_PRODUCT_NOTIFICATION.REALM_ID.eq(realmId));
+    }
+    return tx.dsl()
+        .selectFrom(USER_VIEWED_PRODUCT_NOTIFICATION)
+        .where(condition)
+        .fetch()
+        .map(this::toEntity);
   }
 
   public void deleteByUsernameAndRealmId(TransactionContext tx, String username, String realmId) {
@@ -95,9 +111,11 @@ public class UserViewedProductNotificationDAO
   }
 
   private List<UserViewedProductNotification> getByRealmId(TransactionContext tx, String realmId) {
-    String sQuery = "SELECT entity FROM UserViewedProductNotification entity" + //
-        " WHERE entity.realmId=?1";
-    return getList(tx, sQuery, realmId);
+    return tx.dsl()
+        .selectFrom(USER_VIEWED_PRODUCT_NOTIFICATION)
+        .where(USER_VIEWED_PRODUCT_NOTIFICATION.REALM_ID.eq(realmId))
+        .fetch()
+        .map(this::toEntity);
   }
 
   public void deleteByRealmId(TransactionContext tx, String realmId) {
@@ -119,16 +137,26 @@ public class UserViewedProductNotificationDAO
       String notificationId)
   {
     // Try to find a viewed notification that matches the username case sensitive.
-    String sQuery = "SELECT entity FROM UserViewedProductNotification entity" + //
-        " WHERE entity.username=?1 AND entity.realmId IS NULL AND entity.notificationId=?2";
-    List<UserViewedProductNotification> userViewedProductNotifications = getList(tx, sQuery, username, notificationId);
+    List<UserViewedProductNotification> userViewedProductNotifications = tx.dsl()
+        .selectFrom(USER_VIEWED_PRODUCT_NOTIFICATION)
+        .where(USER_VIEWED_PRODUCT_NOTIFICATION.USERNAME.eq(username)
+            .and(USER_VIEWED_PRODUCT_NOTIFICATION.REALM_ID.isNull())
+            .and(USER_VIEWED_PRODUCT_NOTIFICATION.NOTIFICATION_ID.eq(notificationId)))
+        .fetch()
+        .map(this::toEntity);
+
     if (userViewedProductNotifications.isEmpty()) {
       // No viewed notification matches the username case sensitive. Try case-insensitive.
       username = User.normalizeUsername(username);
-      sQuery = "SELECT entity FROM UserViewedProductNotification entity" + //
-          " WHERE entity.usernameLowercase=?1 AND entity.realmId IS NULL AND entity.notificationId=?2";
-      userViewedProductNotifications = getList(tx, sQuery, username, notificationId);
+      userViewedProductNotifications = tx.dsl()
+          .selectFrom(USER_VIEWED_PRODUCT_NOTIFICATION)
+          .where(USER_VIEWED_PRODUCT_NOTIFICATION.USERNAME_LOWERCASE.eq(username)
+              .and(USER_VIEWED_PRODUCT_NOTIFICATION.REALM_ID.isNull())
+              .and(USER_VIEWED_PRODUCT_NOTIFICATION.NOTIFICATION_ID.eq(notificationId)))
+          .fetch()
+          .map(this::toEntity);
     }
+
     if (userViewedProductNotifications.isEmpty()) {
       return null;
     }
@@ -136,9 +164,24 @@ public class UserViewedProductNotificationDAO
   }
 
   public List<UserViewedProductNotification> getLegacyByUsername(String username) {
-    username = User.normalizeUsername(username);
-    String sQuery = "SELECT entity FROM UserViewedProductNotification entity" + //
-        " WHERE entity.usernameLowercase=?1 AND entity.realmId IS NULL";
-    return getList(sQuery, username);
+    try (TransactionContext tx = createTransactionContext()) {
+      username = User.normalizeUsername(username);
+      return tx.dsl()
+          .selectFrom(USER_VIEWED_PRODUCT_NOTIFICATION)
+          .where(USER_VIEWED_PRODUCT_NOTIFICATION.USERNAME_LOWERCASE.eq(username)
+              .and(USER_VIEWED_PRODUCT_NOTIFICATION.REALM_ID.isNull()))
+          .fetch()
+          .map(this::toEntity);
+    }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return USER_VIEWED_PRODUCT_NOTIFICATION;
+  }
+
+  @Override
+  public Class<UserViewedProductNotification> getEntityClass() {
+    return UserViewedProductNotification.class;
   }
 }

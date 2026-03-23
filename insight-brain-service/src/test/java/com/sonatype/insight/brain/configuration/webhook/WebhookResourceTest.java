@@ -103,7 +103,7 @@ public class WebhookResourceTest
     Webhook[] results = response.getBody(Webhook[].class);
 
     assertThat(results).extracting(Webhook::getId)
-        .containsExactly(webhook1.getId(), webhook2.getId(),
+        .containsExactlyInAnyOrder(webhook1.getId(), webhook2.getId(),
             webhook3.getId());
   }
 

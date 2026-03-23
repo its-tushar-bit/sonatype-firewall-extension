@@ -8,9 +8,6 @@ package com.sonatype.insight.brain.dataaccess.policy;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
@@ -22,6 +19,17 @@ import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationTag.APPLICATION_TAG;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Policy.POLICY;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyTag.POLICY_TAG;
 
 /**
  * @since 1.9
@@ -48,78 +56,81 @@ public class PolicyInternalDAO
   }
 
   List<PolicyInternal> getByIds(Collection<String> ids) {
-    String sQuery = "SELECT entity FROM PolicyInternal entity" + //
-        " WHERE entity.id IN (?1)";
-    return getList(sQuery, ids);
+    if (ids == null || ids.isEmpty()) {
+      return java.util.Collections.emptyList();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(POLICY)
+          .where(POLICY.POLICY_ID.in(ids))
+          .fetch(this::toEntity);
+    }
   }
 
   List<PolicyInternal> getByOwnerIds(Set<String> ownerIds) {
-    String sQuery = "SELECT entity FROM PolicyInternal entity" + //
-        " WHERE entity.ownerId IN (?1)" + //
-        " ORDER BY entity.nameLowercaseNoWhitespace";
-    int inOperatorThreshold = getInOperatorThreshold();
-    if (ownerIds != null && ownerIds.size() >= inOperatorThreshold) {
-      return getListWithSqlInClause(ownerIds, c -> getList(sQuery, c));
+    if (ownerIds == null || ownerIds.isEmpty()) {
+      return java.util.Collections.emptyList();
     }
-    else {
-      return getList(sQuery, ownerIds);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(POLICY)
+          .where(POLICY.OWNER_ID.in(ownerIds))
+          .orderBy(POLICY.NAME_LOWERCASE_NO_WHITESPACE)
+          .fetch(this::toEntity);
     }
   }
 
   List<PolicyInternal> getApplicableByOwnerIdWithHierarchy(TransactionContext tx, String ownerId) {
-    String sQuery =
-        "SELECT policy " +
-            "FROM PolicyInternal policy, OwnerAncestor oa " +
-            "WHERE oa.id = ?1 AND oa.ancestorId = policy.ownerId " +
-            "AND (" +
-            "  (" +
-            // if owner is an application
-            "    oa.ownerType = com.sonatype.insight.brain.model.OwnerType.APPLICATION " +
-            ///  and the policy is attached to the parent org (not directly to an app)
-            "    AND oa.id <> oa.ancestorId" +
-            // and the policy has tags (categories) attached, then only include the policy if the app also has at least
-            // one of the tags
-            "    AND (EXISTS (" +
-            "            SELECT appTag.tagId" +
-            "            FROM ApplicationTag appTag, PolicyTag pTag" +
-            "            WHERE appTag.tagId = pTag.tagId" +
-            "              AND appTag.applicationId = oa.id" +
-            "              AND pTag.policyId = policy.id" +
-            "       )" +
-            // or the policy does not have any tags
-            "       OR NOT EXISTS(" +
-            "           SELECT policyTag FROM PolicyTag policyTag WHERE policyTag.policyId = policy.id" +
-            "       )" +
-            "    )" +
-            "  ) " +
-            "  OR " +
-            "  (" +
-            // if owner is a repo, policies attached to parent orgs only apply if the policy has no tags
-            "    ( " +
-            // JPQL doesn't seem to support doing this with an IN clause
-            "      oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY " +
-            "      OR oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY_MANAGER " +
-            "      OR oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER " +
-            "    ) " +
-            "    AND oa.id <> oa.ancestorId AND NOT EXISTS (" +
-            "      SELECT policyTag " +
-            "      FROM PolicyTag policyTag " +
-            "      WHERE policyTag.policyId = policy.id" +
-            "    )" +
-            "  ) " +
-            // include all ancestor policies when type not app or repo
-            "  OR (" +
-            "    oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.APPLICATION " +
-            "    AND oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.REPOSITORY" +
-            "    AND oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.REPOSITORY_MANAGER" +
-            "    AND oa.ownerType <> com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER" +
-            "  ) " +
-            // include all policies attached directly to the queried owner
-            "  OR oa.id = oa.ancestorId" +
-            ") " +
-            "ORDER BY oa.ancestorDistance";
+    // Complex query joining Policy with OwnerAncestor and conditional logic for tags
+    // Using jOOQ to implement the same logic as the original JPA query
 
-    return getList(tx, sQuery, ownerId);
+    var appTagForPolicy = tx.dsl()
+        .select(APPLICATION_TAG.TAG_ID)
+        .from(APPLICATION_TAG)
+        .join(POLICY_TAG)
+        .on(APPLICATION_TAG.TAG_ID.eq(POLICY_TAG.TAG_ID))
+        .where(APPLICATION_TAG.APPLICATION_ID.eq(OWNER_ANCESTOR.OWNER_ID))
+        .and(POLICY_TAG.POLICY_ID.eq(POLICY.POLICY_ID));
+
+    var policyHasTags = tx.dsl()
+        .selectOne()
+        .from(POLICY_TAG)
+        .where(POLICY_TAG.POLICY_ID.eq(POLICY.POLICY_ID));
+
+    // Build the complex condition
+    var isApplication = OWNER_ANCESTOR.OWNER_TYPE.eq("APPLICATION");
+    var isRepository = OWNER_ANCESTOR.OWNER_TYPE.eq("REPOSITORY");
+    var isRepositoryManager = OWNER_ANCESTOR.OWNER_TYPE.eq("REPOSITORY_MANAGER");
+    var isRepositoryContainer = OWNER_ANCESTOR.OWNER_TYPE.eq("REPOSITORY_CONTAINER");
+    var isNotDirectlyAttached = OWNER_ANCESTOR.OWNER_ID.ne(OWNER_ANCESTOR.ANCESTOR_ID);
+    var isDirectlyAttached = OWNER_ANCESTOR.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID);
+
+    var applicationCondition = isApplication
+        .and(isNotDirectlyAttached)
+        .and(DSL.exists(appTagForPolicy).or(DSL.notExists(policyHasTags)));
+
+    var repositoryCondition = isRepository.or(isRepositoryManager)
+        .or(isRepositoryContainer)
+        .and(isNotDirectlyAttached)
+        .and(DSL.notExists(policyHasTags));
+
+    var orgCondition = isApplication.not()
+        .and(isRepository.not())
+        .and(isRepositoryManager.not())
+        .and(isRepositoryContainer.not());
+
+    return tx.dsl()
+        .select(POLICY.fields())
+        .from(POLICY)
+        .join(OWNER_ANCESTOR)
+        .on(OWNER_ANCESTOR.ANCESTOR_ID.eq(POLICY.OWNER_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+        .and(applicationCondition
+            .or(repositoryCondition)
+            .or(orgCondition)
+            .or(isDirectlyAttached))
+        .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE)
+        .fetch(r -> toEntity(r.into(POLICY)));
   }
 
   List<PolicyInternal> getByOwnerId(String ownerId) {
@@ -129,24 +140,30 @@ public class PolicyInternalDAO
   }
 
   List<PolicyInternal> getByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT entity FROM PolicyInternal entity" + //
-        " WHERE entity.ownerId=?1" + //
-        " ORDER BY entity.nameLowercaseNoWhitespace";
-    return getList(tx, sQuery, ownerId);
+    return tx.dsl()
+        .selectFrom(POLICY)
+        .where(POLICY.OWNER_ID.eq(ownerId))
+        .orderBy(POLICY.NAME_LOWERCASE_NO_WHITESPACE)
+        .fetch(this::toEntity);
   }
 
   PolicyInternal getByOwnerIdAndName(TransactionContext tx, String ownerId, String name) {
     name = NameHelper.normalize(name);
-    String sQuery = "SELECT entity FROM PolicyInternal entity" + //
-        " WHERE entity.ownerId=?1 AND entity.nameLowercaseNoWhitespace=?2";
-    return get(tx, sQuery, ownerId, name);
+    return toEntity(tx.dsl()
+        .selectFrom(POLICY)
+        .where(POLICY.OWNER_ID.eq(ownerId))
+        .and(POLICY.NAME_LOWERCASE_NO_WHITESPACE.eq(name))
+        .fetchOne());
   }
 
   List<PolicyInternal> getByName(String name) {
     name = NameHelper.normalize(name);
-    String sQuery = "SELECT entity FROM PolicyInternal entity" + //
-        " WHERE entity.nameLowercaseNoWhitespace=?1";
-    return getList(sQuery, name);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(POLICY)
+          .where(POLICY.NAME_LOWERCASE_NO_WHITESPACE.eq(name))
+          .fetch(this::toEntity);
+    }
   }
 
   @Override
@@ -170,5 +187,15 @@ public class PolicyInternalDAO
   @Override
   protected SearchIndexChange newSearchIndexChange(PolicyInternal entity) {
     return new SearchIndexChange(ChangeType.POLICY, entity.getId());
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return POLICY;
+  }
+
+  @Override
+  public Class<PolicyInternal> getEntityClass() {
+    return PolicyInternal.class;
   }
 }

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -13,10 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Provider;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -29,6 +26,16 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
+import org.jooq.SelectFieldOrAsterisk;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseThreatGroup.LICENSE_THREAT_GROUP;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseThreatGroupLicense.LICENSE_THREAT_GROUP_LICENSE;
 
 @Named
 @Singleton
@@ -55,10 +62,11 @@ public class LicenseThreatGroupDAO
   }
 
   public List<LicenseThreatGroup> getByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
-        " WHERE entity.ownerId=?1" + //
-        " ORDER BY entity.name";
-    return getList(tx, sQuery, ownerId);
+    return tx.dsl()
+        .selectFrom(LICENSE_THREAT_GROUP)
+        .where(LICENSE_THREAT_GROUP.OWNER_ID.eq(ownerId))
+        .orderBy(LICENSE_THREAT_GROUP.NAME)
+        .fetch(this::toEntity);
   }
 
   public List<LicenseThreatGroup> getByOwnerId(String ownerId) {
@@ -69,17 +77,25 @@ public class LicenseThreatGroupDAO
 
   public List<LicenseThreatGroup> getByName(String name) {
     name = NameHelper.normalize(name);
-    String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
-        " WHERE entity.nameLowercaseNoWhitespace=?1";
-    return getList(sQuery, name);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(LICENSE_THREAT_GROUP)
+          .where(LICENSE_THREAT_GROUP.NAME_LOWERCASE_NO_WHITESPACE.eq(name))
+          .fetch(this::toEntity);
+    }
   }
 
   public List<LicenseThreatGroup> getByOwnerIdAndLicenseId(String ownerId, String licenseId) {
-    String sQuery = "SELECT licenseThreatGroup" + //
-        " FROM LicenseThreatGroup licenseThreatGroup, LicenseThreatGroupLicense licenseThreatGroupLicense" + //
-        " WHERE licenseThreatGroup.id=licenseThreatGroupLicense.licenseThreatGroupId" + //
-        " AND licenseThreatGroup.ownerId=?1 AND licenseThreatGroupLicense.licenseId=?2";
-    return getList(sQuery, ownerId, licenseId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(LICENSE_THREAT_GROUP.fields())
+          .from(LICENSE_THREAT_GROUP)
+          .join(LICENSE_THREAT_GROUP_LICENSE)
+          .on(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID.eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_ID))
+          .where(LICENSE_THREAT_GROUP.OWNER_ID.eq(ownerId))
+          .and(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID.eq(licenseId))
+          .fetch(r -> toEntity(r.into(LICENSE_THREAT_GROUP)));
+    }
   }
 
   /**
@@ -97,31 +113,36 @@ public class LicenseThreatGroupDAO
       List<String> ownerIds,
       Set<String> licenseIds)
   {
-    String sQuery = "SELECT licenseThreatGroupLicense.licenseId, licenseThreatGroup" + //
-        " FROM LicenseThreatGroup licenseThreatGroup, LicenseThreatGroupLicense licenseThreatGroupLicense" + //
-        " WHERE licenseThreatGroup.id=licenseThreatGroupLicense.licenseThreatGroupId" + //
-        " AND licenseThreatGroup.ownerId IN (?1) AND licenseThreatGroupLicense.licenseId IN (?2)";
+    List<SelectFieldOrAsterisk> selectFields = new ArrayList<>();
+    selectFields.add(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID);
+    selectFields.addAll(Arrays.asList(LICENSE_THREAT_GROUP.fields()));
 
-    jakarta.persistence.Query query = tx.createQuery(sQuery);
-    query.setParameter(1, ownerIds);
-    query.setParameter(2, licenseIds);
+    var result = tx.dsl()
+        .select(selectFields)
+        .from(LICENSE_THREAT_GROUP)
+        .join(LICENSE_THREAT_GROUP_LICENSE)
+        .on(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID.eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_ID))
+        .where(LICENSE_THREAT_GROUP.OWNER_ID.in(ownerIds))
+        .and(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID.in(licenseIds))
+        .fetch();
 
-    List<Object[]> resultList = query.getResultList();
     Map<String, List<LicenseThreatGroup>> licenseIdAndThreatGroups = new HashMap<>();
-    for (Object[] object : resultList) {
-      List<LicenseThreatGroup> listFromKey = licenseIdAndThreatGroups
-          .computeIfAbsent((String) object[0], licenseId -> new ArrayList<>());
-      listFromKey.add((LicenseThreatGroup) object[1]);
+    for (var record : result) {
+      String licenseId = record.get(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID);
+      LicenseThreatGroup ltg = record.into(LICENSE_THREAT_GROUP).into(LicenseThreatGroup.class);
+      licenseIdAndThreatGroups.computeIfAbsent(licenseId, k -> new ArrayList<>()).add(ltg);
     }
 
     return licenseIdAndThreatGroups;
   }
 
   public List<LicenseThreatGroup> getByIds(Set<String> licenseThreatGroupIds) {
-    String sQuery = "SELECT licenseThreatGroup" + //
-        " FROM LicenseThreatGroup licenseThreatGroup" + //
-        " WHERE licenseThreatGroup.id IN (?1)";
-    return getList(sQuery, licenseThreatGroupIds);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(LICENSE_THREAT_GROUP)
+          .where(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID.in(licenseThreatGroupIds))
+          .fetch(this::toEntity);
+    }
   }
 
   public LicenseThreatGroup getByOwnerIdAndName(String ownerId, String name) {
@@ -132,9 +153,11 @@ public class LicenseThreatGroupDAO
 
   public LicenseThreatGroup getByOwnerIdAndName(TransactionContext tx, String ownerId, String name) {
     name = NameHelper.normalize(name);
-    String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
-        " WHERE entity.ownerId=?1 AND entity.nameLowercaseNoWhitespace=?2";
-    return get(tx, sQuery, ownerId, name);
+    return toEntity(tx.dsl()
+        .selectFrom(LICENSE_THREAT_GROUP)
+        .where(LICENSE_THREAT_GROUP.OWNER_ID.eq(ownerId))
+        .and(LICENSE_THREAT_GROUP.NAME_LOWERCASE_NO_WHITESPACE.eq(name))
+        .fetchOne());
   }
 
   @Override
@@ -293,8 +316,8 @@ public class LicenseThreatGroupDAO
   }
 
   /**
-   * Returns a map of threat levels by (simple) license id for the specified application.
-   * The threat levels are determined from the License Threat Groups in the app/org hierarchy.
+   * Returns a map of threat levels by (simple) license id for the specified application. The threat levels are
+   * determined from the License Threat Groups in the app/org hierarchy.
    *
    * @since 1.91
    */
@@ -318,9 +341,12 @@ public class LicenseThreatGroupDAO
   }
 
   public List<LicenseThreatGroup> getByOwnerIds(Collection<String> ownerIds) {
-    String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
-        " WHERE entity.ownerId IN (?1)";
-    return getList(sQuery, ownerIds);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(LICENSE_THREAT_GROUP)
+          .where(LICENSE_THREAT_GROUP.OWNER_ID.in(ownerIds))
+          .fetch(this::toEntity);
+    }
   }
 
   public List<LicenseThreatGroup> getByOwnerIdAndLicenseIdsWithHierarchy(
@@ -330,15 +356,28 @@ public class LicenseThreatGroupDAO
   {
     List<LicenseThreatGroup> result = new ArrayList<>();
 
-    String sQuery = "SELECT licenseThreatGroup" + //
-        " FROM LicenseThreatGroup licenseThreatGroup, LicenseThreatGroupLicense licenseThreatGroupLicense" + //
-        " WHERE licenseThreatGroup.id=licenseThreatGroupLicense.licenseThreatGroupId" + //
-        " AND licenseThreatGroup.ownerId=?1 AND licenseThreatGroupLicense.licenseId IN (?2)";
-
     for (Owner currentOwner : ownerDAO.walkHierarchy(tx, ownerId)) {
-      result.addAll(getList(tx, sQuery, currentOwner.getId(), licenseIds));
+      var groups = tx.dsl()
+          .select(LICENSE_THREAT_GROUP.fields())
+          .from(LICENSE_THREAT_GROUP)
+          .join(LICENSE_THREAT_GROUP_LICENSE)
+          .on(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID.eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_ID))
+          .where(LICENSE_THREAT_GROUP.OWNER_ID.eq(currentOwner.getId()))
+          .and(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID.in(licenseIds))
+          .fetch(r -> toEntity(r.into(LICENSE_THREAT_GROUP)));
+      result.addAll(groups);
     }
 
     return result;
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return LICENSE_THREAT_GROUP;
+  }
+
+  @Override
+  public Class<LicenseThreatGroup> getEntityClass() {
+    return LicenseThreatGroup.class;
   }
 }

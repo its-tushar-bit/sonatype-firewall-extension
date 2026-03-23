@@ -121,7 +121,7 @@ public class ScmOnboardingServiceTest
   public static final String MAIN_BRANCH = "main";
 
   private static final Pattern STATUS_URL_PATTERN = Pattern.compile(
-      "api/experimental/onboarding/importRepositories/[a-f0-9]*/event/(?<eventId>[a-f0-9]*)");
+      "api/experimental/onboarding/importRepositories/[a-f0-9]*/event/(?<eventId>[a-f0-9-]*)");
 
   @Rule
   public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());

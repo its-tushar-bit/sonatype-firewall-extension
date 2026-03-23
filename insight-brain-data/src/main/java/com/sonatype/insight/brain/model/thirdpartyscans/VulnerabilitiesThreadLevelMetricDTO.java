@@ -42,20 +42,21 @@ public class VulnerabilitiesThreadLevelMetricDTO
   }
 
   public VulnerabilitiesThreadLevelMetricDTO(Object[] array) {
-    low = (Long) array[0];
-    lowAnnotated = (Long) array[1];
+    // Use Number.longValue() since jOOQ count() returns Integer in H2 but Long in PostgreSQL
+    low = ((Number) array[0]).longValue();
+    lowAnnotated = ((Number) array[1]).longValue();
     lowUnannotated = low - lowAnnotated;
 
-    medium = (Long) array[2];
-    mediumAnnotated = (Long) array[3];
+    medium = ((Number) array[2]).longValue();
+    mediumAnnotated = ((Number) array[3]).longValue();
     mediumUnannotated = medium - mediumAnnotated;
 
-    high = (Long) array[4];
-    highAnnotated = (Long) array[5];
+    high = ((Number) array[4]).longValue();
+    highAnnotated = ((Number) array[5]).longValue();
     highUnannotated = high - highAnnotated;
 
-    critical = (Long) array[6];
-    criticalAnnotated = (Long) array[7];
+    critical = ((Number) array[6]).longValue();
+    criticalAnnotated = ((Number) array[7]).longValue();
     criticalUnannotated = critical - criticalAnnotated;
 
     totalVulnerabilities = low + medium + high + critical;

@@ -147,7 +147,8 @@ public class ApplicationComponentLicenseDAOTest
                 newApplicationComponentLicensesDTO(componentWithOverrideAtApplication, "license-2.1", "license-2.2"),
                 newApplicationComponentLicensesDTO(componentWithOverrideAtRootOrg, "Apache-2.0"),
                 newApplicationComponentLicensesDTO(componentFromOtherApplication, "license-4"),
-                newApplicationComponentLicensesDTO(componentFromOtherApplicationWithOverrides, "MIT", "0BSD"));
+                // Licenses are ordered alphabetically by the query's listAgg.withinGroupOrderBy()
+                newApplicationComponentLicensesDTO(componentFromOtherApplicationWithOverrides, "0BSD", "MIT"));
   }
 
   @Test

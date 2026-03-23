@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -21,6 +22,9 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Oauth2Configuration.OAUTH2_CONFIGURATION;
 
 /**
  * @since 1.72
@@ -45,23 +49,23 @@ public class OAuth2ConfigurationDAO
   public static final String JWS_ALGORITHM_NOT_ALLOWED = "JWS Algorithm not allowed";
 
   @Inject
-  public OAuth2ConfigurationDAO(OperationalDataStore operationalDataStore) {
+  public OAuth2ConfigurationDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
   }
 
   @Override
-  public void insert(TransactionContext tx, OAuth2Configuration configuration) {
+  public void insert(final TransactionContext tx, final OAuth2Configuration configuration) {
     validate(configuration);
     super.insert(tx, configuration);
   }
 
   @Override
-  public void update(TransactionContext tx, OAuth2Configuration configuration) {
+  public void update(final TransactionContext tx, final OAuth2Configuration configuration) {
     validate(configuration);
     super.update(tx, configuration);
   }
 
-  private static void validate(OAuth2Configuration config) {
+  private static void validate(final OAuth2Configuration config) {
     if (config == null) {
       throw new IllegalArgumentException(INVALID_CONFIGURATION);
     }
@@ -82,7 +86,7 @@ public class OAuth2ConfigurationDAO
     }
   }
 
-  private static boolean isJwsAlgorithmOnDenyList(String jwsAlgorithm) {
+  private static boolean isJwsAlgorithmOnDenyList(final String jwsAlgorithm) {
     return DENIED_ALGORITHMS.contains(jwsAlgorithm);
   }
 
@@ -96,5 +100,22 @@ public class OAuth2ConfigurationDAO
       return false;
     }
     return true;
+  }
+
+  @Override
+  public List<OAuth2Configuration> getAll(final TransactionContext tx) {
+    return tx.dsl()
+        .selectFrom(OAUTH2_CONFIGURATION)
+        .fetchInto(OAuth2Configuration.class);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return OAUTH2_CONFIGURATION;
+  }
+
+  @Override
+  public Class<OAuth2Configuration> getEntityClass() {
+    return OAuth2Configuration.class;
   }
 }

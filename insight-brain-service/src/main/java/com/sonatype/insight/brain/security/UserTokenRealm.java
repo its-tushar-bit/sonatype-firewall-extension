@@ -26,7 +26,6 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 
 import com.atlassian.crowd.exception.UserNotFoundException;
-import jakarta.persistence.EntityNotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
@@ -108,8 +107,8 @@ public class UserTokenRealm
     try {
       userTokenDAO.update(userToken);
     }
-    catch (EntityNotFoundException e) {
-      throw new AuthenticationException("User token '%s' no longer exists.".formatted(userToken.getUserCode()));
+    catch (org.jooq.exception.DataAccessException e) {
+      throw new AuthenticationException("User token '%s' no longer exists.".formatted(userToken.getUserCode()), e);
     }
   }
 

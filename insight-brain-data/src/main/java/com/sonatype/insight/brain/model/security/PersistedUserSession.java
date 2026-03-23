@@ -71,6 +71,9 @@ public class PersistedUserSession
     setSession(session);
   }
 
+  public PersistedUserSession() {
+  }
+
   public PersistedUserSession(SimpleSession session) {
     setSession(session);
   }

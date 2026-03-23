@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -18,9 +16,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -40,9 +35,15 @@ import com.sonatype.nexus.git.utils.InvalidBranchNameException;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.util.CollectionUtils;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControl.SOURCE_CONTROL;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -70,6 +71,7 @@ public class SourceControlDAO
   private final SourceControlSshValidator sourceControlSshValidator;
 
   // The '_SCHEMA_' string will be replaced by the proper schema at runtime.
+  // Uses JDBC-style positional parameters (?) for jOOQ compatibility.
   private static final String SELECT_APPLICATIONS_FOR_SOURCE_SCAN =
       "SELECT sc.owner_id " +
           "FROM _SCHEMA_.source_control sc " +
@@ -83,10 +85,10 @@ public class SourceControlDAO
           "WHERE " +
           // Either: last source stage PE is internally triggered, but not by DBM, and it's older than the DBM run
           // window
-          "( lpe.time < ?1 AND lpe.scan_trigger_type " +
+          "( lpe.time < ? AND lpe.scan_trigger_type " +
           "           IN ('SOURCE_CONTROL_INTERNAL_ONBOARDING', 'SOURCE_CONTROL_INTERNAL_PULL_REQUEST') ) " +
           // Or: the last source stage PE is triggered by SC API, and it's older than the external eval. window (7 days)
-          "      OR ( lpe.time < ?2 AND lpe.scan_trigger_type = 'SOURCE_CONTROL_API' ) " +
+          "      OR ( lpe.time < ? AND lpe.scan_trigger_type = 'SOURCE_CONTROL_API' ) " +
           // Or: the last source stage PE is triggered by DBM; we'll keep doing DBM for this app
           "      OR lpe.scan_trigger_type = 'SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING' " +
           // Or: we don't have any source-stage PE
@@ -131,13 +133,13 @@ public class SourceControlDAO
           // Create ordered set of Source Control records, from application to root organization
           "SELECT * FROM (" +
           "WITH RECURSIVE ownership_hierarchy(entity_id, hierarchy_order) AS (" +
-          "SELECT organization_id, 1 from _SCHEMA_.application WHERE application_id=?1" +
+          "SELECT organization_id, 1 from _SCHEMA_.application WHERE application_id={0}" +
           "  UNION " +
           "SELECT org.parent_organization_id, oh.hierarchy_order+1 " +
           "FROM ownership_hierarchy oh, _SCHEMA_.organization org " +
           "WHERE org.organization_id = oh.entity_id AND org.parent_organization_id IS NOT NULL" +
           ") SELECT DISTINCT hierarchy_order, entity_id " +
-          "FROM ownership_hierarchy UNION SELECT 0, ?1 FROM ownership_hierarchy " +
+          "FROM ownership_hierarchy UNION SELECT 0, {0} FROM ownership_hierarchy " +
           "ORDER BY hierarchy_order" +
           ") AS ORDERED_SOURCE_CONTROLS LEFT JOIN _SCHEMA_.source_control " +
           "ON source_control.owner_id = ORDERED_SOURCE_CONTROLS.entity_id" +
@@ -205,24 +207,22 @@ public class SourceControlDAO
 
       // for each application where the poll time is not already set, the poll time is set to earliest date between
       // the earliest policy evaluation with an associated commit or the given default polling time
-      txn.createNativeQuery(
-          "UPDATE " + getDatabaseSchema() + ".source_control sc" +
-              " SET pull_request_poll_time = (" +
-              " SELECT" +
-              "  CASE WHEN first_commit_time IS NULL THEN ?1" +
-              "       WHEN first_commit_time < ?1 THEN first_commit_time" +
-              "       ELSE ?1" +
-              "       END" +
-              " FROM (" +
-              "     SELECT application_id, min(time) AS first_commit_time" +
-              "     FROM " + getDatabaseSchema() + ".policy_evaluation" +
-              "     WHERE commit_hash IS NOT NULL" +
-              "     GROUP BY application_id" +
-              "     ) AS first_policy_eval_commit" +
-              " WHERE sc.owner_id = first_policy_eval_commit.application_id)" +
-              " WHERE sc.pull_request_poll_time IS NULL;")
-          .setParameter(1, defaultPollingTime)
-          .executeUpdate();
+      String sql = "UPDATE " + getDatabaseSchema() + ".source_control sc" +
+          " SET pull_request_poll_time = (" +
+          " SELECT" +
+          "  CASE WHEN first_commit_time IS NULL THEN ?" +
+          "       WHEN first_commit_time < ? THEN first_commit_time" +
+          "       ELSE ?" +
+          "       END" +
+          " FROM (" +
+          "     SELECT application_id, min(time) AS first_commit_time" +
+          "     FROM " + getDatabaseSchema() + ".policy_evaluation" +
+          "     WHERE commit_hash IS NOT NULL" +
+          "     GROUP BY application_id" +
+          "     ) AS first_policy_eval_commit" +
+          " WHERE sc.owner_id = first_policy_eval_commit.application_id)" +
+          " WHERE sc.pull_request_poll_time IS NULL;";
+      txn.dsl().execute(sql, defaultPollingTime, defaultPollingTime, defaultPollingTime);
       txn.commit();
     }
   }
@@ -230,12 +230,10 @@ public class SourceControlDAO
   private void setDefaultPullRequestPollTimes(Date defaultPollingTime) {
     try (TransactionContext txn = createTransactionContext()) {
       txn.begin();
-      txn.createNativeQuery(
-          "UPDATE " + getDatabaseSchema() +
-              ".source_control SET pull_request_poll_time = ?1" +
-              " WHERE pull_request_poll_time IS NULL AND repository_url IS NOT NULL;")
-          .setParameter(1, defaultPollingTime)
-          .executeUpdate();
+      String sql = "UPDATE " + getDatabaseSchema() +
+          ".source_control SET pull_request_poll_time = ?" +
+          " WHERE pull_request_poll_time IS NULL AND repository_url IS NOT NULL;";
+      txn.dsl().execute(sql, defaultPollingTime);
       txn.commit();
     }
   }
@@ -245,23 +243,25 @@ public class SourceControlDAO
       txn.begin();
 
       // set poll time to null where repo url is null
-      txn.createNativeQuery(
-          "UPDATE " + getDatabaseSchema() +
-              ".source_control SET pull_request_poll_time = NULL WHERE repository_url IS NULL;")
-          .executeUpdate();
+      String sql = "UPDATE " + getDatabaseSchema() +
+          ".source_control SET pull_request_poll_time = NULL WHERE repository_url IS NULL;";
+      txn.dsl().execute(sql);
 
       txn.commit();
     }
   }
 
   public SourceControl getNextRepositoryToPoll() {
-    String sQuery =
-        "SELECT entity FROM SourceControl entity" +
-            " WHERE entity.repositoryUrl IS NOT NULL" +
-            " AND entity.pullRequestPollTime IS NOT NULL" +
-            " AND entity.pullRequestPollTime <= CURRENT_TIMESTAMP" +
-            " ORDER BY entity.pullRequestPollTime ASC";
-    return createQuery(sQuery).forceSingleResult().get();
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(SOURCE_CONTROL)
+          .where(SOURCE_CONTROL.REPOSITORY_URL.isNotNull())
+          .and(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.isNotNull())
+          .and(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.le(new Date()))
+          .orderBy(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.asc())
+          .limit(1)
+          .fetchOne());
+    }
   }
 
   private SourceControl getCompositeSourceControlByOwnerIds(List<String> ownerIds) {
@@ -276,10 +276,14 @@ public class SourceControlDAO
   private SourceControl buildCompositeSourceControlInPostgres(String applicationId) {
     // Single query to build Source Control instance for an application. Relies on Postgres-specific features
     try (TransactionContext tx = createTransactionContext()) {
-      jakarta.persistence.Query query = tx.createNativeQuery(
-          injectSchemaName(BUILD_COMPOSITE_SOURCE_CONTROL), SourceControl.class);
-      query.setParameter(1, applicationId);
-      return (SourceControl) query.getSingleResult();
+      String sql = injectSchemaName(BUILD_COMPOSITE_SOURCE_CONTROL);
+      // Using {0} indexed placeholder allows the same parameter to be referenced multiple times in the query
+      SourceControl result = tx.dsl()
+          .resultQuery(sql, DSL.val(applicationId))
+          .fetchOneInto(SourceControl.class);
+      // The aggregate query returns a row with all NULLs when no matching application exists.
+      // Return null in that case to match the expected behavior.
+      return result != null && result.getId() == null ? null : result;
     }
   }
 
@@ -294,7 +298,12 @@ public class SourceControlDAO
   }
 
   public List<SourceControl> getByOwnerIds(final List<String> ownerIds) {
-    return getList("SELECT entity FROM SourceControl entity WHERE entity.ownerId IN ?1", ownerIds);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL)
+          .where(SOURCE_CONTROL.OWNER_ID.in(ownerIds))
+          .fetch(this::toEntity);
+    }
   }
 
   public List<SourceControl> orderByHierarchy(List<String> ownerIds, List<SourceControl> unordered) {
@@ -317,9 +326,12 @@ public class SourceControlDAO
   }
 
   public List<SourceControl> getByApplication() {
-    String query = "SELECT entity FROM SourceControl entity WHERE entity.repositoryUrl IS NOT NULL";
-
-    return getList(query);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL)
+          .where(SOURCE_CONTROL.REPOSITORY_URL.isNotNull())
+          .fetch(this::toEntity);
+    }
   }
 
   /**
@@ -351,11 +363,15 @@ public class SourceControlDAO
     List<SourceControl> result = new ArrayList<>();
 
     // first get a list of app source controls that haven't overridden credentials
-    String query = "SELECT entity " +
-        "FROM SourceControl entity " +
-        "WHERE entity.repositoryUrl IS NOT NULL AND entity.token IS NULL AND entity.provider IS NULL";
-
-    List<SourceControl> candidateAppSourceControlList = getList(query);
+    List<SourceControl> candidateAppSourceControlList;
+    try (TransactionContext tx = createTransactionContext()) {
+      candidateAppSourceControlList = tx.dsl()
+          .selectFrom(SOURCE_CONTROL)
+          .where(SOURCE_CONTROL.REPOSITORY_URL.isNotNull())
+          .and(SOURCE_CONTROL.TOKEN.isNull())
+          .and(SOURCE_CONTROL.PROVIDER.isNull())
+          .fetch(this::toEntity);
+    }
 
     // next get a set of org source control IDs that have overridden credentials
     Set<String> ownerIdsThatOverrideCredentials = getOwnerIdsForSourceControlsWithOverriddenCredentials();
@@ -376,14 +392,12 @@ public class SourceControlDAO
     Set<String> result = new HashSet<>();
 
     try (TransactionContext txn = createTransactionContext()) {
-      txn.begin();
-
-      jakarta.persistence.Query query = txn.createNativeQuery(injectSchemaName(
-          "SELECT owner_id FROM _SCHEMA_.source_control " +
-              "WHERE owner_id != ?1 AND (token IS NOT NULL OR provider IS NOT NULL);"));
-      query.setParameter(1, ROOT_ORGANIZATION_ID);
-
-      List<String> ownerIdsForSourceControlsWithOverriddenCredentials = query.getResultList();
+      List<String> ownerIdsForSourceControlsWithOverriddenCredentials = txn.dsl()
+          .select(SOURCE_CONTROL.OWNER_ID)
+          .from(SOURCE_CONTROL)
+          .where(SOURCE_CONTROL.OWNER_ID.ne(ROOT_ORGANIZATION_ID))
+          .and(SOURCE_CONTROL.TOKEN.isNotNull().or(SOURCE_CONTROL.PROVIDER.isNotNull()))
+          .fetchInto(String.class);
 
       if (!CollectionUtils.isEmpty(ownerIdsForSourceControlsWithOverriddenCredentials)) {
         result.addAll(ownerIdsForSourceControlsWithOverriddenCredentials);
@@ -394,9 +408,12 @@ public class SourceControlDAO
   }
 
   private List<SourceControl> getByOrganization() {
-    String query = "SELECT entity FROM SourceControl entity WHERE entity.repositoryUrl IS NULL";
-
-    return getList(query);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL)
+          .where(SOURCE_CONTROL.REPOSITORY_URL.isNull())
+          .fetch(this::toEntity);
+    }
   }
 
   public List<SourceControl> getApplicationsWithRemediationPullRequestsEnabled() {
@@ -542,8 +559,10 @@ public class SourceControlDAO
     }
 
     repositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl);
-    String sQuery = "SELECT entity FROM SourceControl entity WHERE entity.normalizedRepositoryUrl=?1";
-    return getList(tx, sQuery, repositoryUrl);
+    return tx.dsl()
+        .selectFrom(SOURCE_CONTROL)
+        .where(SOURCE_CONTROL.NORMALIZED_REPOSITORY_URL.eq(repositoryUrl))
+        .fetch(this::toEntity);
   }
 
   public SourceControl getByOwnerId(final String ownerId) {
@@ -553,7 +572,10 @@ public class SourceControlDAO
   }
 
   public SourceControl getByOwnerId(final TransactionContext tx, final String ownerId) {
-    return get(tx, "SELECT entity FROM SourceControl entity WHERE entity.ownerId=?1", ownerId);
+    return toEntity(tx.dsl()
+        .selectFrom(SOURCE_CONTROL)
+        .where(SOURCE_CONTROL.OWNER_ID.eq(ownerId))
+        .fetchOne());
   }
 
   public void updatePollTimeAndErrorCounts(String sourceControlId, Date pollTime, int errorCount) {
@@ -574,7 +596,8 @@ public class SourceControlDAO
     if (null != sourceControl) {
       sourceControl.setPullRequestErrorCount(errorCount);
       sourceControl.setPullRequestPollTime(pollTime);
-      super.update(tx, sourceControl);
+      // Use updateWithoutValidation since we only changed poll time and error count fields
+      updateWithoutValidation(tx, sourceControl);
     }
   }
 
@@ -729,14 +752,15 @@ public class SourceControlDAO
   public List<SourceControl> getCompositeSourceControlForOutdatedSourceScans(
       final Date scanLimitDate)
   {
-    Date externalEvaluationLimitDate = Date.from(
-        LocalDateTime.now().minusDays(EXTERNAL_EVALUATION_WINDOW_IN_DAYS).atZone(ZoneId.systemDefault()).toInstant());
+    long externalEvaluationLimitMs = System.currentTimeMillis() -
+        (EXTERNAL_EVALUATION_WINDOW_IN_DAYS * 24L * 60 * 60 * 1000);
+    Date externalEvaluationLimitDate = new Date(externalEvaluationLimitMs);
 
     try (TransactionContext tx = createTransactionContext()) {
-      jakarta.persistence.Query query = tx.createNativeQuery(injectSchemaName(SELECT_APPLICATIONS_FOR_SOURCE_SCAN));
-      query.setParameter(1, scanLimitDate);
-      query.setParameter(2, externalEvaluationLimitDate);
-      List<String> initialOwnerIdList = query.getResultList();
+      List<String> initialOwnerIdList = tx.dsl()
+          .resultQuery(
+              injectSchemaName(SELECT_APPLICATIONS_FOR_SOURCE_SCAN), scanLimitDate, externalEvaluationLimitDate)
+          .fetchInto(String.class);
       return expandToCompositeSourceControlEntries(initialOwnerIdList);
     }
   }
@@ -792,5 +816,15 @@ public class SourceControlDAO
       Owner owner = ownerDAO.getById(childId);
       return null != owner ? owner.getParentOwnerId() : null;
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return SOURCE_CONTROL;
+  }
+
+  @Override
+  public Class<SourceControl> getEntityClass() {
+    return SourceControl.class;
   }
 }

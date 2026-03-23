@@ -6,13 +6,18 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.AggregateFile.AGGREGATE_FILE;
 
 /**
  * @since 1.104
@@ -33,14 +38,28 @@ public class AggregateFileDAO
   }
 
   public List<AggregateFile> getByApplicationComponentId(TransactionContext tx, String applicationComponentId) {
-    String sQuery = "SELECT entity FROM AggregateFile entity" + //
-        " WHERE entity.applicationComponentId=?1";
-    return getList(tx, sQuery, applicationComponentId);
+    return tx.dsl()
+        .selectFrom(AGGREGATE_FILE)
+        .where(AGGREGATE_FILE.APPLICATION_COMPONENT_ID.eq(applicationComponentId))
+        .fetch()
+        .stream()
+        .map(this::toEntity)
+        .collect(Collectors.toList());
   }
 
   public List<AggregateFile> getByApplicationComponentId(String applicationComponentId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByApplicationComponentId(tx, applicationComponentId);
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return AGGREGATE_FILE;
+  }
+
+  @Override
+  public Class<AggregateFile> getEntityClass() {
+    return AggregateFile.class;
   }
 }

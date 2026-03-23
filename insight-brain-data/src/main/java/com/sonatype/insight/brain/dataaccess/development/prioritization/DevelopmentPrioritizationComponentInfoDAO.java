@@ -9,15 +9,13 @@ package com.sonatype.insight.brain.dataaccess.development.prioritization;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -31,10 +29,17 @@ import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritization
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.Lists;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.util.CollectionUtils;
+import org.jooq.BatchBindStep;
+import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.DevelopmentPrioritizationComponentInfo.DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO;
 
 @Named
 @Singleton
@@ -52,19 +57,25 @@ public class DevelopmentPrioritizationComponentInfoDAO
   }
 
   public List<DevelopmentPrioritizationComponentInfo> getAllByScanId(final String scanId) {
-    final String sQuery =
-        "SELECT entity FROM DevelopmentPrioritizationComponentInfo entity WHERE entity.scanId=?1";
-    return getList(sQuery, scanId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO)
+          .where(DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.SCAN_ID.eq(scanId))
+          .fetch(this::toEntity);
+    }
   }
 
   public DevelopmentPrioritizationComponentInfo getByScanIdAndComponentHash(
       final String scanId,
       final String componentHash)
   {
-    final String sQuery =
-        "SELECT entity FROM DevelopmentPrioritizationComponentInfo " +
-            "entity WHERE entity.scanId=?1 AND entity.componentHash=?2";
-    return get(sQuery, scanId, componentHash);
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO)
+          .where(DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.SCAN_ID.eq(scanId))
+          .and(DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.COMPONENT_HASH.eq(componentHash))
+          .fetchOne());
+    }
   }
 
   // Batch insert to avoid multiple round trips to the DB when we want to insert multiple rows at the same time
@@ -85,47 +96,71 @@ public class DevelopmentPrioritizationComponentInfoDAO
           sizeSafeBatches.size());
     }
 
-    sizeSafeBatches.forEach(sizeSafeBatch -> {
-      jakarta.persistence.Query query = buildBatchQuery(tx, sizeSafeBatch);
-      query.executeUpdate();
-    });
+    sizeSafeBatches.forEach(sizeSafeBatch -> executeBatch(tx, sizeSafeBatch));
   }
 
-  public void deleteAllByScanId(final TransactionContext tx, final String scanId) {
-    final String sQuery = "DELETE FROM DevelopmentPrioritizationComponentInfo entity WHERE entity.scanId=?1";
-    createQuery(sQuery, scanId).executeUpdate(tx);
-  }
+  private void executeBatch(TransactionContext tx, List<DevelopmentPrioritizationComponentInfo> batch) {
+    BatchBindStep batchInsert = tx.dsl()
+        .batch(
+            tx.dsl()
+                .insertInto(DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO,
+                    DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO_ID,
+                    DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.SCAN_ID,
+                    DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.DEVELOPMENT_PRIORITIZATION_ID,
+                    DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.COMPONENT_HASH,
+                    DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.REMEDIATION_TYPE,
+                    DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.REMEDIATION_VERSION,
+                    DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.CREATED_AT,
+                    DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.UPDATED_AT,
+                    DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.SOURCE_STATUS,
+                    DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.BUILD_STATUS,
+                    DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.STAGE_RELEASE_STATUS,
+                    DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.RELEASE_STATUS)
+                .values((String) null, null, null, null, null, null, null, null, null, null, null, null));
 
-  private jakarta.persistence.Query buildBatchQuery(
-      final TransactionContext tx,
-      final Collection<DevelopmentPrioritizationComponentInfo> developmentPrioritizationComponentInfoCollection)
-  {
-    String qs = "INSERT INTO " + getDatabaseSchema() + ".development_prioritization_component_info" +
-        " (development_prioritization_component_info_id, scan_id, development_prioritization_id, component_hash," +
-        " remediation_type, remediation_version, created_at, updated_at, source_status, build_status," +
-        " stage_release_status, release_status)" + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" + StringUtils.repeat(
-            ", (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", developmentPrioritizationComponentInfoCollection.size() - 1);
-
-    jakarta.persistence.Query query = tx.createNativeQuery(qs);
-    int pos = 0;
-    for (DevelopmentPrioritizationComponentInfo componentInfo : developmentPrioritizationComponentInfoCollection) {
+    for (DevelopmentPrioritizationComponentInfo componentInfo : batch) {
       if (StringUtils.isBlank(componentInfo.getId())) {
         componentInfo.setId(UUID.randomUUID().toString().replace("-", ""));
       }
-      query.setParameter(++pos, componentInfo.getId())
-          .setParameter(++pos, componentInfo.getScanId())
-          .setParameter(++pos, componentInfo.getDevelopmentPrioritizationId())
-          .setParameter(++pos, componentInfo.getComponentHash())
-          .setParameter(++pos, componentInfo.getRemediationType().toString())
-          .setParameter(++pos, componentInfo.getRemediationVersion())
-          .setParameter(++pos, componentInfo.getCreatedAt())
-          .setParameter(++pos, componentInfo.getUpdatedAt())
-          .setParameter(++pos, componentInfo.getSourceStatus())
-          .setParameter(++pos, componentInfo.getBuildStatus())
-          .setParameter(++pos, componentInfo.getStageReleaseStatus())
-          .setParameter(++pos, componentInfo.getReleaseStatus());
+      batchInsert.bind(
+          componentInfo.getId(),
+          componentInfo.getScanId(),
+          componentInfo.getDevelopmentPrioritizationId(),
+          componentInfo.getComponentHash(),
+          componentInfo.getRemediationType() != null ? componentInfo.getRemediationType().toString() : null,
+          componentInfo.getRemediationVersion(),
+          componentInfo.getCreatedAt(),
+          componentInfo.getUpdatedAt(),
+          componentInfo.getSourceStatus(),
+          componentInfo.getBuildStatus(),
+          componentInfo.getStageReleaseStatus(),
+          componentInfo.getReleaseStatus());
     }
-    return query;
+    batchInsert.execute();
+  }
+
+  @Override
+  public void insert(TransactionContext tx, DevelopmentPrioritizationComponentInfo entity) {
+    if (StringUtils.isBlank(entity.getId())) {
+      entity.setId(UUID.randomUUID().toString().replace("-", ""));
+    }
+    super.insert(tx, entity);
+  }
+
+  @Override
+  public void update(TransactionContext tx, DevelopmentPrioritizationComponentInfo entity) {
+    // Special handling: set updatedAt to now if not provided
+    if (entity.getUpdatedAt() == null) {
+      entity.setUpdatedAt(new Date());
+    }
+    super.update(tx, entity);
+  }
+
+  public void deleteAllByScanId(final TransactionContext tx, final String scanId) {
+    tx.dsl()
+        .deleteFrom(DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO)
+        .where(DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.SCAN_ID.eq(scanId))
+        .execute();
   }
 
   public Map<StageType, String> getStageStatusesByScanIdAndComponentHash(
@@ -168,5 +203,15 @@ public class DevelopmentPrioritizationComponentInfoDAO
       default:
         throw new IllegalStateException("Unsupported stage: " + stageTypeId);
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO;
+  }
+
+  @Override
+  public Class<DevelopmentPrioritizationComponentInfo> getEntityClass() {
+    return DevelopmentPrioritizationComponentInfo.class;
   }
 }

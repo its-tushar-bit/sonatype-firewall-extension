@@ -422,6 +422,7 @@ public class RepositoryPolicyEvaluator
     }
 
     if (event != null && !event.repositoryPolicyViolations.isEmpty()) {
+      repositoryPolicyViolationDAO.loadConstraintFacts(event.repositoryPolicyViolations);
       eventBus.post(event);
     }
 

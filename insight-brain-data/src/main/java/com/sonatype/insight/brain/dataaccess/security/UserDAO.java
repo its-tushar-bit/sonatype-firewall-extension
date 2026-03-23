@@ -12,9 +12,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -33,7 +30,14 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.User.USER;
 
 /**
  * @since 1.7
@@ -85,9 +89,10 @@ public class UserDAO
   }
 
   public User getByUsername(TransactionContext tx, String username) {
-    String sQuery = "SELECT entity FROM User entity" + //
-        " WHERE entity.usernameLowercase=?1";
-    return get(tx, sQuery, User.normalizeUsername(username));
+    return tx.dsl()
+        .selectFrom(USER)
+        .where(USER.USERNAME_LOWERCASE.eq(User.normalizeUsername(username)))
+        .fetchOneInto(User.class);
   }
 
   /**
@@ -102,25 +107,34 @@ public class UserDAO
       lowerCaseUsernames.add(User.normalizeUsername(username));
     }
 
-    String sQuery = "SELECT entity from User entity" + //
-        " WHERE entity.usernameLowercase IN ?1" + //
-        " ORDER BY entity.usernameLowercase";
-    return getList(sQuery, lowerCaseUsernames);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(USER)
+          .where(USER.USERNAME_LOWERCASE.in(lowerCaseUsernames))
+          .orderBy(USER.USERNAME_LOWERCASE)
+          .fetchInto(User.class);
+    }
   }
 
   public List<User> getByEmails(Set<String> emails) {
-    String sQuery = "SELECT entity from User entity" + //
-        " WHERE entity.email IN ?1" + //
-        " ORDER BY entity.email";
-    return getList(sQuery, emails);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(USER)
+          .where(USER.EMAIL.in(emails))
+          .orderBy(USER.EMAIL)
+          .fetchInto(User.class);
+    }
   }
 
   // real name means full name (First + Last)
   public List<User> getByRealNames(Set<String> fullNames) {
-    String sQuery = "SELECT entity from User entity" + //
-        " WHERE CONCAT(entity.firstName, ' ', entity.lastName) IN ?1" + //
-        " ORDER BY entity.lastName, entity.firstName";
-    return getList(sQuery, fullNames);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(USER)
+          .where(USER.FIRST_NAME.concat(" ").concat(USER.LAST_NAME).in(fullNames))
+          .orderBy(USER.LAST_NAME, USER.FIRST_NAME)
+          .fetchInto(User.class);
+    }
   }
 
   /**
@@ -151,10 +165,13 @@ public class UserDAO
    */
   public List<User> findUsersByName(String nameQuery) {
     nameQuery = nameQuery.trim().toLowerCase(Locale.ENGLISH);
-    String sQuery = "SELECT entity FROM User entity" + //
-        " WHERE lower(concat(entity.firstName, ' ', entity.lastName)) LIKE ?1" + //
-        " ORDER BY entity.username";
-    return getList(sQuery, nameQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(USER)
+          .where(DSL.lower(USER.FIRST_NAME).concat(" ").concat(DSL.lower(USER.LAST_NAME)).like(nameQuery))
+          .orderBy(USER.USERNAME)
+          .fetchInto(User.class);
+    }
   }
 
   private void validateUsername(String username) {
@@ -236,6 +253,7 @@ public class UserDAO
     // Cascade to apiAccessAllowList system configuration
     deleteFromApiAccessAllowList(tx, entity.getUsername());
 
+    // Delete user from database
     super.delete(tx, entity);
   }
 
@@ -264,8 +282,21 @@ public class UserDAO
 
   @Override
   public List<User> getAll() {
-    String sQuery = "SELECT entity FROM User entity" + //
-        " ORDER BY entity.username";
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(USER)
+          .orderBy(USER.USERNAME)
+          .fetchInto(User.class);
+    }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return USER;
+  }
+
+  @Override
+  public Class<User> getEntityClass() {
+    return User.class;
   }
 }

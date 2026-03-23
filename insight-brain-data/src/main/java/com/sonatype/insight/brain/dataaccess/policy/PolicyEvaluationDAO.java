@@ -10,10 +10,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import java.util.UUID;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -25,7 +22,16 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Record;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.LastPolicyEvaluation.LAST_POLICY_EVALUATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyEvaluation.POLICY_EVALUATION;
 
 /**
  * @since 1.11
@@ -47,10 +53,13 @@ public class PolicyEvaluationDAO
   }
 
   public PolicyEvaluation getLastByApplicationIdAndScanId(TransactionContext tx, String appId, String scanId) {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
-        " WHERE entity.applicationId=?1 AND entity.scanId=?2" + //
-        " ORDER BY entity.time DESC";
-    return createQuery(sQuery, appId, scanId).forceSingleResult().get(tx);
+    return toEntity(tx.dsl()
+        .selectFrom(POLICY_EVALUATION)
+        .where(POLICY_EVALUATION.APPLICATION_ID.eq(appId))
+        .and(POLICY_EVALUATION.SCAN_ID.eq(scanId))
+        .orderBy(POLICY_EVALUATION.TIME.desc())
+        .limit(1)
+        .fetchOne());
   }
 
   public PolicyEvaluation getLastByApplicationIdAndScanId(String appId, String scanId) {
@@ -78,18 +87,26 @@ public class PolicyEvaluationDAO
     if (appIds.size() >= getInOperatorThreshold()) {
       return getLastByApplicationIdsManualFilter(appIds);
     }
-    String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
-        " LastPolicyEvaluation lpe" + //
-        " WHERE pe.id = lpe.policyEvaluationId" + //
-        " AND lpe.applicationId in (?1)";
-    return getList(sQuery, appIds);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(POLICY_EVALUATION.fields())
+          .from(POLICY_EVALUATION)
+          .join(LAST_POLICY_EVALUATION)
+          .on(POLICY_EVALUATION.POLICY_EVALUATION_ID.eq(LAST_POLICY_EVALUATION.POLICY_EVALUATION_ID))
+          .where(LAST_POLICY_EVALUATION.APPLICATION_ID.in(appIds))
+          .fetch(r -> toEntity(r.into(POLICY_EVALUATION)));
+    }
   }
 
   public List<PolicyEvaluation> getAllLast() {
-    String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
-        " LastPolicyEvaluation lpe" + //
-        " WHERE pe.id = lpe.policyEvaluationId";
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(POLICY_EVALUATION.fields())
+          .from(POLICY_EVALUATION)
+          .join(LAST_POLICY_EVALUATION)
+          .on(POLICY_EVALUATION.POLICY_EVALUATION_ID.eq(LAST_POLICY_EVALUATION.POLICY_EVALUATION_ID))
+          .fetch(r -> toEntity(r.into(POLICY_EVALUATION)));
+    }
   }
 
   /**
@@ -97,44 +114,57 @@ public class PolicyEvaluationDAO
    * and at some point it is faster to just load all entities and filter them manually afterwards. Per those
    * measurements, this method outperforms the {@code IN} operator when the input exceeds ~2000 applications, even if
    * 80% of the loaded entities are dropped.
-   *
+   * <p>
    * Similar to above the check is extended to Postgres with it's allowed threshold limit. (cf, CLM-18653)
    */
   private List<PolicyEvaluation> getLastByApplicationIdsManualFilter(Set<String> appIds) {
-    String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
-        " LastPolicyEvaluation lpe" + //
-        " WHERE pe.id = lpe.policyEvaluationId";
-    List<PolicyEvaluation> evals = new ArrayList<>(appIds.size());
-    for (PolicyEvaluation eval : getList(sQuery)) {
-      if (appIds.contains(eval.getApplicationId())) {
-        evals.add(eval);
+    try (TransactionContext tx = createTransactionContext()) {
+      List<PolicyEvaluation> allEvals = tx.dsl()
+          .select(POLICY_EVALUATION.fields())
+          .from(POLICY_EVALUATION)
+          .join(LAST_POLICY_EVALUATION)
+          .on(POLICY_EVALUATION.POLICY_EVALUATION_ID.eq(LAST_POLICY_EVALUATION.POLICY_EVALUATION_ID))
+          .fetch(r -> toEntity(r.into(POLICY_EVALUATION)));
+
+      List<PolicyEvaluation> evals = new ArrayList<>(appIds.size());
+      for (PolicyEvaluation eval : allEvals) {
+        if (appIds.contains(eval.getApplicationId())) {
+          evals.add(eval);
+        }
       }
+      return evals;
     }
-    return evals;
   }
 
   /**
    * Returns the most recent policy evaluation for the most recent scan for the given application and stage.
    */
   public PolicyEvaluation getLastByApplicationIdAndStageId(TransactionContext tx, String appId, String stageTypeId) {
-    String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
-        " LastPolicyEvaluation lpe" + //
-        " WHERE pe.id = lpe.policyEvaluationId" + //
-        " AND lpe.applicationId=?1" + //
-        " AND lpe.stageTypeId=?2";
-    return get(tx, sQuery, appId, stageTypeId);
+    Record record = tx.dsl()
+        .select(POLICY_EVALUATION.fields())
+        .from(POLICY_EVALUATION)
+        .join(LAST_POLICY_EVALUATION)
+        .on(POLICY_EVALUATION.POLICY_EVALUATION_ID.eq(LAST_POLICY_EVALUATION.POLICY_EVALUATION_ID))
+        .where(LAST_POLICY_EVALUATION.APPLICATION_ID.eq(appId))
+        .and(LAST_POLICY_EVALUATION.STAGE_TYPE_ID.eq(stageTypeId))
+        .fetchOne();
+    return record != null ? toEntity(record.into(POLICY_EVALUATION)) : null;
   }
 
   public List<PolicyEvaluation> getLastByApplicationIdsAndStageIds(Set<String> appIds, Set<String> stageTypeIds) {
     if (appIds.size() >= getInOperatorThreshold()) {
       return getLastByApplicationIdsAndStageIdsManualFilter(appIds, stageTypeIds);
     }
-    String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
-        " LastPolicyEvaluation lpe" + //
-        " WHERE pe.id = lpe.policyEvaluationId" + //
-        " AND lpe.applicationId in (?1)" + //
-        " AND lpe.stageTypeId in (?2)";
-    return getList(sQuery, appIds, stageTypeIds);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(POLICY_EVALUATION.fields())
+          .from(POLICY_EVALUATION)
+          .join(LAST_POLICY_EVALUATION)
+          .on(POLICY_EVALUATION.POLICY_EVALUATION_ID.eq(LAST_POLICY_EVALUATION.POLICY_EVALUATION_ID))
+          .where(LAST_POLICY_EVALUATION.APPLICATION_ID.in(appIds))
+          .and(LAST_POLICY_EVALUATION.STAGE_TYPE_ID.in(stageTypeIds))
+          .fetch(r -> toEntity(r.into(POLICY_EVALUATION)));
+    }
   }
 
   /**
@@ -144,17 +174,23 @@ public class PolicyEvaluationDAO
       Set<String> appIds,
       Set<String> stageTypeIds)
   {
-    String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
-        " LastPolicyEvaluation lpe" + //
-        " WHERE pe.id = lpe.policyEvaluationId" + //
-        " AND lpe.stageTypeId in (?1)";
-    List<PolicyEvaluation> evals = new ArrayList<>(appIds.size());
-    for (PolicyEvaluation eval : getList(sQuery, stageTypeIds)) {
-      if (appIds.contains(eval.getApplicationId())) {
-        evals.add(eval);
+    try (TransactionContext tx = createTransactionContext()) {
+      List<PolicyEvaluation> allEvals = tx.dsl()
+          .select(POLICY_EVALUATION.fields())
+          .from(POLICY_EVALUATION)
+          .join(LAST_POLICY_EVALUATION)
+          .on(POLICY_EVALUATION.POLICY_EVALUATION_ID.eq(LAST_POLICY_EVALUATION.POLICY_EVALUATION_ID))
+          .where(LAST_POLICY_EVALUATION.STAGE_TYPE_ID.in(stageTypeIds))
+          .fetch(r -> toEntity(r.into(POLICY_EVALUATION)));
+
+      List<PolicyEvaluation> evals = new ArrayList<>(appIds.size());
+      for (PolicyEvaluation eval : allEvals) {
+        if (appIds.contains(eval.getApplicationId())) {
+          evals.add(eval);
+        }
       }
+      return evals;
     }
-    return evals;
   }
 
   public PolicyEvaluation getLastByApplicationIdAndStageId(String appId, String stageTypeId) {
@@ -171,10 +207,14 @@ public class PolicyEvaluationDAO
       String appId,
       String stageTypeId)
   {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
-        " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 AND entity.isReevaluation=false" + //
-        " ORDER BY entity.time DESC";
-    return createQuery(sQuery, appId, stageTypeId).forceSingleResult().get(tx);
+    return toEntity(tx.dsl()
+        .selectFrom(POLICY_EVALUATION)
+        .where(POLICY_EVALUATION.APPLICATION_ID.eq(appId))
+        .and(POLICY_EVALUATION.STAGE_TYPE_ID.eq(stageTypeId))
+        .and(POLICY_EVALUATION.REEVALUATION.eq(false))
+        .orderBy(POLICY_EVALUATION.TIME.desc())
+        .limit(1)
+        .fetchOne());
   }
 
   /**
@@ -194,13 +234,17 @@ public class PolicyEvaluationDAO
       final String appId,
       final String stageTypeId)
   {
-    String sQuery = "SELECT pe FROM PolicyEvaluation pe" +
-        " WHERE pe.applicationId = ?1" +
-        " AND pe.stageTypeId = ?2" +
-        " AND pe.isForMonitoring = false" +
-        " AND pe.isReevaluation = false" +
-        " ORDER BY pe.time DESC";
-    return createQuery(sQuery, appId, stageTypeId).forceSingleResult().get();
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.APPLICATION_ID.eq(appId))
+          .and(POLICY_EVALUATION.STAGE_TYPE_ID.eq(stageTypeId))
+          .and(POLICY_EVALUATION.FOR_MONITORING.eq(false))
+          .and(POLICY_EVALUATION.REEVALUATION.eq(false))
+          .orderBy(POLICY_EVALUATION.TIME.desc())
+          .limit(1)
+          .fetchOne());
+    }
   }
 
   @Override
@@ -210,6 +254,11 @@ public class PolicyEvaluationDAO
     if (policyEvaluation.getTime() == null) {
       policyEvaluation.setTime(new Date());
     }
+
+    if (policyEvaluation.getId() == null) {
+      policyEvaluation.setId(UUID.randomUUID().toString());
+    }
+
     super.insert(tx, policyEvaluation);
 
     if (policyEvaluation.isForObsoleteScan()) {
@@ -226,7 +275,10 @@ public class PolicyEvaluationDAO
 
       // Delete the current last policy evaluation record for this app and stage type
       if (lastPolicyEvaluation != null) {
-        lastPolicyEvaluationDAO.delete(tx, lastPolicyEvaluationDAO.getByEvaluationId(tx, lastPolicyEvaluation.getId()));
+        LastPolicyEvaluation lastEval = lastPolicyEvaluationDAO.getById(tx, lastPolicyEvaluation.getId());
+        if (lastEval != null) {
+          lastPolicyEvaluationDAO.delete(tx, lastEval);
+        }
       }
 
       // Insert a new last policy evaluation record for this application and stage type
@@ -243,11 +295,17 @@ public class PolicyEvaluationDAO
       String appId,
       Set<String> stageTypeIds)
   {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
-        " WHERE entity.applicationId = ?1 AND entity.stageTypeId IN (?2) AND entity.time >= ?3" + //
-        "  AND entity.time < ?4 AND entity.isForObsoleteScan = false" + //
-        " ORDER BY entity.time";
-    return getList(sQuery, appId, stageTypeIds, sinceDate, toDate);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.APPLICATION_ID.eq(appId))
+          .and(POLICY_EVALUATION.STAGE_TYPE_ID.in(stageTypeIds))
+          .and(POLICY_EVALUATION.TIME.ge(sinceDate))
+          .and(POLICY_EVALUATION.TIME.lt(toDate))
+          .and(POLICY_EVALUATION.FOR_OBSOLETE_SCAN.eq(false))
+          .orderBy(POLICY_EVALUATION.TIME)
+          .fetch(this::toEntity);
+    }
   }
 
   /**
@@ -256,11 +314,14 @@ public class PolicyEvaluationDAO
    * @since 1.33
    */
   public PolicyEvaluation getOldestByApplicationId(String applicationId) {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
-        " WHERE entity.applicationId = ?1" + //
-        " ORDER BY entity.time";
-
-    return createQuery(sQuery, applicationId).forceSingleResult().get();
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.APPLICATION_ID.eq(applicationId))
+          .orderBy(POLICY_EVALUATION.TIME)
+          .limit(1)
+          .fetchOne());
+    }
   }
 
   @Override
@@ -275,7 +336,7 @@ public class PolicyEvaluationDAO
     // SourceControlEvent deletions are cascaded via foreign key ON DELETE CASCADE
     // LastPolicyEvaluation deletions are cascaded via foreign key ON DELETE CASCADE
 
-    LastPolicyEvaluation lastPolicyEvaluation = lastPolicyEvaluationDAO.getByEvaluationId(tx, policyEvaluation.getId());
+    LastPolicyEvaluation lastPolicyEvaluation = lastPolicyEvaluationDAO.getById(tx, policyEvaluation.getId());
 
     // Delete the policy evaluation itself
     super.delete(tx, policyEvaluation);
@@ -289,12 +350,14 @@ public class PolicyEvaluationDAO
   }
 
   private PolicyEvaluation getNewestPolicyEvaluation(TransactionContext tx, String applicationId, String stageTypeId) {
-    String sQuery = "SELECT e from PolicyEvaluation e " + //
-        "WHERE e.applicationId = ?1 " + //
-        "AND e.stageTypeId = ?2 " + //
-        "AND e.isForObsoleteScan = false " + //
-        "ORDER BY e.time DESC";
-    return createQuery(sQuery, applicationId, stageTypeId).forceSingleResult().get(tx);
+    return toEntity(tx.dsl()
+        .selectFrom(POLICY_EVALUATION)
+        .where(POLICY_EVALUATION.APPLICATION_ID.eq(applicationId))
+        .and(POLICY_EVALUATION.STAGE_TYPE_ID.eq(stageTypeId))
+        .and(POLICY_EVALUATION.FOR_OBSOLETE_SCAN.eq(false))
+        .orderBy(POLICY_EVALUATION.TIME.desc())
+        .limit(1)
+        .fetchOne());
   }
 
   private void validate(PolicyEvaluation policyEvaluation) {
@@ -310,77 +373,110 @@ public class PolicyEvaluationDAO
   }
 
   public int getCountByApplicationId(TransactionContext tx, String appId) {
-    String sQuery = "SELECT COUNT(entity.id) FROM PolicyEvaluation entity" + //
-        " WHERE entity.applicationId=?1";
-
-    return getSingle(tx, Number.class, sQuery, appId).intValue();
+    return tx.dsl()
+        .selectCount()
+        .from(POLICY_EVALUATION)
+        .where(POLICY_EVALUATION.APPLICATION_ID.eq(appId))
+        .fetchOne(0, Integer.class);
   }
 
   public List<PolicyEvaluation> getPrimaryNonMonitoringByApplicationIdAndStageId(String applicationId, String stageId) {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
-        " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
-        " AND entity.isForMonitoring=false AND entity.isReevaluation=false AND entity.stageTypeId<>?3";
-    return getList(sQuery, applicationId, stageId, StageTypes.COMPLIANCE.getId());
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.APPLICATION_ID.eq(applicationId))
+          .and(POLICY_EVALUATION.STAGE_TYPE_ID.eq(stageId))
+          .and(POLICY_EVALUATION.FOR_MONITORING.eq(false))
+          .and(POLICY_EVALUATION.REEVALUATION.eq(false))
+          .and(POLICY_EVALUATION.STAGE_TYPE_ID.ne(StageTypes.COMPLIANCE.getId()))
+          .fetch(this::toEntity);
+    }
   }
 
   private static final List<String> stageList = Arrays.asList(Stage.ID_SOURCE, Stage.ID_BUILD, Stage.ID_DEVELOP);
 
   public boolean hasExternalPolicyEvaluations(String applicationId, Date cutoffTime) {
-    String sQuery = "SELECT COUNT(entity.id) FROM PolicyEvaluation entity" + //
-        " WHERE entity.applicationId=?1 AND entity.time>?2" + //
-        " AND entity.stageTypeId IN (?3)" +
-        " AND entity.scanTriggerType NOT IN (?4)";
-    return getSingle(Number.class, sQuery, applicationId, cutoffTime, stageList,
-        ScanTriggerType.internalScanTypes).intValue() > 0;
+    try (TransactionContext tx = createTransactionContext()) {
+      List<String> internalScanTypeStrings = ScanTriggerType.internalScanTypes.stream()
+          .map(ScanTriggerType::toString)
+          .toList();
+      int count = tx.dsl()
+          .selectCount()
+          .from(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.APPLICATION_ID.eq(applicationId))
+          .and(POLICY_EVALUATION.TIME.gt(cutoffTime))
+          .and(POLICY_EVALUATION.STAGE_TYPE_ID.in(stageList))
+          .and(POLICY_EVALUATION.SCAN_TRIGGER_TYPE.notIn(internalScanTypeStrings))
+          .fetchOne(0, Integer.class);
+      return count > 0;
+    }
   }
 
   public List<PolicyEvaluation> getPrimaryForMonitoringByApplicationId(String applicationId) {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
-        " WHERE entity.applicationId=?1" + //
-        " AND entity.isForMonitoring=true AND entity.isReevaluation=false AND entity.stageTypeId<>?2";
-    return getList(sQuery, applicationId, StageTypes.COMPLIANCE.getId());
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.APPLICATION_ID.eq(applicationId))
+          .and(POLICY_EVALUATION.FOR_MONITORING.eq(true))
+          .and(POLICY_EVALUATION.REEVALUATION.eq(false))
+          .and(POLICY_EVALUATION.STAGE_TYPE_ID.ne(StageTypes.COMPLIANCE.getId()))
+          .fetch(this::toEntity);
+    }
   }
 
   public PolicyEvaluation getLastByCommitHash(String commitHash) {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
-        " WHERE entity.commitHash=?1" + //
-        " ORDER BY entity.time DESC";
-    return createQuery(sQuery, commitHash).forceSingleResult().get();
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.COMMIT_HASH.eq(commitHash))
+          .orderBy(POLICY_EVALUATION.TIME.desc())
+          .limit(1)
+          .fetchOne());
+    }
   }
 
   public List<PolicyEvaluation> getLastByCommitHashPerApplication(String commitHash) {
-    List<PolicyEvaluation> result = new ArrayList<>();
+    try (TransactionContext tx = createTransactionContext()) {
+      List<String> applicationIdsForCommit = tx.dsl()
+          .selectDistinct(POLICY_EVALUATION.APPLICATION_ID)
+          .from(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.COMMIT_HASH.eq(commitHash))
+          .fetchInto(String.class);
 
-    String sQuery = "SELECT DISTINCT entity.applicationId FROM PolicyEvaluation entity" + //
-        " WHERE entity.commitHash=?1";
-
-    List<String> applicationIdsForCommit = new Query<String>(sQuery, commitHash).getList();
-
-    applicationIdsForCommit.forEach(id -> result.add(getLastByApplicationAndCommitHash(id, commitHash)));
-
-    return result;
+      List<PolicyEvaluation> result = new ArrayList<>();
+      applicationIdsForCommit.forEach(id -> result.add(getLastByApplicationAndCommitHash(id, commitHash)));
+      return result;
+    }
   }
 
   public PolicyEvaluation getLastByApplicationAndCommitHash(
       final String applicationInternalId,
       final String commitHash)
   {
-    final String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
-        " WHERE entity.commitHash=?2" + //
-        " AND entity.applicationId=?1" + //
-        " ORDER BY entity.time DESC";
-    return createQuery(sQuery, applicationInternalId, commitHash).forceSingleResult().get();
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.APPLICATION_ID.eq(applicationInternalId))
+          .and(POLICY_EVALUATION.COMMIT_HASH.eq(commitHash))
+          .orderBy(POLICY_EVALUATION.TIME.desc())
+          .limit(1)
+          .fetchOne());
+    }
   }
 
   public PolicyEvaluation getLastByApplicationAndAbbreviatedCommitHash(
       final String applicationInternalId,
       final String commitHash)
   {
-    final String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
-        " WHERE entity.commitHash like ?2" + //
-        " AND entity.applicationId=?1" + //
-        " ORDER BY entity.time DESC";
-    return createQuery(sQuery, applicationInternalId, commitHash + "%").forceSingleResult().get();
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.APPLICATION_ID.eq(applicationInternalId))
+          .and(POLICY_EVALUATION.COMMIT_HASH.like(commitHash + "%"))
+          .orderBy(POLICY_EVALUATION.TIME.desc())
+          .limit(1)
+          .fetchOne());
+    }
   }
 
   public PolicyEvaluation getLastInTimeRangeByApplicationAndStage(
@@ -389,18 +485,24 @@ public class PolicyEvaluationDAO
       Date minDate,
       Date maxDate)
   {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" +
-        " WHERE entity.applicationId = ?1" +
-        "  AND entity.stageTypeId = ?2" +
-        "  AND entity.time >= ?3" +
-        (maxDate == null ? "" : "  AND entity.time < ?4") +
-        " ORDER BY entity.time DESC";
+    try (TransactionContext tx = createTransactionContext()) {
+      var query = tx.dsl()
+          .selectFrom(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.APPLICATION_ID.eq(applicationId))
+          .and(POLICY_EVALUATION.STAGE_TYPE_ID.eq(stageTypeId))
+          .and(POLICY_EVALUATION.TIME.ge(minDate));
 
-    if (maxDate != null) {
-      return createQuery(sQuery, applicationId, stageTypeId, minDate, maxDate).forceSingleResult().get();
-    }
-    else {
-      return createQuery(sQuery, applicationId, stageTypeId, minDate).forceSingleResult().get();
+      if (maxDate != null) {
+        return toEntity(query.and(POLICY_EVALUATION.TIME.lt(maxDate))
+            .orderBy(POLICY_EVALUATION.TIME.desc())
+            .limit(1)
+            .fetchOne());
+      }
+      else {
+        return toEntity(query.orderBy(POLICY_EVALUATION.TIME.desc())
+            .limit(1)
+            .fetchOne());
+      }
     }
   }
 
@@ -409,17 +511,24 @@ public class PolicyEvaluationDAO
       int maxResultsToReturn,
       String stage)
   {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
-        " WHERE entity.applicationId = ?1 " + //
-        (stage != null ? " AND entity.stageTypeId = ?2 " : "") +
-        " AND entity.isForObsoleteScan = false" + //
-        " ORDER BY entity.time DESC";
-    Query<PolicyEvaluation> query =
-        stage != null
-            ? new Query<>(sQuery, applicationId, stage)
-            : new Query<>(sQuery, applicationId);
-    query.setMaxResults(maxResultsToReturn);
-    return query.getList();
+    try (TransactionContext tx = createTransactionContext()) {
+      var query = tx.dsl()
+          .selectFrom(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.APPLICATION_ID.eq(applicationId))
+          .and(POLICY_EVALUATION.FOR_OBSOLETE_SCAN.eq(false));
+
+      if (stage != null) {
+        return query.and(POLICY_EVALUATION.STAGE_TYPE_ID.eq(stage))
+            .orderBy(POLICY_EVALUATION.TIME.desc())
+            .limit(maxResultsToReturn)
+            .fetch(this::toEntity);
+      }
+      else {
+        return query.orderBy(POLICY_EVALUATION.TIME.desc())
+            .limit(maxResultsToReturn)
+            .fetch(this::toEntity);
+      }
+    }
   }
 
   public List<PolicyEvaluation> getByApplicationId(
@@ -438,19 +547,20 @@ public class PolicyEvaluationDAO
       final int page,
       final int pageSize)
   {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" +
-        " WHERE entity.applicationId = ?1 " +
-        " AND entity.isForObsoleteScan = false" +
-        " ORDER BY entity.time, entity.id";
     int offset = (page - 1) * pageSize;
-    jakarta.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
-    paginationQuery.setParameter(1, applicationId);
-    return paginationQuery.getResultList();
+    return tx.dsl()
+        .selectFrom(POLICY_EVALUATION)
+        .where(POLICY_EVALUATION.APPLICATION_ID.eq(applicationId))
+        .and(POLICY_EVALUATION.FOR_OBSOLETE_SCAN.eq(false))
+        .orderBy(POLICY_EVALUATION.TIME, POLICY_EVALUATION.POLICY_EVALUATION_ID)
+        .limit(pageSize)
+        .offset(offset)
+        .fetch(this::toEntity);
   }
 
   /**
-   * Fetches the latest policy evaluation for the given application, commit hash and stage, if any.
-   * It returns {@code null} if no matches are found, or if commit hash is blank/missing.
+   * Fetches the latest policy evaluation for the given application, commit hash and stage, if any. It returns
+   * {@code null} if no matches are found, or if commit hash is blank/missing.
    */
   public PolicyEvaluation getLastByApplicationIdCommitHashAndStageId(
       String applicationId,
@@ -460,12 +570,16 @@ public class PolicyEvaluationDAO
     if (StringUtils.isBlank(commitHash)) {
       return null;
     }
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity " + //
-        "WHERE entity.applicationId = ?1 " + //
-        "AND entity.commitHash = ?2 " + //
-        "AND entity.stageTypeId = ?3 " +
-        "ORDER BY entity.time DESC";
-    return createQuery(sQuery, applicationId, commitHash, stageTypeId).forceSingleResult().get();
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.APPLICATION_ID.eq(applicationId))
+          .and(POLICY_EVALUATION.COMMIT_HASH.eq(commitHash))
+          .and(POLICY_EVALUATION.STAGE_TYPE_ID.eq(stageTypeId))
+          .orderBy(POLICY_EVALUATION.TIME.desc())
+          .limit(1)
+          .fetchOne());
+    }
   }
 
   public PolicyEvaluation getLastByApplicationAndCommitHashAndTriggerType(
@@ -473,15 +587,29 @@ public class PolicyEvaluationDAO
       final String commitHash,
       final boolean externallyTriggered)
   {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
-        " WHERE entity.commitHash=?1" + //
-        " AND entity.applicationId=?2" + //
-        " AND entity.scanTriggerType ";
-    if (externallyTriggered) {
-      sQuery += "NOT ";
+    try (TransactionContext tx = createTransactionContext()) {
+      List<String> internalScanTypeStrings = ScanTriggerType.internalScanTypes.stream()
+          .map(ScanTriggerType::toString)
+          .toList();
+
+      var baseQuery = tx.dsl()
+          .selectFrom(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.COMMIT_HASH.eq(commitHash))
+          .and(POLICY_EVALUATION.APPLICATION_ID.eq(applicationId));
+
+      if (externallyTriggered) {
+        return toEntity(baseQuery.and(POLICY_EVALUATION.SCAN_TRIGGER_TYPE.notIn(internalScanTypeStrings))
+            .orderBy(POLICY_EVALUATION.TIME.desc())
+            .limit(1)
+            .fetchOne());
+      }
+      else {
+        return toEntity(baseQuery.and(POLICY_EVALUATION.SCAN_TRIGGER_TYPE.in(internalScanTypeStrings))
+            .orderBy(POLICY_EVALUATION.TIME.desc())
+            .limit(1)
+            .fetchOne());
+      }
     }
-    sQuery += "IN (?3) ORDER BY entity.time DESC";
-    return createQuery(sQuery, commitHash, applicationId, ScanTriggerType.internalScanTypes).forceSingleResult().get();
   }
 
   public int getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(
@@ -492,16 +620,18 @@ public class PolicyEvaluationDAO
     // also true, so in most cases entity.isForObsoleteScan = false should be redundant
     // This only enforced in the dao. it's unknown if this has always been enforced, so I am leaving
     // the extra check out of caution
-    String sQuery = "SELECT COUNT(DISTINCT entity.applicationId)" +
-        " FROM PolicyEvaluation entity" +
-        " WHERE entity.stageTypeId = ?1" +
-        " AND entity.isReevaluation = false" +
-        " AND entity.isForMonitoring = false" +
-        " AND entity.isForObsoleteScan = false" +
-        " AND entity.time >= ?2" +
-        " AND entity.time <= ?3";
-    return getSingle(Number.class, sQuery, Stage.ID_BUILD, lowerBound, upperBoundDate)
-        .intValue();
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(DSL.countDistinct(POLICY_EVALUATION.APPLICATION_ID))
+          .from(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.STAGE_TYPE_ID.eq(Stage.ID_BUILD))
+          .and(POLICY_EVALUATION.REEVALUATION.eq(false))
+          .and(POLICY_EVALUATION.FOR_MONITORING.eq(false))
+          .and(POLICY_EVALUATION.FOR_OBSOLETE_SCAN.eq(false))
+          .and(POLICY_EVALUATION.TIME.ge(lowerBound))
+          .and(POLICY_EVALUATION.TIME.le(upperBoundDate))
+          .fetchOne(0, Integer.class);
+    }
   }
 
   // The point of a cut off here is so that one off anomalous scans such as local iq-cli runs are filtered out over
@@ -511,14 +641,28 @@ public class PolicyEvaluationDAO
     // also true, so in most cases entity.isForObsoleteScan = false should be redundant
     // This only enforced in the dao. it's unknown if this has always been enforced, so I am leaving
     // the extra check out of caution
-    String sQuery = "SELECT COUNT(entity.applicationId)" +
-        " FROM PolicyEvaluation entity" +
-        " WHERE entity.applicationId = ?1" +
-        " AND entity.stageTypeId = ?2" +
-        " AND entity.isReevaluation = false" +
-        " AND entity.isForMonitoring = false" +
-        " AND entity.isForObsoleteScan = false" +
-        " AND entity.time >= ?3";
-    return getSingle(Long.class, sQuery, applicationId, Stage.ID_BUILD, cutOffDate) > 0;
+    try (TransactionContext tx = createTransactionContext()) {
+      int count = tx.dsl()
+          .selectCount()
+          .from(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.APPLICATION_ID.eq(applicationId))
+          .and(POLICY_EVALUATION.STAGE_TYPE_ID.eq(Stage.ID_BUILD))
+          .and(POLICY_EVALUATION.REEVALUATION.eq(false))
+          .and(POLICY_EVALUATION.FOR_MONITORING.eq(false))
+          .and(POLICY_EVALUATION.FOR_OBSOLETE_SCAN.eq(false))
+          .and(POLICY_EVALUATION.TIME.ge(cutOffDate))
+          .fetchOne(0, Integer.class);
+      return count > 0;
+    }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return POLICY_EVALUATION;
+  }
+
+  @Override
+  public Class<PolicyEvaluation> getEntityClass() {
+    return PolicyEvaluation.class;
   }
 }

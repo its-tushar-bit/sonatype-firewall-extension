@@ -5,17 +5,12 @@
  */
 package com.sonatype.insight.brain.db;
 
-import java.util.Map;
-
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.cache.MultiTenantQueryCache;
 import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.db.DatabaseConfig;
 
-import org.apache.openjpa.datacache.DataCacheMode;
-import org.apache.openjpa.lib.jdbc.JDBCListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,26 +44,6 @@ public class MultiTenantOperationalDataStore
   }
 
   @Override
-  protected void addAdditionalProps(final Map<String, Object> props) {
-    // Add JDBC listeners for performance test framework
-    if (SqlCallCounterMetrics.getInstance().getJDBCListener() != null) {
-      props.put("openjpa.jdbc.JDBCListeners",
-          new JDBCListener[]{SqlCallCounterMetrics.getInstance().getJDBCListener()});
-      log.info("Enabled JPA JDBC listener for performance testing.");
-    }
-
-    props.put("openjpa.DataCache", "true(CacheSize=8192, SoftReferenceSize=0, EnableStatistics=true)");
-    props.put("openjpa.QueryCache", MultiTenantQueryCache.class.getName() + "(CacheSize=1000, SoftReferenceSize=0)");
-    props.put("jakarta.persistence.sharedCache.mode", DataCacheMode.ENABLE_SELECTIVE.name());
-    props.put("openjpa.RemoteCommitProvider", "sjvm");
-  }
-
-  @Override
-  protected String getFactoryName() {
-    return "InsightBrainODS";
-  }
-
-  @Override
   public DataSource getDataSourceWithoutInit() {
     return dataSource;
   }
@@ -94,10 +69,7 @@ public class MultiTenantOperationalDataStore
   public void close() throws Exception {
     log.info("Closing {} data store and releasing resources for all tenants.", getID());
 
-    // First close all tenant EntityManagerFactories via parent
-    super.close();
-
-    // Then close the locks data source if it exists
+    // Close the locks data source if it exists
     if (locksDataSource != null) {
       try {
         if (locksDataSource instanceof AutoCloseable) {
@@ -110,6 +82,6 @@ public class MultiTenantOperationalDataStore
       }
     }
 
-    log.info("Successfully closed {} data store for all tenants.", getID());
+    super.close();
   }
 }

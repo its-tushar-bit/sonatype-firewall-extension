@@ -279,14 +279,12 @@ public class TestDAOFactory
 
   @Override
   public AutomaticApplicationsConfigurationDAO createAutomaticApplicationsConfigurationDAO() {
-    SystemConfigurationPropertyDAO configPropertyDAO = createSystemConfigurationPropertyDAO();
-    return new AutomaticApplicationsConfigurationDAO(configPropertyDAO);
+    return new AutomaticApplicationsConfigurationDAO(createSystemConfigurationPropertyDAO());
   }
 
   @Override
   public AutomaticSourceControlConfigurationDAO createAutomaticSourceControlConfigurationDAO() {
-    SystemConfigurationPropertyDAO configPropertyDAO = createSystemConfigurationPropertyDAO();
-    return new AutomaticSourceControlConfigurationDAO(configPropertyDAO);
+    return new AutomaticSourceControlConfigurationDAO(createSystemConfigurationPropertyDAO());
   }
 
   @Override

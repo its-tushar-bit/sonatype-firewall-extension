@@ -62,6 +62,8 @@ public class ApiComponentLabelServiceV2AuthzTest
   public void testDeleteComponentLabel_Application_Authorized() {
     grantWritePermission(app.getId());
     Label label = tempEntity.newLabel(org.getId());
+    // Must create a ComponentLabel before we can delete it
+    tempEntity.newComponentLabel(app.getId(), label.getId(), "bababababa");
     apiComponentLabelService.deleteComponentLabel(OwnerType.APPLICATION, app.getId(), "bababababa",
         label.getLabel());
   }
@@ -81,6 +83,8 @@ public class ApiComponentLabelServiceV2AuthzTest
   public void testDeleteComponentLabel_Organization_Authorized() {
     grantWritePermission(org.getId());
     Label label = tempEntity.newLabel(org.getId());
+    // Must create a ComponentLabel before we can delete it
+    tempEntity.newComponentLabel(org.getId(), label.getId(), "bababababa");
     apiComponentLabelService.deleteComponentLabel(OwnerType.ORGANIZATION, org.getId(), "bababababa", label.getLabel());
   }
 

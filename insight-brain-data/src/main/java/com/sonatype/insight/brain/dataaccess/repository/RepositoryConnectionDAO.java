@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.List;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -16,6 +17,10 @@ import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.security.RotatableSecrets;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryConnection.REPOSITORY_CONNECTION;
 
 @Named
 @Singleton
@@ -28,6 +33,18 @@ public class RepositoryConnectionDAO
     super(operationalDataStore);
   }
 
+  @Override
+  public Table<?> getJooqTable() {
+    return REPOSITORY_CONNECTION;
+  }
+
+  @Override
+  public List<RepositoryConnection> getAll(TransactionContext tx) {
+    return tx.dsl()
+        .selectFrom(REPOSITORY_CONNECTION)
+        .fetch(this::toEntity);
+  }
+
   public List<RepositoryConnection> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);
@@ -35,9 +52,10 @@ public class RepositoryConnectionDAO
   }
 
   public List<RepositoryConnection> getByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT entity FROM RepositoryConnection entity" + //
-        " WHERE entity.ownerId=?1";
-    return getList(tx, sQuery, ownerId);
+    return tx.dsl()
+        .selectFrom(REPOSITORY_CONNECTION)
+        .where(REPOSITORY_CONNECTION.OWNER_ID.eq(ownerId))
+        .fetch(this::toEntity);
   }
 
   public List<RepositoryConnection> getByOwnerIdAndFormats(String ownerId, RepositoryFormat... formats) {
@@ -51,31 +69,64 @@ public class RepositoryConnectionDAO
       String ownerId,
       RepositoryFormat... formats)
   {
-    String sQuery = "SELECT entity FROM RepositoryConnection entity" + //
-        " WHERE entity.ownerId=?1 AND entity.format IN (?2)";
-    return getList(tx, sQuery, ownerId, formats);
+    String[] formatNames = java.util.Arrays.stream(formats)
+        .map(RepositoryFormat::name)
+        .toArray(String[]::new);
+    return tx.dsl()
+        .selectFrom(REPOSITORY_CONNECTION)
+        .where(REPOSITORY_CONNECTION.OWNER_ID.eq(ownerId))
+        .and(REPOSITORY_CONNECTION.FORMAT.in(formatNames))
+        .fetch(this::toEntity);
   }
 
   public RepositoryConnection getByOwnerIdAndBaseUrl(String ownerId, String baseUrl) {
-    String sQuery = "SELECT entity FROM RepositoryConnection entity" + //
-        " WHERE entity.ownerId=?1 AND entity.baseUrl=?2";
-    return get(sQuery, ownerId, baseUrl);
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(REPOSITORY_CONNECTION)
+          .where(REPOSITORY_CONNECTION.OWNER_ID.eq(ownerId))
+          .and(REPOSITORY_CONNECTION.BASE_URL.eq(baseUrl))
+          .fetchOne());
+    }
   }
 
   public RepositoryConnection getByOwnerIdAndFormat(String ownerId, RepositoryFormat format) {
-    String sQuery = "SELECT entity FROM RepositoryConnection entity" + //
-        " WHERE entity.ownerId=?1 AND entity.format=?2";
-    return get(sQuery, ownerId, format);
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(REPOSITORY_CONNECTION)
+          .where(REPOSITORY_CONNECTION.OWNER_ID.eq(ownerId))
+          .and(REPOSITORY_CONNECTION.FORMAT.eq(format.name()))
+          .fetchOne());
+    }
   }
 
   public RepositoryConnection getByIdAndOwnerId(String repositoryConnectionId, String ownerId) {
-    String sQuery = "SELECT entity FROM RepositoryConnection entity" + //
-        " WHERE entity.id=?1 AND entity.ownerId=?2";
-    return get(sQuery, repositoryConnectionId, ownerId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(REPOSITORY_CONNECTION)
+          .where(REPOSITORY_CONNECTION.REPOSITORY_CONNECTION_ID.eq(repositoryConnectionId))
+          .and(REPOSITORY_CONNECTION.OWNER_ID.eq(ownerId))
+          .fetchOne());
+    }
   }
 
   public void deleteAll() {
-    String sQuery = "DELETE FROM RepositoryConnection entity";
-    createQuery(sQuery).executeUpdate();
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl().deleteFrom(REPOSITORY_CONNECTION).execute();
+      tx.commit();
+    }
+  }
+
+  @Override
+  public void delete(TransactionContext tx, RepositoryConnection entity) {
+    tx.dsl()
+        .deleteFrom(REPOSITORY_CONNECTION)
+        .where(REPOSITORY_CONNECTION.REPOSITORY_CONNECTION_ID.eq(entity.getId()))
+        .execute();
+  }
+
+  @Override
+  public Class<RepositoryConnection> getEntityClass() {
+    return RepositoryConnection.class;
   }
 }

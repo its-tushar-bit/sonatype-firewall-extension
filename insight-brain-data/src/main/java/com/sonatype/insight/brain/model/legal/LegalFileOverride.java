@@ -110,4 +110,14 @@ public class LegalFileOverride
   public boolean isUserCreated() {
     return StringUtils.isBlank(originalContentHash);
   }
+
+  /**
+   * Sets the original content hash for DAO reconstitution from the database.
+   * This field is immutable during normal operation - use the constructor for business operations.
+   *
+   * @param originalContentHash the original content hash from the database
+   */
+  public void setOriginalContentHashForReconstitution(final String originalContentHash) {
+    this.originalContentHash = originalContentHash;
+  }
 }

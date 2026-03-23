@@ -5,19 +5,17 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.common.config.ConfigUtil;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.IdUtil;
 import com.sonatype.insight.brain.db.datastore.DataStore;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.jooq.DialectHelper;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -26,9 +24,9 @@ import com.sonatype.insight.model.HasStringId;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import jakarta.persistence.EntityManagerFactory;
-import org.apache.openjpa.persistence.OpenJPAEntityManagerFactorySPI;
-import org.apache.openjpa.persistence.OpenJPAPersistence;
+import org.jooq.Record;
+import org.jooq.ResultQuery;
+import org.jooq.Table;
 
 import static java.util.stream.Collectors.toList;
 
@@ -55,8 +53,6 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   static int MAX_ALLOWED_DB_RESULTS =
       ConfigUtil.getIntegerConfig("com.sonatype.insight.maxAllowedDbResults", DEFAULT_MAX_ALLOWED_DB_RESULTS);
 
-  private final Class<T> entityClass;
-
   /**
    * Constructor for DAOs that require the search index. These DAOs must override one of the methods:
    * <ul>
@@ -68,60 +64,93 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
    */
   protected AbstractSqlDAO(final SearchIndexManager searchIndexManager) {
     this.searchIndexManager = searchIndexManager;
-    entityClass = (Class<T>) getParameterizedSuperClass().getActualTypeArguments()[0];
   }
 
   /**
    * Constructor for DAOs that will <B>NOT</B> require the search index. The {@link #searchIndexManager} will be set to
-   * null. If the <T> entity for this DAO needs to be searchable then use the
-   * {@link #AbstractOperationalSqlDAO(OperationalDataStore, SearchIndexManager)} constructor.
+   * null. If the <T> entity for this DAO needs to be searchable then use the {@link AbstractOperationalSqlDAO}
+   * constructor that takes a SearchIndexManager.
    */
   protected AbstractSqlDAO() {
     this(null);
   }
 
-  @Override
-  protected List<T> getList(TransactionContext tx, String sQuery, Object... parameters) {
-    jakarta.persistence.Query query = this.createQuery(tx, sQuery, parameters);
-    query.setMaxResults(MAX_ALLOWED_DB_RESULTS);
-
-    return query.getResultList();
-  }
-
+  /**
+   * Gets a page of entities starting after the given ID using jOOQ.
+   * <p>
+   * This implementation uses the jOOQ table reference from {@link #getJooqTable()} to perform the select operation.
+   * </p>
+   *
+   * @param tx the transaction context
+   * @param lastProcessedId the ID to start after (exclusive)
+   * @param pageSize the maximum number of results to return
+   * @return list of entities
+   */
   public List<T> getPage(TransactionContext tx, String lastProcessedId, int pageSize) {
-    String sQuery = "SELECT entity FROM " + getEntityName()
-        + " entity WHERE entity.id > :lastProcessedId ORDER BY entity.id";
-    jakarta.persistence.Query query = tx.createQuery(sQuery);
-    query.setParameter("lastProcessedId", lastProcessedId);
-    query.setMaxResults(pageSize);
-    return query.getResultList();
+    Table<?> table = getJooqTable();
+    var idField = getIdField(table);
+    return tx.dsl()
+        .selectFrom(table)
+        .where(idField.gt(lastProcessedId))
+        .orderBy(idField)
+        .limit(pageSize)
+        .fetch(this::toEntity);
   }
 
-  private String newUUID() {
+  protected String newUUID() {
     return IdUtil.newUUID();
   }
 
-  @Override
-  public void insert(TransactionContext tx, T entity) {
+  /**
+   * Generates and sets a UUID for the entity if its ID is null or empty. Call this at the start of insert() methods in
+   * subclasses.
+   *
+   * @param entity the entity to generate an ID for
+   */
+  protected void generateIdIfNeeded(T entity) {
     String id = entity.getId();
     if (id == null || id.trim().isEmpty()) {
       entity.setId(newUUID());
     }
-    super.insert(tx, entity);
-
-    if (shouldAddSearchIndexChange(tx, entity)) {
-      insertSearchIndexChange(tx, newSearchIndexChangeForInsert(entity));
-    }
   }
 
   @Override
-  public void update(TransactionContext tx, T entity) {
-    super.update(tx, entity);
-    if (shouldAddSearchIndexChange(tx, entity)) {
-      insertSearchIndexChange(tx, newSearchIndexChangeForUpdate(entity));
-    }
+  public void insert(final TransactionContext tx, final T entity) {
+    generateIdIfNeeded(entity);
+    super.insert(tx, entity);
   }
 
+  /**
+   * Handle search index changes for entity deletion.
+   * <p>
+   * This method only handles search index changes - it does NOT perform the actual database delete. The actual delete
+   * is typically performed by {@link AbstractOperationalSqlDAO#delete(TransactionContext, HasStringId)}, which uses
+   * jOOQ and then calls this method.
+   * </p>
+   * <p>
+   * Subclasses that override delete() completely (without calling super) should handle search index changes themselves
+   * by calling {@link #shouldAddSearchIndexChange(TransactionContext, HasStringId)} and
+   * {@link #insertSearchIndexChange(TransactionContext, SearchIndexChange)} directly:
+   * </p>
+   *
+   * <pre>
+   * {@literal @}Override
+   * public void delete(TransactionContext tx, MyEntity entity) {
+   *   // Perform the actual delete using jOOQ
+   *   tx.dsl().deleteFrom(MY_TABLE)
+   *       .where(MY_TABLE.ID.eq(entity.getId()))
+   *       .execute();
+   *
+   *   // Handle search index changes
+   *   if (shouldAddSearchIndexChange(tx, entity)) {
+   *     insertSearchIndexChange(tx, newSearchIndexChangeForDelete(entity));
+   *   }
+   * }
+   * </pre>
+   *
+   * @param tx the transaction context
+   * @param entity the entity to delete
+   */
   @Override
   public void delete(TransactionContext tx, T entity) {
     super.delete(tx, entity);
@@ -130,24 +159,72 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     }
   }
 
-  public long getCount(TransactionContext tx) {
-    String sQuery = "SELECT COUNT(entity) FROM " + getEntityName() + " entity";
-    return getSingle(tx, Long.class, sQuery);
+  /**
+   * Get all entities of this type. Subclasses can override this method to provide custom ordering or filtering.
+   *
+   * @param tx the transaction context
+   * @return list of all entities
+   */
+  public List<T> getAll(TransactionContext tx) {
+    Table<?> table = getJooqTable();
+    return tx.dsl()
+        .selectFrom(table)
+        .fetch(this::toEntity);
   }
 
+  public List<T> getAll() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getAll(tx);
+    }
+  }
+
+  /**
+   * Gets the count of all entities of this type using jOOQ.
+   * <p>
+   * This implementation uses the jOOQ table reference from {@link #getJooqTable()} to perform the count operation.
+   * </p>
+   *
+   * @param tx the transaction context
+   * @return the count of entities
+   */
+  public long getCount(TransactionContext tx) {
+    Table<?> table = getJooqTable();
+    return tx.dsl()
+        .selectCount()
+        .from(table)
+        .fetchOne(0, Long.class);
+  }
+
+  /**
+   * Gets the count of all entities of this type in a new transaction using jOOQ.
+   *
+   * @return the count of entities
+   */
   public long getCount() {
-    String sQuery = "SELECT COUNT(entity) FROM " + getEntityName() + " entity";
-    return getSingle(Long.class, sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getCount(tx);
+    }
   }
 
   public String getEntityName() {
-    return entityClass.getSimpleName();
+    return getEntityClass().getSimpleName();
   }
 
   @Override
-  public abstract TransactionContext createTransactionContext();
+  public TransactionContext createTransactionContext() {
+    try {
+      DataStore dataStore = getDataStore();
+      return new TransactionContext(
+          dataStore.getDataSource(),
+          DialectHelper.detectDialect(dataStore),
+          dataStore.getDatabaseSchema());
+    }
+    catch (SQLException e) {
+      throw new RuntimeException("Failed to create transaction context", e);
+    }
+  }
 
-  private void insertSearchIndexChange(final TransactionContext tx, final SearchIndexChange searchIndexChange) {
+  protected void insertSearchIndexChange(final TransactionContext tx, final SearchIndexChange searchIndexChange) {
     if (searchIndexManager != null) {
       searchIndexManager.insert(tx, searchIndexChange);
     }
@@ -186,9 +263,9 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   }
 
   /**
-   * This method should be used for queries that use an "IN" clause.
-   * H2 and Postgres limit the number of elements in "IN" clauses. This method breaks the list of values into
-   * partitions, runs the given query on each partition and merges the results from all partitions.
+   * This method should be used for queries that use an "IN" clause. H2 and Postgres limit the number of elements in
+   * "IN" clauses. This method breaks the list of values into partitions, runs the given query on each partition and
+   * merges the results from all partitions.
    *
    * @param <E> The type of the values in the list to be used in the "IN" clause.
    * @param inClauseValues List of values to be used in the "IN" clause.
@@ -221,46 +298,26 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     }
   }
 
-  public static jakarta.persistence.Query createPaginationQuery(
-      TransactionContext tx,
-      String sQuery,
-      int offset,
-      int pageSize)
-  {
-    jakarta.persistence.Query query = tx.createQuery(sQuery);
-    query.setFirstResult(offset).setMaxResults(pageSize);
-    return query;
-  }
-
   /**
-   * Creates a native SQL query with pagination support.
-   * This method uses the provided SQL query string to create a native query using the given
-   * {@link TransactionContext}. It also applies pagination by setting the starting offset
-   * and the maximum number of results to return.
+   * Creates a native SQL query with pagination support using jOOQ DSL. This method uses the provided SQL query string
+   * to create a native query using the given {@link TransactionContext}. It also applies pagination by appending OFFSET
+   * and LIMIT clauses.
    *
    * @param tx the {@link TransactionContext} used to create the query. It must not be null.
    * @param sQuery the native SQL query string to execute. It must not be null or empty.
-   * @param offset the starting position of the first result (zero-based). For example,
-   *          to skip the first 10 results, set this to 10.
+   * @param offset the starting position of the first result (zero-based). For example, to skip the first 10 results,
+   *          set this to 10.
    * @param pageSize the maximum number of results to return. A positive integer specifies the page size.
-   * @return a {@link jakarta.persistence.Query} object configured with the specified SQL query,
-   *         offset, and page size.
+   * @return a {@link ResultQuery} object configured with the specified SQL query, offset, and page size.
    */
-  public static jakarta.persistence.Query createNativePaginationQuery(
+  public static ResultQuery<Record> createNativePaginationQuery(
       TransactionContext tx,
       String sQuery,
       int offset,
       int pageSize)
   {
-    jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
-    query.setFirstResult(offset).setMaxResults(pageSize);
-    return query;
-  }
-
-  @Override
-  public T getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM " + getEntityName() + " entity WHERE entity.id=?1";
-    return get(tx, sQuery, id);
+    String paginatedQuery = sQuery + " OFFSET ? LIMIT ?";
+    return tx.dsl().resultQuery(paginatedQuery, offset, pageSize);
   }
 
   public T getByIdNotNull(TransactionContext tx, String id) {
@@ -279,79 +336,6 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
 
   protected abstract DataStore getDataStore();
 
-  protected <C> List<C> getScalars(Class<C> type, String sQuery, Object... parameters) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getScalars(tx, type, sQuery, parameters);
-    }
-  }
-
-  protected <C> List<C> getScalars(TransactionContext tx, Class<C> type, String sQuery, Object... parameters) {
-    try (Stream<C> resultStream = getScalarsStream(tx, type, sQuery, parameters)) {
-      return resultStream.toList();
-    }
-  }
-
-  protected List<?> getUntypedResult(String sQuery, Object... parameters) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getUntypedResult(tx, sQuery, parameters);
-    }
-  }
-
-  protected List<?> getUntypedResult(TransactionContext tx, String sQuery, Object... parameters) {
-    try (Stream<?> resultStream = getUntypedStream(tx, sQuery, parameters)) {
-      return resultStream.toList();
-    }
-  }
-
-  /**
-   * Note: This stream should be closed after use
-   */
-  protected <C> Stream<C> getScalarsStream(TransactionContext tx, Class<C> type, String sQuery, Object... parameters) {
-    Stream<?> resultStream = createQuery(tx, sQuery, parameters).getResultStream();
-    return resultStream.map(type::cast);
-  }
-
-  protected <C> List<C> getScalarsNative(Class<C> type, String sQuery, Object... parameters) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getScalarsNative(tx, type, sQuery, parameters);
-    }
-  }
-
-  protected <C> List<C> getScalarsNative(TransactionContext tx, Class<C> type, String sQuery, Object... parameters) {
-    try (Stream<C> resultStream = getScalarsStreamNative(tx, type, sQuery, parameters)) {
-      return resultStream.toList();
-    }
-  }
-
-  /**
-   * Note: This stream should be closed after use
-   */
-  protected Stream<?> getUntypedStream(TransactionContext tx, String sQuery, Object... parameters) {
-    return createQuery(tx, sQuery, parameters).getResultStream();
-  }
-
-  /**
-   * Note: This stream should be closed after use
-   */
-  protected <C> Stream<C> getScalarsStreamNative(
-      TransactionContext tx,
-      Class<C> type,
-      String sQuery,
-      Object... parameters)
-  {
-    Stream<?> resultStream = createNativeQuery(tx, sQuery, parameters).getResultStream();
-    return resultStream.map(type::cast);
-  }
-
-  protected ParameterizedType getParameterizedSuperClass() {
-    Type genericSuperclass = getClass().getGenericSuperclass();
-    if (!(genericSuperclass instanceof ParameterizedType)) {
-      genericSuperclass = getClass().getSuperclass().getGenericSuperclass();
-    }
-
-    return (ParameterizedType) genericSuperclass;
-  }
-
   protected static <T> Integer getInteger(T value) {
     if (value instanceof Short) {
       return Integer.valueOf((Short) value);
@@ -364,22 +348,5 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     }
 
     return null;
-  }
-
-  public void removeEntityFromCache(T entity) {
-    if (entity != null) {
-      removeEntityFromCacheByPrimaryKey(entity.getId());
-    }
-  }
-
-  public void removeEntityFromCacheByPrimaryKey(Object primaryKey) {
-    getDataStore().getJPAEntityManagerFactory().getCache().evict(entityClass, primaryKey);
-  }
-
-  public void clearQueryCache() {
-    EntityManagerFactory entityManagerFactory = getDataStore().getJPAEntityManagerFactory();
-    OpenJPAEntityManagerFactorySPI openJPAEntityManagerFactorySPI =
-        (OpenJPAEntityManagerFactorySPI) OpenJPAPersistence.cast(entityManagerFactory);
-    openJPAEntityManagerFactorySPI.getQueryResultCache().evictAll(entityClass);
   }
 }

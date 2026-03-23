@@ -32,6 +32,9 @@ public class SastScan
   @Column(name = "created_at")
   private Date createdAt;
 
+  public SastScan() {
+  }
+
   public SastScan(final String applicationId) {
     this.applicationId = applicationId;
     this.createdAt = new Date();

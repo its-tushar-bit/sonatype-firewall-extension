@@ -48,6 +48,8 @@ import static com.sonatype.insight.brain.api.v2.service.ApiReportViolationsDiffS
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.jooq.impl.DSL;
+
 public class ApiReportDataResourceV2Test
     extends AbstractResourceTest
 {
@@ -176,8 +178,15 @@ public class ApiReportDataResourceV2Test
     policyViolation.setFixTime(DateUtils.addDays(policyEvaluation.getTime(), 3));
     PolicyViolationDAO policyViolationDAO = getCLMServer().getInstance(PolicyViolationDAO.class);
     policyViolationDAO.update(policyViolation);
-    String sQuery = "UPDATE PolicyViolation entity SET entity.id = ?2 WHERE entity.id = ?1";
-    policyViolationDAO.createQuery(sQuery, policyViolation.getId(), "1a2b754bd39345c0a2a3af85f04d68da").executeUpdate();
+    try (com.sonatype.insight.dataaccess.TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .update(DSL.table("policy_violation"))
+          .set(DSL.field("policy_violation_id"), "1a2b754bd39345c0a2a3af85f04d68da")
+          .where(DSL.field("policy_violation_id").eq(policyViolation.getId()))
+          .execute();
+      tx.commit();
+    }
 
     // If we don't include db data the times should not be included
     HttpResponse response = restRequest()
@@ -569,8 +578,15 @@ public class ApiReportDataResourceV2Test
     policyViolation.setFixTime(DateUtils.addDays(policyEvaluation.getTime(), 3));
     PolicyViolationDAO policyViolationDAO = getCLMServer().getInstance(PolicyViolationDAO.class);
     policyViolationDAO.update(policyViolation);
-    String sQuery = "UPDATE PolicyViolation entity SET entity.id = ?2 WHERE entity.id = ?1";
-    policyViolationDAO.createQuery(sQuery, policyViolation.getId(), "appeared_1").executeUpdate();
+    try (com.sonatype.insight.dataaccess.TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .update(DSL.table("policy_violation"))
+          .set(DSL.field("policy_violation_id"), "appeared_1")
+          .where(DSL.field("policy_violation_id").eq(policyViolation.getId()))
+          .execute();
+      tx.commit();
+    }
 
     // If we don't include db data the times should not be included
     HttpResponse response = restRequest()

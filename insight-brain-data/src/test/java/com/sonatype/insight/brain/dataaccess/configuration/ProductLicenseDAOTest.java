@@ -6,8 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.configuration;
 
 import java.util.prefs.Preferences;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.PersistenceException;
+import org.jooq.exception.IntegrityConstraintViolationException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.configuration.ProductLicense;
@@ -57,16 +56,14 @@ public class ProductLicenseDAOTest
   public void testInsert_EnforceSingleton() {
     dao.insert(createProductLicense());
 
-    assertThatExceptionOfType(PersistenceException.class)
-        .isThrownBy(() -> dao.insert(createProductLicense()))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class)
+        .isThrownBy(() -> dao.insert(createProductLicense()));
 
     ProductLicense productLicense = createProductLicense();
     productLicense.setId("not-" + ProductLicenseDAO.SINGLETON_ENTITY_ID);
 
-    assertThatExceptionOfType(PersistenceException.class)
-        .isThrownBy(() -> dao.insert(productLicense))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class)
+        .isThrownBy(() -> dao.insert(productLicense));
   }
 
   @Test

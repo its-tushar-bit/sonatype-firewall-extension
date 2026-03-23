@@ -51,7 +51,6 @@ import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import io.dropwizard.servlets.tasks.Task;
-import jakarta.persistence.OptimisticLockException;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -208,7 +207,7 @@ public class ReportPurger
           purged += purgeReports(application, contextId, trashBucket);
           break;
         }
-        catch (OptimisticLockException e) {
+        catch (org.jooq.exception.DataAccessException e) {
           // This exception occurs usually when the embedded database is under too much load from concurrent queries.
           // To avoid having to start over the entire purging task, we retry to get this purging run completed.
           if (retry >= MAX_RETRIES) {

@@ -33,6 +33,9 @@ public class CpeMatchingConfiguration
   @Column(name = "allow_override")
   private boolean allowOverride;
 
+  public CpeMatchingConfiguration() {
+  }
+
   public CpeMatchingConfiguration(final String ownerId) {
     this.ownerId = ownerId;
   }

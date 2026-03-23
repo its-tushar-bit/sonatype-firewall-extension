@@ -20,6 +20,10 @@ import com.sonatype.insight.brain.model.legal.SourceLinkOverride;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentSourceLink.COMPONENT_SOURCE_LINK;
+
 /**
  * @since 1.133
  */
@@ -44,12 +48,13 @@ public class ComponentSourceLinkDAO
       String ownerId,
       ComponentIdentifier componentIdentifier)
   {
-    String sQuery = "SELECT entity FROM ComponentSourceLink entity" + //
-        " WHERE entity.ownerId=?1" + //
-        " AND entity.componentIdFormat=?2" + //
-        " AND entity.componentIdCoordinatesJson=?3";
-    return get(tx, sQuery, ownerId, componentIdentifier.getFormat(),
-        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
+    return super.toEntity(tx.dsl()
+        .selectFrom(COMPONENT_SOURCE_LINK)
+        .where(COMPONENT_SOURCE_LINK.OWNER_ID.eq(ownerId))
+        .and(COMPONENT_SOURCE_LINK.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+        .and(COMPONENT_SOURCE_LINK.COMPONENT_ID_COORDINATES_JSON.eq(
+            ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())))
+        .fetchOne());
   }
 
   public ComponentSourceLink getByOwnerIdAndComponentIdentifier(
@@ -95,6 +100,19 @@ public class ComponentSourceLinkDAO
     {
       sourceLinkOverrideDAO.delete(tx, sourceLinkOverride);
     }
-    super.delete(tx, componentSourceLink);
+    tx.dsl()
+        .deleteFrom(COMPONENT_SOURCE_LINK)
+        .where(COMPONENT_SOURCE_LINK.COMPONENT_SOURCE_LINK_ID.eq(componentSourceLink.getId()))
+        .execute();
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return COMPONENT_SOURCE_LINK;
+  }
+
+  @Override
+  public Class<ComponentSourceLink> getEntityClass() {
+    return ComponentSourceLink.class;
   }
 }

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.function.Function;
+
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -12,6 +14,18 @@ import com.sonatype.insight.model.HasStringId;
 
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAsGlobal;
 
+/**
+ * Base class for DAOs that support multi-tenant fallback behavior.
+ * <p>
+ * In MTIQ (multi-tenant) deployments, this class first attempts to retrieve an entity from the current tenant's schema.
+ * If the entity does not exist in the per-tenant schema, it falls back to the global tenant to provide default values.
+ * </p>
+ * <p>
+ * In single-tenant (IQ) deployments, this class behaves the same as {@link AbstractOperationalSqlDAO}.
+ * </p>
+ *
+ * @param <T> the entity type
+ */
 public abstract class AbstractOperationalSqlWithFallbackDAO<T extends HasStringId>
     extends AbstractOperationalSqlDAO<T>
 {
@@ -21,35 +35,39 @@ public abstract class AbstractOperationalSqlWithFallbackDAO<T extends HasStringI
     super(operationalDataStore);
   }
 
-  @Override
-  protected T get(
-      TransactionContext tx,
-      String sQuery,
-      Object... parameters)
-  {
-    return getWithGlobalFallback(tx, sQuery, false, parameters);
+  /**
+   * MTIQ: First attempt to get the entity from the current tenant. If the entity does not exist in the
+   * per-tenant schema then fall back and get the entity from the global tenant. This allows us to provide
+   * defaults for all tenants.
+   * <p>
+   * IQ: Get the entity as normal.
+   *
+   * @param tx the transaction context
+   * @param fetcher function that fetches the entity from the database using jOOQ
+   * @return the entity from the current tenant, or from the global tenant if not found
+   */
+  protected T getWithGlobalFallback(TransactionContext tx, Function<TransactionContext, T> fetcher) {
+    return getWithGlobalFallback(tx, fetcher, false);
   }
 
   /**
-   * MTIQ: First attempt to get the configuration from the current tenant. If the configuration does not exist in the
-   * per-tenant schema then fall back and get the config from the global tenant. This allows us to provide configuration
+   * MTIQ: First attempt to get the entity from the current tenant. If the entity does not exist in the
+   * per-tenant schema then fall back and get the entity from the global tenant. This allows us to provide
    * defaults for all tenants.
    * <p>
-   * IQ: Get the configuration as normal.
+   * IQ: Get the entity as normal.
    *
-   * @param tx
-   * @param sQuery
-   * @param parameters
-   * @param fetchForUpdate - If fetching config to then update the config, should NOT fall back and use global
-   * @return
+   * @param tx the transaction context
+   * @param fetcher function that fetches the entity from the database using jOOQ
+   * @param fetchForUpdate if true, skip fallback to global (use when fetching to update)
+   * @return the entity from the current tenant, or from the global tenant if not found
    */
   protected T getWithGlobalFallback(
       TransactionContext tx,
-      String sQuery,
-      boolean fetchForUpdate,
-      Object... parameters)
+      Function<TransactionContext, T> fetcher,
+      boolean fetchForUpdate)
   {
-    T result = super.get(tx, sQuery, null, parameters);
+    T result = fetcher.apply(tx);
 
     if (fetchForUpdate || result != null || tenantUtil.isSingleTenant() || tenantUtil.isGlobalTenant()) {
       return result;
@@ -57,7 +75,7 @@ public abstract class AbstractOperationalSqlWithFallbackDAO<T extends HasStringI
     else {
       return runAsGlobal(() -> {
         try (TransactionContext globalTx = createTransactionContext()) {
-          return super.get(globalTx, sQuery, null, parameters);
+          return fetcher.apply(globalTx);
         }
       });
     }

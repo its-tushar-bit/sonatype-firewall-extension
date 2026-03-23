@@ -16,8 +16,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.RollbackException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
@@ -57,10 +55,13 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.LocalDate;
+import org.jooq.exception.DataAccessException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.postgresql.util.PSQLException;
+import org.postgresql.util.PSQLState;
 
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.ORG_ID;
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.discovered;
@@ -2330,7 +2331,10 @@ public class SuccessMetricsReportDataServiceTest
       }
     });
 
-    doThrow(new RollbackException(new EntityExistsException())).when(mockDAO).insert(any());
+    // Simulate a unique constraint violation (SQL state 23505 = unique_violation)
+    PSQLException psqlEx = new PSQLException(
+        "duplicate key value violates unique constraint", PSQLState.UNIQUE_VIOLATION);
+    doThrow(new DataAccessException("insert failed", psqlEx)).when(mockDAO).insert(any());
 
     SuccessMetricsReportDataService service = new SuccessMetricsReportDataService(lookup(ApplicationService.class),
         lookup(ApplicationComponentDAO.class), lookup(StageTypeService.class),

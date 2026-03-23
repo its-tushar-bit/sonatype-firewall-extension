@@ -5,14 +5,17 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.dm.tables.FirewallIgnorePatterns.FIREWALL_IGNORE_PATTERNS;
 
 @Named
 @Singleton
@@ -32,7 +35,7 @@ public class FirewallIgnorePatternsDAO
 
   @Override
   public void insert(TransactionContext tx, FirewallIgnorePatterns firewallIgnorePatterns) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException("insert() is not supported for singleton entity FirewallIgnorePatterns");
   }
 
   @Override
@@ -43,6 +46,16 @@ public class FirewallIgnorePatternsDAO
 
   @Override
   public void delete(TransactionContext tx, FirewallIgnorePatterns firewallIgnorePatterns) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException("delete() is not supported for singleton entity FirewallIgnorePatterns");
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return FIREWALL_IGNORE_PATTERNS;
+  }
+
+  @Override
+  public Class<FirewallIgnorePatterns> getEntityClass() {
+    return FirewallIgnorePatterns.class;
   }
 }

@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.H2DatabaseEngine;
 
-import jakarta.persistence.EntityManagerFactory;
 import org.apache.commons.lang3.NotImplementedException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -306,11 +305,6 @@ public class LegacyDataStoreMigratorTest
     @Override
     public DatabaseConfig getDatabaseConfig() {
       return databaseConfig;
-    }
-
-    @Override
-    public EntityManagerFactory getJPAEntityManagerFactory() {
-      throw new NotImplementedException();
     }
 
     @Override

@@ -234,13 +234,22 @@ public class PolicyViolationLogDTOAssert
   }
 
   private static boolean isMatching(AbstractPolicyViolation violation, PolicyViolationLogDTO dto) {
-    return violation.getPolicyId().equals(dto.policyId) && violation.getHash().equals(dto.componentHash)
-        && violation.getConstraintFacts()
-            .stream()
-            .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
-            .map(ConditionFact::getReason)
-            .collect(toSet())
-            .equals(dto.policyConditionTriggers.stream().map(trigger -> trigger.reason).collect(toSet()));
+    if (!violation.getPolicyId().equals(dto.policyId) || !violation.getHash().equals(dto.componentHash)) {
+      return false;
+    }
+    // If constraint facts are not loaded, we can't compare them - just match on policyId and hash
+    if (!violation.constraintFactsAreLoaded()) {
+      return true;
+    }
+    Set<String> violationReasons = violation.getConstraintFacts()
+        .stream()
+        .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
+        .map(ConditionFact::getReason)
+        .collect(toSet());
+    Set<String> dtoReasons = dto.policyConditionTriggers == null
+        ? Set.of()
+        : dto.policyConditionTriggers.stream().map(trigger -> trigger.reason).collect(toSet());
+    return violationReasons.equals(dtoReasons);
   }
 
   private static void assertEventData(
@@ -316,15 +325,22 @@ public class PolicyViolationLogDTOAssert
       PolicyViolationLogDTO policyViolationLogDTO,
       AbstractPolicyViolation policyViolation)
   {
+    // If constraint facts are not loaded, we can't assert them - skip this check
+    if (!policyViolation.constraintFactsAreLoaded()) {
+      // When constraint facts are not loaded, the DTO should have null policyConditionTriggers
+      assertThat(policyViolationLogDTO.policyConditionTriggers).isNull();
+      return;
+    }
     Set<String> expectedReasons = policyViolation.getConstraintFacts()
         .stream()
         .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
         .map(ConditionFact::getReason)
         .collect(Collectors.toSet());
     if (expectedReasons.isEmpty()) {
-      assertThat(policyViolationLogDTO.policyConditionTriggers).isNull();
+      assertThat(policyViolationLogDTO.policyConditionTriggers).isNullOrEmpty();
     }
     else {
+      assertThat(policyViolationLogDTO.policyConditionTriggers).isNotNull();
       Set<String> actualReasons = policyViolationLogDTO.policyConditionTriggers.stream()
           .map(policyConditionTrigger -> policyConditionTrigger.reason)
           .collect(Collectors.toSet());

@@ -13,9 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -25,8 +22,14 @@ import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.RolePermission.ROLE_PERMISSION;
 
 /**
  * @since 1.7
@@ -76,8 +79,11 @@ public class RolePermissionDAO
   }
 
   public List<RolePermission> getByRoleId(TransactionContext tx, String roleId) {
-    String sQuery = "SELECT entity FROM RolePermission entity WHERE entity.roleId=?1";
-    return getList(tx, sQuery, roleId);
+    return tx.dsl()
+        .selectFrom(ROLE_PERMISSION)
+        .where(ROLE_PERMISSION.ROLE_ID.eq(roleId))
+        .fetch()
+        .map(this::toEntity);
   }
 
   @Override
@@ -120,8 +126,10 @@ public class RolePermissionDAO
       for (Permission perm : Permission.values()) {
         map.put(perm, new HashSet<>());
       }
-      for (RolePermission rolePerm : getList("SELECT entity FROM RolePermission entity")) {
-        map.get(rolePerm.getPermission()).add(rolePerm.getRoleId());
+      try (TransactionContext tx = createTransactionContext()) {
+        for (RolePermission rolePerm : tx.dsl().selectFrom(ROLE_PERMISSION).fetch().map(this::toEntity)) {
+          map.get(rolePerm.getPermission()).add(rolePerm.getRoleId());
+        }
       }
       for (Map.Entry<Permission, Set<String>> entry : map.entrySet()) {
         entry.setValue(Collections.unmodifiableSet(entry.getValue()));
@@ -129,5 +137,15 @@ public class RolePermissionDAO
       roleIdsByPermission.set(map);
     }
     return map.get(permission);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return ROLE_PERMISSION;
+  }
+
+  @Override
+  public Class<RolePermission> getEntityClass() {
+    return RolePermission.class;
   }
 }

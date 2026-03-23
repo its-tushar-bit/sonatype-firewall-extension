@@ -8,9 +8,12 @@ package com.sonatype.insight.brain.sbom.ingestion;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
@@ -64,6 +67,22 @@ public class SbomScanEvaluator
       ScanTriggerType scanTriggerType,
       String clientUserAgent)
   {
+    return evaluateBinary(null, sbomMetadata, thirdPartyFile, scanTriggerType, clientUserAgent);
+  }
+
+  /**
+   * Evaluate a binary within an existing transaction context.
+   * Use this overload when you already have an active transaction to avoid lock contention issues.
+   *
+   * @param tx optional transaction context to use for the status update; if null, a new transaction will be created
+   */
+  public ApiThirdPartyScanTicketDTO evaluateBinary(
+      @Nullable TransactionContext tx,
+      ThirdPartySbomMetadata sbomMetadata,
+      ThirdPartyFile thirdPartyFile,
+      ScanTriggerType scanTriggerType,
+      String clientUserAgent)
+  {
     var applicationId = sbomMetadata.getApplicationId();
     Application application = applicationDAO.getById(applicationId);
     SbomEntity tmpFileToScan =
@@ -75,7 +94,7 @@ public class SbomScanEvaluator
 
     // Scan processing would do this automatically for an actual SBOM, but for a binary we need to do it manually here
     thirdPartyPersistenceService.associateWithScan(thirdPartyFile, scanTicketDTO.requestId);
-    setSbomMetadataStatusToPending(sbomMetadata);
+    setSbomMetadataStatusToPending(tx, sbomMetadata);
 
     ClientScanType clientScanType = scanResult.getClientScanType();
 
@@ -99,6 +118,21 @@ public class SbomScanEvaluator
       ScanTriggerType scanTriggerType,
       String clientUserAgent)
   {
+    return evaluateSbom(null, sbomMetadata, scanTriggerType, clientUserAgent);
+  }
+
+  /**
+   * Evaluate an SBOM within an existing transaction context.
+   * Use this overload when you already have an active transaction to avoid lock contention issues.
+   *
+   * @param tx optional transaction context to use for the status update; if null, a new transaction will be created
+   */
+  public ApiThirdPartyScanTicketDTO evaluateSbom(
+      @Nullable TransactionContext tx,
+      ThirdPartySbomMetadata sbomMetadata,
+      ScanTriggerType scanTriggerType,
+      String clientUserAgent)
+  {
     var applicationId = sbomMetadata.getApplicationId();
     Application application = applicationDAO.getById(applicationId);
     SbomFormat sbomFormat = SbomFormat.forString(sbomMetadata.getSpecFormat());
@@ -118,7 +152,7 @@ public class SbomScanEvaluator
       throw new UncheckedIOException(e);
     }
 
-    setSbomMetadataStatusToPending(sbomMetadata);
+    setSbomMetadataStatusToPending(tx, sbomMetadata);
 
     policyEvaluateService.evaluateWithPolling(
         importTicket.requestId,
@@ -138,9 +172,14 @@ public class SbomScanEvaluator
     return importTicket;
   }
 
-  private void setSbomMetadataStatusToPending(ThirdPartySbomMetadata sbomMetadata) {
+  private void setSbomMetadataStatusToPending(@Nullable TransactionContext tx, ThirdPartySbomMetadata sbomMetadata) {
     try {
-      thirdPartyPersistenceService.setSbomMetadataStatusToPending(sbomMetadata);
+      if (tx != null) {
+        thirdPartyPersistenceService.setSbomMetadataStatusToPending(tx, sbomMetadata);
+      }
+      else {
+        thirdPartyPersistenceService.setSbomMetadataStatusToPending(sbomMetadata);
+      }
     }
     catch (IllegalStateException e) {
       // Existing status is not UPLOADED

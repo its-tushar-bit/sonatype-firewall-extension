@@ -746,17 +746,11 @@ public class ApiConfigurationServiceTest
         .applyConfigurationToClients(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
     JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
     when(mockJobExecutionContext.getMergedJobDataMap()).thenReturn(jobDataMap);
-    spySystemConfigurationPropertyDAO.set(SystemConfigurationProperty.BASE_URL, "someBaseUrl");
-    SystemConfigurationProperty systemConfigurationProperty =
-        spySystemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.BASE_URL);
 
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
       spy.execute(mockJobExecutionContext);
     }
 
-    verify(spySystemConfigurationPropertyDAO).clearQueryCache();
-    verify(spySystemConfigurationPropertyDAO).removeEntityFromCacheByPrimaryKey(systemConfigurationProperty.getId());
-    verify(spySystemConfigurationPropertyDAO).removeEntityFromCache(null);
     verify(spy).applyConfigurationToClients(SystemConfigurationProperty.BASE_URL,
         SystemConfigurationProperty.FORCE_BASE_URL);
   }

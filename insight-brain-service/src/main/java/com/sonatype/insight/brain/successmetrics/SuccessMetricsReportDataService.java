@@ -56,8 +56,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.RollbackException;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.YearMonth;
@@ -68,6 +66,8 @@ import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICEN
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
+
+import static com.sonatype.insight.brain.db.jooq.DialectHelper.POSTGRES_UNIQUE_CONSTRAINT_VIOLATION;
 
 /**
  * @since 1.39
@@ -152,9 +152,11 @@ public class SuccessMetricsReportDataService
       try {
         successMetricsReportDataDAO.insert(reportData);
       }
-      catch (RollbackException e) {
-        if (e.getCause() instanceof EntityExistsException) {
-          // race condition, another thread just created it
+      catch (org.jooq.exception.DataAccessException e) {
+        if (e.getCause() instanceof org.postgresql.util.PSQLException psqlEx
+            && POSTGRES_UNIQUE_CONSTRAINT_VIOLATION.equals(psqlEx.getSQLState()))
+        {
+          // race condition, another thread just created it (unique constraint violation)
           reportData = successMetricsReportDataDAO.getById(successMetricsReportId);
         }
         else {

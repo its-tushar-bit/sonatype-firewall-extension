@@ -25,6 +25,9 @@ public class OrganizationAncestor
   @Column(name = "organization_id")
   private String organizationId;
 
+  public OrganizationAncestor() {
+  }
+
   public OrganizationAncestor(String organizationId, String ancestorId, int ancestorDistance) {
     super(ancestorId, ancestorDistance);
     this.organizationId = organizationId;

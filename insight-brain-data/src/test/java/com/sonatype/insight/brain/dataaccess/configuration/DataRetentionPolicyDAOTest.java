@@ -7,8 +7,7 @@ package com.sonatype.insight.brain.dataaccess.configuration;
 
 import java.util.Comparator;
 import java.util.Map;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.PersistenceException;
+import org.jooq.exception.IntegrityConstraintViolationException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -71,9 +70,8 @@ public class DataRetentionPolicyDAOTest
   @Test
   public void testUniquenessConstraint() {
     dao.insert(new DataRetentionPolicy(organization.getId(), "contextId", true, 1, null));
-    assertThatExceptionOfType(PersistenceException.class)
-        .isThrownBy(() -> dao.insert(new DataRetentionPolicy(organization.getId(), "contextId")))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class)
+        .isThrownBy(() -> dao.insert(new DataRetentionPolicy(organization.getId(), "contextId")));
   }
 
   @Test

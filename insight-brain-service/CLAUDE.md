@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 - **Sisu**: Classpath scanning for Guice
 - **dropwizard-guicey**: Guice/Dropwizard integration
 - **Apache Shiro**: Security framework for authentication/authorization
-- **OpenJPA**: ORM layer (though data access primarily via insight-brain-data)
+- **jOOQ**: Database access layer (via insight-brain-data)
 - **Quartz**: Job scheduling for background tasks
 
 ### Main Entry Point

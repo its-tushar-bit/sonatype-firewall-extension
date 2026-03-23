@@ -8,10 +8,6 @@ package com.sonatype.insight.brain.dataaccess.repository;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Provider;
-import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -20,12 +16,25 @@ import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryMigration;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Record;
+import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Repository.REPOSITORY;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryAncestor.REPOSITORY_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryManager.REPOSITORY_MANAGER;
 
 @Named
 @Singleton
@@ -61,6 +70,11 @@ public class RepositoryDAO
     this.repositoryMigrationDAO = repositoryMigrationDAO;
   }
 
+  @Override
+  public Table<?> getJooqTable() {
+    return REPOSITORY;
+  }
+
   public static String getErrMsgMissingRepo(final String repositoryManagerInstanceId, final String repositoryPublicId) {
     return "Cannot find a repository with repositoryManagerInstanceId=" + repositoryManagerInstanceId
         + " and publicId=" + repositoryPublicId + ".";
@@ -79,16 +93,21 @@ public class RepositoryDAO
   }
 
   public List<Repository> getByAncestorId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT repo FROM Repository repo, RepositoryAncestor ra " +
-        "WHERE ra.ancestorId = ?1 AND ra.id = repo.id AND ra.id <> ra.ancestorId";
-
-    return getList(tx, sQuery, ownerId);
+    return tx.dsl()
+        .select(REPOSITORY.fields())
+        .from(REPOSITORY)
+        .join(REPOSITORY_ANCESTOR)
+        .on(REPOSITORY_ANCESTOR.REPOSITORY_ID.eq(REPOSITORY.REPOSITORY_ID))
+        .where(REPOSITORY_ANCESTOR.ANCESTOR_ID.eq(ownerId))
+        .and(REPOSITORY_ANCESTOR.REPOSITORY_ID.ne(REPOSITORY_ANCESTOR.ANCESTOR_ID))
+        .fetch(r -> toEntity(r.into(REPOSITORY)));
   }
 
   public List<Repository> getByRepositoryManagerId(TransactionContext tx, String repositoryManagerId) {
-    String sQuery = "SELECT entity FROM Repository entity" + //
-        " WHERE entity.repositoryManagerId=?1";
-    return getList(tx, sQuery, repositoryManagerId);
+    return tx.dsl()
+        .selectFrom(REPOSITORY)
+        .where(REPOSITORY.REPOSITORY_MANAGER_ID.eq(repositoryManagerId))
+        .fetch(this::toEntity);
   }
 
   public Repository getByRepositoryManagerInstanceIdAndPublicIdNotNull(
@@ -103,10 +122,17 @@ public class RepositoryDAO
   }
 
   public Repository getByRepositoryManagerInstanceIdAndPublicId(String repositoryManagerInstanceId, String publicId) {
-    String sQuery = "SELECT repository FROM Repository repository, RepositoryManager repositoryManager" + //
-        " WHERE repository.repositoryManagerId=repositoryManager.id" + //
-        " AND repositoryManager.instanceId=?1 AND repository.publicId=?2";
-    return get(sQuery, repositoryManagerInstanceId, publicId);
+    try (TransactionContext tx = createTransactionContext()) {
+      Record record = tx.dsl()
+          .select(REPOSITORY.fields())
+          .from(REPOSITORY)
+          .join(REPOSITORY_MANAGER)
+          .on(REPOSITORY.REPOSITORY_MANAGER_ID.eq(REPOSITORY_MANAGER.REPOSITORY_MANAGER_ID))
+          .where(REPOSITORY_MANAGER.INSTANCE_ID.eq(repositoryManagerInstanceId))
+          .and(REPOSITORY.PUBLIC_ID.eq(publicId))
+          .fetchOne();
+      return record != null ? toEntity(record.into(REPOSITORY)) : null;
+    }
   }
 
   public Repository getByRepositoryManagerIdAndPublicId(String repositoryManagerId, String publicId) {
@@ -120,9 +146,11 @@ public class RepositoryDAO
       String repositoryManagerId,
       String publicId)
   {
-    String sQuery = "SELECT entity FROM Repository entity" + //
-        " WHERE entity.repositoryManagerId=?1 AND entity.publicId=?2";
-    return get(tx, sQuery, repositoryManagerId, publicId);
+    return toEntity(tx.dsl()
+        .selectFrom(REPOSITORY)
+        .where(REPOSITORY.REPOSITORY_MANAGER_ID.eq(repositoryManagerId))
+        .and(REPOSITORY.PUBLIC_ID.eq(publicId))
+        .fetchOne());
   }
 
   public void validateNotEmptyPublicId(String publicId) {
@@ -177,6 +205,8 @@ public class RepositoryDAO
     }
 
     validateEnabledFeatures(repository);
+
+    generateIdIfNeeded(repository);
 
     super.insert(tx, repository);
   }
@@ -262,6 +292,17 @@ public class RepositoryDAO
     super.delete(tx, repository);
   }
 
+  /**
+   * Deletes all entities owned by or associated with this repository without deleting the repository itself.
+   * <p>
+   * This is the standalone entry point that creates its own transaction. All cascade operations will participate in a
+   * single transaction for atomicity - if any step fails, all changes will be rolled back together.
+   * </p>
+   *
+   * @param repository the repository whose owned entities should be deleted
+   * @param includeRepositoryMigration whether to also delete associated repository migration records
+   * @see #cascadeDelete(TransactionContext, Repository, boolean) for details on what gets deleted
+   */
   public void cascadeDelete(Repository repository, boolean includeRepositoryMigration) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
@@ -270,15 +311,40 @@ public class RepositoryDAO
     }
   }
 
+  /**
+   * Deletes all entities owned by or associated with this repository without deleting the repository itself.
+   * <p>
+   * <b>Transaction Boundary Semantics:</b> All delete operations in this method participate in the
+   * provided transaction context. This ensures atomic rollback behavior - if any cascade operation fails, all previous
+   * operations in this cascade will also be rolled back when the transaction is rolled back. This is intentional to
+   * maintain data consistency.
+   * </p>
+   * <p>
+   * <b>What gets deleted:</b>
+   * </p>
+   * <ul>
+   * <li>Owned entities via {@link OwnerDAO#cascadeDelete(TransactionContext, com.sonatype.insight.brain.model.Owner)}
+   * (policy waivers, license overrides, vulnerability overrides, etc.)</li>
+   * <li>For proxy repositories: policy violations, components, and optionally migration records</li>
+   * <li>For hosted repositories: proprietary component name patterns</li>
+   * </ul>
+   * <p>
+   * <b>Note:</b> Prior to the jOOQ migration, some operations created independent transactions
+   * which would persist even if subsequent operations failed. The current implementation ensures
+   * all operations roll back together for better consistency.
+   * </p>
+   *
+   * @param tx the transaction context that all operations will participate in
+   * @param repository the repository whose owned entities should be deleted
+   * @param includeRepositoryMigration whether to also delete associated repository migration records
+   */
   private void cascadeDelete(TransactionContext tx, Repository repository, boolean includeRepositoryMigration) {
     long start = System.currentTimeMillis();
 
     // Cascade to owned entities
     ownerDAOProvider.get().cascadeDelete(tx, repository);
 
-    // For H2, we do not enroll the policy violation and component deletions in the transaction on purpose.
-    // This improves performance and keeps db operations (including commits) reasonably short, which means other
-    // concurrent db operations are blocked for shorter periods of time (H2 is single threaded).
+    // All operations below participate in the same transaction for atomic rollback behavior.
 
     switch (repository.getRepositoryType()) {
       case proxy:
@@ -290,12 +356,15 @@ public class RepositoryDAO
 
         // Cascade to repository migration (if any)
         if (includeRepositoryMigration) {
-          repositoryMigrationDAO.delete(tx, repositoryMigrationDAO.getByRepositoryId(tx, repository.getId()));
+          RepositoryMigration repositoryMigration = repositoryMigrationDAO.getByRepositoryId(tx, repository.getId());
+          if (repositoryMigration != null) {
+            repositoryMigrationDAO.delete(tx, repositoryMigration);
+          }
         }
         break;
       case hosted:
         // Cascade to proprietary component name patterns
-        proprietaryComponentNamePatternDAO.deleteByRepository(repository.getId());
+        proprietaryComponentNamePatternDAO.deleteByRepository(tx, repository.getId());
         break;
       default:
         throw new IllegalStateException("Unknown repository type: " + repository.getRepositoryType());
@@ -312,10 +381,14 @@ public class RepositoryDAO
    * @since 1.106
    */
   public long getQuarantineEnabledCount() {
-    String sQuery = "SELECT COUNT(entity) FROM Repository entity" +
-        " WHERE entity.quarantineEnabled = true";
-
-    return getSingle(Long.class, sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      Integer count = tx.dsl()
+          .selectCount()
+          .from(REPOSITORY)
+          .where(REPOSITORY.QUARANTINE_ENABLED.eq(true))
+          .fetchOne(0, Integer.class);
+      return count != null ? count.longValue() : 0L;
+    }
   }
 
   /**
@@ -325,62 +398,93 @@ public class RepositoryDAO
       String repositoryManagerId,
       Date lastManualConfigureTime)
   {
-    String sQuery = "SELECT entity FROM Repository entity" + //
-        " WHERE entity.repositoryManagerId=?1 AND entity.lastManualConfigureTime >= ?2";
-    return getList(sQuery, repositoryManagerId, lastManualConfigureTime);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(REPOSITORY)
+          .where(REPOSITORY.REPOSITORY_MANAGER_ID.eq(repositoryManagerId))
+          .and(REPOSITORY.LAST_MANUAL_CONFIGURE_TIME.ge(lastManualConfigureTime))
+          .fetch(this::toEntity);
+    }
   }
 
   public List<Repository> getByRepositoryType(RepositoryType repositoryType) {
-    String sQuery = "SELECT entity FROM Repository entity" + //
-        " WHERE entity.repositoryType=?1";
-    return getList(sQuery, repositoryType);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(REPOSITORY)
+          .where(REPOSITORY.REPOSITORY_TYPE.eq(repositoryType != null ? repositoryType.name() : null))
+          .fetch(this::toEntity);
+    }
   }
 
   public List<Repository> getByRepositoryManagerIdAndRepositoryType(
       String repositoryManagerId,
       RepositoryType repositoryType)
   {
-    String sQuery = "SELECT entity FROM Repository entity" + //
-        " WHERE entity.repositoryManagerId=?1 AND entity.repositoryType=?2";
-    return getList(sQuery, repositoryManagerId, repositoryType);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(REPOSITORY)
+          .where(REPOSITORY.REPOSITORY_MANAGER_ID.eq(repositoryManagerId))
+          .and(REPOSITORY.REPOSITORY_TYPE.eq(repositoryType != null ? repositoryType.name() : null))
+          .fetch(this::toEntity);
+    }
   }
 
   /**
    * @since 1.174
    */
   public long getCountByRepositoryType(RepositoryType repositoryType) {
-    String sQuery = "SELECT COUNT(entity) FROM Repository entity" + //
-        " WHERE entity.repositoryType=?1";
-
-    return getSingle(Long.class, sQuery, repositoryType);
+    try (TransactionContext tx = createTransactionContext()) {
+      Integer count = tx.dsl()
+          .selectCount()
+          .from(REPOSITORY)
+          .where(REPOSITORY.REPOSITORY_TYPE.eq(repositoryType != null ? repositoryType.name() : null))
+          .fetchOne(0, Integer.class);
+      return count != null ? count.longValue() : 0L;
+    }
   }
 
   public Repository getByRepositoryIdAndManagerId(String repositoryManagerId, String repositoryId) {
-    String sQuery = "SELECT entity FROM Repository entity" + //
-        " WHERE entity.repositoryManagerId=?1 AND entity.id=?2";
-
-    return get(sQuery, repositoryManagerId, repositoryId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(REPOSITORY)
+          .where(REPOSITORY.REPOSITORY_MANAGER_ID.eq(repositoryManagerId))
+          .and(REPOSITORY.REPOSITORY_ID.eq(repositoryId))
+          .fetchOne());
+    }
   }
 
   public Repository getByContainerImageId(String containerImageId) {
-    String sQuery = """
-        SELECT repository
-          FROM Repository repository, Organization organization, Application application
-         WHERE (application.id = ?1 OR application.publicId = ?1)
-           AND organization.id = application.organizationId
-           AND repository.id = organization.relatedRepositoryId
-           AND repository.repositoryType = ?2
-           AND repository.format = ?3
-        """;
-    return get(sQuery, containerImageId, RepositoryType.proxy, "docker");
+    try (TransactionContext tx = createTransactionContext()) {
+      Record record = tx.dsl()
+          .select(REPOSITORY.fields())
+          .from(REPOSITORY)
+          .join(ORGANIZATION)
+          .on(REPOSITORY.REPOSITORY_ID.eq(ORGANIZATION.RELATED_REPOSITORY_ID))
+          .join(APPLICATION)
+          .on(ORGANIZATION.ORGANIZATION_ID.eq(APPLICATION.ORGANIZATION_ID))
+          .where(APPLICATION.APPLICATION_ID.eq(containerImageId)
+              .or(APPLICATION.PUBLIC_ID.eq(containerImageId)))
+          .and(REPOSITORY.REPOSITORY_TYPE.eq(RepositoryType.proxy.name()))
+          .and(REPOSITORY.FORMAT.eq("docker"))
+          .fetchOne();
+      return record != null ? toEntity(record.into(REPOSITORY)) : null;
+    }
   }
 
   public List<Repository> getByIds(Set<String> repositoryIds) {
-    String sQuery = """
-        SELECT entity
-          FROM Repository entity
-         WHERE entity.id IN ?1
-        """;
-    return getListWithSqlInClause(repositoryIds, inClauseValuesPartition -> getList(sQuery, inClauseValuesPartition));
+    if (repositoryIds == null || repositoryIds.isEmpty()) {
+      return java.util.Collections.emptyList();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(REPOSITORY)
+          .where(REPOSITORY.REPOSITORY_ID.in(repositoryIds))
+          .fetch(this::toEntity);
+    }
+  }
+
+  @Override
+  public Class<Repository> getEntityClass() {
+    return Repository.class;
   }
 }

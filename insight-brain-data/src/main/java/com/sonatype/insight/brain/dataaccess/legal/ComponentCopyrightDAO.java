@@ -13,6 +13,7 @@ import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import org.jooq.Table;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -22,6 +23,8 @@ import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentCopyright.COMPONENT_COPYRIGHT;
 
 /**
  * @since 1.105
@@ -47,9 +50,10 @@ public class ComponentCopyrightDAO
   }
 
   public List<ComponentCopyright> getByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT entity FROM ComponentCopyright entity" + //
-        " WHERE entity.ownerId=?1";
-    return getList(tx, sQuery, ownerId);
+    return tx.dsl()
+        .selectFrom(COMPONENT_COPYRIGHT)
+        .where(COMPONENT_COPYRIGHT.OWNER_ID.eq(ownerId))
+        .fetchInto(ComponentCopyright.class);
   }
 
   public List<ComponentCopyright> getByOwnerId(String ownerId) {
@@ -63,12 +67,13 @@ public class ComponentCopyrightDAO
       String ownerId,
       ComponentIdentifier componentIdentifier)
   {
-    String sQuery = "SELECT entity FROM ComponentCopyright entity" + //
-        " WHERE entity.ownerId=?1" + //
-        " AND entity.componentIdFormat=?2" + //
-        " AND entity.componentIdCoordinatesJson=?3";
-    return get(tx, sQuery, ownerId, componentIdentifier.getFormat(),
-        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
+    return tx.dsl()
+        .selectFrom(COMPONENT_COPYRIGHT)
+        .where(COMPONENT_COPYRIGHT.OWNER_ID.eq(ownerId))
+        .and(COMPONENT_COPYRIGHT.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+        .and(COMPONENT_COPYRIGHT.COMPONENT_ID_COORDINATES_JSON.eq(
+            ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())))
+        .fetchOneInto(ComponentCopyright.class);
   }
 
   public ComponentCopyright getByOwnerIdAndComponentIdentifier(
@@ -138,6 +143,19 @@ public class ComponentCopyrightDAO
     {
       copyrightOverrideDAO.delete(tx, copyrightOverride);
     }
-    super.delete(tx, componentCopyright);
+    tx.dsl()
+        .deleteFrom(COMPONENT_COPYRIGHT)
+        .where(COMPONENT_COPYRIGHT.COMPONENT_COPYRIGHT_ID.eq(componentCopyright.getId()))
+        .execute();
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return COMPONENT_COPYRIGHT;
+  }
+
+  @Override
+  public Class<ComponentCopyright> getEntityClass() {
+    return ComponentCopyright.class;
   }
 }

@@ -32,6 +32,9 @@ public class SastScmScanContext
   @Column(name = "created_at")
   private Date createdAt;
 
+  public SastScmScanContext() {
+  }
+
   public SastScmScanContext(final String branchName, final String commitHash) {
     this.branchName = branchName;
     this.commitHash = commitHash;

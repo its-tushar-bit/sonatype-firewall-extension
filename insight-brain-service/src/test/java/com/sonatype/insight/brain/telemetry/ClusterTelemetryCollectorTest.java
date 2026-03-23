@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 
 import jakarta.inject.Inject;
 
@@ -28,6 +27,8 @@ import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import org.jooq.impl.DSL;
 
 public class ClusterTelemetryCollectorTest
     extends AbstractComponentTest
@@ -91,26 +92,28 @@ public class ClusterTelemetryCollectorTest
   }
 
   private void createSchedulerStateRecord(String instanceId, long checkinTimestamp) throws Exception {
-    String sQuery = "INSERT INTO " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE" + //
-        " (SCHED_NAME, INSTANCE_NAME, LAST_CHECKIN_TIME, CHECKIN_INTERVAL) " + //
-        " VALUES (?1, ?2, ?3, ?4)";
-    try (Connection connection = operationalDataStore.getDataSource()
-        .getConnection(); PreparedStatement statement = connection.prepareStatement(sQuery))
-    {
-      statement.setString(1, taskScheduler.getScheduler().getSchedulerName());
-      statement.setString(2, instanceId);
-      statement.setLong(3, checkinTimestamp);
-      statement.setLong(4, 5);
-      statement.execute();
+    try (Connection connection = operationalDataStore.getDataSource().getConnection()) {
+      DSL.using(connection)
+          .insertInto(DSL.table(operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE"))
+          .columns(
+              DSL.field("SCHED_NAME"),
+              DSL.field("INSTANCE_NAME"),
+              DSL.field("LAST_CHECKIN_TIME"),
+              DSL.field("CHECKIN_INTERVAL"))
+          .values(
+              taskScheduler.getScheduler().getSchedulerName(),
+              instanceId,
+              checkinTimestamp,
+              5L)
+          .execute();
     }
   }
 
   private void deleteAllSchedulerStateRecords() throws Exception {
-    String sQuery = "DELETE FROM " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE";
-    try (Connection connection = operationalDataStore.getDataSource()
-        .getConnection(); PreparedStatement statement = connection.prepareStatement(sQuery))
-    {
-      statement.execute();
+    try (Connection connection = operationalDataStore.getDataSource().getConnection()) {
+      DSL.using(connection)
+          .deleteFrom(DSL.table(operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE"))
+          .execute();
     }
   }
 }

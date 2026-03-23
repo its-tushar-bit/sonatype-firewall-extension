@@ -5,14 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -22,10 +19,12 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.ComponentChangeDetectionConfiguration;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import jakarta.persistence.NoResultException;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentChangeDetectionConfiguration.COMPONENT_CHANGE_DETECTION_CONFIGURATION;
 
 /**
  * @since 1.188.0
@@ -69,7 +68,10 @@ public class ComponentChangeDetectionConfigurationDAO
     return removedComponents;
   }
 
-  private void insertComponents(TransactionContext tx, List<ComponentChangeDetectionConfiguration> components) {
+  private void insertComponents(
+      final TransactionContext tx,
+      final List<ComponentChangeDetectionConfiguration> components)
+  {
     // Validate and filter out components with existing purl values in the database
     // Remove duplicate purl values from the input list
     List<ComponentChangeDetectionConfiguration> refinedComponents = validateAndFilterComponents(tx, components);
@@ -77,20 +79,19 @@ public class ComponentChangeDetectionConfigurationDAO
       if (StringUtils.isBlank(component.getId())) {
         component.setId(UUID.randomUUID().toString().replace("-", ""));
       }
-      tx.createNativeQuery(
-          "INSERT INTO " + getDatabaseSchema() + ".component_change_detection_configuration" +
-              " (component_change_detection_configuration_id, version, purl, component_hash, added_time)" +
-              " VALUES (?1, ?2, ?3, ?4, CURRENT_TIMESTAMP)")
-          .setParameter(1, component.getId())
-          .setParameter(2, COMPONENT_CHANGE_DETECTION_VERSION)
-          .setParameter(3, component.getPurl())
-          .setParameter(4, component.getComponentHash())
-          .executeUpdate();
+      tx.dsl()
+          .insertInto(COMPONENT_CHANGE_DETECTION_CONFIGURATION)
+          .set(COMPONENT_CHANGE_DETECTION_CONFIGURATION.COMPONENT_CHANGE_DETECTION_CONFIGURATION_ID, component.getId())
+          .set(COMPONENT_CHANGE_DETECTION_CONFIGURATION.VERSION, COMPONENT_CHANGE_DETECTION_VERSION)
+          .set(COMPONENT_CHANGE_DETECTION_CONFIGURATION.PURL, component.getPurl())
+          .set(COMPONENT_CHANGE_DETECTION_CONFIGURATION.COMPONENT_HASH, component.getComponentHash())
+          .set(COMPONENT_CHANGE_DETECTION_CONFIGURATION.ADDED_TIME, component.getAddedTime())
+          .execute();
     }
   }
 
   private List<ComponentChangeDetectionConfiguration> validateAndFilterComponents(
-      TransactionContext tx,
+      final TransactionContext tx,
       final List<ComponentChangeDetectionConfiguration> components)
   {
     List<ComponentChangeDetectionConfiguration> uniqueComponents = components.stream()
@@ -109,11 +110,12 @@ public class ComponentChangeDetectionConfigurationDAO
     List<String> existingPurls = new ArrayList<>();
     for (int i = 0; i < purls.size(); i += MAX_PARAMETERS) {
       List<String> subList = purls.subList(i, Math.min(i + MAX_PARAMETERS, purls.size()));
-      jakarta.persistence.Query query = tx.createNativeQuery(
-          "SELECT purl FROM " + getDatabaseSchema() + ".component_change_detection_configuration WHERE purl IN " +
-              buildPositionalParameters(subList, 1));
-      addPositionalParameters(query, subList, 1);
-      existingPurls.addAll(query.getResultList());
+      List<String> batchResults = tx.dsl()
+          .select(COMPONENT_CHANGE_DETECTION_CONFIGURATION.PURL)
+          .from(COMPONENT_CHANGE_DETECTION_CONFIGURATION)
+          .where(COMPONENT_CHANGE_DETECTION_CONFIGURATION.PURL.in(subList))
+          .fetchInto(String.class);
+      existingPurls.addAll(batchResults);
     }
 
     return uniqueComponents.stream()
@@ -121,50 +123,56 @@ public class ComponentChangeDetectionConfigurationDAO
         .collect(Collectors.toList());
   }
 
-  private long getTotalComponentCount(TransactionContext tx) {
-    String sQuery = "SELECT COUNT(*) FROM " + getDatabaseSchema() + ".component_change_detection_configuration";
-    return (long) tx.createNativeQuery(sQuery).getSingleResult();
+  private long getTotalComponentCount(final TransactionContext tx) {
+    return tx.dsl()
+        .selectCount()
+        .from(COMPONENT_CHANGE_DETECTION_CONFIGURATION)
+        .fetchOne(0, Long.class);
   }
 
-  @SuppressWarnings("unchecked")
-  private List<ComponentChangeDetectionConfiguration> removeOldestComponents(TransactionContext tx, int removeCount) {
-    List<ComponentChangeDetectionConfiguration> removeComponents = new ArrayList<>();
-    try {
-      jakarta.persistence.Query selectQuery =
-          tx.createNativeQuery("SELECT * FROM " + getDatabaseSchema() +
-              ".component_change_detection_configuration ORDER BY added_time LIMIT ?1 FOR UPDATE")
-              .setParameter(1, removeCount);
+  private List<ComponentChangeDetectionConfiguration> removeOldestComponents(
+      final TransactionContext tx,
+      final int removeCount)
+  {
+    List<ComponentChangeDetectionConfiguration> removeComponents = tx.dsl()
+        .selectFrom(COMPONENT_CHANGE_DETECTION_CONFIGURATION)
+        .orderBy(COMPONENT_CHANGE_DETECTION_CONFIGURATION.ADDED_TIME)
+        .limit(removeCount)
+        .fetch()
+        .stream()
+        .map(super::toEntity)
+        .collect(Collectors.toList());
 
-      removeComponents = ((Stream<Object[]>) selectQuery.getResultStream()).map(
-          array -> new ComponentChangeDetectionConfiguration((String) array[1], (String) array[2], (String) array[3],
-              (String) array[4], new Date(((Timestamp) array[5]).getTime())))
-          .collect(Collectors.toList());
-
-      List<String> removeComponentPurls = removeComponents.stream()
-          .map(ComponentChangeDetectionConfiguration::getPurl)
-          .collect(Collectors.toList());
-
-      for (int i = 0; i < removeComponentPurls.size(); i += MAX_PARAMETERS) {
-        List<String> subList =
-            removeComponentPurls.subList(i, Math.min(i + MAX_PARAMETERS, removeComponentPurls.size()));
-        jakarta.persistence.Query deleteQuery = tx.createNativeQuery(
-            "DELETE FROM " + getDatabaseSchema() + ".component_change_detection_configuration" +
-                " WHERE purl IN " + buildPositionalParameters(subList, 1));
-        addPositionalParameters(deleteQuery, subList, 1);
-        deleteQuery.executeUpdate();
-      }
+    if (removeComponents.isEmpty()) {
+      return removeComponents;
     }
-    catch (NoResultException ignored) {
-      // ignore
+
+    List<String> removeComponentPurls = removeComponents.stream()
+        .map(ComponentChangeDetectionConfiguration::getPurl)
+        .collect(Collectors.toList());
+
+    for (int i = 0; i < removeComponentPurls.size(); i += MAX_PARAMETERS) {
+      List<String> subList =
+          removeComponentPurls.subList(i, Math.min(i + MAX_PARAMETERS, removeComponentPurls.size()));
+      tx.dsl()
+          .deleteFrom(COMPONENT_CHANGE_DETECTION_CONFIGURATION)
+          .where(COMPONENT_CHANGE_DETECTION_CONFIGURATION.PURL.in(subList))
+          .execute();
     }
+
     return removeComponents;
   }
 
-  public void updateComparisonHashOfPurl(String purl, String comparisonHash) {
-    String sQuery = "UPDATE ComponentChangeDetectionConfiguration entity" + //
-        " SET entity.comparisonHash=?1" + //
-        " WHERE entity.purl=?2";
-    createQuery(sQuery, comparisonHash, purl).executeUpdate();
+  public void updateComparisonHashOfPurl(final String purl, final String comparisonHash) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .update(COMPONENT_CHANGE_DETECTION_CONFIGURATION)
+          .set(COMPONENT_CHANGE_DETECTION_CONFIGURATION.COMPARISON_HASH, comparisonHash)
+          .where(COMPONENT_CHANGE_DETECTION_CONFIGURATION.PURL.eq(purl))
+          .execute();
+      tx.commit();
+    }
   }
 
   public void updateComparisonHashAndVersionOfPurl(
@@ -172,24 +180,35 @@ public class ComponentChangeDetectionConfigurationDAO
       final String comparisonHash,
       final String version)
   {
-    String sQuery = "UPDATE ComponentChangeDetectionConfiguration entity" + //
-        " SET entity.comparisonHash=?1, entity.version=?2 WHERE entity.purl=?3";
-    createQuery(sQuery, comparisonHash, version, purl).executeUpdate();
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .update(COMPONENT_CHANGE_DETECTION_CONFIGURATION)
+          .set(COMPONENT_CHANGE_DETECTION_CONFIGURATION.COMPARISON_HASH, comparisonHash)
+          .set(COMPONENT_CHANGE_DETECTION_CONFIGURATION.VERSION, version)
+          .where(COMPONENT_CHANGE_DETECTION_CONFIGURATION.PURL.eq(purl))
+          .execute();
+      tx.commit();
+    }
   }
 
-  @SuppressWarnings("unchecked")
   public List<ComponentChangeDetectionConfiguration> getComponents(final int page, final int pageSize) {
     if (page <= 0 || pageSize <= 0) {
       throw new IllegalArgumentException("Page and pageSize must be greater than 0");
     }
     int offset = (page - 1) * pageSize;
     try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = "SELECT entity FROM ComponentChangeDetectionConfiguration entity";
-      return tx.createQuery(sQuery).setFirstResult(offset).setMaxResults(pageSize).getResultList();
+      return tx.dsl()
+          .selectFrom(COMPONENT_CHANGE_DETECTION_CONFIGURATION)
+          .offset(offset)
+          .limit(pageSize)
+          .fetch()
+          .stream()
+          .map(super::toEntity)
+          .collect(Collectors.toList());
     }
   }
 
-  @SuppressWarnings("unchecked")
   public List<ComponentChangeDetectionConfiguration> getComponentsInBatches(
       final int batchSize,
       final int continuationToken)
@@ -203,8 +222,24 @@ public class ComponentChangeDetectionConfigurationDAO
     }
 
     try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = "SELECT entity FROM ComponentChangeDetectionConfiguration entity";
-      return tx.createQuery(sQuery).setFirstResult(continuationToken).setMaxResults(batchSize).getResultList();
+      return tx.dsl()
+          .selectFrom(COMPONENT_CHANGE_DETECTION_CONFIGURATION)
+          .offset(continuationToken)
+          .limit(batchSize)
+          .fetch()
+          .stream()
+          .map(this::toEntity)
+          .collect(Collectors.toList());
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return COMPONENT_CHANGE_DETECTION_CONFIGURATION;
+  }
+
+  @Override
+  public Class<ComponentChangeDetectionConfiguration> getEntityClass() {
+    return ComponentChangeDetectionConfiguration.class;
   }
 }

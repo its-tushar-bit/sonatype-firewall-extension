@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -13,9 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
@@ -25,8 +21,15 @@ import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.jooq.generated.dm.tables.MultiLicense.MULTI_LICENSE;
+import static com.sonatype.insight.brain.jooq.generated.dm.tables.MultiLicenseLicense.MULTI_LICENSE_LICENSE;
 
 // Copied from com.sonatype.insight.datamart.dao.MultiLicenseDAO
 @Named
@@ -51,17 +54,11 @@ public class MultiLicenseDAO
   }
 
   @Override
-  public MultiLicense getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM MultiLicense entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  public Collection<MultiLicense> getAll() {
+  public List<MultiLicense> getAll() {
     if (multiLicensesByName == null) {
       load();
     }
-    return multiLicensesByName.values();
+    return multiLicensesByName.values().stream().toList();
   }
 
   @Override
@@ -137,13 +134,18 @@ public class MultiLicenseDAO
     synchronized (this.getClass()) {
       long start = System.currentTimeMillis();
 
-      String sQuery = "SELECT license FROM MultiLicense license" + //
-          " ORDER BY license.shortDisplayName";
-      List<MultiLicense> multiLicenses = getList(sQuery);
+      List<MultiLicense> multiLicenses;
+      List<MultiLicenseLicenseInternal> mappings;
+      try (TransactionContext tx = createTransactionContext()) {
+        multiLicenses = tx.dsl()
+            .selectFrom(MULTI_LICENSE)
+            .orderBy(MULTI_LICENSE.SHORTDISPLAYNAME)
+            .fetchInto(MultiLicense.class);
 
-      sQuery = "SELECT license FROM MultiLicenseLicenseInternal license";
-      @SuppressWarnings({"unchecked", "rawtypes"})
-      List<MultiLicenseLicenseInternal> mappings = (List) getList(sQuery);
+        mappings = tx.dsl()
+            .selectFrom(MULTI_LICENSE_LICENSE)
+            .fetchInto(MultiLicenseLicenseInternal.class);
+      }
 
       Map<String, Set<License>> newLicenseSetsById = new LinkedHashMap<>();
 
@@ -203,5 +205,15 @@ public class MultiLicenseDAO
       throw new NotFoundException("A multi-license with name '" + name + "' does not exist locally.");
     }
     return multiLicense;
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return MULTI_LICENSE;
+  }
+
+  @Override
+  public Class<MultiLicense> getEntityClass() {
+    return MultiLicense.class;
   }
 }

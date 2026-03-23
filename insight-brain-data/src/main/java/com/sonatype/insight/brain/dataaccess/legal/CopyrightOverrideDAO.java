@@ -7,9 +7,6 @@ package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.Collections;
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -20,6 +17,13 @@ import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.CopyrightOverride.COPYRIGHT_OVERRIDE;
 
 /**
  * @since 1.105
@@ -45,9 +49,10 @@ public class CopyrightOverrideDAO
   }
 
   public List<CopyrightOverride> getByComponentCopyrightId(TransactionContext tx, String componentCopyrightId) {
-    String sQuery = "SELECT entity FROM CopyrightOverride entity" + //
-        " WHERE entity.componentCopyrightId=?1";
-    return getList(tx, sQuery, componentCopyrightId);
+    return tx.dsl()
+        .selectFrom(COPYRIGHT_OVERRIDE)
+        .where(COPYRIGHT_OVERRIDE.COMPONENT_COPYRIGHT_ID.eq(componentCopyrightId))
+        .fetch(this::toEntity);
   }
 
   public List<CopyrightOverride> getByComponentCopyrightId(String componentCopyrightId) {
@@ -109,5 +114,15 @@ public class CopyrightOverrideDAO
           "Cannot update copyright override with id " + copyrightOverride.getId() + " because it does not exist.");
     }
     super.update(tx, copyrightOverride);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return COPYRIGHT_OVERRIDE;
+  }
+
+  @Override
+  public Class<CopyrightOverride> getEntityClass() {
+    return CopyrightOverride.class;
   }
 }

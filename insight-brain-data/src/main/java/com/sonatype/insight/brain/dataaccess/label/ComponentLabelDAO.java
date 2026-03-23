@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -21,6 +22,10 @@ import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentLabel.COMPONENT_LABEL;
 
 @Named
 @Singleton
@@ -43,9 +48,11 @@ public class ComponentLabelDAO
   }
 
   public List<ComponentLabel> getByLabelId(TransactionContext tx, String labelId) {
-    String sQuery = "SELECT entity FROM ComponentLabel entity" + //
-        " WHERE entity.labelId=?1";
-    return getList(tx, sQuery, labelId);
+    return tx.dsl()
+        .selectFrom(COMPONENT_LABEL)
+        .where(COMPONENT_LABEL.LABEL_ID.eq(labelId))
+        .fetch()
+        .map(this::toEntity);
   }
 
   public List<ComponentLabel> getByLabelId(String labelId) {
@@ -55,9 +62,12 @@ public class ComponentLabelDAO
   }
 
   public List<ComponentLabel> getByLabelIdAndOwnerIds(TransactionContext tx, String labelId, Set<String> ownerIds) {
-    String sQuery = "SELECT entity FROM ComponentLabel entity" + //
-        " WHERE entity.labelId=?1 AND entity.ownerId IN (?2)";
-    return getList(tx, sQuery, labelId, ownerIds);
+    return tx.dsl()
+        .selectFrom(COMPONENT_LABEL)
+        .where(COMPONENT_LABEL.LABEL_ID.eq(labelId))
+        .and(COMPONENT_LABEL.OWNER_ID.in(ownerIds))
+        .fetch()
+        .map(this::toEntity);
   }
 
   public List<ComponentLabel> getByOwnerIdAndHashWithHierarchy(String ownerId, String hash) {
@@ -75,9 +85,11 @@ public class ComponentLabelDAO
   }
 
   public List<ComponentLabel> getByOwnerId(TransactionContext tx, String ownerId) {
-    final String sQuery = "SELECT label FROM ComponentLabel label" + //
-        " WHERE label.ownerId=?1";
-    return getList(tx, sQuery, ownerId);
+    return tx.dsl()
+        .selectFrom(COMPONENT_LABEL)
+        .where(COMPONENT_LABEL.OWNER_ID.eq(ownerId))
+        .fetch()
+        .map(this::toEntity);
   }
 
   public List<ComponentLabel> getByOwnerIdAndHash(String ownerId, String hash) {
@@ -87,9 +99,12 @@ public class ComponentLabelDAO
   }
 
   public List<ComponentLabel> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {
-    final String sQuery = "SELECT label FROM ComponentLabel label" + //
-        " WHERE label.ownerId=?1 AND label.hash=?2";
-    return getList(tx, sQuery, ownerId, hash);
+    return tx.dsl()
+        .selectFrom(COMPONENT_LABEL)
+        .where(COMPONENT_LABEL.OWNER_ID.eq(ownerId))
+        .and(COMPONENT_LABEL.HASH.eq(hash))
+        .fetch()
+        .map(this::toEntity);
   }
 
   /**
@@ -109,15 +124,22 @@ public class ComponentLabelDAO
       String hash,
       String labelId)
   {
-    String sQuery = "SELECT entity FROM ComponentLabel entity" + //
-        " WHERE entity.ownerId=?1 AND entity.hash=?2 AND entity.labelId=?3";
-    return get(tx, sQuery, ownerId, hash, labelId);
+    return toEntity(tx.dsl()
+        .selectFrom(COMPONENT_LABEL)
+        .where(COMPONENT_LABEL.OWNER_ID.eq(ownerId))
+        .and(COMPONENT_LABEL.HASH.eq(hash))
+        .and(COMPONENT_LABEL.LABEL_ID.eq(labelId))
+        .fetchOne());
   }
 
   public List<ComponentLabel> getByOwnerIds(Collection<String> ownerIds) {
-    final String sQuery = "SELECT label FROM ComponentLabel label" + //
-        " WHERE label.ownerId IN (?1)";
-    return getList(sQuery, ownerIds);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(COMPONENT_LABEL)
+          .where(COMPONENT_LABEL.OWNER_ID.in(ownerIds))
+          .fetch()
+          .map(this::toEntity);
+    }
   }
 
   @Override
@@ -156,5 +178,15 @@ public class ComponentLabelDAO
       }
     }
     return false;
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return COMPONENT_LABEL;
+  }
+
+  @Override
+  public Class<ComponentLabel> getEntityClass() {
+    return ComponentLabel.class;
   }
 }

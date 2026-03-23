@@ -127,7 +127,8 @@ public class ResetAdminCommand
 
   private void setAdminMemberOfIfNeeded(TransactionContext tx, String roleId) {
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO(operationalDataStore);
-    if (membershipMappingDAO.getByContextIdAndRoleId(MembershipMapping.GLOBAL_CONTEXT_ID, roleId)
+    // Use the TransactionContext version to avoid nested transaction lock issues in H2
+    if (membershipMappingDAO.getByContextIdAndRoleId(tx, MembershipMapping.GLOBAL_CONTEXT_ID, roleId)
         .stream()
         .noneMatch(
             membershipMapping -> membershipMapping.includes(DEFAULT_ADMIN.getUsername(), Collections.emptySet())))

@@ -41,6 +41,9 @@ public class RepositoryConnection
   @Column(name = "password")
   private char[] password;
 
+  public RepositoryConnection() {
+  }
+
   public RepositoryConnection(
       String ownerId,
       String baseUrl,

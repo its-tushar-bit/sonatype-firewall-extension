@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import java.util.UUID;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -14,6 +15,10 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
+
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SystemConfigurationProperty.SYSTEM_CONFIGURATION_PROPERTY;
 
 /**
  * @since 1.33
@@ -41,12 +46,22 @@ public class SystemConfigurationPropertyDAO
   }
 
   public SystemConfigurationProperty getByName(TransactionContext tx, String name) {
-    return getByName(tx, name, false);
+    return getByNameInternal(tx, name, false);
   }
 
-  private SystemConfigurationProperty getByName(TransactionContext tx, String name, boolean fetchForUpdate) {
-    String sQuery = "SELECT entity FROM SystemConfigurationProperty entity WHERE entity.name=?1";
-    return getWithGlobalFallback(tx, sQuery, fetchForUpdate, name);
+  private SystemConfigurationProperty getByNameInternal(
+      final TransactionContext tx,
+      final String name,
+      final boolean fetchForUpdate)
+  {
+    return getWithGlobalFallback(tx, t -> {
+      var query = t.dsl()
+          .selectFrom(SYSTEM_CONFIGURATION_PROPERTY)
+          .where(SYSTEM_CONFIGURATION_PROPERTY.NAME.eq(name));
+      return fetchForUpdate
+          ? query.forUpdate().fetchOneInto(SystemConfigurationProperty.class)
+          : query.fetchOneInto(SystemConfigurationProperty.class);
+    }, fetchForUpdate);
   }
 
   public SystemConfigurationProperty getByNameNotNull(TransactionContext tx, String name) {
@@ -54,7 +69,7 @@ public class SystemConfigurationPropertyDAO
   }
 
   private SystemConfigurationProperty getByNameNotNull(TransactionContext tx, String name, boolean fetchForUpdate) {
-    SystemConfigurationProperty property = getByName(tx, name, fetchForUpdate);
+    SystemConfigurationProperty property = getByNameInternal(tx, name, fetchForUpdate);
     if (property == null) {
       throw new NotFoundException("A system configuration property '" + name + "' does not exist.");
     }
@@ -65,7 +80,25 @@ public class SystemConfigurationPropertyDAO
   public void update(TransactionContext tx, SystemConfigurationProperty property) {
     SystemConfigurationProperty existingProperty = getByNameNotNull(tx, property.getName(), true);
     property.setId(existingProperty.getId());
-    super.update(tx, property);
+    tx.dsl()
+        .update(SYSTEM_CONFIGURATION_PROPERTY)
+        .set(SYSTEM_CONFIGURATION_PROPERTY.NAME, property.getName())
+        .set(SYSTEM_CONFIGURATION_PROPERTY.VALUE, property.getValue())
+        .where(SYSTEM_CONFIGURATION_PROPERTY.SYSTEM_CONFIGURATION_PROPERTY_ID.eq(property.getId()))
+        .execute();
+  }
+
+  @Override
+  public void insert(TransactionContext tx, SystemConfigurationProperty entity) {
+    if (entity.getId() == null) {
+      entity.setId(UUID.randomUUID().toString());
+    }
+    tx.dsl()
+        .insertInto(SYSTEM_CONFIGURATION_PROPERTY)
+        .set(SYSTEM_CONFIGURATION_PROPERTY.SYSTEM_CONFIGURATION_PROPERTY_ID, entity.getId())
+        .set(SYSTEM_CONFIGURATION_PROPERTY.NAME, entity.getName())
+        .set(SYSTEM_CONFIGURATION_PROPERTY.VALUE, entity.getValue())
+        .execute();
   }
 
   public String get(String name) {
@@ -91,7 +124,7 @@ public class SystemConfigurationPropertyDAO
   }
 
   public void set(TransactionContext tx, String name, String value) {
-    SystemConfigurationProperty property = getByName(tx, name, true);
+    SystemConfigurationProperty property = getByNameInternal(tx, name, true);
     if (value == null) {
       if (property != null) {
         delete(tx, property);
@@ -107,5 +140,15 @@ public class SystemConfigurationPropertyDAO
         update(tx, property);
       }
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return SYSTEM_CONFIGURATION_PROPERTY;
+  }
+
+  @Override
+  public Class<SystemConfigurationProperty> getEntityClass() {
+    return SystemConfigurationProperty.class;
   }
 }

@@ -11,10 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -29,6 +25,16 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Field;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.MembershipMapping.MEMBERSHIP_MAPPING;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Role.ROLE;
 
 /**
  * @since 1.7
@@ -129,7 +135,7 @@ public class RoleDAO
 
     // Cascade to membership mappings
     for (MembershipMapping membershipMapping : membershipMappingDAO.getByRoleId(tx, entity.getId())) {
-      membershipMappingDAO.delete(membershipMapping);
+      membershipMappingDAO.delete(tx, membershipMapping);
     }
 
     // Cascade to policy notify actions
@@ -170,74 +176,90 @@ public class RoleDAO
   }
 
   private Role getByName(TransactionContext tx, String name) {
-    String sQuery = "SELECT entity FROM Role entity WHERE entity.nameLowercaseNoWhitespace=?1";
-    return get(tx, sQuery, NameHelper.normalize(name));
+    return toEntity(tx.dsl()
+        .selectFrom(ROLE)
+        .where(ROLE.NAME_LOWERCASE_NO_WHITESPACE.eq(NameHelper.normalize(name)))
+        .fetchOne());
   }
 
   /**
    * Gets all roles applicable to the entire system.
    */
   public List<Role> getGlobalRoles() {
-    String sQuery = "SELECT entity FROM Role entity WHERE entity.global=TRUE ORDER BY entity.name";
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(ROLE)
+          .where(ROLE.GLOBAL.eq(true))
+          .orderBy(ROLE.NAME)
+          .fetch()
+          .map(this::toEntity);
+    }
   }
 
   /**
-   * Gets all roles applicable to an organization or application.
+   * Gets all roles applicable to an organization or application (non-global roles).
    */
   public List<Role> getApplicationRoles() {
-    String sQuery = "SELECT entity FROM Role entity WHERE entity.global=FALSE ORDER BY entity.name";
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(ROLE)
+          .where(ROLE.GLOBAL.eq(false))
+          .orderBy(ROLE.NAME)
+          .fetch()
+          .map(this::toEntity);
+    }
   }
 
   public Set<String> getObfuscatedRolesByUserCaseInsensitiveAndGroups(String username, Set<String> groups) {
-    String schm = getDatabaseSchema();
+    try (TransactionContext tx = createTransactionContext()) {
+      // Build CASE expression: WHEN built_in THEN name ELSE 'CUSTOM'
+      Field<String> obfuscatedRoleName = DSL.when(ROLE.BUILT_IN.eq(true), ROLE.NAME)
+          .otherwise(DSL.inline("CUSTOM"));
 
-    return new HashSet<>(getListWithSqlInClause(groups, groupPartition -> {
-      // This SQL query needs to work in H2 as well so we can't use array syntax
-      String inParamString = createInParamString(groupPartition.size(), 2);
-      Object[] params = new Object[1 + groupPartition.size()];
-      params[0] = username;
-      System.arraycopy(groupPartition.toArray(), 0, params, 1, groupPartition.size());
-      String sQuery = "SELECT DISTINCT (CASE WHEN r.built_in THEN r.name ELSE 'CUSTOM' END) " +
-          "FROM " + schm + ".role r INNER JOIN " + schm + ".membership_mapping mm ON r.role_id = mm.role_id " +
-          "WHERE (" +
-          "  (LOWER(mm.member_name) = LOWER(?1) OR UPPER(mm.member_name) = UPPER(?1) OR mm.member_name = ?1) " +
-          "  AND mm.member_type = 'USER'" +
-          ") OR (" +
-          "  mm.member_name IN " + inParamString + " AND mm.member_type = 'GROUP'" +
-          ")";
+      // User condition: case-insensitive username match with member_type = 'USER'
+      var userCondition = MEMBERSHIP_MAPPING.MEMBER_TYPE.eq("USER")
+          .and(MEMBERSHIP_MAPPING.MEMBER_NAME.eq(username)
+              .or(DSL.lower(MEMBERSHIP_MAPPING.MEMBER_NAME).eq(username.toLowerCase()))
+              .or(DSL.upper(MEMBERSHIP_MAPPING.MEMBER_NAME).eq(username.toUpperCase())));
 
-      return getScalarsNative(String.class, sQuery, params);
-    }));
-  }
+      // Group condition: member_name IN groups with member_type = 'GROUP'
+      var groupCondition = MEMBERSHIP_MAPPING.MEMBER_TYPE.eq("GROUP")
+          .and(MEMBERSHIP_MAPPING.MEMBER_NAME.in(groups));
 
-  /**
-   * Create a string like (?1, ?2, ?3) for use with a SQL IN clause. In raw SQL, the individual items in the IN
-   * clause must be separate bound parameters.
-   *
-   * @param size The number of items in the IN clause
-   * @param initialArgIndex The index of the first bound parameter
-   */
-  private String createInParamString(int size, int initialArgIndex) {
-    StringBuilder sb = new StringBuilder("(");
-    for (int i = 0; i < size; i++) {
-      sb.append("?").append(i + initialArgIndex);
-      if (i < size - 1) {
-        sb.append(",");
-      }
+      // Combined condition
+      var memberCondition = userCondition.or(groupCondition);
+
+      return new HashSet<>(tx.dsl()
+          .selectDistinct(obfuscatedRoleName)
+          .from(ROLE)
+          .innerJoin(MEMBERSHIP_MAPPING)
+          .on(ROLE.ROLE_ID.eq(MEMBERSHIP_MAPPING.ROLE_ID))
+          .where(memberCondition)
+          .fetch(obfuscatedRoleName));
     }
-
-    sb.append(")");
-    return sb.toString();
   }
 
   /**
-   * Gets all roles sorted by 'nameLowercaseNoWhitespace'
+   * Gets all roles sorted by 'sortOrder'
    */
   @Override
   public List<Role> getAll() {
-    String sQuery = "SELECT entity FROM Role entity ORDER BY entity.sortOrder";
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(ROLE)
+          .orderBy(ROLE.SORT_ORDER)
+          .fetch()
+          .map(this::toEntity);
+    }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return ROLE;
+  }
+
+  @Override
+  public Class<Role> getEntityClass() {
+    return Role.class;
   }
 }

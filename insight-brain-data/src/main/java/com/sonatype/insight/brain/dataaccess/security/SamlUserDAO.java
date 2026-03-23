@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -30,6 +29,13 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SamlGroup.SAML_GROUP;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SamlUser.SAML_USER;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SamlUserGroup.SAML_USER_GROUP;
 
 /**
  * @since 1.133
@@ -76,31 +82,40 @@ public class SamlUserDAO
     if (CollectionUtils.isEmpty(ids)) {
       return Collections.emptyList();
     }
-    String sQuery = "SELECT entity from SamlUser entity" + //
-        " WHERE entity.id IN ?1" + //
-        " ORDER BY entity.username";
-    return getList(tx, sQuery, ids);
+    return tx.dsl()
+        .selectFrom(SAML_USER)
+        .where(SAML_USER.SAML_USER_ID.in(ids))
+        .orderBy(SAML_USER.USERNAME)
+        .fetch()
+        .into(SamlUser.class);
   }
 
   public List<SamlUser> getByUsernames(Set<String> usernames) {
     if (CollectionUtils.isEmpty(usernames)) {
       return Collections.emptyList();
     }
-    String sQuery = "SELECT entity from SamlUser entity" + //
-        " WHERE entity.username IN ?1" + //
-        " ORDER BY entity.username";
-    return getList(sQuery, usernames);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SAML_USER)
+          .where(SAML_USER.USERNAME.in(usernames))
+          .orderBy(SAML_USER.USERNAME)
+          .fetch()
+          .into(SamlUser.class);
+    }
   }
 
   public List<SamlUser> getByEmails(Set<String> emails) {
     if (CollectionUtils.isEmpty(emails)) {
       return Collections.emptyList();
     }
-    String sQuery = """
-        SELECT entity from SamlUser entity
-          WHERE entity.email IN ?1
-          ORDER BY entity.email""";
-    return getList(sQuery, emails);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SAML_USER)
+          .where(SAML_USER.EMAIL.in(emails))
+          .orderBy(SAML_USER.EMAIL)
+          .fetch()
+          .into(SamlUser.class);
+    }
   }
 
   // real name means full name (first name + " " + last name)
@@ -108,26 +123,37 @@ public class SamlUserDAO
     if (CollectionUtils.isEmpty(names)) {
       return Collections.emptyList();
     }
-    String sQuery = """
-        SELECT entity from SamlUser entity
-          WHERE CONCAT(entity.firstName, ' ', entity.lastName) IN ?1
-          ORDER BY entity.lastName, entity.firstName""";
-    return getList(sQuery, names);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SAML_USER)
+          .where(DSL.concat(SAML_USER.FIRST_NAME, DSL.inline(" "), SAML_USER.LAST_NAME).in(names))
+          .orderBy(SAML_USER.LAST_NAME, SAML_USER.FIRST_NAME)
+          .fetch()
+          .into(SamlUser.class);
+    }
   }
 
   public List<SamlUser> findUsersByNameOrUsernameQuery(String nameQuery) {
     nameQuery = nameQuery.trim().toLowerCase(Locale.ENGLISH);
-    String sQuery = "SELECT entity FROM SamlUser entity" +
-        " WHERE lower(concat(coalesce(entity.firstName,''), ' ', coalesce(entity.lastName,''))) LIKE ?1" +
-        " OR lower(entity.username) LIKE ?1" +
-        " ORDER BY entity.username";
-    return getList(sQuery, nameQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SAML_USER)
+          .where(DSL.lower(DSL.concat(
+              DSL.coalesce(SAML_USER.FIRST_NAME, DSL.inline("")),
+              DSL.inline(" "),
+              DSL.coalesce(SAML_USER.LAST_NAME, DSL.inline("")))).like(nameQuery))
+          .or(DSL.lower(SAML_USER.USERNAME).like(nameQuery))
+          .orderBy(SAML_USER.USERNAME)
+          .fetch()
+          .into(SamlUser.class);
+    }
   }
 
   public SamlUser getByUsername(TransactionContext tx, String username) {
-    String sQuery = "SELECT entity FROM SamlUser entity" + //
-        " WHERE entity.username=?1";
-    return get(tx, sQuery, username);
+    return tx.dsl()
+        .selectFrom(SAML_USER)
+        .where(SAML_USER.USERNAME.eq(username))
+        .fetchOneInto(SamlUser.class);
   }
 
   public SamlUser getByUsername(String username) {
@@ -164,6 +190,60 @@ public class SamlUserDAO
   }
 
   @Override
+  public List<SamlUser> getAll() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SAML_USER)
+          .orderBy(SAML_USER.USERNAME)
+          .fetch()
+          .into(SamlUser.class);
+    }
+  }
+
+  public void withAllUsersWithGroups(Consumer<SamlUser> consumer) {
+    try (TransactionContext tx = createTransactionContext()) {
+      com.sonatype.insight.brain.jooq.generated.ods.tables.SamlGroup sg = SAML_GROUP.as("saml_group");
+      com.sonatype.insight.brain.jooq.generated.ods.tables.SamlUserGroup sug = SAML_USER_GROUP.as("saml_user_group");
+
+      tx.dsl()
+          .select(
+              SAML_USER.SAML_USER_ID,
+              SAML_USER.USERNAME,
+              SAML_USER.FIRST_NAME,
+              SAML_USER.LAST_NAME,
+              SAML_USER.EMAIL,
+              DSL.groupConcat(sg.NAME).separator(",").as("groups"))
+          .from(SAML_USER)
+          .leftJoin(sug)
+          .on(sug.SAML_USER_ID.eq(SAML_USER.SAML_USER_ID))
+          .leftJoin(sg)
+          .on(sg.SAML_GROUP_ID.eq(sug.SAML_GROUP_ID))
+          .groupBy(SAML_USER.SAML_USER_ID, SAML_USER.USERNAME, SAML_USER.FIRST_NAME,
+              SAML_USER.LAST_NAME, SAML_USER.EMAIL)
+          .fetchStream()
+          .map(record -> {
+            String id = record.get(SAML_USER.SAML_USER_ID);
+            String username = record.get(SAML_USER.USERNAME);
+            String firstName = record.get(SAML_USER.FIRST_NAME);
+            String lastName = record.get(SAML_USER.LAST_NAME);
+            String email = record.get(SAML_USER.EMAIL);
+            String groups = record.get("groups", String.class);
+
+            Set<String> groupsSet = new LinkedHashSet<>();
+            if (StringUtils.isNotBlank(groups)) {
+              groupsSet.addAll(Arrays.asList(groups.split(",")));
+            }
+
+            SamlUser samlUser = new SamlUser(username, firstName, lastName, email, groupsSet);
+            samlUser.setId(id);
+
+            return samlUser;
+          })
+          .forEach(consumer);
+    }
+  }
+
+  @Override
   public void delete(TransactionContext tx, SamlUser entity) {
     // Cascade to user token
     UserToken userToken = userTokenDAO.getByUsernameAndRealmId(tx, entity.getUsername(), SamlUser.SAML_REALM_ID);
@@ -187,49 +267,12 @@ public class SamlUserDAO
   }
 
   @Override
-  public List<SamlUser> getAll() {
-    String sQuery = "SELECT entity FROM SamlUser entity" + //
-        " ORDER BY entity.username";
-    return getList(sQuery);
+  public Table<?> getJooqTable() {
+    return SAML_USER;
   }
 
-  public void withAllUsersWithGroups(Consumer<SamlUser> consumer) {
-    String sQuery =
-        "SELECT saml_user.saml_user_id, saml_user.username, saml_user.first_name," +
-            " saml_user.last_name, saml_user.email," + //
-            " STRING_AGG(saml_group.name, CHR(44)) groups" +
-            " FROM " + getDatabaseSchema() + ".saml_user saml_user" + //
-            "   LEFT JOIN " + getDatabaseSchema() + ".saml_user_group saml_user_group" + //
-            "     ON saml_user_group.saml_user_id = saml_user.saml_user_id" + //
-            "   LEFT JOIN " + getDatabaseSchema() + ".saml_group saml_group" + //
-            "     ON saml_group.saml_group_id = saml_user_group.saml_group_id" + //
-            " GROUP BY saml_user.saml_user_id, saml_user.username, saml_user.first_name," + //
-            " saml_user.last_name, saml_user.email";
-
-    try (TransactionContext tx = createTransactionContext()) {
-      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
-
-      ((Stream<Object[]>) query.getResultStream())
-          .map(array -> {
-            String id = (String) array[0];
-            String username = (String) array[1];
-            String firstName = (String) array[2];
-            String lastName = (String) array[3];
-            String email = (String) array[4];
-            String groups = (String) array[5];
-
-            Set<String> groupsSet = new LinkedHashSet<>();
-            if (StringUtils.isNotBlank(groups)) {
-              groupsSet.addAll(Arrays.asList(groups.split(",")));
-            }
-
-            SamlUser samlUser =
-                new SamlUser(username, firstName, lastName, email, groupsSet);
-            samlUser.setId(id);
-
-            return samlUser;
-          })
-          .forEach(consumer);
-    }
+  @Override
+  public Class<SamlUser> getEntityClass() {
+    return SamlUser.class;
   }
 }

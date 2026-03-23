@@ -75,6 +75,10 @@ public class CopyrightOverride
     return originalContentHash;
   }
 
+  public void setOriginalContentHash(String originalContentHash) {
+    this.originalContentHash = originalContentHash;
+  }
+
   public String getContentHash() {
     return contentHash;
   }

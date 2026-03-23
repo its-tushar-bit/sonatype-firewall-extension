@@ -1104,7 +1104,7 @@ public class RepositoryMatcherTest
 
     ComponentEvaluationData unknown = new ComponentEvaluationData();
     unknown.matchState = "unknown";
-    unknown.requestIndex = 0;
+    unknown.requestIndex = 1;
     unknown.declaredLicenses = Collections.emptySet();
     unknown.observedLicenses = Collections.emptySet();
     unknown.securityVulnerabilities = Collections.emptyList();
@@ -1114,7 +1114,7 @@ public class RepositoryMatcherTest
     exact.hash = "05431145264b6ae31a85";
     exact.componentIdentifier = ci2;
     exact.matchState = "exact";
-    unknown.requestIndex = 1;
+    exact.requestIndex = 0;
     exact.declaredLicenses = Collections.singleton(new License("Not-Declared", "Not Declared"));
     exact.observedLicenses = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
     exact.securityVulnerabilities = Collections.emptyList();

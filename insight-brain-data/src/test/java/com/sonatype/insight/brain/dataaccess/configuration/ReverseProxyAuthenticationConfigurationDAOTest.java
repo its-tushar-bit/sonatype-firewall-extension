@@ -5,8 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.PersistenceException;
+import org.jooq.exception.IntegrityConstraintViolationException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -85,13 +84,11 @@ public class ReverseProxyAuthenticationConfigurationDAOTest
   public void testInsert_EnforceSingleton() {
     dao.insert(new ReverseProxyAuthenticationConfiguration());
 
-    assertThatExceptionOfType(PersistenceException.class)
-        .isThrownBy(() -> dao.insert(new ReverseProxyAuthenticationConfiguration()))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class)
+        .isThrownBy(() -> dao.insert(new ReverseProxyAuthenticationConfiguration()));
     ReverseProxyAuthenticationConfiguration config = new ReverseProxyAuthenticationConfiguration();
     config.setId(TemporaryEntity.uuid());
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(config))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class).isThrownBy(() -> dao.insert(config));
   }
 
   @Test
@@ -101,7 +98,7 @@ public class ReverseProxyAuthenticationConfigurationDAOTest
     ReverseProxyAuthenticationConfiguration config = new ReverseProxyAuthenticationConfiguration();
     config.setId(TemporaryEntity.uuid());
     dao.update(config);
-    assertThat(dao.createQuery("SELECT entity FROM ReverseProxyAuthenticationConfiguration entity").getList())
+    assertThat(dao.getAll())
         .extracting(ReverseProxyAuthenticationConfiguration::getId)
         .containsExactly(ReverseProxyAuthenticationConfigurationDAO.SINGLETON_ENTITY_ID);
   }

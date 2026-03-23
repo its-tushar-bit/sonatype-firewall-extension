@@ -5,14 +5,17 @@
  */
 package com.sonatype.insight.brain.dataaccess.githubapp;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.githubapp.GitHubAppInstallationState;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.Tables.GITHUB_APP_INSTALLATION_STATE;
 
 /**
  * DAO for GitHub App installation state tokens (OAuth + PKCE flow).
@@ -28,8 +31,8 @@ public class GitHubAppInstallationStateDAO
   }
 
   /**
-   * Atomically finds and deletes the installation state token.
-   * This ensures one-time use of state tokens to prevent replay attacks in the OAuth PKCE flow.
+   * Atomically finds and deletes the installation state token. This ensures one-time use of state tokens to prevent
+   * replay attacks in the OAuth PKCE flow.
    *
    * @param stateToken the state token to find and delete
    * @return the token if found, null otherwise
@@ -49,20 +52,24 @@ public class GitHubAppInstallationStateDAO
   }
 
   @Override
-  public void insert(GitHubAppInstallationState installationState) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      insert(tx, installationState);
-      tx.commit();
-    }
+  public Table<?> getJooqTable() {
+    return GITHUB_APP_INSTALLATION_STATE;
+  }
+
+  @Override
+  public Class<GitHubAppInstallationState> getEntityClass() {
+    return GitHubAppInstallationState.class;
   }
 
   public GitHubAppInstallationState findByStateToken(
-      TransactionContext tx,
-      String stateToken)
+      final TransactionContext tx,
+      final String stateToken)
   {
-    String query = "SELECT e FROM GitHubAppInstallationState e WHERE e.stateToken=?1";
-    return get(tx, query, stateToken);
+    return toEntity(
+        tx.dsl()
+            .selectFrom(GITHUB_APP_INSTALLATION_STATE)
+            .where(GITHUB_APP_INSTALLATION_STATE.STATE_TOKEN.eq(stateToken))
+            .fetchOne());
   }
 
   public void deleteByGitHubAppId(final String githubAppId) {
@@ -74,7 +81,9 @@ public class GitHubAppInstallationStateDAO
   }
 
   public void deleteByGitHubAppId(final TransactionContext tx, final String githubAppId) {
-    String query = "DELETE FROM GitHubAppInstallationState e WHERE e.githubAppId = ?1";
-    createQuery(tx, query, githubAppId).executeUpdate();
+    tx.dsl()
+        .deleteFrom(GITHUB_APP_INSTALLATION_STATE)
+        .where(GITHUB_APP_INSTALLATION_STATE.GITHUB_APP_ID.eq(githubAppId))
+        .execute();
   }
 }

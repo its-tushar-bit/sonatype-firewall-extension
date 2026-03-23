@@ -28,6 +28,10 @@ import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentObligationAttribution.COMPONENT_OBLIGATION_ATTRIBUTION;
+
 /**
  * @since 1.105
  */
@@ -48,9 +52,10 @@ public class ComponentObligationAttributionDAO
   }
 
   public List<ComponentObligationAttribution> getByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT entity FROM ComponentObligationAttribution entity" + //
-        " WHERE entity.ownerId=?1";
-    return getList(tx, sQuery, ownerId);
+    return tx.dsl()
+        .selectFrom(COMPONENT_OBLIGATION_ATTRIBUTION)
+        .where(COMPONENT_OBLIGATION_ATTRIBUTION.OWNER_ID.eq(ownerId))
+        .fetch(super::toEntity);
   }
 
   public List<ComponentObligationAttribution> getByOwnerId(String ownerId) {
@@ -65,17 +70,27 @@ public class ComponentObligationAttributionDAO
       ComponentIdentifier componentIdentifier,
       Set<String> obligationNames)
   {
-    String sQuery = "SELECT entity FROM ComponentObligationAttribution entity" + //
-        " WHERE entity.ownerId=?1" + //
-        " AND entity.componentIdFormat=?2" + //
-        " AND entity.componentIdCoordinatesJson=?3" + //
-        " AND (entity.obligationName IN (?4)" + //
-        (obligationNames.contains(null) ? " OR entity.obligationName IS NULL" : "") + //
-        ")";
-    return getList(tx, sQuery,
-        ownerId,
-        componentIdentifier.getFormat(), ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()),
-        obligationNames.stream().filter(Objects::nonNull).collect(Collectors.toSet()));
+    Set<String> nonNullObligationNames = obligationNames.stream()
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+    org.jooq.Condition obligationCondition;
+    if (obligationNames.contains(null)) {
+      obligationCondition = COMPONENT_OBLIGATION_ATTRIBUTION.OBLIGATION_NAME.in(nonNullObligationNames)
+          .or(COMPONENT_OBLIGATION_ATTRIBUTION.OBLIGATION_NAME.isNull());
+    }
+    else {
+      obligationCondition = COMPONENT_OBLIGATION_ATTRIBUTION.OBLIGATION_NAME.in(nonNullObligationNames);
+    }
+
+    return tx.dsl()
+        .selectFrom(COMPONENT_OBLIGATION_ATTRIBUTION)
+        .where(COMPONENT_OBLIGATION_ATTRIBUTION.OWNER_ID.eq(ownerId))
+        .and(COMPONENT_OBLIGATION_ATTRIBUTION.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+        .and(COMPONENT_OBLIGATION_ATTRIBUTION.COMPONENT_ID_COORDINATES_JSON.eq(
+            ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())))
+        .and(obligationCondition)
+        .fetch(super::toEntity);
   }
 
   public List<ComponentObligationAttribution> getByOwnerIdAndComponentIdentifier(
@@ -83,12 +98,13 @@ public class ComponentObligationAttributionDAO
       String ownerId,
       ComponentIdentifier componentIdentifier)
   {
-    String sQuery = "SELECT entity FROM ComponentObligationAttribution entity" + //
-        " WHERE entity.ownerId=?1" + //
-        " AND entity.componentIdFormat=?2" + //
-        " AND entity.componentIdCoordinatesJson=?3";
-    return getList(tx, sQuery, ownerId, componentIdentifier.getFormat(),
-        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
+    return tx.dsl()
+        .selectFrom(COMPONENT_OBLIGATION_ATTRIBUTION)
+        .where(COMPONENT_OBLIGATION_ATTRIBUTION.OWNER_ID.eq(ownerId))
+        .and(COMPONENT_OBLIGATION_ATTRIBUTION.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+        .and(COMPONENT_OBLIGATION_ATTRIBUTION.COMPONENT_ID_COORDINATES_JSON.eq(
+            ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())))
+        .fetch(super::toEntity);
   }
 
   public List<ComponentObligationAttribution> getByOwnerIdAndComponentIdentifierAndObligationNames(
@@ -177,5 +193,15 @@ public class ComponentObligationAttributionDAO
     }
     componentObligationAttribution.setLastUpdatedAt(new Date());
     super.update(tx, componentObligationAttribution);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return COMPONENT_OBLIGATION_ATTRIBUTION;
+  }
+
+  @Override
+  public Class<ComponentObligationAttribution> getEntityClass() {
+    return ComponentObligationAttribution.class;
   }
 }

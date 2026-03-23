@@ -14,6 +14,10 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.MigrationTracker.MIGRATION_TRACKER;
+
 @Named
 @Singleton
 public class MigrationTrackerDAO
@@ -28,6 +32,14 @@ public class MigrationTrackerDAO
   public void insert(TransactionContext tx, MigrationTracker entity) {
     Objects.requireNonNull(entity.getId(), "MigrationTracker entity cannot be inserted without an id!");
     super.insert(tx, entity);
+  }
+
+  @Override
+  public void delete(TransactionContext tx, MigrationTracker entity) {
+    if (entity == null) {
+      return;
+    }
+    super.delete(tx, entity);
   }
 
   public boolean isTrackerPresent(String trackerId) {
@@ -48,5 +60,15 @@ public class MigrationTrackerDAO
 
   public void deleteById(String migrationTrackerId) {
     super.delete(getById(migrationTrackerId));
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return MIGRATION_TRACKER;
+  }
+
+  @Override
+  public Class<MigrationTracker> getEntityClass() {
+    return MigrationTracker.class;
   }
 }

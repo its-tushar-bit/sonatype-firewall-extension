@@ -31,9 +31,9 @@ public class ApiSbomApplicationsHistoryMetricDTO
   }
 
   public ApiSbomApplicationsHistoryMetricDTO(Object[] array) {
-    totalScannedApplications = (long) array[0];
-    applicationsUpdatedLastYear = (long) array[1];
-    applicationsUpdatedLastMonth = (long) array[2];
-    applicationsUpdatedLastWeek = (long) array[3];
+    totalScannedApplications = ((Number) array[0]).longValue();
+    applicationsUpdatedLastYear = ((Number) array[1]).longValue();
+    applicationsUpdatedLastMonth = ((Number) array[2]).longValue();
+    applicationsUpdatedLastWeek = ((Number) array[3]).longValue();
   }
 }

@@ -68,6 +68,16 @@ public class User
     this.id = id;
   }
 
+  /**
+   * Alias for setId() to support jOOQ's default column-to-setter mapping.
+   * jOOQ maps the 'user_id' column to a 'setUserId()' setter by convention.
+   * While jOOQ's mapJPAAnnotations setting should use @Column annotations,
+   * providing this setter ensures consistent behavior.
+   */
+  public void setUserId(String userId) {
+    setId(userId);
+  }
+
   public String getUsername() {
     return username;
   }

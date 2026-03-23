@@ -9,8 +9,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
 import com.sonatype.insight.brain.model.configuration.ZscalerFormat;
 
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.PersistenceException;
+import org.jooq.exception.IntegrityConstraintViolationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -112,13 +111,12 @@ public class ZScalerConfigurationDAOTest
   public void testInsert_EnforceSingleton() {
     dao.insert(newValidConfiguration());
 
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(newValidConfiguration()))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class)
+        .isThrownBy(() -> dao.insert(newValidConfiguration()));
 
     ZScalerConfiguration config = newValidConfiguration();
     config.setId("not-singleton-id");
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(config))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class).isThrownBy(() -> dao.insert(config));
   }
 
   @Test
@@ -128,7 +126,7 @@ public class ZScalerConfigurationDAOTest
     ZScalerConfiguration config = newValidConfiguration();
     config.setId("not-singleton-id");
     dao.update(config);
-    assertThat(dao.createQuery("SELECT entity FROM ZScalerConfiguration entity").getList())
+    assertThat(dao.getAll())
         .extracting(ZScalerConfiguration::getId)
         .containsExactly(SINGLETON_ENTITY_ID);
   }
@@ -138,9 +136,9 @@ public class ZScalerConfigurationDAOTest
     ZScalerConfiguration config = newValidConfiguration();
     dao.insert(config);
 
-    List<ZScalerConfiguration> result = dao.createQuery(ZScalerConfigurationDAO.QUERY, SINGLETON_ENTITY_ID).getList();
-    assertThat(result).isNotEmpty();
-    assertThat(result.get(0).getId()).isEqualTo(SINGLETON_ENTITY_ID);
+    ZScalerConfiguration result = dao.getById(SINGLETON_ENTITY_ID);
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(SINGLETON_ENTITY_ID);
   }
 
   private ZScalerConfiguration newValidConfiguration() {

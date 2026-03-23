@@ -5,11 +5,12 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.AdminApiPaths;
 import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.component.RepositoryIdentifiedComponentCache;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
@@ -28,7 +29,7 @@ import org.junit.experimental.categories.Category;
 public class TenantCacheResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
-  private OrganizationDAO organizationDAO;
+  private RepositoryIdentifiedComponentCache repositoryIdentifiedComponentCache;
 
   private RoleDAO roleDAO;
 
@@ -37,7 +38,7 @@ public class TenantCacheResourceTest
 
   @Before
   public void before() {
-    organizationDAO = lookup(OrganizationDAO.class);
+    repositoryIdentifiedComponentCache = lookup(RepositoryIdentifiedComponentCache.class);
     roleDAO = lookup(RoleDAO.class);
   }
 
@@ -79,21 +80,30 @@ public class TenantCacheResourceTest
     long initialCount1 = getCacheStatistics(tenant1.tenantSlug).totalHitCount;
     long initialCount2 = getCacheStatistics(tenantSlug2).totalHitCount;
 
-    TenantTestHelper.testAsTenant(tenant1, tenant -> organizationDAO.getAll());
+    // Use RepositoryIdentifiedComponentCache which actually tracks cache statistics
+    // First put an entry in the cache, then get it to generate cache hits
+    String testHash = "test-hash-" + System.currentTimeMillis();
+    ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", null, null);
+
+    TenantTestHelper.testAsTenant(tenant1, tenant -> {
+      repositoryIdentifiedComponentCache.put(testHash, componentId);
+      // Getting an existing entry should register a cache hit
+      repositoryIdentifiedComponentCache.get(testHash);
+    });
 
     TestCacheStatistics stats1 = getCacheStatistics(tenant1.tenantSlug);
     TestCacheStatistics stats2 = getCacheStatistics(tenantSlug2);
 
-    // tenant1 should have increased cache hits from the getAll() call, tenant2 should be unchanged
+    // tenant1 should have increased cache hits from the get() call, tenant2 should be unchanged
     assertThat(stats1.totalHitCount).isGreaterThan(initialCount1);
     assertThat(stats2.totalHitCount).isEqualTo(initialCount2);
 
     long countAfterFirstCall = stats1.totalHitCount;
 
-    TenantTestHelper.testAsTenant(tenant1, tenant -> organizationDAO.getAll());
+    TenantTestHelper.testAsTenant(tenant1, tenant -> repositoryIdentifiedComponentCache.get(testHash));
 
     stats1 = getCacheStatistics(tenant1.tenantSlug);
-    // tenant1 should have more cache hits after second getAll() call
+    // tenant1 should have more cache hits after second get() call
     assertThat(stats1.totalHitCount).isGreaterThan(countAfterFirstCall);
   }
 

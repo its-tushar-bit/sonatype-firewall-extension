@@ -256,6 +256,9 @@ import com.sonatype.insight.brain.model.innersource.InnerSourceVersion;
 import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Label.LABEL;
 import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
@@ -391,7 +394,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.openjpa.enhance.PersistenceCapable;
 import org.assertj.core.util.Maps;
 import org.joda.time.LocalDate;
 import org.junit.rules.ExternalResource;
@@ -1145,10 +1147,10 @@ public class TemporaryEntity
     }
   }
 
+  @SuppressWarnings("PMD.UnusedFormalParameter") // entity parameter retained for API compatibility
   private <E> void detachEntity(E entity) {
-    PersistenceCapable pc = (PersistenceCapable) entity;
-    pc.pcSetDetachedState(null);
-    pc.pcReplaceStateManager(null);
+    // With jOOQ, entities are plain POJOs and don't need to be detached from any persistence context.
+    // This method is retained for API compatibility but is now a no-op.
   }
 
   public void initializePersistedUserSessions() {
@@ -1610,7 +1612,20 @@ public class TemporaryEntity
     app.setId("app_with_invalid_public_id");
     try (TransactionContext tx = appDAO.createTransactionContext()) {
       tx.begin();
-      tx.persist(app);
+      // Insert directly via jOOQ to bypass validation (simulating legacy data with invalid public ID)
+      tx.dsl()
+          .insertInto(APPLICATION)
+          .set(APPLICATION.APPLICATION_ID, app.getId())
+          .set(APPLICATION.PUBLIC_ID, app.getPublicId())
+          .set(APPLICATION.PUBLIC_ID_LOWERCASE, app.getPublicIdLowercase())
+          .set(APPLICATION.NAME, app.getName())
+          .set(APPLICATION.NAME_LOWERCASE_NO_WHITESPACE, app.getNameLowercaseNoWhitespace())
+          .set(APPLICATION.ORGANIZATION_ID, app.getOrganizationId())
+          .set(APPLICATION.CONTACT_INTERNAL_NAME, app.getContactInternalName())
+          .set(APPLICATION.LEGACY_VIOLATION_ENABLED, app.isLegacyViolationEnabled())
+          .set(APPLICATION.REPOSITORY_CONNECTION_ENABLED, app.isRepositoryConnectionEnabled())
+          .set(APPLICATION.ARTIFACTORY_CONNECTION_ENABLED, app.isArtifactoryConnectionEnabled())
+          .execute();
       tx.commit();
     }
     return app;
@@ -1824,13 +1839,24 @@ public class TemporaryEntity
   /**
    * Creates a label with invalid label text for backwards compatibility tests. Prior to 1.13 labels could use any
    * characters except for spaces and tabs.
+   *
+   * This method bypasses validation by inserting directly via jOOQ to simulate legacy data.
    */
   public Label newLabelWithInvalidLabelText(String ownerId, String labelText, Color color) {
     Label label = new Label(ownerId, labelText, color);
     label.setId("label_with_invalid_label_text");
     try (TransactionContext tx = labelDAO.createTransactionContext()) {
       tx.begin();
-      tx.persist(label);
+      // Insert directly via jOOQ to bypass validation (simulating legacy data)
+      tx.dsl()
+          .insertInto(LABEL)
+          .set(LABEL.LABEL_ID, label.getId())
+          .set(LABEL.OWNER_ID, label.getOwnerId())
+          .set(LABEL.LABEL_, label.getLabel())
+          .set(LABEL.LABEL_LOWERCASE, label.getLabelLowercase())
+          .set(LABEL.DESCRIPTION, label.getDescription())
+          .set(LABEL.COLOR, label.getColor().name())
+          .execute();
       tx.commit();
     }
     return label;
@@ -2937,10 +2963,13 @@ public class TemporaryEntity
 
     constraintFact.addConditionFact(conditionFact);
 
+    List<ConstraintFact> constraintFacts = Collections.singletonList(constraintFact);
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy, hash, componentIdentifier,
-        Collections.singletonList(constraintFact), filename);
+        constraintFacts, filename);
     policyViolation.setId(getNextPolicyViolationId());
     policyViolationDAO.insert(policyViolation);
+    // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
+    policyViolation.setConstraintFacts(constraintFacts);
     return policyViolation;
   }
 
@@ -3038,7 +3067,11 @@ public class TemporaryEntity
     final PolicyViolation policyViolation = newWaivedPolicyViolation(evaluation, policy, threatLevel, threatCategory,
         componentIdentifier, hash, policyWaiver.getId());
     policyViolation.setPolicyWaiverComment(policyWaiver.getComment());
+    // Preserve constraint facts before insert since storeConstraints() clears them for memory optimization
+    List<ConstraintFact> constraintFacts = policyViolation.getConstraintFacts();
     policyViolationDAO.insert(policyViolation);
+    // Restore constraint facts after insert
+    policyViolation.setConstraintFacts(constraintFacts);
     return policyViolation;
   }
 
@@ -3050,7 +3083,11 @@ public class TemporaryEntity
     final PolicyViolation policyViolation = newWaivedPolicyViolation(evaluation, policy, 5, SECURITY,
         ComponentIdentifier.createMavenCoordinates(uuid(), uuid(), "1.0"), "hash", autoPolicyWaiver.getId());
     policyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+    // Preserve constraint facts before insert since storeConstraints() clears them for memory optimization
+    List<ConstraintFact> constraintFacts = policyViolation.getConstraintFacts();
     policyViolationDAO.insert(policyViolation);
+    // Restore constraint facts after insert
+    policyViolation.setConstraintFacts(constraintFacts);
     return policyViolation;
   }
 
@@ -3126,12 +3163,15 @@ public class TemporaryEntity
         new ConditionFact(condition.getConditionTypeId(), 0 /* conditionIndex */, "summary", "reason");
     constraintFact.addConditionFact(conditionFact);
 
+    List<ConstraintFact> constraintFacts = Collections.singletonList(constraintFact);
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(),
         policy.getThreatLevel(), policy.getThreatCategory(), hash, componentIdentifier,
-        Collections.singletonList(constraintFact), "unknown.jar");
+        constraintFacts, "unknown.jar");
     policyViolation.setLegacyViolationTime(evaluation.getTime());
     policyViolation.setId(getNextPolicyViolationId());
     policyViolationDAO.insert(policyViolation);
+    // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
+    policyViolation.setConstraintFacts(constraintFacts);
     return policyViolation;
   }
 
@@ -3146,7 +3186,15 @@ public class TemporaryEntity
   }
 
   public void updatePolicyViolation(final PolicyViolation policyViolation) {
+    // Preserve constraint facts before update since storeConstraints() clears them for memory optimization
+    List<ConstraintFact> constraintFacts = policyViolation.constraintFactsAreLoaded()
+        ? policyViolation.getConstraintFacts()
+        : null;
     policyViolationDAO.update(policyViolation);
+    // Restore constraint facts after update
+    if (constraintFacts != null) {
+      policyViolation.setConstraintFacts(constraintFacts);
+    }
   }
 
   public PolicyViolation newPolicyViolation(
@@ -3229,11 +3277,14 @@ public class TemporaryEntity
         "reason");
     constraintFact.addConditionFact(conditionFact);
 
+    List<ConstraintFact> constraintFacts = Collections.singletonList(constraintFact);
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(), threatLevel,
-        category, hash, componentIdentifier, Collections.singletonList(constraintFact), "unknown.jar");
+        category, hash, componentIdentifier, constraintFacts, "unknown.jar");
     policyViolation.setActionTypeId(actionTypeId);
     policyViolation.setId(getNextPolicyViolationId());
     policyViolationDAO.insert(policyViolation);
+    // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
+    policyViolation.setConstraintFacts(constraintFacts);
     return policyViolation;
   }
 
@@ -3252,10 +3303,13 @@ public class TemporaryEntity
         new ConditionFact(condition.getConditionTypeId(), 0 /* conditionIndex */, "summary", "reason");
     constraintFact.addConditionFact(conditionFact);
 
+    List<ConstraintFact> constraintFacts = Collections.singletonList(constraintFact);
     RepositoryPolicyViolation repositoryPolicyViolation = new RepositoryPolicyViolation(repository.getId(), pathname,
         new Date(), policy.getId(), policy.getName(), policy.getThreatLevel(), policy.getThreatCategory(), hash,
-        componentIdentifier, Collections.singletonList(constraintFact));
+        componentIdentifier, constraintFacts);
     repositoryPolicyViolationDAO.insert(repositoryPolicyViolation);
+    // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
+    repositoryPolicyViolation.setConstraintFacts(constraintFacts);
     return repositoryPolicyViolation;
   }
 
@@ -3683,12 +3737,15 @@ public class TemporaryEntity
       throw new RuntimeException(e);
     }
 
+    List<ConstraintFact> constraintFactsList = Arrays.asList(constraintFacts);
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, time, policyId,
         policyName, threatLevel, PolicyThreatCategory.LICENSE, "hash", componentIdentifier,
-        Arrays.asList(constraintFacts));
+        constraintFactsList);
     policyViolation.setWaived(isWaived);
     policyViolation.setActionTypeId(actionId);
     repositoryPolicyViolationDAO.insert(policyViolation);
+    // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
+    policyViolation.setConstraintFacts(constraintFactsList);
     return policyViolation;
   }
 
@@ -3716,6 +3773,8 @@ public class TemporaryEntity
     policyViolation.setPolicyWaiverComment(policyWaiverComment);
     policyViolation.setWaiveTime(waiveTime);
     repositoryPolicyViolationDAO.insert(policyViolation);
+    // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
+    policyViolation.setConstraintFacts(constraintFacts);
     return policyViolation;
   }
 
@@ -3731,7 +3790,11 @@ public class TemporaryEntity
   }
 
   public RepositoryPolicyViolation newRepositoryPolicyViolation(RepositoryPolicyViolation repositoryPolicyViolation) {
+    // Preserve constraint facts before insert since storeConstraints() clears them for memory optimization
+    List<ConstraintFact> constraintFacts = repositoryPolicyViolation.getConstraintFacts();
     repositoryPolicyViolationDAO.insert(repositoryPolicyViolation);
+    // Restore constraint facts after insert
+    repositoryPolicyViolation.setConstraintFacts(constraintFacts);
     return repositoryPolicyViolation;
   }
 
@@ -3968,21 +4031,27 @@ public class TemporaryEntity
 
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, Date time) {
     ConstraintFact constraintFact = new ConstraintFact("constraintdata", "constraintdata", "constraintdata");
+    List<ConstraintFact> constraintFacts = List.of(constraintFact);
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, "path", time,
         "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash",
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
-        List.of(constraintFact));
+        constraintFacts);
     repositoryPolicyViolationDAO.insert(policyViolation);
+    // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
+    policyViolation.setConstraintFacts(constraintFacts);
     return policyViolation;
   }
 
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, String policyId, int threatLevel) {
     ConstraintFact constraintFact = new ConstraintFact("constraintdata", "constraintdata", "constraintdata");
+    List<ConstraintFact> constraintFacts = List.of(constraintFact);
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, "path", new Date(),
         policyId, "policyName", threatLevel, PolicyThreatCategory.LICENSE, "hash",
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
-        List.of(constraintFact));
+        constraintFacts);
     repositoryPolicyViolationDAO.insert(policyViolation);
+    // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
+    policyViolation.setConstraintFacts(constraintFacts);
     return policyViolation;
   }
 
@@ -5124,7 +5193,10 @@ public class TemporaryEntity
   }
 
   public ThirdPartyFileCoordinate newThirdPartyFileCoordinate() {
-    return newThirdPartyFileCoordinate(newThirdPartyFile(), "s1", "f1", "n1", "v1");
+    ThirdPartyFile thirdPartyFile = newThirdPartyFile();
+    // Provide a default packageUrl for tests that query by packageUrl
+    return newThirdPartyFileCoordinate(thirdPartyFile.getId(), "s1", "f1", "n1", "v1", newRandomHash(),
+        "pkg:maven/test/test@1.0.0");
   }
 
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity(
@@ -6153,7 +6225,6 @@ public class TemporaryEntity
     waivedPolicyViolation.setOpenTime(openTime);
     waivedPolicyViolation.setFixTime(closeTime);
 
-    policyViolationDAO.update(waivedPolicyViolation);
     this.updatePolicyViolation(waivedPolicyViolation);
 
     return waivedPolicyViolation;
@@ -6766,7 +6837,7 @@ public class TemporaryEntity
   {
     // Create the proper 3-level hierarchy for container images
     Organization organizationForRepoContainer = newOrganization("Firewall for Docker");
-    organizationForRepoContainer.setRelatedRepositorContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    organizationForRepoContainer.setRelatedRepositoryContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     orgDAO.update(organizationForRepoContainer);
     repositoryContainerDAO.setRelatedOrganizationIdNotNull(organizationForRepoContainer.getId());
 

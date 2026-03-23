@@ -20,6 +20,10 @@ import com.sonatype.insight.brain.model.security.SamlGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SamlGroup.SAML_GROUP;
 
 @Named
 @Singleton
@@ -39,9 +43,12 @@ public class SamlGroupDAO
 
   @Override
   public List<SamlGroup> getAll() {
-    String sQuery = "SELECT entity FROM SamlGroup entity" + //
-        " ORDER BY entity.name";
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SAML_GROUP)
+          .orderBy(SAML_GROUP.NAME)
+          .fetchInto(SamlGroup.class);
+    }
   }
 
   public List<SamlGroup> getByIds(Set<String> ids) {
@@ -54,10 +61,11 @@ public class SamlGroupDAO
     if (CollectionUtils.isEmpty(ids)) {
       return Collections.emptyList();
     }
-    String sQuery = "SELECT entity from SamlGroup entity" + //
-        " WHERE entity.id IN ?1" + //
-        " ORDER BY entity.name";
-    return getList(tx, sQuery, ids);
+    return tx.dsl()
+        .selectFrom(SAML_GROUP)
+        .where(SAML_GROUP.SAML_GROUP_ID.in(ids))
+        .orderBy(SAML_GROUP.NAME)
+        .fetchInto(SamlGroup.class);
   }
 
   public SamlGroup getByName(String name) {
@@ -67,19 +75,23 @@ public class SamlGroupDAO
   }
 
   public SamlGroup getByName(TransactionContext tx, String name) {
-    String sQuery = "SELECT entity FROM SamlGroup entity" + //
-        " WHERE entity.name=?1";
-    return get(tx, sQuery, name);
+    return tx.dsl()
+        .selectFrom(SAML_GROUP)
+        .where(SAML_GROUP.NAME.eq(name))
+        .fetchOneInto(SamlGroup.class);
   }
 
   public List<SamlGroup> getByNames(Set<String> names) {
     if (CollectionUtils.isEmpty(names)) {
       return Collections.emptyList();
     }
-    String sQuery = "SELECT entity from SamlGroup entity" + //
-        " WHERE entity.name IN ?1" + //
-        " ORDER BY entity.name";
-    return getList(sQuery, names);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SAML_GROUP)
+          .where(SAML_GROUP.NAME.in(names))
+          .orderBy(SAML_GROUP.NAME)
+          .fetchInto(SamlGroup.class);
+    }
   }
 
   public void upsertByName(SamlGroup samlGroup) {
@@ -103,10 +115,13 @@ public class SamlGroupDAO
 
   public List<SamlGroup> findGroupsByNameQuery(String nameQuery) {
     nameQuery = nameQuery.trim().toLowerCase(Locale.ENGLISH);
-    String sQuery = "SELECT entity FROM SamlGroup entity" + //
-        " WHERE lower(entity.name) LIKE ?1" + //
-        " ORDER BY entity.name";
-    return getList(sQuery, nameQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SAML_GROUP)
+          .where(DSL.lower(SAML_GROUP.NAME).like(nameQuery))
+          .orderBy(SAML_GROUP.NAME)
+          .fetchInto(SamlGroup.class);
+    }
   }
 
   @Override
@@ -115,5 +130,15 @@ public class SamlGroupDAO
     samlUserGroupDAO.deleteBySamlGroupId(tx, entity.getId());
 
     super.delete(tx, entity);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return SAML_GROUP;
+  }
+
+  @Override
+  public Class<SamlGroup> getEntityClass() {
+    return SamlGroup.class;
   }
 }

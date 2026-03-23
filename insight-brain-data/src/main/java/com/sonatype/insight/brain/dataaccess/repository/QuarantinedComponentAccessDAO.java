@@ -18,6 +18,10 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.QuarantinedComponentAccess.QUARANTINED_COMPONENT_ACCESS;
+
 @Named
 @Singleton
 public class QuarantinedComponentAccessDAO
@@ -36,29 +40,66 @@ public class QuarantinedComponentAccessDAO
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
 
-  public int deleteAllBeforeDate(final Date cutoffDate) {
-    String sQuery = "SELECT entity.id FROM QuarantinedComponentAccess entity" +
-        " WHERE entity.generateTime < ?1";
-    int deletedRows = 0;
-    List<String> ids =
-        new Query<String>(sQuery, cutoffDate).setMaxResults(DELETE_BATCH_SIZE).getList();
+  @Override
+  public Table<?> getJooqTable() {
+    return QUARANTINED_COMPONENT_ACCESS;
+  }
 
-    while (!ids.isEmpty()) {
-      deletedRows +=
-          createQuery("DELETE FROM QuarantinedComponentAccess entity WHERE entity.id IN (?1)", ids).executeUpdate();
-      ids = new Query<String>(sQuery, cutoffDate).setMaxResults(DELETE_BATCH_SIZE).getList();
+  @Override
+  public List<QuarantinedComponentAccess> getAll(TransactionContext tx) {
+    return tx.dsl().selectFrom(QUARANTINED_COMPONENT_ACCESS).fetch(super::toEntity);
+  }
+
+  public int deleteAllBeforeDate(final Date cutoffDate) {
+    int deletedRows = 0;
+
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+
+      List<String> ids;
+      do {
+        ids = tx.dsl()
+            .select(QUARANTINED_COMPONENT_ACCESS.QUARANTINED_COMPONENT_ACCESS_ID)
+            .from(QUARANTINED_COMPONENT_ACCESS)
+            .where(QUARANTINED_COMPONENT_ACCESS.GENERATE_TIME.lt(cutoffDate))
+            .limit(DELETE_BATCH_SIZE)
+            .fetch(QUARANTINED_COMPONENT_ACCESS.QUARANTINED_COMPONENT_ACCESS_ID);
+
+        if (!ids.isEmpty()) {
+          int deleted = tx.dsl()
+              .deleteFrom(QUARANTINED_COMPONENT_ACCESS)
+              .where(QUARANTINED_COMPONENT_ACCESS.QUARANTINED_COMPONENT_ACCESS_ID.in(ids))
+              .execute();
+          deletedRows += deleted;
+        }
+      }
+      while (!ids.isEmpty());
+
+      tx.commit();
     }
     return deletedRows;
   }
 
   public void deleteByRepositoryComponentId(final TransactionContext tx, final String repositoryComponentId) {
-    String sQuery = "DELETE FROM QuarantinedComponentAccess entity WHERE entity.repositoryComponentId=?1";
-    createQuery(sQuery, repositoryComponentId).executeUpdate(tx);
+    tx.dsl()
+        .deleteFrom(QUARANTINED_COMPONENT_ACCESS)
+        .where(QUARANTINED_COMPONENT_ACCESS.REPOSITORY_COMPONENT_ID.eq(repositoryComponentId))
+        .execute();
   }
 
   public void deleteByRepositoryId(final TransactionContext tx, final String repositoryId) {
-    String sQuery = "DELETE FROM QuarantinedComponentAccess entity WHERE entity.repositoryId=?1";
-    createQuery(sQuery, repositoryId).executeUpdate(tx);
+    tx.dsl()
+        .deleteFrom(QUARANTINED_COMPONENT_ACCESS)
+        .where(QUARANTINED_COMPONENT_ACCESS.REPOSITORY_ID.eq(repositoryId))
+        .execute();
+  }
+
+  @Override
+  public void delete(TransactionContext tx, QuarantinedComponentAccess entity) {
+    tx.dsl()
+        .deleteFrom(QUARANTINED_COMPONENT_ACCESS)
+        .where(QUARANTINED_COMPONENT_ACCESS.QUARANTINED_COMPONENT_ACCESS_ID.eq(entity.getId()))
+        .execute();
   }
 
   public void setAnonymousAccess(boolean enabled) {
@@ -70,5 +111,10 @@ public class QuarantinedComponentAccessDAO
     return Boolean.parseBoolean(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS)
         .getValue());
+  }
+
+  @Override
+  public Class<QuarantinedComponentAccess> getEntityClass() {
+    return QuarantinedComponentAccess.class;
   }
 }

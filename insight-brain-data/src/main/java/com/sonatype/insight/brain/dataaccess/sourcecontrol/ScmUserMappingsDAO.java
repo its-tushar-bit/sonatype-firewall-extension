@@ -5,14 +5,17 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.ScmUserMappings;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ScmUserMappings.SCM_USER_MAPPINGS;
 
 @Named
 @Singleton
@@ -31,12 +34,17 @@ public class ScmUserMappingsDAO
   }
 
   public ScmUserMappings getByOrganizationId(TransactionContext tx, String organizationId) {
-    return get(tx, "SELECT entity FROM ScmUserMappings entity WHERE entity.organizationId=?1", organizationId);
+    return toEntity(tx.dsl()
+        .selectFrom(SCM_USER_MAPPINGS)
+        .where(SCM_USER_MAPPINGS.ORGANIZATION_ID.eq(organizationId))
+        .fetchOne());
   }
 
   public void deleteByOrganizationId(TransactionContext tx, String organizationId) {
-    String sQuery = "DELETE FROM ScmUserMappings entity WHERE entity.organizationId=?1";
-    createQuery(sQuery, organizationId).executeUpdate(tx);
+    tx.dsl()
+        .deleteFrom(SCM_USER_MAPPINGS)
+        .where(SCM_USER_MAPPINGS.ORGANIZATION_ID.eq(organizationId))
+        .execute();
   }
 
   public void deleteByOrganizationId(String organizationId) {
@@ -60,5 +68,15 @@ public class ScmUserMappingsDAO
       }
       tx.commit();
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return SCM_USER_MAPPINGS;
+  }
+
+  @Override
+  public Class<ScmUserMappings> getEntityClass() {
+    return ScmUserMappings.class;
   }
 }

@@ -5,35 +5,28 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration.saml;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
 import com.sonatype.insight.model.HasStringId;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Table;
 
 /**
  * @since 1.72
  */
-@Entity
 @Table(name = "saml_configuration")
 public class SamlConfigurationInternal
     implements HasStringId
 {
   static final String KEYSTORE_ALIAS = "SAML";
 
-  @Id
   @Column(name = "saml_configuration_id")
   private String id;
 
-  @Column(name = "configuration_json")
   private String configurationJson;
 
-  @Column(name = "keystore")
-  private byte[] keyStoreBytes;
+  private byte[] keystore;
 
-  @Column(name = "keystore_password_obfuscated")
-  private char[] keyStorePasswordObfuscated;
+  private char[] keystorePasswordObfuscated;
 
   public SamlConfigurationInternal() {
   }
@@ -57,22 +50,22 @@ public class SamlConfigurationInternal
   }
 
   void setKeyStorePassword(char[] keyStorePassword) {
-    this.keyStorePasswordObfuscated = keyStorePassword;
+    this.keystorePasswordObfuscated = keyStorePassword;
   }
 
-  char[] getKeyStorePasswordObfuscated() {
-    return keyStorePasswordObfuscated;
+  char[] getKeystorePasswordObfuscated() {
+    return keystorePasswordObfuscated;
   }
 
-  void setKeyStorePasswordObfuscated(char[] keyStorePasswordObfuscated) {
-    this.keyStorePasswordObfuscated = keyStorePasswordObfuscated;
+  void setKeystorePasswordObfuscated(char[] keystorePasswordObfuscated) {
+    this.keystorePasswordObfuscated = keystorePasswordObfuscated;
   }
 
-  byte[] getKeyStoreBytes() {
-    return keyStoreBytes;
+  byte[] getKeystore() {
+    return keystore;
   }
 
-  void setKeyStoreBytes(byte[] keyStoreBytes) {
-    this.keyStoreBytes = keyStoreBytes;
+  void setKeystore(byte[] keystore) {
+    this.keystore = keystore;
   }
 }

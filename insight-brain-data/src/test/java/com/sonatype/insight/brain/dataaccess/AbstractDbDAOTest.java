@@ -34,8 +34,9 @@ public abstract class AbstractDbDAOTest
 
   @Before
   public void setup() {
-    organization = tempEntity.newOrganization("AbstractDbDAOTest");
-    application = tempEntity.newApplication("AbstractDbDAOTest-AppName", "AbstractDbDAOTest-AppPublicId",
+    String uniquePrefix = getClass().getSimpleName() + "_" + TemporaryEntity.uuid();
+    organization = tempEntity.newOrganization(uniquePrefix);
+    application = tempEntity.newApplication(uniquePrefix + "-AppName", uniquePrefix + "-AppPublicId",
         organization.getId());
     repositoryManager = tempEntity.newRepositoryManager();
     repository = tempEntity.newRepository(repositoryManager);

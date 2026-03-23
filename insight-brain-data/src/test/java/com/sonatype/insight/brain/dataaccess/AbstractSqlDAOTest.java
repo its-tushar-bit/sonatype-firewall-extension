@@ -5,19 +5,20 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.List;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.jooq.Table;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.MigrationTracker.MIGRATION_TRACKER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTest.class)
@@ -62,19 +63,33 @@ public class AbstractSqlDAOTest
     }
 
     @Override
-    public TransactionContext createTransactionContext() {
-      return new TransactionContext(dataStore.getJPAEntityManagerFactory().createEntityManager());
-    }
-
-    public List<MigrationTracker> getAll() {
-      String sQuery = "SELECT entity FROM MigrationTracker entity";
-      return getList(createTransactionContext(), sQuery);
+    public Table<?> getJooqTable() {
+      return MIGRATION_TRACKER;
     }
 
     @Override
-    public long getCount() {
-      String sQuery = "SELECT COUNT(entity) FROM MigrationTracker entity";
-      return getSingle(Long.class, sQuery);
+    public Class<MigrationTracker> getEntityClass() {
+      return MigrationTracker.class;
+    }
+
+    @Override
+    public void insert(TransactionContext tx, MigrationTracker entity) {
+      throw new UnsupportedOperationException("Not needed for this test");
+    }
+
+    @Override
+    public void update(TransactionContext tx, MigrationTracker entity) {
+      throw new UnsupportedOperationException("Not needed for this test");
+    }
+
+    @Override
+    public List<MigrationTracker> getAll() {
+      try (TransactionContext tx = createTransactionContext()) {
+        return tx.dsl()
+            .selectFrom(MIGRATION_TRACKER)
+            .limit(MAX_ALLOWED_DB_RESULTS)
+            .fetchInto(MigrationTracker.class);
+      }
     }
   }
 }

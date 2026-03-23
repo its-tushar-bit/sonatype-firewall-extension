@@ -5,22 +5,28 @@
  */
 package com.sonatype.insight.brain.db;
 
-import java.util.Locale;
-import java.util.concurrent.atomic.AtomicLong;
+import com.sonatype.insight.brain.db.jooq.JooqSqlCounterListener;
 
-import org.apache.openjpa.lib.jdbc.AbstractJDBCListener;
-import org.apache.openjpa.lib.jdbc.JDBCEvent;
-import org.apache.openjpa.lib.jdbc.JDBCListener;
-
+/**
+ * Facade for SQL call counter metrics.
+ *
+ * <p>
+ * This class provides access to SQL statement execution counts. Previously, this
+ * class contained an OpenJPA JDBC listener for tracking SQL calls. That functionality
+ * has been migrated to {@link JooqSqlCounterListener} for jOOQ-based data access.
+ * </p>
+ *
+ * <p>
+ * This class now delegates to {@link JooqSqlCounterListener} for SQL metrics
+ * while maintaining backward compatibility with existing code that references
+ * this class.
+ * </p>
+ *
+ * @see JooqSqlCounterListener
+ */
 public class SqlCallCounterMetrics
 {
-  private JDBCListener jdbcListener;
-
-  private final AtomicLong statementCount = new AtomicLong();
-
   private static final SqlCallCounterMetrics instance = new SqlCallCounterMetrics();
-
-  private static final String CUSTOM_METRICS = "customMetrics";
 
   public static final String SQL_COUNT = "sqlcount";
 
@@ -29,23 +35,62 @@ public class SqlCallCounterMetrics
   }
 
   private SqlCallCounterMetrics() {
-    String perfMetricsValue = System.getProperty(CUSTOM_METRICS, "");
-    if (perfMetricsValue.toLowerCase(Locale.ENGLISH).contains(SQL_COUNT)) {
-      jdbcListener = new AbstractJDBCListener()
-      {
-        @Override
-        public void afterExecuteStatement(final JDBCEvent jdbcEvent) {
-          statementCount.incrementAndGet();
-        }
-      };
-    }
+    // Singleton
   }
 
-  public JDBCListener getJDBCListener() {
-    return jdbcListener;
-  }
-
+  /**
+   * Get the total count of SQL statements executed.
+   *
+   * <p>
+   * This method now delegates to {@link JooqSqlCounterListener#getTotalCount()}.
+   * </p>
+   *
+   * @return the total SQL statement count
+   */
   public long getCount() {
-    return statementCount.longValue();
+    return JooqSqlCounterListener.getInstance().getTotalCount();
+  }
+
+  /**
+   * Get the count of SELECT statements executed.
+   *
+   * @return the SELECT count
+   */
+  public long getSelectCount() {
+    return JooqSqlCounterListener.getInstance().getSelectCount();
+  }
+
+  /**
+   * Get the count of INSERT statements executed.
+   *
+   * @return the INSERT count
+   */
+  public long getInsertCount() {
+    return JooqSqlCounterListener.getInstance().getInsertCount();
+  }
+
+  /**
+   * Get the count of UPDATE statements executed.
+   *
+   * @return the UPDATE count
+   */
+  public long getUpdateCount() {
+    return JooqSqlCounterListener.getInstance().getUpdateCount();
+  }
+
+  /**
+   * Get the count of DELETE statements executed.
+   *
+   * @return the DELETE count
+   */
+  public long getDeleteCount() {
+    return JooqSqlCounterListener.getInstance().getDeleteCount();
+  }
+
+  /**
+   * Reset all counters.
+   */
+  public void reset() {
+    JooqSqlCounterListener.getInstance().reset();
   }
 }

@@ -50,6 +50,8 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyViolation.POLICY_VIOLATION;
+
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -123,6 +125,8 @@ public class PolicyViolationDAOTest
     assertThat(policyViolation.getId()).isNull();
     dao.insert(policyViolation);
     assertThat(policyViolation.getId()).isNotNull();
+    // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
+    policyViolation.setConstraintFacts(List.of(constraintFact));
 
     // Test constraints stored
     assertThat(policyViolation.getConstraintFactsId()).isNotNull();
@@ -213,30 +217,30 @@ public class PolicyViolationDAOTest
     }
 
     // and the policy violations are identical to persisted policy violations
-    // and in the expected order
+    // and in the expected order (ignoring constraintFacts which are stored separately and not loaded by default)
     assertThat(consumedPolicyViolations.get(0)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .ignoringFields("deprecatedConstraintFactsJson")
+        .ignoringFields("deprecatedConstraintFactsJson", "constraintFacts")
         .isEqualTo(persistedPolicyViolations.get(0));
     assertThat(consumedPolicyViolations.get(1)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .ignoringFields("deprecatedConstraintFactsJson")
+        .ignoringFields("deprecatedConstraintFactsJson", "constraintFacts")
         .isEqualTo(persistedPolicyViolations.get(9));
     assertThat(consumedPolicyViolations.get(2)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .ignoringFields("deprecatedConstraintFactsJson")
+        .ignoringFields("deprecatedConstraintFactsJson", "constraintFacts")
         .isEqualTo(persistedPolicyViolations.get(1));
     assertThat(consumedPolicyViolations.get(3)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .ignoringFields("deprecatedConstraintFactsJson")
+        .ignoringFields("deprecatedConstraintFactsJson", "constraintFacts")
         .isEqualTo(persistedPolicyViolations.get(2));
     assertThat(consumedPolicyViolations.get(4)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .ignoringFields("deprecatedConstraintFactsJson")
+        .ignoringFields("deprecatedConstraintFactsJson", "constraintFacts")
         .isEqualTo(persistedPolicyViolations.get(3));
     assertThat(consumedPolicyViolations.get(5)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .ignoringFields("deprecatedConstraintFactsJson")
+        .ignoringFields("deprecatedConstraintFactsJson", "constraintFacts")
         .isEqualTo(persistedPolicyViolations.get(5));
     assertThat(consumedPolicyViolations.get(6)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .ignoringFields("deprecatedConstraintFactsJson")
+        .ignoringFields("deprecatedConstraintFactsJson", "constraintFacts")
         .isEqualTo(persistedPolicyViolations.get(6));
     assertThat(consumedPolicyViolations.get(7)).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .ignoringFields("deprecatedConstraintFactsJson")
+        .ignoringFields("deprecatedConstraintFactsJson", "constraintFacts")
         .isEqualTo(persistedPolicyViolations.get(8));
   }
 
@@ -284,12 +288,16 @@ public class PolicyViolationDAOTest
     assertThat(policyViolation.getConstraintFactsId()).isNotNull();
     assertThat(policyViolation.getDeprecatedConstraintFactsJson()).isNull();
 
-    String sQuery = """
-        UPDATE PolicyViolation entity
-          SET entity.constraintFactsId = null, entity.deprecatedConstraintFactsJson=?2
-          WHERE entity.id=?1""";
-    dao.createQuery(sQuery, policyViolation.getId(), policyViolation.getConstraintFactsJson()).executeUpdate();
-    constraintFactsDAO.delete(constraintFactsDAO.getById(policyViolation.getConstraintFactsId()));
+    String constraintFactsId = policyViolation.getConstraintFactsId();
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.dsl()
+          .update(POLICY_VIOLATION)
+          .setNull(POLICY_VIOLATION.CONSTRAINT_FACTS_ID)
+          .set(POLICY_VIOLATION.CONSTRAINT_FACTS_JSON, policyViolation.getConstraintFactsJson())
+          .where(POLICY_VIOLATION.POLICY_VIOLATION_ID.eq(policyViolation.getId()))
+          .execute();
+    }
+    constraintFactsDAO.delete(constraintFactsDAO.getById(constraintFactsId));
 
     policyViolation = dao.getById(policyViolation.getId());
     assertThat(policyViolation.getConstraintFactsId()).isNull();

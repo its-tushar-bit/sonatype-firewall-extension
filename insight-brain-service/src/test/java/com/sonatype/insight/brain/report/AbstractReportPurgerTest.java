@@ -31,8 +31,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
-import jakarta.persistence.LockModeType;
-import jakarta.persistence.OptimisticLockException;
+import org.jooq.exception.DataAccessException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -257,10 +256,7 @@ public abstract class AbstractReportPurgerTest
     Thread thread = new Thread(() -> {
       try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
         tx.begin();
-        policyEvaluationDAO //
-            .createQuery("SELECT entity FROM PolicyEvaluation entity") //
-            .setLockModeType(LockModeType.PESSIMISTIC_WRITE) //
-            .getList(tx);
+        tx.dsl().execute("SELECT * FROM policy_evaluation FOR UPDATE");
         latch.countDown();
         Thread.sleep(2 * 1000);
         tx.commit();
@@ -297,10 +293,7 @@ public abstract class AbstractReportPurgerTest
     Thread thread = new Thread(() -> {
       try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
         tx.begin();
-        policyEvaluationDAO //
-            .createQuery("SELECT entity FROM PolicyEvaluation entity") //
-            .setLockModeType(LockModeType.PESSIMISTIC_WRITE) //
-            .getList(tx);
+        tx.dsl().execute("SELECT * FROM policy_evaluation FOR UPDATE");
         latch.countDown();
         Thread.sleep(2 * 1000);
         tx.commit();
@@ -314,7 +307,7 @@ public abstract class AbstractReportPurgerTest
     assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
     reportPurger = spy(reportPurger);
     when(reportPurger.getDelayForRetry(anyInt())).thenReturn(Duration.ZERO);
-    assertThatExceptionOfType(OptimisticLockException.class).isThrownBy(() -> reportPurger.purgeReports());
+    assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> reportPurger.purgeReports());
     verify(reportPurger).getDelayForRetry(9);
     verify(reportPurger, never()).getDelayForRetry(10);
 

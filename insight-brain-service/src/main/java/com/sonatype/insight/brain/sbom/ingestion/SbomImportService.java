@@ -45,11 +45,14 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.RollbackException;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.exception.DataAccessException;
+import org.jooq.exception.IntegrityConstraintViolationException;
+import org.postgresql.util.PSQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.db.jooq.DialectHelper.POSTGRES_UNIQUE_CONSTRAINT_VIOLATION;
 
 @Named
 @Singleton
@@ -193,9 +196,10 @@ public class SbomImportService
 
       handleVersionOverride(tx, sbomMetadata, applicationVersionOverride);
 
+      // Pass transaction context through to avoid nested transaction lock contention
       var importTicket = switch (SbomScanType.valueOf(sbomMetadata.getScanType())) {
-        case SBOM -> importSbom(sbomMetadata, clientUserAgent);
-        case BINARY -> importBinary(sbomMetadata, thirdPartyFile, clientUserAgent);
+        case SBOM -> importSbom(tx, sbomMetadata, clientUserAgent);
+        case BINARY -> importBinary(tx, sbomMetadata, thirdPartyFile, clientUserAgent);
       };
 
       tx.commit();
@@ -204,9 +208,14 @@ public class SbomImportService
     catch (IOException e) {
       throw new InternalServerException("Internal server error importing SBOM", e);
     }
-    catch (EntityExistsException | RollbackException e) {
+    catch (DataAccessException e) {
       String conflictVersion = StringUtils.defaultIfEmpty(applicationVersionOverride, applicationVersion);
-      if (e instanceof EntityExistsException || e.getCause() instanceof EntityExistsException) {
+      // Handle unique constraint violations for PostgreSQL and H2
+      if ((e.getCause() instanceof PSQLException psqlEx
+          && POSTGRES_UNIQUE_CONSTRAINT_VIOLATION.equals(psqlEx.getSQLState()))
+          || e instanceof IntegrityConstraintViolationException
+          || e.getCause() instanceof IntegrityConstraintViolationException)
+      {
         throw new ConflictException("Version %s already exists".formatted(conflictVersion), e);
       }
       else {
@@ -234,18 +243,21 @@ public class SbomImportService
   }
 
   private ApiThirdPartyScanTicketDTO importSbom(
+      TransactionContext tx,
       ThirdPartySbomMetadata sbomMetadata,
       String clientUserAgent)
   {
-    return sbomScanEvaluator.evaluateSbom(sbomMetadata, ScanTriggerType.SBOM_UI, clientUserAgent);
+    return sbomScanEvaluator.evaluateSbom(tx, sbomMetadata, ScanTriggerType.SBOM_UI, clientUserAgent);
   }
 
   private ApiThirdPartyScanTicketDTO importBinary(
+      TransactionContext tx,
       ThirdPartySbomMetadata sbomMetadata,
       ThirdPartyFile thirdPartyFile,
       String clientUserAgent) throws IOException
   {
     ApiThirdPartyScanTicketDTO retval = sbomScanEvaluator.evaluateBinary(
+        tx,
         sbomMetadata,
         thirdPartyFile,
         ScanTriggerType.SBOM_UI,

@@ -10,10 +10,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -21,6 +17,14 @@ import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.security.RotatableSecrets;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.GithubApp.GITHUB_APP;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 
 /**
  * @since 1.201
@@ -32,39 +36,53 @@ public class GitHubAppDAO
     implements RotatableSecrets
 {
   @Inject
-  public GitHubAppDAO(OperationalDataStore operationalDataStore) {
+  public GitHubAppDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
   }
 
-  public GitHubApp getByOwnerId(TransactionContext tx, String ownerId) {
-    String query = "SELECT entity FROM GitHubApp entity WHERE entity.ownerId=?1";
-    return get(tx, query, ownerId);
+  @Override
+  public Table<?> getJooqTable() {
+    return GITHUB_APP;
   }
 
-  public GitHubApp getByOwnerId(String ownerId) {
+  @Override
+  public Class<GitHubApp> getEntityClass() {
+    return GitHubApp.class;
+  }
+
+  public GitHubApp getByOwnerId(final TransactionContext tx, final String ownerId) {
+    return toEntity(tx.dsl()
+        .selectFrom(GITHUB_APP)
+        .where(GITHUB_APP.OWNER_ID.eq(ownerId))
+        .fetchOne());
+  }
+
+  public GitHubApp getByOwnerId(final String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
       return getByOwnerId(tx, ownerId);
     }
   }
 
-  public Map<String, GitHubApp> getByOwnerIds(TransactionContext tx, List<String> ownerIds) {
+  public Map<String, GitHubApp> getByOwnerIds(final TransactionContext tx, final List<String> ownerIds) {
     if (ownerIds == null || ownerIds.isEmpty()) {
       return Map.of();
     }
-    String query = "SELECT entity FROM GitHubApp entity WHERE entity.ownerId IN (?1)";
-    List<GitHubApp> gitHubApps = createQuery(tx, query, ownerIds).getResultList();
-    return gitHubApps.stream().collect(Collectors.toMap(GitHubApp::getOwnerId, Function.identity()));
+    return tx.dsl()
+        .selectFrom(GITHUB_APP)
+        .where(GITHUB_APP.OWNER_ID.in(ownerIds))
+        .fetch()
+        .stream()
+        .map(this::toEntity)
+        .collect(Collectors.toMap(GitHubApp::getOwnerId, Function.identity()));
   }
 
-  public Map<String, GitHubApp> getByOwnerIds(List<String> ownerIds) {
+  public Map<String, GitHubApp> getByOwnerIds(final List<String> ownerIds) {
     try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
       return getByOwnerIds(tx, ownerIds);
     }
   }
 
-  public GitHubApp getByOwnerIdNotNull(TransactionContext tx, String ownerId) {
+  public GitHubApp getByOwnerIdNotNull(final TransactionContext tx, final String ownerId) {
     GitHubApp githubApp = getByOwnerId(tx, ownerId);
     if (githubApp == null) {
       throw new NotFoundException("GitHub App not found for ownerId: " + ownerId);
@@ -72,27 +90,21 @@ public class GitHubAppDAO
     return githubApp;
   }
 
-  public GitHubApp getByOwnerIdNotNull(String ownerId) {
+  public GitHubApp getByOwnerIdNotNull(final String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
       return getByOwnerIdNotNull(tx, ownerId);
     }
   }
 
-  public GitHubApp getByAppId(TransactionContext tx, Integer appId) {
+  public GitHubApp getByAppId(final TransactionContext tx, final Integer appId) {
     if (appId == null) {
       throw new DataAccessException("The GitHub App ID cannot be null.");
     }
-    String query = "SELECT entity FROM GitHubApp entity WHERE entity.appId = ?1";
-    return get(tx, query, appId);
-  }
-
-  public void updateGitHubApp(GitHubApp gitHubApp) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      update(tx, gitHubApp);
-      tx.commit();
-    }
+    return toEntity(tx.dsl()
+        .selectFrom(GITHUB_APP)
+        .where(GITHUB_APP.APP_ID.eq(appId))
+        .fetchOne());
   }
 
   /**
@@ -111,22 +123,22 @@ public class GitHubAppDAO
   }
 
   /**
-   * Finds the nearest GitHubApp in the ownership hierarchy for the given owner.
-   * Uses JPQL with the OwnerAncestor view to traverse the organization hierarchy.
+   * Finds the nearest GitHubApp in the ownership hierarchy for the given owner. Uses the OwnerAncestor view to traverse
+   * the organization hierarchy.
    *
    * @param tx transaction context
    * @param ownerId the owner ID to search from
    * @return the nearest GitHubApp in the hierarchy, or null if not found
    */
   private GitHubApp getNearestGitHubApp(TransactionContext tx, String ownerId) {
-    String query = "SELECT ga FROM GitHubApp ga, OwnerAncestor oa " +
-        "WHERE oa.id = ?1 AND ga.ownerId = oa.ancestorId " +
-        "ORDER BY oa.ancestorDistance";
-
-    List<GitHubApp> results = createQuery(tx, query, ownerId)
-        .setMaxResults(1)
-        .getResultList();
-
-    return results.isEmpty() ? null : results.get(0);
+    return tx.dsl()
+        .select(GITHUB_APP.fields())
+        .from(GITHUB_APP)
+        .join(OWNER_ANCESTOR)
+        .on(GITHUB_APP.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+        .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE)
+        .limit(1)
+        .fetchOneInto(GitHubApp.class);
   }
 }

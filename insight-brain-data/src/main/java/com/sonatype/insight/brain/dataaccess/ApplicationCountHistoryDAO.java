@@ -16,6 +16,10 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.ApplicationCountHistory;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationCountHistory.APPLICATION_COUNT_HISTORY;
+
 @Named
 @Singleton
 public class ApplicationCountHistoryDAO
@@ -31,15 +35,24 @@ public class ApplicationCountHistoryDAO
     throw new UnsupportedOperationException("ApplicationCountHistory does not support update operations");
   }
 
+  @Override
+  public Table<?> getJooqTable() {
+    return APPLICATION_COUNT_HISTORY;
+  }
+
+  @Override
+  public Class<ApplicationCountHistory> getEntityClass() {
+    return ApplicationCountHistory.class;
+  }
+
   // there should always be at least one entry as we will create an initial entry via the schema or migration
   public ApplicationCountHistory getInitialApplicationCountHistory() {
-    String sQuery = "SELECT entity" +
-        " FROM ApplicationCountHistory entity" +
-        " WHERE entity.id = 'initialization'";
-    Query<ApplicationCountHistory> query = createQuery(sQuery);
-    query.forceSingleResult();
-
-    return query.get();
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(APPLICATION_COUNT_HISTORY)
+          .where(APPLICATION_COUNT_HISTORY.APPLICATION_COUNT_HISTORY_ID.eq("initialization"))
+          .fetchOne());
+    }
   }
 
   private Optional<Integer> getApplicationCountAt(Date timestamp) {
@@ -54,14 +67,14 @@ public class ApplicationCountHistoryDAO
   }
 
   public ApplicationCountHistory getApplicationCountHistory(final Date date) {
-    final String sQuery = "SELECT entity" +
-        " FROM ApplicationCountHistory entity" +
-        " WHERE entity.updatedDate <= ?1" +
-        " ORDER BY entity.updatedDate DESC";
-
-    final Query<ApplicationCountHistory> query = createQuery(sQuery, date);
-
-    return query.forceSingleResult().getList().stream().findFirst().orElse(null);
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(APPLICATION_COUNT_HISTORY)
+          .where(APPLICATION_COUNT_HISTORY.UPDATED_DATE.le(date))
+          .orderBy(APPLICATION_COUNT_HISTORY.UPDATED_DATE.desc())
+          .limit(1)
+          .fetchOne());
+    }
   }
 
   public int getApplicationCountAtOrDefault(Date timestamp) {

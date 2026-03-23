@@ -48,6 +48,8 @@ public class DisplayNameForFileCoordinateAsyncDbMigration
           FileCoordinateDisplayNameGenerator.generateDisplayName(entity.getPackageUrl(), entity.getFormat(),
               entity.getName(),
               entity.getVersion()));
+      // Persist the display name change to the database
+      dao.update(tx, entity);
     }
   }
 }

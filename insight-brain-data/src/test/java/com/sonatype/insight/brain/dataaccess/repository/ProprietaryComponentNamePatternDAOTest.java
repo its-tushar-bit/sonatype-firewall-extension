@@ -11,8 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.PersistenceException;
+import org.jooq.exception.IntegrityConstraintViolationException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
@@ -86,9 +85,9 @@ public class ProprietaryComponentNamePatternDAOTest
   public void testInsert_Uniqueness() {
     tempEntity.newProprietaryComponentNamePattern(repo, "@sonatype", null);
 
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class).isThrownBy(() -> {
       tempEntity.newProprietaryComponentNamePattern(repo, "@sonatype", null);
-    }).withCauseInstanceOf(EntityExistsException.class);
+    });
   }
 
   @Test

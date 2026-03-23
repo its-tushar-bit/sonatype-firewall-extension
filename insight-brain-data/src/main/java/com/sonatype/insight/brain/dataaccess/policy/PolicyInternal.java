@@ -10,15 +10,12 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
 import com.sonatype.insight.brain.model.Nameable;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
+
+import jakarta.persistence.Column;
 
 /**
  * Class used only for persistence of policies to the SQL database.
@@ -30,13 +27,10 @@ import com.sonatype.insight.model.HasStringId;
  *
  * @since 1.9
  */
-@Entity
-@Table(name = "policy")
 public class PolicyInternal
     extends Nameable
     implements HasStringId
 {
-  @Id
   @Column(name = "policy_id")
   private String id;
 

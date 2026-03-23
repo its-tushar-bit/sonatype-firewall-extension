@@ -34,7 +34,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.mock.hds.HdsMockServer;
 import com.sonatype.insight.model.HasStringId;
 
-import org.apache.openjpa.enhance.PersistenceCapable;
 import org.joda.time.format.DateTimeFormat;
 import org.junit.After;
 import org.junit.Before;
@@ -182,9 +181,8 @@ public class ApplicationReportTest
   }
 
   private <E extends HasStringId> void detachEntity(E entity) {
-    PersistenceCapable pc = (PersistenceCapable) entity;
-    pc.pcSetDetachedState(null);
-    pc.pcReplaceStateManager(null);
+    // With jOOQ, entities are plain POJOs and don't need to be detached from any persistence context.
+    // Just reset the ID to allow re-insertion.
     entity.setId(null);
   }
 

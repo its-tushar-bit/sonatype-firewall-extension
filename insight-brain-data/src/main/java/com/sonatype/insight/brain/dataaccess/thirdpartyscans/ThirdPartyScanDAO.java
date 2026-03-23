@@ -6,14 +6,17 @@
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+
+import static com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.ThirdPartyScan.THIRD_PARTY_SCAN;
 
 @Named
 @Singleton
@@ -25,62 +28,79 @@ public class ThirdPartyScanDAO
     super(thirdPartyScansDataStore);
   }
 
-  @Override
-  public ThirdPartyScan getById(String id) {
-    String sQuery = "SELECT entity FROM ThirdPartyScan entity" + //
-        " WHERE entity.id=?1";
-    return get(sQuery, id);
-  }
-
-  public List<ThirdPartyScan> getAll() {
-    return getList("SELECT entity FROM ThirdPartyScan entity");
-  }
-
   public ThirdPartyScan getByThirdPartyFileIdAndScanId(String thirdPartyFileId, String scanId) {
-    String sQuery = "SELECT entity FROM ThirdPartyScan entity" + //
-        " WHERE entity.thirdPartyFileId=?1 AND entity.scanId=?2";
-    return get(sQuery, thirdPartyFileId, scanId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(THIRD_PARTY_SCAN)
+          .where(THIRD_PARTY_SCAN.THIRD_PARTY_FILE_ID.eq(thirdPartyFileId)
+              .and(THIRD_PARTY_SCAN.SCAN_ID.eq(scanId)))
+          .fetchOneInto(ThirdPartyScan.class);
+    }
   }
 
   public List<ThirdPartyScan> getByScanId(String scanId) {
-    String sQuery = "SELECT entity FROM ThirdPartyScan entity WHERE entity.scanId=?1";
-    return getList(sQuery, scanId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(THIRD_PARTY_SCAN)
+          .where(THIRD_PARTY_SCAN.SCAN_ID.eq(scanId))
+          .fetchInto(ThirdPartyScan.class);
+    }
   }
 
   public ThirdPartyScan getByThirdPartyFileId(String thirdPartyFileId) {
     try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = "SELECT entity FROM ThirdPartyScan entity WHERE entity.thirdPartyFileId=?1";
-      return get(tx, sQuery, thirdPartyFileId);
+      return tx.dsl()
+          .selectFrom(THIRD_PARTY_SCAN)
+          .where(THIRD_PARTY_SCAN.THIRD_PARTY_FILE_ID.eq(thirdPartyFileId))
+          .fetchOneInto(ThirdPartyScan.class);
     }
   }
 
   public List<ThirdPartyScan> getByScanRequestId(String scanRequestId) {
-    String sQuery = "SELECT entity FROM ThirdPartyScan entity WHERE entity.scanRequestId=?1";
-    return getList(sQuery, scanRequestId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(THIRD_PARTY_SCAN)
+          .where(THIRD_PARTY_SCAN.SCAN_REQUEST_ID.eq(scanRequestId))
+          .fetchInto(ThirdPartyScan.class);
+    }
   }
 
   public ThirdPartyScan getSingleByScanRequestId(String scanRequestId) {
     try (TransactionContext tx = createTransactionContext()) {
-      Query<ThirdPartyScan> query =
-          createQuery("SELECT entity FROM ThirdPartyScan entity WHERE entity.scanRequestId=?1", scanRequestId);
-      query.setMaxResults(1);
-      return query.get(tx);
+      return tx.dsl()
+          .selectFrom(THIRD_PARTY_SCAN)
+          .where(THIRD_PARTY_SCAN.SCAN_REQUEST_ID.eq(scanRequestId))
+          .limit(1)
+          .fetchOneInto(ThirdPartyScan.class);
     }
   }
 
   public void updateScanIdForScanRequest(String scanRequestId, String scanId) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
-      String sQuery = "UPDATE ThirdPartyScan entity SET entity.scanId=?1 WHERE entity.scanRequestId=?2";
-      Query<ThirdPartyScan> query = createQuery(sQuery, scanId, scanRequestId);
-      query.executeUpdate(tx);
+      tx.dsl()
+          .update(THIRD_PARTY_SCAN)
+          .set(THIRD_PARTY_SCAN.SCAN_ID, scanId)
+          .where(THIRD_PARTY_SCAN.SCAN_REQUEST_ID.eq(scanRequestId))
+          .execute();
       tx.commit();
     }
   }
 
   public int deleteByThirdPartyFileId(TransactionContext tx, String thirdPartyFileId) {
-    String sQuery = "DELETE from ThirdPartyScan entity WHERE entity.thirdPartyFileId=?1";
-    Query<ThirdPartyScan> query = createQuery(sQuery, thirdPartyFileId);
-    return query.executeUpdate(tx);
+    return tx.dsl()
+        .deleteFrom(THIRD_PARTY_SCAN)
+        .where(THIRD_PARTY_SCAN.THIRD_PARTY_FILE_ID.eq(thirdPartyFileId))
+        .execute();
+  }
+
+  @Override
+  public org.jooq.Table<?> getJooqTable() {
+    return THIRD_PARTY_SCAN;
+  }
+
+  @Override
+  public Class<ThirdPartyScan> getEntityClass() {
+    return ThirdPartyScan.class;
   }
 }

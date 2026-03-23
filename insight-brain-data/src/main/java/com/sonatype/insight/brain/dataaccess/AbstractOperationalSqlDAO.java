@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.sql.Array;
-import java.sql.Connection;
-import java.sql.JDBCType;
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,20 +47,34 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     this.operationalDataStore = operationalDataStore;
   }
 
-  @Override
-  public TransactionContext createTransactionContext() {
-    return new TransactionContext(operationalDataStore.getJPAEntityManagerFactory().createEntityManager());
-  }
-
   protected boolean isDatabasePostgresql() {
     return !operationalDataStore.isDatabaseInMemory() && org.postgresql.Driver.class.getName()
         .equals(operationalDataStore.getDatabaseConfig().getDriverClassName());
   }
 
+  /**
+   * Insert an entity into the database using jOOQ.
+   * <p>
+   * This implementation generates an ID if needed, calls the superclass insert, and then handles search index changes
+   * and entity leak detection.
+   * </p>
+   *
+   * @param tx the transaction context
+   * @param entity the entity to insert
+   */
   @Override
   public void insert(TransactionContext tx, T entity) {
+    generateIdIfNeeded(entity);
+
+    // Call superclass to perform the actual insert
     super.insert(tx, entity);
 
+    // Handle search index changes
+    if (shouldAddSearchIndexChange(tx, entity)) {
+      insertSearchIndexChange(tx, newSearchIndexChangeForInsert(entity));
+    }
+
+    // Handle entity leak detection
     if (detectTestEntityLeaks() && operationalDataStore.isDatabaseInMemory()) {
       Exception e = new Exception("Entity of type " + entity.getClass().getName() + " created at:");
       testEntityLeaksDetectionData.put(entity.getId(),
@@ -72,6 +82,33 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     }
   }
 
+  /**
+   * Update an entity in the database using jOOQ.
+   * <p>
+   * This implementation calls the superclass update and then handles search index changes.
+   * </p>
+   *
+   * @param tx the transaction context
+   * @param entity the entity to update
+   * @throws IllegalStateException if the entity is not found
+   */
+  @Override
+  public void update(TransactionContext tx, T entity) {
+    // Call superclass to perform the actual update
+    super.update(tx, entity);
+
+    // Handle search index changes
+    if (shouldAddSearchIndexChange(tx, entity)) {
+      insertSearchIndexChange(tx, newSearchIndexChangeForUpdate(entity));
+    }
+  }
+
+  /**
+   * Delete an entity from the database using jOOQ.
+   *
+   * @param tx the transaction context
+   * @param entity the entity to delete
+   */
   @Override
   public void delete(TransactionContext tx, T entity) {
     super.delete(tx, entity);
@@ -81,62 +118,16 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     }
   }
 
-  public static jakarta.persistence.Query createPaginationNativeQuery(
-      TransactionContext tx,
-      String sQuery,
-      int offset,
-      int pageSize)
-  {
-    jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
-    query.setFirstResult(offset).setMaxResults(pageSize);
-    return query;
-  }
-
-  public static <T> jakarta.persistence.Query createPaginationNativeQuery(
-      TransactionContext tx,
-      Class<T> resultClass,
-      String sQuery,
-      int offset,
-      int pageSize)
-  {
-    jakarta.persistence.Query query = tx.createNativeQuery(sQuery, resultClass);
-    query.setFirstResult(offset).setMaxResults(pageSize);
-    return query;
-  }
-
-  protected Array createArrayOf(JDBCType jdbcType, Object[] elements) throws SQLException {
-    try (Connection connection = operationalDataStore.getDataSource().getConnection()) {
-      return connection.createArrayOf(jdbcType.name(), elements);
-    }
-  }
-
   protected String buildPositionalParameters(Collection<?> collection, int startFrom) {
     StringJoiner joiner = new StringJoiner(",");
     for (int i = 0; i < collection.size(); i++) {
       joiner.add("?" + (i + startFrom));
     }
-    return "(" + joiner.toString() + ")";
-  }
-
-  protected void addPositionalParameters(jakarta.persistence.Query query, Collection<?> collection, int startFrom) {
-    for (Object object : collection) {
-      query.setParameter(startFrom++, object);
-    }
+    return "(" + joiner + ")";
   }
 
   protected boolean detectTestEntityLeaks() {
     return System.getProperty("detectTestEntityLeaks") != null;
-  }
-
-  public List<T> getAll(TransactionContext tx) {
-    String sQuery = "SELECT entity FROM " + getEntityName() + " entity";
-    return getList(tx, sQuery);
-  }
-
-  public List<T> getAll() {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getAll(tx);
-    }
   }
 
   public boolean isDatabaseEmbedded() {

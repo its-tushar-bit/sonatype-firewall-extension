@@ -12,7 +12,6 @@ import java.sql.SQLException;
 
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import jakarta.persistence.LockModeType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,8 +78,8 @@ public class PostgresAdvisoryLockDAO
   /**
    * @param connection a JDBC connection which must have auto-commit set to false
    */
-  public void acquireLock(Connection connection, ClusterLockId clusterLockId, LockModeType lockModeType) {
-    acquireLock(connection, clusterLockId, lockModeType, true);
+  public void acquireLock(Connection connection, ClusterLockId clusterLockId, ClusterLock.LockType lockType) {
+    acquireLock(connection, clusterLockId, lockType, true);
   }
 
   /**
@@ -88,14 +87,14 @@ public class PostgresAdvisoryLockDAO
    *
    * @return whether or not the lock was acquired. This will always be true when `waitForLock` is true
    */
-  public boolean tryAcquireLock(Connection connection, ClusterLockId clusterLockId, LockModeType lockModeType) {
-    return acquireLock(connection, clusterLockId, lockModeType, false);
+  public boolean tryAcquireLock(Connection connection, ClusterLockId clusterLockId, ClusterLock.LockType lockType) {
+    return acquireLock(connection, clusterLockId, lockType, false);
   }
 
   private boolean acquireLock(
       Connection connection,
       ClusterLockId clusterLockId,
-      LockModeType lockModeType,
+      ClusterLock.LockType lockType,
       boolean waitForLock)
   {
     validateNonNull(clusterLockId);
@@ -104,10 +103,9 @@ public class PostgresAdvisoryLockDAO
     var tenant = TenantThreadLocal.getTenant();
     var dbClassId = computeDbClassId(tenant, clusterLockId);
     var dbObjId = computeDbObjId(clusterLockId);
-    var query = switch (lockModeType) {
-      case PESSIMISTIC_WRITE -> waitForLock ? EXCLUSIVE_LOCK_QUERY : EXCLUSIVE_NOWAIT_LOCK_QUERY;
-      case PESSIMISTIC_READ -> waitForLock ? SHARED_LOCK_QUERY : SHARED_NOWAIT_LOCK_QUERY;
-      default -> throw new IllegalArgumentException("Unsupported lock mode type: " + lockModeType);
+    var query = switch (lockType) {
+      case EXCLUSIVE -> waitForLock ? EXCLUSIVE_LOCK_QUERY : EXCLUSIVE_NOWAIT_LOCK_QUERY;
+      case SHARED -> waitForLock ? SHARED_LOCK_QUERY : SHARED_NOWAIT_LOCK_QUERY;
     };
 
     logAndCheckForLockCollision(tenant, clusterLockId, dbClassId, dbObjId);

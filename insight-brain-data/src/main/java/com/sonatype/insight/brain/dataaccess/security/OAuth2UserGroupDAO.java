@@ -17,6 +17,9 @@ import com.sonatype.insight.brain.model.security.OAuth2UserGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Oauth2UserGroup.OAUTH2_USER_GROUP;
 
 @Named
 @Singleton
@@ -43,10 +46,11 @@ public class OAuth2UserGroupDAO
       String oAuth2UserId,
       String oAuth2GroupId)
   {
-    String sQuery = SELECT_FROM_ENTITY + //
-        " WHERE entity.oAuth2UserId=?1" + //
-        " AND entity.oAuth2GroupId=?2";
-    return get(tx, sQuery, oAuth2UserId, oAuth2GroupId);
+    return tx.dsl()
+        .selectFrom(OAUTH2_USER_GROUP)
+        .where(OAUTH2_USER_GROUP.OAUTH2_USER_ID.eq(oAuth2UserId))
+        .and(OAUTH2_USER_GROUP.OAUTH2_GROUP_ID.eq(oAuth2GroupId))
+        .fetchOneInto(OAuth2UserGroup.class);
   }
 
   public List<OAuth2UserGroup> getByOAuth2UserId(String oAuth2UserId) {
@@ -56,9 +60,10 @@ public class OAuth2UserGroupDAO
   }
 
   public List<OAuth2UserGroup> getByOAuth2UserId(TransactionContext tx, String oAuth2UserId) {
-    String sQuery = SELECT_FROM_ENTITY + //
-        " WHERE entity.oAuth2UserId=?1";
-    return getList(tx, sQuery, oAuth2UserId);
+    return tx.dsl()
+        .selectFrom(OAUTH2_USER_GROUP)
+        .where(OAUTH2_USER_GROUP.OAUTH2_USER_ID.eq(oAuth2UserId))
+        .fetchInto(OAuth2UserGroup.class);
   }
 
   public List<OAuth2UserGroup> getByOAuth2GroupId(String oAuth2GroupId) {
@@ -68,9 +73,10 @@ public class OAuth2UserGroupDAO
   }
 
   public List<OAuth2UserGroup> getByOAuth2GroupId(TransactionContext tx, String oAuth2GroupId) {
-    String sQuery = SELECT_FROM_ENTITY + //
-        " WHERE entity.oAuth2GroupId=?1";
-    return getList(tx, sQuery, oAuth2GroupId);
+    return tx.dsl()
+        .selectFrom(OAUTH2_USER_GROUP)
+        .where(OAUTH2_USER_GROUP.OAUTH2_GROUP_ID.eq(oAuth2GroupId))
+        .fetchInto(OAuth2UserGroup.class);
   }
 
   public void upsertByOAuth2UserIdAndOAuth2GroupId(OAuth2UserGroup oauthUserGroup) {
@@ -102,9 +108,10 @@ public class OAuth2UserGroupDAO
   }
 
   public void deleteByOAuth2UserId(TransactionContext tx, String oAuth2UserId) {
-    String sQuery = DELETE_FROM_ENTITY + //
-        " WHERE entity.oAuth2UserId=?1";
-    createQuery(sQuery, oAuth2UserId).executeUpdate(tx);
+    tx.dsl()
+        .deleteFrom(OAUTH2_USER_GROUP)
+        .where(OAUTH2_USER_GROUP.OAUTH2_USER_ID.eq(oAuth2UserId))
+        .execute();
   }
 
   public void deleteByOAuth2GroupId(String oauthUserId) {
@@ -116,9 +123,10 @@ public class OAuth2UserGroupDAO
   }
 
   public void deleteByOAuth2GroupId(TransactionContext tx, String oAuth2GroupId) {
-    String sQuery = DELETE_FROM_ENTITY + //
-        " WHERE entity.oAuth2GroupId=?1";
-    createQuery(sQuery, oAuth2GroupId).executeUpdate(tx);
+    tx.dsl()
+        .deleteFrom(OAUTH2_USER_GROUP)
+        .where(OAUTH2_USER_GROUP.OAUTH2_GROUP_ID.eq(oAuth2GroupId))
+        .execute();
   }
 
   public void deleteByOAuth2UserIdAndGroupIds(String oAuth2UserId, Set<String> groupIds) {
@@ -133,9 +141,25 @@ public class OAuth2UserGroupDAO
     if (CollectionUtils.isEmpty(groupIds)) {
       return;
     }
-    String sQuery = DELETE_FROM_ENTITY + //
-        " WHERE entity.oAuth2UserId=?1" + //
-        " AND entity.oAuth2GroupId IN ?2";
-    createQuery(sQuery, oAuth2UserId, groupIds).executeUpdate(tx);
+    tx.dsl()
+        .deleteFrom(OAUTH2_USER_GROUP)
+        .where(OAUTH2_USER_GROUP.OAUTH2_USER_ID.eq(oAuth2UserId))
+        .and(OAUTH2_USER_GROUP.OAUTH2_GROUP_ID.in(groupIds))
+        .execute();
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return OAUTH2_USER_GROUP;
+  }
+
+  @Override
+  public List<OAuth2UserGroup> getAll(TransactionContext tx) {
+    return tx.dsl().selectFrom(OAUTH2_USER_GROUP).fetchInto(OAuth2UserGroup.class);
+  }
+
+  @Override
+  public Class<OAuth2UserGroup> getEntityClass() {
+    return OAuth2UserGroup.class;
   }
 }

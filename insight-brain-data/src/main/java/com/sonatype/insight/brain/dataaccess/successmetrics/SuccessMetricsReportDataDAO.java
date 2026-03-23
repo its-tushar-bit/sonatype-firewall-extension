@@ -5,14 +5,16 @@
  */
 package com.sonatype.insight.brain.dataaccess.successmetrics;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
-import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.aggregation.tables.SuccessMetricsReportData.SUCCESS_METRICS_REPORT_DATA;
 
 /**
  * @since 1.39
@@ -28,9 +30,12 @@ public class SuccessMetricsReportDataDAO
   }
 
   @Override
-  public SuccessMetricsReportData getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM SuccessMetricsReportData entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
+  public Table<?> getJooqTable() {
+    return SUCCESS_METRICS_REPORT_DATA;
+  }
+
+  @Override
+  public Class<SuccessMetricsReportData> getEntityClass() {
+    return SuccessMetricsReportData.class;
   }
 }

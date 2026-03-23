@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.persistence.LockModeType;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.AbstractDataTest;
@@ -141,12 +140,12 @@ public class PostgresAdvisoryLockDAOTest
   public void testAcquireLock_Write_BlocksOtherWrite() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (var connection1 = getConnection()) {
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"));
 
       var otherThread = new LockThread((connection2) -> {
-        dao.acquireLock(connection2, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
+        dao.acquireLock(connection2, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
       });
       otherThread.start();
 
@@ -168,12 +167,12 @@ public class PostgresAdvisoryLockDAOTest
   public void testAcquireLock_Write_BlocksOtherRead() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"));
 
       var otherThread = new LockThread((connection2) -> {
-        dao.acquireLock(connection2, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
+        dao.acquireLock(connection2, TEST_LOCK, ClusterLock.LockType.SHARED);
       });
       otherThread.start();
 
@@ -195,8 +194,8 @@ public class PostgresAdvisoryLockDAOTest
   public void testAcquireLock_Write_NoBlocksReentrantWrite() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"));
     }
@@ -206,8 +205,8 @@ public class PostgresAdvisoryLockDAOTest
   public void testAcquireLock_Write_NoBlocksReentrantRead() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.SHARED);
 
       assertExistingLocks(
           ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"),
@@ -219,12 +218,12 @@ public class PostgresAdvisoryLockDAOTest
   public void testAcquireLock_Read_BlocksOtherWrite() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.SHARED);
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
 
       var otherThread = new LockThread((connection2) -> {
-        dao.acquireLock(connection2, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
+        dao.acquireLock(connection2, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
       });
       otherThread.start();
 
@@ -246,12 +245,12 @@ public class PostgresAdvisoryLockDAOTest
   public void testAcquireLock_Read_NoBlocksOtherRead() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.SHARED);
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
 
       var otherThread = new LockThread((connection2) -> {
-        dao.acquireLock(connection2, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
+        dao.acquireLock(connection2, TEST_LOCK, ClusterLock.LockType.SHARED);
 
         assertExistingLocks(
             ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"),
@@ -270,8 +269,8 @@ public class PostgresAdvisoryLockDAOTest
   public void testAcquireLock_Read_NoBlocksReentrantWrite() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.SHARED);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
 
       assertThat(getExistingLocks()).containsExactly(
           ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"),
@@ -283,8 +282,8 @@ public class PostgresAdvisoryLockDAOTest
   public void testAcquireLock_Read_NoBlocksReentrantRead() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.SHARED);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.SHARED);
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
     }
@@ -295,7 +294,7 @@ public class PostgresAdvisoryLockDAOTest
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection = getConnection()) {
       connection.setAutoCommit(true);
-      assertThatThrownBy(() -> dao.acquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE))
+      assertThatThrownBy(() -> dao.acquireLock(connection, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE))
           .isInstanceOf(IllegalArgumentException.class);
     }
   }
@@ -304,7 +303,7 @@ public class PostgresAdvisoryLockDAOTest
   public void testAcquireLock_TransactionCommit_ReleasesLock() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection = getConnection()) {
-      dao.acquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, TEST_LOCK, ClusterLock.LockType.SHARED);
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
 
@@ -318,7 +317,7 @@ public class PostgresAdvisoryLockDAOTest
   public void testAcquireLock_TransactionRollback_ReleasesLock() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection = getConnection()) {
-      dao.acquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, TEST_LOCK, ClusterLock.LockType.SHARED);
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
 
@@ -329,36 +328,11 @@ public class PostgresAdvisoryLockDAOTest
   }
 
   @Test
-  public void testAcquireLock_UnsupportedLockModeTypes() throws Exception {
-    PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
-    try (Connection connection = getConnection()) {
-
-      assertThatThrownBy(() -> dao.acquireLock(connection, TEST_LOCK, LockModeType.OPTIMISTIC))
-          .isInstanceOf(IllegalArgumentException.class);
-
-      assertThatThrownBy(() -> dao.acquireLock(connection, TEST_LOCK, LockModeType.NONE))
-          .isInstanceOf(IllegalArgumentException.class);
-
-      assertThatThrownBy(() -> dao.acquireLock(connection, TEST_LOCK, LockModeType.OPTIMISTIC_FORCE_INCREMENT))
-          .isInstanceOf(IllegalArgumentException.class);
-
-      assertThatThrownBy(() -> dao.acquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_FORCE_INCREMENT))
-          .isInstanceOf(IllegalArgumentException.class);
-
-      assertThatThrownBy(() -> dao.acquireLock(connection, TEST_LOCK, LockModeType.READ))
-          .isInstanceOf(IllegalArgumentException.class);
-
-      assertThatThrownBy(() -> dao.acquireLock(connection, TEST_LOCK, LockModeType.WRITE))
-          .isInstanceOf(IllegalArgumentException.class);
-    }
-  }
-
-  @Test
   public void testAcquireLock_NullClusterLockId() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection = getConnection()) {
 
-      assertThatThrownBy(() -> dao.acquireLock(connection, null, LockModeType.PESSIMISTIC_READ))
+      assertThatThrownBy(() -> dao.acquireLock(connection, null, ClusterLock.LockType.SHARED))
           .isInstanceOf(NullPointerException.class);
     }
   }
@@ -367,7 +341,7 @@ public class PostgresAdvisoryLockDAOTest
   public void testTryAcquireLock_ReturnsTrueAndLocksDbIfLockAquired() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection = getConnection()) {
-      assertThat(dao.tryAcquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE)).isTrue();
+      assertThat(dao.tryAcquireLock(connection, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE)).isTrue();
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"));
     }
@@ -377,12 +351,12 @@ public class PostgresAdvisoryLockDAOTest
   public void testTryAcquireLock_Write_ReturnsFalseIfAlreadyWriteLocked() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"));
 
       var otherThread = new LockThread((connection2) -> {
-        assertThat(dao.tryAcquireLock(connection2, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE)).isFalse();
+        assertThat(dao.tryAcquireLock(connection2, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE)).isFalse();
 
         assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"));
       });
@@ -396,12 +370,12 @@ public class PostgresAdvisoryLockDAOTest
   public void testTryAcquireLock_Write_ReturnsFalseIfAlreadyReadLocked() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.SHARED);
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
 
       var otherThread = new LockThread((connection2) -> {
-        assertThat(dao.tryAcquireLock(connection2, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE)).isFalse();
+        assertThat(dao.tryAcquireLock(connection2, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE)).isFalse();
 
         assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
       });
@@ -415,12 +389,12 @@ public class PostgresAdvisoryLockDAOTest
   public void testTryAcquireLock_Read_ReturnsFalseIfAlreadyWriteLocked() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"));
 
       var otherThread = new LockThread((connection2) -> {
-        assertThat(dao.tryAcquireLock(connection2, TEST_LOCK, LockModeType.PESSIMISTIC_READ)).isFalse();
+        assertThat(dao.tryAcquireLock(connection2, TEST_LOCK, ClusterLock.LockType.SHARED)).isFalse();
 
         assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"));
       });
@@ -434,12 +408,12 @@ public class PostgresAdvisoryLockDAOTest
   public void testTryAcquireLock_Read_ReturnsTrueIfAlreadyReadLocked() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.SHARED);
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
 
       var otherThread = new LockThread((connection2) -> {
-        assertThat(dao.tryAcquireLock(connection2, TEST_LOCK, LockModeType.PESSIMISTIC_READ)).isTrue();
+        assertThat(dao.tryAcquireLock(connection2, TEST_LOCK, ClusterLock.LockType.SHARED)).isTrue();
 
         assertExistingLocks(
             ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"),
@@ -455,8 +429,8 @@ public class PostgresAdvisoryLockDAOTest
   public void testTryAcquireLock_Write_ReturnsTrueIfReentrantWriteLocked() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection = getConnection()) {
-      dao.acquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
-      assertThat(dao.tryAcquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE)).isTrue();
+      dao.acquireLock(connection, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
+      assertThat(dao.tryAcquireLock(connection, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE)).isTrue();
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"));
     }
@@ -466,8 +440,8 @@ public class PostgresAdvisoryLockDAOTest
   public void testTryAcquireLock_Write_ReturnsTrueIfReentrantReadLocked() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection = getConnection()) {
-      dao.acquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
-      assertThat(dao.tryAcquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE)).isTrue();
+      dao.acquireLock(connection, TEST_LOCK, ClusterLock.LockType.SHARED);
+      assertThat(dao.tryAcquireLock(connection, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE)).isTrue();
 
       assertThat(getExistingLocks()).containsExactlyInAnyOrder(
           ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"),
@@ -479,8 +453,8 @@ public class PostgresAdvisoryLockDAOTest
   public void testTryAcquireLock_Read_ReturnsTrueIfReentrantWriteLocked() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection = getConnection()) {
-      dao.acquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
-      assertThat(dao.tryAcquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_READ)).isTrue();
+      dao.acquireLock(connection, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
+      assertThat(dao.tryAcquireLock(connection, TEST_LOCK, ClusterLock.LockType.SHARED)).isTrue();
 
       assertThat(getExistingLocks()).containsExactlyInAnyOrder(
           ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"),
@@ -492,8 +466,8 @@ public class PostgresAdvisoryLockDAOTest
   public void testTryAcquireLock_Read_ReturnsTrueIfReentrantReadLocked() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection = getConnection()) {
-      dao.acquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
-      assertThat(dao.tryAcquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_READ)).isTrue();
+      dao.acquireLock(connection, TEST_LOCK, ClusterLock.LockType.SHARED);
+      assertThat(dao.tryAcquireLock(connection, TEST_LOCK, ClusterLock.LockType.SHARED)).isTrue();
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
     }
@@ -504,7 +478,7 @@ public class PostgresAdvisoryLockDAOTest
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection = getConnection()) {
       connection.setAutoCommit(true);
-      assertThatThrownBy(() -> dao.tryAcquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE))
+      assertThatThrownBy(() -> dao.tryAcquireLock(connection, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE))
           .isInstanceOf(IllegalArgumentException.class);
     }
   }
@@ -513,7 +487,7 @@ public class PostgresAdvisoryLockDAOTest
   public void testTryAcquireLock_TransactionCommit_ReleasesLock() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection = getConnection()) {
-      dao.tryAcquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
+      dao.tryAcquireLock(connection, TEST_LOCK, ClusterLock.LockType.SHARED);
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
 
@@ -527,7 +501,7 @@ public class PostgresAdvisoryLockDAOTest
   public void testTryAcquireLock_TransactionRollback_ReleasesLock() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection = getConnection()) {
-      dao.tryAcquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_READ);
+      dao.tryAcquireLock(connection, TEST_LOCK, ClusterLock.LockType.SHARED);
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ShareLock"));
 
@@ -538,36 +512,11 @@ public class PostgresAdvisoryLockDAOTest
   }
 
   @Test
-  public void testTryAcquireLock_UnsupportedLockModeTypes() throws Exception {
-    PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
-    try (Connection connection = getConnection()) {
-
-      assertThatThrownBy(() -> dao.tryAcquireLock(connection, TEST_LOCK, LockModeType.OPTIMISTIC))
-          .isInstanceOf(IllegalArgumentException.class);
-
-      assertThatThrownBy(() -> dao.tryAcquireLock(connection, TEST_LOCK, LockModeType.NONE))
-          .isInstanceOf(IllegalArgumentException.class);
-
-      assertThatThrownBy(() -> dao.tryAcquireLock(connection, TEST_LOCK, LockModeType.OPTIMISTIC_FORCE_INCREMENT))
-          .isInstanceOf(IllegalArgumentException.class);
-
-      assertThatThrownBy(() -> dao.tryAcquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_FORCE_INCREMENT))
-          .isInstanceOf(IllegalArgumentException.class);
-
-      assertThatThrownBy(() -> dao.tryAcquireLock(connection, TEST_LOCK, LockModeType.READ))
-          .isInstanceOf(IllegalArgumentException.class);
-
-      assertThatThrownBy(() -> dao.tryAcquireLock(connection, TEST_LOCK, LockModeType.WRITE))
-          .isInstanceOf(IllegalArgumentException.class);
-    }
-  }
-
-  @Test
   public void testTryAcquireLock_NullClusterLockId() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection = getConnection()) {
 
-      assertThatThrownBy(() -> dao.tryAcquireLock(connection, null, LockModeType.PESSIMISTIC_READ))
+      assertThatThrownBy(() -> dao.tryAcquireLock(connection, null, ClusterLock.LockType.SHARED))
           .isInstanceOf(NullPointerException.class);
     }
   }
@@ -576,22 +525,22 @@ public class PostgresAdvisoryLockDAOTest
   public void testCollisionDetection() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
-      dao.acquireLock(connection1, ClusterLockId.forPolicyViolations("Aa"), LockModeType.PESSIMISTIC_WRITE);
+      dao.acquireLock(connection1, ClusterLockId.forPolicyViolations("Aa"), ClusterLock.LockType.EXCLUSIVE);
     }
 
     try (Connection connection2 = getConnection()) {
       // Different class and objid
-      dao.acquireLock(connection2, ClusterLockId.forAuditJsonFileStore("asdfasfasd"), LockModeType.PESSIMISTIC_WRITE);
+      dao.acquireLock(connection2, ClusterLockId.forAuditJsonFileStore("asdfasfasd"), ClusterLock.LockType.EXCLUSIVE);
     }
 
     try (Connection connection3 = getConnection()) {
       // Same class as original lock, same objid as second one
-      dao.acquireLock(connection3, ClusterLockId.forPolicyViolations("asdfasdfasd"), LockModeType.PESSIMISTIC_WRITE);
+      dao.acquireLock(connection3, ClusterLockId.forPolicyViolations("asdfasdfasd"), ClusterLock.LockType.EXCLUSIVE);
     }
 
     try (Connection connection4 = getConnection()) {
       // same as first lock. Should not log a warning
-      dao.acquireLock(connection4, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
+      dao.acquireLock(connection4, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
     }
 
     // Locks 1 - 3 are entirely different. Lock 4 actually matches lock 1 so not an undesirable collision
@@ -599,8 +548,8 @@ public class PostgresAdvisoryLockDAOTest
 
     try (Connection connection5 = getConnection()) {
       // Collides with first lock since class is actually the same while objIds "Aa" and "BB" have the same hash.
-      // Note: LockModeType shouldn't matter, collision should be detected despite that being different.
-      dao.acquireLock(connection5, ClusterLockId.forPolicyViolations("BB"), LockModeType.PESSIMISTIC_READ);
+      // Note: LockType shouldn't matter, collision should be detected despite that being different.
+      dao.acquireLock(connection5, ClusterLockId.forPolicyViolations("BB"), ClusterLock.LockType.SHARED);
     }
 
     assertThat(logOutput).atWarnLevel()
@@ -620,7 +569,7 @@ public class PostgresAdvisoryLockDAOTest
 
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection = getConnection()) {
-      dao.acquireLock(connection, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
+      dao.acquireLock(connection, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
     }
 
     // prints out at debug level the first time
@@ -635,22 +584,22 @@ public class PostgresAdvisoryLockDAOTest
     try (Connection connection = getConnection()) {
 
       // All the zero-param lock constructors
-      dao.acquireLock(connection, ClusterLockId.forSchemaMigration(), LockModeType.PESSIMISTIC_READ);
-      dao.acquireLock(connection, ClusterLockId.forDataMigration(), LockModeType.PESSIMISTIC_READ);
-      dao.acquireLock(connection, ClusterLockId.forNewInstancePopulation(), LockModeType.PESSIMISTIC_READ);
-      dao.acquireLock(connection, ClusterLockId.forInactiveRepositoryViolationCleaner(), LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, ClusterLockId.forSchemaMigration(), ClusterLock.LockType.SHARED);
+      dao.acquireLock(connection, ClusterLockId.forDataMigration(), ClusterLock.LockType.SHARED);
+      dao.acquireLock(connection, ClusterLockId.forNewInstancePopulation(), ClusterLock.LockType.SHARED);
+      dao.acquireLock(connection, ClusterLockId.forInactiveRepositoryViolationCleaner(), ClusterLock.LockType.SHARED);
 
       // the one-param lock constructors
-      dao.acquireLock(connection, ClusterLockId.forPolicyViolations("test"), LockModeType.PESSIMISTIC_READ);
-      dao.acquireLock(connection, ClusterLockId.forPolicyViolationAggregations("test"), LockModeType.PESSIMISTIC_READ);
-      dao.acquireLock(connection, ClusterLockId.forRepositoryReevaluation("test"), LockModeType.PESSIMISTIC_READ);
-      dao.acquireLock(connection, ClusterLockId.forAuditJsonFileStore("test"), LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, ClusterLockId.forPolicyViolations("test"), ClusterLock.LockType.SHARED);
+      dao.acquireLock(connection, ClusterLockId.forPolicyViolationAggregations("test"), ClusterLock.LockType.SHARED);
+      dao.acquireLock(connection, ClusterLockId.forRepositoryReevaluation("test"), ClusterLock.LockType.SHARED);
+      dao.acquireLock(connection, ClusterLockId.forAuditJsonFileStore("test"), ClusterLock.LockType.SHARED);
 
       // the two-param lock constructors
-      dao.acquireLock(connection, ClusterLockId.forPolicyViolations("test"), LockModeType.PESSIMISTIC_READ);
-      dao.acquireLock(connection, ClusterLockId.forRepositoryComponent("test", "test"), LockModeType.PESSIMISTIC_READ);
-      dao.acquireLock(connection, ClusterLockId.forPolicyEvaluation("test", "test"), LockModeType.PESSIMISTIC_READ);
-      dao.acquireLock(connection, ClusterLockId.forPdfGeneration("test", "test"), LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, ClusterLockId.forPolicyViolations("test"), ClusterLock.LockType.SHARED);
+      dao.acquireLock(connection, ClusterLockId.forRepositoryComponent("test", "test"), ClusterLock.LockType.SHARED);
+      dao.acquireLock(connection, ClusterLockId.forPolicyEvaluation("test", "test"), ClusterLock.LockType.SHARED);
+      dao.acquireLock(connection, ClusterLockId.forPdfGeneration("test", "test"), ClusterLock.LockType.SHARED);
 
       // Note that we can't feasibly check that the zero-param ids don't conflict with the one-param ids etc,
       // because that would require us to find different combinations of params that have the same hash code. But
@@ -664,13 +613,13 @@ public class PostgresAdvisoryLockDAOTest
   public void testSeparateLocksPerTenant() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection1 = getConnection()) {
-      dao.acquireLock(connection1, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
+      dao.acquireLock(connection1, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
 
       assertExistingLocks(ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"));
 
       var otherThread = new LockThread((connection2) -> {
         testAsNewTenant("othertenant", tenant -> {
-          dao.acquireLock(connection2, TEST_LOCK, LockModeType.PESSIMISTIC_WRITE);
+          dao.acquireLock(connection2, TEST_LOCK, ClusterLock.LockType.EXCLUSIVE);
 
           assertExistingLocks(
               ImmutableTriple.of(TEST_LOCK_ONPREM_CLASSID, TEST_LOCK_OBJID, "ExclusiveLock"),
@@ -692,47 +641,47 @@ public class PostgresAdvisoryLockDAOTest
   public void testExpectedLockClassidRanges() throws Exception {
     PostgresAdvisoryLockDAO dao = new PostgresAdvisoryLockDAO();
     try (Connection connection = getConnection()) {
-      dao.acquireLock(connection, ClusterLockId.forSchemaMigration(), LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, ClusterLockId.forSchemaMigration(), ClusterLock.LockType.SHARED);
       assertLockClassidRange(0x00000000, 0x01000000);
       connection.commit();
 
-      dao.acquireLock(connection, ClusterLockId.forDataMigration(), LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, ClusterLockId.forDataMigration(), ClusterLock.LockType.SHARED);
       assertLockClassidRange(0x01000000, 0x02000000);
       connection.commit();
 
-      dao.acquireLock(connection, ClusterLockId.forNewInstancePopulation(), LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, ClusterLockId.forNewInstancePopulation(), ClusterLock.LockType.SHARED);
       assertLockClassidRange(0x02000000, 0x03000000);
       connection.commit();
 
-      dao.acquireLock(connection, ClusterLockId.forInactiveRepositoryViolationCleaner(), LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, ClusterLockId.forInactiveRepositoryViolationCleaner(), ClusterLock.LockType.SHARED);
       assertLockClassidRange(0x03000000, 0x04000000);
       connection.commit();
 
-      dao.acquireLock(connection, ClusterLockId.forPolicyViolations("test"), LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, ClusterLockId.forPolicyViolations("test"), ClusterLock.LockType.SHARED);
       assertLockClassidRange(0x80000000, 0x81000000);
       connection.commit();
 
-      dao.acquireLock(connection, ClusterLockId.forPolicyViolationAggregations("test"), LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, ClusterLockId.forPolicyViolationAggregations("test"), ClusterLock.LockType.SHARED);
       assertLockClassidRange(0x81000000, 0x82000000);
       connection.commit();
 
-      dao.acquireLock(connection, ClusterLockId.forRepositoryComponent("test", "test"), LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, ClusterLockId.forRepositoryComponent("test", "test"), ClusterLock.LockType.SHARED);
       assertLockClassidRange(0x82000000, 0x83000000);
       connection.commit();
 
-      dao.acquireLock(connection, ClusterLockId.forRepositoryReevaluation("test"), LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, ClusterLockId.forRepositoryReevaluation("test"), ClusterLock.LockType.SHARED);
       assertLockClassidRange(0x83000000, 0x84000000);
       connection.commit();
 
-      dao.acquireLock(connection, ClusterLockId.forPolicyEvaluation("test", "test"), LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, ClusterLockId.forPolicyEvaluation("test", "test"), ClusterLock.LockType.SHARED);
       assertLockClassidRange(0x84000000, 0x85000000);
       connection.commit();
 
-      dao.acquireLock(connection, ClusterLockId.forAuditJsonFileStore("test"), LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, ClusterLockId.forAuditJsonFileStore("test"), ClusterLock.LockType.SHARED);
       assertLockClassidRange(0x85000000, 0x86000000);
       connection.commit();
 
-      dao.acquireLock(connection, ClusterLockId.forPdfGeneration("test", "test"), LockModeType.PESSIMISTIC_READ);
+      dao.acquireLock(connection, ClusterLockId.forPdfGeneration("test", "test"), ClusterLock.LockType.SHARED);
       assertLockClassidRange(0x86000000, 0x87000000);
     }
   }

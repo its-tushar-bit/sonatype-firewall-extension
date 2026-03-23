@@ -12,16 +12,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.model.component.ComponentCategory;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.jooq.generated.dm.tables.ComponentCategory.COMPONENT_CATEGORY;
 
 @Named
 @Singleton
@@ -38,13 +41,6 @@ public class ComponentCategoryDAO
   }
 
   @Override
-  public ComponentCategory getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM ComponentCategory entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  @Override
   public ComponentCategory getById(String id) {
     if (componentCategoriesById == null) {
       load();
@@ -58,6 +54,7 @@ public class ComponentCategoryDAO
     return componentCategory;
   }
 
+  @Override
   public List<ComponentCategory> getAll() {
     if (componentCategoriesById == null) {
       load();
@@ -69,12 +66,17 @@ public class ComponentCategoryDAO
   public void load() {
     synchronized (this.getClass()) {
       long start = System.currentTimeMillis();
-      String sQuery = "SELECT componentCategory FROM ComponentCategory componentCategory";
-      Map<String, ComponentCategory> componentCategoriesById = getList(sQuery).stream()
-          .sorted((category1, category2) -> category1.getPath().compareToIgnoreCase(category2.getPath()))
-          .collect(Collectors.toMap(ComponentCategory::getId, Function.identity(), (c1, c2) -> c1, LinkedHashMap::new));
-      ComponentCategoryDAO.componentCategoriesById = Collections.unmodifiableMap(componentCategoriesById);
-      log.debug("Loaded all component categories in {} ms.", System.currentTimeMillis() - start);
+      try (TransactionContext tx = createTransactionContext()) {
+        List<ComponentCategory> categories = tx.dsl()
+            .selectFrom(COMPONENT_CATEGORY)
+            .fetchInto(ComponentCategory.class);
+        Map<String, ComponentCategory> componentCategoriesById = categories.stream()
+            .sorted((category1, category2) -> category1.getPath().compareToIgnoreCase(category2.getPath()))
+            .collect(Collectors.toMap(
+                ComponentCategory::getId, Function.identity(), (c1, c2) -> c1, LinkedHashMap::new));
+        ComponentCategoryDAO.componentCategoriesById = Collections.unmodifiableMap(componentCategoriesById);
+        log.debug("Loaded all component categories in {} ms.", System.currentTimeMillis() - start);
+      }
     }
   }
 
@@ -89,5 +91,15 @@ public class ComponentCategoryDAO
             .stream()
             .filter(category -> category.getPath().startsWith(componentCategory.getPath() + "/"))
             .collect(Collectors.toList()));
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return COMPONENT_CATEGORY;
+  }
+
+  @Override
+  public Class<ComponentCategory> getEntityClass() {
+    return ComponentCategory.class;
   }
 }

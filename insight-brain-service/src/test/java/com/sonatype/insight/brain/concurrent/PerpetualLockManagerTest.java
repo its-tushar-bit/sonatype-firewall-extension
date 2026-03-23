@@ -17,8 +17,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.test.LogOutput;
 
 import ch.qos.logback.classic.Level;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.RollbackException;
+import org.jooq.exception.DataAccessException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -176,7 +175,10 @@ public class PerpetualLockManagerTest
     final long expiration = 30;
     PerpetualLockDAO spyPerpetualLockDAO = spy(perpetualLockDAO);
     perpetualLockManager = new PerpetualLockManager(spyPerpetualLockDAO);
-    doThrow(new RollbackException(new EntityExistsException())).when(spyPerpetualLockDAO)
+    // Simulate a unique constraint violation (SQL state 23505 = unique_violation)
+    org.postgresql.util.PSQLException psqlEx = new org.postgresql.util.PSQLException(
+        "duplicate key value violates unique constraint", org.postgresql.util.PSQLState.UNIQUE_VIOLATION);
+    doThrow(new DataAccessException("insert failed", psqlEx)).when(spyPerpetualLockDAO)
         .createPerpetualLock(eq(lockId), eq(category), eq(owner), any(Date.class));
     doReturn(1).when(spyPerpetualLockDAO).reservePerpetualLock(eq(lockId), eq(owner), any(Date.class));
 
@@ -196,7 +198,10 @@ public class PerpetualLockManagerTest
     final long expiration = 30;
     PerpetualLockDAO spyPerpetualLockDAO = spy(perpetualLockDAO);
     perpetualLockManager = new PerpetualLockManager(spyPerpetualLockDAO);
-    doThrow(new RollbackException(new EntityExistsException())).when(spyPerpetualLockDAO)
+    // Simulate a unique constraint violation (SQL state 23505 = unique_violation)
+    org.postgresql.util.PSQLException psqlEx = new org.postgresql.util.PSQLException(
+        "duplicate key value violates unique constraint", org.postgresql.util.PSQLState.UNIQUE_VIOLATION);
+    doThrow(new DataAccessException("insert failed", psqlEx)).when(spyPerpetualLockDAO)
         .createPerpetualLock(eq(lockId), eq(category), eq(owner), any(Date.class));
 
     // then:

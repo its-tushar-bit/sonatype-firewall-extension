@@ -16,6 +16,9 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.VersionEvaluationWindow.VERSION_EVALUATION_WINDOW;
 
 @Named
 @Singleton
@@ -25,6 +28,16 @@ public class VersionEvaluationWindowDAO
   @Inject
   public VersionEvaluationWindowDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return VERSION_EVALUATION_WINDOW;
+  }
+
+  @Override
+  public Class<VersionEvaluationWindow> getEntityClass() {
+    return VersionEvaluationWindow.class;
   }
 
   private void validate(final VersionEvaluationWindow entity) {
@@ -65,14 +78,22 @@ public class VersionEvaluationWindowDAO
   }
 
   public List<VersionEvaluationWindow> getByOwnerId(final String ownerId) {
-    String sQuery = "SELECT entity FROM VersionEvaluationWindow entity WHERE entity.ownerId = ?1";
-    return getList(sQuery, ownerId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(VERSION_EVALUATION_WINDOW)
+          .where(VERSION_EVALUATION_WINDOW.OWNER_ID.eq(ownerId))
+          .fetch(this::toEntity);
+    }
   }
 
   public VersionEvaluationWindow getByOwnerIdAndContextId(final String ownerId, final String contextId) {
-    String sQuery =
-        "SELECT entity FROM VersionEvaluationWindow entity WHERE entity.ownerId = ?1 AND entity.contextId = ?2";
-    return get(sQuery, ownerId, contextId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(VERSION_EVALUATION_WINDOW)
+          .where(VERSION_EVALUATION_WINDOW.OWNER_ID.eq(ownerId))
+          .and(VERSION_EVALUATION_WINDOW.CONTEXT_ID.eq(contextId))
+          .fetchOne());
+    }
   }
 
   public void deleteByOwnerId(final String ownerId) {
@@ -84,12 +105,21 @@ public class VersionEvaluationWindowDAO
   }
 
   public void deleteByOwnerId(final TransactionContext tx, final String ownerId) {
-    String sQuery = "DELETE FROM VersionEvaluationWindow entity WHERE entity.ownerId = ?1";
-    createQuery(tx, sQuery, ownerId).executeUpdate();
+    tx.dsl()
+        .deleteFrom(VERSION_EVALUATION_WINDOW)
+        .where(VERSION_EVALUATION_WINDOW.OWNER_ID.eq(ownerId))
+        .execute();
   }
 
   public void deleteByOwnerIdAndContextId(final String ownerId, final String contextId) {
-    String sQuery = "DELETE FROM VersionEvaluationWindow entity WHERE entity.ownerId = ?1 AND entity.contextId = ?2";
-    createQuery(sQuery, ownerId, contextId).executeUpdate();
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .deleteFrom(VERSION_EVALUATION_WINDOW)
+          .where(VERSION_EVALUATION_WINDOW.OWNER_ID.eq(ownerId))
+          .and(VERSION_EVALUATION_WINDOW.CONTEXT_ID.eq(contextId))
+          .execute();
+      tx.commit();
+    }
   }
 }

@@ -6,11 +6,11 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.sql.Connection;
-import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -21,12 +21,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -58,9 +56,14 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyViolation.POLICY_VIOLATION;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -72,6 +75,87 @@ public class PolicyViolationDAO
     extends AbstractPolicyViolationDAO<PolicyViolation>
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyViolationDAO.class);
+
+  @Override
+  public Table<?> getJooqTable() {
+    return POLICY_VIOLATION;
+  }
+
+  @Override
+  public List<PolicyViolation> getAll(TransactionContext tx) {
+    return tx.dsl().selectFrom(POLICY_VIOLATION).fetchInto(PolicyViolation.class);
+  }
+
+  @Override
+  public void insert(TransactionContext tx, PolicyViolation entity) {
+    storeConstraints(entity);
+    generateIdIfNeeded(entity);
+    tx.dsl()
+        .insertInto(POLICY_VIOLATION)
+        .set(POLICY_VIOLATION.POLICY_VIOLATION_ID, entity.getId())
+        .set(POLICY_VIOLATION.APPLICATION_ID, entity.getApplicationId())
+        .set(POLICY_VIOLATION.STAGE_TYPE_ID, entity.getStageTypeId())
+        .set(POLICY_VIOLATION.POLICY_ID, entity.getPolicyId())
+        .set(POLICY_VIOLATION.POLICY_NAME, entity.getPolicyName())
+        .set(POLICY_VIOLATION.THREAT_LEVEL, (short) entity.getThreatLevel())
+        .set(POLICY_VIOLATION.THREAT_CATEGORY,
+            entity.getThreatCategory() != null ? entity.getThreatCategory().name() : null)
+        .set(POLICY_VIOLATION.HASH, entity.getHash())
+        .set(POLICY_VIOLATION.COMPONENT_ID_FORMAT, entity.getComponentIdFormat())
+        .set(POLICY_VIOLATION.COMPONENT_ID_COORDINATES_JSON, entity.getComponentIdCoordinatesJson())
+        .set(POLICY_VIOLATION.FILENAME, entity.getFilename())
+        .set(POLICY_VIOLATION.ACTION_TYPE_ID, entity.getActionTypeId())
+        .set(POLICY_VIOLATION.OPEN_TIME, entity.getOpenTime())
+        .set(POLICY_VIOLATION.WAIVE_TIME, entity.getWaiveTime())
+        .set(POLICY_VIOLATION.LEGACY_VIOLATION_TIME, entity.getLegacyViolationTime())
+        .set(POLICY_VIOLATION.FIX_TIME, entity.getFixTime())
+        .set(POLICY_VIOLATION.POLICY_WAIVER_ID, entity.getPolicyWaiverId())
+        .set(POLICY_VIOLATION.POLICY_WAIVER_COMMENT, entity.getPolicyWaiverComment())
+        .set(POLICY_VIOLATION.SEEN_BY_PRIMARY_EVALUATION, entity.isSeenByPrimaryEvaluation())
+        .set(POLICY_VIOLATION.SEEN_BY_MONITORING_EVALUATION, entity.isSeenByMonitoringEvaluation())
+        .set(POLICY_VIOLATION.LEGACY_VIOLATION_APPLIED, entity.isLegacyViolationApplied())
+        .set(POLICY_VIOLATION.REACHABILITY_STATUS,
+            entity.getReachabilityStatus() != null ? entity.getReachabilityStatus().name() : null)
+        .set(POLICY_VIOLATION.AUTO_POLICY_WAIVER_ID, entity.getAutoPolicyWaiverId())
+        .set(POLICY_VIOLATION.CONSTRAINT_FACTS_ID, entity.getConstraintFactsId())
+        .execute();
+  }
+
+  @Override
+  public void update(TransactionContext tx, PolicyViolation entity) {
+    storeConstraints(entity);
+    tx.dsl()
+        .update(POLICY_VIOLATION)
+        .set(POLICY_VIOLATION.APPLICATION_ID, entity.getApplicationId())
+        .set(POLICY_VIOLATION.STAGE_TYPE_ID, entity.getStageTypeId())
+        .set(POLICY_VIOLATION.POLICY_ID, entity.getPolicyId())
+        .set(POLICY_VIOLATION.POLICY_NAME, entity.getPolicyName())
+        .set(POLICY_VIOLATION.THREAT_LEVEL, (short) entity.getThreatLevel())
+        .set(POLICY_VIOLATION.THREAT_CATEGORY,
+            entity.getThreatCategory() != null ? entity.getThreatCategory().name() : null)
+        .set(POLICY_VIOLATION.HASH, entity.getHash())
+        .set(POLICY_VIOLATION.COMPONENT_ID_FORMAT, entity.getComponentIdFormat())
+        .set(POLICY_VIOLATION.COMPONENT_ID_COORDINATES_JSON, entity.getComponentIdCoordinatesJson())
+        .set(POLICY_VIOLATION.FILENAME, entity.getFilename())
+        .set(POLICY_VIOLATION.ACTION_TYPE_ID, entity.getActionTypeId())
+        .set(POLICY_VIOLATION.OPEN_TIME, entity.getOpenTime())
+        .set(POLICY_VIOLATION.WAIVE_TIME, entity.getWaiveTime())
+        .set(POLICY_VIOLATION.LEGACY_VIOLATION_TIME, entity.getLegacyViolationTime())
+        .set(POLICY_VIOLATION.FIX_TIME, entity.getFixTime())
+        .set(POLICY_VIOLATION.POLICY_WAIVER_ID, entity.getPolicyWaiverId())
+        .set(POLICY_VIOLATION.POLICY_WAIVER_COMMENT, entity.getPolicyWaiverComment())
+        .set(POLICY_VIOLATION.SEEN_BY_PRIMARY_EVALUATION, entity.isSeenByPrimaryEvaluation())
+        .set(POLICY_VIOLATION.SEEN_BY_MONITORING_EVALUATION, entity.isSeenByMonitoringEvaluation())
+        .set(POLICY_VIOLATION.LEGACY_VIOLATION_APPLIED, entity.isLegacyViolationApplied())
+        .set(POLICY_VIOLATION.REACHABILITY_STATUS,
+            entity.getReachabilityStatus() != null ? entity.getReachabilityStatus().name() : null)
+        .set(POLICY_VIOLATION.AUTO_POLICY_WAIVER_ID, entity.getAutoPolicyWaiverId())
+        .set(POLICY_VIOLATION.CONSTRAINT_FACTS_ID, entity.getConstraintFactsId())
+        // Clear deprecated column after migration to new constraint_facts_id
+        .set(POLICY_VIOLATION.CONSTRAINT_FACTS_JSON, (String) null)
+        .where(POLICY_VIOLATION.POLICY_VIOLATION_ID.eq(entity.getId()))
+        .execute();
+  }
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
@@ -92,9 +176,12 @@ public class PolicyViolationDAO
   }
 
   public List<PolicyViolation> getByApplicationId(String applicationId) {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1";
-    return getList(sQuery, applicationId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(POLICY_VIOLATION)
+          .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+          .fetchInto(PolicyViolation.class);
+    }
   }
 
   public List<PolicyViolation> getByIds(Set<String> ids) {
@@ -104,9 +191,13 @@ public class PolicyViolationDAO
   }
 
   public List<PolicyViolation> getByIds(TransactionContext tx, Set<String> ids) {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.id IN (?1)";
-    return getListWithSqlInClause(ids, c -> getList(tx, sQuery, c));
+    if (ids.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return tx.dsl()
+        .selectFrom(POLICY_VIOLATION)
+        .where(POLICY_VIOLATION.POLICY_VIOLATION_ID.in(ids))
+        .fetchInto(PolicyViolation.class);
   }
 
   public List<PolicyViolation> getByApplicationIdAndPolicyIdAndHash(
@@ -114,17 +205,20 @@ public class PolicyViolationDAO
       String policyId,
       String hash)
   {
-    StringBuilder sQueryBuilder = new StringBuilder();
-    sQueryBuilder.append("SELECT entity FROM PolicyViolation entity");
-    sQueryBuilder.append(" WHERE entity.applicationId=?1 AND entity.policyId=?2");
+    try (TransactionContext tx = createTransactionContext()) {
+      var query = tx.dsl()
+          .selectFrom(POLICY_VIOLATION)
+          .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+          .and(POLICY_VIOLATION.POLICY_ID.eq(policyId));
 
-    if (hash == null) {
-      sQueryBuilder.append(" AND entity.hash IS NULL");
-      return getList(sQueryBuilder.toString(), applicationId, policyId);
-    }
-    else {
-      sQueryBuilder.append(" AND entity.hash=?3");
-      return getList(sQueryBuilder.toString(), applicationId, policyId, hash);
+      if (hash == null) {
+        return query.and(POLICY_VIOLATION.HASH.isNull())
+            .fetchInto(PolicyViolation.class);
+      }
+      else {
+        return query.and(POLICY_VIOLATION.HASH.eq(hash))
+            .fetchInto(PolicyViolation.class);
+      }
     }
   }
 
@@ -139,10 +233,12 @@ public class PolicyViolationDAO
       String applicationId,
       String stageTypeId)
   {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
-        " AND entity.fixTime IS NULL";
-    return getList(tx, sQuery, applicationId, stageTypeId);
+    return tx.dsl()
+        .selectFrom(POLICY_VIOLATION)
+        .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+        .and(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId))
+        .and(POLICY_VIOLATION.FIX_TIME.isNull())
+        .fetchInto(PolicyViolation.class);
   }
 
   /**
@@ -151,16 +247,21 @@ public class PolicyViolationDAO
    * Lifecycle (build/release): Excludes all legacy violations.
    */
   public List<PolicyViolation> getActiveByApplicationIdAndStageId(String applicationId, String stageTypeId) {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
-        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL";
+    try (TransactionContext tx = createTransactionContext()) {
+      var query = tx.dsl()
+          .selectFrom(POLICY_VIOLATION)
+          .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+          .and(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId))
+          .and(POLICY_VIOLATION.FIX_TIME.isNull())
+          .and(POLICY_VIOLATION.WAIVE_TIME.isNull());
 
-    if (!ProxyStageType.ID.equals(stageTypeId)) {
-      // Lifecycle: exclude legacy violations
-      sQuery += " AND entity.legacyViolationTime IS NULL";
+      if (!ProxyStageType.ID.equals(stageTypeId)) {
+        // Lifecycle: exclude legacy violations
+        query = query.and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNull());
+      }
+
+      return query.fetchInto(PolicyViolation.class);
     }
-
-    return getList(sQuery, applicationId, stageTypeId);
   }
 
   /**
@@ -173,16 +274,22 @@ public class PolicyViolationDAO
       String stageTypeId,
       String actionTypeId)
   {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 AND entity.actionTypeId=?3" + //
-        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL";
+    try (TransactionContext tx = createTransactionContext()) {
+      var query = tx.dsl()
+          .selectFrom(POLICY_VIOLATION)
+          .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+          .and(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId))
+          .and(POLICY_VIOLATION.ACTION_TYPE_ID.eq(actionTypeId))
+          .and(POLICY_VIOLATION.FIX_TIME.isNull())
+          .and(POLICY_VIOLATION.WAIVE_TIME.isNull());
 
-    if (!ProxyStageType.ID.equals(stageTypeId)) {
-      // Lifecycle: exclude legacy violations
-      sQuery += " AND entity.legacyViolationTime IS NULL";
+      if (!ProxyStageType.ID.equals(stageTypeId)) {
+        // Lifecycle: exclude legacy violations
+        query = query.and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNull());
+      }
+
+      return query.fetchInto(PolicyViolation.class);
     }
-
-    return getList(sQuery, applicationId, stageTypeId, actionTypeId);
   }
 
   /**
@@ -195,16 +302,22 @@ public class PolicyViolationDAO
       String stageTypeId,
       String hash)
   {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 AND entity.hash=?3" + //
-        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL";
+    try (TransactionContext tx = createTransactionContext()) {
+      var query = tx.dsl()
+          .selectFrom(POLICY_VIOLATION)
+          .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+          .and(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId))
+          .and(POLICY_VIOLATION.HASH.eq(hash))
+          .and(POLICY_VIOLATION.FIX_TIME.isNull())
+          .and(POLICY_VIOLATION.WAIVE_TIME.isNull());
 
-    if (!ProxyStageType.ID.equals(stageTypeId)) {
-      // Lifecycle: exclude legacy violations
-      sQuery += " AND entity.legacyViolationTime IS NULL";
+      if (!ProxyStageType.ID.equals(stageTypeId)) {
+        // Lifecycle: exclude legacy violations
+        query = query.and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNull());
+      }
+
+      return query.fetchInto(PolicyViolation.class);
     }
-
-    return getList(sQuery, applicationId, stageTypeId, hash);
   }
 
   public List<PolicyViolation> getUnfixedByApplicationIdsOpenedAfterDate(
@@ -237,24 +350,33 @@ public class PolicyViolationDAO
       Integer maxThreatLevel,
       Collection<PolicyThreatCategory> policyThreatCategories)
   {
-    minThreatLevel = minThreatLevel == null ? 0 : minThreatLevel;
-    maxThreatLevel = maxThreatLevel == null ? 10 : maxThreatLevel;
+    final int finalMinThreatLevel = minThreatLevel == null ? 0 : minThreatLevel;
+    final int finalMaxThreatLevel = maxThreatLevel == null ? 10 : maxThreatLevel;
 
-    policyThreatCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
+    final Collection<PolicyThreatCategory> finalCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
+    final List<String> categoryNames = finalCategories.stream()
+        .map(PolicyThreatCategory::name)
+        .collect(toList());
 
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE " + applicationIdString() + //
-        " AND entity.openTime >= ?2" + //
-        " AND entity.threatLevel >= ?3" + //
-        " AND entity.threatLevel <= ?4" + //
-        " AND entity.fixTime IS NULL" + //
-        " AND entity.threatCategory IN (?5)" + //
-        (onlyActiveViolations ? " AND entity.waiveTime IS NULL AND entity.legacyViolationTime IS NULL " : "");
-    return getUnfixed(sQuery, applicationIds, minDate, minThreatLevel, maxThreatLevel, policyThreatCategories);
-  }
+    return getUnfixed(applicationIds, appIds -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        var query = tx.dsl()
+            .selectFrom(POLICY_VIOLATION)
+            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .and(POLICY_VIOLATION.OPEN_TIME.ge(minDate))
+            .and(POLICY_VIOLATION.THREAT_LEVEL.ge((short) finalMinThreatLevel))
+            .and(POLICY_VIOLATION.THREAT_LEVEL.le((short) finalMaxThreatLevel))
+            .and(POLICY_VIOLATION.FIX_TIME.isNull())
+            .and(POLICY_VIOLATION.THREAT_CATEGORY.in(categoryNames));
 
-  private String applicationIdString() {
-    return isDatabaseEmbedded() ? "entity.applicationId=?1" : "entity.applicationId IN (?1)";
+        if (onlyActiveViolations) {
+          query = query.and(POLICY_VIOLATION.WAIVE_TIME.isNull())
+              .and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNull());
+        }
+
+        return query.fetchInto(PolicyViolation.class);
+      }
+    });
   }
 
   public List<PolicyViolation> getUnfixedByApplicationIds(Collection<String> applicationIds) {
@@ -269,19 +391,29 @@ public class PolicyViolationDAO
       Collection<String> applicationIds,
       boolean onlyActiveViolations)
   {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE " + applicationIdString() + //
-        " AND entity.fixTime IS NULL" + //
-        (onlyActiveViolations ? " AND entity.waiveTime IS NULL " : "") + //
-        (onlyActiveViolations ? " AND entity.legacyViolationTime IS NULL " : "");
-    return getUnfixed(sQuery, applicationIds);
+    return getUnfixed(applicationIds, appIds -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        var query = tx.dsl()
+            .selectFrom(POLICY_VIOLATION)
+            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .and(POLICY_VIOLATION.FIX_TIME.isNull());
+
+        if (onlyActiveViolations) {
+          query = query.and(POLICY_VIOLATION.WAIVE_TIME.isNull())
+              .and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNull());
+        }
+
+        return query.fetchInto(PolicyViolation.class);
+      }
+    });
   }
 
   public List<PolicyViolation> getUnfixedByApplicationId(TransactionContext tx, String applicationId) {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1" + //
-        " AND entity.fixTime IS NULL";
-    return getList(tx, sQuery, applicationId);
+    return tx.dsl()
+        .selectFrom(POLICY_VIOLATION)
+        .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+        .and(POLICY_VIOLATION.FIX_TIME.isNull())
+        .fetchInto(PolicyViolation.class);
   }
 
   public List<PolicyViolation> getActiveByApplicationIdsAndStageIdsOpenedAfterDate(
@@ -292,21 +424,30 @@ public class PolicyViolationDAO
       Integer maxThreatLevel,
       Collection<PolicyThreatCategory> policyThreatCategories)
   {
-    minThreatLevel = minThreatLevel == null ? 0 : minThreatLevel;
-    maxThreatLevel = maxThreatLevel == null ? 10 : maxThreatLevel;
+    final int finalMinThreatLevel = minThreatLevel == null ? 0 : minThreatLevel;
+    final int finalMaxThreatLevel = maxThreatLevel == null ? 10 : maxThreatLevel;
 
-    policyThreatCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
+    final Collection<PolicyThreatCategory> finalCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
+    final List<String> categoryNames = finalCategories.stream()
+        .map(PolicyThreatCategory::name)
+        .collect(toList());
 
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE " + applicationIdString() + " AND entity.stageTypeId IN (?2)" + //
-        " AND entity.openTime >= ?3" + //
-        " AND entity.threatLevel >= ?4" + //
-        " AND entity.threatLevel <= ?5" + //
-        " AND entity.threatCategory IN (?6)" + //
-        " AND entity.fixTime IS NULL" + //
-        " AND entity.waiveTime IS NULL AND entity.legacyViolationTime IS NULL";
-    return getUnfixed(sQuery, applicationIds, stageTypeIds, minDate, minThreatLevel, maxThreatLevel,
-        policyThreatCategories);
+    return getUnfixed(applicationIds, appIds -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        return tx.dsl()
+            .selectFrom(POLICY_VIOLATION)
+            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .and(POLICY_VIOLATION.STAGE_TYPE_ID.in(stageTypeIds))
+            .and(POLICY_VIOLATION.OPEN_TIME.ge(minDate))
+            .and(POLICY_VIOLATION.THREAT_LEVEL.ge((short) finalMinThreatLevel))
+            .and(POLICY_VIOLATION.THREAT_LEVEL.le((short) finalMaxThreatLevel))
+            .and(POLICY_VIOLATION.THREAT_CATEGORY.in(categoryNames))
+            .and(POLICY_VIOLATION.FIX_TIME.isNull())
+            .and(POLICY_VIOLATION.WAIVE_TIME.isNull())
+            .and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNull())
+            .fetchInto(PolicyViolation.class);
+      }
+    });
   }
 
   public List<RepositoryResultsForImageContainer> getRepositoryResultsForImageContainer(
@@ -328,11 +469,12 @@ public class PolicyViolationDAO
       RepositoryResultsForImageContainerFilter detailsFilter)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      int threatLevelFiltersSize =
-          detailsFilter.threatLevelFilters != null ? detailsFilter.threatLevelFilters.size() : 0;
+      // Only count threat level filters if they will actually produce a WHERE clause
+      // The clause is only added when filters are outside the default [0, 10] range
+      int threatLevelFiltersSize = detailsFilter.threatLevelFilters != null &&
+          detailsFilter.threatLevelFilters.size() == 2 &&
+          (detailsFilter.threatLevelFilters.get(0) > 0 || detailsFilter.threatLevelFilters.get(1) < 10) ? 2 : 0;
       int repositoryIdsSize = repositoryIds.size();
-      // POLICY_NAME, QUARANTINE_TIME, OBJECT_NAME
-      // are the only possible search filters used in the Query (as of May 2025)
       int repositoryIdsParamStartPosition = 1;
       int threatLevelFiltersParamStartPosition = repositoryIdsSize + 1;
       int searchFiltersParamStartPosition = repositoryIdsSize + threatLevelFiltersSize + 1;
@@ -351,59 +493,80 @@ public class PolicyViolationDAO
               PolicyEvaluation::getScanId // Value: scanId
           ));
 
-      String baseQuery = "SELECT threat_level," + //
-          " policy_name as policy," + //
-          " app.name as object," + //
-          " CASE WHEN pv.waive_time IS NOT NULL THEN NULL" + //
-          " WHEN pv.action_type_id = 'fail' THEN pv.open_time ELSE NULL END as quarantine_time," + //
-          " app.application_id," + //
-          " app.public_id" + //
-          " FROM " + getDatabaseSchema() + ".organization org JOIN " + getDatabaseSchema() + ".application app" +
-          " ON org.organization_id = app.organization_id" + //
-          " INNER JOIN " + getDatabaseSchema() + ".last_policy_evaluation lpe" + //
-          " ON lpe.application_id = app.application_id" + //
-          " INNER JOIN " + getDatabaseSchema() + ".policy_evaluation pe" + //
-          " ON lpe.policy_evaluation_id = pe.policy_evaluation_id" + //
-          ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") +
-          " " + getDatabaseSchema() + ".policy_violation pv" + //
-          " ON app.application_id = pv.application_id AND pv.stage_type_id = 'proxy'" + //
-          " WHERE related_repository_id IN "
-          + buildPositionalParameters(repositoryIds, repositoryIdsParamStartPosition) + //
-          " AND pv.fix_time IS NULL";
-
-      StringBuilder sQuery = new StringBuilder(baseQuery);
+      StringBuilder sQuery = new StringBuilder();
+      sQuery.append("SELECT threat_level,");
+      sQuery.append(" policy_name as policy,");
+      sQuery.append(" app.name as object,");
+      sQuery.append(" CASE WHEN pv.waive_time IS NOT NULL THEN NULL");
+      sQuery.append(" WHEN pv.action_type_id = 'fail' THEN pv.open_time ELSE NULL END as quarantine_time,");
+      sQuery.append(" app.application_id,");
+      sQuery.append(" app.public_id");
+      sQuery.append(" FROM ")
+          .append(getDatabaseSchema())
+          .append(".organization org JOIN ")
+          .append(getDatabaseSchema())
+          .append(".application app");
+      sQuery.append(" ON org.organization_id = app.organization_id");
+      sQuery.append(" INNER JOIN ").append(getDatabaseSchema()).append(".last_policy_evaluation lpe");
+      sQuery.append(" ON lpe.application_id = app.application_id");
+      sQuery.append(" INNER JOIN ").append(getDatabaseSchema()).append(".policy_evaluation pe");
+      sQuery.append(" ON lpe.policy_evaluation_id = pe.policy_evaluation_id");
+      sQuery.append((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN");
+      sQuery.append(" ").append(getDatabaseSchema()).append(".policy_violation pv");
+      sQuery.append(" ON app.application_id = pv.application_id AND pv.stage_type_id = 'proxy'");
+      sQuery.append(" WHERE related_repository_id IN ");
+      sQuery.append(buildPositionalParameters(repositoryIds, repositoryIdsParamStartPosition));
+      sQuery.append(" AND pv.fix_time IS NULL");
 
       sQuery.append(addThreatLevelFilters(detailsFilter.threatLevelFilters, threatLevelFiltersParamStartPosition));
 
       sQuery.append(addViolationStateFilters(detailsFilter.violationStateFilters));
 
-      sQuery.append(addSearchFilters(detailsFilter.searchFilters, searchFiltersParamStartPosition));
+      // Add search filters using the new method signature
+      addSearchFilters(sQuery, detailsFilter.searchFilters, searchFiltersParamStartPosition);
 
       sQuery.append(validateAndAddSortFields(detailsFilter.sortFields));
 
       int offset = (detailsFilter.page - 1) * detailsFilter.pageSize;
+      int pageLimit = detailsFilter.pageSize +
+          1; // Incremented page size to help UI determine whether to enable / disable NextPage button
 
-      jakarta.persistence.Query query = tx.createNativeQuery(sQuery.toString());
-      addPositionalParameters(query, repositoryIds, repositoryIdsParamStartPosition);
-
-      if (detailsFilter.threatLevelFilters != null && detailsFilter.threatLevelFilters.size() == 2) {
-        query.setParameter(threatLevelFiltersParamStartPosition, detailsFilter.threatLevelFilters.get(0));
-        query.setParameter(threatLevelFiltersParamStartPosition + 1, detailsFilter.threatLevelFilters.get(1));
+      // Build bindings list - only add bindings for filters that exist
+      List<Object> bindings = new ArrayList<>();
+      bindings.addAll(repositoryIds);
+      if (threatLevelFiltersSize == 2) {
+        bindings.add(detailsFilter.threatLevelFilters.get(0));
+        bindings.add(detailsFilter.threatLevelFilters.get(1));
       }
-      query.setParameter(searchFiltersParamStartPosition, '%' + detailsFilter.searchFilters.get("POLICY_NAME") + '%');
-      query.setParameter(searchFiltersParamStartPosition + 1,
-          '%' + detailsFilter.searchFilters.get("QUARANTINE_TIME") + '%');
-      query.setParameter(searchFiltersParamStartPosition + 2,
-          '%' + detailsFilter.searchFilters.get("OBJECT_NAME") + '%');
-      query.setFirstResult(offset)
-          .setMaxResults(detailsFilter.pageSize +
-              1); // Incremented page size to help UI determine whether to enable / disable NextPage button
+      // Add search filter bindings in the same order as addSearchFilters
+      if (detailsFilter.searchFilters.containsKey("POLICY_NAME")) {
+        bindings.add('%' + detailsFilter.searchFilters.get("POLICY_NAME") + '%');
+      }
+      if (detailsFilter.searchFilters.containsKey("QUARANTINE_TIME")) {
+        bindings.add('%' + detailsFilter.searchFilters.get("QUARANTINE_TIME") + '%');
+      }
+      if (detailsFilter.searchFilters.containsKey("OBJECT_NAME")) {
+        bindings.add('%' + detailsFilter.searchFilters.get("OBJECT_NAME") + '%');
+      }
 
-      List<RepositoryResultsForImageContainer> results = ((Stream<Object[]>) query.getResultStream())
-          .map(array -> new RepositoryResultsForImageContainer(getInteger(array[0]), (String) array[1], null,
-              (String) array[2],
-              array[3] == null ? null : new Date(((Timestamp) array[3]).getTime()),
-              applicationIdsToScanIdMap.get(array[4]), (String) array[5]))
+      // Add LIMIT and OFFSET to the query
+      sQuery.append(" LIMIT ").append(pageLimit).append(" OFFSET ").append(offset);
+
+      // Convert positional parameters from ?N to ? format for jOOQ
+      String convertedQuery = convertPositionalParams(sQuery.toString());
+
+      List<RepositoryResultsForImageContainer> results = tx.dsl()
+          .resultQuery(convertedQuery, bindings.toArray())
+          .fetch()
+          .stream()
+          .map(record -> new RepositoryResultsForImageContainer(
+              record.get(0, Integer.class),
+              record.get(1, String.class),
+              null,
+              record.get(2, String.class),
+              toDateFromTimestampOrLocalDateTime(record.get(3)),
+              applicationIdsToScanIdMap.get(record.get(4, String.class)),
+              record.get(5, String.class)))
           .collect(Collectors.toList());
 
       return results;
@@ -422,10 +585,11 @@ public class PolicyViolationDAO
   {
     try (TransactionContext tx = createTransactionContext()) {
       int repositoryIdsSize = repositoryIds.size();
-      int threatLevelFiltersSize =
-          detailsFilter.threatLevelFilters != null ? detailsFilter.threatLevelFilters.size() : 0;
-      // POLICY_NAME, QUARANTINE_TIME, OBJECT_NAME
-      // are the only possible search filters used in the Query (as of May 2025)
+      // Only count threat level filters if they will actually produce a WHERE clause
+      // The clause is only added when filters are outside the default [0, 10] range
+      int threatLevelFiltersSize = detailsFilter.threatLevelFilters != null &&
+          detailsFilter.threatLevelFilters.size() == 2 &&
+          (detailsFilter.threatLevelFilters.get(0) > 0 || detailsFilter.threatLevelFilters.get(1) < 10) ? 2 : 0;
       int repositoryIdsParamStartPosition = 1;
       int threatLevelFiltersParamStartPosition = repositoryIdsSize + 1;
       int searchFiltersParamStartPosition = repositoryIdsSize + threatLevelFiltersSize + 1;
@@ -445,56 +609,85 @@ public class PolicyViolationDAO
               PolicyEvaluation::getScanId // Value: scanId
           ));
 
-      String baseQuery = "SELECT max(threat_level) as threat_level," + //
-          " COUNT(CASE WHEN (threat_level >= 2) THEN 1 END) as violation_count," + //
-          " app.name as object," + //
-          " max(CASE WHEN pv.waive_time IS NOT NULL THEN NULL" + //
-          " WHEN pv.action_type_id = 'fail' THEN pv.open_time ELSE NULL END) as quarantine_time," + //
-          " app.application_id," + //
-          " app.public_id" + //
-          " FROM " + getDatabaseSchema() + ".organization org JOIN " + getDatabaseSchema() + ".application app" +
-          " ON org.organization_id = app.organization_id" + //
-          ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") +
-          " " + getDatabaseSchema() + ".policy_violation pv" + //
-          " ON app.application_id = pv.application_id AND pv.stage_type_id = 'proxy'" + //
-          " INNER JOIN " + getDatabaseSchema() + ".last_policy_evaluation lpe" + //
-          " ON lpe.application_id = app.application_id" + //
-          " INNER JOIN " + getDatabaseSchema() + ".policy_evaluation pe" + //
-          " ON lpe.policy_evaluation_id = pe.policy_evaluation_id" + //
-          " WHERE related_repository_id IN" + //
-          buildPositionalParameters(repositoryIds, repositoryIdsParamStartPosition) +
-          addThreatLevelFilters(detailsFilter.threatLevelFilters, threatLevelFiltersParamStartPosition) +
-          addViolationStateFilters(detailsFilter.violationStateFilters) +
-          addSearchFilters(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
-          " AND pv.fix_time IS NULL" + //
-          " GROUP BY app.application_id, app.name" + //
-          addPolicyViolationCountForHavingClause(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
-          validateAndAddSortFields(detailsFilter.sortFields) +
-          " LIMIT " + pageSize +
-          " OFFSET " + offset;
+      // Build query with StringBuilder to track parameter positions
+      StringBuilder sQuery = new StringBuilder();
+      sQuery.append("SELECT max(threat_level) as threat_level,");
+      sQuery.append(" COUNT(CASE WHEN (threat_level >= 2) THEN 1 END) as violation_count,");
+      sQuery.append(" app.name as object,");
+      sQuery.append(" max(CASE WHEN pv.waive_time IS NOT NULL THEN NULL");
+      sQuery.append(" WHEN pv.action_type_id = 'fail' THEN pv.open_time ELSE NULL END) as quarantine_time,");
+      sQuery.append(" app.application_id,");
+      sQuery.append(" app.public_id");
+      sQuery.append(" FROM ")
+          .append(getDatabaseSchema())
+          .append(".organization org JOIN ")
+          .append(getDatabaseSchema())
+          .append(".application app");
+      sQuery.append(" ON org.organization_id = app.organization_id");
+      sQuery.append((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN");
+      sQuery.append(" ").append(getDatabaseSchema()).append(".policy_violation pv");
+      sQuery.append(" ON app.application_id = pv.application_id AND pv.stage_type_id = 'proxy'");
+      sQuery.append(" INNER JOIN ").append(getDatabaseSchema()).append(".last_policy_evaluation lpe");
+      sQuery.append(" ON lpe.application_id = app.application_id");
+      sQuery.append(" INNER JOIN ").append(getDatabaseSchema()).append(".policy_evaluation pe");
+      sQuery.append(" ON lpe.policy_evaluation_id = pe.policy_evaluation_id");
+      sQuery.append(" WHERE related_repository_id IN");
+      sQuery.append(buildPositionalParameters(repositoryIds, repositoryIdsParamStartPosition));
+      sQuery.append(addThreatLevelFilters(detailsFilter.threatLevelFilters, threatLevelFiltersParamStartPosition));
+      sQuery.append(addViolationStateFilters(detailsFilter.violationStateFilters));
 
-      jakarta.persistence.Query query = tx.createNativeQuery(baseQuery);
-      addPositionalParameters(query, repositoryIds, repositoryIdsParamStartPosition);
-      if (detailsFilter.threatLevelFilters != null && detailsFilter.threatLevelFilters.size() == 2) {
-        query.setParameter(threatLevelFiltersParamStartPosition, detailsFilter.threatLevelFilters.get(0));
-        query.setParameter(threatLevelFiltersParamStartPosition + 1, detailsFilter.threatLevelFilters.get(1));
+      // Add search filters and track how many parameters were added
+      int searchParamsAdded = addSearchFilters(sQuery, detailsFilter.searchFilters, searchFiltersParamStartPosition);
+
+      sQuery.append(" AND pv.fix_time IS NULL");
+      sQuery.append(" GROUP BY app.application_id, app.name");
+
+      // HAVING clause uses the next available position after search filters
+      int havingParamPosition = searchFiltersParamStartPosition + searchParamsAdded;
+      addPolicyViolationCountForHavingClause(sQuery, detailsFilter.searchFilters, havingParamPosition);
+
+      // Use isAggregateQuery=true to avoid adding policy_name tiebreaker (not in GROUP BY)
+      sQuery.append(validateAndAddSortFields(detailsFilter.sortFields, true));
+      sQuery.append(" LIMIT ").append(pageSize);
+      sQuery.append(" OFFSET ").append(offset);
+
+      // Build bindings list - only add bindings for filters that exist
+      List<Object> bindings = new ArrayList<>();
+      bindings.addAll(repositoryIds);
+      if (threatLevelFiltersSize == 2) {
+        bindings.add(detailsFilter.threatLevelFilters.get(0));
+        bindings.add(detailsFilter.threatLevelFilters.get(1));
       }
-      query.setParameter(searchFiltersParamStartPosition, detailsFilter.searchFilters
-          .get("VIOLATION_COUNT"));
-      query.setParameter(searchFiltersParamStartPosition + 1,
-          '%' + detailsFilter.searchFilters.get("QUARANTINE_TIME") + '%');
-      query.setParameter(searchFiltersParamStartPosition + 2,
-          '%' + detailsFilter.searchFilters.get("OBJECT_NAME") + '%');
+      // Add search filter bindings in the same order as addSearchFilters
+      if (detailsFilter.searchFilters.containsKey("POLICY_NAME")) {
+        bindings.add('%' + detailsFilter.searchFilters.get("POLICY_NAME") + '%');
+      }
+      if (detailsFilter.searchFilters.containsKey("QUARANTINE_TIME")) {
+        bindings.add('%' + detailsFilter.searchFilters.get("QUARANTINE_TIME") + '%');
+      }
+      if (detailsFilter.searchFilters.containsKey("OBJECT_NAME")) {
+        bindings.add('%' + detailsFilter.searchFilters.get("OBJECT_NAME") + '%');
+      }
+      // HAVING clause binding comes after WHERE search filters
+      if (detailsFilter.searchFilters.containsKey("VIOLATION_COUNT")) {
+        bindings.add(detailsFilter.searchFilters.get("VIOLATION_COUNT"));
+      }
 
-      List<RepositoryResultsForImageContainer> results = ((Stream<Object[]>) query.getResultStream())
-          .map(array -> new RepositoryResultsForImageContainer(
-              getInteger(array[0]),
+      // Convert positional parameters from ?N to ? format for jOOQ
+      String convertedQuery = convertPositionalParams(sQuery.toString());
+
+      List<RepositoryResultsForImageContainer> results = tx.dsl()
+          .resultQuery(convertedQuery, bindings.toArray())
+          .fetch()
+          .stream()
+          .map(record -> new RepositoryResultsForImageContainer(
+              record.get(0, Integer.class),
               null,
-              getInteger(array[1]),
-              (String) array[2],
-              array[3] == null ? null : new Date(((Timestamp) array[3]).getTime()),
-              applicationIdsToScanIdMap.get(array[4]),
-              (String) array[5]))
+              record.get(1, Integer.class),
+              record.get(2, String.class),
+              toDateFromTimestampOrLocalDateTime(record.get(3)),
+              applicationIdsToScanIdMap.get(record.get(4, String.class)),
+              record.get(5, String.class)))
           .collect(Collectors.toList());
       return results;
     }
@@ -548,48 +741,64 @@ public class PolicyViolationDAO
     return "";
   }
 
-  private static String addSearchFilters(Map<String, String> filters, int paramStartPosition) {
-    StringBuilder query = new StringBuilder();
+  /**
+   * Adds search filter conditions to the query. Returns the number of parameters added. The filters are added in a
+   * consistent order: POLICY_NAME, QUARANTINE_TIME, OBJECT_NAME.
+   */
+  private static int addSearchFilters(StringBuilder query, Map<String, String> filters, int paramStartPosition) {
+    int paramCount = 0;
     if (!MapUtils.isEmpty(filters)) {
-      for (Entry<String, String> filter : filters.entrySet()) {
-        if (filter.getKey().equals("POLICY_NAME")) {
-          query.append(" AND LOWER(pv.policy_name) LIKE ?" + paramStartPosition);
-        }
-        if (filter.getKey().equals("QUARANTINE_TIME")) {
-          query.append(" AND (pv.open_time IS NOT NULL AND TO_CHAR(pv.open_time, 'YYYY-MM-DD') LIKE ?" +
-              (paramStartPosition + 1) + ")");
-        }
-        if (filter.getKey().equals("OBJECT_NAME")) {
-          query.append(" AND LOWER(app.name) LIKE ?" + (paramStartPosition + 2));
-        }
+      // Process in consistent order
+      if (filters.containsKey("POLICY_NAME")) {
+        query.append(" AND LOWER(pv.policy_name) LIKE ?" + (paramStartPosition + paramCount));
+        paramCount++;
+      }
+      if (filters.containsKey("QUARANTINE_TIME")) {
+        query.append(" AND (pv.open_time IS NOT NULL AND TO_CHAR(pv.open_time, 'YYYY-MM-DD') LIKE ?" +
+            (paramStartPosition + paramCount) + ")");
+        paramCount++;
+      }
+      if (filters.containsKey("OBJECT_NAME")) {
+        query.append(" AND LOWER(app.name) LIKE ?" + (paramStartPosition + paramCount));
+        paramCount++;
       }
     }
-
-    return query.toString();
+    return paramCount;
   }
 
-  private static String addPolicyViolationCountForHavingClause(Map<String, String> filters, int paramStartPosition) {
-    StringBuilder query = new StringBuilder();
-    if (!MapUtils.isEmpty(filters)) {
-      for (Entry<String, String> filter : filters.entrySet()) {
-        if (filter.getKey().equals("VIOLATION_COUNT")) {
-          query.append(" HAVING violation_count = ?" + (paramStartPosition));
-        }
-      }
+  /**
+   * Adds HAVING clause for violation count filter. Returns 1 if added, 0 otherwise.
+   */
+  private static int addPolicyViolationCountForHavingClause(
+      StringBuilder query,
+      Map<String, String> filters,
+      int paramStartPosition)
+  {
+    if (!MapUtils.isEmpty(filters) && filters.containsKey("VIOLATION_COUNT")) {
+      query.append(" HAVING violation_count = ?" + paramStartPosition);
+      return 1;
     }
-
-    return query.toString();
+    return 0;
   }
 
   private String validateAndAddSortFields(final List<SortField> sortFields) {
+    return validateAndAddSortFields(sortFields, false);
+  }
+
+  private String validateAndAddSortFields(final List<SortField> sortFields, final boolean isAggregateQuery) {
     StringBuilder query = new StringBuilder();
     List<String> result = new ArrayList<>();
     if (!CollectionUtils.isEmpty(sortFields)) {
       sortFields.sort(Comparator.comparing(field -> field.sortPriority));
       Set<Integer> sortPriorities = new HashSet<>();
+      Set<SortableField> addedFields = new HashSet<>();
       for (SortField sortField : sortFields) {
         if (sortPriorities.contains(sortField.sortPriority)) {
           throw new BadRequestException("sort priority cannot be the same for different fields");
+        }
+        // Skip POLICY_NAME for aggregate queries since it's not in the GROUP BY clause
+        if (isAggregateQuery && sortField.sortableField == SortableField.POLICY_NAME) {
+          continue;
         }
         if (sortField.asc) {
           result.add(getSortField(sortField.sortableField) + " NULLS LAST");
@@ -598,8 +807,16 @@ public class PolicyViolationDAO
           result.add(getSortField(sortField.sortableField) + " DESC NULLS LAST");
         }
         sortPriorities.add(sortField.sortPriority);
+        addedFields.add(sortField.sortableField);
       }
-      query.append(" ORDER BY ").append(StringUtils.join(result, ", "));
+      // Add policy_name as a tiebreaker for deterministic ordering when not already included
+      // Skip for aggregate queries since policy_name is not in the GROUP BY clause
+      if (!isAggregateQuery && !addedFields.contains(SortableField.POLICY_NAME)) {
+        result.add(getSortField(SortableField.POLICY_NAME) + " NULLS LAST");
+      }
+      if (!result.isEmpty()) {
+        query.append(" ORDER BY ").append(StringUtils.join(result, ", "));
+      }
     }
 
     return query.toString();
@@ -629,21 +846,29 @@ public class PolicyViolationDAO
       Integer maxThreatLevel,
       Collection<PolicyThreatCategory> policyThreatCategories)
   {
-    minThreatLevel = minThreatLevel == null ? 0 : minThreatLevel;
-    maxThreatLevel = maxThreatLevel == null ? 10 : maxThreatLevel;
+    final int finalMinThreatLevel = minThreatLevel == null ? 0 : minThreatLevel;
+    final int finalMaxThreatLevel = maxThreatLevel == null ? 10 : maxThreatLevel;
 
-    policyThreatCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
+    final Collection<PolicyThreatCategory> finalCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
+    final List<String> categoryNames = finalCategories.stream()
+        .map(PolicyThreatCategory::name)
+        .collect(toList());
 
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE " + applicationIdString() + " AND entity.stageTypeId IN (?2)" + //
-        " AND entity.fixTime IS NULL" + //
-        " AND entity.threatLevel >= ?3" + //
-        " AND entity.threatLevel <= ?4" + //
-        " AND entity.threatCategory IN (?5)" + //
-        " AND entity.waiveTime IS NULL" + //
-        " AND entity.legacyViolationTime IS NULL";
-
-    return getUnfixed(sQuery, applicationIds, stageTypeIds, minThreatLevel, maxThreatLevel, policyThreatCategories);
+    return getUnfixed(applicationIds, appIds -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        return tx.dsl()
+            .selectFrom(POLICY_VIOLATION)
+            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .and(POLICY_VIOLATION.STAGE_TYPE_ID.in(stageTypeIds))
+            .and(POLICY_VIOLATION.FIX_TIME.isNull())
+            .and(POLICY_VIOLATION.THREAT_LEVEL.ge((short) finalMinThreatLevel))
+            .and(POLICY_VIOLATION.THREAT_LEVEL.le((short) finalMaxThreatLevel))
+            .and(POLICY_VIOLATION.THREAT_CATEGORY.in(categoryNames))
+            .and(POLICY_VIOLATION.WAIVE_TIME.isNull())
+            .and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNull())
+            .fetchInto(PolicyViolation.class);
+      }
+    });
   }
 
   public List<PolicyViolation> getUnfixedBy(
@@ -656,21 +881,34 @@ public class PolicyViolationDAO
       Boolean violationStateWaived,
       Boolean violationStateLegacyViolation)
   {
-    minThreatLevel = minThreatLevel == null ? 0 : minThreatLevel;
-    maxThreatLevel = maxThreatLevel == null ? 10 : maxThreatLevel;
+    final int finalMinThreatLevel = minThreatLevel == null ? 0 : minThreatLevel;
+    final int finalMaxThreatLevel = maxThreatLevel == null ? 10 : maxThreatLevel;
 
-    policyThreatCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
+    final Collection<PolicyThreatCategory> finalCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
+    final List<String> categoryNames = finalCategories.stream()
+        .map(PolicyThreatCategory::name)
+        .collect(toList());
+    final org.jooq.Condition stateCondition = buildPolicyStateCondition(
+        violationStateOpen, violationStateWaived, violationStateLegacyViolation);
 
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE " + applicationIdString() + " AND entity.stageTypeId IN (?2)" + //
-        " AND entity.fixTime IS NULL" + //
-        " AND entity.threatLevel >= ?3" + //
-        " AND entity.threatLevel <= ?4" + //
-        " AND entity.threatCategory IN (?5)";
+    return getUnfixed(applicationIds, appIds -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        var query = tx.dsl()
+            .selectFrom(POLICY_VIOLATION)
+            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .and(POLICY_VIOLATION.STAGE_TYPE_ID.in(stageTypeIds))
+            .and(POLICY_VIOLATION.FIX_TIME.isNull())
+            .and(POLICY_VIOLATION.THREAT_LEVEL.ge((short) finalMinThreatLevel))
+            .and(POLICY_VIOLATION.THREAT_LEVEL.le((short) finalMaxThreatLevel))
+            .and(POLICY_VIOLATION.THREAT_CATEGORY.in(categoryNames));
 
-    sQuery += getPolicyStateFilter(violationStateOpen, violationStateWaived, violationStateLegacyViolation);
+        if (stateCondition != null) {
+          query = query.and(stateCondition);
+        }
 
-    return getUnfixed(sQuery, applicationIds, stageTypeIds, minThreatLevel, maxThreatLevel, policyThreatCategories);
+        return query.fetchInto(PolicyViolation.class);
+      }
+    });
   }
 
   public List<PolicyViolation> getUnfixedBy(
@@ -684,23 +922,82 @@ public class PolicyViolationDAO
       Boolean violationStateWaived,
       Boolean violationStateLegacyViolation)
   {
-    minThreatLevel = minThreatLevel == null ? 0 : minThreatLevel;
-    maxThreatLevel = maxThreatLevel == null ? 10 : maxThreatLevel;
+    final int finalMinThreatLevel = minThreatLevel == null ? 0 : minThreatLevel;
+    final int finalMaxThreatLevel = maxThreatLevel == null ? 10 : maxThreatLevel;
 
-    policyThreatCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
+    final Collection<PolicyThreatCategory> finalCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
+    final List<String> categoryNames = finalCategories.stream()
+        .map(PolicyThreatCategory::name)
+        .collect(toList());
+    final org.jooq.Condition stateCondition = buildPolicyStateCondition(
+        violationStateOpen, violationStateWaived, violationStateLegacyViolation);
 
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE " + applicationIdString() + "AND entity.stageTypeId IN (?2)" + //
-        " AND entity.openTime >= ?3" + //
-        " AND entity.threatLevel >= ?4" + //
-        " AND entity.threatLevel <= ?5" + //
-        " AND entity.threatCategory IN (?6)" + //
-        " AND entity.fixTime IS NULL";
+    return getUnfixed(applicationIds, appIds -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        var query = tx.dsl()
+            .selectFrom(POLICY_VIOLATION)
+            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .and(POLICY_VIOLATION.STAGE_TYPE_ID.in(stageTypeIds))
+            .and(POLICY_VIOLATION.OPEN_TIME.ge(minDate))
+            .and(POLICY_VIOLATION.THREAT_LEVEL.ge((short) finalMinThreatLevel))
+            .and(POLICY_VIOLATION.THREAT_LEVEL.le((short) finalMaxThreatLevel))
+            .and(POLICY_VIOLATION.THREAT_CATEGORY.in(categoryNames))
+            .and(POLICY_VIOLATION.FIX_TIME.isNull());
 
-    sQuery += getPolicyStateFilter(violationStateOpen, violationStateWaived, violationStateLegacyViolation);
+        if (stateCondition != null) {
+          query = query.and(stateCondition);
+        }
 
-    return getUnfixed(sQuery, applicationIds, stageTypeIds, minDate, minThreatLevel, maxThreatLevel,
-        policyThreatCategories);
+        return query.fetchInto(PolicyViolation.class);
+      }
+    });
+  }
+
+  /**
+   * Builds a jOOQ condition for filtering policy violations by state (open, waived, legacy).
+   *
+   * @param violationStateOpen include open violations (waiveTime IS NULL AND legacyViolationTime IS NULL)
+   * @param violationStateWaived include waived violations (waiveTime IS NOT NULL)
+   * @param violationStateLegacyViolation include legacy violations (legacyViolationTime IS NOT NULL)
+   * @return the jOOQ condition, or null if all states are included
+   */
+  private org.jooq.Condition buildPolicyStateCondition(
+      Boolean violationStateOpen,
+      Boolean violationStateWaived,
+      Boolean violationStateLegacyViolation)
+  {
+    boolean includeOpen = violationStateOpen == null || violationStateOpen;
+    boolean includeWaived = violationStateWaived == null || violationStateWaived;
+    boolean includeLegacy = violationStateLegacyViolation == null || violationStateLegacyViolation;
+
+    // If none are selected, return null (no filter applied)
+    if (!includeOpen && !includeWaived && !includeLegacy) {
+      return null;
+    }
+
+    // If all are selected, no filter needed
+    if (includeOpen && includeWaived && includeLegacy) {
+      return null;
+    }
+
+    // Build OR conditions for the selected states
+    List<org.jooq.Condition> conditions = new ArrayList<>();
+    if (includeOpen) {
+      conditions.add(POLICY_VIOLATION.WAIVE_TIME.isNull().and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNull()));
+    }
+    if (includeWaived) {
+      conditions.add(POLICY_VIOLATION.WAIVE_TIME.isNotNull());
+    }
+    if (includeLegacy) {
+      conditions.add(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNotNull());
+    }
+
+    // Combine with OR
+    org.jooq.Condition result = conditions.get(0);
+    for (int i = 1; i < conditions.size(); i++) {
+      result = result.or(conditions.get(i));
+    }
+    return result;
   }
 
   private String getPolicyStateFilter(
@@ -779,31 +1076,48 @@ public class PolicyViolationDAO
       Date openTimeAfter,
       Date openTimeBefore)
   {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE " + applicationIdString() + " AND entity.policyId IN (?2)" + //
-        " AND entity.fixTime IS NULL" + //
-        " AND entity.waiveTime IS NULL" + //
-        " AND entity.legacyViolationTime IS NULL";
+    return getUnfixed(applicationIds, appIds -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        var query = tx.dsl()
+            .selectFrom(POLICY_VIOLATION)
+            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .and(POLICY_VIOLATION.POLICY_ID.in(policyIds))
+            .and(POLICY_VIOLATION.FIX_TIME.isNull())
+            .and(POLICY_VIOLATION.WAIVE_TIME.isNull())
+            .and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNull());
 
-    return loadPolicyViolationsWithDateFilters(applicationIds, policyIds, openTimeAfter, openTimeBefore, sQuery);
+        if (openTimeAfter != null) {
+          query = query.and(POLICY_VIOLATION.OPEN_TIME.ge(openTimeAfter));
+        }
+        if (openTimeBefore != null) {
+          query = query.and(POLICY_VIOLATION.OPEN_TIME.le(openTimeBefore));
+        }
+
+        return query.fetchInto(PolicyViolation.class);
+      }
+    });
   }
 
+  /**
+   * Executes a jOOQ query for unfixed policy violations with optimized handling for different databases.
+   * <p>
+   * For H2 (embedded): Runs one query per application ID in parallel to ensure index usage. For PostgreSQL: Uses IN
+   * clause batching for efficiency.
+   *
+   * @param applicationIds the application IDs to query
+   * @param queryFunction a function that takes a collection of application IDs and returns the query results
+   * @return list of policy violations matching the criteria
+   */
   private List<PolicyViolation> getUnfixed(
-      String sQuery,
       Collection<String> applicationIds,
-      Object... otherParameters)
+      java.util.function.Function<Collection<String>, List<PolicyViolation>> queryFunction)
   {
     if (isDatabaseEmbedded()) {
       // H2 won't utilize the index for the application id when the query uses an IN operator with multiple values (and
       // has additional filter criteria like the fix_time), doing an expensive table scan instead.
       // So we make one query per app to ensure the index is used (and all the fixed violations aren't scanned).
       TenantAwareFunction<String, List<PolicyViolation>> tenantAwareFunction =
-          new TenantAwareFunction<>(applicationId -> {
-            Object[] parameters = new Object[otherParameters.length + 1];
-            System.arraycopy(otherParameters, 0, parameters, 1, otherParameters.length);
-            parameters[0] = applicationId;
-            return getList(sQuery, parameters);
-          });
+          new TenantAwareFunction<>(applicationId -> queryFunction.apply(Collections.singletonList(applicationId)));
       return CompletableFuture.supplyAsync(
           new TenantAwareSupplier<>(() -> applicationIds.stream()
               .parallel()
@@ -813,12 +1127,7 @@ public class PolicyViolationDAO
           ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.DAO)).join();
     }
     else if (!applicationIds.isEmpty()) {
-      return getListWithSqlInClause(applicationIds, appIds -> {
-        Object[] parameters = new Object[otherParameters.length + 1];
-        System.arraycopy(otherParameters, 0, parameters, 1, otherParameters.length);
-        parameters[0] = appIds;
-        return getList(sQuery, parameters);
-      });
+      return getListWithSqlInClause(applicationIds, queryFunction);
     }
     else {
       return Collections.emptyList();
@@ -831,66 +1140,98 @@ public class PolicyViolationDAO
       Date from,
       Date to)
   {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId = ?1 AND entity.stageTypeId IN (?2)" + //
-        " AND (" + //
-        "   (entity.openTime >= ?3 AND entity.openTime < ?4" + // opened during time range
-        "    AND (entity.waiveTime > entity.openTime OR entity.waiveTime IS NULL) " + // not immediately waived
-        "    AND (entity.legacyViolationTime > entity.openTime OR entity.legacyViolationTime IS NULL)) " +
-        "   OR " + //
-        "   (entity.openTime < ?3 " + // opened before time range
-        "    AND CASE WHEN entity.fixTime <= ?3 THEN false" + // not fixed before time range
-        "             WHEN entity.waiveTime <= ?3 THEN false" + // not waived before time range
-        "             WHEN entity.legacyViolationTime <= ?3 THEN false" + // not legacy status before time range
-        "             ELSE true " + //
-        "        END = true))";
-    return getList(sQuery, appId, stageTypeIds, from, to);
+    try (TransactionContext tx = createTransactionContext()) {
+      // Condition for violations opened during time range AND not immediately waived/legacy
+      var openedDuringRange = POLICY_VIOLATION.OPEN_TIME.ge(from)
+          .and(POLICY_VIOLATION.OPEN_TIME.lt(to))
+          .and(POLICY_VIOLATION.WAIVE_TIME.gt(POLICY_VIOLATION.OPEN_TIME)
+              .or(POLICY_VIOLATION.WAIVE_TIME.isNull()))
+          .and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.gt(POLICY_VIOLATION.OPEN_TIME)
+              .or(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNull()));
+
+      // Condition for violations opened before time range AND not resolved before time range
+      var openedBeforeRange = POLICY_VIOLATION.OPEN_TIME.lt(from)
+          .and(POLICY_VIOLATION.FIX_TIME.isNull().or(POLICY_VIOLATION.FIX_TIME.gt(from)))
+          .and(POLICY_VIOLATION.WAIVE_TIME.isNull().or(POLICY_VIOLATION.WAIVE_TIME.gt(from)))
+          .and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNull().or(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.gt(from)));
+
+      return tx.dsl()
+          .selectFrom(POLICY_VIOLATION)
+          .where(POLICY_VIOLATION.APPLICATION_ID.eq(appId))
+          .and(POLICY_VIOLATION.STAGE_TYPE_ID.in(stageTypeIds))
+          .and(openedDuringRange.or(openedBeforeRange))
+          .fetchInto(PolicyViolation.class);
+    }
   }
 
   public List<PolicyViolation> getUnfixedLegacyViolationByApplicationId(TransactionContext tx, String appId) {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1" + //
-        " AND entity.fixTime IS NULL AND entity.legacyViolationTime IS NOT NULL";
-    return getList(tx, sQuery, appId);
+    return tx.dsl()
+        .selectFrom(POLICY_VIOLATION)
+        .where(POLICY_VIOLATION.APPLICATION_ID.eq(appId))
+        .and(POLICY_VIOLATION.FIX_TIME.isNull())
+        .and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNotNull())
+        .fetchInto(PolicyViolation.class);
   }
 
   public int replacePolicyId(String fromPolicyId, String toPolicyId) {
-    String sQuery = "UPDATE PolicyViolation entity" + //
-        " SET entity.policyId=?2" + //
-        " WHERE entity.policyId=?1";
-    return createQuery(sQuery, fromPolicyId, toPolicyId).executeUpdate();
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .update(POLICY_VIOLATION)
+          .set(POLICY_VIOLATION.POLICY_ID, toPolicyId)
+          .where(POLICY_VIOLATION.POLICY_ID.eq(fromPolicyId))
+          .execute();
+    }
   }
 
   public int replacePolicyId(TransactionContext tx, String applicationId, String fromPolicyId, String toPolicyId) {
-    String sQuery = "UPDATE PolicyViolation entity" + //
-        " SET entity.policyId=?3" + //
-        " WHERE entity.applicationId=?1 AND entity.policyId=?2";
-    return createQuery(sQuery, applicationId, fromPolicyId, toPolicyId).executeUpdate(tx);
+    return tx.dsl()
+        .update(POLICY_VIOLATION)
+        .set(POLICY_VIOLATION.POLICY_ID, toPolicyId)
+        .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+        .and(POLICY_VIOLATION.POLICY_ID.eq(fromPolicyId))
+        .execute();
   }
 
   public int deleteFixedByApplicationIdAndDate(String applicationId, Date fixedBefore) {
     // For performance reasons, we bypass the standard delete (per entity) method here.
+
     if (isDatabaseEmbedded()) {
       // Deleting a potentially huge number of records from H2 in one shot consumes a lot of heap and blocks any other
       // database operation for a long time. To avoid this, we split the entire delete up into smaller batches.
       // See https://issues.sonatype.org/browse/CLM-15723 for details
-      String sQuery = "SELECT entity.id FROM PolicyViolation entity" + //
-          " WHERE entity.applicationId = ?1 AND entity.fixTime < ?2";
       int deletedRows = 0;
       while (true) {
-        List<String> ids =
-            new Query<String>(sQuery, applicationId, fixedBefore).setMaxResults(DELETE_BATCH_SIZE).getList();
+        List<String> ids;
+        try (TransactionContext tx = createTransactionContext()) {
+          ids = tx.dsl()
+              .select(POLICY_VIOLATION.POLICY_VIOLATION_ID)
+              .from(POLICY_VIOLATION)
+              .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+              .and(POLICY_VIOLATION.FIX_TIME.lt(fixedBefore))
+              .limit(DELETE_BATCH_SIZE)
+              .fetchInto(String.class);
+        }
         if (ids.isEmpty()) {
           return deletedRows;
         }
-        deletedRows += createQuery("DELETE FROM PolicyViolation entity WHERE entity.id IN (?1)", ids).executeUpdate();
+        try (TransactionContext tx = createTransactionContext()) {
+          deletedRows += tx.dsl()
+              .deleteFrom(POLICY_VIOLATION)
+              .where(POLICY_VIOLATION.POLICY_VIOLATION_ID.in(ids))
+              .execute();
+        }
       }
     }
     else {
       // We cannot do this for H2 until we upgrade to a multi-threaded H2 version.
       // See https://issues.sonatype.org/browse/CLM-15723 for details
-      return createQuery("DELETE FROM PolicyViolation entity WHERE entity.applicationId = ?1 AND entity.fixTime < ?2",
-          applicationId, fixedBefore).executeUpdate();
+      try (TransactionContext tx = createTransactionContext()) {
+        return tx.dsl()
+            .deleteFrom(POLICY_VIOLATION)
+            .where(POLICY_VIOLATION.APPLICATION_ID.eq(applicationId))
+            .and(POLICY_VIOLATION.FIX_TIME.lt(fixedBefore))
+            .execute();
+      }
     }
   }
 
@@ -911,21 +1252,27 @@ public class PolicyViolationDAO
   }
 
   public int getCountApplicationsWithPolicyActionFailures(final String stageTypeId) {
-    final String sQuery = "SELECT COUNT(DISTINCT entity.applicationId)" +
-        " FROM PolicyViolation entity" +
-        " WHERE entity.stageTypeId = ?1" +
-        " AND entity.fixTime IS NULL" +
-        " AND entity.waiveTime IS NULL" +
-        String.format(" AND entity.actionTypeId = '%s'", Action.ID_FAIL);
-    return getSingle(Number.class, sQuery, stageTypeId).intValue();
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(DSL.countDistinct(POLICY_VIOLATION.APPLICATION_ID))
+          .from(POLICY_VIOLATION)
+          .where(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId))
+          .and(POLICY_VIOLATION.FIX_TIME.isNull())
+          .and(POLICY_VIOLATION.WAIVE_TIME.isNull())
+          .and(POLICY_VIOLATION.ACTION_TYPE_ID.eq(Action.ID_FAIL))
+          .fetchOne(0, Integer.class);
+    }
   }
 
   public int getCountActiveWaivers() {
-    final String sQuery = "SELECT COUNT(entity.id)" +
-        " FROM PolicyViolation entity" +
-        " WHERE entity.waiveTime IS NOT NULL" +
-        " AND entity.fixTime IS NULL";
-    return getSingle(Number.class, sQuery).intValue();
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectCount()
+          .from(POLICY_VIOLATION)
+          .where(POLICY_VIOLATION.WAIVE_TIME.isNotNull())
+          .and(POLICY_VIOLATION.FIX_TIME.isNull())
+          .fetchOne(0, Integer.class);
+    }
   }
 
   /**
@@ -1066,105 +1413,125 @@ public class PolicyViolationDAO
   }
 
   public List<PolicyViolation> getWaivedFixed() {
-    final String sQuery = "SELECT entity" +
-        " FROM PolicyViolation entity" +
-        " WHERE entity.fixTime IS NOT NULL" +
-        " OR entity.waiveTime IS NOT NULL";
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(POLICY_VIOLATION)
+          .where(POLICY_VIOLATION.FIX_TIME.isNotNull()
+              .or(POLICY_VIOLATION.WAIVE_TIME.isNotNull()))
+          .fetchInto(PolicyViolation.class);
+    }
   }
 
   public Map<String, SbomPolicyViolationSummaryDTO> getSbomPolicyViolationSummaryForAnApplication(
       Collection<String> applicationIds)
   {
-    String sQuery = "" + //
-        "SELECT application_id," +
-        " COUNT(CASE WHEN (threat_level >= 8) THEN 1 END) AS policyViolationCritical," + //
-        " COUNT(CASE WHEN (threat_level >= 4 and threat_level < 8) THEN 1 END) AS policyViolationSevere," + //
-        " COUNT(CASE WHEN (threat_level >= 2 and threat_level < 4) THEN 1 END) AS policyViolationModerate," + //
-        " COUNT(CASE WHEN (threat_level < 2) THEN 1 END) AS policyViolationLow" + //
-        " FROM " + getDatabaseSchema() + ".policy_violation" + //
-        " WHERE fix_time is null" + //
-        " AND waive_time is null" + //
-        " AND stage_type_id = ?1" + //
-        " AND application_id = ANY(array[?2])" + //
-        " GROUP BY application_id";
-
     try (TransactionContext tx = createTransactionContext()) {
-      jakarta.persistence.Query query = createNativeQuery(tx, sQuery,
-          ComplianceStageType.ID, createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
+      var pv = POLICY_VIOLATION;
+      var criticalCount = DSL.count(DSL.case_().when(pv.THREAT_LEVEL.ge((short) 8), 1)).as("policyViolationCritical");
+      var severeCount = DSL.count(DSL.case_().when(pv.THREAT_LEVEL.ge((short) 4).and(pv.THREAT_LEVEL.lt((short) 8)), 1))
+          .as("policyViolationSevere");
+      var moderateCount =
+          DSL.count(DSL.case_().when(pv.THREAT_LEVEL.ge((short) 2).and(pv.THREAT_LEVEL.lt((short) 4)), 1))
+              .as("policyViolationModerate");
+      var lowCount = DSL.count(DSL.case_().when(pv.THREAT_LEVEL.lt((short) 2), 1)).as("policyViolationLow");
+
+      var results = tx.dsl()
+          .select(pv.APPLICATION_ID, criticalCount, severeCount, moderateCount, lowCount)
+          .from(pv)
+          .where(pv.FIX_TIME.isNull())
+          .and(pv.WAIVE_TIME.isNull())
+          .and(pv.STAGE_TYPE_ID.eq(ComplianceStageType.ID))
+          .and(pv.APPLICATION_ID.in(applicationIds))
+          .groupBy(pv.APPLICATION_ID)
+          .fetch();
 
       Map<String, SbomPolicyViolationSummaryDTO> applicationIdResultMap = new HashMap<>();
-
-      List<Object[]> resultStreamList = (List<Object[]>) query.getResultStream().collect(Collectors.toList());
-      for (Object[] result : resultStreamList) {
-        applicationIdResultMap.put(String.valueOf(result[0]), new SbomPolicyViolationSummaryDTO(result));
+      for (var record : results) {
+        Object[] resultArray = new Object[]{
+          record.get(pv.APPLICATION_ID),
+          record.get(criticalCount),
+          record.get(severeCount),
+          record.get(moderateCount),
+          record.get(lowCount)
+        };
+        applicationIdResultMap.put(record.get(pv.APPLICATION_ID), new SbomPolicyViolationSummaryDTO(resultArray));
       }
 
       return applicationIdResultMap;
-    }
-    catch (Exception e) {
-      throw new RuntimeException(e);
     }
   }
 
   public ContainerImagePolicyViolationSummaryDTO getContainerImagePolicyViolationSummaryForRepository(
       String repositoryId)
   {
-    String sQuery = "" + //
-        "SELECT " + " COUNT(CASE WHEN (threat_level >= 8) THEN 1 END) AS policyViolationCritical," + //
-        " COUNT(CASE WHEN (threat_level >= 4 and threat_level < 8) THEN 1 END) AS policyViolationSevere," + //
-        " COUNT(CASE WHEN (threat_level >= 2 and threat_level < 4) THEN 1 END) AS policyViolationModerate," + //
-        " COUNT(DISTINCT CASE WHEN pv.threat_level > 1 THEN pv.application_id END) AS affectedContainers," + //
-        " COUNT(DISTINCT CASE WHEN pv.action_type_id = ?1 THEN pv.application_id END) AS containersInQuarantine" + //
-        " FROM " + getDatabaseSchema() + ".organization org" + //
-        " JOIN " + getDatabaseSchema() + ".application app" + //
-        " ON org.related_repository_id = ?2" + //
-        " AND org.organization_id = app.organization_id" + //
-        " JOIN " + getDatabaseSchema() + ".policy_violation pv" + //
-        " ON pv.application_id = app.application_id" + //
-        " WHERE fix_time is null" + //
-        " AND waive_time is null" + //
-        " AND stage_type_id = ?3";
-
     try (TransactionContext tx = createTransactionContext()) {
-      jakarta.persistence.Query query = createNativeQuery(tx, sQuery,
-          Action.ID_FAIL, repositoryId, ProxyStageType.ID);
-      Object[] result = (Object[]) query.getSingleResult();
+      var org = ORGANIZATION;
+      var app = APPLICATION;
+      var pv = POLICY_VIOLATION;
+
+      var criticalCount = DSL.count(DSL.case_().when(pv.THREAT_LEVEL.ge((short) 8), 1)).as("policyViolationCritical");
+      var severeCount = DSL.count(DSL.case_().when(pv.THREAT_LEVEL.ge((short) 4).and(pv.THREAT_LEVEL.lt((short) 8)), 1))
+          .as("policyViolationSevere");
+      var moderateCount =
+          DSL.count(DSL.case_().when(pv.THREAT_LEVEL.ge((short) 2).and(pv.THREAT_LEVEL.lt((short) 4)), 1))
+              .as("policyViolationModerate");
+      var affectedContainers = DSL.countDistinct(DSL.case_().when(pv.THREAT_LEVEL.gt((short) 1), pv.APPLICATION_ID))
+          .as("affectedContainers");
+      var containersInQuarantine =
+          DSL.countDistinct(DSL.case_().when(pv.ACTION_TYPE_ID.eq(Action.ID_FAIL), pv.APPLICATION_ID))
+              .as("containersInQuarantine");
+
+      var record = tx.dsl()
+          .select(criticalCount, severeCount, moderateCount, affectedContainers, containersInQuarantine)
+          .from(org)
+          .join(app)
+          .on(org.RELATED_REPOSITORY_ID.eq(repositoryId).and(org.ORGANIZATION_ID.eq(app.ORGANIZATION_ID)))
+          .join(pv)
+          .on(pv.APPLICATION_ID.eq(app.APPLICATION_ID))
+          .where(pv.FIX_TIME.isNull())
+          .and(pv.WAIVE_TIME.isNull())
+          .and(pv.STAGE_TYPE_ID.eq(ProxyStageType.ID))
+          .fetchOne();
+
+      if (record == null) {
+        return new ContainerImagePolicyViolationSummaryDTO(new Object[]{0L, 0L, 0L, 0L, 0L});
+      }
+
+      // Convert counts to Long since jOOQ returns Integer for H2 but Long for PostgreSQL
+      Object[] result = new Object[]{
+        ((Number) record.get(criticalCount)).longValue(),
+        ((Number) record.get(severeCount)).longValue(),
+        ((Number) record.get(moderateCount)).longValue(),
+        ((Number) record.get(affectedContainers)).longValue(),
+        ((Number) record.get(containersInQuarantine)).longValue()
+      };
       return new ContainerImagePolicyViolationSummaryDTO(result);
-    }
-    catch (Exception e) {
-      throw new RuntimeException(e);
     }
   }
 
   public long getMeanTimeToRemediate(final int lookBackWindowDays) {
+    // Using raw SQL here because of dialect-specific differences in timestamp arithmetic:
+    // - PostgreSQL: EXTRACT(EPOCH FROM ...) and MAKE_INTERVAL
+    // - H2: TIMESTAMPDIFF and DATEADD functions
     final String sQuery;
 
     if (isDatabasePostgresql()) {
       sQuery = "SELECT EXTRACT(EPOCH FROM AVG(LEAST(fix_time, waive_time) - open_time)) * 1000" +
           "  FROM " + getDatabaseSchema() + ".policy_violation" +
           "  WHERE (fix_time IS NOT null OR waive_time IS NOT null)" +
-          "  AND open_time > CURRENT_DATE - MAKE_INTERVAL(days => ?1)";
+          "  AND open_time > CURRENT_DATE - MAKE_INTERVAL(days => ?)";
     }
     else {
-      // We support h2 1.4. This version does not support EXTRACT (epoch, it also does not correctly subtract two
-      // timestamps
-      // It does, however have the function TIMESTAMPDIFF (postgres does not), which gets us the same result
-      // Keep in mind
-      // SELECT DATEADD(mm,-1, '2024-03-29 18:47:52.69') -> 2024-02-29 18:47:52.69, but
-      // SELECT DATEADD(mm,-1, '2024-03-30 18:47:52.69') -> 2024-02-29 18:47:52.69
-      // TO DO CONSIDER TAKING THIS NUMBER IN DAYS, WEEKS or MS, FOR OTHER ENDPOINTS WE TREAT 3 months as 12 weeks
       sQuery = "SELECT AVG(TIMESTAMPDIFF(MILLISECOND, open_time, LEAST(fix_time, waive_time)))" +
           "  FROM " + getDatabaseSchema() + ".policy_violation" +
           "  WHERE (fix_time IS NOT null OR waive_time IS NOT null)" +
-          "  AND policy_violation.open_time > DATEADD(dd, -?1, CURRENT_TIMESTAMP)";
+          "  AND policy_violation.open_time > DATEADD(dd, -?, CURRENT_TIMESTAMP)";
     }
 
     try (TransactionContext tx = createTransactionContext()) {
-      jakarta.persistence.Query query = tx.createNativeQuery(sQuery, Double.class);
-
-      query.setParameter(1, lookBackWindowDays);
-      Double result = (Double) query.getSingleResult();
+      Double result = tx.dsl()
+          .resultQuery(sQuery, lookBackWindowDays)
+          .fetchOne(0, Double.class);
 
       if (result == null) {
         return 0L;
@@ -1309,8 +1676,8 @@ public class PolicyViolationDAO
             apv.open_time,
             apv.auto_policy_waiver_id
           FROM aggregated_policy_violation apv
-          JOIN %s.application application USING (application_id)
-          JOIN %s.organization organization USING (organization_id)
+          JOIN %s.application application ON apv.application_id = application.application_id
+          JOIN %s.organization organization ON application.organization_id = organization.organization_id
           """, aggregationQuery, databaseSchema, databaseSchema);
       // Adds sorting by policy_violation_id to get repeatable results
       orderBys.add("policy_violation_id");
@@ -1322,57 +1689,65 @@ public class PolicyViolationDAO
         sQuery += String.format("LIMIT %d OFFSET %d", (pageSize + 1), (page * pageSize));
       }
 
-      jakarta.persistence.Query query = tx.createNativeQuery(sQuery.toString());
-
-      // Add parameters based on whether we're using a temporary table or not
+      // Build bindings list in the order parameters appear in the query after convertPositionalParams
+      // The query has: stage_type_id IN (?), then application_id IN (?,?)
+      List<Object> bindings = new ArrayList<>();
+      bindings.addAll(stageTypeIds);
       if (!useTemporaryTable) {
-        addPositionalParameters(query, applicationIds, appIdsParamStartPosition);
+        bindings.addAll(applicationIds);
       }
-
-      addPositionalParameters(query, stageTypeIds, stageIdsParamStartPosition);
-
       if (minDate != null) {
-        query.setParameter(minDateParamPosition, minDate);
+        bindings.add(minDate);
       }
       if (minPolicyThreatLevel != null) {
-        query.setParameter(minThreatLevelParamPosition, minPolicyThreatLevel);
+        bindings.add(minPolicyThreatLevel);
       }
       if (maxPolicyThreatLevel != null) {
-        query.setParameter(maxThreatLevelParamPosition, maxPolicyThreatLevel);
+        bindings.add(maxPolicyThreatLevel);
       }
       if (policyThreatCategories != null) {
-        addPositionalParameters(query, policyThreatCategories, threatCategoriesParamPosition);
+        bindings.addAll(policyThreatCategories);
       }
 
-      @SuppressWarnings("unchecked")
-      List<InternalDashboardViolationRiskDTO> results =
-          ((Stream<Object[]>) query.getResultStream())
-              .map(array -> new InternalDashboardViolationRiskDTO( //
-                  (String) array[0], // applicationId
-                  (String) array[1], // applicationName
-                  (String) array[2], // organizationName
-                  (String) array[3], // policyViolationId
-                  (String) array[4], // policyName
-                  getInteger(array[5]), // threatLevel
-                  (String) array[6], // hash
-                  (String) array[7], // filename
-                  (String) array[8], // componentIdFormat
-                  (String) array[9], // componentIdCoordinatesJson
-                  (String) array[10], // constraintFactsId
-                  ((Timestamp) array[11]).getTime(), // firstOccurrenceTime
-                  (String) array[12] // autoPolicyWaiverId
-              ))
-              .toList();
+      // Convert positional parameters from ?N to ? format for jOOQ
+      String convertedQuery = convertPositionalParams(sQuery);
+
+      List<InternalDashboardViolationRiskDTO> results = tx.dsl()
+          .resultQuery(convertedQuery, bindings.toArray())
+          .fetch()
+          .stream()
+          .map(record -> new InternalDashboardViolationRiskDTO(
+              record.get(0, String.class), // applicationId
+              record.get(1, String.class), // applicationName
+              record.get(2, String.class), // organizationName
+              record.get(3, String.class), // policyViolationId
+              record.get(4, String.class), // policyName
+              record.get(5, Integer.class), // threatLevel
+              record.get(6, String.class), // hash
+              record.get(7, String.class), // filename
+              record.get(8, String.class), // componentIdFormat
+              record.get(9, String.class), // componentIdCoordinatesJson
+              record.get(10, String.class), // constraintFactsId
+              toEpochMillisFromTimestampOrLocalDateTime(record.get(11)), // firstOccurrenceTime
+              record.get(12, String.class) // autoPolicyWaiverId
+          ))
+          .toList();
 
       return results;
     }
   }
 
   public List<PolicyViolation> getAutoWaivedByApplicationIdAndStageId(final String appId, final String stageTypeId) {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
-        " AND entity.fixTime IS NULL AND entity.waiveTime IS NOT NULL AND entity.autoPolicyWaiverId IS NOT NULL";
-    return getList(sQuery, appId, stageTypeId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(POLICY_VIOLATION)
+          .where(POLICY_VIOLATION.APPLICATION_ID.eq(appId))
+          .and(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId))
+          .and(POLICY_VIOLATION.FIX_TIME.isNull())
+          .and(POLICY_VIOLATION.WAIVE_TIME.isNotNull())
+          .and(POLICY_VIOLATION.AUTO_POLICY_WAIVER_ID.isNotNull())
+          .fetchInto(PolicyViolation.class);
+    }
   }
 
   public Collection<PolicyViolation> getByApplicationIdsAndPolicyIdsAndTypes(
@@ -1384,12 +1759,29 @@ public class PolicyViolationDAO
       boolean includeWaived,
       boolean includeLegacy)
   {
-    String baseQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE " + applicationIdString() + " AND entity.policyId IN (?2)" + //
-        " AND entity.fixTime IS NULL" + //
-        getPolicyStateFilter(includeActive, includeWaived, includeLegacy);
+    final org.jooq.Condition stateCondition = buildPolicyStateCondition(includeActive, includeWaived, includeLegacy);
 
-    return loadPolicyViolationsWithDateFilters(applicationIds, policyIds, openTimeAfter, openTimeBefore, baseQuery);
+    return getUnfixed(applicationIds, appIds -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        var query = tx.dsl()
+            .selectFrom(POLICY_VIOLATION)
+            .where(POLICY_VIOLATION.APPLICATION_ID.in(appIds))
+            .and(POLICY_VIOLATION.POLICY_ID.in(policyIds))
+            .and(POLICY_VIOLATION.FIX_TIME.isNull());
+
+        if (stateCondition != null) {
+          query = query.and(stateCondition);
+        }
+        if (openTimeAfter != null) {
+          query = query.and(POLICY_VIOLATION.OPEN_TIME.ge(openTimeAfter));
+        }
+        if (openTimeBefore != null) {
+          query = query.and(POLICY_VIOLATION.OPEN_TIME.le(openTimeBefore));
+        }
+
+        return query.fetchInto(PolicyViolation.class);
+      }
+    });
   }
 
   public long getContainerImagesQuarantinedCount() {
@@ -1407,9 +1799,10 @@ public class PolicyViolationDAO
         """, getDatabaseSchema());
 
     try (TransactionContext tx = createTransactionContext()) {
-      jakarta.persistence.Query query = createNativeQuery(tx, sQuery);
-      Object result = query.getSingleResult();
-      return (long) result;
+      Long result = tx.dsl()
+          .resultQuery(sQuery)
+          .fetchOne(0, Long.class);
+      return result != null ? result : 0L;
     }
   }
 
@@ -1448,21 +1841,55 @@ public class PolicyViolationDAO
 
     int offset = (page - 1) * pageSize;
     try (TransactionContext tx = createTransactionContext()) {
-      jakarta.persistence.Query query = createNativePaginationQuery(tx, sQuery, offset, pageSize);
-      return ((Stream<Object[]>) query.getResultStream())
-          .map(array -> new ContainerImageInQuarantineData(
-              ((Number) array[0]).intValue(), // threatLevel
-              (Date) array[1], // openTime
-              (String) array[2], // applicationPublicId
-              (String) array[3], // applicationId
-              (String) array[4], // applicationName
-              (String) array[5], // repositoryPublicId
-              (String) array[6], // repositoryId
-              ((Number) array[7]).longValue(), // policyViolationCount
-              (String) array[8] // scanId
-          ))
+      return createNativePaginationQuery(tx, sQuery, offset, pageSize)
+          .fetchStream()
+          .map(record -> {
+            Object[] array = record.intoArray();
+            return new ContainerImageInQuarantineData(
+                ((Number) array[0]).intValue(), // threatLevel
+                toDateFromTimestampOrLocalDateTime(array[1]), // openTime
+                (String) array[2], // applicationPublicId
+                (String) array[3], // applicationId
+                (String) array[4], // applicationName
+                (String) array[5], // repositoryPublicId
+                (String) array[6], // repositoryId
+                ((Number) array[7]).longValue(), // policyViolationCount
+                (String) array[8] // scanId
+            );
+          })
           .toList();
     }
+  }
+
+  /**
+   * Converts a timestamp value (either java.sql.Timestamp or LocalDateTime) to a Date. Native SQL queries may return
+   * different types depending on the database and driver.
+   */
+  private Date toDateFromTimestampOrLocalDateTime(Object value) {
+    if (value == null) {
+      return null;
+    }
+    if (value instanceof Timestamp ts) {
+      return new Date(ts.getTime());
+    }
+    if (value instanceof LocalDateTime ldt) {
+      return new Date(ldt.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli());
+    }
+    throw new IllegalArgumentException("Unexpected type for timestamp conversion: " + value.getClass());
+  }
+
+  /**
+   * Converts a timestamp value (either java.sql.Timestamp or LocalDateTime) to epoch milliseconds. Native SQL queries
+   * may return different types depending on the database and driver.
+   */
+  private long toEpochMillisFromTimestampOrLocalDateTime(Object value) {
+    if (value instanceof Timestamp ts) {
+      return ts.getTime();
+    }
+    if (value instanceof LocalDateTime ldt) {
+      return ldt.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    }
+    throw new IllegalArgumentException("Unexpected type for timestamp conversion: " + value.getClass());
   }
 
   public static record ContainerImageInQuarantineData(
@@ -1478,34 +1905,16 @@ public class PolicyViolationDAO
   {
   }
 
-  private List<PolicyViolation> loadPolicyViolationsWithDateFilters(
-      Collection<String> applicationIds,
-      Collection<String> policyIds,
-      Date openTimeAfter,
-      Date openTimeBefore,
-      String baseQuery)
-  {
-    StringBuilder queryBuilder = new StringBuilder(baseQuery);
-    int nextIndex = 3;
+  /**
+   * Converts numbered positional parameters (e.g., ?1, ?2) to simple ? placeholders for jOOQ. The bindings array must
+   * be in the same order as the numbered parameters.
+   */
+  private static String convertPositionalParams(String query) {
+    return query.replaceAll("\\?\\d+", "?");
+  }
 
-    if (openTimeAfter != null) {
-      queryBuilder.append(" AND entity.openTime >= ?").append(nextIndex++);
-    }
-    if (openTimeBefore != null) {
-      queryBuilder.append(" AND entity.openTime <= ?").append(nextIndex);
-    }
-
-    if (openTimeAfter != null) {
-      if (openTimeBefore != null) {
-        return getUnfixed(queryBuilder.toString(), applicationIds, policyIds, openTimeAfter, openTimeBefore);
-      }
-      return getUnfixed(queryBuilder.toString(), applicationIds, policyIds, openTimeAfter);
-    }
-    else {
-      if (openTimeBefore != null) {
-        return getUnfixed(queryBuilder.toString(), applicationIds, policyIds, openTimeBefore);
-      }
-      return getUnfixed(queryBuilder.toString(), applicationIds, policyIds);
-    }
+  @Override
+  public Class<PolicyViolation> getEntityClass() {
+    return PolicyViolation.class;
   }
 }

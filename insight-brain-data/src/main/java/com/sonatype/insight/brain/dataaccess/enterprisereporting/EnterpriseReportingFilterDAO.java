@@ -6,15 +6,20 @@
 package com.sonatype.insight.brain.dataaccess.enterprisereporting;
 
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingFilter;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.EnterpriseReportingFilter.ENTERPRISE_REPORTING_FILTER;
 
 @Named
 @Singleton
@@ -27,10 +32,13 @@ public class EnterpriseReportingFilterDAO
   }
 
   public List<EnterpriseReportingFilter> getFiltersByUserId(String userId) {
-    String sQuery = "SELECT entity FROM EnterpriseReportingFilter entity " +
-        "WHERE entity.userId=?1 " +
-        "ORDER BY entity.filterName";
-    return getList(sQuery, userId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(ENTERPRISE_REPORTING_FILTER)
+          .where(ENTERPRISE_REPORTING_FILTER.USER_ID.eq(userId))
+          .orderBy(ENTERPRISE_REPORTING_FILTER.FILTER_NAME)
+          .fetch(this::toEntity);
+    }
   }
 
   public EnterpriseReportingFilter getFilterByUserIdAndName(String userId, String name) {
@@ -43,9 +51,11 @@ public class EnterpriseReportingFilterDAO
     if (name == null) {
       throw new InvalidNameException("Filter name is required.");
     }
-    String sQuery = "SELECT entity FROM EnterpriseReportingFilter entity " +
-        "WHERE entity.userId=?1 AND LOWER(entity.filterName)=?2";
-    List<EnterpriseReportingFilter> filters = getList(tx, sQuery, userId, name.toLowerCase());
+    List<EnterpriseReportingFilter> filters = tx.dsl()
+        .selectFrom(ENTERPRISE_REPORTING_FILTER)
+        .where(ENTERPRISE_REPORTING_FILTER.USER_ID.eq(userId))
+        .and(DSL.lower(ENTERPRISE_REPORTING_FILTER.FILTER_NAME).eq(name.toLowerCase()))
+        .fetch(this::toEntity);
     return filters.isEmpty() ? null : filters.get(0);
   }
 
@@ -56,9 +66,21 @@ public class EnterpriseReportingFilterDAO
   }
 
   public EnterpriseReportingFilter getFilterByUserAndFilterId(TransactionContext tx, String userId, String filterId) {
-    String sQuery = "SELECT entity FROM EnterpriseReportingFilter entity " +
-        "WHERE entity.id=?1 AND entity.userId=?2";
-    List<EnterpriseReportingFilter> filters = getList(tx, sQuery, filterId, userId);
+    List<EnterpriseReportingFilter> filters = tx.dsl()
+        .selectFrom(ENTERPRISE_REPORTING_FILTER)
+        .where(ENTERPRISE_REPORTING_FILTER.ENTERPRISE_REPORTING_FILTER_ID.eq(filterId))
+        .and(ENTERPRISE_REPORTING_FILTER.USER_ID.eq(userId))
+        .fetch(this::toEntity);
     return filters.isEmpty() ? null : filters.get(0);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return ENTERPRISE_REPORTING_FILTER;
+  }
+
+  @Override
+  public Class<EnterpriseReportingFilter> getEntityClass() {
+    return EnterpriseReportingFilter.class;
   }
 }

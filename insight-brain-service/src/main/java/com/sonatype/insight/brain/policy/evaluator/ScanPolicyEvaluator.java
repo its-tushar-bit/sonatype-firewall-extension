@@ -1176,7 +1176,7 @@ public class ScanPolicyEvaluator
       }
     }
 
-    // Batch insert by table - OpenJPA will batch operations for same table
+    // Insert by table type for clarity - consider using jOOQ batch API if performance is critical
     for (ApplicationComponent applicationComponent : newApplicationComponents) {
       applicationComponentDAO.insert(tx, applicationComponent);
     }

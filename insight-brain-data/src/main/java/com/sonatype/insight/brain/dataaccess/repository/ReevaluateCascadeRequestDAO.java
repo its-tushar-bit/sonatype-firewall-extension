@@ -19,6 +19,9 @@ import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.Iterables;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ReevaluateCascadeRequest.REEVALUATE_CASCADE_REQUEST;
 
 /**
  * Data access object for managing cascade re-evaluation requests.
@@ -48,15 +51,17 @@ public class ReevaluateCascadeRequestDAO
   }
 
   public List<ReevaluateCascadeRequest> getByComponentHash(final TransactionContext tx, final String componentHash) {
-    String sQuery = "SELECT entity FROM ReevaluateCascadeRequest entity" +
-        " WHERE entity.componentReferenceHash=?1";
-    return getList(tx, sQuery, componentHash);
+    return tx.dsl()
+        .selectFrom(REEVALUATE_CASCADE_REQUEST)
+        .where(REEVALUATE_CASCADE_REQUEST.COMPONENT_REFERENCE_HASH.eq(componentHash))
+        .fetch(super::toEntity);
   }
 
   public List<ReevaluateCascadeRequest> findBeforeOrOn(final TransactionContext tx, Date date) {
-    String sQuery = "SELECT entity FROM ReevaluateCascadeRequest entity" +
-        " WHERE entity.createdAt <= ?1";
-    return getList(tx, sQuery, date);
+    return tx.dsl()
+        .selectFrom(REEVALUATE_CASCADE_REQUEST)
+        .where(REEVALUATE_CASCADE_REQUEST.CREATED_AT.le(date))
+        .fetch(super::toEntity);
   }
 
   public void deleteByRequestIds(TransactionContext tx, Set<String> requestIds) {
@@ -70,11 +75,29 @@ public class ReevaluateCascadeRequestDAO
     // Then delete parents (requests)
     Iterable<List<String>> batches = Iterables.partition(requestIds, getInOperatorThreshold());
 
-    String sQuery = "DELETE FROM ReevaluateCascadeRequest entity" +
-        " WHERE entity.id IN (?1)";
-
     for (List<String> batch : batches) {
-      createQuery(sQuery, batch).executeUpdate(tx);
+      tx.dsl()
+          .deleteFrom(REEVALUATE_CASCADE_REQUEST)
+          .where(REEVALUATE_CASCADE_REQUEST.REEVALUATE_CASCADE_REQUEST_ID.in(batch))
+          .execute();
     }
+  }
+
+  @Override
+  public void delete(TransactionContext tx, ReevaluateCascadeRequest entity) {
+    tx.dsl()
+        .deleteFrom(REEVALUATE_CASCADE_REQUEST)
+        .where(REEVALUATE_CASCADE_REQUEST.REEVALUATE_CASCADE_REQUEST_ID.eq(entity.getId()))
+        .execute();
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return REEVALUATE_CASCADE_REQUEST;
+  }
+
+  @Override
+  public Class<ReevaluateCascadeRequest> getEntityClass() {
+    return ReevaluateCascadeRequest.class;
   }
 }

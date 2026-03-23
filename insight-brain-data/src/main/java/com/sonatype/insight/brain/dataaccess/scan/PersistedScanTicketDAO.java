@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.scan;
 
 import java.util.Date;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -14,6 +15,10 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PersistedScanTicket.PERSISTED_SCAN_TICKET;
 
 @Named
 @Singleton
@@ -40,8 +45,31 @@ public class PersistedScanTicketDAO
   }
 
   public void deleteBeforeOrOn(Date date) {
-    String sQuery = "DELETE FROM PersistedScanTicket entity" + //
-        " WHERE entity.createTime <= ?1";
-    createQuery(sQuery, date).executeUpdate();
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .deleteFrom(PERSISTED_SCAN_TICKET)
+          .where(PERSISTED_SCAN_TICKET.CREATE_TIME.le(date))
+          .execute();
+      tx.commit();
+    }
+  }
+
+  @Override
+  public void insert(TransactionContext tx, PersistedScanTicket entity) {
+    if (entity.getCreateTime() == null) {
+      entity.setCreateTime(new Date());
+    }
+    super.insert(tx, entity);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return PERSISTED_SCAN_TICKET;
+  }
+
+  @Override
+  public Class<PersistedScanTicket> getEntityClass() {
+    return PersistedScanTicket.class;
   }
 }

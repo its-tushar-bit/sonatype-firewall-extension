@@ -33,7 +33,6 @@ import com.google.common.collect.ImmutableMap;
 
 import static com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO.BATCH_INSERT_SIZE_LIMIT;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -128,7 +127,10 @@ public class DevelopmentPrioritizationComponentInfoDAOTest
       tx.begin();
       dao.insertBatch(tx, scan4components);
       tx.commit();
-      verify(tx, times(2)).createNativeQuery(any());
+      // Verify jOOQ DSL is used for batch inserts
+      // Each batch calls dsl() twice: once for batch() and once for insertInto()
+      // With 4001 items split into 2 batches (4000 + 1), dsl() should be called 4 times
+      verify(tx, times(4)).dsl();
     }
     assertThat(dao.getAllByScanId("scan4"))
         .hasSize(4001);

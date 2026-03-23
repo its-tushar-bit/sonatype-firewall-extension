@@ -6,12 +6,11 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Date;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.RollbackException;
 
 import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.jooq.exception.IntegrityConstraintViolationException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -81,8 +80,8 @@ public class PerpetualLockDAOTest
     Throwable throwable = catchThrowable(() -> perpetualLockDAO.createPerpetualLock(lockId, LOCK_CATEGORY,
         "test-owner", new Date()));
 
-    // then: an exception about the duplicate is raised
-    assertThat(throwable).isInstanceOf(RollbackException.class).hasCauseInstanceOf(EntityExistsException.class);
+    // then: an exception about the duplicate is raised (jOOQ throws IntegrityConstraintViolationException)
+    assertThat(throwable).isInstanceOf(IntegrityConstraintViolationException.class);
   }
 
   @Test

@@ -99,13 +99,15 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
         policyViolationLogDTO.stagePolicyAction =
             policyViolation.getActionTypeId() == null ? "none" : policyViolation.getActionTypeId();
       }
-      policyViolationLogDTO.policyConditionTriggers = policyViolation.getConstraintFacts()
-          .stream()
-          .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
-          .map(ConditionFact::getReason)
-          .distinct()
-          .map(this::createPolicyConditionTriggerDTO)
-          .collect(Collectors.toList());
+      if (policyViolation.constraintFactsAreLoaded()) {
+        policyViolationLogDTO.policyConditionTriggers = policyViolation.getConstraintFacts()
+            .stream()
+            .flatMap(constraintFact -> constraintFact.getConditionFacts().stream())
+            .map(ConditionFact::getReason)
+            .distinct()
+            .map(this::createPolicyConditionTriggerDTO)
+            .collect(Collectors.toList());
+      }
       policyViolationLogDTO.componentIdentifier = policyViolation.getComponentIdentifier();
       policyViolationLogDTO.componentHash = policyViolation.getHash();
     }

@@ -77,6 +77,8 @@ public class RepositoryPolicyViolationDAOTest
     assertThat(policyViolation.getId()).isNull();
     dao.insert(policyViolation);
     assertThat(policyViolation.getId()).isNotNull();
+    // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
+    policyViolation.setConstraintFacts(List.of(constraintFact));
 
     // Test constraints stored
     assertThat(policyViolation.getConstraintFactsId()).isNotNull();

@@ -5,15 +5,17 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-import jakarta.persistence.EntityNotFoundException;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.security.PersistedUserSession;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PersistedUserSession.PERSISTED_USER_SESSION;
 
 @Named
 @Singleton
@@ -25,18 +27,15 @@ public class PersistedUserSessionDAO
     super(operationalDataStore);
   }
 
-  @Override
-  public void update(TransactionContext tx, PersistedUserSession persistedUserSession) {
-    int rowsUpdated = createQuery("UPDATE PersistedUserSession entity SET entity.sessionJson=?2 WHERE entity.id=?1",
-        persistedUserSession.getId(), persistedUserSession.getSessionJson()).executeUpdate(tx);
-    if (rowsUpdated == 0) {
-      throw new EntityNotFoundException();
-    }
-  }
-
   public void deleteById(String id) {
-    String sQuery = "DELETE FROM PersistedUserSession entity WHERE entity.id=?1";
-    createQuery(sQuery, id).executeUpdate();
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .deleteFrom(PERSISTED_USER_SESSION)
+          .where(PERSISTED_USER_SESSION.PERSISTED_USER_SESSION_ID.eq(id))
+          .execute();
+      tx.commit();
+    }
   }
 
   @Override
@@ -45,5 +44,15 @@ public class PersistedUserSessionDAO
     // so we cannot delete the PersistedUserSession after each test,
     // so we cannot detect PersistedUserSession leaks.
     return false;
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return PERSISTED_USER_SESSION;
+  }
+
+  @Override
+  public Class<PersistedUserSession> getEntityClass() {
+    return PersistedUserSession.class;
   }
 }

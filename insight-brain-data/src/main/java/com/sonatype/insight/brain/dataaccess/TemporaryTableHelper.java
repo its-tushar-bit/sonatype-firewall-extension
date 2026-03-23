@@ -13,7 +13,9 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import jakarta.persistence.Query;
+import org.jooq.InsertValuesStep1;
+import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +33,7 @@ public class TemporaryTableHelper
 {
   private static final Logger log = LoggerFactory.getLogger(TemporaryTableHelper.class);
 
-  private static final String INSERT_SQL = "INSERT INTO temporary_ids (id) VALUES ";
+  private static final org.jooq.Field<String> ID_FIELD = DSL.field("id", SQLDataType.VARCHAR);
 
   /**
    * This method will 'maybe' create the temporary table. It will only do it if actually necessary (more than 65,535
@@ -54,34 +56,25 @@ public class TemporaryTableHelper
       tx.begin();
     }
 
-    // Create the temporary table
-    String createTableSql = "CREATE TEMPORARY TABLE temporary_ids (id text NOT NULL) ON COMMIT DROP";
-    tx.createNativeQuery(createTableSql).executeUpdate();
+    // Create the temporary table using jOOQ DSL
+    tx.dsl().execute("CREATE TEMPORARY TABLE temporary_ids (id text NOT NULL) ON COMMIT DROP");
 
     // Insert IDs in batches to avoid parameter issues
     int batchSize = 5_000; // 5k seems to be a sweet spot. Settles at ~200ms to insert a total of 66k IDs
 
     List<String> idsList = new ArrayList<>(ids);
-    StringBuilder insertSql = new StringBuilder(INSERT_SQL);
-    int page = 0;
-    int elementsInPage = 0;
-    for (int i = 0; i <= ids.size(); i++) {
-      if (i > 0 && (i % batchSize == 0 || i == idsList.size())) {
-        insertSql.deleteCharAt(insertSql.length() - 1); // Remove the last comma
-        Query insertQuery = tx.createNativeQuery(insertSql.toString());
-        for (int j = 0; j < elementsInPage; j++) {
-          int index = j + (batchSize * page);
-          insertQuery.setParameter(j + 1, idsList.get(index));
-        }
-        insertQuery.executeUpdate();
-        insertSql.setLength(0); // Reset the StringBuilder
-        insertSql.append(INSERT_SQL);
-        page++;
-        elementsInPage = 0;
-      }
+    org.jooq.Table<?> tempTable = DSL.table("temporary_ids");
 
-      insertSql.append("(?),");
-      elementsInPage++;
+    for (int batchStart = 0; batchStart < idsList.size(); batchStart += batchSize) {
+      int batchEnd = Math.min(batchStart + batchSize, idsList.size());
+      List<String> batch = idsList.subList(batchStart, batchEnd);
+
+      // Build batch insert using jOOQ
+      InsertValuesStep1<?, String> insertStep = tx.dsl().insertInto(tempTable, ID_FIELD);
+      for (String id : batch) {
+        insertStep = insertStep.values(id);
+      }
+      insertStep.execute();
     }
 
     log.trace("Temporary table created with {} IDs in {} ms", ids.size(),

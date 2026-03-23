@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
@@ -81,6 +82,8 @@ public class ScanTaskTest
 
   private ScanTask task;
 
+  private PersistedScanTicketDAO persistedScanTicketDAO;
+
   private final Application app = newApp("public-app-id");
 
   private Stage stage = new Stage(Stage.ID_BUILD);
@@ -100,8 +103,9 @@ public class ScanTaskTest
 
   @Before
   public void init() throws Exception {
+    persistedScanTicketDAO = daoFactory.createPersistedScanTicketDAO();
     task = new ScanTask(scanner, scanPolicyEvaluator, notifier, fileCleaner, proprietaryConfigService,
-        uploadService, daoFactory.createPersistedScanTicketDAO(), telemetryUtils, scanPersistenceService);
+        uploadService, persistedScanTicketDAO, telemetryUtils, scanPersistenceService);
 
     scanReceipt.setScanId("scan-id");
     bundleFile = tmpDir.newFile("app.zip");
@@ -141,6 +145,7 @@ public class ScanTaskTest
   @Test
   public void savedApplicationBinaryIsScanned() throws IOException {
     task.init(app, bundleFile, bundleFilename, stage, false, null, null, false);
+    persistedScanTicketDAO.insert(task.toPersistedScanTicket());
 
     assertThat(tmpScanEntity.path()).isRegularFile();
     assertThat(scanFile).doesNotExist();
@@ -162,6 +167,7 @@ public class ScanTaskTest
   @Test
   public void successfulTaskHasIdsForUiToRouteToReport() {
     task.init(app, bundleFile, bundleFilename, stage, false, null, null, false);
+    persistedScanTicketDAO.insert(task.toPersistedScanTicket());
     task.run();
 
     assertThatTaskCompletedSuccessfully(task);
@@ -180,6 +186,7 @@ public class ScanTaskTest
         .thenThrow(RuntimeException.class);
 
     task.init(app, bundleFile, bundleFilename, stage, false, null, null, false);
+    persistedScanTicketDAO.insert(task.toPersistedScanTicket());
     task.run();
 
     assertThatTaskCompletedUnsuccessfully(task);
@@ -194,6 +201,7 @@ public class ScanTaskTest
   public void policyEvaluationConsidersStageParameter() throws IOException {
     stage = new Stage(Stage.ID_RELEASE);
     task.init(app, bundleFile, bundleFilename, stage, false, null, null, false);
+    persistedScanTicketDAO.insert(task.toPersistedScanTicket());
 
     task.run();
 
@@ -208,6 +216,7 @@ public class ScanTaskTest
 
     File appBinary = new File("any");
     task.init(app, appBinary, bundleFilename, stage, false, null, null, false);
+    persistedScanTicketDAO.insert(task.toPersistedScanTicket());
     task.run();
 
     assertThatTaskCompletedUnsuccessfully(task);
@@ -217,6 +226,7 @@ public class ScanTaskTest
   @Test
   public void sendsNotifications() throws Exception {
     task.init(app, bundleFile, bundleFilename, stage, true, null, null, false);
+    persistedScanTicketDAO.insert(task.toPersistedScanTicket());
 
     ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
     results.evaluation = new PolicyEvaluation();
@@ -239,6 +249,7 @@ public class ScanTaskTest
         null, null, null, false)).thenReturn(scanReceipt);
 
     task.init(app, scanBinary, bundleFilename, stage, false, "agent", "ui", false);
+    persistedScanTicketDAO.insert(task.toPersistedScanTicket());
     when(scanner.scan(any(File.class), any(String.class), any(String.class), eq(null)))
         .thenReturn(new ScanResult(scanBinaryEntity, true));
 

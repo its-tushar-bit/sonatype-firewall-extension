@@ -6,14 +6,18 @@
 package com.sonatype.insight.brain.dataaccess.zscaler;
 
 import java.util.Date;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.zscaler.ZScalerMetrics;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ZscalerMetrics.ZSCALER_METRICS;
 
 @Named
 @Singleton
@@ -49,6 +53,29 @@ public class ZScalerMetricsDAO
   public void update(TransactionContext tx, ZScalerMetrics zScalerMetrics) {
     zScalerMetrics.setId(SINGLETON_ENTITY_ID);
     zScalerMetrics.setUpdatedAt(new Date());
-    super.update(tx, zScalerMetrics);
+
+    // Use upsert semantics since set() calls update() directly without checking if row exists
+    ZScalerMetrics existing = getById(tx, SINGLETON_ENTITY_ID);
+    if (existing != null) {
+      super.update(tx, zScalerMetrics);
+    }
+    else {
+      super.insert(tx, zScalerMetrics);
+    }
+  }
+
+  @Override
+  public ZScalerMetrics getById(TransactionContext tx, String id) {
+    return super.getById(tx, SINGLETON_ENTITY_ID);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return ZSCALER_METRICS;
+  }
+
+  @Override
+  public Class<ZScalerMetrics> getEntityClass() {
+    return ZScalerMetrics.class;
   }
 }

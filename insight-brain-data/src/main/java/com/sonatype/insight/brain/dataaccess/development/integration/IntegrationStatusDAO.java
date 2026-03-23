@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -22,6 +21,10 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.prioritization.IntegrationStatusSummary;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
 
 /**
  * Data Access Object for retrieving integration status information for applications.
@@ -39,7 +42,7 @@ public class IntegrationStatusDAO
           "  SELECT DISTINCT ON (pe1.application_id) pe1.application_id, pe1.time, pe1.scan_id " +
           "  FROM %1$s.policy_evaluation pe1 " +
           "  INNER JOIN %1$s.last_policy_evaluation lpe ON pe1.policy_evaluation_id = lpe.policy_evaluation_id " +
-          "  WHERE lpe.stage_type_id = ?1 AND pe1.for_monitoring = false AND pe1.reevaluation = false " +
+          "  WHERE lpe.stage_type_id = ? AND pe1.for_monitoring = false AND pe1.reevaluation = false " +
           "  ORDER BY pe1.application_id, pe1.time DESC" +
           "), " +
           "latest_commit AS (" +
@@ -50,8 +53,8 @@ public class IntegrationStatusDAO
           "ci_eval AS (" +
           "  SELECT DISTINCT pe3.application_id " +
           "  FROM %1$s.policy_evaluation pe3 " +
-          "  WHERE pe3.stage_type_id = ?1 AND pe3.reevaluation = false " +
-          "    AND pe3.for_monitoring = false AND pe3.time >= ?2" +
+          "  WHERE pe3.stage_type_id = ? AND pe3.reevaluation = false " +
+          "    AND pe3.for_monitoring = false AND pe3.time >= ?" +
           ") " +
           "SELECT " +
           "  a.application_id, a.name, a.public_id, a.organization_id, " +
@@ -87,24 +90,22 @@ public class IntegrationStatusDAO
     }
 
     try (TransactionContext tx = createTransactionContext()) {
-      String placeholders = IntStream.rangeClosed(3, 2 + applicationIds.size())
-          .mapToObj(i -> "?" + i)
+      String placeholders = applicationIds.stream()
+          .map(id -> "?")
           .collect(Collectors.joining(","));
       String query = String.format(QUERY_TEMPLATE, getDatabaseSchema(), placeholders);
 
-      jakarta.persistence.Query nativeQuery = tx.createNativeQuery(query);
-      nativeQuery.setParameter(1, Stage.ID_BUILD);
-      nativeQuery.setParameter(2, ciLookbackDate);
+      // Build parameters list: stage_id (2x for CTEs), ciLookbackDate, then applicationIds
+      List<Object> params = new ArrayList<>();
+      params.add(Stage.ID_BUILD);
+      params.add(Stage.ID_BUILD);
+      params.add(ciLookbackDate);
+      params.addAll(applicationIds);
 
-      int paramIndex = 3;
-      for (String appId : applicationIds) {
-        nativeQuery.setParameter(paramIndex++, appId);
-      }
-
-      @SuppressWarnings("unchecked")
-      List<Object[]> results = nativeQuery.getResultList();
-      return results.stream()
-          .map(this::mapToIntegrationStatusSummary)
+      return tx.dsl()
+          .resultQuery(query, params.toArray())
+          .fetchStream()
+          .map(record -> mapToIntegrationStatusSummary(record.intoArray()))
           .collect(Collectors.toList());
     }
   }
@@ -119,5 +120,29 @@ public class IntegrationStatusDAO
         (String) row[5],
         row[6] != null ? ((Date) row[6]).getTime() : 0L,
         (Boolean) row[7]);
+  }
+
+  @Override
+  public void insert(TransactionContext tx, Application entity) {
+    throw new UnsupportedOperationException(
+        "IntegrationStatusDAO is a read-only DAO and does not support insert operations. " +
+            "Use ApplicationDAO for Application entity management.");
+  }
+
+  @Override
+  public void update(TransactionContext tx, Application entity) {
+    throw new UnsupportedOperationException(
+        "IntegrationStatusDAO is a read-only DAO and does not support update operations. " +
+            "Use ApplicationDAO for Application entity management.");
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return APPLICATION;
+  }
+
+  @Override
+  public Class<Application> getEntityClass() {
+    return Application.class;
   }
 }

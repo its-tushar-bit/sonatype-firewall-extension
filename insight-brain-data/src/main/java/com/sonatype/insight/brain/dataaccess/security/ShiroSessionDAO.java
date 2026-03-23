@@ -14,7 +14,6 @@ import java.util.concurrent.ConcurrentMap;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import jakarta.persistence.EntityNotFoundException;
 
 import com.sonatype.insight.brain.model.security.PersistedUserSession;
 import com.sonatype.insight.brain.tenancy.TenantReference;
@@ -96,9 +95,12 @@ public class ShiroSessionDAO
     try {
       persistedUserSessionDAO.update(persistedUserSession);
     }
-    catch (EntityNotFoundException e) {
+    catch (RuntimeException e) {
       // The session may have been deleted on another node e.g. if the user was deleted
-      throw new UnknownSessionException("There is no session with id [" + session.getId() + "]", e);
+      if (e.getMessage() != null && e.getMessage().contains("Entity not found")) {
+        throw new UnknownSessionException("There is no session with id [" + session.getId() + "]", e);
+      }
+      throw e;
     }
     finally {
       uncacheSession(session.getId());

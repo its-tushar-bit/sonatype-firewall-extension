@@ -9,9 +9,6 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.CharBuffer;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -21,7 +18,13 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.JiraConfiguration.JIRA_CONFIGURATION;
 
 /**
  * @since 1.139
@@ -92,11 +95,6 @@ public class JiraConfigurationDAO
     return config;
   }
 
-  @Override
-  public JiraConfiguration getById(TransactionContext tx, String id) {
-    return super.getById(tx, SINGLETON_ENTITY_ID);
-  }
-
   public void set(JiraConfiguration jiraConfiguration) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
@@ -106,7 +104,12 @@ public class JiraConfigurationDAO
   }
 
   public void set(TransactionContext tx, JiraConfiguration jiraConfiguration) {
-    update(tx, jiraConfiguration);
+    if (getById(tx, SINGLETON_ENTITY_ID) == null) {
+      insert(tx, jiraConfiguration);
+    }
+    else {
+      update(tx, jiraConfiguration);
+    }
   }
 
   @Override
@@ -120,7 +123,12 @@ public class JiraConfigurationDAO
   public void update(TransactionContext tx, JiraConfiguration jiraConfiguration) {
     validate(jiraConfiguration);
     jiraConfiguration.setId(SINGLETON_ENTITY_ID);
-    super.update(tx, jiraConfiguration);
+    if (getById(tx, SINGLETON_ENTITY_ID) == null) {
+      super.insert(tx, jiraConfiguration);
+    }
+    else {
+      super.update(tx, jiraConfiguration);
+    }
   }
 
   public void validate(JiraConfiguration jiraConfiguration) {
@@ -165,5 +173,15 @@ public class JiraConfigurationDAO
     if (jiraConfiguration != null) {
       delete(jiraConfiguration);
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return JIRA_CONFIGURATION;
+  }
+
+  @Override
+  public Class<JiraConfiguration> getEntityClass() {
+    return JiraConfiguration.class;
   }
 }

@@ -6,9 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -16,6 +13,13 @@ import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.AutoPolicyWaiver.AUTO_POLICY_WAIVER;
 
 @Named
 @Singleton
@@ -33,6 +37,19 @@ public class AutoPolicyWaiverDAO
     this.autoPolicyWaiverExclusionDAO = autoPolicyWaiverExclusionDAO;
   }
 
+  @Override
+  public void delete(TransactionContext tx, AutoPolicyWaiver autoPolicyWaiver) {
+    for (AutoPolicyWaiverExclusion autoPolicyWaiverExclusion : autoPolicyWaiverExclusionDAO
+        .getByOwnerIdAndAutoPolicyWaiverId(autoPolicyWaiver.getOwnerId(), autoPolicyWaiver.getId()))
+    {
+      autoPolicyWaiverExclusionDAO.delete(autoPolicyWaiverExclusion);
+    }
+    tx.dsl()
+        .deleteFrom(AUTO_POLICY_WAIVER)
+        .where(AUTO_POLICY_WAIVER.AUTO_POLICY_WAIVER_ID.eq(autoPolicyWaiver.getId()))
+        .execute();
+  }
+
   public List<AutoPolicyWaiver> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);
@@ -40,9 +57,10 @@ public class AutoPolicyWaiverDAO
   }
 
   public List<AutoPolicyWaiver> getByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT entity FROM AutoPolicyWaiver entity" +
-        " WHERE entity.ownerId=?1";
-    return getList(tx, sQuery, ownerId);
+    return tx.dsl()
+        .selectFrom(AUTO_POLICY_WAIVER)
+        .where(AUTO_POLICY_WAIVER.OWNER_ID.eq(ownerId))
+        .fetch(this::toEntity);
   }
 
   public AutoPolicyWaiver getByIdAndOwnerIdNotNull(String autoPolicyWaiverId, String ownerId) {
@@ -67,17 +85,20 @@ public class AutoPolicyWaiverDAO
   }
 
   public AutoPolicyWaiver getByIdAndOwnerId(TransactionContext tx, String autoPolicyWaiverId, String ownerId) {
-    String sQuery = "SELECT waiver FROM AutoPolicyWaiver waiver WHERE waiver.id=?1 AND waiver.ownerId=?2";
-    return get(tx, sQuery, autoPolicyWaiverId, ownerId);
+    return toEntity(tx.dsl()
+        .selectFrom(AUTO_POLICY_WAIVER)
+        .where(AUTO_POLICY_WAIVER.AUTO_POLICY_WAIVER_ID.eq(autoPolicyWaiverId))
+        .and(AUTO_POLICY_WAIVER.OWNER_ID.eq(ownerId))
+        .fetchOne());
   }
 
   @Override
-  public void delete(TransactionContext tx, AutoPolicyWaiver autoPolicyWaiver) {
-    for (AutoPolicyWaiverExclusion autoPolicyWaiverExclusion : autoPolicyWaiverExclusionDAO
-        .getByOwnerIdAndAutoPolicyWaiverId(autoPolicyWaiver.getOwnerId(), autoPolicyWaiver.getId()))
-    {
-      autoPolicyWaiverExclusionDAO.delete(autoPolicyWaiverExclusion);
-    }
-    super.delete(tx, autoPolicyWaiver);
+  public Table<?> getJooqTable() {
+    return AUTO_POLICY_WAIVER;
+  }
+
+  @Override
+  public Class<AutoPolicyWaiver> getEntityClass() {
+    return AutoPolicyWaiver.class;
   }
 }

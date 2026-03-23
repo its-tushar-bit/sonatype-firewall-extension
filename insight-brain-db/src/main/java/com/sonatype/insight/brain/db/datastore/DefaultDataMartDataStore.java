@@ -5,15 +5,10 @@
  */
 package com.sonatype.insight.brain.db.datastore;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.db.DatabaseConfig;
 
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +17,6 @@ public class DefaultDataMartDataStore
     implements DataMartDataStore
 {
   private static final Logger log = LoggerFactory.getLogger(DefaultDataMartDataStore.class);
-
-  private EntityManagerFactory entityManagerFactory;
 
   private volatile boolean isInitialized = false;
 
@@ -47,9 +40,6 @@ public class DefaultDataMartDataStore
 
     isDatabaseEmbedded = DatabaseUtil.isDatabaseEmbedded(databaseConfig);
 
-    Map<String, Object> props = new LinkedHashMap<>();
-    props.put("openjpa.ConnectionFactory", dataSource);
-    entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainDM", props);
     isInitialized = true;
 
     log.info("Initialized the {} data store in {} ms.", getID(), System.currentTimeMillis() - start);
@@ -63,11 +53,6 @@ public class DefaultDataMartDataStore
   @Override
   protected boolean isInitialized() {
     return isInitialized;
-  }
-
-  @Override
-  public EntityManagerFactory getJPAEntityManagerFactory() {
-    return entityManagerFactory;
   }
 
   @Override

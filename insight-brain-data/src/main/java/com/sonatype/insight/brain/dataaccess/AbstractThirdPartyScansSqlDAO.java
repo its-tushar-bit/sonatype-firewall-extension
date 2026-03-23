@@ -15,6 +15,7 @@ import java.util.function.Function;
 
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
 
@@ -23,8 +24,11 @@ public abstract class AbstractThirdPartyScansSqlDAO<T extends HasStringId>
 {
   private final ThirdPartyScansDataStore thirdPartyScansDataStore;
 
+  private final SearchIndexManager searchIndexManager;
+
   protected AbstractThirdPartyScansSqlDAO(ThirdPartyScansDataStore thirdPartyScansDataStore) {
     this.thirdPartyScansDataStore = thirdPartyScansDataStore;
+    this.searchIndexManager = null;
   }
 
   protected AbstractThirdPartyScansSqlDAO(
@@ -33,11 +37,7 @@ public abstract class AbstractThirdPartyScansSqlDAO<T extends HasStringId>
   {
     super(searchIndexManager);
     this.thirdPartyScansDataStore = thirdPartyScansDataStore;
-  }
-
-  @Override
-  public TransactionContext createTransactionContext() {
-    return new TransactionContext(thirdPartyScansDataStore.getJPAEntityManagerFactory().createEntityManager());
+    this.searchIndexManager = searchIndexManager;
   }
 
   protected String getDatabaseSchema() {
@@ -60,5 +60,22 @@ public abstract class AbstractThirdPartyScansSqlDAO<T extends HasStringId>
   @Override
   protected ThirdPartyScansDataStore getDataStore() {
     return thirdPartyScansDataStore;
+  }
+
+  /**
+   * Override to use non-transactional insert for search index changes.
+   * <p>
+   * ThirdPartyScans DAOs use a different database than the Operational database where search_index_change
+   * table lives. The passed tx is for ThirdPartyScans database, so we cannot use it for inserting into
+   * the Operational database's search_index_change table. Instead, we use the non-transactional insert
+   * which creates its own transaction context for the Operational database.
+   * </p>
+   */
+  @Override
+  protected void insertSearchIndexChange(final TransactionContext tx, final SearchIndexChange searchIndexChange) {
+    if (searchIndexManager != null) {
+      // Use non-transactional insert since search_index_change is in Operational DB, not ThirdPartyScans DB
+      searchIndexManager.insert(searchIndexChange);
+    }
   }
 }

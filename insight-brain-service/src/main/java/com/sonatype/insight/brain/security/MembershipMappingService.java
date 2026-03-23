@@ -258,17 +258,18 @@ public class MembershipMappingService
       MemberType memberType,
       String memberName)
   {
+    // Validate member fields first to provide appropriate BadRequestException for invalid input
+    Member member = new Member();
+    member.setInternalName(memberName);
+    member.setType(memberType);
+    validateMember(member);
+
     MembershipMapping existing = membershipMappingDAO.getByContextIdAndRoleIdAndMemberNameAndMemberType(internalOwnerId,
         roleId, memberName, memberType);
 
     if (existing != null) {
       return; // Already granted
     }
-
-    Member member = new Member();
-    member.setInternalName(memberName);
-    member.setType(memberType);
-    validateMember(member);
 
     validateContextId(ownerType, internalOwnerId);
     Role role = validateRole(ownerType, roleId);
@@ -366,7 +367,24 @@ public class MembershipMappingService
         else {
           entry.getValue().ownerId = owner.getId();
         }
-        membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
+        MembersByRole membersByRole = membersByRoleByRoleId.get(entry.getKey());
+        if (membersByRole == null) {
+          // Custom role not in the initial list - look it up and add to results
+          Role role = roleDAO.getById(entry.getKey());
+          if (role != null) {
+            membersByRole = new MembersByRole();
+            membersByRole.roleId = role.getId();
+            membersByRole.roleName = role.getName();
+            membersByRole.roleDescription = role.getDescription();
+            membersByRoleByRoleId.put(membersByRole.roleId, membersByRole);
+          }
+          else {
+            log.debug("Skipping membership mapping for unknown role id: {}", entry.getKey());
+          }
+        }
+        if (membersByRole != null) {
+          membersByRole.membersByOwner.add(entry.getValue());
+        }
       }
     }
   }
@@ -376,7 +394,24 @@ public class MembershipMappingService
     Map<String, MembersByOwner> membersByOwnerByRoleId = loadMembers(MembershipMapping.GLOBAL_CONTEXT_ID,
         MembershipMapping.GLOBAL_CONTEXT_NAME, OwnerType.GLOBAL, roles);
     for (Map.Entry<String, MembersByOwner> entry : membersByOwnerByRoleId.entrySet()) {
-      membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
+      MembersByRole membersByRole = membersByRoleByRoleId.get(entry.getKey());
+      if (membersByRole == null) {
+        // Custom role not in the initial list - look it up and add to results
+        Role role = roleDAO.getById(entry.getKey());
+        if (role != null) {
+          membersByRole = new MembersByRole();
+          membersByRole.roleId = role.getId();
+          membersByRole.roleName = role.getName();
+          membersByRole.roleDescription = role.getDescription();
+          membersByRoleByRoleId.put(membersByRole.roleId, membersByRole);
+        }
+        else {
+          log.debug("Skipping membership mapping for unknown role id: {}", entry.getKey());
+        }
+      }
+      if (membersByRole != null) {
+        membersByRole.membersByOwner.add(entry.getValue());
+      }
     }
   }
 

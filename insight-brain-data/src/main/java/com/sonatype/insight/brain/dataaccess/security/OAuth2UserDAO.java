@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -30,6 +29,12 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Oauth2Group.OAUTH2_GROUP;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Oauth2User.OAUTH2_USER;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Oauth2UserGroup.OAUTH2_USER_GROUP;
 
 @Named
 @Singleton
@@ -77,31 +82,40 @@ public class OAuth2UserDAO
     if (CollectionUtils.isEmpty(ids)) {
       return Collections.emptyList();
     }
-    String sQuery = SELECT_FROM_ENTITY + //
-        " WHERE entity.id IN ?1" + //
-        ORDER_BY_USERNAME;
-    return getList(tx, sQuery, ids);
+    return tx.dsl()
+        .selectFrom(OAUTH2_USER)
+        .where(OAUTH2_USER.OAUTH2_USER_ID.in(ids))
+        .orderBy(OAUTH2_USER.USERNAME)
+        .fetch()
+        .into(OAuth2User.class);
   }
 
   public List<OAuth2User> getByUsernames(Set<String> usernames) {
     if (CollectionUtils.isEmpty(usernames)) {
       return Collections.emptyList();
     }
-    String sQuery = SELECT_FROM_ENTITY + //
-        " WHERE entity.username IN ?1" + //
-        ORDER_BY_USERNAME;
-    return getList(sQuery, usernames);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(OAUTH2_USER)
+          .where(OAUTH2_USER.USERNAME.in(usernames))
+          .orderBy(OAUTH2_USER.USERNAME)
+          .fetch()
+          .into(OAuth2User.class);
+    }
   }
 
   public List<OAuth2User> getByEmails(Set<String> emails) {
     if (CollectionUtils.isEmpty(emails)) {
       return Collections.emptyList();
     }
-    String sQuery = """
-        SELECT entity from OAuth2User entity
-          WHERE entity.email IN ?1
-          ORDER BY entity.email""";
-    return getList(sQuery, emails);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(OAUTH2_USER)
+          .where(OAUTH2_USER.EMAIL.in(emails))
+          .orderBy(OAUTH2_USER.EMAIL)
+          .fetch()
+          .into(OAuth2User.class);
+    }
   }
 
   // real name means full name (first name + " " + last name)
@@ -109,26 +123,38 @@ public class OAuth2UserDAO
     if (CollectionUtils.isEmpty(names)) {
       return Collections.emptyList();
     }
-    String sQuery = """
-        SELECT entity from OAuth2User entity
-          WHERE CONCAT(entity.firstName, ' ', entity.lastName) IN ?1
-          ORDER BY entity.lastName, entity.firstName""";
-    return getList(sQuery, names);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(OAUTH2_USER)
+          .where(OAUTH2_USER.FIRST_NAME.concat(" ").concat(OAUTH2_USER.LAST_NAME).in(names))
+          .orderBy(OAUTH2_USER.LAST_NAME, OAUTH2_USER.FIRST_NAME)
+          .fetch()
+          .into(OAuth2User.class);
+    }
   }
 
   public List<OAuth2User> findUsersByNameOrUsernameQuery(String nameQuery) {
     nameQuery = nameQuery.trim().toLowerCase(Locale.ENGLISH);
-    String sQuery = SELECT_FROM_ENTITY +
-        " WHERE lower(concat(coalesce(entity.firstName,''), ' ', coalesce(entity.lastName,''))) LIKE ?1" +
-        " OR lower(entity.username) LIKE ?1" +
-        ORDER_BY_USERNAME;
-    return getList(sQuery, nameQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(OAUTH2_USER)
+          .where(DSL.lower(
+              DSL.coalesce(OAUTH2_USER.FIRST_NAME, DSL.inline(""))
+                  .concat(" ")
+                  .concat(DSL.coalesce(OAUTH2_USER.LAST_NAME, DSL.inline(""))))
+              .like(nameQuery)
+              .or(DSL.lower(OAUTH2_USER.USERNAME).like(nameQuery)))
+          .orderBy(OAUTH2_USER.USERNAME)
+          .fetch()
+          .into(OAuth2User.class);
+    }
   }
 
   public OAuth2User getByUsername(TransactionContext tx, String username) {
-    String sQuery = SELECT_FROM_ENTITY + //
-        " WHERE entity.username=?1";
-    return get(tx, sQuery, username);
+    return tx.dsl()
+        .selectFrom(OAUTH2_USER)
+        .where(OAUTH2_USER.USERNAME.eq(username))
+        .fetchOneInto(OAuth2User.class);
   }
 
   public OAuth2User getByUsername(String username) {
@@ -189,48 +215,71 @@ public class OAuth2UserDAO
 
   @Override
   public List<OAuth2User> getAll() {
-    String sQuery = SELECT_FROM_ENTITY + //
-        ORDER_BY_USERNAME;
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(OAUTH2_USER)
+          .orderBy(OAUTH2_USER.USERNAME)
+          .fetch()
+          .into(OAuth2User.class);
+    }
   }
 
   public void withAllUsersWithGroups(Consumer<OAuth2User> consumer) {
-    String sQuery =
-        "SELECT oauth2_user.oauth2_user_id, oauth2_user.username, oauth2_user.first_name," + //
-            " oauth2_user.last_name, oauth2_user.email," + //
-            " STRING_AGG(oauth2_group.name, CHR(44)) groups" +
-            " FROM " + getDatabaseSchema() + ".oauth2_user oauth2_user" + //
-            "   LEFT JOIN " + getDatabaseSchema() + ".oauth2_user_group oauth2_user_group" + //
-            "     ON oauth2_user_group.oauth2_user_id = oauth2_user.oauth2_user_id" + //
-            "   LEFT JOIN " + getDatabaseSchema() + ".oauth2_group oauth2_group" + //
-            "     ON oauth2_group.oauth2_group_id = oauth2_user_group.oauth2_group_id" + //
-            " GROUP BY oauth2_user.oauth2_user_id, oauth2_user.username, oauth2_user.first_name," + //
-            " oauth2_user.last_name, oauth2_user.email";
-
     try (TransactionContext tx = createTransactionContext()) {
-      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
+      com.sonatype.insight.brain.jooq.generated.ods.tables.Oauth2Group og = OAUTH2_GROUP.as("oauth2_group");
+      com.sonatype.insight.brain.jooq.generated.ods.tables.Oauth2UserGroup oug =
+          OAUTH2_USER_GROUP.as("oauth2_user_group");
 
-      ((Stream<Object[]>) query.getResultStream())
-          .map(array -> {
-            String id = (String) array[0];
-            String username = (String) array[1];
-            String firstName = (String) array[2];
-            String lastName = (String) array[3];
-            String email = (String) array[4];
-            String groups = (String) array[5];
+      tx.dsl()
+          .select(
+              OAUTH2_USER.OAUTH2_USER_ID,
+              OAUTH2_USER.USERNAME,
+              OAUTH2_USER.FIRST_NAME,
+              OAUTH2_USER.LAST_NAME,
+              OAUTH2_USER.EMAIL,
+              DSL.groupConcat(og.NAME).separator(",").as("groups"))
+          .from(OAUTH2_USER)
+          .leftJoin(oug)
+          .on(oug.OAUTH2_USER_ID.eq(OAUTH2_USER.OAUTH2_USER_ID))
+          .leftJoin(og)
+          .on(og.OAUTH2_GROUP_ID.eq(oug.OAUTH2_GROUP_ID))
+          .groupBy(OAUTH2_USER.OAUTH2_USER_ID, OAUTH2_USER.USERNAME, OAUTH2_USER.FIRST_NAME,
+              OAUTH2_USER.LAST_NAME, OAUTH2_USER.EMAIL)
+          .fetchStream()
+          .map(record -> {
+            String id = record.get(OAUTH2_USER.OAUTH2_USER_ID);
+            String username = record.get(OAUTH2_USER.USERNAME);
+            String firstName = record.get(OAUTH2_USER.FIRST_NAME);
+            String lastName = record.get(OAUTH2_USER.LAST_NAME);
+            String email = record.get(OAUTH2_USER.EMAIL);
+            String groups = record.get("groups", String.class);
 
             Set<String> groupsSet = new LinkedHashSet<>();
             if (StringUtils.isNotBlank(groups)) {
               groupsSet.addAll(Arrays.asList(groups.split(",")));
             }
 
-            OAuth2User oAuth2User =
-                new OAuth2User(username, firstName, lastName, email, groupsSet);
+            OAuth2User oAuth2User = new OAuth2User(username, firstName, lastName, email, groupsSet);
             oAuth2User.setId(id);
 
             return oAuth2User;
           })
           .forEach(consumer);
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return OAUTH2_USER;
+  }
+
+  @Override
+  public List<OAuth2User> getAll(TransactionContext tx) {
+    return tx.dsl().selectFrom(OAUTH2_USER).fetchInto(OAuth2User.class);
+  }
+
+  @Override
+  public Class<OAuth2User> getEntityClass() {
+    return OAuth2User.class;
   }
 }

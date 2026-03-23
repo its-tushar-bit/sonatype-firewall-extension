@@ -5,14 +5,17 @@
  */
 package com.sonatype.insight.brain.dataaccess.githubapp;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.githubapp.GitHubAppRegistrationState;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.Tables.GITHUB_APP_REGISTRATION_STATE;
 
 /**
  * DAO for GitHub App registration state tokens (manifest flow).
@@ -28,8 +31,8 @@ public class GitHubAppRegistrationStateDAO
   }
 
   /**
-   * Atomically finds and deletes the registration state token.
-   * This ensures one-time use of state tokens to prevent replay attacks in the manifest registration flow.
+   * Atomically finds and deletes the registration state token. This ensures one-time use of state tokens to prevent
+   * replay attacks in the manifest registration flow.
    *
    * @param stateToken the state token to find and delete
    * @return the token if found, null otherwise
@@ -49,19 +52,23 @@ public class GitHubAppRegistrationStateDAO
   }
 
   @Override
-  public void insert(GitHubAppRegistrationState registrationState) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      insert(tx, registrationState);
-      tx.commit();
-    }
+  public Table<?> getJooqTable() {
+    return GITHUB_APP_REGISTRATION_STATE;
+  }
+
+  @Override
+  public Class<GitHubAppRegistrationState> getEntityClass() {
+    return GitHubAppRegistrationState.class;
   }
 
   public GitHubAppRegistrationState findByStateToken(
-      TransactionContext tx,
-      String stateToken)
+      final TransactionContext tx,
+      final String stateToken)
   {
-    String query = "SELECT e FROM GitHubAppRegistrationState e WHERE e.stateToken=?1";
-    return get(tx, query, stateToken);
+    return toEntity(
+        tx.dsl()
+            .selectFrom(GITHUB_APP_REGISTRATION_STATE)
+            .where(GITHUB_APP_REGISTRATION_STATE.STATE_TOKEN.eq(stateToken))
+            .fetchOne());
   }
 }

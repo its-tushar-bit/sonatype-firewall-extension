@@ -5,24 +5,26 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
-import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Stream;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlUserActivity;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControlUserActivity.SOURCE_CONTROL_USER_ACTIVITY;
 
 @Named
 @Singleton
@@ -32,39 +34,6 @@ public class SourceControlUserActivityDAO
   @Inject
   public SourceControlUserActivityDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
-  }
-
-  @Override
-  public void insert(TransactionContext tx, final SourceControlUserActivity entity) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when inserting all entities.
-    super.insert(tx, entity);
-  }
-
-  @Override
-  public void insert(final SourceControlUserActivity entity) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when inserting all entities.
-    super.insert(entity);
-  }
-
-  public List<SourceControlUserActivity> getBySourceControlUserId(TransactionContext tx, String sourceControlUserId) {
-    String sQuery = "SELECT entity FROM SourceControlUserActivity entity WHERE entity.sourceControlUserId = ?1";
-    return getList(tx, sQuery, sourceControlUserId);
-  }
-
-  @Override
-  public final void delete(TransactionContext tx, SourceControlUserActivity entity) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting related entities.
-    super.delete(tx, entity);
-  }
-
-  @Override
-  public final void delete(SourceControlUserActivity entity) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting related entities.
-    super.delete(entity);
   }
 
   /**
@@ -94,23 +63,42 @@ public class SourceControlUserActivityDAO
     insertBatch(tx, queryBuilder, batchActivities);
   }
 
-  private static void insertBatch(
+  @SuppressWarnings("PMD.UnusedFormalParameter") // queryBuilder kept for API consistency with similar batch methods
+  private void insertBatch(
       final TransactionContext tx,
       final SourceControlUserActivityDAOQueryBuilder queryBuilder,
       final List<SourceControlUserActivity> batchActivities)
   {
-    if (batchActivities.size() > 0) {
-      jakarta.persistence.Query query =
-          tx.createNativeQuery(queryBuilder.getMassiveInsertNativeQuery(batchActivities.size()));
-      int i = 0;
-      for (SourceControlUserActivity userActivity : batchActivities) {
-        query.setParameter(++i, StringUtils.isNotBlank(userActivity.getId())
-            ? userActivity.getId()
-            : UUID.randomUUID().toString().replace("-", ""))
-            .setParameter(++i, userActivity.getSourceControlUserId())
-            .setParameter(++i, userActivity.getCommitYearMonth());
+    if (batchActivities.isEmpty()) {
+      return;
+    }
+
+    // Insert one row at a time, skipping if a record with same user_id+commit_year_month exists
+    // jOOQ's onDuplicateKeyIgnore() generates PostgreSQL MERGE syntax which H2 doesn't support
+    for (SourceControlUserActivity userActivity : batchActivities) {
+      String id = StringUtils.isNotBlank(userActivity.getId())
+          ? userActivity.getId()
+          : UUID.randomUUID().toString().replace("-", "");
+      Date commitYearMonth = userActivity.getCommitYearMonth() != null
+          ? Date.from(userActivity.getCommitYearMonth().atStartOfDay(ZoneId.systemDefault()).toInstant())
+          : null;
+
+      // Check if record already exists (unique constraint on source_control_user_id + commit_year_month)
+      boolean exists = tx.dsl()
+          .fetchExists(
+              tx.dsl()
+                  .selectFrom(SOURCE_CONTROL_USER_ACTIVITY)
+                  .where(SOURCE_CONTROL_USER_ACTIVITY.SOURCE_CONTROL_USER_ID.eq(userActivity.getSourceControlUserId()))
+                  .and(SOURCE_CONTROL_USER_ACTIVITY.COMMIT_YEAR_MONTH.eq(commitYearMonth)));
+
+      if (!exists) {
+        tx.dsl()
+            .insertInto(SOURCE_CONTROL_USER_ACTIVITY)
+            .set(SOURCE_CONTROL_USER_ACTIVITY.SOURCE_CONTROL_USER_ACTIVITY_ID, id)
+            .set(SOURCE_CONTROL_USER_ACTIVITY.SOURCE_CONTROL_USER_ID, userActivity.getSourceControlUserId())
+            .set(SOURCE_CONTROL_USER_ACTIVITY.COMMIT_YEAR_MONTH, commitYearMonth)
+            .execute();
       }
-      query.executeUpdate();
     }
   }
 
@@ -189,27 +177,34 @@ public class SourceControlUserActivityDAO
     }
   }
 
-  public Stream<SourceControlUserActivityTelemetryDTO> getActivitiesNotSentToTelemetry() {
-    String sQuery =
-        "SELECT sourceControlUserActivity.id, " +
-            "sourceControlUser.email," +
-            "sourceControlUser.applicationId, " +
-            "sourceControlUserActivity.commitYearMonth " +
-            "FROM SourceControlUserActivity sourceControlUserActivity, SourceControlUser sourceControlUser " +
-            "WHERE sourceControlUserActivity.sourceControlUserId = sourceControlUser.id " +
-            "and sourceControlUserActivity.isSentToTelemetry = false ";
+  public List<SourceControlUserActivityTelemetryDTO> getActivitiesNotSentToTelemetry() {
     try (TransactionContext tx = createTransactionContext()) {
-      jakarta.persistence.Query query = tx.createQuery(sQuery);
-      return ((Stream<Object[]>) query.getResultStream()).map(object -> {
-        SourceControlUserActivityTelemetryDTO sourceControlUserActivityTelemetryDTO =
-            new SourceControlUserActivityTelemetryDTO();
-        sourceControlUserActivityTelemetryDTO.setSourceControlUserActivityId((String) object[0]);
-        sourceControlUserActivityTelemetryDTO.setEmail((String) object[1]);
-        sourceControlUserActivityTelemetryDTO.setApplicationId((String) object[2]);
-        sourceControlUserActivityTelemetryDTO.setCommitYearMonth((LocalDate) object[3]);
+      var sourceControlUser =
+          com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControlUser.SOURCE_CONTROL_USER;
 
-        return sourceControlUserActivityTelemetryDTO;
-      });
+      return tx.dsl()
+          .select(
+              SOURCE_CONTROL_USER_ACTIVITY.SOURCE_CONTROL_USER_ACTIVITY_ID,
+              sourceControlUser.EMAIL,
+              sourceControlUser.APPLICATION_ID,
+              SOURCE_CONTROL_USER_ACTIVITY.COMMIT_YEAR_MONTH)
+          .from(SOURCE_CONTROL_USER_ACTIVITY)
+          .join(sourceControlUser)
+          .on(SOURCE_CONTROL_USER_ACTIVITY.SOURCE_CONTROL_USER_ID.eq(sourceControlUser.SOURCE_CONTROL_USER_ID))
+          .where(SOURCE_CONTROL_USER_ACTIVITY.IS_SENT_TO_TELEMETRY.eq(false))
+          .fetch()
+          .map(record -> {
+            SourceControlUserActivityTelemetryDTO dto = new SourceControlUserActivityTelemetryDTO();
+            dto.setSourceControlUserActivityId(
+                record.get(SOURCE_CONTROL_USER_ACTIVITY.SOURCE_CONTROL_USER_ACTIVITY_ID));
+            dto.setEmail(record.get(sourceControlUser.EMAIL));
+            dto.setApplicationId(record.get(sourceControlUser.APPLICATION_ID));
+            Date commitYearMonth = record.get(SOURCE_CONTROL_USER_ACTIVITY.COMMIT_YEAR_MONTH);
+            dto.setCommitYearMonth(commitYearMonth != null
+                ? commitYearMonth.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                : null);
+            return dto;
+          });
     }
   }
 
@@ -235,17 +230,29 @@ public class SourceControlUserActivityDAO
     return updatedIds;
   }
 
-  private String getMassiveUpdateQuery() {
-    return "UPDATE SourceControlUserActivity entity SET entity.isSentToTelemetry=TRUE " +
-        "WHERE entity.id IN (?1) ";
-  }
-
-  private int updateBatch(
-      final Set<String> sourceControlUserActivityIds)
-  {
+  private int updateBatch(final Set<String> sourceControlUserActivityIds) {
     if (!sourceControlUserActivityIds.isEmpty()) {
-      return createQuery(getMassiveUpdateQuery(), sourceControlUserActivityIds).executeUpdate();
+      try (TransactionContext tx = createTransactionContext()) {
+        tx.begin();
+        int updated = tx.dsl()
+            .update(SOURCE_CONTROL_USER_ACTIVITY)
+            .set(SOURCE_CONTROL_USER_ACTIVITY.IS_SENT_TO_TELEMETRY, true)
+            .where(SOURCE_CONTROL_USER_ACTIVITY.SOURCE_CONTROL_USER_ACTIVITY_ID.in(sourceControlUserActivityIds))
+            .execute();
+        tx.commit();
+        return updated;
+      }
     }
     return 0;
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return SOURCE_CONTROL_USER_ACTIVITY;
+  }
+
+  @Override
+  public Class<SourceControlUserActivity> getEntityClass() {
+    return SourceControlUserActivity.class;
   }
 }

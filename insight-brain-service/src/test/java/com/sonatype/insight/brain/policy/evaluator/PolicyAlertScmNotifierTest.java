@@ -115,6 +115,7 @@ public class PolicyAlertScmNotifierTest
     sourceControl.setOwnerId(application.getId());
     sourceControl.setRepositoryUrl(gitService.baseUrl() + "/org/proj");
     sourceControl.setManualPullRequestsEnabled(true);
+    sourceControl.setRemediationPullRequestsEnabled(true);
     sourceControl.setToken(new DefaultPlexusCipher().encrypt("token", "CMMDwoV"));
     tempEntity.newSourceControl(sourceControl);
   }

@@ -19,6 +19,10 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseThreatGroupLicense.LICENSE_THREAT_GROUP_LICENSE;
+
 @Named
 @Singleton
 public class LicenseThreatGroupLicenseDAO
@@ -41,26 +45,32 @@ public class LicenseThreatGroupLicenseDAO
 
   private LicenseThreatGroupLicense getByGroupIdAndLicenseId(
       TransactionContext tx,
-      String ownerId,
-      String licenseThreatGroupId)
+      String licenseThreatGroupId,
+      String licenseId)
   {
-    String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
-        " WHERE entity.licenseThreatGroupId=?1 AND entity.licenseId=?2";
-    return get(tx, sQuery, ownerId, licenseThreatGroupId);
+    return toEntity(tx.dsl()
+        .selectFrom(LICENSE_THREAT_GROUP_LICENSE)
+        .where(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_ID.eq(licenseThreatGroupId))
+        .and(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID.eq(licenseId))
+        .fetchOne());
   }
 
   public List<LicenseThreatGroupLicense> getByOwnerId(String ownerId) {
-    String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
-        " WHERE entity.ownerId=?1" + //
-        " ORDER BY entity.licenseId";
-    return getList(sQuery, ownerId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(LICENSE_THREAT_GROUP_LICENSE)
+          .where(LICENSE_THREAT_GROUP_LICENSE.OWNER_ID.eq(ownerId))
+          .orderBy(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID)
+          .fetch(this::toEntity);
+    }
   }
 
   public List<LicenseThreatGroupLicense> getByLicenseThreatGroupId(TransactionContext tx, String licenseThreatGroupId) {
-    String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
-        " WHERE entity.licenseThreatGroupId=?1" + //
-        " ORDER BY entity.licenseId";
-    return getList(tx, sQuery, licenseThreatGroupId);
+    return tx.dsl()
+        .selectFrom(LICENSE_THREAT_GROUP_LICENSE)
+        .where(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_ID.eq(licenseThreatGroupId))
+        .orderBy(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID)
+        .fetch(this::toEntity);
   }
 
   public List<LicenseThreatGroupLicense> getByLicenseThreatGroupId(String licenseThreatGroupId) {
@@ -70,9 +80,12 @@ public class LicenseThreatGroupLicenseDAO
   }
 
   public List<LicenseThreatGroupLicense> getByLicenseThreatGroupIds(Set<String> licenseThreatGroupIds) {
-    String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
-        " WHERE entity.licenseThreatGroupId IN (?1)";
-    return getList(sQuery, licenseThreatGroupIds);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(LICENSE_THREAT_GROUP_LICENSE)
+          .where(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_ID.in(licenseThreatGroupIds))
+          .fetch(this::toEntity);
+    }
   }
 
   @Override
@@ -85,6 +98,14 @@ public class LicenseThreatGroupLicenseDAO
       throw new InvalidLicenseThreatGroupLicenseException("The license is already in the license threat group");
     }
     super.insert(tx, entity);
+  }
+
+  @Override
+  public void delete(TransactionContext tx, LicenseThreatGroupLicense entity) {
+    tx.dsl()
+        .deleteFrom(LICENSE_THREAT_GROUP_LICENSE)
+        .where(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_LICENSE_ID.eq(entity.getId()))
+        .execute();
   }
 
   public void setLicenses(String licenseThreatGroupId, Set<String> licenseIds) {
@@ -127,8 +148,21 @@ public class LicenseThreatGroupLicenseDAO
   }
 
   public List<LicenseThreatGroupLicense> getByOwnerIds(Collection<String> ownerIds) {
-    String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
-        " WHERE entity.ownerId IN (?1)";
-    return getList(sQuery, ownerIds);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(LICENSE_THREAT_GROUP_LICENSE)
+          .where(LICENSE_THREAT_GROUP_LICENSE.OWNER_ID.in(ownerIds))
+          .fetch(this::toEntity);
+    }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return LICENSE_THREAT_GROUP_LICENSE;
+  }
+
+  @Override
+  public Class<LicenseThreatGroupLicense> getEntityClass() {
+    return LicenseThreatGroupLicense.class;
   }
 }

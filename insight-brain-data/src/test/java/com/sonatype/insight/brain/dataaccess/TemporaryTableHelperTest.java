@@ -11,16 +11,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import java.sql.SQLException;
+
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.datastore.DataStore;
+import com.sonatype.insight.brain.db.jooq.DialectHelper;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.test.LogOutput;
 
 import ch.qos.logback.classic.Level;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
+import org.jooq.impl.DSL;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -74,10 +76,11 @@ public class TemporaryTableHelperTest
       boolean isCreated = temporaryTableHelper.maybeCreateTemporaryTableWithIds(tx, ids);
       assertThat(isCreated).isTrue();
 
-      Query query = tx.createNativeQuery("SELECT count(*) FROM temporary_ids");
-      List<Long> result = query.getResultList();
-      assertThat(result.size()).isEqualTo(1);
-      assertThat(result.get(0)).isEqualTo(65536);
+      Long count = tx.dsl()
+          .selectCount()
+          .from(DSL.table("temporary_ids"))
+          .fetchOne(0, Long.class);
+      assertThat(count).isEqualTo(65536);
     }
 
     // simple verification that the temporary table was used
@@ -86,8 +89,15 @@ public class TemporaryTableHelperTest
 
   private TransactionContext createTransactionContext() {
     DataStore dataStore = databaseRule.getOperationalDataStore();
-    EntityManager entityManager = dataStore.getJPAEntityManagerFactory().createEntityManager();
-    return new TransactionContext(entityManager);
+    try {
+      return new TransactionContext(
+          dataStore.getDataSource(),
+          DialectHelper.detectDialect(dataStore),
+          dataStore.getDatabaseSchema());
+    }
+    catch (SQLException e) {
+      throw new RuntimeException("Failed to create transaction context", e);
+    }
   }
 
   private List<String> createIds(final int count) {

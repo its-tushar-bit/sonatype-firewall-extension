@@ -18,8 +18,11 @@ import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgressStat
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.Iterables;
+import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ReevaluateCascadeProgress.REEVALUATE_CASCADE_PROGRESS;
 
 /**
  * Data access object for managing cascade re-evaluation progress tracking.
@@ -48,9 +51,11 @@ public class ReevaluateCascadeProgressDAO
       final TransactionContext tx,
       final String reevaluateCascadeRequestId)
   {
-    String sQuery = "SELECT entity FROM ReevaluateCascadeProgress entity" +
-        " WHERE entity.reevaluateCascadeRequestId=?1 ORDER BY entity.id";
-    return getList(tx, sQuery, reevaluateCascadeRequestId);
+    return tx.dsl()
+        .selectFrom(REEVALUATE_CASCADE_PROGRESS)
+        .where(REEVALUATE_CASCADE_PROGRESS.REEVALUATE_CASCADE_REQUEST_ID.eq(reevaluateCascadeRequestId))
+        .orderBy(REEVALUATE_CASCADE_PROGRESS.REEVALUATE_CASCADE_PROGRESS_ID)
+        .fetch(super::toEntity);
   }
 
   public List<ReevaluateCascadeProgress> getByRepositoryId(final String repositoryId) {
@@ -63,9 +68,11 @@ public class ReevaluateCascadeProgressDAO
       final TransactionContext tx,
       final String repositoryId)
   {
-    String sQuery = "SELECT entity FROM ReevaluateCascadeProgress entity" +
-        " WHERE entity.repositoryId=?1 ORDER BY entity.id DESC";
-    return getList(tx, sQuery, repositoryId);
+    return tx.dsl()
+        .selectFrom(REEVALUATE_CASCADE_PROGRESS)
+        .where(REEVALUATE_CASCADE_PROGRESS.REPOSITORY_ID.eq(repositoryId))
+        .orderBy(REEVALUATE_CASCADE_PROGRESS.REEVALUATE_CASCADE_PROGRESS_ID.desc())
+        .fetch(super::toEntity);
   }
 
   public List<ReevaluateCascadeProgress> getByRepositoryComponentId(final String repositoryComponentId) {
@@ -78,9 +85,11 @@ public class ReevaluateCascadeProgressDAO
       final TransactionContext tx,
       final String repositoryComponentId)
   {
-    String sQuery = "SELECT entity FROM ReevaluateCascadeProgress entity" +
-        " WHERE entity.repositoryComponentId=?1 ORDER BY entity.id DESC";
-    return getList(tx, sQuery, repositoryComponentId);
+    return tx.dsl()
+        .selectFrom(REEVALUATE_CASCADE_PROGRESS)
+        .where(REEVALUATE_CASCADE_PROGRESS.REPOSITORY_COMPONENT_ID.eq(repositoryComponentId))
+        .orderBy(REEVALUATE_CASCADE_PROGRESS.REEVALUATE_CASCADE_PROGRESS_ID.desc())
+        .fetch(super::toEntity);
   }
 
   public long countPendingByRequestId(final String reevaluateCascadeRequestId) {
@@ -90,10 +99,12 @@ public class ReevaluateCascadeProgressDAO
   }
 
   public long countPendingByRequestId(final TransactionContext tx, final String reevaluateCascadeRequestId) {
-    String sQuery = "SELECT COUNT(entity.id) FROM ReevaluateCascadeProgress entity" +
-        " WHERE entity.reevaluateCascadeRequestId=?1 AND entity.status=?2";
-    return getSingle(tx, Number.class, sQuery, reevaluateCascadeRequestId,
-        ReevaluateCascadeProgressStatus.PENDING).longValue();
+    return tx.dsl()
+        .selectCount()
+        .from(REEVALUATE_CASCADE_PROGRESS)
+        .where(REEVALUATE_CASCADE_PROGRESS.REEVALUATE_CASCADE_REQUEST_ID.eq(reevaluateCascadeRequestId))
+        .and(REEVALUATE_CASCADE_PROGRESS.STATUS.eq(ReevaluateCascadeProgressStatus.PENDING.name()))
+        .fetchOne(0, Long.class);
   }
 
   public long countCompletedByRequestId(final String reevaluateCascadeRequestId) {
@@ -103,10 +114,12 @@ public class ReevaluateCascadeProgressDAO
   }
 
   public long countCompletedByRequestId(final TransactionContext tx, final String reevaluateCascadeRequestId) {
-    String sQuery = "SELECT COUNT(entity.id) FROM ReevaluateCascadeProgress entity" +
-        " WHERE entity.reevaluateCascadeRequestId=?1 AND entity.status=?2";
-    return getSingle(tx, Number.class, sQuery, reevaluateCascadeRequestId,
-        ReevaluateCascadeProgressStatus.COMPLETED).longValue();
+    return tx.dsl()
+        .selectCount()
+        .from(REEVALUATE_CASCADE_PROGRESS)
+        .where(REEVALUATE_CASCADE_PROGRESS.REEVALUATE_CASCADE_REQUEST_ID.eq(reevaluateCascadeRequestId))
+        .and(REEVALUATE_CASCADE_PROGRESS.STATUS.eq(ReevaluateCascadeProgressStatus.COMPLETED.name()))
+        .fetchOne(0, Long.class);
   }
 
   public long countFailedByRequestId(final String reevaluateCascadeRequestId) {
@@ -116,10 +129,12 @@ public class ReevaluateCascadeProgressDAO
   }
 
   public long countFailedByRequestId(final TransactionContext tx, final String reevaluateCascadeRequestId) {
-    String sQuery = "SELECT COUNT(entity.id) FROM ReevaluateCascadeProgress entity" +
-        " WHERE entity.reevaluateCascadeRequestId=?1 AND entity.status=?2";
-    return getSingle(tx, Number.class, sQuery, reevaluateCascadeRequestId,
-        ReevaluateCascadeProgressStatus.FAILED).longValue();
+    return tx.dsl()
+        .selectCount()
+        .from(REEVALUATE_CASCADE_PROGRESS)
+        .where(REEVALUATE_CASCADE_PROGRESS.REEVALUATE_CASCADE_REQUEST_ID.eq(reevaluateCascadeRequestId))
+        .and(REEVALUATE_CASCADE_PROGRESS.STATUS.eq(ReevaluateCascadeProgressStatus.FAILED.name()))
+        .fetchOne(0, Long.class);
   }
 
   public boolean isRequestComplete(final String reevaluateCascadeRequestId) {
@@ -147,11 +162,29 @@ public class ReevaluateCascadeProgressDAO
 
     Iterable<List<String>> batches = Iterables.partition(requestIds, getInOperatorThreshold());
 
-    String sQuery = "DELETE FROM ReevaluateCascadeProgress entity" +
-        " WHERE entity.reevaluateCascadeRequestId IN (?1)";
-
     for (List<String> batch : batches) {
-      createQuery(sQuery, batch).executeUpdate(tx);
+      tx.dsl()
+          .deleteFrom(REEVALUATE_CASCADE_PROGRESS)
+          .where(REEVALUATE_CASCADE_PROGRESS.REEVALUATE_CASCADE_REQUEST_ID.in(batch))
+          .execute();
     }
+  }
+
+  @Override
+  public void delete(TransactionContext tx, ReevaluateCascadeProgress entity) {
+    tx.dsl()
+        .deleteFrom(REEVALUATE_CASCADE_PROGRESS)
+        .where(REEVALUATE_CASCADE_PROGRESS.REEVALUATE_CASCADE_PROGRESS_ID.eq(entity.getId()))
+        .execute();
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return REEVALUATE_CASCADE_PROGRESS;
+  }
+
+  @Override
+  public Class<ReevaluateCascadeProgress> getEntityClass() {
+    return ReevaluateCascadeProgress.class;
   }
 }

@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 
-import org.apache.openjpa.persistence.RollbackException;
+import org.jooq.exception.DataAccessException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -91,7 +91,7 @@ public class MarkerFileMigratorTest
     markerFileMigrator = new MarkerFileMigrator(migrationTrackerDAO, insightWork);
     migrationTrackerDAO.insert(new MigrationTracker(PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID));
 
-    assertThatExceptionOfType(RollbackException.class).isThrownBy(() -> markerFileMigrator.migrate());
+    assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> markerFileMigrator.migrate());
     assertThat(migrationTrackerDAO.getById(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isNull();
   }
 

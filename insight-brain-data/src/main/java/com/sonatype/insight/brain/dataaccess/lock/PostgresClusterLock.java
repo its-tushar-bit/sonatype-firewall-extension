@@ -63,12 +63,12 @@ public class PostgresClusterLock
     RuntimeException runtimeException = null;
     try {
       if (waitForLock) {
-        advisoryLockDAO.acquireLock(connection, clusterLockId, lockType.getLockModeType());
+        advisoryLockDAO.acquireLock(connection, clusterLockId, lockType);
         this.connection = connection;
         return true;
       }
       else {
-        if (advisoryLockDAO.tryAcquireLock(connection, clusterLockId, lockType.getLockModeType())) {
+        if (advisoryLockDAO.tryAcquireLock(connection, clusterLockId, lockType)) {
           this.connection = connection;
           return true;
         }

@@ -23,7 +23,6 @@ import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.persistence.Query;
 
 import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
@@ -55,7 +54,6 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.dataaccess.AbstractSqlDAO.createPaginationQuery;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_AUTO_RELEASED;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_QUARANTINED;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.NAMESPACE_ATTACKS_BLOCKED;
@@ -196,7 +194,6 @@ public class FirewallMetricsMigrator
         System.currentTimeMillis() - start);
   }
 
-  @SuppressWarnings("unchecked")
   private RepositoryPolicyViolationsMetrics processRepositoryPolicyViolations(
       Repository repository,
       LocalDate fromDate)
@@ -205,23 +202,18 @@ public class FirewallMetricsMigrator
     Map<LocalDate, FirewallMetrics> supplyChainAttacksBlockedMetrics = new HashMap<>();
 
     try (TransactionContext tx = repositoryPolicyViolationDAO.createTransactionContext()) {
-      String sQuery = "SELECT entity" + //
-          " FROM RepositoryPolicyViolation entity" + //
-          " WHERE entity.repositoryId = ?1" + //
-          (fromDate != null ? " AND entity.time < ?2" : "") + //
-          " ORDER BY entity.id";
+      Date beforeDate = fromDate != null ? toDate(fromDate) : null;
 
       int currentBatch = 0;
-      List<RepositoryPolicyViolation> repositoryPolicyViolations = null;
+      List<RepositoryPolicyViolation> repositoryPolicyViolations;
 
       do {
-        Query paginationQuery = createPaginationQuery(tx, sQuery, currentBatch * repositoryPolicyViolationsBatchSize,
+        repositoryPolicyViolations = repositoryPolicyViolationDAO.getByRepositoryIdPaginated(
+            tx,
+            repository.getId(),
+            beforeDate,
+            currentBatch * repositoryPolicyViolationsBatchSize,
             repositoryPolicyViolationsBatchSize);
-        paginationQuery.setParameter(1, repository.getId());
-        if (fromDate != null) {
-          paginationQuery.setParameter(2, toDate(fromDate));
-        }
-        repositoryPolicyViolations = paginationQuery.getResultList();
         repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
 
         for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {

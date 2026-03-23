@@ -102,7 +102,9 @@ public class SourceControlDAOTest
 
   @After
   public void cleanup() {
-    sourceControlDAO.getAll().forEach(sourceControlDAO::delete);
+    if (sourceControlDAO != null) {
+      sourceControlDAO.getAll().forEach(sourceControlDAO::delete);
+    }
   }
 
   @Test

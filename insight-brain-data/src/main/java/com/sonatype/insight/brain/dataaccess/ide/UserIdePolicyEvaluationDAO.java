@@ -6,15 +6,19 @@
 package com.sonatype.insight.brain.dataaccess.ide;
 
 import java.util.Date;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.ide.UserIdePolicyEvaluation;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.UserIdePolicyEvaluation.USER_IDE_POLICY_EVALUATION;
 
 @Named
 @Singleton
@@ -27,25 +31,30 @@ public class UserIdePolicyEvaluationDAO
   }
 
   public long getCountSince(Date sinceUtcDate) {
-    String sQuery = "SELECT COUNT(entity) FROM UserIdePolicyEvaluation entity" +
-        " WHERE entity.lastEvaluationTime >= ?1";
-    return getSingle(Long.class, sQuery, sinceUtcDate);
+    try (TransactionContext tx = createTransactionContext()) {
+      Long count = tx.dsl()
+          .selectCount()
+          .from(USER_IDE_POLICY_EVALUATION)
+          .where(USER_IDE_POLICY_EVALUATION.LAST_EVALUATION_TIME.ge(sinceUtcDate))
+          .fetchOne(0, Long.class);
+      return count != null ? count : 0L;
+    }
   }
 
   public UserIdePolicyEvaluation getByUsername(String username) {
-    if (username == null || username.trim().isEmpty()) {
-      throw new DataAccessException("The username name cannot be null or empty.");
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByUsername(tx, username);
     }
-    String sQuery = "SELECT entity FROM UserIdePolicyEvaluation entity WHERE entity.username=?1";
-    return get(sQuery, username);
   }
 
   public UserIdePolicyEvaluation getByUsername(TransactionContext tx, String username) {
     if (username == null || username.trim().isEmpty()) {
       throw new DataAccessException("The username name cannot be null or empty.");
     }
-    String sQuery = "SELECT entity FROM UserIdePolicyEvaluation entity WHERE entity.username=?1";
-    return get(tx, sQuery, username);
+    return toEntity(tx.dsl()
+        .selectFrom(USER_IDE_POLICY_EVALUATION)
+        .where(USER_IDE_POLICY_EVALUATION.USERNAME.eq(username))
+        .fetchOne());
   }
 
   public void upsert(String username) {
@@ -64,5 +73,15 @@ public class UserIdePolicyEvaluationDAO
     if (entity != null) {
       delete(tx, entity);
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return USER_IDE_POLICY_EVALUATION;
+  }
+
+  @Override
+  public Class<UserIdePolicyEvaluation> getEntityClass() {
+    return UserIdePolicyEvaluation.class;
   }
 }

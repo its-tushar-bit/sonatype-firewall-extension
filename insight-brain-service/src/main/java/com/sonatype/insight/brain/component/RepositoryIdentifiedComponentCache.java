@@ -52,6 +52,7 @@ public class RepositoryIdentifiedComponentCache
   // Visible for testing
   LoadingCache<String, ComponentIdentifier> createLoadingCache() {
     return newCacheBuilder()
+        .recordStats()
         .expireAfterWrite(MAX_AGE.toMillis(), TimeUnit.MILLISECONDS)
         .maximumSize(MAXIMUM_SIZE)
         .build(repositoryIdentifiedComponentCacheLoader);

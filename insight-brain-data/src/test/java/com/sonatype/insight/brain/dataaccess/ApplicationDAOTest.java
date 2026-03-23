@@ -226,14 +226,16 @@ public class ApplicationDAOTest
     tempEntity.newApplicationWithParent("application-4", "Application A1");
     tempEntity.newApplicationWithParent("application-5", "Application M1");
 
+    // The base application's name starts with "ApplicationDAOTest_" which sorts after "Application Z1"
+    // because "ApplicationD" > "Application " (space sorts before letters)
     assertThat(applicationDAO.getAllOrderedByName().stream().map(a -> a.getName())).isEqualTo(
         Arrays.asList(
-            "AbstractDbDAOTest-AppName",
             "Application A1",
             "Application A2",
             "Application A3",
             "Application M1",
-            "Application Z1"));
+            "Application Z1",
+            application.getName()));
   }
 
   @Test
@@ -248,15 +250,17 @@ public class ApplicationDAOTest
     Organization orgWithRelatedRepo = tempEntity.newOrganizationWithRepositoryManager("org-with-repo");
     tempEntity.newApplication(orgWithRelatedRepo.getId());
 
+    // The base application's name starts with "ApplicationDAOTest_" which sorts after "Application Z1"
+    // because "ApplicationD" > "Application " (space sorts before letters)
     assertThat(applicationDAO.getAllWithoutRelatedRepositoriesOrderedByName())
         .extracting(Nameable::getName)
         .containsExactly(
-            "AbstractDbDAOTest-AppName",
             "Application A1",
             "Application A2",
             "Application A3",
             "Application M1",
-            "Application Z1");
+            "Application Z1",
+            application.getName());
   }
 
   @Test
@@ -1691,10 +1695,9 @@ public class ApplicationDAOTest
     testGetByAncestorIds_Limit();
   }
 
-  // For postgres, this is to show we will avoid
-  // <openjpa-3.2.2-re5933d6 fatal general error> org.apache.openjpa.persistence.PersistenceException: PreparedStatement
-  // can have at most 65,535 parameters. Please consider using arrays, or splitting the query in several ones, or using
-  // COPY. Given query has 65,536 parameters
+  // For postgres, this test verifies we handle the PreparedStatement parameter limit correctly.
+  // PostgreSQL PreparedStatements can have at most 65,535 parameters.
+  // The DAO implementation should split queries or use arrays to avoid this limitation.
   private void testGetByAncestorIds_Limit() {
     Set<String> ids = new HashSet<>();
     // Go above both H2 (2,000) and postgres (65,535) limits
@@ -1809,7 +1812,7 @@ public class ApplicationDAOTest
             "total_risk_per_stage_unique", "DESC", 0, 100);
 
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).applicationName()).isEqualTo("AbstractDbDAOTest-AppName");
+    assertThat(result.get(0).applicationName()).isEqualTo(application.getName());
     assertThat(result.get(0).totalRiskPerStage()).isEqualTo(5);
     assertThat(result.get(0).criticalPerStage()).isEqualTo(0);
     assertThat(result.get(0).severePerStage()).isEqualTo(5);
@@ -1850,7 +1853,7 @@ public class ApplicationDAOTest
             1, 10, Collections.emptySet(),
             "total_risk_per_stage_unique", "DESC", 0, 2);
     assertThat(result).hasSize(3);
-    assertThat(result.get(0).applicationName()).isEqualTo("AbstractDbDAOTest-AppName");
+    assertThat(result.get(0).applicationName()).isEqualTo(application.getName());
     assertThat(result.get(1).applicationName()).isEqualTo("tsta-app2");
     // an extra app is returned to know if there is a next page
     assertThat(result.get(2).applicationName()).isEqualTo("tsta-app3");
@@ -1933,8 +1936,10 @@ public class ApplicationDAOTest
             1, 10, Collections.emptySet(),
             "name", "ASC", 0, 100);
     assertThat(result).hasSize(3);
-    assertThat(result.get(0).applicationName()).isEqualTo("AbstractDbDAOTest-AppName");
-    assertThat(result.get(1).applicationName()).isEqualTo("app2");
+    // Case-insensitive sorting: "app2" < "ApplicationDAOTest_..." < "Sandbox-app"
+    // because in lowercase: "app2" < "applicationdaotest..." (at position 3, '2' < 'l')
+    assertThat(result.get(0).applicationName()).isEqualTo("app2");
+    assertThat(result.get(1).applicationName()).isEqualTo(application.getName());
     assertThat(result.get(2).applicationName()).isEqualTo("Sandbox-app");
   }
 

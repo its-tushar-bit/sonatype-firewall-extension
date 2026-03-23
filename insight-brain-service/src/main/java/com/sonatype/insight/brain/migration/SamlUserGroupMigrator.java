@@ -22,7 +22,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.createPaginationQuery;
+import static com.sonatype.insight.brain.jooq.generated.ods.Tables.SAML_USER;
 
 @Named
 public class SamlUserGroupMigrator
@@ -95,13 +95,14 @@ public class SamlUserGroupMigrator
         System.currentTimeMillis() - start);
   }
 
-  @SuppressWarnings("unchecked")
   private List<SamlUser> getSamlUsersBatch(int batchNumber) {
-    String sQuery = "SELECT entity FROM SamlUser entity ORDER BY entity.username";
     try (TransactionContext tx = samlUserDAO.createTransactionContext()) {
-      jakarta.persistence.Query paginationQuery =
-          createPaginationQuery(tx, sQuery, batchNumber * MAX_BATCH_SIZE, MAX_BATCH_SIZE);
-      return paginationQuery.getResultList();
+      return tx.dsl()
+          .selectFrom(SAML_USER)
+          .orderBy(SAML_USER.USERNAME)
+          .offset(batchNumber * MAX_BATCH_SIZE)
+          .limit(MAX_BATCH_SIZE)
+          .fetchInto(SamlUser.class);
     }
   }
 }

@@ -100,11 +100,12 @@ public class PolicyCoordinatesConditionTypeMigratorTest
     // setup
     TransactionContext txMock = mock(TransactionContext.class);
     PolicyDAO policyDAOMock = mock(PolicyDAO.class);
+    MigrationTrackerDAO migrationTrackerDAOMock = mock(MigrationTrackerDAO.class);
     when(policyDAOMock.createTransactionContext()).thenReturn(txMock);
     Policy policy1 = newPolicyObject("coord-policy1", CoordinatesConditionType.ID, "match", "maven:foo*");
     Policy policy2 = newPolicyObject("coord-policy2", CoordinatesConditionType.ID, "match", "maven:bar*");
     when(policyDAOMock.getAll(txMock)).thenReturn(Arrays.asList(policy1, policy2));
-    migrator = new PolicyCoordinatesConditionTypeMigrator(policyDAOMock, migrationTrackerDAO);
+    migrator = new PolicyCoordinatesConditionTypeMigrator(policyDAOMock, migrationTrackerDAOMock);
 
     // execute
     migrator.migrate();
@@ -112,6 +113,7 @@ public class PolicyCoordinatesConditionTypeMigratorTest
     // assert
     verify(policyDAOMock).update(txMock, policy1);
     verify(policyDAOMock).update(txMock, policy2);
+    verify(migrationTrackerDAOMock).insertTracker(txMock, MIGRATION_ID);
     verify(txMock, times(1)).commit();
   }
 

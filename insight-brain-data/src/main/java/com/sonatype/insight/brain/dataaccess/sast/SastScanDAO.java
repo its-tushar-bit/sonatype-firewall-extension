@@ -7,9 +7,6 @@ package com.sonatype.insight.brain.dataaccess.sast;
 
 import java.util.Collections;
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -17,7 +14,14 @@ import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.model.sast.SastScmScanContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SastScan.SAST_SCAN;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SastScmScanContext.SAST_SCM_SCAN_CONTEXT;
 
 @Named
 @Singleton
@@ -42,8 +46,13 @@ public class SastScanDAO
 
   @Override
   public void delete(final TransactionContext tx, final SastScan entity) {
-    final SastScmScanContext sastScmScanContext = sastScmScanContextDAO.getById(tx, entity.getSastScmScanContextId());
-    sastScmScanContextDAO.delete(tx, sastScmScanContext);
+    final String sastScmScanContextId = entity.getSastScmScanContextId();
+    if (sastScmScanContextId != null) {
+      final SastScmScanContext sastScmScanContext = sastScmScanContextDAO.getById(tx, sastScmScanContextId);
+      if (sastScmScanContext != null) {
+        sastScmScanContextDAO.delete(tx, sastScmScanContext);
+      }
+    }
     super.delete(tx, entity);
   }
 
@@ -54,26 +63,25 @@ public class SastScanDAO
   }
 
   public List<SastScan> getByApplicationId(final TransactionContext tx, final String applicationId) {
-    final String sQuery = "SELECT entity FROM SastScan entity WHERE entity.applicationId=?1";
-    return getList(tx, sQuery, applicationId);
+    return tx.dsl()
+        .selectFrom(SAST_SCAN)
+        .where(SAST_SCAN.APPLICATION_ID.eq(applicationId))
+        .fetch(this::toEntity);
   }
 
-  @SuppressWarnings("unchecked")
   public List<SastScan> getByApplicationIdAndBranchName(final String applicationId, final String branchName) {
     if (StringUtils.isEmpty(branchName)) {
       return Collections.emptyList();
     }
-    final String sQuery = "SELECT * FROM " + getDatabaseSchema() + ".sast_scan scanEntity" +
-        " INNER JOIN " + getDatabaseSchema() + ".sast_scm_scan_context scmEntity" +
-        " ON scanEntity.sast_scm_scan_context_id = scmEntity.sast_scm_scan_context_id" +
-        " WHERE scanEntity.application_id = ?1" +
-        " AND scmEntity.branch_name = ?2";
-
     try (TransactionContext tx = createTransactionContext()) {
-      jakarta.persistence.Query query = tx.createNativeQuery(sQuery, SastScan.class);
-      query.setParameter(1, applicationId);
-      query.setParameter(2, branchName);
-      return query.getResultList();
+      return tx.dsl()
+          .select(SAST_SCAN.fields())
+          .from(SAST_SCAN)
+          .innerJoin(SAST_SCM_SCAN_CONTEXT)
+          .on(SAST_SCAN.SAST_SCM_SCAN_CONTEXT_ID.eq(SAST_SCM_SCAN_CONTEXT.SAST_SCM_SCAN_CONTEXT_ID))
+          .where(SAST_SCAN.APPLICATION_ID.eq(applicationId))
+          .and(SAST_SCM_SCAN_CONTEXT.BRANCH_NAME.eq(branchName))
+          .fetch(r -> toEntity(r.into(SAST_SCAN)));
     }
   }
 
@@ -87,5 +95,15 @@ public class SastScanDAO
 
   public void deleteByApplicationId(final TransactionContext tx, final String applicationId) {
     getByApplicationId(tx, applicationId).forEach(sastScan -> delete(tx, sastScan));
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return SAST_SCAN;
+  }
+
+  @Override
+  public Class<SastScan> getEntityClass() {
+    return SastScan.class;
   }
 }

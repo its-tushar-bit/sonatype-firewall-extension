@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.tag;
 
 import java.util.List;
 import java.util.Set;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -15,6 +16,11 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyTag.POLICY_TAG;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Tag.TAG;
 
 /**
  * @since 1.9
@@ -41,9 +47,11 @@ public class PolicyTagDAO
   }
 
   public List<PolicyTag> getByPolicyId(TransactionContext tx, String policyId) {
-    String sQuery = "SELECT entity FROM PolicyTag entity" + //
-        " WHERE entity.policyId=?1";
-    return getList(tx, sQuery, policyId);
+    return tx.dsl()
+        .selectFrom(POLICY_TAG)
+        .where(POLICY_TAG.POLICY_ID.eq(policyId))
+        .fetch()
+        .map(this::toEntity);
   }
 
   public List<PolicyTag> getByTagId(String tagId) {
@@ -53,24 +61,37 @@ public class PolicyTagDAO
   }
 
   public List<PolicyTag> getByTagId(TransactionContext tx, String tagId) {
-    String sQuery = "SELECT entity FROM PolicyTag entity" + //
-        " WHERE entity.tagId=?1";
-    return getList(tx, sQuery, tagId);
+    return tx.dsl()
+        .selectFrom(POLICY_TAG)
+        .where(POLICY_TAG.TAG_ID.eq(tagId))
+        .fetch()
+        .map(this::toEntity);
   }
 
   /**
    * Retrieve list of PolicyTags for Tags that are owned by the specified Organization
    */
   public List<PolicyTag> getByOrganizationId(String organizationId) {
-    String sQuery = "SELECT policyTag FROM PolicyTag policyTag, Tag tag" + //
-        " WHERE policyTag.tagId = tag.id AND tag.organizationId =?1";
-    return getList(sQuery, organizationId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(POLICY_TAG.fields())
+          .from(POLICY_TAG)
+          .join(TAG)
+          .on(POLICY_TAG.TAG_ID.eq(TAG.TAG_ID))
+          .where(TAG.ORGANIZATION_ID.eq(organizationId))
+          .fetch()
+          .map(this::toEntity);
+    }
   }
 
   public PolicyTag getByPolicyIdAndTagId(String policyId, String tagId) {
-    String sQuery = "SELECT entity FROM PolicyTag entity" + //
-        " WHERE entity.policyId=?1 AND entity.tagId=?2";
-    return get(sQuery, policyId, tagId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(POLICY_TAG)
+          .where(POLICY_TAG.POLICY_ID.eq(policyId)
+              .and(POLICY_TAG.TAG_ID.eq(tagId)))
+          .fetchOne());
+    }
   }
 
   public boolean isPolicyApplicable(TransactionContext tx, String policyId, Set<String> tagIds) {
@@ -86,5 +107,15 @@ public class PolicyTagDAO
       }
     }
     return false;
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return POLICY_TAG;
+  }
+
+  @Override
+  public Class<PolicyTag> getEntityClass() {
+    return PolicyTag.class;
   }
 }

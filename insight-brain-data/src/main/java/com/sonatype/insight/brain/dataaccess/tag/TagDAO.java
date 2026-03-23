@@ -5,11 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.tag;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -40,6 +37,12 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCweTag;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediationTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationTag.APPLICATION_TAG;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyTag.POLICY_TAG;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Tag.TAG;
 
 /**
  * @since 1.9
@@ -92,10 +95,11 @@ public class TagDAO
   }
 
   public List<Tag> getByOrganizationId(TransactionContext tx, String organizationId) {
-    String sQuery = "SELECT entity FROM Tag entity" + //
-        " WHERE entity.organizationId=?1" + //
-        " ORDER BY entity.nameLowercaseNoWhitespace";
-    return getList(tx, sQuery, organizationId);
+    return tx.dsl()
+        .selectFrom(TAG)
+        .where(TAG.ORGANIZATION_ID.eq(organizationId))
+        .orderBy(TAG.NAME_LOWERCASE_NO_WHITESPACE)
+        .fetchInto(Tag.class);
   }
 
   public Tag getByOrganizationIdAndName(TransactionContext tx, String organizationId, String name) {
@@ -105,9 +109,11 @@ public class TagDAO
 
     // Tag Name is whitespace and case insensitive
     name = NameHelper.normalize(name);
-    String sQuery = "SELECT entity FROM Tag entity" + //
-        " WHERE entity.organizationId=?1 and entity.nameLowercaseNoWhitespace=?2";
-    return get(tx, sQuery, organizationId, name);
+    return toEntity(tx.dsl()
+        .selectFrom(TAG)
+        .where(TAG.ORGANIZATION_ID.eq(organizationId)
+            .and(TAG.NAME_LOWERCASE_NO_WHITESPACE.eq(name)))
+        .fetchOne());
   }
 
   /**
@@ -120,9 +126,13 @@ public class TagDAO
   }
 
   public List<Tag> getByApplicationId(TransactionContext tx, String applicationId) {
-    String sQuery = "SELECT tag FROM ApplicationTag appTag, Tag tag" + //
-        " WHERE appTag.tagId=tag.id AND appTag.applicationId=?1";
-    return getList(tx, sQuery, applicationId);
+    return tx.dsl()
+        .select(TAG.fields())
+        .from(TAG)
+        .join(APPLICATION_TAG)
+        .on(APPLICATION_TAG.TAG_ID.eq(TAG.TAG_ID))
+        .where(APPLICATION_TAG.APPLICATION_ID.eq(applicationId))
+        .fetchInto(Tag.class);
   }
 
   public List<Tag> getByApplicationIds(List<String> applicationIds) {
@@ -130,18 +140,15 @@ public class TagDAO
       return Collections.emptyList();
     }
 
-    String sQuery = "SELECT DISTINCT tag FROM ApplicationTag appTag, Tag tag" + //
-        " WHERE appTag.tagId=tag.id AND appTag.applicationId IN ?1";
-    int inOperatorThreshold = getInOperatorThreshold();
-    if (applicationIds.size() >= inOperatorThreshold) {
-      List<Tag> tags = getListWithSqlInClause(applicationIds, c -> getList(sQuery, c));
-      // Remove duplicates
-      Map<String, Tag> tagsById = new LinkedHashMap<>();
-      tags.forEach(tag -> tagsById.put(tag.getId(), tag));
-      return new ArrayList<>(tagsById.values());
-    }
-    else {
-      return getList(sQuery, applicationIds);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectDistinct(TAG.fields())
+          .from(TAG)
+          .join(APPLICATION_TAG)
+          .on(APPLICATION_TAG.TAG_ID.eq(TAG.TAG_ID))
+          .where(APPLICATION_TAG.APPLICATION_ID.in(applicationIds))
+          .fetch()
+          .map(this::toEntity);
     }
   }
 
@@ -150,25 +157,40 @@ public class TagDAO
       return Collections.emptyList();
     }
 
-    String sQuery = "SELECT tag FROM Tag tag WHERE tag.id IN ?1";
-
-    return getListWithSqlInClause(tagIds, inClauseValuesPartition -> getList(sQuery, inClauseValuesPartition));
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(TAG)
+          .where(TAG.TAG_ID.in(tagIds))
+          .fetch()
+          .map(this::toEntity);
+    }
   }
 
   /**
    * Retrieve list of Tags applied to specified Policy
    */
   public List<Tag> getByPolicyId(String policyId) {
-    String sQuery = "SELECT tag FROM PolicyTag policyTag, Tag tag" + //
-        " WHERE policyTag.tagId=tag.id AND policyTag.policyId=?1";
-    return getList(sQuery, policyId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(TAG.fields())
+          .from(TAG)
+          .join(POLICY_TAG)
+          .on(POLICY_TAG.TAG_ID.eq(TAG.TAG_ID))
+          .where(POLICY_TAG.POLICY_ID.eq(policyId))
+          .fetch()
+          .map(this::toEntity);
+    }
   }
 
   public List<Tag> getByName(String name) {
     name = NameHelper.normalize(name);
-    String sQuery = "SELECT entity FROM Tag entity" + //
-        " WHERE entity.nameLowercaseNoWhitespace=?1";
-    return getList(sQuery, name);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(TAG)
+          .where(TAG.NAME_LOWERCASE_NO_WHITESPACE.eq(name))
+          .fetch()
+          .map(this::toEntity);
+    }
   }
 
   private void validateColor(Color color) {
@@ -289,5 +311,15 @@ public class TagDAO
   @Override
   protected SearchIndexChange newSearchIndexChange(Tag entity) {
     return new SearchIndexChange(ChangeType.APPLICATION_CATEGORY, entity.getId());
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return TAG;
+  }
+
+  @Override
+  public Class<Tag> getEntityClass() {
+    return Tag.class;
   }
 }

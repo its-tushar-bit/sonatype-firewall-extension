@@ -13,8 +13,7 @@ import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.PersistenceException;
+import org.jooq.exception.IntegrityConstraintViolationException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -255,13 +254,12 @@ public class MailConfigurationDAOTest
   public void testInsert_EnforceSingleton() {
     dao.insert(newValidConfiguration());
 
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(newValidConfiguration()))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class)
+        .isThrownBy(() -> dao.insert(newValidConfiguration()));
 
     MailConfiguration config = newValidConfiguration();
     config.setId("not-singleton-id");
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(config))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class).isThrownBy(() -> dao.insert(config));
   }
 
   @Test
@@ -271,7 +269,7 @@ public class MailConfigurationDAOTest
     MailConfiguration config = newValidConfiguration();
     config.setId("not-singleton-id");
     dao.update(config);
-    assertThat(dao.createQuery("SELECT entity FROM MailConfiguration entity").getList())
+    assertThat(dao.getAll())
         .extracting(MailConfiguration::getId)
         .containsExactly(MailConfigurationDAO.SINGLETON_ENTITY_ID);
   }

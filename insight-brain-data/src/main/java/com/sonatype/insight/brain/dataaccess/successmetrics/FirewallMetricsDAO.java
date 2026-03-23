@@ -8,17 +8,10 @@ package com.sonatype.insight.brain.dataaccess.successmetrics;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.LockModeType;
-import jakarta.persistence.RollbackException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
@@ -27,7 +20,16 @@ import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import static java.util.stream.Collectors.toMap;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Record3;
+import org.jooq.Result;
+import org.jooq.Table;
+import org.jooq.exception.DataAccessException;
+import org.jooq.impl.DSL;
+
+import static com.sonatype.insight.brain.jooq.generated.aggregation.tables.FirewallMetrics.FIREWALL_METRICS;
 
 /**
  * @since 1.169
@@ -42,69 +44,65 @@ public class FirewallMetricsDAO
     super(aggregationDataStore);
   }
 
-  @Override
-  public FirewallMetrics getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM FirewallMetrics entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  public List<FirewallMetrics> getAll() {
-    String sQuery = "SELECT entity FROM FirewallMetrics entity";
-    return getList(sQuery);
-  }
-
   public Date getMostRecentLastUpdatedAtDateByName(FirewallMetricsName metricName) {
-    String sQuery = "SELECT MAX(entity.metricsLastUpdatedAt) " +
-        " FROM FirewallMetrics entity" +
-        " WHERE entity.metricsName=?1";
-
-    return getSingle(Date.class, sQuery, metricName);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(DSL.max(FIREWALL_METRICS.METRICS_LAST_UPDATED_AT))
+          .from(FIREWALL_METRICS)
+          .where(FIREWALL_METRICS.METRICS_NAME.eq(metricName.name()))
+          .fetchOneInto(Date.class);
+    }
   }
 
-  @SuppressWarnings("unchecked")
   public Map<FirewallMetricsName, ApiFirewallMetricsResultDTO> getMetricsValueByName() {
     try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = "SELECT entity.metricsName," +
-          " SUM(entity.metricsValue) as total_metrics_value," +
-          " MAX(entity.metricsLastUpdatedAt) as metrics_last_updated_at" +
-          " FROM FirewallMetrics entity" +
-          " WHERE ((entity.metricsName IN ?1)" +
-          " OR (entity.metricsName NOT IN ?1 AND entity.metricsDate >= ?2))" +
-          " GROUP BY entity.metricsName";
-
       Set<FirewallMetricsName> firewallMetricsNamesForAllTime =
           EnumSet.of(FirewallMetricsName.SUPPLY_CHAIN_ATTACKS_BLOCKED, FirewallMetricsName.NAMESPACE_ATTACKS_BLOCKED);
       LocalDate oneYearAgoDate = LocalDate.now().minusMonths(12);
 
-      jakarta.persistence.Query query = tx.createQuery(sQuery);
-      query.setParameter(1, firewallMetricsNamesForAllTime);
-      query.setParameter(2, oneYearAgoDate);
+      // Convert enum set to string list for the query
+      List<String> allTimeMetricsNames = firewallMetricsNamesForAllTime.stream()
+          .map(FirewallMetricsName::name)
+          .toList();
 
-      return ((Stream<Object[]>) query.getResultStream()) //
-          .collect(toMap(row -> getFirewallMetricsName(row[0].toString()),
-              row -> getTotalFirewallMetricsValueAndLatestUpdatedTime(((Number) row[1]).intValue(), (Date) row[2])));
+      Result<Record3<String, Integer, Date>> results = tx.dsl()
+          .select(
+              FIREWALL_METRICS.METRICS_NAME,
+              DSL.sum(FIREWALL_METRICS.METRICS_VALUE).cast(Integer.class),
+              DSL.max(FIREWALL_METRICS.METRICS_LAST_UPDATED_AT))
+          .from(FIREWALL_METRICS)
+          .where(FIREWALL_METRICS.METRICS_NAME.in(allTimeMetricsNames)
+              .or(FIREWALL_METRICS.METRICS_NAME.notIn(allTimeMetricsNames)
+                  .and(FIREWALL_METRICS.METRICS_DATE.greaterOrEqual(oneYearAgoDate))))
+          .groupBy(FIREWALL_METRICS.METRICS_NAME)
+          .fetch();
+
+      Map<FirewallMetricsName, ApiFirewallMetricsResultDTO> resultMap = new HashMap<>();
+      for (Record3<String, Integer, Date> row : results) {
+        FirewallMetricsName metricsName = getFirewallMetricsName(row.value1());
+        Integer totalValue = row.value2();
+        Date lastUpdatedAt = row.value3();
+        resultMap.put(metricsName, getTotalFirewallMetricsValueAndLatestUpdatedTime(
+            totalValue != null ? totalValue : 0, lastUpdatedAt));
+      }
+      return resultMap;
     }
   }
 
   public FirewallMetrics insertUpdateFirewallMetrics(FirewallMetrics newFirewallMetrics) {
-    FirewallMetrics resultFirewallMetrics;
-    FirewallMetrics existingFirewallMetrics;
-    String sQuery = "SELECT entity" +
-        " FROM FirewallMetrics entity" +
-        " WHERE entity.metricsDate=?1" +
-        " AND entity.metricsName=?2";
-
-    Query<FirewallMetrics> query =
-        new Query<>(sQuery,
-            newFirewallMetrics.getMetricsDate(), newFirewallMetrics.getMetricsName());
-    // need a 'select for update' type query - this is how to do it in JPA
-    query.setLockModeType(LockModeType.PESSIMISTIC_WRITE);
-
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
 
-      existingFirewallMetrics = query.get(tx);
+      // Select for update to lock the row
+      FirewallMetrics existingFirewallMetrics = tx.dsl()
+          .selectFrom(FIREWALL_METRICS)
+          .where(FIREWALL_METRICS.METRICS_DATE.eq(newFirewallMetrics.getMetricsDate()))
+          .and(FIREWALL_METRICS.METRICS_NAME.eq(
+              newFirewallMetrics.getMetricsName() != null ? newFirewallMetrics.getMetricsName().name() : null))
+          .forUpdate()
+          .fetchOneInto(FirewallMetrics.class);
+
+      FirewallMetrics resultFirewallMetrics;
       if (existingFirewallMetrics != null) {
         int newFirewallMetricsValue = newFirewallMetrics.getMetricsValue() + existingFirewallMetrics.getMetricsValue();
         existingFirewallMetrics.setMetricsValue(newFirewallMetricsValue);
@@ -118,14 +116,15 @@ public class FirewallMetricsDAO
       }
 
       tx.commit();
+      return resultFirewallMetrics;
     }
-    catch (RollbackException e) {
-      if (e.getCause() instanceof EntityExistsException) {
+    catch (DataAccessException e) {
+      // Handle unique constraint violation by retrying (race condition on insert)
+      if (e.getMessage() != null && e.getMessage().contains("Unique")) {
         return insertUpdateFirewallMetrics(newFirewallMetrics);
       }
       throw e;
     }
-    return resultFirewallMetrics;
   }
 
   private static FirewallMetricsName getFirewallMetricsName(String firewallMetricsName) {
@@ -140,9 +139,22 @@ public class FirewallMetricsDAO
   }
 
   public LocalDate getEarliestMetricDateByName(FirewallMetricsName metricsName) {
-    String sQuery = "SELECT MIN(entity.metricsDate)" + //
-        " FROM FirewallMetrics entity" + //
-        " WHERE entity.metricsName = ?1";
-    return getSingle(LocalDate.class, sQuery, metricsName);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(DSL.min(FIREWALL_METRICS.METRICS_DATE))
+          .from(FIREWALL_METRICS)
+          .where(FIREWALL_METRICS.METRICS_NAME.eq(metricsName.name()))
+          .fetchOneInto(LocalDate.class);
+    }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return FIREWALL_METRICS;
+  }
+
+  @Override
+  public Class<FirewallMetrics> getEntityClass() {
+    return FirewallMetrics.class;
   }
 }

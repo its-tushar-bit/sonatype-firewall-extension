@@ -79,11 +79,11 @@ public class SamlConfigurationAdapter
       final SamlConfiguration samlConfiguration)
   {
     try (ByteArrayInputStream keystoreInputStream = new ByteArrayInputStream(
-        samlConfigurationInternal.getKeyStoreBytes()))
+        samlConfigurationInternal.getKeystore()))
     {
       KeyStore keyStore = KeyStoreFactory.createKeyStore();
       char[] keyStorePassword =
-          samlPasswordFactory.decryptPassword(samlConfigurationInternal.getKeyStorePasswordObfuscated());
+          samlPasswordFactory.decryptPassword(samlConfigurationInternal.getKeystorePasswordObfuscated());
       keyStore.load(keystoreInputStream, keyStorePassword);
       Certificate certificate = keyStore.getCertificate(KEYSTORE_ALIAS);
       samlConfiguration.setCertificate(certificate);

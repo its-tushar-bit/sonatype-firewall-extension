@@ -851,8 +851,7 @@ public class RepositoryMatcher
   }
 
   private static boolean notProprietary(final ObjectNode bomObjectNode) {
-    JsonNode proprietaryNode = bomObjectNode.get(FIELD_PROPRIETARY);
-    return proprietaryNode != null && !proprietaryNode.asBoolean(false);
+    return !bomObjectNode.path(FIELD_PROPRIETARY).asBoolean(false);
   }
 
   private static boolean isOfMatchableFileType(final ObjectNode bomObjectNode) {

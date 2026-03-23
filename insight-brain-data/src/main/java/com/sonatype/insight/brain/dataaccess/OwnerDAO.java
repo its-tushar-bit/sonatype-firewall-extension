@@ -5,15 +5,14 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -73,8 +72,16 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.jooq.Condition;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationTag.APPLICATION_TAG;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
+import org.jooq.impl.DSL;
 
 @Named
 @Singleton
@@ -437,6 +444,44 @@ public class OwnerDAO
     }
   }
 
+  /**
+   * Deletes all entities associated with the given owner.
+   * <p>
+   * <b>Transaction Boundary Semantics:</b> All delete operations in this method participate in the
+   * provided transaction context. This ensures atomic rollback behavior - if any cascade operation
+   * fails, all previous deletions will also be rolled back when the transaction is rolled back.
+   * </p>
+   * <p>
+   * <b>What gets deleted:</b>
+   * </p>
+   * <ul>
+   * <li>Policy waivers owned by this owner</li>
+   * <li>License overrides owned by this owner</li>
+   * <li>Security vulnerability overrides owned by this owner</li>
+   * <li>Policy overrides referencing this owner (updates policies to remove references)</li>
+   * <li>Policy waiver requests owned by this owner</li>
+   * <li>Data retention policies owned by this owner</li>
+   * <li>Policy monitoring configurations owned by this owner</li>
+   * <li>Component copyrights owned by this owner</li>
+   * <li>Component legal files owned by this owner</li>
+   * <li>Component obligations owned by this owner</li>
+   * <li>Component obligation attributions owned by this owner</li>
+   * <li>Vulnerability groups owned by this owner</li>
+   * <li>Custom vulnerability remediations owned by this owner</li>
+   * <li>Custom vulnerability CWE data owned by this owner</li>
+   * <li>Custom vulnerability CVSS vector data owned by this owner</li>
+   * <li>Custom vulnerability CVSS severity data owned by this owner</li>
+   * <li>Call flow analysis configuration owned by this owner</li>
+   * </ul>
+   * <p>
+   * <b>Note:</b> This method is called from cascade delete operations in {@code ApplicationDAO},
+   * {@code OrganizationDAO}, {@code RepositoryDAO}, and {@code RepositoryManagerDAO}. All these
+   * callers pass their transaction context to ensure the entire cascade operation is atomic.
+   * </p>
+   *
+   * @param tx the transaction context that all operations will participate in
+   * @param owner the owner whose associated entities should be deleted
+   */
   public void cascadeDelete(TransactionContext tx, Owner owner) {
     // Cascade to policy waivers
     PolicyWaiverDAO policyWaiverDAO = policyWaiverDAOProvider.get();
@@ -566,8 +611,10 @@ public class OwnerDAO
 
     // Cascade to call flow config
     CallFlowAnalysisConfigDAO callFlowAnalysisConfigDAO = callFlowAnalysisConfigDAOProvider.get();
-    CallFlowAnalysisConfig callFlowAnalysisConfig = callFlowAnalysisConfigDAO.getByOwnerId(owner.getId());
-    callFlowAnalysisConfigDAO.delete(tx, callFlowAnalysisConfig);
+    CallFlowAnalysisConfig callFlowAnalysisConfig = callFlowAnalysisConfigDAO.getByOwnerId(tx, owner.getId());
+    if (callFlowAnalysisConfig != null) {
+      callFlowAnalysisConfigDAO.delete(tx, callFlowAnalysisConfig);
+    }
   }
 
   /**
@@ -586,41 +633,40 @@ public class OwnerDAO
   }
 
   public List<Owner> getAllAppsAndOrgs() {
-    final String sQuery = """
-        SELECT
-          application.public_id as public_id,
-          application.name as name,
-          application.organization_id as parent_owner_id,
-          application.application_id as id,
-          false as have_children,
-          'APPLICATION' as type
-          FROM %s.application application
-        UNION
-        SELECT
-            org.organization_id as public_id,
-            org.name as name,
-            org.parent_organization_id as parent_owner_id,
-            org.organization_id as id,
-            true as have_children,
-            'ORGANIZATION' as type
-          FROM %s.organization org;
-        """.formatted(getDatabaseSchema(), getDatabaseSchema());
-
     try (TransactionContext tx = createTransactionContext()) {
-      final jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
-      query.setMaxResults(MAX_ALLOWED_DB_RESULTS);
+      // Application query
+      var appQuery = tx.dsl()
+          .select(
+              APPLICATION.PUBLIC_ID.as("public_id"),
+              APPLICATION.NAME.as("name"),
+              APPLICATION.ORGANIZATION_ID.as("parent_owner_id"),
+              APPLICATION.APPLICATION_ID.as("id"),
+              DSL.inline(false).as("have_children"),
+              DSL.inline("APPLICATION").as("type"))
+          .from(APPLICATION);
 
-      try (Stream<Object[]> resultStream = query.getResultStream()) {
-        return resultStream.map(values -> {
-          return new OwnerImpl(
-              (String) values[0], // public id
-              (String) values[1], // name
-              (String) values[2], // parent owner id
-              (Boolean) values[4], // can have children
-              OwnerType.fromString((String) values[5]), // type
-              (String) values[3]); // id
-        }).collect(Collectors.toList());
-      }
+      // Organization query
+      var orgQuery = tx.dsl()
+          .select(
+              ORGANIZATION.ORGANIZATION_ID.as("public_id"),
+              ORGANIZATION.NAME.as("name"),
+              ORGANIZATION.PARENT_ORGANIZATION_ID.as("parent_owner_id"),
+              ORGANIZATION.ORGANIZATION_ID.as("id"),
+              DSL.inline(true).as("have_children"),
+              DSL.inline("ORGANIZATION").as("type"))
+          .from(ORGANIZATION);
+
+      return appQuery.union(orgQuery)
+          .limit(MAX_ALLOWED_DB_RESULTS)
+          .fetchStream()
+          .map(record -> new OwnerImpl(
+              record.get("public_id", String.class),
+              record.get("name", String.class),
+              record.get("parent_owner_id", String.class),
+              record.get("have_children", Boolean.class),
+              OwnerType.fromString(record.get("type", String.class)),
+              record.get("id", String.class)))
+          .collect(Collectors.toList());
     }
   }
 
@@ -633,170 +679,104 @@ public class OwnerDAO
       return Collections.emptyList();
     }
 
-    final StringJoiner queryUnionizer = new StringJoiner("\nUNION\n");
-
-    if (isNotEmpty(applicationIds) || isNotEmpty(tagIds)) {
-      queryUnionizer.add(getApplicationsForOwnersByAppAndTagIdsQuery(applicationIds, tagIds));
-    }
-
-    if (isNotEmpty(organizationsIds)) {
-      queryUnionizer.add(getOrganizationsQuery(applicationIds, tagIds, organizationsIds));
-    }
-
-    final String sQuery = queryUnionizer.toString();
-
     try (TransactionContext tx = createTransactionContext()) {
-      final jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
-      query.setMaxResults(MAX_ALLOWED_DB_RESULTS);
+      Set<Owner> results = new LinkedHashSet<>();
 
-      return performQueryForOwnersByAppAndTagIds(query, applicationIds, tagIds, organizationsIds);
+      if (isNotEmpty(applicationIds) || isNotEmpty(tagIds)) {
+        results.addAll(fetchApplicationOwners(tx, applicationIds, tagIds));
+      }
+
+      if (isNotEmpty(organizationsIds)) {
+        results.addAll(fetchOrganizationOwners(tx, organizationsIds));
+      }
+
+      if (results.size() > MAX_ALLOWED_DB_RESULTS) {
+        return new ArrayList<>(results).subList(0, MAX_ALLOWED_DB_RESULTS);
+      }
+      return new ArrayList<>(results);
     }
   }
 
-  private String getApplicationsForOwnersByAppAndTagIdsQuery(
+  private List<Owner> fetchApplicationOwners(
+      TransactionContext tx,
       final Set<String> applicationIds,
       final Set<String> tagIds)
   {
-    final String getApplicationsTemplate = """
-        SELECT
-          DISTINCT application.public_id,
-          application.name,
-          application.organization_id as parent_owner_id,
-          application.application_id as id,
-          false as have_children,
-          ''APPLICATION'' as type
-        FROM {0}.application application
-        LEFT OUTER JOIN {0}.application_tag application_tag
-          ON application_tag.application_id = application.application_id
-        {1}
-        """;
+    Condition whereCondition = null;
 
-    return MessageFormat.format(
-        getApplicationsTemplate,
-        getDatabaseSchema(),
-        getWhereClauseForOwnersByAppAndTagIds(applicationIds, tagIds));
+    if (isNotEmpty(applicationIds) && isNotEmpty(tagIds)) {
+      var tagCondition = buildTagCondition(tagIds);
+      whereCondition = APPLICATION.APPLICATION_ID.in(applicationIds).and(tagCondition);
+    }
+    else if (isNotEmpty(tagIds)) {
+      whereCondition = buildTagCondition(tagIds);
+    }
+    else if (isNotEmpty(applicationIds)) {
+      whereCondition = APPLICATION.APPLICATION_ID.in(applicationIds);
+    }
+
+    var baseQuery = tx.dsl()
+        .selectDistinct(
+            APPLICATION.PUBLIC_ID.as("public_id"),
+            APPLICATION.NAME.as("name"),
+            APPLICATION.ORGANIZATION_ID.as("parent_owner_id"),
+            APPLICATION.APPLICATION_ID.as("id"),
+            DSL.inline(false).as("have_children"),
+            DSL.inline("APPLICATION").as("type"))
+        .from(APPLICATION)
+        .leftOuterJoin(APPLICATION_TAG)
+        .on(APPLICATION_TAG.APPLICATION_ID.eq(APPLICATION.APPLICATION_ID));
+
+    var query = whereCondition != null ? baseQuery.where(whereCondition) : baseQuery;
+
+    return query.fetchStream()
+        .map(record -> (Owner) new OwnerImpl(
+            record.get("public_id", String.class),
+            record.get("name", String.class),
+            record.get("parent_owner_id", String.class),
+            record.get("have_children", Boolean.class),
+            OwnerType.fromString(record.get("type", String.class)),
+            record.get("id", String.class)))
+        .collect(Collectors.toList());
   }
 
-  private String getOrganizationsQuery(
-      final Set<String> applicationIds,
-      final Set<String> tagIds,
+  private List<Owner> fetchOrganizationOwners(
+      TransactionContext tx,
       final Set<String> organizationsIds)
   {
-    final int startForOrgIds = getOrgIdsOffset(applicationIds, tagIds);
+    var baseQuery = tx.dsl()
+        .select(
+            ORGANIZATION.ORGANIZATION_ID.as("public_id"),
+            ORGANIZATION.NAME.as("name"),
+            ORGANIZATION.PARENT_ORGANIZATION_ID.as("parent_owner_id"),
+            ORGANIZATION.ORGANIZATION_ID.as("id"),
+            DSL.inline(true).as("have_children"),
+            DSL.inline("ORGANIZATION").as("type"))
+        .from(ORGANIZATION);
 
-    final String sQuery = """
-              SELECT org.organization_id as public_id,
-              org.name as name,
-              org.parent_organization_id as parent_owner_id,
-              org.organization_id as id,
-              true as have_children,
-              'ORGANIZATION' as type
-            FROM %s.organization org
-        """.formatted(getDatabaseSchema());
+    var query = isNotEmpty(organizationsIds)
+        ? baseQuery.where(ORGANIZATION.ORGANIZATION_ID.in(organizationsIds))
+        : baseQuery;
 
-    if (isNotEmpty(organizationsIds)) {
-      return sQuery +
-          " WHERE organization_id IN %s".formatted(buildPositionalParameters(organizationsIds, startForOrgIds));
-    }
-    else {
-      return sQuery;
-    }
+    return query.fetchStream()
+        .map(record -> (Owner) new OwnerImpl(
+            record.get("public_id", String.class),
+            record.get("name", String.class),
+            record.get("parent_owner_id", String.class),
+            record.get("have_children", Boolean.class),
+            OwnerType.fromString(record.get("type", String.class)),
+            record.get("id", String.class)))
+        .collect(Collectors.toList());
   }
 
-  private String getWhereClauseForOwnersByAppAndTagIds(
-      final Set<String> applicationIds,
-      final Set<String> tagIds)
-  {
-    final boolean hasTags = isNotEmpty(tagIds);
-    final boolean hasApplicationIds = isNotEmpty(applicationIds);
-    final int startForTagIds = getTagIdOffset(applicationIds);
-
-    if (!hasTags && !hasApplicationIds) {
-      return "";
-    }
-
-    if (hasApplicationIds && hasTags) {
-      // application ids and tags
-      return """
-          WHERE application.application_id IN %s AND (
-            %s
-          )
-          """.formatted(
-          buildPositionalParameters(applicationIds, 1),
-          getTagIdConditionalExpressionForOwnersByAppAndTagIds(tagIds, startForTagIds));
-    }
-    else if (!hasApplicationIds) {
-      // only tags
-      return "WHERE " + getTagIdConditionalExpressionForOwnersByAppAndTagIds(tagIds, startForTagIds);
-    }
-    else {
-      // only application id
-      return "WHERE application.application_id IN " +
-          buildPositionalParameters(applicationIds, 1);
-    }
-  }
-
-  private String getTagIdConditionalExpressionForOwnersByAppAndTagIds(
-      final Set<String> tagIds,
-      final int startForTagIds)
-  {
+  private Condition buildTagCondition(final Set<String> tagIds) {
     final boolean includeAppsWithNoTags = tagIds.contains(null);
 
-    // includes all apps that have one of the supplied tags associated or that have no tags associated
     if (includeAppsWithNoTags) {
-      return "application_tag.tag_id IN " + buildPositionalParameters(tagIds, startForTagIds) +
-          " OR application_tag.tag_id IS NULL";
+      return APPLICATION_TAG.TAG_ID.in(tagIds).or(APPLICATION_TAG.TAG_ID.isNull());
     }
     else {
-      return "application_tag.tag_id IN " + buildPositionalParameters(tagIds, startForTagIds);
-    }
-  }
-
-  private List<Owner> performQueryForOwnersByAppAndTagIds(
-      final jakarta.persistence.Query query,
-      final Set<String> applicationIds,
-      final Set<String> tagIds,
-      final Set<String> organizationIds)
-  {
-    if (isNotEmpty(applicationIds)) {
-      addPositionalParameters(query, applicationIds, 1);
-    }
-
-    if (isNotEmpty(tagIds)) {
-      final int startForTagIds = isNotEmpty(applicationIds) ? applicationIds.size() + 1 : 1;
-      addPositionalParameters(query, tagIds, startForTagIds);
-    }
-
-    if (isNotEmpty(organizationIds)) {
-      addPositionalParameters(query, organizationIds, getOrgIdsOffset(applicationIds, tagIds));
-    }
-
-    try (Stream<Object[]> resultStream = query.getResultStream()) {
-      return resultStream.map(values -> {
-        return new OwnerImpl(
-            (String) values[0], // public id
-            (String) values[1], // name
-            (String) values[2], // parent owner id
-            (Boolean) values[4], // can have children
-            OwnerType.fromString((String) values[5]), // type
-            (String) values[3]); // id
-      }).collect(Collectors.toList());
-    }
-  }
-
-  private int getTagIdOffset(Set<String> applicationIds) {
-    return isNotEmpty(applicationIds) ? applicationIds.size() + 1 : 1;
-  }
-
-  private int getOrgIdsOffset(Set<String> applicationIds, Set<String> tagIds) {
-    if (isEmpty(applicationIds) && isEmpty(tagIds)) {
-      return 1;
-    }
-    else if (isEmpty(tagIds)) {
-      return getTagIdOffset(applicationIds);
-    }
-    else {
-      return getTagIdOffset(applicationIds) + tagIds.size() + 1;
+      return APPLICATION_TAG.TAG_ID.in(tagIds);
     }
   }
 
@@ -805,5 +785,101 @@ public class OwnerDAO
    */
   private static <T> Stream<T> lazy(Supplier<T> supplier) {
     return Stream.of(supplier).map(Supplier::get);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    // OwnerDAO is a composite DAO that queries multiple tables (applications, organizations, repositories, etc.)
+    // There is no single jOOQ table for Owner entities
+    return null;
+  }
+
+  @Override
+  public List<Owner> getAll(TransactionContext tx) {
+    // OwnerDAO is a composite DAO - to get all owners, we combine results from multiple DAOs
+    List<Owner> allOwners = new ArrayList<>();
+    allOwners.addAll(orgDAO.getAll(tx));
+    allOwners.addAll(appDAO.getAll(tx));
+    allOwners.addAll(repoDAO.getAll(tx));
+    allOwners.addAll(repoManagerDAO.getAll(tx));
+    allOwners.add(RepositoryContainer.SINGLETON);
+    return allOwners;
+  }
+
+  @Override
+  public void insert(TransactionContext tx, Owner entity) {
+    // OwnerDAO is a composite DAO - delegate to the appropriate DAO based on owner type
+    switch (entity.getType()) {
+      case ORGANIZATION:
+        orgDAO.insert(tx, (Organization) entity);
+        break;
+      case APPLICATION:
+        appDAO.insert(tx, (Application) entity);
+        break;
+      case REPOSITORY:
+        repoDAO.insert(tx, (Repository) entity);
+        break;
+      case REPOSITORY_MANAGER:
+        repoManagerDAO.insert(tx, (RepositoryManager) entity);
+        break;
+      case REPOSITORY_CONTAINER:
+        // RepositoryContainer.SINGLETON is immutable and cannot be inserted
+        throw new UnsupportedOperationException("RepositoryContainer cannot be inserted");
+      default:
+        throw new IllegalStateException("Unhandled owner type: " + entity.getType());
+    }
+  }
+
+  @Override
+  public void update(TransactionContext tx, Owner entity) {
+    // OwnerDAO is a composite DAO - delegate to the appropriate DAO based on owner type
+    switch (entity.getType()) {
+      case ORGANIZATION:
+        orgDAO.update(tx, (Organization) entity);
+        break;
+      case APPLICATION:
+        appDAO.update(tx, (Application) entity);
+        break;
+      case REPOSITORY:
+        repoDAO.update(tx, (Repository) entity);
+        break;
+      case REPOSITORY_MANAGER:
+        repoManagerDAO.update(tx, (RepositoryManager) entity);
+        break;
+      case REPOSITORY_CONTAINER:
+        // RepositoryContainer.SINGLETON is immutable and cannot be updated
+        throw new UnsupportedOperationException("RepositoryContainer cannot be updated");
+      default:
+        throw new IllegalStateException("Unhandled owner type: " + entity.getType());
+    }
+  }
+
+  @Override
+  public void delete(TransactionContext tx, Owner entity) {
+    // OwnerDAO is a composite DAO - delegate to the appropriate DAO based on owner type
+    switch (entity.getType()) {
+      case ORGANIZATION:
+        orgDAO.delete(tx, (Organization) entity);
+        break;
+      case APPLICATION:
+        appDAO.delete(tx, (Application) entity);
+        break;
+      case REPOSITORY:
+        repoDAO.delete(tx, (Repository) entity);
+        break;
+      case REPOSITORY_MANAGER:
+        repoManagerDAO.delete(tx, (RepositoryManager) entity);
+        break;
+      case REPOSITORY_CONTAINER:
+        // RepositoryContainer.SINGLETON is immutable and cannot be deleted
+        throw new UnsupportedOperationException("RepositoryContainer cannot be deleted");
+      default:
+        throw new IllegalStateException("Unhandled owner type: " + entity.getType());
+    }
+  }
+
+  @Override
+  public Class<Owner> getEntityClass() {
+    return Owner.class;
   }
 }

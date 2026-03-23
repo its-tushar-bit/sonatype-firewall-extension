@@ -19,6 +19,10 @@ import com.sonatype.insight.brain.model.security.OAuth2Group;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Oauth2Group.OAUTH2_GROUP;
 
 @Named
 @Singleton
@@ -42,9 +46,12 @@ public class OAuth2GroupDAO
 
   @Override
   public List<OAuth2Group> getAll() {
-    String sQuery = SELECT_FROM_ENTITY + //
-        ORDER_BY_NAME;
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(OAUTH2_GROUP)
+          .orderBy(OAUTH2_GROUP.NAME)
+          .fetchInto(OAuth2Group.class);
+    }
   }
 
   public List<OAuth2Group> getByIds(Set<String> ids) {
@@ -57,10 +64,11 @@ public class OAuth2GroupDAO
     if (CollectionUtils.isEmpty(ids)) {
       return Collections.emptyList();
     }
-    String sQuery = SELECT_FROM_ENTITY + //
-        " WHERE entity.id IN ?1" + //
-        ORDER_BY_NAME;
-    return getList(tx, sQuery, ids);
+    return tx.dsl()
+        .selectFrom(OAUTH2_GROUP)
+        .where(OAUTH2_GROUP.OAUTH2_GROUP_ID.in(ids))
+        .orderBy(OAUTH2_GROUP.NAME)
+        .fetchInto(OAuth2Group.class);
   }
 
   public OAuth2Group getByName(String name) {
@@ -70,19 +78,23 @@ public class OAuth2GroupDAO
   }
 
   public OAuth2Group getByName(TransactionContext tx, String name) {
-    String sQuery = SELECT_FROM_ENTITY + //
-        " WHERE entity.name=?1";
-    return get(tx, sQuery, name);
+    return tx.dsl()
+        .selectFrom(OAUTH2_GROUP)
+        .where(OAUTH2_GROUP.NAME.eq(name))
+        .fetchOneInto(OAuth2Group.class);
   }
 
   public List<OAuth2Group> getByNames(Set<String> names) {
     if (CollectionUtils.isEmpty(names)) {
       return Collections.emptyList();
     }
-    String sQuery = SELECT_FROM_ENTITY + //
-        " WHERE entity.name IN ?1" + //
-        ORDER_BY_NAME;
-    return getList(sQuery, names);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(OAUTH2_GROUP)
+          .where(OAUTH2_GROUP.NAME.in(names))
+          .orderBy(OAUTH2_GROUP.NAME)
+          .fetchInto(OAuth2Group.class);
+    }
   }
 
   public void upsertByName(OAuth2Group oAuth2Group) {
@@ -106,10 +118,13 @@ public class OAuth2GroupDAO
 
   public List<OAuth2Group> findGroupsByNameQuery(String nameQuery) {
     nameQuery = nameQuery.trim().toLowerCase(Locale.ENGLISH);
-    String sQuery = SELECT_FROM_ENTITY + //
-        " WHERE lower(entity.name) LIKE ?1" + //
-        ORDER_BY_NAME;
-    return getList(sQuery, nameQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(OAUTH2_GROUP)
+          .where(DSL.lower(OAUTH2_GROUP.NAME).like(nameQuery))
+          .orderBy(OAUTH2_GROUP.NAME)
+          .fetchInto(OAuth2Group.class);
+    }
   }
 
   @Override
@@ -118,5 +133,20 @@ public class OAuth2GroupDAO
     oAuth2UserGroupDAO.deleteByOAuth2GroupId(tx, entity.getId());
 
     super.delete(tx, entity);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return OAUTH2_GROUP;
+  }
+
+  @Override
+  public List<OAuth2Group> getAll(TransactionContext tx) {
+    return tx.dsl().selectFrom(OAUTH2_GROUP).fetchInto(OAuth2Group.class);
+  }
+
+  @Override
+  public Class<OAuth2Group> getEntityClass() {
+    return OAuth2Group.class;
   }
 }

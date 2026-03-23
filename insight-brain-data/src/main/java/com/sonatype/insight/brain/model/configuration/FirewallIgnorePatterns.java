@@ -71,4 +71,8 @@ public class FirewallIgnorePatterns
       firewallIgnorePatternsJson = JsonUtils.writeUnformatted(firewallIgnorePatterns);
     }
   }
+
+  public String getFirewallIgnorePatternsJson() {
+    return firewallIgnorePatternsJson;
+  }
 }

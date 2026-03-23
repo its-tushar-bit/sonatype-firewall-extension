@@ -7,14 +7,17 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.List;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControlPullRequestResult.SOURCE_CONTROL_PULL_REQUEST_RESULT;
 
 @Named
 @Singleton
@@ -27,9 +30,10 @@ public class SourceControlPullRequestResultDAO
   }
 
   public List<SourceControlPullRequestResult> getByApplicationId(TransactionContext tx, String applicationId) {
-    String sQuery = "SELECT entity FROM SourceControlPullRequestResult entity" + //
-        " WHERE entity.applicationId=?1";
-    return getList(tx, sQuery, applicationId);
+    return tx.dsl()
+        .selectFrom(SOURCE_CONTROL_PULL_REQUEST_RESULT)
+        .where(SOURCE_CONTROL_PULL_REQUEST_RESULT.APPLICATION_ID.eq(applicationId))
+        .fetch(this::toEntity);
   }
 
   public List<SourceControlPullRequestResult> getByApplicationId(String applicationId) {
@@ -41,25 +45,18 @@ public class SourceControlPullRequestResultDAO
   public void deleteAll() {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
-
-      String sQuery = "DELETE FROM SourceControlPullRequestResult entity";
-      createQuery(sQuery).executeUpdate(tx);
-
+      tx.dsl().deleteFrom(SOURCE_CONTROL_PULL_REQUEST_RESULT).execute();
       tx.commit();
     }
   }
 
   @Override
-  public final void delete(TransactionContext tx, SourceControlPullRequestResult entity) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting related entities.
-    super.delete(tx, entity);
+  public Table<?> getJooqTable() {
+    return SOURCE_CONTROL_PULL_REQUEST_RESULT;
   }
 
   @Override
-  public final void delete(SourceControlPullRequestResult entity) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting related entities.
-    super.delete(entity);
+  public Class<SourceControlPullRequestResult> getEntityClass() {
+    return SourceControlPullRequestResult.class;
   }
 }

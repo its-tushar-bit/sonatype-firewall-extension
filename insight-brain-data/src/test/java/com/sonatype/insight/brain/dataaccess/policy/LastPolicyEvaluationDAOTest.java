@@ -56,7 +56,7 @@ public class LastPolicyEvaluationDAOTest
     final PolicyEvaluation eval = tempEntity.newPolicyEvaluation(application.getId(), stageTypeId, scanId);
 
     // Read
-    final LastPolicyEvaluation policyEvaluation = dao.getByEvaluationId(eval.getId());
+    final LastPolicyEvaluation policyEvaluation = dao.getById(eval.getId());
     assertThat(policyEvaluation.getId()).isEqualTo(eval.getId());
     assertThat(policyEvaluation.getApplicationId()).isEqualTo(application.getId());
     assertThat(policyEvaluation.getStageTypeId()).isEqualTo(stageTypeId);
@@ -68,7 +68,7 @@ public class LastPolicyEvaluationDAOTest
     // Delete
     dao.delete(policyEvaluation);
 
-    LastPolicyEvaluation readPolicyEvaluation2 = dao.getByEvaluationId(eval.getId());
+    LastPolicyEvaluation readPolicyEvaluation2 = dao.getById(eval.getId());
     assertThat(readPolicyEvaluation2).isNull();
   }
 

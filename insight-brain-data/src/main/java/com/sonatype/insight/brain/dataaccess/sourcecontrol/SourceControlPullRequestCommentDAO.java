@@ -7,10 +7,7 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.Date;
 import java.util.List;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
@@ -20,14 +17,19 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControlPullRequestComment.SOURCE_CONTROL_PULL_REQUEST_COMMENT;
+
 @Named
 @Singleton
 public class SourceControlPullRequestCommentDAO
     extends AbstractOperationalSqlDAO<SourceControlPullRequestComment>
 {
   private static final int DELETE_BATCH_SIZE = 100;
-
-  private static final String SELECT_ENTITY = "SELECT entity FROM SourceControlPullRequestComment entity ";
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
@@ -47,9 +49,31 @@ public class SourceControlPullRequestCommentDAO
       String applicationInternalId,
       int pullRequestId)
   {
-    return get(
-        SELECT_ENTITY + "WHERE entity.applicationId=?1 AND entity.pullRequestId=?2 AND entity.componentHash IS NULL",
-        applicationInternalId, pullRequestId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(SOURCE_CONTROL_PULL_REQUEST_COMMENT)
+          .where(SOURCE_CONTROL_PULL_REQUEST_COMMENT.APPLICATION_ID.eq(applicationInternalId))
+          .and(SOURCE_CONTROL_PULL_REQUEST_COMMENT.PULL_REQUEST_ID.eq(pullRequestId))
+          .and(SOURCE_CONTROL_PULL_REQUEST_COMMENT.COMPONENT_HASH.isNull())
+          .fetchOne());
+    }
+  }
+
+  /**
+   * This method fetches all the comments associated with the given application and pull request that also
+   * have a component hash assigned, thus making them line-level comments.
+   */
+  public List<SourceControlPullRequestComment> getByApplicationIdAndPullRequestIdWithComponents(
+      TransactionContext tx,
+      String applicationInternalId,
+      int pullRequestId)
+  {
+    return tx.dsl()
+        .selectFrom(SOURCE_CONTROL_PULL_REQUEST_COMMENT)
+        .where(SOURCE_CONTROL_PULL_REQUEST_COMMENT.APPLICATION_ID.eq(applicationInternalId))
+        .and(SOURCE_CONTROL_PULL_REQUEST_COMMENT.PULL_REQUEST_ID.eq(pullRequestId))
+        .and(SOURCE_CONTROL_PULL_REQUEST_COMMENT.COMPONENT_HASH.isNotNull())
+        .fetch(this::toEntity);
   }
 
   /**
@@ -60,10 +84,9 @@ public class SourceControlPullRequestCommentDAO
       String applicationInternalId,
       int pullRequestId)
   {
-    return getList(
-        SELECT_ENTITY
-            + "WHERE entity.applicationId=?1 AND entity.pullRequestId=?2 AND entity.componentHash IS NOT NULL",
-        applicationInternalId, pullRequestId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByApplicationIdAndPullRequestIdWithComponents(tx, applicationInternalId, pullRequestId);
+    }
   }
 
   /**
@@ -75,9 +98,14 @@ public class SourceControlPullRequestCommentDAO
       String componentHash,
       int pullRequestId)
   {
-    return get(
-        SELECT_ENTITY + "WHERE entity.applicationId=?1 AND entity.componentHash=?2 AND entity.pullRequestId=?3",
-        applicationInternalId, componentHash, pullRequestId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(SOURCE_CONTROL_PULL_REQUEST_COMMENT)
+          .where(SOURCE_CONTROL_PULL_REQUEST_COMMENT.APPLICATION_ID.eq(applicationInternalId))
+          .and(SOURCE_CONTROL_PULL_REQUEST_COMMENT.COMPONENT_HASH.eq(componentHash))
+          .and(SOURCE_CONTROL_PULL_REQUEST_COMMENT.PULL_REQUEST_ID.eq(pullRequestId))
+          .fetchOne());
+    }
   }
 
   /**
@@ -101,7 +129,7 @@ public class SourceControlPullRequestCommentDAO
       String applicationId,
       int pullRequestId)
   {
-    for (SourceControlPullRequestComment comment : getByApplicationIdAndPullRequestIdWithComponents(applicationId,
+    for (SourceControlPullRequestComment comment : getByApplicationIdAndPullRequestIdWithComponents(ctx, applicationId,
         pullRequestId))
     {
       delete(ctx, comment);
@@ -112,31 +140,16 @@ public class SourceControlPullRequestCommentDAO
    * This method fetches ALL comment entries (line and overall) for the given application and pull request
    */
   public List<SourceControlPullRequestComment> getByApplicationId(final TransactionContext tx, final String id) {
-    return getList(
-        tx,
-        SELECT_ENTITY + "WHERE entity.applicationId=?1",
-        id);
+    return tx.dsl()
+        .selectFrom(SOURCE_CONTROL_PULL_REQUEST_COMMENT)
+        .where(SOURCE_CONTROL_PULL_REQUEST_COMMENT.APPLICATION_ID.eq(id))
+        .fetch(this::toEntity);
   }
 
   public List<SourceControlPullRequestComment> getByApplicationId(final String id) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByApplicationId(tx, id);
     }
-  }
-
-  @Override
-  public void update(final TransactionContext tx, final SourceControlPullRequestComment pullRequestComment) {
-    validateOwnership(tx, pullRequestComment);
-
-    pullRequestComment.setUpdateTime(new Date());
-    super.update(tx, pullRequestComment);
-  }
-
-  @Override
-  public void insert(TransactionContext tx, SourceControlPullRequestComment pullRequestComment) {
-    validateOwnership(tx, pullRequestComment);
-
-    super.insert(tx, pullRequestComment);
   }
 
   private void validateOwnership(TransactionContext tx, SourceControlPullRequestComment pullRequestComment) {
@@ -155,37 +168,62 @@ public class SourceControlPullRequestCommentDAO
   }
 
   public int deleteAllBeforeDate(final Date cutoffDate) {
-    String sQuery = "SELECT entity.id FROM SourceControlPullRequestComment entity" +
-        " WHERE entity.updateTime < ?1 OR (entity.updateTime is null AND entity.createTime < ?2)";
     int deletedRows = 0;
     while (true) {
-      List<String> ids =
-          new Query<String>(sQuery, cutoffDate, cutoffDate).setMaxResults(DELETE_BATCH_SIZE).getList();
-      if (ids.isEmpty()) {
-        return deletedRows;
+      try (TransactionContext tx = createTransactionContext()) {
+        List<String> ids = tx.dsl()
+            .select(SOURCE_CONTROL_PULL_REQUEST_COMMENT.SOURCE_CONTROL_PULL_REQUEST_COMMENT_ID)
+            .from(SOURCE_CONTROL_PULL_REQUEST_COMMENT)
+            .where(SOURCE_CONTROL_PULL_REQUEST_COMMENT.UPDATE_TIME.lt(cutoffDate)
+                .or(SOURCE_CONTROL_PULL_REQUEST_COMMENT.UPDATE_TIME.isNull()
+                    .and(SOURCE_CONTROL_PULL_REQUEST_COMMENT.CREATE_TIME.lt(cutoffDate))))
+            .limit(DELETE_BATCH_SIZE)
+            .fetchInto(String.class);
+        if (ids.isEmpty()) {
+          return deletedRows;
+        }
+        tx.begin();
+        deletedRows += tx.dsl()
+            .deleteFrom(SOURCE_CONTROL_PULL_REQUEST_COMMENT)
+            .where(SOURCE_CONTROL_PULL_REQUEST_COMMENT.SOURCE_CONTROL_PULL_REQUEST_COMMENT_ID.in(ids))
+            .execute();
+        tx.commit();
       }
-      deletedRows += createQuery("DELETE FROM SourceControlPullRequestComment entity WHERE entity.id IN (?1)", ids)
-          .executeUpdate();
     }
-  }
-
-  @Override
-  public final void delete(TransactionContext tx, SourceControlPullRequestComment entity) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting all expired entities.
-    super.delete(tx, entity);
-  }
-
-  @Override
-  public final void delete(SourceControlPullRequestComment entity) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting all expired entities.
-    super.delete(entity);
   }
 
   public void deleteByApplicationId(final TransactionContext tx, final String applicationId) {
     for (SourceControlPullRequestComment pullRequestComment : getByApplicationId(tx, applicationId)) {
       delete(tx, pullRequestComment);
     }
+  }
+
+  @Override
+  public void insert(TransactionContext tx, SourceControlPullRequestComment entity) {
+    validateOwnership(tx, entity);
+    if (entity.getId() == null) {
+      entity.setId(UUID.randomUUID().toString());
+    }
+    if (entity.getCreateTime() == null) {
+      entity.setCreateTime(new Date());
+    }
+    super.insert(tx, entity);
+  }
+
+  @Override
+  public void update(TransactionContext tx, SourceControlPullRequestComment entity) {
+    validateOwnership(tx, entity);
+    entity.setUpdateTime(new Date());
+    super.update(tx, entity);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return SOURCE_CONTROL_PULL_REQUEST_COMMENT;
+  }
+
+  @Override
+  public Class<SourceControlPullRequestComment> getEntityClass() {
+    return SourceControlPullRequestComment.class;
   }
 }

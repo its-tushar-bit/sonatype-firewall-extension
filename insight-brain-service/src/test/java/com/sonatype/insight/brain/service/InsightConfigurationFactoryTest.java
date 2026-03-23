@@ -237,6 +237,26 @@ public class InsightConfigurationFactoryTest
   }
 
   @Test
+  public void testBuild_JooqToolsNotConfigured_DefaultsToWarn() throws Exception {
+    InsightConfig insightConfig = build("config-no-server.yml");
+
+    DefaultLoggingFactory defaultLoggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
+    JsonNode jooqToolsLogger = defaultLoggingFactory.getLoggers().get("org.jooq.tools");
+    assertThat(jooqToolsLogger).isNotNull();
+    assertThat(jooqToolsLogger.asText()).isEqualTo("WARN");
+  }
+
+  @Test
+  public void testBuild_JooqToolsConfigured_KeepsExistingLevel() throws Exception {
+    InsightConfig insightConfig = build("config-with-jooq-tools-log-level.yml");
+
+    DefaultLoggingFactory defaultLoggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
+    JsonNode jooqToolsLogger = defaultLoggingFactory.getLoggers().get("org.jooq.tools");
+    assertThat(jooqToolsLogger).isNotNull();
+    assertThat(jooqToolsLogger.asText()).isEqualTo("DEBUG");
+  }
+
+  @Test
   public void testBuild_AuditLogOnlyLevelSetting_NoError() throws Exception {
     build("config-audit-text-node.yml");
   }

@@ -16,7 +16,6 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import org.apache.openjpa.persistence.DataCache;
 
 /**
  * The license of a component (identified by GAV) can be overridden at application or organization (i.e. owner) level.
@@ -24,7 +23,6 @@ import org.apache.openjpa.persistence.DataCache;
  *
  * @since 1.13.0
  */
-@DataCache(timeout = 10000)
 @Cacheable
 @Entity
 @Table(name = "license_override")

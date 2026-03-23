@@ -163,7 +163,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
 import jakarta.inject.Inject;
-import jakarta.persistence.Query;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -176,6 +175,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.WITH_REPORTS;
+import static com.sonatype.insight.brain.jooq.generated.ods.Tables.POLICY_VIOLATION;
 import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.NON_REACHABLE;
 import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.REACHABLE;
 import static com.sonatype.insight.brain.model.policy.conditions.ConditionTypes.SecurityVulnerabilityEpssScoreConditionType;
@@ -5306,10 +5306,11 @@ public class ScanPolicyEvaluatorTest
     try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
       tx.begin();
 
-      Query updateQuery = tx.createQuery("UPDATE PolicyViolation entity " + ""
-          + "SET entity.constraintFactsId = NULL, entity.deprecatedConstraintFactsJson = ?1");
-      updateQuery.setParameter(1, policyViolationConstraintFacts.getConstraintFactsJson());
-      updateQuery.executeUpdate();
+      tx.dsl()
+          .update(POLICY_VIOLATION)
+          .setNull(POLICY_VIOLATION.CONSTRAINT_FACTS_ID)
+          .set(POLICY_VIOLATION.CONSTRAINT_FACTS_JSON, policyViolationConstraintFacts.getConstraintFactsJson())
+          .execute();
 
       tx.commit();
     }

@@ -7,10 +7,7 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.Date;
 import java.util.List;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -18,8 +15,15 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Record;
+import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControlDefaultBranchCommitHistory.SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY;
 
 @Named
 @Singleton
@@ -30,55 +34,66 @@ public class SourceControlDefaultBranchCommitHistoryDAO
 
   private static final int DELETE_BATCH_SIZE = 100;
 
-  private static final String SELECT_ENTITY = "SELECT entity FROM SourceControlDefaultBranchCommitHistory entity ";
-
-  public static final String WHERE_ENTITY_APPLICATION_ID_1 = "WHERE entity.applicationId=?1 ";
-
-  public static final String ORDER_BY_ENTITY_COMMIT_TIME_DESC = "ORDER BY entity.commitTime DESC";
-
   @Inject
   public SourceControlDefaultBranchCommitHistoryDAO(OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
   }
 
   public List<SourceControlDefaultBranchCommitHistory> getByApplicationIdSortedByDateDesc(String applicationId) {
-    return getList(SELECT_ENTITY + WHERE_ENTITY_APPLICATION_ID_1 +
-        ORDER_BY_ENTITY_COMMIT_TIME_DESC, applicationId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY)
+          .where(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.APPLICATION_ID.eq(applicationId))
+          .orderBy(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.COMMIT_TIME.desc())
+          .fetch(this::toEntity);
+    }
   }
 
   public SourceControlDefaultBranchCommitHistory getLatestCommitForApplicationId(String applicationId) {
-    return createQuery(SELECT_ENTITY + WHERE_ENTITY_APPLICATION_ID_1 +
-        ORDER_BY_ENTITY_COMMIT_TIME_DESC, applicationId).forceSingleResult().get();
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY)
+          .where(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.APPLICATION_ID.eq(applicationId))
+          .orderBy(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.COMMIT_TIME.desc())
+          .limit(1)
+          .fetchOne());
+    }
   }
 
   public SourceControlDefaultBranchCommitHistory getByApplicationIdAndCommitHash(
       String applicationId,
       String commitHash)
   {
-    return get(
-        SELECT_ENTITY + "WHERE entity.applicationId=?1 AND entity.commitHash=?2",
-        applicationId,
-        commitHash);
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY)
+          .where(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.APPLICATION_ID.eq(applicationId))
+          .and(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.COMMIT_HASH.eq(commitHash))
+          .fetchOne());
+    }
   }
 
   public SourceControlDefaultBranchCommitHistory getByApplicationIdAndPolicyEvaluationId(
       String applicationId,
       String policyEvaluationId)
   {
-    return get(
-        SELECT_ENTITY + "WHERE entity.applicationId=?1 AND entity.policyEvaluationId=?2",
-        applicationId,
-        policyEvaluationId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY)
+          .where(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.APPLICATION_ID.eq(applicationId))
+          .and(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.POLICY_EVALUATION_ID.eq(policyEvaluationId))
+          .fetchOne());
+    }
   }
 
   public List<SourceControlDefaultBranchCommitHistory> getByPolicyEvaluationId(
       final TransactionContext tx,
       final String policyEvaluationId)
   {
-    return getList(
-        tx,
-        SELECT_ENTITY + "WHERE entity.policyEvaluationId=?1",
-        policyEvaluationId);
+    return tx.dsl()
+        .selectFrom(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY)
+        .where(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.POLICY_EVALUATION_ID.eq(policyEvaluationId))
+        .fetch(this::toEntity);
   }
 
   public List<SourceControlDefaultBranchCommitHistory> getByPolicyEvaluationId(final String policyEvaluationId) {
@@ -96,10 +111,15 @@ public class SourceControlDefaultBranchCommitHistoryDAO
   public SourceControlDefaultBranchCommitHistory getByApplicationIdForLatestCommitWithPolicyEvaluation(
       final String applicationId)
   {
-    String sQuery = SELECT_ENTITY +
-        "WHERE entity.applicationId=?1 AND entity.policyEvaluationId IS NOT NULL " +
-        ORDER_BY_ENTITY_COMMIT_TIME_DESC;
-    return createQuery(sQuery, applicationId).setMaxResults(1).get();
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY)
+          .where(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.APPLICATION_ID.eq(applicationId))
+          .and(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.POLICY_EVALUATION_ID.isNotNull())
+          .orderBy(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.COMMIT_TIME.desc())
+          .limit(1)
+          .fetchOne());
+    }
   }
 
   /**
@@ -113,16 +133,31 @@ public class SourceControlDefaultBranchCommitHistoryDAO
       final String applicationId,
       final boolean externallyTriggered)
   {
-    String sQuery = "SELECT h " +
-        "FROM SourceControlDefaultBranchCommitHistory h, PolicyEvaluation p " +
-        "WHERE h.policyEvaluationId = p.id " +
-        "AND h.applicationId=?1 AND p.scanTriggerType ";
-    if (externallyTriggered) {
-      sQuery += "NOT ";
-    }
-    sQuery += "IN (?2) ORDER BY h.commitTime DESC";
+    Set<String> internalScanTypeNames = ScanTriggerType.internalScanTypes.stream()
+        .map(Enum::name)
+        .collect(java.util.stream.Collectors.toSet());
 
-    return createQuery(sQuery, applicationId, ScanTriggerType.internalScanTypes).forceSingleResult().get();
+    try (TransactionContext tx = createTransactionContext()) {
+      var policyEvaluationTable =
+          com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyEvaluation.POLICY_EVALUATION;
+
+      var scanTriggerCondition = externallyTriggered
+          ? policyEvaluationTable.SCAN_TRIGGER_TYPE.notIn(internalScanTypeNames)
+          : policyEvaluationTable.SCAN_TRIGGER_TYPE.in(internalScanTypeNames);
+
+      Record record = tx.dsl()
+          .select(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.asterisk())
+          .from(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY)
+          .join(policyEvaluationTable)
+          .on(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.POLICY_EVALUATION_ID.eq(
+              policyEvaluationTable.POLICY_EVALUATION_ID))
+          .where(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.APPLICATION_ID.eq(applicationId))
+          .and(scanTriggerCondition)
+          .orderBy(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.COMMIT_TIME.desc())
+          .limit(1)
+          .fetchOne();
+      return record != null ? toEntity(record.into(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY)) : null;
+    }
   }
 
   public void deleteByApplicationId(String applicationId) {
@@ -135,10 +170,37 @@ public class SourceControlDefaultBranchCommitHistoryDAO
 
   public void deleteByApplicationId(final TransactionContext tx, final String applicationId) {
     List<SourceControlDefaultBranchCommitHistory> commitHistoryList =
-        getList(tx, SELECT_ENTITY + WHERE_ENTITY_APPLICATION_ID_1, applicationId);
+        tx.dsl()
+            .selectFrom(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY)
+            .where(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.APPLICATION_ID.eq(applicationId))
+            .fetch(this::toEntity);
     for (SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory : commitHistoryList) {
       delete(tx, defaultBranchCommitHistory);
     }
+  }
+
+  @Override
+  public void insert(TransactionContext tx, SourceControlDefaultBranchCommitHistory entity) {
+    // Check for existing record with same (application_id, commit_hash) to handle unique constraint
+    SourceControlDefaultBranchCommitHistory existing = toEntity(
+        tx.dsl()
+            .selectFrom(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY)
+            .where(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.APPLICATION_ID.eq(entity.getApplicationId()))
+            .and(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.COMMIT_HASH.eq(entity.getCommitHash()))
+            .fetchOne());
+
+    if (existing != null) {
+      // Update existing record instead of inserting duplicate
+      entity.setId(existing.getId());
+      entity.setCreateTime(existing.getCreateTime());
+      update(tx, entity);
+      return;
+    }
+
+    if (entity.getCreateTime() == null) {
+      entity.setCreateTime(new Date());
+    }
+    super.insert(tx, entity);
   }
 
   @Override
@@ -156,18 +218,27 @@ public class SourceControlDefaultBranchCommitHistoryDAO
   public int deleteAllBeforeDate(final Date cutoffDate) {
     log.debug("Deleting all SourceControlDefaultBranchCommitHistory before {}.", cutoffDate);
 
-    String sQuery = "SELECT entity.id FROM SourceControlDefaultBranchCommitHistory entity" +
-        " WHERE entity.updateTime < ?1 OR (entity.updateTime is null AND entity.createTime < ?2)";
     int deletedRows = 0;
     while (true) {
-      List<String> ids =
-          new Query<String>(sQuery, cutoffDate, cutoffDate).setMaxResults(DELETE_BATCH_SIZE).getList();
-      if (ids.isEmpty()) {
-        return deletedRows;
+      try (TransactionContext tx = createTransactionContext()) {
+        List<String> ids = tx.dsl()
+            .select(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY_ID)
+            .from(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY)
+            .where(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.UPDATE_TIME.lt(cutoffDate)
+                .or(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.UPDATE_TIME.isNull()
+                    .and(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.CREATE_TIME.lt(cutoffDate))))
+            .limit(DELETE_BATCH_SIZE)
+            .fetchInto(String.class);
+        if (ids.isEmpty()) {
+          return deletedRows;
+        }
+        tx.begin();
+        deletedRows += tx.dsl()
+            .deleteFrom(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY)
+            .where(SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY.SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY_ID.in(ids))
+            .execute();
+        tx.commit();
       }
-      deletedRows +=
-          createQuery("DELETE FROM SourceControlDefaultBranchCommitHistory entity WHERE entity.id IN (?1)", ids)
-              .executeUpdate();
     }
   }
 
@@ -181,9 +252,12 @@ public class SourceControlDefaultBranchCommitHistoryDAO
   }
 
   @Override
-  public final void delete(SourceControlDefaultBranchCommitHistory entity) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting all expired entities.
-    super.delete(entity);
+  public Table<?> getJooqTable() {
+    return SOURCE_CONTROL_DEFAULT_BRANCH_COMMIT_HISTORY;
+  }
+
+  @Override
+  public Class<SourceControlDefaultBranchCommitHistory> getEntityClass() {
+    return SourceControlDefaultBranchCommitHistory.class;
   }
 }

@@ -16,8 +16,7 @@ import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.PersistenceException;
+import org.jooq.exception.IntegrityConstraintViolationException;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -93,13 +92,13 @@ public class JiraConfigurationDAOTest
 
     JiraConfiguration jiraConfiguration2 = new JiraConfiguration();
     jiraConfiguration2.setUrl("http://url");
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(jiraConfiguration2))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class)
+        .isThrownBy(() -> dao.insert(jiraConfiguration2));
     JiraConfiguration jiraConfiguration3 = new JiraConfiguration();
     jiraConfiguration3.setUrl("http://url");
     jiraConfiguration3.setId(TemporaryEntity.uuid());
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(jiraConfiguration3))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class)
+        .isThrownBy(() -> dao.insert(jiraConfiguration3));
   }
 
   @Test
@@ -113,7 +112,7 @@ public class JiraConfigurationDAOTest
 
     dao.update(jiraConfiguration2);
 
-    assertThat(dao.createQuery("SELECT entity FROM JiraConfiguration entity").getList())
+    assertThat(dao.getAll())
         .extracting(JiraConfiguration::getId)
         .containsExactly(JiraConfigurationDAO.SINGLETON_ENTITY_ID);
   }

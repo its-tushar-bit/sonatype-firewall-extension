@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.model.innersource.InnerSourceVersion;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.apache.openjpa.persistence.EntityExistsException;
+import org.jooq.exception.IntegrityConstraintViolationException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -74,10 +74,9 @@ public class InnerSourceVersionDAOTest
     JPA.assertEntityEquals(dao.getById(innerSourceVersion.getId()), innerSourceVersion);
 
     // Attempt to create a second component with the same purl and stage and expect a unique constraint violation
+    // jOOQ throws IntegrityConstraintViolationException directly (not wrapped)
     assertThatThrownBy(() -> tempEntity.newInnerSourceVersion(innerSourceApplication, "1.0.0", stageTypeId))
-        .isInstanceOf(Exception.class)
-        .hasCauseInstanceOf(EntityExistsException.class)
-        .rootCause()
+        .isInstanceOf(IntegrityConstraintViolationException.class)
         .hasMessageContaining("inner_source_version_uk");
 
     // A second component with a different stage should be created successfully

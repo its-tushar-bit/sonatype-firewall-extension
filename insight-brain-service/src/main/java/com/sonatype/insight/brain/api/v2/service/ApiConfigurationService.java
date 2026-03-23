@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -395,10 +394,6 @@ public class ApiConfigurationService
       if (context.getMergedJobDataMap().containsKey(TASK_PARAM_PROPERTIES)) {
         String[] properties = StringUtils.split(context.getMergedJobDataMap().getString(TASK_PARAM_PROPERTIES),
             TASK_PARAM_PROPERTIES_DELIMITER);
-        systemConfigurationPropertyDAO.clearQueryCache();
-        Arrays.stream(properties)
-            .forEach(property -> systemConfigurationPropertyDAO.removeEntityFromCache(
-                systemConfigurationPropertyDAO.getByName(property)));
         applyConfigurationToClients(properties);
       }
     }, log, CONFIG_APPLY_ERROR);

@@ -6,14 +6,19 @@
 package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.license.LicenseOverrideLicenseInternal;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseOverride.LICENSE_OVERRIDE;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseOverrideLicense.LICENSE_OVERRIDE_LICENSE;
 
 /**
  * @since 1.13
@@ -28,24 +33,30 @@ public class LicenseOverrideLicenseInternalDAO
     super(operationalDataStore);
   }
 
-  public List<LicenseOverrideLicenseInternal> getByLicenseOverrideId(String licenseOverrideId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByLicenseOverrideId(tx, licenseOverrideId);
-    }
-  }
-
   public List<LicenseOverrideLicenseInternal> getByLicenseOverrideId(TransactionContext tx, String licenseOverrideId) {
-    String sQuery = "SELECT entity FROM LicenseOverrideLicenseInternal entity" + //
-        " WHERE entity.licenseOverrideId=?1";
-
-    return getList(tx, sQuery, licenseOverrideId);
+    return tx.dsl()
+        .selectFrom(LICENSE_OVERRIDE_LICENSE)
+        .where(LICENSE_OVERRIDE_LICENSE.LICENSE_OVERRIDE_ID.eq(licenseOverrideId))
+        .fetch(this::toEntity);
   }
 
   List<LicenseOverrideLicenseInternal> getByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT licenseOverrideLicense" + //
-        " FROM LicenseOverrideLicenseInternal licenseOverrideLicense, LicenseOverrideInternal licenseOverride" + //
-        " WHERE licenseOverrideLicense.licenseOverrideId = licenseOverride.id AND licenseOverride.ownerId = ?1";
+    return tx.dsl()
+        .select(LICENSE_OVERRIDE_LICENSE.fields())
+        .from(LICENSE_OVERRIDE_LICENSE)
+        .join(LICENSE_OVERRIDE)
+        .on(LICENSE_OVERRIDE_LICENSE.LICENSE_OVERRIDE_ID.eq(LICENSE_OVERRIDE.LICENSE_OVERRIDE_ID))
+        .where(LICENSE_OVERRIDE.OWNER_ID.eq(ownerId))
+        .fetch(r -> toEntity(r.into(LICENSE_OVERRIDE_LICENSE)));
+  }
 
-    return getList(tx, sQuery, ownerId);
+  @Override
+  public Table<?> getJooqTable() {
+    return LICENSE_OVERRIDE_LICENSE;
+  }
+
+  @Override
+  public Class<LicenseOverrideLicenseInternal> getEntityClass() {
+    return LicenseOverrideLicenseInternal.class;
   }
 }

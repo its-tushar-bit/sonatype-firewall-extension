@@ -10,11 +10,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Provider;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
@@ -39,6 +34,7 @@ import com.sonatype.insight.brain.model.OrganizationAncestor;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -50,8 +46,17 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OrganizationAncestor.ORGANIZATION_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 
 @Named
 @Singleton
@@ -142,26 +147,34 @@ public class OrganizationDAO
     }
     // Organization Name is whitespace and case insensitive
     name = NameHelper.normalize(name);
-    String sQuery = "SELECT entity FROM Organization entity WHERE entity.nameLowercaseNoWhitespace=?1";
-    return get(tx, sQuery, name);
+    return toEntity(tx.dsl()
+        .selectFrom(ORGANIZATION)
+        .where(ORGANIZATION.NAME_LOWERCASE_NO_WHITESPACE.eq(name))
+        .fetchOne());
   }
 
   public List<Organization> getByNames(Set<String> organizationNames) {
     organizationNames = organizationNames.stream().map(NameHelper::normalize).collect(Collectors.toSet());
-    String sQuery = "SELECT entity FROM Organization entity" + //
-        " WHERE entity.nameLowercaseNoWhitespace IN (?1)" + //
-        " ORDER BY entity.name";
-    return getList(sQuery, organizationNames);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(ORGANIZATION)
+          .where(ORGANIZATION.NAME_LOWERCASE_NO_WHITESPACE.in(organizationNames))
+          .orderBy(ORGANIZATION.NAME)
+          .fetch(this::toEntity);
+    }
   }
 
   public List<Organization> getByNamesAndWithoutRelatedRepositories(Set<String> organizationNames) {
     organizationNames = organizationNames.stream().map(NameHelper::normalize).collect(Collectors.toSet());
-    String sQuery = "SELECT entity FROM Organization entity" + //
-        " WHERE entity.nameLowercaseNoWhitespace IN (?1)" + //
-        " AND entity.relatedRepositoryId IS NULL" + //
-        " AND entity.relatedRepositoryManagerId IS NULL" + //
-        " ORDER BY entity.name";
-    return getList(sQuery, organizationNames);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(ORGANIZATION)
+          .where(ORGANIZATION.NAME_LOWERCASE_NO_WHITESPACE.in(organizationNames))
+          .and(ORGANIZATION.RELATED_REPOSITORY_ID.isNull())
+          .and(ORGANIZATION.RELATED_REPOSITORY_MANAGER_ID.isNull())
+          .orderBy(ORGANIZATION.NAME)
+          .fetch(this::toEntity);
+    }
   }
 
   public Organization getByName(String name) {
@@ -172,28 +185,35 @@ public class OrganizationDAO
 
   @Override
   public List<Organization> getAll() {
-    String sQuery = "SELECT entity FROM Organization entity" + //
-        " ORDER BY entity.name";
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(ORGANIZATION)
+          .orderBy(ORGANIZATION.NAME)
+          .fetch(this::toEntity);
+    }
   }
 
   public List<Organization> getAllWithoutRelatedRepositories() {
-    String sQuery = "SELECT entity FROM Organization entity" +
-        " WHERE entity.relatedRepositoryId IS NULL" +
-        " AND entity.relatedRepositoryManagerId IS NULL" +
-        " AND entity.relatedRepositorContainerId IS NULL" +
-        " ORDER BY entity.name";
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(ORGANIZATION)
+          .where(ORGANIZATION.RELATED_REPOSITORY_ID.isNull())
+          .and(ORGANIZATION.RELATED_REPOSITORY_MANAGER_ID.isNull())
+          .and(ORGANIZATION.RELATED_REPOSITORY_CONTAINER_ID.isNull())
+          .orderBy(ORGANIZATION.NAME)
+          .fetch(this::toEntity);
+    }
   }
 
   public List<Organization> getByRelatedRepositoryManagerId(
       TransactionContext tx,
       String relatedRepositoryManagerId)
   {
-    String sQuery = "SELECT entity FROM Organization entity" + //
-        " WHERE entity.relatedRepositoryManagerId=?1" + //
-        " ORDER BY entity.name";
-    return getList(tx, sQuery, relatedRepositoryManagerId);
+    return tx.dsl()
+        .selectFrom(ORGANIZATION)
+        .where(ORGANIZATION.RELATED_REPOSITORY_MANAGER_ID.eq(relatedRepositoryManagerId))
+        .orderBy(ORGANIZATION.NAME)
+        .fetch(this::toEntity);
   }
 
   public List<Organization> getByRelatedRepositoryManagerId(String relatedRepositoryManagerId) {
@@ -203,10 +223,11 @@ public class OrganizationDAO
   }
 
   public List<Organization> getByRelatedRepositoryId(TransactionContext tx, String relatedRepositoryId) {
-    String sQuery = "SELECT entity FROM Organization entity" + //
-        " WHERE entity.relatedRepositoryId=?1" + //
-        " ORDER BY entity.name";
-    return getList(tx, sQuery, relatedRepositoryId);
+    return tx.dsl()
+        .selectFrom(ORGANIZATION)
+        .where(ORGANIZATION.RELATED_REPOSITORY_ID.eq(relatedRepositoryId))
+        .orderBy(ORGANIZATION.NAME)
+        .fetch(this::toEntity);
   }
 
   public List<Organization> getByRelatedRepositoryId(String relatedRepositoryId) {
@@ -234,7 +255,14 @@ public class OrganizationDAO
       organization.setParentOrganizationId(Organization.ROOT_ORGANIZATION_ID);
     }
 
+    // Generate ID if not set (from AbstractSqlDAO)
+    String id = organization.getId();
+    if (id == null || id.trim().isEmpty()) {
+      organization.setId(newUUID());
+    }
+
     super.insert(tx, organization);
+
     insertOrganizationAncestors(tx, organization);
   }
 
@@ -348,11 +376,19 @@ public class OrganizationDAO
       autoPolicyWaiverDAO.delete(tx, autoPolicyWaiver);
     }
 
+    // Delete records where this organization is the subject (has ancestors)
     for (OrganizationAncestor orgAncestor : organizationAncestorDAO.getByOrganizationId(tx, organization.getId())) {
       organizationAncestorDAO.delete(tx, orgAncestor);
     }
 
-    cpeMatchingConfigurationDAO.delete(tx, cpeMatchingConfigurationDAO.getByOwnerId(tx, organization.getId()));
+    // Delete records where this organization is an ancestor of other organizations
+    organizationAncestorDAO.deleteByAncestorId(tx, organization.getId());
+
+    CpeMatchingConfiguration cpeMatchingConfiguration =
+        cpeMatchingConfigurationDAO.getByOwnerId(tx, organization.getId());
+    if (cpeMatchingConfiguration != null) {
+      cpeMatchingConfigurationDAO.delete(tx, cpeMatchingConfiguration);
+    }
 
     // Cascade to CI integrations config
     ciIntegrationsConfigDao.delete(tx, "ORGANIZATION", organization.getId());
@@ -369,9 +405,10 @@ public class OrganizationDAO
   }
 
   public List<Organization> getByParentOrganizationId(TransactionContext tx, String parentOrganizationId) {
-    String sQuery = "SELECT entity FROM Organization entity" + //
-        " WHERE entity.parentOrganizationId=?1";
-    return getList(tx, sQuery, parentOrganizationId);
+    return tx.dsl()
+        .selectFrom(ORGANIZATION)
+        .where(ORGANIZATION.PARENT_ORGANIZATION_ID.eq(parentOrganizationId))
+        .fetch(this::toEntity);
   }
 
   public List<Organization> getByParentOrganizationId(String parentOrganizationId) {
@@ -382,7 +419,7 @@ public class OrganizationDAO
 
   @Override
   protected SearchIndexChange newSearchIndexChange(Organization entity) {
-    if (entity.getRelatedRepositorContainerId() != null
+    if (entity.getRelatedRepositoryContainerId() != null
         || entity.getRelatedRepositoryManagerId() != null
         || entity.getRelatedRepositoryId() != null)
     {
@@ -397,18 +434,20 @@ public class OrganizationDAO
    *         is itself an organization, it is included in the returned collection.
    */
   public List<Organization> getAllParentOrganizations(TransactionContext tx, String ownerId, OwnerType ownerType) {
-    String sQuery = "SELECT org FROM Organization org, OwnerAncestor oa " +
-        "WHERE org.id = oa.ancestorId AND oa.id = ?1 " +
-        "AND oa.ancestorType = com.sonatype.insight.brain.model.OwnerType.ORGANIZATION " +
-        (ownerType == null ? "" : "AND oa.ownerType = ?2 ") +
-        "ORDER BY oa.ancestorDistance";
+    var query = tx.dsl()
+        .select(ORGANIZATION.fields())
+        .from(ORGANIZATION)
+        .join(OWNER_ANCESTOR)
+        .on(ORGANIZATION.ORGANIZATION_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+        .and(OWNER_ANCESTOR.ANCESTOR_TYPE.eq(OwnerType.ORGANIZATION.name()));
 
-    if (ownerType == null) {
-      return getList(tx, sQuery, ownerId);
+    if (ownerType != null) {
+      query = query.and(OWNER_ANCESTOR.OWNER_TYPE.eq(ownerType.name()));
     }
-    else {
-      return getList(tx, sQuery, ownerId, ownerType);
-    }
+
+    return query.orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE)
+        .fetch(this::toEntity);
   }
 
   /**
@@ -419,16 +458,20 @@ public class OrganizationDAO
    *         is itself an organization, it is included in the returned collection.
    */
   public List<Organization> getAllParentOrganizations(List<String> ownerIds, OwnerType ownerType) {
-    String sQuery = "SELECT org FROM Organization org, OwnerAncestor oa " +
-        "WHERE org.id = oa.ancestorId AND oa.id in (?1) " +
-        "AND oa.ancestorType = com.sonatype.insight.brain.model.OwnerType.ORGANIZATION " +
-        (ownerType == null ? "" : "AND oa.ownerType = ?2 ");
+    try (TransactionContext tx = createTransactionContext()) {
+      var query = tx.dsl()
+          .select(ORGANIZATION.fields())
+          .from(ORGANIZATION)
+          .join(OWNER_ANCESTOR)
+          .on(ORGANIZATION.ORGANIZATION_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+          .where(OWNER_ANCESTOR.OWNER_ID.in(ownerIds))
+          .and(OWNER_ANCESTOR.ANCESTOR_TYPE.eq(OwnerType.ORGANIZATION.name()));
 
-    if (ownerType == null) {
-      return getListWithSqlInClause(ownerIds, c -> getList(sQuery, c));
-    }
-    else {
-      return getListWithSqlInClause(ownerIds, c -> getList(sQuery, c, ownerType));
+      if (ownerType != null) {
+        query = query.and(OWNER_ANCESTOR.OWNER_TYPE.eq(ownerType.name()));
+      }
+
+      return query.fetch(this::toEntity);
     }
   }
 
@@ -447,11 +490,14 @@ public class OrganizationDAO
    *         before organizations from a lower level.
    */
   public List<Organization> getAllChildOrganizations(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT org FROM Organization org, OrganizationAncestor oa " +
-        "WHERE org.id = oa.organizationId AND oa.ancestorId = ?1 " +
-        "ORDER BY oa.ancestorDistance";
-
-    return getList(tx, sQuery, ownerId);
+    return tx.dsl()
+        .select(ORGANIZATION.fields())
+        .from(ORGANIZATION)
+        .join(ORGANIZATION_ANCESTOR)
+        .on(ORGANIZATION.ORGANIZATION_ID.eq(ORGANIZATION_ANCESTOR.ORGANIZATION_ID))
+        .where(ORGANIZATION_ANCESTOR.ANCESTOR_ID.eq(ownerId))
+        .orderBy(ORGANIZATION_ANCESTOR.ANCESTOR_DISTANCE)
+        .fetch(this::toEntity);
   }
 
   public List<Organization> getAllChildOrganizations(String ownerId) {
@@ -474,7 +520,7 @@ public class OrganizationDAO
   }
 
   /**
-   * @param org an Organization that has had its parent id updated and which needs its (and its
+   * @param organization an Organization that has had its parent id updated and which needs its (and its
    *          children's) OrganizationAncestors updated to match
    */
   private void updateOrganizationAncestors(TransactionContext tx, Organization organization) {
@@ -486,5 +532,23 @@ public class OrganizationDAO
 
       insertOrganizationAncestors(tx, org);
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return ORGANIZATION;
+  }
+
+  @Override
+  public List<Organization> getAll(TransactionContext tx) {
+    return tx.dsl()
+        .selectFrom(ORGANIZATION)
+        .orderBy(ORGANIZATION.NAME)
+        .fetch(this::toEntity);
+  }
+
+  @Override
+  public Class<Organization> getEntityClass() {
+    return Organization.class;
   }
 }

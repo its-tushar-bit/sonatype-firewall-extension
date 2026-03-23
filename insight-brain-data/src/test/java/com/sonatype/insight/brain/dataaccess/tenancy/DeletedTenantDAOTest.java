@@ -42,14 +42,17 @@ public class DeletedTenantDAOTest
     // Create
     DeletedTenant deletedTenant = tempEntity.newDeletedTenant("t_" + name.getMethodName());
 
-    // Update
+    // Update - test lastUpdated since created is immutable after insert
     deletedTenant = dao.getById(deletedTenant.getId());
+    Date originalCreated = deletedTenant.getCreated();
 
     Date newTime = new Date();
-    deletedTenant.setCreated(newTime);
+    deletedTenant.setLastUpdated(newTime);
     dao.update(deletedTenant);
     deletedTenant = dao.getById(deletedTenant.getId());
-    assertThat(deletedTenant.getCreated()).isEqualTo(newTime);
+    assertThat(deletedTenant.getLastUpdated()).isEqualTo(newTime);
+    // Verify created was not changed
+    assertThat(deletedTenant.getCreated()).isEqualTo(originalCreated);
 
     // Delete
     dao.delete(deletedTenant);

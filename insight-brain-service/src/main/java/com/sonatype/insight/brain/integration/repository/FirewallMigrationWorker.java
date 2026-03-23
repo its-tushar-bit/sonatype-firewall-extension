@@ -22,9 +22,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
-import com.sonatype.insight.model.HasStringId;
 
-import org.apache.openjpa.enhance.PersistenceCapable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,7 +121,7 @@ public class FirewallMigrationWorker
         targetRepository.getId());
     for (RepositoryComponent repositoryComponent : repositoryComponents) {
       log.trace("Migrating repository component {}", repositoryComponent.getPathname());
-      detachEntity(repositoryComponent);
+      repositoryComponent.setId(null);
       repositoryComponent.setRepositoryId(targetRepository.getId());
       repositoryComponentDAO.insert(repositoryComponent);
     }
@@ -141,7 +139,7 @@ public class FirewallMigrationWorker
     log.info("Starting the migration of {} policy violations for repository {}:{} ({})...", policyViolations.size(),
         targetRepository.getRepositoryManagerId(), targetRepository.getPublicId(), targetRepository.getId());
     for (RepositoryPolicyViolation violation : policyViolations) {
-      detachEntity(violation);
+      violation.setId(null);
       violation.setRepositoryId(targetRepository.getId());
       repositoryPolicyViolationDAO.insert(violation);
     }
@@ -173,7 +171,7 @@ public class FirewallMigrationWorker
         securityVulnerabilityOverrides.size(), targetRepository.getRepositoryManagerId(),
         targetRepository.getPublicId(), targetRepository.getId());
     for (SecurityVulnerabilityOverride securityVulnerabilityOverride : securityVulnerabilityOverrides) {
-      detachEntity(securityVulnerabilityOverride);
+      securityVulnerabilityOverride.setId(null);
       securityVulnerabilityOverride.setOwnerId(targetRepository.getId());
       securityVulnerabilityOverrideDAO.insert(securityVulnerabilityOverride);
     }
@@ -189,18 +187,11 @@ public class FirewallMigrationWorker
     log.info("Starting the migration of {} policy waivers for repository {}:{} ({})...", waivers.size(),
         targetRepository.getRepositoryManagerId(), targetRepository.getPublicId(), targetRepository.getId());
     for (PolicyWaiver waiver : waivers) {
-      detachEntity(waiver);
+      waiver.setId(null);
       waiver.setOwnerId(targetRepository.getId());
       policyWaiverDAO.insert(waiver);
     }
 
     log.info("Migrated {} policy waivers in {} ms.", waivers.size(), System.currentTimeMillis() - start);
-  }
-
-  private <E extends HasStringId> void detachEntity(E entity) {
-    PersistenceCapable pc = (PersistenceCapable) entity;
-    pc.pcSetDetachedState(null);
-    pc.pcReplaceStateManager(null);
-    entity.setId(null);
   }
 }

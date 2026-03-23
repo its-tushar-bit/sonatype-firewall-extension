@@ -22,8 +22,11 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.jooq.generated.dm.tables.License.LICENSE;
 
 // Copied from com.sonatype.insight.datamart.dao.LicenseDAO
 @Named
@@ -48,13 +51,6 @@ public class LicenseDAO
   {
     super(dataMartDataStore);
     this.multiLicenseDAOProvider = multiLicenseDAOProvider;
-  }
-
-  @Override
-  public License getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM License entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
   }
 
   @Override
@@ -88,31 +84,35 @@ public class LicenseDAO
     synchronized (this.getClass()) {
       long start = System.currentTimeMillis();
 
-      String sQuery = "SELECT license FROM License license";
-      List<License> newLicenses = new ArrayList<>();
-      newLicenses.addAll(getList(sQuery));
-      newLicenses.sort((license1, license2) -> {
-        return license1.getShortDisplayName().compareToIgnoreCase(license2.getShortDisplayName());
-      });
+      try (TransactionContext tx = createTransactionContext()) {
+        List<License> newLicenses = new ArrayList<>();
+        newLicenses.addAll(tx.dsl()
+            .selectFrom(LICENSE)
+            .fetchInto(License.class));
+        newLicenses.sort((license1, license2) -> {
+          return license1.getShortDisplayName().compareToIgnoreCase(license2.getShortDisplayName());
+        });
 
-      Map<String, License> newlicensesById = new LinkedHashMap<>();
-      for (License license : newLicenses) {
-        newlicensesById.put(license.getId(), license);
+        Map<String, License> newlicensesById = new LinkedHashMap<>();
+        for (License license : newLicenses) {
+          newlicensesById.put(license.getId(), license);
+        }
+
+        Map<String, License> newLicensesByName = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        for (License license : newLicenses) {
+          newLicensesByName.put(license.getShortDisplayName(), license);
+        }
+
+        licenses = Collections.unmodifiableList(newLicenses);
+        licensesById = Collections.unmodifiableMap(newlicensesById);
+        licensesByName = newLicensesByName;
+
+        log.debug("Loaded all {} licenses in {} ms.", newlicensesById.size(), System.currentTimeMillis() - start);
       }
-
-      Map<String, License> newLicensesByName = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-      for (License license : newLicenses) {
-        newLicensesByName.put(license.getShortDisplayName(), license);
-      }
-
-      licenses = Collections.unmodifiableList(newLicenses);
-      licensesById = Collections.unmodifiableMap(newlicensesById);
-      licensesByName = newLicensesByName;
-
-      log.debug("Loaded all {} licenses in {} ms.", newlicensesById.size(), System.currentTimeMillis() - start);
     }
   }
 
+  @Override
   public List<License> getAll() {
     if (licenses == null) {
       load();
@@ -145,5 +145,15 @@ public class LicenseDAO
       throw new NotFoundException("A license with name '" + name + "' does not exist.");
     }
     return license;
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return LICENSE;
+  }
+
+  @Override
+  public Class<License> getEntityClass() {
+    return License.class;
   }
 }

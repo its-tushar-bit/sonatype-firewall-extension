@@ -41,7 +41,7 @@
     <!-- logback 1.4.x requires Java 11 -->
     <logback.version>1.5.21</logback.version>
     <jackson.version>2.20.1</jackson.version>
-    <openjpa.version>4.1.1</openjpa.version>
+    <jooq.version>3.19.29</jooq.version>
     <!-- When updating shiro, check if it uses commons-beanutils >= 1.11.0.
          If yes, then remove the dependency management for commons-beanutils below. -->
     <shiro.version>2.0.6</shiro.version>
@@ -112,7 +112,7 @@
      option on the command line to enable it for specific tools and libraries.
 
      https://docs.oracle.com/en/java/javase/17/migrate/migrating-jdk-8-later-jdk-releases.html#GUID-12F945EB-71D6-46AF-8C3D-D354FD0B1781
-     The libraries implicated in this exception are guice, openjpa and some of the testing/assertion libraries
+     The libraries implicated in this exception are guice and some of the testing/assertion libraries
 
      Note that mockito may use reflection to access non-public fields/methods when creating mocks/spies.
      For each of these cases, where reflective access is needed, we need to add the module/package containing the
@@ -438,15 +438,19 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.apache.openjpa</groupId>
-        <artifactId>openjpa</artifactId>
-        <version>${openjpa.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>jakarta.jms</groupId>
-            <artifactId>jakarta.jms-api</artifactId>
-          </exclusion>
-        </exclusions>
+        <groupId>org.jooq</groupId>
+        <artifactId>jooq</artifactId>
+        <version>${jooq.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jooq</groupId>
+        <artifactId>jooq-meta</artifactId>
+        <version>${jooq.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jooq</groupId>
+        <artifactId>jooq-codegen</artifactId>
+        <version>${jooq.version}</version>
       </dependency>
       <dependency>
         <groupId>de.schlichtherle.truelicense</groupId>
@@ -1001,6 +1005,11 @@
         <groupId>jakarta.validation</groupId>
         <artifactId>jakarta.validation-api</artifactId>
         <version>3.0.2</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.persistence</groupId>
+        <artifactId>jakarta.persistence-api</artifactId>
+        <version>3.2.0</version>
       </dependency>
       <dependency>
         <!-- avoid security vulnerabilities -->

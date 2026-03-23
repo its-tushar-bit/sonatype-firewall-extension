@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.lock;
 
-import jakarta.persistence.LockModeType;
-
 import static com.sonatype.insight.brain.dataaccess.lock.ClusterLock.LockType.EXCLUSIVE;
 
 /**
@@ -77,24 +75,17 @@ public interface ClusterLock
 
   enum LockType
   {
-    SHARED(1, LockModeType.PESSIMISTIC_READ),
-    EXCLUSIVE(Integer.MAX_VALUE, LockModeType.PESSIMISTIC_WRITE);
+    SHARED(1),
+    EXCLUSIVE(Integer.MAX_VALUE);
 
     private final int permits;
 
-    private final LockModeType lockModeType;
-
-    LockType(int permits, LockModeType lockModeType) {
+    LockType(int permits) {
       this.permits = permits;
-      this.lockModeType = lockModeType;
     }
 
     int getPermits() {
       return permits;
-    }
-
-    LockModeType getLockModeType() {
-      return lockModeType;
     }
   }
 }

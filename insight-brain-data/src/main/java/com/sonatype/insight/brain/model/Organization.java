@@ -13,9 +13,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import org.apache.openjpa.persistence.DataCache;
 
-@DataCache(timeout = 10000)
 @Cacheable
 @Entity
 @Table(name = "organization")
@@ -75,7 +73,7 @@ public class Organization
   private String relatedRepositoryManagerId;
 
   @Column(name = "related_repository_container_id")
-  private String relatedRepositorContainerId;
+  private String relatedRepositoryContainerId;
 
   public Organization() {
   }
@@ -191,12 +189,12 @@ public class Organization
     this.relatedRepositoryManagerId = relatedRepositoryManagerId;
   }
 
-  public String getRelatedRepositorContainerId() {
-    return relatedRepositorContainerId;
+  public String getRelatedRepositoryContainerId() {
+    return relatedRepositoryContainerId;
   }
 
-  public void setRelatedRepositorContainerId(String relatedRepositorContainerId) {
-    this.relatedRepositorContainerId = relatedRepositorContainerId;
+  public void setRelatedRepositoryContainerId(String relatedRepositoryContainerId) {
+    this.relatedRepositoryContainerId = relatedRepositoryContainerId;
   }
 
   @Override

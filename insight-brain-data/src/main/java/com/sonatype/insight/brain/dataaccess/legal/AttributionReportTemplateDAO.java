@@ -17,6 +17,10 @@ import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.AttributionReportTemplate.ATTRIBUTION_REPORT_TEMPLATE;
+
 /**
  * @since 1.120
  */
@@ -37,34 +41,53 @@ public class AttributionReportTemplateDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, AttributionReportTemplate attributionReportTemplate) {
-    checkAttributionReportTemplateNameLength(attributionReportTemplate);
-    if (attributionReportTemplate.getLastUpdatedAt() == null) {
-      attributionReportTemplate.setLastUpdatedAt(new Date());
+  public void insert(TransactionContext tx, AttributionReportTemplate entity) {
+    checkAttributionReportTemplateNameLength(entity);
+    if (entity.getLastUpdatedAt() == null) {
+      entity.setLastUpdatedAt(new Date());
     }
-    super.insert(tx, attributionReportTemplate);
+    super.insert(tx, entity);
   }
 
   @Override
-  public void update(TransactionContext tx, AttributionReportTemplate attributionReportTemplate) {
-    checkAttributionReportTemplateNameLength(attributionReportTemplate);
-    if (getById(tx, attributionReportTemplate.getId()) == null) {
+  public void update(TransactionContext tx, AttributionReportTemplate entity) {
+    checkAttributionReportTemplateNameLength(entity);
+    if (getById(tx, entity.getId()) == null) {
       throw new BadRequestException(
-          "Cannot update attribution report template with id " + attributionReportTemplate.getId() +
+          "Cannot update attribution report template with id " + entity.getId() +
               " because it does not exist.");
     }
-    attributionReportTemplate.setLastUpdatedAt(new Date());
-    super.update(tx, attributionReportTemplate);
+    entity.setLastUpdatedAt(new Date());
+    super.update(tx, entity);
   }
 
   public void deleteById(String attributionReportId) {
-    final String sQuery = "DELETE FROM AttributionReportTemplate entity WHERE entity.id=?1";
-    createQuery(sQuery, attributionReportId).executeUpdate();
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .deleteFrom(ATTRIBUTION_REPORT_TEMPLATE)
+          .where(ATTRIBUTION_REPORT_TEMPLATE.ATTRIBUTION_REPORT_TEMPLATE_ID.eq(attributionReportId))
+          .execute();
+      tx.commit();
+    }
   }
 
   public AttributionReportTemplate getByTemplateName(String templateName) {
-    final String sQuery = "SELECT entity FROM AttributionReportTemplate entity" + //
-        " WHERE entity.templateName=?1";
-    return get(sQuery, templateName);
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(ATTRIBUTION_REPORT_TEMPLATE)
+          .where(ATTRIBUTION_REPORT_TEMPLATE.TEMPLATE_NAME.eq(templateName))
+          .fetchOne());
+    }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return ATTRIBUTION_REPORT_TEMPLATE;
+  }
+
+  @Override
+  public Class<AttributionReportTemplate> getEntityClass() {
+    return AttributionReportTemplate.class;
   }
 }

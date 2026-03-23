@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.component;
 
 import java.util.Collection;
 import java.util.List;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -22,8 +23,10 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.Lists;
+import org.jooq.Table;
 
 import static java.util.stream.Collectors.toList;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.HashComponentIdentifier.HASH_COMPONENT_IDENTIFIER;
 
 @Named
 @Singleton
@@ -33,50 +36,12 @@ public class HashComponentIdentifierDAO
   public static final String NOT_FOUND_MESSAGE = "There is no claimed component with hash ";
 
   @Inject
-  public HashComponentIdentifierDAO(OperationalDataStore operationalDataStore) {
+  public HashComponentIdentifierDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
   }
 
-  public HashComponentIdentifier getByHashNotNull(String hash) {
-    HashComponentIdentifier hashComponentIdentifier = getByHash(hash);
-    if (hashComponentIdentifier == null) {
-      throw new NotFoundException(NOT_FOUND_MESSAGE + hash + ".");
-    }
-    return hashComponentIdentifier;
-  }
-
-  public HashComponentIdentifier getByHash(String hash) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByHash(tx, hash);
-    }
-  }
-
-  private HashComponentIdentifier getByHash(TransactionContext tx, String hash) {
-    // Note that our truncated representation of the hash is what is stored, hence the transformation on the input
-    // hash.
-    String sQuery = "SELECT entity FROM HashComponentIdentifier entity" + //
-        " WHERE entity.hash=?1";
-    return get(tx, sQuery, HashHelper.truncateHash(hash));
-  }
-
-  private HashComponentIdentifier getByComponentIdentifier(
-      TransactionContext tx,
-      ComponentIdentifier componentIdentifier)
-  {
-    String sQuery = "SELECT entity FROM HashComponentIdentifier entity" + //
-        " WHERE entity.componentIdFormat=?1 and entity.componentIdCoordinatesJson=?2";
-    return get(tx, sQuery, componentIdentifier.getFormat(),
-        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
-  }
-
   @Override
-  public List<HashComponentIdentifier> getAll() {
-    String sQuery = "SELECT entity FROM HashComponentIdentifier entity ORDER BY entity.hash";
-    return getList(sQuery);
-  }
-
-  @Override
-  public void insert(TransactionContext tx, HashComponentIdentifier entity) {
+  public void insert(final TransactionContext tx, final HashComponentIdentifier entity) {
     HashComponentIdentifier other = getByHash(tx, entity.getHash());
     if (other != null) {
       throw new BadRequestException("This component is already mapped to '"
@@ -90,25 +55,88 @@ public class HashComponentIdentifierDAO
     super.insert(tx, entity);
   }
 
-  public HashComponentIdentifier getByComponentIdentifier(ComponentIdentifier componentIdentifier) {
+  public HashComponentIdentifier getByHashNotNull(final String hash) {
+    HashComponentIdentifier hashComponentIdentifier = getByHash(hash);
+    if (hashComponentIdentifier == null) {
+      throw new NotFoundException(NOT_FOUND_MESSAGE + hash + ".");
+    }
+    return hashComponentIdentifier;
+  }
+
+  public HashComponentIdentifier getByHash(final String hash) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByHash(tx, hash);
+    }
+  }
+
+  private HashComponentIdentifier getByHash(final TransactionContext tx, final String hash) {
+    // Note that our truncated representation of the hash is what is stored, hence the transformation on the input
+    // hash.
+    return toEntity(tx.dsl()
+        .selectFrom(HASH_COMPONENT_IDENTIFIER)
+        .where(HASH_COMPONENT_IDENTIFIER.HASH.eq(HashHelper.truncateHash(hash)))
+        .fetchOne());
+  }
+
+  private HashComponentIdentifier getByComponentIdentifier(
+      final TransactionContext tx,
+      final ComponentIdentifier componentIdentifier)
+  {
+    return toEntity(tx.dsl()
+        .selectFrom(HASH_COMPONENT_IDENTIFIER)
+        .where(HASH_COMPONENT_IDENTIFIER.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+        .and(HASH_COMPONENT_IDENTIFIER.COMPONENT_ID_COORDINATES_JSON.eq(
+            ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())))
+        .fetchOne());
+  }
+
+  public HashComponentIdentifier getByComponentIdentifier(final ComponentIdentifier componentIdentifier) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByComponentIdentifier(tx, componentIdentifier);
     }
   }
 
-  public List<HashComponentIdentifier> getByHashes(List<String> hashes) {
+  @Override
+  public List<HashComponentIdentifier> getAll() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(HASH_COMPONENT_IDENTIFIER)
+          .orderBy(HASH_COMPONENT_IDENTIFIER.HASH)
+          .fetch()
+          .stream()
+          .map(this::toEntity)
+          .collect(toList());
+    }
+  }
+
+  public List<HashComponentIdentifier> getByHashes(final List<String> hashes) {
     // Note that our truncated representation of the hash is what is stored, hence the transformation on the input
     // hash.
     List<String> truncatedHashes = hashes.stream().map(HashHelper::truncateHash).collect(toList());
 
-    String sQuery = "SELECT entity FROM HashComponentIdentifier entity" + //
-        " WHERE entity.hash IN (?1)";
-
     List<List<String>> partitions = Lists.partition(truncatedHashes, getInOperatorThreshold());
 
-    return partitions.stream()
-        .map(partition -> getList(sQuery, partition))
-        .flatMap(Collection::stream)
-        .collect(toList());
+    try (TransactionContext tx = createTransactionContext()) {
+      return partitions.stream()
+          .map(partition -> tx.dsl()
+              .selectFrom(HASH_COMPONENT_IDENTIFIER)
+              .where(HASH_COMPONENT_IDENTIFIER.HASH.in(partition))
+              .fetch()
+              .stream()
+              .map(this::toEntity)
+              .collect(toList()))
+          .flatMap(Collection::stream)
+          .collect(toList());
+    }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return HASH_COMPONENT_IDENTIFIER;
+  }
+
+  @Override
+  public Class<HashComponentIdentifier> getEntityClass() {
+    return HashComponentIdentifier.class;
   }
 }

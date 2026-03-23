@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
@@ -33,6 +34,11 @@ import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentLabel.COMPONENT_LABEL;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Label.LABEL;
 
 @Named
 @Singleton
@@ -74,10 +80,11 @@ public class LabelDAO
   }
 
   public List<Label> getByOwnerId(TransactionContext tx, String ownerId) {
-    final String sQuery = "SELECT label FROM Label label" + //
-        " WHERE label.ownerId=?1" + //
-        " ORDER BY label.labelLowercase";
-    return getList(tx, sQuery, ownerId);
+    return tx.dsl()
+        .selectFrom(LABEL)
+        .where(LABEL.OWNER_ID.eq(ownerId))
+        .orderBy(LABEL.LABEL_LOWERCASE)
+        .fetchInto(Label.class);
   }
 
   public List<Label> getByOwnerIdWithHierarchy(String ownerId) {
@@ -102,17 +109,25 @@ public class LabelDAO
    * @since 1.6
    */
   public List<Label> getByOwnerIdAndHash(String ownerId, String hash) {
-    final String sQuery = "SELECT label FROM Label label, ComponentLabel componentLabel" + //
-        " WHERE label.id=componentLabel.labelId" + //
-        " AND componentLabel.ownerId=?1 AND componentLabel.hash=?2" + //
-        " ORDER BY label.labelLowercase";
-    return getList(sQuery, ownerId, hash);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(LABEL.fields())
+          .from(LABEL)
+          .join(COMPONENT_LABEL)
+          .on(LABEL.LABEL_ID.eq(COMPONENT_LABEL.LABEL_ID))
+          .where(COMPONENT_LABEL.OWNER_ID.eq(ownerId))
+          .and(COMPONENT_LABEL.HASH.eq(hash))
+          .orderBy(LABEL.LABEL_LOWERCASE)
+          .fetchInto(Label.class);
+    }
   }
 
   public Label getByOwnerIdAndLabel(TransactionContext tx, String ownerId, String label) {
-    final String sQuery = "SELECT label FROM Label label" + //
-        " WHERE  label.ownerId=?1 AND label.labelLowercase=?2";
-    return get(tx, sQuery, ownerId, Label.normalizeLabel(label));
+    return tx.dsl()
+        .selectFrom(LABEL)
+        .where(LABEL.OWNER_ID.eq(ownerId))
+        .and(LABEL.LABEL_LOWERCASE.eq(Label.normalizeLabel(label)))
+        .fetchOneInto(Label.class);
   }
 
   public Label getByLabelWithHierarchy(String label, String ownerId) {
@@ -135,7 +150,11 @@ public class LabelDAO
     for (ComponentLabel componentLabel : componentLabels) {
       componentLabelDAO.delete(tx, componentLabel);
     }
-    super.delete(tx, label);
+    tx.dsl()
+        .deleteFrom(LABEL)
+        .where(LABEL.LABEL_ID.eq(label.getId()))
+        .execute();
+    super.delete(tx, label); // Record search index change
   }
 
   private void validateLabelText(String label) {
@@ -148,6 +167,7 @@ public class LabelDAO
     validateLabelUnique(tx, label, false);
     validateLabelDescription(label.getDescription());
     validateLabelColor(label.getColor());
+
     super.insert(tx, label);
   }
 
@@ -266,11 +286,22 @@ public class LabelDAO
     validateLabelUnique(tx, label, true);
     validateLabelDescription(label.getDescription());
     validateLabelColor(label.getColor());
+
     super.update(tx, label);
   }
 
   @Override
   protected SearchIndexChange newSearchIndexChange(Label entity) {
     return new SearchIndexChange(ChangeType.LABEL, entity.getId());
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return LABEL;
+  }
+
+  @Override
+  public Class<Label> getEntityClass() {
+    return Label.class;
   }
 }

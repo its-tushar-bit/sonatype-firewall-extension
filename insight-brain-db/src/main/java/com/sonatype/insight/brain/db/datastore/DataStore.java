@@ -10,8 +10,6 @@ import javax.sql.DataSource;
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.db.DatabaseConfig;
 
-import jakarta.persistence.EntityManagerFactory;
-
 /**
  * <b>Definition of an IQ store of data.</b>
  *
@@ -58,8 +56,7 @@ import jakarta.persistence.EntityManagerFactory;
  * <ul>
  * <li>Database - A single database running on a PostgreSQL cluster.</li>
  * <li>DataSource - we only want a single (large) connection pool so each of the 4 data store providers use the same
- * `javax.sql.DataSource`. Connections are shared across tenants. Note that each tenant still has its own
- * {@link jakarta.persistence.EntityManagerFactory}</li>
+ * `javax.sql.DataSource`. Connections are shared across tenants.</li>
  * <li>Schema - each tenant is in its own schema. The data store name is not used as the schema. It is tracked inside
  * the `schema_version` table</li>
  * </ul>
@@ -84,8 +81,7 @@ public interface DataStore
 
   /**
    * Perform the initialization of the data store. This includes creating all supporting objects (e.g.
-   * {@link DataSource}, {@link EntityManagerFactory}), population of new databases, and migration on existing
-   * databases.
+   * {@link DataSource}), population of new databases, and migration on existing databases.
    */
   void initialize();
 
@@ -104,11 +100,6 @@ public interface DataStore
    */
   DatabaseConfig getDatabaseConfig();
 
-  /**
-   * @return the {@link EntityManagerFactory} for this data store
-   */
-  EntityManagerFactory getJPAEntityManagerFactory();
-
   DataSourceProvider getDataSourceProvider();
 
   /**
@@ -122,8 +113,8 @@ public interface DataStore
   boolean isDatabaseEmbedded();
 
   /**
-   * Close and cleanup all resources associated with this data store, including the EntityManagerFactory
-   * and any DataSource connections. This method should be called when the data store is no longer needed,
+   * Close and cleanup all resources associated with this data store.
+   * This method should be called when the data store is no longer needed,
    * particularly when switching between different database types in tests.
    */
   void close() throws Exception;

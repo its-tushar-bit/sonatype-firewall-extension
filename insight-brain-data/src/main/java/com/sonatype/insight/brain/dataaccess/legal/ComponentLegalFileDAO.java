@@ -7,10 +7,7 @@ package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.Date;
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Provider;
-import jakarta.inject.Singleton;
+import java.util.UUID;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -23,6 +20,14 @@ import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentLegalFile.COMPONENT_LEGAL_FILE;
 
 /**
  * @since 1.105
@@ -48,9 +53,10 @@ public class ComponentLegalFileDAO
   }
 
   public List<ComponentLegalFile> getByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT entity FROM ComponentLegalFile entity" + //
-        " WHERE entity.ownerId=?1";
-    return getList(tx, sQuery, ownerId);
+    return tx.dsl()
+        .selectFrom(COMPONENT_LEGAL_FILE)
+        .where(COMPONENT_LEGAL_FILE.OWNER_ID.eq(ownerId))
+        .fetch(this::toEntity);
   }
 
   public List<ComponentLegalFile> getByOwnerId(String ownerId) {
@@ -65,13 +71,16 @@ public class ComponentLegalFileDAO
       ComponentIdentifier componentIdentifier,
       LegalFileType legalFileType)
   {
-    String sQuery = "SELECT entity FROM ComponentLegalFile entity" + //
-        " WHERE entity.ownerId=?1" + //
-        " AND entity.componentIdFormat=?2" + //
-        " AND entity.componentIdCoordinatesJson=?3" + //
-        " AND entity.type=?4";
-    return get(tx, sQuery, ownerId, componentIdentifier.getFormat(),
-        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()), legalFileType);
+    var query = tx.dsl()
+        .selectFrom(COMPONENT_LEGAL_FILE)
+        .where(COMPONENT_LEGAL_FILE.OWNER_ID.eq(ownerId))
+        .and(COMPONENT_LEGAL_FILE.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+        .and(COMPONENT_LEGAL_FILE.COMPONENT_ID_COORDINATES_JSON.eq(
+            ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())));
+    if (legalFileType != null) {
+      query = query.and(COMPONENT_LEGAL_FILE.TYPE.eq(legalFileType.name()));
+    }
+    return query.fetchOne(this::toEntity);
   }
 
   public ComponentLegalFile getByOwnerIdAndComponentIdentifierAndType(
@@ -123,6 +132,9 @@ public class ComponentLegalFileDAO
     if (componentLegalFile.getLastUpdatedAt() == null) {
       componentLegalFile.setLastUpdatedAt(new Date());
     }
+    if (componentLegalFile.getId() == null) {
+      componentLegalFile.setId(UUID.randomUUID().toString());
+    }
     super.insert(tx, componentLegalFile);
   }
 
@@ -146,5 +158,15 @@ public class ComponentLegalFileDAO
       legalFileOverrideDAO.delete(tx, legalFileOverride);
     }
     super.delete(tx, componentLegalFile);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return COMPONENT_LEGAL_FILE;
+  }
+
+  @Override
+  public Class<ComponentLegalFile> getEntityClass() {
+    return ComponentLegalFile.class;
   }
 }

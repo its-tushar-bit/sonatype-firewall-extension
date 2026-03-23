@@ -18,9 +18,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
-import org.apache.openjpa.persistence.DataCache;
 
-@DataCache(timeout = 10000)
 @Cacheable
 @Entity
 @Table(name = "application")

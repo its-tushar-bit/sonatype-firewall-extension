@@ -16,6 +16,10 @@ import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.jooq.impl.DSL;
+
+import static com.sonatype.insight.brain.jooq.generated.thirdpartyscans.tables.CoordinateLicense.COORDINATE_LICENSE;
+
 @Named
 @Singleton
 public class ThirdPartyCoordinateLicenseDAO
@@ -26,35 +30,33 @@ public class ThirdPartyCoordinateLicenseDAO
     super(thirdPartyScansDataStore);
   }
 
-  @Override
-  public ThirdPartyCoordinateLicense getById(String id) {
-    String sQuery = "SELECT entity FROM ThirdPartyCoordinateLicense entity" + //
-        " WHERE entity.id=?1";
-    return get(sQuery, id);
-  }
-
   public List<ThirdPartyCoordinateLicense> getByFileCoordinateId(TransactionContext tx, String coordinateFileId) {
-    String sQuery = "SELECT entity FROM ThirdPartyCoordinateLicense entity" + //
-        " WHERE entity.fileCoordinateId=?1";
-    return getList(tx, sQuery, coordinateFileId);
+    return tx.dsl()
+        .selectFrom(COORDINATE_LICENSE)
+        .where(COORDINATE_LICENSE.FILE_COORDINATE_ID.eq(coordinateFileId))
+        .fetchInto(ThirdPartyCoordinateLicense.class);
   }
 
   public int deleteByFileCoordinateId(TransactionContext tx, String fileCoordinateId) {
-    String sQuery = "DELETE from ThirdPartyCoordinateLicense entity WHERE entity.fileCoordinateId=?1";
-    Query<ThirdPartyCoordinateLicense> query = createQuery(sQuery, fileCoordinateId);
-    return query.executeUpdate(tx);
+    return tx.dsl()
+        .deleteFrom(COORDINATE_LICENSE)
+        .where(COORDINATE_LICENSE.FILE_COORDINATE_ID.eq(fileCoordinateId))
+        .execute();
   }
 
   public List<ThirdPartyCoordinateLicense> getByFileCoordinateId(final String fileCoordinateId) {
-    String sQuery = "SELECT entity FROM ThirdPartyCoordinateLicense entity" + //
-        " WHERE entity.fileCoordinateId=?1";
-    return getList(sQuery, fileCoordinateId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByFileCoordinateId(tx, fileCoordinateId);
+    }
   }
 
   public List<ThirdPartyCoordinateLicense> getByFileCoordinateIds(final Set<String> fileCoordinateIds) {
-    String sQuery = "SELECT entity FROM ThirdPartyCoordinateLicense entity" + //
-        " WHERE entity.fileCoordinateId IN (?1)";
-    return getList(sQuery, fileCoordinateIds);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(COORDINATE_LICENSE)
+          .where(COORDINATE_LICENSE.FILE_COORDINATE_ID.in(fileCoordinateIds))
+          .fetchInto(ThirdPartyCoordinateLicense.class);
+    }
   }
 
   public ThirdPartyCoordinateLicense getByFileCoordinateIdAndLicenseId(
@@ -71,16 +73,28 @@ public class ThirdPartyCoordinateLicenseDAO
       final String fileCoordinateId,
       final String licenseId)
   {
-    String sQuery = "SELECT entity FROM ThirdPartyCoordinateLicense entity" + //
-        " WHERE entity.fileCoordinateId=?1 AND UPPER(entity.licenseId)=?2";
-    return get(tx, sQuery, fileCoordinateId, licenseId.toUpperCase());
+    return tx.dsl()
+        .selectFrom(COORDINATE_LICENSE)
+        .where(COORDINATE_LICENSE.FILE_COORDINATE_ID.eq(fileCoordinateId)
+            .and(DSL.upper(COORDINATE_LICENSE.LICENSE_ID).eq(licenseId.toUpperCase())))
+        .fetchOneInto(ThirdPartyCoordinateLicense.class);
   }
 
   public boolean insertSafely(final TransactionContext tx, final ThirdPartyCoordinateLicense entity) {
     if (getByFileCoordinateIdAndLicenseId(tx, entity.getFileCoordinateId(), entity.getLicenseId()) != null) {
       return false;
     }
-    super.insert(tx, entity);
+    insert(tx, entity);
     return true;
+  }
+
+  @Override
+  public org.jooq.Table<?> getJooqTable() {
+    return COORDINATE_LICENSE;
+  }
+
+  @Override
+  public Class<ThirdPartyCoordinateLicense> getEntityClass() {
+    return ThirdPartyCoordinateLicense.class;
   }
 }

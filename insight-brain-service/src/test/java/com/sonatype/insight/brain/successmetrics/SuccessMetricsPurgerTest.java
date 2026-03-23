@@ -18,7 +18,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import jakarta.inject.Inject;
-import jakarta.persistence.LockModeType;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.test.SlowTest;
@@ -188,10 +187,7 @@ public class SuccessMetricsPurgerTest
     Thread thread = new Thread(() -> {
       try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
         tx.begin();
-        policyViolationDAO //
-            .createQuery("SELECT entity FROM PolicyViolation entity") //
-            .setLockModeType(LockModeType.PESSIMISTIC_WRITE) //
-            .getList(tx);
+        tx.dsl().execute("SELECT * FROM policy_violation FOR UPDATE");
         latchLocked.countDown();
         latchUnlock.await(10, TimeUnit.SECONDS);
         tx.commit();

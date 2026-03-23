@@ -11,9 +11,6 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -26,8 +23,15 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.git.utils.GitBranchNameValidator;
 import com.sonatype.nexus.git.utils.InvalidBranchNameException;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Record;
+import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControlPullRequest.SOURCE_CONTROL_PULL_REQUEST;
 
 @Named
 @Singleton
@@ -43,9 +47,12 @@ public class SourceControlPullRequestDAO
 
   @Override
   public List<SourceControlPullRequest> getAll() {
-    String sQuery = "SELECT entity FROM SourceControlPullRequest entity" + //
-        " ORDER BY entity.repositoryUrl, entity.pullRequestId";
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL_PULL_REQUEST)
+          .orderBy(SOURCE_CONTROL_PULL_REQUEST.REPOSITORY_URL, SOURCE_CONTROL_PULL_REQUEST.PULL_REQUEST_ID)
+          .fetch(this::toEntity);
+    }
   }
 
   public List<SourceControlPullRequest> getBySources(PullRequestSource... sources) {
@@ -59,11 +66,19 @@ public class SourceControlPullRequestDAO
       return List.of();
     }
     Set<PullRequestSource> param = new HashSet<>(Arrays.asList(sources));
+    Set<String> sourceNames = param.stream().map(Enum::name).collect(java.util.stream.Collectors.toSet());
+
     // Note that SourceControlPullRequest prior to SDEV-1952 were always external have this set to null
-    String sQuery = "SELECT entity FROM SourceControlPullRequest entity" +
-        " WHERE entity.source IN ?1" + (param.contains(PullRequestSource.EXTERNAL) ? " OR entity.source IS NULL" : "") +
-        " ORDER BY entity.repositoryUrl, entity.pullRequestId";
-    return getList(tx, sQuery, param);
+    var condition = SOURCE_CONTROL_PULL_REQUEST.SOURCE.in(sourceNames);
+    if (param.contains(PullRequestSource.EXTERNAL)) {
+      condition = condition.or(SOURCE_CONTROL_PULL_REQUEST.SOURCE.isNull());
+    }
+
+    return tx.dsl()
+        .selectFrom(SOURCE_CONTROL_PULL_REQUEST)
+        .where(condition)
+        .orderBy(SOURCE_CONTROL_PULL_REQUEST.REPOSITORY_URL, SOURCE_CONTROL_PULL_REQUEST.PULL_REQUEST_ID)
+        .fetch(this::toEntity);
   }
 
   void deleteByRepositoryUrl(TransactionContext tx, String repositoryUrl) {
@@ -73,8 +88,10 @@ public class SourceControlPullRequestDAO
 
   private List<SourceControlPullRequest> getByRepositoryUrl(TransactionContext tx, String repositoryUrl) {
     repositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl).trim();
-    String sQuery = "SELECT entity FROM SourceControlPullRequest entity WHERE entity.repositoryUrl=?1";
-    return getList(tx, sQuery, repositoryUrl);
+    return tx.dsl()
+        .selectFrom(SOURCE_CONTROL_PULL_REQUEST)
+        .where(SOURCE_CONTROL_PULL_REQUEST.REPOSITORY_URL.eq(repositoryUrl))
+        .fetch(this::toEntity);
   }
 
   /**
@@ -85,49 +102,53 @@ public class SourceControlPullRequestDAO
    * @param endDate end of the date range; can be {@code null}, in which case the range has no right boundary
    */
   public int getExternalCountByUpdateTimeRange(Date startDate, Date endDate) {
-    String sQuery = "SELECT COUNT(entity.id) FROM SourceControlPullRequest entity" +
-        " WHERE (entity.source IS NULL OR entity.source=?1)";
-    if (startDate == null) {
-      if (endDate == null) {
-        throw new IllegalArgumentException("Either startDate or endDate must not be null.");
-      }
-      else {
-        // endDate is provided
-        sQuery += " AND entity.lastDetectedUpdateTime<?2";
-        return getSingle(Long.class, sQuery, PullRequestSource.EXTERNAL, endDate).intValue();
-      }
+    if (startDate == null && endDate == null) {
+      throw new IllegalArgumentException("Either startDate or endDate must not be null.");
     }
-    else {
-      if (endDate == null) {
-        // startDate is provided
-        sQuery += " AND entity.lastDetectedUpdateTime>=?2";
-        return getSingle(Long.class, sQuery, PullRequestSource.EXTERNAL, startDate).intValue();
+
+    try (TransactionContext tx = createTransactionContext()) {
+      var baseCondition = SOURCE_CONTROL_PULL_REQUEST.SOURCE.isNull()
+          .or(SOURCE_CONTROL_PULL_REQUEST.SOURCE.eq(PullRequestSource.EXTERNAL.name()));
+
+      var condition = baseCondition;
+      if (startDate != null) {
+        condition = condition.and(SOURCE_CONTROL_PULL_REQUEST.LAST_DETECTED_UPDATE_TIME.ge(startDate));
       }
-      else {
-        // startDate and endDate are provided
-        sQuery += " AND entity.lastDetectedUpdateTime>=?2 AND entity.lastDetectedUpdateTime<?3";
-        return getSingle(Long.class, sQuery, PullRequestSource.EXTERNAL, startDate, endDate).intValue();
+      if (endDate != null) {
+        condition = condition.and(SOURCE_CONTROL_PULL_REQUEST.LAST_DETECTED_UPDATE_TIME.lt(endDate));
       }
+
+      return tx.dsl()
+          .selectCount()
+          .from(SOURCE_CONTROL_PULL_REQUEST)
+          .where(condition)
+          .fetchOne(0, Integer.class);
     }
   }
 
   /**
-   * @param startDate the date from which to start looking for PRs created by IQ Manual PR and Auto PR features.
-   *          Can be {@code null}, in which case the date range has no left boundary.
+   * @param startDate the date from which to start looking for PRs created by IQ Manual PR and Auto PR features. Can be
+   *          {@code null}, in which case the date range has no left boundary.
    * @return a list of PRs created by IQ Manual PR and Auto PR features since the specified date
    */
   public List<SourceControlPullRequest> getInternalCreatedSince(Date startDate) {
-    String sQuery = """
-        SELECT entity
-        FROM SourceControlPullRequest entity
-        WHERE entity.source IN ?1 AND (entity.createTime >= ?2 OR ?2 IS NULL)
-        """;
-
-    return getList(sQuery, EnumSet.of(
+    Set<String> internalSources = EnumSet.of(
         PullRequestSource.AUTOMATIC,
         PullRequestSource.AUTOMATIC_INNER_SOURCE,
         PullRequestSource.MANUAL,
-        PullRequestSource.MANUAL_INNER_SOURCE), startDate);
+        PullRequestSource.MANUAL_INNER_SOURCE).stream().map(Enum::name).collect(java.util.stream.Collectors.toSet());
+
+    try (TransactionContext tx = createTransactionContext()) {
+      var condition = SOURCE_CONTROL_PULL_REQUEST.SOURCE.in(internalSources);
+      if (startDate != null) {
+        condition = condition.and(SOURCE_CONTROL_PULL_REQUEST.CREATE_TIME.ge(startDate));
+      }
+
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL_PULL_REQUEST)
+          .where(condition)
+          .fetch(this::toEntity);
+    }
   }
 
   @Override
@@ -146,41 +167,52 @@ public class SourceControlPullRequestDAO
     log.trace("Updated SourceControlPullRequest: " + entity);
   }
 
-  @Override
-  public void delete(TransactionContext tx, SourceControlPullRequest entity) {
-    super.delete(tx, entity);
-    log.trace("Deleted SourceControlPullRequest: " + entity);
-  }
-
   public SourceControlPullRequest getByRepositoryUrlAndPullRequestId(String repositoryUrl, int pullRequestId) {
-    String sQuery =
-        "SELECT entity FROM SourceControlPullRequest entity WHERE entity.repositoryUrl=?1 AND entity.pullRequestId=?2";
-    return createQuery(sQuery, repositoryUrl, pullRequestId).forceSingleResult().get();
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(SOURCE_CONTROL_PULL_REQUEST)
+          .where(SOURCE_CONTROL_PULL_REQUEST.REPOSITORY_URL.eq(repositoryUrl))
+          .and(SOURCE_CONTROL_PULL_REQUEST.PULL_REQUEST_ID.eq(pullRequestId))
+          .limit(1)
+          .fetchOne());
+    }
   }
 
   /**
-   * Returns the pull request with the given pull request ID and a repository URL matching that of the SourceControl
-   * for the given application ID
+   * Returns the pull request with the given pull request ID and a repository URL matching that of the SourceControl for
+   * the given application ID
    */
   public SourceControlPullRequest getByApplicationIdAndPullRequestId(String applicationId, int pullRequestId) {
-    String sQuery = """
-        SELECT scpr
-        FROM SourceControlPullRequest scpr, SourceControl sc
-        WHERE scpr.repositoryUrl = sc.normalizedRepositoryUrl AND sc.ownerId = ?1 AND scpr.pullRequestId = ?2
-        """;
-    return createQuery(sQuery, applicationId, pullRequestId).forceSingleResult().get();
+    try (TransactionContext tx = createTransactionContext()) {
+      Record record = tx.dsl()
+          .select(SOURCE_CONTROL_PULL_REQUEST.asterisk())
+          .from(SOURCE_CONTROL_PULL_REQUEST)
+          .join(com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControl.SOURCE_CONTROL)
+          .on(SOURCE_CONTROL_PULL_REQUEST.REPOSITORY_URL.eq(
+              com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControl.SOURCE_CONTROL.NORMALIZED_REPOSITORY_URL))
+          .where(com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControl.SOURCE_CONTROL.OWNER_ID
+              .eq(applicationId))
+          .and(SOURCE_CONTROL_PULL_REQUEST.PULL_REQUEST_ID.eq(pullRequestId))
+          .limit(1)
+          .fetchOne();
+      return record != null ? toEntity(record.into(SOURCE_CONTROL_PULL_REQUEST)) : null;
+    }
   }
 
   public List<SourceControlPullRequest> getByStatesAndSources(
       Set<PullRequestState> states,
       Set<PullRequestSource> sources)
   {
-    String sQuery = """
-        SELECT entity
-        FROM SourceControlPullRequest entity
-        WHERE entity.state IN ?1 AND entity.source IN ?2
-        """;
-    return getList(sQuery, states, sources);
+    Set<String> stateNames = states.stream().map(Enum::name).collect(java.util.stream.Collectors.toSet());
+    Set<String> sourceNames = sources.stream().map(Enum::name).collect(java.util.stream.Collectors.toSet());
+
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL_PULL_REQUEST)
+          .where(SOURCE_CONTROL_PULL_REQUEST.STATE.in(stateNames))
+          .and(SOURCE_CONTROL_PULL_REQUEST.SOURCE.in(sourceNames))
+          .fetch(this::toEntity);
+    }
   }
 
   private static void validateBranchName(String branchName) {
@@ -194,5 +226,15 @@ public class SourceControlPullRequestDAO
     catch (InvalidBranchNameException e) {
       throw new BadRequestException(e.getMessage(), e);
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return SOURCE_CONTROL_PULL_REQUEST;
+  }
+
+  @Override
+  public Class<SourceControlPullRequest> getEntityClass() {
+    return SourceControlPullRequest.class;
   }
 }

@@ -123,6 +123,11 @@ public class RepositoryManager
     return name != null ? name : instanceId;
   }
 
+  @JsonIgnore
+  public String getRawName() {
+    return name;
+  }
+
   @Override
   @JsonIgnore
   public String getPublicId() {

@@ -36,16 +36,12 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 
 import com.google.common.collect.Sets;
-import jakarta.persistence.Query;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -459,73 +455,6 @@ public class ApplicationComponentDAOTest
     assertThat(applicationComponentLicenseDAO.getByApplicationComponentId(applicationComponent2.getId()))
         .usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(applicationComponentLicense3, applicationComponentLicense4);
-  }
-
-  @Test
-  public void testBuildPositionalParameters() {
-    List<String> list = Collections.singletonList("a");
-    assertThat(dao.buildPositionalParameters(list, 1)).isEqualTo("(?1)");
-
-    list = Arrays.asList("a", "b");
-    assertThat(dao.buildPositionalParameters(list, 1)).isEqualTo("(?1,?2)");
-
-    list = Arrays.asList("a", "b", "c");
-    assertThat(dao.buildPositionalParameters(list, 1)).isEqualTo("(?1,?2,?3)");
-
-    list = Collections.singletonList("d");
-    assertThat(dao.buildPositionalParameters(list, 4)).isEqualTo("(?4)");
-
-    list = Arrays.asList("d", "e", "f");
-    assertThat(dao.buildPositionalParameters(list, 4)).isEqualTo("(?4,?5,?6)");
-
-    list = Arrays.asList("x", "y", "z");
-    assertThat(dao.buildPositionalParameters(list, 24)).isEqualTo("(?24,?25,?26)");
-  }
-
-  @Test
-  public void testAddPositionalParameters() {
-    List<String> list = Collections.singletonList("a");
-    Query query = mock(Query.class);
-    dao.addPositionalParameters(query, list, 1);
-    verify(query).setParameter(1, "a");
-    verifyNoMoreInteractions(query);
-
-    list = Arrays.asList("a", "b");
-    query = mock(Query.class);
-    dao.addPositionalParameters(query, list, 1);
-    verify(query).setParameter(1, "a");
-    verify(query).setParameter(2, "b");
-    verifyNoMoreInteractions(query);
-
-    list = Arrays.asList("a", "b", "c");
-    query = mock(Query.class);
-    dao.addPositionalParameters(query, list, 1);
-    verify(query).setParameter(1, "a");
-    verify(query).setParameter(2, "b");
-    verify(query).setParameter(3, "c");
-    verifyNoMoreInteractions(query);
-
-    list = Collections.singletonList("d");
-    query = mock(Query.class);
-    dao.addPositionalParameters(query, list, 4);
-    verify(query).setParameter(4, "d");
-    verifyNoMoreInteractions(query);
-
-    list = Arrays.asList("d", "e", "f");
-    query = mock(Query.class);
-    dao.addPositionalParameters(query, list, 4);
-    verify(query).setParameter(4, "d");
-    verify(query).setParameter(5, "e");
-    verify(query).setParameter(6, "f");
-    verifyNoMoreInteractions(query);
-
-    list = Arrays.asList("x", "y", "z");
-    query = mock(Query.class);
-    dao.addPositionalParameters(query, list, 24);
-    verify(query).setParameter(24, "x");
-    verify(query).setParameter(25, "y");
-    verify(query).setParameter(26, "z");
-    verifyNoMoreInteractions(query);
   }
 
   @Test

@@ -16,7 +16,6 @@ import java.util.Map;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import jakarta.persistence.OptimisticLockException;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -117,7 +116,7 @@ public class SuccessMetricsPurger
           }
           break;
         }
-        catch (OptimisticLockException e) {
+        catch (org.jooq.exception.DataAccessException e) {
           // This exception occurs usually when the embedded database is under too much load from concurrent queries.
           // To avoid having to start over the entire purging task, we retry to get this purging run completed.
           if (retry >= MAX_RETRIES) {

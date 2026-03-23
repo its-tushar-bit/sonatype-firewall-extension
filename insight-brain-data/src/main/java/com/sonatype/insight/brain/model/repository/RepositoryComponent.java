@@ -214,4 +214,18 @@ public class RepositoryComponent
   public void setDisplayName(String displayName) {
     this.displayName = displayName;
   }
+
+  /**
+   * Reconstitutes unquarantine state from database values.
+   * This method bypasses business logic and should only be used by DAOs when loading from the database.
+   * For business operations, use {@link #setUnquarantineTimeForManualRelease} or
+   * {@link #setUnquarantineTimeForMonitoring} instead.
+   *
+   * @param unquarantineTime the unquarantine time from the database
+   * @param autoUnquarantined the auto-unquarantined flag from the database
+   */
+  public void reconstituteUnquarantineState(final Date unquarantineTime, final Boolean autoUnquarantined) {
+    this.unquarantineTime = unquarantineTime;
+    this.autoUnquarantined = autoUnquarantined;
+  }
 }

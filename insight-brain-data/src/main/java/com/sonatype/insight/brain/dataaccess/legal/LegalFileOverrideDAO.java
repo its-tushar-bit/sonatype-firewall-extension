@@ -7,9 +7,6 @@ package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.Collections;
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -21,6 +18,13 @@ import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.LegalFileOverride.LEGAL_FILE_OVERRIDE;
 
 /**
  * @since 1.105
@@ -45,10 +49,20 @@ public class LegalFileOverrideDAO
     this.componentLegalFileDAO = componentLegalFileDAO;
   }
 
+  @Override
+  public void update(TransactionContext tx, LegalFileOverride legalFileOverride) {
+    if (getById(tx, legalFileOverride.getId()) == null) {
+      throw new BadRequestException(
+          "Cannot update legal file override with id " + legalFileOverride.getId() + " because it does not exist.");
+    }
+    super.update(tx, legalFileOverride);
+  }
+
   public List<LegalFileOverride> getByComponentLegalFileId(TransactionContext tx, String componentLegalFileId) {
-    String sQuery = "SELECT entity FROM LegalFileOverride entity" + //
-        " WHERE entity.componentLegalFileId=?1";
-    return getList(tx, sQuery, componentLegalFileId);
+    return tx.dsl()
+        .selectFrom(LEGAL_FILE_OVERRIDE)
+        .where(LEGAL_FILE_OVERRIDE.COMPONENT_LEGAL_FILE_ID.eq(componentLegalFileId))
+        .fetch(this::toEntity);
   }
 
   public List<LegalFileOverride> getByComponentLegalFileId(String componentLegalFileId) {
@@ -108,11 +122,12 @@ public class LegalFileOverrideDAO
   }
 
   @Override
-  public void update(TransactionContext tx, LegalFileOverride legalFileOverride) {
-    if (getById(tx, legalFileOverride.getId()) == null) {
-      throw new BadRequestException(
-          "Cannot update legal file override with id " + legalFileOverride.getId() + " because it does not exist.");
-    }
-    super.update(tx, legalFileOverride);
+  public Table<?> getJooqTable() {
+    return LEGAL_FILE_OVERRIDE;
+  }
+
+  @Override
+  public Class<LegalFileOverride> getEntityClass() {
+    return LegalFileOverride.class;
   }
 }

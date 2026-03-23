@@ -17,6 +17,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import org.jooq.Table;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentObligation.COMPONENT_OBLIGATION;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
@@ -50,9 +52,10 @@ public class ComponentObligationDAO
   }
 
   public List<ComponentObligation> getByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT entity FROM ComponentObligation entity" + //
-        " WHERE entity.ownerId=?1";
-    return getList(tx, sQuery, ownerId);
+    return tx.dsl()
+        .selectFrom(COMPONENT_OBLIGATION)
+        .where(COMPONENT_OBLIGATION.OWNER_ID.eq(ownerId))
+        .fetch(super::toEntity);
   }
 
   public List<ComponentObligation> getByOwnerId(String ownerId) {
@@ -67,13 +70,14 @@ public class ComponentObligationDAO
       ComponentIdentifier componentIdentifier,
       String obligationName)
   {
-    String sQuery = "SELECT entity FROM ComponentObligation entity" + //
-        " WHERE entity.ownerId=?1" + //
-        " AND entity.componentIdFormat=?2" + //
-        " AND entity.componentIdCoordinatesJson=?3" + //
-        " AND entity.obligationName=?4";
-    return get(tx, sQuery, ownerId, componentIdentifier.getFormat(),
-        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()), obligationName);
+    return super.toEntity(tx.dsl()
+        .selectFrom(COMPONENT_OBLIGATION)
+        .where(COMPONENT_OBLIGATION.OWNER_ID.eq(ownerId))
+        .and(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+        .and(COMPONENT_OBLIGATION.COMPONENT_ID_COORDINATES_JSON.eq(
+            ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())))
+        .and(COMPONENT_OBLIGATION.OBLIGATION_NAME.eq(obligationName))
+        .fetchOne());
   }
 
   public ComponentObligation getByOwnerIdAndComponentIdentifierAndObligationName(
@@ -100,12 +104,13 @@ public class ComponentObligationDAO
       String ownerId,
       ComponentIdentifier componentIdentifier)
   {
-    String sQuery = "SELECT entity FROM ComponentObligation entity" + //
-        " WHERE entity.ownerId=?1" + //
-        " AND entity.componentIdFormat=?2" + //
-        " AND entity.componentIdCoordinatesJson=?3";
-    return getList(tx, sQuery, ownerId, componentIdentifier.getFormat(),
-        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
+    return tx.dsl()
+        .selectFrom(COMPONENT_OBLIGATION)
+        .where(COMPONENT_OBLIGATION.OWNER_ID.eq(ownerId))
+        .and(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+        .and(COMPONENT_OBLIGATION.COMPONENT_ID_COORDINATES_JSON.eq(
+            ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())))
+        .fetch(super::toEntity);
   }
 
   public List<ComponentObligation> getByOwnerIdsAndComponentIdentifierAndObligationNames(
@@ -114,14 +119,14 @@ public class ComponentObligationDAO
       ComponentIdentifier componentIdentifier,
       Set<String> obligationNames)
   {
-    String sQuery = "SELECT entity FROM ComponentObligation entity" + //
-        " WHERE entity.ownerId IN (?1)" + //
-        " AND entity.componentIdFormat=?2" + //
-        " AND entity.componentIdCoordinatesJson=?3" + //
-        " AND entity.obligationName IN (?4)";
-    List<ComponentObligation> componentObligationsFromDb =
-        getList(tx, sQuery, ownerIds, componentIdentifier.getFormat(),
-            ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()), obligationNames);
+    List<ComponentObligation> componentObligationsFromDb = tx.dsl()
+        .selectFrom(COMPONENT_OBLIGATION)
+        .where(COMPONENT_OBLIGATION.OWNER_ID.in(ownerIds))
+        .and(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT.eq(componentIdentifier.getFormat()))
+        .and(COMPONENT_OBLIGATION.COMPONENT_ID_COORDINATES_JSON.eq(
+            ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())))
+        .and(COMPONENT_OBLIGATION.OBLIGATION_NAME.in(obligationNames))
+        .fetch(super::toEntity);
 
     Map<String, List<ComponentObligation>> ownerIdAndComponentObligation =
         componentObligationsFromDb.stream().collect(groupingBy(ComponentObligation::getOwnerId, toList()));
@@ -219,5 +224,15 @@ public class ComponentObligationDAO
     }
     componentObligation.setLastUpdatedAt(new Date());
     super.update(tx, componentObligation);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return COMPONENT_OBLIGATION;
+  }
+
+  @Override
+  public Class<ComponentObligation> getEntityClass() {
+    return ComponentObligation.class;
   }
 }

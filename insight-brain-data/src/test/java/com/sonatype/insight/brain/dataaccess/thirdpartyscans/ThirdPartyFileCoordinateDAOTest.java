@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import com.google.common.base.Throwables;
-import jakarta.persistence.PersistenceException;
+import org.jooq.exception.DataAccessException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,7 +40,6 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.openjpa.lib.jdbc.ReportingSQLException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -1842,14 +1841,11 @@ public class ThirdPartyFileCoordinateDAOTest
     try {
       thirdPartyFileCoordinateDAO.insert(entity);
     }
-    catch (PersistenceException sqlEx) {
-      assertThat(sqlEx).isInstanceOf(PersistenceException.class)
-          .hasMessageContaining("The transaction has been rolled back.  See the nested " +
-              "exceptions for details on the errors that occurred.");
+    catch (DataAccessException sqlEx) {
+      assertThat(sqlEx).isInstanceOf(DataAccessException.class);
       Throwable rootCause = Throwables.getRootCause(sqlEx);
-      assertThat(rootCause).isInstanceOf(ReportingSQLException.class)
-          .hasMessageContaining("Value too long " +
-              "for column \"\"\"cpe\"\" VARCHAR(" + MAX_CPE_LENGTH);
+      assertThat(rootCause).hasMessageContaining("Value too long " +
+          "for column \"\"\"cpe\"\" VARCHAR(" + MAX_CPE_LENGTH);
     }
   }
 }

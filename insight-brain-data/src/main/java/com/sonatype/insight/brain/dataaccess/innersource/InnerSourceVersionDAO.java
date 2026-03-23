@@ -15,6 +15,10 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.innersource.InnerSourceVersion;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.InnerSourceVersion.INNER_SOURCE_VERSION;
+
 @Named
 @Singleton
 public class InnerSourceVersionDAO
@@ -29,8 +33,10 @@ public class InnerSourceVersionDAO
       TransactionContext tx,
       String innerSourceApplicationId)
   {
-    String sQuery = "SELECT entity FROM InnerSourceVersion entity WHERE entity.innerSourceApplicationId=?1";
-    return getList(tx, sQuery, innerSourceApplicationId);
+    return tx.dsl()
+        .selectFrom(INNER_SOURCE_VERSION)
+        .where(INNER_SOURCE_VERSION.INNER_SOURCE_APPLICATION_ID.eq(innerSourceApplicationId))
+        .fetch(this::toEntity);
   }
 
   public List<InnerSourceVersion> getByInnerSourceApplicationId(String innerSourceApplicationId) {
@@ -41,9 +47,27 @@ public class InnerSourceVersionDAO
 
   public InnerSourceVersion getByInnerSourceApplicationIdAndStage(String innerSourceAppId, String stageTypeId) {
     try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = "SELECT entity FROM InnerSourceVersion entity" +
-          " WHERE entity.innerSourceApplicationId=?1 AND entity.stageTypeId=?2";
-      return get(tx, sQuery, innerSourceAppId, stageTypeId);
+      var query = tx.dsl()
+          .selectFrom(INNER_SOURCE_VERSION)
+          .where(INNER_SOURCE_VERSION.INNER_SOURCE_APPLICATION_ID.eq(innerSourceAppId));
+      // Handle NULL stage type ID with IS NULL (SQL NULL comparison requires IS NULL)
+      if (stageTypeId == null) {
+        query = query.and(INNER_SOURCE_VERSION.STAGE_TYPE_ID.isNull());
+      }
+      else {
+        query = query.and(INNER_SOURCE_VERSION.STAGE_TYPE_ID.eq(stageTypeId));
+      }
+      return toEntity(query.fetchOne());
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return INNER_SOURCE_VERSION;
+  }
+
+  @Override
+  public Class<InnerSourceVersion> getEntityClass() {
+    return InnerSourceVersion.class;
   }
 }

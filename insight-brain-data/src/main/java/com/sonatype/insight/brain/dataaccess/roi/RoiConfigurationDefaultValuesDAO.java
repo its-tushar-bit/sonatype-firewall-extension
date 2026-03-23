@@ -5,16 +5,18 @@
  */
 package com.sonatype.insight.brain.dataaccess.roi;
 
-import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractAggregationSqlDAO;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.model.roi.CurrencyTypes;
 import com.sonatype.insight.brain.model.roi.RoiConfigurationDefaultValues;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.aggregation.tables.RoiConfigurationDefaultValues.ROI_CONFIGURATION_DEFAULT_VALUES;
 
 @Named
 @Singleton
@@ -26,23 +28,22 @@ public class RoiConfigurationDefaultValuesDAO
     super(aggregationDataStore);
   }
 
-  @Override
-  public RoiConfigurationDefaultValues getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM RoiConfigurationDefaultValues entity" + //
-        " WHERE entity.id=?1";
-    return get(tx, sQuery, id);
-  }
-
-  public List<RoiConfigurationDefaultValues> getAll() {
-    String sQuery = "SELECT entity FROM RoiConfigurationDefaultValues entity";
-    return getList(sQuery);
-  }
-
   public RoiConfigurationDefaultValues getByCurrencyType(CurrencyTypes currencyType) {
     try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = "SELECT entity FROM RoiConfigurationDefaultValues entity" + //
-          " WHERE entity.currency=?1";
-      return get(tx, sQuery, currencyType);
+      return tx.dsl()
+          .selectFrom(ROI_CONFIGURATION_DEFAULT_VALUES)
+          .where(ROI_CONFIGURATION_DEFAULT_VALUES.CURRENCY.eq(currencyType.name()))
+          .fetchOneInto(RoiConfigurationDefaultValues.class);
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return ROI_CONFIGURATION_DEFAULT_VALUES;
+  }
+
+  @Override
+  public Class<RoiConfigurationDefaultValues> getEntityClass() {
+    return RoiConfigurationDefaultValues.class;
   }
 }

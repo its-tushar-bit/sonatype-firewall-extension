@@ -6,14 +6,20 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.Date;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.json.store.JsonUtils;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+import org.jooq.UpdatableRecord;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PersistedPolicyEvaluationPollingResult.PERSISTED_POLICY_EVALUATION_POLLING_RESULT;
 
 @Named
 @Singleton
@@ -25,38 +31,57 @@ public class PersistedPolicyEvaluationPollingResultDAO
     super(operationalDataStore);
   }
 
-  public PersistedPolicyEvaluationPollingResult getByApplicationIdAndStatusId(String applicationId, String statusId) {
-    String sQuery = "SELECT entity FROM PersistedPolicyEvaluationPollingResult entity" + //
-        " WHERE entity.applicationId=?1" + //
-        " AND entity.statusId=?2";
-    return get(sQuery, applicationId, statusId);
-  }
-
   @Override
-  public final void delete(
-      TransactionContext tx,
-      PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult)
+  protected UpdatableRecord<?> fromEntity(
+      final UpdatableRecord<?> record,
+      final PersistedPolicyEvaluationPollingResult entity)
   {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting all expired entities.
-    super.delete(tx, persistedPolicyEvaluationPollingResult);
+    super.fromEntity(record, entity);
+    record.set(PERSISTED_POLICY_EVALUATION_POLLING_RESULT.POLICY_EVALUATION_POLLING_RESULT_JSON,
+        entity.getPolicyEvaluationPollingResult() != null
+            ? JsonUtils.writeUnformatted(entity.getPolicyEvaluationPollingResult())
+            : null);
+    return record;
   }
 
-  @Override
-  public final void delete(PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting all expired entities.
-    super.delete(persistedPolicyEvaluationPollingResult);
+  public PersistedPolicyEvaluationPollingResult getByApplicationIdAndStatusId(String applicationId, String statusId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(PERSISTED_POLICY_EVALUATION_POLLING_RESULT)
+          .where(PERSISTED_POLICY_EVALUATION_POLLING_RESULT.APPLICATION_ID.eq(applicationId))
+          .and(PERSISTED_POLICY_EVALUATION_POLLING_RESULT.STATUS_ID.eq(statusId))
+          .fetchOne());
+    }
   }
 
   public void deleteBeforeOrOn(Date date) {
-    String sQuery = "DELETE FROM PersistedPolicyEvaluationPollingResult entity" + //
-        " WHERE entity.createTime <= ?1";
-    createQuery(sQuery, date).executeUpdate();
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .deleteFrom(PERSISTED_POLICY_EVALUATION_POLLING_RESULT)
+          .where(PERSISTED_POLICY_EVALUATION_POLLING_RESULT.CREATE_TIME.le(date))
+          .execute();
+      tx.commit();
+    }
   }
 
   public void deleteAll() {
-    String sQuery = "DELETE FROM PersistedPolicyEvaluationPollingResult entity";
-    createQuery(sQuery).executeUpdate();
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .deleteFrom(PERSISTED_POLICY_EVALUATION_POLLING_RESULT)
+          .execute();
+      tx.commit();
+    }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return PERSISTED_POLICY_EVALUATION_POLLING_RESULT;
+  }
+
+  @Override
+  public Class<PersistedPolicyEvaluationPollingResult> getEntityClass() {
+    return PersistedPolicyEvaluationPollingResult.class;
   }
 }

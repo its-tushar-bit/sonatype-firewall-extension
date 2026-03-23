@@ -42,7 +42,7 @@ public class ApiScmOnboardingResourceTest
     extends AbstractScmOnboardingResourceTest
 {
   private static final Pattern STATUS_URL_PATTERN = Pattern.compile(
-      "api/experimental/onboarding/importRepositories/[a-f0-9]*/event/(?<eventId>[a-f0-9]*)");
+      "api/experimental/onboarding/importRepositories/[a-f0-9]*/event/(?<eventId>[a-f0-9-]*)");
 
   private OrganizationDAO organizationDAO;
 

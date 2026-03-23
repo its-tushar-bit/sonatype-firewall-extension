@@ -27,6 +27,9 @@ public class SourceControlUser
   @Column(name = "email")
   private String email;
 
+  public SourceControlUser() {
+  }
+
   public SourceControlUser(final String applicationId, final String email) {
     this.applicationId = applicationId;
     this.email = email;

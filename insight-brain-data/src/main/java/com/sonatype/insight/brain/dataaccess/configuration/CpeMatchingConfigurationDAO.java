@@ -14,6 +14,10 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.CpeMatchingConfiguration.CPE_MATCHING_CONFIGURATION;
+
 /**
  * @since 1.190
  */
@@ -27,15 +31,17 @@ public class CpeMatchingConfigurationDAO
     super(operationalDataStore);
   }
 
-  public CpeMatchingConfiguration getByOwnerId(String ownerId) {
+  public CpeMatchingConfiguration getByOwnerId(final String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);
     }
   }
 
-  public CpeMatchingConfiguration getByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT entity FROM CpeMatchingConfiguration entity WHERE entity.ownerId = ?1";
-    return get(tx, sQuery, ownerId);
+  public CpeMatchingConfiguration getByOwnerId(final TransactionContext tx, final String ownerId) {
+    return tx.dsl()
+        .selectFrom(CPE_MATCHING_CONFIGURATION)
+        .where(CPE_MATCHING_CONFIGURATION.OWNER_ID.eq(ownerId))
+        .fetchOneInto(CpeMatchingConfiguration.class);
   }
 
   public void delete(final String internalOwnerId) {
@@ -51,5 +57,15 @@ public class CpeMatchingConfigurationDAO
     if (cpeConfig != null) {
       delete(tx, cpeConfig);
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return CPE_MATCHING_CONFIGURATION;
+  }
+
+  @Override
+  public Class<CpeMatchingConfiguration> getEntityClass() {
+    return CpeMatchingConfiguration.class;
   }
 }

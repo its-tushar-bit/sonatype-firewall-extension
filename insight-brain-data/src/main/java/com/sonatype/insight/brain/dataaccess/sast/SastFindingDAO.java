@@ -6,18 +6,21 @@
 package com.sonatype.insight.brain.dataaccess.sast;
 
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
+import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SastFinding.SAST_FINDING;
 import static java.lang.String.format;
 
 @Named
@@ -49,9 +52,11 @@ public class SastFindingDAO
   }
 
   public List<SastFinding> getBySastScanIdOrderBySeverityDesc(final TransactionContext tx, final String sastScanId) {
-    final String sQuery =
-        "SELECT entity FROM SastFinding entity WHERE entity.sastScanId=?1 ORDER BY entity.severityId DESC";
-    return getList(tx, sQuery, sastScanId);
+    return tx.dsl()
+        .selectFrom(SAST_FINDING)
+        .where(SAST_FINDING.SAST_SCAN_ID.eq(sastScanId))
+        .orderBy(SAST_FINDING.SEVERITY.desc())
+        .fetch(this::toEntity);
   }
 
   public void deleteBySastScanId(final String sastScanId) {
@@ -63,8 +68,10 @@ public class SastFindingDAO
   }
 
   public void deleteBySastScanId(final TransactionContext tx, final String sastScanId) {
-    final String sQuery = "DELETE FROM SastFinding entity WHERE entity.sastScanId=?1";
-    createQuery(sQuery, sastScanId).executeUpdate(tx);
+    tx.dsl()
+        .deleteFrom(SAST_FINDING)
+        .where(SAST_FINDING.SAST_SCAN_ID.eq(sastScanId))
+        .execute();
   }
 
   private static <E extends Enum<E>> void validateEnumOrdinalValue(final Class<E> enumClass, final int ordinal) {
@@ -72,7 +79,6 @@ public class SastFindingDAO
     if (ordinal < 0 || ordinal >= numEnumValues) {
       throw new BadRequestException(format("The ordinal value '%s' is outside the range [0, %d) for '%s'",
           ordinal, numEnumValues, enumClass.getSimpleName()));
-
     }
   }
 
@@ -80,5 +86,15 @@ public class SastFindingDAO
     if (SastFindingSeverity.getById(severityId) == null) {
       throw new BadRequestException("Invalid id for SastFindingSeverity: " + severityId);
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return SAST_FINDING;
+  }
+
+  @Override
+  public Class<SastFinding> getEntityClass() {
+    return SastFinding.class;
   }
 }

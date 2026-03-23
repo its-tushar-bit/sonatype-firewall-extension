@@ -9,16 +9,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlUser;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.apache.commons.lang3.StringUtils;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControlUser.SOURCE_CONTROL_USER;
 
 @Named
 @Singleton
@@ -30,23 +31,13 @@ public class SourceControlUserDAO
     super(operationalDataStore);
   }
 
-  @Override
-  public final void delete(TransactionContext tx, SourceControlUser entity) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting related entities.
-    super.delete(tx, entity);
-  }
-
-  @Override
-  public final void delete(SourceControlUser entity) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting related entities.
-    super.delete(entity);
-  }
-
   public List<SourceControlUser> getByApplicationId(String applicationId) {
-    String sQuery = "SELECT entity FROM SourceControlUser entity WHERE entity.applicationId=?1";
-    return getList(sQuery, applicationId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(SOURCE_CONTROL_USER)
+          .where(SOURCE_CONTROL_USER.APPLICATION_ID.eq(applicationId))
+          .fetch(this::toEntity);
+    }
   }
 
   public Map<String, String> getUserIdByEmailFilteringByApplicationId(String applicationId) {
@@ -64,61 +55,35 @@ public class SourceControlUserDAO
       return;
     }
 
-    String dbSchema = getDatabaseSchema();
-    SourceControlUserDAOQueryBuilder queryBuilder =
-        isDatabasePostgresql()
-            ? new PostgresqlSourceControlUserDAOQueryBuilder(dbSchema)
-            : new DefaultSourceControlUserDAOQueryBuilder(dbSchema);
-
-    final jakarta.persistence.Query query =
-        tx.createNativeQuery(queryBuilder.getMassiveInsertNativeQuery(usersToInsert));
-    int i = 0;
+    // Insert one row at a time, skipping if a record with same application_id+email exists
+    // jOOQ's onDuplicateKeyIgnore() generates PostgreSQL MERGE syntax which H2 doesn't support
     for (SourceControlUser user : usersToInsert) {
-      query.setParameter(++i, user.getId())
-          .setParameter(++i, user.getApplicationId())
-          .setParameter(++i, user.getEmail());
-    }
-    query.executeUpdate();
-  }
+      // Check if record already exists (unique constraint on application_id + email)
+      boolean exists = tx.dsl()
+          .fetchExists(
+              tx.dsl()
+                  .selectFrom(SOURCE_CONTROL_USER)
+                  .where(SOURCE_CONTROL_USER.APPLICATION_ID.eq(user.getApplicationId()))
+                  .and(SOURCE_CONTROL_USER.EMAIL.eq(user.getEmail())));
 
-  private interface SourceControlUserDAOQueryBuilder
-  {
-    String getMassiveInsertNativeQuery(final List<SourceControlUser> usersToInsert);
-  }
-
-  private static class DefaultSourceControlUserDAOQueryBuilder
-      implements SourceControlUserDAOQueryBuilder
-  {
-    private final String databaseSchema;
-
-    public DefaultSourceControlUserDAOQueryBuilder(final String databaseSchema) {
-      this.databaseSchema = databaseSchema;
-    }
-
-    @Override
-    public String getMassiveInsertNativeQuery(final List<SourceControlUser> usersToInsert) {
-      return "INSERT INTO " + databaseSchema + ".source_control_user (source_control_user_id, application_id, email)" +
-          " SELECT sour.* FROM ( SELECT ? || '' as id,? || '' as app,? || '' as em" +
-          StringUtils.repeat(" UNION SELECT ? || '' as id,? || '' as app,? || '' as em", usersToInsert.size() - 1) +
-          ") sour WHERE NOT EXISTS (SELECT source_control_user_id FROM " + databaseSchema + ".source_control_user " +
-          "WHERE application_id=sour.app AND email=sour.em)";
+      if (!exists) {
+        tx.dsl()
+            .insertInto(SOURCE_CONTROL_USER)
+            .set(SOURCE_CONTROL_USER.SOURCE_CONTROL_USER_ID, user.getId())
+            .set(SOURCE_CONTROL_USER.APPLICATION_ID, user.getApplicationId())
+            .set(SOURCE_CONTROL_USER.EMAIL, user.getEmail())
+            .execute();
+      }
     }
   }
 
-  private static class PostgresqlSourceControlUserDAOQueryBuilder
-      implements SourceControlUserDAOQueryBuilder
-  {
-    private final String databaseSchema;
+  @Override
+  public Table<?> getJooqTable() {
+    return SOURCE_CONTROL_USER;
+  }
 
-    public PostgresqlSourceControlUserDAOQueryBuilder(final String databaseSchema) {
-      this.databaseSchema = databaseSchema;
-    }
-
-    @Override
-    public String getMassiveInsertNativeQuery(final List<SourceControlUser> usersToInsert) {
-      return "INSERT INTO " + databaseSchema + ".source_control_user (source_control_user_id, application_id, email) " +
-          "VALUES (?, ?, ?)" + StringUtils.repeat(", (?, ?, ?)", usersToInsert.size() - 1) +
-          " ON CONFLICT (application_id, email) DO NOTHING";
-    }
+  @Override
+  public Class<SourceControlUser> getEntityClass() {
+    return SourceControlUser.class;
   }
 }

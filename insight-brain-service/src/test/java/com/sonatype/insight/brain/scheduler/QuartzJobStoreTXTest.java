@@ -46,6 +46,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import org.jooq.impl.DSL;
+
 @Category(SlowTest.class)
 public class QuartzJobStoreTXTest
     extends AbstractComponentTest
@@ -465,26 +467,28 @@ public class QuartzJobStoreTXTest
   }
 
   private void createSchedulerStateRecord(String schedulerInstanceId, long checkinTimestamp) throws Exception {
-    String sQuery = "INSERT INTO " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE" + //
-        " (SCHED_NAME, INSTANCE_NAME, LAST_CHECKIN_TIME, CHECKIN_INTERVAL) " + //
-        " VALUES (?1, ?2, ?3, ?4)";
-    try (Connection connection = operationalDataStore.getDataSource().getConnection();
-        PreparedStatement statement = connection.prepareStatement(sQuery))
-    {
-      statement.setString(1, taskScheduler.getScheduler().getSchedulerName());
-      statement.setString(2, schedulerInstanceId);
-      statement.setLong(3, checkinTimestamp);
-      statement.setLong(4, quartzJobStoreTXSpy.getClusterCheckinInterval());
-      statement.execute();
+    try (Connection connection = operationalDataStore.getDataSource().getConnection()) {
+      DSL.using(connection)
+          .insertInto(DSL.table(operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE"))
+          .columns(
+              DSL.field("SCHED_NAME"),
+              DSL.field("INSTANCE_NAME"),
+              DSL.field("LAST_CHECKIN_TIME"),
+              DSL.field("CHECKIN_INTERVAL"))
+          .values(
+              taskScheduler.getScheduler().getSchedulerName(),
+              schedulerInstanceId,
+              checkinTimestamp,
+              quartzJobStoreTXSpy.getClusterCheckinInterval())
+          .execute();
     }
   }
 
   private void deleteAllSchedulerStateRecords() throws Exception {
-    String sQuery = "DELETE FROM " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE";
-    try (Connection connection = operationalDataStore.getDataSource().getConnection();
-        PreparedStatement statement = connection.prepareStatement(sQuery))
-    {
-      statement.execute();
+    try (Connection connection = operationalDataStore.getDataSource().getConnection()) {
+      DSL.using(connection)
+          .deleteFrom(DSL.table(operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE"))
+          .execute();
     }
   }
 
@@ -522,16 +526,15 @@ public class QuartzJobStoreTXTest
       {
         if (System.currentTimeMillis() >= lastCheckinTime + QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS) {
           lastCheckinTime = System.currentTimeMillis();
-          String sQuery = "UPDATE " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE "
-              + "SET LAST_CHECKIN_TIME = ?1 WHERE INSTANCE_NAME = ?2";
-          try (Connection connection = operationalDataStore.getDataSource().getConnection();
-              PreparedStatement statement = connection.prepareStatement(sQuery))
-          {
-            statement.setLong(1, lastCheckinTime);
-            statement.setString(2, schedulerInstanceId);
+          try (Connection connection = operationalDataStore.getDataSource().getConnection()) {
             // If no records are updated, it means the scheduler state records were deleted in the after() method,
             // so the test has finished.
-            if (statement.executeUpdate() == 0) {
+            int rowsUpdated = DSL.using(connection)
+                .update(DSL.table(operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE"))
+                .set(DSL.field("LAST_CHECKIN_TIME"), lastCheckinTime)
+                .where(DSL.field("INSTANCE_NAME").eq(schedulerInstanceId))
+                .execute();
+            if (rowsUpdated == 0) {
               return;
             }
           }

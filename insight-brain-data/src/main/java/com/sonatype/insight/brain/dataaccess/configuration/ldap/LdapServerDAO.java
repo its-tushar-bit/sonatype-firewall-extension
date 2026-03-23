@@ -8,9 +8,7 @@ package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
@@ -23,6 +21,14 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.LdapServer.LDAP_SERVER;
 
 /**
  * @since 1.7
@@ -63,63 +69,29 @@ public class LdapServerDAO
     this.userViewedProductNotificationDAO = userViewedProductNotificationDAO;
   }
 
-  private LdapServer getByName(TransactionContext tx, String name) {
-    if (name == null || name.trim().isEmpty()) {
-      throw new DataAccessException("The LdapServer name cannot be null or empty.");
-    }
-    // LdapConfiguration Name is whitespace and case insensitive
-    name = NameHelper.normalize(name);
-    String sQuery = "SELECT entity FROM LdapServer entity" + //
-        " WHERE entity.nameLowercaseNoWhitespace=?1";
-    return get(tx, sQuery, name);
-  }
-
-  public LdapServer getByName(String name) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByName(tx, name);
-    }
-  }
-
   @Override
-  public List<LdapServer> getAll() {
-    String sQuery = "SELECT entity FROM LdapServer entity" + //
-        " ORDER BY entity.priority";
-    return getList(sQuery);
-  }
-
-  @Override
-  public void insert(TransactionContext tx, LdapServer config) {
+  public void insert(final TransactionContext tx, final LdapServer config) {
     NameHelper.validate(config.getName());
-
     if (getByName(tx, config.getName()) != null) {
       throw new InvalidNameException(config.getName() + " is already used as a name.");
     }
     int priority = getNextPriority(tx);
     config.setPriority(priority);
-
     super.insert(tx, config);
   }
 
-  private int getNextPriority(TransactionContext tx) {
-    String sQuery = "SELECT MAX(entity.priority) FROM LdapServer entity";
-    Integer currentPriority = getSingle(tx, Integer.class, sQuery);
-    return currentPriority == null ? 1 : currentPriority + 1;
-  }
-
   @Override
-  public void update(TransactionContext tx, LdapServer config) {
+  public void update(final TransactionContext tx, final LdapServer config) {
     NameHelper.validate(config.getName());
-
     LdapServer existingConfig = getByName(tx, config.getName());
     if (existingConfig != null && !existingConfig.getId().equals(config.getId())) {
       throw new InvalidNameException(config.getName() + " is already used as a name.");
     }
-
     super.update(tx, config);
   }
 
   @Override
-  public void delete(TransactionContext tx, LdapServer entity) {
+  public void delete(final TransactionContext tx, final LdapServer entity) {
     ldapConnectionDAO.deleteByServerId(tx, entity.getId());
     ldapUserMappingDAO.deleteByServerId(tx, entity.getId());
     userTokenDAO.deleteByRealmId(tx, entity.getId());
@@ -129,7 +101,51 @@ public class LdapServerDAO
     super.delete(tx, entity);
   }
 
-  public void updatePriority(List<String> serverIds) {
+  private LdapServer getByName(final TransactionContext tx, String name) {
+    if (name == null || name.trim().isEmpty()) {
+      throw new DataAccessException("The LdapServer name cannot be null or empty.");
+    }
+    // LdapConfiguration Name is whitespace and case insensitive
+    name = NameHelper.normalize(name);
+    return toEntity(tx.dsl()
+        .selectFrom(LDAP_SERVER)
+        .where(LDAP_SERVER.NAME_LOWERCASE_NO_WHITESPACE.eq(name))
+        .fetchOne());
+  }
+
+  public LdapServer getByName(final String name) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByName(tx, name);
+    }
+  }
+
+  @Override
+  public List<LdapServer> getAll() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getAll(tx);
+    }
+  }
+
+  @Override
+  public List<LdapServer> getAll(final TransactionContext tx) {
+    return tx.dsl()
+        .selectFrom(LDAP_SERVER)
+        .orderBy(LDAP_SERVER.PRIORITY)
+        .fetch()
+        .stream()
+        .map(this::toEntity)
+        .collect(Collectors.toList());
+  }
+
+  private int getNextPriority(final TransactionContext tx) {
+    Integer currentPriority = tx.dsl()
+        .select(DSL.max(LDAP_SERVER.PRIORITY))
+        .from(LDAP_SERVER)
+        .fetchOne(0, Integer.class);
+    return currentPriority == null ? 1 : currentPriority + 1;
+  }
+
+  public void updatePriority(final List<String> serverIds) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
       updatePriority(tx, serverIds);
@@ -137,7 +153,7 @@ public class LdapServerDAO
     }
   }
 
-  private void updatePriority(TransactionContext tx, List<String> ldapServerIds) {
+  private void updatePriority(final TransactionContext tx, final List<String> ldapServerIds) {
     if (new HashSet<>(ldapServerIds).size() != ldapServerIds.size()) {
       throw new DataAccessException("Unable to update priority of Ldap servers due to duplicate server IDs.");
     }
@@ -163,5 +179,15 @@ public class LdapServerDAO
       update(tx, ldapServer);
       i++;
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return LDAP_SERVER;
+  }
+
+  @Override
+  public Class<LdapServer> getEntityClass() {
+    return LdapServer.class;
   }
 }

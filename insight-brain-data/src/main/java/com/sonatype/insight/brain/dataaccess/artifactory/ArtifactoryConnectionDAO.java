@@ -5,14 +5,20 @@
  */
 package com.sonatype.insight.brain.dataaccess.artifactory;
 
+import java.util.List;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.jooq.Table;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.security.RotatableSecrets;
+import com.sonatype.insight.dataaccess.TransactionContext;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ArtifactoryConnection.ARTIFACTORY_CONNECTION;
 
 @Named
 @Singleton
@@ -21,19 +27,43 @@ public class ArtifactoryConnectionDAO
     implements RotatableSecrets
 {
   @Inject
-  public ArtifactoryConnectionDAO(OperationalDataStore operationalDataStore) {
+  public ArtifactoryConnectionDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
   }
 
-  private static final String SELECT_ENTITY = "SELECT entity FROM ArtifactoryConnection entity ";
-
-  public ArtifactoryConnection getByOwnerId(String ownerId) {
-    String sQuery = SELECT_ENTITY + "WHERE entity.ownerId=?1";
-    return get(sQuery, ownerId);
+  public ArtifactoryConnection getByOwnerId(final String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(ARTIFACTORY_CONNECTION)
+          .where(ARTIFACTORY_CONNECTION.OWNER_ID.eq(ownerId))
+          .fetchOne());
+    }
   }
 
-  public ArtifactoryConnection getByIdAndOwnerId(String artifactoryConnectionId, String ownerId) {
-    String sQuery = SELECT_ENTITY + "WHERE entity.id=?1 AND entity.ownerId=?2";
-    return get(sQuery, artifactoryConnectionId, ownerId);
+  public ArtifactoryConnection getByIdAndOwnerId(final String artifactoryConnectionId, final String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(ARTIFACTORY_CONNECTION)
+          .where(ARTIFACTORY_CONNECTION.ARTIFACTORY_CONNECTION_ID.eq(artifactoryConnectionId))
+          .and(ARTIFACTORY_CONNECTION.OWNER_ID.eq(ownerId))
+          .fetchOne());
+    }
+  }
+
+  @Override
+  public List<ArtifactoryConnection> getAll(final TransactionContext tx) {
+    return tx.dsl()
+        .selectFrom(ARTIFACTORY_CONNECTION)
+        .fetch(this::toEntity);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return ARTIFACTORY_CONNECTION;
+  }
+
+  @Override
+  public Class<ArtifactoryConnection> getEntityClass() {
+    return ArtifactoryConnection.class;
   }
 }

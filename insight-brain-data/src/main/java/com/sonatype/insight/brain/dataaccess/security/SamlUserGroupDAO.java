@@ -18,6 +18,9 @@ import com.sonatype.insight.brain.model.security.SamlUserGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SamlUserGroup.SAML_USER_GROUP;
 
 @Named
 @Singleton
@@ -36,10 +39,11 @@ public class SamlUserGroupDAO
   }
 
   public SamlUserGroup getBySamlUserIdAndSamlGroupId(TransactionContext tx, String samlUserId, String samlGroupId) {
-    String sQuery = "SELECT entity FROM SamlUserGroup entity" + //
-        " WHERE entity.samlUserId=?1" + //
-        " AND entity.samlGroupId=?2";
-    return get(tx, sQuery, samlUserId, samlGroupId);
+    return tx.dsl()
+        .selectFrom(SAML_USER_GROUP)
+        .where(SAML_USER_GROUP.SAML_USER_ID.eq(samlUserId))
+        .and(SAML_USER_GROUP.SAML_GROUP_ID.eq(samlGroupId))
+        .fetchOneInto(SamlUserGroup.class);
   }
 
   public List<SamlUserGroup> getBySamlUserId(String samlUserId) {
@@ -49,9 +53,10 @@ public class SamlUserGroupDAO
   }
 
   public List<SamlUserGroup> getBySamlUserId(TransactionContext tx, String samlUserId) {
-    String sQuery = "SELECT entity FROM SamlUserGroup entity" + //
-        " WHERE entity.samlUserId=?1";
-    return getList(tx, sQuery, samlUserId);
+    return tx.dsl()
+        .selectFrom(SAML_USER_GROUP)
+        .where(SAML_USER_GROUP.SAML_USER_ID.eq(samlUserId))
+        .fetchInto(SamlUserGroup.class);
   }
 
   public List<SamlUserGroup> getBySamlGroupId(String samlGroupId) {
@@ -61,9 +66,10 @@ public class SamlUserGroupDAO
   }
 
   public List<SamlUserGroup> getBySamlGroupId(TransactionContext tx, String samlGroupId) {
-    String sQuery = "SELECT entity FROM SamlUserGroup entity" + //
-        " WHERE entity.samlGroupId=?1";
-    return getList(tx, sQuery, samlGroupId);
+    return tx.dsl()
+        .selectFrom(SAML_USER_GROUP)
+        .where(SAML_USER_GROUP.SAML_GROUP_ID.eq(samlGroupId))
+        .fetchInto(SamlUserGroup.class);
   }
 
   public void upsertBySamlUserIdAndSamlGroupId(SamlUserGroup samlUserGroup) {
@@ -95,9 +101,10 @@ public class SamlUserGroupDAO
   }
 
   public void deleteBySamlUserId(TransactionContext tx, String samlUserId) {
-    String sQuery = "DELETE FROM SamlUserGroup entity" + //
-        " WHERE entity.samlUserId=?1";
-    createQuery(sQuery, samlUserId).executeUpdate(tx);
+    tx.dsl()
+        .deleteFrom(SAML_USER_GROUP)
+        .where(SAML_USER_GROUP.SAML_USER_ID.eq(samlUserId))
+        .execute();
   }
 
   public void deleteBySamlGroupId(String samlGroupId) {
@@ -109,9 +116,10 @@ public class SamlUserGroupDAO
   }
 
   public void deleteBySamlGroupId(TransactionContext tx, String samlGroupId) {
-    String sQuery = "DELETE FROM SamlUserGroup entity" + //
-        " WHERE entity.samlGroupId=?1";
-    createQuery(sQuery, samlGroupId).executeUpdate(tx);
+    tx.dsl()
+        .deleteFrom(SAML_USER_GROUP)
+        .where(SAML_USER_GROUP.SAML_GROUP_ID.eq(samlGroupId))
+        .execute();
   }
 
   public void deleteBySamlUserIdAndGroupIds(String samlUserId, Set<String> groupIds) {
@@ -126,9 +134,20 @@ public class SamlUserGroupDAO
     if (CollectionUtils.isEmpty(groupIds)) {
       return;
     }
-    String sQuery = "DELETE FROM SamlUserGroup entity" + //
-        " WHERE entity.samlUserId=?1" + //
-        " AND entity.samlGroupId IN ?2";
-    createQuery(sQuery, samlUserId, groupIds).executeUpdate(tx);
+    tx.dsl()
+        .deleteFrom(SAML_USER_GROUP)
+        .where(SAML_USER_GROUP.SAML_USER_ID.eq(samlUserId))
+        .and(SAML_USER_GROUP.SAML_GROUP_ID.in(groupIds))
+        .execute();
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return SAML_USER_GROUP;
+  }
+
+  @Override
+  public Class<SamlUserGroup> getEntityClass() {
+    return SamlUserGroup.class;
   }
 }

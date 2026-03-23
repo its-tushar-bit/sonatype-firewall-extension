@@ -5,8 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.PersistenceException;
+import org.jooq.exception.IntegrityConstraintViolationException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration;
@@ -68,14 +67,12 @@ public class RepositoryClientConfigurationDAOTest
     RepositoryClientConfiguration config = newValidConfiguration();
     dao.insert(config);
 
-    assertThatExceptionOfType(PersistenceException.class)
-        .isThrownBy(() -> dao.insert(newValidConfiguration()))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class)
+        .isThrownBy(() -> dao.insert(newValidConfiguration()));
 
     RepositoryClientConfiguration anotherConfig = newValidConfiguration();
     config.setId("not-singleton-id");
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(anotherConfig))
-        .withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(IntegrityConstraintViolationException.class).isThrownBy(() -> dao.insert(anotherConfig));
   }
 
   @Test
@@ -85,7 +82,7 @@ public class RepositoryClientConfigurationDAOTest
     RepositoryClientConfiguration config = newValidConfiguration();
     config.setId("not-singleton-id");
     dao.update(config);
-    assertThat(dao.createQuery("SELECT entity FROM RepositoryClientConfiguration entity").getList())
+    assertThat(dao.getAll())
         .extracting(RepositoryClientConfiguration::getId)
         .containsExactly(RepositoryClientConfigurationDAO.SINGLETON_ENTITY_ID);
   }

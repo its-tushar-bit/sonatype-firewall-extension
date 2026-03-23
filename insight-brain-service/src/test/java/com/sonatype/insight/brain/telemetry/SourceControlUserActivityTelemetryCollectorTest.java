@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlUserActivityDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlUserActivityTelemetryDTO;
@@ -68,8 +67,8 @@ public class SourceControlUserActivityTelemetryCollectorTest
     app2ActivityMap.put(HdsClientAnalytics.obfuscate(activity4.getEmail()),
         Collections.singletonList(activity4.getCommitYearMonth().toString()));
 
-    when(sourceControlUserActivityDAO.getActivitiesNotSentToTelemetry()).then(
-        i -> Stream.of(activity1, activity2, activity3, activity4));
+    when(sourceControlUserActivityDAO.getActivitiesNotSentToTelemetry()).thenReturn(
+        Arrays.asList(activity1, activity2, activity3, activity4));
 
     Map<String, Map<String, List<String>>> sourceControlUserActivitiesMap = new HashMap<>();
     sourceControlUserActivitiesMap.put(HdsClientAnalytics.obfuscate(activity1.getApplicationId()), app1ActivityMap);
@@ -93,22 +92,22 @@ public class SourceControlUserActivityTelemetryCollectorTest
 
   @Test
   public void testCollectData_NoActivities() {
-    when(sourceControlUserActivityDAO.getActivitiesNotSentToTelemetry()).then(
-        i -> Stream.of());
+    when(sourceControlUserActivityDAO.getActivitiesNotSentToTelemetry()).thenReturn(
+        Collections.emptyList());
     TelemetryData telemetryDataFromCollector = collector.collectData();
     assertThat(telemetryDataFromCollector).isNull();
   }
 
   @Test
   public void testCollectAllData_NoActivities() {
-    when(sourceControlUserActivityDAO.getActivitiesNotSentToTelemetry()).then(
-        i -> Stream.of());
+    when(sourceControlUserActivityDAO.getActivitiesNotSentToTelemetry()).thenReturn(
+        Collections.emptyList());
     List<TelemetryData> telemetryDataListFromCollector = collector.collectAllData();
     assertThat(telemetryDataListFromCollector).isEmpty();
   }
 
   @Test
   public void testIsClusterTelemetry() {
-    assertThat(new SourceControlRateLimitTelemetryCollector().isClusterTelemetry()).isFalse();
+    assertThat(collector.isClusterTelemetry()).isFalse();
   }
 }

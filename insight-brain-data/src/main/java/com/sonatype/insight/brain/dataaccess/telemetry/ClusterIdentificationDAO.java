@@ -13,6 +13,10 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.telemetry.ClusterIdentification;
 
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ClusterIdentification.CLUSTER_IDENTIFICATION;
+
 @Named
 @Singleton
 public class ClusterIdentificationDAO
@@ -21,5 +25,15 @@ public class ClusterIdentificationDAO
   @Inject
   public ClusterIdentificationDAO(OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return CLUSTER_IDENTIFICATION;
+  }
+
+  @Override
+  public Class<ClusterIdentification> getEntityClass() {
+    return ClusterIdentification.class;
   }
 }

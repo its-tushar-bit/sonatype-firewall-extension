@@ -6,9 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.filter;
 
 import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -19,9 +16,16 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Table;
+import org.jooq.UpdatableRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.DashboardFilter.DASHBOARD_FILTER;
 
 /**
  * @since 1.11.0
@@ -38,12 +42,23 @@ public class DashboardFilterDAO
     super(operationalDataStore);
   }
 
+  @Override
+  protected UpdatableRecord<?> fromEntity(final UpdatableRecord<?> record, final DashboardFilter entity) {
+    super.fromEntity(record, entity);
+    record.set(DASHBOARD_FILTER.USERNAME_LOWERCASE, User.normalizeUsername(entity.getUsername()));
+    record.set(DASHBOARD_FILTER.NAME_LOWERCASE_NO_WHITESPACE, NameHelper.normalize(entity.getName()));
+    return record;
+  }
+
   public List<DashboardFilter> getByUsernameAndRealmId(TransactionContext tx, String username, String realmId) {
     username = User.normalizeUsername(username);
-    String sQuery = "SELECT entity FROM DashboardFilter entity" + //
-        " WHERE entity.usernameLowercase=?1 AND entity.realmId=?2" + //
-        " ORDER BY entity.name";
-    return getList(tx, sQuery, username, realmId);
+    return tx.dsl()
+        .selectFrom(DASHBOARD_FILTER)
+        .where(DASHBOARD_FILTER.USERNAME_LOWERCASE.eq(username))
+        .and(realmId == null ? DASHBOARD_FILTER.REALM_ID.isNull() : DASHBOARD_FILTER.REALM_ID.eq(realmId))
+        .orderBy(DASHBOARD_FILTER.NAME)
+        .fetch()
+        .map(this::toEntity);
   }
 
   public List<DashboardFilter> getByUsernameAndRealmId(String username, String realmId) {
@@ -66,9 +81,12 @@ public class DashboardFilterDAO
   {
     name = NameHelper.normalize(name);
     username = User.normalizeUsername(username);
-    String sQuery = "SELECT entity FROM DashboardFilter entity" + //
-        " WHERE entity.usernameLowercase=?1 AND entity.realmId=?2 AND entity.nameLowercaseNoWhitespace=?3";
-    return get(tx, sQuery, username, realmId, name);
+    return toEntity(tx.dsl()
+        .selectFrom(DASHBOARD_FILTER)
+        .where(DASHBOARD_FILTER.USERNAME_LOWERCASE.eq(username))
+        .and(realmId == null ? DASHBOARD_FILTER.REALM_ID.isNull() : DASHBOARD_FILTER.REALM_ID.eq(realmId))
+        .and(DASHBOARD_FILTER.NAME_LOWERCASE_NO_WHITESPACE.eq(name))
+        .fetchOne());
   }
 
   public DashboardFilter getLegacyByUsernameAndName(String username, String name) {
@@ -78,25 +96,33 @@ public class DashboardFilterDAO
   }
 
   /**
-   * Before Insight Brain 1.76, dashboard filters stored the username as the user entered it at login time,
-   * not as it is stored in the authentication realm.
-   * This means there may be multiple filters with the same name and same case insensitive username.
-   *
-   * This method tries first to find a match by username case sensitive, then by username case insensitive.
-   * In both cases, if there are multiple filters, then this method will return only one of those filters.
+   * Before Insight Brain 1.76, dashboard filters stored the username as the user entered it at login time, not as it is
+   * stored in the authentication realm. This means there may be multiple filters with the same name and same case
+   * insensitive username.
+   * <p>
+   * This method tries first to find a match by username case sensitive, then by username case insensitive. In both
+   * cases, if there are multiple filters, then this method will return only one of those filters.
    */
   public DashboardFilter getLegacyByUsernameAndName(TransactionContext tx, String username, String name) {
     name = NameHelper.normalize(name);
     // Try to find a filter that matches the username case sensitive.
-    String sQuery = "SELECT entity FROM DashboardFilter entity" + //
-        " WHERE entity.username=?1 AND entity.realmId IS NULL AND entity.nameLowercaseNoWhitespace=?2";
-    List<DashboardFilter> dashboardFilters = getList(tx, sQuery, username, name);
+    List<DashboardFilter> dashboardFilters = tx.dsl()
+        .selectFrom(DASHBOARD_FILTER)
+        .where(DASHBOARD_FILTER.USERNAME.eq(username))
+        .and(DASHBOARD_FILTER.REALM_ID.isNull())
+        .and(DASHBOARD_FILTER.NAME_LOWERCASE_NO_WHITESPACE.eq(name))
+        .fetch()
+        .map(this::toEntity);
     if (dashboardFilters.isEmpty()) {
       // No filter matches the username case sensitive. Try case-insensitive.
       username = User.normalizeUsername(username);
-      sQuery = "SELECT entity FROM DashboardFilter entity" + //
-          " WHERE entity.usernameLowercase=?1 AND entity.realmId IS NULL AND entity.nameLowercaseNoWhitespace=?2";
-      dashboardFilters = getList(tx, sQuery, username, name);
+      dashboardFilters = tx.dsl()
+          .selectFrom(DASHBOARD_FILTER)
+          .where(DASHBOARD_FILTER.USERNAME_LOWERCASE.eq(username))
+          .and(DASHBOARD_FILTER.REALM_ID.isNull())
+          .and(DASHBOARD_FILTER.NAME_LOWERCASE_NO_WHITESPACE.eq(name))
+          .fetch()
+          .map(this::toEntity);
     }
     if (dashboardFilters.isEmpty()) {
       return null;
@@ -105,11 +131,17 @@ public class DashboardFilterDAO
   }
 
   public List<DashboardFilter> getNamedFiltersByUsernameAndRealmId(String username, String realmId) {
-    username = User.normalizeUsername(username);
-    String sQuery = "SELECT entity FROM DashboardFilter entity" + //
-        " WHERE entity.usernameLowercase=?1 AND entity.realmId=?2 AND entity.nameLowercaseNoWhitespace <> ''" + //
-        " ORDER BY entity.name";
-    return getList(sQuery, username, realmId);
+    String normalizedUsername = User.normalizeUsername(username);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(DASHBOARD_FILTER)
+          .where(DASHBOARD_FILTER.USERNAME_LOWERCASE.eq(normalizedUsername))
+          .and(realmId == null ? DASHBOARD_FILTER.REALM_ID.isNull() : DASHBOARD_FILTER.REALM_ID.eq(realmId))
+          .and(DASHBOARD_FILTER.NAME_LOWERCASE_NO_WHITESPACE.ne(""))
+          .orderBy(DASHBOARD_FILTER.NAME)
+          .fetch()
+          .map(this::toEntity);
+    }
   }
 
   public List<DashboardFilter> getLegacyNamedFiltersByUsername(String username) {
@@ -195,12 +227,24 @@ public class DashboardFilterDAO
   }
 
   private List<DashboardFilter> getByRealmId(TransactionContext tx, String realmId) {
-    String sQuery = "SELECT entity FROM DashboardFilter entity" + //
-        " WHERE entity.realmId=?1";
-    return getList(tx, sQuery, realmId);
+    return tx.dsl()
+        .selectFrom(DASHBOARD_FILTER)
+        .where(DASHBOARD_FILTER.REALM_ID.eq(realmId))
+        .fetch()
+        .map(this::toEntity);
   }
 
   public void deleteByRealmId(TransactionContext tx, String realmId) {
     getByRealmId(tx, realmId).forEach(dashboardFilter -> delete(tx, dashboardFilter));
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return DASHBOARD_FILTER;
+  }
+
+  @Override
+  public Class<DashboardFilter> getEntityClass() {
+    return DashboardFilter.class;
   }
 }

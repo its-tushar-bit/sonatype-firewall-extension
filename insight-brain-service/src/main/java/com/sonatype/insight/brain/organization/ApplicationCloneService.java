@@ -63,9 +63,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.model.HasStringId;
 
-import org.apache.openjpa.enhance.PersistenceCapable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -241,7 +239,7 @@ public class ApplicationCloneService
     for (Label label : labels) {
       String sourceLabelId = label.getId();
 
-      detachEntity(label);
+      label.setId(null);
       label.setOwnerId(clonedApp.getId());
       labelDAO.insert(tx, label);
 
@@ -263,7 +261,7 @@ public class ApplicationCloneService
   {
     List<ComponentLabel> componentLabels = componentLabelDAO.getByOwnerId(tx, sourceApp.getId());
     for (ComponentLabel componentLabel : componentLabels) {
-      detachEntity(componentLabel);
+      componentLabel.setId(null);
       String clonedLabelId = mappedLabelIds.get(componentLabel.getLabelId());
       // The mapped label id is null if the label is inherited from a parent org.
       if (clonedLabelId != null) {
@@ -285,7 +283,7 @@ public class ApplicationCloneService
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
       String sourceLicenseThreatGroupId = licenseThreatGroup.getId();
 
-      detachEntity(licenseThreatGroup);
+      licenseThreatGroup.setId(null);
       licenseThreatGroup.setOwnerId(clonedApp.getId());
       licenseThreatGroupDAO.insert(tx, licenseThreatGroup);
 
@@ -294,7 +292,7 @@ public class ApplicationCloneService
       List<LicenseThreatGroupLicense> licenseThreatGroupLicenses =
           licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId(tx, sourceLicenseThreatGroupId);
       for (LicenseThreatGroupLicense licenseThreatGroupLicense : licenseThreatGroupLicenses) {
-        detachEntity(licenseThreatGroupLicense);
+        licenseThreatGroupLicense.setId(null);
         licenseThreatGroupLicense.setLicenseThreatGroupId(licenseThreatGroup.getId());
         licenseThreatGroupLicense.setOwnerId(clonedApp.getId());
         licenseThreatGroupLicenseDAO.insert(tx, licenseThreatGroupLicense);
@@ -333,7 +331,7 @@ public class ApplicationCloneService
     for (SecurityVulnerabilityOverride securityVulnerabilityOverride : securityVulnerabilityOverrides) {
       String sourceSecurityVulnerabilityOverrideId = securityVulnerabilityOverride.getId();
 
-      detachEntity(securityVulnerabilityOverride);
+      securityVulnerabilityOverride.setId(null);
       securityVulnerabilityOverride.setOwnerId(clonedApp.getId());
       securityVulnerabilityOverrideDAO.insert(tx, securityVulnerabilityOverride);
 
@@ -349,7 +347,7 @@ public class ApplicationCloneService
     for (MembershipMapping membershipMapping : membershipMappings) {
       String sourceMembershipMappingId = membershipMapping.getId();
 
-      detachEntity(membershipMapping);
+      membershipMapping.setId(null);
       membershipMapping.setContextId(clonedApp.getId());
       membershipMappingDAO.insert(tx, membershipMapping);
 
@@ -368,7 +366,7 @@ public class ApplicationCloneService
     for (PolicyMonitoring policyMonitoring : policyMonitorings) {
       String sourcePolicyMonitoringId = policyMonitoring.getId();
 
-      detachEntity(policyMonitoring);
+      policyMonitoring.setId(null);
       policyMonitoring.setOwnerId(clonedApp.getId());
       policyMonitoringDAO.insert(tx, policyMonitoring);
 
@@ -383,7 +381,7 @@ public class ApplicationCloneService
     for (ApplicationTag appTag : appTags) {
       String sourceAppTagId = appTag.getId();
 
-      detachEntity(appTag);
+      appTag.setId(null);
       appTag.setApplicationId(clonedApp.getId());
       appTagDAO.insert(tx, appTag);
 
@@ -399,7 +397,7 @@ public class ApplicationCloneService
 
     String sourceProprietaryConfigId = proprietaryConfig.getId();
 
-    detachEntity(proprietaryConfig);
+    proprietaryConfig.setId(null);
     proprietaryConfig.setOwnerId(clonedApp.getId());
     proprietaryConfigDAO.insert(tx, proprietaryConfig);
 
@@ -415,7 +413,7 @@ public class ApplicationCloneService
 
     String sourceSourceControlId = sourceControl.getId();
 
-    detachEntity(sourceControl);
+    sourceControl.setId(null);
     sourceControl.setOwnerId(clonedApp.getId());
     sourceControl.setRemediationPullRequestsEnabled(false);
     sourceControlDAO.insert(tx, sourceControl);
@@ -479,7 +477,7 @@ public class ApplicationCloneService
       for (PolicyTag policyTag : policyTags) {
         String sourcePolicyTagId = policyTag.getId();
 
-        detachEntity(policyTag);
+        policyTag.setId(null);
         policyTag.setPolicyId(mappedPolicyIds.get(sourcePolicyId));
         policyTagDAO.insert(tx, policyTag);
 
@@ -502,7 +500,7 @@ public class ApplicationCloneService
       Policy sourcePolicy = policyDAO.getById(tx, policyWaiver.getPolicyId());
       Policy clonedPolicy = policyDAO.getById(tx, mappedPolicyIds.get(sourcePolicy.getId()));
 
-      detachEntity(policyWaiver);
+      policyWaiver.setId(null);
       policyWaiver.setOwnerId(clonedApp.getId());
       // clonedPolicy is null if sourcePolicy belongs to a parent organization.
       if (clonedPolicy != null) {
@@ -616,13 +614,6 @@ public class ApplicationCloneService
     catch (IOException e) {
       throw new UncheckedIOException("Invalid trigger json: " + triggerJson, e);
     }
-  }
-
-  private <E extends HasStringId> void detachEntity(E entity) {
-    PersistenceCapable pc = (PersistenceCapable) entity;
-    pc.pcSetDetachedState(null);
-    pc.pcReplaceStateManager(null);
-    entity.setId(null);
   }
 
   @SuppressWarnings("serial")

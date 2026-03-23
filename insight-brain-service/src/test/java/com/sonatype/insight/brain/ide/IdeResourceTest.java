@@ -1084,13 +1084,16 @@ public class IdeResourceTest
       final Map<ByteArrayDataSource, Integer> responses,
       final TelemetryPurpose purpose) throws MessagingException, IOException
   {
+    // Wait for the specific telemetry purpose to be found (telemetry is sent asynchronously)
+    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+      Map<TelemetryPurpose, List<TelemetryItem>> telemetry = getTelemetryItemsByPurpose(responses);
+      assertThat(telemetry.get(purpose)).isNotNull();
+      assertThat(telemetry.get(purpose)).isNotEmpty();
+    });
+
     // Getting the telemetry data
     Map<TelemetryPurpose, List<TelemetryItem>> collectedTelemetry = getTelemetryItemsByPurpose(responses);
-
-    // Assert telemetry purpose is found
     List<TelemetryItem> telemetryItems = collectedTelemetry.get(purpose);
-    assertThat(telemetryItems).isNotNull();
-    assertThat(telemetryItems).isNotEmpty();
 
     return telemetryItems.get(0).getTelemetryData().get(0).getAttributes();
   }

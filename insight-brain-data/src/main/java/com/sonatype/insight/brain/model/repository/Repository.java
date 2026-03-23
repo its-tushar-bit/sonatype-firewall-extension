@@ -21,9 +21,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.model.HasStringId;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.apache.openjpa.persistence.DataCache;
 
-@DataCache(timeout = 10000)
 @Cacheable
 @Entity
 @Table(name = "repository")

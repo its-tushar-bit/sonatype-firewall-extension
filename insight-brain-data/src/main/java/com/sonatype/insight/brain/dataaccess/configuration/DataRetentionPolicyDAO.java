@@ -8,9 +8,7 @@ package com.sonatype.insight.brain.dataaccess.configuration;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -18,6 +16,12 @@ import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.DataRetentionPolicy.DATA_RETENTION_POLICY;
 import static java.util.stream.Collectors.toMap;
 
 /**
@@ -29,17 +33,72 @@ public class DataRetentionPolicyDAO
     extends AbstractOperationalSqlDAO<DataRetentionPolicy>
 {
   @Inject
-  public DataRetentionPolicyDAO(OperationalDataStore operationalDataStore) {
+  public DataRetentionPolicyDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
   }
 
   @Override
-  public List<DataRetentionPolicy> getAll() {
-    String sQuery = "SELECT entity FROM DataRetentionPolicy entity ORDER BY entity.ownerId, entity.contextId";
-    return getList(sQuery);
+  public void insert(final TransactionContext tx, final DataRetentionPolicy entity) {
+    validate(entity);
+    super.insert(tx, entity);
   }
 
-  private void validate(DataRetentionPolicy entity) {
+  @Override
+  public void update(final TransactionContext tx, final DataRetentionPolicy entity) {
+    validate(entity);
+    super.update(tx, entity);
+  }
+
+  @Override
+  public List<DataRetentionPolicy> getAll() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(DATA_RETENTION_POLICY)
+          .orderBy(DATA_RETENTION_POLICY.OWNER_ID, DATA_RETENTION_POLICY.CONTEXT_ID)
+          .fetch()
+          .stream()
+          .map(this::toEntity)
+          .collect(Collectors.toList());
+    }
+  }
+
+  public Map<String, DataRetentionPolicy> getByOwnerId(final String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerId(tx, ownerId);
+    }
+  }
+
+  public Map<String, DataRetentionPolicy> getByOwnerId(final TransactionContext tx, final String ownerId) {
+    return tx.dsl()
+        .selectFrom(DATA_RETENTION_POLICY)
+        .where(DATA_RETENTION_POLICY.OWNER_ID.eq(ownerId))
+        .fetch()
+        .stream()
+        .map(this::toEntity)
+        .collect(toMap(DataRetentionPolicy::getContextId, Function.identity()));
+  }
+
+  public DataRetentionPolicy getByOwnerIdAndContextId(final String ownerId, final String contextId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(DATA_RETENTION_POLICY)
+          .where(DATA_RETENTION_POLICY.OWNER_ID.eq(ownerId))
+          .and(DATA_RETENTION_POLICY.CONTEXT_ID.eq(contextId))
+          .fetchOne());
+    }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return DATA_RETENTION_POLICY;
+  }
+
+  @Override
+  public Class<DataRetentionPolicy> getEntityClass() {
+    return DataRetentionPolicy.class;
+  }
+
+  private void validate(final DataRetentionPolicy entity) {
     if (entity.getMaxCount() != null) {
       if (entity.getMaxCount() <= 0) {
         throw new BadRequestException("Maximum count must be positive.");
@@ -59,33 +118,5 @@ public class DataRetentionPolicyDAO
     if (entity.isPurgingEnabled() && entity.getMaxAgeInDays() == null && entity.getMaxCount() == null) {
       throw new BadRequestException("Cannot enable data purging without criteria for what to purge.");
     }
-  }
-
-  @Override
-  public void insert(TransactionContext tx, DataRetentionPolicy entity) {
-    validate(entity);
-    super.insert(tx, entity);
-  }
-
-  @Override
-  public void update(TransactionContext tx, DataRetentionPolicy entity) {
-    validate(entity);
-    super.update(tx, entity);
-  }
-
-  public Map<String, DataRetentionPolicy> getByOwnerId(String ownerId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByOwnerId(tx, ownerId);
-    }
-  }
-
-  public Map<String, DataRetentionPolicy> getByOwnerId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT entity FROM DataRetentionPolicy entity WHERE entity.ownerId = ?1";
-    return getList(tx, sQuery, ownerId).stream().collect(toMap(DataRetentionPolicy::getContextId, Function.identity()));
-  }
-
-  public DataRetentionPolicy getByOwnerIdAndContextId(String ownerId, String contextId) {
-    String sQuery = "SELECT entity FROM DataRetentionPolicy entity WHERE entity.ownerId = ?1 AND entity.contextId = ?2";
-    return get(sQuery, ownerId, contextId);
   }
 }

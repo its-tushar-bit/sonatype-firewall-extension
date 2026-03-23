@@ -9,11 +9,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Provider;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -23,9 +18,19 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Record;
+import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Repository.REPOSITORY;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryManager.REPOSITORY_MANAGER;
 
 @Named
 @Singleton
@@ -45,6 +50,11 @@ public class RepositoryManagerDAO
     this.ownerDAOProvider = ownerDAOProvider;
   }
 
+  @Override
+  public Table<?> getJooqTable() {
+    return REPOSITORY_MANAGER;
+  }
+
   public RepositoryManager getByInstanceId(String instanceId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByInstanceId(tx, instanceId);
@@ -52,9 +62,10 @@ public class RepositoryManagerDAO
   }
 
   private RepositoryManager getByInstanceId(TransactionContext tx, String instanceId) {
-    String sQuery = "SELECT entity FROM RepositoryManager entity" + //
-        " WHERE entity.instanceId=?1";
-    return get(tx, sQuery, instanceId);
+    return toEntity(tx.dsl()
+        .selectFrom(REPOSITORY_MANAGER)
+        .where(REPOSITORY_MANAGER.INSTANCE_ID.eq(instanceId))
+        .fetchOne());
   }
 
   /**
@@ -96,9 +107,10 @@ public class RepositoryManagerDAO
   }
 
   private RepositoryManager getByRelatedOrganizationId(TransactionContext tx, String organizationId) {
-    String sQuery = "SELECT entity FROM RepositoryManager entity" + //
-        " WHERE entity.relatedOrganizationId=?1";
-    return get(tx, sQuery, organizationId);
+    return toEntity(tx.dsl()
+        .selectFrom(REPOSITORY_MANAGER)
+        .where(REPOSITORY_MANAGER.RELATED_ORGANIZATION_ID.eq(organizationId))
+        .fetchOne());
   }
 
   @Override
@@ -149,8 +161,10 @@ public class RepositoryManagerDAO
 
   public RepositoryManager getByName(TransactionContext tx, String name) {
     name = NameHelper.normalize(name);
-    String sQuery = "SELECT entity FROM RepositoryManager entity WHERE entity.nameLowercaseNoWhitespace=?1";
-    return get(tx, sQuery, name);
+    return toEntity(tx.dsl()
+        .selectFrom(REPOSITORY_MANAGER)
+        .where(REPOSITORY_MANAGER.NAME_LOWERCASE_NO_WHITESPACE.eq(name))
+        .fetchOne());
   }
 
   @Override
@@ -172,9 +186,12 @@ public class RepositoryManagerDAO
    * @since 1.160
    */
   public List<RepositoryManager> getUnconfigured() {
-    String sQuery = "SELECT entity FROM RepositoryManager entity" + //
-        " WHERE entity.configured = false";
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(REPOSITORY_MANAGER)
+          .where(REPOSITORY_MANAGER.CONFIGURED.eq(false))
+          .fetch(this::toEntity);
+    }
   }
 
   public RepositoryManager getByName(String name) {
@@ -193,33 +210,44 @@ public class RepositoryManagerDAO
   }
 
   public RepositoryManager getByIdOrRepositoryId(TransactionContext tx, String ownerId) {
-    String sQuery = "SELECT repoManager FROM RepositoryManager repoManager, OwnerAncestor oa " +
-        "WHERE repoManager.id = oa.ancestorId AND " +
-        "( " +
-        "  oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY " +
-        "  OR oa.ownerType = com.sonatype.insight.brain.model.OwnerType.REPOSITORY_MANAGER " +
-        ") " +
-        "AND oa.id = ?1";
-
-    return get(tx, sQuery, ownerId);
+    Record record = tx.dsl()
+        .select(REPOSITORY_MANAGER.fields())
+        .from(REPOSITORY_MANAGER)
+        .join(OWNER_ANCESTOR)
+        .on(REPOSITORY_MANAGER.REPOSITORY_MANAGER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId)
+            .and(OWNER_ANCESTOR.OWNER_TYPE.in("REPOSITORY", "REPOSITORY_MANAGER")))
+        .fetchOne();
+    return record != null ? toEntity(record.into(REPOSITORY_MANAGER)) : null;
   }
 
   public List<RepositoryManager> getByRepositoryIds(Set<String> repositoryIds) {
-    String sQuery = """
-        SELECT repositoryManager FROM RepositoryManager repositoryManager, Repository repository
-        WHERE repositoryManager.id = repository.repositoryManagerId AND
-        repository.id IN ?1
-        """;
-    return getListWithSqlInClause(repositoryIds, inClauseValuesPartition -> getList(sQuery, inClauseValuesPartition));
+    return getListWithSqlInClause(repositoryIds, inClauseValuesPartition -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        return tx.dsl()
+            .select(REPOSITORY_MANAGER.fields())
+            .from(REPOSITORY_MANAGER)
+            .join(REPOSITORY)
+            .on(REPOSITORY_MANAGER.REPOSITORY_MANAGER_ID.eq(REPOSITORY.REPOSITORY_MANAGER_ID))
+            .where(REPOSITORY.REPOSITORY_ID.in(inClauseValuesPartition))
+            .fetch(r -> toEntity(r.into(REPOSITORY_MANAGER)));
+      }
+    });
   }
 
   public List<RepositoryManager> getByIds(Set<String> repositoryManagerIds) {
-    String sQuery = """
-        SELECT entity
-          FROM RepositoryManager entity
-         WHERE entity.id IN ?1
-        """;
-    return getListWithSqlInClause(
-        repositoryManagerIds, inClauseValuesPartition -> getList(sQuery, inClauseValuesPartition));
+    return getListWithSqlInClause(repositoryManagerIds, inClauseValuesPartition -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        return tx.dsl()
+            .selectFrom(REPOSITORY_MANAGER)
+            .where(REPOSITORY_MANAGER.REPOSITORY_MANAGER_ID.in(inClauseValuesPartition))
+            .fetch(this::toEntity);
+      }
+    });
+  }
+
+  @Override
+  public Class<RepositoryManager> getEntityClass() {
+    return RepositoryManager.class;
   }
 }

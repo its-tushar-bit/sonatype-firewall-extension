@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.configuration;
 
 import java.util.List;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -17,6 +18,10 @@ import com.sonatype.insight.brain.model.configuration.ZscalerFormat;
 import com.sonatype.insight.brain.security.RotatableSecrets;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ZscalerConfiguration.ZSCALER_CONFIGURATION;
+
 @Named
 @Singleton
 public class ZScalerConfigurationDAO
@@ -25,36 +30,32 @@ public class ZScalerConfigurationDAO
 {
   public static final String SINGLETON_ENTITY_ID = "zscaler-configuration";
 
-  public static final String QUERY = "SELECT entity FROM ZScalerConfiguration entity" + //
-      " WHERE entity.id=?1";
-
   private final ZscalerFormatDAO zscalerFormatDAO;
 
   @Inject
   public ZScalerConfigurationDAO(
-      OperationalDataStore operationalDataStore,
-      ZscalerFormatDAO zscalerFormatDAO)
+      final OperationalDataStore operationalDataStore,
+      final ZscalerFormatDAO zscalerFormatDAO)
   {
     super(operationalDataStore);
     this.zscalerFormatDAO = zscalerFormatDAO;
   }
 
-  /**
-   * @return The zScaler server configuration or {@code null} if none.
-   */
   public ZScalerConfiguration get() {
     return getById(SINGLETON_ENTITY_ID);
   }
 
-  @Override
-  public ZScalerConfiguration getById(TransactionContext tx, String id) {
-    return super.getById(tx, SINGLETON_ENTITY_ID);
-  }
-
-  public void set(ZScalerConfiguration zscalerConfiguration, List<ZscalerFormat> zscalerFormats) {
+  public void set(final ZScalerConfiguration zscalerConfiguration, final List<ZscalerFormat> zscalerFormats) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
-      update(tx, zscalerConfiguration);
+      // First ensure the parent zscaler_configuration record exists before inserting child zscaler_format records
+      // to avoid foreign key constraint violations
+      if (getById(tx, SINGLETON_ENTITY_ID) == null) {
+        insert(tx, zscalerConfiguration);
+      }
+      else {
+        update(tx, zscalerConfiguration);
+      }
       for (ZscalerFormat zscalerFormat : zscalerFormats) {
         zscalerFormat.setZscalerConfigurationId(SINGLETON_ENTITY_ID);
         if (zscalerFormat.getId() == null) {
@@ -69,15 +70,15 @@ public class ZScalerConfigurationDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, ZScalerConfiguration zscalerConfiguration) {
-    zscalerConfiguration.setId(SINGLETON_ENTITY_ID);
-    super.insert(tx, zscalerConfiguration);
+  public void insert(final TransactionContext tx, final ZScalerConfiguration entity) {
+    entity.setId(SINGLETON_ENTITY_ID);
+    super.insert(tx, entity);
   }
 
   @Override
-  public void update(TransactionContext tx, ZScalerConfiguration zscalerConfiguration) {
-    zscalerConfiguration.setId(SINGLETON_ENTITY_ID);
-    super.update(tx, zscalerConfiguration);
+  public void update(final TransactionContext tx, final ZScalerConfiguration entity) {
+    entity.setId(SINGLETON_ENTITY_ID);
+    super.update(tx, entity);
   }
 
   public void delete() {
@@ -85,5 +86,15 @@ public class ZScalerConfigurationDAO
     if (zscalerConfiguration != null) {
       delete(zscalerConfiguration);
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return ZSCALER_CONFIGURATION;
+  }
+
+  @Override
+  public Class<ZScalerConfiguration> getEntityClass() {
+    return ZScalerConfiguration.class;
   }
 }

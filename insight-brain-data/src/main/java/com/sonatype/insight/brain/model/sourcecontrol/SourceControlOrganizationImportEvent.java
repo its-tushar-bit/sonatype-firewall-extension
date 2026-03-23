@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.model.sourcecontrol;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Date;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -126,6 +129,14 @@ public class SourceControlOrganizationImportEvent
     return this;
   }
 
+  /**
+   * Setter for jOOQ record mapping when reading from database.
+   * jOOQ may pass the string value from the database directly.
+   */
+  public void setImportStatus(final String importStatusString) {
+    this.importStatus = importStatusString != null ? ImportStatus.valueOf(importStatusString) : null;
+  }
+
   public int getImportSuccessCount() {
     return importSuccessCount;
   }
@@ -153,6 +164,14 @@ public class SourceControlOrganizationImportEvent
     return this;
   }
 
+  /**
+   * Setter for jOOQ record mapping when reading from database.
+   * The database stores LocalDateTime which jOOQ may pass directly.
+   */
+  public void setStartTime(final LocalDateTime startTime) {
+    this.startTime = startTime != null ? new Date(Timestamp.valueOf(startTime).getTime()) : null;
+  }
+
   public Date getLastUpdatedTime() {
     return lastUpdatedTime;
   }
@@ -160,6 +179,14 @@ public class SourceControlOrganizationImportEvent
   public SourceControlOrganizationImportEvent setLastUpdatedTime(final Date lastUpdatedTime) {
     this.lastUpdatedTime = lastUpdatedTime;
     return this;
+  }
+
+  /**
+   * Setter for jOOQ record mapping when reading from database.
+   * The database stores LocalDateTime which jOOQ may pass directly.
+   */
+  public void setLastUpdatedTime(final LocalDateTime lastUpdatedTime) {
+    this.lastUpdatedTime = lastUpdatedTime != null ? new Date(Timestamp.valueOf(lastUpdatedTime).getTime()) : null;
   }
 
   public String getImportErrors() {

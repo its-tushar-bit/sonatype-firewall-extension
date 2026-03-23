@@ -21,11 +21,6 @@ public class MultiTenantThirdPartyScansDataStore
   }
 
   @Override
-  protected String getFactoryName() {
-    return "InsightBrainThirdPartyScans";
-  }
-
-  @Override
   public boolean isDatabaseEmbedded() {
     // multi-tenant is not compatible with H2
     return false;

@@ -300,7 +300,7 @@ public class ApplicationForContainerImageFirewallServiceTest
 
     Organization organizationForRepositoryContainer = tempEntity.newOrganization();
     organizationForRepositoryContainer.setName(ORGANIZATION_NAME_FIREWALL_FOR_DOCKER);
-    organizationForRepositoryContainer.setRelatedRepositorContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    organizationForRepositoryContainer.setRelatedRepositoryContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     organizationDAO.update(organizationForRepositoryContainer);
     repositoryContainerDAO.setRelatedOrganizationIdNotNull(organizationForRepositoryContainer.getId());
 
@@ -326,7 +326,7 @@ public class ApplicationForContainerImageFirewallServiceTest
 
     Organization organizationForRepositoryContainer = tempEntity.newOrganization();
     organizationForRepositoryContainer.setName(ORGANIZATION_NAME_FIREWALL_FOR_DOCKER);
-    organizationForRepositoryContainer.setRelatedRepositorContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    organizationForRepositoryContainer.setRelatedRepositoryContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     organizationDAO.update(organizationForRepositoryContainer);
     repositoryContainerDAO.setRelatedOrganizationIdNotNull(organizationForRepositoryContainer.getId());
 
@@ -595,7 +595,7 @@ public class ApplicationForContainerImageFirewallServiceTest
     assertThat(organizationForRepositoryContainerResult.getId())
         .isEqualTo(repositoryContainerDAO.getRelatedOrganizationId());
     assertThat(organizationForRepositoryContainerResult.getName()).startsWith(ORGANIZATION_NAME_FIREWALL_FOR_DOCKER);
-    assertThat(organizationForRepositoryContainerResult.getRelatedRepositorContainerId())
+    assertThat(organizationForRepositoryContainerResult.getRelatedRepositoryContainerId())
         .isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
     Map<String, String> membershipsInOrganizationForRepositoryContainerResult =
@@ -666,7 +666,7 @@ public class ApplicationForContainerImageFirewallServiceTest
       tempEntity.newMembershipMapping(repository.getId(), roleRepository.getId(), USERNAME);
 
       Organization organizationForRepoContainer = tempEntity.newOrganization(ORGANIZATION_NAME_FIREWALL_FOR_DOCKER);
-      organizationForRepoContainer.setRelatedRepositorContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+      organizationForRepoContainer.setRelatedRepositoryContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
       organizationDAO.update(organizationForRepoContainer);
       repositoryContainerDAO.setRelatedOrganizationIdNotNull(organizationForRepoContainer.getId());
 

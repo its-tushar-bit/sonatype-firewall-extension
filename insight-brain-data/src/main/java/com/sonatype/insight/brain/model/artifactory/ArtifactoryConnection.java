@@ -35,6 +35,9 @@ public class ArtifactoryConnection
   @Column(name = "password")
   private char[] password;
 
+  public ArtifactoryConnection() {
+  }
+
   public ArtifactoryConnection(
       String ownerId,
       String baseUrl,

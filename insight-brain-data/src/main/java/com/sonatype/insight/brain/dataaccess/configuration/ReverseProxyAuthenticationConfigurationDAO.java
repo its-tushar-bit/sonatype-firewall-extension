@@ -7,9 +7,6 @@ package com.sonatype.insight.brain.dataaccess.configuration;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -18,7 +15,13 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ReverseProxyAuthenticationConfiguration.REVERSE_PROXY_AUTHENTICATION_CONFIGURATION;
 
 @Named
 @Singleton
@@ -54,7 +57,7 @@ public class ReverseProxyAuthenticationConfigurationDAO
   public static final String NOT_FOUND_ERROR_MSG = "Reverse proxy authentication not configured.";
 
   @Inject
-  public ReverseProxyAuthenticationConfigurationDAO(OperationalDataStore operationalDataStore) {
+  public ReverseProxyAuthenticationConfigurationDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
   }
 
@@ -70,24 +73,28 @@ public class ReverseProxyAuthenticationConfigurationDAO
     return config;
   }
 
-  @Override
-  public ReverseProxyAuthenticationConfiguration getById(TransactionContext tx, String id) {
-    return super.getById(tx, SINGLETON_ENTITY_ID);
+  public void set(final ReverseProxyAuthenticationConfiguration configuration) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      if (getById(tx, SINGLETON_ENTITY_ID) == null) {
+        insert(tx, configuration);
+      }
+      else {
+        update(tx, configuration);
+      }
+      tx.commit();
+    }
   }
 
-  public void set(ReverseProxyAuthenticationConfiguration configuration) {
-    update(configuration);
-  }
-
   @Override
-  public void insert(TransactionContext tx, ReverseProxyAuthenticationConfiguration configuration) {
+  public void insert(final TransactionContext tx, final ReverseProxyAuthenticationConfiguration configuration) {
     validate(configuration);
     configuration.setId(SINGLETON_ENTITY_ID);
     super.insert(tx, configuration);
   }
 
   @Override
-  public void update(TransactionContext tx, ReverseProxyAuthenticationConfiguration configuration) {
+  public void update(final TransactionContext tx, final ReverseProxyAuthenticationConfiguration configuration) {
     validate(configuration);
     configuration.setId(SINGLETON_ENTITY_ID);
     super.update(tx, configuration);
@@ -100,7 +107,7 @@ public class ReverseProxyAuthenticationConfigurationDAO
     }
   }
 
-  private void validate(ReverseProxyAuthenticationConfiguration config) {
+  private void validate(final ReverseProxyAuthenticationConfiguration config) {
     if (config == null) {
       throw new BadRequestException(NO_CONFIG_ERROR_MSG);
     }
@@ -124,5 +131,15 @@ public class ReverseProxyAuthenticationConfigurationDAO
         throw new BadRequestException(INVALID_LOGOUT_URL_ERROR_MSG, e);
       }
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return REVERSE_PROXY_AUTHENTICATION_CONFIGURATION;
+  }
+
+  @Override
+  public Class<ReverseProxyAuthenticationConfiguration> getEntityClass() {
+    return ReverseProxyAuthenticationConfiguration.class;
   }
 }

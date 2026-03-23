@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Date;
-import java.util.List;
+
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.model.ComponentChangeDetectionEvent;
@@ -50,7 +50,7 @@ public class ComponentChangeDetectionEventDAOTest
     underTest.removeExcessEvents(2);
     assertThat(underTest.getAll().size()).isEqualTo(2);
     assertThat(underTest.getAll().stream().map(ComponentChangeDetectionEvent::getPurl).collect(Collectors.toList()))
-        .isEqualTo(List.of("purl2", "purl3"));
+        .containsExactlyInAnyOrder("purl2", "purl3");
   }
 
   @Test

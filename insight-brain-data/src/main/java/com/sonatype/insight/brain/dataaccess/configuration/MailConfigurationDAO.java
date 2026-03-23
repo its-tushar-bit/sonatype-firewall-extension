@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import java.util.List;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -18,6 +20,9 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.MailConfiguration.MAIL_CONFIGURATION;
 
 /**
  * @since 1.83
@@ -29,9 +34,6 @@ public class MailConfigurationDAO
     implements RotatableSecrets
 {
   public static final String SINGLETON_ENTITY_ID = "mail-configuration";
-
-  public static final String QUERY = "SELECT entity FROM MailConfiguration entity" + //
-      " WHERE entity.id=?1";
 
   @Inject
   public MailConfigurationDAO(OperationalDataStore operationalDataStore) {
@@ -57,16 +59,41 @@ public class MailConfigurationDAO
   }
 
   private MailConfiguration getWithoutFallback(TransactionContext tx) {
-    return getWithGlobalFallback(tx, QUERY, true, SINGLETON_ENTITY_ID);
+    return getById(tx, true);
   }
 
   @Override
   public MailConfiguration getById(TransactionContext tx, String id) {
-    return super.getById(tx, SINGLETON_ENTITY_ID);
+    return getById(tx, false);
+  }
+
+  private MailConfiguration getById(TransactionContext tx, boolean noFallback) {
+    return getWithGlobalFallback(tx, this::fetchMailConfiguration, noFallback);
+  }
+
+  /**
+   * Fetches the mail configuration from the database using jOOQ.
+   * This method is protected to allow test mocking.
+   */
+  protected MailConfiguration fetchMailConfiguration(TransactionContext tx) {
+    return toEntity(tx.dsl()
+        .selectFrom(MAIL_CONFIGURATION)
+        .where(MAIL_CONFIGURATION.MAIL_CONFIGURATION_ID.eq(SINGLETON_ENTITY_ID))
+        .fetchOne());
   }
 
   public void set(MailConfiguration mailConfiguration) {
-    update(mailConfiguration);
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      MailConfiguration existing = getWithoutFallback(tx);
+      if (existing == null) {
+        insert(tx, mailConfiguration);
+      }
+      else {
+        update(tx, mailConfiguration);
+      }
+      tx.commit();
+    }
   }
 
   @Override
@@ -106,5 +133,22 @@ public class MailConfigurationDAO
     if (mailConfiguration != null) {
       delete(mailConfiguration);
     }
+  }
+
+  @Override
+  public List<MailConfiguration> getAll(TransactionContext tx) {
+    return tx.dsl()
+        .selectFrom(MAIL_CONFIGURATION)
+        .fetch(this::toEntity);
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return MAIL_CONFIGURATION;
+  }
+
+  @Override
+  public Class<MailConfiguration> getEntityClass() {
+    return MailConfiguration.class;
   }
 }

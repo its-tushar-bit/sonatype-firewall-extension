@@ -6,10 +6,6 @@
 
 package com.sonatype.insight.brain.dataaccess.sast;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sast.SastScmScanContext;
@@ -17,6 +13,13 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.git.utils.GitBranchNameValidator;
 import com.sonatype.nexus.git.utils.InvalidBranchNameException;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SastScmScanContext.SAST_SCM_SCAN_CONTEXT;
 
 @Named
 @Singleton
@@ -42,5 +45,15 @@ public class SastScmScanContextDAO
   @Override
   public void update(final TransactionContext tx, final SastScmScanContext entity) {
     throw new UnsupportedOperationException("The SastScmScanContext table does not support update operations");
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return SAST_SCM_SCAN_CONTEXT;
+  }
+
+  @Override
+  public Class<SastScmScanContext> getEntityClass() {
+    return SastScmScanContext.class;
   }
 }

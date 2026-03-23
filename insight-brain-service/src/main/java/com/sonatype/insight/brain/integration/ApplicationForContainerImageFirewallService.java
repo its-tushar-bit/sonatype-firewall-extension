@@ -215,7 +215,7 @@ public class ApplicationForContainerImageFirewallService
       organizationForRepositoryContainer = new Organization();
       organizationForRepositoryContainer.setName(organizationForRepositoryContainerName);
       organizationForRepositoryContainer.setParentOrganizationId(Organization.ROOT_ORGANIZATION_ID);
-      organizationForRepositoryContainer.setRelatedRepositorContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+      organizationForRepositoryContainer.setRelatedRepositoryContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
       organizationDAO.insert(tx, organizationForRepositoryContainer);
 
       repositoryContainerDAO.setRelatedOrganizationIdNotNull(tx, organizationForRepositoryContainer.getId());

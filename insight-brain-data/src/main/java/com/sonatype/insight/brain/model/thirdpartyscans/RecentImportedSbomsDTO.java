@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.thirdpartyscans;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 import com.sonatype.insight.json.store.ISODateSerializer;
@@ -43,7 +45,7 @@ public class RecentImportedSbomsDTO
     applicationId = String.valueOf(array[0]);
     sbomVersion = String.valueOf(array[1]);
     specification = String.valueOf(array[2]);
-    importDate = (Date) array[3];
+    importDate = toDate(array[3]);
     lowCount = longToInt(array[4]);
     mediumCount = longToInt(array[5]);
     highCount = longToInt(array[6]);
@@ -115,7 +117,17 @@ public class RecentImportedSbomsDTO
   }
 
   private int longToInt(Object number) {
-    return ((Long) number).intValue();
+    return ((Number) number).intValue();
+  }
+
+  private Date toDate(Object value) {
+    if (value instanceof Date) {
+      return (Date) value;
+    }
+    if (value instanceof LocalDateTime) {
+      return Date.from(((LocalDateTime) value).atZone(ZoneId.systemDefault()).toInstant());
+    }
+    return null;
   }
 
   public String getApplicationName() {

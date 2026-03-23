@@ -6,9 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.configuration.crowd;
 
 import java.nio.CharBuffer;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -17,7 +14,13 @@ import com.sonatype.insight.brain.security.RotatableSecrets;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Table;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.CrowdConfiguration.CROWD_CONFIGURATION;
 
 @Named
 @Singleton
@@ -34,7 +37,7 @@ public class CrowdConfigurationDAO
   public static final int MAX_APPLICATION_PASSWORD_SIZE = 255;
 
   @Inject
-  public CrowdConfigurationDAO(OperationalDataStore operationalDataStore) {
+  public CrowdConfigurationDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
   }
 
@@ -42,8 +45,14 @@ public class CrowdConfigurationDAO
     return getById(SINGLETON_ENTITY_ID);
   }
 
-  public void set(CrowdConfiguration crowdConfiguration) {
-    update(crowdConfiguration);
+  public void set(final CrowdConfiguration crowdConfiguration) {
+    CrowdConfiguration existing = get();
+    if (existing != null) {
+      update(crowdConfiguration);
+    }
+    else {
+      insert(crowdConfiguration);
+    }
   }
 
   public void delete() {
@@ -54,26 +63,20 @@ public class CrowdConfigurationDAO
   }
 
   @Override
-  public void insert(TransactionContext tx, CrowdConfiguration crowdConfiguration) {
-    crowdConfiguration.setId(SINGLETON_ENTITY_ID);
-    validate(crowdConfiguration);
-    super.insert(tx, crowdConfiguration);
+  public void insert(final TransactionContext tx, final CrowdConfiguration entity) {
+    entity.setId(SINGLETON_ENTITY_ID);
+    validate(entity);
+    super.insert(tx, entity);
   }
 
   @Override
-  public void update(TransactionContext tx, CrowdConfiguration crowdConfiguration) {
-    crowdConfiguration.setId(SINGLETON_ENTITY_ID);
-    validate(crowdConfiguration);
-    super.update(tx, crowdConfiguration);
+  public void update(final TransactionContext tx, final CrowdConfiguration entity) {
+    entity.setId(SINGLETON_ENTITY_ID);
+    validate(entity);
+    super.update(tx, entity);
   }
 
-  @Override
-  public void delete(TransactionContext tx, CrowdConfiguration crowdConfiguration) {
-    crowdConfiguration.setId(SINGLETON_ENTITY_ID);
-    super.delete(tx, crowdConfiguration);
-  }
-
-  public void validate(CrowdConfiguration crowdConfiguration) {
+  public void validate(final CrowdConfiguration crowdConfiguration) {
     validateField(crowdConfiguration.getServerUrl(), "server url", MAX_SERVER_URL_SIZE);
     validateField(crowdConfiguration.getApplicationName(), "application name", MAX_APPLICATION_NAME_SIZE);
     validateField(crowdConfiguration.getApplicationPassword() == null
@@ -83,7 +86,7 @@ public class CrowdConfigurationDAO
         "application password", MAX_APPLICATION_PASSWORD_SIZE);
   }
 
-  private void validateField(CharSequence value, String name, int maxLength) {
+  private void validateField(final CharSequence value, final String name, final int maxLength) {
     if (StringUtils.isBlank(value)) {
       throw new BadRequestException(String.format("A Crowd %s is required.", name));
     }
@@ -91,5 +94,15 @@ public class CrowdConfigurationDAO
       throw new BadRequestException(
           String.format("A Crowd %s cannot exceed %s characters.", name, maxLength));
     }
+  }
+
+  @Override
+  public Table<?> getJooqTable() {
+    return CROWD_CONFIGURATION;
+  }
+
+  @Override
+  public Class<CrowdConfiguration> getEntityClass() {
+    return CrowdConfiguration.class;
   }
 }

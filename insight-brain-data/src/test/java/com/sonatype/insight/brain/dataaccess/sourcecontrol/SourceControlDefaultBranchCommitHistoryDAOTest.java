@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 
-import jakarta.persistence.EntityExistsException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -207,18 +206,37 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
   }
 
   @Test
-  public void testInsert_duplicateApplicationIdAndCommit() {
+  public void testInsert_duplicateApplicationIdAndCommit_performsUpsert() {
     // given : a commit history entry
     String commitHash = "commit";
     Date commitTime = new Date();
-    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), commitHash, commitTime, null);
+    SourceControlDefaultBranchCommitHistory original =
+        tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), commitHash, commitTime, null);
 
-    // when : insert a duplicate commit history (same app and commit)
-    Throwable thrown = catchThrowable(() -> tempEntity.newSourceControlDefaultBranchCommitHistory(
-        application.getId(), commitHash, commitTime, null));
+    // when : insert a duplicate commit history (same app and commit) with a policy evaluation
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(
+        application.getId(), BuildStageType.ID, "scan", commitHash);
+    Date newCommitTime = new Date(commitTime.getTime() + 1000);
+    SourceControlDefaultBranchCommitHistory duplicate =
+        tempEntity.newSourceControlDefaultBranchCommitHistory(
+            application.getId(), commitHash, newCommitTime, policyEvaluation.getId());
 
-    // then : exception thrown due to duplicate
-    assertThat(thrown).hasCauseInstanceOf(EntityExistsException.class);
+    // then : upsert should update existing record, preserving its ID and create time
+    assertThat(duplicate.getId()).isEqualTo(original.getId());
+    assertThat(duplicate.getCreateTime()).isEqualTo(original.getCreateTime());
+
+    // and : fetch by ID confirms upsert behavior
+    SourceControlDefaultBranchCommitHistory fetched =
+        defaultBranchCommitHistoryDAO.getById(original.getId());
+    assertThat(fetched).isNotNull();
+    assertThat(fetched.getPolicyEvaluationId()).isEqualTo(policyEvaluation.getId());
+    assertThat(fetched.getCommitTime()).isEqualTo(newCommitTime);
+    assertThat(fetched.getUpdateTime()).isNotNull();
+
+    // and : only one record exists for this application/commit combination
+    List<SourceControlDefaultBranchCommitHistory> allForApp =
+        defaultBranchCommitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
+    assertThat(allForApp).hasSize(1);
   }
 
   @Test

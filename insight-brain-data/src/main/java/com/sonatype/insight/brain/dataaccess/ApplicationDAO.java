@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.sql.Connection;
-import java.sql.JDBCType;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,7 +18,6 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
@@ -51,6 +47,7 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -64,8 +61,15 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationAncestor.APPLICATION_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationTag.APPLICATION_TAG;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Label.LABEL;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControl.SOURCE_CONTROL;
 
 @Named
 @Singleton
@@ -158,15 +162,26 @@ public class ApplicationDAO
     this.temporaryTableHelper = temporaryTableHelper;
   }
 
+  @Override
+  public org.jooq.Table<?> getJooqTable() {
+    return APPLICATION;
+  }
+
+  @Override
+  public Class<Application> getEntityClass() {
+    return Application.class;
+  }
+
   public Application getByPublicId(TransactionContext tx, String publicId) {
     if (publicId == null || publicId.trim().isEmpty()) {
       throw new DataAccessException("The application public ID cannot be null or empty.");
     }
 
     publicId = normalizePublicId(publicId);
-    String sQuery = "SELECT entity FROM Application entity" + //
-        " WHERE entity.publicIdLowercase=?1";
-    return get(tx, sQuery, publicId);
+    return toEntity(tx.dsl()
+        .selectFrom(APPLICATION)
+        .where(APPLICATION.PUBLIC_ID_LOWERCASE.eq(publicId))
+        .fetchOne());
   }
 
   public Application getByPublicId(String publicId) {
@@ -195,8 +210,10 @@ public class ApplicationDAO
     }
     // Application Name is whitespace and case insensitive
     name = NameHelper.normalize(name);
-    String sQuery = "SELECT entity FROM Application entity WHERE entity.nameLowercaseNoWhitespace=?1";
-    return get(tx, sQuery, name);
+    return toEntity(tx.dsl()
+        .selectFrom(APPLICATION)
+        .where(APPLICATION.NAME_LOWERCASE_NO_WHITESPACE.eq(name))
+        .fetchOne());
   }
 
   public Application getByName(String name) {
@@ -206,15 +223,20 @@ public class ApplicationDAO
   }
 
   public List<Application> getByContactInternalName(String contactInternalName) {
-    String sQuery = "SELECT entity FROM Application entity WHERE entity.contactInternalName=?1";
-    return getList(sQuery, contactInternalName);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(APPLICATION)
+          .where(APPLICATION.CONTACT_INTERNAL_NAME.eq(contactInternalName))
+          .fetch(this::toEntity);
+    }
   }
 
   @Override
   public List<Application> getAll(TransactionContext tx) {
-    String sQuery = "SELECT entity FROM Application entity" + //
-        " ORDER BY entity.publicIdLowercase";
-    return getList(tx, sQuery);
+    return tx.dsl()
+        .selectFrom(APPLICATION)
+        .orderBy(APPLICATION.PUBLIC_ID_LOWERCASE)
+        .fetch(this::toEntity);
   }
 
   @Override
@@ -233,23 +255,25 @@ public class ApplicationDAO
     }
   }
 
-  @SuppressWarnings("unchecked")
   public List<Application> getAll(
       final TransactionContext tx,
       final int page,
       final int pageSize)
   {
-    String sQuery = "SELECT app FROM Application app" +
-        " ORDER BY app.publicIdLowercase";
     int offset = (page - 1) * pageSize;
-    jakarta.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
-    return paginationQuery.getResultList();
+    return tx.dsl()
+        .selectFrom(APPLICATION)
+        .orderBy(APPLICATION.PUBLIC_ID_LOWERCASE)
+        .offset(offset)
+        .limit(pageSize)
+        .fetch(this::toEntity);
   }
 
   public List<Application> getAllOrderedByName(TransactionContext tx) {
-    String sQuery = "SELECT entity FROM Application entity" + //
-        " ORDER BY entity.name";
-    return getList(tx, sQuery);
+    return tx.dsl()
+        .selectFrom(APPLICATION)
+        .orderBy(APPLICATION.NAME)
+        .fetch(this::toEntity);
   }
 
   public List<Application> getAllOrderedByName() {
@@ -259,21 +283,37 @@ public class ApplicationDAO
   }
 
   public List<Application> getAllWithoutRelatedRepositoriesOrderedByName() {
-    String sQuery = "SELECT entity FROM Application entity, Organization org" + //
-        " WHERE entity.organizationId = org.id" +
-        " AND org.relatedRepositoryId IS NULL" +
-        " AND org.relatedRepositoryManagerId IS NULL" +
-        " ORDER BY entity.name";
-    return getList(sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(APPLICATION.fields())
+          .from(APPLICATION)
+          .join(com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION)
+          .on(APPLICATION.ORGANIZATION_ID.eq(
+              com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION.ORGANIZATION_ID))
+          .where(com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION.RELATED_REPOSITORY_ID
+              .isNull()
+              .and(
+                  com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION.RELATED_REPOSITORY_MANAGER_ID
+                      .isNull()))
+          .orderBy(APPLICATION.NAME)
+          .fetch(this::toEntity);
+    }
   }
 
   public List<Application> getAllWithoutRelatedRepositories(TransactionContext tx) {
-    String sQuery = "SELECT entity FROM Application entity, Organization org" + //
-        " WHERE entity.organizationId = org.id" +
-        " AND org.relatedRepositoryId IS NULL" +
-        " AND org.relatedRepositoryManagerId IS NULL" +
-        " ORDER BY entity.publicIdLowercase";
-    return getList(tx, sQuery);
+    return tx.dsl()
+        .select(APPLICATION.fields())
+        .from(APPLICATION)
+        .join(com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION)
+        .on(APPLICATION.ORGANIZATION_ID.eq(
+            com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION.ORGANIZATION_ID))
+        .where(com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION.RELATED_REPOSITORY_ID
+            .isNull()
+            .and(
+                com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION.RELATED_REPOSITORY_MANAGER_ID
+                    .isNull()))
+        .orderBy(APPLICATION.PUBLIC_ID_LOWERCASE)
+        .fetch(this::toEntity);
   }
 
   public List<Application> getAllWithoutRelatedRepositories() {
@@ -283,15 +323,20 @@ public class ApplicationDAO
   }
 
   public List<Application> getByOrganizationId(TransactionContext tx, String organizationId) {
-    String sQuery = "SELECT entity FROM Application entity" + //
-        " WHERE entity.organizationId=?1" + //
-        " ORDER BY entity.publicIdLowercase";
-    return getList(tx, sQuery, organizationId);
+    return tx.dsl()
+        .selectFrom(APPLICATION)
+        .where(APPLICATION.ORGANIZATION_ID.eq(organizationId))
+        .orderBy(APPLICATION.PUBLIC_ID_LOWERCASE)
+        .fetch(this::toEntity);
   }
 
   public List<Application> getByOrganizationIds(Set<String> organizationIds) {
-    String sQuery = "SELECT entity FROM Application entity WHERE entity.organizationId IN ?1";
-    return getList(sQuery, organizationIds);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(APPLICATION)
+          .where(APPLICATION.ORGANIZATION_ID.in(organizationIds))
+          .fetch(this::toEntity);
+    }
   }
 
   public List<Application> getByOrganizationId(String organizationId) {
@@ -307,10 +352,14 @@ public class ApplicationDAO
   }
 
   public List<Application> getByAncestorId(TransactionContext tx, String organizationId) {
-    String sQuery = "SELECT app FROM Application app, ApplicationAncestor aa " +
-        "WHERE aa.ancestorId = ?1 AND aa.id = app.id AND aa.id <> aa.ancestorId";
-
-    return getList(tx, sQuery, organizationId);
+    return tx.dsl()
+        .select(APPLICATION.fields())
+        .from(APPLICATION)
+        .join(APPLICATION_ANCESTOR)
+        .on(APPLICATION_ANCESTOR.APPLICATION_ID.eq(APPLICATION.APPLICATION_ID))
+        .where(APPLICATION_ANCESTOR.ANCESTOR_ID.eq(organizationId))
+        .and(APPLICATION_ANCESTOR.APPLICATION_ID.ne(APPLICATION_ANCESTOR.ANCESTOR_ID))
+        .fetch(this::toEntity);
   }
 
   public Set<String> getIdsByAncestorIds(final Set<String> ancestorIds) {
@@ -323,71 +372,98 @@ public class ApplicationDAO
     if (ancestorIds.isEmpty()) {
       return Collections.emptySet();
     }
-    String sQuery = "SELECT DISTINCT aa.id FROM ApplicationAncestor aa" +
-        " WHERE aa.ancestorId IN (?1)";
-    return new HashSet<>(getListWithSqlInClause(ancestorIds, l -> getScalars(tx, String.class, sQuery, l)));
+    return new HashSet<>(getListWithSqlInClause(ancestorIds,
+        l -> tx.dsl()
+            .selectDistinct(APPLICATION_ANCESTOR.APPLICATION_ID)
+            .from(APPLICATION_ANCESTOR)
+            .where(APPLICATION_ANCESTOR.ANCESTOR_ID.in(l))
+            .fetchInto(String.class)));
   }
 
   public List<Application> getByIdsAndTagIds(Set<String> applicationIds, Set<String> tagIds) {
-    String sQuery = "SELECT DISTINCT application FROM Application application, ApplicationTag applicationTag" + //
-        " WHERE application.id = applicationTag.applicationId" + //
-        " AND application.id IN (?1)" + " AND applicationTag.tagId IN (?2)";
+    try (TransactionContext tx = createTransactionContext()) {
+      // Filter out null from tagIds for the main query
+      Set<String> nonNullTagIds = tagIds.stream().filter(id -> id != null).collect(Collectors.toSet());
 
-    List<Application> sQueryApplications = getList(sQuery, applicationIds, tagIds);
+      List<Application> taggedApplications = tx.dsl()
+          .selectDistinct(APPLICATION.fields())
+          .from(APPLICATION)
+          .join(APPLICATION_TAG)
+          .on(APPLICATION.APPLICATION_ID.eq(APPLICATION_TAG.APPLICATION_ID))
+          .where(APPLICATION.APPLICATION_ID.in(applicationIds))
+          .and(APPLICATION_TAG.TAG_ID.in(nonNullTagIds))
+          .fetch(this::toEntity);
 
-    if (tagIds.contains(null)) {
-      String untaggedQuery = "SELECT application FROM Application application" + //
-          " WHERE application.id IN (?1) AND NOT EXISTS (" + //
-          "  SELECT applicationTag FROM ApplicationTag applicationTag" + //
-          "   WHERE applicationTag.applicationId = application.id" + //
-          " )";
+      if (tagIds.contains(null)) {
+        // Get untagged applications
+        List<Application> untaggedApplications = tx.dsl()
+            .selectFrom(APPLICATION)
+            .where(APPLICATION.APPLICATION_ID.in(applicationIds))
+            .andNotExists(
+                DSL.selectOne()
+                    .from(APPLICATION_TAG)
+                    .where(APPLICATION_TAG.APPLICATION_ID.eq(APPLICATION.APPLICATION_ID)))
+            .fetch(this::toEntity);
 
-      List<Application> untaggedApplications = getList(untaggedQuery, applicationIds);
+        List<Application> retval = new ArrayList<>(taggedApplications);
+        retval.addAll(untaggedApplications);
+        return retval;
+      }
 
-      List<Application> retval = new ArrayList<>(sQueryApplications);
-      retval.addAll(untaggedApplications);
-      return retval;
+      return taggedApplications;
     }
-
-    return sQueryApplications;
   }
 
   public List<Application> getByTagIds(Set<String> tagIds) {
-    String sQuery = "SELECT DISTINCT application FROM Application application, ApplicationTag applicationTag" + //
-        " WHERE application.id = applicationTag.applicationId" + //
-        " AND applicationTag.tagId IN (?1)";
+    try (TransactionContext tx = createTransactionContext()) {
+      // Filter out null from tagIds for the main query
+      Set<String> nonNullTagIds = tagIds.stream().filter(id -> id != null).collect(Collectors.toSet());
 
-    List<Application> sQueryApplications = getList(sQuery, tagIds);
+      List<Application> taggedApplications = tx.dsl()
+          .selectDistinct(APPLICATION.fields())
+          .from(APPLICATION)
+          .join(APPLICATION_TAG)
+          .on(APPLICATION.APPLICATION_ID.eq(APPLICATION_TAG.APPLICATION_ID))
+          .where(APPLICATION_TAG.TAG_ID.in(nonNullTagIds))
+          .fetch(this::toEntity);
 
-    if (tagIds.contains(null)) {
-      String untaggedQuery = "SELECT application FROM Application application" + //
-          " WHERE NOT EXISTS (" + //
-          "  SELECT applicationTag FROM ApplicationTag applicationTag" + //
-          "   WHERE applicationTag.applicationId = application.id" + //
-          " )";
+      if (tagIds.contains(null)) {
+        // Get untagged applications
+        List<Application> untaggedApplications = tx.dsl()
+            .selectFrom(APPLICATION)
+            .whereNotExists(
+                DSL.selectOne()
+                    .from(APPLICATION_TAG)
+                    .where(APPLICATION_TAG.APPLICATION_ID.eq(APPLICATION.APPLICATION_ID)))
+            .fetch(this::toEntity);
 
-      List<Application> untaggedApplications = getList(untaggedQuery);
+        List<Application> retval = new ArrayList<>(taggedApplications);
+        retval.addAll(untaggedApplications);
+        return retval;
+      }
 
-      List<Application> retval = new ArrayList<>(sQueryApplications);
-      retval.addAll(untaggedApplications);
-      return retval;
+      return taggedApplications;
     }
-
-    return sQueryApplications;
   }
 
   public List<Application> getByPublicIds(Set<String> applicationPublicIds) {
     applicationPublicIds =
         applicationPublicIds.stream().map(ApplicationDAO::normalizePublicId).collect(Collectors.toSet());
-    String sQuery = "SELECT entity FROM Application entity" + //
-        " WHERE entity.publicIdLowercase IN (?1)";
-    return getList(sQuery, applicationPublicIds);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(APPLICATION)
+          .where(APPLICATION.PUBLIC_ID_LOWERCASE.in(applicationPublicIds))
+          .fetch(this::toEntity);
+    }
   }
 
   public List<Application> getByIds(Set<String> applicationIds) {
-    String sQuery = "SELECT entity FROM Application entity" + //
-        " WHERE entity.id IN (?1)";
-    return getList(sQuery, applicationIds);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(APPLICATION)
+          .where(APPLICATION.APPLICATION_ID.in(applicationIds))
+          .fetch(this::toEntity);
+    }
   }
 
   public List<Application> getByAncestorIds(
@@ -417,7 +493,6 @@ public class ApplicationDAO
     }
   }
 
-  @SuppressWarnings("unchecked")
   private List<Application> getByAncestorIdsH2(
       final TransactionContext tx,
       final Set<String> ancestorIds,
@@ -426,25 +501,34 @@ public class ApplicationDAO
   {
     int offset = (page - 1) * pageSize;
     boolean splitQuery = ancestorIds.size() > getInOperatorThreshold();
-    String sQuery = "SELECT DISTINCT app FROM Application app, ApplicationAncestor aa" +
-        " WHERE app.id = aa.id" +
-        " AND aa.ancestorId IN (?1)" + (splitQuery ? "" : " ORDER BY app.publicIdLowercase");
     if (splitQuery) {
-      return getListWithSqlInClause(ancestorIds, l -> getList(tx, sQuery, l)).stream()
-          .distinct()
-          .sorted(Comparator.comparing(Application::getPublicIdLowercase))
-          .skip(offset)
-          .limit(pageSize)
-          .toList();
+      return getListWithSqlInClause(ancestorIds, l -> tx.dsl()
+          .selectDistinct(APPLICATION.fields())
+          .from(APPLICATION)
+          .join(APPLICATION_ANCESTOR)
+          .on(APPLICATION.APPLICATION_ID.eq(APPLICATION_ANCESTOR.APPLICATION_ID))
+          .where(APPLICATION_ANCESTOR.ANCESTOR_ID.in(l))
+          .fetch(this::toEntity)).stream()
+              .distinct()
+              .sorted(Comparator.comparing(Application::getPublicIdLowercase))
+              .skip(offset)
+              .limit(pageSize)
+              .toList();
     }
     else {
-      jakarta.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
-      paginationQuery.setParameter(1, ancestorIds);
-      return paginationQuery.getResultList();
+      return tx.dsl()
+          .selectDistinct(APPLICATION.fields())
+          .from(APPLICATION)
+          .join(APPLICATION_ANCESTOR)
+          .on(APPLICATION.APPLICATION_ID.eq(APPLICATION_ANCESTOR.APPLICATION_ID))
+          .where(APPLICATION_ANCESTOR.ANCESTOR_ID.in(ancestorIds))
+          .orderBy(APPLICATION.PUBLIC_ID_LOWERCASE)
+          .offset(offset)
+          .limit(pageSize)
+          .fetch(this::toEntity);
     }
   }
 
-  @SuppressWarnings("unchecked")
   private List<Application> getByAncestorIdsPostgres(
       final TransactionContext tx,
       final Set<String> ancestorIds,
@@ -452,24 +536,16 @@ public class ApplicationDAO
       final int pageSize)
   {
     int offset = (page - 1) * pageSize;
-    String sQuery = "SELECT DISTINCT app.* FROM " + getDatabaseSchema() + ".application app" +
-        " INNER JOIN " + getDatabaseSchema() + ".application_ancestor aa" +
-        " ON app.application_id = aa.application_id" +
-        " WHERE aa.ancestor_id = ANY(?)" +
-        " ORDER BY app.public_id_lowercase";
-    jakarta.persistence.Query paginationQuery =
-        createPaginationNativeQuery(tx, Application.class, sQuery, offset, pageSize);
-    java.sql.Array array;
-    // Creating an sql Array to pass to the postgres specific ANY function
-    // This avoids the 65,535 parameter limit for postgres
-    try (Connection connection = getDataStore().getDataSource().getConnection()) {
-      array = connection.createArrayOf(JDBCType.VARCHAR.name(), ancestorIds.toArray());
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e);
-    }
-    paginationQuery.setParameter(1, array);
-    return paginationQuery.getResultList();
+    return tx.dsl()
+        .selectDistinct(APPLICATION.fields())
+        .from(APPLICATION)
+        .join(APPLICATION_ANCESTOR)
+        .on(APPLICATION.APPLICATION_ID.eq(APPLICATION_ANCESTOR.APPLICATION_ID))
+        .where(APPLICATION_ANCESTOR.ANCESTOR_ID.in(ancestorIds))
+        .orderBy(APPLICATION.PUBLIC_ID_LOWERCASE)
+        .offset(offset)
+        .limit(pageSize)
+        .fetch(this::toEntity);
   }
 
   @Override
@@ -484,7 +560,31 @@ public class ApplicationDAO
       throw new InvalidApplicationException(application.getPublicId() + " is already used as an ID.");
     }
 
-    super.insert(tx, application);
+    // Generate ID if not set (from AbstractSqlDAO)
+    String id = application.getId();
+    if (id == null || id.trim().isEmpty()) {
+      application.setId(newUUID());
+    }
+
+    // jOOQ insert
+    tx.dsl()
+        .insertInto(APPLICATION)
+        .set(APPLICATION.APPLICATION_ID, application.getId())
+        .set(APPLICATION.PUBLIC_ID, application.getPublicId())
+        .set(APPLICATION.PUBLIC_ID_LOWERCASE, application.getPublicIdLowercase())
+        .set(APPLICATION.NAME, application.getName())
+        .set(APPLICATION.NAME_LOWERCASE_NO_WHITESPACE, application.getNameLowercaseNoWhitespace())
+        .set(APPLICATION.ORGANIZATION_ID, application.getOrganizationId())
+        .set(APPLICATION.CONTACT_INTERNAL_NAME, application.getContactInternalName())
+        .set(APPLICATION.LEGACY_VIOLATION_ENABLED, application.isLegacyViolationEnabled())
+        .set(APPLICATION.REPOSITORY_CONNECTION_ENABLED, application.isRepositoryConnectionEnabled())
+        .set(APPLICATION.ARTIFACTORY_CONNECTION_ENABLED, application.isArtifactoryConnectionEnabled())
+        .execute();
+
+    // Handle search index (from AbstractSqlDAO)
+    if (shouldAddSearchIndexChange(tx, application)) {
+      insertSearchIndexChange(tx, newSearchIndexChangeForInsert(application));
+    }
   }
 
   @Override
@@ -521,7 +621,25 @@ public class ApplicationDAO
       throw new InvalidApplicationException(application.getPublicId() + " is already used as an ID.");
     }
 
-    super.update(tx, application);
+    // jOOQ update
+    tx.dsl()
+        .update(APPLICATION)
+        .set(APPLICATION.PUBLIC_ID, application.getPublicId())
+        .set(APPLICATION.PUBLIC_ID_LOWERCASE, application.getPublicIdLowercase())
+        .set(APPLICATION.NAME, application.getName())
+        .set(APPLICATION.NAME_LOWERCASE_NO_WHITESPACE, application.getNameLowercaseNoWhitespace())
+        .set(APPLICATION.ORGANIZATION_ID, application.getOrganizationId())
+        .set(APPLICATION.CONTACT_INTERNAL_NAME, application.getContactInternalName())
+        .set(APPLICATION.LEGACY_VIOLATION_ENABLED, application.isLegacyViolationEnabled())
+        .set(APPLICATION.REPOSITORY_CONNECTION_ENABLED, application.isRepositoryConnectionEnabled())
+        .set(APPLICATION.ARTIFACTORY_CONNECTION_ENABLED, application.isArtifactoryConnectionEnabled())
+        .where(APPLICATION.APPLICATION_ID.eq(application.getId()))
+        .execute();
+
+    // Handle search index (from AbstractSqlDAO)
+    if (shouldAddSearchIndexChange(tx, application)) {
+      insertSearchIndexChange(tx, newSearchIndexChangeForUpdate(application));
+    }
   }
 
   private void validate(Application application) {
@@ -543,10 +661,14 @@ public class ApplicationDAO
       String organizationId,
       String labelLowercase)
   {
-    final String oQuery = "SELECT app FROM Label label, Application app" + //
-        " WHERE label.ownerId=app.id AND app.organizationId=?1" + //
-        "    AND label.labelLowercase=?2";
-    return getList(tx, oQuery, organizationId, labelLowercase);
+    return tx.dsl()
+        .select(APPLICATION.fields())
+        .from(LABEL)
+        .join(APPLICATION)
+        .on(LABEL.OWNER_ID.eq(APPLICATION.APPLICATION_ID))
+        .where(APPLICATION.ORGANIZATION_ID.eq(organizationId))
+        .and(LABEL.LABEL_LOWERCASE.eq(labelLowercase))
+        .fetch(this::toEntity);
   }
 
   /**
@@ -559,9 +681,15 @@ public class ApplicationDAO
     if (repositoryUrl != null) {
       repositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl);
     }
-    final String sQuery = "SELECT app FROM Application app, SourceControl sc " +
-        " WHERE app.id = sc.ownerId AND sc.normalizedRepositoryUrl = ?1";
-    return getList(sQuery, repositoryUrl);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(APPLICATION.fields())
+          .from(APPLICATION)
+          .join(SOURCE_CONTROL)
+          .on(APPLICATION.APPLICATION_ID.eq(SOURCE_CONTROL.OWNER_ID))
+          .where(SOURCE_CONTROL.NORMALIZED_REPOSITORY_URL.eq(repositoryUrl))
+          .fetch(this::toEntity);
+    }
   }
 
   /**
@@ -577,33 +705,34 @@ public class ApplicationDAO
       return Collections.emptyMap();
     }
 
-    final String sQuery = """
-        SELECT sc.normalizedRepositoryUrl, sc.ownerId
-        FROM SourceControl sc
-        WHERE sc.normalizedRepositoryUrl IN ?1
-        """;
+    try (TransactionContext tx = createTransactionContext()) {
+      final List<org.jooq.Record2<String, String>> results = getListWithSqlInClause(normalizedRepositoryUrls,
+          urls -> tx.dsl()
+              .select(SOURCE_CONTROL.NORMALIZED_REPOSITORY_URL, SOURCE_CONTROL.OWNER_ID)
+              .from(SOURCE_CONTROL)
+              .where(SOURCE_CONTROL.NORMALIZED_REPOSITORY_URL.in(urls))
+              .fetch());
 
-    final List<?> results = getListWithSqlInClause(normalizedRepositoryUrls, urls -> getUntypedResult(sQuery, urls));
-    final Map<String, SortedSet<String>> retval = results.stream()
-        .map(Object[].class::cast)
-        .collect(Collectors.toMap(
-            row -> (String) row[0],
-            row -> ImmutableSortedSet.of((String) row[1]),
-            (set1, set2) -> {
-              // Merge the two sets
-              var mergedSet = new TreeSet<>(set1);
-              mergedSet.addAll(set2);
-              return mergedSet;
-            }));
+      final Map<String, SortedSet<String>> retval = results.stream()
+          .collect(Collectors.toMap(
+              r -> r.value1(),
+              r -> ImmutableSortedSet.of(r.value2()),
+              (set1, set2) -> {
+                // Merge the two sets
+                var mergedSet = new TreeSet<>(set1);
+                mergedSet.addAll(set2);
+                return mergedSet;
+              }));
 
-    Set<String> missingUrls = new HashSet<>(normalizedRepositoryUrls);
-    missingUrls.removeAll(retval.keySet());
+      Set<String> missingUrls = new HashSet<>(normalizedRepositoryUrls);
+      missingUrls.removeAll(retval.keySet());
 
-    if (!missingUrls.isEmpty()) {
-      throw new IllegalArgumentException("Repository URLs not found: " + missingUrls);
+      if (!missingUrls.isEmpty()) {
+        throw new IllegalArgumentException("Repository URLs not found: " + missingUrls);
+      }
+
+      return retval;
     }
-
-    return retval;
   }
 
   public static String normalizePublicId(String publicId) {
@@ -629,10 +758,11 @@ public class ApplicationDAO
       return null;
     }
     String normalizedIdOrPublicId = normalizePublicId(idOrPublicId);
-    String sQuery = "SELECT app FROM Application app" +
-        " WHERE app.id=?1" +
-        " OR app.publicIdLowercase=?2";
-    return get(tx, sQuery, idOrPublicId, normalizedIdOrPublicId);
+    return toEntity(tx.dsl()
+        .selectFrom(APPLICATION)
+        .where(APPLICATION.APPLICATION_ID.eq(idOrPublicId)
+            .or(APPLICATION.PUBLIC_ID_LOWERCASE.eq(normalizedIdOrPublicId)))
+        .fetchOne());
   }
 
   @Override
@@ -699,8 +829,16 @@ public class ApplicationDAO
     // Cascade to SastScan table
     sastScanDAO.deleteByApplicationId(tx, application.getId());
 
-    // Delete application DAO
-    super.delete(tx, application);
+    // Delete application from database
+    tx.dsl()
+        .deleteFrom(APPLICATION)
+        .where(APPLICATION.APPLICATION_ID.eq(application.getId()))
+        .execute();
+
+    // Handle search index (from AbstractSqlDAO)
+    if (shouldAddSearchIndexChange(tx, application)) {
+      insertSearchIndexChange(tx, newSearchIndexChangeForDelete(application));
+    }
 
     // Cascade to membership mappings
     for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(tx, application.getId())) {
@@ -738,7 +876,11 @@ public class ApplicationDAO
       autoPolicyWaiverDAO.delete(tx, autoPolicyWaiver);
     }
 
-    cpeMatchingConfigurationDAO.delete(tx, cpeMatchingConfigurationDAO.getByOwnerId(tx, application.getId()));
+    CpeMatchingConfiguration cpeMatchingConfiguration =
+        cpeMatchingConfigurationDAO.getByOwnerId(tx, application.getId());
+    if (cpeMatchingConfiguration != null) {
+      cpeMatchingConfigurationDAO.delete(tx, cpeMatchingConfiguration);
+    }
 
     versionEvaluationWindowDAO.deleteByOwnerId(tx, application.getId());
 
@@ -918,23 +1060,15 @@ public class ApplicationDAO
           useTemporaryTable ? "JOIN temporary_ids ti ON (policy_violation.application_id = ti.id)" : "",
           whereClause, databaseSchema, databaseSchema, databaseSchema, databaseSchema, direction);
 
-      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
-      int i = 1;
-
-      query.setParameter(i++, minPolicyThreatLevel);
-      query.setParameter(i++, maxPolicyThreatLevel);
+      List<Object> params = new ArrayList<>();
+      params.add(minPolicyThreatLevel);
+      params.add(maxPolicyThreatLevel);
 
       if (!useTemporaryTable) {
-        for (String appId : applicationIds) {
-          query.setParameter(i++, appId);
-        }
+        params.addAll(applicationIds);
       }
-      for (String stageType : stageTypes) {
-        query.setParameter(i++, stageType);
-      }
-      for (String threatCategory : policyThreatCategoryFilter) {
-        query.setParameter(i++, threatCategory);
-      }
+      params.addAll(stageTypes);
+      params.addAll(policyThreatCategoryFilter);
 
       int first = page * pageSize + 1;
       int last = first + pageSize;
@@ -942,51 +1076,61 @@ public class ApplicationDAO
         last = Integer.MAX_VALUE;
       }
 
-      query.setParameter(i++, first);
-      query.setParameter(i++, last);
+      params.add(first);
+      params.add(last);
 
-      @SuppressWarnings("unchecked")
-      List<ApplicationRiskDTO> results =
-          ((Stream<Object[]>) query.getResultStream()).map(array -> new ApplicationRiskDTO(
-              (String) array[0], // organizationId
-              (String) array[1], // organizationName
-              (String) array[2], // applicationName
-              (String) array[3], // publicId
-              (String) array[4], // scanId
-              (String) array[5], // stageTypeId
-              (String) array[6], // applicationId
-              (Long) array[7], // rank
-              array[8] == null ? 0 : Long.valueOf((long) array[8]).intValue(), // totalRiskPerStageUnique
-              array[9] == null ? 0 : Long.valueOf((long) array[9]).intValue(), // criticalPerStageUnique
-              array[10] == null ? 0 : Long.valueOf((long) array[10]).intValue(), // severePerStageUnique
-              array[11] == null ? 0 : Long.valueOf((long) array[11]).intValue(), // moderatePerStageUnique
-              array[12] == null ? 0 : Long.valueOf((long) array[12]).intValue(), // lowPerStageUnique
-              array[13] == null ? 0 : Long.valueOf((long) array[13]).intValue(), // totalRiskPerStage
-              array[14] == null ? 0 : Long.valueOf((long) array[14]).intValue(), // criticalPerStage
-              array[15] == null ? 0 : Long.valueOf((long) array[15]).intValue(), // severePerStage
-              array[16] == null ? 0 : Long.valueOf((long) array[16]).intValue(), // moderatePerStage
-              array[17] == null ? 0 : Long.valueOf((long) array[17]).intValue() // lowPerStage
-          )).toList();
+      List<ApplicationRiskDTO> results = tx.dsl()
+          .resultQuery(sQuery, params.toArray())
+          .fetchStream()
+          .map(record -> new ApplicationRiskDTO(
+              record.get(0, String.class), // organizationId
+              record.get(1, String.class), // organizationName
+              record.get(2, String.class), // applicationName
+              record.get(3, String.class), // publicId
+              record.get(4, String.class), // scanId
+              record.get(5, String.class), // stageTypeId
+              record.get(6, String.class), // applicationId
+              record.get(7, Long.class), // rank
+              record.get(8, Long.class) == null ? 0 : record.get(8, Long.class).intValue(),
+              record.get(9, Long.class) == null ? 0 : record.get(9, Long.class).intValue(),
+              record.get(10, Long.class) == null ? 0 : record.get(10, Long.class).intValue(),
+              record.get(11, Long.class) == null ? 0 : record.get(11, Long.class).intValue(),
+              record.get(12, Long.class) == null ? 0 : record.get(12, Long.class).intValue(), // lowPerStageUnique
+              record.get(13, Long.class) == null ? 0 : record.get(13, Long.class).intValue(), // totalRiskPerStage
+              record.get(14, Long.class) == null ? 0 : record.get(14, Long.class).intValue(), // criticalPerStage
+              record.get(15, Long.class) == null ? 0 : record.get(15, Long.class).intValue(), // severePerStage
+              record.get(16, Long.class) == null ? 0 : record.get(16, Long.class).intValue(), // moderatePerStage
+              record.get(17, Long.class) == null ? 0 : record.get(17, Long.class).intValue() // lowPerStage
+          ))
+          .toList();
       return results;
     }
   }
 
   public long getCountWithoutRelatedRepositories() {
-    String sQuery = "" +
-        "SELECT COUNT(application)" +
-        "  FROM Application application, Organization organization" +
-        " WHERE application.organizationId = organization.id" +
-        "   AND organization.relatedRepositoryId IS NULL" +
-        "   AND organization.relatedRepositoryManagerId IS NULL";
-    return getSingle(Long.class, sQuery);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectCount()
+          .from(APPLICATION)
+          .join(com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION)
+          .on(APPLICATION.ORGANIZATION_ID.eq(
+              com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION.ORGANIZATION_ID))
+          .where(com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION.RELATED_REPOSITORY_ID
+              .isNull()
+              .and(
+                  com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION.RELATED_REPOSITORY_MANAGER_ID
+                      .isNull()))
+          .fetchOne(0, Long.class);
+    }
   }
 
   public long getApplicationsCountByOrganizationId(String organizationId) {
-    String sQuery = "" +
-        "SELECT COUNT(application)" +
-        " FROM Application application" +
-        " WHERE application.organizationId=?1";
-
-    return getSingle(Long.class, sQuery, organizationId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectCount()
+          .from(APPLICATION)
+          .where(APPLICATION.ORGANIZATION_ID.eq(organizationId))
+          .fetchOne(0, Long.class);
+    }
   }
 }

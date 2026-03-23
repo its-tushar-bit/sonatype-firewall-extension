@@ -144,6 +144,7 @@ public class SourceControlUserActivityDAOTest
 
     List<SourceControlUserActivityTelemetryDTO> activitiesNotSentToTelemetry =
         sourceControlUserActivityDAO.getActivitiesNotSentToTelemetry()
+            .stream()
             .sorted(Comparator.comparing(SourceControlUserActivityTelemetryDTO::getEmail))
             .collect(Collectors.toList());
     assertThat(activitiesNotSentToTelemetry).hasSize(2);

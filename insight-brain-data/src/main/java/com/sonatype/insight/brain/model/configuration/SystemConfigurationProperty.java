@@ -13,12 +13,10 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import org.apache.openjpa.persistence.DataCache;
 
 /**
  * @since 1.33
  */
-@DataCache(timeout = 300_000) // 5 minutes
 @Cacheable
 @Entity
 @Table(name = "system_configuration_property")

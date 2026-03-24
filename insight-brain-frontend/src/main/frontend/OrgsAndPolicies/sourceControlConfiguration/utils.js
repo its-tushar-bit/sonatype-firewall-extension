@@ -44,6 +44,21 @@ export const AUTHENTICATION_TYPES = {
   GITHUB_APP: 'GITHUB_APP',
   PAT: 'PAT',
 };
+export const GITHUB_ACCOUNT_TYPES = {
+  ORGANIZATION: 'organization',
+  PERSONAL: 'personal',
+};
+export const GITHUB_ACCOUNT_DISPLAY_LABELS = {
+  ORGANIZATION: 'Organization',
+  PERSONAL: 'Account',
+};
+export const GITHUB_URLS = {
+  LOGIN: 'https://github.com/login',
+  ORGANIZATION_APP_SETTINGS: 'https://github.com/organizations/{orgName}/settings/apps/new',
+  PERSONAL_APP_SETTINGS: 'https://github.com/settings/apps/new',
+  PERSONAL_INSTALLATIONS: 'https://github.com/settings/installations/{installationId}',
+  ORGANIZATION_INSTALLATIONS: 'https://github.com/organizations/{orgName}/settings/installations/{installationId}',
+};
 export const BRANCH_INPUT_MAX_CHARACTERS = 243,
   USERNAME_INPUT_MAX_CHARACTERS = 255,
   TOKEN_INPUT_MAX_CHARACTERS = 512;
@@ -902,10 +917,12 @@ export const getGitHubAppInstallationUrl = (accountName, installationId) => {
   if (!installationId) return null;
 
   if (isPersonalAccount(accountName)) {
-    return `https://github.com/settings/installations/${installationId}`;
+    return GITHUB_URLS.PERSONAL_INSTALLATIONS.replace('{installationId}', String(installationId));
   }
   // Use cleaned account name for organization URLs
-  return `https://github.com/organizations/${getCleanAccountName(
-    accountName
-  )}/settings/installations/${installationId}`;
+  const cleanName = getCleanAccountName(accountName);
+  return GITHUB_URLS.ORGANIZATION_INSTALLATIONS.replace('{orgName}', cleanName).replace(
+    '{installationId}',
+    String(installationId)
+  );
 };

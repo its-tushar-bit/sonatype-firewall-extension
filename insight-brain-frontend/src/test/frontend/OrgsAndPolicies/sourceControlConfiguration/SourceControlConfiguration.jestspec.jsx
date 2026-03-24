@@ -13,7 +13,7 @@ import {
   getSourceControlMetricsUrl,
   getSourceControlUrl,
 } from 'MainRoot/util/CLMLocation';
-import { fireEvent } from '@testing-library/react';
+import { fireEvent, waitFor } from '@testing-library/react';
 import { testSourceControlContainers } from './helpers';
 import {
   ROOT_ORGANIZATION_ID,
@@ -43,7 +43,10 @@ import {
   organizationResponse,
 } from './data';
 import { clone } from 'ramda';
-import { SOURCE_CONTROL_UNSUPPORTED_MESSAGE } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
+import {
+  SOURCE_CONTROL_UNSUPPORTED_MESSAGE,
+  getScmFormStateStorageKey,
+} from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 
 import 'TestRoot/SpecUtil';
 
@@ -631,6 +634,184 @@ describe('sourceControlConfiguration', () => {
         expect(failedChecksCheckbox).toBeDisabled();
         expect(afterDaysCheckbox).toBeDisabled();
         expect(daysInput).toBeDisabled();
+      });
+    });
+
+    describe('Token field visibility with GitHub App feature', () => {
+      it('hides token field when feature enabled and no provider selected', async () => {
+        const preloadedState = clone(defaultPreloadedState);
+        preloadedState.productFeatures.productFeatures['github-app-authentication'] = true;
+
+        const configResponse = {
+          ...defaultRootOrgConfigResponse,
+          provider: { value: null, parentValue: null, parentName: null },
+        };
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, configResponse);
+
+        renderComponent(preloadedState);
+
+        // Wait for form to load
+        await screen.findByRole('button', { name: 'Create' });
+
+        // Token field should be hidden (look for Access Token label)
+        expect(screen.queryByLabelText(/Access Token/i)).not.toBeInTheDocument();
+        // GitHub App auth should also be hidden (no provider selected)
+        expect(screen.queryByText(/GitHub App/)).not.toBeInTheDocument();
+      });
+
+      it('shows token field when feature disabled and no provider selected', async () => {
+        const preloadedState = clone(defaultPreloadedState);
+        // GitHub App feature is not in productFeatures (disabled)
+
+        const configResponse = {
+          ...defaultRootOrgConfigResponse,
+          provider: { value: null, parentValue: null, parentName: null },
+        };
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, configResponse);
+
+        renderComponent(preloadedState);
+
+        // Wait for form to load
+        await screen.findByRole('button', { name: 'Create' });
+
+        // Token field should be visible when feature is disabled
+        expect(screen.getByLabelText(/Access Token/i)).toBeInTheDocument();
+      });
+
+      it('shows token field when non-GitHub provider selected and feature enabled', async () => {
+        const preloadedState = clone(defaultPreloadedState);
+        preloadedState.productFeatures.productFeatures['github-app-authentication'] = true;
+
+        const configResponse = {
+          ...defaultRootOrgConfigResponse,
+          provider: { value: 'bitbucket', parentValue: null, parentName: null },
+        };
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, configResponse);
+
+        renderComponent(preloadedState);
+
+        // Wait for form to load
+        await screen.findByRole('button', { name: 'Create' });
+
+        // Token field should be visible
+        expect(screen.getByLabelText(/Access Token/i)).toBeInTheDocument();
+        // GitHub App auth should be hidden
+        expect(screen.queryByText(/GitHub App/)).not.toBeInTheDocument();
+      });
+    });
+
+    describe('GitHub App success flow', () => {
+      beforeEach(() => {
+        sessionStorage.clear();
+      });
+
+      it('shows create guidance for first-time root setup after returning from GitHub and does not show replacement alert', async () => {
+        const backendGitHubAppResponse = {
+          ...defaultRootOrgConfigResponse,
+          provider: { value: 'github', parentValue: null, parentName: null },
+          authenticationType: { value: 'GITHUB_APP', parentValue: null, parentName: null },
+          githubApp: {
+            value: {
+              installationId: 'new-installation-id',
+              name: 'sonatype-iq-server',
+              accountName: 'test-org',
+            },
+            parentValue: null,
+            parentName: null,
+          },
+        };
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, backendGitHubAppResponse);
+
+        sessionStorage.setItem(
+          getScmFormStateStorageKey('organization', ROOT_ORGANIZATION_ID),
+          JSON.stringify({
+            githubApp: {
+              value: null,
+              isInherited: false,
+              parentValue: null,
+              parentName: null,
+            },
+          })
+        );
+
+        const preloadedState = clone(defaultPreloadedState);
+        preloadedState.productFeatures.productFeatures['github-app-authentication'] = true;
+        preloadedState.router.currentParams.githubAppSuccess = 'true';
+
+        renderComponent(preloadedState);
+
+        await screen.findByText('GitHub Setup Complete');
+        expect(screen.getByRole('button', { name: 'Create' })).toBeVisible();
+
+        const instructionAlert = screen.getByText(/source control page to apply this configuration/i);
+        expect(instructionAlert).toHaveTextContent(
+          /click create in the source control page to apply this configuration\./i
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+
+        await waitFor(() => {
+          expect(screen.queryByText('GitHub Setup Complete')).not.toBeInTheDocument();
+        });
+        expect(screen.queryByText(/The GitHub App was replaced successfully/i)).not.toBeInTheDocument();
+      });
+
+      it('shows update guidance and replacement alert after reconfiguring an existing root GitHub App', async () => {
+        const backendGitHubAppResponse = {
+          ...existingRootOrgConfigResponse,
+          provider: { value: 'github', parentValue: null, parentName: null },
+          authenticationType: { value: 'GITHUB_APP', parentValue: null, parentName: null },
+          githubApp: {
+            value: {
+              installationId: 'new-installation-id',
+              name: 'sonatype-iq-server',
+              accountName: 'test-org',
+            },
+            parentValue: null,
+            parentName: null,
+          },
+        };
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, backendGitHubAppResponse);
+
+        sessionStorage.setItem(
+          getScmFormStateStorageKey('organization', ROOT_ORGANIZATION_ID),
+          JSON.stringify({
+            githubApp: {
+              value: {
+                installationId: 'old-installation-id',
+                name: 'sonatype-iq-server',
+                accountName: 'test-org',
+              },
+              isInherited: false,
+              parentValue: null,
+              parentName: null,
+            },
+          })
+        );
+
+        const preloadedState = clone(defaultPreloadedState);
+        preloadedState.productFeatures.productFeatures['github-app-authentication'] = true;
+        preloadedState.router.currentParams.githubAppSuccess = 'true';
+
+        renderComponent(preloadedState);
+
+        await screen.findByText('GitHub Setup Complete');
+        expect(screen.getByRole('button', { name: 'Update' })).toBeVisible();
+
+        const instructionAlert = screen.getByText(/source control page to apply this configuration/i);
+        expect(instructionAlert).toHaveTextContent(
+          /click update in the source control page to apply this configuration\./i
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+
+        const replacedAlert = await screen.findByText(/The GitHub App was replaced successfully/i);
+        expect(replacedAlert).toBeVisible();
       });
     });
   });
@@ -1277,6 +1458,94 @@ describe('sourceControlConfiguration', () => {
 
         // Configure button should be shown (since no installation ID is configured)
         expect(within(authMethodFieldset).getByRole('button', { name: 'Configure GitHub App' })).toBeVisible();
+      });
+    });
+
+    describe('Token field visibility with GitHub App feature', () => {
+      it('hides token field when feature enabled and no provider (neither inherited nor local)', async () => {
+        const preloadedState = clone(defaultPreloadedState);
+        preloadedState.productFeatures.productFeatures['github-app-authentication'] = true;
+
+        const configResponse = {
+          ...defaultOrgConfigResponse,
+          provider: { value: null, parentValue: null, parentName: null },
+        };
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, configResponse);
+
+        renderComponent(preloadedState);
+
+        // Wait for form to load
+        await screen.findByRole('button', { name: 'Update' });
+
+        // Token field should be hidden
+        expect(screen.queryByTestId('token-input')).not.toBeInTheDocument();
+        // GitHub App auth should also be hidden (no provider selected)
+        expect(screen.queryByText(/GitHub App/)).not.toBeInTheDocument();
+      });
+
+      it('shows token field when feature enabled and provider inherited from parent', async () => {
+        const preloadedState = clone(defaultPreloadedState);
+        preloadedState.productFeatures.productFeatures['github-app-authentication'] = true;
+
+        const configResponse = {
+          ...defaultOrgConfigResponse,
+          provider: { value: null, parentValue: 'gitlab', parentName: ROOT_ORGANIZATION_NAME },
+        };
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, configResponse);
+
+        renderComponent(preloadedState);
+
+        // Wait for form to load
+        await screen.findByRole('button', { name: 'Update' });
+
+        // Token field should be visible for non-GitHub provider (org level uses testid)
+        expect(screen.getByTestId('token-input')).toBeInTheDocument();
+      });
+
+      it('shows GitHub App auth when provider overridden to GitHub', async () => {
+        const preloadedState = clone(defaultPreloadedState);
+        preloadedState.productFeatures.productFeatures['github-app-authentication'] = true;
+
+        const configResponse = {
+          ...defaultOrgConfigResponse,
+          provider: { value: 'github', parentValue: null, parentName: null },
+        };
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, configResponse);
+
+        renderComponent(preloadedState);
+
+        // Wait for form to load
+        await screen.findByRole('button', { name: 'Update' });
+
+        // GitHub App auth should be visible
+        expect(screen.getByText(/GitHub App/)).toBeInTheDocument();
+        // Token field should be hidden
+        expect(screen.queryByTestId('token-input')).not.toBeInTheDocument();
+      });
+
+      it('shows token field when provider overridden to non-GitHub', async () => {
+        const preloadedState = clone(defaultPreloadedState);
+        preloadedState.productFeatures.productFeatures['github-app-authentication'] = true;
+
+        const configResponse = {
+          ...defaultOrgConfigResponse,
+          provider: { value: 'bitbucket', parentValue: null, parentName: null },
+        };
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, configResponse);
+
+        renderComponent(preloadedState);
+
+        // Wait for form to load
+        await screen.findByRole('button', { name: 'Update' });
+
+        // Token field should be visible
+        expect(screen.getByTestId('token-input')).toBeInTheDocument();
+        // GitHub App auth should be hidden
+        expect(screen.queryByText(/GitHub App/)).not.toBeInTheDocument();
       });
     });
   });
@@ -2008,6 +2277,40 @@ describe('sourceControlConfiguration', () => {
 
         // Configure button should be shown (since no installation ID is configured)
         expect(within(authMethodFieldset).getByRole('button', { name: 'Configure GitHub App' })).toBeVisible();
+      });
+
+      it('does not show reconfigure alert by default after loading', async () => {
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...existingAppConfigResponse,
+          authenticationType: { value: 'GITHUB_APP', parentValue: null, parentName: null },
+          githubApp: {
+            value: {
+              installationId: '12345',
+              name: 'Test App',
+              accountName: 'test-org',
+            },
+            parentValue: null,
+            parentName: null,
+          },
+        });
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        // Reconfigure alert should not be present by default
+        const alert = screen.queryByText(/The GitHub App was replaced successfully/i);
+        expect(alert).not.toBeInTheDocument();
       });
     });
   });

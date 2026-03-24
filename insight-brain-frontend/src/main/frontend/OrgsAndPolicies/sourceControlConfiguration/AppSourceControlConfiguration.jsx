@@ -145,6 +145,12 @@ const AppSourceControlConfiguration = () => {
     isGithubAppAuthenticationEnabled
   );
 
+  // Determine if a provider is selected (either inherited or overridden)
+  const hasProviderSelected =
+    (sourceControl?.provider.isInherited && sourceControl?.provider.parentValue?.value) ||
+    (!sourceControl?.provider.isInherited && sourceControl?.provider.rscValue?.value);
+
+  const shouldShowTokenAuth = !showGitHubAppAuth && (!isGithubAppAuthenticationEnabled || hasProviderSelected);
   return (
     <NxStatefulForm
       onSubmit={shouldShowConfirmationOnUpdate() ? showConfirmUpdateModal : onSave}
@@ -214,7 +220,7 @@ const AppSourceControlConfiguration = () => {
         />
       )}
       {/* Standard token authentication (fallback) */}
-      {!showGitHubAppAuth && (
+      {shouldShowTokenAuth && (
         <NxFieldset
           id="editor-source-control-token"
           label={credentialsLabel}

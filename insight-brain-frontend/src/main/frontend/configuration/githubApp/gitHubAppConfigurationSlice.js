@@ -13,6 +13,8 @@ import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import {
   getScmFormStateStorageKey,
   saveFormStateWithFallback,
+  GITHUB_ACCOUNT_TYPES,
+  GITHUB_URLS,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 
 import { always } from 'ramda';
@@ -26,17 +28,13 @@ const { initialState: nxTextInputInitialState, userInput } = nxTextInputStateHel
 const orgNameValidator = (val) => (val && val.trim().length > 0 ? null : 'Required field');
 
 const REDUCER_NAME = 'gitHubAppConfiguration';
-const GITHUB_APP_URLS = {
-  ORGANIZATION_SETTINGS: 'https://github.com/organizations/{orgName}/settings/apps/new',
-  PERSONAL_SETTINGS: 'https://github.com/settings/apps/new',
-};
 
 export const initialState = Object.freeze({
   setupError: null,
   registrationInProgress: false,
   isModalOpen: false,
   formState: {
-    accountType: 'organization',
+    accountType: GITHUB_ACCOUNT_TYPES.ORGANIZATION,
     organizationName: nxTextInputInitialState(''),
   },
 });
@@ -70,9 +68,9 @@ const initiateGitHubAppRegistration = createAsyncThunk(
       const { manifest, state: stateToken } = response.data;
 
       const githubUrl =
-        accountType === 'organization'
-          ? GITHUB_APP_URLS.ORGANIZATION_SETTINGS.replace('{orgName}', orgName)
-          : GITHUB_APP_URLS.PERSONAL_SETTINGS;
+        accountType === GITHUB_ACCOUNT_TYPES.ORGANIZATION
+          ? GITHUB_URLS.ORGANIZATION_APP_SETTINGS.replace('{orgName}', orgName)
+          : GITHUB_URLS.PERSONAL_APP_SETTINGS;
 
       // Create hidden form to POST manifest to GitHub
       const form = document.createElement('form');
@@ -113,7 +111,7 @@ const gitHubAppConfiguration = createSlice({
     },
     setAccountType: (state, action) => {
       state.formState.accountType = action.payload;
-      if (action.payload === 'personal') {
+      if (action.payload === GITHUB_ACCOUNT_TYPES.PERSONAL) {
         state.formState.organizationName = nxTextInputInitialState('');
       }
     },

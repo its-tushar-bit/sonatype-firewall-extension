@@ -132,4 +132,14 @@ export const selectShowGitHubAppSuccessModal = createSelector(
   prop('showGitHubAppSuccessModal')
 );
 
+export const selectShowGitHubAppReplacedAlert = createSelector(
+  selectSourceControlConfigurationSlice,
+  prop('showGitHubAppReplacedAlert')
+);
+
+export const selectIsGitHubAppReplacement = createSelector(
+  selectSourceControlConfigurationSlice,
+  prop('isGitHubAppReplacement')
+);
+
 export const selectSourceControl = createSelector(selectSourceControlConfigurationSlice, prop('sourceControl'));

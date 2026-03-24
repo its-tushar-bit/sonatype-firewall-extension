@@ -6,7 +6,12 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { NxButton, NxTextLink } from '@sonatype/react-shared-components';
-import { isPersonalAccount, getCleanAccountName, getGitHubAppInstallationUrl } from './utils';
+import {
+  isPersonalAccount,
+  getCleanAccountName,
+  getGitHubAppInstallationUrl,
+  GITHUB_ACCOUNT_DISPLAY_LABELS,
+} from './utils';
 import './_gitHubAppDetailsBox.scss';
 
 /**
@@ -30,7 +35,9 @@ const GitHubAppDetailsBox = ({ githubApp, linkText, repositoryUrl, onReconfigure
   return (
     <>
       <dl className="iq-github-app-details-box">
-        <dt>{isPersonal ? 'Account:' : 'Organization:'}</dt>
+        <dt>
+          {isPersonal ? `${GITHUB_ACCOUNT_DISPLAY_LABELS.PERSONAL}:` : `${GITHUB_ACCOUNT_DISPLAY_LABELS.ORGANIZATION}:`}
+        </dt>
         <dd>{displayAccountName}</dd>
         {githubApp.name && (
           <>

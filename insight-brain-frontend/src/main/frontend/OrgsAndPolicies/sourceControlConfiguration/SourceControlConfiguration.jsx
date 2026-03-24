@@ -10,6 +10,7 @@ import {
   NxH1,
   NxLoadWrapper,
   NxPageTitle,
+  NxSuccessAlert,
   NxTile,
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
@@ -24,6 +25,7 @@ import {
   selectIsLoading,
   selectSourceControlConfigurationSlice,
   selectShowGitHubAppSuccessModal,
+  selectShowGitHubAppReplacedAlert,
   selectSourceControl,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
 import { useDispatch, useSelector } from 'react-redux';
@@ -44,7 +46,6 @@ import {
   selectRouterCurrentParams,
   selectRouterState,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import SourceControlAutomatedPullRequestTable from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/SourceControlAutomatedPullRequestTable';
 import { SOURCE_CONTROL_UNSUPPORTED_MESSAGE } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 
@@ -60,6 +61,7 @@ const SourceControlConfiguration = () => {
   const owner = useSelector(selectSelectedOwner);
   const isLoading = useSelector(selectIsLoading);
   const showGitHubAppSuccessModal = useSelector(selectShowGitHubAppSuccessModal);
+  const showGitHubAppReplacedAlert = useSelector(selectShowGitHubAppReplacedAlert);
   const sourceControl = useSelector(selectSourceControl);
   const routerParams = useSelector(selectRouterCurrentParams);
   const currentState = useSelector((state) => selectRouterState(state)?.name);
@@ -95,19 +97,6 @@ const SourceControlConfiguration = () => {
     if (!githubAppSuccess) return;
     if (githubAppSuccessHandled.current) return;
 
-    // Check if GitHub App is already configured (e.g., after page refresh)
-    // If installation already exists with features enabled, this is likely a stale query param
-    const hasExistingInstallation = sourceControl?.githubApp?.value?.installationId;
-    const featuresAlreadyEnabled =
-      sourceControl?.remediationPullRequestsEnabled?.value === true &&
-      sourceControl?.manualPullRequestsEnabled?.value === true;
-
-    if (hasExistingInstallation && featuresAlreadyEnabled) {
-      // Installation already complete and features enabled - just clear the param
-      githubAppSuccessHandled.current = true;
-      return;
-    }
-
     // Mark as handled to prevent re-execution on back navigation, URL manipulation, or Strict Mode
     githubAppSuccessHandled.current = true;
 
@@ -134,6 +123,10 @@ const SourceControlConfiguration = () => {
     dispatch(actions.closeGitHubAppSuccessModal());
   }, [dispatch, sourceControl]);
 
+  const handleCloseGitHubAppReplacedAlert = useCallback(() => {
+    dispatch(actions.closeGitHubAppReplacedAlert());
+  }, [dispatch]);
+
   return (
     <div id="source-control-editor">
       <NxPageTitle>
@@ -151,6 +144,11 @@ const SourceControlConfiguration = () => {
           <>
             {isShowAccessTokenWarning && (
               <NxWarningAlert id="source-control-token-warning">Access Token must be configured</NxWarningAlert>
+            )}
+            {showGitHubAppReplacedAlert && (
+              <NxSuccessAlert id="github-app-replaced-alert" onClose={handleCloseGitHubAppReplacedAlert}>
+                The GitHub App was replaced successfully. The current configuration was overwritten
+              </NxSuccessAlert>
             )}
             <NxTile className="iq-source-control-configuration-tile">
               {isRootOrg && <RootSourceControlConfiguration />}
@@ -174,6 +172,7 @@ const SourceControlConfiguration = () => {
                   autoEnabledManualPRs={!sourceControl?.manualPullRequestsEnabled?.value}
                   serverId={sourceControl?.githubApp?.value?.name}
                   organizationName={sourceControl?.githubApp?.value?.accountName}
+                  submitBtnText={isRootOrg ? (sourceControl?.id ? 'Update' : 'Create') : 'Update'}
                 />
               </>
             )}

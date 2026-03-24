@@ -48,6 +48,18 @@ describe('GitHubAppRegistrationModal', () => {
       expect(screen.getByRole('heading', { name: /connect to github/i })).toBeInTheDocument();
     });
 
+    it('displays GitHub login alert message', () => {
+      renderComponent();
+
+      expect(screen.getByText(/you must be logged in to github to continue/i)).toBeInTheDocument();
+    });
+
+    it('displays "Open GitHub" button', () => {
+      renderComponent();
+
+      expect(screen.getByRole('button', { name: /open github/i })).toBeInTheDocument();
+    });
+
     it('renders modal with proper accessibility attributes', () => {
       renderComponent();
 
@@ -282,6 +294,50 @@ describe('GitHubAppRegistrationModal', () => {
       state = store.getState();
       expect(state.gitHubAppConfiguration.formState.accountType).toBe('organization');
       expect(state.gitHubAppConfiguration.formState.organizationName.value).toBe('');
+    });
+
+    it('opens GitHub login in new tab when "Open GitHub" button is clicked', async () => {
+      const user = userEvent.setup();
+      const mockWindowOpen = jest.fn();
+      const originalWindowOpen = window.open;
+      window.open = mockWindowOpen;
+
+      renderComponent();
+
+      const openGitHubButton = screen.getByRole('button', { name: /open github/i });
+      await user.click(openGitHubButton);
+
+      expect(mockWindowOpen).toHaveBeenCalledWith('https://github.com/login', '_blank', 'noopener,noreferrer');
+
+      // Cleanup
+      window.open = originalWindowOpen;
+    });
+
+    it('does not submit form when "Open GitHub" button is clicked', async () => {
+      const user = userEvent.setup();
+      const mockWindowOpen = jest.fn();
+      const originalWindowOpen = window.open;
+      // eslint-disable-next-line
+      window.open = mockWindowOpen;
+
+      renderComponent();
+
+      // Enter valid organization name to ensure form would be valid
+      const orgNameInput = screen.getByLabelText(/organization name/i);
+      await user.type(orgNameInput, 'test-org');
+
+      // Click "Open GitHub" button
+      const openGitHubButton = screen.getByRole('button', { name: /open github/i });
+      await user.click(openGitHubButton);
+
+      // Verify window.open was called but form was NOT submitted
+      expect(mockWindowOpen).toHaveBeenCalled();
+
+      // Modal should still be visible (not closed by form submission)
+      expect(screen.getByRole('heading', { name: /connect to github/i })).toBeInTheDocument();
+
+      // Cleanup
+      window.open = originalWindowOpen;
     });
   });
 

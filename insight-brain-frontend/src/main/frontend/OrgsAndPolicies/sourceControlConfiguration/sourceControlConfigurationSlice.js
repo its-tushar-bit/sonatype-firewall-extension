@@ -32,6 +32,7 @@ import {
   getScmFormStateStorageKey,
   loadFormStateWithFallback,
   removeFormStateWithFallback,
+  AUTHENTICATION_TYPES,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 import { selectSourceControlConfigurationSlice } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
 import {
@@ -244,11 +245,6 @@ const loadPending = (state) => {
 const loadFailed = (state, { payload }) => {
   state.formLoading = false;
   state.loadError = Messages.getHttpErrorMessage(payload);
-
-  // Defensive cleanup: Remove temporary field if load failed
-  if (state.serverSourceControl?._originalAuthType !== undefined) {
-    delete state.serverSourceControl._originalAuthType;
-  }
 };
 
 const loadSCMRootConfig = createAsyncThunk(`${REDUCER_NAME}/loadSCMRootConfig`, (_, { getState, rejectWithValue }) => {
@@ -328,15 +324,6 @@ const loadSCMRootConfigFulfilled = (
   let hasChanges = false;
   let sessionWasRestored = false;
 
-  // Store original authenticationType BEFORE any modifications
-  // Uses this to distinguish fresh install vs reconfigure in showGitHubAppSuccessModal
-  // This temporary field (_originalAuthType) is:
-  // 1. Captured here from fresh backend data
-  // 2. Stored in serverSourceControl during sync
-  // 3. Read in showGitHubAppSuccessModal action
-  // 4. Used to determine if this is a replacement
-  // 5. Cleaned up after modal is shown
-  const originalAuthType = serverSourceControl?.authenticationType?.value;
   // Check backend for GitHub App before session restore (serverSourceControl has fresh backend data)
   const backendHasGithubApp = serverSourceControl?.githubApp?.value?.installationId;
   // PHASE 1: Session Restore - preserves draft changes during GitHub App OAuth redirect
@@ -365,7 +352,7 @@ const loadSCMRootConfigFulfilled = (
     state.sourceControl.githubApp = { ...serverSourceControl.githubApp };
     state.sourceControl.authenticationType = {
       ...serverSourceControl.authenticationType,
-      value: 'GITHUB_APP',
+      value: AUTHENTICATION_TYPES.GITHUB_APP,
       isInherited: false,
     };
     // Force provider to GitHub when GitHub App is installed
@@ -377,8 +364,6 @@ const loadSCMRootConfigFulfilled = (
   }
 
   // PHASE 3: Sync serverSourceControl and determine hasChanges
-  state.serverSourceControl._originalAuthType = originalAuthType;
-
   if (!sessionWasRestored) {
     state.serverSourceControl.provider = { ...state.sourceControl.provider };
     state.serverSourceControl.authenticationType = { ...state.sourceControl.authenticationType };
@@ -407,12 +392,6 @@ const loadSCMRootConfigFulfilled = (
 const loadSCMRootConfigFailed = (state, { payload }) => {
   state.formLoading = false;
   state.loadError = Messages.getHttpErrorMessage(payload);
-
-  // Defensive cleanup: Remove temporary field if load failed during GitHub App flow
-  // Prevents memory leak if OAuth flow encounters error before modal is shown
-  if (state.serverSourceControl?._originalAuthType !== undefined) {
-    delete state.serverSourceControl._originalAuthType;
-  }
 };
 
 const save = createAsyncThunk(`${REDUCER_NAME}/save`, async (_, { getState, dispatch, rejectWithValue }) => {
@@ -553,16 +532,9 @@ const sourceControl = createSlice({
     showGitHubAppSuccessModal: (state) => {
       state.showGitHubAppSuccessModal = true;
 
-      const authTypeToCheck =
-        state.serverSourceControl._originalAuthType !== undefined
-          ? state.serverSourceControl._originalAuthType
-          : state.serverSourceControl?.authenticationType?.value;
-
-      // Determine if this is a replacement: had GITHUB_APP auth before installation
-      state.isGitHubAppReplacement = authTypeToCheck === 'GITHUB_APP';
-
-      // Clean up temporary field used for integration
-      delete state.serverSourceControl._originalAuthType;
+      // Determine if this is a replacement: check if GitHub App already existed (has installation ID)
+      const hadExistingGitHubApp = state.serverSourceControl?.githubApp?.value?.installationId != null;
+      state.isGitHubAppReplacement = hadExistingGitHubApp;
     },
     closeGitHubAppSuccessModal: (state) => {
       state.showGitHubAppSuccessModal = false;

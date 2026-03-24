@@ -209,7 +209,8 @@ const RootSourceControlConfiguration = () => {
         />
       )}
       {/* Only show credentials section for non-GitHub providers or when GitHub App auth is disabled */}
-      {!showGithubAppAuth && (
+      {/* When GitHub App feature is enabled, hide Access Token field if no provider is selected */}
+      {!showGithubAppAuth && (!isGithubAppAuthenticationEnabled || sourceControl?.provider.rscValue?.value) && (
         <NxFormRow>
           {providerNeedsUsername(sourceControl, serverSourceControl) && (
             <NxFormGroup label="Username" isRequired>

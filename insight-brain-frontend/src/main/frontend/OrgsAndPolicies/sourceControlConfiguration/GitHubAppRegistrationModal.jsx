@@ -13,6 +13,8 @@ import {
   NxFormGroup,
   NxTextInput,
   NxH2,
+  NxInfoAlert,
+  NxButton,
 } from '@sonatype/react-shared-components';
 import { actions } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSlice';
 import {
@@ -23,6 +25,7 @@ import {
   selectGitHubAppSetupError,
 } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSelectors';
 import { selectIsGithubAppAuthenticationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { GITHUB_ACCOUNT_TYPES, GITHUB_URLS } from './utils';
 import './_gitHubAppRegistrationModal.scss';
 
 const GitHubAppRegistrationModal = () => {
@@ -38,7 +41,7 @@ const GitHubAppRegistrationModal = () => {
     dispatch(
       actions.initiateGitHubAppRegistration({
         accountType,
-        organizationName: accountType === 'organization' ? organizationName : null,
+        organizationName: accountType === GITHUB_ACCOUNT_TYPES.ORGANIZATION ? organizationName : null,
       })
     );
   };
@@ -50,13 +53,20 @@ const GitHubAppRegistrationModal = () => {
 
   // Form-level validation: check if organization name is required but empty
   const getFormLevelValidationError = () => {
-    if (accountType === 'organization' && !organizationName.trimmedValue) {
+    if (accountType === GITHUB_ACCOUNT_TYPES.ORGANIZATION && !organizationName.trimmedValue) {
       return 'Organization name is required';
     }
     return null;
   };
 
   const validationErrors = getFormLevelValidationError();
+
+  const handleOpenGitHub = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const newWindow = window.open(GITHUB_URLS.LOGIN, '_blank', 'noopener,noreferrer');
+    if (newWindow) newWindow.opener = null;
+  };
 
   return isOpen && isFeatureEnabled ? (
     <NxModal
@@ -76,22 +86,30 @@ const GitHubAppRegistrationModal = () => {
           <NxH2 id="github-app-registration-modal-title">Connect to GitHub</NxH2>
         </NxModal.Header>
         <NxModal.Content>
+          <NxInfoAlert>
+            <div className="iq-github-app-registration-modal__alert-content">
+              <span>You must be logged in to GitHub to continue.</span>
+              <NxButton type="button" variant="primary" onClick={handleOpenGitHub}>
+                Open GitHub
+              </NxButton>
+            </div>
+          </NxInfoAlert>
           <NxFieldset label="GitHub Account Type" isRequired>
             <NxRadio
               name="accountType"
-              value="organization"
-              onChange={() => dispatch(actions.setAccountType('organization'))}
-              isChecked={accountType === 'organization'}
+              value={GITHUB_ACCOUNT_TYPES.ORGANIZATION}
+              onChange={() => dispatch(actions.setAccountType(GITHUB_ACCOUNT_TYPES.ORGANIZATION))}
+              isChecked={accountType === GITHUB_ACCOUNT_TYPES.ORGANIZATION}
             >
               Organization Account (recommended)
             </NxRadio>
-            {accountType === 'organization' && (
+            {accountType === GITHUB_ACCOUNT_TYPES.ORGANIZATION && (
               <p className="nx-p iq-github-app-registration-modal__account-helper-text">
                 Match the name shown in your GitHub URL (e.g., <em>github.com/your-org-name</em>). The GitHub App will
                 be registered under this organization.
               </p>
             )}
-            {accountType === 'organization' && (
+            {accountType === GITHUB_ACCOUNT_TYPES.ORGANIZATION && (
               <NxFormGroup
                 label="Organization Name"
                 isRequired
@@ -109,9 +127,9 @@ const GitHubAppRegistrationModal = () => {
             )}
             <NxRadio
               name="accountType"
-              value="personal"
-              onChange={() => dispatch(actions.setAccountType('personal'))}
-              isChecked={accountType === 'personal'}
+              value={GITHUB_ACCOUNT_TYPES.PERSONAL}
+              onChange={() => dispatch(actions.setAccountType(GITHUB_ACCOUNT_TYPES.PERSONAL))}
+              isChecked={accountType === GITHUB_ACCOUNT_TYPES.PERSONAL}
             >
               Personal Account
             </NxRadio>

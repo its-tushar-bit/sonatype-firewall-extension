@@ -5,7 +5,8 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { NxButton, NxButtonBar, NxFooter, NxModal, NxH2, NxP } from '@sonatype/react-shared-components';
+import { NxButton, NxButtonBar, NxFooter, NxModal, NxH2, NxP, NxInfoAlert } from '@sonatype/react-shared-components';
+import { isPersonalAccount, getCleanAccountName, GITHUB_ACCOUNT_DISPLAY_LABELS } from './utils';
 
 /**
  * Success modal shown after GitHub App setup completes
@@ -17,6 +18,7 @@ import { NxButton, NxButtonBar, NxFooter, NxModal, NxH2, NxP } from '@sonatype/r
  * @param {boolean} autoEnabledManualPRs - Whether Manual PRs were auto-enabled
  * @param {string} serverId - Sonatype IQ Server ID
  * @param {string} organizationName - GitHub organization name
+ * @param {string} submitBtnText - The submit button text ('Create' or 'Update')
  */
 const GitHubAppSuccessModal = ({
   isOpen,
@@ -25,10 +27,15 @@ const GitHubAppSuccessModal = ({
   autoEnabledManualPRs,
   serverId,
   organizationName,
+  submitBtnText,
 }) => {
   if (!isOpen) {
     return null;
   }
+
+  // Determine if this is a personal account and get clean display name
+  const isPersonal = isPersonalAccount(organizationName);
+  const displayAccountName = getCleanAccountName(organizationName);
 
   // Extract feature descriptions to avoid duplication
   const goldenPRsListItem = (
@@ -60,24 +67,25 @@ const GitHubAppSuccessModal = ({
       </NxModal.Header>
       <NxModal.Content>
         <NxP>
-          Sonatype IQ Server <strong>{serverId || ''}</strong> has been installed successfully on GitHub Organization{' '}
-          <strong>&quot;{organizationName || 'your organization'}&quot;</strong>.
+          Sonatype IQ Server <strong>{serverId || ''}</strong> has been installed successfully on GitHub{' '}
+          {isPersonal ? GITHUB_ACCOUNT_DISPLAY_LABELS.PERSONAL : GITHUB_ACCOUNT_DISPLAY_LABELS.ORGANIZATION}{' '}
+          <strong>&quot;{displayAccountName || 'your account'}&quot;</strong>.
         </NxP>
 
         {/* Show feature descriptions if any features were newly enabled */}
         {(autoEnabledGoldenPRs || autoEnabledManualPRs) && (
           <>
-            <NxP>Sonatype Lifecycle will now automatically:</NxP>
+            <NxP>Automation options are enabled and ready to be applied:</NxP>
             <div className="nx-list nx-list--bulleted">
               <ul>
                 {autoEnabledGoldenPRs && goldenPRsListItem}
                 {autoEnabledManualPRs && manualPRsListItem}
               </ul>
             </div>
-            <NxP>
-              To update this configuration or enable <strong>Automated InnerSource Updates</strong>, visit the Source
-              Control Configuration page.
-            </NxP>
+            <NxInfoAlert>
+              Click <strong>{submitBtnText?.toLowerCase() || 'create/update'}</strong> in the source control page to apply this
+              configuration.
+            </NxInfoAlert>
           </>
         )}
       </NxModal.Content>
@@ -99,6 +107,7 @@ GitHubAppSuccessModal.propTypes = {
   autoEnabledManualPRs: PropTypes.bool.isRequired,
   serverId: PropTypes.string,
   organizationName: PropTypes.string,
+  submitBtnText: PropTypes.string.isRequired,
 };
 
 export default GitHubAppSuccessModal;

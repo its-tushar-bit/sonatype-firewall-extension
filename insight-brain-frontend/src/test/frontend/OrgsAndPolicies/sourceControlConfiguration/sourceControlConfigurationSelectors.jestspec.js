@@ -3,8 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { selectSourceControlConfigurationSlice } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
-import { selectValidationError } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
+import {
+  selectSourceControlConfigurationSlice,
+  selectValidationError,
+  selectShowGitHubAppSuccessModal,
+  selectShowGitHubAppReplacedAlert,
+  selectIsGitHubAppReplacement,
+} from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
 
 import { GLOBAL_FORM_VALIDATION_ERROR } from 'MainRoot/util/validationUtil';
 
@@ -1107,6 +1112,80 @@ describe('selectSourceControlConfigurationSelectors', () => {
       const result = selectIsAccessTokenRequiredOnNode(state);
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('GitHub App modal and alert selectors', () => {
+    describe('selectShowGitHubAppSuccessModal', () => {
+      it('returns true when showGitHubAppSuccessModal is true', () => {
+        const state = {
+          orgsAndPolicies: {
+            sourceControlConfiguration: {
+              showGitHubAppSuccessModal: true,
+            },
+          },
+        };
+        expect(selectShowGitHubAppSuccessModal(state)).toBe(true);
+      });
+
+      it('returns false when showGitHubAppSuccessModal is false', () => {
+        const state = {
+          orgsAndPolicies: {
+            sourceControlConfiguration: {
+              showGitHubAppSuccessModal: false,
+            },
+          },
+        };
+        expect(selectShowGitHubAppSuccessModal(state)).toBe(false);
+      });
+    });
+
+    describe('selectShowGitHubAppReplacedAlert', () => {
+      it('returns true when showGitHubAppReplacedAlert is true', () => {
+        const state = {
+          orgsAndPolicies: {
+            sourceControlConfiguration: {
+              showGitHubAppReplacedAlert: true,
+            },
+          },
+        };
+        expect(selectShowGitHubAppReplacedAlert(state)).toBe(true);
+      });
+
+      it('returns false when showGitHubAppReplacedAlert is false', () => {
+        const state = {
+          orgsAndPolicies: {
+            sourceControlConfiguration: {
+              showGitHubAppReplacedAlert: false,
+            },
+          },
+        };
+        expect(selectShowGitHubAppReplacedAlert(state)).toBe(false);
+      });
+    });
+
+    describe('selectIsGitHubAppReplacement', () => {
+      it('returns true when isGitHubAppReplacement is true', () => {
+        const state = {
+          orgsAndPolicies: {
+            sourceControlConfiguration: {
+              isGitHubAppReplacement: true,
+            },
+          },
+        };
+        expect(selectIsGitHubAppReplacement(state)).toBe(true);
+      });
+
+      it('returns false when isGitHubAppReplacement is false', () => {
+        const state = {
+          orgsAndPolicies: {
+            sourceControlConfiguration: {
+              isGitHubAppReplacement: false,
+            },
+          },
+        };
+        expect(selectIsGitHubAppReplacement(state)).toBe(false);
+      });
     });
   });
 });

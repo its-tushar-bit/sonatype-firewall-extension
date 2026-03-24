@@ -4,6 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 .iq-github-app-registration-modal {
+  &__alert-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--nx-spacing-2x);
+  }
+
   &__account-helper-text {
     margin-top: var(--nx-spacing-2x);
     color: var(--nx-color-text-secondary);

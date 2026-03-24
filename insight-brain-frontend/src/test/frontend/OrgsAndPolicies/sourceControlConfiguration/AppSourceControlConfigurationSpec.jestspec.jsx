@@ -106,4 +106,56 @@ describe('AppSourceControlConfiguration', () => {
       expect(testConfigurationButton).not.toBeEnabled();
     });
   });
+
+  describe('Token field visibility with GitHub App feature', () => {
+    beforeEach(() => {
+      // Reset axios mocks before each test to ensure clean state
+      axiosMock.reset();
+      const ownerType = 'application';
+      const ownerId = '0006b1bf904e45999ee1b4eb05d898fd';
+      const validResponse = {
+        valid: true,
+        message: null,
+      };
+      const configuredTestResponse = {
+        configurationComplete: validResponse,
+        repoPrivate: validResponse,
+        tokenPermissions: validResponse,
+        sshConfiguration: validResponse,
+      };
+      axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
+      axiosMock.onGet(getValidateScmConfigButtonUrl(ownerType, ownerId)).reply(200, configuredTestResponse);
+    });
+
+    it('hides token field when feature enabled and no provider selected (neither inherited nor local)', async () => {
+      const preloadedState = {
+        productFeatures: {
+          productFeatures: {
+            notifications: true,
+            automation: true,
+            'github-app-authentication': true,
+          },
+        },
+      };
+
+      const configResponse = {
+        ...defaultAppConfigResponse,
+        provider: { value: null, parentValue: null, parentName: null },
+      };
+
+      axiosMock
+        .onGet(getCompositeSourceControlUrl('application', '0006b1bf904e45999ee1b4eb05d898fd'))
+        .reply(200, configResponse);
+
+      renderComponent(preloadedState);
+
+      // Wait for form to load by checking for Update button
+      await screen.findByRole('button', { name: 'Update' });
+
+      // Token field should be hidden
+      expect(screen.queryByTestId('token-input')).not.toBeInTheDocument();
+      // GitHub App auth should also be hidden (no provider selected)
+      expect(screen.queryByText(/GitHub App/)).not.toBeInTheDocument();
+    });
+  });
 });

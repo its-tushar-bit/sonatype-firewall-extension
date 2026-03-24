@@ -208,7 +208,7 @@ const GitHubAppAuthenticationMethod = ({
         >
           Personal Access Token
         </NxRadio>
-        {(effectiveAuthMethod === AUTHENTICATION_TYPES.PAT || effectiveAuthMethod === null) && (
+        {effectiveAuthMethod === AUTHENTICATION_TYPES.PAT && (
           <div className="iq-github-app-auth-status__token">
             <NxFormGroup label="Access Token" type="password" isRequired>
               <NxTextInput

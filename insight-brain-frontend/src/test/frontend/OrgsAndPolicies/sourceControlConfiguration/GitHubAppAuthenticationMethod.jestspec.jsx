@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from 'TestRoot/SpecUtil';
+import { render, screen, waitFor } from 'TestRoot/SpecUtil';
 import GitHubAppAuthenticationMethod from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/GitHubAppAuthenticationMethod';
 import { AUTHENTICATION_TYPES } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
@@ -91,6 +91,50 @@ describe('GitHubAppAuthenticationMethod', () => {
 
         expect(githubAppRadio).not.toBeChecked();
         expect(patRadio).not.toBeChecked();
+      });
+
+      it('does NOT show Access Token field when no authentication method is selected', () => {
+        renderComponent();
+
+        const githubAppRadio = screen.getByRole('radio', { name: /github app \(recommended\)/i });
+        const patRadio = screen.getByRole('radio', { name: /personal access token/i });
+
+        expect(githubAppRadio).not.toBeChecked();
+        expect(patRadio).not.toBeChecked();
+
+        // Access Token field should NOT be visible when no auth method is selected
+        expect(document.querySelector('#source-control-token')).not.toBeInTheDocument();
+      });
+
+      it('shows Access Token field for legacy config with null authenticationType and existing token after effect runs', async () => {
+        const sourceControl = {
+          ...defaultSourceControl,
+          authenticationType: { value: null },
+          token: {
+            rscValue: {
+              value: 'ghp_existing_legacy_token',
+              isPristine: false,
+              trimmedValue: 'ghp_existing_legacy_token',
+              validationErrors: null,
+            },
+          },
+        };
+        const setValue = jest.fn();
+        renderComponent({ sourceControl, setValue });
+
+        // Wait for useEffect to run and infer PAT from token presence
+        await waitFor(() => {
+          expect(setValue).toHaveBeenCalledWith('authenticationType', AUTHENTICATION_TYPES.PAT);
+        });
+
+        // PAT radio should be checked after effect
+        const patRadio = screen.getByRole('radio', { name: /personal access token/i });
+        expect(patRadio).toBeChecked();
+
+        // Access Token field should be visible
+        const tokenInput = document.querySelector('#source-control-token');
+        expect(tokenInput).toBeInTheDocument();
+        expect(tokenInput).toHaveValue('ghp_existing_legacy_token');
       });
 
       it('renders PAT selected when authenticationType is null but token exists', () => {

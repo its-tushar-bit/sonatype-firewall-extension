@@ -43,6 +43,9 @@ public abstract class InsightFixtureRule<T, F extends InsightTestFixture>
 
   protected volatile String testName;
 
+  // Track the current test class for detecting test class changes across fork-reused JVMs
+  protected Class<?> currentTestClass;
+
   // Track if the current fixture is brand new for the current test
   // - True if the fixture was just (re-)initialized during the current single test
   // - False if the fixture has remained the same compared to the previous test
@@ -60,6 +63,7 @@ public abstract class InsightFixtureRule<T, F extends InsightTestFixture>
     // grab the annotation for this test
     annotation = getAnnotation(description);
     testName = description.getMethodName();
+    currentTestClass = description.getTestClass();
 
     return super.apply(base, description);
   }

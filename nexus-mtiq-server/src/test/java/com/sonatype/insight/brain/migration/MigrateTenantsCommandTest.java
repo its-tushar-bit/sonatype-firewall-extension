@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import org.junit.Ignore;
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -32,7 +31,6 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 @Category(SlowTest.class)
-@Ignore // CLM-39084
 public class MigrateTenantsCommandTest
     extends AbstractMultiTenantDatabaseTest
 {

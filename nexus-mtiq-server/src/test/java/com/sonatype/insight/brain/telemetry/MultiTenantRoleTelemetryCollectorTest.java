@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import org.junit.Ignore;
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -25,7 +24,6 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTest.class)
-@Ignore // CLM-39084
 public class MultiTenantRoleTelemetryCollectorTest
     extends AbstractMultiTenantDatabaseTest
 {

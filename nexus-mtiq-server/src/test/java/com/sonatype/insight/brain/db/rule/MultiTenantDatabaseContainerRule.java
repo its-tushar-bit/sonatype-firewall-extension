@@ -26,6 +26,8 @@ public class MultiTenantDatabaseContainerRule
 {
   private static final MultiTenantDatabaseContainerRule INSTANCE = new MultiTenantDatabaseContainerRule();
 
+  private static Class<?> lastTestClass;
+
   private final TenantUtil tenantUtil = new TenantUtil();
 
   private static final PostgresTest DEFAULT_MTIQ_POSTGRES_TEST = new PostgresTest()
@@ -64,6 +66,18 @@ public class MultiTenantDatabaseContainerRule
     if (!tenantUtil.isMultiTenant()) {
       throw new UnsupportedOperationException("Multi-tenant tests require multi-tenant mode. Did you set the tenant?");
     }
+
+    // Track test class changes to force fixture re-creation when a different test class runs.
+    // This is critical for fork reuse (reuseForks=true) where multiple test classes may run
+    // sequentially in the same JVM, and we need to ensure each test class gets a clean database
+    // without leftover tenant schemas from previous test classes.
+    if (currentTestClass != null && currentTestClass != lastTestClass) {
+      log.info("Test class changed from '{}' to '{}'. Marking fixture as dirty.",
+          lastTestClass != null ? lastTestClass.getSimpleName() : "null",
+          currentTestClass.getSimpleName());
+      markFixtureAsDirty();
+    }
+    lastTestClass = currentTestClass;
 
     super.before();
   }

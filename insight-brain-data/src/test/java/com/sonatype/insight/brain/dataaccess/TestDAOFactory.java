@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
+import com.sonatype.insight.brain.dataaccess.evaluation.EvaluationQueueDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppRegistrationStateDAO;
 import jakarta.inject.Provider;
 
@@ -1294,6 +1295,11 @@ public class TestDAOFactory
   @Override
   public KeyValueDAO createKeyValueDAO() {
     return new KeyValueDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public EvaluationQueueDAO createEvaluationQueueDAO() {
+    return new EvaluationQueueDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   private TemporaryTableHelper createTemporaryTableHelper() {

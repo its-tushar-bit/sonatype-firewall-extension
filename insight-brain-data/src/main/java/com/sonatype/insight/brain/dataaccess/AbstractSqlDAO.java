@@ -115,9 +115,17 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   }
 
   @Override
-  public void insert(final TransactionContext tx, final T entity) {
+  public void insert(final TransactionContext tx, final T entity, final boolean ignoreDuplicateKey) {
     generateIdIfNeeded(entity);
-    super.insert(tx, entity);
+    super.insert(tx, entity, ignoreDuplicateKey);
+  }
+
+  @Override
+  public void insertBatch(final TransactionContext tx, final List<T> entities, final boolean ignoreDuplicateKey) {
+    for (T entity : entities) {
+      generateIdIfNeeded(entity);
+    }
+    super.insertBatch(tx, entities, ignoreDuplicateKey);
   }
 
   /**

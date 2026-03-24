@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomPolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -31,6 +33,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.Record;
 import org.jooq.impl.DSL;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
@@ -672,6 +676,162 @@ public class ThirdPartySbomMetadataDAO
     if (sbomMetadata != null) {
       sbomMetadata.setStatus(ACTIVE);
       update(sbomMetadata);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public List<ThirdPartySbomMetadata> getActiveAtLatestOffset(
+      final int latestOffset,
+      final String lastApplicationId,
+      final int page,
+      final int pageSize)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getActiveAtLatestOffset(tx, latestOffset, lastApplicationId, page, pageSize);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public List<ThirdPartySbomMetadata> getActiveAtLatestOffset(
+      final TransactionContext tx,
+      final int latestOffset,
+      final String lastApplicationId,
+      final int page,
+      final int pageSize)
+  {
+    if (isDatabaseEmbedded(getDataStore())) {
+      return getActiveAtLatestOffsetH2(tx, latestOffset, lastApplicationId, page, pageSize);
+    }
+    else {
+      return getActiveAtLatestOffsetPostgres(tx, latestOffset, lastApplicationId, page, pageSize);
+    }
+  }
+
+  // H2 uses correlated subquery (slower but compatible with H2 1.4.196)
+  private List<ThirdPartySbomMetadata> getActiveAtLatestOffsetH2(
+      final TransactionContext tx,
+      final int latestOffset,
+      final String lastApplicationId,
+      final int page,
+      final int pageSize)
+  {
+    var e1 = SBOM_METADATA.as("e1");
+    var e2 = SBOM_METADATA.as("e2");
+
+    int offset = (page - 1) * pageSize;
+
+    var condition = e1.STATUS.eq(ACTIVE.name())
+        .and(DSL.selectCount()
+            .from(e2)
+            .where(e2.APPLICATION_ID.eq(e1.APPLICATION_ID))
+            .and(e2.STATUS.eq(ACTIVE.name()))
+            .and(e2.CREATED_AT.gt(e1.CREATED_AT)
+                .or(e2.CREATED_AT.eq(e1.CREATED_AT)
+                    .and(e2.SBOM_METADATA_ID.gt(e1.SBOM_METADATA_ID))))
+            .asField()
+            .eq(latestOffset));
+
+    if (lastApplicationId != null) {
+      condition = condition.and(e1.APPLICATION_ID.le(lastApplicationId));
+    }
+
+    return tx.dsl()
+        .selectFrom(e1)
+        .where(condition)
+        .orderBy(e1.APPLICATION_ID.desc())
+        .offset(offset)
+        .limit(pageSize)
+        .fetchInto(ThirdPartySbomMetadata.class);
+  }
+
+  private List<ThirdPartySbomMetadata> getActiveAtLatestOffsetPostgres(
+      final TransactionContext tx,
+      final int rank,
+      final String lastApplicationId,
+      final int page,
+      final int pageSize)
+  {
+    var sm = SBOM_METADATA.as("sm");
+
+    var rankField = DSL.rowNumber()
+        .over(DSL.partitionBy(SBOM_METADATA.APPLICATION_ID)
+            .orderBy(SBOM_METADATA.CREATED_AT.desc(), SBOM_METADATA.SBOM_METADATA_ID.desc()))
+        .minus(DSL.inline(1))
+        .as("rank");
+
+    var subquery = DSL.select(SBOM_METADATA.fields())
+        .select(rankField)
+        .from(SBOM_METADATA)
+        .where(SBOM_METADATA.STATUS.eq(ACTIVE.name()))
+        .asTable(sm.getName());
+
+    int offset = (page - 1) * pageSize;
+
+    var condition = subquery.field("rank", Integer.class).eq(rank);
+
+    if (lastApplicationId != null) {
+      condition = condition.and(subquery.field(SBOM_METADATA.APPLICATION_ID).le(lastApplicationId));
+    }
+
+    return tx.dsl()
+        .selectFrom(subquery)
+        .where(condition)
+        .orderBy(subquery.field(SBOM_METADATA.APPLICATION_ID).desc())
+        .offset(offset)
+        .limit(pageSize)
+        .fetchInto(ThirdPartySbomMetadata.class);
+  }
+
+  public Map<String, Date> getLastScanTimes(final Set<String> thirdPartyFileIds) {
+    if (CollectionUtils.isEmpty(thirdPartyFileIds)) {
+      return Map.of();
+    }
+
+    String tpsSchema = getDatabaseSchema();
+    String odsSchema = operationalDataStore.getDatabaseSchema();
+
+    String sQuery =
+        "SELECT scan.third_party_file_id, MAX(pe.time)" +
+            " FROM " + odsSchema + ".policy_evaluation pe" +
+            " JOIN " + tpsSchema + ".third_party_scan scan" +
+            "   ON pe.scan_id = scan.scan_id" +
+            " WHERE pe.stage_type_id = ?" +
+            " AND scan.third_party_file_id IN (%s)" +
+            " GROUP BY scan.third_party_file_id";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      List<Object[]> results = getListWithSqlInClause(thirdPartyFileIds, ids -> {
+        String inPlaceholders = ids.stream().map(id -> "?").collect(Collectors.joining(", "));
+        return tx.dsl()
+            .resultQuery(
+                String.format(sQuery, inPlaceholders),
+                Stream.concat(Stream.of(ComplianceStageType.ID), ids.stream()).toArray())
+            .fetch()
+            .stream()
+            .map(Record::intoArray)
+            .collect(Collectors.toList());
+      });
+
+      return results.stream()
+          .collect(Collectors.toMap(
+              row -> (String) row[0],
+              row -> row[1] instanceof java.sql.Timestamp
+                  ? new Date(((java.sql.Timestamp) row[1]).getTime())
+                  : (Date) row[1]));
+    }
+  }
+
+  public long getMaxActiveSbomsAcrossApplications() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(DSL.count().as("sbom_count"))
+          .from(SBOM_METADATA)
+          .where(SBOM_METADATA.STATUS.eq(ACTIVE.name()))
+          .groupBy(SBOM_METADATA.APPLICATION_ID)
+          .orderBy(DSL.field("sbom_count").desc())
+          .limit(1)
+          .fetchOptional(0, Long.class)
+          .orElse(0L);
     }
   }
 

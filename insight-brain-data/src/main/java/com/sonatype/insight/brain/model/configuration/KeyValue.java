@@ -33,6 +33,8 @@ import jakarta.persistence.Table;
 public class KeyValue
     implements HasStringId
 {
+  public static final String EVALUATION_QUEUE_PRODUCER_CHECKPOINT = "EVALUATION_QUEUE_PRODUCER_CHECKPOINT";
+
   @Id
   @Column(name = "key")
   private String id;

@@ -312,6 +312,8 @@ public class SystemConfigurationProperty
 
   public static final String FIREWALL_ENTERPRISE_REPORTING = "firewallEnterpriseReporting";
 
+  public static final String EVALUATION_QUEUE_CONFIG = "evaluationQueueConfig";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

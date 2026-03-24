@@ -12,19 +12,18 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2InMemoryTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -86,8 +85,6 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
-  @H2InMemoryTest
-  @Category(SlowTest.class)
   public void testCRUD_H2() {
     testCRUD();
   }
@@ -229,7 +226,6 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
-  @H2InMemoryTest
   public void testDeleteByThirdPartyFileId_H2() {
     testDeleteByThirdPartyFileId();
   }
@@ -1130,15 +1126,14 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
-  public void testGetActiveByApplicationId_Paged() throws Exception {
+  public void testGetActiveByApplicationId_Paged() {
     Application app = tempEntity.newApplicationWithParent();
 
     assertThat(dao.getActiveByApplicationId(app.getId(), 1, 2)).isEmpty();
     assertThat(dao.getActiveByApplicationId(app.getId(), 2, 2)).isEmpty();
     assertThat(dao.getActiveByApplicationId(app.getId(), 3, 2)).isEmpty();
 
-    ThirdPartySbomMetadata sbom1 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "fileName1");
-    Thread.sleep(50);
+    ThirdPartySbomMetadata sbom1 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, new Date(0));
 
     assertThat(dao.getActiveByApplicationId(app.getId(), 1, 2))
         .extracting(ThirdPartySbomMetadata::getId)
@@ -1146,8 +1141,7 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(dao.getActiveByApplicationId(app.getId(), 2, 2)).isEmpty();
     assertThat(dao.getActiveByApplicationId(app.getId(), 3, 2)).isEmpty();
 
-    ThirdPartySbomMetadata sbom2 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "fileName2");
-    Thread.sleep(50);
+    ThirdPartySbomMetadata sbom2 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, new Date(1));
 
     assertThat(dao.getActiveByApplicationId(app.getId(), 1, 2))
         .extracting(ThirdPartySbomMetadata::getId)
@@ -1155,8 +1149,7 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(dao.getActiveByApplicationId(app.getId(), 2, 2)).isEmpty();
     assertThat(dao.getActiveByApplicationId(app.getId(), 3, 2)).isEmpty();
 
-    ThirdPartySbomMetadata sbom3 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "fileName3");
-    Thread.sleep(50);
+    ThirdPartySbomMetadata sbom3 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, new Date(2));
 
     assertThat(dao.getActiveByApplicationId(app.getId(), 1, 2))
         .extracting(ThirdPartySbomMetadata::getId)
@@ -1166,9 +1159,8 @@ public class ThirdPartySbomMetadataDAOTest
         .containsExactly(sbom3.getId());
     assertThat(dao.getActiveByApplicationId(app.getId(), 3, 2)).isEmpty();
 
-    tempEntity.newThirdPartySbomMetadata(app.getId(), UPLOADED, "fileName4");
-    Thread.sleep(50);
-    tempEntity.newThirdPartySbomMetadata(app.getId(), PENDING, "fileName5");
+    tempEntity.newThirdPartySbomMetadata(app.getId(), UPLOADED, new Date(3));
+    tempEntity.newThirdPartySbomMetadata(app.getId(), PENDING, new Date(4));
 
     assertThat(dao.getActiveByApplicationId(app.getId(), 1, 2))
         .extracting(ThirdPartySbomMetadata::getId)
@@ -1177,6 +1169,323 @@ public class ThirdPartySbomMetadataDAOTest
         .extracting(ThirdPartySbomMetadata::getId)
         .containsExactly(sbom3.getId());
     assertThat(dao.getActiveByApplicationId(app.getId(), 3, 2)).isEmpty();
+  }
+
+  private void testGetActiveAtLatestOffset_NoSboms() {
+    List<ThirdPartySbomMetadata> result = dao.getActiveAtLatestOffset(0, null, 1, 10);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetActiveAtLatestOffset_NoSboms_H2() {
+    testGetActiveAtLatestOffset_NoSboms();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testGetActiveAtLatestOffset_NoSboms_Postgres() {
+    testGetActiveAtLatestOffset_NoSboms();
+  }
+
+  private void testGetActiveAtLatestOffset_NoActiveSboms() {
+    Application app = tempEntity.newApplicationWithParent();
+    tempEntity.newThirdPartySbomMetadata(app.getId(), UPLOADED, "fileName1");
+    tempEntity.newThirdPartySbomMetadata(app.getId(), PENDING, "fileName2");
+
+    List<ThirdPartySbomMetadata> result = dao.getActiveAtLatestOffset(0, null, 1, 10);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetActiveAtLatestOffset_NoActiveSboms_H2() {
+    testGetActiveAtLatestOffset_NoActiveSboms();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testGetActiveAtLatestOffset_NoActiveSboms_Postgres() {
+    testGetActiveAtLatestOffset_NoActiveSboms();
+  }
+
+  private void testGetActiveAtLatestOffset_LatestOffset0ReturnsLatestPerApp() {
+    Organization org = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplicationWithSpecificId("app1", "app1", "app1", org.getId());
+    Application app2 = tempEntity.newApplicationWithSpecificId("app2", "app2", "app2", org.getId());
+    Application app3 = tempEntity.newApplicationWithSpecificId("app3", "app3", "app3", org.getId());
+
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, new Date(0));
+    ThirdPartySbomMetadata app1Sbom2 = tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, new Date(1));
+    ThirdPartySbomMetadata app2Sbom1 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(2));
+    ThirdPartySbomMetadata app3Sbom1 = tempEntity.newThirdPartySbomMetadata(app3.getId(), ACTIVE, new Date(3));
+
+    List<ThirdPartySbomMetadata> result = dao.getActiveAtLatestOffset(0, null, 1, 10);
+
+    assertThat(result)
+        .extracting(ThirdPartySbomMetadata::getId)
+        .containsExactly(app3Sbom1.getId(), app2Sbom1.getId(), app1Sbom2.getId());
+  }
+
+  @Test
+  public void testGetActiveAtLatestOffset_LatestOffset0ReturnsLatestPerApp_H2() {
+    testGetActiveAtLatestOffset_LatestOffset0ReturnsLatestPerApp();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testGetActiveAtLatestOffset_LatestOffset0ReturnsLatestPerApp_Postgres() {
+    testGetActiveAtLatestOffset_LatestOffset0ReturnsLatestPerApp();
+  }
+
+  private void testGetActiveAtLatestOffset_LatestOffset1ReturnsSecondLatestPerApp() {
+    Organization org = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplicationWithSpecificId("app1", "app1", "app1", org.getId());
+    Application app2 = tempEntity.newApplicationWithSpecificId("app2", "app2", "app2", org.getId());
+    Application app3 = tempEntity.newApplicationWithSpecificId("app3", "app3", "app3", org.getId());
+
+    ThirdPartySbomMetadata app1Sbom1 = tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, new Date(0));
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, new Date(1));
+    ThirdPartySbomMetadata app2Sbom1 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(2));
+    tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(3));
+    tempEntity.newThirdPartySbomMetadata(app3.getId(), ACTIVE, new Date(4));
+
+    List<ThirdPartySbomMetadata> result = dao.getActiveAtLatestOffset(1, null, 1, 10);
+
+    assertThat(result)
+        .extracting(ThirdPartySbomMetadata::getId)
+        .containsExactly(app2Sbom1.getId(), app1Sbom1.getId());
+  }
+
+  @Test
+  public void testGetActiveAtLatestOffset_LatestOffset1ReturnsSecondLatestPerApp_H2() {
+    testGetActiveAtLatestOffset_LatestOffset1ReturnsSecondLatestPerApp();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testGetActiveAtLatestOffset_LatestOffset1ReturnsSecondLatestPerApp_Postgres() {
+    testGetActiveAtLatestOffset_LatestOffset1ReturnsSecondLatestPerApp();
+  }
+
+  private void testGetActiveAtLatestOffset_WithLastApplicationId() {
+    Organization org = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplicationWithSpecificId("app1", "app1", "app1", org.getId());
+    Application app2 = tempEntity.newApplicationWithSpecificId("app2", "app2", "app2", org.getId());
+    Application app3 = tempEntity.newApplicationWithSpecificId("app3", "app3", "app3", org.getId());
+
+    ThirdPartySbomMetadata app1Sbom1 = tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, new Date(0));
+    ThirdPartySbomMetadata app2Sbom1 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(1));
+    tempEntity.newThirdPartySbomMetadata(app3.getId(), ACTIVE, "app3File1");
+
+    List<ThirdPartySbomMetadata> result = dao.getActiveAtLatestOffset(0, app2.getId(), 1, 10);
+
+    assertThat(result)
+        .extracting(ThirdPartySbomMetadata::getId)
+        .containsExactly(app2Sbom1.getId(), app1Sbom1.getId());
+  }
+
+  @Test
+  public void testGetActiveAtLatestOffset_WithLastApplicationId_H2() {
+    testGetActiveAtLatestOffset_WithLastApplicationId();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testGetActiveAtLatestOffset_WithLastApplicationId_Postgres() {
+    testGetActiveAtLatestOffset_WithLastApplicationId();
+  }
+
+  private void testGetActiveAtLatestOffset_Pagination() {
+    Organization org = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplicationWithSpecificId("app1", "app1", "app1", org.getId());
+    Application app2 = tempEntity.newApplicationWithSpecificId("app2", "app2", "app2", org.getId());
+    Application app3 = tempEntity.newApplicationWithSpecificId("app3", "app3", "app3", org.getId());
+    Application app4 = tempEntity.newApplicationWithSpecificId("app4", "app4", "app4", org.getId());
+
+    ThirdPartySbomMetadata app1Sbom1 = tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, new Date(0));
+    ThirdPartySbomMetadata app2Sbom1 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(1));
+    ThirdPartySbomMetadata app3Sbom1 = tempEntity.newThirdPartySbomMetadata(app3.getId(), ACTIVE, new Date(2));
+    ThirdPartySbomMetadata app4Sbom1 = tempEntity.newThirdPartySbomMetadata(app4.getId(), ACTIVE, new Date(3));
+
+    List<ThirdPartySbomMetadata> page1 = dao.getActiveAtLatestOffset(0, null, 1, 2);
+    assertThat(page1)
+        .extracting(ThirdPartySbomMetadata::getId)
+        .containsExactly(app4Sbom1.getId(), app3Sbom1.getId());
+
+    List<ThirdPartySbomMetadata> page2 = dao.getActiveAtLatestOffset(0, null, 2, 2);
+    assertThat(page2)
+        .extracting(ThirdPartySbomMetadata::getId)
+        .containsExactly(app2Sbom1.getId(), app1Sbom1.getId());
+
+    List<ThirdPartySbomMetadata> page3 = dao.getActiveAtLatestOffset(0, null, 3, 2);
+    assertThat(page3).isEmpty();
+  }
+
+  @Test
+  public void testGetActiveAtLatestOffset_Pagination_H2() {
+    testGetActiveAtLatestOffset_Pagination();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testGetActiveAtLatestOffset_Pagination_Postgres() {
+    testGetActiveAtLatestOffset_Pagination();
+  }
+
+  private void testGetActiveAtLatestOffset_IgnoresInactiveStatus() {
+    Organization org = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplicationWithSpecificId("app1", "app1", "app1", org.getId());
+    Application app2 = tempEntity.newApplicationWithSpecificId("app2", "app2", "app2", org.getId());
+
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, new Date(0));
+    ThirdPartySbomMetadata app1Sbom2 = tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, new Date(1));
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), PENDING, new Date(2));
+
+    ThirdPartySbomMetadata app2Sbom1 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(3));
+    tempEntity.newThirdPartySbomMetadata(app2.getId(), UPLOADED, new Date(4));
+
+    List<ThirdPartySbomMetadata> result = dao.getActiveAtLatestOffset(0, null, 1, 10);
+
+    assertThat(result)
+        .extracting(ThirdPartySbomMetadata::getId)
+        .containsExactly(app2Sbom1.getId(), app1Sbom2.getId());
+  }
+
+  @Test
+  public void testGetActiveAtLatestOffset_IgnoresInactiveStatus_H2() {
+    testGetActiveAtLatestOffset_IgnoresInactiveStatus();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testGetActiveAtLatestOffset_IgnoresInactiveStatus_Postgres() {
+    testGetActiveAtLatestOffset_IgnoresInactiveStatus();
+  }
+
+  @Test
+  public void testGetLastScanTimes_noScans() {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).build();
+    assertThat(sbomMetadata.getId()).isNotNull();
+
+    Map<String, Date> lastScanTimes = dao.getLastScanTimes(Set.of(sbomMetadata.getThirdPartyFileId()));
+    assertThat(lastScanTimes).isEmpty();
+  }
+
+  @Test
+  public void testGetLastScanTimes_multipleScansWithDifferentTimes() {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, "test.json");
+    Date now = new Date();
+    Date oldTime = DateUtils.addDays(now, -3);
+    Date middleTime = DateUtils.addDays(now, -2);
+    Date recentTime = DateUtils.addDays(now, -1);
+    String scanId1 = "scanId1";
+    tempEntity.newThirdPartyScan("scanRequestId1", scanId1, thirdPartyFile);
+    tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId1, oldTime);
+    String scanId2 = "scanId2";
+    tempEntity.newThirdPartyScan("scanRequestId2", scanId2, thirdPartyFile);
+    tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId2, recentTime);
+    String scanId3 = "scanId3";
+    tempEntity.newThirdPartyScan("scanRequestId3", scanId3, thirdPartyFile);
+    tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId3, middleTime);
+
+    Map<String, Date> lastScanTimes = dao.getLastScanTimes(Set.of(sbomMetadata.getThirdPartyFileId()));
+
+    assertThat(lastScanTimes).hasSize(1);
+    assertThat(lastScanTimes.get(sbomMetadata.getThirdPartyFileId())).isEqualTo(recentTime);
+  }
+
+  @Test
+  public void testGetLastScanTimes_multipleThirdPartyFiles() {
+    Application app = tempEntity.newApplicationWithParent();
+
+    ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata1 =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile1.getId(), app.getId(), ACTIVE, "test1.json");
+    Date time1 = DateUtils.addDays(new Date(), -1);
+    String scanId1 = "scanId1";
+    tempEntity.newThirdPartyScan("scanRequestId1", scanId1, thirdPartyFile1);
+    tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId1, time1);
+
+    ThirdPartyFile thirdPartyFile2 = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata2 =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile2.getId(), app.getId(), ACTIVE, "test2.json");
+    Date time2 = DateUtils.addDays(new Date(), -2);
+    String scanId2 = "scanId2";
+    tempEntity.newThirdPartyScan("scanRequestId2", scanId2, thirdPartyFile2);
+    tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId2, time2);
+
+    ThirdPartyFile thirdPartyFile3 = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata3 =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile3.getId(), app.getId(), ACTIVE, "test3.json");
+
+    Map<String, Date> lastScanTimes = dao.getLastScanTimes(Set.of(
+        sbomMetadata1.getThirdPartyFileId(),
+        sbomMetadata2.getThirdPartyFileId(),
+        sbomMetadata3.getThirdPartyFileId()));
+
+    assertThat(lastScanTimes).hasSize(2);
+    assertThat(lastScanTimes.get(sbomMetadata1.getThirdPartyFileId())).isEqualTo(time1);
+    assertThat(lastScanTimes.get(sbomMetadata2.getThirdPartyFileId())).isEqualTo(time2);
+    assertThat(lastScanTimes.get(sbomMetadata3.getThirdPartyFileId())).isNull();
+  }
+
+  @Test
+  public void testGetMaxActiveSbomsAcrossApplications_noSboms() {
+    long max = dao.getMaxActiveSbomsAcrossApplications();
+    assertThat(max).isZero();
+  }
+
+  @Test
+  public void testGetMaxActiveSbomsAcrossApplications_multipleSboms() {
+    Application app1 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplicationWithParent();
+    Application app3 = tempEntity.newApplicationWithParent();
+
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, "app1File1");
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, "app1File2");
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, "app1File3");
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, "app1File4");
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, "app1File5");
+
+    tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, "app2File1");
+    tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, "app2File2");
+    tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, "app2File3");
+
+    tempEntity.newThirdPartySbomMetadata(app3.getId(), ACTIVE, "app3File1");
+
+    long max = dao.getMaxActiveSbomsAcrossApplications();
+    assertThat(max).isEqualTo(5);
+  }
+
+  @Test
+  public void testGetMaxActiveSbomsAcrossApplications_ignoresInactiveStatus() {
+    Application app1 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplicationWithParent();
+
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, "app1File1");
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, "app1File2");
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), PENDING, "app1File3");
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), UPLOADED, "app1File4");
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), UPLOADED, "app1File5");
+
+    tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, "app2File1");
+    tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, "app2File2");
+    tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, "app2File3");
+    tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, "app2File4");
+
+    long max = dao.getMaxActiveSbomsAcrossApplications();
+    assertThat(max).isEqualTo(4);
   }
 
   private void insertVEXToThirdPartyCoordinateSecurity(ThirdPartyCoordinateSecurity coordinateSecurity) {

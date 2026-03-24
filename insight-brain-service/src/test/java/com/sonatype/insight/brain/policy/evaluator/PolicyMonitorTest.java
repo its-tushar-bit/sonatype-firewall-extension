@@ -20,14 +20,14 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
-import jakarta.mail.Message;
-import jakarta.ws.rs.InternalServerErrorException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -57,26 +58,29 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.policy.PolicyResource;
+import com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueConfig;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.test.MailboxTestUtil;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.test.LogOutput;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.google.inject.Binder;
+import jakarta.mail.Message;
+import jakarta.ws.rs.InternalServerErrorException;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.test.MailboxTestUtil;
 import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
@@ -688,7 +692,23 @@ public class PolicyMonitorTest
   }
 
   @Test
-  public void testApplicationMonitored_SbomManagerComplianceStage() throws Exception {
+  public void testApplicationMonitored_SbomManagerComplianceStage_EvaluationQueueEnabled() throws Exception {
+    setEvaluationQueueConfig(true);
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("MonitoredApp", org.getId());
+    Stage stage = new Stage(ComplianceStageType.ID);
+    tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
+
+    policyMonitor.run();
+
+    assertThat(logOutput).atInfoLevel()
+        .doesNotContain("SBOM Manager Policy Monitoring is enabled for application '" +
+            app.getName() + "' and stage '" + stage.getStageTypeId() + "'");
+  }
+
+  @Test
+  public void testApplicationMonitored_SbomManagerComplianceStage_EvaluationQueueDisabled() throws Exception {
+    setEvaluationQueueConfig(false);
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication("MonitoredApp", org.getId());
     Stage stage = new Stage(ComplianceStageType.ID);
@@ -709,6 +729,9 @@ public class PolicyMonitorTest
     String newScanId = "PolicyMonitorTest_scanId2";
     mockScanReceiptAndReport(newScanId);
     policyMonitor.run();
+    assertThat(logOutput).atInfoLevel()
+        .contains("SBOM Manager Policy Monitoring is enabled for application '" +
+            app.getName() + "' and stage '" + stage.getStageTypeId() + "'");
 
     File reportFile = insightWork.getReportFile(app.getId(), newScanId);
     assertThat(reportFile).isFile();
@@ -723,6 +746,7 @@ public class PolicyMonitorTest
 
   @Test
   public void testApplicationMonitored_Both_SbomManagerComplianceStage_LifecycleReleaseStage() throws Exception {
+    setEvaluationQueueConfig(false);
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication("app", org.getId());
     Stage complianceStage = new Stage(ComplianceStageType.ID);
@@ -942,5 +966,12 @@ public class PolicyMonitorTest
   private void assertShutdownHandler() {
     verify(mockShutdownHandler).add(policyMonitor.getExecutorService());
     verify(mockShutdownHandler).remove(policyMonitor.getExecutorService());
+  }
+
+  private void setEvaluationQueueConfig(final boolean enabled) {
+    EvaluationQueueConfig evaluationQueueConfig = EvaluationQueueConfig.builder().enabled(enabled).build();
+    ApiConfigurationService apiConfigurationService = getCLMServer().getInstance(ApiConfigurationService.class);
+    apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG,
+        JsonUtils.convertValue(evaluationQueueConfig, Map.class));
   }
 }

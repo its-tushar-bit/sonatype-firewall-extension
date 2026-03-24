@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.KeyValueDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.evaluation.EvaluationQueueDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppRegistrationStateDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;
@@ -498,4 +499,6 @@ public interface DAOFactory
   VersionEvaluationWindowDAO createVersionEvaluationWindowDAO();
 
   KeyValueDAO createKeyValueDAO();
+
+  EvaluationQueueDAO createEvaluationQueueDAO();
 }

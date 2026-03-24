@@ -297,7 +297,8 @@ public class ConfigurationInfoTest
         "userTokenDefaultExpirationDays",
         "exitOnFatalError",
         "maliciousUrlsPartnerAccess",
-        "maxConcurrentTenantIndexCreation");
+        "maxConcurrentTenantIndexCreation",
+        "evaluationQueueConfig");
 
     // Properties included in the config.json in support zip
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());

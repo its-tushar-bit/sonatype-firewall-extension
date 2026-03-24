@@ -6,9 +6,12 @@
 package com.sonatype.insight.brain.dataaccess.configuration;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.VersionEvaluationWindow;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -262,5 +265,198 @@ public class VersionEvaluationWindowDAOTest
     assertThat(dao.getById(window1.getId())).isNull();
     assertThat(dao.getById(window2.getId())).isNotNull();
     assertThat(dao.getById(window3.getId())).isNotNull();
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndContextIdWithInheritance_NullOwnerIds() {
+    tempEntity.newVersionEvaluationWindow(organization.getId(), "context1", 10, 30);
+
+    Map<String, VersionEvaluationWindow> result = dao.getByOwnerIdsAndContextIdWithInheritance(null, "context1");
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndContextIdWithInheritance_EmptyOwnerIds() {
+    tempEntity.newVersionEvaluationWindow(organization.getId(), "context1", 10, 30);
+
+    Map<String, VersionEvaluationWindow> result = dao.getByOwnerIdsAndContextIdWithInheritance(Set.of(), "context1");
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndContextIdWithInheritance_SingleOwnerDirectMatch() {
+    VersionEvaluationWindow window = tempEntity.newVersionEvaluationWindow(organization.getId(), "context1", 10, 30);
+
+    Map<String, VersionEvaluationWindow> result =
+        dao.getByOwnerIdsAndContextIdWithInheritance(Set.of(organization.getId()), "context1");
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(organization.getId()))
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(window);
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndContextIdWithInheritance_SingleOwnerInheritFromParent() {
+    VersionEvaluationWindow parentWindow =
+        tempEntity.newVersionEvaluationWindow(organization.getId(), "context1", 10, 30);
+
+    Map<String, VersionEvaluationWindow> result =
+        dao.getByOwnerIdsAndContextIdWithInheritance(Set.of(application.getId()), "context1");
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(application.getId()))
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(parentWindow);
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndContextIdWithInheritance_SingleOwnerPrefersClosest() {
+    tempEntity.newVersionEvaluationWindow(Organization.ROOT_ORGANIZATION_ID, "context1", 5, 15);
+    VersionEvaluationWindow closerWindow =
+        tempEntity.newVersionEvaluationWindow(organization.getId(), "context1", 10, 30);
+
+    Map<String, VersionEvaluationWindow> result =
+        dao.getByOwnerIdsAndContextIdWithInheritance(Set.of(application.getId()), "context1");
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(application.getId()))
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(closerWindow);
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndContextIdWithInheritance_SingleOwnerNoMatch() {
+    tempEntity.newVersionEvaluationWindow(organization.getId(), "context1", 10, 30);
+
+    Map<String, VersionEvaluationWindow> result =
+        dao.getByOwnerIdsAndContextIdWithInheritance(Set.of(application.getId()), "context-nonexistent");
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndContextIdWithInheritance_MultipleOwnersAllMatch() {
+    VersionEvaluationWindow orgWindow = tempEntity.newVersionEvaluationWindow(organization.getId(), "context1", 10, 30);
+    VersionEvaluationWindow appWindow = tempEntity.newVersionEvaluationWindow(application.getId(), "context1", 20, 60);
+
+    Map<String, VersionEvaluationWindow> result =
+        dao.getByOwnerIdsAndContextIdWithInheritance(Set.of(organization.getId(), application.getId()), "context1");
+
+    assertThat(result).hasSize(2);
+    assertThat(result.get(organization.getId()))
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(orgWindow);
+    assertThat(result.get(application.getId()))
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(appWindow);
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndContextIdWithInheritance_MultipleOwnersPartialMatch() {
+    VersionEvaluationWindow orgWindow = tempEntity.newVersionEvaluationWindow(organization.getId(), "context1", 10, 30);
+    String nonMatchingOwnerId = "non-matching-owner";
+
+    Map<String, VersionEvaluationWindow> result =
+        dao.getByOwnerIdsAndContextIdWithInheritance(Set.of(organization.getId(), nonMatchingOwnerId), "context1");
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(organization.getId()))
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(orgWindow);
+    assertThat(result.get(nonMatchingOwnerId)).isNull();
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndContextIdWithInheritance_MultipleOwnersWithInheritance() {
+    tempEntity.newVersionEvaluationWindow(Organization.ROOT_ORGANIZATION_ID, "context1", 5, 15);
+    VersionEvaluationWindow orgWindow = tempEntity.newVersionEvaluationWindow(organization.getId(), "context1", 10, 30);
+
+    Map<String, VersionEvaluationWindow> result =
+        dao.getByOwnerIdsAndContextIdWithInheritance(Set.of(organization.getId(), application.getId()), "context1");
+
+    assertThat(result).hasSize(2);
+    assertThat(result.get(organization.getId()))
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(orgWindow);
+    assertThat(result.get(application.getId()))
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(orgWindow);
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndContextIdWithInheritance_DifferentContextNoMatch() {
+    tempEntity.newVersionEvaluationWindow(organization.getId(), "context1", 10, 30);
+    tempEntity.newVersionEvaluationWindow(application.getId(), "context2", 20, 60);
+
+    Map<String, VersionEvaluationWindow> result =
+        dao.getByOwnerIdsAndContextIdWithInheritance(Set.of(organization.getId(), application.getId()), "context3");
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndContextIdWithInheritance_OrderingByAncestorDistance() {
+    tempEntity.newVersionEvaluationWindow(Organization.ROOT_ORGANIZATION_ID, "context1", 5, 15);
+    tempEntity.newVersionEvaluationWindow(organization.getId(), "context1", 10, 30);
+    VersionEvaluationWindow appWindow = tempEntity.newVersionEvaluationWindow(application.getId(), "context1", 20, 60);
+
+    Map<String, VersionEvaluationWindow> result =
+        dao.getByOwnerIdsAndContextIdWithInheritance(Set.of(application.getId()), "context1");
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(application.getId()))
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(appWindow);
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndContextIdWithInheritance_OrderingMultipleOwnersGroupedCorrectly() {
+    Organization org2 = tempEntity.newOrganization("org2");
+    tempEntity.newApplication("app2", org2.getId());
+
+    tempEntity.newVersionEvaluationWindow(Organization.ROOT_ORGANIZATION_ID, "context1", 5, 15);
+    VersionEvaluationWindow org1Window =
+        tempEntity.newVersionEvaluationWindow(organization.getId(), "context1", 10, 30);
+    VersionEvaluationWindow org2Window = tempEntity.newVersionEvaluationWindow(org2.getId(), "context1", 15, 45);
+
+    Map<String, VersionEvaluationWindow> result =
+        dao.getByOwnerIdsAndContextIdWithInheritance(Set.of(organization.getId(), org2.getId()), "context1");
+
+    assertThat(result).hasSize(2);
+    assertThat(result.get(organization.getId()))
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(org1Window);
+    assertThat(result.get(org2.getId()))
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(org2Window);
+  }
+
+  @Test
+  public void testGetByOwnerIdsAndContextIdWithInheritance_OrderingSelectsLowestDistancePerOwner() {
+    tempEntity.newVersionEvaluationWindow(Organization.ROOT_ORGANIZATION_ID, "context1", 5, 15);
+    VersionEvaluationWindow orgWindow = tempEntity.newVersionEvaluationWindow(organization.getId(), "context1", 10, 30);
+
+    Map<String, VersionEvaluationWindow> result =
+        dao.getByOwnerIdsAndContextIdWithInheritance(Set.of(application.getId()), "context1");
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(application.getId()))
+        .usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(orgWindow);
   }
 }

@@ -171,6 +171,7 @@ CREATE TABLE sbom_metadata (
 CREATE INDEX application_id_idx ON sbom_metadata(application_id);
 CREATE INDEX sbom_metadata_status_idx ON sbom_metadata (status);
 CREATE INDEX sbom_metadata_third_party_file_id_idx ON sbom_metadata(third_party_file_id);
+CREATE INDEX sbom_metadata_status_app_id_created_at_id_idx ON sbom_metadata(status, application_id, created_at, sbom_metadata_id);
 
 CREATE TABLE IF NOT EXISTS schema_version (
   data_store_id varchar(32) NOT NULL,

@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -34,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -42,6 +44,7 @@ import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueConfig;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportService;
@@ -117,6 +120,8 @@ public class PolicyMonitor
 
   private final ScanPersistenceService scanPersistenceService;
 
+  private final ApiConfigurationService apiConfigurationService;
+
   @Inject
   public PolicyMonitor(
       final ScanPolicyEvaluator scanPolicyEvaluator,
@@ -134,7 +139,8 @@ public class PolicyMonitor
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
       final ReportService reportService,
-      final ScanPersistenceService scanPersistenceService)
+      final ScanPersistenceService scanPersistenceService,
+      final ApiConfigurationService apiConfigurationService)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
@@ -152,6 +158,7 @@ public class PolicyMonitor
     this.telemetryUtils = telemetryUtils;
     this.reportService = reportService;
     this.scanPersistenceService = scanPersistenceService;
+    this.apiConfigurationService = apiConfigurationService;
     log.debug("Created a new PolicyMonitor for tenant {}", TenantThreadLocal.getTenant());
   }
 
@@ -208,7 +215,14 @@ public class PolicyMonitor
           .stream()
           .filter(stageType -> stageType != StageTypes.COMPLIANCE)
           .toArray(StageType[]::new));
-      evaluateApplications(StageTypes.COMPLIANCE);
+      EvaluationQueueConfig evaluationQueueConfig = getEvaluationQueueConfig();
+      if (!evaluationQueueConfig.enabled()) {
+        log.debug("Evaluation queue disabled, executing compliance stage evaluation.");
+        evaluateApplications(StageTypes.COMPLIANCE);
+      }
+      else {
+        log.debug("Evaluation queue enabled, skipping compliance stage evaluation.");
+      }
     }
     finally {
       executorService.shutdown();
@@ -491,5 +505,10 @@ public class PolicyMonitor
           .map(app -> new ApplicationWithPolicyMonitoring(app, map.get(app.getId())))
           .toList();
     });
+  }
+
+  private EvaluationQueueConfig getEvaluationQueueConfig() {
+    return (EvaluationQueueConfig) apiConfigurationService.getConfigurationNoAuthz(
+        SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG);
   }
 }

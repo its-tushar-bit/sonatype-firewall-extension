@@ -224,7 +224,7 @@ public class QuartzJobStoreTX
         .orElse(null);
   }
 
-  private boolean isFailed(SchedulerStateRecord schedulerStateRecord) {
+  public boolean isFailed(SchedulerStateRecord schedulerStateRecord) {
     return (System.currentTimeMillis()
         - schedulerStateRecord.getCheckinTimestamp()) >= FAILED_CLUSTER_CHECKIN_INTERVAL_MILLIS;
   }

@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueConfig;
 import com.sonatype.insight.brain.security.FIPSConfig;
 import com.sonatype.insight.brain.service.CopyStorageConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -313,7 +314,20 @@ public class ConfigurationProperty
             SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, 1, 365)),
     new ConfigurationProperty(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS, Boolean.class,
         (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
-        (p, o) -> Objects.toString(o, null))
+        (p, o) -> Objects.toString(o, null)),
+    new ConfigurationProperty(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG, Map.class,
+        (p, s) -> ConfigurationUtils.stringToObject(
+            s,
+            EvaluationQueueConfig.class,
+            EvaluationQueueConfig.builder().build()),
+        (p, o) -> {
+          EvaluationQueueConfig evaluationQueueConfig = JsonUtils.convertValue(o, EvaluationQueueConfig.class);
+          if (evaluationQueueConfig == null) {
+            return null;
+          }
+          evaluationQueueConfig.validate();
+          return ConfigurationUtils.objectToString(evaluationQueueConfig);
+        }),
   };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES)

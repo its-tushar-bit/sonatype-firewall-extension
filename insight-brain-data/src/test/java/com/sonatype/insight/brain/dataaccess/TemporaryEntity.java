@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceContro
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.KeyValueDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
@@ -73,7 +74,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfi
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.KeyValueDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
@@ -89,6 +89,7 @@ import com.sonatype.insight.brain.dataaccess.development.prioritization.Developm
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationDAO;
 import com.sonatype.insight.brain.dataaccess.enterprisereporting.EnterpriseReportingDefaultFilterDAO;
 import com.sonatype.insight.brain.dataaccess.enterprisereporting.EnterpriseReportingFilterDAO;
+import com.sonatype.insight.brain.dataaccess.evaluation.EvaluationQueueDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
@@ -245,6 +246,7 @@ import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingDefaultFilter;
 import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingFilter;
+import com.sonatype.insight.brain.model.evaluation.EvaluationQueue;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
@@ -730,6 +732,8 @@ public class TemporaryEntity
 
   private KeyValueDAO keyValueDAO;
 
+  private EvaluationQueueDAO evaluationQueueDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -1029,6 +1033,7 @@ public class TemporaryEntity
       delete(enterpriseReportingDefaultFilterDAO.getAll(), enterpriseReportingDefaultFilterDAO);
       delete(versionEvaluationWindowDAO.getAll(), versionEvaluationWindowDAO);
       delete(keyValueDAO.getAll(), keyValueDAO);
+      delete(evaluationQueueDAO.getAll(), evaluationQueueDAO);
 
       restoreInitialWaiverReasons();
       productLicenseDAO.delete();
@@ -4855,6 +4860,39 @@ public class TemporaryEntity
   }
 
   public ThirdPartySbomMetadata newThirdPartySbomMetadata(
+      String applicationId,
+      ThirdPartySbomMetadataStatus status,
+      Date createdAt)
+  {
+    return newThirdPartySbomMetadata(null, applicationId, status, createdAt);
+  }
+
+  public ThirdPartySbomMetadata newThirdPartySbomMetadata(
+      String sbomId,
+      String applicationId,
+      ThirdPartySbomMetadataStatus status,
+      Date createdAt)
+  {
+    ThirdPartyFile thirdPartyFile = newThirdPartyFile();
+    ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
+    thirdPartySbomMetadata.setId(sbomId);
+    thirdPartySbomMetadata.setSerialNumber(uuid().substring(0, 10));
+    thirdPartySbomMetadata.setSpec("CycloneDx");
+    thirdPartySbomMetadata.setSpecFormat("XML");
+    thirdPartySbomMetadata.setSpecVersion("1.5");
+    thirdPartySbomMetadata.setStatus(status);
+    thirdPartySbomMetadata.setSbomVersion(uuid().substring(0, 10));
+    thirdPartySbomMetadata.setApplicationId(applicationId);
+    thirdPartySbomMetadata.setFilename("fileName");
+    thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFile.getId());
+    thirdPartySbomMetadata.setCreatedAt(createdAt);
+    thirdPartySbomMetadata.setScanType("SBOM");
+    thirdPartySbomMetadata.setIsValid(true);
+    thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
+    return thirdPartySbomMetadata;
+  }
+
+  public ThirdPartySbomMetadata newThirdPartySbomMetadata(
       String thirdPartyFileId,
       String applicationId,
       String sbomVersion,
@@ -6747,6 +6785,7 @@ public class TemporaryEntity
     gitHubAppRegistrationStateDAO = daoFactory.createGitHubAppRegistrationStateDAO();
     versionEvaluationWindowDAO = daoFactory.createVersionEvaluationWindowDAO();
     keyValueDAO = daoFactory.createKeyValueDAO();
+    evaluationQueueDAO = daoFactory.createEvaluationQueueDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {
@@ -6895,5 +6934,26 @@ public class TemporaryEntity
     keyValue.setValue(value);
     keyValueDAO.insert(keyValue);
     return keyValue;
+  }
+
+  public EvaluationQueue newEvaluationQueue(
+      final Integer priority,
+      final String applicationId,
+      final String stageTypeId,
+      final String version,
+      final Date createTime,
+      final Date updateTime,
+      final String workerId)
+  {
+    EvaluationQueue evaluationQueue = new EvaluationQueue();
+    evaluationQueue.setPriority(priority);
+    evaluationQueue.setApplicationId(applicationId);
+    evaluationQueue.setStageTypeId(stageTypeId);
+    evaluationQueue.setVersion(version);
+    evaluationQueue.setCreateTime(createTime);
+    evaluationQueue.setUpdateTime(updateTime);
+    evaluationQueue.setWorkerId(workerId);
+    evaluationQueueDAO.insert(evaluationQueue);
+    return evaluationQueue;
   }
 }

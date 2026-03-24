@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 public class KeyValueDAOTest
     extends AbstractDbDAOTest
@@ -70,5 +71,53 @@ public class KeyValueDAOTest
     KeyValue result = dao.getByKey("nonexistent");
 
     assertThat(result).isNull();
+  }
+
+  @Test
+  public void testGetValue_NoKey() {
+    assertThat(dao.getValue("doesNotExist")).isNull();
+  }
+
+  @Test
+  public void testGetValue_ExistingKey() {
+    dao.setValue("new-key", "new-value");
+
+    assertThat(dao.getValue("new-key")).isEqualTo("new-value");
+  }
+
+  @Test
+  public void testSetValue_NewKey() {
+    dao.setValue("new-key", "new-value");
+
+    KeyValue result = dao.getByKey("new-key");
+    assertThat(result).isNotNull();
+    assertThat(result.getKey()).isEqualTo("new-key");
+    assertThat(result.getValue()).isEqualTo("new-value");
+  }
+
+  @Test
+  public void testSetValue_ExistingKey() {
+    tempEntity.newKeyValue("existing-key", "original-value");
+
+    dao.setValue("existing-key", "updated-value");
+
+    KeyValue result = dao.getByKey("existing-key");
+    assertThat(result).isNotNull();
+    assertThat(result.getKey()).isEqualTo("existing-key");
+    assertThat(result.getValue()).isEqualTo("updated-value");
+  }
+
+  @Test
+  public void testDelete_ByKey_DoesNotExist() {
+    assertThatNoException().isThrownBy(() -> dao.deleteByKey("doesNotExist"));
+  }
+
+  @Test
+  public void testDelete_ByKey_Exists() {
+    tempEntity.newKeyValue("existing-key", "original-value");
+
+    dao.deleteByKey("existing-key");
+
+    assertThat(dao.getValue("existing-key")).isNull();
   }
 }

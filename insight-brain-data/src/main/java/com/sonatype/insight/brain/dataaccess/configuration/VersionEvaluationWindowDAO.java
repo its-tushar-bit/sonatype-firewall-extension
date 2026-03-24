@@ -5,7 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -16,8 +22,10 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Table;
 
+import static com.sonatype.insight.brain.jooq.generated.ods.Tables.OWNER_ANCESTOR;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.VersionEvaluationWindow.VERSION_EVALUATION_WINDOW;
 
 @Named
@@ -120,6 +128,48 @@ public class VersionEvaluationWindowDAO
           .and(VERSION_EVALUATION_WINDOW.CONTEXT_ID.eq(contextId))
           .execute();
       tx.commit();
+    }
+  }
+
+  public Map<String, VersionEvaluationWindow> getByOwnerIdsAndContextIdWithInheritance(
+      final Set<String> ownerIds,
+      final String contextId)
+  {
+    if (CollectionUtils.isEmpty(ownerIds)) {
+      return new HashMap<>();
+    }
+
+    var oa = OWNER_ANCESTOR;
+    var vew = VERSION_EVALUATION_WINDOW;
+
+    try (TransactionContext tx = createTransactionContext()) {
+      Map<String, AbstractMap.SimpleEntry<Integer, VersionEvaluationWindow>> closest = new HashMap<>();
+
+      tx.dsl()
+          .select(
+              Stream.concat(
+                  Stream.of(oa.OWNER_ID, oa.ANCESTOR_DISTANCE),
+                  Arrays.stream(vew.fields())).toList())
+          .from(oa)
+          .join(vew)
+          .on(vew.OWNER_ID.eq(oa.ANCESTOR_ID))
+          .where(oa.OWNER_ID.in(ownerIds))
+          .and(vew.CONTEXT_ID.eq(contextId))
+          .fetch()
+          .forEach(r -> {
+            String id = r.get(oa.OWNER_ID);
+            int distance = r.get(oa.ANCESTOR_DISTANCE);
+            VersionEvaluationWindow entity = r.into(VersionEvaluationWindow.class);
+
+            closest.merge(
+                id,
+                new AbstractMap.SimpleEntry<>(distance, entity),
+                (a, b) -> a.getKey() <= b.getKey() ? a : b);
+          });
+
+      Map<String, VersionEvaluationWindow> result = new HashMap<>();
+      closest.forEach((id, entry) -> result.put(id, entry.getValue()));
+      return result;
     }
   }
 }

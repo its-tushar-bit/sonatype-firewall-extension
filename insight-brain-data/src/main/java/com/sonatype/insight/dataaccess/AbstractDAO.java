@@ -7,12 +7,21 @@
 // Vendored/copied from hosted-data-services/insight-db-common
 package com.sonatype.insight.dataaccess;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Savepoint;
+import java.util.List;
+
 import com.sonatype.insight.model.HasStringId;
 
 import org.jooq.Field;
+import org.jooq.InsertSetMoreStep;
 import org.jooq.Record;
+import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.UpdatableRecord;
+
+import static org.jooq.exception.SQLStateClass.C23_INTEGRITY_CONSTRAINT_VIOLATION;
 
 public abstract class AbstractDAO<T>
 {
@@ -164,9 +173,9 @@ public abstract class AbstractDAO<T>
    *
    * @param tx the transaction context
    * @param entity the entity to insert
+   * @param ignoreDuplicateKey whether to ignore duplicate key errors during insert
    */
-  @SuppressWarnings("unchecked")
-  public void insert(TransactionContext tx, T entity) {
+  public void insert(TransactionContext tx, T entity, boolean ignoreDuplicateKey) {
     Table<?> table = getJooqTable();
     UpdatableRecord<?> record = (UpdatableRecord<?>) tx.dsl().newRecord(table);
 
@@ -177,15 +186,105 @@ public abstract class AbstractDAO<T>
 
     fromEntity(record, entity);
 
-    // Use insertInto().set().execute() instead of record.insert() to avoid
+    // Use insertInto().set() instead of record.insert() to avoid
     // jOOQ's RETURNING clause emulation which doesn't work well with H2
-    tx.dsl().insertInto(table).set(record).execute();
+    InsertSetMoreStep<?> insertSetMoreStep = tx.dsl().insertInto(table).set(record);
+    if (ignoreDuplicateKey) {
+      SQLDialect dialect = tx.dsl().dialect();
+      // H2 1.4.196 doesn't support jOOQ onDuplicateKeyIgnore (translated to MERGE INTO) or onConflictDoNothing
+      // use savepoints in the transaction instead
+      if (dialect == SQLDialect.H2) {
+        tx.dsl().connection(conn -> {
+          Savepoint savepoint = conn.setSavepoint();
+          try (PreparedStatement ps = conn.prepareStatement(
+              tx.dsl().renderInlined(insertSetMoreStep)))
+          {
+            ps.execute();
+            conn.releaseSavepoint(savepoint);
+          }
+          catch (SQLException e) {
+            conn.rollback(savepoint);
+            if (!e.getSQLState().startsWith(C23_INTEGRITY_CONSTRAINT_VIOLATION.className())) {
+              throw e;
+            }
+          }
+        });
+      }
+      else {
+        insertSetMoreStep.onDuplicateKeyIgnore().execute();
+      }
+    }
+    else {
+      insertSetMoreStep.execute();
+    }
+  }
+
+  public void insert(T entity, boolean ignoreDuplicateKey) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      insert(tx, entity, ignoreDuplicateKey);
+      tx.commit();
+    }
+  }
+
+  public void insert(TransactionContext tx, T entity) {
+    insert(tx, entity, false);
   }
 
   public void insert(T entity) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
       insert(tx, entity);
+      tx.commit();
+    }
+  }
+
+  public void insertBatch(TransactionContext tx, List<T> entities, boolean ignoreDuplicateKey) {
+    if (entities.isEmpty()) {
+      return;
+    }
+    Table<?> table = getJooqTable();
+    SQLDialect dialect = tx.dsl().dialect();
+    if (dialect == SQLDialect.H2) {
+      for (T entity : entities) {
+        insert(tx, entity, ignoreDuplicateKey);
+      }
+    }
+    else {
+      var steps = entities.stream()
+          .map(entity -> {
+            UpdatableRecord<?> record = (UpdatableRecord<?>) tx.dsl().newRecord(table);
+            // Set ID field if entity has one
+            if (entity instanceof HasStringId hasStringId) {
+              record.set(getIdField(table), hasStringId.getId());
+            }
+            fromEntity(record, entity);
+            // Use insertInto().set() instead of record.insert() to avoid
+            // jOOQ's RETURNING clause emulation which doesn't work well with H2
+            InsertSetMoreStep<?> insertSetMoreStep = tx.dsl().insertInto(table).set(record);
+            return ignoreDuplicateKey ? insertSetMoreStep.onDuplicateKeyIgnore() : insertSetMoreStep;
+          })
+          .toList();
+      tx.dsl().batch(steps).execute();
+    }
+  }
+
+  public void insertBatch(List<T> entities, boolean ignoreDuplicateKey) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      insertBatch(tx, entities, ignoreDuplicateKey);
+      tx.commit();
+    }
+  }
+
+  public void insertBatch(TransactionContext tx, List<T> entities) {
+    insertBatch(tx, entities, false);
+  }
+
+  public void insertBatch(List<T> entities) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      insertBatch(tx, entities);
       tx.commit();
     }
   }

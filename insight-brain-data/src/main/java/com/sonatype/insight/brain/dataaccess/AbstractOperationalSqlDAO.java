@@ -63,11 +63,11 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
    * @param entity the entity to insert
    */
   @Override
-  public void insert(TransactionContext tx, T entity) {
+  public void insert(TransactionContext tx, T entity, boolean ignoreDuplicateKey) {
     generateIdIfNeeded(entity);
 
     // Call superclass to perform the actual insert
-    super.insert(tx, entity);
+    super.insert(tx, entity, ignoreDuplicateKey);
 
     // Handle search index changes
     if (shouldAddSearchIndexChange(tx, entity)) {
@@ -79,6 +79,22 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
       Exception e = new Exception("Entity of type " + entity.getClass().getName() + " created at:");
       testEntityLeaksDetectionData.put(entity.getId(),
           new TestEntityLeakDetectionData(this, ExceptionUtils.getStackTrace(e)));
+    }
+  }
+
+  @Override
+  public void insertBatch(TransactionContext tx, List<T> entities, boolean ignoreDuplicateKey) {
+    super.insertBatch(tx, entities, ignoreDuplicateKey);
+
+    for (T entity : entities) {
+      if (shouldAddSearchIndexChange(tx, entity)) {
+        insertSearchIndexChange(tx, newSearchIndexChangeForInsert(entity));
+      }
+      if (detectTestEntityLeaks() && operationalDataStore.isDatabaseInMemory()) {
+        Exception e = new Exception("Entity of type " + entity.getClass().getName() + " created at:");
+        testEntityLeaksDetectionData.put(entity.getId(),
+            new TestEntityLeakDetectionData(this, ExceptionUtils.getStackTrace(e)));
+      }
     }
   }
 

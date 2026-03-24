@@ -302,7 +302,6 @@ async function startDevServer() {
   // all bundles' outputs since they all write to outDir).
   const { host, port: esbuildPort } = await contexts[0].serve({
     servedir: outDir,
-    fallback: path.join(outDir, 'index.html'),
   });
 
   // Thin proxy: API paths go to the backend, everything else to esbuild's serve.

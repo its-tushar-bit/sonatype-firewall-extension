@@ -1729,7 +1729,8 @@ describe('EditableConstraint', () => {
       const conditionElements = within(constrainElement).getAllByTestId('editable-constraint__condition');
       expect(conditionElements.length).toBe(1);
 
-      const conditionInputValue = within(conditionElements[0]).getByTestId('constraint__condition-value');
+      const conditionInputWrapper = within(conditionElements[0]).getByTestId('constraint__condition-value');
+      const conditionInputValue = within(conditionInputWrapper).getByRole('textbox');
       expect(conditionInputValue).toBeDisabled();
     });
 
@@ -1759,7 +1760,8 @@ describe('EditableConstraint', () => {
       const conditionElements = within(constrainElement).getAllByTestId('editable-constraint__condition');
       expect(conditionElements.length).toBe(1);
 
-      const conditionInputValue = within(conditionElements[0]).getByTestId('constraint__condition-value');
+      const conditionInputWrapper = within(conditionElements[0]).getByTestId('constraint__condition-value');
+      const conditionInputValue = within(conditionInputWrapper).getByRole('textbox');
       expect(conditionInputValue).not.toBeDisabled();
       expect(conditionInputValue).toHaveValue('50');
     });

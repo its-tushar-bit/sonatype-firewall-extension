@@ -786,9 +786,13 @@ describe('DashboardFilter', () => {
     const deleteButton = filterOption.nextElementSibling;
     deleteButton.click();
 
-    const alert = screen.getByText(`You are about to delete "${filterName}" filter. This action can not be undone.`);
-    expect(alert).toBeInTheDocument();
-    const continueButton = screen.getByText('Continue');
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument();
+    });
+    expect(
+      screen.getByText(`You are about to delete "${filterName}" filter. This action can not be undone.`)
+    ).toBeInTheDocument();
+    const continueButton = screen.getByRole('button', { name: 'Continue' });
     fireEvent.click(continueButton);
     expect(deleteRequest.history.post.length).toBe(1);
     await waitForElementToBeRemoved(() => screen.queryByText('Delete Filter'));

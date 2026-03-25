@@ -5,7 +5,8 @@
  */
 import axios from 'axios';
 import { isEmpty, prop, pipe, equals, includes } from 'ramda';
-import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
+import { createAsyncThunk, unwrapResult } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 import {
   getProductFeaturesUrl,
   getEnableUnauthenticatedPages,

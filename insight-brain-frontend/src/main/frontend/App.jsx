@@ -6,7 +6,7 @@
 /* global CLM_SERVER_VERSION */
 import React from 'react';
 import classnames from 'classnames';
-import { UIRouter, UIView } from '@uirouter/react';
+import { UIRouterContext, UIView } from '@uirouter/react';
 import { Provider as ReduxProvider, useSelector } from 'react-redux';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
@@ -82,9 +82,9 @@ function PageLayout() {
 export default function App() {
   return (
     <ReduxProvider store={store}>
-      <UIRouter router={router}>
+      <UIRouterContext.Provider value={router}>
         <PageLayout />
-      </UIRouter>
+      </UIRouterContext.Provider>
     </ReduxProvider>
   );
 }

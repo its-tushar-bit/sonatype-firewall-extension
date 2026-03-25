@@ -57,7 +57,7 @@ const EvaluateApplicationModal = () => {
     []
   );
 
-  const selectStage = (event) => dispatch(actions.selectStageId(event.target.value));
+  const selectStage = (value) => dispatch(actions.selectStageId(value));
   const closeEvaluateAppModal = () => dispatch(actions.closeEvaluateAppModal());
   const closeStatusModal = () => dispatch(actions.closeEvalStatusModal());
   const selectFile = (file) => dispatch(actions.selectFile(file));

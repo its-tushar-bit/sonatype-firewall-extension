@@ -7,7 +7,7 @@ import React from 'react';
 import * as R from 'ramda';
 import userEvent from '@testing-library/user-event';
 
-import { axiosMockAdapter, render, waitFor, screen } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, render, waitFor, screen, within } from 'TestRoot/SpecUtil';
 import EditRoiConfigurationPage from 'MainRoot/configuration/editRoiConfiguration/EditRoiConfigurationPage';
 import { instantiateNumericState } from 'MainRoot/configuration/editRoiConfiguration/editRoiConfigurationPageSlice';
 
@@ -81,19 +81,26 @@ describe('editRoiConfigurationPage', () => {
 
     expect(screen.getByRole('heading', { name: /Return on Investment Configuration/i })).toBeVisible();
 
-    expect(screen.getByTestId('edit-roi-configuration-page__input__baseline-days-to-resolve-violation')).toHaveValue(
-      '150'
+    const baselineDaysWrapper = screen.getByTestId(
+      'edit-roi-configuration-page__input__baseline-days-to-resolve-violation'
     );
-    expect(screen.getByTestId('edit-roi-configuration-page__input__daily-risk-cost-of-unfixed-violation')).toHaveValue(
-      '1234.56'
+    expect(within(baselineDaysWrapper).getByRole('textbox')).toHaveValue('150');
+
+    const dailyRiskWrapper = screen.getByTestId(
+      'edit-roi-configuration-page__input__daily-risk-cost-of-unfixed-violation'
     );
-    expect(screen.getByTestId('edit-roi-configuration-page__input__malware-attacks-prevented')).toHaveValue('1111.11');
-    expect(screen.getByTestId('edit-roi-configuration-page__input__namespace-attacks-prevented')).toHaveValue(
-      '2222.22'
+    expect(within(dailyRiskWrapper).getByRole('textbox')).toHaveValue('1234.56');
+
+    const malwareWrapper = screen.getByTestId('edit-roi-configuration-page__input__malware-attacks-prevented');
+    expect(within(malwareWrapper).getByRole('textbox')).toHaveValue('1111.11');
+
+    const namespaceWrapper = screen.getByTestId('edit-roi-configuration-page__input__namespace-attacks-prevented');
+    expect(within(namespaceWrapper).getByRole('textbox')).toHaveValue('2222.22');
+
+    const safeComponentsWrapper = screen.getByTestId(
+      'edit-roi-configuration-page__input__safe-components-auto-selected'
     );
-    expect(screen.getByTestId('edit-roi-configuration-page__input__safe-components-auto-selected')).toHaveValue(
-      '3333.33'
-    );
+    expect(within(safeComponentsWrapper).getByRole('textbox')).toHaveValue('3333.33');
   });
 
   it('renders validation error and hides update button', async () => {
@@ -107,7 +114,8 @@ describe('editRoiConfigurationPage', () => {
     const updateButton = screen.getByRole('button', { name: /Update/i });
     expect(updateButton).toBeVisible();
 
-    const malwareInput = screen.getByTestId('edit-roi-configuration-page__input__malware-attacks-prevented');
+    const malwareWrapper = screen.getByTestId('edit-roi-configuration-page__input__malware-attacks-prevented');
+    const malwareInput = within(malwareWrapper).getByRole('textbox');
     expect(malwareInput).toHaveValue('1111.11');
 
     await user.clear(malwareInput);

@@ -109,7 +109,7 @@ export default function MailConfig(props) {
           {...fieldState}
           {...{ onChange, placeholder, id, validatable }}
           className="nx-text-input--long"
-          autoComplete="new-password"
+          inputAttributes={{ autoComplete: 'new-password' }}
         />
       </NxFormGroup>
     );
@@ -251,7 +251,7 @@ export default function MailConfig(props) {
                 }}
                 className="nx-text-input--long"
                 type="password"
-                autoComplete="new-password"
+                inputAttributes={{ autoComplete: 'new-password' }}
               />
             </NxFormGroup>
 
@@ -278,7 +278,7 @@ export default function MailConfig(props) {
                       evt.target.select();
                     }}
                     className="nx-text-input--long"
-                    autoComplete="new-password"
+                    inputAttributes={{ autoComplete: 'new-password' }}
                   />
                 </NxFormGroup>
                 <NxButtonBar>

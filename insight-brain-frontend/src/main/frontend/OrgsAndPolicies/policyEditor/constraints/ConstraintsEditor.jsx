@@ -90,8 +90,8 @@ export default function ConstraintsEditor() {
     setConstraintName({ constraintIndex: constraintIdx, value, id });
   }
 
-  function onConstraintOperatorChange(event, constraintIndex) {
-    setConstraintOperator({ constraintIndex, value: event.currentTarget.value });
+  function onConstraintOperatorChange(value, constraintIndex) {
+    setConstraintOperator({ constraintIndex, value });
   }
 
   function addCondition(constraintIndex) {
@@ -120,8 +120,7 @@ export default function ConstraintsEditor() {
     return value;
   }
 
-  function onConditionTypeIdChange(event, constraintIndex, conditionIndex) {
-    const { value: updatedConditionTypeId } = event.currentTarget;
+  function onConditionTypeIdChange(updatedConditionTypeId, constraintIndex, conditionIndex) {
     const conditionType = conditionTypesMap[updatedConditionTypeId];
 
     const updatedCondition = {
@@ -132,8 +131,7 @@ export default function ConstraintsEditor() {
     setConstraintCondition({ constraintIndex, conditionIndex, value: updatedCondition });
   }
 
-  function onCoordinatesFormatChange(event, constraintIndex, conditionIndex) {
-    const { value: updatedFormat } = event.currentTarget;
+  function onCoordinatesFormatChange(updatedFormat, constraintIndex, conditionIndex) {
     setConstraintCoordinatesFormat({ constraintIndex, conditionIndex, value: updatedFormat });
   }
 
@@ -141,13 +139,11 @@ export default function ConstraintsEditor() {
     setConstraintCoordinatesInput({ constraintIndex, conditionIndex, value, name, format });
   }
 
-  function onConditionOperatorChange(event, constraintIndex, conditionIndex) {
-    const { value: updatedOperator } = event.currentTarget;
+  function onConditionOperatorChange(updatedOperator, constraintIndex, conditionIndex) {
     setConditionOperator({ constraintIndex, conditionIndex, value: updatedOperator });
   }
 
-  function onConditionValueChange(event, constraintIndex, conditionIndex) {
-    const { value: updatedValue } = event.currentTarget;
+  function onConditionValueChange(updatedValue, constraintIndex, conditionIndex) {
     setConditionValue({ constraintIndex, conditionIndex, value: updatedValue });
   }
 

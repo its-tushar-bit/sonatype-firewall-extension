@@ -304,7 +304,7 @@ export default function PolicyNotificationsEditor() {
               id="recipient-type"
               disabled={!isNotificationsTableEnabled}
               value={recipientType}
-              onChange={(event) => setNotificationsEditorFormFieldValue('recipientType', event.currentTarget.value)}
+              onChange={(value) => setNotificationsEditorFormFieldValue('recipientType', value)}
             >
               {recipientTypeOptions.map((option) => (
                 <option key={option} value={option}>
@@ -338,7 +338,7 @@ export default function PolicyNotificationsEditor() {
                 id="recipient-role"
                 disabled={!isNotificationsTableEnabled}
                 value={recipientRoleId}
-                onChange={(event) => setNotificationsEditorFormFieldValue('recipientRoleId', event.currentTarget.value)}
+                onChange={(value) => setNotificationsEditorFormFieldValue('recipientRoleId', value)}
               >
                 {isNilOrEmpty(roleOptions) ? (
                   <option value="">All roles are being notified.</option>
@@ -359,9 +359,7 @@ export default function PolicyNotificationsEditor() {
                 id="recipient-webhook"
                 disabled={!isNotificationsTableEnabled}
                 value={recipientWebhookId}
-                onChange={(event) =>
-                  setNotificationsEditorFormFieldValue('recipientWebhookId', event.currentTarget.value)
-                }
+                onChange={(value) => setNotificationsEditorFormFieldValue('recipientWebhookId', value)}
               >
                 {isNilOrEmpty(applicableNotificationWebhooks) ? (
                   <option value="">No applicable webhooks.</option>
@@ -383,9 +381,7 @@ export default function PolicyNotificationsEditor() {
                   id="recipient-jira-project"
                   disabled={!isNotificationsTableEnabled}
                   value={formState?.recipientProjectKey?.value}
-                  onChange={(event) =>
-                    setNotificationsEditorFormFieldValue('recipientProjectKey', event.currentTarget.value)
-                  }
+                  onChange={(value) => setNotificationsEditorFormFieldValue('recipientProjectKey', value)}
                 >
                   {isNilOrEmpty(availableJiraProjects) ? (
                     <option value="">No applicable projects available.</option>
@@ -404,9 +400,7 @@ export default function PolicyNotificationsEditor() {
                   id="recipient-jira-issue-type"
                   disabled={!isNotificationsTableEnabled || !recipientProjectKey}
                   value={formState?.recipientIssueTypeId?.value}
-                  onChange={(event) =>
-                    setNotificationsEditorFormFieldValue('recipientIssueTypeId', event.currentTarget.value)
-                  }
+                  onChange={(value) => setNotificationsEditorFormFieldValue('recipientIssueTypeId', value)}
                 >
                   {recipientProjectKey ? (
                     isNilOrEmpty(selectedJiraProject?.issueTypes) ? (

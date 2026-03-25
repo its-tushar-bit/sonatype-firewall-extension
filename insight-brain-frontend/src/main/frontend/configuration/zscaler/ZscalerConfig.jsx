@@ -130,7 +130,7 @@ export default function ZscalerConfig(props) {
           {...fieldState}
           {...{ onChange, onFocus, placeholder, id, type, validatable }}
           className="nx-text-input--long"
-          autoComplete="new-password"
+          inputAttributes={{ autoComplete: 'new-password' }}
         />
       </NxFormGroup>
     );

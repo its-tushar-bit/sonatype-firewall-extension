@@ -283,7 +283,7 @@ export default function LicensesModal(props) {
                 <NxFormSelect
                   id="edit-licenses-status-selection"
                   value={statusVal}
-                  onChange={(event) => onStatusChange(event.target.value)}
+                  onChange={(value) => onStatusChange(value)}
                 >
                   {getStatusOptions().map(createOptionFromValue)}
                 </NxFormSelect>
@@ -308,7 +308,7 @@ export default function LicensesModal(props) {
                   id="edit-licenses-scope-selection"
                   className="nx-form-select--long"
                   value={scopeVal}
-                  onChange={(event) => updateScopeOption(event.currentTarget.value)}
+                  onChange={(value) => updateScopeOption(value)}
                 >
                   {availableScopes.values.map(createScopeOption)}
                 </NxFormSelect>

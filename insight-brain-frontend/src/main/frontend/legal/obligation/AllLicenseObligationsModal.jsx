@@ -107,7 +107,7 @@ export default function AllLicenseObligationsModal(props) {
               className="nx-form-select--long"
               id="all-obligations-scope-selection"
               value={ownerId}
-              onChange={(payload) => setOwnerId(payload.currentTarget.value)}
+              onChange={(value) => setOwnerId(value)}
             >
               {availableScopes.values.map(createScopeOption)}
             </NxFormSelect>

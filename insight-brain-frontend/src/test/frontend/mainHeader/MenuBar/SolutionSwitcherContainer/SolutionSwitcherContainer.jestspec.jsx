@@ -24,7 +24,7 @@ describe('SolutionSwitcher', function () {
   it('should render a loading message when network call is pending', async () => {
     axiosMock.onGet(getLicensedSolutionsUrl()).reply(200, []);
     const wrapper = renderComponent();
-    const SolutionSwitcherComponent = wrapper.getByRole('button', { name: 'solution switcher' });
+    const SolutionSwitcherComponent = wrapper.getByRole('button', { name: 'Solution Switcher' });
     fireEvent.click(SolutionSwitcherComponent);
 
     expect(screen.getByRole('status')).toBeInTheDocument();
@@ -33,7 +33,7 @@ describe('SolutionSwitcher', function () {
   it('it renders all solutions under "Explore" if user has no licensed solutions', async () => {
     axiosMock.onGet(getLicensedSolutionsUrl()).reply(200, []);
     const wrapper = renderComponent();
-    const SolutionSwitcherComponent = wrapper.getByRole('button', { name: 'solution switcher' });
+    const SolutionSwitcherComponent = wrapper.getByRole('button', { name: 'Solution Switcher' });
     fireEvent.click(SolutionSwitcherComponent);
 
     const exploreSection = screen.getByRole('region', { name: 'Explore' });
@@ -47,7 +47,7 @@ describe('SolutionSwitcher', function () {
   it('it renders all solutions under "Explore" if there is an error', async () => {
     axiosMock.onGet(getLicensedSolutionsUrl()).reply(404, 'Error');
     const wrapper = renderComponent();
-    const SolutionSwitcherComponent = wrapper.getByRole('button', { name: 'solution switcher' });
+    const SolutionSwitcherComponent = wrapper.getByRole('button', { name: 'Solution Switcher' });
     fireEvent.click(SolutionSwitcherComponent);
 
     const exploreSection = screen.getByRole('region', { name: 'Explore' });
@@ -76,7 +76,7 @@ describe('SolutionSwitcher', function () {
 
     axiosMock.onGet(getLicensedSolutionsUrl()).reply(200, mockResponse);
     const wrapper = renderComponent();
-    const SolutionSwitcherComponent = wrapper.getByRole('button', { name: 'solution switcher' });
+    const SolutionSwitcherComponent = wrapper.getByRole('button', { name: 'Solution Switcher' });
 
     fireEvent.click(SolutionSwitcherComponent);
     expect(await screen.findByText('Explore')).toBeInTheDocument();
@@ -100,7 +100,7 @@ describe('SolutionSwitcher', function () {
   it('it should not render developer under "Explore" even if user has no licensed solutions', () => {
     axiosMock.onGet(getLicensedSolutionsUrl()).reply(200, []);
     const wrapper = renderComponent();
-    const SolutionSwitcherComponent = wrapper.getByRole('button', { name: 'solution switcher' });
+    const SolutionSwitcherComponent = wrapper.getByRole('button', { name: 'Solution Switcher' });
     fireEvent.click(SolutionSwitcherComponent);
 
     const exploreSection = screen.getByRole('region', { name: 'Explore' });

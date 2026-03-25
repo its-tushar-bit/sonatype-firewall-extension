@@ -37,10 +37,9 @@ export default function ApplicationSelector() {
     load();
   }, [dispatch]);
 
-  const handleChange = (event) => {
-    const appId = event.target.value;
-    if (appId) {
-      dispatch(setApplication(appId));
+  const handleChange = (value) => {
+    if (value) {
+      dispatch(setApplication(value));
     }
   };
 

@@ -130,7 +130,7 @@ export default function UserAdd(props) {
                     id="username"
                     placeholder="Enter Username"
                     aria-required={true}
-                    autoComplete="new-password"
+                    inputAttributes={{ autoComplete: 'new-password' }}
                   />
                 </NxFormGroup>
                 <NxFormRow>
@@ -144,7 +144,7 @@ export default function UserAdd(props) {
                       type="password"
                       placeholder="Enter Password"
                       aria-required={true}
-                      autoComplete="new-password"
+                      inputAttributes={{ autoComplete: 'new-password' }}
                     />
                   </NxFormGroup>
                   <NxFormGroup label="Validate Password" isRequired>

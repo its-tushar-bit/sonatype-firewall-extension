@@ -232,9 +232,8 @@ const RequestWaiverReviewPage = () => {
     }
   };
 
-  const onExpiryTimeChange = (event) => {
-    const value = event.currentTarget.value === 'never' ? null : event.currentTarget.value;
-    setExpiryTime(value);
+  const onExpiryTimeChange = (value) => {
+    setExpiryTime(value === 'never' ? null : value);
   };
 
   const waiverExpirations = useWaiverExpirations(isExpireWhenRemediationAvailable);
@@ -259,8 +258,8 @@ const RequestWaiverReviewPage = () => {
 
   const expiration = getExpiration();
 
-  const onReasonChange = (event) => {
-    setWaiverReasonId(event.currentTarget.value ?? null);
+  const onReasonChange = (value) => {
+    setWaiverReasonId(value ?? null);
   };
 
   const waiverReasonsToRender = [{ id: '', reasonText: 'Select a reason', type: 'system' }, ...waiverReasons];
@@ -548,7 +547,7 @@ const RequestWaiverReviewPage = () => {
                     >
                       <NxTextInput
                         type="textarea"
-                        maxLength={1000}
+                        inputAttributes={{ maxLength: 1000 }}
                         {...waiverComments}
                         onChange={setWaiverComments}
                         disabled={isReadOnly}
@@ -578,7 +577,7 @@ const RequestWaiverReviewPage = () => {
                         <NxFieldset className="iq-request-waiver-form__rejection-reason" label="Rejection Reason">
                           <NxTextInput
                             type="textarea"
-                            maxLength={1000}
+                            inputAttributes={{ maxLength: 1000 }}
                             {...rejectionReason}
                             onChange={setRejectionReason}
                             placeholder="Enter the reason the waiver request was rejected here"

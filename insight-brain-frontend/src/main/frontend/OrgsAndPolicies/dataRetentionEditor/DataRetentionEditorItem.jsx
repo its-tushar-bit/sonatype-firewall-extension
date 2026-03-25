@@ -116,7 +116,7 @@ export default function DataRetentionEditorItem({ stage, stages, parentData }) {
             <span className="label--horizontal">Purge after </span>
             <NxFormGroup label="" className="nx-form-group--hide-optional--short">
               <NxTextInput
-                name={`${formattedStageName}-age-input`}
+                inputAttributes={{ name: `${formattedStageName}-age-input` }}
                 className="nx-text-input--short"
                 {...maxAge}
                 placeholder="Age"
@@ -133,7 +133,7 @@ export default function DataRetentionEditorItem({ stage, stages, parentData }) {
                     name={`${formattedStageName}-age-modifier`}
                     className="nx-form-select--short"
                     value={maxAgeUnit}
-                    onChange={(e) => handleInputChange(stage, 'ageUnit', e.target.value)}
+                    onChange={(value) => handleInputChange(stage, 'ageUnit', value)}
                   >
                     <option value="days">Days</option>
                     <option value="weeks">Weeks</option>
@@ -145,7 +145,7 @@ export default function DataRetentionEditorItem({ stage, stages, parentData }) {
                 <NxFormGroup label="" className="nx-form-group--hide-optional--short">
                   <NxTextInput
                     className={`nx-text-input--short ${hideError ? 'hide-error' : ''}`}
-                    name={`${formattedStageName}-count-input`}
+                    inputAttributes={{ name: `${formattedStageName}-count-input` }}
                     {...maxCount}
                     placeholder="No."
                     onChange={(value) => handleInputChange(stage, 'report', value)}

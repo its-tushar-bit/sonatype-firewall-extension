@@ -132,8 +132,9 @@ describe('AddContainerImageWaiverPage', () => {
     expect(options[7].selected).toBeTruthy();
     expect(waiverSelect).toHaveDisplayValue('Custom');
 
-    const dateInput = screen.getByTestId('add-container-image-waiver-custom-date');
-    expect(dateInput).toBeInTheDocument();
+    const dateWrapper = screen.getByTestId('add-container-image-waiver-custom-date');
+    expect(dateWrapper).toBeInTheDocument();
+    const dateInput = dateWrapper.querySelector('input[type="date"]') || dateWrapper.querySelector('input');
     const date = new Date();
     date.setDate(date.getDate() - 5);
     const formattedDateMinus5Day = date.toISOString().split('T')[0];

@@ -443,9 +443,11 @@ describe('SbomVulnerabilityDetails', function () {
           categories: ['foobar', 'malicious_code'],
         });
         const firstChild = render.querySelector('.nx-read-only__data');
-        const exclamationIcon = firstChild.querySelector('.fa-exclamation-circle');
-        expect(exclamationIcon).not.toBeNull();
-        expect(exclamationIcon.getAttribute('class')).toContain('nx-icon');
+        const warningParagraph = firstChild.querySelector('.iq-vulnerability-details__warning');
+        expect(warningParagraph).not.toBeNull();
+        // Check that the warning paragraph contains an icon (any SVG with nx-icon class)
+        const icon = warningParagraph.querySelector('svg.nx-icon');
+        expect(icon).not.toBeNull();
         const warningMsg = firstChild.querySelector('span');
         expect(queryByText(warningMsg, 'Malicious Code')).toBeInTheDocument();
         expect(queryByText(warningMsg.querySelector('strong'), 'Warning:')).toBeInTheDocument();

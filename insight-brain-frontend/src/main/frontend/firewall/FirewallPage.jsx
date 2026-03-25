@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 
 import { compose } from 'ramda';
 import * as PropTypes from 'prop-types';
-import { NxPageTitle, NxH1, NxTab, NxTabList, NxTabPanel, NxStatefulTabs } from '@sonatype/react-shared-components';
+import { NxPageTitle, NxH1, NxTab, NxTabList, NxTabPanel, NxTabs } from '@sonatype/react-shared-components';
 
 import FirewallStatus from './FirewallStatus';
 import LoadWrapper from '../react/LoadWrapper';
@@ -65,7 +65,7 @@ export default function FirewallPage(props) {
 
   const activeTab = router?.currentState?.name?.includes(CONTAINERS) ? CONTAINERS : COMPONENTS;
 
-  const defaultActiveTab = TABS.indexOf(activeTab);
+  const activeTabIndex = TABS.indexOf(activeTab);
 
   const firewallTabsFuncRefs = useRef();
 
@@ -87,16 +87,10 @@ export default function FirewallPage(props) {
   };
 
   const scrollToQuarantineTable = () => {
-    firewallTabsFuncRefs?.current?.clickTab(QUARANTINE);
-    setTimeout(() => firewallTabsFuncRefs?.current?.scrollToPanel(QUARANTINE), 100);
+    firewallTabsFuncRefs?.current?.scrollToPanel(QUARANTINE);
   };
 
   const onViewQuarantinedComponentsClick = (filterFn) => compose(scrollToQuarantineTable, filterFn);
-
-  const onViewWaivedComponentsClick = () => {
-    firewallTabsFuncRefs?.current?.clickTab(WAIVERS);
-    setTimeout(() => firewallTabsFuncRefs?.current?.scrollToPanel(WAIVERS), 100);
-  };
 
   const handleTabClick = (index) => stateGo(`firewall.firewallPage.${TABS[index]}`);
 
@@ -128,7 +122,6 @@ export default function FirewallPage(props) {
               setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode
             )}
             onComponentsQuarantinedLinkClick={onViewQuarantinedComponentsClick(setQuarantineGridPolicyFilterEmpty)}
-            onViewWaivedComponentsClick={onViewWaivedComponentsClick}
           />
           <FirewallTabs ref={firewallTabsFuncRefs} {...props} />
         </LoadWrapper>
@@ -158,14 +151,14 @@ export default function FirewallPage(props) {
       ) : (
         <>
           {isContainerImagesEvalEnabled ? (
-            <NxStatefulTabs id="firewall-page-tabs" defaultActiveTab={defaultActiveTab} onTabSelect={handleTabClick}>
+            <NxTabs id="firewall-page-tabs" activeTab={activeTabIndex} onTabSelect={handleTabClick}>
               <NxTabList>
                 <NxTab id={`firewall-${COMPONENTS}-tab`}>{capitalizeFirstLetter(COMPONENTS)}</NxTab>
                 <NxTab id={`firewall-${CONTAINERS}-tab`}>{capitalizeFirstLetter(CONTAINERS)}</NxTab>
               </NxTabList>
               <NxTabPanel id={`firewall-${COMPONENTS}-tab-panel`}>{firewallComponentsTabContent()}</NxTabPanel>
               <NxTabPanel id={`firewall-${CONTAINERS}-tab-panel`}>{firewallContainersTabContent()}</NxTabPanel>
-            </NxStatefulTabs>
+            </NxTabs>
           ) : (
             firewallComponentsTabContent()
           )}

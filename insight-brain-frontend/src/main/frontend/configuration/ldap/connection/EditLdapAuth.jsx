@@ -65,7 +65,7 @@ export default function EditLdapAuth({
                 validatable={true}
                 id="password"
                 type="password"
-                autoComplete="new-password"
+                inputAttributes={{ autoComplete: 'new-password' }}
                 aria-required={isNonDefaultMethod}
               />
             </NxFormGroup>

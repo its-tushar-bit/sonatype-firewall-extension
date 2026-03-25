@@ -57,9 +57,8 @@ export default function ProprietaryComponentConfiguration() {
     doLoad();
   }, []);
 
-  const onChangeMatcher = (evt) => {
-    const { selectedIndex, options } = evt.currentTarget;
-    dispatch(actions.setMatcherType(options[selectedIndex].value));
+  const onChangeMatcher = (value) => {
+    dispatch(actions.setMatcherType(value));
   };
 
   const onChange = (val) => dispatch(actions.setMatcherValue(val));

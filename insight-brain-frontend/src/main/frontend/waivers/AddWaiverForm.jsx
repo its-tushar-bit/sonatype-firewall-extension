@@ -140,13 +140,12 @@ export default function AddWaiverForm(props) {
     }
   };
 
-  const onExpiryTimeChange = (event) => {
-    const value = event.currentTarget.value === 'never' ? null : event.currentTarget.value;
-    setExpiryTime(value);
+  const onExpiryTimeChange = (value) => {
+    setExpiryTime(value === 'never' ? null : value);
   };
 
-  const onReasonChange = (event) => {
-    setWaiverReason(event.currentTarget.value ?? null);
+  const onReasonChange = (value) => {
+    setWaiverReason(value ?? null);
   };
 
   const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
@@ -317,7 +316,12 @@ export default function AddWaiverForm(props) {
 
         {/* Comments */}
         <NxFieldset className="iq-add-waiver-form__comments" label="Comments">
-          <NxTextInput type="textarea" maxLength={1000} {...waiverComments} onChange={setWaiverComment} />
+          <NxTextInput
+            type="textarea"
+            inputAttributes={{ maxLength: 1000 }}
+            {...waiverComments}
+            onChange={setWaiverComment}
+          />
         </NxFieldset>
 
         {/* Created By */}

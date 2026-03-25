@@ -60,8 +60,7 @@ export default function EditPolicySummary() {
             validatable={!name.isPristine || !name.value}
             disabled={isRepositoriesRelated && !isInherited ? false : readOnly}
             id="editor-policy-name"
-            name="policy"
-            autoFocus
+            inputAttributes={{ name: 'policy', autoFocus: true }}
           />
         </NxFormGroup>
         <ThreatDropdownSelector

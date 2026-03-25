@@ -21,7 +21,6 @@ describe('FirewallMetrics', () => {
     onSupplyChainAttacksBlockedLinkClick: jest.fn(),
     onNamespaceAttacksBlockedLinkClick: jest.fn(),
     onComponentsQuarantinedLinkClick: jest.fn(),
-    onViewWaivedComponentsClick: jest.fn(),
   };
 
   it('link handlers are called when details buttons are clicked', () => {
@@ -85,12 +84,12 @@ describe('FirewallMetrics', () => {
     const links = screen.getAllByRole('link');
     expect(links[0]).toHaveTextContent('View auto-released components');
     expect(links[1]).toHaveTextContent('Learn more');
+    expect(links[2]).toHaveTextContent('View waived components');
 
     const buttons = screen.getAllByRole('button');
     expect(buttons[0]).toHaveTextContent('See details below');
     expect(buttons[1]).toHaveTextContent('See details below');
     expect(buttons[2]).toHaveTextContent('See details below');
-    expect(buttons[3]).toHaveTextContent('View waived components');
 
     const icons = container.querySelectorAll('.iq-firewall-metrics-content__icon');
 

@@ -27,8 +27,8 @@ export default function AutomaticApplicationsConfiguration(props) {
   const { enabled, parentOrganizationId } = props.formState;
   const $state = useRouterState();
 
-  const handleParentOrganizationChange = (evt) => {
-    setParentOrganization(evt.target.value);
+  const handleParentOrganizationChange = (value) => {
+    setParentOrganization(value);
   };
 
   useEffect(() => {

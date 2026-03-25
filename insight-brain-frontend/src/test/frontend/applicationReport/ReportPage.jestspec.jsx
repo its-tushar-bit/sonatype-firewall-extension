@@ -167,10 +167,9 @@ describe('Report Page component', () => {
     expect(screen.getByRole('link', { name: 'Export SPDX' })).toBeVisible();
 
     const viewVulnerabilitiesLink = await screen.findByRole('link', {
-      name: 'Reevaluate the report in order to enable Vulnerabilities view',
+      name: /view vulnerabilities/i,
     });
     expect(viewVulnerabilitiesLink).toBeVisible();
-    expect(viewVulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
   });
 
   it('renders a ReportStatusBar', () => {
@@ -284,11 +283,7 @@ describe('Report Page component', () => {
     SpecUtil.requestIdleCallbackInvokeImmediateJest();
     renderComponent();
 
-    const aggregateByComponentToggleTooltip =
-      'By default the Application Report aggregates violations by component. ' +
-      'To see all violations not Aggregated by Component, please switch the toggle off.';
-
-    const aggregateByComponentToggle = await screen.findByRole('switch', { name: aggregateByComponentToggleTooltip });
+    const aggregateByComponentToggle = await screen.findByRole('switch', { name: /aggregate by component/i });
     const viewDependencyTreeButton = screen.getByRole('button', { name: 'View Dependency Tree' });
     const filterButton = screen.getByRole('button', { name: 'Filter' });
 

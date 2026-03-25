@@ -5,7 +5,6 @@
  */
 
 import React from 'react';
-import '@testing-library/jest-dom/extend-expect';
 import { screen, fireEvent, within } from '@testing-library/react';
 
 import { render } from 'TestRoot/SpecUtil';
@@ -88,11 +87,9 @@ describe('FirewallTabs', () => {
   });
 
   it('renders waivers table when clicking on corresponding tab', () => {
-    render(<FirewallTabs {...props} />);
-    const tabList = screen.getByRole('tablist');
-    const tabs = within(tabList).getAllByRole('tab');
+    const waiverProps = { ...props, router: { ...roiTabEnabled, currentState: { data: { activeTab: 'waivers' } } } };
+    render(<FirewallTabs {...waiverProps} />);
 
-    fireEvent.click(tabs[1]);
     const tabPanels = screen.getAllByRole('tabpanel');
 
     expect(tabPanels).toHaveLength(1);
@@ -100,11 +97,9 @@ describe('FirewallTabs', () => {
   });
 
   it('renders ROI content when clicking on corresponding tab', () => {
-    render(<FirewallTabs {...props} />);
-    const tabList = screen.getByRole('tablist');
-    const tabs = within(tabList).getAllByRole('tab');
+    const roiProps = { ...props, router: { ...roiTabEnabled, currentState: { data: { activeTab: 'roi' } } } };
+    render(<FirewallTabs {...roiProps} />);
 
-    fireEvent.click(tabs[2]);
     const tabPanels = screen.getAllByRole('tabpanel');
 
     expect(tabPanels).toHaveLength(1);

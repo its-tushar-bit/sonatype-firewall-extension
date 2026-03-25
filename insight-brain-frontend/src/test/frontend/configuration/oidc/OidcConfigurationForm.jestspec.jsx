@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen } from 'TestRoot/SpecUtil';
+import { render, screen, within } from 'TestRoot/SpecUtil';
 import OidcConfigurationForm from 'MainRoot/configuration/oidc/OidcConfigurationForm';
 import userEvent from '@testing-library/user-event';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
@@ -263,6 +263,7 @@ describe('OidcConfigurationForm', () => {
       renderComponent();
 
       const clientSecretInput = screen.getByLabelText(/Client Secret/i);
+      expect(clientSecretInput).toHaveAttribute('type', 'password');
       expect(clientSecretInput).toHaveAttribute('autocomplete', 'new-password');
     });
   });

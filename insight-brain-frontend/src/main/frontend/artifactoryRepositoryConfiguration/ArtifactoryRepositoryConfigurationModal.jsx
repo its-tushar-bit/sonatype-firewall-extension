@@ -122,7 +122,7 @@ export default function ArtifactoryRepositoryConfigurationModal() {
                     id="artifactory-repository-configuration-modal-username"
                     {...usernameState}
                     onChange={setUsername}
-                    autoComplete="username"
+                    inputAttributes={{ autoComplete: 'username' }}
                     aria-required="true"
                   />
                 </NxFormGroup>
@@ -132,7 +132,7 @@ export default function ArtifactoryRepositoryConfigurationModal() {
                     {...passwordState}
                     type="password"
                     onChange={setPassword}
-                    autoComplete="new-password"
+                    inputAttributes={{ autoComplete: 'new-password' }}
                     aria-required="true"
                   />
                 </NxFormGroup>

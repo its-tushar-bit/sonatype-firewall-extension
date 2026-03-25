@@ -103,7 +103,7 @@ export default function EditableConstraint({
         <NxFormSelect
           id={`condition-value-${constraintIdx}-${conditionIdx}`}
           className={widthClassName}
-          onChange={(event) => onConditionValueChange(event, constraintIdx, conditionIdx)}
+          onChange={(value) => onConditionValueChange(value, constraintIdx, conditionIdx)}
           value={value.value}
           data-testid="constraint__condition-value"
           aria-label="Condition value"
@@ -213,7 +213,7 @@ export default function EditableConstraint({
         <NxFormSelect
           id={`editor-constraint-operator-${constraintIdx}`}
           className="constraint-editor__operator constraint-editor__150-width"
-          onChange={(e) => onConstraintOperatorChange(e, constraintIdx)}
+          onChange={(value) => onConstraintOperatorChange(value, constraintIdx)}
           value={constraint.operator}
           data-testid="constraintsOperator"
           aria-label="Constraint operator"
@@ -242,7 +242,7 @@ export default function EditableConstraint({
                 <NxFormSelect
                   className="constraint-editor__condition-type"
                   id={`condition-type-${constraintIdx}-${conditionIdx}`}
-                  onChange={(event) => onConditionTypeIdChange(event, constraintIdx, conditionIdx)}
+                  onChange={(value) => onConditionTypeIdChange(value, constraintIdx, conditionIdx)}
                   value={condition.conditionTypeId}
                   data-testid="constraint__condition-type"
                   aria-label="Constraint condition type"
@@ -257,7 +257,7 @@ export default function EditableConstraint({
                 <NxFormSelect
                   id={`condition-operator-${constraintIdx}-${conditionIdx}`}
                   className={operatorClassName}
-                  onChange={(event) => onConditionOperatorChange(event, constraintIdx, conditionIdx)}
+                  onChange={(value) => onConditionOperatorChange(value, constraintIdx, conditionIdx)}
                   value={condition.operator}
                   data-testid="constraint__condition-operator"
                   aria-label="Condition operator"

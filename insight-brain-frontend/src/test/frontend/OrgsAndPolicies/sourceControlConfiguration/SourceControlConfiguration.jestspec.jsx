@@ -1312,8 +1312,9 @@ describe('sourceControlConfiguration', () => {
         expect(screen.queryByRole('group', { name: 'Authentication Method' })).not.toBeInTheDocument();
 
         // Should show standard token input field
-        const tokenInput = screen.getByTestId('token-input');
-        expect(tokenInput).toBeVisible();
+        const tokenInputWrapper = screen.getByTestId('token-input');
+        expect(tokenInputWrapper).toBeVisible();
+        const tokenInput = tokenInputWrapper.querySelector('input');
         expect(tokenInput).toHaveAttribute('type', 'password');
       });
 
@@ -2131,8 +2132,9 @@ describe('sourceControlConfiguration', () => {
         expect(screen.queryByRole('group', { name: 'Authentication Method' })).not.toBeInTheDocument();
 
         // Should show standard token input field
-        const tokenInput = screen.getByTestId('token-input');
-        expect(tokenInput).toBeVisible();
+        const tokenInputWrapper = screen.getByTestId('token-input');
+        expect(tokenInputWrapper).toBeVisible();
+        const tokenInput = tokenInputWrapper.querySelector('input');
         expect(tokenInput).toHaveAttribute('type', 'password');
       });
 

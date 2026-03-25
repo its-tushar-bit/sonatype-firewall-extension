@@ -7,6 +7,7 @@ import React from 'react';
 import * as R from 'ramda';
 
 import { render, screen, axiosMockAdapter, fireEvent, within, waitFor } from 'TestRoot/SpecUtil';
+import userEvent from '@testing-library/user-event';
 import {
   getActionStageUrl,
   getApplicableCategoriesUrl,
@@ -653,8 +654,9 @@ describe('PolicyEditorSpec', () => {
           expect(conditionExtensionInput.parentElement.parentElement).toHaveClass('pristine');
           expect(conditionClassifierInput.parentElement.parentElement).toHaveClass('pristine');
 
-          fireEvent.change(conditionExtensionInput, { target: { value: '' } });
-          fireEvent.change(conditionClassifierInput, { target: { value: '' } });
+          const user = userEvent.setup();
+          await user.clear(conditionExtensionInput);
+          await user.clear(conditionClassifierInput);
 
           expect(conditionExtensionInput.parentElement.parentElement).toHaveClass('invalid');
           expect(conditionClassifierInput.parentElement.parentElement).toHaveClass('valid');
@@ -690,7 +692,8 @@ describe('PolicyEditorSpec', () => {
           expect(conditionQualifierInput.parentElement.parentElement).toHaveClass('pristine');
           expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
 
-          fireEvent.change(conditionQualifierInput, { target: { value: '' } });
+          const user = userEvent.setup();
+          await user.clear(conditionQualifierInput);
 
           expect(conditionQualifierInput.parentElement.parentElement).toHaveClass('valid');
         });
@@ -729,8 +732,9 @@ describe('PolicyEditorSpec', () => {
           expect(conditionQualifierInput.parentElement.parentElement).toHaveClass('pristine');
           expect(conditionExtensionInput.parentElement.parentElement).toHaveClass('pristine');
 
-          fireEvent.change(conditionQualifierInput, { target: { value: '' } });
-          fireEvent.change(conditionExtensionInput, { target: { value: '' } });
+          const user = userEvent.setup();
+          await user.clear(conditionQualifierInput);
+          await user.clear(conditionExtensionInput);
 
           expect(conditionQualifierInput.parentElement.parentElement).toHaveClass('valid');
           expect(conditionExtensionInput.parentElement.parentElement).toHaveClass('valid');
@@ -826,8 +830,9 @@ describe('PolicyEditorSpec', () => {
           expect(conditionChannelInput.parentElement.parentElement).toHaveClass('pristine');
           expect(conditionOwnerInput.parentElement.parentElement).toHaveClass('pristine');
 
-          fireEvent.change(conditionChannelInput, { target: { value: '' } });
-          fireEvent.change(conditionOwnerInput, { target: { value: '' } });
+          const user = userEvent.setup();
+          await user.clear(conditionChannelInput);
+          await user.clear(conditionOwnerInput);
 
           expect(conditionChannelInput.parentElement.parentElement).toHaveClass('valid');
           expect(conditionOwnerInput.parentElement.parentElement).toHaveClass('valid');
@@ -865,6 +870,7 @@ describe('PolicyEditorSpec', () => {
         });
 
         it('for cargo', async () => {
+          const user = userEvent.setup();
           setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
           renderComponent(initState);
 
@@ -890,7 +896,7 @@ describe('PolicyEditorSpec', () => {
           );
           expect(alert).toBeVisible();
 
-          fireEvent.change(conditionTypeInput, { target: { value: '' } });
+          await user.clear(conditionTypeInput);
 
           expect(conditionNameInput.parentElement.parentElement).toHaveClass('invalid');
           expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
@@ -898,6 +904,7 @@ describe('PolicyEditorSpec', () => {
         });
 
         it('for cran', async () => {
+          const user = userEvent.setup();
           setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
           renderComponent(initState);
 
@@ -923,7 +930,7 @@ describe('PolicyEditorSpec', () => {
           );
           expect(alert).toBeVisible();
 
-          fireEvent.change(conditionTypeInput, { target: { value: '' } });
+          await user.clear(conditionTypeInput);
 
           expect(conditionNameInput.parentElement.parentElement).toHaveClass('invalid');
           expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
@@ -1069,10 +1076,11 @@ describe('PolicyEditorSpec', () => {
           expect(conditionSubdirInput.parentElement.parentElement).toHaveClass('pristine');
           expect(conditionTypeInput.parentElement.parentElement).toHaveClass('pristine');
 
-          fireEvent.change(conditionChannelInput, { target: { value: '' } });
-          fireEvent.change(conditionBuildInput, { target: { value: '' } });
-          fireEvent.change(conditionSubdirInput, { target: { value: '' } });
-          fireEvent.change(conditionTypeInput, { target: { value: '' } });
+          const user = userEvent.setup();
+          await user.clear(conditionChannelInput);
+          await user.clear(conditionBuildInput);
+          await user.clear(conditionSubdirInput);
+          await user.clear(conditionTypeInput);
 
           expect(conditionChannelInput.parentElement.parentElement).toHaveClass('valid');
           expect(conditionBuildInput.parentElement.parentElement).toHaveClass('valid');
@@ -1108,6 +1116,7 @@ describe('PolicyEditorSpec', () => {
         });
 
         it('for pecoff', async () => {
+          const user = userEvent.setup();
           setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
           renderComponent(initState);
 
@@ -1133,7 +1142,7 @@ describe('PolicyEditorSpec', () => {
           );
           expect(alert).toBeVisible();
 
-          fireEvent.change(conditionNamespaceInput, { target: { value: '' } });
+          await user.clear(conditionNamespaceInput);
 
           expect(conditionNameInput.parentElement.parentElement).toHaveClass('invalid');
           expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');

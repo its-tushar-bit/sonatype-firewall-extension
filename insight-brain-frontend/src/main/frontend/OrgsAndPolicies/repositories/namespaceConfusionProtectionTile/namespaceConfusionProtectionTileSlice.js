@@ -6,7 +6,8 @@
 
 import axios from 'axios';
 import { debounce } from 'debounce';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 import { getRepositoryComponentNamePatternUpdateUrl, getRepositoryComponentNameUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/util/CommonServices';
 import {

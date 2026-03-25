@@ -5,7 +5,8 @@
  */
 import axios from 'axios';
 import { mapObjIndexed } from 'ramda';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { toggleBooleanProp } from 'MainRoot/util/reduxUtil';

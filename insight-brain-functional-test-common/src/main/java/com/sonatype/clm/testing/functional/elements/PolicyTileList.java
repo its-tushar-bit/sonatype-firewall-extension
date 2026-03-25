@@ -75,11 +75,11 @@ public class PolicyTileList
   public static class PolicyTileListElement
       extends BasicElement<PolicyTileListElement>
   {
-    public static final WebElementCondition WARN_ICON = cssClass("fa-exclamation-triangle");
+    public static final WebElementCondition WARN_ICON = cssClass("fa-triangle-exclamation");
 
     public static final WebElementCondition WARN = cssClass("warn");
 
-    public static final WebElementCondition FAIL_ICON = cssClass("fa-exclamation-circle");
+    public static final WebElementCondition FAIL_ICON = cssClass("fa-circle-exclamation");
 
     public static final WebElementCondition FAIL = cssClass("fail");
 

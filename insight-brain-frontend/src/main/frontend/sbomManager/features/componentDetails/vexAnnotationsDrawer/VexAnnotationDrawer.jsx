@@ -300,16 +300,16 @@ export default function VexAnnotationDrawer(props) {
     setVexAnnotationDetailsControl(userInput(null, vexAnnotationDetails));
   };
 
-  const onChangeJustification = (evt) => {
-    setJustificationControlState(evt.currentTarget.value);
+  const onChangeJustification = (value) => {
+    setJustificationControlState(value);
   };
 
-  const onChangeAnalysisStatus = (evt) => {
-    setAnalysisStatusControlState(evt.currentTarget.value);
+  const onChangeAnalysisStatus = (value) => {
+    setAnalysisStatusControlState(value);
 
     const dropdownError = analysisStatusIsRequiredValidator({
       ...analysisStatusControlState,
-      value: evt.currentTarget.value,
+      value,
     });
 
     if (!isNil(dropdownError)) {
@@ -321,8 +321,8 @@ export default function VexAnnotationDrawer(props) {
     }
   };
 
-  const onChangeResponse = (evt) => {
-    setResponseControlState(evt.currentTarget.value);
+  const onChangeResponse = (value) => {
+    setResponseControlState(value);
   };
 
   const onLearnMoreClick = () => {
@@ -548,7 +548,7 @@ export default function VexAnnotationDrawer(props) {
         <NxFieldset className="vex-annotation-drawer__form__details" label="Description">
           <NxTextInput
             type="textarea"
-            maxLength={1000}
+            inputAttributes={{ maxLength: 1000 }}
             onChange={onChangeVexAnnotationDetails}
             className="nx-text-input--long"
             placeholder={'Entry'}

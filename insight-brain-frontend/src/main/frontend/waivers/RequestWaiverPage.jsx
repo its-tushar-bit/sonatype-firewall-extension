@@ -302,9 +302,8 @@ const RequestWaiversPage = () => {
     }
   };
 
-  const onExpiryTimeChange = (event) => {
-    const value = event.currentTarget.value === 'never' ? null : event.currentTarget.value;
-    setExpiryTime(value);
+  const onExpiryTimeChange = (value) => {
+    setExpiryTime(value === 'never' ? null : value);
   };
 
   const waiverExpirations = useWaiverExpirations(isExpireWhenRemediationAvailable);
@@ -329,8 +328,8 @@ const RequestWaiversPage = () => {
 
   const expiration = getExpiration();
 
-  const onReasonChange = (event) => {
-    setWaiverReasonId(event.currentTarget.value ?? null);
+  const onReasonChange = (value) => {
+    setWaiverReasonId(value ?? null);
   };
 
   const waiverReasonsToRender = [{ id: '', reasonText: 'Select a reason', type: 'system' }, ...waiverReasons];
@@ -498,7 +497,7 @@ const RequestWaiversPage = () => {
                   <NxFieldset className="iq-request-waiver-form__comments" label="Comments">
                     <NxTextInput
                       type="textarea"
-                      maxLength={1000}
+                      inputAttributes={{ maxLength: 1000 }}
                       {...waiverComments}
                       onChange={setWaiverComments}
                       disabled={isReadOnly}
@@ -513,7 +512,7 @@ const RequestWaiversPage = () => {
                   >
                     <NxTextInput
                       type="textarea"
-                      maxLength={1000}
+                      inputAttributes={{ maxLength: 1000 }}
                       {...noteToReviewer}
                       onChange={setNoteToReviewer}
                       disabled={isReadOnly}

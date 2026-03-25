@@ -17,7 +17,7 @@
   <name>Insight Brain Frontend</name>
 
   <properties>
-    <node.version>v18.20.4</node.version>
+    <node.version>v20.20.0</node.version>
     <yarn.version>v1.22.22</yarn.version>
     <sonar.sources>src/main/frontend</sonar.sources>
     <sonar.exclusions>src/main/frontend/lib/**/*,src/main/frontend/audit-report/lib/**/*</sonar.exclusions>

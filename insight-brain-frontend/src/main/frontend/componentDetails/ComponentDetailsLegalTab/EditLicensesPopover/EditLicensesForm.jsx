@@ -104,9 +104,9 @@ export default function EditLicensesForm({
     return `${formatOwnerType(ownerType)}${ownerName}${licenseOverrideStatus}`;
   };
 
-  const onStatusChange = (event) => {
+  const onStatusChange = (value) => {
     setSelectedLicenses([]);
-    setLicenseStatus(event.currentTarget.value);
+    setLicenseStatus(value);
   };
 
   const toggleSelectedLicense = ({ licenseId }) => {
@@ -236,7 +236,7 @@ export default function EditLicensesForm({
     <NxFormGroup className="iq-edit-licenses-form__comment" label="Comment">
       <NxTextInput
         type="textarea"
-        maxLength={1000}
+        inputAttributes={{ maxLength: 1000 }}
         {...comment}
         className="nx-text-input--long"
         onChange={setLicenseComment}

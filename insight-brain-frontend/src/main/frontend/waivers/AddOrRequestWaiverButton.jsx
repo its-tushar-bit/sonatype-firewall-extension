@@ -8,10 +8,10 @@ import * as PropTypes from 'prop-types';
 import { NxButton, NxStatefulSegmentedButton } from '@sonatype/react-shared-components';
 
 export default function AddOrRequestWaiverButton({
-  variant,
-  hasPermissionForAppWaivers,
-  isFirewallOrRepository,
-  isWaiverRequestWorkflowEnabled,
+  variant = 'primary',
+  hasPermissionForAppWaivers = false,
+  isFirewallOrRepository = false,
+  isWaiverRequestWorkflowEnabled = true,
   onClickAddWaiver,
   onClickRequestWaiver,
 }) {
@@ -45,16 +45,9 @@ export default function AddOrRequestWaiverButton({
   ) : null;
 }
 
-AddOrRequestWaiverButton.defaultProps = {
-  variant: 'primary',
-  hasPermissionForAppWaivers: false,
-  isFirewallOrRepository: false,
-  isWaiverRequestWorkflowEnabled: true,
-};
-
 AddOrRequestWaiverButton.propTypes = {
-  variant: PropTypes.string.isRequired,
-  hasPermissionForAppWaivers: PropTypes.bool.isRequired,
+  variant: PropTypes.string,
+  hasPermissionForAppWaivers: PropTypes.bool,
   isFirewallOrRepository: PropTypes.bool,
   isWaiverRequestWorkflowEnabled: PropTypes.bool,
   onClickRequestWaiver: PropTypes.func.isRequired,

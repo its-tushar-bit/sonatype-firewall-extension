@@ -188,6 +188,24 @@ const sassImportMapper = (importPath) => {
   return importPath;
 };
 
+// Plugin to rewrite RSC's importImage to our esbuild-compatible shim.
+// RSC's importImage uses dynamic require() which esbuild cannot handle.
+function rewriteRSCImportImagePlugin() {
+  return {
+    name: 'rewriteRSCImportImage',
+    setup(build) {
+      build.onResolve({ filter: /util\/importImage$/ }, (args) => {
+        if (args.importer.includes('react-shared-components')) {
+          return {
+            path: path.resolve(__dirname, 'src/main/frontend/util/importImage-esbuild.js'),
+          };
+        }
+        return null;
+      });
+    },
+  };
+}
+
 const sharedBuildOptions = {
   bundle: true,
   outdir: outDir,
@@ -222,6 +240,7 @@ const sharedBuildOptions = {
     TestRoot: path.resolve(__dirname, 'src/test/frontend'),
   },
   plugins: [
+    rewriteRSCImportImagePlugin(),
     sassPlugin({
       type: 'css',
       implementation: 'sass-embedded',

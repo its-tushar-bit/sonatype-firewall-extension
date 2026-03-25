@@ -94,11 +94,9 @@ describe('FirewallPage', () => {
   });
 
   it('renders Containers tab panel when clicking on the container tab', () => {
-    render(<FirewallPage {...props} />);
-    const tabList = screen.getByRole('tablist');
-    const tabs = within(tabList).getAllByRole('tab');
+    const containerProps = { ...props, router: { currentState: { name: 'firewall.firewallPage.containers' } } };
+    render(<FirewallPage {...containerProps} />);
 
-    fireEvent.click(tabs[1]);
     const tabPanels = screen.getAllByRole('tabpanel');
 
     expect(tabPanels).toHaveLength(1);

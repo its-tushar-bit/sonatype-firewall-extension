@@ -151,7 +151,7 @@ export default function LoginModal() {
                   validatable={true}
                   {...username}
                   onChange={onChangeUsername}
-                  autoComplete="username"
+                  inputAttributes={{ autoComplete: 'username' }}
                   aria-required={true}
                 />
               </NxFormGroup>
@@ -163,7 +163,7 @@ export default function LoginModal() {
                   validatable={true}
                   {...password}
                   onChange={onChangePassword}
-                  autoComplete="current-password"
+                  inputAttributes={{ autoComplete: 'current-password' }}
                   aria-required={true}
                 />
               </NxFormGroup>

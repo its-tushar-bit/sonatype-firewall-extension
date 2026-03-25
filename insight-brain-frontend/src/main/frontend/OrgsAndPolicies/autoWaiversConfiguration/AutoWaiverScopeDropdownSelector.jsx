@@ -11,7 +11,13 @@ import * as PropTypes from 'prop-types';
 import { reverse } from 'ramda';
 import cx from 'classnames';
 
-export default function AutoWaiverScopeDropdownSelector({ scope, onSelectScope, className, disabled, ...props }) {
+export default function AutoWaiverScopeDropdownSelector({
+  scope,
+  onSelectScope = () => {},
+  className,
+  disabled,
+  ...props
+}) {
   const scopes = ['any', 'all'];
 
   const renderScope = (scope) => (disabled ? <span>any/all</span> : <span>{scope}</span>);
@@ -55,10 +61,6 @@ export default function AutoWaiverScopeDropdownSelector({ scope, onSelectScope, 
     </NxTooltip>
   );
 }
-
-AutoWaiverScopeDropdownSelector.defaultProps = {
-  onSelectScope: () => {},
-};
 
 AutoWaiverScopeDropdownSelector.propTypes = {
   scope: PropTypes.string,

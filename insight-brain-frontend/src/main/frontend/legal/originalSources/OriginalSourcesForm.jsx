@@ -56,7 +56,7 @@ export default function OriginalSourcesForm(props) {
       <NxTextInput
         id={'source-' + index}
         {...source.content}
-        maxLength="1000"
+        inputAttributes={{ maxLength: '1000' }}
         onChange={onOriginalSourceContentChange(index)}
         className="legal-modal-override-input-content"
         disabled={source.status === 'disabled'}
@@ -89,13 +89,13 @@ export default function OriginalSourcesForm(props) {
   const onOriginalSourceStatusChange = (index, source) =>
     setSources(pathSet([index, 'status'], flipStatus(source.status), sources));
 
-  const setOriginalSourceScope = (event) => setScope(event.target.value);
+  const setOriginalSourceScope = (value) => setScope(value);
 
-  const setObligationScopeIfNeeded = (event) => {
+  const setObligationScopeIfNeeded = (value) => {
     if (existingObligation && existingObligation.status !== existingObligation.originalStatus) {
       setObligationScope({
         name: existingObligation.name,
-        value: event.target.value,
+        value,
       });
     }
   };
@@ -236,9 +236,9 @@ export default function OriginalSourcesForm(props) {
                   className="nx-form-select--long"
                   id="edit-original-sources-scope-selection"
                   value={scope}
-                  onChange={(event) => {
-                    setOriginalSourceScope(event);
-                    setObligationScopeIfNeeded(event);
+                  onChange={(value) => {
+                    setOriginalSourceScope(value);
+                    setObligationScopeIfNeeded(value);
                   }}
                 >
                   {availableScopes.values.map(createScopeOption)}

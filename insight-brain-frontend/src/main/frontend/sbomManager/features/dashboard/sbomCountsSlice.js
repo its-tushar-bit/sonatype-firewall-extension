@@ -5,7 +5,8 @@
  */
 import axios from 'axios';
 import { always } from 'ramda';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 import { getSbomReleaseStatusUrl, getTotalSbomsAnalyzedUrl } from 'MainRoot/util/CLMLocation';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 

@@ -5,7 +5,8 @@
  */
 
 import React from 'react';
-import { axiosMockAdapter, fireEvent, render, screen } from 'TestRoot/SpecUtil';
+import userEvent from '@testing-library/user-event';
+import { axiosMockAdapter, fireEvent, render, screen, waitFor } from 'TestRoot/SpecUtil';
 import BulkWaivePage from 'MainRoot/waivers/BulkWaivePage';
 import { getPolicyWaiverReasonsUrl } from 'MainRoot/util/CLMLocation';
 import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
@@ -336,7 +337,8 @@ describe('BulkWaivePage component', () => {
   });
 
   describe('select all toggle functionality', () => {
-    it('header checkbox selects individual row checkboxes when clicked', () => {
+    it('header checkbox selects individual row checkboxes when clicked', async () => {
+      const user = userEvent.setup();
       renderComponent();
 
       // Get all checkboxes
@@ -356,16 +358,19 @@ describe('BulkWaivePage component', () => {
       expect(rowCheckboxes[2]).not.toBeChecked();
 
       // Click the header checkbox to select all
-      fireEvent.click(headerCheckbox);
+      await user.click(headerCheckbox.parentElement);
 
       // Now header and all row checkboxes should be checked
-      expect(headerCheckbox).toBeChecked();
+      await waitFor(() => {
+        expect(headerCheckbox).toBeChecked();
+      });
       expect(rowCheckboxes[0]).toBeChecked();
       expect(rowCheckboxes[1]).toBeChecked();
       expect(rowCheckboxes[2]).toBeChecked();
     });
 
-    it('header checkbox can unselect all violations', () => {
+    it('header checkbox can unselect all violations', async () => {
+      const user = userEvent.setup();
       renderComponent();
 
       // Get all checkboxes
@@ -385,36 +390,44 @@ describe('BulkWaivePage component', () => {
       expect(rowCheckboxes[2]).not.toBeChecked();
 
       // Step 1: Click header checkbox to select all
-      fireEvent.click(headerCheckbox);
+      await user.click(headerCheckbox.parentElement);
 
       // All checkboxes should now be checked
-      expect(headerCheckbox).toBeChecked();
+      await waitFor(() => {
+        expect(headerCheckbox).toBeChecked();
+      });
       expect(rowCheckboxes[0]).toBeChecked();
       expect(rowCheckboxes[1]).toBeChecked();
       expect(rowCheckboxes[2]).toBeChecked();
 
       // Uncheck one individual row to create mixed state
-      fireEvent.click(rowCheckboxes[1]); // Uncheck second row
+      await user.click(rowCheckboxes[1].parentElement); // Uncheck second row
 
       // Verify mixed state: header unchecked, while one row is now unchecked
-      expect(headerCheckbox).not.toBeChecked();
+      await waitFor(() => {
+        expect(headerCheckbox).not.toBeChecked();
+      });
       expect(rowCheckboxes[0]).toBeChecked(); // First row still checked
       expect(rowCheckboxes[1]).not.toBeChecked(); // Second row now unchecked
       expect(rowCheckboxes[2]).toBeChecked(); // Third row still checked
 
       // Step 2: Click header checkbox again to unselect all
       // This should unselect everything regardless of individual row states
-      fireEvent.click(headerCheckbox);
+      await user.click(headerCheckbox.parentElement);
 
       // All checkboxes should now be checked
-      expect(headerCheckbox).toBeChecked();
+      await waitFor(() => {
+        expect(headerCheckbox).toBeChecked();
+      });
       expect(rowCheckboxes[0]).toBeChecked();
       expect(rowCheckboxes[1]).toBeChecked();
       expect(rowCheckboxes[2]).toBeChecked();
 
       // Clicking the header checkbox again should unselect all checkboxes
-      fireEvent.click(headerCheckbox);
-      expect(headerCheckbox).not.toBeChecked();
+      await user.click(headerCheckbox.parentElement);
+      await waitFor(() => {
+        expect(headerCheckbox).not.toBeChecked();
+      });
       expect(rowCheckboxes[0]).not.toBeChecked();
       expect(rowCheckboxes[1]).not.toBeChecked();
       expect(rowCheckboxes[2]).not.toBeChecked();
@@ -501,7 +514,8 @@ describe('BulkWaivePage component', () => {
       expect(rowCheckboxes[1]).not.toBeChecked();
     });
 
-    it('header checkbox behavior when some displayed entries are already selected', () => {
+    it('header checkbox behavior when some displayed entries are already selected', async () => {
+      const user = userEvent.setup();
       renderComponent();
 
       const allCheckboxes = screen.getAllByRole('checkbox');
@@ -509,28 +523,34 @@ describe('BulkWaivePage component', () => {
       const rowCheckboxes = allCheckboxes.slice(1);
 
       // Select first two rows individually
-      fireEvent.click(rowCheckboxes[0]);
-      fireEvent.click(rowCheckboxes[1]);
+      await user.click(rowCheckboxes[0].parentElement);
+      await user.click(rowCheckboxes[1].parentElement);
 
       // Header checkbox should not be checked yet (not all are selected)
-      expect(headerCheckbox).not.toBeChecked();
+      await waitFor(() => {
+        expect(headerCheckbox).not.toBeChecked();
+      });
       expect(screen.getByText('2 violations selected')).toBeVisible();
 
       // Click header checkbox - should select all displayed entries (including the unselected third one)
-      fireEvent.click(headerCheckbox);
+      await user.click(headerCheckbox.parentElement);
 
       // All should now be selected
-      expect(headerCheckbox).toBeChecked();
+      await waitFor(() => {
+        expect(headerCheckbox).toBeChecked();
+      });
       expect(screen.getByText('3 violations selected')).toBeVisible();
       expect(rowCheckboxes[0]).toBeChecked();
       expect(rowCheckboxes[1]).toBeChecked();
       expect(rowCheckboxes[2]).toBeChecked();
 
       // Click header checkbox again - should unselect all displayed entries
-      fireEvent.click(headerCheckbox);
+      await user.click(headerCheckbox.parentElement);
 
       // All should now be unselected
-      expect(headerCheckbox).not.toBeChecked();
+      await waitFor(() => {
+        expect(headerCheckbox).not.toBeChecked();
+      });
       expect(screen.getByText('0 violations selected')).toBeVisible();
       expect(rowCheckboxes[0]).not.toBeChecked();
       expect(rowCheckboxes[1]).not.toBeChecked();

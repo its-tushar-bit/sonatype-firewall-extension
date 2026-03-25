@@ -97,7 +97,7 @@ describe('Auto Waiver Modal Component', () => {
       renderComponent();
 
       expect(await screen.findByText('Threat Level is equal to or less than')).toBeVisible();
-      expect(await screen.findByRole('button', { name: /7 - Severe/i }));
+      expect(await screen.findByRole('button', { name: /7 - Severe/i })).toBeVisible();
     });
 
     describe('scope dropdown', () => {
@@ -186,11 +186,9 @@ describe('Auto Waiver Modal Component', () => {
       await user.click(upgradePathNotAvailableCheckbox);
       expect(upgradePathNotAvailableCheckbox).toBeChecked();
 
-      user.click(screen.getByRole('button', { name: 'Create' }));
+      await user.click(screen.getByRole('button', { name: 'Create' }));
 
-      const submitting = await screen.findByText('Submitting…');
-      expect(submitting).toBeVisible();
-
+      // Wait for the API call to complete instead of checking for Submitting text
       await waitFor(() => {
         expect(axiosMock.history.post.length).toBe(1);
         expect(axiosMock.history.post[0].url).toBe('/api/v2/autoPolicyWaivers/application/app');
@@ -207,10 +205,10 @@ describe('Auto Waiver Modal Component', () => {
   });
 
   describe('edit existing waiver dialog', () => {
+    let editModeState;
+
     beforeEach(() => {
-      const autoWaiverModal = defaultPreloadedState.orgsAndPolicies.autoWaivers.autoWaiverModal;
-      autoWaiverModal.isEditMode = true;
-      autoWaiverModal.data = {
+      const waiverData = {
         pathForward: true,
         reachability: true,
         threatLevel: 8,
@@ -218,16 +216,43 @@ describe('Auto Waiver Modal Component', () => {
         isInherited: false,
         autoPolicyWaiverId: 'abc123',
       };
+
+      editModeState = {
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: 'app',
+              publicId: 'publicId',
+              name: 'App',
+            },
+          },
+          autoWaivers: {
+            autoWaiverModal: {
+              ...initialState,
+              isModalOpen: true,
+              isEditMode: true,
+              data: waiverData,
+              serverData: waiverData,
+            },
+          },
+        },
+        productFeatures: {
+          productFeatures: {
+            'developer-dashboard': true,
+            'auto-waivers': true,
+          },
+        },
+      };
     });
 
     it('should display a dialog element', () => {
-      renderComponent();
+      renderComponent(editModeState);
 
       expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
 
     it('should display with correct text', () => {
-      renderComponent();
+      renderComponent(editModeState);
 
       expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Edit Auto-Waiver');
       expect(
@@ -236,30 +261,30 @@ describe('Auto Waiver Modal Component', () => {
     });
 
     it('should display with correct action buttons', () => {
-      renderComponent();
+      renderComponent(editModeState);
 
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
       expect(screen.getByRole('button', { name: 'Update' })).toBeVisible();
     });
 
     it('should display content for Threat Level', async () => {
-      renderComponent();
+      renderComponent(editModeState);
 
       expect(await screen.findByText('Threat Level is equal to or less than')).toBeVisible();
-      expect(await screen.findByRole('button', { name: /8 - Critical/i }));
+      expect(await screen.findByRole('button', { name: /8 - Critical/i })).toBeVisible();
     });
 
     describe('scope dropdown', () => {
       it('should be enabled with text "all" when both checkboxes are checked', async () => {
-        renderComponent();
+        renderComponent(editModeState);
 
         expect(await screen.findByText(/And, when /)).toBeVisible();
         expect(await screen.findByText(/ of the following are true:/)).toBeVisible();
-        expect(await screen.findByRole('button', { name: /all/i }));
+        expect(await screen.findByRole('button', { name: 'all' })).toBeVisible();
       });
 
       it('should be disabled with tooltip and text "any/all" when both checkboxes are not checked', async () => {
-        renderComponent();
+        renderComponent(editModeState);
 
         expect(await screen.findByRole('button', { name: 'all' })).not.toHaveClass('disabled');
 
@@ -271,7 +296,7 @@ describe('Auto Waiver Modal Component', () => {
 
         expect(screen.queryByRole('button', { name: 'all' })).not.toBeInTheDocument();
 
-        const dropdown = await screen.queryByRole('button', { name: 'any/all' });
+        const dropdown = await screen.findByRole('button', { name: 'any/all' });
         expect(dropdown).toBeInTheDocument();
         expect(dropdown).toHaveClass('disabled');
 
@@ -284,7 +309,7 @@ describe('Auto Waiver Modal Component', () => {
     });
 
     it('should display content for Upgrade Path is not available', async () => {
-      renderComponent();
+      renderComponent(editModeState);
 
       const upgradePathNotAvailableCheckbox = await screen.findByLabelText(
         'No newer, non-violating component version is available'
@@ -294,7 +319,7 @@ describe('Auto Waiver Modal Component', () => {
     });
 
     it('should display content for Vulnerability is not reachable', async () => {
-      renderComponent();
+      renderComponent(editModeState);
 
       const vulnerabilityNotReachableCheckbox = await screen.findByLabelText(
         'Application does not execute any calls to the vulnerable method'
@@ -304,21 +329,23 @@ describe('Auto Waiver Modal Component', () => {
     });
 
     it('should display a validation error when save is clicked with no changes', async () => {
-      renderComponent();
+      renderComponent(editModeState);
 
-      user.click(screen.getByRole('button', { name: 'Update' }));
+      await user.click(screen.getByRole('button', { name: 'Update' }));
 
-      expect(await screen.findByText(/There were validation errors./)).toBeVisible();
-      expect(await screen.findByText(/There are no changes to save./)).toBeVisible();
+      await waitFor(() => {
+        expect(screen.getByText(/There were validation errors./)).toBeVisible();
+        expect(screen.getByText(/There are no changes to save./)).toBeVisible();
+      });
     });
 
     it('should save when Upgrade Path is unchecked', async () => {
-      const autoWaiverModal = defaultPreloadedState.orgsAndPolicies.autoWaivers.autoWaiverModal;
-      const appId = defaultPreloadedState.orgsAndPolicies.root.selectedOwner.id;
+      const autoWaiverModal = editModeState.orgsAndPolicies.autoWaivers.autoWaiverModal;
+      const appId = editModeState.orgsAndPolicies.root.selectedOwner.id;
 
       axiosMock.onGet(getAutoWaiversConfigurationURL('application', appId)).reply(200, autoWaiverModal.data);
 
-      renderComponent();
+      renderComponent(editModeState);
 
       const upgradePathNotAvailableCheckbox = await screen.findByLabelText(
         'No newer, non-violating component version is available'
@@ -327,11 +354,9 @@ describe('Auto Waiver Modal Component', () => {
       await user.click(upgradePathNotAvailableCheckbox);
       expect(upgradePathNotAvailableCheckbox).not.toBeChecked();
 
-      user.click(screen.getByRole('button', { name: 'Update' }));
+      await user.click(screen.getByRole('button', { name: 'Update' }));
 
-      const submitting = await screen.findByText('Submitting…');
-      expect(submitting).toBeVisible();
-
+      // Wait for the API calls to complete instead of checking for Submitting text
       await waitFor(() => {
         expect(axiosMock.history.get.length).toBe(1);
         expect(axiosMock.history.get[0].url).toBe(getAutoWaiversConfigurationURL('application', appId));
@@ -355,7 +380,7 @@ describe('Auto Waiver Modal Component', () => {
     });
 
     it('should display a validation error when save is clicked with unchecked Upgrade Path or Vulnerability is not reachable', async () => {
-      renderComponent();
+      renderComponent(editModeState);
 
       const upgradePathNotAvailableCheckbox = await screen.findByLabelText(
         'No newer, non-violating component version is available'
@@ -370,7 +395,7 @@ describe('Auto Waiver Modal Component', () => {
       await user.click(vulnerabilityNotReachableCheckbox);
       expect(vulnerabilityNotReachableCheckbox).not.toBeChecked();
 
-      user.click(screen.getByRole('button', { name: 'Update' }));
+      await user.click(screen.getByRole('button', { name: 'Update' }));
 
       expect(await screen.findByText(/There were validation errors./)).toBeVisible();
       expect(

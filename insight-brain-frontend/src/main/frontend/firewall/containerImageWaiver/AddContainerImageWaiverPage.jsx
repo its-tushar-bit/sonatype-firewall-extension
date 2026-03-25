@@ -88,13 +88,12 @@ export default function AddContainerImageWaiverPage() {
     loadData();
   }, []);
 
-  const onExpiryTimeChange = (event) => {
-    const value = event.currentTarget.value === 'never' ? null : event.currentTarget.value;
-    setExpiryTime(value);
+  const onExpiryTimeChange = (value) => {
+    setExpiryTime(value === 'never' ? null : value);
   };
 
-  const onReasonChange = (event) => {
-    setWaiverReason(event.currentTarget.value ?? null);
+  const onReasonChange = (value) => {
+    setWaiverReason(value ?? null);
   };
 
   const returnToContainerReportPage = () => {

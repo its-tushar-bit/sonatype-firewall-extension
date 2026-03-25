@@ -69,7 +69,7 @@ export default function ProxyConfig({
           {...fieldState}
           {...{ onChange, placeholder, id, validatable }}
           className="nx-text-input--long"
-          autoComplete="new-password"
+          inputAttributes={{ autoComplete: 'new-password' }}
         />
       </NxFormGroup>
     );
@@ -186,7 +186,7 @@ export default function ProxyConfig({
                 }}
                 className="nx-text-input--long"
                 type="password"
-                autoComplete="new-password"
+                inputAttributes={{ autoComplete: 'new-password' }}
               />
             </NxFormGroup>
             <NxFormGroup className="nx-label" label="Exclude Hosts" sublabel="Must be comma delimited.">

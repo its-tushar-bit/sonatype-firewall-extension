@@ -379,10 +379,9 @@ export default function AttributionReportTemplateForm(props) {
                       className="nx-text-input--long"
                       validatable
                       {...formState.templateName}
-                      name="templateName"
+                      inputAttributes={{ name: 'templateName', maxLength: '250' }}
                       onChange={textInputChangeHandler('templateName')}
                       placeholder="New Template"
-                      maxLength="250"
                     />
                   </NxFormGroup>
                   <hr />
@@ -392,31 +391,28 @@ export default function AttributionReportTemplateForm(props) {
                       className="nx-text-input--long"
                       validatable
                       {...formState.documentTitle}
-                      name="title"
+                      inputAttributes={{ name: 'title', maxLength: '250' }}
                       onChange={textInputChangeHandler('documentTitle')}
                       placeholder="Enter Report Title"
-                      maxLength="250"
                     />
                   </NxFormGroup>
                   <div className="nx-form-row">
                     <NxFormGroup label="Document Header">
                       <NxTextInput
                         className="nx-text-input"
-                        name="header"
+                        inputAttributes={{ name: 'header', maxLength: '50' }}
                         {...formState.header}
                         onChange={textInputChangeHandler('header')}
                         placeholder="Enter Document Header"
-                        maxLength="50"
                       />
                     </NxFormGroup>
                     <NxFormGroup label="Document Footer">
                       <NxTextInput
                         className="nx-text-input"
-                        name="footer"
+                        inputAttributes={{ name: 'footer', maxLength: '50' }}
                         {...formState.footer}
                         onChange={textInputChangeHandler('footer')}
                         placeholder="Enter Document Footer"
-                        maxLength="50"
                       />
                     </NxFormGroup>
                   </div>

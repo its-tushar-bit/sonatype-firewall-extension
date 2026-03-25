@@ -236,7 +236,7 @@ describe('PolicyNotificationsEditor', () => {
       const emailInput = screen.getByRole('textbox', { name: 'Email' });
 
       fireEvent.change(emailInput, { target: { value: 'invalid format' } });
-      expect(screen.getByRole('alert', { description: 'Use valid format: abc@xyz.com' })).toBeVisible();
+      expect(screen.getByRole('alert')).toHaveTextContent('Use valid format: abc@xyz.com');
       expect(screen.getByRole('button', { name: /Add/i })).toBeDisabled();
 
       fireEvent.keyDown(emailInput, { key: 'Enter', charCode: 13 });

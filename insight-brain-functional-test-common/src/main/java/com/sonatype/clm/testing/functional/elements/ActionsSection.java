@@ -22,7 +22,7 @@ public class ActionsSection
   public static final String ACTIONS_TABLE_ROOT_SELECTOR = "#edit-policy-actions-table";
 
   public SelenideElement title() {
-    return $(createSelector(ROOT_SELECTOR, "h2"));
+    return $(createSelector(ROOT_SELECTOR, ".nx-h2"));
   }
 
   public SelenideElement header() {

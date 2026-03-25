@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { getAutoWaiverExclusionsUrl } from 'MainRoot/util/CLMLocation';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';

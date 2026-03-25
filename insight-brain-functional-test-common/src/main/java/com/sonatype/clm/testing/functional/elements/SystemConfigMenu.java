@@ -19,7 +19,7 @@ public class SystemConfigMenu
   }
 
   public SelenideElement dropdownToggle() {
-    return $("#system-configuration-menu > button");
+    return $("#system-configuration-menu button");
   }
 
   public SelenideElement users() {

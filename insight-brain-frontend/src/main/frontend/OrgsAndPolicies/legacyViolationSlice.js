@@ -6,7 +6,8 @@
 import axios from 'axios';
 import { equals, prop } from 'ramda';
 import { propSet } from 'MainRoot/util/jsUtil';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 import { getLegacyViolationURL } from 'MainRoot/util/CLMLocation';

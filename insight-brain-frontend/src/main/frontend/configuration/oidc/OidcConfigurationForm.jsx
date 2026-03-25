@@ -99,7 +99,10 @@ export default function OidcConfigurationForm({
               id="oidc-client-secret"
               isRequired
             >
-              {getTextInput('oidcClientSecret', true, { type: 'password', autoComplete: 'new-password' })}
+              {getTextInput('oidcClientSecret', true, {
+                type: 'password',
+                inputAttributes: { autoComplete: 'new-password' },
+              })}
             </NxFormGroup>
 
             <NxFormGroup

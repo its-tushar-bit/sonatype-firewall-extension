@@ -6,25 +6,8 @@
 import React from 'react';
 import { render, screen, within, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import AdoptionGraph from 'MainRoot/development/developmentDashboard/sections/Graphs/AdoptionGraph';
-import { act, fireEvent } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 import { getDeveloperDashboardGraphsData } from 'MainRoot/util/CLMLocation';
-
-let listener = null;
-const originalResizeObserver = window.ResizeObserver;
-
-window.ResizeObserver = class ResizeObserver {
-  constructor(ls) {
-    listener = ls;
-  }
-
-  observe() {
-    return this;
-  }
-
-  disconnect() {
-    return this;
-  }
-};
 
 describe('AdoptionGraph', () => {
   let axiosMock, renderComponent;
@@ -56,10 +39,6 @@ describe('AdoptionGraph', () => {
     axiosMock = axiosMockAdapter();
     renderComponent = (preloadedState) =>
       render(<AdoptionGraph />, { preloadedState: preloadedState || defaultPreloadedState });
-  });
-
-  afterAll(() => {
-    window.ResizeObserver = originalResizeObserver;
   });
 
   it('should render a Loading... message when network call is pending', () => {
@@ -129,21 +108,7 @@ describe('AdoptionGraph', () => {
   it('should render a graph', async () => {
     renderComponent();
 
-    const header = await screen.findByRole('heading', { name: /adoption profile/i });
-    expect(header).toBeInTheDocument();
-
-    act(() => {
-      listener([
-        {
-          contentRect: {
-            width: 800,
-            height: 400,
-          },
-        },
-      ]);
-    });
-
-    const graph = await screen.findByRole('img');
-    expect(graph).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /adoption profile/i })).toBeInTheDocument();
+    expect(screen.getByTestId('auto-sizer')).toBeInTheDocument();
   });
 });

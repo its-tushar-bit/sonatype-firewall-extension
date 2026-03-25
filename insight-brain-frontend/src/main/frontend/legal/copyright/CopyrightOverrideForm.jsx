@@ -61,7 +61,7 @@ export default function CopyrightOverrideForm(props) {
         <NxTextInput
           id={'copyright-' + index}
           {...copyright.content}
-          maxLength="1000"
+          inputAttributes={{ maxLength: '1000' }}
           onChange={onCopyrightContentChange(index)}
           className="legal-modal-override-input-content"
           disabled={copyright.status === 'disabled'}
@@ -89,13 +89,13 @@ export default function CopyrightOverrideForm(props) {
   const onCopyrightStatusChange = (index, copyright) =>
     setCopyrights(pathSet([index, 'status'], flipStatus(copyright.status), copyrights));
 
-  const setComponentCopyrightScope = (event) => setScope(event.target.value);
+  const setComponentCopyrightScope = (value) => setScope(value);
 
-  const setObligationScopeIfNeeded = (event) => {
+  const setObligationScopeIfNeeded = (value) => {
     if (existingObligation && existingObligation.status !== existingObligation.originalStatus) {
       setObligationScope({
         name: existingObligation.name,
-        value: event.target.value,
+        value,
       });
     }
   };
@@ -250,9 +250,9 @@ export default function CopyrightOverrideForm(props) {
               className="nx-form-select--long"
               id="edit-copyright-scope-selection"
               value={scope}
-              onChange={(event) => {
-                setComponentCopyrightScope(event);
-                setObligationScopeIfNeeded(event);
+              onChange={(value) => {
+                setComponentCopyrightScope(value);
+                setObligationScopeIfNeeded(value);
               }}
             >
               {availableScopes.values.map(createScopeOption)}

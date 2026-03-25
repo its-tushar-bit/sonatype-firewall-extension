@@ -199,12 +199,16 @@ describe('RequestWaiverReviewPage', function () {
   });
 
   const assertElementsDisabled = () => {
+    // Get comments textarea by finding the input in the fieldset with label "Comments"
+    const commentsFieldset = screen.getByText('Comments').closest('fieldset');
+    const commentsTextarea = commentsFieldset.querySelector('textarea');
+
     const elementsToCheck = [
       screen.getByRole('combobox', { name: /select scope/i }),
       ...screen.getAllByRole('radio'),
       screen.getByRole('combobox', { name: /waiver expiration/i }),
       screen.getByRole('combobox', { name: /reason/i }),
-      screen.getByRole('textbox', { name: /comments/i }),
+      commentsTextarea,
     ];
 
     elementsToCheck.forEach((element) => {

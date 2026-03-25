@@ -31,9 +31,7 @@ export default function AgeInDaysInput({ id, onChange, ageInDays }) {
     return Number.isInteger(age) ? (parseInt(age) * modifier).toString() : '';
   }
 
-  function onModifierChange(e) {
-    const { value: newModifier } = e.currentTarget;
-
+  function onModifierChange(newModifier) {
     setModifier(parseInt(newModifier));
     onChange(parseAgeToDays(age, newModifier));
   }

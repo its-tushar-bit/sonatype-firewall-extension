@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 
 import $ from 'jquery';
@@ -27,9 +27,8 @@ window.pv = pv;
 new PendoService(new SanitizeUrlService()).start();
 
 // Render the app
-ReactDOM.render(
+createRoot(document.getElementById('ui-view')).render(
   <Provider store={store}>
     <App />
-  </Provider>,
-  document.getElementById('ui-view')
+  </Provider>
 );

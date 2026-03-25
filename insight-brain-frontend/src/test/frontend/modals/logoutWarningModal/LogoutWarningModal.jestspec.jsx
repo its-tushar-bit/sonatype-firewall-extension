@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { axiosMockAdapter, render, screen } from 'TestRoot/SpecUtil';
+import { act } from '@testing-library/react';
 import LogoutWarningModal from 'MainRoot/modals/logoutWarningModal/LogoutWarningModal';
 import { mergeRight } from 'ramda';
 import userEvent from '@testing-library/user-event';
@@ -51,7 +52,7 @@ describe('LogoutWarningModal', () => {
 
     expect(screen.getByRole('dialog')).toBeVisible();
     expect(screen.getByText('Session Timeout Warning')).toBeVisible();
-    expect(screen.getByText('Due to 30 minutes of inactivity you will be logged out in 120 seconds.')).toBeVisible();
+    expect(screen.getByText(/Due to 30 minutes of inactivity you will be logged out in 120 seconds\./)).toBeVisible();
     expect(screen.getByRole('button', { name: 'Keep me signed in' })).toBeVisible();
   });
 
@@ -72,7 +73,7 @@ describe('LogoutWarningModal', () => {
     );
 
     expect(await screen.findByText('Session Timeout Warning')).toBeVisible();
-    expect(screen.getByText('Due to 30 minutes of inactivity you will be logged out in 123 seconds.')).toBeVisible();
+    expect(screen.getByText(/Due to 30 minutes of inactivity you will be logged out in 123 seconds\./)).toBeVisible();
     expect(screen.getByRole('button', { name: 'Keep me signed in' })).toBeVisible();
     expect(window.Notification).toHaveBeenCalledWith('Session Timeout Warning', {
       body: 'Your MyAwesomeProduct session will expire in 2 minutes due to inactivity.',
@@ -102,7 +103,7 @@ describe('LogoutWarningModal', () => {
 
     renderComponent(mergeRight(defaultPreloadedState, preloadedState));
 
-    expect(screen.getByText('Due to 45 minutes of inactivity you will be logged out in 120 seconds.')).toBeVisible();
+    expect(screen.getByText(/Due to 45 minutes of inactivity you will be logged out in 120 seconds\./)).toBeVisible();
   });
 
   it('displays generic inactivity text when session timeout is not a number', () => {
@@ -141,15 +142,19 @@ describe('LogoutWarningModal', () => {
       })
     );
 
-    expect(screen.getByText('Due to 30 minutes of inactivity you will be logged out in 120 seconds.')).toBeVisible();
+    expect(screen.getByText(/Due to 30 minutes of inactivity you will be logged out in 120 seconds\./)).toBeVisible();
 
-    jest.advanceTimersByTime(1000);
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
 
-    expect(screen.getByText('Due to 30 minutes of inactivity you will be logged out in 119 seconds.')).toBeVisible();
+    expect(screen.getByText(/Due to 30 minutes of inactivity you will be logged out in 119 seconds\./)).toBeVisible();
 
-    jest.advanceTimersByTime(1000);
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
 
-    expect(screen.getByText('Due to 30 minutes of inactivity you will be logged out in 118 seconds.')).toBeVisible();
+    expect(screen.getByText(/Due to 30 minutes of inactivity you will be logged out in 118 seconds\./)).toBeVisible();
   });
 
   it("closes the modal and sends a session request to keep the session active when the 'Keep me signed in' button is clicked", async () => {

@@ -54,8 +54,15 @@ export default function AdvancedSearchForm(props) {
       }
     };
     if (selectedCriteriaBuilder) {
-      document.addEventListener('click', handleClickOutside);
+      // Defer adding the listener so the click event that opened the builder
+      // finishes propagating first. In React 19, useEffect can run as a
+      // microtask before the originating click event reaches the document,
+      // which would immediately trigger handleClickOutside and close the builder.
+      const timeoutId = setTimeout(() => {
+        document.addEventListener('click', handleClickOutside);
+      }, 0);
       return () => {
+        clearTimeout(timeoutId);
         document.removeEventListener('click', handleClickOutside);
       };
     }

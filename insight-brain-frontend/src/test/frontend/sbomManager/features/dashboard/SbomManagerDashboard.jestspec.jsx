@@ -121,11 +121,13 @@ describe('SbomManagerDashboard page', () => {
       expect(screen.getByText(findSpecificAlert)).toBeVisible();
     });
 
-    it('hides the info alert after dismiss and sets localStorage', () => {
+    it('hides the info alert after dismiss and sets localStorage', async () => {
       renderComponent();
       const closeButton = screen.getByRole('button', { name: /close/i });
       closeButton.click();
-      expect(screen.queryByText(findSpecificAlert)).toBeNull();
+      await waitFor(() => {
+        expect(screen.queryByText(findSpecificAlert)).toBeNull();
+      });
       expect(window.localStorage.getItem(ALERT_DISMISSED_KEY)).toBe('true');
     });
 

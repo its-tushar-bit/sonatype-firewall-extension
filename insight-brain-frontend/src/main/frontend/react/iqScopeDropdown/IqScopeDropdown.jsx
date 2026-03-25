@@ -16,8 +16,8 @@ function IqScopeDropdown({
   withHiddenOption = false,
   isDisabled = false,
 }) {
-  const onScopeChange = (event) => {
-    onChangeHandler(event.currentTarget.value);
+  const onScopeChange = (value) => {
+    onChangeHandler(value);
   };
 
   return (

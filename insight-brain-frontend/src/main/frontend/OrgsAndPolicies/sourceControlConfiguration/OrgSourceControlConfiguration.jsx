@@ -60,7 +60,7 @@ const OrgSourceControlConfiguration = () => {
   const doLoad = () => dispatch(actions.load());
   const save = () => dispatch(actions.save());
   const showResetModal = () => dispatch(actions.showResetModal());
-  const onChangeProvider = (event) => dispatch(actions.setProvider(event.target.value));
+  const onChangeProvider = (value) => dispatch(actions.setProvider(value));
   const onChangeUsername = (val) => dispatch(actions.setUsername(val));
   const onChangeToken = (val) => dispatch(actions.setToken(val));
   const onChangeBranch = (val) => dispatch(actions.setBaseBranch(val));
@@ -228,7 +228,7 @@ const OrgSourceControlConfiguration = () => {
                   disabled={isUserNameDisabled}
                   validatable
                   data-testid="username-input"
-                  autocomplete="off"
+                  inputAttributes={{ autoComplete: 'off' }}
                 />
               </NxFormGroup>
             )}
@@ -261,7 +261,7 @@ const OrgSourceControlConfiguration = () => {
                 type="password"
                 validatable
                 data-testid="token-input"
-                autocomplete="new-password"
+                inputAttributes={{ autoComplete: 'new-password' }}
               />
             </NxFormGroup>
           </NxFormRow>

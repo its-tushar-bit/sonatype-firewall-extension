@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { render as rtlRender, within } from '@testing-library/react';
-import { configureStore as reduxToolkitConfigureStore, getDefaultMiddleware } from '@reduxjs/toolkit';
+import { configureStore as reduxToolkitConfigureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import reducers from '../../main/frontend/reduxConfig/reducers';
@@ -165,11 +165,12 @@ window.SpecUtil = {
 export function configureStore(opts) {
   return reduxToolkitConfigureStore({
     ...opts,
-    middleware: getDefaultMiddleware({
-      // we include non-serializable values (mostly Sets) in our state. We accept the risk, and don't want thousands
-      // of error messages about it.
-      serializableCheck: false,
-    }),
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        // we include non-serializable values (mostly Sets) in our state. We accept the risk, and don't want thousands
+        // of error messages about it.
+        serializableCheck: false,
+      }),
   });
 }
 

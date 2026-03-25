@@ -13,11 +13,6 @@ import {
 } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
 
 export default function Coordinates({ onFormatChange, onInputChange, fields, constraintIdx, conditionIdx }) {
-  function onTextInputChange(event) {
-    const { value, name } = event.currentTarget;
-    onInputChange(value, name, constraintIdx, conditionIdx, fields.format);
-  }
-
   return (
     <>
       <NxFormSelect
@@ -38,9 +33,9 @@ export default function Coordinates({ onFormatChange, onInputChange, fields, con
           key={`${type}-${constraintIdx}-${conditionIdx}`}
           className="constraint-editor__values--input constraint-editor__150-width"
           id={`${type}-${constraintIdx}-${conditionIdx}`}
+          inputAttributes={{ name: type }}
           {...fields[type]}
-          onChange={(_, event) => onTextInputChange(event)}
-          name={type}
+          onChange={(value) => onInputChange(value, type, constraintIdx, conditionIdx, fields.format)}
           placeholder={fieldTypeToPlaceholder[type]}
           validatable
         />

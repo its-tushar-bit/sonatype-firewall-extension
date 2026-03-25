@@ -78,26 +78,20 @@ describe('UserActivityOverviewContainer', () => {
   });
 
   it('should show error state when loadError is present', async () => {
-    const errorState = {
-      ...preloadedState,
-      userActivity: {
-        ...preloadedState.userActivity,
-        loadError: 'Failed to load data',
-        loading: false, // Ensure loading is false so error is shown
+    axiosMock.reset();
+    axiosMock.onGet(/userActivity/).reply(500, 'Failed to load data');
+
+    render(<UserActivityOverviewContainer isAuthorized={true} />, { preloadedState });
+
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Failed to load data/)).toBeVisible();
       },
-    };
-
-    // Mock API failure response to prevent successful load
-    axiosMock.onGet().reply(500, 'Failed to load data');
-
-    render(<UserActivityOverviewContainer isAuthorized={true} />, { preloadedState: errorState });
-
-    await waitFor(() => {
-      expect(screen.getByText(/Failed to load data/)).toBeVisible();
-    });
+      { timeout: 3000 }
+    );
   });
 
-  it.skip('should show export error when exportError is present', async () => {
+  it('should show export error when exportError is present', async () => {
     const exportErrorState = {
       ...preloadedState,
       userActivity: {

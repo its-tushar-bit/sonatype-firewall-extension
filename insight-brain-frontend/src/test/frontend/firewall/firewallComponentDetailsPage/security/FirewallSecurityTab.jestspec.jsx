@@ -109,15 +109,17 @@ describe('FirewallSecurityTab', () => {
   it('renders the FirewallPolicyViolationsTile and VulnerabilitiesTableTile', () => {
     render(<FirewallSecurityTab />);
     expect(screen.queryByText(/FirewallPolicyViolationsTile/)).toBeVisible();
+    expect(spyFirewallPolicyViolationsTile.prototype.constructor).toHaveBeenCalledTimes(1);
     expect(spyFirewallPolicyViolationsTile.prototype.constructor).toHaveBeenCalledWith(
       {
         violations: originalSelectSecurityPolicyViolations(minState),
         showProxyState: true,
         title: 'Security Violations',
-      }, // params
-      {} // state
+      },
+      undefined
     );
     expect(screen.queryByText(/VulnerabilitiesTableTile/)).toBeVisible();
+    expect(spyVulnerabilitiesTableTile.prototype.constructor).toHaveBeenCalledTimes(1);
     expect(spyVulnerabilitiesTableTile.prototype.constructor).toHaveBeenCalledWith(
       {
         vulnerabilities: originalSelectVulnerabilitiesSortedSlice(minState),
@@ -126,8 +128,8 @@ describe('FirewallSecurityTab', () => {
         loadComponentDetails: expect.any(Function),
         loadVulnerabilities: expect.any(Function),
         toggleVulnerabilityPopoverWithEffects: expect.any(Function),
-      }, // params
-      {} // state
+      },
+      undefined
     );
   });
 });

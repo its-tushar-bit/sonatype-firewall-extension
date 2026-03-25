@@ -254,7 +254,7 @@ describe('ReportContent component', function () {
     SpecUtil.requestIdleCallbackInvokeImmediateJest();
 
     renderComponent();
-    const button = await screen.findByRole('button', { name: tooltipText });
+    const button = await screen.findByRole('button', { name: /view dependency tree/i });
 
     expect(button).toHaveTextContent(/view dependency tree/i);
     expect(button).toBeVisible();

@@ -148,11 +148,11 @@ export default function LicenseFilesModal(props) {
     return mainSubmitMaskState && obligationSubmitMaskState;
   };
 
-  const setObligationScopeIfNeeded = (event) => {
+  const setObligationScopeIfNeeded = (value) => {
     if (existingObligation && existingObligation.status !== existingObligation.originalStatus) {
       setObligationScope({
         name: existingObligation.name,
-        value: event.target.value,
+        value,
       });
     }
   };
@@ -238,9 +238,9 @@ export default function LicenseFilesModal(props) {
               id="edit-license-scope-selection"
               className="nx-form-select--long"
               value={scope}
-              onChange={(payload) => {
-                setLicenseFilesScope(payload.currentTarget.value);
-                setObligationScopeIfNeeded(payload);
+              onChange={(value) => {
+                setLicenseFilesScope(value);
+                setObligationScopeIfNeeded(value);
               }}
             >
               {availableScopes.values.map(createScopeOption)}

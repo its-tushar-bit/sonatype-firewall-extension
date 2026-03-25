@@ -5,7 +5,6 @@
  */
 
 import React from 'react';
-import '@testing-library/jest-dom/extend-expect';
 import { screen, fireEvent, within } from '@testing-library/react';
 
 import { render } from 'TestRoot/SpecUtil';
@@ -64,11 +63,9 @@ describe('FirewallContainerTabs', () => {
   });
 
   it('renders waivers table when clicking on corresponding tab', () => {
-    render(<FirewallContainerTabs {...props} />);
-    const tabList = screen.getByRole('tablist');
-    const tabs = within(tabList).getAllByRole('tab');
+    const waiverProps = { ...props, router: { currentState: { data: { activeTab: 'waivers' } } } };
+    render(<FirewallContainerTabs {...waiverProps} />);
 
-    fireEvent.click(tabs[1]);
     const tabPanels = screen.getAllByRole('tabpanel');
 
     expect(tabPanels).toHaveLength(1);

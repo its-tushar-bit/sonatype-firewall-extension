@@ -307,7 +307,7 @@ export default function AttributionReportForm(props) {
                 className="nx-text-input--long"
                 validatable
                 {...formState.documentTitle}
-                name="title"
+                inputAttributes={{ name: 'title' }}
                 onChange={textInputChangeHandler('documentTitle')}
                 placeholder="Enter Report Title"
               />
@@ -316,7 +316,7 @@ export default function AttributionReportForm(props) {
               <NxFormGroup label="Document Header">
                 <NxTextInput
                   className="nx-text-input"
-                  name="header"
+                  inputAttributes={{ name: 'header' }}
                   {...formState.header}
                   onChange={textInputChangeHandler('header')}
                   placeholder="Enter Document Header"
@@ -325,7 +325,7 @@ export default function AttributionReportForm(props) {
               <NxFormGroup label="Document Footer">
                 <NxTextInput
                   className="nx-text-input"
-                  name="footer"
+                  inputAttributes={{ name: 'footer' }}
                   {...formState.footer}
                   onChange={textInputChangeHandler('footer')}
                   placeholder="Enter Document Footer"

@@ -14,7 +14,7 @@ module.exports = {
   maxWorkers: '87.5%', // 14 workers on 16-core (freed cores from reduced Postgres test parallelization)
   workerIdleMemoryLimit: '1024MB', // Increased memory per worker for better performance
   transformIgnorePatterns: [
-    '/node_modules/(?!(pretty-bytes|@react-hook|@sonatype|@nivo|d3-color|d3-interpolate|d3-scale-chromatic|lodash-es|swagger-ui-react|swagger-client|react-syntax-highlighter)/)',
+    '/node_modules/(?!(pretty-bytes|@react-hook|@sonatype|@nivo|d3-[^/]+|internmap|delaunator|robust-predicates|lodash-es|swagger-ui-react|swagger-client|react-syntax-highlighter)/)',
   ],
   transform: {
     '\\.[jt]sx?$': [
@@ -37,6 +37,7 @@ module.exports = {
     'sbomManager/assets/sbom-manager.svg$': '<rootDir>/src/test/frontend/__mocks__/sbom_manager.svg',
     '\\.(png|svg)$': '<rootDir>/src/test/frontend/__mocks__/imgMock.js',
     '\\.(html)$': '<rootDir>/src/test/frontend/__mocks__/htmlMock.js',
+    '^react-virtualized-auto-sizer$': '<rootDir>/src/test/frontend/__mocks__/react-virtualized-auto-sizer.js',
     '^MainRoot/(.*)': '<rootDir>/src/main/frontend/$1',
     '^TestRoot/(.*)': '<rootDir>/src/test/frontend/$1',
   },

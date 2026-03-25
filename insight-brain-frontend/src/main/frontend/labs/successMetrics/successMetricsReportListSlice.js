@@ -35,15 +35,18 @@ export const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithVal
 export const newReport = createAction(`${REDUCER_NAME}/newReport`);
 export const toggleAddModal = createAction(`${REDUCER_NAME}/toggleAddModal`);
 
-export const successMetricsListReducer = createReducer(initialState, {
-  [load.pending]: (state) => merge(state, { loading: true }),
-  [load.fulfilled]: (state, { payload }) => merge(state, { reports: payload, loading: false, loadError: null }),
-  [load.rejected]: (state, { payload }) => merge(state, { loading: false, loadError: payload }),
-  [newReport.type]: (state, { payload }) => {
-    state.reports.push(payload);
-    state.isAddModalOpen = false;
-  },
-  [toggleAddModal.type]: (state) => {
-    state.isAddModalOpen = !state.isAddModalOpen;
-  },
+export const successMetricsListReducer = createReducer(initialState, (builder) => {
+  builder
+    .addCase(load.pending, (state) => merge(state, { loading: true }))
+    .addCase(load.fulfilled, (state, { payload }) =>
+      merge(state, { reports: payload, loading: false, loadError: null })
+    )
+    .addCase(load.rejected, (state, { payload }) => merge(state, { loading: false, loadError: payload }))
+    .addCase(newReport.type, (state, { payload }) => {
+      state.reports.push(payload);
+      state.isAddModalOpen = false;
+    })
+    .addCase(toggleAddModal.type, (state) => {
+      state.isAddModalOpen = !state.isAddModalOpen;
+    });
 });

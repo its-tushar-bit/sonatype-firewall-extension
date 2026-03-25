@@ -109,7 +109,7 @@ export default function WaiveTransitiveViolationsPopover(props) {
       <NxFormGroup label="Waiver Expiration" isRequired>
         <NxFormSelect
           id="waive-transitive-violations-expirations"
-          onChange={(e) => setExpiration(e.currentTarget.value)}
+          onChange={(value) => setExpiration(value)}
           value={expiration}
         >
           {waiverExpirations.map(({ name, value }, index) => (

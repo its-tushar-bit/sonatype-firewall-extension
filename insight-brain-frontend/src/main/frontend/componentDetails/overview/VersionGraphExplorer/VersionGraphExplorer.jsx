@@ -10,11 +10,15 @@ import { renderVersionGraph, selectVersion } from '@sonatype/version-graph';
 const VersionGraphExplorer = ({
   versions,
   currentVersion,
-  selectable,
-  showDetails,
-  showCurrentVersionLabel,
-  versionClick,
-  versionDblClick,
+  selectable = true,
+  showDetails = true,
+  showCurrentVersionLabel = true,
+  versionClick = () => {
+    // This is intentional as a fallback function
+  },
+  versionDblClick = () => {
+    // This is intentional as a fallback function
+  },
   selectedVersionError,
 }) => {
   useEffect(() => {
@@ -54,17 +58,5 @@ export const GraphExplorerTypes = {
   versionDblClick: PropTypes.func,
 };
 VersionGraphExplorer.propTypes = GraphExplorerTypes;
-
-VersionGraphExplorer.defaultProps = {
-  selectable: true,
-  showCurrentVersionLabel: true,
-  showDetails: true,
-  versionClick: () => {
-    // This is intentional as a fallback function
-  },
-  versionDblClick: () => {
-    // This is intentional as a fallback function
-  },
-};
 
 export default VersionGraphExplorer;

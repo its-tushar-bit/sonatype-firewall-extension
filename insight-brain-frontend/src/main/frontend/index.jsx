@@ -35,7 +35,7 @@ window.pv = pv;
 polyfill();
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import router from './router/routerInstance';
 import App from './App';
 import { initializeRouterListener } from './reduxUiRouter/routerListener';
@@ -76,9 +76,17 @@ document.addEventListener('DOMContentLoaded', () => {
   initDocumentTitle();
   initFavicon();
 
-  // Render React app - UIRouter component will call router.start() automatically
+  // Start the router before mounting React. We use UIRouterContext.Provider
+  // (not UIRouter component) so we must start it manually.
+  router.start();
+
+  // Render React app
   const container = document.getElementById('react-root');
   if (container) {
-    ReactDOM.render(<App />, container);
+    createRoot(container, {
+      onUncaughtError: (error, errorInfo) => {
+        console.error('Uncaught error:', error, errorInfo.componentStack);
+      },
+    }).render(<App />);
   }
 });

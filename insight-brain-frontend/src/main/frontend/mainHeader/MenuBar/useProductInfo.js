@@ -43,8 +43,8 @@ const PRODUCT_ICONS = {
     altText: 'Lifecycle',
   },
   SONATYPE: {
-    lightPath: '',
-    darkPath: '',
+    lightPath: null,
+    darkPath: null,
     altText: '',
   },
   SONATYPE_UNLICENSED: {

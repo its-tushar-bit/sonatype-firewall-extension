@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { screen, within, render as rtlRender } from '@testing-library/react';
+import { screen, within, render as rtlRender, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import $ from 'jquery';
@@ -472,7 +472,13 @@ describe('Version Graph Bundle (react)', () => {
       await render(<App />);
 
       await selectApplication('app-123');
-      window.Insight.setGav(mockComponentData);
+
+      // Use act to wrap the state update
+      await act(async () => {
+        window.Insight.setGav(mockComponentData);
+        // Wait a tick for state to propagate
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
 
       expect(await screen.findByRole('region', { name: 'Version Graph' })).toBeInTheDocument();
       expect(await screen.findByRole('region', { name: /Selected Version/ })).toBeInTheDocument();
@@ -490,8 +496,12 @@ describe('Version Graph Bundle (react)', () => {
       };
 
       const originalLocation = window.location;
-      delete window.location;
-      window.location = { reload: jest.fn() };
+      const reloadMock = jest.fn();
+
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: { ...originalLocation, reload: reloadMock },
+      });
 
       try {
         axiosMock.onGet('/rest/application/services/names').reply(200, { 'app-123': 'Test Application' });
@@ -500,15 +510,30 @@ describe('Version Graph Bundle (react)', () => {
         await render(<App />);
 
         await selectApplication('app-123');
-        window.Insight.setCoordinates('maven', mockComponentCoordinates);
 
-        expect(window.location.reload).not.toHaveBeenCalled();
+        // Use act to wrap the state update
+        await act(async () => {
+          window.Insight.setCoordinates('maven', mockComponentCoordinates);
+          // Wait a tick for state to propagate
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
 
-        await user.click(await screen.findByRole('button', { name: 'Retry' }));
+        expect(reloadMock).not.toHaveBeenCalled();
 
-        expect(window.location.reload).toHaveBeenCalledTimes(1);
+        const retryButton = await screen.findByRole('button', { name: 'Retry' });
+        await user.click(retryButton);
+
+        // Give React time to process the click
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        expect(reloadMock).toHaveBeenCalledTimes(1);
       } finally {
-        window.location = originalLocation;
+        Object.defineProperty(window, 'location', {
+          writable: true,
+          value: originalLocation,
+        });
       }
     });
 
@@ -526,7 +551,13 @@ describe('Version Graph Bundle (react)', () => {
       await render(<App />);
 
       await selectApplication('app-123');
-      window.Insight.setCoordinates('maven', mockComponentCoordinates);
+
+      // Use act to wrap the state update
+      await act(async () => {
+        window.Insight.setCoordinates('maven', mockComponentCoordinates);
+        // Wait a tick for state to propagate
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
 
       // The version graph part should still be rendered
       expect(await screen.findByRole('region', { name: 'Version Graph' })).toBeInTheDocument();
@@ -640,8 +671,10 @@ describe('Version Graph Bundle (react)', () => {
       await selectApplication('app-123');
       window.Insight.setCoordinates('maven', mockComponentCoordinates);
 
-      let selectedVersionSection = await screen.findByRole('region', { name: /Selected Version/ });
-      expect(selectedVersionSection).toHaveAccessibleName('Selected Version 1.0.0');
+      await screen.findByRole('region', { name: /Selected Version/ });
+      // Verify the version-specific heading is present (re-query after React settles)
+      expect(screen.getByText('Selected Version 1.0.0', { selector: 'h3' })).toBeInTheDocument();
+      let selectedVersionSection = screen.getByRole('region', { name: /Selected Version/ });
 
       expect(getDescriptionValue(selectedVersionSection, 'Type')).toHaveTextContent('maven');
       expect(getDescriptionValue(selectedVersionSection, 'GroupId')).toHaveTextContent('org.example');
@@ -877,8 +910,12 @@ describe('Version Graph Bundle (react)', () => {
       const user = userEvent.setup();
 
       const originalLocation = window.location;
-      delete window.location;
-      window.location = { reload: jest.fn() };
+      const reloadMock = jest.fn();
+
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: { ...originalLocation, reload: reloadMock },
+      });
 
       try {
         axiosMock.onGet('/rest/application/services/names').reply(200, {
@@ -895,13 +932,16 @@ describe('Version Graph Bundle (react)', () => {
         const errorAlert = await screen.findByRole('alert');
         const retryButton = within(errorAlert).getByRole('button', { name: 'Retry' });
 
-        expect(window.location.reload).not.toHaveBeenCalled();
+        expect(reloadMock).not.toHaveBeenCalled();
 
         await user.click(retryButton);
 
-        expect(window.location.reload).toHaveBeenCalledTimes(1);
+        expect(reloadMock).toHaveBeenCalledTimes(1);
       } finally {
-        window.location = originalLocation;
+        Object.defineProperty(window, 'location', {
+          writable: true,
+          value: originalLocation,
+        });
       }
     });
   });

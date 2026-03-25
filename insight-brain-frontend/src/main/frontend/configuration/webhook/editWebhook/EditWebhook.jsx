@@ -152,8 +152,7 @@ function EditWebhook({
                   validatable={true}
                   id="editor-webhook-url"
                   className="nx-text-input--long"
-                  maxLength="2048"
-                  autoFocus
+                  inputAttributes={{ maxLength: '2048', autoFocus: true }}
                 />
               </NxFormGroup>
               <NxFormGroup label="Webhook description" sublabel="a description for your webhook used in the UI">
@@ -162,8 +161,7 @@ function EditWebhook({
                   onChange={setDescription}
                   id="editor-webhook-description"
                   className="nx-text-input--long"
-                  maxLength="2048"
-                  autoComplete="new-password"
+                  inputAttributes={{ maxLength: '2048', autoComplete: 'new-password' }}
                 />
               </NxFormGroup>
               <NxFormGroup label="Secret Key" sublabel="used for the HMAC payload digest">
@@ -172,9 +170,8 @@ function EditWebhook({
                   onChange={setSecretKey}
                   id="editor-webhook-secret-key"
                   className="nx-text-input--long"
-                  maxLength="512"
                   type="password"
-                  autoComplete="new-password"
+                  inputAttributes={{ maxLength: '512', autoComplete: 'new-password' }}
                 />
               </NxFormGroup>
               {!isAppWebhooksSupported && (

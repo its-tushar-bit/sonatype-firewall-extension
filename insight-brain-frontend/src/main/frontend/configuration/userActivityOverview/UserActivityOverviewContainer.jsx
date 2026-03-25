@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useCallback } from 'react';
 import * as PropTypes from 'prop-types';
 import { useSelector, useDispatch } from 'react-redux';
 import { authErrorMessage } from '../../util/authorizationUtil';
@@ -87,9 +87,9 @@ export default function UserActivityOverviewContainer(props) {
     dispatch(searchUsers(searchValue));
   };
 
-  const handleClearErrors = () => {
+  const handleClearErrors = useCallback(() => {
     dispatch(clearErrors());
-  };
+  }, [dispatch]);
 
   return (
     <UserActivityOverview

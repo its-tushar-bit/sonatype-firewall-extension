@@ -71,8 +71,7 @@ export default function SystemNoticeConfiguration(props) {
                 id="system-notice-text"
                 aria-required={true}
                 onChange={setMessage}
-                maxLength="500"
-                rows="10"
+                inputAttributes={{ maxLength: '500', rows: '10' }}
                 {...message}
               />
             </NxFormGroup>

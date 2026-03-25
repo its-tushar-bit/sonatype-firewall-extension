@@ -63,25 +63,36 @@ export default function ReportPage() {
   const stageId = useSelector(selectReportStageId);
   const isContainerImagesEvaluation = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
 
-  const { publicId, scanId, unknownjs, embeddable, policyViolationId } = routerCurrentParams;
+  const { publicId, scanId } = routerCurrentParams;
 
   const loading = useSelector(selectApplicationReportLoading);
 
   const dispatch = useDispatch();
   const loadReport = () => dispatch(applicationReportActions.loadReportIfNeeded());
 
-  const setReportParameters = (appId, scanId, isUnknownJs, embeddable, policyViolationId, componentHash, tabId) =>
-    dispatch(
-      applicationReportActions.setReportParameters(
-        appId,
-        scanId,
-        isUnknownJs,
-        embeddable,
-        policyViolationId,
-        componentHash,
-        tabId
-      )
-    );
+  // Load report data when ReportPage is rendered without ApplicationReportRoot as a parent
+  // (e.g. firewall.containerReport route). When ApplicationReportRoot IS the parent, this
+  // is a harmless no-op since setReportParameters + loadReportIfNeeded are idempotent for
+  // the same publicId/scanId. Deps restricted to [publicId, scanId] to avoid the race
+  // condition described in ApplicationReportRoot.jsx.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (publicId && scanId) {
+      dispatch(
+        applicationReportActions.setReportParameters(
+          publicId,
+          scanId,
+          !!routerCurrentParams.unknownjs,
+          !!routerCurrentParams.embeddable,
+          routerCurrentParams.policyViolationId,
+          routerCurrentParams.componentHash,
+          routerCurrentParams.tabId,
+          true
+        )
+      );
+      dispatch(applicationReportActions.loadReportIfNeeded());
+    }
+  }, [dispatch, publicId, scanId]);
 
   const totalApplicationRisk = isNilOrEmpty(applicationReport?.metadata?.totalRisk)
     ? 'N/A'
@@ -93,13 +104,6 @@ export default function ReportPage() {
     isDeveloperDashboardEnabled,
     isContainerImagesEvaluation,
   };
-
-  useEffect(() => {
-    if (publicId && scanId) {
-      setReportParameters(publicId, scanId, unknownjs, embeddable, policyViolationId);
-      loadReport();
-    }
-  }, [publicId, scanId]);
 
   useEffect(() => {
     if (publicId && stageId) {

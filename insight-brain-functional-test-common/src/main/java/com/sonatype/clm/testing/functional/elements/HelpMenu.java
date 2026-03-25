@@ -19,7 +19,7 @@ public class HelpMenu
   }
 
   public SelenideElement dropdownToggle() {
-    return $("#help-menu-dropdown > button");
+    return $("#help-menu-dropdown button");
   }
 
   public SelenideElement documentationLink() {

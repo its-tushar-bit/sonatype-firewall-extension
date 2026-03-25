@@ -178,7 +178,7 @@ export default function AtlassianCrowdConfiguration() {
                   evt.target.select();
                 }}
                 type="password"
-                autoComplete="new-password"
+                inputAttributes={{ autoComplete: 'new-password' }}
                 validatable={true}
               />
             </NxFormGroup>

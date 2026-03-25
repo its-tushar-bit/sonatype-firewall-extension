@@ -89,7 +89,7 @@ export default function InnerSourceRepositoryConfigurationModal() {
                 <NxFormSelect
                   id="innersource-repository-configuration-modal-format-select"
                   value={format}
-                  onChange={(event) => setFormat(event.currentTarget.value)}
+                  onChange={(value) => setFormat(value)}
                 >
                   <option value="generic">generic (all formats)</option>
                   <option value="maven">maven</option>
@@ -131,7 +131,7 @@ export default function InnerSourceRepositoryConfigurationModal() {
                       id="innersource-repository-configuration-modal-username"
                       {...usernameState}
                       onChange={setUsername}
-                      autoComplete="username"
+                      inputAttributes={{ autoComplete: 'username' }}
                       aria-required="true"
                     />
                   </NxFormGroup>
@@ -141,7 +141,7 @@ export default function InnerSourceRepositoryConfigurationModal() {
                       {...passwordState}
                       type="password"
                       onChange={setPassword}
-                      autoComplete="new-password"
+                      inputAttributes={{ autoComplete: 'new-password' }}
                       aria-required="true"
                     />
                   </NxFormGroup>

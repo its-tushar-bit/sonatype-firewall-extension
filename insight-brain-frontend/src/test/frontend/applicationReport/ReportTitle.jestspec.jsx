@@ -114,10 +114,9 @@ describe('ReportTitle', () => {
     expect(screen.getByRole('link', { name: 'View Latest Evaluations' })).toBeVisible();
 
     const viewVulnerabilitiesLink = await screen.findByRole('link', {
-      name: 'Reevaluate the report in order to enable Vulnerabilities view',
+      name: /view vulnerabilities/i,
     });
     expect(viewVulnerabilitiesLink).toBeVisible();
-    expect(viewVulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
   });
 
   it('options dropdown renders 6 links if developer dashboard is enabled and firewall for docker product', async () => {
@@ -155,10 +154,9 @@ describe('ReportTitle', () => {
     expect(screen.getByRole('link', { name: 'View Latest Evaluations' })).toBeVisible();
 
     const viewVulnerabilitiesLink = await screen.findByRole('link', {
-      name: 'Reevaluate the report in order to enable Vulnerabilities view',
+      name: /view vulnerabilities/i,
     });
     expect(viewVulnerabilitiesLink).toBeVisible();
-    expect(viewVulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
   });
 
   it('options dropdown priorities link redirects to an external tab', async () => {
@@ -180,10 +178,9 @@ describe('ReportTitle', () => {
     fireEvent.click(options);
 
     const vulnerabilities = await screen.findByRole('link', {
-      name: 'Reevaluate the report in order to enable Vulnerabilities view',
+      name: /view vulnerabilities/i,
     });
     expect(vulnerabilities).toHaveAttribute('aria-disabled', 'true');
-    expect(vulnerabilities).toHaveTextContent(/view vulnerabilities/i);
 
     fireEvent.mouseOver(vulnerabilities);
     const tooltip = await screen.findByText('Reevaluate the report in order to enable Vulnerabilities view');
@@ -218,11 +215,8 @@ describe('ReportTitle', () => {
     fireEvent.click(options);
 
     const vulnerabilitiesLink = await screen.findByRole('link', {
-      name: 'Reevaluate the report in order to enable Vulnerabilities view',
+      name: /view vulnerabilities/i,
     });
-    expect(vulnerabilitiesLink).toHaveAttribute('aria-disabled', 'true');
-
-    expect(vulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
     expect(vulnerabilitiesLink).toHaveAttribute('aria-disabled', 'true');
   });
 

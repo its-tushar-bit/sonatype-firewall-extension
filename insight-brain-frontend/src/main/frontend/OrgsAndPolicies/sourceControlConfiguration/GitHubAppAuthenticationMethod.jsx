@@ -117,7 +117,7 @@ const GitHubAppAuthenticationMethod = ({
           {...sourceControl?.token.rscValue}
           disabled={areFieldsDisabled}
           type="password"
-          autoComplete="new-password"
+          inputAttributes={{ autoComplete: 'new-password' }}
           validatable
         />
       </NxFormGroup>
@@ -216,7 +216,7 @@ const GitHubAppAuthenticationMethod = ({
                 onChange={onChangeToken}
                 {...sourceControl?.token.rscValue}
                 type="password"
-                autoComplete="new-password"
+                inputAttributes={{ autoComplete: 'new-password' }}
                 validatable
                 disabled={areFieldsDisabled || isAuthMethodInherited}
               />

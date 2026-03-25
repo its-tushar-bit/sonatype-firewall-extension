@@ -14,7 +14,6 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;
 
-import static com.codeborne.selenide.Condition.clickable;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -45,9 +44,10 @@ public class DashboardFilters
   }
 
   public static void closeFilter() {
-    // make sure the close button is clickable, sometimes it is briefly not
-    DashboardFilters.closeButton().shouldBe(clickable);
-    DashboardFilters.closeButton().click();
+    // Wait for the NxDrawer open animation to complete before clicking. AbstractDialog calls
+    // dialog.show() only after the animation finishes (openState transitions to 'open'), at
+    // which point the <dialog> element gets its open attribute and becomes visible.
+    DashboardFilters.closeButton().shouldBe(visible).click();
 
     // Make sure it's closed before continuing as the filter can obscure other elements
     // Increasing timeout because I have seen failures here running on local due to simply not waiting quite long enough

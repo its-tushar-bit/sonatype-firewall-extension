@@ -53,7 +53,7 @@ export default function CheckLogin({
             <NxTextInput
               {...username}
               onChange={(value) => setInputField({ field: 'username', value })}
-              autoComplete="new-username"
+              inputAttributes={{ autoComplete: 'new-username' }}
               id="check-login-username"
             />
           </NxFormGroup>
@@ -62,7 +62,7 @@ export default function CheckLogin({
               {...password}
               onChange={(value) => setInputField({ field: 'password', value })}
               type="password"
-              autoComplete="new-password"
+              inputAttributes={{ autoComplete: 'new-password' }}
               id="check-login-password"
             />
           </NxFormGroup>

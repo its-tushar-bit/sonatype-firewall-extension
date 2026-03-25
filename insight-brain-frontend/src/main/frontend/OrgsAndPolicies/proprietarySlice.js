@@ -5,7 +5,8 @@
  */
 import axios from 'axios';
 import { filter, equals, curry } from 'ramda';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { propSet } from 'MainRoot/util/jsUtil';

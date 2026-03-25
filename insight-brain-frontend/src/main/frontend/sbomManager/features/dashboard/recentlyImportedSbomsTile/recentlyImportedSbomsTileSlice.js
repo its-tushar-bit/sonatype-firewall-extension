@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 import { always, ascend, cond, descend, equals, findIndex, inc, prop, sortWith, T, values } from 'ramda';
 
 import { Messages } from 'MainRoot/util/CommonServices';

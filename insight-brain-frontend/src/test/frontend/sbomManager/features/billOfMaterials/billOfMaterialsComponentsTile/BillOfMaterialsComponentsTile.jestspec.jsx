@@ -447,7 +447,8 @@ describe('BillOfMaterialsComponentsTile', () => {
       let sortByDisplayNameButton = screen.getByRole('button', { name: /name unsorted/i });
       expect(sortByDisplayNameButton).toBeVisible();
 
-      // Ascending
+      // Ascending - reset and setup new mock
+      axiosMock.reset();
       axiosMock
         .onGet(
           getBillOfMaterialsComponentsUrl(
@@ -464,15 +465,40 @@ describe('BillOfMaterialsComponentsTile', () => {
           generateResponse([componentParametersList[2], componentParametersList[1], componentParametersList[0]])
         );
 
+      // Temporarily use real timers for the async request
+      jest.useRealTimers();
+
+      const requestCountBefore = axiosMock.history.get.length;
+
       fireEvent.click(sortByDisplayNameButton);
 
-      jest.advanceTimersByTime(JEST_TIMER);
+      // Wait for the API request to be made
+      await waitFor(() => {
+        expect(axiosMock.history.get.length).toBeGreaterThan(requestCountBefore);
+      });
 
+      // Wait for Loading to disappear
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      // Wait for the sorted data to appear - initial state was 'malice' in first row, should change to 'alice'
+      await waitFor(
+        () => {
+          const rows = screen.queryAllByRole('row');
+          if (rows.length !== 4) return false;
+          const firstDataRow = rows[1];
+          const cells = within(firstDataRow).queryAllByRole('cell');
+          // Check that we have cells and the first data row now has 'alice' (not 'malice')
+          const hasAlice = cells.length > 1 && cells[1]?.textContent?.includes('alice');
+          const notMalice = cells.length > 1 && !cells[1]?.textContent?.includes('malice');
+          return hasAlice && notMalice;
+        },
+        { timeout: 5000 }
+      );
 
       tableRows = await screen.findAllByRole('row');
       firstRow = tableRows[1];
       firstRowCells = within(firstRow).getAllByRole('cell');
+      expect(firstRowCells.length).toBeGreaterThan(1);
       expect(firstRowCells[1]).toHaveTextContent('com.package.alice : artifact-id : 1.2.3');
 
       secondRow = tableRows[2];
@@ -486,7 +512,8 @@ describe('BillOfMaterialsComponentsTile', () => {
       sortByDisplayNameButton = screen.getByRole('button', { name: /name ascending/i });
       expect(sortByDisplayNameButton).toBeVisible();
 
-      // Descending
+      // Descending - reset and setup new mock
+      axiosMock.reset();
       axiosMock
         .onGet(
           getBillOfMaterialsComponentsUrl(
@@ -503,12 +530,32 @@ describe('BillOfMaterialsComponentsTile', () => {
           generateResponse([componentParametersList[0], componentParametersList[1], componentParametersList[2]])
         );
 
+      const requestCountBefore2 = axiosMock.history.get.length;
+
       fireEvent.click(sortByDisplayNameButton);
 
-      jest.advanceTimersByTime(JEST_TIMER);
-      jest.useRealTimers();
+      // Wait for the API request to be made
+      await waitFor(() => {
+        expect(axiosMock.history.get.length).toBeGreaterThan(requestCountBefore2);
+      });
 
+      // Wait for Loading to disappear
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      // Wait for the sorted data to appear - descending sort should have 'malice' first (not 'alice')
+      await waitFor(
+        () => {
+          const rows = screen.queryAllByRole('row');
+          if (rows.length !== 4) return false;
+          const firstDataRow = rows[1];
+          const cells = within(firstDataRow).queryAllByRole('cell');
+          // Check that we have cells and the first data row now has 'malice' (not 'alice')
+          const hasMalice = cells.length > 1 && cells[1]?.textContent?.includes('malice');
+          const notAlice = cells.length > 1 && !cells[1]?.textContent?.includes('alice');
+          return hasMalice && notAlice;
+        },
+        { timeout: 5000 }
+      );
 
       tableRows = await screen.findAllByRole('row');
       firstRow = tableRows[1];

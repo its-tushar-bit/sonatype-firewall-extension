@@ -64,12 +64,12 @@ const MoveOwnerModal = () => {
   const moveApplication = () => dispatch(actions.moveApplication(selectedOrganization));
   const doLoad = () => dispatch(actions.loadAvailableToMoveOrganizations(selectedOwner.id));
 
-  const onChange = (event) => {
+  const onChange = (value) => {
     dispatch(
       actions.setOrganization({
         movedApplicationId: isApp ? selectedOwner.id : null,
         movedOrganizationId: isApp ? null : selectedOwner.id,
-        targetParentOrganizationId: event.target.value,
+        targetParentOrganizationId: value,
         currentParentOrganizationId: isApp ? selectedOwner.organizationId : selectedOwner.parentOrganizationId,
       })
     );

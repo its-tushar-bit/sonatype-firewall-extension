@@ -20,7 +20,7 @@ import { capitalize } from 'MainRoot/util/jsUtil';
 
 export default function ThreatDropdownSelector({
   threatLevel,
-  onSelectThreatLevel,
+  onSelectThreatLevel = () => {},
   className,
   excludeThreatLevelZero = false,
   ...props
@@ -72,10 +72,6 @@ export default function ThreatDropdownSelector({
 
 const getThreatLevelsExcludingZero = () => {
   return allThreatLevelNumbers.filter((level) => level !== 0);
-};
-
-ThreatDropdownSelector.defaultProps = {
-  onSelectThreatLevel: () => {},
 };
 
 ThreatDropdownSelector.propTypes = {

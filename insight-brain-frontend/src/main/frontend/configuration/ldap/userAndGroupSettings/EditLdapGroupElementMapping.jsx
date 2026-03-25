@@ -59,7 +59,12 @@ export default function EditLdapGroupElementMapping({
         <Fragment>
           <div className="nx-form-row">
             <NxFormGroup label="Base DN">
-              <NxTextInput {...groupBaseDN} onChange={setGroupBaseDN} id="ldap-group-base-dn" maxLength="255" />
+              <NxTextInput
+                {...groupBaseDN}
+                onChange={setGroupBaseDN}
+                id="ldap-group-base-dn"
+                inputAttributes={{ maxLength: '255' }}
+              />
             </NxFormGroup>
             <NxToggle
               id="ldap-group-subtree"
@@ -78,7 +83,7 @@ export default function EditLdapGroupElementMapping({
                 id="ldap-group-object-class"
                 validatable={true}
                 aria-required={isStaticGroupType}
-                maxLength="255"
+                inputAttributes={{ maxLength: '255' }}
               />
             </NxFormGroup>
             <NxFormGroup label="Group ID Attribute" isRequired={isStaticGroupType}>
@@ -88,7 +93,7 @@ export default function EditLdapGroupElementMapping({
                 id="ldap-group-id-attribute"
                 validatable={true}
                 aria-required={isStaticGroupType}
-                maxLength="255"
+                inputAttributes={{ maxLength: '255' }}
               />
             </NxFormGroup>
           </div>
@@ -100,7 +105,7 @@ export default function EditLdapGroupElementMapping({
                 id="ldap-group-member-attribute"
                 validatable={true}
                 aria-required={isStaticGroupType}
-                maxLength="255"
+                inputAttributes={{ maxLength: '255' }}
               />
             </NxFormGroup>
             <NxFormGroup label="Group Member Format" isRequired={isStaticGroupType}>
@@ -110,7 +115,7 @@ export default function EditLdapGroupElementMapping({
                 id="ldap-group-member-format"
                 validatable={true}
                 aria-required={isStaticGroupType}
-                maxLength="255"
+                inputAttributes={{ maxLength: '255' }}
               />
             </NxFormGroup>
           </div>
@@ -125,7 +130,7 @@ export default function EditLdapGroupElementMapping({
               id="ldap-user-member-of-group-attribute"
               validatable={true}
               aria-required={isDynamicGroupType}
-              maxLength="255"
+              inputAttributes={{ maxLength: '255' }}
             />
           </NxFormGroup>
           <NxToggle

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, axiosMockAdapter, fireEvent, within } from 'TestRoot/SpecUtil';
+import { render, screen, axiosMockAdapter, fireEvent, within, waitFor, act } from 'TestRoot/SpecUtil';
 import { getAppIntegrationsAndRisk } from 'MainRoot/util/CLMLocation';
 import AppIntegrationsAndRiskTable from 'MainRoot/development/developmentDashboard/sections/AppIntegrationsAndRiskTable/AppIntegrationsAndRiskTable';
 import { map, range } from 'ramda';
@@ -122,6 +122,11 @@ describe('AppIntegrationsAndRiskTable', () => {
 
       expect(await screen.findByRole('table')).toBeInTheDocument();
 
+      // Wait for the data to load by looking for specific content
+      await waitFor(() => {
+        expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+      });
+
       const rows = await screen.findAllByRole('row');
       expect(rows.length).toBe(3);
 
@@ -192,7 +197,7 @@ describe('AppIntegrationsAndRiskTable', () => {
     });
 
     it('change data on the table', async () => {
-      axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
+      axiosMock.onGet(getAppIntegrationsAndRisk()).replyOnce(200, {
         results: createAppArrayWithLength(10),
         total: 50,
         page: 1,
@@ -202,6 +207,11 @@ describe('AppIntegrationsAndRiskTable', () => {
 
       render(<AppIntegrationsAndRiskTable />);
 
+      // Wait for initial data to load
+      await waitFor(() => {
+        expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+      });
+
       const paginationBtnBar = await screen.findByRole('navigation');
       const nextPageBtn = await within(paginationBtnBar).findByRole('button', { name: 'goto next page' });
       let rows = await screen.findAllByRole('row');
@@ -209,9 +219,8 @@ describe('AppIntegrationsAndRiskTable', () => {
       expect(rows.length).toBe(12);
       expect(within(rows[2]).getAllByRole('cell')[0]).toHaveTextContent('App0');
 
-      axiosMock.reset();
-
-      axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
+      // Setup mock for page 2
+      axiosMock.onGet(getAppIntegrationsAndRisk()).replyOnce(200, {
         results: createAppArrayWithLength(10, 20),
         total: 50,
         page: 2,
@@ -219,14 +228,32 @@ describe('AppIntegrationsAndRiskTable', () => {
         pageCount: 5,
       });
 
+      // Temporarily use real timers for the async request
+      jest.useRealTimers();
+
       fireEvent.click(nextPageBtn);
 
-      expect(await screen.findByRole('table')).toBeInTheDocument();
-      rows = await screen.findAllByRole('row');
+      // Wait for page 2 data to load - check for specific row content change
+      await waitFor(
+        () => {
+          const rows = screen.queryAllByRole('row');
+          if (rows.length < 3) return false;
+          const firstDataRow = rows[2];
+          const cells = within(firstDataRow).queryAllByRole('cell');
+          if (cells.length === 0) return false;
+          const appNameCell = cells[0];
+          return appNameCell.textContent === 'App20';
+        },
+        { timeout: 5000 }
+      );
 
+      // Restore fake timers for subsequent tests
+      jest.useFakeTimers();
+
+      rows = await screen.findAllByRole('row');
       expect(rows.length).toBe(12);
       expect(within(rows[2]).getAllByRole('cell')[0]).toHaveTextContent('App20');
-      expect(within(rows[2]).getAllByRole('cell')[4]).toHaveTextContent('20');
+      expect(within(rows[2]).getAllByRole('cell')[4]).toHaveTextContent('January 21, 2023');
     });
   });
 
@@ -245,6 +272,11 @@ describe('AppIntegrationsAndRiskTable', () => {
       render(<AppIntegrationsAndRiskTable />);
 
       expect(await screen.findByRole('table')).toBeInTheDocument();
+
+      // Wait for initial data to load
+      await waitFor(() => {
+        expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+      });
 
       let rows = await screen.findAllByRole('row');
       expect(rows.length).toBe(totalDataRows + 2); //10 data rows, 1 filter row and 1 header
@@ -270,9 +302,24 @@ describe('AppIntegrationsAndRiskTable', () => {
         pageCount: 1,
       });
 
+      // Temporarily use real timers for the async request
+      jest.useRealTimers();
+
       fireEvent.click(applicationsHeader);
 
-      expect(await screen.findByRole('table')).toBeInTheDocument();
+      // Wait for the API call to complete and sorted data to appear
+      await waitFor(() => {
+        expect(axiosMock.history.get.length).toBe(1);
+      });
+
+      // Wait for the aria-sort to change indicating sort is complete
+      await waitFor(() => {
+        const header = screen.getByRole('columnheader', { name: /applications/i });
+        expect(header).toHaveAttribute('aria-sort', 'ascending');
+      });
+
+      // Restore fake timers for subsequent tests
+      jest.useFakeTimers();
 
       expect(axiosMock.history.get[0].params).toEqual({
         optionalFilterApplicationNamesBy: '',
@@ -310,6 +357,11 @@ describe('AppIntegrationsAndRiskTable', () => {
 
       expect(await screen.findByRole('table')).toBeInTheDocument();
 
+      // Wait for initial data to load
+      await waitFor(() => {
+        expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+      });
+
       let rows = await screen.findAllByRole('row');
       expect(rows.length).toBe(totalDataRows + 2); //10 data rows, 1 filter row and 1 header
 
@@ -339,9 +391,19 @@ describe('AppIntegrationsAndRiskTable', () => {
         pageCount: 1,
       });
 
+      // Temporarily use real timers for the async request
+      jest.useRealTimers();
+
       fireEvent.click(lastCommitHeader);
 
-      expect(await screen.findByRole('table')).toBeInTheDocument();
+      // Wait for sorted data to appear by checking aria-sort attribute changes
+      await waitFor(() => {
+        const header = screen.getByRole('columnheader', { name: /last commit/i });
+        expect(header).toHaveAttribute('aria-sort', 'ascending');
+      });
+
+      // Restore fake timers for subsequent tests
+      jest.useFakeTimers();
 
       expect(axiosMock.history.get[0].params).toEqual({
         optionalFilterApplicationNamesBy: '',
@@ -386,6 +448,11 @@ describe('AppIntegrationsAndRiskTable', () => {
 
       expect(await screen.findByRole('table')).toBeInTheDocument();
 
+      // Wait for initial data to load
+      await waitFor(() => {
+        expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+      });
+
       let rows = await screen.findAllByRole('row');
       expect(rows.length).toBe(totalDataRows + 2); //10 data rows, 1 filter row and 1 header
 
@@ -414,9 +481,19 @@ describe('AppIntegrationsAndRiskTable', () => {
         pageCount: 1,
       });
 
+      // Temporarily use real timers for the async request
+      jest.useRealTimers();
+
       fireEvent.click(lastEvaluationHeader);
 
-      expect(await screen.findByRole('table')).toBeInTheDocument();
+      // Wait for sorted data to appear by checking aria-sort attribute changes
+      await waitFor(() => {
+        const header = screen.getByRole('columnheader', { name: /last evaluation/i });
+        expect(header).toHaveAttribute('aria-sort', 'ascending');
+      });
+
+      // Restore fake timers for subsequent tests
+      jest.useFakeTimers();
 
       expect(axiosMock.history.get[0].params).toEqual({
         optionalFilterApplicationNamesBy: '',
@@ -463,6 +540,11 @@ describe('AppIntegrationsAndRiskTable', () => {
 
       expect(await screen.findByRole('table')).toBeInTheDocument();
 
+      // Wait for initial data to load
+      await waitFor(() => {
+        expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+      });
+
       let rows = await screen.findAllByRole('row');
 
       expect(rows.length).toBe(totalDataRows + 2); //10 data rows, 1 filter row and 1 header
@@ -502,6 +584,11 @@ describe('AppIntegrationsAndRiskTable', () => {
     render(<AppIntegrationsAndRiskTable />);
     expect(await screen.findByRole('table')).toBeInTheDocument();
 
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+    });
+
     let rows = await screen.findAllByRole('row');
     expect(rows.length).toBe(totalDataRows + 2); //10 data rows, 1 filter row and 1 header
 
@@ -524,10 +611,17 @@ describe('AppIntegrationsAndRiskTable', () => {
     render(<AppIntegrationsAndRiskTable />);
     expect(await screen.findByRole('table')).toBeInTheDocument();
 
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+    });
+
     let rows = await screen.findAllByRole('row');
     for (let i = 0; i < totalDataRows; i++) {
-      expect(within(rows[i + 2]).queryAllByRole('cell', { name: NxFontAwesomeIcon.name })[0]).toBeInTheDocument();
-      expect(within(rows[i + 2]).queryAllByRole('cell', { name: NxFontAwesomeIcon.name })[1]).toBeInTheDocument();
+      const cells = within(rows[i + 2]).getAllByRole('cell');
+      // CI/CD column (index 1) and SCM Feedback column (index 2) should have icons
+      expect(within(cells[1]).getByRole('img', { hidden: true })).toBeInTheDocument();
+      expect(within(cells[2]).getByRole('img', { hidden: true })).toBeInTheDocument();
     }
   });
 
@@ -544,6 +638,11 @@ describe('AppIntegrationsAndRiskTable', () => {
       });
       render(<AppIntegrationsAndRiskTable />);
       expect(await screen.findByRole('table')).toBeInTheDocument();
+
+      // Wait for data to load
+      await waitFor(() => {
+        expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+      });
 
       let rows = await screen.findAllByRole('row');
       for (let i = 0; i < totalDataRows; i++) {
@@ -575,6 +674,11 @@ describe('AppIntegrationsAndRiskTable', () => {
 
       render(<AppIntegrationsAndRiskTable />);
       expect(await screen.findByRole('table')).toBeInTheDocument();
+
+      // Wait for data to load
+      await waitFor(() => {
+        expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+      });
 
       let rows = await screen.findAllByRole('row');
       for (let i = 0; i < totalDataRows; i++) {
@@ -628,6 +732,11 @@ describe('AppIntegrationsAndRiskTable', () => {
     render(<AppIntegrationsAndRiskTable />);
 
     expect(await screen.findByRole('table')).toBeInTheDocument();
+
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+    });
 
     const rows = await screen.findAllByRole('row');
     const appNameCell = within(rows[2]).getAllByRole('cell')[0];

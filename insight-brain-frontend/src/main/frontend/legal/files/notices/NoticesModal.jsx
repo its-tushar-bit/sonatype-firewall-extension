@@ -143,11 +143,11 @@ export default function NoticesModal(props) {
     return mainSubmitMaskState && obligationSubmitMaskState;
   };
 
-  const setObligationScopeIfNeeded = (event) => {
+  const setObligationScopeIfNeeded = (value) => {
     if (existingObligation && existingObligation.status !== existingObligation.originalStatus) {
       setObligationScope({
         name: existingObligation.name,
-        value: event.target.value,
+        value,
       });
     }
   };
@@ -233,9 +233,9 @@ export default function NoticesModal(props) {
               id="edit-notice-scope-selection"
               className="nx-form-select--long"
               value={scope}
-              onChange={(payload) => {
-                setNoticesScope(payload.currentTarget.value);
-                setObligationScopeIfNeeded(payload);
+              onChange={(value) => {
+                setNoticesScope(value);
+                setObligationScopeIfNeeded(value);
               }}
             >
               {availableScopes.values.map(createScopeOption)}

@@ -6,7 +6,8 @@
 
 import axios from 'axios';
 import { head as first, path } from 'ramda';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 import { next, prev, steps, updateRepositories } from './firewallOnboardingUtils';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';

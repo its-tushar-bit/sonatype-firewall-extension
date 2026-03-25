@@ -6,7 +6,8 @@
 
 import axios from 'axios';
 import { isNil, keys, propEq } from 'ramda';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 import { getCreatePullRequestUrl, getPrioritiesPageTableData, getVersionGraphUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';

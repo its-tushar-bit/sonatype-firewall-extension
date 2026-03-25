@@ -5,7 +5,8 @@
  */
 
 import axios from 'axios';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 import { always } from 'ramda';
 import { selectCreatePRModal } from 'MainRoot/manualPullRequest/createPRModalSelectors';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';

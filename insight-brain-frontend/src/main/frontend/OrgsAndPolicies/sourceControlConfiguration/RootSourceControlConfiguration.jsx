@@ -56,7 +56,7 @@ const RootSourceControlConfiguration = () => {
   const doLoad = () => dispatch(actions.load());
   const save = () => dispatch(actions.save());
   const showResetModal = () => dispatch(actions.showResetModal());
-  const onChangeProvider = (event) => dispatch(actions.setProvider(event.target.value));
+  const onChangeProvider = (value) => dispatch(actions.setProvider(value));
   const onChangeUsername = (val) => dispatch(actions.setUsername(val));
   const onChangeToken = (val) => dispatch(actions.setToken(val));
   const onChangeBranch = (val) => dispatch(actions.setBaseBranch(val));
@@ -220,7 +220,7 @@ const RootSourceControlConfiguration = () => {
                 {...sourceControl?.username.rscValue}
                 disabled={!sourceControl?.provider.rscValue.value}
                 validatable
-                autoComplete="off"
+                inputAttributes={{ autoComplete: 'off' }}
               />
             </NxFormGroup>
           )}
@@ -231,7 +231,7 @@ const RootSourceControlConfiguration = () => {
               {...sourceControl?.token.rscValue}
               disabled={!sourceControl?.provider.rscValue.value}
               type="password"
-              autoComplete="new-password"
+              inputAttributes={{ autoComplete: 'new-password' }}
               validatable
             />
           </NxFormGroup>
@@ -246,7 +246,7 @@ const RootSourceControlConfiguration = () => {
             {...sourceControl?.username.rscValue}
             disabled={!sourceControl?.provider.rscValue.value}
             validatable
-            autoComplete="off"
+            inputAttributes={{ autoComplete: 'off' }}
           />
         </NxFormGroup>
       )}

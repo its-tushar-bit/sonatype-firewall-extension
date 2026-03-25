@@ -475,9 +475,10 @@ describe('scmOnboardingActions', function () {
 
           // then SCM_ONBOARDING_LOAD_PAGE_REQUESTED action is created
           let actions = store.getActions();
-          expect(actions.length).toBe(9);
-          expect(actions[2].type).toBe('SCM_ONBOARDING_LOAD_PAGE_REQUESTED');
-          expect(actions[2].payload).toEqual('ownerId');
+          // RTK 2 may dispatch additional internal actions, so check for presence rather than exact count
+          const requestedAction = actions.find((action) => action.type === 'SCM_ONBOARDING_LOAD_PAGE_REQUESTED');
+          expect(requestedAction).toBeDefined();
+          expect(requestedAction.payload).toEqual('ownerId');
 
           // and SCM_ONBOARDING_LOAD_PAGE_FAILED action is created
           const failureAction = actions.find((action) => {

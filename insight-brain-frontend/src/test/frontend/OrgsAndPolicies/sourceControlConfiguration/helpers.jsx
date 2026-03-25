@@ -32,8 +32,13 @@ export const testSourceControlContainers = async (assertionResults) => {
         const radio = within(sectionContainer).queryAllByRole('radio');
         expect(radio.length).toBe(0);
       }
-      const tokenInput = within(sectionContainer)[section.tokenQuery]('token-input');
-      const usernameInput = within(sectionContainer)[section.usernameQuery]('username-input');
+      const tokenInputWrapper = within(sectionContainer)[section.tokenQuery]('token-input');
+      const usernameInputWrapper = within(sectionContainer)[section.usernameQuery]('username-input');
+
+      // Token input is type="password", not textbox role, so use querySelector
+      const tokenInput = tokenInputWrapper ? tokenInputWrapper.querySelector('input') : null;
+      const usernameInput = usernameInputWrapper ? usernameInputWrapper.querySelector('input') : null;
+
       section.tokenAssertions.forEach((assertion) => {
         applyAssertion({ ...assertion, element: tokenInput });
       });

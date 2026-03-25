@@ -6,7 +6,8 @@
 import axios from 'axios';
 import { debounce } from 'debounce';
 import { any, always, propEq } from 'ramda';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 import { NX_STANDARD_DEBOUNCE_TIME } from '@sonatype/react-shared-components';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet, isNilOrEmpty } from 'MainRoot/util/jsUtil';

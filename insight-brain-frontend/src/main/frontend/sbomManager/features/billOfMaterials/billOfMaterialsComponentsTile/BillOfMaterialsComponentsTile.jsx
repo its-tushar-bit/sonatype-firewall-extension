@@ -79,10 +79,10 @@ const ComponentsTileComponentSearch = ({ onSearch }) => {
     <div className="bill-of-materials-components-tile-search">
       <NxFontAwesomeIcon icon={faSearch} />
       <NxStatefulTextInput
-        aria-label="Component Search"
         id="component-search"
         placeholder="Search by component or license"
         onChange={handleOnChange}
+        inputAttributes={{ 'aria-label': 'Component Search' }}
       />
     </div>
   );

@@ -32,7 +32,12 @@ export default function EditLdapUserElementMapping({
       </header>
       <div className="nx-form-row">
         <NxFormGroup label="Base DN">
-          <NxTextInput {...userBaseDN} onChange={setUserBaseDN} id="ldap-user-base-dn" maxLength="255" />
+          <NxTextInput
+            {...userBaseDN}
+            onChange={setUserBaseDN}
+            id="ldap-user-base-dn"
+            inputAttributes={{ maxLength: '255' }}
+          />
         </NxFormGroup>
         <NxToggle
           id="ldap-user-subtree"
@@ -51,11 +56,16 @@ export default function EditLdapUserElementMapping({
             id="ldap-user-object-class"
             validatable={true}
             aria-required={true}
-            maxLength="255"
+            inputAttributes={{ maxLength: '255' }}
           />
         </NxFormGroup>
         <NxFormGroup label="User Filter">
-          <NxTextInput {...userFilter} onChange={setUserFilter} id="ldap-user-filter" maxLength="255" />
+          <NxTextInput
+            {...userFilter}
+            onChange={setUserFilter}
+            id="ldap-user-filter"
+            inputAttributes={{ maxLength: '255' }}
+          />
         </NxFormGroup>
       </div>
       <div className="nx-form-row">
@@ -66,7 +76,7 @@ export default function EditLdapUserElementMapping({
             id="ldap-user-id-attribute"
             validatable={true}
             aria-required={true}
-            maxLength="255"
+            inputAttributes={{ maxLength: '255' }}
           />
         </NxFormGroup>
         <NxFormGroup label="Real Name Attribute" isRequired>
@@ -76,7 +86,7 @@ export default function EditLdapUserElementMapping({
             id="ldap-user-real-name-attribute"
             validatable={true}
             aria-required={true}
-            maxLength="255"
+            inputAttributes={{ maxLength: '255' }}
           />
         </NxFormGroup>
       </div>
@@ -88,17 +98,16 @@ export default function EditLdapUserElementMapping({
             id="ldap-user-email-attribute"
             validatable={true}
             aria-required={true}
-            maxLength="255"
+            inputAttributes={{ maxLength: '255' }}
           />
         </NxFormGroup>
         <NxFormGroup label="Password Attribute">
           <NxTextInput
             {...userPasswordAttribute}
             type="password"
-            autoComplete="new-password"
             onChange={setUserPasswordAttribute}
             id="ldap-user-password-attribute"
-            maxLength="255"
+            inputAttributes={{ autoComplete: 'new-password', maxLength: '255' }}
           />
         </NxFormGroup>
       </div>

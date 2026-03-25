@@ -131,9 +131,8 @@ export default function AccessPage() {
     } Added`;
   };
 
-  const selectAvailableRole = (event) => {
-    const roleId = event.target.value;
-    dispatch(actions.setRole(roleId));
+  const selectAvailableRole = (value) => {
+    dispatch(actions.setRole(value));
   };
 
   const addGroup = () => {

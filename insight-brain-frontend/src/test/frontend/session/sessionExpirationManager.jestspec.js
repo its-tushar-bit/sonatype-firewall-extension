@@ -7,6 +7,7 @@
 import Cookies from 'js-cookie';
 import { sessionExpired, checkSessionExpiredLater, setServerDate } from 'MainRoot/session/sessionExpirationManager';
 import { render, screen } from 'TestRoot/SpecUtil';
+import { act } from '@testing-library/react';
 import LogoutWarningModal from 'MainRoot/modals/logoutWarningModal/LogoutWarningModal';
 import React from 'react';
 
@@ -106,7 +107,7 @@ describe('sessionExpirationManager', () => {
       Cookies.remove('IQ-SESSION-EXPIRATION-TIMESTAMP');
     });
 
-    it('should check session expiration periodically and show the logout warning when needed', () => {
+    it('should check session expiration periodically and show the logout warning when needed', async () => {
       const { store } = renderComponent();
       Cookies.set('IQ-SESSION-EXPIRATION-TIMESTAMP', Date.now() + 5 * 60 * 1000);
 
@@ -116,7 +117,9 @@ describe('sessionExpirationManager', () => {
 
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
-      jest.advanceTimersByTime(3 * 60 * 1000);
+      await act(async () => {
+        jest.advanceTimersByTime(3 * 60 * 1000);
+      });
 
       expect(screen.getByRole('dialog')).toBeVisible();
       expect(screen.getByText('Session Timeout Warning')).toBeVisible();
@@ -145,7 +148,7 @@ describe('sessionExpirationManager', () => {
       jest.useRealTimers();
     });
 
-    it('should set the server date difference', () => {
+    it('should set the server date difference', async () => {
       const { store } = renderComponent();
       const date = new Date();
       jest.setSystemTime(date);
@@ -164,7 +167,9 @@ describe('sessionExpirationManager', () => {
 
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
-      jest.advanceTimersByTime(3 * 60 * 1000);
+      await act(async () => {
+        jest.advanceTimersByTime(3 * 60 * 1000);
+      });
 
       expect(screen.getByRole('dialog')).toBeVisible();
       expect(screen.getByText('Session Timeout Warning')).toBeVisible();

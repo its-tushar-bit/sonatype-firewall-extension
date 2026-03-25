@@ -5,7 +5,8 @@
  */
 import axios from 'axios';
 import { prop, curryN, isEmpty, isNil, any, reject, propEq, find, findIndex, equals } from 'ramda';
-import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
+import { createAsyncThunk, unwrapResult } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 import { nxTextInputStateHelpers, combineValidationErrors } from '@sonatype/react-shared-components';
 import { selectRouterSlice, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { Messages } from 'MainRoot/util/CommonServices';

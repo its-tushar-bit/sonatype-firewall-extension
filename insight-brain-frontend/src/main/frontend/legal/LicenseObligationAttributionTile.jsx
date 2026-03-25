@@ -99,11 +99,11 @@ export default function LicenseObligationAttributionTile(props) {
     return mainSubmitMaskState && obligationSubmitMaskState;
   };
 
-  const setObligationScopeIfNeeded = (event) => {
+  const setObligationScopeIfNeeded = (value) => {
     if (existingObligation && existingObligation.status !== existingObligation.originalStatus) {
       setObligationScope({
         name: existingObligation.name,
-        value: event.target.value,
+        value,
       });
     }
   };
@@ -164,7 +164,7 @@ export default function LicenseObligationAttributionTile(props) {
               isRequired
             >
               <NxTextInput
-                maxLength="1000"
+                inputAttributes={{ maxLength: '1000' }}
                 type="textarea"
                 className="nx-text-input--full"
                 {...attributionTextInput}
@@ -182,12 +182,12 @@ export default function LicenseObligationAttributionTile(props) {
                 id="edit-attribution-scope-selection"
                 className="nx-form-select nx-form-select--long"
                 value={scope}
-                onChange={(payload) => {
+                onChange={(value) => {
                   setAttributionScope({
                     name,
-                    value: payload.currentTarget.value,
+                    value,
                   });
-                  setObligationScopeIfNeeded(payload);
+                  setObligationScopeIfNeeded(value);
                 }}
               >
                 {availableScopes.values.map(createScopeOption)}

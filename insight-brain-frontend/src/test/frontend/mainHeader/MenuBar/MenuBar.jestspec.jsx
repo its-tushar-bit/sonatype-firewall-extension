@@ -114,9 +114,9 @@ describe('MenuBar', () => {
 
       const link = screen.getByRole('link');
       expect(link).toHaveProperty('href', 'http://localhost/dashboard.overview.violations');
-      const logo = within(link).getAllByRole('img')[0];
+      const logo = within(link).getAllByRole('presentation')[0];
       expect(logo).toHaveAttribute('alt', '');
-      expect(logo).toHaveAttribute('src', '');
+      expect(logo).not.toHaveAttribute('src');
     });
 
     it('renders correct logo and homeHref for developer if hasRoutesResolved is true', () => {

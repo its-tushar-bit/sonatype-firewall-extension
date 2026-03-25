@@ -23,7 +23,8 @@ import {
   sortWith,
   reverse,
 } from 'ramda';
-import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
+import { createAsyncThunk, unwrapResult } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 import { nxTextInputStateHelpers, combineValidationErrors } from '@sonatype/react-shared-components';
 import {
   validateDuplicatedValue,

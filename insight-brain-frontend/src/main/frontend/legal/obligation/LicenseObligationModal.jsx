@@ -119,10 +119,10 @@ export default function LicenseObligationModal(props) {
             <NxFormSelect
               className="nx-form-select--long"
               value={licenseObligation.ownerId}
-              onChange={(payload) =>
+              onChange={(value) =>
                 setObligationScope({
                   name: licenseObligation.name,
-                  value: payload.currentTarget.value,
+                  value,
                 })
               }
             >

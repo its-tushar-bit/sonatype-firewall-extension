@@ -4,10 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 
 import App from './components/App';
 
 const uiView = document.getElementById('ui-view');
 
-ReactDOM.render(<App />, uiView);
+createRoot(uiView).render(<App />);

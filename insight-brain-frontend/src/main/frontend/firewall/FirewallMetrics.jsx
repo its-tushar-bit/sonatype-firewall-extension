@@ -67,11 +67,11 @@ export default function FirewallMetrics(props) {
     onSupplyChainAttacksBlockedLinkClick,
     onNamespaceAttacksBlockedLinkClick,
     onComponentsQuarantinedLinkClick,
-    onViewWaivedComponentsClick,
   } = props;
 
   const uiRouterState = useRouterState();
   const componentsAutoReleasedLink = uiRouterState.href('firewall.firewallAutoUnquarantinePage');
+  const waivedComponentsLink = uiRouterState.href('firewall.firewallPage.components.waivers');
 
   return (
     <NxTile id="firewall-metrics" className="nx-grid iq-firewall-metrics">
@@ -136,9 +136,8 @@ export default function FirewallMetrics(props) {
             tooltipTitle="Firewall has waived the failing policy violations for these components."
             value={waivedComponents}
             valueLabel="Last 12 months"
-            link="#"
+            link={waivedComponentsLink}
             linkLabel="View waived components"
-            onLinkButtonClick={onViewWaivedComponentsClick}
           />
         </NxGrid.Column>
       </NxGrid.Row>
@@ -159,6 +158,4 @@ FirewallMetrics.propTypes = {
   onSupplyChainAttacksBlockedLinkClick: PropTypes.func.isRequired,
   onNamespaceAttacksBlockedLinkClick: PropTypes.func.isRequired,
   onComponentsQuarantinedLinkClick: PropTypes.func.isRequired,
-
-  onViewWaivedComponentsClick: PropTypes.func.isRequired,
 };

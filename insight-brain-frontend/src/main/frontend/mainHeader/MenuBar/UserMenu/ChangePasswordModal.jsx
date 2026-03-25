@@ -64,7 +64,7 @@ export const ChangePasswordModal = ({ onClose, onChangePassword, changePasswordE
               {...password}
               id="original-password"
               type="password"
-              name="password"
+              inputAttributes={{ name: 'password' }}
               validatable
               onChange={(value) => setPassword(userInput(validateNonEmpty, value))}
             />
@@ -75,7 +75,7 @@ export const ChangePasswordModal = ({ onClose, onChangePassword, changePasswordE
               {...newPassword}
               id="new-password"
               type="password"
-              name="new-password"
+              inputAttributes={{ name: 'new-password' }}
               validatable
               onChange={(value) => setNewPassword(userInput(validateNonEmpty, value))}
             />
@@ -85,7 +85,7 @@ export const ChangePasswordModal = ({ onClose, onChangePassword, changePasswordE
               {...confirmPassword}
               id="confirm-password"
               type="password"
-              name="confirm-password"
+              inputAttributes={{ name: 'confirm-password' }}
               validatable
               validationErrors={validateNonEmpty(confirmPassword.value) || mismatchError}
               onChange={(value) => setConfirmPassword(userInput(null, value))}

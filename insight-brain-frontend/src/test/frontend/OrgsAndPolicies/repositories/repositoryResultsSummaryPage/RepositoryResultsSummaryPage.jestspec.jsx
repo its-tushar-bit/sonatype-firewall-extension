@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { render, screen, setupPortalContainer } from 'TestRoot/SpecUtil';
+import { render, screen, setupPortalContainer, waitFor } from 'TestRoot/SpecUtil';
 import { fireEvent } from '@testing-library/react';
 import * as repositoriesResultsSummaryPageSelectors from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSelectors';
 import RepositoryResultsSummaryPage from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/RepositoryResultsSummaryPage';
@@ -102,7 +102,7 @@ describe('RepositoryResultsSummaryPage', () => {
       expect(screen.getByTestId('iq-repository-summary-table')).toBeInTheDocument();
     });
 
-    it('renders filter popover', () => {
+    it('renders filter popover', async () => {
       renderComponent();
       const filterButton = screen.getByRole('button', { name: 'Filter' });
 
@@ -125,10 +125,11 @@ describe('RepositoryResultsSummaryPage', () => {
 
       const closeDrawerButton = screen.getByRole('button', { name: /Close/i });
       closeDrawerButton.click();
+
       const drawerAfterClose = screen.getByRole('dialog');
       fireEvent.animationEnd(drawerAfterClose);
 
-      expect(drawerAfterClose).not.toBeVisible();
+      await waitFor(() => expect(drawerAfterClose).not.toBeVisible());
     });
 
     it('aggregates components', () => {

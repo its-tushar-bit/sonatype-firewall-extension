@@ -73,9 +73,9 @@ public class RepositoryConfigurationTile
     public static class ConfigurationTableRow
         extends BasicElement<ConfigurationTableRow>
     {
-      public static final WebElementCondition ENABLED_ICON = cssClass("fa-check-circle");
+      public static final WebElementCondition ENABLED_ICON = cssClass("fa-circle-check");
 
-      public static final WebElementCondition DISABLED_ICON = cssClass("fa-times-circle");
+      public static final WebElementCondition DISABLED_ICON = cssClass("fa-circle-xmark");
 
       public ConfigurationTableRow(String... selectors) {
         super(selectors);

@@ -114,9 +114,9 @@ export default function OriginalBomViewer({ internalAppId, sbomVersion, componen
             value={searchValue}
             onChange={handleSearchChange}
             placeholder="Search"
-            aria-label="Search SBOM components and attributes"
             aria-describedby={debouncedSearchValue ? 'search-results-count' : undefined}
             className="iq-original-bom-viewer__search-input"
+            inputAttributes={{ 'aria-label': 'Search SBOM components and attributes' }}
           />
         </div>
 

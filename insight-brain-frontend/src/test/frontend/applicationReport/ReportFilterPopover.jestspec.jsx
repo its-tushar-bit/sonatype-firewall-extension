@@ -317,8 +317,11 @@ describe('ReportFilterPopover', () => {
 
       const policyThreat = screen.getAllByRole('list')[0];
       const policyThreatSliders = getAllByRole(policyThreat, 'slider');
-      expect(policyThreatSliders[0]).toHaveTextContent('0');
-      expect(policyThreatSliders[1]).toHaveTextContent('10');
+      expect(policyThreatSliders).toHaveLength(2);
+      expect(policyThreatSliders[0]).toHaveAttribute('aria-valuemin', '0');
+      expect(policyThreatSliders[1]).toHaveAttribute('aria-valuemax', '10');
+      expect(policyThreat).toHaveTextContent('0');
+      expect(policyThreat).toHaveTextContent('10');
     });
   });
 

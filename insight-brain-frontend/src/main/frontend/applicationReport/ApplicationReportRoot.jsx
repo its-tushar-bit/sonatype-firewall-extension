@@ -7,7 +7,7 @@ import React, { useEffect } from 'react';
 import { UIView } from '@uirouter/react';
 import { useDispatch } from 'react-redux';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { setReportParameters } from 'MainRoot/applicationReport/applicationReportActions';
+import { setReportParameters, loadReportIfNeeded } from 'MainRoot/applicationReport/applicationReportActions';
 
 export default function ApplicationReportRoot() {
   const dispatch = useDispatch();
@@ -34,18 +34,21 @@ export default function ApplicationReportRoot() {
   // (e.g. by memoizing the subtree or removing the useSelector from PageLayout).
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    dispatch(
-      setReportParameters(
-        params.publicId,
-        params.scanId,
-        !!params.unknownjs,
-        !!params.embeddable,
-        params.policyViolationId,
-        params.componentHash,
-        params.tabId,
-        true
-      )
-    );
+    if (params.publicId && params.scanId) {
+      dispatch(
+        setReportParameters(
+          params.publicId,
+          params.scanId,
+          !!params.unknownjs,
+          !!params.embeddable,
+          params.policyViolationId,
+          params.componentHash,
+          params.tabId,
+          true
+        )
+      );
+      dispatch(loadReportIfNeeded());
+    }
   }, [dispatch, params.publicId, params.scanId]);
 
   return <UIView />;

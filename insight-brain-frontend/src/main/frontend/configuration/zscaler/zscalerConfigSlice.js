@@ -6,7 +6,8 @@
 import axios from 'axios';
 import { nxTextInputStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { any, compose, curryN, equals, map, pick, prop, values, keys, filter, fromPairs } from 'ramda';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 
 import { hasValidationErrors, validateNonEmpty } from '../../util/validationUtil';
 import { validateZScalerHostName } from './utils/validators';

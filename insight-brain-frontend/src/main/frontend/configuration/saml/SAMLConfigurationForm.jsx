@@ -67,10 +67,7 @@ export default function SAMLConfigurationForm({
   );
 
   const getFormSelect = (name) => (
-    <NxFormSelect
-      value={configurationValues[name]}
-      onChange={(event) => onChangeSelect(event.currentTarget.value, name)}
-    >
+    <NxFormSelect value={configurationValues[name]} onChange={(value) => onChangeSelect(value, name)}>
       <option key="Default" value={'null'}>
         Default
       </option>
@@ -168,7 +165,7 @@ export default function SAMLConfigurationForm({
               id="saml-identity-provider-name"
               isRequired
             >
-              {getTextInput('identityProviderName', { maxLength: '200' })}
+              {getTextInput('identityProviderName', { inputAttributes: { maxLength: '200' } })}
             </NxFormGroup>
           </NxTooltip>
 
@@ -199,7 +196,7 @@ export default function SAMLConfigurationForm({
             <NxTextInput
               className="nx-text-input--long"
               id="saml-identity-provider-metadata-xml"
-              name="identityProviderMetadataXml"
+              inputAttributes={{ name: 'identityProviderMetadataXml' }}
               type="textarea"
               {...getInputTextProps('identityProviderMetadataXml')}
             />

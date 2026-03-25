@@ -115,12 +115,12 @@ export default function WaiverConfigurationPage() {
     }
   }, [onlyUnknownViolations]);
 
-  const onReasonChange = (event) => {
-    setWaiverReasonId(event.currentTarget.value ?? '');
+  const onReasonChange = (value) => {
+    setWaiverReasonId(value ?? '');
   };
 
-  const onExpiryTimeChange = (event) => {
-    setExpiryTime(event.currentTarget.value);
+  const onExpiryTimeChange = (value) => {
+    setExpiryTime(value);
   };
 
   const onCommentsChange = (value) => {
@@ -296,7 +296,7 @@ export default function WaiverConfigurationPage() {
               <div className="iq-bulk-waiver-form__comments">
                 <NxTextInput
                   type="textarea"
-                  maxLength={1000}
+                  inputAttributes={{ maxLength: 1000 }}
                   value={comments}
                   onChange={onCommentsChange}
                   className="nx-text-input--full"

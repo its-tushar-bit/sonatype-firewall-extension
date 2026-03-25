@@ -16,7 +16,7 @@ export default function LdapServerNameForm({ setServerName, serverName, autoFocu
         validatable={true}
         id="serverName"
         aria-required={true}
-        autoFocus={autoFocus}
+        inputAttributes={{ autoFocus }}
       />
     </NxFormGroup>
   );

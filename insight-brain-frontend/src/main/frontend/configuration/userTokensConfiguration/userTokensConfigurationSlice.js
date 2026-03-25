@@ -7,7 +7,8 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS, nxTextInputStateHelpers } from '@s
 import { curryN, pick, prop } from 'ramda';
 import { pathSet } from 'MainRoot/util/jsUtil';
 import { Messages } from 'MainRoot/util/CommonServices';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import createSlice from 'MainRoot/reduxConfig/createSlice';
 import axios from 'axios';
 import { getUserTokenConfigurationUrl } from 'MainRoot/util/CLMLocation';
 import { propSetConst } from 'MainRoot/util/reduxToolkitUtil';

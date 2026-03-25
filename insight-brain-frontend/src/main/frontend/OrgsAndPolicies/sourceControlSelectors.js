@@ -10,6 +10,8 @@ import { selectOrgsAndPoliciesSlice, selectSelectedOwnerName } from './orgsAndPo
 import { selectIsOrganization, selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getProviderTypesMap } from 'MainRoot/util/sourceControlUtils';
 import { selectIsApplication } from '../reduxUiRouter/routerSelectors';
+import { AUTHENTICATION_TYPES } from './sourceControlConfiguration/utils';
+import { selectIsGithubAppAuthenticationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export const selectSourceControlSlice = createSelector(selectOrgsAndPoliciesSlice, prop('sourceControl'));
 
@@ -39,34 +41,161 @@ export const selectItemText = createSelector(
   }
 );
 
+const SOURCE_CONTROL_FIELDS = {
+  GITHUB_APP: 'githubApp',
+  INSTALLATION_ID: 'installationId',
+};
+
+const PROVIDER_AUTH_CONFIGS = {
+  github: {
+    appAuthType: AUTHENTICATION_TYPES.GITHUB_APP,
+    appFieldName: SOURCE_CONTROL_FIELDS.GITHUB_APP,
+    appIdField: SOURCE_CONTROL_FIELDS.INSTALLATION_ID,
+    authMethodLabel: 'GitHub App',
+  },
+};
+
+/**
+ * Checks if App-based authentication is configured locally at the current organization level.
+ *
+ * In the organization hierarchy, "local" refers to configuration set directly on the current
+ * organization (sourceControl.authenticationType.value), as opposed to configuration inherited
+ * from a parent organization (sourceControl.authenticationType.parentValue).
+ *
+ * @param {Object} sourceControl - The source control configuration object containing auth settings
+ * @param {string} effectiveProvider - The source control provider (e.g., 'github', 'gitlab', 'bitbucket')
+ * @param {boolean} isFeatureEnabled - Feature flag from selectIsGithubAppAuthenticationEnabled
+ *                                     that controls whether App authentication feature is enabled
+ * @returns {boolean} True if App authentication is configured locally with a valid installation ID
+ */
+const isLocalAppAuthConfigured = (sourceControl, effectiveProvider, isFeatureEnabled) => {
+  const providerConfig = PROVIDER_AUTH_CONFIGS[effectiveProvider];
+  if (!providerConfig || !isFeatureEnabled) {
+    return false;
+  }
+
+  const localAuthType = sourceControl?.authenticationType?.value;
+  const hasAppAuth = localAuthType === providerConfig.appAuthType;
+  const appData = sourceControl?.[providerConfig.appFieldName]?.value;
+  const hasAppId = Boolean(appData?.[providerConfig.appIdField]);
+
+  return hasAppAuth && hasAppId;
+};
+
+/**
+ * Checks if App-based authentication is being inherited from a parent organization.
+ *
+ * @param {Object} sourceControl - The source control configuration object containing auth settings
+ * @param {string} effectiveProvider - The source control provider (e.g., 'github', 'gitlab', 'bitbucket')
+ * @param {boolean} isFeatureEnabled - Feature flag from selectIsGithubAppAuthenticationEnabled
+ *                                     that controls whether App authentication feature is enabled
+ * @returns {boolean} True if parent organization has App authentication configured
+ */
+const isInheritingAppAuthFromParent = (sourceControl, effectiveProvider, isFeatureEnabled) => {
+  const providerConfig = PROVIDER_AUTH_CONFIGS[effectiveProvider];
+  if (!providerConfig || !isFeatureEnabled) {
+    return false;
+  }
+
+  const parentAuthType = sourceControl?.authenticationType?.parentValue;
+  return parentAuthType === providerConfig.appAuthType;
+};
+
+const getAuthMethodLabel = (effectiveProvider) => {
+  return PROVIDER_AUTH_CONFIGS[effectiveProvider]?.authMethodLabel || 'App';
+};
+
+const createMessages = (ownerName, providerSuffix, parentName, authMethodLabel) => ({
+  inheritAppAuth: () => `Inherit authentication method: ${authMethodLabel}`,
+  inheritAccessToken: () => `Inherit access token${providerSuffix}`,
+  inheritAccessTokenFrom: () => `Inherit access token from ${parentName}${providerSuffix}`,
+  providesAppAuth: () => `Provides default authentication method: ${authMethodLabel} for ${ownerName}${providerSuffix}`,
+  providesAccessToken: () => `Provides default access token for ${ownerName}${providerSuffix}`,
+});
+
+const AUTH_STATES = {
+  LOCAL_TOKEN_WITH_APP: 'LOCAL_TOKEN_WITH_APP',
+  LOCAL_TOKEN_PAT: 'LOCAL_TOKEN_PAT',
+  LOCAL_APP_NO_TOKEN: 'LOCAL_APP_NO_TOKEN',
+  INHERIT_APP: 'INHERIT_APP',
+  INHERIT_ORG_PROVIDER: 'INHERIT_ORG_PROVIDER',
+  INHERIT_KNOWN_PARENT: 'INHERIT_KNOWN_PARENT',
+  INHERIT_DEFAULT: 'INHERIT_DEFAULT',
+};
+
+const MESSAGE_TABLE = {
+  [AUTH_STATES.LOCAL_TOKEN_WITH_APP]: (messages) => messages.providesAppAuth(),
+  [AUTH_STATES.LOCAL_TOKEN_PAT]: (messages) => messages.providesAccessToken(),
+  [AUTH_STATES.LOCAL_APP_NO_TOKEN]: (messages) => messages.providesAppAuth(),
+  [AUTH_STATES.INHERIT_APP]: (messages) => messages.inheritAppAuth(),
+  [AUTH_STATES.INHERIT_ORG_PROVIDER]: (messages) => messages.inheritAccessToken(),
+  [AUTH_STATES.INHERIT_KNOWN_PARENT]: (messages) => messages.inheritAccessTokenFrom(),
+  [AUTH_STATES.INHERIT_DEFAULT]: (messages) => messages.inheritAccessToken(),
+};
+
+const determineAuthState = (authState) => {
+  const { hasLocalToken, hasLocalAppAuth, hasParentAppAuth, hasKnownParentToken, hasOrgProvider } = authState;
+
+  if (hasLocalToken && hasLocalAppAuth) return AUTH_STATES.LOCAL_TOKEN_WITH_APP;
+  if (hasLocalToken) return AUTH_STATES.LOCAL_TOKEN_PAT;
+  if (hasLocalAppAuth) return AUTH_STATES.LOCAL_APP_NO_TOKEN;
+  if (hasParentAppAuth) return AUTH_STATES.INHERIT_APP;
+  if (hasOrgProvider) return AUTH_STATES.INHERIT_ORG_PROVIDER;
+  if (hasKnownParentToken) return AUTH_STATES.INHERIT_KNOWN_PARENT;
+  return AUTH_STATES.INHERIT_DEFAULT;
+};
+
+const selectAuthenticationMessage = (authState, messages) => {
+  const state = determineAuthState(authState);
+  const messageGenerator = MESSAGE_TABLE[state];
+  return messageGenerator(messages);
+};
+
 export const selectItemSubText = createSelector(
   selectSourceControl,
   selectEffectiveProvider,
   selectIsRootOrganization,
   selectIsApplication,
   selectSelectedOwnerName,
-  (sourceControl, effectiveProvider, isRootOrg, isApp, ownerName) => {
-    let text,
-      token = sourceControl?.token.value,
-      parentValue = sourceControl?.token.parentValue,
-      parentName = sourceControl?.token.parentName,
-      orgProvider = sourceControl?.provider ? sourceControl?.provider.value : null,
-      provider = getProviderTypesMap()[effectiveProvider];
-
+  selectIsGithubAppAuthenticationEnabled,
+  (sourceControl, effectiveProvider, isRootOrg, isApp, ownerName, isGithubAppAuthenticationEnabled) => {
     if (!sourceControl || !effectiveProvider) {
-      text = 'Source Control not configured';
-    } else {
-      if (isRootOrg) {
-        text = 'Provides the default source control configuration settings';
-      } else if (!!orgProvider && !token) {
-        text = 'Inherit access token';
-      } else if (!token) {
-        text = `Inherit access token${parentValue ? ` from ${parentName}` : ''}${isApp ? ` (${provider})` : ''}`;
-      } else {
-        text = `Provides default access token for ${ownerName}${isApp ? ` (${provider})` : ''}`;
-      }
+      return 'Source Control not configured';
     }
-    return text;
+
+    if (isRootOrg) {
+      return 'Provides the default source control configuration settings';
+    }
+
+    const token = sourceControl?.token.value;
+    const parentValue = sourceControl?.token.parentValue;
+    const parentName = sourceControl?.token.parentName;
+    const orgProvider = sourceControl?.provider?.value;
+    const provider = getProviderTypesMap()[effectiveProvider];
+    const providerSuffix = isApp && provider ? ` (${provider})` : '';
+
+    const hasLocalAppAuth = isLocalAppAuthConfigured(
+      sourceControl,
+      effectiveProvider,
+      isGithubAppAuthenticationEnabled
+    );
+    const hasParentAppAuthConfigured = isInheritingAppAuthFromParent(
+      sourceControl,
+      effectiveProvider,
+      isGithubAppAuthenticationEnabled
+    );
+    const authMethodLabel = getAuthMethodLabel(effectiveProvider);
+    const messages = createMessages(ownerName, providerSuffix, parentName, authMethodLabel);
+
+    const authState = {
+      hasLocalToken: Boolean(token),
+      hasLocalAppAuth,
+      hasParentAppAuth: hasParentAppAuthConfigured,
+      hasKnownParentToken: Boolean(parentValue && parentName),
+      hasOrgProvider: Boolean(orgProvider),
+    };
+
+    return selectAuthenticationMessage(authState, messages);
   }
 );
 

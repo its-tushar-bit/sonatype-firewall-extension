@@ -143,7 +143,9 @@ const SourceControlConfiguration = () => {
         <NxLoadWrapper loading={isLoading} retryHandler={doLoad} error={loadError || loadSelectedOwnerError}>
           <>
             {isShowAccessTokenWarning && (
-              <NxWarningAlert id="source-control-token-warning">Access Token must be configured</NxWarningAlert>
+              <NxWarningAlert id="source-control-token-warning" data-testid="source-control-token-warning">
+                {isGitHubAppSupported ? 'Authentication method must be configured' : 'Access Token must be configured'}
+              </NxWarningAlert>
             )}
             {showGitHubAppReplacedAlert && (
               <NxSuccessAlert id="github-app-replaced-alert" onClose={handleCloseGitHubAppReplacedAlert}>

@@ -2313,5 +2313,57 @@ describe('sourceControlConfiguration', () => {
         expect(alert).not.toBeInTheDocument();
       });
     });
+
+    describe('Warning message for authentication method', () => {
+      it('shows "Authentication method must be configured" when GitHub App feature is enabled', async () => {
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...defaultAppConfigResponse,
+          provider: { value: 'github', parentValue: null, parentName: null },
+          token: { value: null, parentValue: null, parentName: null },
+        });
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        const warningAlert = screen.getByTestId('source-control-token-warning');
+        expect(warningAlert).toHaveTextContent('Authentication method must be configured');
+      });
+
+      it('shows "Access Token must be configured" when GitHub App feature is disabled', async () => {
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': false,
+            },
+          },
+        };
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...defaultAppConfigResponse,
+          provider: { value: 'github', parentValue: null, parentName: null },
+          token: { value: null, parentValue: null, parentName: null },
+        });
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        const warningAlert = screen.getByTestId('source-control-token-warning');
+        expect(warningAlert).toHaveTextContent('Access Token must be configured');
+      });
+    });
   });
 });

@@ -179,7 +179,7 @@ const setValue = (state, { payload: { property, val } }) => {
 const setIsInherited = (state, { payload: { property, val } }) => {
   state.sourceControl[property].isInherited = val;
 
-  // Sync provider inheritance to related fields for non-GitHub providers only
+  // Sync provider inheritance to related fields
   if (property === 'provider') {
     const effectiveProvider = val
       ? state.serverSourceControl?.provider?.parentValue?.value
@@ -191,6 +191,15 @@ const setIsInherited = (state, { payload: { property, val } }) => {
       state.sourceControl.githubApp.value = null;
       state.sourceControl.githubApp.isInherited = val;
     }
+
+    // Sync token and username inheritance with provider.
+    // When provider is overridden, inherited credentials from parent are
+    // incompatible with the new provider — mark them as overridden so the
+    // cross-provider validation check (selectValidationError) does not
+    // block save with a generic error that has no field-level indicator.
+    // When provider is inherited, credentials should also be inherited.
+    state.sourceControl.token.isInherited = val;
+    state.sourceControl.username.isInherited = val;
   }
 
   // Sync authenticationType and githubApp inheritance (UI has single toggle for both)

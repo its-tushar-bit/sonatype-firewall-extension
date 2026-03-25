@@ -273,6 +273,76 @@ describe('selectSourceControlConfigurationSelectors', () => {
       expect(actual).toEqual(GLOBAL_FORM_VALIDATION_ERROR);
     });
 
+    it('does not return validation error when switching from GitHub PAT to Bitbucket with token persisted', () => {
+      const state = {
+        orgsAndPolicies: {
+          sourceControlConfiguration: {
+            sourceControl: {
+              provider: {
+                isInherited: false,
+                rscValue: {
+                  value: 'bitbucket',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              authenticationType: {
+                value: 'PAT',
+                isInherited: false,
+                parentValue: null,
+              },
+              username: {
+                isInherited: false,
+                rscValue: {
+                  value: 'bitbucket-user',
+                  trimmedValue: 'bitbucket-user',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              token: {
+                isInherited: false,
+                rscValue: {
+                  value: 'token-from-github-pat',
+                  trimmedValue: 'token-from-github-pat',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              baseBranch: {
+                rscValue: {
+                  value: 'main',
+                  trimmedValue: 'main',
+                  validationErrors: null,
+                  isPristine: false,
+                },
+              },
+              closePrOnFailedChecksEnabled: {
+                value: null,
+              },
+              closePrAfterDaysOpenEnabled: {
+                value: null,
+              },
+              closePrAfterDays: {
+                rscValue: {
+                  value: null,
+                },
+              },
+            },
+            serverSourceControl: {
+              provider: {
+                parentValue: {
+                  value: 'github',
+                },
+              },
+            },
+          },
+        },
+      };
+
+      expect(selectValidationError(state)).toBeNull();
+    });
+
     it('shows no validation error if provider requires username, but token and username have"t any values', () => {
       const state = {
         orgsAndPolicies: {

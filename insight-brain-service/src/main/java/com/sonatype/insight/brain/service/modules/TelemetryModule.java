@@ -31,6 +31,8 @@ import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryBackfillTask;
 import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.PropertiesTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.RealmTelemetryCollector;
+import com.sonatype.insight.brain.telemetry.RecentRemediationsAuditCollector;
+import com.sonatype.insight.brain.telemetry.RecentWaiversAuditCollector;
 import com.sonatype.insight.brain.telemetry.RoleTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.RepositoryConfigurationCollector;
@@ -84,6 +86,8 @@ public class TelemetryModule
     bind(PolicyWaiverTelemetryCreator.class).in(Singleton.class);
     bind(PropertiesTelemetryCollector.class).in(Singleton.class);
     bind(RealmTelemetryCollector.class).in(Singleton.class);
+    bind(RecentRemediationsAuditCollector.class).in(Singleton.class);
+    bind(RecentWaiversAuditCollector.class).in(Singleton.class);
     bind(RoleTelemetryCollector.class).in(Singleton.class);
     bind(RepositoryComponentTelemetryCreator.class).in(Singleton.class);
     bind(RepositoryConfigurationCollector.class).in(Singleton.class);

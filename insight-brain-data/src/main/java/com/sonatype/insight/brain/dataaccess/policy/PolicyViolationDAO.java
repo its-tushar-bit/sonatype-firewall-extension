@@ -1917,4 +1917,63 @@ public class PolicyViolationDAO
   public Class<PolicyViolation> getEntityClass() {
     return PolicyViolation.class;
   }
+
+  /**
+   * Returns violations remediated since the cutoff time.
+   *
+   * @param cutoffTime the cutoff date (violations with fixTime >= cutoffTime are returned)
+   * @return list of remediated violations, empty list if none found
+   */
+  public List<PolicyViolation> findRemediatedSince(Date cutoffTime) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return findRemediatedSince(tx, cutoffTime);
+    }
+  }
+
+  /**
+   * Returns violations remediated since the cutoff time.
+   *
+   * @param tx the transaction context
+   * @param cutoffTime the cutoff date (violations with fixTime >= cutoffTime are returned)
+   * @return list of remediated violations, empty list if none found
+   */
+  public List<PolicyViolation> findRemediatedSince(TransactionContext tx, Date cutoffTime) {
+    return tx.dsl()
+        .selectFrom(POLICY_VIOLATION)
+        .where(POLICY_VIOLATION.FIX_TIME.greaterOrEqual(cutoffTime))
+        .fetchInto(PolicyViolation.class);
+  }
+
+  /**
+   * Returns violations CURRENTLY waived since the cutoff time.
+   * <p>
+   * IMPORTANT: This excludes violations that were waived but later remediated.
+   * Those violations appear in RecentRemediationsAuditCollector instead.
+   *
+   * @param cutoffTime the cutoff date (violations with waiveTime >= cutoffTime are returned)
+   * @return list of currently waived violations, empty list if none found
+   */
+  public List<PolicyViolation> findCurrentlyWaivedSince(Date cutoffTime) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return findCurrentlyWaivedSince(tx, cutoffTime);
+    }
+  }
+
+  /**
+   * Returns violations CURRENTLY waived since the cutoff time.
+   * <p>
+   * IMPORTANT: This excludes violations that were waived but later remediated.
+   * Those violations appear in RecentRemediationsAuditCollector instead.
+   *
+   * @param tx the transaction context
+   * @param cutoffTime the cutoff date (violations with waiveTime >= cutoffTime are returned)
+   * @return list of currently waived violations, empty list if none found
+   */
+  public List<PolicyViolation> findCurrentlyWaivedSince(TransactionContext tx, Date cutoffTime) {
+    return tx.dsl()
+        .selectFrom(POLICY_VIOLATION)
+        .where(POLICY_VIOLATION.WAIVE_TIME.greaterOrEqual(cutoffTime)
+            .and(POLICY_VIOLATION.FIX_TIME.isNull()))
+        .fetchInto(PolicyViolation.class);
+  }
 }

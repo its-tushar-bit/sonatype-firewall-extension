@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -49,6 +50,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -101,10 +103,14 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -150,6 +156,9 @@ public class ApiSourceControlServiceTest
 
   @Inject
   private SourceControlDAO sourceControlDAO;
+
+  @Inject
+  private SourceControlConfigurationDAO sourceControlConfigurationDAO;
 
   @Inject
   private SourceControlEventDAO sourceControlEventDAO;
@@ -1924,6 +1933,204 @@ public class ApiSourceControlServiceTest
     }
   }
 
+  @Test
+  public void testAddSourceControlByOwner_CreatesDefaultSourceControlConfiguration() {
+    assertThat(sourceControlConfigurationDAO.get()).isNull();
+
+    Application app = tempEntity.newApplicationWithParent();
+    ApiSourceControlDTO dto = new ApiSourceControlDTO();
+    dto.repositoryUrl = "https://github.com/sonatype/test-repo";
+    dto.token = "test_token";
+    dto.baseBranch = "main";
+
+    ApiSourceControlDTO result = sourceControlService.addSourceControlByOwner(
+        OwnerType.APPLICATION,
+        app.getId(),
+        dto);
+
+    assertThat(result).isNotNull();
+    assertThat(result.ownerId).isEqualTo(app.getId());
+
+    SourceControlConfiguration config = sourceControlConfigurationDAO.get();
+    assertThat(config).isNotNull();
+    assertThat(config.getId()).isEqualTo(SourceControlConfigurationDAO.SINGLETON_ENTITY_ID);
+    assertThat(config.getCloneDirectory()).isEqualTo(SourceControlConfiguration.DEFAULT_SOURCE_CONTROL_CLONE_DIR);
+    assertThat(config.getDefaultBranchMonitoringIntervalHours())
+        .isEqualTo(SourceControlConfiguration.DEFAULT_BRANCH_MONITORING_INTERVAL_HOURS);
+    assertThat(config.getPullRequestMonitoringIntervalSeconds())
+        .isEqualTo(SourceControlConfiguration.DEFAULT_PULL_REQUEST_MONITORING_INTERVAL_SECONDS);
+  }
+
+  @Test
+  public void testAddSourceControlByOwner_DoesNotOverwriteExistingSourceControlConfiguration() {
+    SourceControlConfiguration existingConfig = new SourceControlConfiguration();
+    existingConfig.setCloneDirectory("custom-clone-dir");
+    existingConfig.setDefaultBranchMonitoringIntervalHours(12);
+    existingConfig.setPullRequestMonitoringIntervalSeconds(120);
+    sourceControlConfigurationDAO.set(existingConfig);
+
+    Application app = tempEntity.newApplicationWithParent();
+    ApiSourceControlDTO dto = new ApiSourceControlDTO();
+    dto.repositoryUrl = "https://github.com/sonatype/test-repo";
+    dto.token = "test_token";
+    dto.baseBranch = "main";
+
+    sourceControlService.addSourceControlByOwner(
+        OwnerType.APPLICATION,
+        app.getId(),
+        dto);
+
+    SourceControlConfiguration config = sourceControlConfigurationDAO.get();
+    assertThat(config).isNotNull();
+    assertThat(config.getCloneDirectory()).isEqualTo("custom-clone-dir");
+    assertThat(config.getDefaultBranchMonitoringIntervalHours()).isEqualTo(12);
+    assertThat(config.getPullRequestMonitoringIntervalSeconds()).isEqualTo(120);
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_CreatesDefaultSourceControlConfiguration() {
+    assertThat(sourceControlConfigurationDAO.get()).isNull();
+
+    Application app = tempEntity.newApplicationWithParent();
+    String repositoryUrl = "https://github.com/sonatype/test-repo";
+    String baseBranch = "main";
+
+    ApiSourceControlDTO result = sourceControlService.addOrUpdateSourceControl(
+        app.getPublicId(), repositoryUrl, null, baseBranch);
+
+    assertThat(result).isNotNull();
+    assertThat(result.ownerId).isEqualTo(app.getId());
+
+    SourceControlConfiguration config = sourceControlConfigurationDAO.get();
+    assertThat(config).isNotNull();
+    assertThat(config.getId()).isEqualTo(SourceControlConfigurationDAO.SINGLETON_ENTITY_ID);
+    assertThat(config.getCloneDirectory()).isEqualTo(SourceControlConfiguration.DEFAULT_SOURCE_CONTROL_CLONE_DIR);
+    assertThat(config.getDefaultBranchMonitoringIntervalHours())
+        .isEqualTo(SourceControlConfiguration.DEFAULT_BRANCH_MONITORING_INTERVAL_HOURS);
+    assertThat(config.getPullRequestMonitoringIntervalSeconds())
+        .isEqualTo(SourceControlConfiguration.DEFAULT_PULL_REQUEST_MONITORING_INTERVAL_SECONDS);
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_UpdateDoesNotCreateSingleton() {
+    Application app = tempEntity.newApplicationWithParent();
+    String repositoryUrl = "https://github.com/sonatype/test-repo";
+    String baseBranch = "main";
+
+    sourceControlService.addOrUpdateSourceControl(
+        app.getPublicId(), repositoryUrl, null, baseBranch);
+
+    SourceControlConfiguration configAfterInsert = sourceControlConfigurationDAO.get();
+    assertThat(configAfterInsert).isNotNull();
+    String customCloneDir = "custom-clone-directory";
+    configAfterInsert.setCloneDirectory(customCloneDir);
+    sourceControlConfigurationDAO.update(configAfterInsert);
+
+    String updatedBranch = "develop";
+    sourceControlService.addOrUpdateSourceControl(
+        app.getPublicId(), repositoryUrl, null, updatedBranch);
+
+    SourceControlConfiguration configAfterUpdate = sourceControlConfigurationDAO.get();
+    assertThat(configAfterUpdate).isNotNull();
+    assertThat(configAfterUpdate.getId()).isEqualTo(SourceControlConfigurationDAO.SINGLETON_ENTITY_ID);
+    assertThat(configAfterUpdate.getCloneDirectory()).isEqualTo(customCloneDir);
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_CreatesDefaultSourceControlConfiguration() {
+    Application app = tempEntity.newApplicationWithParent();
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), "https://github.com/sonatype/test-repo");
+
+    SourceControlConfiguration config = sourceControlConfigurationDAO.get();
+    if (config != null) {
+      sourceControlConfigurationDAO.delete(config);
+    }
+    assertThat(sourceControlConfigurationDAO.get()).isNull();
+
+    ApiSourceControlDTO dto = apiSourceControlAdapter.convertToDTO(sourceControl);
+    dto.baseBranch = "develop";
+    sourceControlService.updateSourceControlByOwner(OwnerType.APPLICATION, app.getId(), dto);
+
+    SourceControlConfiguration createdConfig = sourceControlConfigurationDAO.get();
+    assertThat(createdConfig).isNotNull();
+    assertThat(createdConfig.getId()).isEqualTo(SourceControlConfigurationDAO.SINGLETON_ENTITY_ID);
+    assertThat(createdConfig.getCloneDirectory())
+        .isEqualTo(SourceControlConfiguration.DEFAULT_SOURCE_CONTROL_CLONE_DIR);
+    assertThat(createdConfig.getDefaultBranchMonitoringIntervalHours())
+        .isEqualTo(SourceControlConfiguration.DEFAULT_BRANCH_MONITORING_INTERVAL_HOURS);
+    assertThat(createdConfig.getPullRequestMonitoringIntervalSeconds())
+        .isEqualTo(SourceControlConfiguration.DEFAULT_PULL_REQUEST_MONITORING_INTERVAL_SECONDS);
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_DoesNotOverwriteExistingConfiguration() {
+    Application app = tempEntity.newApplicationWithParent();
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), "https://github.com/sonatype/test-repo");
+
+    SourceControlConfiguration existingConfig = new SourceControlConfiguration();
+    existingConfig.setCloneDirectory("custom-clone-dir");
+    existingConfig.setDefaultBranchMonitoringIntervalHours(12);
+    existingConfig.setPullRequestMonitoringIntervalSeconds(120);
+    sourceControlConfigurationDAO.set(existingConfig);
+
+    ApiSourceControlDTO dto = apiSourceControlAdapter.convertToDTO(sourceControl);
+    dto.baseBranch = "develop";
+    sourceControlService.updateSourceControlByOwner(OwnerType.APPLICATION, app.getId(), dto);
+
+    SourceControlConfiguration config = sourceControlConfigurationDAO.get();
+    assertThat(config).isNotNull();
+    assertThat(config.getCloneDirectory()).isEqualTo("custom-clone-dir");
+    assertThat(config.getDefaultBranchMonitoringIntervalHours()).isEqualTo(12);
+    assertThat(config.getPullRequestMonitoringIntervalSeconds()).isEqualTo(120);
+  }
+
+  @Test
+  public void testAddOrUpdateSourceControl_UpdateCreatesConfigurationIfMissing() {
+    Application app = tempEntity.newApplicationWithParent();
+    String repositoryUrl = "https://github.com/sonatype/test-repo";
+    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), repositoryUrl, null, "main");
+
+    SourceControlConfiguration config = sourceControlConfigurationDAO.get();
+    assertThat(config).isNotNull();
+    sourceControlConfigurationDAO.delete(config);
+    assertThat(sourceControlConfigurationDAO.get()).isNull();
+
+    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), "https://github.com/sonatype/updated-repo", null,
+        "develop");
+
+    SourceControlConfiguration recreatedConfig = sourceControlConfigurationDAO.get();
+    assertThat(recreatedConfig).isNotNull();
+    assertThat(recreatedConfig.getId()).isEqualTo(SourceControlConfigurationDAO.SINGLETON_ENTITY_ID);
+  }
+
+  @Test
+  public void testEnsureDefaultSourceControlConfigurationExists_HandlesConcurrentCreation() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    SourceControlConfiguration config = sourceControlConfigurationDAO.get();
+    if (config != null) {
+      sourceControlConfigurationDAO.delete(config);
+    }
+    assertThat(sourceControlConfigurationDAO.get()).isNull();
+
+    SourceControlConfigurationDAO mockDao = mock(SourceControlConfigurationDAO.class);
+    when(mockDao.get()).thenReturn(null);
+    doThrow(new org.jooq.exception.DataAccessException("Unique constraint violation")).when(mockDao).insert(any());
+
+    Field daoField = ApiSourceControlService.class.getDeclaredField("sourceControlConfigurationDAO");
+    daoField.setAccessible(true);
+    SourceControlConfigurationDAO originalDao = (SourceControlConfigurationDAO) daoField.get(sourceControlService);
+    try {
+      daoField.set(sourceControlService, mockDao);
+      sourceControlService.ensureDefaultSourceControlConfigurationExists();
+      verify(mockDao, times(1)).get();
+      verify(mockDao, times(1)).insert(any());
+    }
+    finally {
+      daoField.set(sourceControlService, originalDao);
+    }
+  }
+
   private GitHubApp createAndInsertGitHubApp(String ownerId) {
     GitHubApp gitHubApp = new GitHubApp();
     gitHubApp.setId(UUID.randomUUID().toString());
@@ -1970,5 +2177,60 @@ public class ApiSourceControlServiceTest
                   .withHeader("Content-Type", "application/json")
                   .withBody("{\"message\":\"Internal server error\"}")));
     }
+  }
+
+  @Test
+  public void testEnsureDefaultSourceControlConfigurationExists_ConcurrentCreation_HandlesDuplicateKeyException() throws Exception {
+    assertThat(sourceControlConfigurationDAO.get()).isNull();
+
+    SourceControlConfigurationDAO daoSpy = spy(sourceControlConfigurationDAO);
+
+    doAnswer(invocation -> {
+      SourceControlConfiguration config = new SourceControlConfiguration();
+      sourceControlConfigurationDAO.insert(config);
+      throw new jakarta.persistence.EntityExistsException("Duplicate key");
+    }).when(daoSpy).insert(any(SourceControlConfiguration.class));
+
+    // Using reflection to inject spy for concurrent insert simulation
+    // This is necessary to test the race condition handling without major refactoring
+    Field daoField = ApiSourceControlService.class.getDeclaredField("sourceControlConfigurationDAO");
+    daoField.setAccessible(true);
+    SourceControlConfigurationDAO originalDao = (SourceControlConfigurationDAO) daoField.get(sourceControlService);
+    try {
+      daoField.set(sourceControlService, daoSpy);
+
+      sourceControlService.ensureDefaultSourceControlConfigurationExists();
+
+      SourceControlConfiguration persistedConfig = sourceControlConfigurationDAO.get();
+      assertThat(persistedConfig).isNotNull();
+      assertThat(persistedConfig.getId()).isEqualTo(SourceControlConfigurationDAO.SINGLETON_ENTITY_ID);
+    }
+    finally {
+      daoField.set(sourceControlService, originalDao);
+    }
+  }
+
+  @Test
+  public void testEndToEndUpgradePath() {
+    // Simulate upgrade scenario where config doesn't exist
+    assertThat(sourceControlConfigurationDAO.get()).isNull();
+
+    Application app = tempEntity.newApplicationWithParent();
+    String repositoryUrl = "https://github.com/sonatype/test-repo";
+    String baseBranch = "main";
+
+    // User creates source control (triggers ensureDefaultSourceControlConfigurationExists)
+    sourceControlService.addOrUpdateSourceControl(app.getPublicId(), repositoryUrl, null, baseBranch);
+
+    // Verify source control was created
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(app.getId());
+    assertThat(sourceControl).isNotNull();
+    assertThat(sourceControl.getRepositoryUrl()).isEqualTo(repositoryUrl);
+
+    // Verify config was automatically created
+    SourceControlConfiguration config = sourceControlConfigurationDAO.get();
+    assertThat(config).isNotNull();
+    assertThat(config.getId()).isEqualTo(SourceControlConfigurationDAO.SINGLETON_ENTITY_ID);
+    assertThat(config.getCloneDirectory()).isEqualTo(SourceControlConfiguration.DEFAULT_SOURCE_CONTROL_CLONE_DIR);
   }
 }

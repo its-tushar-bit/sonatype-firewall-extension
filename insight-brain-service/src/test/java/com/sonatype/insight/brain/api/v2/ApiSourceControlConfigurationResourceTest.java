@@ -50,7 +50,7 @@ public class ApiSourceControlConfigurationResourceTest
   }
 
   @Test
-  public void testGetConfiguration_Error() throws Exception {
+  public void testGetConfiguration_NotFound() throws Exception {
     HttpResponse response = restRequest().get();
 
     assertResponseStatus(404, response);

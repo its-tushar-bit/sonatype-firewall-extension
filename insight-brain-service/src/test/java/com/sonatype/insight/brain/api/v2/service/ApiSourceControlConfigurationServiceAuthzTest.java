@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import jakarta.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlConfigurationDTO;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -14,6 +15,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiSourceControlConfigurationServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -32,10 +35,12 @@ public class ApiSourceControlConfigurationServiceAuthzTest
     service.getConfiguration();
   }
 
-  @Test(expected = NotFoundException.class)
+  @Test
   public void testGetConfiguration_Authorized() {
     grantConfigureSystemPermission();
-    service.getConfiguration();
+    tempEntity.newSourceControlConfiguration();
+    ApiSourceControlConfigurationDTO result = service.getConfiguration();
+    assertThat(result).isNotNull();
   }
 
   @Test(expected = UnauthenticatedException.class)

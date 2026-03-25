@@ -410,4 +410,5 @@ public class ApiSourceControlConfigurationServiceTest
     String decryptedPassphrase = passwordHandler.decryptPassword(storedConfig.getGpgPassphrase());
     assertThat(decryptedPassphrase).isEqualTo(originalPassphrase);
   }
+
 }

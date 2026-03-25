@@ -22,6 +22,7 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.sonatype.insight.brain.utils.ExceptionUtils;
 import com.sonatype.insight.brain.utils.SourceControlAuthenticationTransitionHandler;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -40,6 +41,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlDataService;
@@ -53,6 +55,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
@@ -135,6 +138,8 @@ public class ApiSourceControlService
 
   private final SourceControlAuthenticationTransitionHandler sourceControlAuthenticationTransitionHandler;
 
+  private final SourceControlConfigurationDAO sourceControlConfigurationDAO;
+
   @Inject
   public ApiSourceControlService(
       final PasswordHandler passwordHandler,
@@ -142,6 +147,7 @@ public class ApiSourceControlService
       final OwnerDAO ownerDAO,
       final ApplicationDAO applicationDAO,
       final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO,
+      final SourceControlConfigurationDAO sourceControlConfigurationDAO,
       final IqForScmLicenseChecker licenseChecker,
       final TelemetrySender telemetrySender,
       final SourceControlPullRequestMetrics sourceControlPullRequestMetrics,
@@ -176,6 +182,7 @@ public class ApiSourceControlService
     this.apiSourceControlAdapter = apiSourceControlAdapter;
     this.sourceControlDataService = sourceControlDataService;
     this.sourceControlAuthenticationTransitionHandler = sourceControlAuthenticationTransitionHandler;
+    this.sourceControlConfigurationDAO = sourceControlConfigurationDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -268,6 +275,8 @@ public class ApiSourceControlService
         sourceControlDAO.insert(sourceControl);
         auditSourceControl(sourceControl);
 
+        ensureDefaultSourceControlConfigurationExists();
+
         SourceControl compositeSourceControl = getCompositeSourceControl(OwnerType.APPLICATION, sourceControl);
         sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE, compositeSourceControl, OwnerType.APPLICATION);
 
@@ -279,6 +288,8 @@ public class ApiSourceControlService
         sourceControlDAO.update(sourceControl);
         auditSourceControl(sourceControl);
 
+        ensureDefaultSourceControlConfigurationExists();
+
         SourceControl compositeSourceControl = getCompositeSourceControl(OwnerType.APPLICATION, sourceControl);
         sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE, compositeSourceControl, OwnerType.APPLICATION);
 
@@ -287,6 +298,8 @@ public class ApiSourceControlService
       else {
         log.debug("Skipping update of source control repository URL from {} to {}",
             sourceControl.getRepositoryUrl(), repositoryUrl);
+
+        ensureDefaultSourceControlConfigurationExists();
       }
     }
 
@@ -330,6 +343,8 @@ public class ApiSourceControlService
 
     sourceControlDAO.insert(sourceControl);
     auditSourceControl(sourceControl);
+
+    ensureDefaultSourceControlConfigurationExists();
 
     SourceControl compositeSourceControl = getCompositeSourceControl(ownerType, sourceControl);
     sendSourceControlTelemetryData(METHOD.ADD, compositeSourceControl, ownerType);
@@ -381,6 +396,8 @@ public class ApiSourceControlService
           .setEventPriority(EVENT_PRIORITY_HIGHER));
     }
     auditSourceControl(sourceControl);
+
+    ensureDefaultSourceControlConfigurationExists();
 
     SourceControl compositeSourceControl = getCompositeSourceControl(ownerType, sourceControl);
     sendSourceControlTelemetryData(METHOD.UPDATE, compositeSourceControl, ownerType);
@@ -707,6 +724,57 @@ public class ApiSourceControlService
       }
       catch (Exception e) {
         log.warn("Unable to save the repository user activity.", e);
+      }
+    }
+  }
+
+  /**
+   * Ensures a default SourceControlConfiguration singleton exists in the database.
+   * This method is called after successful SourceControl creation to ensure the configuration
+   * endpoint (/api/v2/config/sourceControl) returns valid data.
+   * <p>
+   * The method implements retry logic with up to 2 attempts to handle transient database issues
+   * and TOCTOU race conditions. After all retries are exhausted, an {@link IllegalStateException}
+   * is thrown as the configuration singleton is required for proper system operation.
+   * <p>
+   * <b>Race Condition Handling:</b> Concurrent creation attempts (duplicate key exceptions) are
+   * expected and handled gracefully - the duplicate key error indicates another thread successfully
+   * created the singleton, so this operation can safely return.
+   * <p>
+   * <b>TOCTOU Edge Case:</b> A rare race condition exists where the configuration could be deleted
+   * between the {@code get()} check and {@code insert()}. The retry loop handles this by re-checking
+   * existence on each attempt. Configuration deletion requires CONFIGURE_SYSTEM permission and is
+   * unlikely during source control operations.
+   */
+  void ensureDefaultSourceControlConfigurationExists() {
+    int maxRetries = 2;
+    for (int attempt = 0; attempt < maxRetries; attempt++) {
+      SourceControlConfiguration existing = sourceControlConfigurationDAO.get();
+      if (existing != null) {
+        return;
+      }
+
+      try {
+        log.info("Creating default SourceControlConfiguration");
+        SourceControlConfiguration defaultConfig = new SourceControlConfiguration();
+        sourceControlConfigurationDAO.insert(defaultConfig);
+        return;
+      }
+      catch (Exception e) {
+        if (ExceptionUtils.isDuplicateKeyException(e)) {
+          log.debug("Concurrent creation of SourceControlConfiguration (race condition handled)", e);
+          return;
+        }
+        else {
+          if (attempt < maxRetries - 1) {
+            log.debug("Failed to create SourceControlConfiguration, retrying (attempt {}/{})", attempt + 1, maxRetries);
+          }
+          else {
+            log.error("Failed to create default SourceControlConfiguration after {} attempts", maxRetries, e);
+            throw new IllegalStateException(
+                "Unable to create required SourceControlConfiguration singleton", e);
+          }
+        }
       }
     }
   }

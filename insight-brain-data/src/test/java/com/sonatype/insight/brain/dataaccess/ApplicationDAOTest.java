@@ -840,6 +840,7 @@ public class ApplicationDAOTest
     assertThat(policyWaiverRequests).hasSize(1);
 
     applicationDAO.delete(application);
+
     policyWaiverRequests = policyWaiverRequestDAO.getByOwnerId(application.getId());
     assertThat(policyWaiverRequests).isEmpty();
   }

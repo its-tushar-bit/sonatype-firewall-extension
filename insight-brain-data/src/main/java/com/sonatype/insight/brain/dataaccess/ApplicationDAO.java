@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
@@ -52,6 +53,7 @@ import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -108,6 +110,8 @@ public class ApplicationDAO
 
   private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
 
+  private final Provider<PolicyWaiverRequestDAO> policyWaiverRequestDAOProvider;
+
   private final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO;
 
   private final CiIntegrationsConfigDao ciIntegrationsConfigDao;
@@ -135,6 +139,7 @@ public class ApplicationDAO
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
+      final Provider<PolicyWaiverRequestDAO> policyWaiverRequestDAOProvider,
       final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO,
       final CiIntegrationsConfigDao ciIntegrationsConfigDao,
       final OrganizationDAO organizationDAO,
@@ -155,6 +160,7 @@ public class ApplicationDAO
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
+    this.policyWaiverRequestDAOProvider = policyWaiverRequestDAOProvider;
     this.cpeMatchingConfigurationDAO = cpeMatchingConfigurationDAO;
     this.ciIntegrationsConfigDao = ciIntegrationsConfigDao;
     this.organizationDAO = organizationDAO;
@@ -809,6 +815,13 @@ public class ApplicationDAO
     List<Label> labels = labelDAO.getByOwnerId(tx, application.getId());
     for (Label label : labels) {
       labelDAO.delete(tx, label);
+    }
+
+    PolicyWaiverRequestDAO policyWaiverRequestDAO = policyWaiverRequestDAOProvider.get();
+    List<PolicyWaiverRequest> policyWaiverRequests =
+        policyWaiverRequestDAO.getByOwnerId(tx, application.getId());
+    for (PolicyWaiverRequest policyWaiverRequest : policyWaiverRequests) {
+      policyWaiverRequestDAO.delete(tx, policyWaiverRequest);
     }
 
     // Cascade to policies

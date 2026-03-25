@@ -224,6 +224,7 @@ public class TestDAOFactory
     ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO = createThirdPartySbomMetadataDAO();
     ThirdPartyFileDAO thirdPartyFileDAO = createThirdPartyFileDAO();
     AutoPolicyWaiverDAO autoPolicyWaiverDAO = createAutoPolicyWaiverDAO();
+    Provider<PolicyWaiverRequestDAO> policyWaiverRequestDAOProvider = this::createPolicyWaiverRequestDAO;
     CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO = createCpeMatchingConfigurationDAO();
     OrganizationDAO organizationDAO = createOrganizationDAO();
     TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
@@ -233,8 +234,9 @@ public class TestDAOFactory
         licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider, ownerDAOProvider,
         proprietaryConfigDAO, membershipMappingDAO,
         policyViolationAggregationDAO, repositoryConnectionDAO,
-        sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, autoPolicyWaiverDAO, cpeMatchingConfigurationDAO,
-        ciIntegrationsConfigDao, organizationDAO, versionEvaluationWindowDAO, temporaryTableHelper);
+        sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, autoPolicyWaiverDAO, policyWaiverRequestDAOProvider,
+        cpeMatchingConfigurationDAO, ciIntegrationsConfigDao, organizationDAO, versionEvaluationWindowDAO,
+        temporaryTableHelper);
   }
 
   @Override

@@ -93,6 +93,9 @@ public class HistoricalPolicyViolationTelemetryServiceTest
     final var minFreeMemoryMb = 0;
     var state = tempEntity.newHistoricalTelemetryState(TelemetryPurpose.HISTORICAL_POLICY_VIOLATION.name(),
         cutoffDate, batchSize, minFreeMemoryMb, Status.IN_PROGRESS.name());
+    // Set lastUpdated to a recent time to avoid triggering stale state detection (EI-440)
+    state.setLastUpdated(new Date());
+    historicalTelemetryStateDAO.update(state);
 
     // when: we try to collect and send telemetry
     long count = testSubject.collectAndSendPolicyViolationTelemetry();

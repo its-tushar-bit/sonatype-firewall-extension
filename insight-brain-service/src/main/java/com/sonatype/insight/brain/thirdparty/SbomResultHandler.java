@@ -93,7 +93,6 @@ import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Method;
 import org.cyclonedx.model.vulnerability.Vulnerability10;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Advisory;
-import org.cyclonedx.model.vulnerability.Vulnerability10.Recommendation;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -781,7 +780,7 @@ public class SbomResultHandler
           coordinateSecurity.setRecommendations(
               vulnerability.getRecommendations()
                   .stream()
-                  .map(Recommendation::getText)
+                  .map(r -> StringUtils.normalizeSpace(r.getText()))
                   .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR)));
         }
         if (vulnerability.getAdvisories() != null) {
@@ -799,7 +798,7 @@ public class SbomResultHandler
           }
         }
         coordinateSecurity.setRefId(getTruncatedRefId(vulnerability.getId()));
-        coordinateSecurity.setDescription(vulnerability.getDescription());
+        coordinateSecurity.setDescription(StringUtils.normalizeSpace(vulnerability.getDescription()));
         return coordinateSecurity;
       }
     }
@@ -843,7 +842,7 @@ public class SbomResultHandler
                 .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR)));
           }
           if (vulnerability.getRecommendation() != null) {
-            coordinateSecurity.setRecommendations(vulnerability.getRecommendation());
+            coordinateSecurity.setRecommendations(StringUtils.normalizeSpace(vulnerability.getRecommendation()));
           }
           if (vulnerability.getAdvisories() != null) {
             String advisory = vulnerability.getAdvisories()
@@ -863,7 +862,7 @@ public class SbomResultHandler
           coordinateSecurity.setResearchType(getResearchTypeForThirdPartyVulnerability(
               coordinateSecurity.getVulnerabilitySource(), coordinateSecurity.getRefId()));
           coordinateSecurity.setDetectionType(OTHER.getId());
-          coordinateSecurity.setDescription(vulnerability.getDescription());
+          coordinateSecurity.setDescription(StringUtils.normalizeSpace(vulnerability.getDescription()));
           coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
           return coordinateSecurity;
         }

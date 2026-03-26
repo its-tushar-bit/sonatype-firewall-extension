@@ -82,6 +82,9 @@ public class SbomExportUtils
       ThirdPartyVulnerabilityExploitabilityExchange sonatypeVexInformation)
   {
     bomVulnerability.setDescription(sonatypeVulnerability.getDescription());
+    if (bomVulnerability.getRecommendation() != null) {
+      bomVulnerability.setRecommendation(StringUtils.normalizeSpace(bomVulnerability.getRecommendation()));
+    }
     if (StringUtils.isNotBlank(sonatypeVulnerability.getCwes())) {
       bomVulnerability.setCwes(SbomMetadataUtils.convertCwesStringToIntegerList(sonatypeVulnerability.getCwes()));
     }

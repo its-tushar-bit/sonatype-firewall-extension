@@ -33,15 +33,27 @@ public abstract class HistoricalTelemetryService
 
   private static final long BYTES_PER_MB = 1024L * 1024L;
 
+  /**
+   * Maximum number of retry attempts for ERROR state before giving up
+   */
+  @VisibleForTesting
+  static final int MAX_RETRY_ATTEMPTS = 3;
+
+  /**
+   * Consider IN_PROGRESS state stale if it hasn't been updated in 24 hours (in milliseconds)
+   */
+  @VisibleForTesting
+  static final long STALE_STATE_THRESHOLD_MS = 24L * 60L * 60L * 1000L;
+
   @VisibleForTesting
   enum Status
   {
     PENDING, // ok - initial state
-    IN_PROGRESS, // ok - successfully started processing of historical telemetry
+    IN_PROGRESS, // ok - successfully started processing; will be checked for staleness after 24 hours
     DONE, // ok, terminal - successfully completed processing of historical telemetry
-    ERROR, // terminal - an error occurred while processing historical telemetry - we won't try again
+    ERROR, // retryable - an error occurred; will retry up to MAX_RETRY_ATTEMPTS times
     SKIPPED, // ok - an error occurred while in the pending state - we can try again next time
-    SUSPENDED // terminal - hit a memory limit while processing historical telemetry - we won't try again
+    SUSPENDED // retryable - hit a memory limit; will retry when memory is available
   }
 
   private final TenantReference<HistoricalTelemetryState> historicalTelemetryState = new TenantReference<>();
@@ -133,7 +145,7 @@ public abstract class HistoricalTelemetryService
       Status status = Status.valueOf(historicalTelemetryState.get().getStatus());
       switch (status) {
         case PENDING, SKIPPED -> markSkipped();
-        case IN_PROGRESS -> markSuspended();
+        case IN_PROGRESS, SUSPENDED -> markSuspended();
         default -> markError(e);
       }
     }
@@ -207,10 +219,33 @@ public abstract class HistoricalTelemetryService
     String status = telemetryState.getStatus();
     switch (Status.valueOf(status)) {
       case PENDING, SKIPPED -> okToTry = true;
-      case IN_PROGRESS -> log.info("{} telemetry collection already in progress", telemetryPurpose.name());
-      case DONE -> log.info("{} telemetry already collected and sent", telemetryPurpose.name());
-      case ERROR -> log.warn("{} telemetry collection previously failed, skipping", telemetryPurpose.name());
-      case SUSPENDED -> log.warn("{} telemetry collection previously suspended, skipping", telemetryPurpose.name());
+      case IN_PROGRESS -> {
+        if (isStateStale(telemetryState)) {
+          log.info("{} telemetry collection in stale IN_PROGRESS state, resetting to PENDING", telemetryPurpose.name());
+          resetToPending(telemetryState);
+          okToTry = true;
+        }
+        else {
+          log.debug("{} telemetry collection already in progress", telemetryPurpose.name());
+        }
+      }
+      case DONE -> log.debug("{} telemetry already collected and sent", telemetryPurpose.name());
+      case ERROR -> {
+        if (canRetryError(telemetryState)) {
+          log.info("{} telemetry collection previously failed, retrying (attempt {}/{})",
+              telemetryPurpose.name(), telemetryState.getRetryCount() + 1, MAX_RETRY_ATTEMPTS);
+          incrementRetryCount(telemetryState);
+          okToTry = true;
+        }
+        else {
+          log.warn("{} telemetry collection previously failed after {} attempts, skipping",
+              telemetryPurpose.name(), telemetryState.getRetryCount());
+        }
+      }
+      case SUSPENDED -> {
+        log.info("{} telemetry collection previously suspended, retrying with memory check", telemetryPurpose.name());
+        okToTry = true;
+      }
     }
 
     return okToTry;
@@ -282,5 +317,67 @@ public abstract class HistoricalTelemetryService
     historicalTelemetryState.get().setLastUpdated(new Date());
     historicalTelemetryStateDAO.update(historicalTelemetryState.get());
     log.warn("{} telemetry collection suspended", telemetryPurpose.name());
+  }
+
+  /**
+   * Checks if the IN_PROGRESS state is stale (hasn't been updated in more than 24 hours).
+   * This handles cases where collection was interrupted by server restart or other issues.
+   *
+   * @param telemetryState the current telemetry state
+   * @return true if state is IN_PROGRESS and lastUpdated is more than 24 hours ago
+   */
+  @VisibleForTesting
+  boolean isStateStale(HistoricalTelemetryState telemetryState) {
+    if (!Status.IN_PROGRESS.name().equals(telemetryState.getStatus())) {
+      return false;
+    }
+
+    Date lastUpdated = telemetryState.getLastUpdated();
+    if (lastUpdated == null) {
+      // If lastUpdated is null but state is IN_PROGRESS, consider it stale
+      return true;
+    }
+
+    long timeSinceUpdate = System.currentTimeMillis() - lastUpdated.getTime();
+    return timeSinceUpdate > STALE_STATE_THRESHOLD_MS;
+  }
+
+  /**
+   * Checks if we can retry after an ERROR state.
+   * Retries are allowed up to MAX_RETRY_ATTEMPTS times.
+   *
+   * @param telemetryState the current telemetry state
+   * @return true if retry count is less than MAX_RETRY_ATTEMPTS
+   */
+  @VisibleForTesting
+  boolean canRetryError(HistoricalTelemetryState telemetryState) {
+    return telemetryState.getRetryCount() < MAX_RETRY_ATTEMPTS;
+  }
+
+  /**
+   * Increments the retry count and updates last retry time.
+   * This is called when retrying after an ERROR state.
+   *
+   * @param telemetryState the current telemetry state
+   */
+  private void incrementRetryCount(HistoricalTelemetryState telemetryState) {
+    Date now = new Date();
+    telemetryState.setRetryCount(telemetryState.getRetryCount() + 1);
+    telemetryState.setLastRetryTime(now);
+    telemetryState.setLastUpdated(now);
+    historicalTelemetryStateDAO.update(telemetryState);
+  }
+
+  /**
+   * Resets a stale IN_PROGRESS state back to PENDING.
+   * Preserves lastRecordTime and lastRecordKey to resume from where it left off.
+   *
+   * @param telemetryState the current telemetry state
+   */
+  private void resetToPending(HistoricalTelemetryState telemetryState) {
+    telemetryState.setStatus(Status.PENDING.name());
+    telemetryState.setLastUpdated(new Date());
+    // Preserve lastRecordTime and lastRecordKey for resumption
+    historicalTelemetryStateDAO.update(telemetryState);
   }
 }

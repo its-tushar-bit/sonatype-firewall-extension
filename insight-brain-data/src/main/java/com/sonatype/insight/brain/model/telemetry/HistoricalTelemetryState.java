@@ -50,6 +50,12 @@ public class HistoricalTelemetryState
   @Column(name = "status")
   private String status;
 
+  @Column(name = "retry_count")
+  private int retryCount = 0;
+
+  @Column(name = "last_retry_time")
+  private Date lastRetryTime;
+
   // Getters and Setters
 
   @Override
@@ -132,5 +138,21 @@ public class HistoricalTelemetryState
 
   public void setStatus(String status) {
     this.status = status;
+  }
+
+  public int getRetryCount() {
+    return retryCount;
+  }
+
+  public void setRetryCount(int retryCount) {
+    this.retryCount = retryCount;
+  }
+
+  public Date getLastRetryTime() {
+    return lastRetryTime;
+  }
+
+  public void setLastRetryTime(Date lastRetryTime) {
+    this.lastRetryTime = lastRetryTime;
   }
 }

@@ -2100,6 +2100,10 @@ CREATE TABLE IF NOT EXISTS historical_telemetry_state (
 
   status VARCHAR(15) NOT NULL,
 
+  -- since 1.203, EI-440: retry tracking
+  retry_count INTEGER NOT NULL DEFAULT 0,
+  last_retry_time TIMESTAMP NULL,
+
   CONSTRAINT historical_telemetry_state_pk PRIMARY KEY (historical_telemetry_state_id)
 );
 

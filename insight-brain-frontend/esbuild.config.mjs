@@ -317,10 +317,11 @@ async function startDevServer() {
     contexts.push(ctx);
   }
 
-  // Use the first context's serve for static file serving (servedir covers
-  // all bundles' outputs since they all write to outDir).
+  // Serve from outDir's parent so that files are available under /assets/*,
+  // matching the production URL layout (the backend redirects / → /assets/index.html).
+  const serveDir = path.dirname(outDir);
   const { host, port: esbuildPort } = await contexts[0].serve({
-    servedir: outDir,
+    servedir: serveDir,
   });
 
   // Thin proxy: API paths go to the backend, everything else to esbuild's serve.
@@ -328,6 +329,13 @@ async function startDevServer() {
   const backendTarget = 'http://localhost:8072';
 
   const server = createServer((req, res) => {
+    // Redirect bare / to /assets/index.html (matches production behaviour).
+    if (req.url === '/' || req.url.startsWith('/?')) {
+      res.writeHead(302, { Location: '/assets/index.html' });
+      res.end();
+      return;
+    }
+
     const target = proxyPaths.some(p => req.url.startsWith(p))
       ? backendTarget
       : `http://${host}:${esbuildPort}`;

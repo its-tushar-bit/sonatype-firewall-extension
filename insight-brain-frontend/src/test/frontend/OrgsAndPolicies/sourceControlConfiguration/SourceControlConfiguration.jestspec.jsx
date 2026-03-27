@@ -2338,7 +2338,9 @@ describe('sourceControlConfiguration', () => {
 
         expect(axiosMock.history.post.length).toBe(0);
 
-        const tokenInput = screen.getByTestId('token-input');
+        const tokenInputWrapper = screen.getByTestId('token-input');
+        const tokenInput = tokenInputWrapper.querySelector('input');
+        expect(tokenInput).toBeInTheDocument();
         fireEvent.change(tokenInput, { target: { value: '   ' } });
         expect(screen.getByTestId('source-control-token-warning')).toHaveTextContent('Access Token must be configured');
         fireEvent.click(submitButton);

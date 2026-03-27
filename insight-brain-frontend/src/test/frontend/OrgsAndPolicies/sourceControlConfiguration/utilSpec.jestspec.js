@@ -7,6 +7,7 @@ import {
   arePullRequestsSupported,
   AUTHENTICATION_TYPES,
   compositeSourceControlToModel,
+  effectiveAuthenticationType,
   effectiveProvider,
   getBaseBranchValueFromModel,
   getCleanAccountName,
@@ -331,6 +332,48 @@ describe('sourceControlConfiguration util', () => {
     it('returns provider value if isInherited value is false', () => {
       sourceControl.provider.isInherited = false;
       expect(effectiveProvider(sourceControl, serverSourceControl)).toBe('gitlab');
+    });
+  });
+
+  describe('effectiveAuthenticationType', () => {
+    it('returns null when authenticationType is missing', () => {
+      expect(effectiveAuthenticationType({})).toBeNull();
+    });
+
+    it('returns local authentication type when not inherited', () => {
+      const sourceControl = {
+        authenticationType: {
+          value: AUTHENTICATION_TYPES.PAT,
+          isInherited: false,
+          parentValue: AUTHENTICATION_TYPES.GITHUB_APP,
+        },
+      };
+
+      expect(effectiveAuthenticationType(sourceControl)).toBe(AUTHENTICATION_TYPES.PAT);
+    });
+
+    it('returns parent authentication type when inherited', () => {
+      const sourceControl = {
+        authenticationType: {
+          value: null,
+          isInherited: true,
+          parentValue: AUTHENTICATION_TYPES.GITHUB_APP,
+        },
+      };
+
+      expect(effectiveAuthenticationType(sourceControl)).toBe(AUTHENTICATION_TYPES.GITHUB_APP);
+    });
+
+    it('returns null when inherited auth is not configured', () => {
+      const sourceControl = {
+        authenticationType: {
+          value: null,
+          isInherited: true,
+          parentValue: null,
+        },
+      };
+
+      expect(effectiveAuthenticationType(sourceControl)).toBeNull();
     });
   });
 

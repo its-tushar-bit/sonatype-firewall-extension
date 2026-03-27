@@ -9,6 +9,7 @@ import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import { axiosMockAdapter, render, screen, waitFor } from 'TestRoot/SpecUtil';
 import GitHubAppRegistrationModal from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/GitHubAppRegistrationModal';
 import { initialState } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSlice';
+import { AUTHENTICATION_TYPES } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 
 const { initialState: nxTextInputInitialState } = nxTextInputStateHelpers;
 
@@ -16,16 +17,18 @@ describe('GitHubAppRegistrationModal', () => {
   let axiosMock;
 
   const renderComponent = (preloadedState = {}) => {
+    const { productFeatures, ...gitHubAppConfigurationState } = preloadedState;
     return render(<GitHubAppRegistrationModal />, {
       preloadedState: {
         gitHubAppConfiguration: {
           ...initialState,
           isModalOpen: true, // Default to open for most tests
-          ...preloadedState,
+          ...gitHubAppConfigurationState,
         },
         productFeatures: {
           productFeatures: {
             'github-app-authentication': true, // Default to enabled for tests
+            ...(productFeatures?.productFeatures || {}),
           },
         },
       },
@@ -39,6 +42,12 @@ describe('GitHubAppRegistrationModal', () => {
   beforeEach(() => {
     axiosMock.reset();
     jest.clearAllMocks();
+    sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    sessionStorage.clear();
+    jest.restoreAllMocks();
   });
 
   describe('Rendering', () => {
@@ -360,6 +369,77 @@ describe('GitHubAppRegistrationModal', () => {
         },
         { timeout: 3000, container }
       );
+    });
+
+    it('stores the SCM form state before redirecting to GitHub', async () => {
+      const user = userEvent.setup();
+      const submitSpy = jest.spyOn(HTMLFormElement.prototype, 'submit').mockImplementation(() => {});
+
+      axiosMock.onPost(/\/api\/v2\/githubApp\/manifest\?ownerId=/).reply(200, {
+        manifest: { name: 'iq-server' },
+        state: 'state-token',
+      });
+
+      render(<GitHubAppRegistrationModal />, {
+        preloadedState: {
+          gitHubAppConfiguration: {
+            ...initialState,
+            isModalOpen: true,
+          },
+          productFeatures: {
+            productFeatures: {
+              'github-app-authentication': true,
+            },
+          },
+          orgsAndPolicies: {
+            root: {
+              selectedOwner: {
+                id: 'org-123',
+                type: 'organization',
+                name: 'Test Organization',
+              },
+            },
+            sourceControlConfiguration: {
+              sourceControl: {
+                provider: {
+                  rscValue: { value: 'github' },
+                  isInherited: false,
+                },
+                authenticationType: {
+                  value: AUTHENTICATION_TYPES.GITHUB_APP,
+                  isInherited: false,
+                },
+                githubApp: {
+                  value: null,
+                  isInherited: false,
+                  parentValue: null,
+                  parentName: null,
+                },
+                token: {
+                  rscValue: { value: 'super-secret-token' },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      await user.type(screen.getByLabelText(/organization name/i), 'sonatype');
+      await user.click(screen.getByRole('button', { name: /register & create github app/i }));
+
+      await waitFor(() => {
+        expect(submitSpy).toHaveBeenCalled();
+      });
+
+      const sessionStorageKeys = Array.from({ length: sessionStorage.length }, (_, index) => sessionStorage.key(index));
+      const savedStateKey = sessionStorageKeys.find((key) => key?.startsWith('scmFormState_'));
+      const savedState = JSON.parse(sessionStorage.getItem(savedStateKey));
+
+      expect(savedStateKey).toBeTruthy();
+      expect(savedState.provider.rscValue.value).toBe('github');
+      expect(savedState.authenticationType.value).toBe(AUTHENTICATION_TYPES.GITHUB_APP);
+      expect(savedState.token).toBeUndefined();
+      expect(submitSpy).toHaveBeenCalledTimes(1);
     });
   });
 

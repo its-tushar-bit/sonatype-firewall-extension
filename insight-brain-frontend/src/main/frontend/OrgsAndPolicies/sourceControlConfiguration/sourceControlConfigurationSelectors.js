@@ -11,6 +11,7 @@ import {
   isAccessTokenRequiredOnNode,
   AUTHENTICATION_TYPES,
   effectiveProvider,
+  effectiveAuthenticationType,
   GITHUB_APP_NOT_CONFIGURED_MESSAGE,
 } from './utils';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -34,11 +35,10 @@ export const selectIsAccessTokenRequiredOnNode = createSelector(
 
     // Check EFFECTIVE auth type (including inheritance)
     // If authenticationType is inherited, use parentValue instead of value
-    const effectiveAuthType = sourceControl?.authenticationType?.isInherited
-      ? sourceControl?.authenticationType?.parentValue
-      : sourceControl?.authenticationType?.value;
+    const effectiveAuthType = effectiveAuthenticationType(sourceControl);
 
-    const isGitHubWithAppAuth = isGitHubProvider && effectiveAuthType === AUTHENTICATION_TYPES.GITHUB_APP;
+    const isGitHubWithAppAuth =
+      isGithubAppAuthenticationEnabled && isGitHubProvider && effectiveAuthType === AUTHENTICATION_TYPES.GITHUB_APP;
 
     if (isGitHubWithAppAuth) {
       return false;
@@ -46,7 +46,7 @@ export const selectIsAccessTokenRequiredOnNode = createSelector(
 
     return (
       isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, isGithubAppAuthenticationEnabled) &&
-      !sourceControl?.token?.rscValue?.value
+      !sourceControl?.token?.rscValue?.trimmedValue
     );
   }
 );
@@ -68,7 +68,10 @@ export const selectValidationError = createSelector(
       }
     }
 
-    const isGitHubWithAppAuth = isGitHub && sourceControl.authenticationType?.value === AUTHENTICATION_TYPES.GITHUB_APP;
+    const isGitHubWithAppAuth =
+      isGithubAppAuthenticationEnabled &&
+      isGitHub &&
+      effectiveAuthenticationType(sourceControl) === AUTHENTICATION_TYPES.GITHUB_APP;
     const isTokenRequired = !isGitHubWithAppAuth;
 
     // GitHub App must be configured when GITHUB_APP auth is selected
@@ -92,7 +95,17 @@ export const selectValidationError = createSelector(
       }
     }
 
-    // Cross-provider token validation: inherited token incompatible with new provider
+    if (
+      isApp &&
+      isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, isGithubAppAuthenticationEnabled) &&
+      !sourceControl?.token?.rscValue?.trimmedValue
+    ) {
+      return GLOBAL_FORM_VALIDATION_ERROR;
+    }
+
+    // Cross-provider token validation: inherited token is only incompatible when the user
+    // is still relying on it. Once provider inheritance is off and a local token is entered,
+    // validation should follow the local field state instead of the stale inherit flag.
     const isTokenInherited = sourceControl?.token?.isInherited;
     const isProviderInherited = sourceControl?.provider?.isInherited;
     const parentProvider = serverSourceControl?.provider?.parentValue?.value;

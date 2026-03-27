@@ -44,13 +44,12 @@ const GitHubAppAuthenticationMethod = ({
   const supportsInheritance = Boolean(setIsInherited);
   // Check authenticationType.isInherited instead of githubApp.isInherited
   // This fixes the issue where selecting PAT (no GitHub App) would show as inherited on reload
-  const isAuthMethodInherited = supportsInheritance && sourceControl?.authenticationType?.isInherited;
+  const isAuthMethodInherited = Boolean(supportsInheritance && sourceControl?.authenticationType?.isInherited);
 
   const parentGithubApp = sourceControl?.githubApp?.parentValue;
   const hasParentConfig = parentGithubApp?.installationId;
   // Check if parent has any authentication configured (GitHub App OR PAT)
   const hasParentAuth = hasParentConfig || Boolean(sourceControl?.token?.parentValue?.value);
-  // Determine the effective authentication method (use parent's if inheriting)
   const parentAuthType = sourceControl?.authenticationType?.parentValue;
   const effectiveAuthMethod = isAuthMethodInherited ? parentAuthType || authMethod : authMethod;
 
@@ -58,7 +57,6 @@ const GitHubAppAuthenticationMethod = ({
     if (authMethod && setValue && !sourceControl?.authenticationType?.value) {
       setValue('authenticationType', authMethod);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     // Intentionally run only on mount to set initial authentication type value
     // Re-running on authMethod changes would override user's manual selection
   }, []);

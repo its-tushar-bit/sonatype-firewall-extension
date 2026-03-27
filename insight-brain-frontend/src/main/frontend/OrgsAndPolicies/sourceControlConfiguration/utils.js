@@ -347,7 +347,14 @@ export const compositeSourceControlToModel = (
   return sourceControlData;
 };
 
-export const prepareSubmitData = (sourceControl, serverSourceControl, isApp, isRootOrg, isAutomationSupported) => {
+export const prepareSubmitData = (
+  sourceControl,
+  serverSourceControl,
+  isApp,
+  isRootOrg,
+  isAutomationSupported,
+  isGithubAppAuthenticationEnabled = true
+) => {
   if (!sourceControl) return {};
   const { ownerId, id, sshEnabled } = sourceControl;
   const submitData = {
@@ -445,7 +452,9 @@ export const prepareSubmitData = (sourceControl, serverSourceControl, isApp, isR
     : sourceControl.provider.rscValue.value;
 
   if (effectiveProviderValue === 'github') {
-    if (!sourceControl.authenticationType.isInherited || isRootOrg) {
+    if (!isGithubAppAuthenticationEnabled) {
+      submitData.authenticationType = null;
+    } else if (!sourceControl.authenticationType.isInherited || isRootOrg) {
       submitData.authenticationType = sourceControl.authenticationType.value;
     } else {
       submitData.authenticationType = null;
@@ -456,10 +465,12 @@ export const prepareSubmitData = (sourceControl, serverSourceControl, isApp, isR
   // Clear githubApp when: inherited, non-GitHub provider, or PAT auth selected
   const isInheritingGithubApp = !isRootOrg && sourceControl.githubApp.isInherited;
   const isNotGitHubProvider = effectiveProviderValue !== 'github';
+  const isGitHubAppFeatureDisabled = effectiveProviderValue === 'github' && !isGithubAppAuthenticationEnabled;
   const isUserSelectingPAT =
     effectiveProviderValue === 'github' && sourceControl.authenticationType.value === AUTHENTICATION_TYPES.PAT;
 
-  const shouldClearGithubApp = isInheritingGithubApp || isNotGitHubProvider || isUserSelectingPAT;
+  const shouldClearGithubApp =
+    isInheritingGithubApp || isNotGitHubProvider || isUserSelectingPAT || isGitHubAppFeatureDisabled;
 
   if (shouldClearGithubApp) {
     submitData.githubApp = null;
@@ -473,6 +484,17 @@ export const effectiveProvider = (sourceControl, serverSourceControl) => {
   return sourceControl.provider?.isInherited
     ? serverSourceControl?.provider?.parentValue?.value
     : sourceControl.provider?.rscValue?.value;
+};
+
+export const effectiveAuthenticationType = (sourceControl) => {
+  if (!sourceControl?.authenticationType) {
+    return null;
+  }
+
+  const inheritedAuthenticationType = sourceControl.authenticationType.parentValue ?? null;
+  const localAuthenticationType = sourceControl.authenticationType.value ?? null;
+
+  return sourceControl.authenticationType.isInherited ? inheritedAuthenticationType : localAuthenticationType;
 };
 
 /**
@@ -549,15 +571,15 @@ export const isAccessTokenRequiredOnNode = (
     // For GitHub, auth inheritance is INDEPENDENT of provider inheritance
     // User can inherit provider but override auth method (or vice versa)
     const isAuthInherited = sourceControl?.authenticationType?.isInherited;
-    const hasParentAuth = sourceControl?.authenticationType?.parentValue;
-    if (isAuthInherited && hasParentAuth) {
-      // Auth method inherited from parent = no token needed at App level
+    const parentAuthType = sourceControl?.authenticationType?.parentValue;
+    if (isGithubAppAuthenticationEnabled && isAuthInherited && parentAuthType === AUTHENTICATION_TYPES.GITHUB_APP) {
+      // Inherited GitHub App authentication doesn't use tokens while the feature is enabled.
       return false;
     }
 
     // Auth method is overridden - check if it's GitHub App (no token needed)
     const authType = sourceControl?.authenticationType?.value;
-    if (authType === AUTHENTICATION_TYPES.GITHUB_APP) {
+    if (isGithubAppAuthenticationEnabled && authType === AUTHENTICATION_TYPES.GITHUB_APP) {
       // GitHub App authentication doesn't use token
       return false;
     }
@@ -584,10 +606,9 @@ export const isAccessTokenRequiredOnNode = (
     }
 
     // Check if app has a token value (either in current input or saved on server)
-    const hasCurrentToken = sourceControl?.token?.rscValue?.value || sourceControl?.token?.rscValue?.trimmedValue;
+    const hasCurrentToken = sourceControl?.token?.rscValue?.trimmedValue;
     const hasSavedToken = serverSourceControl?.token?.value;
 
-    const parentAuthType = sourceControl?.authenticationType?.parentValue;
     // When feature is disabled OR auth type is undefined/null, treat as PAT (backwards compatibility)
     // When feature is enabled AND auth type is explicitly GITHUB_APP, cannot reuse token
     const isParentUsingPAT =

@@ -44,7 +44,9 @@ import {
 } from './data';
 import { clone } from 'ramda';
 import {
+  AUTHENTICATION_TYPES,
   SOURCE_CONTROL_UNSUPPORTED_MESSAGE,
+  compositeSourceControlToModel,
   getScmFormStateStorageKey,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 
@@ -176,7 +178,7 @@ describe('sourceControlConfiguration', () => {
         expect(resetButton).toBeVisible();
         expect(submitButton).toBeVisible();
         fireEvent.click(submitButton);
-        expect(axiosMock.history.post.length).toBe(0);
+        expect(axiosMock.history.put.length).toBe(0);
       });
 
       it('renders error message and retry button when loading source control configuration fails', async () => {
@@ -678,6 +680,50 @@ describe('sourceControlConfiguration', () => {
 
         // Token field should be visible when feature is disabled
         expect(screen.getByLabelText(/Access Token/i)).toBeInTheDocument();
+      });
+
+      it('requires a personal access token when feature is disabled and an existing GitHub App configuration has no token', async () => {
+        const preloadedState = clone(defaultPreloadedState);
+
+        axiosMock.onPut(getSourceControlUrl(ownerType, ownerId)).reply(200);
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...existingRootOrgConfigResponse,
+          provider: { value: 'github', parentValue: null, parentName: null },
+          token: { value: null, parentValue: null, parentName: null },
+          authenticationType: { value: AUTHENTICATION_TYPES.GITHUB_APP, parentValue: null, parentName: null },
+          githubApp: {
+            value: {
+              installationId: '12345',
+              name: 'Root GitHub App',
+              accountName: 'root-org',
+            },
+            parentValue: null,
+            parentName: null,
+          },
+        });
+
+        renderComponent(preloadedState);
+
+        const submitButton = await screen.findByRole('button', { name: 'Update' });
+        fireEvent.click(submitButton);
+
+        expect(axiosMock.history.post.length).toBe(0);
+
+        const tokenInput = screen.getByLabelText(/Access Token/i);
+        fireEvent.change(tokenInput, { target: { value: '   ' } });
+        fireEvent.click(submitButton);
+
+        expect(axiosMock.history.put.length).toBe(0);
+
+        fireEvent.change(tokenInput, { target: { value: 'root-local-token' } });
+        fireEvent.click(submitButton);
+
+        await waitFor(() => expect(axiosMock.history.put.length).toBe(1));
+        expect(JSON.parse(axiosMock.history.put[0].data)).toMatchObject({
+          provider: 'github',
+          token: 'root-local-token',
+          authenticationType: null,
+        });
       });
 
       it('shows token field when non-GitHub provider selected and feature enabled', async () => {
@@ -1369,6 +1415,115 @@ describe('sourceControlConfiguration', () => {
         // Should show standard token input field
         const tokenInput = screen.getByTestId('token-input');
         expect(tokenInput).toBeVisible();
+      });
+
+      it('shows a fresh GitHub App install as a pending local change on the first return from registration', async () => {
+        const preloadedState = {
+          ...defaultPreloadedState,
+          router: {
+            ...defaultPreloadedState.router,
+            currentParams: {
+              ...defaultPreloadedState.router.currentParams,
+              githubAppSuccess: 'true',
+            },
+          },
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+        const savedStateKey = getScmFormStateStorageKey(ownerType, ownerId);
+        const savedState = compositeSourceControlToModel(
+          {
+            ...defaultOrgConfigResponse,
+            provider: { value: 'github', parentValue: 'azure', parentName: ROOT_ORGANIZATION_NAME },
+            authenticationType: {
+              value: AUTHENTICATION_TYPES.GITHUB_APP,
+              parentValue: null,
+              parentName: ROOT_ORGANIZATION_NAME,
+            },
+          },
+          false
+        );
+
+        delete savedState.token;
+
+        sessionStorage.setItem(savedStateKey, JSON.stringify(savedState));
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...defaultOrgConfigResponse,
+          githubApp: {
+            value: {
+              installationId: 67890,
+              name: 'Pending GitHub App',
+              accountName: 'pending-org',
+            },
+            parentValue: null,
+            parentName: null,
+          },
+        });
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        const authMethodFieldset = screen.getByRole('group', { name: 'Authentication Method' });
+        expect(
+          within(authMethodFieldset).getByRole('radio', {
+            name: 'GitHub App (Recommended)',
+          })
+        ).toBeChecked();
+        expect(screen.getAllByText('Pending GitHub App').length).toBeGreaterThan(0);
+        expect(screen.getByRole('link', { name: 'Go to GitHub Installation Settings' })).toBeVisible();
+        expect(screen.getByRole('button', { name: 'Reconfigure' })).toBeVisible();
+        expect(
+          screen.queryByText('GitHub App is already configured. No additional changes to save.')
+        ).not.toBeInTheDocument();
+        expect(sessionStorage.getItem(savedStateKey)).toBeNull();
+      });
+
+      it('does not surface an uncommitted GitHub App on a later revisit without the return context', async () => {
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...existingOrgConfigResponse,
+          provider: { value: 'github', parentValue: 'azure', parentName: ROOT_ORGANIZATION_NAME },
+          authenticationType: {
+            value: AUTHENTICATION_TYPES.PAT,
+            parentValue: null,
+            parentName: ROOT_ORGANIZATION_NAME,
+          },
+          githubApp: {
+            value: {
+              installationId: '67890',
+              name: 'Uncommitted GitHub App',
+              accountName: 'org-account',
+            },
+            parentValue: null,
+            parentName: null,
+          },
+        });
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        const authMethodFieldset = screen.getByRole('group', { name: 'Authentication Method' });
+        expect(within(authMethodFieldset).getByRole('radio', { name: 'Personal Access Token' })).toBeChecked();
+        expect(within(authMethodFieldset).getByLabelText('Access Token')).toBeVisible();
+        expect(screen.queryByText('Uncommitted GitHub App')).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'Go to GitHub Installation Settings' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Reconfigure' })).not.toBeInTheDocument();
       });
 
       it('allows selecting Personal Access Token authentication method', async () => {
@@ -2136,6 +2291,69 @@ describe('sourceControlConfiguration', () => {
         expect(tokenInputWrapper).toBeVisible();
         const tokenInput = tokenInputWrapper.querySelector('input');
         expect(tokenInput).toHaveAttribute('type', 'password');
+      });
+
+      it('shows the access-token warning and blocks submit until a token is provided when feature flag is disabled', async () => {
+        axiosMock.onPost(getSourceControlUrl(ownerType, ownerId)).reply(200);
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...defaultAppConfigResponse,
+          provider: { value: null, parentValue: 'github', parentName: ROOT_ORGANIZATION_NAME },
+          token: { value: null, parentValue: null, parentName: ROOT_ORGANIZATION_NAME },
+          baseBranch: { value: null, parentValue: 'main', parentName: ROOT_ORGANIZATION_NAME },
+          authenticationType: {
+            value: null,
+            parentValue: AUTHENTICATION_TYPES.GITHUB_APP,
+            parentName: ROOT_ORGANIZATION_NAME,
+          },
+          githubApp: {
+            value: null,
+            parentValue: {
+              installationId: 67890,
+              name: 'Root GitHub App',
+              accountName: 'root-org',
+            },
+            parentName: ROOT_ORGANIZATION_NAME,
+          },
+        });
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': false,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        expect(await screen.findByText('Access Token must be configured')).toBeVisible();
+
+        const repositoryUrl = screen.getByRole('textbox', { name: 'Repository Clone URL' });
+        fireEvent.change(repositoryUrl, { target: { value: 'https://github.com/example/app-repo.git' } });
+
+        const submitButton = screen.getByRole('button', { name: 'Update' });
+        fireEvent.click(submitButton);
+
+        expect(axiosMock.history.post.length).toBe(0);
+
+        const tokenInput = screen.getByTestId('token-input');
+        fireEvent.change(tokenInput, { target: { value: '   ' } });
+        expect(screen.getByTestId('source-control-token-warning')).toHaveTextContent('Access Token must be configured');
+        fireEvent.click(submitButton);
+
+        expect(axiosMock.history.post.length).toBe(0);
+
+        fireEvent.change(tokenInput, { target: { value: 'app-local-token' } });
+        fireEvent.click(submitButton);
+
+        expect(await screen.findByText('Success!')).toBeVisible();
+        expect(JSON.parse(axiosMock.history.post[0].data)).toMatchObject({
+          repositoryUrl: 'https://github.com/example/app-repo.git',
+          token: 'app-local-token',
+          authenticationType: null,
+        });
       });
 
       it('shows standard token authentication for non-GitHub providers', async () => {

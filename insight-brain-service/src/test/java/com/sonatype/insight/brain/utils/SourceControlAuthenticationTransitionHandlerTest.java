@@ -97,8 +97,10 @@ public class SourceControlAuthenticationTransitionHandlerTest
   }
 
   @Test
-  public void testHandleAuthTransition_SameAuthType_NoHandle() {
+  public void testHandleAuthTransition_SameAuthType_PAT_DeletesGitHubApp() {
     Application app = tempEntity.newApplicationWithParent();
+    createAndInsertGitHubApp(app.getId());
+
     SourceControl storedSC = createSourceControl(
         app.getId(), SourceControlProvider.GITHUB, AuthenticationType.PAT);
     SourceControl newSC = createSourceControl(
@@ -106,8 +108,9 @@ public class SourceControlAuthenticationTransitionHandlerTest
 
     cleanupHandler.handleAuthTransition(storedSC, newSC);
 
-    // Verify no API deletion was attempted
-    verify(0, deleteRequestedFor(urlPathMatching("/app/installations/.*")));
+    // When transitioning to non-GITHUB_APP auth type, GitHub App should be deleted
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    verify(deleteRequestedFor(urlPathMatching("/app/installations/.*")));
   }
 
   @Test
@@ -151,6 +154,54 @@ public class SourceControlAuthenticationTransitionHandlerTest
 
     cleanupHandler.handleAuthTransition(storedSC, newSC);
     verify(0, deleteRequestedFor(urlPathMatching("/app/installations/.*")));
+  }
+
+  @Test
+  public void testHandleAuthTransition_SameAuthType_GitHubApp_NoHandle() {
+    Application app = tempEntity.newApplicationWithParent();
+    createAndInsertGitHubApp(app.getId());
+
+    SourceControl storedSC = createSourceControl(
+        app.getId(), SourceControlProvider.GITHUB, AuthenticationType.GITHUB_APP);
+    SourceControl newSC = createSourceControl(
+        app.getId(), SourceControlProvider.GITHUB, AuthenticationType.GITHUB_APP);
+
+    cleanupHandler.handleAuthTransition(storedSC, newSC);
+
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNotNull();
+    verify(0, deleteRequestedFor(urlPathMatching("/app/installations/.*")));
+  }
+
+  @Test
+  public void testHandleAuthTransition_GitHubAppToNull_DeletesGitHubApp() {
+    Application app = tempEntity.newApplicationWithParent();
+    createAndInsertGitHubApp(app.getId());
+
+    SourceControl storedSC = createSourceControl(
+        app.getId(), SourceControlProvider.GITHUB, AuthenticationType.GITHUB_APP);
+    SourceControl newSC = createSourceControl(
+        app.getId(), SourceControlProvider.GITHUB, null);
+
+    cleanupHandler.handleAuthTransition(storedSC, newSC);
+
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    verify(deleteRequestedFor(urlPathMatching("/app/installations/.*")));
+  }
+
+  @Test
+  public void testHandleAuthTransition_NullToPat_DeletesGitHubApp() {
+    Application app = tempEntity.newApplicationWithParent();
+    createAndInsertGitHubApp(app.getId());
+
+    SourceControl storedSC = createSourceControl(
+        app.getId(), SourceControlProvider.GITHUB, null);
+    SourceControl newSC = createSourceControl(
+        app.getId(), SourceControlProvider.GITHUB, AuthenticationType.PAT);
+
+    cleanupHandler.handleAuthTransition(storedSC, newSC);
+
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    verify(deleteRequestedFor(urlPathMatching("/app/installations/.*")));
   }
 
   @Test

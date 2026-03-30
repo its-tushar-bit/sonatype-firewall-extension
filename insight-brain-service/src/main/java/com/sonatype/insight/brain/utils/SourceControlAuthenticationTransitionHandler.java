@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.utils;
 
-import java.util.Objects;
-
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -14,10 +12,11 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.service.githubapp.GitHubAppDeletionService;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType;
-import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
 
 @Named
 @Singleton
@@ -42,24 +41,19 @@ public class SourceControlAuthenticationTransitionHandler
       final SourceControl storedSourceControl,
       final SourceControl newSourceControl)
   {
-    AuthenticationType oldAuthType = storedSourceControl.getAuthenticationType();
+    AuthenticationType oldAuthType =
+        Optional.ofNullable(storedSourceControl).map(SourceControl::getAuthenticationType).orElse(null);
     AuthenticationType newAuthType = newSourceControl.getAuthenticationType();
 
-    if (Objects.equals(storedSourceControl.getProvider(), newSourceControl.getProvider())
-        && Objects.equals(oldAuthType, newAuthType))
-    {
-      return;
-    }
-
-    log.info("Authentication type changing from {} to {} for owner {}",
-        oldAuthType, newAuthType, storedSourceControl.getOwnerId());
+    log.debug("Authentication type changing from {} to {} for owner {}",
+        oldAuthType, newAuthType, newSourceControl.getOwnerId());
 
     if (AuthenticationType.PAT.equals(oldAuthType) && AuthenticationType.GITHUB_APP.equals(newAuthType)) {
       clearPatToken(newSourceControl);
-      return;
     }
-
-    deleteGitHubAppInstallation(storedSourceControl);
+    if (!AuthenticationType.GITHUB_APP.equals(newAuthType)) {
+      deleteGitHubAppInstallation(newSourceControl);
+    }
   }
 
   private void clearPatToken(final SourceControl sourceControl) {
@@ -67,17 +61,7 @@ public class SourceControlAuthenticationTransitionHandler
     sourceControl.setToken(null);
   }
 
-  /**
-   * Delegates GitHub App deletion to provider-specific service.
-   */
-  public void deleteGitHubAppInstallation(final SourceControl storedSourceControl) {
-    if (!SourceControlProvider.GITHUB.equals(storedSourceControl.getProvider())
-        || !AuthenticationType.GITHUB_APP.equals(storedSourceControl.getAuthenticationType()))
-    {
-      log.debug("Provider {} does not require app deletion", storedSourceControl.getProvider());
-      return;
-    }
-
-    gitHubAppDeletionService.delete(storedSourceControl.getOwnerId());
+  public void deleteGitHubAppInstallation(final SourceControl sourceControl) {
+    gitHubAppDeletionService.delete(sourceControl.getOwnerId());
   }
 }

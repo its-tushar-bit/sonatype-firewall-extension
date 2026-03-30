@@ -341,6 +341,7 @@ public class ApiSourceControlService
           "SourceControl already exists for %s with id: %s", ownerType, getPublicOwnerId(ownerId)));
     }
 
+    sourceControlAuthenticationTransitionHandler.handleAuthTransition(null, sourceControl);
     sourceControlDAO.insert(sourceControl);
     auditSourceControl(sourceControl);
 

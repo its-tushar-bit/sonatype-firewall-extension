@@ -23,6 +23,8 @@ import com.sonatype.insight.brain.model.prioritization.IntegrationStatusSummary;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.jooq.Table;
+import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
 
@@ -99,7 +101,7 @@ public class IntegrationStatusDAO
       List<Object> params = new ArrayList<>();
       params.add(Stage.ID_BUILD);
       params.add(Stage.ID_BUILD);
-      params.add(ciLookbackDate);
+      params.add(DSL.val(ciLookbackDate, SQLDataType.TIMESTAMP));
       params.addAll(applicationIds);
 
       return tx.dsl()

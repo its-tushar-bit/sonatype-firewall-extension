@@ -42,6 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.util.CollectionUtils;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.SourceControl.SOURCE_CONTROL;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -222,7 +223,11 @@ public class SourceControlDAO
           "     ) AS first_policy_eval_commit" +
           " WHERE sc.owner_id = first_policy_eval_commit.application_id)" +
           " WHERE sc.pull_request_poll_time IS NULL;";
-      txn.dsl().execute(sql, defaultPollingTime, defaultPollingTime, defaultPollingTime);
+      txn.dsl()
+          .execute(sql,
+              DSL.val(defaultPollingTime, SQLDataType.TIMESTAMP),
+              DSL.val(defaultPollingTime, SQLDataType.TIMESTAMP),
+              DSL.val(defaultPollingTime, SQLDataType.TIMESTAMP));
       txn.commit();
     }
   }
@@ -233,7 +238,7 @@ public class SourceControlDAO
       String sql = "UPDATE " + getDatabaseSchema() +
           ".source_control SET pull_request_poll_time = ?" +
           " WHERE pull_request_poll_time IS NULL AND repository_url IS NOT NULL;";
-      txn.dsl().execute(sql, defaultPollingTime);
+      txn.dsl().execute(sql, DSL.val(defaultPollingTime, SQLDataType.TIMESTAMP));
       txn.commit();
     }
   }
@@ -759,7 +764,9 @@ public class SourceControlDAO
     try (TransactionContext tx = createTransactionContext()) {
       List<String> initialOwnerIdList = tx.dsl()
           .resultQuery(
-              injectSchemaName(SELECT_APPLICATIONS_FOR_SOURCE_SCAN), scanLimitDate, externalEvaluationLimitDate)
+              injectSchemaName(SELECT_APPLICATIONS_FOR_SOURCE_SCAN),
+              DSL.val(scanLimitDate, SQLDataType.TIMESTAMP),
+              DSL.val(externalEvaluationLimitDate, SQLDataType.TIMESTAMP))
           .fetchInto(String.class);
       return expandToCompositeSourceControlEntries(initialOwnerIdList);
     }

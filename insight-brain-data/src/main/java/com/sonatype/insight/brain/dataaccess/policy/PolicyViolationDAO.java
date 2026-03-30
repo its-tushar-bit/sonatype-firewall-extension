@@ -58,6 +58,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1697,7 +1698,7 @@ public class PolicyViolationDAO
         bindings.addAll(applicationIds);
       }
       if (minDate != null) {
-        bindings.add(minDate);
+        bindings.add(DSL.val(minDate, SQLDataType.TIMESTAMP));
       }
       if (minPolicyThreatLevel != null) {
         bindings.add(minPolicyThreatLevel);
